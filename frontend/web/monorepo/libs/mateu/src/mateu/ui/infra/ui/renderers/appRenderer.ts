@@ -89,6 +89,17 @@ const renderNeutralNav = (items: MenuBarItem[], onSelect: (item: MenuBarItem) =>
             : navLeaf(item, onSelect))}
     </nav>`
 
+/**
+ * The menu folded into one button, for band 1 on a narrow viewport (band 2 is hidden there): the
+ * whole menu as the children of a single "☰" item, so the renderer's own menu bar opens it as a
+ * dropdown with its keyboard handling. The neutral fallback is a <details> with the same items.
+ */
+const renderMenuButton = (items: MenuBarItem[], onSelect: (item: MenuBarItem) => void) => {
+    const root: MenuBarItem[] = [{ text: '☰', children: items, className: 'mateu-menu-button-root', 'aria-label': 'Menu' }]
+    return componentRenderer.get()?.renderTopNav?.(root, onSelect, 'menu-button')
+        ?? renderNeutralNav(root, onSelect, 'menu-button')
+}
+
 const fireSelect = (container: MateuApp, handler: (e: CustomEvent) => void) => (item: MenuBarItem) =>
     handler.call(container, { detail: { value: item } } as unknown as CustomEvent)
 
@@ -392,28 +403,38 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             
             ${metadata.variant == AppVariant.MENU_ON_TOP?html`
                 <div class="m-vl" style="width: 100%; height: 100vh; overflow: hidden;">
-                    <div class="m-hl"
-                            style="width: 100%; height: 4rem; flex-shrink: 0; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);"
+                    <!-- TWO BANDS, like the Redwood header: band 1 = the logo on the left and the
+                         widgets on the right; band 2 = the app's title, then its menu as a horizontal
+                         bar. A narrow viewport folds the menu into a ☰ button next to the title. -->
+                    <div class="m-hl mateu-app-band1"
+                            style="width: 100%; height: 3.5rem; flex-shrink: 0; align-items: center; background-color: var(--lumo-base-color);"
                             @navigation-requested="${container.updateRoute}">
                     <div class="${HEADER_ROW_CLASS}" style="${HEADER_ROW}" theme="spacing">
                         <a href="javascript: void(0);" @click="${() => container.goHome()}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
-                        ${renderBrand(metadata)}
+                        ${renderBrand({ ...metadata, title: '' })}
                         </a>
-                        ${(() => {
-                            const onSelect = fireSelect(container, container.itemSelected)
-                            // The active renderer may supply its own chrome menu (the Vaadin adapter
-                            // returns a <vaadin-menu-bar>); otherwise fall back to the neutral strip.
-                            return componentRenderer.get()?.renderTopNav?.(items, onSelect, 'menu-on-top')
-                                ?? renderNeutralNav(items, onSelect, 'menu-on-top')
-                        })()}
                         <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
                             ${renderHeaderWidgets(metadata, container)}
                         </div>
                     </div>
                     </div>
+                    <nav class="mateu-app-band2" aria-label="${metadata.title || 'Menu'}"
+                            @navigation-requested="${container.updateRoute}">
+                        <div class="mateu-app-menu-button">
+                            ${renderMenuButton(items, fireSelect(container, container.itemSelected))}
+                        </div>
+                        ${metadata.title ? html`<a href="javascript: void(0);" @click="${() => container.goHome()}" class="mateu-app-band-title">${metadata.title}</a>` : nothing}
+                        ${(() => {
+                            const onSelect = fireSelect(container, container.itemSelected)
+                            // The active renderer may supply its own chrome menu (the Vaadin adapter
+                            // returns a <vaadin-menu-bar>); otherwise fall back to the neutral strip.
+                            return componentRenderer.get()?.renderTopNav?.(items, onSelect, 'menu-on-top menu-band')
+                                ?? renderNeutralNav(items, onSelect, 'menu-on-top menu-band')
+                        })()}
+                    </nav>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
                         <div class="m-md">
-                            <div class="m-scroll" style="height: 100%;">
+                            <div class="m-scroll mateu-content-gutter" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
                                             data-content-view

@@ -752,7 +752,9 @@ export class MateuApp extends ComponentElement {
                 const app = metadata as App
                 // The menu the automatic breadcrumb trail walks (breadcrumbTrail): published again
                 // when the remote sections have been fetched and the menu grows.
-                publishShellMenu(this, app.menu, app.noBreadcrumbs)
+                publishShellMenu(this, app.menu, app.noBreadcrumbs, (option, route) =>
+                    this.selectRoute(option.consumedRoute, route, option.actionId, option.baseUrl,
+                        option.serverSideType, option.uriPrefix))
                 // The app's REST source catalogue, published for the fetch layer: a surface carries
                 // only a source's name, so the lookup table has to be in place before it fetches.
                 setRestSourceCatalogue(app.restSources)
@@ -872,6 +874,47 @@ export class MateuApp extends ComponentElement {
             .mateu-app-widgets { gap: var(--lumo-space-s, .5rem); }
         }
 
+        /* MENU_ON_TOP in two bands (appRenderer): band 1 = logo + widgets, band 2 = the app title
+           then the menu bar. Band 2's start lines up with the content gutter below it. Below 600px
+           the menu folds into a ☰ button before the title. No "current item" marker on the bar:
+           the breadcrumbs and the page title say where you are. */
+        .mateu-app-band1 { border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); }
+        .mateu-app-band1 > .mateu-app-header { align-items: center !important; }
+        .mateu-app-band1 .mateu-app-brand > .m-hl { align-items: center !important; }
+        .mateu-app-band2 {
+            display: flex;
+            align-items: center;
+            gap: var(--lumo-space-s, .5rem);
+            flex-shrink: 0;
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 2.75rem;
+            padding-inline: var(--mateu-content-gutter, 24px) calc(var(--mateu-content-gutter, 24px) - var(--lumo-space-s, .5rem));
+            background-color: var(--lumo-base-color);
+            color: var(--lumo-body-text-color);
+            border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
+        }
+        .mateu-app-band-title {
+            flex: 0 0 auto;
+            margin-inline-end: var(--lumo-space-m, 1rem);
+            font-size: var(--lumo-font-size-l, 1.125rem);
+            font-weight: 600;
+            color: var(--lumo-header-text-color, inherit);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .mateu-app-band2 > .menu-band { flex: 1 1 0; min-width: 0; }
+        .mateu-app-menu-button { display: none; flex: 0 0 auto; margin-inline-start: calc(-1 * var(--lumo-space-s, .5rem)); }
+        /* The content gutter of this shell (it has no padded .app-content): the page's content view
+           takes it (mateu-ux data-page-width fixed/full), the RDS 24px — 16px on a phone. */
+        .mateu-content-gutter { --mateu-content-gutter: 24px; --mateu-shell-gutter: 24px; }
+        @media (max-width: 600px) {
+            .mateu-app-band2 > .menu-band { display: none; }
+            .mateu-app-menu-button { display: inline-flex; }
+            .mateu-app-band-title { overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
+            .mateu-content-gutter { --mateu-content-gutter: 16px; --mateu-shell-gutter: 16px; }
+        }
+
         /* top nav (menu-on-top) */
         .app-nav { display: flex; flex-wrap: wrap; align-items: center; gap: .15rem; }
         .app-nav-item { border: none; background: transparent; font: inherit; padding: .4rem .8rem; border-radius: var(--lumo-border-radius-m, 6px); cursor: pointer; color: var(--lumo-body-text-color, #1a1a1a); white-space: nowrap; }
@@ -905,6 +948,7 @@ export class MateuApp extends ComponentElement {
         .left-menu-group > summary { cursor: pointer; padding: .5rem .75rem; font-weight: 600; }
 
         .app-content {
+            --mateu-content-gutter: 0px;
             padding-left: 2rem;
             padding-right: 2rem;
             padding-top: 1.5rem;

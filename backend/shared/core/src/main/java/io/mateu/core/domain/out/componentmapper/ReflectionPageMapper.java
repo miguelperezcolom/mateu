@@ -88,6 +88,11 @@ public class ReflectionPageMapper {
     return PageMetadataExtractor.getTitle(instance);
   }
 
+  /** The page subtitle of a view model ({@code SubtitleSupplier} or {@code @Subtitle}), or null. */
+  public static String getPageSubtitle(Object instance) {
+    return PageMetadataExtractor.getSubtitle(instance);
+  }
+
   /** Page-header badges (from {@code @BadgeInHeader} fields / {@code BadgeSupplier}). */
   public static List<io.mateu.uidl.data.Badge> getPageBadges(
       Object instance, io.mateu.uidl.interfaces.HttpRequest httpRequest) {

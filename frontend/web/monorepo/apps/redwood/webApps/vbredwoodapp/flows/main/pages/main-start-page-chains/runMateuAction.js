@@ -247,6 +247,7 @@ define([
         if (urlPush != null) {
           const urlRoute = bridge.composeInnerRoute(mediatorRoute, urlPush);
           $application.variables.mateuSelectedRoute = urlRoute;
+          $application.variables.mateuSelectedNavId = urlRoute;
           try {
             window.history.pushState(
               null, '', window.__mateuUrlPathMode ? (urlRoute || '/') : '#' + urlRoute);
@@ -362,6 +363,7 @@ define([
           $application.variables.mateuFoldoutContent = contentOf(foldoutProjection);
           $application.variables.mateuFoldout = foldoutProjection;
         }
+        bridge.mountElementsSoon(bridge.foldoutElementAtomsOf($application.variables.mateuFoldoutContent), 60);
       }
       $application.variables.mateuWizard = bridge.wizardOf(hostAfter);
       if ($application.variables.mateuWizard) bridge.guardGuidedProcess();
@@ -589,8 +591,9 @@ define([
       $application.variables.mateuPageHeader = {
         // con EntityHeader en el host (la 360), el header de PANTALLA muestra al huésped
         title: hostEntity2 ? hostEntity2.title : (summary.title || ''),
-        subtitle: hostEntity2 ? hostEntity2.subtitle : '',
-        facts: hostEntity2 ? hostEntity2.facts : [],
+        subtitle: hostEntity2 ? hostEntity2.subtitle : bridge.pageSubtitleOf(hostAfter),
+        // sin EntityHeader, los @KPI de la Page (los totales de la reserva) son sus facts
+        facts: hostEntity2 ? hostEntity2.facts : bridge.pageKpisOf(hostAfter),
         showBand: showBandA && !gopOn2,
         showInline: showHeaderA && !showBandA && !gopOn2,
         showListBand: showListBandA,

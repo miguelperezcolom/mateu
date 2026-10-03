@@ -14,7 +14,8 @@ import type Component from "@mateu/shared/apiClients/dtos/Component.ts";
 import { interpolate, possiblyHtml } from './interpolation'
 import { isBackButton, isNavButton } from './toolbarButtonKinds'
 import { navigateToRoute } from './rowRoute'
-import { shellTrail, Crumb } from './breadcrumbTrail'
+import { shellTrail, pathOfPage, Crumb, navigateLikeMenu } from './breadcrumbTrail'
+import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 
 export { possiblyHtml } from './interpolation'
@@ -305,7 +306,7 @@ export class MateuContentHeader extends LitElement {
             return metadata.breadcrumbs.map(b => ({ text: b.text, route: b.link || undefined }))
         }
         if (level > 0 || metadata?.type !== ComponentMetadataType.Page || metadata.noBreadcrumbs) return []
-        return shellTrail(window.location.pathname, { title: metadata.title, pageType: metadata.pageType })
+        return shellTrail(pathOfPage(metadata), { title: metadata.title, pageType: metadata.pageType })
     }
 
     /** Inside the app for a path (the menu's own navigation), a full load for anything else. */
@@ -314,6 +315,9 @@ export class MateuContentHeader extends LitElement {
             window.location.href = route
             return
         }
+        if (!dirtyGuard.confirmLeave()) return
+        // like a menu click: the shell reloads the content for that route
+        if (navigateLikeMenu(route)) return
         navigateToRoute(this, route)
     }
 
@@ -399,9 +403,9 @@ export class MateuContentHeader extends LitElement {
                     </div>
                     <div style="display: flex; gap: var(--lumo-space-m, 1rem); align-items: center;">
                         ${!(metadata as any).kpisBelow ? metadata?.kpis?.map((kpi) => html`
-                            <div style="display: flex; flex-direction: column; align-items: center;">
-                                <div>${this.evalLabel(kpi.title)}</div>
-                                <div>${unsafeHTML(possiblyHtml(kpi.text, this.state ?? {}, this.data ?? {}))}</div>
+                            <div class="header-fact">
+                                <span class="header-fact-label">${this.evalLabel(kpi.title)}</span>
+                                <span class="header-fact-value">${unsafeHTML(possiblyHtml(kpi.text, this.state ?? {}, this.data ?? {}))}</span>
                             </div>
                         `) : nothing}
                         ${metadata?.header?.map((component: Component) => renderComponent(this, component, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData))}
@@ -509,6 +513,22 @@ export class MateuContentHeader extends LitElement {
 
         /* Facts row UNDER the title (hoisted EntityHeader anatomy): label+value pairs,
            label in small caps secondary, value emphasized — mirrors the VB/Redwood header. */
+        /* @KPI in the header: the EntityHeader fact look (small-caps muted label over a bold
+           value), like the front office stay's TOTAL RESERVA / AGENCIA */
+        .header-fact {
+            display: flex; flex-direction: column; gap: .1rem; min-width: 0;
+            padding-inline-end: var(--lumo-space-s, .5rem);
+        }
+        .header-fact-label {
+            font-size: var(--lumo-font-size-xxs, .7rem); font-weight: 600; letter-spacing: .05em;
+            text-transform: uppercase; color: var(--lumo-tertiary-text-color, #999);
+            white-space: nowrap;
+        }
+        .header-fact-value {
+            font-size: var(--lumo-font-size-m, 1rem); font-weight: 600;
+            color: var(--lumo-body-text-color, #222);
+            white-space: nowrap; line-height: normal;
+        }
         .kpi-row {
             display: flex;
             flex-wrap: wrap;

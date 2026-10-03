@@ -343,7 +343,7 @@
            oj-drawer-layout dimensiona el panel por su contenido, no expone variable -->
       <div slot="start" class="oj-sm-padding-4x-vertical" style="width:280px">
         <oj-navigation-list id="mateuNavList" drill-mode="collapsible"
-          selection="[[ $application.variables.mateuSelectedRoute ]]"
+          selection="[[ $application.variables.mateuSelectedNavId ]]"
           on-selection-changed="[[ $listeners.navDrawerSelected ]]">
           <ul>
             <oj-bind-for-each data="[[ $application.variables.mateuMenuTree ]]">
@@ -455,7 +455,7 @@
     <oj-bind-if test="[[ $application.variables.mateuMenuTabs ]]">
       <oj-sp-in-app-navigation id="mateuNav"
         navigation-items="[[ $application.variables.mateuNavItems ]]"
-        selection="[[ $application.variables.mateuSelectedRoute ]]"
+        selection="[[ $application.variables.mateuSelectedNavId ]]"
         on-sp-selection-changed="[[ $listeners.navSelectionChanged ]]"></oj-sp-in-app-navigation>
     </oj-bind-if>
   </div>

@@ -28,9 +28,28 @@ const crumbText = (text) => {
   return s.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim()
 }
 
+// las rutas que abren las ENTRADAS del menú (no los grupos): a donde una miga puede llevar
+function crumbLeafRoutes(menu) {
+  const out = new Set()
+  const walk = (options) => {
+    for (const option of options || []) {
+      if (!option || option.separator) continue
+      const children = option.submenus || option.submenu || []
+      if (children.length > 0) { walk(children); continue }
+      const route = crumbRoute(option.route || option.path)
+      if (route && route !== '/') out.add(route)
+    }
+  }
+  walk(menu)
+  return out
+}
+
 export function menuTrail(menu, path) {
   const current = crumbRoute(path)
   let best = null
+  // un grupo es un encabezado, no una página: su ruta (el prefijo de una sección federada,
+  // "/admin") no suele llevar a ningún sitio. Su miga sólo navega si una ENTRADA tiene esa ruta.
+  const pages = crumbLeafRoutes(menu)
   const walk = (options, above) => {
     for (const option of options || []) {
       if (!option || option.separator || option.visible === false) continue
@@ -38,7 +57,7 @@ export function menuTrail(menu, path) {
       const label = crumbText(option.caption || option.label)
       const children = option.submenus || option.submenu || []
       if (children.length > 0) {
-        walk(children, [...above, route && route !== '/' ? { text: label, route } : { text: label }])
+        walk(children, [...above, route && route !== '/' && pages.has(route) ? { text: label, route } : { text: label }])
         continue
       }
       if (!route || route === '/') continue

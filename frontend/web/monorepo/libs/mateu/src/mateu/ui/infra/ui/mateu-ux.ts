@@ -613,13 +613,32 @@ export class MateuUx extends ConnectedElement {
            por accidente; dentro de un app-shell el shell ya aporta su propio padding); edge =
            a sangre — los gutters del shell caen por el hook no-padding (compact-changed) y el
            header de mateu-page conserva el suyo. Solo aplica al mateu-ux de CONTENIDO. */
+        /* --mateu-content-gutter: the gutter a shell WITHOUT padded content area asks its content
+           view for (MENU_ON_TOP's two-band shell: 24px, 16px on a phone); a padded .app-content
+           sets it to 0. Fixed keeps its 1408px column and gets the gutter when narrower. */
         :host([data-page-width='fixed']) {
-            max-width: min(1408px, 100%);
+            box-sizing: border-box;
+            max-width: min(calc(1408px + 2 * var(--mateu-content-gutter, 0px)), 100%);
             margin-inline: auto;
+            padding-inline: var(--mateu-content-gutter, 0px);
         }
         :host([data-page-width='full']) {
             box-sizing: border-box;
-            padding-inline: 24px;
+            padding-inline: var(--mateu-content-gutter, 24px);
+        }
+        /* the view that took the gutter is the page: views nested in it (islands, a drawer's
+           content) are not, and must not take it again. An edge view (a remote shell's root)
+           passes it through to the page it holds. */
+        :host([data-page-width='fixed']) *,
+        :host([data-page-width='full']) * {
+            --mateu-content-gutter: 0px;
+            --mateu-edge-header-gutter: 0px;
+        }
+        /* An edge page's CONTENT bleeds, but its header (breadcrumbs, title, banners) keeps the
+           gutter the shell asked for — mateu-page reads it (RDS anatomy: only the content band
+           reaches the edges). Inside a padded .app-content the gutter is 0: the shell pads it. */
+        :host([data-page-width='edge']) {
+            --mateu-edge-header-gutter: var(--mateu-content-gutter, 0px);
         }
 
         /* The aside channel (layout/fabRail.ts): when the page has FABs or a section index, the
@@ -628,7 +647,7 @@ export class MateuUx extends ConnectedElement {
            centred (the Redwood shell's box is the 1408px column plus a channel each side). Full: the channel is
            its end padding. The values are measured and set by the view that owns the channel. */
         :host([data-page-width='fixed'][data-aside]) {
-            max-width: min(1408px, 100% - 2 * var(--mateu-aside-squeeze, 0px));
+            max-width: min(calc(1408px + 2 * var(--mateu-content-gutter, 0px)), 100% - 2 * var(--mateu-aside-squeeze, 0px));
         }
         :host([data-page-width='full'][data-aside]) {
             padding-inline-end: var(--mateu-aside-pad-end, 24px);

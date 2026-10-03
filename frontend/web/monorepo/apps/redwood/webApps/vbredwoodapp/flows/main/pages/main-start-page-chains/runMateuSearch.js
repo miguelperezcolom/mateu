@@ -19,8 +19,9 @@ define([
      * @param {Object} context
      * @param {Object} params
      * @param {string} params.searchText
+     * @param {number} [params.page]  la página pedida (el pie de la tabla); sin ella, la primera
      */
-    async run(context, { searchText }) {
+    async run(context, { searchText, page }) {
       const { $application } = context;
 
       // idem que en runMateuAction: el listado se busca en el backend del que se cargó
@@ -33,17 +34,16 @@ define([
         return;
       }
 
-      const componentState = Object.assign({}, host.state, {
-        searchText: searchText == null ? '' : searchText,
-        page: 0,
+      // filtros aplicados (los chips del smart search) y el orden de la cabecera → viajan en el
+      // componentState, que es donde SearchActionHandler los lee; un rango ocupa dos claves.
+      // Paginar conserva texto, filtros y orden; buscar o filtrar vuelve a la primera página.
+      const componentState = bridge.listingSearchStateOf(host.state, {
+        searchText,
+        page: page || 0,
         size: listing.pageSize,
+        filters: $application.variables.mateuFilterValues || {},
+        sort: $application.variables.mateuListingSort || [],
       });
-      // filtros aplicados (los chips del smart search) → viajan en el componentState,
-      // que es donde SearchActionHandler los lee; un rango ocupa dos claves
-      const applied = $application.variables.mateuFilterValues || {};
-      for (const key of Object.keys(applied)) {
-        componentState[key] = applied[key];
-      }
       $application.variables.mateuLastSearchText = searchText == null ? '' : searchText;
       const route = $application.variables.mateuSelectedRoute;
       const increment = await bridge.runMateuAction(base, host, route, 'search', componentState, { appState: $application.variables.mateuAppState || {} });
@@ -53,6 +53,10 @@ define([
       const refreshed = bridge.listingOf(reg.contexts[bridge.HOST_ID]);
       $application.variables.mateuListing = refreshed;
       $application.variables.mateuListingRows = refreshed ? refreshed.rows : [];
+      // otra página, otras filas: la selección (claves _rowNumber de la página) no se hereda
+      if (page) {
+        $application.variables.mateuListingSelection = { all: false, keys: [], except: [] };
+      }
       // los chips de filtro NO se re-proyectan aquí: los lleva el propio smart-filters, que es
       // quien ha lanzado esta búsqueda (reasignarle la config le cerraría el popup abierto)
     }

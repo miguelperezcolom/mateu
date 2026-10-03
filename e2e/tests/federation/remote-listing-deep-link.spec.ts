@@ -40,9 +40,9 @@ test.describe('deep link into a remote listing', () => {
 
     await expect(page.getByRole('heading', { name: 'Remote Thing' })).toBeVisible();
     // The record's own values, which only the record's own view can produce — the list has none of
-    // them. They are rendered as fields, so this reads the inputs rather than the page text.
-    await expect(page.locator('vaadin-text-field input').first()).toHaveValue('t3');
-    await expect(page.locator('vaadin-text-field input').nth(1)).toHaveValue('Remote thing t3');
+    // them. A CRUD's view is a detail screen (label and value), so they are read as text.
+    await expect(page.getByText('Remote thing t3', { exact: true }).first()).toBeVisible();
+    await expect(page.getByText('t3', { exact: true }).first()).toBeVisible();
   });
 
 });

@@ -168,6 +168,26 @@
         }
       ]
     },
+    "mateuListingPage": {
+      "chains": [
+        {
+          "chain": "listingPaged",
+          "parameters": {
+            "which": "{{ $event.target.dataset.page }}"
+          }
+        }
+      ]
+    },
+    "mateuListingSort": {
+      "chains": [
+        {
+          "chain": "listingSorted",
+          "parameters": {
+            "event": "{{ $event }}"
+          }
+        }
+      ]
+    },
     "mateuSearchAction": {
       "chains": [
         {

@@ -47,6 +47,12 @@ const directions: Record<string, string> = {
  * variants, or the ring is whole in one and cut in the next. The chooser stretches to the row and
  * takes the search box's own vertical padding (mateu-column-chooser), so it is exactly as tall.
  */
+/**
+ * On an EDGE page in a shell without padded content (MENU_ON_TOP's two bands) the listing's header
+ * rows — title + toolbar, search, pagination — keep the shell's gutter while the table bleeds, as in
+ * the Redwood anatomy. The variable is 0 everywhere else (mateu-ux sets it), so nothing moves there.
+ */
+const EDGE_GUTTER = 'padding-inline: var(--mateu-edge-header-gutter, 0px); box-sizing: border-box;'
 const FILTER_ROW_STYLE = 'flex-shrink: 0; display: flex; align-items: center; gap: var(--lumo-space-s, 0.5rem); padding: 3px;'
 
 @customElement('mateu-table-crud')
@@ -1309,7 +1315,7 @@ export class MateuTableCrud extends LitElement {
                     [data-crud-area] vaadin-grid { height: 100%; min-height: 0; }
                 </style>
                 <div data-crud-box style="${this.boxStyle()} width: 100%; box-sizing: border-box;">
-                    <div style="flex-shrink: 0;">
+                    <div style="flex-shrink: 0; ${EDGE_GUTTER}">
                         <mateu-content-header
                             .metadata="${metadata}"
                             .baseUrl="${this.baseUrl}"
@@ -1319,19 +1325,19 @@ export class MateuTableCrud extends LitElement {
                             .appData="${this.appData}"
                         ></mateu-content-header>
                     </div>
-                    <div style="${FILTER_ROW_STYLE}">
+                    <div style="${FILTER_ROW_STYLE} padding-inline: calc(3px + var(--mateu-edge-header-gutter, 0px)); box-sizing: border-box;">
                         <div style="flex: 1; min-width: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData, true)}</div>
                         ${this.renderColumnChooser()}
                     </div>
                     <div data-crud-area style="flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column;">${contentHtml}</div>
-                    <div style="flex-shrink: 0;">${paginationHtml}</div>
+                    <div style="flex-shrink: 0; ${EDGE_GUTTER}">${paginationHtml}</div>
                 </div>
             `
         }
         return html`
             ${importDialog}
             ${hasHeader ? html`
-                    <div style="display: flex; gap: var(--lumo-space-m, 1rem); width: 100%; align-items: flex-end; padding-bottom: var(--lumo-space-m, 1rem);">
+                    <div style="display: flex; gap: var(--lumo-space-m, 1rem); width: 100%; box-sizing: border-box; align-items: flex-end; padding-bottom: var(--lumo-space-m, 1rem); ${EDGE_GUTTER}">
                         ${backButtons.map(button => html`
                             <button class="back-chevron"
                                     data-action-id="${button.id}"
@@ -1365,12 +1371,12 @@ export class MateuTableCrud extends LitElement {
                     [data-crud-area] vaadin-grid { height: 100%; min-height: 0; }
                 </style>
             <div data-crud-box style="${this.boxStyle()}">
-                <div style="${FILTER_ROW_STYLE}">
+                <div style="${FILTER_ROW_STYLE} padding-inline: calc(3px + var(--mateu-edge-header-gutter, 0px)); box-sizing: border-box;">
                     <div style="flex: 1; min-width: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}</div>
                     ${this.renderColumnChooser()}
                 </div>
                 <div data-crud-area style="flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column;">${contentHtml}</div>
-                <div style="flex-shrink: 0;">${paginationHtml}</div>
+                <div style="flex-shrink: 0; ${EDGE_GUTTER}">${paginationHtml}</div>
             </div>
         `
     }

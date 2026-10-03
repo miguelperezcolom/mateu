@@ -808,11 +808,31 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     'vaadin:bell-o': 'oj-ux-ico-notification',
     'vaadin:envelope': 'oj-ux-ico-email',
     'vaadin:sign-out': 'oj-ux-ico-logout',
+    'vaadin:sign-in': 'oj-ux-ico-login',
+    'vaadin:cloud': 'oj-ux-ico-cloud',
+    'vaadin:trending-up': 'oj-ux-ico-trending-up',
+    'vaadin:building': 'oj-ux-ico-building',
+    'vaadin:refresh': 'oj-ux-ico-refresh',
+    'vaadin:close-circle': 'oj-ux-ico-close-circle',
   }
   function ojIconOf(icon) {
     if (!icon) return undefined
     if (icon.indexOf('oj-ux-') === 0) return icon
     return OJ_ICONS[icon] || undefined
+  }
+
+  /** El icono genérico para un icono DECLARADO que no tiene traducción a Redwood. */
+  const GENERIC_ICON = 'oj-ux-ico-arrow-circle-right'
+
+  /**
+   * Como ojIconOf, pero un icono declarado sin traducción cae en uno genérico: una entrada de menú
+   * o un botón de sólo icono nunca se queda en blanco («Llegadas» con vaadin:sign-in salía sin
+   * icono junto a sus hermanas). ojIconOf sigue estricto: el HTML de los widgets quita los que no
+   * conoce y el FAB de Ask cae en su propio glifo.
+   */
+  function ojIconOrGenericOf(icon) {
+    if (!icon) return undefined
+    return ojIconOf(icon) || GENERIC_ICON
   }
 
   /**
@@ -838,7 +858,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return {
       id,
       label: option.caption || option.label || id,
-      icon: ojIconOf(option.icon),
+      icon: ojIconOrGenericOf(option.icon),
       hasChildren: children.length > 0,
       // el padre de un nieto es la ruta CRUDA del hijo, no su id ya recortado
       children: children.map((child) => navNodeOf(child, raw)),
@@ -1414,15 +1434,15 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
             const rowActions = []
             if (it.actionLabel && it.actionId) {
               rowActions.push({ label: it.actionLabel, actionId: it.actionId, parameters: { _item: it.id },
-                iconClass: ojIconOf(it.actionIcon) || '' })
+                iconClass: ojIconOrGenericOf(it.actionIcon) || '' })
             }
             if (it.actionLabel2 && it.actionId2) {
               rowActions.push({ label: it.actionLabel2, actionId: it.actionId2, parameters: { _item: it.id },
-                iconClass: ojIconOf(it.actionIcon2) || '' })
+                iconClass: ojIconOrGenericOf(it.actionIcon2) || '' })
             }
             if (it.actionLabel3 && it.actionId3) {
               rowActions.push({ label: it.actionLabel3, actionId: it.actionId3, parameters: { _item: it.id },
-                iconClass: ojIconOf(it.actionIcon3) || '' })
+                iconClass: ojIconOrGenericOf(it.actionIcon3) || '' })
             }
             return {
               rowClass,
@@ -1672,6 +1692,26 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     }
   }
 
+  /** Los KPIs de la Page (@KPI: Page.metadata.kpis = [{title, text}]) → facts del header de
+   *  pantalla ({label, value}), como los del EntityHeader: los totales de una reserva arriba, junto
+   *  al título, y no perdidos dentro de un panel. `text` puede llevar ${state.x}. */
+  function pageKpisOf(ctx) {
+    const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+    if (!page) return []
+    const state = ctx.state || {}
+    return ((page.metadata || {}).kpis || [])
+      .filter((k) => k && (k.title || k.text))
+      .map((k) => ({ label: k.title || '', value: interpolate(k.text == null ? '' : String(k.text), state) }))
+  }
+
+  /** El subtítulo de la Page (SubtitleSupplier/@Subtitle: p.ej. los importes de una reserva) para
+   *  el header de pantalla cuando no hay EntityHeader. Interpolado como el título. */
+  function pageSubtitleOf(ctx) {
+    const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+    const subtitle = page && page.metadata ? page.metadata.subtitle : ''
+    return subtitle ? interpolate(String(subtitle), ctx.state || {}) : ''
+  }
+
   /** ITEM OVERVIEW nativo (oj-sp-item-overview-page): página de entidad con dos
    *  bloques-columna cuya PRIMERA zona es la ESTRECHA — la anatomía RDS del template
    *  (panel de datos clave a la izquierda + main ancho a la derecha), frente al general
@@ -1889,12 +1929,15 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   /** Proyección del LISTING (componente Crud): columnas + filas (del eje data) + búsqueda.
    *  null si el contexto no contiene un Crud. Las filas llegan por la acción 'search'
    *  (trigger OnLoad) como fragmento data-only: data.crud.page.content. */
-  function listingOf(ctx) {
+  function listingOf(ctx, opts = {}) {
     const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
     if (!crudNode) return null
     const md = crudNode.metadata
     const page = (((ctx.data || {}).crud || {}).page) || {}
     return {
+      // PAGINACIÓN: la página que mandó el server (Page: pageNumber/pageSize/totalElements) →
+      // pie de la tabla con el rango y los controles; precomputado (CSP de VB)
+      paging: listingPagingOf(page, md.pageSize || 20, opts.lang),
       title: md.title || '',
       subtitle: md.subtitle || '',
       searchable: !!md.searchable,
@@ -1915,11 +1958,22 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         if (c.dataType === 'actionGroup') {
           def.template = 'cellRowActions'
           def.headerText = ''
+          def.sortable = 'disabled'
         }
+        // la clave de la columna = el id del wire: el ojSort la devuelve y es lo que el server
+        // ordena (la celda puede leer otro campo, p.ej. el UUID abreviado)
+        def.id = c.id
         // ESTADO como badge (@Status): el valor de la celda es {type, message} — la clase
         // JET del badge se precomputa en las filas (statusBadgeRows, CSP sin ternarios)
         if (c.dataType === 'status') {
           def.template = 'cellStatusBadge'
+        }
+        // COLUMNA PRINCIPAL (@PrimaryColumn: stereotype 'primary'): imagen delante del título
+        // (leadingPath, p.ej. la bandera del huésped) y línea de caption debajo (captionPath) —
+        // campos de la fila que no son columnas. Precomputado por fila en primaryCellRows (CSP).
+        if (!def.template && c.stereotype === 'primary') {
+          def.field = c.id + PRIMARY_CELL_SUFFIX
+          def.template = 'cellPrimary'
         }
         // UUID abreviado: una columna de texto cuyos valores son UUID se pinta "…-<último bloque>"
         // con el UUID entero en el tooltip. La fila NO cambia: la celda lee un campo aparte,
@@ -1951,7 +2005,10 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       // (las acciones declaradas del ServerSide host, no los botones)
       selectionRequired: ((ctx.tree && ctx.tree.actions) || [])
         .filter((a) => a.rowsSelectedRequired).map((a) => a.id),
-      rows: uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []),
+      rows: primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []),
+      // la propiedad por la que ordena el server cada columna (GridColumn.sortingProperty o su id)
+      sortFields: Object.fromEntries((md.columns || []).map((col) => col.metadata || col)
+        .map((c) => [c.id, c.sortingProperty || c.id])),
       total: page.totalElements == null ? null : page.totalElements,
       isEmpty: (page.content || []).length === 0,
       toolbar: (md.toolbar || []).map((b) => ({
@@ -1965,6 +2022,102 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       // no en el nodo Crud — se busca en todo el árbol)
       filters: filtersOf(ctx),
     }
+  }
+
+  const PAGING_TEXTS = {
+    en: { of: 'of', page: 'Page', first: 'First page', prev: 'Previous page', next: 'Next page', last: 'Last page' },
+    es: { of: 'de', page: 'Página', first: 'Primera página', prev: 'Página anterior', next: 'Página siguiente', last: 'Última página' },
+  }
+
+  function pagingLangOf(lang) {
+    const raw = lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
+      || (typeof navigator !== 'undefined' && navigator.language) || ''
+    return PAGING_TEXTS[String(raw).toLowerCase().split(/[-_]/)[0]] || PAGING_TEXTS.en
+  }
+
+  /**
+   * La PAGINACIÓN del listado, de la Page que manda el server (pageNumber/pageSize/totalElements) →
+   * lo que pinta el pie de la tabla: "11–20 de 57", "Página 2 de 6" y qué botones están activos.
+   * Sin total conocido (un Listing que no cuenta) hay "siguiente" mientras la página venga llena.
+   * `visible` = hay más de una página (un listado corto no lleva pie).
+   */
+  function listingPagingOf(page, fallbackSize, lang) {
+    const p = page || {}
+    const t = pagingLangOf(lang)
+    const size = p.pageSize > 0 ? p.pageSize : (fallbackSize > 0 ? fallbackSize : 20)
+    const number = p.pageNumber > 0 ? p.pageNumber : 0
+    const shown = (p.content || []).length
+    const total = p.totalElements == null || p.totalElements < 0 ? null : p.totalElements
+    const pageCount = total == null ? null : Math.max(1, Math.ceil(total / size))
+    const from = shown === 0 ? 0 : number * size + 1
+    const to = number * size + shown
+    const hasPrev = number > 0
+    const hasNext = total == null ? shown >= size : (number + 1) * size < total
+    return {
+      pageNumber: number,
+      pageSize: size,
+      total,
+      pageCount,
+      lastPage: pageCount == null ? null : pageCount - 1,
+      hasPrev,
+      hasNext,
+      hasLast: hasNext && pageCount != null,
+      // los disabled ya negados (CSP de VB: la plantilla no evalúa "!")
+      prevDisabled: !hasPrev,
+      nextDisabled: !hasNext,
+      lastDisabled: !(hasNext && pageCount != null),
+      visible: hasPrev || hasNext,
+      rangeText: total == null ? `${from}–${to}` : `${from}–${to} ${t.of} ${total}`,
+      pageText: pageCount == null ? `${t.page} ${number + 1}` : `${t.page} ${number + 1} ${t.of} ${pageCount}`,
+      labels: { first: t.first, prev: t.prev, next: t.next, last: t.last },
+    }
+  }
+
+  /**
+   * La página a la que lleva un botón del pie: 'first' | 'prev' | 'next' | 'last' sobre el paging
+   * actual → número de página, o null si el botón no lleva a ningún sitio.
+   */
+  function targetPageOf(paging, which) {
+    if (!paging) return null
+    if (which === 'first') return paging.hasPrev ? 0 : null
+    if (which === 'prev') return paging.hasPrev ? paging.pageNumber - 1 : null
+    if (which === 'next') return paging.hasNext ? paging.pageNumber + 1 : null
+    if (which === 'last') return paging.hasLast ? paging.lastPage : null
+    const n = Number(which)
+    return Number.isInteger(n) && n >= 0 ? n : null
+  }
+
+  /**
+   * El componentState de una búsqueda del listado: el estado del host + el texto, la página, el
+   * tamaño, el orden y los filtros aplicados (los chips; un rango ocupa dos claves) — lo que
+   * SearchActionHandler lee. Paginar o reordenar conserva texto y filtros; el orden viaja como
+   * lista [{field, direction}] y sólo si lo hay.
+   */
+  function listingSearchStateOf(hostState, opts = {}) {
+    const state = Object.assign({}, hostState || {}, {
+      searchText: opts.searchText == null ? '' : opts.searchText,
+      page: opts.page > 0 ? opts.page : 0,
+      size: opts.size > 0 ? opts.size : 20,
+    })
+    const applied = opts.filters || {}
+    for (const key of Object.keys(applied)) state[key] = applied[key]
+    if (opts.sort && opts.sort.length) state.sort = opts.sort.map((s) => ({ field: s.field, direction: s.direction }))
+    else delete state.sort
+    return state
+  }
+
+  /**
+   * El orden pedido por la cabecera de oj-table (ojSort: detail.header = clave de la columna,
+   * detail.direction 'ascending'|'descending') → [{field, direction}] en el vocabulario del
+   * server (io.mateu.uidl.data.Sort). La clave es el id del wire (listingOf la fija); si llega el
+   * campo de la celda (p.ej. el UUID abreviado), se le quita el sufijo.
+   */
+  function listingSortOf(detail, sortFields) {
+    if (!detail || !detail.header) return []
+    const key = String(detail.header).replace(new RegExp('(' + UUID_CELL_SUFFIX + '|' + PRIMARY_CELL_SUFFIX + ')$'), '')
+    const field = (sortFields && sortFields[key]) || key
+    const direction = detail.direction === 'descending' ? 'descending' : 'ascending'
+    return [{ field, direction }]
   }
 
   /**
@@ -2052,6 +2205,26 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       for (const id of ids) {
         const value = row[id] == null ? '' : String(row[id])
         out[id + UUID_CELL_SUFFIX] = { text: abbreviateUuid(value), full: value }
+      }
+      return out
+    })
+  }
+
+  const PRIMARY_CELL_SUFFIX = '__primary'
+
+  /** La celda de cada columna principal: {title, caption, leading} (vacíos si no hay). */
+  function primaryCellRows(rows, columns) {
+    const cols = (columns || []).map((c) => c.metadata || c).filter((c) => c.stereotype === 'primary')
+    if (!cols.length) return rows
+    const text = (v) => (v == null ? '' : String(v))
+    return rows.map((row) => {
+      const out = { ...row }
+      for (const c of cols) {
+        out[c.id + PRIMARY_CELL_SUFFIX] = {
+          title: text(row[c.id]),
+          caption: c.captionPath ? text(row[c.captionPath]) : '',
+          leading: c.leadingPath ? text(row[c.leadingPath]) : '',
+        }
       }
       return out
     })
@@ -2183,6 +2356,21 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    * formulario); los vacíos no filtran, ni la página ni el orden. Un multi-select toma la lista separada por comas
    * (multiValuesOf), igual que la escribe Vaadin en la URL.
    */
+  /**
+   * Una navegación pedida (ruta con o sin ?query) frente a la que hay en pantalla. `full` (ruta +
+   * query) es lo que la identifica — el id de la entrada del menú, la URL —; `filters` son
+   * EXACTAMENTE los de su query: ninguno si no trae (ir a /reservas desde /reservas?vista=… quita el
+   * filtro). `same` = es la que ya hay (el eco del writeback de la selección del menú): no recargar.
+   */
+  function navTargetOf(requested, currentFull) {
+    const raw = String(requested || '')
+    const q = raw.indexOf('?')
+    const route = q >= 0 ? raw.slice(0, q) : raw
+    const query = q >= 0 ? raw.slice(q + 1) : ''
+    const full = query ? route + '?' + query : route
+    return { route, full, filters: queryFiltersOf(query), same: full === (currentFull || '') }
+  }
+
   function queryFiltersOf(query) {
     const out = {}
     const text = String(query || '').replace(/^\?/, '')
@@ -3180,9 +3368,28 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return s.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim()
   }
 
+  // las rutas que abren las ENTRADAS del menú (no los grupos): a donde una miga puede llevar
+  function crumbLeafRoutes(menu) {
+    const out = new Set()
+    const walk = (options) => {
+      for (const option of options || []) {
+        if (!option || option.separator) continue
+        const children = option.submenus || option.submenu || []
+        if (children.length > 0) { walk(children); continue }
+        const route = crumbRoute(option.route || option.path)
+        if (route && route !== '/') out.add(route)
+      }
+    }
+    walk(menu)
+    return out
+  }
+
   function menuTrail(menu, path) {
     const current = crumbRoute(path)
     let best = null
+    // un grupo es un encabezado, no una página: su ruta (el prefijo de una sección federada,
+    // "/admin") no suele llevar a ningún sitio. Su miga sólo navega si una ENTRADA tiene esa ruta.
+    const pages = crumbLeafRoutes(menu)
     const walk = (options, above) => {
       for (const option of options || []) {
         if (!option || option.separator || option.visible === false) continue
@@ -3190,7 +3397,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         const label = crumbText(option.caption || option.label)
         const children = option.submenus || option.submenu || []
         if (children.length > 0) {
-          walk(children, [...above, route && route !== '/' ? { text: label, route } : { text: label }])
+          walk(children, [...above, route && route !== '/' && pages.has(route) ? { text: label, route } : { text: label }])
           continue
         }
         if (!route || route === '/') continue
@@ -4097,6 +4304,16 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     for (const block of blocks || []) {
       for (const atom of block.items || []) if (atom && atom.isElement) out.push(atom)
     }
+    return out
+  }
+
+  /** Los átomos isElement del CONTENIDO de un foldout (overview + cada panel): un Element en un
+   *  panel (p.ej. la tabla «In other systems» de una reserva, HTML del servidor) se quedaba sin
+   *  montar — el panel salía en blanco — porque sólo se montaban los del contenido del host. */
+  function foldoutElementAtomsOf(content) {
+    if (!content) return []
+    const out = elementAtomsOf((content.overview || {}).blocks)
+    for (const panel of content.panels || []) out.push(...elementAtomsOf(panel && panel.blocks))
     return out
   }
 
@@ -5563,6 +5780,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     mountElements,
     mountElementsSoon,
     elementAtomsOf,
+    foldoutElementAtomsOf,
     reduceContexts,
     autoTrail,
     parentCrumb,
@@ -5576,6 +5794,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     summarizeHost,
     findByType,
     listingOf,
+    // paginación y orden del listing (pie de la tabla, cabecera → server)
+    listingPagingOf,
+    targetPageOf,
+    listingSearchStateOf,
+    listingSortOf,
     // selección de filas del listing → crud_selected_items de las acciones del host
     selectionOfKeySet,
     selectedRowsOf,
@@ -5586,6 +5809,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     filterChipsOf,
     multiValuesOf,
     queryFiltersOf,
+    navTargetOf,
     smartFiltersOf,
     filterStateOfSmartFilters,
     fieldListOf,
@@ -5622,6 +5846,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     dismissOverlay,
     shellNavOf,
     ojIconOf,
+    ojIconOrGenericOf,
     longTaskWatcher,
     findAllByType,
     cardOf,
@@ -5645,6 +5870,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     primaryToolbarButton,
     backToolbarButton,
     entityHeaderOf,
+    pageKpisOf,
+    pageSubtitleOf,
     collectTexts,
     foldoutOf,
     wizardOf,

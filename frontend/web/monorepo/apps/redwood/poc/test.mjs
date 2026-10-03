@@ -5,6 +5,7 @@
 
 import assert from 'node:assert/strict'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
+import { foldoutElementAtomsOf } from './elements.mjs'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -30,11 +31,13 @@ import {
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers, findByType,
+  listingPagingOf, targetPageOf, listingSearchStateOf, listingSortOf,
+  ojIconOf, ojIconOrGenericOf, GENERIC_ICON, navTargetOf,
   selectionOfKeySet, selectedRowsOf, withListingSelection,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
   islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
-  entityHeaderOf, itemOverviewPageOf, primaryToolbarButton,
+  entityHeaderOf, pageKpisOf, pageSubtitleOf, itemOverviewPageOf, primaryToolbarButton,
   filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid,
   smartFiltersMetadataOf, smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters,
   suggestionRowsFor, suggestionFiltersProviderOf, smartFiltersOf, setMetadataProviderFactory, KEYWORD_FILTER,
@@ -247,6 +250,105 @@ test('listing: OnLoad→search, data-only mergea, listingOf proyecta columnas y 
   assert.ok(after.toolbar.some((b) => b.label === 'New'))
 })
 
+// 14 paginación) El listado se pagina en el SERVER: la Page (pageNumber/pageSize/totalElements)
+//     se proyecta a un pie con rango + primera/anterior/siguiente/última; paginar conserva texto,
+//     filtros y orden; la cabecera ordena en el server ([{field, direction}] = uidl Sort).
+test('listing: paginación — el pie sale de la Page del server', () => {
+  const content = fx('load-listing-content')
+  content.fragments[0].targetComponentId = ''
+  let reg = reduceContexts(empty(), content)
+  const search = JSON.parse(JSON.stringify(fx('search-listing')))
+  search.fragments[0].targetComponentId = ''
+  // una sola página (3 filas de 20): sin pie
+  reg = reduceContexts(reg, search)
+  const one = listingOf(reg.contexts[HOST_ID], { lang: 'en' }).paging
+  assert.equal(one.visible, false)
+  assert.equal(one.rangeText, '1–3 of 3')
+  // segunda página de 57 a 10 por página
+  const page = search.fragments[0].data.crud.page
+  page.pageSize = 10
+  page.pageNumber = 1
+  page.totalElements = 57
+  page.content = Array.from({ length: 10 }, (_, i) => ({ _rowNumber: i, id: 'P' + i, name: 'n' + i }))
+  reg = reduceContexts(reg, search)
+  const p = listingOf(reg.contexts[HOST_ID], { lang: 'es' }).paging
+  assert.equal(p.visible, true)
+  assert.equal(p.pageNumber, 1)
+  assert.equal(p.pageCount, 6)
+  assert.equal(p.rangeText, '11–20 de 57')
+  assert.equal(p.pageText, 'Página 2 de 6')
+  assert.equal(p.prevDisabled, false)
+  assert.equal(p.nextDisabled, false)
+  assert.equal(targetPageOf(p, 'first'), 0)
+  assert.equal(targetPageOf(p, 'prev'), 0)
+  assert.equal(targetPageOf(p, 'next'), 2)
+  assert.equal(targetPageOf(p, 'last'), 5)
+  // última página: 7 filas, sin siguiente
+  const last = listingPagingOf({ pageSize: 10, pageNumber: 5, totalElements: 57, content: new Array(7).fill({}) }, 20, 'en')
+  assert.equal(last.rangeText, '51–57 of 57')
+  assert.equal(last.nextDisabled, true)
+  assert.equal(last.lastDisabled, true)
+  assert.equal(targetPageOf(last, 'next'), null)
+  assert.equal(targetPageOf(last, 'prev'), 4)
+  // sin total conocido: hay siguiente mientras la página venga llena
+  const open = listingPagingOf({ pageSize: 10, pageNumber: 0, totalElements: null, content: new Array(10).fill({}) }, 20, 'en')
+  assert.equal(open.hasNext, true)
+  assert.equal(open.lastDisabled, true)
+  assert.equal(open.pageText, 'Page 1')
+  // las columnas llevan su id del wire como clave (lo que devuelve el ojSort)
+  const listing = listingOf(reg.contexts[HOST_ID])
+  assert.ok(listing.columns.every((c) => c.id))
+})
+
+test('listing: la columna principal (@PrimaryColumn) lleva imagen delante y caption — campos de la fila', () => {
+  const content = fx('load-listing-content')
+  content.fragments[0].targetComponentId = ''
+  const crud = findByType(content.fragments[0].component, 'Crud')
+  const cols = crud.metadata.columns
+  const name = cols.map((c) => c.metadata || c).find((c) => c.id === 'name')
+  name.stereotype = 'primary'
+  name.leadingPath = 'bandera'
+  name.captionPath = 'nota'
+  name.sortingProperty = 'sortName'
+  let reg = reduceContexts(empty(), content)
+  const search = JSON.parse(JSON.stringify(fx('search-listing')))
+  search.fragments[0].targetComponentId = ''
+  search.fragments[0].data.crud.page.content[0].bandera = '/flags/at.svg'
+  search.fragments[0].data.crud.page.content[0].nota = 'VIP'
+  reg = reduceContexts(reg, search)
+  const listing = listingOf(reg.contexts[HOST_ID])
+  const col = listing.columns.find((c) => c.id === 'name')
+  assert.equal(col.template, 'cellPrimary')
+  assert.equal(col.field, 'name__primary')
+  assert.deepEqual(listing.rows[0].name__primary, { title: 'Laptop', caption: 'VIP', leading: '/flags/at.svg' })
+  assert.deepEqual(listing.rows[1].name__primary, { title: 'Mouse', caption: '', leading: '' })
+  assert.equal(listing.rows[0].name, 'Laptop') // la fila, intacta
+  // ordenar por ella ordena por su sortingProperty
+  assert.deepEqual(listingSortOf({ header: 'name', direction: 'ascending' }, listing.sortFields), [{ field: 'sortName', direction: 'ascending' }])
+})
+
+test('listing: paginar conserva texto, filtros y orden; el orden va en el vocabulario del server', () => {
+  const state = listingSearchStateOf({ crud_selected_items: [], sort: [{ field: 'old', direction: 'ascending' }] }, {
+    searchText: 'mru', page: 3, size: 10,
+    filters: { hotel: 'MRU01', when_from: '2026-01-01' },
+    sort: [{ field: 'when', direction: 'descending' }],
+  })
+  assert.equal(state.searchText, 'mru')
+  assert.equal(state.page, 3)
+  assert.equal(state.size, 10)
+  assert.equal(state.hotel, 'MRU01')
+  assert.equal(state.when_from, '2026-01-01')
+  assert.deepEqual(state.sort, [{ field: 'when', direction: 'descending' }])
+  // sin orden pedido no se manda uno viejo; sin página, la primera
+  const plain = listingSearchStateOf({ sort: [{ field: 'old', direction: 'ascending' }] }, { searchText: null, size: 20 })
+  assert.equal(plain.sort, undefined)
+  assert.equal(plain.page, 0)
+  assert.equal(plain.searchText, '')
+  assert.deepEqual(listingSortOf({ header: 'when', direction: 'descending' }), [{ field: 'when', direction: 'descending' }])
+  assert.deepEqual(listingSortOf({ header: 'id__uuidCell', direction: 'ascending' }), [{ field: 'id', direction: 'ascending' }])
+  assert.deepEqual(listingSortOf({}), [])
+})
+
 // 14 bis) Detalle de fila (@Details): viaja como detailPath del Crud; listingOf lo proyecta, y
 //     distingue el listado de consulta (el clic abre el detalle) del navegable (el clic abre el
 //     registro: su primera columna lleva actionId 'view').
@@ -373,6 +475,58 @@ test('drawer del crud: overlayOf proyecta New/Edit; el cierre dispara el refresc
 
 // 16) Shell compleja (Fase 6): grupos con hijos por ruta TERMINAL, selectores @AppContext
 //     y acciones de cabecera (dropdown con hijos) proyectados para bindings simples.
+test('foldout: los Element de los paneles también se montan (la tabla «In other systems»)', () => {
+  const el = (id) => ({ isElement: true, elementId: id, name: 'div', content: '<table></table>', asHtml: true })
+  const content = { overview: { blocks: [{ items: [el('o1'), { isText: true }] }] },
+    panels: [{ blocks: [{ items: [{ isText: true }] }] }, { blocks: [{ items: [el('p2')] }] }, null] }
+  assert.deepEqual(foldoutElementAtomsOf(content).map((a) => a.elementId), ['o1', 'p2'])
+  assert.deepEqual(foldoutElementAtomsOf(null), [])
+})
+
+test('header: los @KPI de la Page son los facts del header de pantalla (interpolados)', () => {
+  const ctx = { state: { total: '1431.12 EUR' }, tree: { type: 'ServerSide', children: [{ metadata: { type: 'Page', title: '7DM5S9',
+    kpis: [{ title: 'Total', text: '${state.total}' }, { title: 'Paid', text: '0 EUR' }, { title: '', text: '' }] } }] } }
+  assert.deepEqual(pageKpisOf(ctx), [{ label: 'Total', value: '1431.12 EUR' }, { label: 'Paid', value: '0 EUR' }])
+  assert.deepEqual(pageKpisOf({ tree: { children: [] } }), [])
+})
+
+test('header: el subtítulo de la Page (SubtitleSupplier) va al header de pantalla', () => {
+  const ctx = { state: { n: 5 }, tree: { type: 'ServerSide', children: [{ metadata: { type: 'Page', title: '7DM5S9',
+    subtitle: 'Total 1.431,12 EUR (${state.n} noches) · Pagado 0,00 EUR' } }] } }
+  assert.equal(pageSubtitleOf(ctx), 'Total 1.431,12 EUR (5 noches) · Pagado 0,00 EUR')
+  assert.equal(pageSubtitleOf({ tree: { children: [] } }), '')
+})
+
+test('navegación: los filtros son EXACTAMENTE los de la query de la ruta (ninguno si no trae)', () => {
+  const a = navTargetOf('/reservas?vista=LLEGADAS_HOY', '/reservas')
+  assert.deepEqual(a, { route: '/reservas', full: '/reservas?vista=LLEGADAS_HOY', filters: { vista: 'LLEGADAS_HOY' }, same: false })
+  const b = navTargetOf('/reservas', '/reservas?vista=LLEGADAS_HOY')
+  assert.equal(b.same, false) // antes: mismo path → «eco», no recargaba y el chip se quedaba
+  assert.deepEqual(b.filters, {})
+  assert.equal(navTargetOf('/reservas?vista=SALIDAS_HOY', '/reservas?vista=LLEGADAS_HOY').same, false)
+  assert.equal(navTargetOf('/reservas?vista=LLEGADAS_HOY', '/reservas?vista=LLEGADAS_HOY').same, true) // eco
+  assert.equal(navTargetOf('/reservas', '/reservas').same, true)
+  assert.deepEqual(navTargetOf('/mapping/dictionary?integration=MRU01&page=2', '').filters, { integration: 'MRU01' })
+})
+
+test('iconos: vaadin:sign-in (Llegadas) tiene icono; uno sin traducción cae en el genérico', () => {
+  assert.equal(ojIconOf('vaadin:sign-in'), 'oj-ux-ico-login')
+  for (const v of ['cloud', 'trending-up', 'building', 'refresh', 'close-circle']) {
+    assert.ok(ojIconOf('vaadin:' + v), v)
+  }
+  assert.equal(ojIconOf('vaadin:nope'), undefined) // estricto: widgets y FAB conservan su caída
+  assert.equal(ojIconOrGenericOf('vaadin:nope'), GENERIC_ICON)
+  assert.equal(ojIconOrGenericOf(undefined), undefined)
+  const nav = shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu: [
+    { label: 'Llegadas', route: '/reservas?vista=LLEGADAS_HOY', icon: 'vaadin:sign-in' },
+    { label: 'Raro', route: '/raro', icon: 'vaadin:nope' },
+    { label: 'Sin', route: '/sin' },
+  ] } })
+  const flat = JSON.stringify(nav)
+  assert.ok(flat.includes('oj-ux-ico-login'))
+  assert.ok(flat.includes(GENERIC_ICON))
+})
+
 test('shellNavOf: una entrada oculta (visible:false) no se dibuja dentro de un grupo', () => {
   // @Menu @Hidden en una página local: la alcanza el botón New del listado, no el menú
   const nav = shellNavOf({ shell: { variant: 'MENU_ON_TOP', menu: [
@@ -3333,6 +3487,18 @@ test('breadcrumbs: el rastro automático — camino de menús y nivel del crud; 
   assert.deepEqual(edit.map((c) => c.text), ['Call center', 'Reservas', 'QN29HB · Giulia', 'Editar'])
   assert.deepEqual(parentCrumb(edit), { text: 'QN29HB · Giulia', route: '/booking/bookings/QN29HB' })
   assert.deepEqual(autoTrail(menu, '/otra/cosa', es), [])
+})
+
+test('breadcrumbs: un grupo con ruta propia (prefijo de una sección federada) no navega salvo que una entrada abra esa ruta', () => {
+  const menu = [
+    { label: 'Admin', route: '/admin', submenus: [{ label: 'Workflow', route: '/workflow', submenus: [{ label: 'Processes', route: '/workflow/processes', submenus: [] }] }] },
+    { label: 'Mapping', route: '/mapping', submenus: [{ label: 'Overview', route: '/mapping', submenus: [] }, { label: 'Dictionary', route: '/mapping/dictionary', submenus: [] }] },
+  ]
+  const trail = autoTrail(menu, '/workflow/processes/42', { lang: 'es' })
+  assert.deepEqual(trail, [{ text: 'Admin' }, { text: 'Workflow' }, { text: 'Processes', route: '/workflow/processes' }, { text: '42' }])
+  // el «ir al padre» de un listado colgado de grupos: no hay padre navegable → no se pinta
+  assert.equal(parentCrumb(autoTrail(menu, '/workflow/processes', { lang: 'es' })), undefined)
+  assert.deepEqual(autoTrail(menu, '/mapping/dictionary/7', { lang: 'es' })[0], { text: 'Mapping', route: '/mapping' })
 })
 
 test('breadcrumbs: summarizeHost lleva el rastro; @NoBreadcrumbs en página o shell lo apaga', () => {

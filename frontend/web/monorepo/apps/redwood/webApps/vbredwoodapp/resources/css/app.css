@@ -153,10 +153,11 @@ oj-sp-foldout-panel div:has(> .oj-sp-foldout-panel-title-underline) {
   min-width: 0;
 }
 .mateu-item-head h3,
+.mateu-item-head h4,
 .mateu-item-head .oj-typography-body-md {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* the card's title WRAPS in a narrow fold (a history entry, a payment) instead of being cut */
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 /* Densidad del cockpit dentro de paneles de ancho fijo: tarjetas y celdas con menos
@@ -750,4 +751,44 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
     padding-left: 1rem;
     padding-right: 1rem;
   }
+}
+
+/* Pie de PAGINACIÓN del listado: el FAB de Ask Oracle / chat (fijo abajo a la derecha, ~72px)
+   tapaba "última página" cuando el pie quedaba al fondo del viewport — se le deja su hueco. */
+.mateu-listing-paging {
+  padding-inline-end: 5.5rem;
+  box-sizing: border-box;
+}
+.mateu-listing-page-text {
+  white-space: nowrap;
+}
+
+/* Columna principal del listado (@PrimaryColumn): imagen redonda delante (la bandera del huésped)
+   + título y caption apilados. */
+.mateu-primary-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.mateu-primary-cell-leading {
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.mateu-primary-cell-text {
+  display: inline-flex;
+  flex-direction: column;
+}
+
+/* Un Element del servidor (HTML: p.ej. la tabla «In other systems» de una reserva) dentro de un
+   panel de detalle: los valores largos (enlaces, ids de Salesforce) parten la línea en vez de
+   ensanchar el panel o pedir scroll. */
+.mateu-element {
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+.mateu-element table {
+  max-width: 100%;
 }
