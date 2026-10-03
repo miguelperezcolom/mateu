@@ -91,6 +91,12 @@ try {
     check('the preview is live (rendered by the backend, not a fallback)', /live/.test(status ?? ''), `status chip: ${status}`)
     const files = await ed.locator('editor-outline .row').count()
     check('host bridge answers init + listFiles (Layers populated, file name shown)', files > 3 && (await ed.locator('.toolbar .file').textContent()) === 'vcn.yaml')
+    const theme = await ed.getAttribute('theme')
+    check('the editor follows the VS Code theme', theme === 'dark' || theme === 'light', `editor theme: ${theme}`)
+    const csp = await frame.evaluate(() => document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.getAttribute('content') ?? '')
+    const connect = /connect-src ([^;]*)/.exec(csp)?.[1] ?? ''
+    check('the webview CSP names the project\'s REST source origins, not any https host',
+        connect.includes('http://localhost:8790') && !/(^|\s)https:(\s|$)/.test(connect), connect)
     await win.screenshot({ path: path.join(values.shots, 'vscode-host-open.png') })
 
     // select the "Delete" toolbar button and relabel it
@@ -119,6 +125,18 @@ try {
     let reached = false
     for (let i = 0; i < 15 && !reached; i++) { await win.waitForTimeout(1000); reached = (await deepText()).includes('Erase') || (await ed.locator('editor-outline .row', { hasText: 'Erase' }).count()) > 0 }
     check('a change on disk reaches the open visual editor (externalChange)', reached, `messages seen: ${JSON.stringify(await frame.evaluate(() => window.__msgs))}`)
+    // a new REST source in sources.yaml re-issues the CSP (the webview is rebuilt with its origin)
+    const sourcesFile = path.join(ws, 'specs/ui/sources.yaml')
+    fs.appendFileSync(sourcesFile, '\n  - name: extra\n    source:\n      url: https://api.example.org/things\n')
+    let added = false
+    for (let i = 0; i < 20 && !added; i++) {
+        await win.waitForTimeout(1000)
+        for (const f of win.frames()) {
+            const c = await f.evaluate(() => document.querySelector('meta[http-equiv="Content-Security-Policy"]')?.getAttribute('content') ?? '').catch(() => '')
+            if (c.includes('https://api.example.org')) { added = true; break }
+        }
+    }
+    check('declaring a new REST source widens the CSP to its origin (webview rebuilt)', added)
     exitCode = checks.every((c) => c.ok) ? 0 : 1
 } catch (e) {
     console.log('✗ run aborted:', e.message)

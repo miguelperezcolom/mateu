@@ -14,7 +14,7 @@ import type { ProjectIndex } from '../model/projectIndex'
 @customElement('routes-editor')
 export class RoutesEditor extends LitElement {
     static styles = css`
-        :host { display: block; height: 100%; overflow: auto; background: #fff; font: 13px var(--ve-font, system-ui); }
+        :host { display: block; height: 100%; overflow: auto; background: var(--ve-base, #fff); color: inherit; font: 13px var(--ve-font, system-ui); }
         .head { display: flex; align-items: center; gap: 0.75rem; padding: 0.8rem 1rem 0.4rem; }
         .head h2 { margin: 0; font-size: 15px; color: var(--ve-text, #111827); }
         .head .sub { color: var(--ve-tertiary, #9ca3af); font-size: 12px; }
@@ -23,19 +23,19 @@ export class RoutesEditor extends LitElement {
              color: var(--ve-secondary, #6b7280); padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--ve-border, #e3e5e8); }
         td { padding: 0.2rem 0.35rem; border-bottom: 1px solid var(--ve-border, #f0f1f3); vertical-align: middle; }
         input { width: 100%; padding: 0.35rem 0.45rem; font: 13px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade);
-                border-radius: 6px; box-sizing: border-box; background: #fff; }
-        input::placeholder { color: #b8bec6; }
+                border-radius: 6px; box-sizing: border-box; background: var(--ve-base, #fff); color: inherit; }
+        input::placeholder { color: var(--ve-tertiary, #b8bec6); }
         td.mono input { font-family: ui-monospace, monospace; font-size: 12px; }
-        .del { border: 1px solid #f2c2c8; color: var(--ve-error, #b00020); background: #fff; border-radius: 6px;
+        .del { border: 1px solid #f2c2c8; color: var(--ve-error, #b00020); background: var(--ve-base, #fff); color: inherit; border-radius: 6px;
                width: 26px; height: 28px; cursor: pointer; }
-        .add { margin: 0 1rem 1.5rem; padding: 0.45rem 0.8rem; font: 13px var(--ve-font, system-ui); background: #fff;
+        .add { margin: 0 1rem 1.5rem; padding: 0.45rem 0.8rem; font: 13px var(--ve-font, system-ui); background: var(--ve-base, #fff); color: inherit;
                border: 1px solid var(--ve-input-border, #d7dade); border-radius: 6px; cursor: pointer; }
-        .add:hover { background: #eef4ff; border-color: #b7ccf7; }
+        .add:hover { background: var(--ve-primary-10, #eef4ff); border-color: var(--ve-primary, #b7ccf7); }
         .empty { padding: 1rem; color: var(--ve-tertiary, #9ca3af); }
         .route-cell { display: flex; align-items: center; gap: 0.25rem; }
-        .route-cell .nest { color: #c2c8d0; font-family: ui-monospace, monospace; white-space: pre; }
+        .route-cell .nest { color: var(--ve-tertiary, #c2c8d0); font-family: ui-monospace, monospace; white-space: pre; }
         .row-actions { display: flex; gap: 0.2rem; }
-        .mini { border: 1px solid var(--ve-input-border, #d7dade); color: var(--ve-text, #374151); background: #fff; border-radius: 6px; height: 28px;
+        .mini { border: 1px solid var(--ve-input-border, #d7dade); color: var(--ve-text, #374151); background: var(--ve-base, #fff); color: inherit; border-radius: 6px; height: 28px;
                 padding: 0 0.45rem; cursor: pointer; font: 12px var(--ve-font, system-ui); white-space: nowrap; }
         .defchild { display: flex; align-items: center; gap: 0.3rem; font-size: 11px; color: var(--ve-secondary, #6b7280); margin-top: 0.15rem; }
         .defchild select { font: 11px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade); border-radius: 4px; padding: 0.1rem 0.2rem; }

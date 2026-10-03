@@ -34,21 +34,21 @@ export class EditorProperties extends LitElement {
         label { display: block; padding: 0.25rem 0.75rem 0; font: 11px var(--ve-font, system-ui); color: var(--ve-secondary, #6b7280); }
         label .req { color: #d1495b; }
         input, select { display: block; width: calc(100% - 1.5rem); margin: 0.1rem 0.75rem 0.35rem; padding: 0.35rem 0.5rem;
-                font: 13px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade); border-radius: 6px; box-sizing: border-box; background: #fff; }
+                font: 13px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade); border-radius: 6px; box-sizing: border-box; background: var(--ve-base, #fff); color: inherit; }
         .check { display: flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0.75rem 0.35rem; font: 13px var(--ve-font, system-ui); color: var(--ve-text, #374151); }
         .check input { width: auto; margin: 0; }
         .muted { padding: 0.15rem 0.75rem 0.35rem; font: 12px var(--ve-font, system-ui); color: var(--ve-tertiary, #b0b6be); }
         .row { display: flex; gap: 0.4rem; padding: 0.6rem 0.75rem; border-top: 1px solid var(--ve-border, #e3e5e8); margin-top: 0.5rem; }
-        .row button { flex: 1; padding: 0.4rem; font: 12px var(--ve-font, system-ui); background: #fff; border: 1px solid var(--ve-input-border, #d7dade);
+        .row button { flex: 1; padding: 0.4rem; font: 12px var(--ve-font, system-ui); background: var(--ve-base, #fff); color: inherit; border: 1px solid var(--ve-input-border, #d7dade);
                       border-radius: 6px; cursor: pointer; }
         .row button.danger { color: var(--ve-error, #b00020); border-color: #f2c2c8; }
         .add { display: flex; gap: 0.4rem; padding: 0.4rem 0.75rem 0.6rem; }
         .add input { margin: 0; }
-        .add button { padding: 0 0.6rem; font: 12px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade); border-radius: 6px; background: #fff; cursor: pointer; }
+        .add button { padding: 0 0.6rem; font: 12px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade); border-radius: 6px; background: var(--ve-base, #fff); color: inherit; cursor: pointer; }
         .inline { display: flex; gap: 0.3rem; align-items: center; margin: 0.1rem 0.75rem 0.35rem; }
         .inline input, .inline select { margin: 0; width: auto; flex: 1; min-width: 0; }
         .inline button, .slots button { padding: 0.3rem 0.55rem; font: 12px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade);
-            border-radius: 6px; background: #fff; cursor: pointer; white-space: nowrap; }
+            border-radius: 6px; background: var(--ve-base, #fff); color: inherit; cursor: pointer; white-space: nowrap; }
         .slots { display: flex; flex-wrap: wrap; gap: 0.3rem; padding: 0.2rem 0.75rem 0.4rem; }
         .help { padding: 0 0.75rem 0.3rem; font: 11px var(--ve-font, system-ui); color: var(--ve-tertiary, #9ca3af); }
         .muted-inline { color: var(--ve-tertiary, #b0b6be); }

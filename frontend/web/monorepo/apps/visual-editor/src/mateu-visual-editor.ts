@@ -38,6 +38,7 @@ import { hasAppShell } from './model/appModel'
 import { isMountYaml } from './model/mountModel'
 import { buildIndex, ProjectIndex } from './model/projectIndex'
 import { resolveHost, HostBridge } from './host/hostBridge'
+import { watchHostTheme, Theme } from './host/theme'
 import './palette/editor-palette'
 import './outline/editor-outline'
 import './canvas/editor-canvas'
@@ -106,6 +107,28 @@ export class MateuVisualEditor extends LitElement {
             --ve-warning: hsl(30, 100%, 32%);
             --ve-radius: 6px;
             font-family: var(--ve-font); color: var(--ve-text);
+        }
+        /* Lumo's dark palette, for a dark IDE (see host/theme.ts). */
+        :host([theme='dark']) {
+            color-scheme: dark;
+            --ve-base: hsl(214, 35%, 21%);
+            --ve-surface: hsl(214, 35%, 18%);
+            --ve-text: hsla(214, 96%, 96%, 0.9);
+            --ve-secondary: hsla(214, 87%, 92%, 0.69);
+            --ve-tertiary: hsla(214, 78%, 88%, 0.5);
+            --ve-border: hsla(214, 65%, 85%, 0.12);
+            --ve-input-border: hsla(214, 69%, 84%, 0.24);
+            --ve-hover: hsla(214, 65%, 85%, 0.06);
+            --ve-primary: hsl(214, 90%, 48%);
+            --ve-primary-text: hsl(214, 100%, 70%);
+            --ve-primary-10: hsla(214, 90%, 63%, 0.15);
+            --ve-error: hsl(3, 90%, 63%);
+            --ve-error-10: hsla(3, 90%, 63%, 0.12);
+            --ve-success: hsl(145, 65%, 52%);
+            --ve-success-10: hsla(145, 65%, 52%, 0.12);
+            --ve-warning: hsl(30, 100%, 65%);
+            --ve-warning-10: hsla(30, 100%, 60%, 0.14);
+            --ve-canvas-bg: hsl(214, 35%, 21%);
         }
         .app { display: grid; grid-template-rows: auto auto 1fr; height: 100%; background: var(--ve-base); }
         button { font: 500 12px var(--ve-font); color: var(--ve-text); background: var(--ve-base);
@@ -236,10 +259,19 @@ export class MateuVisualEditor extends LitElement {
     private lastContractVm?: string
 
     private host!: HostBridge
+    /** Light/dark, following the host (VS Code body class, IntelliJ, or the OS). */
+    @state() private theme: Theme = 'light'
+    private unwatchTheme?: () => void
 
     connectedCallback() {
         super.connectedCallback()
         this.host = resolveHost()
+        this.unwatchTheme = watchHostTheme((t) => {
+            this.theme = t
+            this.setAttribute('theme', t)
+            // Lumo reads [theme~=dark] on the document (overlays, popups) — the canvas sets its own root.
+            document.documentElement.setAttribute('theme', t)
+        })
         if (!this.baseUrl) this.baseUrl = this.host.baseUrl()
         this.previewSource = loadPreviewSource(this.baseUrl)
         this.syncRowMock()
@@ -273,6 +305,7 @@ export class MateuVisualEditor extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback()
         window.removeEventListener('keydown', this.onKeydown)
+        this.unwatchTheme?.()
         registerExternalJsonMock(null) // don't leak the mock past this editor instance
     }
 
@@ -400,7 +433,7 @@ export class MateuVisualEditor extends LitElement {
                                 </div>
                             </div>
                             <editor-canvas .doc=${this.doc} .baseUrl=${renderBaseUrl(this.previewSource)}
-                                           .clientRender=${rendersClientSide(this.previewSource)} .renderer=${this.renderer}
+                                           .clientRender=${rendersClientSide(this.previewSource)} .renderer=${this.renderer} .theme=${this.theme}
                                            .selectedPath=${this.selectedPath}></editor-canvas>
                             <editor-properties .node=${selected} .project=${this.project} .contract=${this.contract}></editor-properties>
                         </div>

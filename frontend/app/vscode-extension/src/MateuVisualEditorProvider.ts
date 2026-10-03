@@ -1,4 +1,5 @@
 import * as vscode from 'vscode'
+import { connectSrc, sourceOrigins } from './csp'
 import * as fs from 'fs'
 import { BackendProxy } from './backendProxy'
 
@@ -33,7 +34,25 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
         const webview = panel.webview
         const mediaRoot = vscode.Uri.joinPath(this.context.extensionUri, 'media')
         webview.options = { enableScripts: true, localResourceRoots: [mediaRoot] }
-        webview.html = this.buildHtml(webview, mediaRoot, port)
+        // The CSP names the REST source origins the project declares; when sources.yaml changes so
+        // that set changes, the webview is rebuilt (it re-inits from the document, nothing is lost).
+        let origins = sourceOrigins((await collectSpecsUiFiles(document.uri)).map((f) => f.content))
+        webview.html = this.buildHtml(webview, mediaRoot, port, backend, origins)
+        let rebuildTimer: ReturnType<typeof setTimeout> | undefined
+        const refreshOrigins = () => {
+            clearTimeout(rebuildTimer)
+            rebuildTimer = setTimeout(async () => {
+                const next = sourceOrigins((await collectSpecsUiFiles(document.uri)).map((f) => f.content))
+                if (next.join(' ') === origins.join(' ')) return
+                origins = next
+                webview.html = this.buildHtml(webview, mediaRoot, port, backend, origins)
+            }, 500)
+        }
+        const root = specsUiRoot(document.uri)
+        const watcher = root ? vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(root, '**/*.{yaml,yml}')) : undefined
+        watcher?.onDidChange(refreshOrigins)
+        watcher?.onDidCreate(refreshOrigins)
+        watcher?.onDidDelete(refreshOrigins)
 
         let savingFromWebview = false
 
@@ -63,11 +82,11 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
             webview.postMessage({ type: 'externalChange', yaml: document.getText() })
         })
 
-        panel.onDidDispose(() => { onMessage.dispose(); onDocChange.dispose() })
+        panel.onDidDispose(() => { onMessage.dispose(); onDocChange.dispose(); watcher?.dispose(); clearTimeout(rebuildTimer) })
     }
 
     /** The bundle's index.html, rewritten for the webview: CSP, the host baseUrl, and the entry asset. */
-    private buildHtml(webview: vscode.Webview, mediaRoot: vscode.Uri, port: number): string {
+    private buildHtml(webview: vscode.Webview, mediaRoot: vscode.Uri, port: number, backend: string, origins: string[]): string {
         const indexPath = vscode.Uri.joinPath(mediaRoot, 'index.html')
         // The web bundle is copied into media/ by `npm run copy:web`; the dir is gitignored, so a fresh
         // checkout has none. Fail with an actionable message instead of a raw ENOENT that blanks the panel.
@@ -98,10 +117,10 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
             // 'unsafe-eval': the shared Mateu renderer evaluates ${...} label/rule expressions via
             // new Function(); harmless here (the webview only runs our own bundle + the local proxy).
             `script-src 'nonce-${nonce}' ${webview.cspSource} 'unsafe-eval'`,
-            // The backend proxy, plus the REST sources a page reads its rows/options from: the canvas
-            // fetches them straight from the browser exactly as the app does (https anywhere, or a
-            // local dev API on loopback). Without this a listing previews with no rows.
-            `connect-src ${origin} https: http://localhost:* http://127.0.0.1:*`,
+            // The backend proxy, loopback, the backend's own origin and the REST sources the project
+            // declares (the canvas fetches rows/options straight from the browser, as the app does).
+            // Not "any https host" — see csp.ts.
+            `connect-src ${connectSrc(origin, backend, origins)}`,
         ].join('; ')
 
         const head = `
@@ -130,6 +149,12 @@ function relativeSpecsUiPath(docUri: vscode.Uri): string | undefined {
     const marker = '/specs/ui/'
     const idx = docUri.path.lastIndexOf(marker)
     return idx < 0 ? undefined : docUri.path.slice(idx + marker.length)
+}
+
+function specsUiRoot(docUri: vscode.Uri): vscode.Uri | undefined {
+    const marker = '/specs/ui/'
+    const idx = docUri.path.lastIndexOf(marker)
+    return idx < 0 ? undefined : docUri.with({ path: docUri.path.slice(0, idx + marker.length - 1) })
 }
 
 async function collectSpecsUiFiles(docUri: vscode.Uri): Promise<{ path: string; content: string }[]> {

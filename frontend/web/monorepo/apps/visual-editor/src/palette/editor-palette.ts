@@ -19,8 +19,8 @@ export class EditorPalette extends LitElement {
                         border-radius: 6px; box-sizing: border-box; }
         h3 { margin: 0.6rem 0.75rem 0.15rem; font: 600 11px var(--ve-font, system-ui); text-transform: uppercase; letter-spacing: .04em; color: var(--ve-secondary, #6b7280); }
         button { display: block; width: calc(100% - 1rem); margin: 0.2rem 0.5rem; padding: 0.35rem 0.6rem; text-align: left;
-                 font: 13px var(--ve-font, system-ui); background: #fff; border: 1px solid var(--ve-input-border, #d7dade); border-radius: 6px; cursor: pointer; }
-        button:hover { background: #eef4ff; border-color: #b7ccf7; }
+                 font: 13px var(--ve-font, system-ui); background: var(--ve-base, #fff); color: inherit; border: 1px solid var(--ve-input-border, #d7dade); border-radius: 6px; cursor: pointer; }
+        button:hover { background: var(--ve-primary-10, #eef4ff); border-color: var(--ve-primary, #b7ccf7); }
         .none { padding: 0.75rem; font: 12px var(--ve-font, system-ui); color: var(--ve-tertiary, #9ca3af); }
     `
 

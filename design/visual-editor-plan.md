@@ -302,15 +302,19 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
   **IDE hosts — first live run:** `e2e/vscode-host-live.mjs` drives a REAL VS Code 1.132 (Electron, the
   extension loaded from source) — open → canvas renders through the proxy (live) → edit → document dirty
   → ⌘S writes the file (only the edited line changes) → a disk change reaches the canvas: **8/8**. Found
-  and fixed: the webview CSP blocked REST sources (`connect-src` now allows https + loopback). IntelliJ:
+  and fixed: the webview CSP blocked REST sources — `connect-src` now names exactly the proxy, loopback, the
+  `mateu.baseUrl` origin and the origins of the project's `sources.yaml` (`csp.ts`, unit-tested), and the
+  webview is rebuilt when a new source origin is declared. **Dark IDE theme:** the editor follows the host
+  (VS Code body class, IntelliJ `__mateuTheme` from `JBColor.isBright()`, else `prefers-color-scheme`) —
+  Lumo's dark palette on the chrome and on the canvas. Live run now **11/11**. IntelliJ:
   `compileKotlin` + the VisualEditor tests green; its JCEF GUI (`runIde`) was **not** live-run.
   Tests: vitest 123 → 148 (slots, yamlPreserve, history, rename, pageActions, sources, routes), tsc,
   `vite build`, `e2e/visual-editor-probe.mjs` 15/15. Evaluation report (Spanish):
   `ec-demo1-ux/visual-editor/evaluation.md`.
   **Still open:** YAML `AppShell` cannot author `accentColor`/`backLink` (fixed in the stacked PR #679), the editor
   cannot create a new file (a route's missing layout is flagged, not created), structured editors have no
-  YAML view, the canvas toolbar overflows into "…" in a narrow IDE pane exactly as the app does, dark IDE
-  themes get a light editor, and the IntelliJ GUI live-run.
+  YAML view, the canvas toolbar overflows into "…" in a narrow IDE pane exactly as the app does, IntelliJ
+  picks its theme at page load (no live switch), and the IntelliJ GUI live-run.
 - **Next actions:** the human **GUI live-test** of the IDE hosts (JCEF/webview bridges + the new VSCode
   code-action — needs a desktop IDE), and the last optional minor: embedded **`local` boot** (the plugin's
   `MateuVisualEditorServer` — Kotlin, GUI-gated, no headless path; recommend verifying alongside the live-run).

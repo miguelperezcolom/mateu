@@ -32,7 +32,7 @@ export class EditorOutline extends LitElement {
         .row:hover .actions, .row.sel .actions { display: flex; }
         .actions button { border: none; background: transparent; cursor: pointer; color: var(--ve-tertiary, #9aa2ad); padding: 0 2px;
                           font-size: 12px; line-height: 1; border-radius: 4px; }
-        .actions button:hover { background: #dde3ea; color: var(--ve-text, #374151); }
+        .actions button:hover { background: var(--ve-hover, #dde3ea); color: var(--ve-text, #374151); }
         .empty { padding: 0.75rem 0.6rem; color: var(--ve-tertiary, #9aa2ad); }
         .slot { display: flex; align-items: center; gap: 0.25rem; padding: 0.1rem 0.4rem; color: var(--ve-tertiary, #9aa2ad);
                 font-size: 10px; text-transform: uppercase; letter-spacing: .05em; user-select: none; cursor: pointer; }

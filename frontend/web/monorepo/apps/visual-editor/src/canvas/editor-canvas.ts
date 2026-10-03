@@ -80,6 +80,8 @@ export class EditorCanvas extends LitElement {
     @property({ attribute: false }) selectedPath: NodePath | null = null
     /** The design system the canvas paints with; a change re-renders the current page. */
     @property() renderer: CanvasRendererId = 'neutral'
+    /** Light/dark: set on the renderer's root, where Lumo's scoped tokens are declared. */
+    @property() theme: 'light' | 'dark' = 'light'
 
     @state() private error?: string
     /** A non-error note above the canvas (e.g. "backend unreachable — showing the offline render"). */
@@ -120,7 +122,7 @@ export class EditorCanvas extends LitElement {
                      no backend behind the editor, paints a "Not found" fragment that overwrites our render.
                      The canvas is the sole driver via applyFragment; it passes baseUrl straight to runAction,
                      so the ux never needs a route of its own. -->
-                ${keyed(this.uxKey, html`<mateu-ux .preventNavigation=${true}></mateu-ux>`)}
+                ${keyed(this.uxKey, html`<mateu-ux .preventNavigation=${true} theme=${this.theme}></mateu-ux>`)}
                 ${this.isEmptyPage() ? html`<div class="empty-hint">This page is empty.<br>Drag a component here, or add one from the Insert panel.</div>` : ''}
                 ${this.hoverBox && !this.drag ? this.renderHoverOverlay() : ''}
                 ${this.selBox ? this.renderSelectionOverlay() : ''}
