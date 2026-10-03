@@ -150,6 +150,33 @@ For common cases, the gateway can also inject identity headers (`X-User-Id`, `X-
 
 ---
 
+## Caching and compression of the frontend assets
+
+Spring Security's default headers put `Cache-Control: no-cache, no-store, max-age=0, must-revalidate` on every response that has no cache policy of its own — static files included. Left at that, a browser downloads the whole renderer (≈900 KB for the Vaadin bundle, ≈780 KB for Redwood's app bundle, uncompressed) on every page load.
+
+The Spring MVC and WebFlux adapters therefore serve Mateu's assets with a policy, which Spring Security's writer leaves alone:
+
+| Path | `Cache-Control` | Why |
+|---|---|---|
+| `/version_<n>/**` (Redwood) | `max-age=31536000, public, immutable` | the build stamps a new number into the path whenever the bundle changes |
+| `/assets/**`, `/js/**`, `/myassets/**` (Vaadin bundle, keycloak.min.js…) | `no-cache` + weak `ETag` + `Last-Modified` | stable names: the browser keeps them and gets a `304` while they are unchanged |
+
+They resolve from the same locations as Spring Boot's static handler (`spring.web.resources.static-locations`). Turn the policy off with `mateu.static-assets.caching=false`. The bootstrap page itself is generated per request and keeps whatever your security configuration sets.
+
+Compression is the application's (or its proxy's) choice. With Spring Boot:
+
+```yaml
+server:
+  compression:
+    enabled: true
+    min-response-size: 1KB
+    mime-types: [text/html, text/css, text/javascript, application/javascript, application/json, image/svg+xml]
+```
+
+Leave `text/event-stream` out of the list: a compressed stream is buffered, and SSE updates would arrive in lumps. Behind a gateway that every request passes through, enabling compression there once covers every backend.
+
+---
+
 ## Reading the current user in actions
 
 Inside action handlers, read the JWT or injected headers from the `HttpRequest`:
