@@ -7,6 +7,8 @@ import io.mateu.uidl.data.LongTask;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.UICommand;
 import jakarta.validation.constraints.NotEmpty;
+import java.util.ArrayList;
+import java.util.List;
 import reactor.core.publisher.Flux;
 
 public class Page5 {
@@ -16,10 +18,15 @@ public class Page5 {
             @NotEmpty
     String hotelId;
 
+    // MULTI-valued: the ids show as chips; «Add» opens the same selector with row checkboxes and
+    // «Add selected» (a row click adds that one hotel)
+    @Searchable(selector = HotelSelector.class, label = HotelSelector.class)
+    List<String> hotelIds = new ArrayList<>(List.of("3"));
+
 
     @Button
     Object save() {
-        return Message.success("Saved " + hotelId);
+        return Message.success("Saved " + hotelId + " " + hotelIds);
     }
 
 

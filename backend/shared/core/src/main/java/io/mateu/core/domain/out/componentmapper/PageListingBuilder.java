@@ -58,7 +58,8 @@ public class PageListingBuilder {
     var builder =
         Listing.builder()
             .searchable(isSearchable(instance))
-            .rowsSelectionEnabled(isRowSelectionEnabled(instance))
+            .rowsSelectionEnabled(
+                isRowSelectionEnabled(instance) || isMultiValuedSelector(instance, httpRequest))
             .groupBy(
                 io.mateu.core.infra.declarative.orchestrators.crud.ListingSummarySpec.of(
                         getRowClass(instance))
@@ -78,6 +79,7 @@ public class PageListingBuilder {
             .detailPath(getDetailPath(getRowClass(instance)))
             .gridLayout(getGridLayout(instance))
             .rowsSource(getRestListingSource(instance))
+            .rowRoute(getRestListingRowRoute(instance))
             .style(getStyle(instance, httpRequest));
 
     // @GroupAction methods become buttons on the @GroupBy group header rows; the frontend
@@ -90,6 +92,15 @@ public class PageListingBuilder {
     }
 
     getToolbarButtons(instance).forEach(builder::toolbarItem);
+    if (isMultiValuedSelector(instance, httpRequest)) {
+      // the selector of a multi-valued @Searchable field: checkboxes + «Add selected»
+      builder.toolbarItem(
+          Button.builder()
+              .label("Add selected")
+              .actionId("action-on-row-" + SearchableSelection.ADD_SELECTED_ACTION)
+              .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary)
+              .build());
+    }
 
     return List.of(builder.build());
   }
@@ -170,6 +181,14 @@ public class PageListingBuilder {
   }
 
   /**
+   * The {@code @RestListing(rowRoute)} of the listing class, or null (a row click does nothing).
+   */
+  private static String getRestListingRowRoute(Object instance) {
+    var a = MetaAnnotations.find(instance.getClass(), io.mateu.uidl.annotations.RestListing.class);
+    return a == null || a.rowRoute().isBlank() ? null : a.rowRoute();
+  }
+
+  /**
    * A client-side external rows source when the listing class carries {@code @RestListing} — the
    * renderer fetches the endpoint directly and maps each JSON item into a row by column name. Null
    * otherwise.
@@ -189,7 +208,9 @@ public class PageListingBuilder {
     return io.mateu.uidl.data.RestDataSource.builder()
         .ref(a.source())
         .url(a.url())
-        .method(a.method())
+        .method(
+            io.mateu.core.application.runaction.DeclaredRestMethod.of(
+                a.source(), a.method(), "GET"))
         .headers(headers)
         .body(a.body())
         .itemsPath(a.itemsPath())
@@ -212,6 +233,14 @@ public class PageListingBuilder {
       style += MetaAnnotations.find(instance.getClass(), Style.class).value();
     }
     return style;
+  }
+
+  /**
+   * A {@link Selector} opened by a multi-valued {@code @Searchable} field (List, Set or array of
+   * ids): its rows can be checked and added at once (see {@code CodeSearchFieldActionRunner}).
+   */
+  static boolean isMultiValuedSelector(Object instance, HttpRequest httpRequest) {
+    return instance instanceof Selector<?> && SearchableSelection.isMulti(httpRequest);
   }
 
   private static boolean isRowSelectionEnabled(Object instance) {

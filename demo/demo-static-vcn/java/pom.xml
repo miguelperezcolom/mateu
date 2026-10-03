@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.5</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>io.mateu.demo</groupId>
+    <artifactId>demo-static-vcn-java</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>demo-static-vcn-java</name>
+    <description>The static VCN slice authored in JAVA (@UI classes, @RestListing/@RestData/@RestAction)
+        and exported by mateu:bundle: the wire is pre-rendered at build time and served as plain
+        files — no backend.</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <mateu.version>0.0.1-MATEU</mateu.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mvc-core</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>vaadin-lit</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                        <!-- The indexer writes META-INF/mateu/ui-registrations: what the @RestSource
+                             catalogue (and the build-time exporter) read the routed classes from. -->
+                        <path>
+                            <groupId>io.mateu</groupId>
+                            <artifactId>annotation-processor-indexer</artifactId>
+                            <version>${mateu.version}</version>
+                        </path>
+                        <path>
+                            <groupId>io.mateu</groupId>
+                            <artifactId>annotation-processor-mvc</artifactId>
+                            <version>${mateu.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <!-- mvn -Pbundle package → target/mateu-bundle/: index.html + manifest.json + assets/.
+             Every route is PRE-RENDERED from the Java classes (the :id routes as templates).
+             staticOnly: the static-safety report runs and the build FAILS if any route still needs
+             a server (a Java action method, a CrudStore, a proxied source, a secret…). -->
+        <profile>
+            <id>bundle</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>io.mateu</groupId>
+                        <artifactId>mateu-bundle-maven-plugin</artifactId>
+                        <version>${mateu.version}</version>
+                        <configuration>
+                            <assetsFrom>${project.basedir}/../../../backend/shared/frontend/vaadin-lit/src/main/resources/static</assetsFrom>
+                            <basePackages>io.mateu.demo.staticvcn.java</basePackages>
+                            <pageTitle>Networking (static, Java)</pageTitle>
+                            <skipParamRoutes>false</skipParamRoutes>
+                            <staticOnly>true</staticOnly>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>bundle</id>
+                                <goals>
+                                    <goal>bundle</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

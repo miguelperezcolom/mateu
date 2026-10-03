@@ -20,6 +20,8 @@ import { MateuTableCrud } from "@infra/ui/mateu-table-crud"
 import { renderPopover } from "./renderers/renderPopover"
 import { renderVaadinToolbarButton, renderVaadinPeerNav } from "./renderers/renderToolbarButton"
 import { renderVaadinIcon } from "./renderers/renderIcon"
+import { renderVaadinHeaderIconButton } from "./renderers/renderHeaderIconButton"
+import type { HeaderIconButton } from "@infra/ui/renderers/ComponentRenderer"
 import { renderButton as renderVaadinButton } from "./renderers/renderButton"
 import { renderMessageInput as renderVaadinMessageInput, renderMessageList as renderVaadinMessageList } from "./renderers/renderMessages"
 import { renderConfirmDialog as renderVaadinConfirmDialog } from "./renderers/renderConfirmDialog"
@@ -135,6 +137,11 @@ export class VaadinComponentRenderer extends BasicComponentRenderer implements C
     // App shell top navigation → vaadin-menu-bar (the core shell renders a neutral <details> strip).
     renderTopNav(items: MenuBarItem[], onSelect: (item: MenuBarItem) => void, cls?: string): TemplateResult {
         return renderVaadinTopNav(items, onSelect, cls)
+    }
+
+    // App header chrome buttons (chat / theme toggles) → vaadin-button theme="tertiary icon".
+    renderHeaderIconButton(button: HeaderIconButton): TemplateResult {
+        return renderVaadinHeaderIconButton(button)
     }
 
 }

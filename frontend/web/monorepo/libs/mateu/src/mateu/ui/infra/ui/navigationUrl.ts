@@ -28,3 +28,30 @@ export const nextHistoryUrl = (
     }
     return to.startsWith('/') ? to : '/' + to
 }
+
+/**
+ * Whether a back/forward (popstate) lands on a DIFFERENT screen from the one shown, so the whole
+ * tree has to be rebuilt as on a fresh load rather than refreshed in place.
+ *
+ * <p>The top-level ux only re-fetches what changed and keeps its live content when its own route is
+ * unchanged — but a nested screen (a record master's tab, the crud inside it) pushes its URL without
+ * touching the top-level route. Going back from `/customers/3/orders/new` to `/customers/3/orders`
+ * left the top route equal, the server answered state-only, and the New form stayed on screen
+ * under the listing's URL. A change of path or query is a change of screen; a change of hash alone
+ * (a foldout's `#expand=`) is not.
+ */
+export const isScreenChange = (
+    previousHref: string | undefined,
+    current: { pathname: string; search: string },
+): boolean => {
+    if (!previousHref) {
+        return false
+    }
+    let previous: URL
+    try {
+        previous = new URL(previousHref)
+    } catch {
+        return false
+    }
+    return previous.pathname !== current.pathname || (previous.search ?? '') !== (current.search ?? '')
+}

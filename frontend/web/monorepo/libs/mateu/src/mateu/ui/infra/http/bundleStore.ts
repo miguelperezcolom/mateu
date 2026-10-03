@@ -19,6 +19,9 @@ interface BundleEntry {
     // group per param, and the param names in order (see the server's MateuBundleExporter).
     routePattern?: string
     paramNames?: string[]
+    // The route's CONTENT load (what an app shell asks for its content slot), when it differs from
+    // `json` — which, under a mount whose root is an app shell, is the SHELL (the fresh load).
+    contentJson?: string | null
 }
 
 /**
@@ -32,6 +35,8 @@ interface RouteEntry {
     viewModel?: string | null
     fixedParams?: Record<string, unknown>
     defaultParams?: Record<string, unknown>
+    // The named source that loads the route's data on entry (`data: <source>` in routes.yaml).
+    data?: { ref?: string | null, url?: string | null } | null
 }
 
 interface BundleManifest {
@@ -55,14 +60,19 @@ interface BundleManifest {
 
 // syncPath → parsed increment, for the routes that exported OK. undefined = no bundle loaded.
 let increments: Map<string, UIIncrement> | undefined
-// :param route TEMPLATES: a compiled matcher + param names + the pre-rendered structure.
-interface BundleTemplate { regex: RegExp; paramNames: string[]; increment: UIIncrement }
+// syncPath → the route's CONTENT load, for the routes under an app shell (see BundleEntry.contentJson).
+let contents: Map<string, UIIncrement> = new Map()
+// :param route TEMPLATES: a compiled matcher + param names + the pre-rendered structure (and, under
+// an app shell, its content load).
+interface BundleTemplate { regex: RegExp; paramNames: string[]; increment: UIIncrement; content?: UIIncrement }
 let templates: BundleTemplate[] = []
 // The in-flight manifest load (if any), so a route load can await it before deciding to hit the
 // backend — the first load can fire before the fetch resolves.
 let pending: Promise<void> | undefined
 // The mount's authored route registry, as shipped in the manifest.
 let routeEntries: RouteEntry[] = []
+// The manifest's REST source catalogue, kept to hand to an app shell expanded in the browser.
+let catalogueSources: RestSourceEntry[] = []
 // Specs mode: raw authored definitions keyed by file name (see BundleManifest.definitions).
 let definitions: Record<string, DefinitionSpec> = {}
 
@@ -151,24 +161,29 @@ export function loadBundleManifest(url: string, fetchImpl: typeof fetch = fetch)
             if (!res.ok) return
             const manifest = (await res.json()) as BundleManifest
             const map = new Map<string, UIIncrement>()
+            const contentMap = new Map<string, UIIncrement>()
             const tpls: BundleTemplate[] = []
             for (const e of manifest.entries ?? []) {
                 if (!e.ok || !e.json) continue
                 try {
                     const inc = JSON.parse(e.json) as UIIncrement
+                    const content = e.contentJson ? JSON.parse(e.contentJson) as UIIncrement : undefined
                     if (e.routePattern) {
-                        tpls.push({ regex: new RegExp(e.routePattern), paramNames: e.paramNames ?? [], increment: inc })
+                        tpls.push({ regex: new RegExp(e.routePattern), paramNames: e.paramNames ?? [], increment: inc, content })
                     } else {
                         map.set(e.syncPath, inc)
+                        if (content) contentMap.set(e.syncPath, content)
                     }
                 } catch (err) {
                     console.warn('mateu: bundle entry parse failed for', e.syncPath, err)
                 }
             }
             increments = map
+            contents = contentMap
             templates = tpls
             routeEntries = manifest.routes?.routes ?? []
             definitions = manifest.definitions ?? {}
+            catalogueSources = manifest.sources?.sources ?? []
             setRestSourceCatalogue(manifest.sources?.sources)
         } catch (e) {
             console.warn('mateu: bundle manifest load failed', e)
@@ -203,17 +218,20 @@ export const getBundledIncrement = (syncPath: string): UIIncrement | undefined =
  * — so the screen's client-side data fetch (`@RestOptions`/`@RestData` URL with `${state.<param>}`)
  * resolves to the real value with no backend. undefined when no template matches.
  */
-export const matchBundledTemplate = (syncPath: string): UIIncrement | undefined => {
+export const matchBundledTemplate = (syncPath: string, content = false): UIIncrement | undefined => {
     for (const t of templates) {
         const m = t.regex.exec(syncPath)
         if (!m) continue
+        const increment = content ? t.content : t.increment
+        if (!increment) return undefined
         const params: Record<string, string> = {}
         t.paramNames.forEach((name, i) => { params[name] = m[i + 1] })
         const withPathParams = {
-            ...t.increment,
+            ...increment,
             // params LAST so the real value wins over any placeholder captured at render time
-            fragments: (t.increment.fragments ?? []).map(f => ({
+            fragments: (increment.fragments ?? []).map(f => ({
                 ...f,
+                component: withInitialData(f.component, params),
                 state: { ...(f.state ?? {}), ...params },
                 data: { ...(f.data ?? {}), ...params },
             })),
@@ -222,6 +240,15 @@ export const matchBundledTemplate = (syncPath: string): UIIncrement | undefined 
         return applyRouteParams(syncPath, withPathParams)
     }
     return undefined
+}
+
+/** A server-side component carries the path params it was rendered with in `initialData` too — at
+ *  export time, the PLACEHOLDER. Overwrite them with the real ones, or a page that seeds its state
+ *  from initialData would ask the API for `__mateu_param__`. */
+const withInitialData = <T,>(component: T, params: Record<string, string>): T => {
+    const c = component as unknown as { initialData?: unknown } | undefined
+    if (!c || !c.initialData || typeof c.initialData !== 'object') return component
+    return { ...c, initialData: { ...(c.initialData as Record<string, unknown>), ...params } } as unknown as T
 }
 
 /**
@@ -237,7 +264,84 @@ export const getExpandedIncrement = (syncPath: string): UIIncrement | undefined 
     if (!name) return undefined
     const spec = definitions[name]
     if (!spec || !isClientExpandable(spec)) return undefined
-    return applyRouteParams(syncPath, expandDefinition(spec, match!.entry.route))
+    const expanded = expandDefinition(spec, match!.entry.route, undefined, {
+        data: match!.entry.data ?? undefined,
+        path: syncPath === '_no_route' ? '' : syncPath,
+    })
+    // The expander targets the harness's main id (its goldens were captured that way); in the
+    // browser the fragment goes to whoever asked, so leave it untargeted and let the client aim it.
+    // An expanded app shell carries the manifest's source catalogue, as a served one carries the
+    // app's: the shell PUBLISHES its catalogue when it mounts (a replace), and one without it would
+    // wipe the table every screen resolves its `ref`s against.
+    return applyRouteParams(syncPath, {
+        ...expanded,
+        fragments: (expanded.fragments ?? []).map(f => {
+            const app = appShellOf({ fragments: [f] } as UIIncrement)
+            const component = app
+                ? { ...f.component, metadata: { ...app, restSources: catalogueSources } } as unknown as typeof f.component
+                : f.component
+            return { ...f, component, targetComponentId: undefined as unknown as string }
+        }),
+    })
+}
+
+/** The `type: App` metadata of an increment's first fragment, when the increment is an app shell. */
+const appShellOf = (increment: UIIncrement | undefined): Record<string, unknown> | undefined => {
+    const component = increment?.fragments?.[0]?.component as unknown as
+        { metadata?: Record<string, unknown> } | undefined
+    return component?.metadata?.type === 'App' ? component.metadata : undefined
+}
+
+/** The shell, re-aimed at `syncPath`: an app shell loads its content slot from `homeRoute`, which is
+ *  how the server answers a deep link (a fresh load of /vcns/7 is the shell with homeRoute /vcns/7). */
+const aimedAt = (shell: UIIncrement, syncPath: string): UIIncrement => {
+    if (syncPath === '_no_route') return shell
+    const [first, ...rest] = shell.fragments ?? []
+    const component = first.component as unknown as { metadata: Record<string, unknown> }
+    return {
+        ...shell,
+        fragments: [{
+            ...first,
+            component: {
+                ...component,
+                metadata: { ...component.metadata, homeRoute: '/' + syncPath },
+            } as unknown as typeof first.component,
+        }, ...rest],
+    }
+}
+
+/**
+ * The bundle's answer to a route LOAD, or undefined (→ the backend, if there is one).
+ *
+ * Two loads exist under an app shell, and they must not be confused (#557):
+ *  - the FRESH load (`consumedRoute` "_empty": a deep link, a reload) answers the SHELL, aimed at the
+ *    requested route — exactly what the server does;
+ *  - the CONTENT load (any other consumed route: the shell filling its slot) answers the route's own
+ *    screen — its exported content, a :param template's content, or its definition expanded here.
+ * A content load is never answered with a shell: that is what nested shells until the tab died.
+ */
+export const resolveBundledLoad = (syncPath: string, consumedRoute?: string): UIIncrement | undefined => {
+    const fresh = consumedRoute === undefined || consumedRoute === '_empty'
+    const own = (): UIIncrement | undefined =>
+        getBundledIncrement(syncPath) ?? matchBundledTemplate(syncPath) ?? getExpandedIncrement(syncPath)
+    if (fresh) {
+        const answer = own()
+        if (answer && appShellOf(answer)) return aimedAt(answer, syncPath)
+        // A route of the root mount (an authored entry), or one the bundle cannot answer itself: when
+        // the root is an app shell, the fresh load is that shell. A route of ANOTHER mount (a pathed
+        // @UI page) keeps its own answer.
+        if (syncPath !== '_no_route' && (matchRouteEntry(syncPath) || !answer)) {
+            const root = getBundledIncrement('_no_route') ?? getExpandedIncrement('_no_route')
+            if (root && appShellOf(root)) return aimedAt(root, syncPath)
+        }
+        return answer
+    }
+    const exported = contents.get(syncPath) !== undefined
+        ? applyRouteParams(syncPath, contents.get(syncPath)!)
+        : matchBundledTemplate(syncPath, true)
+    if (exported) return exported
+    const answer = own()
+    return answer && appShellOf(answer) ? undefined : answer
 }
 
 /** Test hook: seed/clear the in-memory bundle directly. */
@@ -246,8 +350,10 @@ export const __setBundleForTests = (
     t: BundleTemplate[] = [],
     r: RouteEntry[] = [],
     d: Record<string, DefinitionSpec> = {},
+    c: Map<string, UIIncrement> = new Map(),
 ): void => {
     increments = m
+    contents = c
     templates = t
     routeEntries = r
     definitions = d

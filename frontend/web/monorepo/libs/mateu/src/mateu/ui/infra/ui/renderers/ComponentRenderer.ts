@@ -76,6 +76,30 @@ export interface ComponentRenderer {
      * `onSelect` is the shell's existing menu-item handler (fires container.itemSelected).
      */
     renderTopNav?(items: MenuBarItem[], onSelect: (item: MenuBarItem) => void, cls?: string): TemplateResult
+
+    /**
+     * An icon-only button of the app header's chrome — the chat toggle, the theme toggle. Absent →
+     * the shell renders a DS-neutral <button class="app-chrome-icon-btn"> (appRenderer,
+     * renderHeaderIconButton). The Vaadin adapter overrides it with a
+     * <vaadin-button theme="tertiary icon">, so the header's own buttons are Lumo buttons like the
+     * rest of the renderer. `pressed` is set only for a two-state button (aria-pressed).
+     */
+    renderHeaderIconButton?(button: HeaderIconButton): TemplateResult
+}
+
+/** One icon-only button of the app header's chrome (see ComponentRenderer.renderHeaderIconButton). */
+export interface HeaderIconButton {
+    /** wire icon name, e.g. 'vaadin:comments-o' — outline glyphs, the header's one icon style */
+    icon: string
+    /** the accessible name (aria-label) */
+    label: string
+    /** the tooltip; defaults to the label */
+    title?: string
+    /** a two-state button's state (aria-pressed); undefined for a plain button */
+    pressed?: boolean
+    /** extra classes, e.g. 'mateu-chat-toggle' */
+    cssClasses?: string
+    onClick: (e: Event) => void
 }
 
 export class ComponentRendererSingleton {

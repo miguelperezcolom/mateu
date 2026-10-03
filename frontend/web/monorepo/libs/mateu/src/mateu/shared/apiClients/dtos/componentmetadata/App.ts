@@ -18,6 +18,11 @@ export default interface App extends ComponentMetadata {
     logo: string | undefined
     favicon: string | undefined
     menu: MenuOption[]
+    // Client-side only, set by the remote-menu completion (ConnectedElement.completeMenu): the
+    // whole navigation tree — the remote sections merged in, the hidden ones (visible: false)
+    // kept — for what reads the menu rather than draws it (breadcrumbs, the active section).
+    // `menu` is what the renderers draw: the same tree without the hidden entries.
+    navMenu?: MenuOption[]
     totalMenuOptions: number
     homeRoute: string
     homeBaseUrl: string
@@ -45,6 +50,17 @@ export default interface App extends ComponentMetadata {
     chromeless?: boolean
     /** `@NoBreadcrumbs` on the shell: no automatic breadcrumb trail on its pages. */
     noBreadcrumbs?: boolean
+    /** @App(askLabel): the brand of the shell's "ask" entry; absent = the renderer's own */
+    askLabel?: string
+    /** @App(askIcon): its icon (an initial, an image or an icon name); absent = the renderer's own */
+    askIcon?: string
+    /** @App(accentColor): the app's brand accent, a CSS colour (not the primary colour); absent = none */
+    accentColor?: string
+
+    /** @App(backLink = PARENT): the route and label of the "← Parent" link (else undefined). */
+    backRoute?: string
+
+    backLabel?: string
     /** The app's REST source catalogue: every named endpoint its screens reference, declared once.
      * App-wide configuration, so it arrives with the shell rather than on every response. */
     restSources?: RestSourceEntry[] | undefined

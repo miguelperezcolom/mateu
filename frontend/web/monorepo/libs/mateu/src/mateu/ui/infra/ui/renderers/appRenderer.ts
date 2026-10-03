@@ -2,7 +2,8 @@ import { html, nothing } from "lit";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
 import { MateuApp, MenuBarItem } from "@infra/ui/mateu-app.ts";
-import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
+import { componentRenderer, HeaderIconButton } from "@infra/ui/renderers/ComponentRenderer.ts";
+import { chromeText } from "@infra/ui/chromeTexts.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import "@infra/ui/mateu-app-context-picker.ts";
 import "@infra/ui/mateu-notification-bell.ts";
@@ -10,6 +11,16 @@ import { dispatchAppHeaderAction } from "@infra/ui/renderers/appHeaderActions.ts
 import { notify } from "@application/Notifier.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 import { fabPosition, onFabRail } from "@infra/ui/layout/fabRail.ts";
+import { navigateToRoute } from "@infra/ui/rowRoute.ts";
+import { dirtyGuard } from "@infra/ui/dirtyGuard.ts";
+import { isLazyRoute } from "@infra/ui/mateu-when-visible.ts";
+
+/**
+ * A sub-resource island loaded when shown (`@Subresource(load = ON_OPEN)` → `_lazy=1` on its home
+ * route): wrapped in mateu-when-visible, so a listing in a closed tab is not fetched until opened.
+ */
+const lazyWhen = (lazy: boolean, content: () => ReturnType<typeof html>) =>
+    lazy ? html`<mateu-when-visible style="display: block; width: 100%;" .content="${content}"></mateu-when-visible>` : content()
 // The always-present command-center FAB + full-screen palette (the Ask-Oracle pattern) is mounted
 // once, from the shell base class's updated() lifecycle (see commandCenterMount.ts), so it does not
 // appear in these templates. What the templates DO account for: the FAB sits bottom-right, so when it
@@ -51,19 +62,21 @@ const renderContextSelectors = (metadata: App, container: MateuApp) => {
 // button; an item with children is a native <details> dropdown (no component state needed). Reuses the
 // existing itemSelected handler directly (onSelect(item)).
 const navLeaf = (item: MenuBarItem, onSelect: (item: MenuBarItem) => void) => html`
-    <button class="mateu-nav-item ${(item as { selected?: boolean }).selected ? 'mateu-nav-item--active' : ''}"
+    <button class="mateu-nav-item ${(item as { selected?: boolean }).selected ? 'mateu-nav-item--active' : ''} ${item.className ?? ''}"
             ?disabled="${item.disabled}"
+            title="${(item as { title?: string }).title ?? nothing}"
             @click="${() => onSelect(item)}">${item.text}</button>`
 
 /**
  * The logo and the title, the header's brand. The title takes part in the row's baseline (see
  * HEADER_ROW); the logo, which has no baseline of its own, is centred on the title's box instead —
  * on its capitals — so it sits with the name rather than on the line under it. With no title there
- * is no text to line up with, and the logo is simply centred.
+ * is no text to line up with, and the logo is simply centred. `inset` keeps the logo 10px off the
+ * row's start; band 1 of MENU_ON_TOP passes false, its own padding is the content gutter.
  */
-const renderBrand = (metadata: App) => html`
+const renderBrand = (metadata: App, inset = true) => html`
     <div class="m-hl" style="align-items: ${metadata.title ? 'baseline' : 'center'}; min-width: 0;">
-        ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: 10px; align-self: center;">`:nothing}
+        ${metadata.logo?html`<img src="${metadata.logo}" alt="logo" height="28px" style="margin-left: ${inset ? '10px' : '0'}; align-self: center;">`:nothing}
         ${metadata.title?html`<h2 class="mateu-app-title" style="margin: 0 var(--lumo-space-l, 1.5rem) 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;">${metadata.title}</h2>`:nothing}
     </div>`
 
@@ -103,14 +116,42 @@ const renderMenuButton = (items: MenuBarItem[], onSelect: (item: MenuBarItem) =>
 const fireSelect = (container: MateuApp, handler: (e: CustomEvent) => void) => (item: MenuBarItem) =>
     handler.call(container, { detail: { value: item } } as unknown as CustomEvent)
 
-const renderThemeToggle = (metadata: App, container: MateuApp) =>
-    metadata.themeToggle ? html`
-        <button class="app-chrome-icon-btn" @click="${container.toggleTheme}"
-            title="${container.isDark ? 'Switch to light mode' : 'Switch to dark mode'}"
-            style="margin-right: 0.5rem; flex-shrink: 0;">
-            ${icon(container.isDark ? 'vaadin:sun-o' : 'vaadin:moon', 'color: var(--lumo-body-text-color);')}
-        </button>
-    ` : nothing
+/**
+ * `@App(backLink = PARENT)`: "← Parent", the way back up OCI-style — to the nearest route above the
+ * app's own (the listing a record master was opened from), labelled with that screen's title.
+ */
+export const renderBackLink = (metadata: App, container: MateuApp) =>
+    metadata.backRoute ? html`
+        <a href="${metadata.backRoute}" class="mateu-back-link"
+           style="align-self: center; margin-left: 10px; white-space: nowrap; font-size: var(--lumo-font-size-s, .875rem);"
+           @click="${(e: Event) => {
+               e.preventDefault()
+               if (!dirtyGuard.confirmLeave()) return
+               navigateToRoute(container, metadata.backRoute!)
+           }}">← ${metadata.backLabel ?? 'Back'}</a>` : nothing
+
+/**
+ * An icon-only button of the header's chrome. The active renderer draws it with its own design
+ * system (the Vaadin adapter: a tertiary icon vaadin-button); otherwise it is a neutral <button>,
+ * which takes the header's font (`font: inherit`, mateu-app's .app-chrome-icon-btn) and the
+ * header's icon colour (--mateu-header-icon-color).
+ */
+export const renderHeaderIconButton = (button: HeaderIconButton) =>
+    componentRenderer.get()?.renderHeaderIconButton?.(button) ?? html`
+        <button class="app-chrome-icon-btn ${button.cssClasses ?? ''}" @click="${button.onClick}"
+            title="${button.title ?? button.label}" aria-label="${button.label}"
+            aria-pressed="${button.pressed === undefined ? nothing : String(button.pressed)}">
+            ${icon(button.icon, 'width: var(--lumo-icon-size-m, 1.5rem); height: var(--lumo-icon-size-m, 1.5rem); color: currentColor;')}
+        </button>`
+
+/** The dark/light switch, when the app asks for it (@App(themeToggle)). Outline moon / sun. */
+export const renderThemeToggle = (metadata: App, container: MateuApp) =>
+    metadata.themeToggle ? renderHeaderIconButton({
+        icon: container.isDark ? 'vaadin:sun-o' : 'vaadin:moon-o',
+        label: chromeText(container.isDark ? 'lightMode' : 'darkMode'),
+        cssClasses: 'mateu-theme-toggle',
+        onClick: () => container.toggleTheme(),
+    }) : nothing
 
 /**
  * The agent's chat toggle: a header widget, not a FAB — the conversation icon, just before the app's
@@ -118,13 +159,14 @@ const renderThemeToggle = (metadata: App, container: MateuApp) =>
  * closes the chat panel on the content's left (see renderChat), and reads as pressed while it is open.
  */
 export const renderChatToggle = (metadata: App, container: MateuApp) =>
-    metadata.sseUrl ? html`
-        <button class="app-chrome-icon-btn mateu-chat-toggle ${container.chatOpen ? 'mateu-chat-toggle--open' : ''}"
-            @click="${container.showHideIa}"
-            title="${container.chatOpen ? 'Cerrar el chat' : 'Chat'}" aria-label="Chat"
-            aria-pressed="${container.chatOpen ? 'true' : 'false'}">
-            ${icon('vaadin:comments', 'color: currentColor;')}
-        </button>` : nothing
+    metadata.sseUrl ? renderHeaderIconButton({
+        icon: 'vaadin:comments-o',
+        label: chromeText('chat'),
+        title: chromeText(container.chatOpen ? 'closeChat' : 'openChat'),
+        pressed: !!container.chatOpen,
+        cssClasses: 'mateu-chat-toggle' + (container.chatOpen ? ' mateu-chat-toggle--open' : ''),
+        onClick: () => container.showHideIa(),
+    }) : nothing
 
 /** The header's widget zone: the chat toggle, the app's widgets, the context pickers and actions, the theme toggle. */
 const renderHeaderWidgets = (metadata: App, container: MateuApp) => html`
@@ -138,7 +180,7 @@ const renderHeaderWidgets = (metadata: App, container: MateuApp) => html`
  * it covers the content area — never the header.
  */
 const renderChat = (metadata: App, container: MateuApp, appState: ComponentState, appData: ComponentData) =>
-    metadata.sseUrl ? html`<mateu-chat slot="${container.chatOpen ? 'detail' : 'detail-hidden'}" sseurl="${metadata.sseUrl}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing
+    metadata.sseUrl ? html`<mateu-chat slot="${container.chatOpen ? 'detail' : 'detail-hidden'}" sseurl="${metadata.sseUrl}" .label="${(metadata as { askLabel?: string }).askLabel}" .mcpUrl="${metadata.mcpUrl}" .uploadUrl="${metadata.uploadUrl}" .menu="${metadata.menu}" .contextProvider="${() => ({ url: window.location.pathname + window.location.search, screenTitle: document.title, appState, appData, componentState: container.state, componentData: container.data })}" @navigation-requested="${container.updateRoute}" @close-requested="${container.showHideIa}"></mateu-chat>` : nothing
 
 export const filterMenu = (e: CustomEvent, container: MateuApp) => {
     if (container.filter != e.detail.value) {
@@ -224,16 +266,10 @@ export const contentUxId = (container: MateuApp, metadata: App): string => {
 
 export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string | undefined, _state: ComponentState, _data: ComponentData, appState: ComponentState, appData: ComponentData) => {
 
-    // A shell fronting remote menus ends up MENU_ON_TOP: completeMenu (ConnectedElement) forces that
-    // variant once it has harvested the remotes' menus. Painting the first frame in the app's
-    // declared variant (e.g. TABS) and then flipping to MENU_ON_TOP moved the content <mateu-ux>
-    // into a different branch of this template, so Lit re-created it — the whole route re-fetched
-    // and re-painted, which is the listing you saw drawn twice on a cold load behind a shell.
-    // Adopt the final variant up front: same branch, same element across the menu arrival, so the
-    // menu update repaints only the menu and leaves the content mounted.
-    if (metadata.variant !== AppVariant.MENU_ON_TOP && metadata.menu?.some(option => option.remote)) {
-        metadata = { ...metadata, variant: AppVariant.MENU_ON_TOP }
-    }
+    // The variant is the app's own. A shell fronting remote menus used to be forced to MENU_ON_TOP
+    // here (and again by completeMenu once the menus arrived): flipping branches later re-created
+    // the content <mateu-ux>. The menu completion no longer touches the variant, so the first frame's
+    // is the final one; the server's AUTO picks MENU_ON_TOP for such a shell, as before.
 
     // Stable content-ux id (see contentUxId): reused across shell remounts so in-flight load/search
     // responses are not orphaned.
@@ -328,7 +364,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 </mateu-api-caller>
 
                             </div>
-                        `:html`
+                        `:lazyWhen(isLazyRoute(metadata.homeRoute), () => html`
                             <mateu-api-caller>
                                 <mateu-ux
                                         data-content-view
@@ -346,7 +382,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         @navigation-requested="${container.updateRoute}"
                                 ></mateu-ux>
                             </mateu-api-caller>
-                        `}
+                        `)}
                         
 `:nothing}
             ${metadata.variant == AppVariant.HAMBURGUER_MENU?html`
@@ -411,7 +447,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             @navigation-requested="${container.updateRoute}">
                     <div class="${HEADER_ROW_CLASS}" style="${HEADER_ROW}" theme="spacing">
                         <a href="javascript: void(0);" @click="${() => container.goHome()}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
-                        ${renderBrand({ ...metadata, title: '' })}
+                        ${renderBrand({ ...metadata, title: '' }, false)}
                         </a>
                         <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
                             ${renderHeaderWidgets(metadata, container)}
@@ -583,11 +619,12 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 style="width: 100%; ${HEADER_ROW} border-bottom: 1px solid var(--lumo-contrast-10pct);" 
                                 theme="spacing"
                                 @navigation-requested="${container.updateRoute}">
+                            ${renderBackLink(metadata, container)}
                             <a href="javascript: void(0);" @click="${() => container.goHome()}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
                             ${renderBrand(metadata)}
                             </a>
                             <nav class="mateu-tabs ${container.component?.cssClasses ?? ''}" style="flex-grow: 1; min-width: 0; margin-left: 1.5rem;">
-                                ${metadata.menu.map((option, i) => html`
+                                ${(metadata.menu?.length ?? 0) < 2 ? nothing : metadata.menu.map((option, i) => html`
                                 <button class="mateu-tab ${i === container.getSelectedIndex(metadata.menu) ? 'mateu-tab--active' : ''}"
                                         @click="${() => container.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix, option.rules)}"
                                 >${option.label}</button>`)}

@@ -4,6 +4,7 @@ import static io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.Lookup;
+import io.mateu.uidl.annotations.Searchable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.LookupLabelSupplier;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
@@ -25,7 +26,9 @@ public class DataLayer {
   public static HashMap<String, Object> createData(Object item, HttpRequest httpRequest) {
     var data = new HashMap<String, Object>();
     if (item instanceof LookupLabelSupplier labelSupplier) {
-      getAllFields(item.getClass())
+      getAllFields(item.getClass()).stream()
+          // a @Searchable field is labelled below, by its own label supplier
+          .filter(field -> !MetaAnnotations.isPresent(field, Searchable.class))
           .forEach(
               field ->
                   LookupFieldDataWriter.writeField(field, item, labelSupplier, data, httpRequest));
@@ -36,6 +39,11 @@ public class DataLayer {
             field ->
                 LookupFieldDataWriter.writeField(
                     field, item, getLookupLabelSupplier(item, field), data, httpRequest));
+    // @Searchable: the label of the id (f-label) or, multi-valued, of each id (f-labels)
+    getAllFields(item.getClass()).stream()
+        .filter(field -> MetaAnnotations.isPresent(field, Searchable.class))
+        .filter(field -> !MetaAnnotations.isPresent(field, Lookup.class))
+        .forEach(field -> SearchableValues.writeData(field, item, data, httpRequest));
     return data;
   }
 

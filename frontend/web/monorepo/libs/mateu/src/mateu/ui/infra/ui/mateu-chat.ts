@@ -1,11 +1,27 @@
 import {customElement, property, query, state} from "lit/decorators.js";
-import {css, html, LitElement, nothing} from "lit";
+import {css, html, LitElement, nothing, PropertyValues} from "lit";
 import {nanoid} from "nanoid";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts";
-import {neutralButtonStyles, iconClose, iconMicrophone} from "./neutralChrome";
+import {neutralButtonStyles, iconMicrophone} from "./neutralChrome";
 import {projectCurrentScreen} from "./screenContext";
 import {handleSessionExpired} from "@infra/http/sessionGuard.ts";
+import {ChatAnswer, ChatProgress, classifyChatPayload, formatToolDuration, isEmptyUsage, SseParser} from "./chatStream";
 import "./mateu-markdown";
+import {componentRenderer, HeaderIconButton} from "@infra/ui/renderers/ComponentRenderer.ts";
+import {icon} from "@infra/ui/renderers/neutralIcon.ts";
+import {chatText} from "./chatTexts";
+import {CHAT_WIDE_VW, CHAT_WIDTH, CHAT_WIDTH_STEP, clampChatWidth, dragChatWidth, loadChatWidth, saveChatWidth} from "./chatPanel";
+
+/**
+ * An icon-only button of the panel's header: the active renderer's own (the Vaadin adapter: a
+ * tertiary icon vaadin-button, like the app header's toggles), else a neutral <button>.
+ */
+export const chatHeaderButton = (button: HeaderIconButton) =>
+    componentRenderer.get()?.renderHeaderIconButton?.(button) ?? html`
+        <button class="chat-header-btn ${button.cssClasses ?? ''}" @click="${button.onClick}"
+                title="${button.title ?? button.label}" aria-label="${button.label}">
+            ${icon(button.icon, 'width: var(--lumo-icon-size-m, 1.5rem); height: var(--lumo-icon-size-m, 1.5rem);')}
+        </button>`
 
 /** One chat message (design-system-neutral replacement for Vaadin's MessageListItem). */
 export interface ChatMessageItem {
@@ -97,12 +113,74 @@ export class MateuChat extends LitElement {
     @query('.file-input')
     private fileInputElement?: HTMLInputElement;
 
-    /** Full-screen mode: the panel covers the viewport so the conversation is the whole focus
-     *  (for when you care about the LLM, not the UI behind it). Reflected so CSS can react. */
+    /** Wide mode (⤢): the panel takes about 60% of the viewport, for when the conversation is the
+     *  focus — the page stays beside it. Reflected so the shell's CSS can react. On a phone the
+     *  panel covers the content in either mode. */
     @property({ type: Boolean, reflect: true })
     expanded = false;
 
     private toggleExpanded = () => { this.expanded = !this.expanded; };
+
+    /** The panel's brand (@App(askLabel)); blank → the localised "Assistant". */
+    @property()
+    label: string | undefined = undefined;
+
+    /** The panel's width in px (the shell lays it out through --mateu-chat-width), remembered per
+     *  browser: 460 by default, 320–720 by dragging its edge. */
+    @state()
+    width: number = loadChatWidth();
+
+    @state()
+    private resizing = false;
+
+    private dragStart: { x: number, width: number } | undefined = undefined;
+
+    private isRtl = () => getComputedStyle(this).direction === 'rtl';
+
+    private onResizeStart = (e: PointerEvent) => {
+        if (e.button !== 0) return;
+        e.preventDefault();
+        this.dragStart = { x: e.clientX, width: this.width };
+        this.resizing = true;
+        (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    };
+
+    private onResizeMove = (e: PointerEvent) => {
+        if (!this.dragStart) return;
+        this.width = dragChatWidth(this.dragStart.width, this.dragStart.x, e.clientX, this.isRtl());
+    };
+
+    private onResizeEnd = (e: PointerEvent) => {
+        if (!this.dragStart) return;
+        this.dragStart = undefined;
+        this.resizing = false;
+        (e.currentTarget as HTMLElement).releasePointerCapture?.(e.pointerId);
+        this.width = saveChatWidth(this.width);
+    };
+
+    /** The edge is a focusable separator: ←/→ resize in steps, Home/End go to the bounds. */
+    private onResizeKey = (e: KeyboardEvent) => {
+        const towardsEnd = this.isRtl() ? 'ArrowLeft' : 'ArrowRight';
+        const towardsStart = this.isRtl() ? 'ArrowRight' : 'ArrowLeft';
+        let next: number | undefined;
+        if (e.key === towardsEnd) next = this.width + CHAT_WIDTH_STEP;
+        else if (e.key === towardsStart) next = this.width - CHAT_WIDTH_STEP;
+        else if (e.key === 'Home') next = CHAT_WIDTH.min;
+        else if (e.key === 'End') next = CHAT_WIDTH.max;
+        if (next === undefined) return;
+        e.preventDefault();
+        this.width = saveChatWidth(clampChatWidth(next));
+    };
+
+    /** A double click on the edge goes back to the default width. */
+    private onResizeReset = () => { this.width = saveChatWidth(CHAT_WIDTH.default); };
+
+    /** The shell lays the panel out from these two custom properties (mateu-app's styles). */
+    updated(changed: PropertyValues) {
+        super.updated(changed);
+        if (changed.has('width')) this.style.setProperty('--mateu-chat-width', `${this.width}px`);
+        if (!this.style.getPropertyValue('--mateu-chat-wide')) this.style.setProperty('--mateu-chat-wide', `${CHAT_WIDE_VW}vw`);
+    }
 
     @property()
     items: ChatMessageItem[] = []
@@ -132,6 +210,14 @@ export class MateuChat extends LitElement {
 
     @state()
     tokenUsage: { inputTokens?: number; outputTokens?: number; totalTokens?: number } | undefined;
+
+    /** What the agent of the turn in course says it is doing (status and tool events); cleared at its end. */
+    @state()
+    private progress: ChatProgress | undefined;
+
+    /** Bumped on every progress event so Lit re-renders: ChatProgress mutates in place. */
+    @state()
+    private progressTick = 0;
 
 
     startListening = () => {
@@ -252,39 +338,6 @@ export class MateuChat extends LitElement {
     }
 
     /**
-     * Returns {event, detail} if the payload is a JSON object with an "event" string field,
-     * otherwise null. The "detail" field is optional and defaults to {}.
-     */
-    private tryParseCustomEvent(payload: string): { event: string; detail: unknown } | null {
-        const trimmed = payload.trim();
-        if (!trimmed.startsWith('{')) return null;
-        try {
-            const obj = JSON.parse(trimmed);
-            if (typeof obj.event === 'string') {
-                return { event: obj.event, detail: obj.detail ?? {} };
-            }
-        } catch {
-            // not valid JSON
-        }
-        return null;
-    }
-
-    /** Returns the parsed token-usage object if the data payload is JSON with token fields, otherwise null. */
-    private tryParseTokenUsage(payload: string): { inputTokens?: number; outputTokens?: number; totalTokens?: number } | null {
-        const trimmed = payload.trim();
-        if (!trimmed.startsWith('{')) return null;
-        try {
-            const obj = JSON.parse(trimmed);
-            if ('inputTokens' in obj || 'outputTokens' in obj || 'totalTokens' in obj) {
-                return obj;
-            }
-        } catch {
-            // not valid JSON
-        }
-        return null;
-    }
-
-    /**
      * Recursively flattens the menu tree into a list of LLM-friendly entries.
      * Each entry carries the full breadcrumb path and the navigation payload
      * the LLM should emit to open that screen.
@@ -329,6 +382,7 @@ export class MateuChat extends LitElement {
 
     private stopLoading() {
         this.loading = false;
+        this.progress = undefined;
         clearInterval(this._elapsedTimer);
         this._elapsedTimer = undefined;
     }
@@ -443,62 +497,52 @@ export class MateuChat extends LitElement {
             if (!reader) throw new Error("No se pudo obtener el reader del stream.");
 
             const decoder = new TextDecoder();
-            let buffer = '';
+            const parser = new SseParser();
+            const answer = new ChatAnswer();
+            const progress = new ChatProgress(Date.now());
+            this.progress = progress;
+            const handle = (payload: string) => {
+                const msg = classifyChatPayload(payload);
+                switch (msg.kind) {
+                    case 'usage':
+                        // older agents send all-zero placeholders while they work: not a count
+                        if (!isEmptyUsage(msg.usage)) this.tokenUsage = { ...this.tokenUsage, ...msg.usage };
+                        return;
+                    case 'delta':
+                        accumulatedText = answer.delta(msg.text);
+                        progress.text(Date.now());
+                        break;
+                    case 'text':
+                        accumulatedText = answer.line(msg.text);
+                        progress.text(Date.now());
+                        break;
+                    case 'error':
+                        accumulatedText = answer.error(msg.message);
+                        break;
+                    case 'status':
+                        progress.status(msg.detail, Date.now());
+                        break;
+                    case 'tool':
+                        progress.tool(msg.detail, Date.now());
+                        break;
+                    case 'event':
+                        this.dispatchEvent(new CustomEvent(msg.event, { detail: msg.detail, bubbles: true, composed: true }));
+                        return;
+                }
+                this.progressTick++;
+                if (msg.kind === 'delta' || msg.kind === 'text' || msg.kind === 'error') {
+                    this.updateMessage(agentIdx, accumulatedText);
+                }
+            };
 
             while (true) {
                 const { done, value } = await reader.read();
-
                 if (done) {
-                    if (buffer.trim().startsWith('data:')) {
-                        const payload = buffer.trim().slice(5).trim();
-                        const usage = this.tryParseTokenUsage(payload);
-                        const customEvent = !usage && this.tryParseCustomEvent(payload);
-                        if (usage) {
-                            this.tokenUsage = { ...this.tokenUsage, ...usage };
-                        } else if (customEvent) {
-                            if (customEvent.event === 'agent-error') {
-                                accumulatedText = '⚠️ ' + ((customEvent.detail as Record<string, unknown>)?.message ?? 'Error desconocido del agente');
-                                this.updateMessage(agentIdx, accumulatedText);
-                            } else {
-                                this.dispatchEvent(new CustomEvent(customEvent.event, { detail: customEvent.detail, bubbles: true, composed: true }));
-                            }
-                        } else {
-                            accumulatedText += payload;
-                            this.updateMessage(agentIdx, accumulatedText);
-                        }
-                    }
+                    parser.push(decoder.decode());
+                    parser.end().forEach(handle);
                     break;
                 }
-
-                const raw = decoder.decode(value, { stream: true });
-                buffer += raw;
-                const lines = buffer.split('\n');
-                buffer = lines.pop() || '';
-
-                let changed = false;
-                for (const line of lines) {
-                    if (line.trim().startsWith('data:')) {
-                        const payload = line.trim().slice(5).trim();
-                        const usage = this.tryParseTokenUsage(payload);
-                        const customEvent = !usage && this.tryParseCustomEvent(payload);
-                        if (usage) {
-                            this.tokenUsage = { ...this.tokenUsage, ...usage };
-                        } else if (customEvent) {
-                            if (customEvent.event === 'agent-error') {
-                                accumulatedText = '⚠️ ' + ((customEvent.detail as Record<string, unknown>)?.message ?? 'Error desconocido del agente');
-                                this.updateMessage(agentIdx, accumulatedText);
-                            } else {
-                                this.dispatchEvent(new CustomEvent(customEvent.event, { detail: customEvent.detail, bubbles: true, composed: true }));
-                            }
-                        } else {
-                            accumulatedText += payload + '\n';
-                            changed = true;
-                        }
-                    }
-                }
-                if (changed) {
-                    this.updateMessage(agentIdx, accumulatedText);
-                }
+                parser.push(decoder.decode(value, { stream: true })).forEach(handle);
             }
 
             if (!accumulatedText) {
@@ -546,26 +590,64 @@ export class MateuChat extends LitElement {
         }
     }
 
+    /** The line under the conversation while the agent works: what it says it is doing, or — from an
+     *  agent that reports nothing — the seconds it has been thinking, as before. Re-rendered by the
+     *  once-a-second tick (elapsedSeconds) and by every progress event (progressTick). */
+    private progressLine(): string {
+        return this.progress?.line(Date.now()) ?? `Thinking… ${this.elapsedSeconds}s`;
+    }
+
+    /** The tool calls of the turn in course, under the agent's message: done, failed or running. */
+    private renderToolSteps() {
+        const steps = this.progress?.steps ?? [];
+        if (!steps.length) return nothing;
+        return html`
+            <ul class="tool-steps" aria-label="Herramientas usadas">
+                ${steps.map(step => html`
+                    <li class="tool-step ${step.running ? 'running' : step.error ? 'failed' : 'done'}"
+                        title="${step.server ? `${step.name} (${step.server})` : step.name}">
+                        <span class="tool-step-icon">${step.running ? '…' : step.error ? '✕' : '✓'}</span>
+                        <span class="tool-step-name">${step.name}</span>
+                        ${step.running ? nothing : html`<span class="tool-step-time">${formatToolDuration(step.ms)}</span>`}
+                        ${step.error ? html`<span class="tool-step-error">${step.error}</span>` : nothing}
+                    </li>
+                `)}
+            </ul>
+        `;
+    }
+
     render() {
         return html`
             <div class="chat-container">
                 <div class="chat-header">
-                    <span class="chat-title">AI Assistant</span>
+                    ${icon('vaadin:comments-o', '', 'chat-title-icon')}
+                    <h2 class="chat-title">${this.label?.trim() || chatText('title')}</h2>
                     ${this.localAgentAlive
                         ? html`<span class="local-agent-badge" title="Hablando con tu CLI local (companion en ${this.localAgentUrl}) — sin api key">agente local</span>`
                         : nothing}
-                    <button class="chat-icon-btn" @click="${this.toggleExpanded}"
-                            title="${this.expanded ? 'Contraer' : 'Expandir a pantalla completa'}"
-                            aria-label="${this.expanded ? 'Contraer el chat' : 'Expandir el chat'}">
-                        ${this.expanded ? '⤡' : '⤢'}
-                    </button>
-                    <button class="chat-close" @click="${this.closeChat}" title="Cerrar">
-                        ${iconClose}
-                    </button>
+                    <div class="chat-header-actions">
+                        ${chatHeaderButton({
+                            icon: this.expanded ? 'vaadin:compress' : 'vaadin:expand-full',
+                            label: chatText(this.expanded ? 'restore' : 'expand'),
+                            cssClasses: 'chat-expand',
+                            onClick: () => this.toggleExpanded(),
+                        })}
+                        ${chatHeaderButton({
+                            icon: 'lumo:cross',
+                            label: chatText('close'),
+                            cssClasses: 'chat-close',
+                            onClick: () => this.closeChat(),
+                        })}
+                    </div>
                 </div>
                 <div class="scroll-container">
+                    ${this.items.length === 0 && !this.loading ? html`
+                        <div class="chat-empty">
+                            ${icon('vaadin:comments-o', '', 'chat-empty-icon')}
+                            <p>${chatText('empty')}</p>
+                        </div>` : nothing}
                     <div class="message-list" role="list">
-                        ${this.items.map(item => html`
+                        ${this.items.map((item, index) => html`
                             <div class="message" role="listitem">
                                 <div class="avatar" style="background: ${avatarColor(item.userColorIndex)};">${initials(item.userName)}</div>
                                 <div class="message-body">
@@ -574,6 +656,7 @@ export class MateuChat extends LitElement {
                                         <span class="message-time">${item.time}</span>
                                     </div>
                                     <mateu-markdown class="message-text" .content="${item.text ?? ''}"></mateu-markdown>
+                                    ${index === this.items.length - 1 && this.loading ? this.renderToolSteps() : nothing}
                                 </div>
                             </div>
                         `)}
@@ -590,7 +673,7 @@ export class MateuChat extends LitElement {
                 ${this.loading ? html`
                     <div class="loading-bar">
                         <span class="spinner"></span>
-                        <span class="loading-text">Thinking… ${this.elapsedSeconds}s</span>
+                        <span class="loading-text">${this.progressLine()}</span>
                     </div>
                 ` : nothing}
                 ${this.attachments.length ? html`
@@ -617,11 +700,17 @@ export class MateuChat extends LitElement {
                             ?disabled="${!this.recognitionAvailable}"
                     >${iconMicrophone}</button>
                     <input class="msg-input"
-                           placeholder="Message"
-                           aria-label="Message"
+                           placeholder="${chatText('placeholder')}"
+                           aria-label="${chatText('placeholder')}"
                            @keydown="${this.onInputKeydown}"/>
-                    <button class="nbtn primary" ?disabled="${this.loading}" @click="${this.submitFromInput}">Send</button>
+                    <button class="nbtn primary" ?disabled="${this.loading}" @click="${this.submitFromInput}">${chatText('send')}</button>
                 </div>
+                <div class="resize-handle ${this.resizing ? 'resizing' : ''}" role="separator"
+                     aria-orientation="vertical" tabindex="0" aria-label="${chatText('resize')}"
+                     aria-valuemin="${CHAT_WIDTH.min}" aria-valuemax="${CHAT_WIDTH.max}" aria-valuenow="${this.width}"
+                     @pointerdown="${this.onResizeStart}" @pointermove="${this.onResizeMove}"
+                     @pointerup="${this.onResizeEnd}" @pointercancel="${this.onResizeEnd}"
+                     @keydown="${this.onResizeKey}" @dblclick="${this.onResizeReset}"></div>
             </div>
         `
     }
@@ -638,17 +727,8 @@ export class MateuChat extends LitElement {
             box-sizing: border-box;
         }
 
-        /* Full-screen: the panel leaves its side slot and covers the whole viewport, so the
-           conversation is all there is. Toggled from the header expand button. */
-        :host([expanded]) {
-            position: fixed;
-            inset: 0;
-            width: 100vw !important;
-            max-width: none !important;
-            height: 100vh;
-            z-index: 1000;
-            border: none !important;
-        }
+        /* Wide mode (⤢): the shell gives the panel ~60% of the viewport (mateu-app's styles,
+           --mateu-chat-wide); the conversation keeps a readable measure inside it. */
         :host([expanded]) .message-list,
         :host([expanded]) .input-bar,
         :host([expanded]) .attachments,
@@ -662,26 +742,12 @@ export class MateuChat extends LitElement {
         }
 
         .chat-container {
+            position: relative;
             height: 100%;
             display: flex;
             flex-direction: column;
             box-sizing: border-box;
             background: var(--lumo-base-color, #fff);
-        }
-
-        .chat-icon-btn {
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            font-size: 15px;
-            line-height: 1;
-            color: var(--lumo-contrast-60pct, #6b6b6b);
-            padding: 4px 6px;
-            border-radius: 6px;
-        }
-        .chat-icon-btn:hover {
-            background: var(--lumo-contrast-10pct, #eee);
-            color: var(--lumo-body-text-color, #222);
         }
 
         .attachments {
@@ -730,42 +796,113 @@ export class MateuChat extends LitElement {
             cursor: default;
         }
 
+        /* The panel's header: its icon and title (a panel title, not a caption), then the
+           expand/close buttons grouped at the end — tertiary icon buttons like the app header's. */
         .chat-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 0.5rem 0.75rem 0.5rem 1rem;
+            gap: var(--lumo-space-s, .5rem);
+            min-height: var(--lumo-size-l, 2.75rem);
+            padding: 0.25rem 0.5rem 0.25rem 1rem;
             border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0, 0, 0, .1));
             flex-shrink: 0;
         }
-
-        .chat-title {
-            font-size: var(--lumo-font-size-s, .875rem);
-            font-weight: 600;
-            color: var(--lumo-secondary-text-color, #555);
+        .chat-title-icon {
+            flex-shrink: 0;
+            width: var(--lumo-icon-size-m, 1.5rem);
+            height: var(--lumo-icon-size-m, 1.5rem);
+            color: var(--lumo-primary-text-color, #1676f3);
         }
-
-        .chat-close {
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: var(--lumo-secondary-text-color, #555);
+        .chat-title {
+            margin: 0;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: var(--lumo-font-size-l, 1.125rem);
+            font-weight: 600;
+            line-height: var(--lumo-line-height-xs, 1.25);
+            color: var(--lumo-header-text-color, #1a1a1a);
+        }
+        .chat-header-actions {
             display: flex;
             align-items: center;
+            gap: var(--lumo-space-xs, .25rem);
+            margin-inline-start: auto;
+            flex-shrink: 0;
+        }
+        .chat-header-actions > * {
+            margin: 0;
+            color: var(--mateu-header-icon-color, var(--lumo-secondary-text-color, #5a6573));
+        }
+        .chat-header-btn {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font: inherit;
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
-            padding: 0.25rem;
-            border-radius: var(--lumo-border-radius-s, 4px);
-            line-height: 1;
+            min-width: var(--lumo-size-m, 2.25rem);
+            min-height: var(--lumo-size-m, 2.25rem);
+            border-radius: var(--lumo-border-radius-m, 6px);
         }
-
-        .chat-close svg {
-            width: 1rem;
-            height: 1rem;
-        }
-
-        .chat-close:hover {
-            background: var(--lumo-contrast-10pct, rgba(0, 0, 0, .1));
+        .chat-header-btn:hover {
+            background: var(--lumo-contrast-5pct, rgba(0, 0, 0, .05));
             color: var(--lumo-body-text-color, #1a1a1a);
+        }
+        .chat-header-btn:focus-visible {
+            outline: 2px solid var(--lumo-primary-color-50pct, rgba(22, 118, 243, .5));
+            outline-offset: 1px;
+        }
+
+        /* Before the first message: what the panel is for. */
+        .chat-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--lumo-space-s, .5rem);
+            padding: var(--lumo-space-xl, 2.5rem) var(--lumo-space-l, 1.5rem) 0;
+            text-align: center;
+            color: var(--lumo-secondary-text-color, #5a6573);
+            font-size: var(--lumo-font-size-s, .875rem);
+        }
+        .chat-empty p { margin: 0; max-width: 22rem; }
+        .chat-empty-icon {
+            width: var(--lumo-icon-size-l, 2.25rem);
+            height: var(--lumo-icon-size-l, 2.25rem);
+            color: var(--lumo-contrast-30pct, rgba(0, 0, 0, .3));
+        }
+
+        /* The edge on the panel's end side: drag it (or ←/→ on it) to resize between 320 and
+           720px; a double click resets. Not in wide mode, nor on a phone, where the panel's width
+           is the shell's. */
+        .resize-handle {
+            position: absolute;
+            inset-block: 0;
+            inset-inline-end: -4px;
+            width: 8px;
+            cursor: col-resize;
+            touch-action: none;
+            z-index: 2;
+        }
+        .resize-handle::after {
+            content: '';
+            position: absolute;
+            inset-block: 0;
+            inset-inline-start: 3px;
+            width: 2px;
+            background: transparent;
+            transition: background-color .15s;
+        }
+        .resize-handle:hover::after, .resize-handle.resizing::after, .resize-handle:focus-visible::after {
+            background: var(--lumo-primary-color-50pct, rgba(22, 118, 243, .5));
+        }
+        .resize-handle:focus-visible { outline: none; }
+        :host([expanded]) .resize-handle { display: none; }
+        @media (max-width: 600px) {
+            /* a phone: the panel already covers the content — no edge, no wide mode */
+            .resize-handle, .chat-expand { display: none; }
         }
 
         .scroll-container {
@@ -941,6 +1078,49 @@ export class MateuChat extends LitElement {
 
         .loading-text {
             font-variant-numeric: tabular-nums;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
+        }
+
+        /* The tool calls of the turn in course, under the agent's message. */
+        .tool-steps {
+            list-style: none;
+            margin: 0.25rem 0 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-size: var(--lumo-font-size-xs, .75rem);
+            color: var(--lumo-secondary-text-color, #555);
+        }
+        .tool-step {
+            display: flex;
+            align-items: baseline;
+            gap: 0.4rem;
+            min-width: 0;
+        }
+        .tool-step-icon {
+            width: 1em;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .tool-step.done .tool-step-icon { color: var(--lumo-success-text-color, #0a7d3c); }
+        .tool-step.failed .tool-step-icon,
+        .tool-step-error { color: var(--lumo-error-text-color, #c62828); }
+        .tool-step-name {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .tool-step-time { font-variant-numeric: tabular-nums; flex-shrink: 0; }
+        .tool-step-error {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            min-width: 0;
         }
 
         .spinner {

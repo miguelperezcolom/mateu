@@ -49,6 +49,7 @@ public @interface App {
     AppVariant value() default AppVariant.AUTO;
     AppLayout layout() default AppLayout.SINGLE_SLOT;
     boolean themeToggle() default false;
+    String accentColor() default "";
 }
 ```
 
@@ -57,6 +58,12 @@ public @interface App {
 | `value` | `AppVariant` | `AUTO` | Navigation layout variant for the shell |
 | `layout` | `AppLayout` | `SINGLE_SLOT` | Content area layout (`SINGLE_SLOT` or `SPLIT`) |
 | `themeToggle` | `boolean` | `false` | Shows a moon/sun icon button in the header to switch dark/light mode |
+| `accentColor` | `String` | `""` | The app's brand accent (a CSS colour). Not the primary colour: see below |
+| `backLink` | `BackLink` | `BREADCRUMBS` | `PARENT` draws a single «← Parent» link (labelled with the title of the nearest screen above the app's route) and drops the breadcrumb trail inside the app — the console style for a record master |
+
+An `@App` with **no menu of its own** that answers a `routes.yaml` route with `children` offers
+those children as its options — the tabs of a record master. See the
+[recipe](/java-ui-definition/route-registry/#recipe-a-record-master-whose-tabs-are-pages).
 
 **`AppVariant` values:**
 
@@ -95,6 +102,15 @@ Set `themeToggle = true` to show a moon/sun icon button in the application heade
 @App(value = AppVariant.AUTO, themeToggle = true)
 public class MyApp { ... }
 ```
+
+### Brand accent
+
+`accentColor` gives the shell the app's brand colour, for example `@App(accentColor = "#D2232A")`. It is kept separate from the theme's primary colour on purpose. Primary means "you can click this", and the accent never does. The Vaadin shell uses it in exactly two places, both in the `MENU_ON_TOP` header:
+
+- a 3px line along the bottom of the menu band;
+- the console name in the menu band, in the light theme only. In dark mode the name stays in the header text colour, because a brand red loses contrast on the dark base.
+
+With no accent the header is unchanged. The value reaches the page as the `--mateu-accent` custom property on `mateu-app`, which an app's own CSS can also set.
 
 ---
 

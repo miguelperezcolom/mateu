@@ -26,6 +26,7 @@ import {
 import {
   buildChatMenuContext, buildChatBody, effectiveChatUrl, tryParseTokenUsage,
   tryParseCustomEvent, streamChat, mergeTurnUsage, addUsage, chatStatusText,
+  createSseParser, classifyChatPayload, isEmptyUsage, createChatProgress, latestUsage,
   speechRecognitionCtor, transcriptOf, chatMarkdownToHtml,
 } from './chat.mjs'
 import {
@@ -36,7 +37,7 @@ import {
   selectionOfKeySet, selectedRowsOf, withListingSelection,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
   welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
-  islandContentOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
+  islandContentOf, tabStripOf, withActiveTab, tabBarIdsOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
   entityHeaderOf, pageKpisOf, pageSubtitleOf, itemOverviewPageOf, primaryToolbarButton,
   filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid,
   smartFiltersMetadataOf, smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters,
@@ -46,6 +47,7 @@ import {
   wizardStepViewOf, isRichAtom, validationOf, formErrorsOf, selectPlaceholder,
   backToolbarButton, pageToolbarOf, declaredActionOf, actionTransportOf, overlayTransportOf, confirmationOf,
   awaitConfirmation, answerConfirmation, queryFiltersOf, formLookupsOf, markLookupsLoaded, filtersOf, LOOKUP_LOADED,
+  searchableIdsOf, searchableChipsOf, searchPickerOf, pickerSearchStateOf, withContextState, withSearchableIds,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -620,6 +622,83 @@ test('detalle de proceso (wire real): campos, pestañas, grid embebido y el comp
   assert.ok(steps.rows.length > 0)
   // la columna de estado llega con su clase de badge precomputada (CSP)
   assert.match(steps.rows[0].status.badgeClass, /oj-badge/)
+})
+
+test('pestañas ANIDADAS: ids y pestaña activa por barra, sin mezclar la interior con la exterior', () => {
+  const text = (t) => ({ type: 'ClientSide', metadata: { type: 'Text', text: t }, children: [] })
+  const tab = (label, children, active) => ({ type: 'ClientSide', metadata: { type: 'Tab', label, active: !!active }, children })
+  const tabLayout = (id, tabs) => ({ type: 'ClientSide', id, metadata: { type: 'TabLayout' }, children: tabs })
+  // exterior [General, Detalle]; dentro de Detalle otra barra [General, Notas] — mismo rótulo
+  // «General» en las dos y el mismo id "_tabs" que mandaba el backend antes del arreglo
+  const inner = tabLayout('_tabs', [tab('General', [text('interior general')]), tab('Notas', [text('interior notas')])])
+  const outer = tabLayout('_tabs', [tab('General', [text('exterior general')]), tab('Detalle', [inner])])
+  const ctx = { tree: outer, state: {} }
+  const atomsOf = (opts) => (islandContentOf(ctx, opts) || []).flatMap((b) => b.items)
+  const barsOf = (opts) => atomsOf(opts).filter((a) => a.isTabs)
+  const textsOf = (opts) => atomsOf(opts).filter((a) => a.isText).map((a) => a.text)
+
+  // de entrada: solo la barra exterior (la interior vive en una pestaña no activa), ids de siempre
+  let bars = barsOf({})
+  assert.equal(bars.length, 1)
+  assert.deepEqual(bars[0].tabs.map((t) => t.id), ['tab-0', 'tab-1'])
+  assert.equal(bars[0].barId, 'mateuContentTabs')
+  assert.equal(bars[0].stripKey, '')
+  assert.deepEqual(textsOf({}), ['exterior general'])
+
+  // clic en Detalle: aparece la barra interior con ids PROPIOS (prefijados por su pestaña)
+  let active = withActiveTab({}, 'tab-1')
+  bars = barsOf({ activeTabs: active })
+  assert.equal(bars.length, 2)
+  assert.equal(bars[0].selectedId, 'tab-1')
+  assert.deepEqual(bars[1].tabs.map((t) => t.id), ['tab-1/tab-0', 'tab-1/tab-1'])
+  assert.equal(bars[1].stripKey, 'tab-1')
+  assert.equal(bars[1].selectedId, 'tab-1/tab-0')
+  assert.notEqual(bars[1].barId, bars[0].barId, 'dos oj-tab-bar con el mismo id')
+  assert.deepEqual(tabBarIdsOf(islandContentOf(ctx, { activeTabs: active })), [bars[0].barId, bars[1].barId])
+  const allIds = bars.flatMap((b) => b.tabs.map((t) => t.id))
+  assert.equal(new Set(allIds).size, allIds.length, 'ids de pestaña repetidos entre barras')
+  assert.deepEqual(textsOf({ activeTabs: active }), ['interior general'])
+
+  // clic en la 2ª INTERIOR: la exterior se queda en Detalle (antes saltaba a su 2ª… o a la 1ª)
+  assert.equal(tabStripOf('tab-1/tab-1'), 'tab-1')
+  assert.equal(tabStripOf('tab-1'), '')
+  active = withActiveTab(active, 'tab-1/tab-1')
+  assert.deepEqual(active, { '': 'tab-1', 'tab-1': 'tab-1/tab-1' })
+  bars = barsOf({ activeTabs: active })
+  assert.equal(bars[0].selectedId, 'tab-1')
+  assert.equal(bars[1].selectedId, 'tab-1/tab-1')
+  assert.deepEqual(textsOf({ activeTabs: active }), ['interior notas'])
+
+  // y volver a la exterior General no olvida la interior elegida
+  active = withActiveTab(active, 'tab-0')
+  assert.deepEqual(textsOf({ activeTabs: active }), ['exterior general'])
+  active = withActiveTab(active, 'tab-1')
+  assert.deepEqual(textsOf({ activeTabs: active }), ['interior notas'])
+
+  // compatibilidad: el activeTab de un solo id sigue mandando en la barra de primer nivel
+  assert.equal(barsOf({ activeTab: 'tab-1' })[0].selectedId, 'tab-1')
+
+  // dos barras HERMANAS de primer nivel tampoco comparten ids
+  const twins = { tree: { type: 'ClientSide', metadata: { type: 'VerticalLayout' }, children: [
+    tabLayout('a', [tab('X', [text('a-x')]), tab('Y', [text('a-y')])]),
+    tabLayout('b', [tab('X', [text('b-x')]), tab('Y', [text('b-y')])]),
+  ] }, state: {} }
+  const twinBars = (islandContentOf(twins, { activeTabs: withActiveTab({}, 'tabs-1/tab-1') }) || [])
+    .flatMap((b) => b.items).filter((a) => a.isTabs)
+  assert.deepEqual(twinBars.map((b) => b.selectedId), ['tab-0', 'tabs-1/tab-1'])
+})
+
+test('item overview con pestañas anidadas: solo las de la barra exterior en la lista', () => {
+  const text = (t) => ({ type: 'ClientSide', metadata: { type: 'Text', text: t }, children: [] })
+  const tab = (label, children) => ({ type: 'ClientSide', metadata: { type: 'Tab', label }, children })
+  const card = { type: 'ClientSide', metadata: { type: 'Card', title: { text: 'Clave' } }, children: [text('dato clave')] }
+  const inner = { type: 'ClientSide', metadata: { type: 'TabLayout' }, children: [tab('I1', [text('i1')]), tab('I2', [text('i2')])] }
+  const outer = { type: 'ClientSide', metadata: { type: 'TabLayout' }, children: [tab('A', [text('a')]), tab('B', [inner])] }
+  const tree = { type: 'ClientSide', metadata: { type: 'VerticalLayout' }, children: [card, outer] }
+  const overview = itemOverviewOf({ tree, state: {} })
+  assert.deepEqual(overview.tabs.map((t) => t.label), ['A', 'B'])
+  // el contenido de la barra interior va DENTRO de su pestaña
+  assert.deepEqual(overview.tabs[1].texts, ['i1', 'i2'])
 })
 
 // 17) Foldout (Fase 7): cabeceras en metadata.panels, contenido slotted overview/panel-N.
@@ -1315,7 +1394,58 @@ atest('un pod que no contesta deja su rótulo y no tumba a los demás', async ()
       { remote: true, baseUrl: '/_forms', route: '/forms', label: 'Forms' },
     ])
     assert.deepEqual(menu.map((o) => o.label), ['Processes', 'Forms'])
+    // la caída se queda, deshabilitada y diciendo por qué — igual que en el renderer web
+    assert.equal(menu[1].unavailable, true)
+    assert.equal(menu[1].disabled, true)
+    assert.match(menu[1].description, /Forms/)
+    const nav = shellNavOf({ shell: { menu, variant: 'MENU_ON_TOP' } })
+    assert.equal(nav.menuTree[1].disabled, true)
+    assert.match(nav.menuTree[1].hint, /Forms/)
+    assert.equal(nav.items[1].disabled, true)
+    assert.equal(nav.menuTree[0].disabled, false)
   } finally { globalThis.fetch = original }
+})
+
+atest('un pod caído no dice nada de la conexión: no hay banda de "sin conexión" por él', async () => {
+  const original = globalThis.fetch
+  connectivity.reset()
+  globalThis.fetch = async () => { throw new TypeError('Failed to fetch') }
+  try {
+    const menu = await expandRemoteMenus([{ remote: true, baseUrl: 'http://localhost:8099/offline', route: '', path: '/offline', label: 'Offline' }])
+    assert.equal(menu[0].unavailable, true)
+    assert.equal(connectivity.isOnline(), true, 'un pod que no contesta marcaba toda la app sin conexión')
+  } finally { globalThis.fetch = original; connectivity.reset() }
+})
+
+atest('el rótulo que la shell declaró manda sobre el del pod', async () => {
+  const original = globalThis.fetch
+  globalThis.fetch = async (url) => ({ ok: true, json: async () => String(url).indexOf('/_booking') === 0
+    ? remoteApp([{ label: 'Booking', route: '/booking', submenus: [{ label: 'Bookings', route: '/booking/bookings' }] }], '')
+    : remoteApp([{ label: 'Reservas', route: '/erp', submenus: [{ label: 'Partners', route: '/erp/partners' }] }], '') })
+  try {
+    const menu = await expandRemoteMenus([
+      { remote: true, baseUrl: '/_booking', route: '', path: '/booking', label: 'Call center', shellLabel: true },
+      { remote: true, baseUrl: '/_erp', route: '', path: '/erp', label: 'Erp', shellLabel: false },
+    ])
+    // declarado: manda la shell; sin declarar (el nombre del campo): manda el pod, como siempre
+    assert.deepEqual(menu.map((o) => o.label), ['Call center', 'Reservas'])
+    assert.deepEqual(menu[0].submenus.map((o) => o.label), ['Bookings'])
+  } finally { globalThis.fetch = original }
+})
+
+test('migas en frío: una sección remota sin contestar da la sección, por su prefijo', () => {
+  const menu = [
+    { label: 'Admin', route: '/admin', submenus: [
+      { remote: true, baseUrl: '/_forms', route: '', path: '/admin/forms', routePrefix: '/forms', label: 'Forms' },
+    ] },
+    { label: 'Notices', route: '/notices', submenus: [] },
+    { remote: true, baseUrl: '/_notices', route: '', path: '/notices', label: 'Avisos' },
+  ]
+  // el path del grupo es /admin/forms; las pantallas del pod viven bajo /forms
+  assert.deepEqual(autoTrail(menu, '/forms/tasks', { title: 'Tareas' }), [{ text: 'Admin' }, { text: 'Forms' }, { text: 'Tareas' }])
+  // una entrada de verdad gana al prefijo de una sección de la misma longitud
+  assert.deepEqual(autoTrail(menu, '/notices/7', { title: 'Aviso 7' }), [{ text: 'Notices', route: '/notices' }, { text: 'Aviso 7' }])
+  assert.deepEqual(autoTrail(menu, '/otra', { title: 'x' }), [])
 })
 
 atest('una remota OCULTA no sale en el menú pero sus rutas quedan registradas (deep-link)', async () => {
@@ -1335,7 +1465,12 @@ atest('una remota OCULTA no sale en el menú pero sus rutas quedan registradas (
       { remote: true, baseUrl: '/_inbox', route: '/inbox', label: 'Inbox', visible: false },
     ])
     assert.equal(asked.length, 2, 'la oculta también se pregunta: sus rutas hay que conocerlas')
-    assert.deepEqual(menu.map((o) => o.label), ['Bookings'])
+    // sigue en el árbol, oculta: no se pinta, pero una página bajo ella tiene sus migas
+    assert.deepEqual(menu.filter((o) => o.visible !== false).map((o) => o.label), ['Bookings'])
+    assert.deepEqual(shellNavOf({ shell: { menu, variant: 'MENU_ON_TOP' } }).items.map((i) => i.label), ['Bookings'])
+    assert.deepEqual(autoTrail(menu, '/inbox/pending/n-7', { title: 'n-7' }), [
+      { text: 'Pending', route: '/inbox/pending' }, { text: 'n-7' },
+    ])
     const where = remoteRouteOf('/inbox/pending/n-7')
     assert.ok(where, 'el deep-link bajo la remota oculta no quedó registrado')
     assert.equal(where.baseUrl, '/_inbox')
@@ -1350,7 +1485,9 @@ atest('una remota oculta que no contesta tampoco deja su rótulo', async () => {
       { remote: true, baseUrl: '/_inbox', route: '/inbox', label: 'Inbox', visible: false },
       { label: 'Local', route: '/local' },
     ])
-    assert.deepEqual(menu.map((o) => o.label), ['Local'])
+    assert.deepEqual(menu.filter((o) => o.visible !== false).map((o) => o.label), ['Local'])
+    // el marcador se queda, oculto: la sección se conoce por su prefijo
+    assert.deepEqual(autoTrail(menu, '/inbox/tasks', { title: 'Tareas' }), [{ text: 'Inbox' }, { text: 'Tareas' }])
   } finally { globalThis.fetch = original }
 })
 
@@ -2204,7 +2341,14 @@ test('chat: el panel dice que el asistente trabaja, cuenta los tokens y deja dic
   const send = webApp('pages/shell-page-chains/chatSend.js')
   assert.match(send, /bridge\.chatStatusText\(/)
   assert.match(send, /onUsage: \(usage\) => \{ turnUsage = bridge\.mergeTurnUsage\(turnUsage, usage\); \}/)
-  assert.match(send, /mateuChatTokens = bridge\.addUsage\(/)
+  // el agente manda el uso de toda la conversación: se sustituye, no se suma
+  assert.match(send, /mateuChatTokens = bridge\.latestUsage\(/)
+  // la fila de estado lee el progreso que informa el agente
+  assert.match(send, /onProgress: \(p\) => \{ progress = p; showStatus\(\); \}/)
+  assert.match(send, /bridge\.chatStatusText\(\{[^}]*progress, now: Date\.now\(\)/)
+  // y un navigation-requested navega al acabar, si no hay pantalla generada
+  assert.match(send, /ev\.event === 'navigation-requested'/)
+  assert.match(send, /\} else if \(navigateTo\) \{\s*await Actions\.callChain\(context, \{\s*chain: 'onMateuNavigate'/)
   assert.match(send, /clearInterval\(ticking\)/)
   assert.match(webApp('pages/shell-page-chains/toggleMateuChat.js'), /mateuChatMicAvailable = !!bridge\.speechRecognitionCtor\(window\)/)
   const mc = webApp('pages/shell-page-chains/chatMic.js')
@@ -2279,32 +2423,80 @@ const sseResponse = (chunks) => {
   }
 }
 
-atest('chat: streamChat acumula payloads data: (trimmed, cada línea con su salto, como el chat compartido) y bufferea a través de trozos', async () => {
+atest('chat: streamChat lee por EVENTO: un texto por evento es una línea, y bufferea a través de trozos', async () => {
   const texts = []
   const out = await streamChat({
     url: '/sse', body: { message: 'hola' },
-    // el 2º payload llega partido en dos trozos SIN el \n → se bufferea hasta cerrar la línea
-    fetchImpl: async () => sseResponse(['data: uno\n', 'data: d', 'os\n']),
+    // el 2º evento llega partido en trozos → se bufferea hasta la línea en blanco que lo cierra
+    fetchImpl: async () => sseResponse(['data: uno\n\n', 'data: d', 'os\n', '\n']),
     onText: (t) => texts.push(t),
   })
-  assert.equal(out, 'uno\ndos\n', 'payloads trimmed, cada línea con su salto = paridad con mateu-chat')
-  assert.equal(texts[texts.length - 1], 'uno\ndos\n')
+  assert.equal(out, 'uno\ndos', 'sin trozos, cada texto es una línea: el contrato línea a línea de siempre')
+  assert.deepEqual(texts, ['uno', 'uno\ndos'])
 })
 
-atest('chat: streamChat conserva las líneas del markdown (una por data:, las vacías incluidas)', async () => {
+atest('chat: streamChat conserva las líneas del markdown (una por evento, las vacías incluidas, y la sangría)', async () => {
   const out = await streamChat({
     url: '/sse', body: {},
-    fetchImpl: async () => sseResponse(['data: ## Estado\ndata: \ndata: - **MRU01**\n', 'data: - PMI01\n']),
+    fetchImpl: async () => sseResponse(['data: ## Estado\n\ndata: \n\ndata: - **MRU01**\n\n', 'data: - PMI01\n\ndata:   - anidado\n\n']),
   })
-  assert.equal(out, '## Estado\n\n- **MRU01**\n- PMI01\n')
-  assert.equal(chatMarkdownToHtml(out), '<h4>Estado</h4><ul><li><strong>MRU01</strong></li><li>PMI01</li></ul>')
+  assert.equal(out, '## Estado\n\n- **MRU01**\n- PMI01\n  - anidado')
+})
+
+atest('chat: las líneas data: de UN evento se unen con \\n — una respuesta de varias líneas en un evento', async () => {
+  const out = await streamChat({
+    url: '/sse', body: {},
+    fetchImpl: async () => sseResponse(['data:## Estado\r\ndata:\r\ndata:- **MRU01**\r\n\r\n']),
+  })
+  assert.equal(out, '## Estado\n\n- **MRU01**')
+  assert.equal(chatMarkdownToHtml(out), '<h4>Estado</h4><ul><li><strong>MRU01</strong></li></ul>')
+})
+
+atest('chat: los trozos (agent-delta) se añaden y la respuesta entera del final los SUSTITUYE', async () => {
+  const texts = []; const deltas = []
+  const out = await streamChat({
+    url: '/sse', body: {},
+    fetchImpl: async () => sseResponse([
+      'data:{"inputTokens":0,"outputTokens":0,"totalTokens":0}\n\n',
+      'data:{"event":"agent-delta","detail":{"text":"Te "}}\n\n',
+      'data:{"event":"agent-delta","detail":{"text":"llevo.\\n"}}\n\n:keep-alive\n\n',
+      'data:{"inputTokens":10,"outputTokens":5,"totalTokens":15}\n\n',
+      'data:Te llevo ahora.\n\n',
+    ]),
+    onText: (t) => texts.push(t), onDelta: (piece) => deltas.push(piece),
+    onUsage: (u) => texts.push(u),
+  })
+  assert.deepEqual(deltas, ['Te ', 'llevo.\n'])
+  assert.equal(out, 'Te llevo ahora.')
+  // el uso todo-cero (marcador de agentes anteriores) no llega; el real sí
+  assert.deepEqual(texts, ['Te ', 'Te llevo.\n', { inputTokens: 10, outputTokens: 5, totalTokens: 15 }, 'Te llevo ahora.'])
+})
+
+atest('chat: el progreso del agente (fases y herramientas) llega a onProgress y a la fila de estado', async () => {
+  let clock = 0
+  const lines = []
+  await streamChat({
+    url: '/sse', body: {}, now: () => clock,
+    fetchImpl: async () => sseResponse([
+      'data:{"event":"agent-status","detail":{"phase":"connecting","text":"Conectando con 2 servidores MCP…"}}\n\n',
+      'data:{"event":"agent-tool","detail":{"name":"booking_findBookings","server":"booking","kind":"mcp","phase":"start"}}\n\n',
+      'data:{"event":"agent-tool","detail":{"name":"booking_findBookings","server":"booking","kind":"mcp","phase":"end","ms":3100,"error":"timeout"}}\n\n',
+      'data:{"event":"agent-delta","detail":{"text":"No he podido."}}\n\n',
+    ]),
+    onProgress: (p) => {
+      clock += 3000
+      lines.push(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 0, progress: p, now: clock }))
+      if (p.steps.length && !p.runningTool()) assert.deepEqual(p.steps, [{ name: 'booking_findBookings', server: 'booking', kind: 'mcp', ms: 3100, error: 'timeout', running: false }])
+    },
+  })
+  assert.deepEqual(lines, ['Conectando con 2 servidores MCP… 3 s', 'Llamando a booking_findBookings… 3 s', 'Conectando con 2 servidores MCP… 3 s', 'Respondiendo…'])
 })
 
 atest('chat: streamChat despacha eventos personalizados y captura uso de tokens', async () => {
   const events = []; let usage = null
   await streamChat({
     url: '/sse', body: {},
-    fetchImpl: async () => sseResponse(['data: {"event":"navigate","detail":{"route":"/x"}}\n', 'data: {"totalTokens":9}\n']),
+    fetchImpl: async () => sseResponse(['data: {"event":"navigate","detail":{"route":"/x"}}\n\n', 'data: {"totalTokens":9}\n\n']),
     onEvent: (e) => events.push(e), onUsage: (u) => { usage = u },
   })
   assert.deepEqual(events, [{ event: 'navigate', detail: { route: '/x' } }])
@@ -2315,7 +2507,7 @@ atest('chat: agent-error se muestra como el texto del asistente, no como evento'
   let text = ''; const events = []
   const out = await streamChat({
     url: '/sse', body: {},
-    fetchImpl: async () => sseResponse(['data: {"event":"agent-error","detail":{"message":"boom"}}\n']),
+    fetchImpl: async () => sseResponse(['data: {"event":"agent-error","detail":{"message":"boom"}}\n\n']),
     onText: (t) => { text = t }, onEvent: (e) => events.push(e),
   })
   assert.equal(out, '⚠️ boom')
@@ -2353,12 +2545,12 @@ atest('chat: streamChat ante un 401 pide reautenticar y reenvía una vez con el 
       fetchImpl: async (url, init) => {
         sent.push(init.headers.Authorization)
         return init.headers.Authorization === 'Bearer nuevo'
-          ? sseResponse(['data: hola\n'])
+          ? sseResponse(['data: hola\n\n'])
           : { ok: false, status: 401, text: async () => '' }
       },
     })
     assert.deepEqual(sent, [undefined, 'Bearer nuevo'], 'el reenvío lleva el token nuevo, el primero no llevaba')
-    assert.equal(out, 'hola\n')
+    assert.equal(out, 'hola')
   } finally {
     globalThis.localStorage = originalStorage
     globalThis.document = originalDocument
@@ -3219,6 +3411,34 @@ test('chat: los totales de la conversación suman cada respuesta; sin contadores
   assert.deepEqual(addUsage(total, {}), total)
 })
 
+test('chat: el uso que se enseña es el último que manda el agente (el de la conversación), no la suma', () => {
+  assert.equal(latestUsage(null, null), null)
+  const first = latestUsage(null, { inputTokens: 130, outputTokens: 40, totalTokens: 170 })
+  const second = latestUsage(first, { inputTokens: 330, outputTokens: 100, totalTokens: 430 })
+  assert.deepEqual(second, { inputTokens: 330, outputTokens: 100, totalTokens: 430 })
+  // una respuesta sin uso deja el que había
+  assert.deepEqual(latestUsage(second, {}), second)
+  assert.equal(isEmptyUsage({ inputTokens: 0, outputTokens: 0, totalTokens: 0 }), true)
+  assert.equal(isEmptyUsage({ totalTokens: 3 }), false)
+})
+
+test('chat: el lector SSE ignora comentarios y otros campos, y quita sólo UN espacio tras data:', () => {
+  const parser = createSseParser()
+  const out = [...parser.push(':keep-alive\n\nevent: x\nid: 1\ndata:   sangrado\n\ndata: a\r'), ...parser.push('\n\r\n'), ...parser.push('data: fin'), ...parser.end()]
+  assert.deepEqual(out, ['  sangrado', 'a', 'fin'])
+  assert.deepEqual(classifyChatPayload('{"event":"agent-status","detail":{"phase":"thinking"}}'), { kind: 'status', detail: { phase: 'thinking' } })
+  assert.deepEqual(classifyChatPayload('{"event":"navigation-requested","detail":{"route":"/x"}}'), { kind: 'event', event: 'navigation-requested', detail: { route: '/x' } })
+  assert.deepEqual(classifyChatPayload('hola'), { kind: 'text', text: 'hola' })
+})
+
+test('chat: sin progreso del agente, la fila de estado es la de siempre', () => {
+  const p = createChatProgress(0)
+  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 4.7, progress: p, now: 4700 }), 'Pensando… 4 s')
+  p.status({ phase: 'thinking', text: 'Pensando…' }, 5000)
+  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 9, progress: p, now: 7000 }), 'Pensando… 2 s')
+  assert.equal(chatStatusText({ busy: false, hasText: false, elapsedSeconds: 9, progress: p, now: 7000 }), '')
+})
+
 test('chat: la fila de estado dice si el asistente piensa o ya responde', () => {
   assert.equal(chatStatusText({ busy: false, hasText: false, elapsedSeconds: 9 }), '')
   assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 0 }), 'Pensando…')
@@ -3416,6 +3636,110 @@ test('filtro @Lookup: con las opciones de su búsqueda es un desplegable y su ch
   assert.equal(smartFilterValueOf([descriptor], { integration: 'MRU01' }, '').filter((c) => c.filter === 'integration')[0].label, 'MRU01 · Riu Demo Mauricio')
 })
 
+// ── P1: maestro de un registro con pestañas que son páginas ─────────────────────────────────────
+import { rowRouteOf as p1RowRouteOf } from './reduceContexts.mjs'
+
+test('P1: @RowRoute — la fila abre la ruta del maestro; una plantilla sin resolver no navega', () => {
+  assert.equal(p1RowRouteOf('/customers/${row.id}', { id: '3' }), '/customers/3')
+  assert.equal(p1RowRouteOf('/customers/${row.id}', {}), '')
+  assert.equal(p1RowRouteOf('', { id: '3' }), '')
+})
+import { appLevelOf as p1AppLevelOf, splitNestedApps as p1SplitNestedApps, tabRoutePath as p1TabRoutePath, islandContentOf as p1IslandContentOf } from './reduceContexts.mjs'
+
+test('P1: la URL de una pestaña con clave sustituye la de su barra', () => {
+  assert.equal(p1TabRoutePath('/vcns/7', ['subnets', 'gateways'], 'gateways'), '/vcns/7/gateways')
+  assert.equal(p1TabRoutePath('/vcns/7/subnets', ['subnets', 'gateways'], 'gateways'), '/vcns/7/gateways')
+})
+
+const p1Tabs = (tabs) => ({ tree: { type: 'ClientSide', metadata: { type: 'TabLayout' }, children: tabs.map((t) => ({
+  type: 'ClientSide', metadata: { type: 'Tab', ...t.md }, children: [{ type: 'ClientSide', metadata: { type: 'Text', text: t.text } }] })) }, state: {}, data: {} })
+
+test('P1: barra de contenido — claves de ruta y contador; con una sola pestaña, sin barra', () => {
+  const blocks = p1IslandContentOf(p1Tabs([
+    { md: { label: 'Subnets', routeKey: 'subnets', badge: '12' }, text: 'a' },
+    { md: { label: 'Gateways', routeKey: 'gateways' }, text: 'b' },
+  ]))
+  const bar = blocks.flatMap((b) => b.items).find((a) => a.isTabs)
+  assert.deepEqual(bar.tabs.map((t) => [t.label, t.routeKey]), [['Subnets (12)', 'subnets'], ['Gateways', 'gateways']])
+  const single = p1IslandContentOf(p1Tabs([{ md: { label: 'Policies', routeKey: 'all-policies' }, text: 'only' }]))
+  assert.ok(!single.flatMap((b) => b.items).some((a) => a.isTabs), 'una sola pestaña: sin barra')
+})
+
+const p1Master = (extra = {}) => ({ targetComponentId: '', component: { type: 'ClientSide', metadata: {
+  type: 'App', variant: 'TABS', title: 'Customer 3', route: '/customers/3', serverSideType: 'demo.CustomerMaster',
+  homeRoute: '/customers/3/orders', homeConsumedRoute: '/customers/3', homeServerSideType: 'demo.CustomerOrders',
+  backRoute: '/customers', backLabel: 'Customers',
+  menu: [{ label: 'Orders', route: '/customers/3/orders' }, { label: 'Addresses', route: '/customers/3/addresses' }],
+  ...extra,
+} } })
+
+test('P1: el ámbito del listado (filtro readOnly) no se ofrece como filtro', () => {
+  const tree = { type: 'ClientSide', metadata: { type: 'Crud', filters: [
+    { fieldId: 'customerId', label: 'Customer id', dataType: 'string', stereotype: 'regular', readOnly: true },
+    { fieldId: 'status', label: 'Status', dataType: 'string', stereotype: 'regular' },
+  ] } }
+  assert.deepEqual(filtersOf({ tree, state: {}, data: {} }).map((f) => f.fieldId), ['status'])
+})
+
+test('P1: un App anidado (el maestro) es un NIVEL de contenido, no la shell', () => {
+  const level = p1AppLevelOf(p1Master(), 'demo.VbHome', '/customers/3/orders/3-2')
+  assert.equal(level.title, 'Customer 3')
+  assert.deepEqual(level.tabs.map((t) => t.label), ['Orders', 'Addresses'])
+  assert.equal(level.selected, '/customers/3/orders', 'un registro del crud de la pestaña sigue en esa pestaña')
+  assert.equal(level.showTabs, true)
+  assert.equal(level.backRoute, '/customers')
+  assert.equal(level.backLabel, 'Customers')
+  assert.deepEqual(level.home, { route: '/customers/3/orders', consumedRoute: '/customers/3', serverSideType: 'demo.CustomerOrders' })
+  // la shell, un mediador o un App que es su propia home NO son niveles
+  assert.equal(p1AppLevelOf(p1Master({ serverSideType: 'demo.VbHome' }), 'demo.VbHome'), null)
+  assert.equal(p1AppLevelOf(p1Master({ variant: 'MEDIATOR' }), 'demo.VbHome'), null)
+  assert.equal(p1AppLevelOf(p1Master({ homeServerSideType: 'demo.CustomerMaster' }), 'demo.VbHome'), null)
+})
+
+test('P1: el maestro pedido a secas marca su pestaña por defecto', () => {
+  assert.equal(p1AppLevelOf(p1Master(), 'demo.VbHome', '/customers/3').selected, '/customers/3/orders')
+})
+
+test('P1: con una sola pestaña visible no hay barra (la ruta se conserva)', () => {
+  const level = p1AppLevelOf(p1Master({ menu: [{ label: 'Orders', route: '/customers/3/orders' }] }), 'demo.VbHome')
+  assert.equal(level.showTabs, false)
+  assert.equal(level.tabs[0].route, '/customers/3/orders')
+})
+
+test('P1: splitNestedApps saca los Apps anidados del incremento y deja el resto', () => {
+  const other = { targetComponentId: '', component: { type: 'ServerSide', children: [] } }
+  const { increment, levels } = p1SplitNestedApps({ fragments: [p1Master(), other], commands: [] }, 'demo.VbHome', '/customers/3')
+  assert.equal(levels.length, 1)
+  assert.deepEqual(increment.fragments, [other])
+})
+
+atest('P1: loadRouteInto sigue la cadena maestro → pestaña → mediador y no machaca la shell', async () => {
+  const original = globalThis.fetch
+  const seen = []
+  const ordersMediator = { fragments: [{ targetComponentId: '', component: { type: 'ServerSide', serverSideType: 'demo.CustomerOrders', children: [
+    { type: 'ClientSide', metadata: { type: 'App', variant: 'MEDIATOR', homeRoute: '/customers/3/orders', homeConsumedRoute: '/customers/3/orders', homeServerSideType: 'demo.CustomerOrders', serverSideType: 'demo.CustomerOrders' } },
+  ] } }] }
+  const listing = { fragments: [{ targetComponentId: '', component: { type: 'ServerSide', children: [
+    { metadata: { type: 'Crud', title: null, searchable: true, columns: [{ metadata: { id: 'id', label: 'Id' } }] } },
+  ] } }] }
+  globalThis.fetch = async (_url, init) => {
+    const body = JSON.parse(init.body)
+    seen.push({ route: body.route, consumedRoute: body.consumedRoute, serverSideType: body.serverSideType })
+    if (!body.serverSideType) return { ok: true, json: async () => ({ fragments: [p1Master()] }) }
+    if (body.consumedRoute === '/customers/3') return { ok: true, json: async () => ordersMediator }
+    return { ok: true, json: async () => listing }
+  }
+  try {
+    const shell = { title: 'VB Demo', serverSideType: 'demo.VbHome', menu: [] }
+    const reg = await loadRouteInto('http://x', { contexts: {}, stack: [], shell }, '/customers/3', '', {})
+    assert.equal(reg.shell, shell, 'la shell sigue siendo la del bootstrap')
+    assert.deepEqual(reg.appLevels.map((l) => l.title), ['Customer 3'])
+    assert.equal(reg.loadedRoute, '/customers/3/orders', 'el maestro solo abre su pestaña por defecto')
+    assert.deepEqual(seen.map((s) => s.consumedRoute), ['', '/customers/3', '/customers/3/orders'])
+    assert.ok(listingOf(reg.contexts[HOST_ID]), 'la pestaña pinta su listado')
+  } finally { globalThis.fetch = original }
+})
+
 await queue
 console.log(`\n${pass} tests OK (contrato de wire real)`)
 
@@ -3510,4 +3834,129 @@ test('breadcrumbs: summarizeHost lleva el rastro; @NoBreadcrumbs en página o sh
   assert.deepEqual(summarizeHost(regOf({}), '/booking/bookings/QN29HB').trail.map((c) => c.text), ['Call center', 'Reservas', 'QN29HB'])
   assert.deepEqual(summarizeHost(regOf({ noBreadcrumbs: true }), '/booking/bookings/QN29HB').trail, [])
   assert.deepEqual(summarizeHost(regOf({}, { noBreadcrumbs: true }), '/booking/bookings/QN29HB').trail, [])
+})
+
+// ── @Searchable: chips + el selector en un diálogo (fixtures/real/searchable-multi-*, capturados
+//    contra demo/demo-admin-panel Page 5: un List<String> hotelIds y un String hotelId) ─────────
+
+const searchableHost = () => {
+  const form = fx('searchable-multi-form')
+  form.fragments[0].targetComponentId = '' // la carga del host
+  return reduceContexts(empty(), form)
+}
+
+test('@Searchable: un campo de varios ids son chips rotulados + «Add» que abre su selector', () => {
+  const reg = searchableHost()
+  const host = reg.contexts[HOST_ID]
+  const fields = fieldListOf(host.tree, host.state, host.data)
+  const multi = fields.find((f) => f.fieldId === 'hotelIds')
+  assert.ok(multi.isSearchable && multi.isSearchableMulti)
+  assert.equal(multi.isText, false)
+  assert.equal(multi.actionId, 'codesearch-hotelIds')
+  assert.deepEqual(multi.chips.map((c) => [c.id, c.label, c.remaining]), [['3', 'Hotel 3', []]])
+  assert.equal(multi.addLabel, 'Add')
+  // el de un solo id: sin chip mientras está vacío, «Search»
+  const single = fields.find((f) => f.fieldId === 'hotelId')
+  assert.ok(single.isSearchable && !single.isSearchableMulti)
+  assert.equal(single.hasChips, false)
+  assert.equal(single.addLabel, 'Search')
+  // las secciones del formulario los llevan igual
+  assert.ok(formSectionsOf(host.tree, host.state, host.data)[0].fields.some((f) => f.fieldId === 'hotelIds' && f.isSearchable))
+})
+
+test('@Searchable: el chip de un id sin rótulo es el id; uno simple lleva el rótulo de <campo>-label', () => {
+  const chips = searchableChipsOf('ids', ['a', 7], { a: 'Alpha' }, { multi: true })
+  assert.deepEqual(chips.map((c) => c.label), ['Alpha', '7'])
+  assert.deepEqual(chips[0].remaining, [7])
+  assert.equal(chips[0].removeLabel, 'Remove Alpha')
+  const single = searchableChipsOf('id', ['h2'], null, { singleLabel: 'Hotel Two' })
+  assert.deepEqual(single.map((c) => [c.label, c.remaining]), [['Hotel Two', null]])
+  assert.equal(searchableChipsOf('ids', ['a'], {}, { multi: true, readonly: true })[0].removable, false)
+  assert.deepEqual(searchableIdsOf(null), [])
+  assert.deepEqual(searchableIdsOf('x'), ['x'])
+  assert.deepEqual(searchableIdsOf(['x', null, '']), ['x'])
+})
+
+test('@Searchable: codesearch abre el SELECTOR (no el modal de decisión): multi, sin la columna «Select», título del campo', () => {
+  let reg = searchableHost()
+  reg = reduceContexts(reg, fx('searchable-multi-open'))
+  assert.equal(reg.stack.length, 1)
+  assert.equal(reg.contexts[reg.stack[0]].opener, HOST_ID)
+  const picker = searchPickerOf(reg)
+  assert.ok(picker)
+  assert.equal(picker.multi, true)
+  assert.deepEqual(picker.selectionMode, { row: 'multiple' })
+  assert.equal(picker.title, 'Hotel ids')
+  assert.deepEqual(picker.columns.map((c) => c.id), ['id', 'name', 'address'])
+  assert.equal(picker.addLabel, 'Add selected')
+  assert.equal(picker.addActionId, 'action-on-row-select-selected')
+  assert.equal(picker.pickActionId, 'action-on-row-select')
+  assert.equal(picker.rows.length, 0) // las filas llegan con su `search`
+  // su búsqueda va a SU ServerSide (el selector), con su estado
+  const transport = overlayTransportOf(reg, 'search')
+  assert.equal(transport.tree.serverSideType, 'io.mateu.mdd.demoadminpanel.infra.in.ui.HotelSelector')
+  assert.equal(transport.state._searchableMulti, true)
+  assert.deepEqual(pickerSearchStateOf(picker, { searchText: 'Ho' }), { searchText: 'Ho', page: 0, size: 10 })
+  // un overlay que no es un selector no es un picker
+  assert.equal(searchPickerOf(reduceContexts(reduceContexts(empty(), fx('load-listing')), fx('open-drawer'))), null)
+})
+
+test('@Searchable: la búsqueda del selector llena SUS filas (data-only a su id)', () => {
+  let reg = searchableHost()
+  reg = reduceContexts(reg, fx('searchable-multi-open'))
+  reg = reduceContexts(reg, fx('searchable-multi-search'))
+  const picker = searchPickerOf(reg)
+  assert.equal(picker.rows.length, 30)
+  assert.equal(picker.rows[0].name, 'Hotel 1')
+  assert.equal(reg.contexts[HOST_ID].state.hotelIds[0], '3') // el host, intacto
+})
+
+test('@Searchable: «Add selected» devuelve al host los ids fusionados y sus rótulos, y cierra el selector', () => {
+  let reg = searchableHost()
+  reg = reduceContexts(reg, fx('searchable-multi-open'))
+  reg = reduceContexts(reg, fx('searchable-multi-search'))
+  reg = reduceContexts(reg, fx('searchable-multi-add'))
+  assert.deepEqual(reg.stack, [])
+  assert.equal(searchPickerOf(reg), null)
+  const host = reg.contexts[HOST_ID]
+  assert.deepEqual(host.state.hotelIds, ['3', '1', '5'])
+  assert.equal(host.data['hotelIds-labels']['5'], 'Hotel 5')
+  assert.deepEqual(reg.effects.events, []) // no siguen al bus
+  const multi = fieldListOf(host.tree, host.state, host.data).find((f) => f.fieldId === 'hotelIds')
+  assert.deepEqual(multi.chips.map((c) => c.label), ['Hotel 3', 'Hotel 1', 'Hotel 5'])
+})
+
+test('@Searchable: un clic de fila añade esa fila', () => {
+  let reg = searchableHost()
+  reg = reduceContexts(reg, fx('searchable-multi-open'))
+  reg = reduceContexts(reg, fx('searchable-multi-pick'))
+  assert.deepEqual(reg.contexts[HOST_ID].state.hotelIds, ['3', '1', '5', '7'])
+  assert.deepEqual(reg.stack, [])
+})
+
+test('@Searchable: quitar un chip rehace los chips de la proyección sin ir al servidor; el borrador se funde al abrir', () => {
+  const reg = searchableHost()
+  const host = reg.contexts[HOST_ID]
+  const sections = formSectionsOf(host.tree, { ...host.state, hotelIds: ['3', '9'] }, { ...host.data, 'hotelIds-labels': { 3: 'Hotel 3', 9: 'Hotel 9' } })
+  const after = withSearchableIds(sections, 'hotelIds', ['9'])
+  const field = after[0].fields.find((f) => f.fieldId === 'hotelIds')
+  assert.deepEqual(field.chips.map((c) => [c.id, c.label]), [['9', 'Hotel 9']])
+  // lo demás, intacto
+  assert.equal(after[0].fields.length, sections[0].fields.length)
+  const merged = withContextState(reg, HOST_ID, { hotelId: '2' })
+  assert.equal(merged.contexts[HOST_ID].state.hotelId, '2')
+  assert.deepEqual(merged.contexts[HOST_ID].state.hotelIds, ['3'])
+  assert.equal(withContextState(reg, HOST_ID, {}), reg)
+})
+
+test('@Searchable: la vista de detalle (<campo>-label, sólo lectura) se pinta como texto', () => {
+  const field = layoutFieldOf({ fieldId: 'hotelIds-label', dataType: 'array', stereotype: 'searchable', readOnly: true, label: 'Hotels' },
+    {}, { 'hotelIds-label': 'Hotel 3, Hotel 5' })
+  assert.equal(field.isText, true)
+  assert.equal(field.readonly, true)
+  assert.equal(field.value, 'Hotel 3, Hotel 5')
+  assert.equal(field.isSearchable, undefined)
+  const tree = { type: 'ServerSide', children: [{ metadata: { type: 'FormField', fieldId: 'hotelIds-label', dataType: 'array', stereotype: 'searchable', readOnly: true, label: 'Hotels' } }] }
+  const listed = fieldListOf(tree, {}, { 'hotelIds-label': 'Hotel 3, Hotel 5' })
+  assert.deepEqual(listed.map((f) => [f.isText, f.value]), [[true, 'Hotel 3, Hotel 5']])
 })

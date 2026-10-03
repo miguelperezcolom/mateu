@@ -57,17 +57,21 @@ con URL propia, recibe el id del maestro, se carga al abrirla, tiene sus accione
 funcionan la recarga, el enlace directo y atrás/adelante. La prueba está en el worktree `mateu-mdtabs`,
 rama `probe/master-detail-tabs`.
 
-- [ ] Resolver la **cadena de rutas** padre → hijo con `RouteEntry.parent`: el padre consume su prefijo y pinta al hijo en su hueco. Afecta a `RouteInstanceCreator`, `AbsoluteRouteDispatcher`, `AppMenuResolver` y `DirectClassResolver`.
-- [ ] **Pestaña por defecto:** la primera hija, o `defaultChild:` en la entrada. Quitar el fallo de `HomeRouteResolver` y `ViewRouteResolver`.
-- [ ] **Parámetros** aplicados en cada petición, también cuando el cliente ya conoce la clase (`ActionInstanceCreator.instantiateWithKnownType`).
-- [ ] Los **parámetros del padre** llegan como contexto, no como filtros que se pueden quitar. En el listado se ven como una etiqueta de ámbito fija.
-- [ ] **CRUD dentro de una pestaña:** `/new` e `/{id}` relativos a su hueco, sin URL duplicada (`MultiView.pathForHistory`, `NavigateToViewActionHandler`).
-- [ ] `@Tab(key)` → `TabDto.routeKey`: cambiar de pestaña añade una entrada al historial también en las pestañas de la página.
-- [ ] `@Subresource(tab, order, help, load = EAGER | ON_OPEN)`: varios listados apilados en una pestaña, con el contexto del padre y un contador en la pestaña cuando son EAGER.
-- [ ] `@App/@Page(backLink = PARENT)`, con el título del padre como texto (D3).
-- [ ] **Redwood:** una app anidada es contenido, no la shell (`reduceContexts.mjs` ~2722), con una barra de pestañas por nivel de app.
-- [ ] Desactivar las trampas de `@Inline` (recarga infinita): fallar si el tipo embebido no tiene ruta y no caer al camino `DtoSupplier` dentro de un `@Tab`.
-- [ ] e2e con los escenarios de la prueba en los dos renderers. Demo «Record master with page tabs» y receta en `route-registry.md`.
+- [x] Resolver la **cadena de rutas** padre → hijo con `RouteEntry.parent`: el padre consume su prefijo y pinta al hijo en su hueco. Afecta a `RouteInstanceCreator`, `AbsoluteRouteDispatcher`, `AppMenuResolver` y `DirectClassResolver`.
+- [x] **Pestaña por defecto:** la primera hija, o `defaultChild:` en la entrada. Quitar el fallo de `HomeRouteResolver` y `ViewRouteResolver`.
+- [x] **Parámetros** aplicados en cada petición, también cuando el cliente ya conoce la clase (`ActionInstanceCreator.instantiateWithKnownType`).
+- [x] Los **parámetros del padre** llegan como contexto, no como filtros que se pueden quitar. En el listado se ven como una etiqueta de ámbito fija.
+- [x] **CRUD dentro de una pestaña:** `/new` e `/{id}` relativos a su hueco, sin URL duplicada (`MultiView.pathForHistory`, `NavigateToViewActionHandler`).
+- [x] `@Tab(key)` → `TabDto.routeKey`: cambiar de pestaña añade una entrada al historial también en las pestañas de la página.
+- [x] `@Subresource(tab, order, help, load = EAGER | ON_OPEN)`: varios listados apilados en una pestaña, con el contexto del padre y un contador en la pestaña cuando son EAGER.
+- [x] `@App/@Page(backLink = PARENT)`, con el título del padre como texto (D3).
+- [x] **Redwood:** una app anidada es contenido, no la shell (`reduceContexts.mjs` ~2722), con una barra de pestañas por nivel de app.
+- [x] Desactivar las trampas de `@Inline` (recarga infinita): fallar si el tipo embebido no tiene ruta y no caer al camino `DtoSupplier` dentro de un `@Tab`.
+- [x] e2e con los escenarios de la prueba en los dos renderers. Demo «Record master with page tabs» y receta en `route-registry.md`.
+- [x] Composición sin títulos repetidos (pantalla 10 de OCI): sin barra con una sola pestaña visible (conserva su clave y su URL); el título de una sección o listado embebido se omite si repite la pestaña o la página (`@Subresource(showTitle)`); pestañas con condición `show` (flag) y pestaña por defecto declarada. El `show` es por ahora un nombre de flag que contestan los beans `FeatureFlags` (desconocido = activo); P4 lo convertirá en expresión.
+- [ ] Redwood, pendiente: un atrás entre pestañas después de entrar al maestro desde una fila del listado no repinta (VB da por «disposed» el contexto de la cadena; desde un enlace directo funciona); una página-formulario con `@Tab(key)`/`@Subresource` se proyecta como formulario plano (sin barra ni islas); una página de solo lectura (`CustomerHistory`) sale vacía.
+
+Hecho en `feat/routed-master-tabs`: núcleo (`RouteRegistry.chain`, `RouteChains`, `ActionInstanceCreator.mountOf`), Vaadin, Redwood y la demo `demo-vb` (paquete `mastertabs`); comprobación con `e2e/master-tabs-check.mjs`.
 
 ## P2 · Retoques de listados (S cada uno)
 
@@ -104,13 +108,17 @@ rama `probe/master-detail-tabs`.
 
 ## P5 · Modo estático (L)
 
-- [ ] **S0 · demo estática de una porción de VCN** con e2e en Vaadin, desde bundle y desde YAML:
-  - listado sobre un API REST pública con filtros, paginación en el cliente y columna de estado;
-  - detalle por `:id`;
-  - pestaña hija con su listado;
-  - borrar con confirmación, toast y refresco del listado.
+- [x] **S0 · demo estática de una porción de VCN** con e2e en Vaadin, desde bundle y desde YAML — rama `feat/static-vcn-slice` (PR en el registro). `demo/demo-static-vcn` (`java/` y `yaml/`), servida como ficheros por un servidor estático tonto, contra «el API externo» (`external-api/server.mjs`, un stand-in REST con CORS); e2e `tests/static/static-vcn.spec.ts`, proyectos `static-vcn-java` y `static-vcn-yaml`: **12/12 en verde**, y el test falla si algo llama a `/mateu/v3/**`.
+  - listado sobre el API con búsqueda libre, un filtro declarado (Estado), paginación en el cliente, columna de estado y `rowRoute`;
+  - detalle por `:id`, también por enlace directo;
+  - **pestaña hija como ruta enlazada** (`vcns/:id/subnets`), con su listado filtrado por el id del padre: las pestañas con ruta son P1 y no están en master;
+  - borrar con confirmación, `DELETE` desde el navegador, toast y listado vuelto a pedir.
 
-  Incluye arreglar el enlace directo en modo bundle (#557), el flag de exportación `--static` y el informe de seguridad estática (una ruta estática con métodos Java, `CrudStore`, fuentes proxy o `@EyesOnly` falla al construir). Puede empezar ya.
+  **Funcionó tal cual:** `mateu:bundle` (manifest, plantillas `:param`), las fuentes REST por nombre y el catálogo en el manifest, `@RestListing`/`@RestData`/`@RestAction` y el `restAction` de YAML con `successMessage`/`successRoute`, el filtrado y la paginación en el cliente de filas REST, la confirmación, `rowRoute`, el `data:` de una ruta (OnLoad + `__restdata__`), la búsqueda inteligente con filtros.
+
+  **Hubo que arreglar** (todo con tests): el enlace directo en modo bundle (#557: el exportador solo exportaba la carga «fresca» —el **shell**— de cada ruta; ahora exporta también la de contenido, `contentJson`, y el cliente elige por `consumedRoute` y nunca contesta una carga de contenido con un shell; la causa real de «pinta HOME» y de shells anidados que colgaban la pestaña); el flag `staticOnly` (`-Dmateu.bundle.static=true`) con el informe de seguridad estática (`StaticSafetyCheck`: ruta no exportable, `@EyesOnly`, métodos Java sin `@RestAction`, `ActionHandler`, filas de `Listing.search`/`CrudStore`, triggers que ejecutan acciones de servidor, fuentes `proxy`, `${secret.` en una fuente directa, botones de definición sin ruta ni `restAction`); el flag `specsOnly` (las definiciones viajan crudas y el navegador las expande: hasta ahora el expansor nunca se había ejecutado en un navegador); el expansor con `AppShell`, `Form`/`FormLayout`/`FormField`, botones con `RouteLink`, envoltorio de página con `actions`/`triggers`/`data:` y los valores por defecto del listado (`pageSize`: sin él las filas salían vacías); `@RestListing(rowRoute)`; un `@RestListing` ya no dispara `search` en el servidor al cargar; el método por defecto de una anotación `@Rest*` por referencia ya no pisa el del catálogo (un `DELETE` salía como `POST`); `@Action` + `@RestAction` en el mismo método conservan la llamada REST; `@RestSource` en la raíz `@UI("")` se lee; el menú YAML con `route:` iba a la ruta derivada de la etiqueta; las rutas de `routes.yaml` con `viewModel` se exportaban como «Not found.» (classloader); una respuesta 204 vacía era «Request failed»; la columna de estado pintaba vacía una palabra suelta del API.
+
+  **Falta para S1+** (también en la guía `java-user-manual/build/static-ui.md`): expresiones seguras y simétricas, con ámbitos `route`/`flags`/`t()` (hoy `new Function`, CSP `unsafe-eval`); datos con nombre (`data.<dest>` con `loading`/`error`) y `bind`; paginación offset o prefetch-all y orden de filas REST en el cliente; un mapa de estados declarado que viaje en el wire (`@Status(mappings)` solo se aplica en el servidor; las filas REST usan una tabla fija de palabras); cadenas de pasos (`onSuccess`/`onError`, `If`/`Set`/`Refresh`), paneles con argumentos y `OnTimer`; formularios editables con validadores en el expansor; pestañas con ruta (P1) en estático; traducciones en el cliente; el bridge de Redwood (no lee `contentJson`, ni definiciones, ni el catálogo, ni `restAction`: en estático bajo un shell es solo estructura); cliente OIDC con PKCE. Vistos de paso, sin arreglar: la cabecera de Vaadin manda todos los botones secundarios al «⋯» cuando hay título y subtítulo (y su `title` está escrito en español, «Más acciones»); `confirmationTexts` en YAML no admite `action:` (es `confirmationText`); un `@UI` Java de una sola capa necesita el indexador para que `@RestSource` y el exportador vean sus clases.
 - [ ] S1: expresiones seguras y datos con nombre en el cliente, orden de filas REST y paginación prefetch-all u offset (con P4).
 - [ ] S2: cadenas de pasos, `OnTimer` y progreso por elemento en el cliente.
 - [ ] S3: el expansor con formularios editables, validadores, detalle y pestañas; traducciones en el cliente; flags; alias.
@@ -175,7 +183,15 @@ Decisiones (2026-10-03, aprobadas por el usuario):
 | M10 | El front office **no** es una sección del plano de datos: es otra app. |
 
 Entregas:
-1. **Sin API nueva:** que un remoto que falla no tumbe a los demás (`allSettled`, también en Vaadin), que la etiqueta de la shell mande, que las migas se conozcan en frío (prefijos) también para las entradas ocultas, y quitar el `MENU_ON_TOP` forzado.
+1. **Sin API nueva:** que un remoto que falla no tumbe a los demás (`allSettled`, también en Vaadin), que la etiqueta de la shell mande, que las migas se conozcan en frío (prefijos) también para las entradas ocultas, y quitar el `MENU_ON_TOP` forzado. Rama `feat/menu-federation-robust`, PR #671.
+   - [x] Un remoto caído es una sección caída: cada respuesta se fusiona al llegar; la sección del que falla queda atenuada, con un aviso, y se reintenta (en segundo plano y al pulsarla). Sin toast ni banda de «sin conexión». Redwood pinta el mismo estado.
+   - [x] La etiqueta declarada en la shell manda (`shellLabel` en el wire). Si no se declara, manda la del remoto. ec-demo1 se deja como está: sus etiquetas repetidas ahora simplemente mandan.
+   - [x] Carga en frío: cada sección remota viaja con su prefijo (`routePrefix`, el path propio del remoto, sin el del grupo), así que la sección activa y la primera miga se conocen antes de que conteste. Un enlace directo dice además de qué remoto se montó. No ha hecho falta el atributo `prefix`.
+   - [x] Las secciones ocultas siguen en el árbol (sin pintarse) y sus páginas tienen migas.
+   - [x] Enlaces directos en el servidor: el remoto se elige por el prefijo más largo, con la caché y los prefijos. Solo si eso no decide se pregunta a los demás, todos a la vez. Un remoto caído no tumba la petición.
+   - [x] Sin `MENU_ON_TOP` forzado: manda la variante declarada. `AUTO`, y un `AppShell` fluido sin variante, eligen `MENU_ON_TOP` si hay remotos, así que nada cambia a la vista.
+   - [x] Código común: `navTree.ts` en `libs/mateu`. Redwood lleva un port (`poc/navTree.mjs`), porque su bridge no puede importar TypeScript.
+   - [x] Tests: core (`RemoteMenuPrefixSelectionSyncTest`), vitest (`completeMenu`, `navTree`), Redwood (`poc/test.mjs`), Playwright de federación (`menu-robustness.spec.ts`) y una comprobación de solo lectura en la consola de datos de ec1 con el bundle cambiado en el navegador.
 2. **El API de montajes y secciones,** con `HAMBURGER_SECTIONS` en Vaadin y el control plane de ec-demo1 migrado.
 3. **Redwood,** los widgets laterales (T11), IntelliJ y React Native.
 - [ ] Un árbol de menú de dos niveles en la definición de la app. Cualquier nodo puede montar un menú remoto, entero o una parte, como sección o como opciones dentro de otra sección. Hay que resolver el orden, los permisos, la caché, la carga en frío (la sección activa y las migas se conocen antes de que responda el remoto) y un remoto caído (la sección se desactiva con un aviso; la shell no se rompe).
@@ -215,3 +231,6 @@ los casos de conformidad y las demos. Pero no sabemos cuánto ayudan ni si está
 |---|---|
 | 2026-10-03 | Acento configurable y chat más ancho, aprobados (P0); inventario del RDS Toolkit hecho (P7); el tema configurable se adelanta (P8). |
 | 2026-10-03 | Plan escrito; después se añaden P9 (navegación de dos niveles y montajes remotos) y P10 (Mateu entendible por un modelo que no lo conoce). Mateu 384 publicado y desplegado en ec1 (paginado de Vaadin). PRs abiertos: #663, #664, #665 y #666. |
+| 2026-10-03 | P9, entrega 1 (PR #671): un remoto caído deja solo su sección no disponible, manda la etiqueta de la shell, la sección y la primera miga se conocen en frío (también en las ocultas), los enlaces directos se resuelven por el prefijo más largo y ya no se fuerza `MENU_ON_TOP`. Verificado en Vaadin (SUT de federación y consola de datos de ec1, de solo lectura) y en Redwood (tests de node). |
+| 2026-10-03 | P5 · S0 hecho (rama `feat/static-vcn-slice`): `demo/demo-static-vcn` desde Java y desde YAML, sin backend, 12/12 e2e; arreglado el enlace directo en modo bundle (#557: faltaba la carga de contenido); `staticOnly` con informe de seguridad estática y `specsOnly`; guía «100 % static UI». Lo que falta para S1–S4, en la sección P5. |
+| 2026-10-03 | P1 en `feat/routed-master-tabs`: cadena de rutas, pestaña por defecto, parámetros en cada petición, ámbito fijo, CRUD dentro de una pestaña, `@Tab(key)`, `@Subresource`, `backLink = PARENT`, `@RowRoute`, flags de pestaña, Redwood con niveles de app, trampas de `@Inline`. Quedan tres huecos de Redwood (ver P1). |

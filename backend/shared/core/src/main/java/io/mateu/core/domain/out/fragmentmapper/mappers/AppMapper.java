@@ -90,9 +90,12 @@ public final class AppMapper {
             .globalSearchEnabled(isGlobalSearchEnabled(app))
             .commandCenterEnabled(getCommandCenter(app))
             .chromeless(getChromeless(app))
-            .noBreadcrumbs(getNoBreadcrumbs(app))
+            .noBreadcrumbs(getNoBreadcrumbs(app) || backLinkParent(app))
+            .backRoute(backLinkParent(app) ? parentLink(appRoute, httpRequest)[0] : null)
+            .backLabel(backLinkParent(app) ? parentLink(appRoute, httpRequest)[1] : null)
             .askLabel(appAnnotationValue(app, io.mateu.uidl.annotations.App::askLabel))
             .askIcon(appAnnotationValue(app, io.mateu.uidl.annotations.App::askIcon))
+            .accentColor(appAnnotationValue(app, io.mateu.uidl.annotations.App::accentColor))
             .requiredCapabilities(getRequiredCapabilities(app, httpRequest))
             .build();
     return new ClientSideComponentDto(
@@ -323,6 +326,73 @@ public final class AppMapper {
     if (app.serverSideType() == null) return false;
     return MetaAnnotations.isPresent(
         forName(app.serverSideType()), io.mateu.uidl.annotations.NoBreadcrumbs.class);
+  }
+
+  /** {@code @App(backLink = PARENT)} on the app's class. */
+  static boolean backLinkParent(AppShell app) {
+    if (app.serverSideType() == null) return false;
+    try {
+      var appClass = forName(app.serverSideType());
+      var a = MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class);
+      return a != null && a.backLink() == io.mateu.uidl.annotations.BackLink.PARENT;
+    } catch (Throwable t) {
+      return false;
+    }
+  }
+
+  /**
+   * The "← Parent" link of an app at {@code appRoute}: {route, label} of the nearest route above it
+   * that resolves to a screen — {@code /customers} (titled "Customers") for {@code /customers/7}.
+   * The label is the screen's {@code @Title}, else its last segment humanized. Both null when no
+   * route above resolves.
+   */
+  static String[] parentLink(String appRoute, HttpRequest httpRequest) {
+    var cached = httpRequest.getAttribute("_parentLink");
+    if (cached instanceof String[] link) {
+      return link;
+    }
+    String[] link = {null, null};
+    try {
+      var resolver =
+          io.mateu.uidl.di.MateuBeanProvider.getBean(
+              io.mateu.core.application.RoutedClassResolver.class);
+      var path = appRoute == null ? "" : appRoute.replaceAll("/+$", "");
+      while (resolver != null && path.lastIndexOf('/') > 0) {
+        path = path.substring(0, path.lastIndexOf('/'));
+        var baseUrl = (String) httpRequest.getAttribute("baseUrl");
+        var command =
+            new io.mateu.core.application.runaction.RunActionCommand(
+                baseUrl != null ? baseUrl : "",
+                null,
+                path,
+                null,
+                null,
+                java.util.Map.of(),
+                java.util.Map.of(),
+                null,
+                httpRequest,
+                null,
+                null);
+        var resolved = resolver.resolve(path, command).orElse(null);
+        if (resolved != null && resolved.resolvedClass() != null) {
+          var title =
+              MetaAnnotations.find(resolved.resolvedClass(), io.mateu.uidl.annotations.Title.class);
+          var segment = path.substring(path.lastIndexOf('/') + 1);
+          link =
+              new String[] {
+                path,
+                title != null && !title.value().isBlank()
+                    ? title.value()
+                    : io.mateu.uidl.Humanizer.toUpperCaseFirst(segment.replace('-', ' '))
+              };
+          break;
+        }
+      }
+    } catch (Throwable t) {
+      // no link rather than a broken shell
+    }
+    httpRequest.setAttribute("_parentLink", link);
+    return link;
   }
 
   private static boolean getCommandCenter(AppShell app) {

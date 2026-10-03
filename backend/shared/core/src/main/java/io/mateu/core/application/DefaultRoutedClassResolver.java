@@ -45,7 +45,7 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
                 return Optional.empty();
               }
               try {
-                var resolvedClass = Class.forName(viewModel);
+                var resolvedClass = loadViewModel(viewModel);
                 return Optional.of(
                     new ResolvedRoute(route, match.entry().route(), resolvedClass, match.entry()));
               } catch (Throwable t) {
@@ -59,6 +59,24 @@ public class DefaultRoutedClassResolver implements RoutedClassResolver {
                 return Optional.empty();
               }
             });
+  }
+
+  /**
+   * The view model class, looked up in the context classloader first: at build time ({@code
+   * mateu:bundle}) the framework lives in the plugin's realm and the app's classes only in the
+   * context classloader, so a plain {@code Class.forName} from here could not see them — and every
+   * routes.yaml route with a view model was exported as "Not found.".
+   */
+  private static Class<?> loadViewModel(String name) throws ClassNotFoundException {
+    var context = Thread.currentThread().getContextClassLoader();
+    if (context != null) {
+      try {
+        return Class.forName(name, true, context);
+      } catch (ClassNotFoundException ignored) {
+        // fall back to the framework's own loader
+      }
+    }
+    return Class.forName(name);
   }
 
   @Override

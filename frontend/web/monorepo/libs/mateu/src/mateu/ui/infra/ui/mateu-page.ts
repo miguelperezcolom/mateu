@@ -10,6 +10,7 @@ import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
 import { Banner } from "@mateu/shared/apiClients/dtos/componentmetadata/Banner.ts"
 import { requestAside } from "@infra/ui/layout/fabRail.ts"
 import type { AsidePlacement } from "@infra/ui/layout/fabRail.ts"
+import { linkStyles } from "@infra/ui/linkStyles.ts";
 
 /** Narrow viewports (the rail's NARROW_VIEWPORT): nothing pins but the section bar, and that compact. */
 const NARROW_QUERY = '(max-width: 599px)'
@@ -553,7 +554,7 @@ export class MateuPage extends LitElement {
         return html`<div style="display: flex; flex-direction: column; width: 100%;">${inner}</div>`
     }
 
-    static styles = css`
+    static styles = [css`
         /* the welcome hero takes a top gap (heroRenderer) only when nothing is above it: under a
            page header it sits where the header leaves it */
         :host(:not([data-hero-top])) {
@@ -841,7 +842,7 @@ export class MateuPage extends LitElement {
             background: #fdf2f2;
             border-leftx: 4px solid var(--lumo-error-color);
         }
-    `
+    `, linkStyles]
 }
 
 declare global {

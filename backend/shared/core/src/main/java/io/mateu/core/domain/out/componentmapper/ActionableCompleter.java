@@ -4,6 +4,7 @@ import static io.mateu.core.domain.out.componentmapper.AppMetadataExtractor.getL
 import static io.mateu.core.infra.reflection.read.ValueProvider.getValue;
 import static io.mateu.uidl.Humanizer.toCamelCase;
 
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.data.ContentLink;
 import io.mateu.uidl.data.FieldLink;
 import io.mateu.uidl.data.MethodLink;
@@ -47,7 +48,11 @@ final class ActionableCompleter {
       if (actionable instanceof MethodLink methodLink) {
         actionable = methodLink.withLabel(getLabel(field));
       }
-      if (actionable instanceof RemoteMenu remoteMenu) {
+      // A remote section is labelled from the field only when the field SAYS so (@Label). With no
+      // label of its own the remote answers with its own, and the field name is just what is
+      // shown until then (AppMenuDtoBuilder fills it in, marked as not the shell's).
+      if (actionable instanceof RemoteMenu remoteMenu
+          && MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Label.class)) {
         actionable = remoteMenu.withLabel(getLabel(field));
       }
     }

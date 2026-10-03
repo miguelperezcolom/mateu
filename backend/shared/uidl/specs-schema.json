@@ -5486,6 +5486,12 @@
         },
         "active" : {
           "type" : "boolean"
+        },
+        "routeKey" : {
+          "type" : "string"
+        },
+        "badge" : {
+          "type" : "string"
         }
       }
     },
@@ -5966,6 +5972,12 @@
         },
         "appData" : {
           "$ref" : "#/$defs/RestDataSource"
+        },
+        "defaultChild" : {
+          "type" : "string"
+        },
+        "show" : {
+          "type" : "string"
         },
         "layout" : {
           "type" : "string",

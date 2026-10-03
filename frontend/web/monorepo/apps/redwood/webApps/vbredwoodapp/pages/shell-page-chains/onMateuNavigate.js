@@ -193,6 +193,15 @@ define([
       } catch (ignored) { /* sin opciones se quedan como estaban: el campo sigue editable */ }
 
       $application.variables.mateuRegistry = reg;
+      // P1: los niveles de app (el maestro de un registro con pestañas que son páginas)
+      $application.variables.mateuAppLevels = reg.appLevels || [];
+      // un maestro pedido a secas (/customers/4) abrió su pestaña por defecto: la pantalla ES esa
+      // pestaña (/customers/4/orders) — la URL la nombra y el resto de la proyección la usa
+      if (reg.loadedRoute && reg.loadedRoute !== route && reg.loadedRoute.startsWith(route + '/')) {
+        // la URL se queda en la del maestro (como en Vaadin): reescribirla con replaceState hacía
+        // que el router de VB re-creara la página y los atrás/adelante siguientes no hicieran nada
+        route = reg.loadedRoute;
+      }
       $application.variables.mateuSelectedRoute = route;
       // la selección del menú lleva la ruta COMPLETA (las entradas con ?query son otras)
       $application.variables.mateuSelectedNavId = target.full;
@@ -276,6 +285,12 @@ define([
       // Si la carga falló, el reintento vuelve a entrar en ESTA chain con la misma ruta.
       bridge.setLastRetry(null);
       const summary = bridge.summarizeHost(reg, route);
+      // dentro de un maestro (P1) la pestaña no repite su rótulo: la cabecera lleva el del
+      // maestro, y la barra de pestañas va encima
+      const levels = reg.appLevels || [];
+      if (!summary.title && levels.length) {
+        summary.title = levels[levels.length - 1].title;
+      }
       $application.variables.mateuHostTitle = summary.title;
       // Navegar en una SPA no cambia la página, así que no hay nada que un lector de pantalla
       // anuncie solo, y el foco se queda en el enlace del menú recién pulsado. Sólo aquí, en
@@ -366,7 +381,7 @@ define([
         ? bridge.entityHeaderOf(host) : null;
       // pantalla nueva, pestaña nueva: la activa es estado de CLIENTE y no sobrevive a una
       // navegación (la pestaña 3 de la pantalla anterior no significa nada en ésta)
-      $application.variables.mateuActiveTab = '';
+      $application.variables.mateuActiveTabs = {};
       const hostBlocks = (!esWizard && sinOtrasRamas)
         ? bridge.hostContentOf(host, islandRawBlocks,
             { title: summary.title, dropEntityHeader: !!hostEntity }) : null;
@@ -414,9 +429,9 @@ define([
       // el oj-tab-bar parsea su <ul> al inicializarse y los <li> del for-each llegan
       // después: sin refresh se queda con la lista sin estilar (misma trampa que el
       // oj-navigation-list del navigator)
-      if (($application.variables.mateuHostContent || []).some((b) => (b.items || []).some((a) => a.isTabs))) {
+      for (const barId of bridge.tabBarIdsOf($application.variables.mateuHostContent)) {
         try {
-          await Actions.callComponentMethod(context, { selector: '#mateuContentTabs', method: 'refresh' });
+          await Actions.callComponentMethod(context, { selector: '#' + barId, method: 'refresh' });
         } catch (ignored) { /* aún sin montar */ }
       }
       if (hostBlocksRicos) {

@@ -1,0 +1,45 @@
+# One VCN (route vcns/:id), read-only. The route's `data: vcn` loads it on entry, straight from the
+# API. Delete is a REST call the browser makes itself: confirm → DELETE → toast → back to the
+# (re-fetched) listing.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: ${state.displayName}
+subtitle: Virtual cloud network
+toolbar:
+  - type: Button
+    actionId: backToList
+    label: Back to VCNs
+    actionable:
+      type: RouteLink
+      route: vcns
+  - type: Button
+    label: Subnets
+    actionable:
+      type: RouteLink
+      route: vcns/${state.id}/subnets
+  - type: Button
+    label: Delete
+    color: error
+    actionId: delete
+content:
+  - type: FormLayout
+    content:
+      - {type: FormField, id: displayName, label: Name, readOnly: true}
+      - {type: FormField, id: lifecycleState, label: State, readOnly: true}
+      - {type: FormField, id: cidrBlock, label: CIDR block, readOnly: true}
+      - {type: FormField, id: compartment, label: Compartment, readOnly: true}
+      - {type: FormField, id: dnsLabel, label: DNS label, readOnly: true}
+      - {type: FormField, id: timeCreated, label: Created, readOnly: true}
+actions:
+  - id: delete
+    confirmationRequired: true
+    confirmationTexts:
+      title: Delete VCN
+      message: This deletes the VCN and its subnets.
+      confirmationText: Delete
+      denialText: Cancel
+    restAction:
+      source:
+        ref: vcn-delete
+      successMessage: VCN deleted
+      successRoute: vcns

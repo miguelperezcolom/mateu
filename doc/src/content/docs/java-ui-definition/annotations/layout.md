@@ -224,6 +224,10 @@ public @interface Tab {
 |---|---|---|---|
 | `value` | `String` | `""` | Tab label |
 | `order` | `int` | `0` | Display order among tabs |
+| `shortcut` | `String` | `""` | Keyboard shortcut that selects the tab (`alt+1`) |
+| `open` | `boolean` | `false` | Selected when the strip first renders |
+| `key` | `String` | `""` | The tab's **route key**: `/vcns/7/gateways` opens the tab with `key = "gateways"`, and selecting it pushes that URL (back/forward walk the tabs) |
+| `show` | `String` | `""` | A feature flag (`flag` or `!flag`) answered by `FeatureFlags` beans; the tab is left out when it is off. A strip left with one tab is not drawn |
 
 ### Example
 
@@ -248,6 +252,67 @@ public class AccountPage {
 Each `@Tab` annotation starts a new tab. Fields without `@Tab` fall into a default tab.
 
 ![Tabs layout — Personal and Address tabs](/images/docs/components/tabs.png)
+
+### Sub-resources: listings in tabs (`@Subresource`)
+
+A field whose type is a listing or crud, annotated `@Subresource`, is embedded as a sub-listing with
+the record as its **context** — the route's path parameters, the host's same-named fields and the
+`context = "listingField=hostField"` bindings are seeded into it and shown as its fixed scope:
+
+| Attribute | Default | Description |
+|---|---|---|
+| `tab` | the field name | The tab it goes in (matched by key or label; a new tab otherwise). Several stack in one tab |
+| `order` | `0` | Position among the sub-resources of its tab |
+| `help` | `""` | One line under its title |
+| `load` | `ON_OPEN` | `ON_OPEN` fetches it when its tab is opened; `EAGER` with the page, and puts the row count on the tab |
+| `show` | `""` | A feature flag, as on `@Tab` |
+| `showTitle` | `true` | `false` hides its title; it is also dropped when it repeats the tab or the page |
+| `context` | `{}` | Extra bindings `listingField=hostField` |
+
+An embedded orchestrator **without** `@Subresource` must have a route of its own (`@UI` or a
+`routes.yaml` entry): one without fails with a message instead of loading the app's root inside
+itself.
+
+### Nested tabs
+
+A tab can hold another tab strip. Declaratively, give a `@Tab` field a type that has its own `@Tab` fields — the nested form renders inside its tab with its own strip:
+
+```java
+@UI("/customer")
+public class Customer {
+    @Tab("General")
+    String name;
+
+    @Tab("Details")
+    Details details = new Details();   // renders inside the «Details» tab
+}
+
+public class Details {
+    @Tab("General")                    // a label may repeat the outer one
+    String phone;
+
+    @Tab("Notes")
+    String notes;
+}
+```
+
+Fluently, a `Tab` takes any component as content — including another `TabLayout`:
+
+```java
+TabLayout.builder()
+    .id("outer")
+    .tabs(List.of(
+        new Tab("General", new Text("…")),
+        new Tab("Details", TabLayout.builder()
+            .id("inner")
+            .tabs(List.of(
+                new Tab("General", new Text("…")),
+                new Tab("Notes", new Text("…"))))
+            .build())))
+    .build();
+```
+
+Each strip keeps its own selection: picking a tab of the inner strip never changes the outer one. The declarative mapper gives each strip a distinct, stable id (`_tabs` at the top level, `details-_tabs` for the strip of the `details` field); in the fluent API, give each `TabLayout` its own id.
 
 ---
 

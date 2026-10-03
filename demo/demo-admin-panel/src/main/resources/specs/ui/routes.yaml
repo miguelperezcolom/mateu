@@ -5,6 +5,9 @@ routes:
     viewModel: io.mateu.mdd.demoadminpanel.infra.in.ui.Page4
   - route: page3
     viewModel: io.mateu.mdd.demoadminpanel.infra.in.ui.Page3
+  # @Searchable single + multi-valued (also addressable directly, e.g. by the Redwood shell)
+  - route: page5
+    viewModel: io.mateu.mdd.demoadminpanel.infra.in.ui.Page5
   - route: example/:name
     viewModel: io.mateu.mdd.demoadminpanel.infra.in.ui.ExampleParametersViewModel
   - route: inline-editing

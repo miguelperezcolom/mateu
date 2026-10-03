@@ -44,7 +44,9 @@ public class CommandMapper {
                 httpRequest.getAttribute("windowTitle")));
       }
 
-      if (isPage(instance, httpRequest.runActionRq().route())) {
+      // a returned command (or list of commands) is behaviour, not a page: its toString() is no
+      // window title (the @Searchable pick answered «[UICommand[type=DispatchEvent…» as one)
+      if (!isCommandResult(instance) && isPage(instance, httpRequest.runActionRq().route())) {
         if (httpRequest.getAttribute("windowTitle") == null) {
           result.add(
               new UICommandDto(
@@ -92,6 +94,15 @@ public class CommandMapper {
               .toList());
     }
     return result;
+  }
+
+  private static boolean isCommandResult(Object instance) {
+    if (instance instanceof UICommand || instance instanceof Step) {
+      return true;
+    }
+    return instance instanceof Collection<?> collection
+        && !collection.isEmpty()
+        && collection.stream().allMatch(o -> o instanceof UICommand || o instanceof Step);
   }
 
   // same marker check as EditableView.isEmbedded / EmbeddedOrchestratorFieldBuilder

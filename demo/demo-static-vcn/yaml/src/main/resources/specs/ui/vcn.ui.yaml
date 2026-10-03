@@ -1,0 +1,7 @@
+# The mount — a UI served at "/" declared as DATA (no @UI class). Discovered by scanning specs/ui/**
+# for `type: UI`.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/mount-schema.json
+type: UI
+basePath: /
+routes:
+  - routes.yaml

@@ -8,6 +8,7 @@ import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import { interpolateNested } from "@infra/ui/interpolation.ts";
 import './mateu-event-interceptor.ts';
 import { FocusTrap, trapFocus } from '@infra/a11y/focusTrap.ts';
+import { linkStyles } from "@infra/ui/linkStyles.ts";
 
 /*
  * Design-system-neutral modal dialog — a fixed backdrop + centered card (no `@vaadin`). Preserves
@@ -130,7 +131,7 @@ export class MateuDialog extends ComponentElement {
         `
     }
 
-    static styles = css`
+    static styles = [css`
         .backdrop {
             position: fixed; inset: 0; z-index: 1000;
             display: flex; align-items: center; justify-content: center;
@@ -155,7 +156,7 @@ export class MateuDialog extends ComponentElement {
         .dialog-body { padding: .5rem 1.2rem; flex: 1; }
         .dialog.no-padding .dialog-body { padding: 0; }
         .dialog-footer { padding: .5rem 1.2rem 1rem; display: flex; justify-content: flex-end; gap: .5rem; }
-    `
+    `, linkStyles]
 }
 
 declare global {

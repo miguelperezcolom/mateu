@@ -1,3 +1,4 @@
+import { isMount, mountPrefix, routeCovers } from './navTree.mjs'
 // El rastro automático de una pantalla — la MISMA regla que el renderer web
 // (libs/mateu/.../breadcrumbTrail.ts): el camino de menús hasta la ruta (grupos y la entrada que
 // la muestra, secciones de un pod incluidas) y, pasada la entrada, el nivel del CRUD — el registro
@@ -33,7 +34,7 @@ function crumbLeafRoutes(menu) {
   const out = new Set()
   const walk = (options) => {
     for (const option of options || []) {
-      if (!option || option.separator) continue
+      if (!option || option.separator || isMount(option)) continue
       const children = option.submenus || option.submenu || []
       if (children.length > 0) { walk(children); continue }
       const route = crumbRoute(option.route || option.path)
@@ -44,15 +45,30 @@ function crumbLeafRoutes(menu) {
   return out
 }
 
+// Las entradas OCULTAS cuentan: no se pintan, pero una página bajo una sigue estando en algún sitio
+// (la bandeja a la que se llega desde un widget sigue siendo Bandeja › Tareas). Una sección remota
+// que no ha contestado cuenta por su prefijo (navTree.mjs), como la sección sola — `pending`, porque
+// lo que hay debajo aún no se sabe.
 export function menuTrail(menu, path) {
   const current = crumbRoute(path)
   let best = null
   // un grupo es un encabezado, no una página: su ruta (el prefijo de una sección federada,
   // "/admin") no suele llevar a ningún sitio. Su miga sólo navega si una ENTRADA tiene esa ruta.
   const pages = crumbLeafRoutes(menu)
+  const consider = (route, crumbs, pending) => {
+    // una entrada de verdad gana a un prefijo de sección de la misma longitud: dice más
+    if (!best || route.length > best.route.length || (route.length === best.route.length && best.pending && !pending)) {
+      best = { crumbs, route, pending }
+    }
+  }
   const walk = (options, above) => {
     for (const option of options || []) {
-      if (!option || option.separator || option.visible === false) continue
+      if (!option || option.separator) continue
+      if (isMount(option)) {
+        const prefix = mountPrefix(option)
+        if (routeCovers(prefix, current)) consider(prefix, [...above, { text: crumbText(option.caption || option.label) }], true)
+        continue
+      }
       const route = crumbRoute(option.route || option.path)
       const label = crumbText(option.caption || option.label)
       const children = option.submenus || option.submenu || []
@@ -60,22 +76,27 @@ export function menuTrail(menu, path) {
         walk(children, [...above, route && route !== '/' && pages.has(route) ? { text: label, route } : { text: label }])
         continue
       }
-      if (!route || route === '/') continue
-      if ((current === route || current.startsWith(route + '/')) && (!best || route.length > best.route.length)) {
-        best = { crumbs: [...above, { text: label, route }], route }
-      }
+      if (routeCovers(route, current)) consider(route, [...above, { text: label, route }], false)
     }
   }
   walk(menu, [])
-  return best ? { crumbs: best.crumbs, matched: best.route } : { crumbs: [] }
+  if (!best) return { crumbs: [] }
+  return best.pending ? { crumbs: best.crumbs, matched: best.route, pending: true } : { crumbs: best.crumbs, matched: best.route }
 }
 
 const recordTitles = new Map()
 
 export function autoTrail(menu, path, page = {}) {
-  const { crumbs, matched } = menuTrail(menu, path)
+  const { crumbs, matched, pending } = menuTrail(menu, path)
   if (!matched) return []
   const trail = [...crumbs]
+  if (pending) {
+    // una sección remota que no ha contestado: la sección se sabe (la nombró la shell) y lo de
+    // debajo no. La sección, y después el título de la propia página.
+    const title = crumbText(page.title)
+    if (title && title !== trail[trail.length - 1].text) trail.push({ text: title })
+    return trail.length < 2 ? [] : trail
+  }
   const rest = crumbRoute(path).slice(matched.length).split('/').filter(Boolean)
   const lang = page.lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
     || (typeof navigator !== 'undefined' && navigator.language) || ''

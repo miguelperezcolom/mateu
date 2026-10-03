@@ -127,7 +127,12 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
             List.of(
                 Listing.builder()
                     .listingType(ListingType.table)
-                    .title(title)
+                    // a @Subresource island: the host draws the title (or leaves it out)
+                    .title(
+                        io.mateu.core.domain.out.componentmapper.EmbeddedOrchestratorFieldBuilder
+                                .isHideTitleRequest(httpRequest)
+                            ? null
+                            : title)
                     .toolbar(toolbar)
                     .searchable(orchestrator.searchable())
                     .rowsSelectionEnabled(orchestrator.selectionEnabled())
@@ -139,6 +144,8 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                     .detailPath(
                         io.mateu.core.domain.out.componentmapper.PageListingBuilder.getDetailPath(
                             orchestrator.rowClass()))
+                    // @RowRoute: a row opens a route (a record master), not the crud's own view
+                    .rowRoute(rowRouteOf(orchestrator))
                     .filters(
                         getFilters(
                             orchestrator.filtersClass(),
@@ -158,5 +165,16 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                     .gridLayout(orchestrator.gridLayout())
                     .build()))
         .build();
+  }
+
+  private static String rowRouteOf(Object orchestrator) {
+    var type =
+        orchestrator instanceof io.mateu.core.infra.declarative.orchestrators.MultiView multiView
+            ? io.mateu.core.infra.reflection.ClassLoaders.forName(multiView.serverSideTypeName())
+            : orchestrator.getClass();
+    var rowRoute =
+        io.mateu.core.infra.reflection.MetaAnnotations.find(
+            type, io.mateu.uidl.annotations.RowRoute.class);
+    return rowRoute == null || rowRoute.value().isBlank() ? null : rowRoute.value();
   }
 }

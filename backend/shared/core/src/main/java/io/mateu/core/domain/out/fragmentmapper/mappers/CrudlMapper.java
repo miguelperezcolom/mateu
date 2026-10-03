@@ -14,6 +14,31 @@ import java.util.List;
 
 public class CrudlMapper {
 
+  /**
+   * The names of the path parameters of the request route's chain — the parameters every level of a
+   * record master (customers/:customerId/orders) reads off the URL. A listing filter with one of
+   * these names is fixed by where the listing is mounted, not chosen by the user.
+   */
+  static java.util.Set<String> routeScope(HttpRequest httpRequest) {
+    if (httpRequest == null || httpRequest.runActionRq() == null) {
+      return java.util.Set.of();
+    }
+    var cached = httpRequest.getAttribute("_routeScope");
+    if (cached instanceof java.util.Set<?> set) {
+      @SuppressWarnings("unchecked")
+      var names = (java.util.Set<String>) set;
+      return names;
+    }
+    var names = new java.util.LinkedHashSet<String>();
+    io.mateu.core.application.runaction.RouteChains.chainOf(httpRequest.runActionRq().route())
+        .forEach(link -> names.addAll(link.pathParams().keySet()));
+    names.addAll(
+        io.mateu.core.domain.out.componentmapper.EmbeddedOrchestratorFieldBuilder.scopeOf(
+            httpRequest));
+    httpRequest.setAttribute("_routeScope", names);
+    return names;
+  }
+
   public static ComponentDto mapCrudlToDto(
       Listing crudl,
       ComponentTreeSupplier componentSupplier,
@@ -28,7 +53,9 @@ public class CrudlMapper {
                 crudl.listingType() != null
                     ? CrudlTypeDto.valueOf(crudl.listingType().name())
                     : CrudlTypeDto.table)
-            .title(crudl.title())
+            .title(
+                io.mateu.core.application.runaction.RouteChains.dedupeTitle(
+                    crudl.title(), httpRequest))
             .subtitle(crudl.subtitle())
             .searchable(crudl.searchable())
             .toolbar(crudl.toolbar().stream().map(FormMapper::mapToButtonDto).toList())
@@ -86,6 +113,11 @@ public class CrudlMapper {
                                     .remoteCoordinates(
                                         FieldMapper.mapRemoteCoordinates(
                                             filter.remoteCoordinates()))
+                                    // a filter the ROUTE fixes (the record master's :id, read
+                                    // off the path) is the listing's scope, not a condition the
+                                    // user set: renderers show it as a fixed chip and never
+                                    // write it into the query string
+                                    .readOnly(routeScope(httpRequest).contains(filter.id()))
                                     .build())
                         .toList()
                     : List.of())

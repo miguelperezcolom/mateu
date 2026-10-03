@@ -60,6 +60,16 @@ public @interface App {
   String askIcon() default "";
 
   /**
+   * The app's brand accent — a CSS colour, e.g. {@code "#D2232A"}. It is NOT the theme's primary
+   * colour: primary means "you can click this", the accent only says whose app this is. The Vaadin
+   * shell uses it in exactly two places: a 3px line under the menu band, and the console name in
+   * that band (light theme only — in dark it stays body text, where a brand red loses contrast).
+   * Blank (the default): no accent, the header is unchanged. Exposed to the page as the {@code
+   * --mateu-accent} custom property, which an app's own CSS can also set.
+   */
+  String accentColor() default "";
+
+  /**
    * Extra capability tokens this app REQUIRES from whatever renderer/shell hosts it, on top of the
    * ones derived automatically from the app's metadata. A host embedding the app checks it provides
    * all of them and reports what is missing instead of rendering a broken screen — compatibility by
@@ -67,4 +77,12 @@ public @interface App {
    * custom renderer understands) for anything the automatic derivation cannot see.
    */
   String[] requires() default {};
+
+  /**
+   * The way back up from this app (decision D3): {@link BackLink#BREADCRUMBS} (the default) keeps
+   * the automatic trail; {@link BackLink#PARENT} draws a single "← Parent" link — labelled with the
+   * title of the nearest route above this one ({@code /customers} for a record master at {@code
+   * /customers/7}) — and drops the trail on the pages inside it.
+   */
+  BackLink backLink() default BackLink.BREADCRUMBS;
 }
