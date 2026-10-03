@@ -58,7 +58,8 @@ public class PageListingBuilder {
     var builder =
         Listing.builder()
             .searchable(isSearchable(instance))
-            .rowsSelectionEnabled(isRowSelectionEnabled(instance))
+            .rowsSelectionEnabled(
+                isRowSelectionEnabled(instance) || isMultiValuedSelector(instance, httpRequest))
             .groupBy(
                 io.mateu.core.infra.declarative.orchestrators.crud.ListingSummarySpec.of(
                         getRowClass(instance))
@@ -90,6 +91,15 @@ public class PageListingBuilder {
     }
 
     getToolbarButtons(instance).forEach(builder::toolbarItem);
+    if (isMultiValuedSelector(instance, httpRequest)) {
+      // the selector of a multi-valued @Searchable field: checkboxes + «Add selected»
+      builder.toolbarItem(
+          Button.builder()
+              .label("Add selected")
+              .actionId("action-on-row-" + SearchableSelection.ADD_SELECTED_ACTION)
+              .buttonStyle(io.mateu.uidl.data.ButtonStyle.primary)
+              .build());
+    }
 
     return List.of(builder.build());
   }
@@ -212,6 +222,14 @@ public class PageListingBuilder {
       style += MetaAnnotations.find(instance.getClass(), Style.class).value();
     }
     return style;
+  }
+
+  /**
+   * A {@link Selector} opened by a multi-valued {@code @Searchable} field (List, Set or array of
+   * ids): its rows can be checked and added at once (see {@code CodeSearchFieldActionRunner}).
+   */
+  static boolean isMultiValuedSelector(Object instance, HttpRequest httpRequest) {
+    return instance instanceof Selector<?> && SearchableSelection.isMulti(httpRequest);
   }
 
   private static boolean isRowSelectionEnabled(Object instance) {

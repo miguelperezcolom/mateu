@@ -95,7 +95,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     for (const f of collectFields(tree)) {
       if (!f.dataType || metadata[f.fieldId]) continue // duplicados = referencias de FormRow
       // una LISTA (grid de formulario) no es un campo de texto: la pinta el contenido como tabla
-      if (f.dataType === 'array' || (f.columns || []).length) continue
+      // (un @Searchable de varios ids sí es un campo: sus chips)
+      if ((f.dataType === 'array' && f.stereotype !== 'searchable') || (f.columns || []).length) continue
       metadata[f.fieldId] = {
         type: NUMERIC.indexOf(f.dataType) >= 0 ? 'number'
           : f.dataType === 'bool' || f.dataType === 'boolean' ? 'boolean' : 'string',
@@ -143,8 +144,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     for (const f of collectFields(tree)) {
       if (!f.dataType || seen[f.fieldId]) continue
       seen[f.fieldId] = true
-      if (f.dataType === 'array' || (f.columns || []).length) continue
-      const raw = s[f.fieldId]
+      if ((f.dataType === 'array' && f.stereotype !== 'searchable') || (f.columns || []).length) continue
+      // la vista de detalle de un @Searchable llega como `<campo>-label`: su texto viaja en data
+      const raw = s[f.fieldId] == null && f.stereotype === 'searchable' && data ? data[f.fieldId] : s[f.fieldId]
       // un lookup REMOTO es un desplegable también aquí: sus opciones las carga la chain
       // (bridge.loadLookups) al abrir la pantalla, como las del editor de fila
       const widget = fieldWidgetOf(f, data, { lookups: true, value: raw, textWhenEmpty: true })
@@ -714,6 +716,41 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     }
   }
 
+  /** Clave de una barra de pestañas del contenido: '' para la primera de primer nivel (la de
+   *  siempre, así una página con una sola barra no cambia); dentro de una pestaña, el id de esa
+   *  pestaña; las hermanas siguientes llevan '/tabs-N'. */
+  function tabStripKeyOf(scope, ordinal) {
+    return [scope || '', ordinal ? 'tabs-' + ordinal : ''].filter(Boolean).join('/')
+  }
+
+  /** Id de la pestaña i de una barra: 'tab-i' en la de primer nivel, '<clave>/tab-i' en el resto. */
+  function tabIdOf(stripKey, index) {
+    return (stripKey ? stripKey + '/' : '') + 'tab-' + index
+  }
+
+  /** La barra a la que pertenece una pestaña (inversa de tabIdOf). */
+  function tabStripOf(tabId) {
+    const s = String(tabId || '')
+    const cut = s.lastIndexOf('/')
+    return cut < 0 ? '' : s.slice(0, cut)
+  }
+
+  /** Anota la pestaña elegida en el mapa de activas (una por barra), sin tocar las demás barras. */
+  function withActiveTab(activeTabs, tabId) {
+    return { ...(activeTabs || {}), [tabStripOf(tabId)]: tabId }
+  }
+
+  /** Ids de las barras de pestañas (átomos isTabs) de unos bloques: las chains las refrescan. */
+  function tabBarIdsOf(blocks) {
+    const ids = []
+    const walk = (items) => (items || []).forEach((a) => {
+      if (a && a.isTabs && a.barId) ids.push(a.barId)
+      if (a && a.items) walk(a.items)
+    })
+    ;(blocks || []).forEach((b) => walk(b.items))
+    return ids
+  }
+
   /** Arquetipo ITEM OVERVIEW: panel de datos clave + tabs. */
   function itemOverviewOf(ctx) {
     const tabLayout = ctx && ctx.tree ? findByType(ctx.tree, 'TabLayout') : null
@@ -724,7 +761,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     // sin sus campos (no hay tarjeta clave que pintar) y las pestañas reducidas a sus rótulos
     // (de su contenido solo se sacan textos sueltos). Le pasaba al detalle de un proceso.
     if (!keyCard) return null
-    const tabs = findAllByType(ctx.tree, 'Tab').map((tab, i) => ({
+    // solo las pestañas de la barra EXTERIOR: las de una barra anidada son contenido de su
+    // pestaña (sus textos van en los de ella), no hermanas de la lista
+    const tabs = (tabLayout.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => ({
       id: 'itab-' + i,
       label: tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1),
       texts: collectTexts(tab),
@@ -1006,7 +1045,14 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
 
   function islandContentOf(ctx, opts = {}) {
     if (!ctx || !ctx.tree) return null
-    const activeTab = opts.activeTab || ''
+    // La pestaña activa es POR BARRA: un mapa {clave de barra: id de pestaña} (opts.activeTabs).
+    // opts.activeTab (un único id) sigue valiendo para la barra de primer nivel.
+    const activeTabs = { ...(opts.activeTab ? { '': opts.activeTab } : {}), ...(opts.activeTabs || {}) }
+    // Barras ANIDADAS (un TabLayout dentro de una pestaña): cada barra tiene su clave, derivada de
+    // la pestaña que la contiene (tabScope) y de su ordinal entre hermanas — ver tabStripKeyOf.
+    let tabScope = ''
+    const stripsPerScope = {}
+    let tabBars = 0
     const state = ctx.state || {}
     const interp = (t) => interpolate(t, state)
     const badgeOf = (b) => ({
@@ -1201,19 +1247,34 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         // de VB; así el vocabulario que ya existe pinta el contenido sin enterarse.
         const tabs = (node.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab')
         if (!tabs.length) return
-        const ids = tabs.map((tab, i) => 'tab-' + i)
-        const wanted = ids.indexOf(activeTab)
+        // cada barra con SU clave y SUS ids (la de primer nivel conserva 'tab-N'): con ids y
+        // pestaña activa compartidos, pulsar la pestaña 2 de una barra interior cambiaba también
+        // la exterior
+        const ordinal = stripsPerScope[tabScope] || 0
+        stripsPerScope[tabScope] = ordinal + 1
+        const stripKey = tabStripKeyOf(tabScope, ordinal)
+        const ids = tabs.map((tab, i) => tabIdOf(stripKey, i))
+        const wanted = ids.indexOf(activeTabs[stripKey] || '')
         const selected = wanted >= 0 ? wanted : tabs.findIndex((tab) => tab.metadata.active)
         const current = selected >= 0 ? selected : 0
         atom({
           isTabs: true,
+          // la primera barra conserva el id de siempre (las chains la refrescan por selector)
+          barId: tabBars++ ? 'mateuContentTabs-' + (tabBars - 1) : 'mateuContentTabs',
+          stripKey,
           selectedId: ids[current],
           tabs: tabs.map((tab, i) => ({
             id: ids[i],
             label: interp(tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1)),
           })),
         }, container)
-        for (const child of tabs[current].children || []) visit(child, container)
+        const outerScope = tabScope
+        tabScope = ids[current]
+        try {
+          for (const child of tabs[current].children || []) visit(child, container)
+        } finally {
+          tabScope = outerScope
+        }
         return
       }
       if (t === 'CustomField') {
@@ -2661,7 +2722,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
 
   let overlaySeq = 0
   /** Construye un contexto de overlay (drawer/dialog) a partir de un fragmento Add. */
-  function buildOverlay(fr) {
+  function buildOverlay(fr, opener) {
     const md = metaOf(fr)
     const id = 'overlay-' + ++overlaySeq
     // Un formulario EMBEBIDO (EmbeddedView: el «Cancel booking» de una reserva) llega como un
@@ -2682,6 +2743,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       width: md.width,
       size: md.size,
       dirty: false,
+      // quien lo abrió: a él van los value-changed/data-changed del overlay (applyOverlayEvent)
+      opener: opener || HOST_ID,
     }
   }
 
@@ -2752,7 +2815,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       }
 
       if (fr.action === 'Add') {
-        const ctx = buildOverlay(fr)
+        const ctx = buildOverlay(fr, opts.initiator)
         contexts[ctx.id] = ctx
         stack.push(ctx.id)
         continue
@@ -2813,6 +2876,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           break
         }
         case 'DispatchEvent':
+          // lo que un componente del overlay devuelve a quien lo abrió (el selector de un
+          // @Searchable: el valor elegido, su rótulo, y cerrarse)
+          if (applyOverlayEvent(contexts, stack, c.data)) break
           emit(c.data)
           break
         case 'MarkAsClean': {
@@ -3008,7 +3074,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    */
   function layoutFieldOf(md, state, data, columns = 1) {
     const fieldId = md.fieldId || md.id
-    if (!fieldId || (md.columns || []).length || md.propertyRow || !LAYOUT_TYPES[md.dataType]) return null
+    if (!fieldId || (md.columns || []).length || md.propertyRow
+      || !(LAYOUT_TYPES[md.dataType] || md.stereotype === 'searchable')) return null
     const s = state || {}
     const d = data || {}
     const raw = s[fieldId] != null ? s[fieldId] : d[fieldId]
@@ -3028,6 +3095,210 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     }
   }
 
+  // ── @Searchable: el selector en un diálogo ─────────────────────────────────────────────────
+  //
+  // Un @Searchable (un id, o una List/Set/array de ids) se pinta como chips — uno por id, con su
+  // rótulo de data `<campo>-labels` ({id → rótulo}; en uno simple, `<campo>-label`) — y un botón
+  // que abre su selector (`codesearch-<campo>`): un listado en un Dialog. Elegir una fila
+  // (`action-on-row-select`) o «Add selected» (`action-on-row-select-selected`, con las filas
+  // marcadas en crud_selected_items) contesta value-changed / data-changed / close-modal-requested,
+  // que aquí se aplican al contexto que abrió el diálogo. El servidor fusiona: un campo de varios
+  // valores AÑADE a los que tenía. Quitar un chip es sólo del cliente. Vaadin hace lo mismo
+  // (libs/mateu searchableMulti.ts).
+
+  /** ¿Es un @Searchable editable como tal? (la vista de detalle lo manda como `<campo>-label`:
+   *  su texto, que se pinta como cualquier valor de sólo lectura) */
+  function isSearchableField(f) {
+    return !!f && f.stereotype === 'searchable' && !/-label$/.test(String(f.fieldId || ''))
+  }
+
+  /** Los ids de un campo, lleguen como lleguen (lista, un id suelto, nada). */
+  function searchableIdsOf(value) {
+    if (value == null || value === '') return []
+    const list = Array.isArray(value) ? value : [value]
+    return list.filter((id) => id != null && id !== '')
+  }
+
+  /**
+   * Los chips de un @Searchable: uno por id, rotulado (o el propio id si no hay rótulo). Cada chip
+   * lleva lo que queda al quitarlo (`remaining`: en uno simple, null) — precomputado (CSP de VB).
+   */
+  function searchableChipsOf(fieldId, ids, labels, opts = {}) {
+    const map = labels && typeof labels === 'object' ? labels : {}
+    return ids.map((id) => {
+      const raw = opts.singleLabel != null && opts.singleLabel !== '' ? opts.singleLabel : map[String(id)]
+      const label = raw != null && raw !== '' ? String(raw) : String(id)
+      return {
+        fieldId,
+        id,
+        label,
+        removeLabel: 'Remove ' + label,
+        removable: !opts.readonly,
+        remaining: opts.multi ? ids.filter((other) => String(other) !== String(id)) : null,
+      }
+    })
+  }
+
+  /** El widget de un @Searchable: sus chips y el botón que abre el selector. */
+  function searchableWidgetOf(f, data, value) {
+    const fieldId = f.fieldId
+    const multi = f.dataType === 'array'
+    const ids = searchableIdsOf(plainValueOf(value))
+    const d = data || {}
+    const readonly = !!f.readOnly
+    const chips = searchableChipsOf(fieldId, multi ? ids : ids.slice(0, 1),
+      multi ? d[fieldId + '-labels'] : null,
+      { multi, readonly, singleLabel: multi ? null : d[fieldId + '-label'] })
+    return {
+      fieldId,
+      label: f.label || fieldId,
+      required: !!f.required,
+      readonly,
+      editable: !readonly,
+      isSearchable: true,
+      isSearchableMulti: multi,
+      chips,
+      hasChips: chips.length > 0,
+      // el botón despacha como cualquier bloque del host (hostBlockAction: actionId + parameters)
+      actionId: 'codesearch-' + fieldId,
+      parameters: {},
+      addLabel: multi ? 'Add' : 'Search',
+      isSelect: false,
+      isLookup: false,
+      lookupActionId: '',
+      options: [],
+      isBoolean: false,
+      isDate: false,
+      isDateTime: false,
+      isNumber: false,
+      isTextArea: false,
+      isText: false,
+    }
+  }
+
+  /** ¿Es el overlay el diálogo de un selector (un listado cuyo ServerSide atiende la elección)? */
+  function isPickerOverlay(ctx) {
+    const surface = ctx && ctx.surface
+    if (!surface || !findByType(surface, 'Crud')) return false
+    return ((surface.actions || []).some((a) => a && a.id === SEARCHABLE_PICK_ACTION))
+  }
+
+  const SEARCHABLE_PICK_ACTION = 'action-on-row-select'
+  const SEARCHABLE_ADD_ACTION = 'action-on-row-select-selected'
+
+  /**
+   * El SELECTOR de un @Searchable abierto (el overlay superior, si lo es), listo para el oj-dialog
+   * del selector: título, columnas (sin la columna-botón «Select»: elegir es pulsar la fila),
+   * filas, búsqueda, paginación y — en un campo de varios valores — la selección múltiple y el
+   * botón «Add selected». null si el overlay superior no es un selector.
+   */
+  function searchPickerOf(reg) {
+    const id = reg && reg.stack && reg.stack.length ? reg.stack[reg.stack.length - 1] : null
+    const ctx = id && reg.contexts ? reg.contexts[id] : null
+    if (!isPickerOverlay(ctx)) return null
+    const listing = listingOf({ tree: ctx.surface, data: ctx.data }) || {}
+    const state = ctx.state || {}
+    const multi = state._searchableMulti === true || state._searchableMulti === 'true'
+      || !!listing.rowsSelectionEnabled
+    const addButton = (listing.toolbar || []).find((b) => b.actionId === SEARCHABLE_ADD_ACTION)
+    // sin título propio, el del campo que lo abrió (su rótulo)
+    const opener = reg.contexts[ctx.opener || HOST_ID]
+    const field = opener && opener.tree && state._searchableField
+      ? collectFields(opener.tree).find((f) => f.fieldId === state._searchableField) : null
+    return {
+      id,
+      title: ctx.title || (field && field.label) || 'Search',
+      multi,
+      searchable: !!listing.searchable,
+      searchText: state.searchText || '',
+      columns: (listing.columns || []).filter((c) => c.id !== 'select'),
+      rows: listing.rows || [],
+      isEmpty: !!listing.isEmpty,
+      emptyText: listing.emptyStateMessage || 'No data.',
+      selectionMode: { row: multi ? 'multiple' : 'none' },
+      pageSize: listing.pageSize || 20,
+      paging: listing.paging,
+      pickActionId: SEARCHABLE_PICK_ACTION,
+      addActionId: SEARCHABLE_ADD_ACTION,
+      addLabel: (addButton && addButton.label) || 'Add selected',
+    }
+  }
+
+  /** El estado de la búsqueda del selector: lo que su `search` lleva en componentState. */
+  function pickerSearchStateOf(picker, opts = {}) {
+    const size = (picker && picker.pageSize) || 20
+    return {
+      searchText: opts.searchText != null ? opts.searchText : ((picker && picker.searchText) || ''),
+      page: opts.page != null ? opts.page : 0,
+      size,
+    }
+  }
+
+  /**
+   * Aplica al contexto que abrió el overlay superior los eventos con los que un componente del
+   * overlay le devuelve un valor — value-changed {fieldId, value}, data-changed {key, value} — y
+   * close-modal-requested (cierra el overlay). Es lo que en Vaadin hace el mateu-event-interceptor
+   * del diálogo al reenviarlos a su dueño. true si el evento se aplicó; sin overlay, false (el
+   * evento sigue al bus, como siempre).
+   */
+  function applyOverlayEvent(contexts, stack, data) {
+    const name = data && data.eventName
+    if (name !== 'value-changed' && name !== 'data-changed' && name !== 'close-modal-requested') return false
+    const topId = stack.length ? stack[stack.length - 1] : null
+    const top = topId ? contexts[topId] : null
+    if (!top) return false
+    if (name === 'close-modal-requested') {
+      delete contexts[topId]
+      stack.pop()
+      return true
+    }
+    const detail = data.detail || data.payload || {}
+    const openerId = top.opener && contexts[top.opener] ? top.opener : HOST_ID
+    const opener = contexts[openerId]
+    if (!opener) return false
+    if (name === 'value-changed' && detail.fieldId) {
+      contexts[openerId] = { ...opener, state: { ...(opener.state || {}), [detail.fieldId]: detail.value } }
+      return true
+    }
+    if (name === 'data-changed' && detail.key) {
+      contexts[openerId] = { ...opener, data: { ...(opener.data || {}), [detail.key]: detail.value } }
+      return true
+    }
+    return false
+  }
+
+  /** El registro con `values` fundidos en el estado del contexto `id` (p.ej. el borrador del
+   *  formulario al abrir un selector: lo escrito no se pierde cuando el diálogo se cierra). */
+  function withContextState(reg, id, values) {
+    const ctx = reg && reg.contexts && reg.contexts[id]
+    if (!ctx || !values || !Object.keys(values).length) return reg
+    return { ...reg, contexts: { ...reg.contexts, [id]: { ...ctx, state: { ...(ctx.state || {}), ...values } } } }
+  }
+
+  /**
+   * Una proyección (secciones del formulario, bloques del host…) con los chips del @Searchable
+   * `fieldId` rehechos para `ids` — al quitar un chip, sin volver al servidor. Los rótulos salen
+   * de los chips que ya había.
+   */
+  function withSearchableIds(projection, fieldId, ids) {
+    const visit = (node) => {
+      if (Array.isArray(node)) return node.map(visit)
+      if (!node || typeof node !== 'object') return node
+      if (node.isSearchable && node.fieldId === fieldId) {
+        const labels = {}
+        for (const chip of node.chips || []) labels[String(chip.id)] = chip.label
+        const list = searchableIdsOf(ids)
+        const chips = searchableChipsOf(fieldId, node.isSearchableMulti ? list : list.slice(0, 1), labels,
+          { multi: node.isSearchableMulti, readonly: node.readonly })
+        return { ...node, chips, hasChips: chips.length > 0 }
+      }
+      const out = {}
+      for (const key of Object.keys(node)) out[key] = visit(node[key])
+      return out
+    }
+    return visit(projection)
+  }
+
   /**
    * El WIDGET que le toca a un FormField (flags PRECOMPUTADOS: el CSP de VB no evalúa
    * expresiones), compartido por el editor de fila y los formularios de página/drawer/isla:
@@ -3035,6 +3306,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    * lookup remoto —, fecha, fecha-hora, número, booleano, área de texto o texto.
    */
   function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
+    if (isSearchableField(f)) return searchableWidgetOf(f, data, value)
     const lookupActionId = (f.remoteCoordinates && f.remoteCoordinates.action) || ''
     let options = optionsOf(f, data)
     // Un lookup con valor que aún no está entre sus opciones (no han llegado, o sólo llegó la
@@ -4165,9 +4437,16 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           try { invalid = (await el.validate()) === 'invalid' } catch (ignored) { invalid = false }
         }
         if (!invalid) {
-          try {
-            el.messagesCustom = [{ severity: 'error', summary: fallbackMessage || 'Enter a value.', detail: '' }]
-          } catch (ignored) { /* no es un componente JET */ }
+          if ('messagesCustom' in el || typeof el.validate === 'function') {
+            try {
+              el.messagesCustom = [{ severity: 'error', summary: fallbackMessage || 'Enter a value.', detail: '' }]
+            } catch (ignored) { /* no es un componente JET */ }
+          } else {
+            // un campo que no es un componente JET (los chips de un @Searchable): el mensaje lo
+            // pinta su CSS (.mateu-field-error + data-error) hasta que se vuelva a tocar
+            el.setAttribute('data-error', fallbackMessage || 'Enter a value.')
+            el.classList.add('mateu-field-error')
+          }
         }
         marked++
         if (!first) first = el
@@ -4179,6 +4458,17 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       try { (input || first).focus() } catch (ignored) { /* sin caja */ }
     }
     return marked
+  }
+
+  /** Quita las marcas de error de los campos que no son componentes JET (ver showFieldErrors). */
+  function clearFieldErrorMarks(fieldId) {
+    if (typeof document === 'undefined') return
+    for (const el of document.querySelectorAll('.mateu-field-error')) {
+      if (fieldId == null || el.getAttribute('data-field-id') === String(fieldId)) {
+        el.classList.remove('mateu-field-error')
+        el.removeAttribute('data-error')
+      }
+    }
   }
 
   /** Al editar un campo marcado, su mensaje propio se va (el del validador lo gestiona JET). */
@@ -5508,11 +5798,147 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return ((result && result.files) || []).filter((f) => f && f.path)
   }
 
+  // ── El stream SSE, leído como SSE ──────────────────────────────────────────────────────────────
+  // Por EVENTO, no por línea: las líneas `data:` de un evento se unen con '\n' y una línea en blanco lo
+  // cierra; de `data:` sólo se quita el espacio opcional (la sangría del markdown sobrevive); los
+  // comentarios (`:keep-alive`) y los demás campos se ignoran. Misma lógica que el chat compartido
+  // (libs/mateu/.../chatStream.ts) — mantener las dos a la par.
+
+  /** Un lector SSE incremental: `push(texto)` devuelve los `data` de los eventos que se han cerrado;
+   *  `end()` el que el stream dejó sin línea en blanco detrás. */
+  function createSseParser() {
+    let buffer = ''
+    let data = []
+    let hasData = false
+    const dispatch = (out) => {
+      if (hasData) out.push(data.join('\n'))
+      data = []
+      hasData = false
+    }
+    const line = (l, out) => {
+      if (l === '') { dispatch(out); return }
+      if (l.startsWith(':')) return
+      const colon = l.indexOf(':')
+      const field = colon < 0 ? l : l.slice(0, colon)
+      if (field !== 'data') return
+      let value = colon < 0 ? '' : l.slice(colon + 1)
+      if (value.startsWith(' ')) value = value.slice(1)
+      data.push(value)
+      hasData = true
+    }
+    return {
+      push(text) {
+        buffer += text
+        const out = []
+        for (;;) {
+          const m = /\r\n|\r|\n/.exec(buffer)
+          if (!m) break
+          // un '\r' al final puede ser la primera mitad de un '\r\n' partido entre trozos
+          if (m[0] === '\r' && m.index === buffer.length - 1) break
+          const l = buffer.slice(0, m.index)
+          buffer = buffer.slice(m.index + m[0].length)
+          line(l, out)
+        }
+        return out
+      },
+      end() {
+        const out = []
+        if (buffer) { line(buffer.replace(/\r$/, ''), out); buffer = '' }
+        dispatch(out)
+        return out
+      },
+    }
+  }
+
   /**
-   * Postea un mensaje al stream del chat y consume la respuesta SSE. Idéntico al bucle del chat
-   * compartido: parte por líneas, cada `data:` es uso de tokens, un evento personalizado, o texto que
-   * se ACUMULA en el mensaje del asistente. `agent-error` se muestra como el texto del asistente.
-   * Devuelve el texto acumulado. `fetchImpl` es inyectable para tests.
+   * Qué es el `data` de un evento: uso de tokens, un trozo de la respuesta (agent-delta), una fase
+   * (agent-status), una herramienta (agent-tool), un error (agent-error), otro evento de UI, o texto.
+   */
+  function classifyChatPayload(payload) {
+    const usage = tryParseTokenUsage(payload)
+    if (usage) return { kind: 'usage', usage }
+    const ev = tryParseCustomEvent(payload)
+    if (ev) {
+      const detail = ev.detail || {}
+      if (ev.event === 'agent-delta') return { kind: 'delta', text: typeof detail.text === 'string' ? detail.text : '' }
+      if (ev.event === 'agent-status') return { kind: 'status', detail }
+      if (ev.event === 'agent-tool') return { kind: 'tool', detail }
+      if (ev.event === 'agent-error') return { kind: 'error', message: String(detail.message || 'Error desconocido del agente') }
+      return { kind: 'event', event: ev.event, detail: ev.detail }
+    }
+    return { kind: 'text', text: payload ?? '' }
+  }
+
+  /** Un uso que no dice nada: todos sus contadores a cero (los marcadores de agentes anteriores). */
+  function isEmptyUsage(usage) {
+    if (!usage) return true
+    const values = ['inputTokens', 'outputTokens', 'totalTokens'].map((k) => usage[k]).filter((v) => typeof v === 'number' && Number.isFinite(v))
+    return values.length === 0 || values.every((v) => v === 0)
+  }
+
+  /**
+   * Lo que el agente dice que está haciendo en esta respuesta: la fase, las herramientas (la que corre
+   * y las ya hechas, con su duración o su error) y si ya está escribiendo. `line(now)` es la fila de
+   * estado: «Llamando a booking_findBookings… 3 s», «Respondiendo…», «Conectando con 2 servidores MCP…»;
+   * null si el agente no ha informado de nada (agentes anteriores: el panel sigue con «Pensando… N s»).
+   */
+  function createChatProgress(now = Date.now()) {
+    const p = {
+      phase: undefined, statusText: undefined, since: now, steps: [], answering: false, reported: false,
+      status(detail, at) {
+        p.reported = true
+        const text = typeof (detail && detail.text) === 'string' ? detail.text : undefined
+        if ((detail && detail.phase) !== p.phase || text !== p.statusText || p.answering) p.since = at
+        p.phase = detail && detail.phase
+        p.statusText = text
+        p.answering = false
+      },
+      tool(detail, at) {
+        p.reported = true
+        const d = detail || {}
+        const name = d.name || 'herramienta'
+        if (d.phase === 'start') {
+          p.steps = [...p.steps, { name, server: d.server, kind: d.kind, running: true }]
+          p.since = at
+          p.answering = false
+          return
+        }
+        const steps = p.steps.slice()
+        let i = steps.length - 1
+        while (i >= 0 && !(steps[i].running && steps[i].name === name)) i--
+        const done = { name, server: d.server, kind: d.kind, ms: d.ms, error: d.error, running: false }
+        if (i >= 0) steps[i] = done; else steps.push(done)
+        p.steps = steps
+        p.since = at
+      },
+      text(at) {
+        if (!p.answering) p.since = at
+        p.answering = true
+      },
+      runningTool() {
+        for (let i = p.steps.length - 1; i >= 0; i--) if (p.steps[i].running) return p.steps[i]
+        return undefined
+      },
+      line(at) {
+        const secs = Math.max(0, Math.floor((at - p.since) / 1000))
+        const withSecs = (s) => (secs > 0 ? `${s} ${secs} s` : s)
+        const running = p.runningTool()
+        if (running) return withSecs(`Llamando a ${running.name}…`)
+        if (p.answering) return 'Respondiendo…'
+        if (!p.reported) return null
+        return withSecs(p.statusText || 'Pensando…')
+      },
+    }
+    return p
+  }
+
+  /**
+   * Postea un mensaje al stream del chat y consume la respuesta SSE, por eventos (ver
+   * createSseParser). Cada `data` es uso de tokens, un evento personalizado, progreso del agente, un
+   * trozo de la respuesta (agent-delta: se AÑADE), o texto: tras trozos, el primero es la respuesta
+   * entera y LOS SUSTITUYE (el agente la manda limpia al final); sin trozos, cada texto es una línea
+   * — el contrato de siempre de los agentes que mandan la respuesta línea a línea. `agent-error` se
+   * muestra como el texto del asistente. Devuelve el texto final. `fetchImpl` es inyectable para tests.
    *
    * Un 401 se recupera como en el resto del tráfico (fetchWithPolicy): `reauthenticate` pide a la
    * página que reautentique y, si lo hace, el mensaje se reenvía UNA vez. Por eso `headers` puede ser
@@ -5525,11 +5951,13 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    * @param headers         objeto de cabeceras, o () => objeto (leído en cada envío)
    * @param reauthenticate  async () => boolean — true si hay que reenviar (askForReauthentication)
    *
-   * @param onText   (accumulatedText) => void   — en cada trozo de texto (para repintar el mensaje)
-   * @param onEvent  ({event, detail}) => void   — evento personalizado del agente (≠ agent-error)
-   * @param onUsage  (usage) => void             — objeto de uso de tokens
+   * @param onText     (accumulatedText) => void   — en cada cambio del texto (para repintar el mensaje)
+   * @param onDelta    (piece, accumulatedText) => void — en cada trozo que llega en streaming
+   * @param onProgress (progress) => void          — en cada fase/herramienta (createChatProgress)
+   * @param onEvent    ({event, detail}) => void   — evento personalizado del agente (≠ agent-*)
+   * @param onUsage    (usage) => void             — objeto de uso de tokens (los todo-cero no llegan)
    */
-  async function streamChat({ url, body, headers = {}, reauthenticate, fetchImpl = globalThis.fetch, onText, onEvent, onUsage }) {
+  async function streamChat({ url, body, headers = {}, reauthenticate, fetchImpl = globalThis.fetch, onText, onDelta, onProgress, onEvent, onUsage, now = () => Date.now() }) {
     const payload = typeof body === 'string' ? body : JSON.stringify(body)
     const send = () => fetchImpl(url, {
       method: 'POST',
@@ -5551,42 +5979,58 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     if (!reader) throw new Error('No se pudo obtener el reader del stream.')
 
     const decoder = new TextDecoder()
-    let buffer = ''
+    const parser = createSseParser()
+    const progress = createChatProgress(now())
     let accumulated = ''
+    // hubo trozos desde el último texto entero: el siguiente texto los sustituye
+    let streamed = false
 
-    // `line`: el payload venía en una línea terminada (lo normal), y lleva su salto — el agente manda
-    // cada línea de la respuesta en su propio `data:`, así que sin él el markdown llega de una pieza
-    // («…plataforma:### Lista…»). Mismo criterio que el chat compartido (mateu-chat.ts): + '\n'.
-    const handlePayload = (payload, line = false) => {
-      const usage = tryParseTokenUsage(payload)
-      const customEvent = !usage && tryParseCustomEvent(payload)
-      if (usage) {
-        if (onUsage) onUsage(usage)
-      } else if (customEvent) {
-        if (customEvent.event === 'agent-error') {
-          accumulated = '⚠️ ' + ((customEvent.detail && customEvent.detail.message) || 'Error desconocido del agente')
+    const handlePayload = (data) => {
+      const msg = classifyChatPayload(data)
+      switch (msg.kind) {
+        case 'usage':
+          if (!isEmptyUsage(msg.usage) && onUsage) onUsage(msg.usage)
+          return
+        case 'delta':
+          accumulated += msg.text
+          streamed = true
+          progress.text(now())
+          if (onDelta) onDelta(msg.text, accumulated)
           if (onText) onText(accumulated)
-        } else if (onEvent) {
-          onEvent(customEvent)
-        }
-      } else {
-        accumulated += line ? payload + '\n' : payload
-        if (onText) onText(accumulated)
+          if (onProgress) onProgress(progress)
+          return
+        case 'text':
+          if (streamed) { accumulated = msg.text; streamed = false } else accumulated = accumulated ? accumulated + '\n' + msg.text : msg.text
+          progress.text(now())
+          if (onText) onText(accumulated)
+          if (onProgress) onProgress(progress)
+          return
+        case 'error':
+          accumulated = '⚠️ ' + msg.message
+          streamed = false
+          if (onText) onText(accumulated)
+          return
+        case 'status':
+          progress.status(msg.detail, now())
+          if (onProgress) onProgress(progress)
+          return
+        case 'tool':
+          progress.tool(msg.detail, now())
+          if (onProgress) onProgress(progress)
+          return
+        default:
+          if (onEvent) onEvent({ event: msg.event, detail: msg.detail })
       }
     }
 
     while (true) {
       const { done, value } = await reader.read()
       if (done) {
-        if (buffer.trim().startsWith('data:')) handlePayload(buffer.trim().slice(5).trim())
+        parser.push(decoder.decode())
+        parser.end().forEach(handlePayload)
         break
       }
-      buffer += decoder.decode(value, { stream: true })
-      const lines = buffer.split('\n')
-      buffer = lines.pop() || ''
-      for (const line of lines) {
-        if (line.trim().startsWith('data:')) handlePayload(line.trim().slice(5).trim(), true)
-      }
+      parser.push(decoder.decode(value, { stream: true })).forEach(handlePayload)
     }
     return accumulated
   }
@@ -5602,7 +6046,23 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   }
 
   /**
-   * Los totales de la conversación: se suma el uso de cada respuesta ya terminada. Solo los
+   * El uso que enseña el panel tras una respuesta: el de ESA respuesta, que es lo que el agente manda
+   * como total de la conversación (el ia-agent de ec-demo1 manda el acumulado de la sesión; sumarlo
+   * contaba cada respuesta otra vez en cada respuesta siguiente). Una respuesta sin uso deja el que
+   * había. Mismo criterio que el chat compartido: se sustituye, no se suma.
+   */
+  function latestUsage(previous, turn) {
+    const keys = ['inputTokens', 'outputTokens', 'totalTokens']
+    const has = turn && keys.some((k) => typeof turn[k] === 'number' && Number.isFinite(turn[k]))
+    if (!has) return previous || null
+    const out = {}
+    for (const k of keys) if (typeof turn[k] === 'number' && Number.isFinite(turn[k])) out[k] = turn[k]
+    return out
+  }
+
+  /**
+   * Los totales de la conversación: se suma el uso de cada respuesta ya terminada — para un agente que
+   * manda el uso de cada respuesta suelta. El panel ya no la usa (ver latestUsage). Solo los
    * contadores numéricos; null si todavía no hay ninguno (el panel no enseña una fila vacía).
    */
   function addUsage(total, turn) {
@@ -5620,12 +6080,16 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   }
 
   /**
-   * Qué dice la fila de estado bajo la conversación: nada si el asistente no trabaja; «Pensando…»
-   * con los segundos mientras no ha llegado nada (la espera larga es la que inquieta); «Respondiendo…»
-   * en cuanto llega el primer texto.
+   * Qué dice la fila de estado bajo la conversación: nada si el asistente no trabaja; lo que el agente
+   * dice que hace, si lo dice (`progress`, de createChatProgress: la herramienta que llama con sus
+   * segundos, la fase, «Respondiendo…»); si no — agentes que no informan —, «Pensando…» con los
+   * segundos mientras no ha llegado nada (la espera larga es la que inquieta) y «Respondiendo…» en
+   * cuanto llega el primer texto.
    */
-  function chatStatusText({ busy, hasText, elapsedSeconds }) {
+  function chatStatusText({ busy, hasText, elapsedSeconds, progress, now }) {
     if (!busy) return ''
+    const line = progress && progress.line ? progress.line(typeof now === 'number' ? now : Date.now()) : null
+    if (line) return line
     if (hasText) return 'Respondiendo…'
     const s = Math.max(0, Math.floor(elapsedSeconds || 0))
     return s > 0 ? `Pensando… ${s} s` : 'Pensando…'
@@ -5793,6 +6257,10 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     actionsOf,
     summarizeHost,
     findByType,
+    // pestañas del contenido: activa POR BARRA (barras anidadas) y refresco de cada oj-tab-bar
+    tabStripOf,
+    withActiveTab,
+    tabBarIdsOf,
     listingOf,
     // paginación y orden del listing (pie de la tabla, cabecera → server)
     listingPagingOf,
@@ -5844,6 +6312,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     overlayOf,
     eventTriggersOf,
     dismissOverlay,
+    // @Searchable: el selector en su diálogo, y los chips del campo
+    searchPickerOf,
+    pickerSearchStateOf,
+    withContextState,
+    withSearchableIds,
     shellNavOf,
     ojIconOf,
     ojIconOrGenericOf,
@@ -5934,6 +6407,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     // obligatorios marcados como un formulario Redwood + el guided process que manda el servidor
     showFieldErrors,
     clearFieldError,
+    clearFieldErrorMarks,
     guardGuidedProcess,
     // chat de IA: el panel de conversación (sseUrl) usa estas para POSTear y consumir el stream
     effectiveChatUrl,
@@ -5944,7 +6418,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     // el panel mientras el asistente trabaja, los contadores de tokens y el dictado
     mergeTurnUsage,
     addUsage,
+    latestUsage,
     chatStatusText,
+    createChatProgress,
     speechRecognitionCtor,
     chatMarkdownToHtml,
     transcriptOf,
