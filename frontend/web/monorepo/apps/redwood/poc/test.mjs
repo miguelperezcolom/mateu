@@ -3740,6 +3740,17 @@ atest('P1: loadRouteInto sigue la cadena maestro → pestaña → mediador y no 
   } finally { globalThis.fetch = original }
 })
 
+test('P1: en modo path el historial es solo de Mateu — la shell le quita a VB su onpopstate', () => {
+  // VB toma la ruta de arranque por «application URL» (/customers → /customers/) y lee lo que
+  // cuelga de ella como una página suya: tras entrar al maestro desde una fila (/customers/5), un
+  // atrás le hacía salir de la shell y dejaba «disposed» el contexto de las chains (no repintaba).
+  // Guardia de regresión sobre la chain (en Node no hay VB que arrancar): ver e2e/master-tabs-check.mjs
+  const chain = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'pages', 'shell-page-chains', 'loadMateuShell.js'), 'utf8')
+  assert.match(chain, /if \(pathMode\) \{\s*window\.onpopstate = null;\s*\}/)
+  // y antes de cablear el listener propio del popstate
+  assert.ok(chain.indexOf('window.onpopstate = null') < chain.indexOf("addEventListener(pathMode ? 'popstate'"))
+})
+
 await queue
 console.log(`\n${pass} tests OK (contrato de wire real)`)
 
