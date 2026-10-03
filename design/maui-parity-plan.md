@@ -36,19 +36,19 @@
 
 ## P0 · Terminar lo abierto → release 3.0-alpha.385
 
-- [ ] #663 tabs anidados (ids por tira, pestaña activa por tira en Redwood)
-- [ ] #664 chat en streaming con progreso del agente (va con ec-demo1#198 en `ia-agent`)
-- [ ] #665 `@Searchable` para campos de varios valores (y `@Searchable` en Redwood)
-- [ ] #666 parámetros de ruta de `routes.yaml` leídos del segmento correcto
-- [ ] Auditoría de Vaadin, prioridades 1, 2, 3 y 10:
+- [x] #663 tabs anidados (ids por tira, pestaña activa por tira en Redwood) — fusionado (f63026f5d).
+- [x] #664 chat en streaming con progreso del agente (va con ec-demo1#198 en `ia-agent`) — fusionado (cde124c69).
+- [x] #665 `@Searchable` para campos de varios valores (y `@Searchable` en Redwood) — fusionado (59cad106f).
+- [x] #666 parámetros de ruta de `routes.yaml` leídos del segmento correcto — fusionado (6b971ac92).
+- [x] Auditoría de Vaadin, prioridades 1, 2, 3 y 10 (#669, f3c6c3725; #673, aebb0c6cb):
   - widget de la bandeja (lo que toca a Mateu: la regla de color de enlaces de la cabecera);
   - botones del chat y del tema como `vaadin-button`;
   - barra de menú en `tertiary contrast` con la sección activa marcada;
   - badges en píldora, cabecera y textos del chat.
-- [ ] **Acento configurable** (aprobado por el usuario, 2026-10-03): un token `--mateu-accent`, separado del primario de Lumo, configurado por app. Solo en dos sitios: una línea de 3 px bajo la franja 2 de la cabecera y el nombre de la consola en color de acento, solo en modo claro. No lleva barra junto al título ni fondo teñido: se probaron y se descartaron. Hay maquetas en `~/IdeaProjects/ec-demo1-ux/accent/`. En ec-demo1 es el rojo de RIU, `#D2232A`.
-- [ ] **Chat más ancho** (C1): 440–480 px por defecto, redimensionable entre 320 y 720 px recordando el ancho de cada usuario, ⤢ a modo ancho (≈60 %) y pantalla completa en el móvil.
-- [ ] Documentación: quitar `@Route(parentRoute)`, que ya no existe (`annotations/route.md`, `concepts/ui-vs-route.md` y el comentario de `RouteEntry.java:43-44`).
-- [ ] Fusionar de uno en uno y regenerar los bundles al final. Release 385, subir ec-demo1 y redesplegar.
+- [x] **Acento configurable** (aprobado por el usuario, 2026-10-03): un token `--mateu-accent`, separado del primario de Lumo, configurado por app. Solo en dos sitios: una línea de 3 px bajo la franja 2 de la cabecera y el nombre de la consola en color de acento, solo en modo claro. No lleva barra junto al título ni fondo teñido: se probaron y se descartaron. Hay maquetas en `~/IdeaProjects/ec-demo1-ux/accent/`. En ec-demo1 es el rojo de RIU, `#D2232A`. Hecho en #669: `@App(accentColor)` → `--mateu-accent`.
+- [x] **Chat más ancho** (C1): 440–480 px por defecto, redimensionable entre 320 y 720 px recordando el ancho de cada usuario, ⤢ a modo ancho (≈60 %) y pantalla completa en el móvil. Hecho en #673; el ancho se recuerda por navegador (`localStorage`), no por usuario en el servidor.
+- [x] Documentación: quitar `@Route(parentRoute)`, que ya no existe (`annotations/route.md`, `concepts/ui-vs-route.md` y el comentario de `RouteEntry.java:43-44`). — #668 (7e9b9d4d0). Quedan unas 25 páginas con ejemplos de `@Route(...)` / `@HomeRoute`, que tampoco existen.
+- [ ] Fusionar de uno en uno y regenerar los bundles al final. Release 385, subir ec-demo1 y redesplegar. Fusionado y bundles regenerados (último: #670); falta la release 385 y el redespliegue de ec-demo1.
 
 ## P1 · Maestro con pestañas que son páginas (L)
 
@@ -229,8 +229,9 @@ los casos de conformidad y las demos. Pero no sabemos cuánto ayudan ni si está
 
 | Fecha | Qué |
 |---|---|
-| 2026-10-03 | Acento configurable y chat más ancho, aprobados (P0); inventario del RDS Toolkit hecho (P7); el tema configurable se adelanta (P8). |
 | 2026-10-03 | Plan escrito; después se añaden P9 (navegación de dos niveles y montajes remotos) y P10 (Mateu entendible por un modelo que no lo conoce). Mateu 384 publicado y desplegado en ec1 (paginado de Vaadin). PRs abiertos: #663, #664, #665 y #666. |
+| 2026-10-03 | Acento configurable y chat más ancho, aprobados (P0); inventario del RDS Toolkit hecho (P7); el tema configurable se adelanta (P8). |
 | 2026-10-03 | P9, entrega 1 (PR #671): un remoto caído deja solo su sección no disponible, manda la etiqueta de la shell, la sección y la primera miga se conocen en frío (también en las ocultas), los enlaces directos se resuelven por el prefijo más largo y ya no se fuerza `MENU_ON_TOP`. Verificado en Vaadin (SUT de federación y consola de datos de ec1, de solo lectura) y en Redwood (tests de node). |
 | 2026-10-03 | P5 · S0 hecho (rama `feat/static-vcn-slice`): `demo/demo-static-vcn` desde Java y desde YAML, sin backend, 12/12 e2e; arreglado el enlace directo en modo bundle (#557: faltaba la carga de contenido); `staticOnly` con informe de seguridad estática y `specsOnly`; guía «100 % static UI». Lo que falta para S1–S4, en la sección P5. |
 | 2026-10-03 | P1 en `feat/routed-master-tabs`: cadena de rutas, pestaña por defecto, parámetros en cada petición, ámbito fijo, CRUD dentro de una pestaña, `@Tab(key)`, `@Subresource`, `backLink = PARENT`, `@RowRoute`, flags de pestaña, Redwood con niveles de app, trampas de `@Inline`. Quedan tres huecos de Redwood (ver P1). |
+| 2026-10-03 | P0 fusionado en master, de uno en uno y con los bundles regenerados en cada PR: #667, #666, #663, #664, #665, #669, #673, #671, #672, #674, #676 (alertas CodeQL 1208/1209 cerradas), #668 y #670. #672 necesitó un arreglo de CI: los proyectos `static-vcn-*` solo se listan con `STATIC_VCN` bajo CI. Pendiente: release 3.0-alpha.385 y redesplegar ec-demo1. |
