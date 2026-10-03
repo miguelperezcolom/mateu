@@ -45,6 +45,8 @@
   - botones del chat y del tema como `vaadin-button`;
   - barra de menú en `tertiary contrast` con la sección activa marcada;
   - badges en píldora, cabecera y textos del chat.
+- [ ] **Acento configurable** (aprobado por el usuario, 2026-10-03): un token `--mateu-accent`, separado del primario de Lumo, configurado por app. Solo en dos sitios: una línea de 3 px bajo la franja 2 de la cabecera y el nombre de la consola en color de acento, solo en modo claro. No lleva barra junto al título ni fondo teñido: se probaron y se descartaron. Hay maquetas en `~/IdeaProjects/ec-demo1-ux/accent/`. En ec-demo1 es el rojo de RIU, `#D2232A`.
+- [ ] **Chat más ancho** (C1): 440–480 px por defecto, redimensionable entre 320 y 720 px recordando el ancho de cada usuario, ⤢ a modo ancho (≈60 %) y pantalla completa en el móvil.
 - [ ] Documentación: quitar `@Route(parentRoute)`, que ya no existe (`annotations/route.md`, `concepts/ui-vs-route.md` y el comentario de `RouteEntry.java:43-44`).
 - [ ] Fusionar de uno en uno y regenerar los bundles al final. Release 385, subir ec-demo1 y redesplegar.
 
@@ -123,6 +125,7 @@ rama `probe/master-detail-tabs`.
 
 - [ ] Tipos de campo, reglas, validaciones, barra de filtros, selector de columnas, fuentes REST, definiciones y `restAction` en el bridge. Modo oscuro.
 - [ ] **Inventario del RDS Toolkit de Figma**, el sistema de diseño Redwood oficial de Oracle en la Figma Community: [RDS Toolkit – 24C](https://www.figma.com/community/file/1425260295705487251/rds-toolkit-24c) y [RDS – Icon Library](https://www.figma.com/community/file/1425259404348358543/rds-icon-library). Se trata de listar las plantillas de página, los componentes y sus variantes, y los tokens, y mapear cada uno a su equivalente en Mateu (existe, parcial o falta). Ese mapa es la lista de paridad del renderer Redwood. Antes de usar cualquier recurso hay que revisar la licencia del fichero; por defecto se toma solo como referencia de diseño.
+  - Hecho el inventario del RDS Toolkit – 24C: `~/IdeaProjects/ec-demo1-ux/redwood-rds-figma-inventory.md`, con los datos en `rds/raw/`. Licencia: «Oracle Free Use Terms»; sirve como referencia de diseño y para importar por nombre, pero no se empaquetan texturas, ilustraciones ni fuentes de Oracle. El fichero tiene 78 páginas, 15 plantillas y 133 componentes públicos; en Mateu, **40 existen, 76 son parciales y 7 faltan**. Faltan del todo el botón con menú dividido, el slider de rango, el indexador, el medidor circular, la edición por sección y los chips de sugerencia. En variantes: el calendario solo tiene vista de mes; el botón no tiene CTA, peligro ni solo icono; el badge no tiene Info ni Strong/Subtle; el drawer no tiene modo inline ni popup. Unos 13 componentes de Mateu no están en `contract.json`: Avatar, Badge, Dialog, Toast, Tooltip, MenuButton, Chart, Carousel, Chip, Password, RichText, FileUpload y TreeView.
 - [ ] **Importar diseños RDS a Mateu:** ampliar el pipeline `design/figma/` (contract.json, el plugin y el importador de modux) para que reconozca instancias de componentes del RDS Toolkit y las convierta a componentes de Mateu. Así, un diseño hecho con el kit oficial de Redwood se importa directamente.
 
 ## P8 · Operaciones, resúmenes y apariencia (M–L)
@@ -130,7 +133,8 @@ rama `probe/master-detail-tabs`.
 - [ ] `@WorkRequests(source)`: una pestaña estándar con el registro de operaciones asíncronas y `BulkResult` con progreso por elemento.
 - [ ] `@TimeRange(quickSelects)` como valor de ámbito de página, y gráficos con `refreshOn`.
 - [ ] **Columna lateral de ámbito (D5):** varios widgets de contexto apilados bajo el menú, ampliando `@AppContext` con `position = SIDE`, `tree`, `title`, acciones de cabecera («añadir | limpiar»), texto vacío, resumen de lo aplicado, diálogo de edición y valor global o por sub-app. Ejemplos de OCI: «List scope» (compartimento en árbol) y «Tag filters».
-- [ ] **Tema decorativo configurable**, un solo `theme.yaml` o `@Theme`: franja con textura en la cabecera de página, ilustración del formulario, capas del hero y franja superior de las tarjetas. Las imágenes las pone la app; nunca recursos de Oracle.
+- [ ] **Tema configurable**, un solo `theme.yaml` o `@Theme`. Crece a partir del acento de P0. En RDS, la cabecera de página tiene un eje «Theme» con 12 líneas de producto (Light, Mix, OCI, NSX, Finance, HCM, Dev Tools, Database, SCM, CX, GBU y Health). Cada una es un color de fondo de cabecera (por ejemplo, OCI `#33553c`) más una **franja de color de 12 px** (8 px por debajo de 600 px), que es la línea de la consola de OCI. Mateu tendrá presets de este estilo para los dos renderers, más la ilustración del formulario, las capas del hero y la franja superior de las tarjetas. Las imágenes las pone la app; nunca recursos de Oracle. Se adelanta a justo después de P0.
+
 - [ ] Más adelante: home personalizable, mega menú con favoritos, «guardar como stack» (`@ExportRequest`) y subformularios compartidos (etiquetas, mover recurso).
 
 ## P9 · Navegación: un árbol de menú de dos niveles y montajes remotos (M–L)
@@ -196,4 +200,5 @@ los casos de conformidad y las demos. Pero no sabemos cuánto ayudan ni si está
 
 | Fecha | Qué |
 |---|---|
+| 2026-10-03 | Acento configurable y chat más ancho, aprobados (P0); inventario del RDS Toolkit hecho (P7); el tema configurable se adelanta (P8). |
 | 2026-10-03 | Plan escrito; después se añaden P9 (navegación de dos niveles y montajes remotos) y P10 (Mateu entendible por un modelo que no lo conoce). Mateu 384 publicado y desplegado en ec1 (paginado de Vaadin). PRs abiertos: #663, #664, #665 y #666. |
