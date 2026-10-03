@@ -289,6 +289,10 @@ public class CustomerOverview {
 A tab bar with a single visible tab is not drawn (the tab keeps its key and URL), and a
 sub-resource's title is dropped when it only repeats its tab or the page.
 
+In Redwood a sub-listing is fetched when its tab is on screen (so `EAGER` only changes the count on
+the tab) and is drawn as a read-only table with its first page: no paging, toolbar or row actions
+yet. Vaadin draws the full listing.
+
 ## IntelliSense
 
 The registry ships its own JSON Schema, generated from the `RouteEntry` record so it cannot drift

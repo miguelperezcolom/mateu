@@ -175,7 +175,10 @@ export class MateuVaadinFoldout extends LitElement {
         }
         e.preventDefault()
         this._lastWheel = Date.now()
-        rail.scrollBy({ left: dx, behavior: 'smooth' })
+        // Applied at once, like a native scroll: a wheel (and above all a trackpad) fires a burst of
+        // small events, and a 'smooth' scrollBy per event restarted the animation each time from
+        // where the previous one had got to, so the row crawled.
+        rail.scrollLeft = Math.max(0, Math.min(rail.scrollWidth - rail.clientWidth, rail.scrollLeft + dx))
     }
 
     private _stride() {

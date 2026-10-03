@@ -5,6 +5,7 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { MateuComponent } from "@infra/ui/mateu-component.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { interpolate } from "@infra/ui/interpolation.ts";
+import { sanitizeHtml } from "@infra/ui/safeHtml.ts";
 
 const serialize = (e: any) => {
     if (e instanceof CustomEvent) {
@@ -68,7 +69,11 @@ const hydrate = (
     }
     if (resolved.content) {
         if (element.html) {
-            htmlElement.innerHTML = resolved.content
+            // Markup written in the definition is trusted as is; once `${…}` has put DATA into
+            // it, it is sanitized (no event handlers, scripts or javascript: URLs) — stored XSS.
+            htmlElement.innerHTML = element.content?.includes('${')
+                ? sanitizeHtml(resolved.content)
+                : resolved.content
         } else {
             htmlElement.append(resolved.content)
         }

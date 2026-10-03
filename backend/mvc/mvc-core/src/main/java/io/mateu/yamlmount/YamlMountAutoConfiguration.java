@@ -122,8 +122,10 @@ public class YamlMountAutoConfiguration {
     String html =
         InputStreamReader.readFromClasspath(
             YamlMountAutoConfiguration.class, "/static/_index.html");
-    html = html.replaceAll("<!-- AQUIFAVICON -->", "");
-    html = html.replaceAll("AQUIELTITULODELAPAGINA", title);
+    html = html.replace("<!-- AQUIFAVICON -->", "");
+    // replace, not replaceAll: the title is authored text, and a "$" in it ("Costs in $") is a
+    // group reference to replaceAll — IllegalArgumentException, a 500 on every page load.
+    html = html.replace("AQUIELTITULODELAPAGINA", title);
     return html.substring(0, html.indexOf("<!-- AQUIUI -->"))
         + "<mateu-ui baseUrl=\""
         + basePath

@@ -1,6 +1,7 @@
 fastapi>=0.110
 uvicorn>=0.27
 pydantic>=2.6
+pyyaml>=6
 # dev
 pytest>=8
 httpx>=0.27

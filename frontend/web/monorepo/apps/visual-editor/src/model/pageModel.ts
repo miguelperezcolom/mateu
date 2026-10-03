@@ -113,8 +113,46 @@ export type SaveShape =
     /** A full snapshot of a page that HAS a model — this is what takes the screen out of inference. */
     | 'snapshot'
 
-/** A path is a list of child indices into successive `content` arrays. `[]` = the root. */
-export type NodePath = number[]
+/**
+ * One step of a {@link NodePath}: a NUMBER is a child index into the node's `content` list; a STRING
+ * `"<key>.<index>"` is an index into another component list the node carries — a *slot* such as a
+ * Listing's `columns`/`filters`/`toolbar`, a Form's `buttons`, a TabLayout's `tabs`. Slots are what
+ * made most of a real page unreachable when paths could only follow `content`.
+ */
+export type PathSeg = number | string
+
+/** A path is a list of steps into successive child lists (see {@link PathSeg}). `[]` = the root. */
+export type NodePath = PathSeg[]
+
+/** The slot step for child `index` of the list under `key` (e.g. `columns.2`). */
+export function slotSeg(key: string, index: number): string {
+    return `${key}.${index}`
+}
+
+/** Split a step into the list key it indexes (`content` for a number) and the index. */
+export function splitSeg(seg: PathSeg): { key: string; index: number } {
+    if (typeof seg === 'number') return { key: 'content', index: seg }
+    const dot = seg.lastIndexOf('.')
+    return { key: seg.slice(0, dot), index: Number(seg.slice(dot + 1)) }
+}
+
+/** The same kind of step (same list) at another index. */
+export function withIndex(seg: PathSeg, index: number): PathSeg {
+    return typeof seg === 'number' ? index : slotSeg(splitSeg(seg).key, index)
+}
+
+/** The list (content or a slot) under `key` on a node, or undefined when it holds none. */
+export function listOf(node: PageNode | undefined, key: string): PageNode[] | undefined {
+    const v = node?.[key]
+    return Array.isArray(v) ? (v as PageNode[]) : undefined
+}
+
+/** The child a step leads to from `node`. */
+export function childAt(node: PageNode | undefined, seg: PathSeg): PageNode | undefined {
+    const { key, index } = splitSeg(seg)
+    const child = listOf(node, key)?.[index]
+    return child && typeof child === 'object' ? child : undefined
+}
 
 const RESERVED = new Set(['type', 'content'])
 
@@ -298,12 +336,25 @@ function normalize(node: any): PageNode {
  */
 function normalizeSlots(node: any): any {
     if (!node || typeof node !== 'object') return node
-    if (node.type === 'Slotted' && node.content != null && !Array.isArray(node.content)) {
+    if (SINGLE_CONTENT.has(node.type) && node.content != null && !Array.isArray(node.content)) {
         node.content = [node.content] // single child → 1-element array
     }
-    if (Array.isArray(node.content)) node.content.forEach(normalizeSlots)
+    for (const key of Object.keys(node)) {
+        const v = node[key]
+        if (Array.isArray(v)) v.forEach((c) => { if (c && typeof c === 'object' && typeof c.type === 'string') normalizeSlots(c) })
+    }
     return node
 }
+
+/**
+ * The components whose `content` is ONE component (schema `content: $ref Component`), not a list.
+ * The editor edits them as 1-element lists and writes them back as a single object. Pinned to the
+ * generated schema by `pageModel.slots.test.ts`, so a new single-child component fails loudly.
+ */
+export const SINGLE_CONTENT = new Set([
+    'AccordionPanel', 'BoardLayoutItem', 'Card', 'ConfirmDialog', 'Container', 'CustomField', 'DashboardPanel',
+    'Details', 'Dialog', 'Drawer', 'FoldoutPanel', 'FullWidth', 'Popover', 'Scroller', 'Slotted', 'Tab',
+])
 
 /**
  * The inverse of {@link normalizeSlots} for serialization: a `Slotted`'s array `content` collapses
@@ -314,15 +365,16 @@ function normalizeSlots(node: any): any {
 function denormalizeSlots(node: any): any {
     if (!node || typeof node !== 'object') return node
     const out: any = { ...node }
-    if (Array.isArray(out.content)) {
-        const children = out.content.map(denormalizeSlots)
-        if (out.type === 'Slotted') {
-            if (children.length === 0) delete out.content
-            else if (children.length === 1) out.content = children[0]
-            else out.content = { type: 'VerticalLayout', content: children }
-        } else {
-            out.content = children
-        }
+    for (const key of Object.keys(out)) {
+        const v = out[key]
+        if (!Array.isArray(v)) continue
+        out[key] = v.map((c) => (c && typeof c === 'object' && typeof c.type === 'string' ? denormalizeSlots(c) : c))
+    }
+    if (Array.isArray(out.content) && SINGLE_CONTENT.has(out.type)) {
+        const children = out.content
+        if (children.length === 0) delete out.content
+        else if (children.length === 1) out.content = children[0]
+        else out.content = { type: 'VerticalLayout', content: children }
     }
     return out
 }
@@ -330,16 +382,45 @@ function denormalizeSlots(node: any): any {
 /** The node at `path`, or undefined if the path does not resolve. */
 export function nodeAt(doc: PageDoc, path: NodePath): PageNode | undefined {
     let node: PageNode | undefined = doc.layout
-    for (const i of path) {
-        node = node?.content?.[i]
+    for (const seg of path) {
+        node = childAt(node, seg)
         if (!node) return undefined
     }
     return node
 }
 
+/** The list holding the node at `path` and its index in it — undefined for the root / a dangling path. */
+function holderOf(doc: PageDoc, path: NodePath): { list: PageNode[]; index: number; parentPath: NodePath } | undefined {
+    if (path.length === 0) return undefined
+    const parentPath = path.slice(0, -1)
+    const parent = parentPath.length ? nodeAt(doc, parentPath) : doc.layout
+    const { key, index } = splitSeg(path[path.length - 1])
+    const list = listOf(parent, key)
+    return list ? { list, index, parentPath } : undefined
+}
+
 /** The scalar (non-structural) property keys of a node, for the properties panel. */
 export function scalarProps(node: PageNode): string[] {
     return Object.keys(node).filter((k) => !RESERVED.has(k))
+}
+
+/** The slot lists a node actually carries (component lists other than `content`), in authored order. */
+export function presentSlots(node: PageNode): string[] {
+    return Object.keys(node).filter((k) => k !== 'content' && Array.isArray(node[k])
+        && (node[k] as unknown[]).every((c) => c && typeof c === 'object' && typeof (c as PageNode).type === 'string'))
+}
+
+/** Append `child` to the slot list `key` of the node at `parentPath` (creating the list). Returns its path. */
+export function insertIntoSlot(doc: PageDoc, parentPath: NodePath, key: string, child: PageNode): NodePath {
+    const parent = parentPath.length ? nodeAt(doc, parentPath) : doc.layout
+    if (!parent) return parentPath
+    if (key === 'content') {
+        insertChild(parent, parent.content?.length ?? 0, child)
+        return [...parentPath, parent.content!.length - 1]
+    }
+    const list = Array.isArray(parent[key]) ? (parent[key] as PageNode[]) : (parent[key] = [] as PageNode[])
+    list.push(child)
+    return [...parentPath, slotSeg(key, list.length - 1)]
 }
 
 /** Whether a node type is a container that accepts children under `content`. `Slotted` is one even
@@ -366,17 +447,16 @@ export function insertAfter(doc: PageDoc, path: NodePath, node: PageNode): NodeP
         insertChild(doc.layout, doc.layout.content?.length ?? 0, node)
         return [(doc.layout.content!.length - 1)]
     }
-    const parentPath = path.slice(0, -1)
-    const parent = nodeAt(doc, parentPath) ?? doc.layout
-    const index = path[path.length - 1] + 1
-    insertChild(parent, index, node)
-    return [...parentPath, index]
+    const h = holderOf(doc, path)
+    if (!h) return insertAfter(doc, [], node)
+    const index = h.index + 1
+    h.list.splice(Math.min(index, h.list.length), 0, node)
+    return [...h.parentPath, withIndex(path[path.length - 1], index)]
 }
 
 export function removeAt(doc: PageDoc, path: NodePath): void {
-    if (path.length === 0) return
-    const parent = nodeAt(doc, path.slice(0, -1))
-    parent?.content?.splice(path[path.length - 1], 1)
+    const h = holderOf(doc, path)
+    h?.list.splice(h.index, 1)
 }
 
 /** True when `prefix` is `path` or an ancestor of it (used to forbid dropping a node into itself). */
@@ -405,13 +485,16 @@ export function moveNode(doc: PageDoc, from: NodePath, toParentPath: NodePath, i
     const node = nodeAt(doc, from)
     if (!node) return null
     const fromParent = from.slice(0, -1)
-    const fromIndex = from[from.length - 1]
+    // Drag & drop moves within/between `content` lists; a slot item is reordered with `reorder`.
+    if (typeof from[from.length - 1] !== 'number') return null
+    const fromIndex = from[from.length - 1] as number
     removeAt(doc, from)
     // The source's removal shifts everything after it in fromParent down by one. If toParentPath
     // descends through fromParent at a later position, that step is now off by one.
     const toParent = [...toParentPath]
-    if (isPrefix(fromParent, toParent) && toParent.length > fromParent.length && toParent[fromParent.length] > fromIndex) {
-        toParent[fromParent.length] -= 1
+    const step = toParent[fromParent.length]
+    if (isPrefix(fromParent, toParent) && toParent.length > fromParent.length && typeof step === 'number' && step > fromIndex) {
+        toParent[fromParent.length] = step - 1
     }
     const sameParent = fromParent.length === toParent.length && fromParent.every((v, i) => toParent[i] === v)
     let target = index
@@ -421,16 +504,13 @@ export function moveNode(doc: PageDoc, from: NodePath, toParentPath: NodePath, i
 
 /** Move the child at `path` by `delta` (+1 down / -1 up) within its parent. */
 export function reorder(doc: PageDoc, path: NodePath, delta: number): NodePath {
-    if (path.length === 0) return path
-    const parent = nodeAt(doc, path.slice(0, -1))
-    const list = parent?.content
-    if (!list) return path
-    const from = path[path.length - 1]
-    const to = from + delta
-    if (to < 0 || to >= list.length) return path
-    const [item] = list.splice(from, 1)
-    list.splice(to, 0, item)
-    return [...path.slice(0, -1), to]
+    const h = holderOf(doc, path)
+    if (!h) return path
+    const to = h.index + delta
+    if (to < 0 || to >= h.list.length) return path
+    const [item] = h.list.splice(h.index, 1)
+    h.list.splice(to, 0, item)
+    return [...h.parentPath, withIndex(path[path.length - 1], to)]
 }
 
 // --- DOM tagging: encode a path into a synthetic wire id and back ---
@@ -444,9 +524,13 @@ export function idToPath(id: string | null | undefined): NodePath | null {
     if (!id || !id.startsWith('ve-')) return null
     const body = id.slice(3)
     if (body === 'root') return []
-    const parts = body.split('-')
-    const path = parts.map((p) => Number(p))
-    return path.every((n) => Number.isInteger(n)) ? path : null
+    const path: NodePath = []
+    for (const part of body.split('-')) {
+        if (/^\d+$/.test(part)) path.push(Number(part))
+        else if (/^[A-Za-z_$][\w$]*\.\d+$/.test(part)) path.push(part)
+        else return null
+    }
+    return path
 }
 
 /**
@@ -457,11 +541,19 @@ export function idToPath(id: string | null | undefined): NodePath | null {
 export function decorateForPreview(doc: PageDoc): string {
     const clone = structuredClone(doc.layout)
     stamp(clone, [])
-    return stringify(clone)
+    // Single-child slots go back to their authored single-object shape: the backend deserializes a
+    // Card/Tab `content` as ONE component.
+    return stringify(denormalizeSlots(clone))
 }
 
 function stamp(node: PageNode, path: NodePath): void {
-    node.id = pathToId(path)
+    // A column's or a filter's `id` IS its binding (the row field it reads, the state key it writes),
+    // so a slot item of those kinds keeps it — it is selected from the Layers panel instead.
+    const inSlot = typeof path[path.length - 1] === 'string'
+    if (!(inSlot && SEMANTIC_ID.has(node.type))) node.id = pathToId(path)
+    for (const key of presentSlots(node)) {
+        (node[key] as PageNode[]).forEach((child, i) => stamp(child, [...path, slotSeg(key, i)]))
+    }
     if (Array.isArray(node.content)) {
         // An empty `content: []` breaks the backend's polymorphic Component deserializer
         // ("END_ARRAY, expected … type id") — notably a Card whose content is a single Component,
@@ -470,3 +562,6 @@ function stamp(node: PageNode, path: NodePath): void {
         else node.content.forEach((child, i) => stamp(child, [...path, i]))
     }
 }
+
+/** Components whose `id` is a data binding, not a DOM handle. */
+const SEMANTIC_ID = new Set(['FormField', 'GridColumn', 'GridGroupColumn'])

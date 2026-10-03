@@ -41,7 +41,30 @@ export default interface MenuOption {
     uriPrefix: string | undefined
     description: string | undefined
 
+    // The entry opens a listing: how to narrow it from its URL — its declared filters, the search
+    // and the reserved id set (?ids=…). Absent for any other screen and from older servers.
+    listing?: ListingDescriptor
+
     // A leaf is either a route (the fields above) or a rule (client-side dynamic action). When
     // `rules` is non-empty, clicking the leaf runs them instead of navigating.
     rules: Rule[] | undefined
+}
+/** One declared filter of a listing, as the URL query param the listing reads. */
+export interface ListingFilterDescriptor {
+    param: string
+    label?: string
+    /** text | enum | boolean | number | date | dateTime | dateRange | dateTimeRange | numberRange */
+    type: string
+    multiple?: boolean
+    values?: string[]
+    fromParam?: string
+    toParam?: string
+}
+
+/** How a menu entry's listing can be narrowed from its URL (MenuOptionDto.listing). */
+export interface ListingDescriptor {
+    idField: string
+    idsParam: string
+    searchParam?: string | null
+    filters: ListingFilterDescriptor[]
 }

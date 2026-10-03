@@ -1,5 +1,6 @@
 import { isMountYaml } from './mountModel'
-import { isRoutesYaml, parseRoutes } from './routesModel'
+import { isRoutesYaml, parseRoutes, flattenRoutes } from './routesModel'
+import { parse } from 'yaml'
 import { hasAppShell } from './appModel'
 
 /**
@@ -16,6 +17,8 @@ export interface RouteRef {
     route: string
     definition?: string
     viewModel?: string
+    /** The route's `data:` source (a name or an inline descriptor). */
+    data?: unknown
 }
 
 /**
@@ -30,6 +33,35 @@ export interface ProjectIndex {
     partials: string[]    // partial refs (the file stem a `Partial ref` names)
     appShells: string[]   // type: AppShell definition files
     viewModels: string[]  // distinct view-model FQNs referenced by routes
+    /** The REST source catalogue (`sources.yaml`): each named endpoint, as authored. */
+    sources: SourceEntry[]
+}
+
+/** One entry of the REST source catalogue — the shape the renderer's catalogue takes. */
+export interface SourceEntry {
+    name: string
+    description?: string
+    source?: Record<string, unknown>
+    totalPath?: string
+    fields?: Record<string, string>
+    [k: string]: unknown
+}
+
+/** Whether this YAML is the REST source catalogue (`type: Sources`, or a top-level `sources:` list). */
+export function isSourcesYaml(yaml: string): boolean {
+    let root: unknown
+    try { root = parse(yaml) } catch { return false }
+    if (!root || typeof root !== 'object' || Array.isArray(root)) return false
+    const type = (root as any).type
+    return type === 'Sources' || (!type && Array.isArray((root as any).sources))
+}
+
+/** The entries of a sources file (named ones only). */
+export function parseSources(yaml: string): SourceEntry[] {
+    let root: any
+    try { root = parse(yaml) } catch { return [] }
+    const list = Array.isArray(root?.sources) ? root.sources : []
+    return list.filter((s: any) => s && typeof s.name === 'string')
 }
 
 const PARTIALS_DIR = 'partials/'
@@ -41,15 +73,18 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
     const partials: string[] = []
     const appShells: string[] = []
     const viewModels = new Set<string>()
+    const sources: SourceEntry[] = []
 
     for (const f of files ?? []) {
         const path = normalize(f.path)
         const content = f.content ?? ''
         if (!path) continue
         if (isMountYaml(content)) continue // the mount descriptor is not itself a reference target
+        if (isSourcesYaml(content)) { sources.push(...parseSources(content)); continue }
         if (isRoutesYaml(content)) {
-            for (const r of parseRoutes(content).routes) {
-                routes.push({ route: r.route, definition: r.definition, viewModel: r.viewModel })
+            // Children are flattened to their absolute route, as the loader does.
+            for (const r of flattenRoutes(parseRoutes(content).routes)) {
+                routes.push({ route: r.absolute, definition: r.definition, viewModel: r.viewModel, data: r.data })
                 if (r.viewModel) viewModels.add(r.viewModel)
             }
             continue
@@ -65,6 +100,7 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
         partials: dedupe(partials),
         appShells: dedupe(appShells),
         viewModels: [...viewModels].sort((a, b) => a.localeCompare(b)),
+        sources,
     }
 }
 

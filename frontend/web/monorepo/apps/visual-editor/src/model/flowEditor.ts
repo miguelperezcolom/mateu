@@ -1,4 +1,5 @@
 import { PageDoc } from './pageModel'
+import { pageActions, withPageActions, PageAction } from './pageActions'
 
 /**
  * The declared-flow editor model (visual-editor Phase 3 — the VB "action chain" analog). A page-level
@@ -71,16 +72,13 @@ export function removeAction(doc: PageDoc, actionId: string): PageDoc {
 
 // --- helpers ---
 
+// Where a page keeps its actions (envelope vs bare definition root) is pageActions' concern.
 function rawActions(doc: PageDoc): RawAction[] {
-    const a = (doc.rest as Record<string, unknown> | undefined)?.actions
-    return Array.isArray(a) ? (a as RawAction[]) : []
+    return pageActions(doc) as RawAction[]
 }
 
 function withActions(doc: PageDoc, actions: RawAction[]): PageDoc {
-    const rest: Record<string, unknown> = { ...(doc.rest ?? {}) }
-    if (actions.length) rest.actions = actions
-    else delete rest.actions
-    return { ...doc, rest: Object.keys(rest).length ? rest : undefined }
+    return withPageActions(doc, actions as PageAction[])
 }
 
 /** Replace an action's steps, dropping the key when the flow is emptied (keeps a restAction-only action clean). */
