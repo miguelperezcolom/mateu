@@ -3,7 +3,7 @@
 // sync/{route|_no_route} con actionId '' en las cargas. Fuente ÚNICA: este fichero se
 // testea en Node (capture.mjs) y se empaqueta en AMD para VB (make-amd.mjs).
 
-import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps } from './reduceContexts.mjs'
+import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf } from './reduceContexts.mjs'
 import { fetchWithPolicy, pendingActions, isIdempotentAction } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 import { labelledByShell, markHidden, unavailableMount } from './navTree.mjs'
@@ -339,6 +339,45 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
   }
   // los niveles de app (maestros) de la pantalla del HOST: una barra de pestañas por nivel
   if (targetId === '') next = { ...next, appLevels, loadedRoute: effectiveRoute }
+  return next
+}
+
+/**
+ * Carga un @Subresource (subresourceIslandOf) en SU contexto: la carga por su tipo — sin el baile
+ * del mediador: el App que lo envuelve ya dice qué clase es — con el estado que le siembra el padre,
+ * y su búsqueda OnLoad (las filas). Devuelve el registro nuevo.
+ */
+export async function loadSubresource(base, reg, sub, extra = {}) {
+  const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base }
+  let next = reduceContexts(reg, await loadRoute(base, sub.route, sub.id, {
+    ...extra,
+    consumedRoute: sub.consumedRoute,
+    serverSideType: sub.serverSideType,
+    componentState: sub.componentState || {},
+  }))
+  next = { ...next, contexts: { ...next.contexts, [sub.id]: { ...next.contexts[sub.id], outbound } } }
+  for (const triggerActionId of onLoadTriggers(next.contexts[sub.id])) {
+    const ctx = next.contexts[sub.id]
+    const listing = listingOf(ctx)
+    const componentState = { ...(sub.componentState || {}), ...(ctx.state || {}), page: 0, size: (listing && listing.pageSize) || 10 }
+    const increment = await runMateuAction(base, ctx, sub.route, triggerActionId, componentState, extra)
+    if (increment) next = reduceContexts(next, increment)
+  }
+  return next
+}
+
+/**
+ * Carga los @Subresource que el contenido deja a la vista y aún no están cargados (los de la
+ * pestaña activa: lo que está en otra pestaña espera a que se abra). Uno que falla se queda como
+ * hueco: no tumba la pantalla.
+ */
+export async function loadSubresources(base, reg, blocks, extra = {}) {
+  let next = reg
+  for (const sub of pendingSubresourcesOf(blocks, next.contexts)) {
+    try {
+      next = await loadSubresource(base, next, sub, extra)
+    } catch (ignored) { /* la banda de error ya lo cuenta (onSettle) */ }
+  }
   return next
 }
 

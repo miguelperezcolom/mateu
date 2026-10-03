@@ -382,14 +382,19 @@ define([
       // pantalla nueva, pestaña nueva: la activa es estado de CLIENTE y no sobrevive a una
       // navegación (la pestaña 3 de la pantalla anterior no significa nada en ésta)
       $application.variables.mateuActiveTabs = {};
-      const hostBlocks = (!esWizard && sinOtrasRamas)
+      let hostBlocks = (!esWizard && sinOtrasRamas)
         ? bridge.hostContentOf(host, islandRawBlocks,
             { title: summary.title, dropEntityHeader: !!hostEntity }) : null;
-      // los bloques MANDAN cuando son ricos (EntityHeader/Meter/Ledger…): el form genérico
-      // y el texto plano se suprimen — misma regla que los arquetipos
-      const hostBlocksRicos = !!(hostBlocks && hostBlocks.some((block) => (block.items || []).some((a) => a.isEntityHeader || a.isTaskProgress || a.isMeter
-        || a.isStatusList || a.isLedger || a.isPayment || a.isResourceGrid || a.isAddOns
-        || a.isStat || a.isNotice || a.isPropertyRow || a.isTabs || a.isGrid || a.isElement)));
+      // los @Subresource a la vista (los de la pestaña activa) se cargan y pasan a ser su tabla
+      if (hostBlocks) {
+        reg = await bridge.loadSubresources(callBase, reg, hostBlocks, { appState });
+        $application.variables.mateuRegistry = reg;
+        hostBlocks = bridge.withSubresources(hostBlocks, reg.contexts);
+      }
+      // los bloques MANDAN cuando son ricos (EntityHeader/Meter/Ledger, pestañas, tablas…): el
+      // form genérico y el texto plano se suprimen — misma regla que los arquetipos. También
+      // cuando el form no tiene nada que pintar (una página de solo lectura son textos)
+      const hostBlocksRicos = bridge.hostContentShown(hostBlocks, summary);
       // las acciones del toolbar de la Page (se calculan aquí porque los templates de
       // página de entidad las recolocan: iop → goToParent/secondaryActions del panel)
       const hostToolbar = bridge.pageToolbarOf(host);
