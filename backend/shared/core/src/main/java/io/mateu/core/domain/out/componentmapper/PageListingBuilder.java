@@ -78,6 +78,7 @@ public class PageListingBuilder {
             .detailPath(getDetailPath(getRowClass(instance)))
             .gridLayout(getGridLayout(instance))
             .rowsSource(getRestListingSource(instance))
+            .rowRoute(getRestListingRowRoute(instance))
             .style(getStyle(instance, httpRequest));
 
     // @GroupAction methods become buttons on the @GroupBy group header rows; the frontend
@@ -170,6 +171,14 @@ public class PageListingBuilder {
   }
 
   /**
+   * The {@code @RestListing(rowRoute)} of the listing class, or null (a row click does nothing).
+   */
+  private static String getRestListingRowRoute(Object instance) {
+    var a = MetaAnnotations.find(instance.getClass(), io.mateu.uidl.annotations.RestListing.class);
+    return a == null || a.rowRoute().isBlank() ? null : a.rowRoute();
+  }
+
+  /**
    * A client-side external rows source when the listing class carries {@code @RestListing} — the
    * renderer fetches the endpoint directly and maps each JSON item into a row by column name. Null
    * otherwise.
@@ -189,7 +198,9 @@ public class PageListingBuilder {
     return io.mateu.uidl.data.RestDataSource.builder()
         .ref(a.source())
         .url(a.url())
-        .method(a.method())
+        .method(
+            io.mateu.core.application.runaction.DeclaredRestMethod.of(
+                a.source(), a.method(), "GET"))
         .headers(headers)
         .body(a.body())
         .itemsPath(a.itemsPath())

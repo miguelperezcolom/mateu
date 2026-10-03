@@ -39,11 +39,60 @@ class RestListingSyncTest {
     }
   }
 
+  /** A by-reference listing that opens a record by URL (the static VCN slice's listing). */
+  @SuppressWarnings("unused")
+  @UI("/restlist-by-ref")
+  @Title("Rest listing by ref")
+  @RestListing(source = "vcns", rowRoute = "vcns/${row.id}")
+  public static class RestListByRef implements Listing<RestList.Country> {
+    @Override
+    public ListingData<RestList.Country> search(SearchRequest request, HttpRequest httpRequest) {
+      return ListingData.of();
+    }
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(RestList.class);
+    mateu = TestMateu.withUis(RestList.class, RestListByRef.class);
+  }
+
+  private static io.mateu.dtos.CrudlDto crudlOf(io.mateu.dtos.UIIncrementDto increment) {
+    var crudls = new java.util.ArrayList<io.mateu.dtos.CrudlDto>();
+    FieldKindsSyncTest.walk(
+        increment.fragments().get(0).component(), io.mateu.dtos.CrudlDto.class, crudls);
+    assertThat(crudls).isNotEmpty();
+    return crudls.get(0);
+  }
+
+  @Test
+  void aRowRouteOpensTheRecordByUrl() {
+    assertThat(crudlOf(mateu.sync("/restlist-by-ref")).rowRoute()).isEqualTo("vcns/${row.id}");
+    // and none by default: a row click does nothing
+    assertThat(crudlOf(mateu.sync("/restlist")).rowRoute()).isNull();
+  }
+
+  @Test
+  void aByReferenceListingLeavesTheMethodToTheCatalogue() {
+    // the annotation's default GET must not override the entry's method (blank = the entry's)
+    assertThat(crudlOf(mateu.sync("/restlist-by-ref")).rowsSource().method()).isBlank();
+    // an inline url keeps its method
+    assertThat(crudlOf(mateu.sync("/restlist")).rowsSource().method()).isEqualTo("GET");
+  }
+
+  @Test
+  void aRestListingDoesNotAskTheServerToSearchOnLoad() {
+    // the renderer fetches the REST rows itself; a server `search` on load is a round trip to a
+    // search() that never runs — and, in a static bundle, a call to a server that is not there
+    var component = mateu.sync("/restlist").fragments().get(0).component();
+    assertThat(component).isInstanceOf(io.mateu.dtos.ServerSideComponentDto.class);
+    var triggers = ((io.mateu.dtos.ServerSideComponentDto) component).triggers();
+    assertThat(triggers)
+        .noneMatch(
+            t ->
+                t instanceof io.mateu.dtos.OnLoadTriggerDto load
+                    && "search".equals(load.actionId()));
   }
 
   @AfterAll

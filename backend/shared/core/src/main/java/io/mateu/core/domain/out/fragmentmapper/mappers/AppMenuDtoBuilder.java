@@ -84,6 +84,15 @@ final class AppMenuDtoBuilder {
 
   private static String getPath(String appRoute, Actionable option) {
     if (option.path() == null) {
+      // A RouteLink authored with a `route:` and no `path:` (the YAML menu shape) goes WHERE IT
+      // SAYS. Deriving the path from the label only coincided with the route while label and route
+      // were the same word ("People" → /people); "Virtual cloud networks" → /virtualCloudNetworks
+      // pointed the menu at a route that does not exist.
+      if (option instanceof RouteLink routeLink
+          && routeLink.route() != null
+          && !routeLink.route().isBlank()) {
+        return prepend(appRoute, routeLink.route());
+      }
       return prepend(appRoute, toCamelCase(option.label()));
     }
     if (option instanceof RouteLink routeLink) {
