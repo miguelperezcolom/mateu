@@ -21,6 +21,7 @@ import {
     withoutHidden,
     withPrefixesFromHome,
 } from "@infra/ui/navTree.ts";
+import { registerRemoteMenuRetry } from "@infra/ui/remoteMenuRetry.ts";
 import { announce } from "@infra/a11y/announcer.ts";
 import { fragmentIsCurrent } from "@infra/ui/callbackTokenGuard.ts";
 
@@ -86,16 +87,19 @@ export default abstract class ConnectedElement extends LitElement {
             const clientSideComponent = fragment.component as ClientSideComponent
             const metadata = clientSideComponent.metadata
             if (metadata?.type == ComponentMetadataType.App) {
+                // A new app replaces the old one's menu: its pending retries are moot.
+                this.pendingMenuRetries?.forEach(cancel => cancel())
+                this.pendingMenuRetries = new Set()
                 const app = metadata as App
+                const here = typeof window !== 'undefined' ? window.location.pathname : ''
                 // What a deep link already says: which remote the page was mounted from.
-                const source = withPrefixesFromHome(app.menu ?? [], app.homeBaseUrl, app.homeRoute)
+                const source = withPrefixesFromHome(app.menu ?? [], app.homeBaseUrl, here)
                 // Options that travel but are not drawn go before anything renders the menu:
                 // synchronously, while the fragment just applied is still waiting for its update.
                 const drawn = withoutHidden(source)
                 if (drawn !== app.menu || source !== app.menu) {
                     clientSideComponent.metadata = { ...app, menu: drawn, navMenu: source } as App
                 }
-                const here = typeof window !== 'undefined' ? window.location.pathname : ''
                 const mounts = remoteMounts(source).filter(option =>
                     option.visible !== false
                     || isActiveFor(option, here)
@@ -107,35 +111,21 @@ export default abstract class ConnectedElement extends LitElement {
         }
     }
 
-    /** Back-off for asking again the remotes that did not answer: then they are left alone. */
+    /** How to call off the retries this element has pending (see askRemotes). */
+    private pendingMenuRetries?: Set<() => void>
+
+    /** How long a remote has to answer with its menu before its section is shown unavailable. */
+    static remoteMenuTimeoutMillis = 20_000
+
+    /** Back-off for asking again the remotes that did not answer; after it, only a click asks. */
     static remoteRetryDelays = [10_000, 30_000, 60_000]
 
     private askRemotes(clientSideComponent: ClientSideComponent, source: MenuOption[], mounts: MenuOption[],
                        answers: Map<MenuOption, RemoteAnswer>, attempt: number) {
-        Promise.allSettled(mounts.map(option => mateuApiClient.runAction(
-            option.baseUrl,
-            option.route,
-            '_empty',
-            '',
-            option.baseUrl + '#' + option.route,
-            undefined,
-            undefined,
-            undefined,
-            option.params,
-            this,
-            true
-        ))).then(results => {
-            const failed: MenuOption[] = []
-            results.forEach((result, i) => {
-                const option = mounts[i]
-                const remoteApp = result.status === 'fulfilled' ? this.remoteAppOf(result.value?.fragments, option) : undefined
-                if (remoteApp) {
-                    answers.set(option, { app: remoteApp })
-                } else {
-                    answers.set(option, { failed: true })
-                    failed.push(option)
-                }
-            })
+        // Each answer is merged as it arrives: a slow remote does not hold back the others, and a
+        // failed one only marks its own section. allSettled, then, only to know when all are in.
+        const failed: MenuOption[] = []
+        const merge = () => {
             const navMenu = mergeRemoteMenus(source, answers)
             // A NEW metadata object, and nothing else touched.
             //
@@ -153,12 +143,50 @@ export default abstract class ConnectedElement extends LitElement {
             const app = clientSideComponent.metadata as App
             clientSideComponent.metadata = { ...app, menu: withoutHidden(navMenu), navMenu } as App
             this.requestUpdate()
-            const delay = ConnectedElement.remoteRetryDelays[attempt]
-            if (failed.length > 0 && delay !== undefined) {
-                setTimeout(() => {
+        }
+        Promise.allSettled(mounts.map(option => mateuApiClient.runAction(
+            option.baseUrl,
+            option.route,
+            '_empty',
+            '',
+            option.baseUrl + '#' + option.route,
+            undefined,
+            undefined,
+            undefined,
+            option.params,
+            this,
+            true,
+            // its failure is this section's, not the app's: no toast, no "no connection"
+            { quiet: true, timeoutMillis: ConnectedElement.remoteMenuTimeoutMillis }
+        ).then(increment => {
+            const remoteApp = this.remoteAppOf(increment?.fragments, option)
+            if (!remoteApp) throw new Error('no app in the answer of ' + option.baseUrl)
+            answers.set(option, { app: remoteApp })
+            merge()
+        }).catch(() => {
+            answers.set(option, { failed: true })
+            failed.push(option)
+            merge()
+        }))).then(() => {
+            if (failed.length > 0) {
+                // Asked again on a timer while the back-off lasts, and whenever the user clicks
+                // an unavailable section (retryUnavailableMenus) — whichever comes first.
+                const delay = ConnectedElement.remoteRetryDelays[attempt]
+                let timer: ReturnType<typeof setTimeout> | undefined
+                const cancel = () => {
+                    if (timer !== undefined) clearTimeout(timer)
+                    unregister()
+                    this.pendingMenuRetries?.delete(cancel)
+                }
+                const retry = () => {
+                    cancel()
                     if (!this.isConnected) return
-                    this.askRemotes(clientSideComponent, source, failed, answers, attempt + 1)
-                }, delay)
+                    this.askRemotes(clientSideComponent, source, failed, answers,
+                        Math.min(attempt + 1, ConnectedElement.remoteRetryDelays.length))
+                }
+                const unregister = registerRemoteMenuRetry(retry)
+                this.pendingMenuRetries?.add(cancel)
+                if (delay !== undefined) timer = setTimeout(retry, delay)
             }
         })
     }

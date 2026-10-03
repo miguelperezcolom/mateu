@@ -19,6 +19,7 @@ import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 import { publishShellMenu } from "@infra/ui/breadcrumbTrail.ts";
 import { activeTopIndex, isActiveFor, isMount } from "@infra/ui/navTree.ts";
+import { retryUnavailableMenus } from "@infra/ui/remoteMenuRetry.ts";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 
 // DS-neutral stand-ins for the vaadin-menu-bar / vaadin-app-layout types this base class used.
@@ -279,6 +280,11 @@ export class MateuApp extends ComponentElement {
 
     itemSelected = (e: MenuBarItemSelectedEvent) => {
         const v = e.detail.value as any
+        // a remote section whose remote did not answer: nothing to open — ask it again instead
+        if (v.unavailable) {
+            retryUnavailableMenus()
+            return
+        }
         this.selectRoute(v.consumedRoute, v.route, v.actionId, v.baseUrl, v.serverSideType, v.uriPrefix, v.rules)
     }
 
@@ -627,7 +633,14 @@ export class MateuApp extends ComponentElement {
             if (!filter || option.label.toLowerCase().includes(filter)) {
                 return {
                     // a remote section whose remote did not answer: there, but not to be opened
-                    ...(option.unavailable ? { disabled: true, tooltip: option.description, title: option.description } : {}),
+                    // Not `disabled`: a disabled menu-bar button takes no pointer events, so its
+                    // tooltip never shows. Dimmed instead, and a click asks the remote again.
+                    ...(option.unavailable ? {
+                        unavailable: true,
+                        className: 'mateu-nav-unavailable',
+                        tooltip: option.description,
+                        title: option.description,
+                    } : {}),
                     consumedRoute: option.consumedRoute,
                     text: option.label,
                     route: option.route,
@@ -964,6 +977,8 @@ export class MateuApp extends ComponentElement {
         .mateu-nav-item { border: none; background: transparent; font: inherit; cursor: pointer; padding: .5rem .8rem; border-radius: var(--lumo-border-radius-m, 6px); color: inherit; white-space: nowrap; }
         .mateu-nav-item:hover, .mateu-nav-group > summary:hover { background: var(--lumo-contrast-5pct, rgba(0,0,0,.05)); }
         .mateu-nav-item--active { color: var(--lumo-primary-text-color, #1676f3); font-weight: 600; }
+        /* a remote section whose remote did not answer: there, dimmed, its tooltip says why */
+        .mateu-nav-unavailable { opacity: .55; cursor: help; }
         .mateu-nav-group { position: relative; }
         .mateu-nav-group > summary { list-style: none; cursor: pointer; padding: .5rem .8rem; border-radius: var(--lumo-border-radius-m, 6px); white-space: nowrap; }
         .mateu-nav-group > summary::-webkit-details-marker { display: none; }

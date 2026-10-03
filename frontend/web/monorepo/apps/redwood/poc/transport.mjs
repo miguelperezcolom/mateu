@@ -24,7 +24,7 @@ export async function callMateu(base, body, options = {}) {
       ...body,
       route: bare ? `/${bare}` : '',
     }),
-  }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet })
+  }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated })
   return res.json()
 }
 
@@ -505,11 +505,12 @@ export async function expandRemoteMenus(menu) {
         consumedRoute: '_empty',
         initiatorComponentId: (option.baseUrl || '') + '#' + (option.route || ''),
         parameters: option.params || {},
-      })
+        // su fallo es el de SU sección: sin banda de error ni "sin conexión" para toda la app
+      }, { quiet: true, isolated: true, timeoutMillis: 20000 })
       const app = appMenuOf(increment)
       if (app) answers.set(option, app)
     } catch (e) {
-      // Ya reportado por el transporte. Aquí solo se decide no propagarlo.
+      // Silencioso a propósito (quiet/isolated): la sección se queda no disponible (spliceRemote).
     }
   }))
   return spliceRemote(menu, answers)

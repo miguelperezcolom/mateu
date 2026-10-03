@@ -91,7 +91,7 @@ describe('the navigation tree', () => {
         // nothing to learn: the same array
         expect(withPrefixesFromHome(menu, '/_forms', '/forms/tasks')).toBe(menu)
         expect(withPrefixesFromHome(menu, undefined, '/x')).toBe(menu)
-        expect(withPrefixesFromHome(menu, '/_workflow-admin', '_no_home_route')).toBe(menu)
+        expect(withPrefixesFromHome(menu, '/_workflow-admin', '/')).toBe(menu)
     })
 
     describe('merging the remotes\' menus', () => {

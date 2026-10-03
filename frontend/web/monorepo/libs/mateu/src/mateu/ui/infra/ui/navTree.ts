@@ -198,14 +198,17 @@ const mapMounts = (menu: MenuOption[], change: (option: MenuOption) => MenuOptio
 }
 
 /**
- * What a deep link already says about the remote sections. The server mounted the page from one
- * remote (`homeBaseUrl`, at `homeRoute`); when that remote's prefix does not cover the route — the
- * shell named the field after something else — the route's first segment is where its screens live.
- * The same array when there is nothing to learn.
+ * What a deep link already says about the remote sections. The server mounted the page at `path`
+ * from one remote (`homeBaseUrl`); when that remote's prefix does not cover the path — the shell
+ * named the field after something else — the path's first segment is where its screens live. The
+ * same array when there is nothing to learn.
+ *
+ * <p>The browser's path, not the app's `homeRoute`: that one is the route WITHIN the remote, which
+ * may have had the remote's own root stripped.
  */
-export function withPrefixesFromHome(menu: MenuOption[], homeBaseUrl: string | undefined, homeRoute: string | undefined): MenuOption[] {
-    const route = normRoute(homeRoute)
-    if (!homeBaseUrl || !route || route === '/' || route.includes('_no_home_route')) return menu
+export function withPrefixesFromHome(menu: MenuOption[], homeBaseUrl: string | undefined, path: string | undefined): MenuOption[] {
+    const route = normRoute(path)
+    if (!homeBaseUrl || !route || route === '/') return menu
     const segment = '/' + route.split('/')[1]
     return mapMounts(menu, option =>
         option.baseUrl === homeBaseUrl && !routeCovers(mountPrefix(option), route)

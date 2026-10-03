@@ -1327,6 +1327,17 @@ atest('un pod que no contesta deja su rótulo y no tumba a los demás', async ()
   } finally { globalThis.fetch = original }
 })
 
+atest('un pod caído no dice nada de la conexión: no hay banda de "sin conexión" por él', async () => {
+  const original = globalThis.fetch
+  connectivity.reset()
+  globalThis.fetch = async () => { throw new TypeError('Failed to fetch') }
+  try {
+    const menu = await expandRemoteMenus([{ remote: true, baseUrl: 'http://localhost:8099/offline', route: '', path: '/offline', label: 'Offline' }])
+    assert.equal(menu[0].unavailable, true)
+    assert.equal(connectivity.isOnline(), true, 'un pod que no contesta marcaba toda la app sin conexión')
+  } finally { globalThis.fetch = original; connectivity.reset() }
+})
+
 atest('el rótulo que la shell declaró manda sobre el del pod', async () => {
   const original = globalThis.fetch
   globalThis.fetch = async (url) => ({ ok: true, json: async () => String(url).indexOf('/_booking') === 0

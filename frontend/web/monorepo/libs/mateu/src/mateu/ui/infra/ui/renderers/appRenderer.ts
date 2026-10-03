@@ -51,7 +51,7 @@ const renderContextSelectors = (metadata: App, container: MateuApp) => {
 // button; an item with children is a native <details> dropdown (no component state needed). Reuses the
 // existing itemSelected handler directly (onSelect(item)).
 const navLeaf = (item: MenuBarItem, onSelect: (item: MenuBarItem) => void) => html`
-    <button class="mateu-nav-item ${(item as { selected?: boolean }).selected ? 'mateu-nav-item--active' : ''}"
+    <button class="mateu-nav-item ${(item as { selected?: boolean }).selected ? 'mateu-nav-item--active' : ''} ${item.className ?? ''}"
             ?disabled="${item.disabled}"
             title="${(item as { title?: string }).title ?? nothing}"
             @click="${() => onSelect(item)}">${item.text}</button>`

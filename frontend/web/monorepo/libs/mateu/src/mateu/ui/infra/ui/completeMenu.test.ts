@@ -5,6 +5,7 @@ import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMe
 import { AppVariant } from '@mateu/shared/apiClients/dtos/componentmetadata/AppVariant'
 import { autoTrail } from './breadcrumbTrail'
 import { activeTopIndex } from './navTree'
+import { retryUnavailableMenus } from './remoteMenuRetry'
 
 const published: unknown[] = []
 vi.mock('@domain/state', () => ({
@@ -31,6 +32,8 @@ vi.mock('@infra/http/AxiosMateuApiClient.ts', () => ({
  * label wins when it declares one, the user's place is known before any remote answers, hidden
  * sections still give breadcrumbs, and the variant is the app's own.
  */
+const elements: any[] = []
+
 const elementWith = (menu: unknown[], extra: Record<string, unknown> = {}) => {
     const app = { type: ComponentMetadataType.App, menu, variant: AppVariant.MENU_ON_LEFT, ...extra } as any
     const clientSideComponent = { id: 'app', type: ComponentType.ClientSide, metadata: app, children: [] } as any
@@ -45,6 +48,7 @@ const elementWith = (menu: unknown[], extra: Record<string, unknown> = {}) => {
         askRemotes: proto.askRemotes,
         remoteAppOf: proto.remoteAppOf,
     } as any
+    elements.push(element)
     return { element, clientSideComponent, app }
 }
 
@@ -76,6 +80,9 @@ describe('completeMenu', () => {
     })
 
     afterEach(() => {
+        // the elements of a finished test are gone: their pending retries must not ask anything
+        elements.splice(0).forEach(element => { element.isConnected = false })
+        retryUnavailableMenus()
         vi.useRealTimers()
         delete (globalThis as any).window
     })
@@ -132,6 +139,8 @@ describe('completeMenu', () => {
         await settle()
 
         expect(runAction).toHaveBeenCalledTimes(2)
+        // quietly: a remote that fails is its section's problem — no toast, no "no connection"
+        expect(runAction.mock.calls[0][11]).toMatchObject({ quiet: true })
     })
 
     /**
@@ -260,6 +269,29 @@ describe('completeMenu', () => {
         expect(labels(menu[0].submenus)).toEqual(['List'])
     })
 
+    it('asks a failed remote again at once when the user clicks its section', async () => {
+        vi.useFakeTimers()
+        const { element, clientSideComponent } = elementWith([remote('/_erp', 'ERP', { shellLabel: true })])
+        let up = false
+        runAction.mockImplementation((baseUrl: string) => !up
+            ? Promise.reject(new Error('503'))
+            : Promise.resolve(remoteAnswer(baseUrl, '', [{ label: 'ERP', route: '/erp', submenus: [{ label: 'List', route: '/erp/list' }] }])))
+
+        element.completeMenu(appFragment(clientSideComponent))
+        await settle()
+        up = true
+        runAction.mockClear()
+
+        retryUnavailableMenus() // what a click on the unavailable section does
+        await settle()
+
+        expect(runAction).toHaveBeenCalledTimes(1)
+        expect(labels((clientSideComponent.metadata as any).menu[0].submenus)).toEqual(['List'])
+        // and the timer it replaced does not ask a second time
+        await vi.advanceTimersByTimeAsync(ConnectedElement.remoteRetryDelays[0])
+        expect(runAction).toHaveBeenCalledTimes(1)
+    })
+
     // ── whose label ─────────────────────────────────────────────────────────────────────────
 
     it('keeps the label the shell declared over the one the remote answers with', async () => {
@@ -333,8 +365,10 @@ describe('completeMenu', () => {
     it('learns a section\'s prefix from the deep link it was mounted for', () => {
         // The control console's `workflowAdmin` serves /workflow/...: nothing in the field says so,
         // but the server mounted /workflow/definitions from /_workflow-admin, and said so.
+        ;(globalThis as any).window = { location: { pathname: '/workflow/definitions' } }
         const { element, clientSideComponent } = elementWith([
             remote('/_workflow-admin', 'Workflow', { shellLabel: true, path: '/workflowAdmin', routePrefix: '/workflowAdmin' }),
+            remote('/remote', 'Remote', { shellLabel: true, path: '/remote', routePrefix: '/remote' }),
         ], { homeBaseUrl: '/_workflow-admin', homeRoute: '/workflow/definitions' })
         runAction.mockImplementation(() => new Promise(() => {}))
 
@@ -344,6 +378,23 @@ describe('completeMenu', () => {
         expect(activeTopIndex(menu, '/workflow/definitions')).toBe(0)
         expect(autoTrail(menu, '/workflow/definitions', { title: 'Definitions' })).toEqual([
             { text: 'Workflow' }, { text: 'Definitions' },
+        ])
+    })
+
+    it('leaves a prefix alone when it already covers the deep link (the remote stripped its own root)', () => {
+        // A remote at @UI("/remote") is mounted at homeRoute "/page" — its route within itself.
+        ;(globalThis as any).window = { location: { pathname: '/remote/page' } }
+        const { element, clientSideComponent } = elementWith([
+            remote('/remote', 'Remote', { shellLabel: true, path: '/remote', routePrefix: '/remote' }),
+        ], { homeBaseUrl: '/remote', homeRoute: '/page' })
+        runAction.mockImplementation(() => new Promise(() => {}))
+
+        element.completeMenu(appFragment(clientSideComponent))
+
+        const menu = (clientSideComponent.metadata as any).menu
+        expect(menu[0].routePrefix).toBe('/remote')
+        expect(autoTrail(menu, '/remote/page', { title: 'Remote Page' })).toEqual([
+            { text: 'Remote' }, { text: 'Remote Page' },
         ])
     })
 
