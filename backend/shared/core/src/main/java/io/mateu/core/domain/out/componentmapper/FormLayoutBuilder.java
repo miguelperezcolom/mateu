@@ -232,7 +232,7 @@ class FormLayoutBuilder {
       var instanceType = instance instanceof Class ? (Class<?>) instance : instance.getClass();
       content.add(
           TabLayout.builder()
-              .id("_tabs")
+              .id(tabLayoutId(prefix, instanceType, fieldsPerTab.get(0).second().get(0)))
               .style("width: 100%;" + style)
               .groupRelationship(io.mateu.uidl.data.GroupRelationship.alternative)
               .adaptable(LayoutInference.enabled(instanceType))
@@ -263,5 +263,26 @@ class FormLayoutBuilder {
               .build());
     }
     return VerticalLayout.builder().content(content).style("width: 100%;").build();
+  }
+
+  /**
+   * Id of the {@link TabLayout} a run of {@code @Tab} fields groups into. The top-level strip keeps
+   * the historical {@code _tabs}. A strip of a nested form (a {@code @Tab} field whose type has its
+   * own {@code @Tab} fields) is scoped by the field prefix of that form ({@code inner-_tabs}), and
+   * a further strip at the same level (another {@code @Section} with {@code @Tab} fields) by its
+   * first field — so nested and sibling strips never share an id, and the id stays stable across
+   * requests (it depends only on the declared fields, never on labels or values).
+   */
+  static String tabLayoutId(String prefix, Class<?> type, Field firstField) {
+    var base = (prefix == null ? "" : prefix) + "_tabs";
+    var firstTabbed =
+        io.mateu.core.infra.reflection.read.AllEditableFieldsProvider.getAllEditableFields(type)
+            .stream()
+            .filter(field -> MetaAnnotations.isPresent(field, Tab.class))
+            .findFirst();
+    if (firstTabbed.isEmpty() || firstTabbed.get().equals(firstField)) {
+      return base;
+    }
+    return base + "-" + firstField.getName();
   }
 }
