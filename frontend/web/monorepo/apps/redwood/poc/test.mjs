@@ -47,6 +47,7 @@ import {
   wizardStepViewOf, isRichAtom, validationOf, formErrorsOf, selectPlaceholder,
   backToolbarButton, pageToolbarOf, declaredActionOf, actionTransportOf, overlayTransportOf, confirmationOf,
   awaitConfirmation, answerConfirmation, queryFiltersOf, formLookupsOf, markLookupsLoaded, filtersOf, LOOKUP_LOADED,
+  searchableIdsOf, searchableChipsOf, searchPickerOf, pickerSearchStateOf, withContextState, withSearchableIds,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -3671,4 +3672,129 @@ test('breadcrumbs: summarizeHost lleva el rastro; @NoBreadcrumbs en página o sh
   assert.deepEqual(summarizeHost(regOf({}), '/booking/bookings/QN29HB').trail.map((c) => c.text), ['Call center', 'Reservas', 'QN29HB'])
   assert.deepEqual(summarizeHost(regOf({ noBreadcrumbs: true }), '/booking/bookings/QN29HB').trail, [])
   assert.deepEqual(summarizeHost(regOf({}, { noBreadcrumbs: true }), '/booking/bookings/QN29HB').trail, [])
+})
+
+// ── @Searchable: chips + el selector en un diálogo (fixtures/real/searchable-multi-*, capturados
+//    contra demo/demo-admin-panel Page 5: un List<String> hotelIds y un String hotelId) ─────────
+
+const searchableHost = () => {
+  const form = fx('searchable-multi-form')
+  form.fragments[0].targetComponentId = '' // la carga del host
+  return reduceContexts(empty(), form)
+}
+
+test('@Searchable: un campo de varios ids son chips rotulados + «Add» que abre su selector', () => {
+  const reg = searchableHost()
+  const host = reg.contexts[HOST_ID]
+  const fields = fieldListOf(host.tree, host.state, host.data)
+  const multi = fields.find((f) => f.fieldId === 'hotelIds')
+  assert.ok(multi.isSearchable && multi.isSearchableMulti)
+  assert.equal(multi.isText, false)
+  assert.equal(multi.actionId, 'codesearch-hotelIds')
+  assert.deepEqual(multi.chips.map((c) => [c.id, c.label, c.remaining]), [['3', 'Hotel 3', []]])
+  assert.equal(multi.addLabel, 'Add')
+  // el de un solo id: sin chip mientras está vacío, «Search»
+  const single = fields.find((f) => f.fieldId === 'hotelId')
+  assert.ok(single.isSearchable && !single.isSearchableMulti)
+  assert.equal(single.hasChips, false)
+  assert.equal(single.addLabel, 'Search')
+  // las secciones del formulario los llevan igual
+  assert.ok(formSectionsOf(host.tree, host.state, host.data)[0].fields.some((f) => f.fieldId === 'hotelIds' && f.isSearchable))
+})
+
+test('@Searchable: el chip de un id sin rótulo es el id; uno simple lleva el rótulo de <campo>-label', () => {
+  const chips = searchableChipsOf('ids', ['a', 7], { a: 'Alpha' }, { multi: true })
+  assert.deepEqual(chips.map((c) => c.label), ['Alpha', '7'])
+  assert.deepEqual(chips[0].remaining, [7])
+  assert.equal(chips[0].removeLabel, 'Remove Alpha')
+  const single = searchableChipsOf('id', ['h2'], null, { singleLabel: 'Hotel Two' })
+  assert.deepEqual(single.map((c) => [c.label, c.remaining]), [['Hotel Two', null]])
+  assert.equal(searchableChipsOf('ids', ['a'], {}, { multi: true, readonly: true })[0].removable, false)
+  assert.deepEqual(searchableIdsOf(null), [])
+  assert.deepEqual(searchableIdsOf('x'), ['x'])
+  assert.deepEqual(searchableIdsOf(['x', null, '']), ['x'])
+})
+
+test('@Searchable: codesearch abre el SELECTOR (no el modal de decisión): multi, sin la columna «Select», título del campo', () => {
+  let reg = searchableHost()
+  reg = reduceContexts(reg, fx('searchable-multi-open'))
+  assert.equal(reg.stack.length, 1)
+  assert.equal(reg.contexts[reg.stack[0]].opener, HOST_ID)
+  const picker = searchPickerOf(reg)
+  assert.ok(picker)
+  assert.equal(picker.multi, true)
+  assert.deepEqual(picker.selectionMode, { row: 'multiple' })
+  assert.equal(picker.title, 'Hotel ids')
+  assert.deepEqual(picker.columns.map((c) => c.id), ['id', 'name', 'address'])
+  assert.equal(picker.addLabel, 'Add selected')
+  assert.equal(picker.addActionId, 'action-on-row-select-selected')
+  assert.equal(picker.pickActionId, 'action-on-row-select')
+  assert.equal(picker.rows.length, 0) // las filas llegan con su `search`
+  // su búsqueda va a SU ServerSide (el selector), con su estado
+  const transport = overlayTransportOf(reg, 'search')
+  assert.equal(transport.tree.serverSideType, 'io.mateu.mdd.demoadminpanel.infra.in.ui.HotelSelector')
+  assert.equal(transport.state._searchableMulti, true)
+  assert.deepEqual(pickerSearchStateOf(picker, { searchText: 'Ho' }), { searchText: 'Ho', page: 0, size: 10 })
+  // un overlay que no es un selector no es un picker
+  assert.equal(searchPickerOf(reduceContexts(reduceContexts(empty(), fx('load-listing')), fx('open-drawer'))), null)
+})
+
+test('@Searchable: la búsqueda del selector llena SUS filas (data-only a su id)', () => {
+  let reg = searchableHost()
+  reg = reduceContexts(reg, fx('searchable-multi-open'))
+  reg = reduceContexts(reg, fx('searchable-multi-search'))
+  const picker = searchPickerOf(reg)
+  assert.equal(picker.rows.length, 30)
+  assert.equal(picker.rows[0].name, 'Hotel 1')
+  assert.equal(reg.contexts[HOST_ID].state.hotelIds[0], '3') // el host, intacto
+})
+
+test('@Searchable: «Add selected» devuelve al host los ids fusionados y sus rótulos, y cierra el selector', () => {
+  let reg = searchableHost()
+  reg = reduceContexts(reg, fx('searchable-multi-open'))
+  reg = reduceContexts(reg, fx('searchable-multi-search'))
+  reg = reduceContexts(reg, fx('searchable-multi-add'))
+  assert.deepEqual(reg.stack, [])
+  assert.equal(searchPickerOf(reg), null)
+  const host = reg.contexts[HOST_ID]
+  assert.deepEqual(host.state.hotelIds, ['3', '1', '5'])
+  assert.equal(host.data['hotelIds-labels']['5'], 'Hotel 5')
+  assert.deepEqual(reg.effects.events, []) // no siguen al bus
+  const multi = fieldListOf(host.tree, host.state, host.data).find((f) => f.fieldId === 'hotelIds')
+  assert.deepEqual(multi.chips.map((c) => c.label), ['Hotel 3', 'Hotel 1', 'Hotel 5'])
+})
+
+test('@Searchable: un clic de fila añade esa fila', () => {
+  let reg = searchableHost()
+  reg = reduceContexts(reg, fx('searchable-multi-open'))
+  reg = reduceContexts(reg, fx('searchable-multi-pick'))
+  assert.deepEqual(reg.contexts[HOST_ID].state.hotelIds, ['3', '1', '5', '7'])
+  assert.deepEqual(reg.stack, [])
+})
+
+test('@Searchable: quitar un chip rehace los chips de la proyección sin ir al servidor; el borrador se funde al abrir', () => {
+  const reg = searchableHost()
+  const host = reg.contexts[HOST_ID]
+  const sections = formSectionsOf(host.tree, { ...host.state, hotelIds: ['3', '9'] }, { ...host.data, 'hotelIds-labels': { 3: 'Hotel 3', 9: 'Hotel 9' } })
+  const after = withSearchableIds(sections, 'hotelIds', ['9'])
+  const field = after[0].fields.find((f) => f.fieldId === 'hotelIds')
+  assert.deepEqual(field.chips.map((c) => [c.id, c.label]), [['9', 'Hotel 9']])
+  // lo demás, intacto
+  assert.equal(after[0].fields.length, sections[0].fields.length)
+  const merged = withContextState(reg, HOST_ID, { hotelId: '2' })
+  assert.equal(merged.contexts[HOST_ID].state.hotelId, '2')
+  assert.deepEqual(merged.contexts[HOST_ID].state.hotelIds, ['3'])
+  assert.equal(withContextState(reg, HOST_ID, {}), reg)
+})
+
+test('@Searchable: la vista de detalle (<campo>-label, sólo lectura) se pinta como texto', () => {
+  const field = layoutFieldOf({ fieldId: 'hotelIds-label', dataType: 'array', stereotype: 'searchable', readOnly: true, label: 'Hotels' },
+    {}, { 'hotelIds-label': 'Hotel 3, Hotel 5' })
+  assert.equal(field.isText, true)
+  assert.equal(field.readonly, true)
+  assert.equal(field.value, 'Hotel 3, Hotel 5')
+  assert.equal(field.isSearchable, undefined)
+  const tree = { type: 'ServerSide', children: [{ metadata: { type: 'FormField', fieldId: 'hotelIds-label', dataType: 'array', stereotype: 'searchable', readOnly: true, label: 'Hotels' } }] }
+  const listed = fieldListOf(tree, {}, { 'hotelIds-label': 'Hotel 3, Hotel 5' })
+  assert.deepEqual(listed.map((f) => [f.isText, f.value]), [[true, 'Hotel 3, Hotel 5']])
 })

@@ -10,7 +10,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -29,7 +28,7 @@ public class ValueWriter {
       } else {
         if (v instanceof Collection) {
           if (v instanceof List) v = new ArrayList((Collection) v);
-          else if (v instanceof Set) v = new HashSet((Collection) v);
+          else if (v instanceof Set) v = new java.util.LinkedHashSet((Collection) v);
         }
 
         Field f = getFieldByName(o.getClass(), fn);
