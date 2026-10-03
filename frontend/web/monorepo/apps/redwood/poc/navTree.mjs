@@ -59,6 +59,19 @@ export function labelledByShell(entries, option) {
   return entries
 }
 
+/**
+ * HAMBURGER_SECTIONS: lo que contesta un pod montado en el primer nivel es UNA sección. Un grupo
+ * ya lo es; varias entradas, o una sola pantalla, pasan a ser las entradas de una sección con el
+ * rótulo (y el path) que la shell dio al montaje —pegarlas haría de cada pantalla del pod una
+ * sección, y la subcabecera no tendría nada que enseñar—. Port de mergeRemoteMenus de navTree.ts.
+ */
+export function asSection(entries, option) {
+  const list = entries || []
+  const oneGroup = list.length === 1 && ((list[0].submenus || list[0].submenu || []).length > 0)
+  if (oneGroup || !list.length) return list
+  return [{ label: option.label, icon: option.icon, path: option.path, route: '', visible: option.visible, submenus: list }]
+}
+
 /** Las entradas de una sección oculta: no se pintan a ninguna profundidad, pero siguen en el árbol. */
 export function markHidden(entries) {
   return entries.map((option) => {
@@ -105,13 +118,23 @@ export function sectionRoutes(option, node) {
  * su id, o null si la ruta no cuelga de ninguna — la home, p. ej. Gana la ruta más larga: una
  * sección no se queda con las pantallas de otra porque su prefijo sea más corto.
  */
+function nodeRoutes(node, out = []) {
+  if (!node) return out
+  const route = navRoute(node.id)
+  if (route && route !== '/') out.push(route)
+  for (const child of node.children || []) nodeRoutes(child, out)
+  return out
+}
+
 export function activeSectionOf(sections, current) {
   const path = navRoute(current)
   if (!path || path === '/') return null
   let best = null
   let length = 0
   for (const section of sections || []) {
-    for (const route of section.routes || []) {
+    // una sección de primer nivel trae sus rutas (sectionRoutes); un ítem del segundo nivel
+    // (HAMBURGER_SECTIONS) no: valen los ids de lo que cuelga de él
+    for (const route of section.routes || nodeRoutes(section)) {
       if (routeCovers(route, path) && route.length > length) {
         best = section.id
         length = route.length
@@ -121,11 +144,32 @@ export function activeSectionOf(sections, current) {
   return best
 }
 
-/**
- * El acento de marca del App (@App(accentColor)) si es un color CSS reconocible —la misma
- * comprobación que applyAccent del renderer web—; si no, vacío (sin línea ni título en color).
+
+/*
+ * HAMBURGER_SECTIONS (al estilo de Opera Cloud): el primer nivel del menú son las SECCIONES, en la
+ * hamburguesa; la subcabecera lleva el segundo nivel de la sección en pantalla (un grupo, en
+ * desplegable: el tercer nivel). Port de activeSection/sectionHome de navTree.ts, sobre los nodos ya
+ * proyectados por shellNavOf (id, children, disabled; lo oculto ya no está).
  */
-export function accentColorOf(value) {
-  const accent = String(value == null ? '' : value).trim()
-  return accent && /^[#\w\s(),.%-]+$/.test(accent) ? accent : ''
+
+/**
+ * Adónde lleva elegir una sección: la propia sección si es una pantalla, si no su primera entrada
+ * que se pueda abrir, en profundidad —la home de la sección, como en Opera—. null si no hay nada
+ * que abrir (una sección remota que no contestó).
+ */
+export function sectionHomeOf(node) {
+  if (!node || node.disabled) return null
+  const children = node.children || []
+  if (!children.length) return node.id || null
+  for (const child of children) {
+    const home = sectionHomeOf(child)
+    if (home) return home
+  }
+  return null
+}
+
+/** El nodo de la sección en pantalla (activeSectionOf), o null —la home, p. ej.—. */
+export function sectionOf(sections, current) {
+  const id = activeSectionOf(sections, current)
+  return id == null ? null : ((sections || []).find((section) => section.id === id) || null)
 }

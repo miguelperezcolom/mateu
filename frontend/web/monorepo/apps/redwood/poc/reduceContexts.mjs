@@ -1,5 +1,5 @@
 import { autoTrail } from './breadcrumbs.mjs'
-import { accentColorOf, sectionRoutes } from './navTree.mjs'
+import { sectionHomeOf, sectionRoutes } from './navTree.mjs'
 // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
 // En la app VB estas funciones serían métodos de app-flow.js; aquí son funciones
 // libres para testearlas en Node.
@@ -922,6 +922,8 @@ export function shellNavOf(reg) {
     if (node.hasChildren) hasGroups = true
     // las rutas que cubre la sección: con ellas se marca la que está en pantalla (activeSectionOf)
     node.routes = sectionRoutes(option, node)
+    // HAMBURGER_SECTIONS: adónde lleva elegir la sección en la hamburguesa (su primera pantalla)
+    node.home = sectionHomeOf(node)
     menuTree.push(node)
   }
   // la VARIANTE del wire manda: TABS → in-app navigation; HAMBURGUER_MENU/TILES →
@@ -930,16 +932,32 @@ export function shellNavOf(reg) {
   // consola y las opciones de primer nivel (dropdown oj-menu para los grupos), como la banda 2
   // del renderer web; TABS con grupos (no caben en la barra inferior) → esas mismas opciones
   // dentro de la cabecera oscura (topbar)
+  // HAMBURGER_SECTIONS (Opera Cloud) → SECCIONES: la hamburguesa abre un drawer con el primer
+  // nivel (sólo las secciones) y la subcabecera lleva el segundo nivel de la sección en pantalla.
+  // HAMBURGER_MENU es la grafía correcta de HAMBURGUER_MENU (el servidor manda la vieja; una
+  // definición que llegue sin pasar por él puede traer la nueva).
   let mode = 'tabs'
-  if (shell.variant === 'HAMBURGUER_MENU' || shell.variant === 'TILES') mode = 'drawer'
+  if (shell.variant === 'HAMBURGUER_MENU' || shell.variant === 'HAMBURGER_MENU' || shell.variant === 'TILES') mode = 'drawer'
+  else if (shell.variant === 'HAMBURGER_SECTIONS') mode = 'sections'
   else if (shell.variant === 'MENU_ON_TOP') mode = 'subheader'
   else if (hasGroups) mode = 'topbar'
   return {
     mode,
     title: shell.title || '',
-    accentColor: accentColorOf(shell.accentColor),
     items,
     menuTree,
+    // la lista de la hamburguesa en modo secciones: cada sección, sin lo que cuelga de ella; su id
+    // es su home (lo que navega al elegirla) y `section` el de la sección (lo que se marca)
+    sections: menuTree.map((node) => ({
+      id: node.home || node.id,
+      section: node.id,
+      label: node.label,
+      icon: node.icon,
+      disabled: node.disabled || !node.home,
+      hint: node.hint,
+      hasChildren: false,
+      children: [],
+    })),
     selectors: (shell.appContext || []).map((selector) => ({
       fieldName: selector.fieldName,
       label: selector.label || selector.fieldName,
@@ -3114,8 +3132,6 @@ export function reduceContexts(reg, increment, opts = {}) {
         appContext: md.contextSelectors || [],
         headerActions: md.contextActions || [],
         themeToggle: md.themeToggle,
-        // el acento de marca (@App(accentColor)): la línea bajo la subcabecera y el título de la consola
-        accentColor: md.accentColor || '',
         // el logo del @App (@Logo, p.ej. /images/riu.svg — relativo al backend)
         logo: md.logo || '',
         // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la

@@ -6,7 +6,7 @@
 import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf } from './reduceContexts.mjs'
 import { fetchWithPolicy, pendingActions, isIdempotentAction } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
-import { labelledByShell, markHidden, unavailableMount } from './navTree.mjs'
+import { asSection, labelledByShell, markHidden, unavailableMount } from './navTree.mjs'
 
 /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction). */
 export async function callMateu(base, body, options = {}) {
@@ -510,7 +510,7 @@ function adoptRemote(menu, option, app) {
   }
 }
 
-function spliceRemote(menu, answers) {
+function spliceRemote(menu, answers, sections = false, depth = 0) {
   const out = []
   for (const option of menu || []) {
     if (option.remote) {
@@ -533,15 +533,18 @@ function spliceRemote(menu, answers) {
       }
       if (app) {
         adoptRemote(app.menu, option, app)
-        // el rótulo que la shell declaró manda sobre el del pod (navTree.mjs)
-        out.push(...labelledByShell(app.menu, option))
+        // HAMBURGER_SECTIONS: un pod montado en el primer nivel es UNA sección conteste lo que
+        // conteste (asSection, navTree.mjs); si no, el rótulo que la shell declaró manda sobre el
+        // del pod
+        const entries = sections && depth === 0 ? asSection(app.menu, option) : app.menu
+        out.push(...labelledByShell(entries, option))
       } else {
         // El pod no contestó. Se queda la sección, deshabilitada y diciendo por qué: una sección
         // vacía se entiende, una que desaparece parece que nunca existió.
         out.push(unavailableMount(option))
       }
     } else if (childrenOf(option).length) {
-      out.push({ ...option, submenus: spliceRemote(childrenOf(option), answers) })
+      out.push({ ...option, submenus: spliceRemote(childrenOf(option), answers, sections, depth + 1) })
     } else {
       out.push(option)
     }
@@ -553,9 +556,10 @@ function spliceRemote(menu, answers) {
  * Pide a cada pod su menú y lo pone donde estaba su opción.
  *
  * En paralelo, y un pod que falle no tumba al resto: su sección se queda como estaba en vez de
- * llevarse por delante las que sí contestaron.
+ * llevarse por delante las que sí contestaron. Con `sections` (HAMBURGER_SECTIONS) cada pod
+ * montado en el primer nivel queda como una sola sección (asSection).
  */
-export async function expandRemoteMenus(menu) {
+export async function expandRemoteMenus(menu, { sections = false } = {}) {
   const remotes = collectRemoteMenus(menu)
   if (!remotes.length) return menu
   const answers = new Map()
@@ -575,5 +579,5 @@ export async function expandRemoteMenus(menu) {
       // Silencioso a propósito (quiet/isolated): la sección se queda no disponible (spliceRemote).
     }
   }))
-  return spliceRemote(menu, answers)
+  return spliceRemote(menu, answers, sections)
 }

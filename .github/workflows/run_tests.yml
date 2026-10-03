@@ -143,6 +143,7 @@ jobs:
           java -jar e2e/sut/apps/helidon-app1/target/helidon-app1.jar > /tmp/helidon-app1.log 2>&1 &
           java -jar e2e/sut/apps/fed-remote-app/target/fed-remote-app-1.0.0-SNAPSHOT.jar > /tmp/fed-remote-app.log 2>&1 &
           java -jar e2e/sut/apps/fed-shell-app/target/fed-shell-app-1.0.0-SNAPSHOT.jar > /tmp/fed-shell-app.log 2>&1 &
+          java -jar e2e/sut/apps/fed-sections-app/target/fed-sections-app-1.0.0-SNAPSHOT.jar > /tmp/fed-sections-app.log 2>&1 &
 
       - name: Wait for SUT apps to be ready
         run: |
@@ -169,7 +170,7 @@ jobs:
           }
           for port in 8080 8081 8082 8083 8086; do wait_port "$port" ok; done
           # the federation apps answer 404 on / — any HTTP response means they are up
-          for port in 8084 8085; do wait_port "$port" any; done
+          for port in 8084 8085 8087; do wait_port "$port" any; done
 
       - name: Dump SUT logs on failure
         if: failure()

@@ -41,6 +41,11 @@ define([
         chain: 'onMateuNavigate',
         params: { event: { detail: { currentId: route } } },
       });
+      // …salvo con HAMBURGER_SECTIONS: la hamburguesa es para saltar de sección, y una vez elegida
+      // se cierra (como en Opera); dentro de la sección se navega por la subcabecera
+      if ($application.variables.mateuMenuSections) {
+        await Actions.callChain(context, { chain: 'toggleMateuNavDrawer', params: { open: false } });
+      }
     }
   }
 

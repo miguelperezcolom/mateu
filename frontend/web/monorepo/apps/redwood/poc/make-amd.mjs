@@ -131,7 +131,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     shellNavOf,
     // la subcabecera MENU_ON_TOP: la sección en pantalla y el acento de marca del App
     activeSectionOf,
-    accentColorOf,
+    sectionOf,
+    sectionHomeOf,
     ojIconOf,
     ojIconOrGenericOf,
     longTaskWatcher,

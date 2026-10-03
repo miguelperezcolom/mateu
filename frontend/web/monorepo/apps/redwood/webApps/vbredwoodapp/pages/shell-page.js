@@ -9,6 +9,30 @@ define(['resources/js/mateu-bridge'], (bridge) => {
      * sección es la que está en pantalla (bridge.activeSectionOf). Recibe la ruta seleccionada para
      * que el binding se reevalúe con cada navegación.
      */
+    /**
+     * Las opciones de la subcabecera: el primer nivel (MENU_ON_TOP) o, con HAMBURGER_SECTIONS, el
+     * segundo nivel de la sección en pantalla —la hamburguesa lleva las secciones—. Sin sección en
+     * pantalla (la home) la banda se queda vacía.
+     */
+    subheaderItemsOf(tree, selectedRoute, sectionsMode) {
+      if (!sectionsMode) return tree || [];
+      const section = bridge.sectionOf(tree, selectedRoute);
+      return section ? (section.children || []) : [];
+    }
+
+    /** El título de la subcabecera: el de la consola, o con HAMBURGER_SECTIONS el de la sección. */
+    subheaderTitleOf(title, tree, selectedRoute, sectionsMode) {
+      if (!sectionsMode) return title || '';
+      const section = bridge.sectionOf(tree, selectedRoute);
+      return section ? section.label : '';
+    }
+
+    /** HAMBURGER_SECTIONS: la entrada marcada en la lista de secciones (su id es la home). */
+    sectionListSelection(tree, selectedRoute) {
+      const section = bridge.sectionOf(tree, selectedRoute);
+      return section ? (section.home || section.id) : '';
+    }
+
     subheaderItemClass(node, tree, selectedRoute) {
       const active = bridge.activeSectionOf(tree, selectedRoute) === node.id;
       return active ? 'mateu-subheader-item mateu-nav-active' : 'mateu-subheader-item';

@@ -10,6 +10,7 @@ import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import {ComponentMetadataType} from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
+import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption.ts";
 import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
 import {
@@ -126,7 +127,9 @@ export default abstract class ConnectedElement extends LitElement {
         // failed one only marks its own section. allSettled, then, only to know when all are in.
         const failed: MenuOption[] = []
         const merge = () => {
-            const navMenu = mergeRemoteMenus(source, answers)
+            // HAMBURGER_SECTIONS: each remote mounted at the top is one section (navTree.mergeRemoteMenus)
+            const sections = (clientSideComponent.metadata as App).variant === AppVariant.HAMBURGER_SECTIONS
+            const navMenu = mergeRemoteMenus(source, answers, undefined, { sections })
             // A NEW metadata object, and nothing else touched.
             //
             // This used to publish the app component back upstream as a Replace targeting this

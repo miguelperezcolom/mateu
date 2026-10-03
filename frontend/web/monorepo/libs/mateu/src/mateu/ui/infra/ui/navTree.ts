@@ -277,10 +277,17 @@ const adopted = (menu: MenuOption[], mount: MenuOption, app: RemoteApp): MenuOpt
  *     <li>A section with no answer at all (not asked) stays as it is.</li>
  * </ul>
  *
+ * <p>With `sections` (HAMBURGER_SECTIONS) a remote mounted at the TOP level is one section
+ * whatever it answers: one group is that section, as above; several entries, or a single page,
+ * become the entries of a section named as the shell named the mount. Pasting them would turn each
+ * of the remote's pages into a section of its own, and the band under the header would have
+ * nothing to show.
+ *
  * <p>Never mutates: groups holding a remote section are new objects, so whatever decides on a
  * reference change (Lit) sees the change.
  */
-export function mergeRemoteMenus(menu: MenuOption[], answers: Map<MenuOption, RemoteAnswer>, lang?: string): MenuOption[] {
+export function mergeRemoteMenus(menu: MenuOption[], answers: Map<MenuOption, RemoteAnswer>, lang?: string,
+                                 options: { sections?: boolean } = {}, depth = 0): MenuOption[] {
     const merged: MenuOption[] = []
     for (const option of menu) {
         if (isMount(option)) {
@@ -296,19 +303,34 @@ export function mergeRemoteMenus(menu: MenuOption[], answers: Map<MenuOption, Re
                 })
             } else {
                 let entries = adopted(answer.app.menu ?? [], option, answer.app)
-                if (option.shellLabel && option.label && entries.length === 1) {
+                const oneGroup = entries.length === 1 && (entries[0].submenus?.length ?? 0) > 0
+                if (options.sections && depth === 0 && !oneGroup && entries.length > 0) {
+                    entries = [asSection(option, entries)]
+                } else if (option.shellLabel && option.label && entries.length === 1) {
                     entries = [{ ...entries[0], label: option.label, icon: option.icon || entries[0].icon }]
                 }
                 merged.push(...(option.visible === false ? markHidden(entries) : entries))
             }
         } else if (option.submenus && option.submenus.length > 0) {
-            merged.push({ ...option, submenus: mergeRemoteMenus(option.submenus, answers, lang) })
+            merged.push({ ...option, submenus: mergeRemoteMenus(option.submenus, answers, lang, options, depth + 1) })
         } else {
             merged.push(option)
         }
     }
     return merged
 }
+
+/** A remote's entries as ONE section, named (and placed, by its path) as the shell named the mount. */
+const asSection = (mount: MenuOption, entries: MenuOption[]): MenuOption => ({
+    label: mount.label,
+    icon: mount.icon,
+    path: mount.path,
+    route: '',
+    separator: false,
+    visible: mount.visible,
+    description: undefined,
+    submenus: entries,
+} as MenuOption)
 
 /**
  * Every remote section in the tree, at whatever depth it sits — hidden ones included (the caller
@@ -347,4 +369,36 @@ export function withoutHidden(menu: MenuOption[]): MenuOption[] {
         kept.push(option)
     }
     return changed ? kept : menu
+}
+
+/**
+ * HAMBURGER_SECTIONS (Opera Cloud style): the menu's top level are the SECTIONS, in the hamburger;
+ * the band under the header holds the second level of the section on screen. These are the two
+ * questions that presentation asks of the tree, answered from the route alone — the same rule as
+ * the active section of every other variant ({@link activeTopIndex}), so a remote section that has
+ * not answered yet is already the active one on a cold load, by its prefix.
+ */
+
+/** The section (top-level option) that holds `path`, or undefined when none does — the home, say. */
+export function activeSection(menu: MenuOption[] | undefined, path: string): MenuOption | undefined {
+    const index = activeTopIndex(menu, path)
+    return Number.isNaN(index) ? undefined : menu![index]
+}
+
+/**
+ * Where choosing a section in the hamburger goes: the section itself when it is a page (a top-level
+ * entry with nothing under it), else its first entry that can be opened, depth first — what Opera
+ * calls the section's home. Hidden entries, separators and remote sections are skipped: there is
+ * nothing to open in them yet. Undefined when there is nothing to open at all (a remote section
+ * that has not answered, or did not).
+ */
+export function sectionHome(section: MenuOption | undefined): MenuOption | undefined {
+    if (!section || section.separator || section.visible === false || isMount(section) || section.unavailable) return undefined
+    const children = section.submenus ?? []
+    if (children.length === 0) return section
+    for (const child of children) {
+        const home = sectionHome(child)
+        if (home) return home
+    }
+    return undefined
 }

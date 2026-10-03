@@ -64,6 +64,19 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return entries
   }
 
+  /**
+   * HAMBURGER_SECTIONS: lo que contesta un pod montado en el primer nivel es UNA sección. Un grupo
+   * ya lo es; varias entradas, o una sola pantalla, pasan a ser las entradas de una sección con el
+   * rótulo (y el path) que la shell dio al montaje —pegarlas haría de cada pantalla del pod una
+   * sección, y la subcabecera no tendría nada que enseñar—. Port de mergeRemoteMenus de navTree.ts.
+   */
+  function asSection(entries, option) {
+    const list = entries || []
+    const oneGroup = list.length === 1 && ((list[0].submenus || list[0].submenu || []).length > 0)
+    if (oneGroup || !list.length) return list
+    return [{ label: option.label, icon: option.icon, path: option.path, route: '', visible: option.visible, submenus: list }]
+  }
+
   /** Las entradas de una sección oculta: no se pintan a ninguna profundidad, pero siguen en el árbol. */
   function markHidden(entries) {
     return entries.map((option) => {
@@ -110,13 +123,23 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    * su id, o null si la ruta no cuelga de ninguna — la home, p. ej. Gana la ruta más larga: una
    * sección no se queda con las pantallas de otra porque su prefijo sea más corto.
    */
+  function nodeRoutes(node, out = []) {
+    if (!node) return out
+    const route = navRoute(node.id)
+    if (route && route !== '/') out.push(route)
+    for (const child of node.children || []) nodeRoutes(child, out)
+    return out
+  }
+
   function activeSectionOf(sections, current) {
     const path = navRoute(current)
     if (!path || path === '/') return null
     let best = null
     let length = 0
     for (const section of sections || []) {
-      for (const route of section.routes || []) {
+      // una sección de primer nivel trae sus rutas (sectionRoutes); un ítem del segundo nivel
+      // (HAMBURGER_SECTIONS) no: valen los ids de lo que cuelga de él
+      for (const route of section.routes || nodeRoutes(section)) {
         if (routeCovers(route, path) && route.length > length) {
           best = section.id
           length = route.length
@@ -126,13 +149,34 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return best
   }
 
-  /**
-   * El acento de marca del App (@App(accentColor)) si es un color CSS reconocible —la misma
-   * comprobación que applyAccent del renderer web—; si no, vacío (sin línea ni título en color).
+
+  /*
+   * HAMBURGER_SECTIONS (al estilo de Opera Cloud): el primer nivel del menú son las SECCIONES, en la
+   * hamburguesa; la subcabecera lleva el segundo nivel de la sección en pantalla (un grupo, en
+   * desplegable: el tercer nivel). Port de activeSection/sectionHome de navTree.ts, sobre los nodos ya
+   * proyectados por shellNavOf (id, children, disabled; lo oculto ya no está).
    */
-  function accentColorOf(value) {
-    const accent = String(value == null ? '' : value).trim()
-    return accent && /^[#\w\s(),.%-]+$/.test(accent) ? accent : ''
+
+  /**
+   * Adónde lleva elegir una sección: la propia sección si es una pantalla, si no su primera entrada
+   * que se pueda abrir, en profundidad —la home de la sección, como en Opera—. null si no hay nada
+   * que abrir (una sección remota que no contestó).
+   */
+  function sectionHomeOf(node) {
+    if (!node || node.disabled) return null
+    const children = node.children || []
+    if (!children.length) return node.id || null
+    for (const child of children) {
+      const home = sectionHomeOf(child)
+      if (home) return home
+    }
+    return null
+  }
+
+  /** El nodo de la sección en pantalla (activeSectionOf), o null —la home, p. ej.—. */
+  function sectionOf(sections, current) {
+    const id = activeSectionOf(sections, current)
+    return id == null ? null : ((sections || []).find((section) => section.id === id) || null)
   }
 
 
@@ -1058,6 +1102,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       if (node.hasChildren) hasGroups = true
       // las rutas que cubre la sección: con ellas se marca la que está en pantalla (activeSectionOf)
       node.routes = sectionRoutes(option, node)
+      // HAMBURGER_SECTIONS: adónde lleva elegir la sección en la hamburguesa (su primera pantalla)
+      node.home = sectionHomeOf(node)
       menuTree.push(node)
     }
     // la VARIANTE del wire manda: TABS → in-app navigation; HAMBURGUER_MENU/TILES →
@@ -1066,16 +1112,32 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     // consola y las opciones de primer nivel (dropdown oj-menu para los grupos), como la banda 2
     // del renderer web; TABS con grupos (no caben en la barra inferior) → esas mismas opciones
     // dentro de la cabecera oscura (topbar)
+    // HAMBURGER_SECTIONS (Opera Cloud) → SECCIONES: la hamburguesa abre un drawer con el primer
+    // nivel (sólo las secciones) y la subcabecera lleva el segundo nivel de la sección en pantalla.
+    // HAMBURGER_MENU es la grafía correcta de HAMBURGUER_MENU (el servidor manda la vieja; una
+    // definición que llegue sin pasar por él puede traer la nueva).
     let mode = 'tabs'
-    if (shell.variant === 'HAMBURGUER_MENU' || shell.variant === 'TILES') mode = 'drawer'
+    if (shell.variant === 'HAMBURGUER_MENU' || shell.variant === 'HAMBURGER_MENU' || shell.variant === 'TILES') mode = 'drawer'
+    else if (shell.variant === 'HAMBURGER_SECTIONS') mode = 'sections'
     else if (shell.variant === 'MENU_ON_TOP') mode = 'subheader'
     else if (hasGroups) mode = 'topbar'
     return {
       mode,
       title: shell.title || '',
-      accentColor: accentColorOf(shell.accentColor),
       items,
       menuTree,
+      // la lista de la hamburguesa en modo secciones: cada sección, sin lo que cuelga de ella; su id
+      // es su home (lo que navega al elegirla) y `section` el de la sección (lo que se marca)
+      sections: menuTree.map((node) => ({
+        id: node.home || node.id,
+        section: node.id,
+        label: node.label,
+        icon: node.icon,
+        disabled: node.disabled || !node.home,
+        hint: node.hint,
+        hasChildren: false,
+        children: [],
+      })),
       selectors: (shell.appContext || []).map((selector) => ({
         fieldName: selector.fieldName,
         label: selector.label || selector.fieldName,
@@ -3250,8 +3312,6 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           appContext: md.contextSelectors || [],
           headerActions: md.contextActions || [],
           themeToggle: md.themeToggle,
-          // el acento de marca (@App(accentColor)): la línea bajo la subcabecera y el título de la consola
-          accentColor: md.accentColor || '',
           // el logo del @App (@Logo, p.ej. /images/riu.svg — relativo al backend)
           logo: md.logo || '',
           // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la
@@ -5791,7 +5851,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     }
   }
 
-  function spliceRemote(menu, answers) {
+  function spliceRemote(menu, answers, sections = false, depth = 0) {
     const out = []
     for (const option of menu || []) {
       if (option.remote) {
@@ -5814,15 +5874,18 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         }
         if (app) {
           adoptRemote(app.menu, option, app)
-          // el rótulo que la shell declaró manda sobre el del pod (navTree.mjs)
-          out.push(...labelledByShell(app.menu, option))
+          // HAMBURGER_SECTIONS: un pod montado en el primer nivel es UNA sección conteste lo que
+          // conteste (asSection, navTree.mjs); si no, el rótulo que la shell declaró manda sobre el
+          // del pod
+          const entries = sections && depth === 0 ? asSection(app.menu, option) : app.menu
+          out.push(...labelledByShell(entries, option))
         } else {
           // El pod no contestó. Se queda la sección, deshabilitada y diciendo por qué: una sección
           // vacía se entiende, una que desaparece parece que nunca existió.
           out.push(unavailableMount(option))
         }
       } else if (childrenOf(option).length) {
-        out.push({ ...option, submenus: spliceRemote(childrenOf(option), answers) })
+        out.push({ ...option, submenus: spliceRemote(childrenOf(option), answers, sections, depth + 1) })
       } else {
         out.push(option)
       }
@@ -5834,9 +5897,10 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    * Pide a cada pod su menú y lo pone donde estaba su opción.
    *
    * En paralelo, y un pod que falle no tumba al resto: su sección se queda como estaba en vez de
-   * llevarse por delante las que sí contestaron.
+   * llevarse por delante las que sí contestaron. Con `sections` (HAMBURGER_SECTIONS) cada pod
+   * montado en el primer nivel queda como una sola sección (asSection).
    */
-  async function expandRemoteMenus(menu) {
+  async function expandRemoteMenus(menu, { sections = false } = {}) {
     const remotes = collectRemoteMenus(menu)
     if (!remotes.length) return menu
     const answers = new Map()
@@ -5856,7 +5920,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         // Silencioso a propósito (quiet/isolated): la sección se queda no disponible (spliceRemote).
       }
     }))
-    return spliceRemote(menu, answers)
+    return spliceRemote(menu, answers, sections)
   }
 
 
@@ -6912,7 +6976,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     shellNavOf,
     // la subcabecera MENU_ON_TOP: la sección en pantalla y el acento de marca del App
     activeSectionOf,
-    accentColorOf,
+    sectionOf,
+    sectionHomeOf,
     ojIconOf,
     ojIconOrGenericOf,
     longTaskWatcher,

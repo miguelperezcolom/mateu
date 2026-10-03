@@ -18,6 +18,7 @@ const TEXTS = {
         chatEmpty: 'Ask whatever you need: about this screen, your data or how to do something.',
         chatPlaceholder: 'Write a message…',
         send: 'Send',
+        sections: 'Sections',
     },
     es: {
         chat: 'Asistente',
@@ -30,6 +31,7 @@ const TEXTS = {
         chatEmpty: 'Pregunta lo que necesites: sobre esta pantalla, tus datos o cómo hacer algo.',
         chatPlaceholder: 'Escribe un mensaje…',
         send: 'Enviar',
+        sections: 'Secciones',
     },
 } as const
 

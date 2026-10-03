@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.mateu.uidl.annotations.App;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.data.Menu;
+import io.mateu.uidl.data.RemoteMenu;
 import io.mateu.uidl.data.RouteLink;
 import io.mateu.uidl.fluent.AppVariant;
 import io.mateu.uidl.interfaces.Actionable;
@@ -115,5 +116,40 @@ class AppMetadataExtractorTest {
             new Menu("/padre", "Padre", List.of(new Menu("Hijo"))), new Menu("Plano"));
     assertThat(AppMetadataExtractor.getVariant(new AutoVariantApp(), menu))
         .isEqualTo(AppVariant.TILES);
+  }
+
+  // ── HAMBURGER_SECTIONS: declared, never chosen (P9, M6) ───────────────────
+
+  @App(AppVariant.HAMBURGER_SECTIONS)
+  static class SectionsApp {}
+
+  @Test
+  void hamburgerSectionsIsKeptWhenDeclaredEvenOverRemoteSections() {
+    var menu =
+        List.<Actionable>of(
+            new RemoteMenu("/_ai").withLabel("IA").withPath("/ai"),
+            new RemoteMenu("/_users").withLabel("Usuarios").withPath("/users"));
+    assertThat(AppMetadataExtractor.getVariant(new SectionsApp(), menu))
+        .isEqualTo(AppVariant.HAMBURGER_SECTIONS);
+  }
+
+  @Test
+  void autoNeverPicksHamburgerSections() {
+    var shapes =
+        List.<List<Actionable>>of(
+            List.of(),
+            List.of(new RouteLink("/a", "A")),
+            List.of(new RemoteMenu("/_ai").withLabel("IA").withPath("/ai")),
+            List.of(new Menu("/padre", "Padre", List.of(new Menu("Hijo"))), new Menu("Plano")),
+            IntStream.rangeClosed(1, 12)
+                .mapToObj(
+                    i ->
+                        (Actionable)
+                            new Menu("/m" + i, "Menu " + i, List.of(new RouteLink("/x" + i, "X"))))
+                .toList());
+    for (var menu : shapes) {
+      assertThat(AppMetadataExtractor.getVariant(new AutoVariantApp(), menu))
+          .isNotEqualTo(AppVariant.HAMBURGER_SECTIONS);
+    }
   }
 }

@@ -443,6 +443,16 @@
       "defaultValue": false,
       "description": "variante MENU_ON_TOP: subcabecera (banda 2) con el título de la consola y las opciones de primer nivel"
     },
+    "mateuMenuSections": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "variante HAMBURGER_SECTIONS: la hamburguesa abre las secciones (primer nivel) y la subcabecera lleva el segundo nivel de la secci\u00f3n en pantalla"
+    },
+    "mateuSectionList": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "HAMBURGER_SECTIONS: las secciones para la lista del drawer ({id: su home, section, label, disabled, hint})"
+    },
     "mateuShellTitle": {
       "type": "string",
       "defaultValue": "",
