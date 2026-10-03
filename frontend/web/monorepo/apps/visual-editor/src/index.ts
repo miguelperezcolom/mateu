@@ -1,14 +1,9 @@
-// Register the shared root renderer element and wire the DS-neutral renderer + notifier.
+// Register the shared root renderer element and wire the DS-neutral renderer + notifier. The canvas
+// may then switch to the Vaadin reference renderer (lazily loaded) — see canvas/canvasRenderer.ts.
 import '@infra/ui/mateu-ux.ts'
-import { componentRenderer } from '@infra/ui/renderers/ComponentRenderer.ts'
-import { BasicComponentRenderer } from '@infra/ui/renderers/BasicComponentRenderer.ts'
-import { registerNeutralNotifier } from '@infra/notify/neutralNotifier.ts'
+import { installNeutralRenderer } from './canvas/canvasRenderer'
 
-/** A concrete DS-neutral renderer (BasicComponentRenderer implements the whole surface). */
-class NeutralRenderer extends BasicComponentRenderer {}
-
-componentRenderer.set(new NeutralRenderer())
-registerNeutralNotifier()
+installNeutralRenderer()
 
 // The editor UI (registers <mateu-visual-editor> and its child panels).
 import './mateu-visual-editor.ts'

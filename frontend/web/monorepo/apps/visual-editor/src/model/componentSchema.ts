@@ -16,6 +16,12 @@ export interface PropSpec {
     /** For `enum`: the allowed values. */
     values?: string[]
     required?: boolean
+    /**
+     * The schema type a `complex` prop points at (e.g. `RestDataSource`, `Actionable`), or — for a
+     * `children` list — the type of its items (`Component`, `UserTrigger`, `Option`). Lets the
+     * properties panel offer a real editor for the few shapes authors touch all the time.
+     */
+    ref?: string
 }
 
 export interface ComponentSpec {
@@ -49,11 +55,11 @@ function groupOf(name: string): string {
     return 'Other'
 }
 
-function propKind(schema: any, def: any): { kind: PropKind; values?: string[] } {
+function propKind(schema: any, def: any): { kind: PropKind; values?: string[]; ref?: string } {
     if (def.$ref) {
         const target = resolveRef(schema, def.$ref)
         if (target && Array.isArray(target.enum)) return { kind: 'enum', values: target.enum.map(String) }
-        return { kind: 'complex' } // nested component/record — edited on the canvas, not as a scalar
+        return { kind: 'complex', ref: refName(def.$ref) } // nested component/record
     }
     switch (def.type) {
         case 'boolean':
@@ -65,11 +71,15 @@ function propKind(schema: any, def: any): { kind: PropKind; values?: string[] } 
             return Array.isArray(def.enum) ? { kind: 'enum', values: def.enum.map(String) } : { kind: 'string' }
         case 'array':
             // A list of child components is the node's `content`/`children`/… — structural, edited on
-            // the canvas. A list of scalars is treated as complex (no inline editor yet).
-            return { kind: 'children' }
+            // the canvas / in Layers. A list of scalars is treated as complex (no inline editor yet).
+            return { kind: 'children', ref: def.items?.$ref ? refName(def.items.$ref) : undefined }
         default:
             return { kind: 'complex' }
     }
+}
+
+function refName(ref: string): string {
+    return ref.replace('#/$defs/', '')
 }
 
 function resolveRef(schema: any, ref: string): any {
@@ -92,8 +102,8 @@ export function parseSchema(raw: any): ComponentSchema {
         const props: PropSpec[] = []
         for (const [propName, propDef] of Object.entries<any>(def.properties)) {
             if (propName === 'type') continue
-            const { kind, values } = propKind(raw, propDef)
-            props.push({ name: propName, kind, values, required: required.includes(propName) })
+            const { kind, values, ref } = propKind(raw, propDef)
+            props.push({ name: propName, kind, values, ref, required: required.includes(propName) })
         }
         components.set(name, { name, group: groupOf(name), props })
     }
@@ -141,5 +151,28 @@ function defaultScalar(p: PropSpec): unknown {
             return ''
         default:
             return undefined
+    }
+}
+
+/** The component lists of a component other than `content` — its slots (columns, filters, toolbar, tabs…). */
+export function slotProps(spec: ComponentSpec | undefined): PropSpec[] {
+    return (spec?.props ?? []).filter((p) => p.kind === 'children' && p.name !== 'content'
+        && (p.ref === 'Component' || p.ref === 'UserTrigger'))
+}
+
+/** A sensible new item for a slot: a column for `columns`, a filter field for `filters`, a button for a toolbar… */
+export function newSlotItem(slot: string, ref: string | undefined, index: number): PageNode {
+    const n = index + 1
+    if (ref === 'UserTrigger') return { type: 'Button', label: `Action ${n}`, actionId: `action${n}` }
+    switch (slot) {
+        case 'columns': return { type: 'GridColumn', id: `field${n}`, label: `Field ${n}` }
+        case 'filters': return { type: 'FormField', id: `filter${n}`, label: `Filter ${n}`, dataType: 'string' }
+        case 'tabs': return { type: 'Tab', label: `Tab ${n}`, content: [] }
+        case 'panels': return { type: 'AccordionPanel', label: `Panel ${n}`, content: [] }
+        case 'rows': return { type: 'BoardLayoutRow', content: [] }
+        case 'items': return { type: 'DashboardPanel', content: [] }
+        case 'avatars': return { type: 'Avatar', name: `Person ${n}` }
+        case 'badges': return { type: 'Badge', text: `Badge ${n}` }
+        default: return { type: 'Text', text: `Text ${n}` }
     }
 }
