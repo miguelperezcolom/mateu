@@ -98,7 +98,10 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
             // 'unsafe-eval': the shared Mateu renderer evaluates ${...} label/rule expressions via
             // new Function(); harmless here (the webview only runs our own bundle + the local proxy).
             `script-src 'nonce-${nonce}' ${webview.cspSource} 'unsafe-eval'`,
-            `connect-src ${origin}`,
+            // The backend proxy, plus the REST sources a page reads its rows/options from: the canvas
+            // fetches them straight from the browser exactly as the app does (https anywhere, or a
+            // local dev API on loopback). Without this a listing previews with no rows.
+            `connect-src ${origin} https: http://localhost:* http://127.0.0.1:*`,
         ].join('; ')
 
         const head = `

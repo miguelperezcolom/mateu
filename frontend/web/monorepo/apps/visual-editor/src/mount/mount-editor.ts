@@ -10,22 +10,22 @@ import { MountDoc, parseMount, serializeMount } from '../model/mountModel'
 @customElement('mount-editor')
 export class MountEditor extends LitElement {
     static styles = css`
-        :host { display: block; height: 100%; overflow: auto; background: #fff; font: 13px system-ui; color: #111827; }
+        :host { display: block; height: 100%; overflow: auto; background: #fff; font: 13px var(--ve-font, system-ui); color: var(--ve-text, #111827); }
         .wrap { max-width: 620px; padding: 0.8rem 1.25rem 2rem; }
         h2 { margin: 0.6rem 0 0.2rem; font-size: 15px; }
-        .sub { color: #9ca3af; font-size: 12px; margin-bottom: 0.6rem; }
-        label { display: block; font-size: 11px; color: #6b7280; margin: 0.6rem 0 0.1rem; }
-        input { width: 100%; padding: 0.4rem 0.5rem; font: 13px system-ui; border: 1px solid #d7dade;
+        .sub { color: var(--ve-tertiary, #9ca3af); font-size: 12px; margin-bottom: 0.6rem; }
+        label { display: block; font-size: 11px; color: var(--ve-secondary, #6b7280); margin: 0.6rem 0 0.1rem; }
+        input { width: 100%; padding: 0.4rem 0.5rem; font: 13px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade);
                 border-radius: 6px; box-sizing: border-box; background: #fff; }
-        .section { font: 600 11px system-ui; text-transform: uppercase; letter-spacing: .04em; color: #6b7280;
+        .section { font: 600 11px var(--ve-font, system-ui); text-transform: uppercase; letter-spacing: .04em; color: var(--ve-secondary, #6b7280);
                    margin: 1.1rem 0 0.4rem; border-bottom: 1px solid #eceef1; padding-bottom: 0.3rem; }
         .row { display: flex; gap: 0.4rem; align-items: center; margin: 0.3rem 0; }
         .row input { flex: 1; font-family: ui-monospace, monospace; font-size: 12px; }
-        .row button { border: 1px solid #d7dade; background: #fff; border-radius: 6px; height: 30px; min-width: 30px; cursor: pointer; }
-        .row button.danger { border-color: #f2c2c8; color: #b00020; }
-        .add { margin-top: 0.6rem; padding: 0.45rem 0.8rem; font: 13px system-ui; background: #fff; border: 1px solid #d7dade; border-radius: 6px; cursor: pointer; }
+        .row button { border: 1px solid var(--ve-input-border, #d7dade); background: #fff; border-radius: 6px; height: 30px; min-width: 30px; cursor: pointer; }
+        .row button.danger { border-color: #f2c2c8; color: var(--ve-error, #b00020); }
+        .add { margin-top: 0.6rem; padding: 0.45rem 0.8rem; font: 13px var(--ve-font, system-ui); background: #fff; border: 1px solid var(--ve-input-border, #d7dade); border-radius: 6px; cursor: pointer; }
         .add:hover { background: #eef4ff; border-color: #b7ccf7; }
-        .note { color: #9ca3af; font-size: 12px; margin-top: 0.4rem; }
+        .note { color: var(--ve-tertiary, #9ca3af); font-size: 12px; margin-top: 0.4rem; }
     `
 
     @property() yaml = ''

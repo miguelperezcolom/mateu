@@ -263,6 +263,54 @@ escape. Same capability as VB, deployable and operable at **€0**, coupled to n
     extraction, dataType→Java-type, class/record checks, insertion) is **unit-tested (9, vitest added to the
     extension)**; the `CodeActionProvider` wiring compiles (tsc) but its **behaviour is GUI-gated** — like the
     IntelliJ fix it can only be confirmed in a running IDE (bucketed with the human live-run).
+- **QUALITY PASS — measured, then fixed (2026-10-03, branch `feat/visual-editor-quality`).** Quality was
+  defined as 12 real authoring tasks (`e2e/visual-editor-tasks.mjs`, Playwright, the same script on any
+  build): open a form and trust its preview, a listing over a REST source with columns + a filter, a form
+  with a section + a required field, edit an existing page and keep the file reviewable, a button that
+  calls REST + toasts, rename a bound field, undo/redo, preview in Vaadin / DS-neutral / offline, a master
+  with routed tabs, declare a REST source, edit the app shell, backend down. **Baseline 0/12 pass (6
+  partial, 3 forced into YAML); after 12/12, none needing YAML.** What the baseline exposed and what fixed it:
+  - **Data loss:** the routes table dropped `data:`, `children`, `defaultChild`, `layout:` and every unknown
+    key on any edit → `routesModel` keeps them all (`extra`), edits `layout`/`data`/children/`defaultChild`,
+    and the table nests children with a "Master with routed tabs" scaffold.
+  - **Every save rewrote the whole file** (comments, flow maps, key style gone; 69 changed lines for a
+    one-label edit) → `model/yamlPreserve.ts` merges the edit into the original YAML document; a
+    scalar-only edit is spliced into the original text (one changed line); structural edits keep comments.
+  - **Preview fidelity:** the canvas painted with the DS-neutral renderer (plain inputs, a 100-column form)
+    → it now loads the **Vaadin reference renderer** lazily (`canvas/canvasRenderer.ts`, toggle Vaadin /
+    DS-neutral), sits in the shell's gutters, and its fields/selects match the running app 7/7, 1/1.
+    Redwood cannot run inside the editor (its runtime is a whole VB app from Oracle's CDN) — not offered.
+  - **Rows never loaded:** the canvas had no REST source catalogue → the project's `sources.yaml` feeds
+    `setRestSourceCatalogue`, so listings/options preview with real rows in every mode; the canvas
+    remounts on structural change (a grid kept stale columns).
+  - **Most of a page was unreachable:** paths only followed `content` → `NodePath` steps can be slots
+    (`columns.2`, `toolbar.0`, `tabs.1`…); Layers shows them as groups, Properties adds items ("+ column",
+    "+ filter", "+ tab"…); single-child `content` (Card/Tab/Dialog…, pinned to the schema) is edited as a
+    list. Properties got real editors for a REST data source (pick from `sources.yaml`), a button's
+    navigation (RouteLink), a field's options, and folds the long tail under "More properties".
+  - **No undo/redo** → `model/history.ts` over the file text (every mode), ⌘Z/⇧⌘Z/Ctrl+Y + toolbar.
+  - **Rename broke bindings** → `model/rename.ts`: a FormField/GridColumn id rename carries the filter, the
+    column, `${state|row|data.x}` expressions, triggers and declared actions; other files are reported.
+  - **Actions:** a bare `type: Form/Listing` keeps its `actions:` on the root (they were invisible and an
+    edit re-wrapped the file in a `layout:` envelope) → `model/pageActions.ts`; the Flows panel became an
+    **Actions** tab: REST action (source picker or url+method, toast, then-route, validate, confirm) or flow.
+  - **`sources.yaml` opened as a page canvas** → a **Sources editor** (Phase 4's "Services" table).
+  - **No backend = blank canvas** → `remote` falls back to the client-side expander with a visible notice.
+  - **Cohesion:** Lumo-valued design tokens across every panel, one toolbar (file, undo/redo, preview
+    source + renderer + live/offline status, export), panels moved into a bottom dock; definition-style
+    Form/Listing templates; empty-page hint no longer shown on a Listing.
+  **IDE hosts — first live run:** `e2e/vscode-host-live.mjs` drives a REAL VS Code 1.132 (Electron, the
+  extension loaded from source) — open → canvas renders through the proxy (live) → edit → document dirty
+  → ⌘S writes the file (only the edited line changes) → a disk change reaches the canvas: **8/8**. Found
+  and fixed: the webview CSP blocked REST sources (`connect-src` now allows https + loopback). IntelliJ:
+  `compileKotlin` + the VisualEditor tests green; its JCEF GUI (`runIde`) was **not** live-run.
+  Tests: vitest 123 → 148 (slots, yamlPreserve, history, rename, pageActions, sources, routes), tsc,
+  `vite build`, `e2e/visual-editor-probe.mjs` 15/15. Evaluation report (Spanish):
+  `ec-demo1-ux/visual-editor/evaluation.md`.
+  **Still open:** YAML `AppShell` cannot author `accentColor`/`backLink` (see the follow-up PR), the editor
+  cannot create a new file (a route's missing layout is flagged, not created), structured editors have no
+  YAML view, the canvas toolbar overflows into "…" in a narrow IDE pane exactly as the app does, dark IDE
+  themes get a light editor, and the IntelliJ GUI live-run.
 - **Next actions:** the human **GUI live-test** of the IDE hosts (JCEF/webview bridges + the new VSCode
   code-action — needs a desktop IDE), and the last optional minor: embedded **`local` boot** (the plugin's
   `MateuVisualEditorServer` — Kotlin, GUI-gated, no headless path; recommend verifying alongside the live-run).
