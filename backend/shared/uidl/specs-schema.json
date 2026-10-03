@@ -5486,6 +5486,12 @@
         },
         "active" : {
           "type" : "boolean"
+        },
+        "routeKey" : {
+          "type" : "string"
+        },
+        "badge" : {
+          "type" : "string"
         }
       }
     },
