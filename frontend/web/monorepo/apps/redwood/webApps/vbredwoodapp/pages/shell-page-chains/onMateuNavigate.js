@@ -366,7 +366,7 @@ define([
         ? bridge.entityHeaderOf(host) : null;
       // pantalla nueva, pestaña nueva: la activa es estado de CLIENTE y no sobrevive a una
       // navegación (la pestaña 3 de la pantalla anterior no significa nada en ésta)
-      $application.variables.mateuActiveTab = '';
+      $application.variables.mateuActiveTabs = {};
       const hostBlocks = (!esWizard && sinOtrasRamas)
         ? bridge.hostContentOf(host, islandRawBlocks,
             { title: summary.title, dropEntityHeader: !!hostEntity }) : null;
@@ -414,9 +414,9 @@ define([
       // el oj-tab-bar parsea su <ul> al inicializarse y los <li> del for-each llegan
       // después: sin refresh se queda con la lista sin estilar (misma trampa que el
       // oj-navigation-list del navigator)
-      if (($application.variables.mateuHostContent || []).some((b) => (b.items || []).some((a) => a.isTabs))) {
+      for (const barId of bridge.tabBarIdsOf($application.variables.mateuHostContent)) {
         try {
-          await Actions.callComponentMethod(context, { selector: '#mateuContentTabs', method: 'refresh' });
+          await Actions.callComponentMethod(context, { selector: '#' + barId, method: 'refresh' });
         } catch (ignored) { /* aún sin montar */ }
       }
       if (hostBlocksRicos) {
