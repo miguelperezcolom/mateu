@@ -111,6 +111,11 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     overlayOf,
     eventTriggersOf,
     dismissOverlay,
+    // @Searchable: el selector en su diálogo, y los chips del campo
+    searchPickerOf,
+    pickerSearchStateOf,
+    withContextState,
+    withSearchableIds,
     shellNavOf,
     ojIconOf,
     ojIconOrGenericOf,
@@ -201,6 +206,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // obligatorios marcados como un formulario Redwood + el guided process que manda el servidor
     showFieldErrors,
     clearFieldError,
+    clearFieldErrorMarks,
     guardGuidedProcess,
     // chat de IA: el panel de conversación (sseUrl) usa estas para POSTear y consumir el stream
     effectiveChatUrl,
@@ -211,7 +217,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // el panel mientras el asistente trabaja, los contadores de tokens y el dictado
     mergeTurnUsage,
     addUsage,
+    latestUsage,
     chatStatusText,
+    createChatProgress,
     speechRecognitionCtor,
     chatMarkdownToHtml,
     transcriptOf,

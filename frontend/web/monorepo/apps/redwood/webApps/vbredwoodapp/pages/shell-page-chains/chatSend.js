@@ -1,10 +1,13 @@
 /* Envío del chat de IA. Lee el valor VIVO del input del DOM (oj-input-text commitea `value` al
- * change/blur, que va por detrás de un Enter), postea al sseUrl y ACUMULA la respuesta del agente
- * en el último mensaje. Al terminar, limpia el input y devuelve el foco.
+ * change/blur, que va por detrás de un Enter), postea al sseUrl y va pintando la respuesta del agente
+ * en el último mensaje según llega (agent-delta), sustituida al final por la respuesta entera y
+ * limpia. Al terminar, limpia el input y devuelve el foco.
  *
- * Mientras tanto dice qué pasa: «Pensando… N s» hasta que llega el primer texto (la espera larga es
- * la que inquieta), «Respondiendo…» después — la fila de estado del panel (mateuChatStatus). Y suma
- * a la conversación los tokens de cada respuesta (mateuChatTokens). */
+ * Mientras tanto dice qué pasa en la fila de estado del panel (mateuChatStatus): lo que el agente
+ * informa — «Conectando con 2 servidores MCP…», «Llamando a booking_findBookings… 3 s»,
+ * «Respondiendo…» —, o, con un agente que no informa, «Pensando… N s» hasta el primer texto. Y deja
+ * en mateuChatTokens el uso que manda el agente, que ya es el de toda la conversación (se sustituye,
+ * no se suma). */
 define([
   'vb/action/actionChain',
   'vb/action/actions',
@@ -43,9 +46,10 @@ define([
       const startedAt = Date.now();
       let hasText = false;
       let turnUsage = null;
+      let progress = null;
       const showStatus = () => {
         $application.variables.mateuChatStatus = bridge.chatStatusText({
-          busy: true, hasText, elapsedSeconds: (Date.now() - startedAt) / 1000,
+          busy: true, hasText, elapsedSeconds: (Date.now() - startedAt) / 1000, progress, now: Date.now(),
         });
       };
       showStatus();
@@ -62,6 +66,8 @@ define([
       // Se CAPTURA durante el stream y se dispara DESPUÉS, desde el flujo principal de la chain (no
       // desde el callback async anidado, que no propaga el evento de aplicación de forma fiable).
       let renderYaml = null;
+      // Y uno `navigation-requested` ([NAVIGATE:…] del agente): la ruta a abrir, también al final.
+      let navigateTo = null;
       try {
         await bridge.streamChat({
           url: $application.variables.mateuChatSseUrl,
@@ -78,10 +84,14 @@ define([
             currentRoute: $application.variables.mateuSelectedRoute || undefined,
           }),
           onText: (accumulated) => setAgent(accumulated),
+          onProgress: (p) => { progress = p; showStatus(); },
           onUsage: (usage) => { turnUsage = bridge.mergeTurnUsage(turnUsage, usage); },
           onEvent: (ev) => {
             if (ev && ev.event === 'render-screen' && ev.detail && ev.detail.yaml) {
               renderYaml = ev.detail.yaml;
+            }
+            if (ev && ev.event === 'navigation-requested' && ev.detail && typeof ev.detail.route === 'string') {
+              navigateTo = ev.detail.route;
             }
           },
         });
@@ -90,7 +100,7 @@ define([
       } finally {
         clearInterval(ticking);
         $application.variables.mateuChatStatus = '';
-        $application.variables.mateuChatTokens = bridge.addUsage($application.variables.mateuChatTokens, turnUsage);
+        $application.variables.mateuChatTokens = bridge.latestUsage($application.variables.mateuChatTokens, turnUsage);
         $application.variables.mateuChatBusy = false;
         focusInput();
       }
@@ -106,6 +116,11 @@ define([
             event: { route: $application.variables.mateuSelectedRoute || '/ai-screen', renderYaml },
             force: true,
           },
+        });
+      } else if (navigateTo) {
+        await Actions.callChain(context, {
+          chain: 'onMateuNavigate',
+          params: { event: { route: navigateTo } },
         });
       }
     }

@@ -339,10 +339,72 @@ public class BookingForm {
 }
 ```
 
+### Multi-valued fields: `List`, `Set` and arrays of ids
+
+The same annotation works on a field that holds **several** ids — a `List<IdType>`, a `Set<IdType>` or an `IdType[]` (`String`, `Long`/`Integer`, `UUID`…). Nothing else changes in the declaration: multi-selection is inferred from the field type, and the same selector serves both kinds of field.
+
+```java
+public class CampaignForm {
+
+    // one hotel
+    @Searchable(selector = HotelSelector.class, label = HotelSelector.class)
+    String hotelId;
+
+    // several hotels: chips + «Add»
+    @Searchable(selector = HotelSelector.class, label = HotelSelector.class)
+    List<String> hotelIds = new ArrayList<>();
+
+    @Searchable(selector = ChannelSelector.class)
+    Set<Long> channels;
+
+    @Searchable(selector = ContractSelector.class)
+    UUID[] contracts;
+}
+```
+
+How a multi-valued `@Searchable` behaves (Vaadin and Redwood alike):
+
+- The current ids render as **chips**, each labelled through `label()` (falling back to the id when there is no label), with a ✕ to remove it, plus an **«Add»** button.
+- «Add» opens the selector in the modal with **row selection** enabled and an **«Add selected»** button: the checked rows are **added** to the field — appended in order, without duplicates (and with `Set` semantics for a `Set`) — and the modal closes. Clicking a row adds just that row.
+- Removing a chip removes the id (client-side; it travels with the next action). In a read-only view the field shows the labels only.
+- Validation is the usual one (`@NotEmpty`, `@Size`…, checked on the server); the ids bind back into the `List`, `Set` or array with the element type converted (JSON numbers and strings into `Long`, strings into `UUID`…).
+
+The labels travel in the component data: `<field>-label` holds the display text (for a multi-valued field, the labels joined by `", "`), and `<field>-labels` holds `{id → label}` for the chips. When `label()` is not given, the view model labels the ids if it is a `LookupLabelSupplier`, and otherwise the selector does, if it is one.
+
+#### The Selector side: `selectedItems`
+
+`Selector` has a default method for multi-selection:
+
+```java
+public interface Selector<IdType> {
+    SelectedItem<IdType> selected(HttpRequest httpRequest);       // the clicked row
+
+    default List<SelectedItem<IdType>> selectedItems(HttpRequest httpRequest) {
+        // each checked row mapped through selected(), as if it were the clicked row
+    }
+
+    String fieldId();
+    Selector withFieldId(String name);
+}
+```
+
+The default presents each checked row to `selected()` as the clicked row, so a selector written for single-valued fields — one that reads `httpRequest.getClickedRow(...)`, like `HotelSelector` above — serves multi-valued fields with **no extra code**. Override `selectedItems` only when the checked rows need a different mapping:
+
+```java
+@Override
+public List<SelectedItem<Long>> selectedItems(HttpRequest httpRequest) {
+    return httpRequest.getSelectedRows(ChannelRow.class).stream()
+        .map(row -> new SelectedItem<>(row.id(), row.name()))
+        .toList();
+}
+```
+
+The merging happens on the server: the modal carries the ids the field held when it opened, and the selector answers the merged value, its labels and the close of the modal.
+
 ### `@Searchable` vs `@Lookup`
 
 | | `@Lookup` | `@Searchable` |
 |---|---|---|
-| UI widget | Incremental-search dropdown (inline) | Text display + "Search" button → modal |
+| UI widget | Incremental-search dropdown (inline) | Text display + "Search" button → modal (chips + «Add» for a `List`/`Set`/array of ids) |
 | Selector class | `LookupOptionsSupplier` (list of `Option`) | `Listing` + `Selector` (full screen) |
 | Suitable for | Simple option lists, fast lookups | Complex grids with filters, actions, or CRUD |

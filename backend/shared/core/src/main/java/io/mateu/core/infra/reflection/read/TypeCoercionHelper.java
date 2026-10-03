@@ -62,6 +62,7 @@ public class TypeCoercionHelper {
     if (LocalDate.class.equals(targetType)) return LocalDate.parse("" + value);
     if (LocalDateTime.class.equals(targetType)) return LocalDateTime.parse("" + value);
     if (LocalTime.class.equals(targetType)) return LocalTime.parse("" + value);
+    if (java.util.UUID.class.equals(targetType)) return java.util.UUID.fromString("" + value);
     if (targetType.isEnum()) return Enum.valueOf(targetType, "" + value);
     if (Class.class.equals(targetType)) return forName("" + value);
     if (Map.class.isAssignableFrom(value.getClass())) {

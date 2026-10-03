@@ -21,6 +21,7 @@ import { publishShellMenu } from "@infra/ui/breadcrumbTrail.ts";
 import { activeTopIndex, isActiveFor, isMount } from "@infra/ui/navTree.ts";
 import { retryUnavailableMenus } from "@infra/ui/remoteMenuRetry.ts";
 import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
+import { linkStyles } from "@infra/ui/linkStyles.ts";
 
 // DS-neutral stand-ins for the vaadin-menu-bar / vaadin-app-layout types this base class used.
 // (sapui5 overrides the rendering methods; the Vaadin renderer's chrome now renders neutrally too.)
@@ -45,6 +46,23 @@ interface GlobalSearchHit { label: string, description?: string, route: string, 
  */
 export const reachableBaseUrl = (app: App, reachedAt: string | undefined): string | undefined =>
     (app.homeBaseUrl ?? '').includes('://') ? app.homeBaseUrl : (reachedAt || app.homeBaseUrl)
+
+/**
+ * The app's brand accent (@App(accentColor)) as the --mateu-accent custom property on the shell,
+ * which its styles use in two places only (a line under the menu band, the console name in light
+ * theme). Only what the shell set itself is ever removed: an app may set --mateu-accent in its own
+ * CSS instead. A value that is not a plain colour (it would end the declaration) is ignored.
+ */
+export const applyAccent = (host: HTMLElement & { _mateuAccent?: string }, accent: string | undefined) => {
+    const value = accent && /^[#\w\s(),.%-]+$/.test(accent.trim()) ? accent.trim() : undefined
+    if (value) {
+        host.style.setProperty('--mateu-accent', value)
+        host._mateuAccent = value
+    } else if (host._mateuAccent) {
+        host.style.removeProperty('--mateu-accent')
+        host._mateuAccent = undefined
+    }
+}
 
 @customElement('mateu-app')
 export class MateuApp extends ComponentElement {
@@ -787,6 +805,7 @@ export class MateuApp extends ComponentElement {
                             .catch(e => console.error('app-scope data source fetch failed', e))
                     }
                 }
+                applyAccent(this, app.accentColor)
                 if (app.favicon) {
                     let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null
                     if (!link) {
@@ -833,22 +852,31 @@ export class MateuApp extends ComponentElement {
            the content row's START (order -1: the left), under the header, which it never covers
            or moves; the header's chat toggle (appRenderer, renderChatToggle) opens and closes it.
            On a wide viewport it pushes the content aside; on a narrow one it covers the content
-           area, full width — a 24rem column would leave the page nothing. Its own full-screen mode
-           ([expanded], mateu-chat's styles) is left alone. */
+           area, full width (in either mode) — a side column would leave the page nothing. */
         mateu-chat[slot="detail-hidden"] { display: none; }
-        mateu-chat[slot="detail"] { display: flex; flex-direction: column; flex: 0 0 24rem; min-width: 0; order: -1; box-sizing: border-box; padding-top: 0.5rem; border-inline-end: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); background: var(--lumo-base-color, #fff); }
+        mateu-chat[slot="detail"] { display: flex; flex-direction: column; flex: 0 0 var(--mateu-chat-width, 460px); min-width: 0; max-width: calc(100% - 20rem); order: -1; box-sizing: border-box; padding-top: 0.5rem; border-inline-end: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); background: var(--lumo-base-color, #fff); }
+        /* its width is the user's (mateu-chat: 460px by default, 320–720 dragging its edge,
+           remembered); ⤢ widens it to ~60% of the viewport, the page still beside it */
+        mateu-chat[slot="detail"][expanded] { flex-basis: var(--mateu-chat-wide, 60vw); max-width: none; }
         /* pushed aside, a fixed-width page fills what is left and would touch the panel: keep a gutter */
         @media (min-width: 601px) {
             .m-md:has(> mateu-chat[slot="detail"]) > .m-scroll { padding-inline: var(--lumo-space-m, 1rem); }
         }
         @media (max-width: 600px) {
             .m-md:has(> mateu-chat[slot="detail"]) { position: relative; }
-            mateu-chat[slot="detail"]:not([expanded]) { position: absolute; inset: 0; z-index: 1000; width: 100%; border-inline-end: none; }
+            mateu-chat[slot="detail"] { position: absolute; inset: 0; z-index: 1000; width: 100%; max-width: none; border-inline-end: none; }
         }
-        /* The chat toggle, pressed while the panel is open. */
-        .mateu-chat-toggle { color: var(--lumo-body-text-color, #1a1a1a); flex-shrink: 0; }
-        .mateu-chat-toggle--open, .mateu-chat-toggle--open:hover { color: var(--lumo-primary-text-color, #1676f3); background: var(--lumo-primary-color-10pct, rgba(22,118,243,.1)); }
-        .mateu-chat-toggle:focus-visible { outline: 2px solid var(--lumo-primary-color-50pct, rgba(22,118,243,.5)); outline-offset: 1px; }
+        /* The header's icon buttons (appRenderer, renderHeaderIconButton: the chat and theme toggles —
+           a tertiary icon vaadin-button in the Vaadin renderer, .app-chrome-icon-btn otherwise). One
+           icon style for the whole header: outline glyphs at --lumo-icon-size-m, in
+           --mateu-header-icon-color (an app can set it on mateu-app; default the secondary text
+           colour). A two-state button reads as pressed (aria-pressed) in the primary colours. */
+        .mateu-header-icon-btn, .app-chrome-icon-btn { color: var(--mateu-header-icon-color, var(--lumo-secondary-text-color, #5a6573)); flex-shrink: 0; margin: 0; }
+        .mateu-header-icon-btn > vaadin-icon { width: var(--lumo-icon-size-m, 1.5rem); height: var(--lumo-icon-size-m, 1.5rem); }
+        .mateu-header-icon-btn:hover { color: var(--lumo-body-text-color, #1a1a1a); }
+        /* (Lumo forces a tertiary button's background through --vaadin-button-tertiary-background) */
+        .mateu-header-icon-btn[aria-pressed="true"], .app-chrome-icon-btn[aria-pressed="true"] { color: var(--lumo-primary-text-color, #1676f3); --vaadin-button-tertiary-background: var(--lumo-primary-color-10pct, rgba(22,118,243,.1)); background-color: var(--lumo-primary-color-10pct, rgba(22,118,243,.1)); }
+        .app-chrome-icon-btn:focus-visible { outline: 2px solid var(--lumo-primary-color-50pct, rgba(22,118,243,.5)); outline-offset: 1px; }
         .m-app-layout { display: flex; flex-direction: column; width: 100%; height: 100vh; overflow: hidden; }
         .m-app-layout > .app-navbar { display: flex; align-items: center; gap: .5rem; height: 4rem; flex-shrink: 0; padding: 0 .75rem; border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); background: var(--lumo-base-color, #fff); }
         .m-app-layout > .app-body { display: flex; flex: 1; min-height: 0; }
@@ -871,6 +899,12 @@ export class MateuApp extends ComponentElement {
            pickers and actions, the theme toggle. Each used to bring its own margin, or none: the
            app's widgets and the pickers had none and sat against each other. */
         .mateu-app-widgets { gap: var(--lumo-space-m, 1rem); }
+        /* The app's widgets are often raw HTML (a Text with an <a>…). Text in them is header text,
+           and a bare link reads as header text too, not as the browser's link blue: the shared link
+           rule (linkStyles.ts) takes --mateu-link-color, which inherits into the widgets' own shadow
+           roots. An app can set --mateu-header-link-color on mateu-app to have them stand out. */
+        .mateu-app-widgets { --mateu-link-color: var(--mateu-header-link-color, var(--lumo-body-text-color, #1a1a1a)); }
+        .mateu-app-widgets ::slotted(*) { color: var(--lumo-body-text-color, #1a1a1a); }
         /* Below 600px the title goes (the logo still says whose app this is) and the header turns
            compact. What a widget shows then is the widget's to say, and a class could not reach it —
            widgets are other components, in shadow roots of their own — but a custom property is
@@ -886,9 +920,14 @@ export class MateuApp extends ComponentElement {
 
         /* MENU_ON_TOP in two bands (appRenderer): band 1 = logo + widgets, band 2 = the app title
            then the menu bar. Band 2's start lines up with the content gutter below it. Below 600px
-           the menu folds into a ☰ button before the title. No "current item" marker on the bar:
-           the breadcrumbs and the page title say where you are. */
-        .mateu-app-band1 { border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); }
+           the menu folds into a ☰ button before the title. Band 1 takes the same gutter as band 2
+           and the content, so the logo, the band-2 title and the page share one left edge (24px,
+           16px on a phone); on the end, the last widget's own padding makes up the difference. */
+        .mateu-app-band1 {
+            border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
+            box-sizing: border-box;
+            padding-inline: var(--mateu-content-gutter, 24px) calc(var(--mateu-content-gutter, 24px) - var(--lumo-space-s, .5rem));
+        }
         .mateu-app-band1 > .mateu-app-header { align-items: center !important; }
         .mateu-app-band1 .mateu-app-brand > .m-hl { align-items: center !important; }
         .mateu-app-band2 {
@@ -903,6 +942,10 @@ export class MateuApp extends ComponentElement {
             background-color: var(--lumo-base-color);
             color: var(--lumo-body-text-color);
             border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
+            /* The app's brand accent (--mateu-accent, @App(accentColor)): a 3px line along the
+               band's bottom. Not the primary colour — it marks whose app this is, never something
+               to click. With no accent there is no line. */
+            box-shadow: inset 0 -3px 0 var(--mateu-accent, transparent);
         }
         .mateu-app-band-title {
             flex: 0 0 auto;
@@ -910,19 +953,36 @@ export class MateuApp extends ComponentElement {
             font-size: var(--lumo-font-size-l, 1.125rem);
             font-weight: 600;
             color: var(--lumo-header-text-color, inherit);
+            /* the app's accent (@App(accentColor) → --mateu-accent) in the light theme only: on the
+               dark base a brand red loses contrast, so there it stays the header text colour */
+            color: light-dark(var(--mateu-accent, var(--lumo-header-text-color, currentColor)), var(--lumo-header-text-color, currentColor));
             text-decoration: none;
             white-space: nowrap;
         }
         .mateu-app-band2 > .menu-band { flex: 1 1 0; min-width: 0; }
+        /* The menu band is navigation, not a row of links: its items in the body text colour (the
+           Vaadin adapter draws it as a tertiary contrast vaadin-menu-bar), and the section on screen
+           marked quietly — the primary text colour and a 2px underline, as vaadin-tabs marks its
+           selected tab, with no fill. The ☰ button of a narrow viewport is header text too. */
+        .mateu-app-band2 vaadin-menu-bar-button { color: var(--lumo-body-text-color, #1a1a1a); font-weight: 500; }
+        .mateu-app-band2 vaadin-menu-bar-button:hover { color: var(--lumo-header-text-color, #000); }
+        .mateu-app-band2 .menu-band vaadin-menu-bar-button.mateu-nav-active {
+            color: var(--lumo-primary-text-color, #1676f3);
+            border-radius: var(--lumo-border-radius-m, 6px) var(--lumo-border-radius-m, 6px) 0 0;
+            box-shadow: inset 0 -2px 0 0 var(--lumo-primary-color, #1676f3);
+        }
         .mateu-app-menu-button { display: none; flex: 0 0 auto; margin-inline-start: calc(-1 * var(--lumo-space-s, .5rem)); }
         /* The content gutter of this shell (it has no padded .app-content): the page's content view
            takes it (mateu-ux data-page-width fixed/full), the RDS 24px — 16px on a phone. */
         .mateu-content-gutter { --mateu-content-gutter: 24px; --mateu-shell-gutter: 24px; }
+        /* …and the two header bands take the same gutter, so the header's edges line up with it */
+        .mateu-app-band1, .mateu-app-band2 { --mateu-content-gutter: 24px; }
         @media (max-width: 600px) {
             .mateu-app-band2 > .menu-band { display: none; }
             .mateu-app-menu-button { display: inline-flex; }
             .mateu-app-band-title { overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
             .mateu-content-gutter { --mateu-content-gutter: 16px; --mateu-shell-gutter: 16px; }
+            .mateu-app-band1, .mateu-app-band2 { --mateu-content-gutter: 16px; }
         }
 
         /* top nav (menu-on-top) */
@@ -993,7 +1053,7 @@ export class MateuApp extends ComponentElement {
         .mateu-tab:hover { color: var(--lumo-body-text-color, #161513); }
         .mateu-tab--active { color: var(--lumo-primary-text-color, #1676f3); border-bottom-color: var(--lumo-primary-color, #1676f3); font-weight: 600; }
         /* App-header chrome buttons (theme toggle, header actions). */
-        .app-chrome-icon-btn { border: none; background: transparent; cursor: pointer; padding: .4rem; border-radius: var(--lumo-border-radius-m, 6px); display: inline-flex; align-items: center; }
+        .app-chrome-icon-btn { border: none; background: transparent; cursor: pointer; font: inherit; padding: .4rem; border-radius: var(--lumo-border-radius-m, 6px); display: inline-flex; align-items: center; justify-content: center; min-width: var(--lumo-size-m, 2.25rem); min-height: var(--lumo-size-m, 2.25rem); box-sizing: border-box; }
         .app-chrome-icon-btn:hover { background: var(--lumo-contrast-5pct, rgba(0,0,0,.05)); }
         .app-header-action-btn { display: inline-flex; align-items: center; gap: .3rem; border: none; cursor: pointer; font: inherit; font-weight: 500; padding: .4rem .8rem; border-radius: var(--lumo-border-radius-m, 6px); background: var(--lumo-primary-color, #1676f3); color: var(--lumo-primary-contrast-color, #fff); list-style: none; }
         .app-header-action-btn::-webkit-details-marker { display: none; }
@@ -1214,7 +1274,7 @@ export class MateuApp extends ComponentElement {
            column the page width picks. The agent's chat has none: its toggle is in the header. */
 
 
-  `, fabStyles('.app-fab, .page-fab')]
+  `, fabStyles('.app-fab, .page-fab'), linkStyles]
 }
 
 declare global {

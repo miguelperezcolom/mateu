@@ -26,6 +26,7 @@ import {
 import {
   buildChatMenuContext, buildChatBody, effectiveChatUrl, tryParseTokenUsage,
   tryParseCustomEvent, streamChat, mergeTurnUsage, addUsage, chatStatusText,
+  createSseParser, classifyChatPayload, isEmptyUsage, createChatProgress, latestUsage,
   speechRecognitionCtor, transcriptOf, chatMarkdownToHtml,
 } from './chat.mjs'
 import {
@@ -46,6 +47,7 @@ import {
   wizardStepViewOf, isRichAtom, validationOf, formErrorsOf, selectPlaceholder,
   backToolbarButton, pageToolbarOf, declaredActionOf, actionTransportOf, overlayTransportOf, confirmationOf,
   awaitConfirmation, answerConfirmation, queryFiltersOf, formLookupsOf, markLookupsLoaded, filtersOf, LOOKUP_LOADED,
+  searchableIdsOf, searchableChipsOf, searchPickerOf, pickerSearchStateOf, withContextState, withSearchableIds,
 } from './reduceContexts.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -2339,7 +2341,14 @@ test('chat: el panel dice que el asistente trabaja, cuenta los tokens y deja dic
   const send = webApp('pages/shell-page-chains/chatSend.js')
   assert.match(send, /bridge\.chatStatusText\(/)
   assert.match(send, /onUsage: \(usage\) => \{ turnUsage = bridge\.mergeTurnUsage\(turnUsage, usage\); \}/)
-  assert.match(send, /mateuChatTokens = bridge\.addUsage\(/)
+  // el agente manda el uso de toda la conversación: se sustituye, no se suma
+  assert.match(send, /mateuChatTokens = bridge\.latestUsage\(/)
+  // la fila de estado lee el progreso que informa el agente
+  assert.match(send, /onProgress: \(p\) => \{ progress = p; showStatus\(\); \}/)
+  assert.match(send, /bridge\.chatStatusText\(\{[^}]*progress, now: Date\.now\(\)/)
+  // y un navigation-requested navega al acabar, si no hay pantalla generada
+  assert.match(send, /ev\.event === 'navigation-requested'/)
+  assert.match(send, /\} else if \(navigateTo\) \{\s*await Actions\.callChain\(context, \{\s*chain: 'onMateuNavigate'/)
   assert.match(send, /clearInterval\(ticking\)/)
   assert.match(webApp('pages/shell-page-chains/toggleMateuChat.js'), /mateuChatMicAvailable = !!bridge\.speechRecognitionCtor\(window\)/)
   const mc = webApp('pages/shell-page-chains/chatMic.js')
@@ -2414,32 +2423,80 @@ const sseResponse = (chunks) => {
   }
 }
 
-atest('chat: streamChat acumula payloads data: (trimmed, cada línea con su salto, como el chat compartido) y bufferea a través de trozos', async () => {
+atest('chat: streamChat lee por EVENTO: un texto por evento es una línea, y bufferea a través de trozos', async () => {
   const texts = []
   const out = await streamChat({
     url: '/sse', body: { message: 'hola' },
-    // el 2º payload llega partido en dos trozos SIN el \n → se bufferea hasta cerrar la línea
-    fetchImpl: async () => sseResponse(['data: uno\n', 'data: d', 'os\n']),
+    // el 2º evento llega partido en trozos → se bufferea hasta la línea en blanco que lo cierra
+    fetchImpl: async () => sseResponse(['data: uno\n\n', 'data: d', 'os\n', '\n']),
     onText: (t) => texts.push(t),
   })
-  assert.equal(out, 'uno\ndos\n', 'payloads trimmed, cada línea con su salto = paridad con mateu-chat')
-  assert.equal(texts[texts.length - 1], 'uno\ndos\n')
+  assert.equal(out, 'uno\ndos', 'sin trozos, cada texto es una línea: el contrato línea a línea de siempre')
+  assert.deepEqual(texts, ['uno', 'uno\ndos'])
 })
 
-atest('chat: streamChat conserva las líneas del markdown (una por data:, las vacías incluidas)', async () => {
+atest('chat: streamChat conserva las líneas del markdown (una por evento, las vacías incluidas, y la sangría)', async () => {
   const out = await streamChat({
     url: '/sse', body: {},
-    fetchImpl: async () => sseResponse(['data: ## Estado\ndata: \ndata: - **MRU01**\n', 'data: - PMI01\n']),
+    fetchImpl: async () => sseResponse(['data: ## Estado\n\ndata: \n\ndata: - **MRU01**\n\n', 'data: - PMI01\n\ndata:   - anidado\n\n']),
   })
-  assert.equal(out, '## Estado\n\n- **MRU01**\n- PMI01\n')
-  assert.equal(chatMarkdownToHtml(out), '<h4>Estado</h4><ul><li><strong>MRU01</strong></li><li>PMI01</li></ul>')
+  assert.equal(out, '## Estado\n\n- **MRU01**\n- PMI01\n  - anidado')
+})
+
+atest('chat: las líneas data: de UN evento se unen con \\n — una respuesta de varias líneas en un evento', async () => {
+  const out = await streamChat({
+    url: '/sse', body: {},
+    fetchImpl: async () => sseResponse(['data:## Estado\r\ndata:\r\ndata:- **MRU01**\r\n\r\n']),
+  })
+  assert.equal(out, '## Estado\n\n- **MRU01**')
+  assert.equal(chatMarkdownToHtml(out), '<h4>Estado</h4><ul><li><strong>MRU01</strong></li></ul>')
+})
+
+atest('chat: los trozos (agent-delta) se añaden y la respuesta entera del final los SUSTITUYE', async () => {
+  const texts = []; const deltas = []
+  const out = await streamChat({
+    url: '/sse', body: {},
+    fetchImpl: async () => sseResponse([
+      'data:{"inputTokens":0,"outputTokens":0,"totalTokens":0}\n\n',
+      'data:{"event":"agent-delta","detail":{"text":"Te "}}\n\n',
+      'data:{"event":"agent-delta","detail":{"text":"llevo.\\n"}}\n\n:keep-alive\n\n',
+      'data:{"inputTokens":10,"outputTokens":5,"totalTokens":15}\n\n',
+      'data:Te llevo ahora.\n\n',
+    ]),
+    onText: (t) => texts.push(t), onDelta: (piece) => deltas.push(piece),
+    onUsage: (u) => texts.push(u),
+  })
+  assert.deepEqual(deltas, ['Te ', 'llevo.\n'])
+  assert.equal(out, 'Te llevo ahora.')
+  // el uso todo-cero (marcador de agentes anteriores) no llega; el real sí
+  assert.deepEqual(texts, ['Te ', 'Te llevo.\n', { inputTokens: 10, outputTokens: 5, totalTokens: 15 }, 'Te llevo ahora.'])
+})
+
+atest('chat: el progreso del agente (fases y herramientas) llega a onProgress y a la fila de estado', async () => {
+  let clock = 0
+  const lines = []
+  await streamChat({
+    url: '/sse', body: {}, now: () => clock,
+    fetchImpl: async () => sseResponse([
+      'data:{"event":"agent-status","detail":{"phase":"connecting","text":"Conectando con 2 servidores MCP…"}}\n\n',
+      'data:{"event":"agent-tool","detail":{"name":"booking_findBookings","server":"booking","kind":"mcp","phase":"start"}}\n\n',
+      'data:{"event":"agent-tool","detail":{"name":"booking_findBookings","server":"booking","kind":"mcp","phase":"end","ms":3100,"error":"timeout"}}\n\n',
+      'data:{"event":"agent-delta","detail":{"text":"No he podido."}}\n\n',
+    ]),
+    onProgress: (p) => {
+      clock += 3000
+      lines.push(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 0, progress: p, now: clock }))
+      if (p.steps.length && !p.runningTool()) assert.deepEqual(p.steps, [{ name: 'booking_findBookings', server: 'booking', kind: 'mcp', ms: 3100, error: 'timeout', running: false }])
+    },
+  })
+  assert.deepEqual(lines, ['Conectando con 2 servidores MCP… 3 s', 'Llamando a booking_findBookings… 3 s', 'Conectando con 2 servidores MCP… 3 s', 'Respondiendo…'])
 })
 
 atest('chat: streamChat despacha eventos personalizados y captura uso de tokens', async () => {
   const events = []; let usage = null
   await streamChat({
     url: '/sse', body: {},
-    fetchImpl: async () => sseResponse(['data: {"event":"navigate","detail":{"route":"/x"}}\n', 'data: {"totalTokens":9}\n']),
+    fetchImpl: async () => sseResponse(['data: {"event":"navigate","detail":{"route":"/x"}}\n\n', 'data: {"totalTokens":9}\n\n']),
     onEvent: (e) => events.push(e), onUsage: (u) => { usage = u },
   })
   assert.deepEqual(events, [{ event: 'navigate', detail: { route: '/x' } }])
@@ -2450,7 +2507,7 @@ atest('chat: agent-error se muestra como el texto del asistente, no como evento'
   let text = ''; const events = []
   const out = await streamChat({
     url: '/sse', body: {},
-    fetchImpl: async () => sseResponse(['data: {"event":"agent-error","detail":{"message":"boom"}}\n']),
+    fetchImpl: async () => sseResponse(['data: {"event":"agent-error","detail":{"message":"boom"}}\n\n']),
     onText: (t) => { text = t }, onEvent: (e) => events.push(e),
   })
   assert.equal(out, '⚠️ boom')
@@ -2488,12 +2545,12 @@ atest('chat: streamChat ante un 401 pide reautenticar y reenvía una vez con el 
       fetchImpl: async (url, init) => {
         sent.push(init.headers.Authorization)
         return init.headers.Authorization === 'Bearer nuevo'
-          ? sseResponse(['data: hola\n'])
+          ? sseResponse(['data: hola\n\n'])
           : { ok: false, status: 401, text: async () => '' }
       },
     })
     assert.deepEqual(sent, [undefined, 'Bearer nuevo'], 'el reenvío lleva el token nuevo, el primero no llevaba')
-    assert.equal(out, 'hola\n')
+    assert.equal(out, 'hola')
   } finally {
     globalThis.localStorage = originalStorage
     globalThis.document = originalDocument
@@ -3354,6 +3411,34 @@ test('chat: los totales de la conversación suman cada respuesta; sin contadores
   assert.deepEqual(addUsage(total, {}), total)
 })
 
+test('chat: el uso que se enseña es el último que manda el agente (el de la conversación), no la suma', () => {
+  assert.equal(latestUsage(null, null), null)
+  const first = latestUsage(null, { inputTokens: 130, outputTokens: 40, totalTokens: 170 })
+  const second = latestUsage(first, { inputTokens: 330, outputTokens: 100, totalTokens: 430 })
+  assert.deepEqual(second, { inputTokens: 330, outputTokens: 100, totalTokens: 430 })
+  // una respuesta sin uso deja el que había
+  assert.deepEqual(latestUsage(second, {}), second)
+  assert.equal(isEmptyUsage({ inputTokens: 0, outputTokens: 0, totalTokens: 0 }), true)
+  assert.equal(isEmptyUsage({ totalTokens: 3 }), false)
+})
+
+test('chat: el lector SSE ignora comentarios y otros campos, y quita sólo UN espacio tras data:', () => {
+  const parser = createSseParser()
+  const out = [...parser.push(':keep-alive\n\nevent: x\nid: 1\ndata:   sangrado\n\ndata: a\r'), ...parser.push('\n\r\n'), ...parser.push('data: fin'), ...parser.end()]
+  assert.deepEqual(out, ['  sangrado', 'a', 'fin'])
+  assert.deepEqual(classifyChatPayload('{"event":"agent-status","detail":{"phase":"thinking"}}'), { kind: 'status', detail: { phase: 'thinking' } })
+  assert.deepEqual(classifyChatPayload('{"event":"navigation-requested","detail":{"route":"/x"}}'), { kind: 'event', event: 'navigation-requested', detail: { route: '/x' } })
+  assert.deepEqual(classifyChatPayload('hola'), { kind: 'text', text: 'hola' })
+})
+
+test('chat: sin progreso del agente, la fila de estado es la de siempre', () => {
+  const p = createChatProgress(0)
+  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 4.7, progress: p, now: 4700 }), 'Pensando… 4 s')
+  p.status({ phase: 'thinking', text: 'Pensando…' }, 5000)
+  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 9, progress: p, now: 7000 }), 'Pensando… 2 s')
+  assert.equal(chatStatusText({ busy: false, hasText: false, elapsedSeconds: 9, progress: p, now: 7000 }), '')
+})
+
 test('chat: la fila de estado dice si el asistente piensa o ya responde', () => {
   assert.equal(chatStatusText({ busy: false, hasText: false, elapsedSeconds: 9 }), '')
   assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 0 }), 'Pensando…')
@@ -3645,4 +3730,129 @@ test('breadcrumbs: summarizeHost lleva el rastro; @NoBreadcrumbs en página o sh
   assert.deepEqual(summarizeHost(regOf({}), '/booking/bookings/QN29HB').trail.map((c) => c.text), ['Call center', 'Reservas', 'QN29HB'])
   assert.deepEqual(summarizeHost(regOf({ noBreadcrumbs: true }), '/booking/bookings/QN29HB').trail, [])
   assert.deepEqual(summarizeHost(regOf({}, { noBreadcrumbs: true }), '/booking/bookings/QN29HB').trail, [])
+})
+
+// ── @Searchable: chips + el selector en un diálogo (fixtures/real/searchable-multi-*, capturados
+//    contra demo/demo-admin-panel Page 5: un List<String> hotelIds y un String hotelId) ─────────
+
+const searchableHost = () => {
+  const form = fx('searchable-multi-form')
+  form.fragments[0].targetComponentId = '' // la carga del host
+  return reduceContexts(empty(), form)
+}
+
+test('@Searchable: un campo de varios ids son chips rotulados + «Add» que abre su selector', () => {
+  const reg = searchableHost()
+  const host = reg.contexts[HOST_ID]
+  const fields = fieldListOf(host.tree, host.state, host.data)
+  const multi = fields.find((f) => f.fieldId === 'hotelIds')
+  assert.ok(multi.isSearchable && multi.isSearchableMulti)
+  assert.equal(multi.isText, false)
+  assert.equal(multi.actionId, 'codesearch-hotelIds')
+  assert.deepEqual(multi.chips.map((c) => [c.id, c.label, c.remaining]), [['3', 'Hotel 3', []]])
+  assert.equal(multi.addLabel, 'Add')
+  // el de un solo id: sin chip mientras está vacío, «Search»
+  const single = fields.find((f) => f.fieldId === 'hotelId')
+  assert.ok(single.isSearchable && !single.isSearchableMulti)
+  assert.equal(single.hasChips, false)
+  assert.equal(single.addLabel, 'Search')
+  // las secciones del formulario los llevan igual
+  assert.ok(formSectionsOf(host.tree, host.state, host.data)[0].fields.some((f) => f.fieldId === 'hotelIds' && f.isSearchable))
+})
+
+test('@Searchable: el chip de un id sin rótulo es el id; uno simple lleva el rótulo de <campo>-label', () => {
+  const chips = searchableChipsOf('ids', ['a', 7], { a: 'Alpha' }, { multi: true })
+  assert.deepEqual(chips.map((c) => c.label), ['Alpha', '7'])
+  assert.deepEqual(chips[0].remaining, [7])
+  assert.equal(chips[0].removeLabel, 'Remove Alpha')
+  const single = searchableChipsOf('id', ['h2'], null, { singleLabel: 'Hotel Two' })
+  assert.deepEqual(single.map((c) => [c.label, c.remaining]), [['Hotel Two', null]])
+  assert.equal(searchableChipsOf('ids', ['a'], {}, { multi: true, readonly: true })[0].removable, false)
+  assert.deepEqual(searchableIdsOf(null), [])
+  assert.deepEqual(searchableIdsOf('x'), ['x'])
+  assert.deepEqual(searchableIdsOf(['x', null, '']), ['x'])
+})
+
+test('@Searchable: codesearch abre el SELECTOR (no el modal de decisión): multi, sin la columna «Select», título del campo', () => {
+  let reg = searchableHost()
+  reg = reduceContexts(reg, fx('searchable-multi-open'))
+  assert.equal(reg.stack.length, 1)
+  assert.equal(reg.contexts[reg.stack[0]].opener, HOST_ID)
+  const picker = searchPickerOf(reg)
+  assert.ok(picker)
+  assert.equal(picker.multi, true)
+  assert.deepEqual(picker.selectionMode, { row: 'multiple' })
+  assert.equal(picker.title, 'Hotel ids')
+  assert.deepEqual(picker.columns.map((c) => c.id), ['id', 'name', 'address'])
+  assert.equal(picker.addLabel, 'Add selected')
+  assert.equal(picker.addActionId, 'action-on-row-select-selected')
+  assert.equal(picker.pickActionId, 'action-on-row-select')
+  assert.equal(picker.rows.length, 0) // las filas llegan con su `search`
+  // su búsqueda va a SU ServerSide (el selector), con su estado
+  const transport = overlayTransportOf(reg, 'search')
+  assert.equal(transport.tree.serverSideType, 'io.mateu.mdd.demoadminpanel.infra.in.ui.HotelSelector')
+  assert.equal(transport.state._searchableMulti, true)
+  assert.deepEqual(pickerSearchStateOf(picker, { searchText: 'Ho' }), { searchText: 'Ho', page: 0, size: 10 })
+  // un overlay que no es un selector no es un picker
+  assert.equal(searchPickerOf(reduceContexts(reduceContexts(empty(), fx('load-listing')), fx('open-drawer'))), null)
+})
+
+test('@Searchable: la búsqueda del selector llena SUS filas (data-only a su id)', () => {
+  let reg = searchableHost()
+  reg = reduceContexts(reg, fx('searchable-multi-open'))
+  reg = reduceContexts(reg, fx('searchable-multi-search'))
+  const picker = searchPickerOf(reg)
+  assert.equal(picker.rows.length, 30)
+  assert.equal(picker.rows[0].name, 'Hotel 1')
+  assert.equal(reg.contexts[HOST_ID].state.hotelIds[0], '3') // el host, intacto
+})
+
+test('@Searchable: «Add selected» devuelve al host los ids fusionados y sus rótulos, y cierra el selector', () => {
+  let reg = searchableHost()
+  reg = reduceContexts(reg, fx('searchable-multi-open'))
+  reg = reduceContexts(reg, fx('searchable-multi-search'))
+  reg = reduceContexts(reg, fx('searchable-multi-add'))
+  assert.deepEqual(reg.stack, [])
+  assert.equal(searchPickerOf(reg), null)
+  const host = reg.contexts[HOST_ID]
+  assert.deepEqual(host.state.hotelIds, ['3', '1', '5'])
+  assert.equal(host.data['hotelIds-labels']['5'], 'Hotel 5')
+  assert.deepEqual(reg.effects.events, []) // no siguen al bus
+  const multi = fieldListOf(host.tree, host.state, host.data).find((f) => f.fieldId === 'hotelIds')
+  assert.deepEqual(multi.chips.map((c) => c.label), ['Hotel 3', 'Hotel 1', 'Hotel 5'])
+})
+
+test('@Searchable: un clic de fila añade esa fila', () => {
+  let reg = searchableHost()
+  reg = reduceContexts(reg, fx('searchable-multi-open'))
+  reg = reduceContexts(reg, fx('searchable-multi-pick'))
+  assert.deepEqual(reg.contexts[HOST_ID].state.hotelIds, ['3', '1', '5', '7'])
+  assert.deepEqual(reg.stack, [])
+})
+
+test('@Searchable: quitar un chip rehace los chips de la proyección sin ir al servidor; el borrador se funde al abrir', () => {
+  const reg = searchableHost()
+  const host = reg.contexts[HOST_ID]
+  const sections = formSectionsOf(host.tree, { ...host.state, hotelIds: ['3', '9'] }, { ...host.data, 'hotelIds-labels': { 3: 'Hotel 3', 9: 'Hotel 9' } })
+  const after = withSearchableIds(sections, 'hotelIds', ['9'])
+  const field = after[0].fields.find((f) => f.fieldId === 'hotelIds')
+  assert.deepEqual(field.chips.map((c) => [c.id, c.label]), [['9', 'Hotel 9']])
+  // lo demás, intacto
+  assert.equal(after[0].fields.length, sections[0].fields.length)
+  const merged = withContextState(reg, HOST_ID, { hotelId: '2' })
+  assert.equal(merged.contexts[HOST_ID].state.hotelId, '2')
+  assert.deepEqual(merged.contexts[HOST_ID].state.hotelIds, ['3'])
+  assert.equal(withContextState(reg, HOST_ID, {}), reg)
+})
+
+test('@Searchable: la vista de detalle (<campo>-label, sólo lectura) se pinta como texto', () => {
+  const field = layoutFieldOf({ fieldId: 'hotelIds-label', dataType: 'array', stereotype: 'searchable', readOnly: true, label: 'Hotels' },
+    {}, { 'hotelIds-label': 'Hotel 3, Hotel 5' })
+  assert.equal(field.isText, true)
+  assert.equal(field.readonly, true)
+  assert.equal(field.value, 'Hotel 3, Hotel 5')
+  assert.equal(field.isSearchable, undefined)
+  const tree = { type: 'ServerSide', children: [{ metadata: { type: 'FormField', fieldId: 'hotelIds-label', dataType: 'array', stereotype: 'searchable', readOnly: true, label: 'Hotels' } }] }
+  const listed = fieldListOf(tree, {}, { 'hotelIds-label': 'Hotel 3, Hotel 5' })
+  assert.deepEqual(listed.map((f) => [f.isText, f.value]), [[true, 'Hotel 3, Hotel 5']])
 })

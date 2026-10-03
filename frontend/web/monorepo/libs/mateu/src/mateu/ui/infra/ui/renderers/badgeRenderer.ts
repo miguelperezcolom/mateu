@@ -11,7 +11,12 @@ export const renderBadge = (component: ClientSideComponent, state: ComponentStat
                       slot="${component.slot??nothing}">${evalIfNecessary(metadata.text, state, data)}</span>`
 }
 
-export const renderBadgeMetadata = (metadata: Badge, state: ComponentState, data: ComponentData) => {
+/**
+ * A badge given as metadata (a page's / record's status badges). `opts.pill` draws it as a pill
+ * whatever the metadata says: the content header does, so a status reads the same on the record as
+ * in the listing's grid, where status badges are pills.
+ */
+export const renderBadgeMetadata = (metadata: Badge, state: ComponentState, data: ComponentData, opts?: { pill?: boolean }) => {
     const text = evalIfNecessary(metadata.text, state, data)
     if (!text) return nothing
     let color = evalIfNecessary(metadata.color, state, data);
@@ -26,5 +31,6 @@ export const renderBadgeMetadata = (metadata: Badge, state: ComponentState, data
     if (color == 'QUATERNARY') color = 'quaternary';
     if (color == 'LIGHT') color = 'light';
     if (color == 'DARK') color = 'dark';
-    return html`<span theme="badge ${color} ${metadata.pill?'pill':''} ${metadata.small?'small':''} ${metadata.primary?'primary':''}">${text}</span>`
+    const pill = metadata.pill || opts?.pill
+    return html`<span theme="badge ${color} ${pill?'pill':''} ${metadata.small?'small':''} ${metadata.primary?'primary':''}">${text}</span>`
 }
