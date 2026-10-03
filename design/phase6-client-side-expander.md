@@ -124,6 +124,16 @@ test, verified render-parity, not byte-parity. `layoutDelta` and editable-form f
 server goldens (`*DefinitionSyncTest`), the **real `mvn -Pbundle`** manifest carrying the definitions,
 and a real browser BOOTING the served bundle (assets + manifest 200, `mateu-ui` mounts).
 
+**Update 2026-10-03 (P5 · S0 of `design/maui-parity-plan.md`): proven in a browser.** The two
+blockers below are gone: `mateu:bundle` has `specsOnly` (definition-only routes ship raw, nothing
+pre-rendered) and the bundle deep link is fixed (#557 was the exporter shipping only the fresh load —
+the app SHELL — for every route; it now ships the content load too, and the client picks by consumed
+route). The expander grew the app shell (`AppShell` → App), the read-only record page (`Form`,
+`FormLayout`, `FormField`, toolbar `Button`s with RouteLinks), a page wrapper carrying declared
+`actions`/`triggers` plus the route's `data:` as `__restdata__` + OnLoad, and the listing defaults the
+renderer cannot do without (`pageSize`, …). `demo/demo-static-vcn/yaml` runs entirely through it; its
+e2e (`static-vcn-yaml`) passes with no backend. The paragraphs below are kept as the history.
+
 **The one thing NOT yet proven in a browser, and exactly why.** An in-browser render of a
 definition-only route THROUGH THE EXPANDER needs two things the current setup does not provide,
 neither about the expander's correctness: (1) a **specs-only export mode** — the exporter today
