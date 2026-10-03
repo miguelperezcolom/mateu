@@ -123,7 +123,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: 21
           distribution: zulu
@@ -230,7 +230,7 @@ jobs:
       - uses: actions/checkout@v7
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           java-version: 21
           distribution: zulu
@@ -253,7 +253,7 @@ jobs:
           -pl shared/core,shared/uidl,shared/annotation-processor-core,shared/annotation-processor-indexer,shared/agent-cli,webflux/webflux-core
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: '3.12'
 
@@ -267,7 +267,7 @@ jobs:
           python -m pytest tests/ -q
 
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0.x'
 
