@@ -274,5 +274,5 @@ field renders group subtotal rows, and `@Aggregate` adds per-group and whole-set
 ## Principles served
 
 - **Workflow over screens** — act on data without leaving the list
-- **Keyboard-first** — filters respond to Enter via `@Trigger(type = OnEnter)`
+- **Keyboard-first** — filters respond to Enter (the listing's `searchOnEnter`, on by default)
 - **Recoverability** — filter state, page, and sort survive navigation via URL sync; no Filter Amnesia

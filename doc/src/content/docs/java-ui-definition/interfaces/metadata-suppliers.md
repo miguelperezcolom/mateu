@@ -100,7 +100,6 @@ public interface TitleSupplier {
 ## Usage
 
 ```java
-@Route("/customers/{id}")
 public class CustomerDetailPage implements ComponentTreeSupplier, TitleSupplier {
 
     private final CustomerRepository repo;
@@ -118,6 +117,14 @@ public class CustomerDetailPage implements ComponentTreeSupplier, TitleSupplier 
 }
 ```
 
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: customers/:id
+    viewModel: com.example.CustomerDetailPage
+```
+
 ---
 
 # SubtitleSupplier
@@ -133,7 +140,6 @@ public interface SubtitleSupplier {
 ## Usage
 
 ```java
-@Route("/report")
 public class ReportPage implements ComponentTreeSupplier, SubtitleSupplier {
 
     @Override
@@ -146,6 +152,14 @@ public class ReportPage implements ComponentTreeSupplier, SubtitleSupplier {
         return "Generated on " + LocalDate.now();
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: report
+    viewModel: com.example.ReportPage
 ```
 
 ---
@@ -225,7 +239,6 @@ public interface DataSupplier {
 ## Usage
 
 ```java
-@Route("/summary")
 public class SummaryPage implements ComponentTreeSupplier, DataSupplier {
 
     @Override
@@ -238,6 +251,14 @@ public class SummaryPage implements ComponentTreeSupplier, DataSupplier {
         return Map.of("totalRevenue", revenueService.getTotal());
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: summary
+    viewModel: com.example.SummaryPage
 ```
 
 ---
@@ -255,7 +276,6 @@ public interface CommandSupplier {
 ## Usage
 
 ```java
-@Route("/setup")
 public class SetupPage implements ComponentTreeSupplier, CommandSupplier {
 
     @Override
@@ -268,6 +288,14 @@ public class SetupPage implements ComponentTreeSupplier, CommandSupplier {
         return List.of(new UICommand("navigate", "/dashboard"));
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: setup
+    viewModel: com.example.SetupPage
 ```
 
 ---

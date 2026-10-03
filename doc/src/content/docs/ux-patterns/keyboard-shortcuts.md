@@ -3,7 +3,7 @@ title: Keyboard Shortcuts
 description: First-class keyboard navigation for power users.
 ---
 
-**Status:** ✅ Implemented — `@Action(shortcut = ...)`, `@Trigger(type = OnEnter)`, `@Tab(shortcut = ...)`
+**Status:** ✅ Implemented — `@Action(shortcut = ...)`, `@Tab(shortcut = ...)`
 
 ## Intent
 
@@ -36,20 +36,10 @@ public void cancel() { }
 
 Shortcut strings follow standard modifier notation: `ctrl`, `shift`, `alt`, `meta` (⌘ on Mac), combined with a key name (`s`, `enter`, `escape`, `f2`, etc.).
 
-### Enter key on forms — `@Trigger(type = OnEnter)`
+### Enter key
 
-Use `@Trigger(type = TriggerType.OnEnter)` to fire an action when the user presses Enter anywhere in a form, without attaching the shortcut to a specific action button.
-
-```java
-@Trigger(type = TriggerType.OnEnter, calledActionId = "search")
-public class ProductSearch {
-    private String name;
-
-    public List<Product> search() {
-        return productRepo.search(name);
-    }
-}
-```
+To run an action when the user presses Enter, give it `@Action(shortcut = "enter")`. (There is
+no `OnEnter` trigger type.) Listings search on Enter by default (`searchOnEnter`).
 
 ### Tab shortcuts — `@Tab(shortcut = ...)`
 

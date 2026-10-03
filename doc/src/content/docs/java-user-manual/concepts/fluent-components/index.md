@@ -24,7 +24,6 @@ The declarative (annotation-based) and fluent approaches are **composable** — 
 A fluent page implements `ComponentTreeSupplier` and returns a `Form` (or any `Component`) from its `component()` method:
 
 ```java
-@Route(value = "/my-page", parentRoute = "")
 public class MyPage implements ComponentTreeSupplier {
 
     @Override
@@ -37,6 +36,14 @@ public class MyPage implements ComponentTreeSupplier {
                 .build();
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: my-page
+    viewModel: com.example.MyPage
 ```
 
 ---

@@ -53,7 +53,7 @@ and edit in a drawer…)? They have their own map: [Page templates](./page-templ
 | [Task-centric page](./task-centric) | Composition | `@Action`, `@MainAction` |
 | [Long-running jobs](./long-running-jobs) | ✅ Implemented | `@Action(background, sse)`, `@Trigger` |
 | [Autosave](./autosave) | ✅ Implemented | `@AutoSave` |
-| [Keyboard Shortcuts](./keyboard-shortcuts) | ✅ Implemented | `@Action(shortcut = ...)`, `@Trigger(OnEnter)` |
+| [Keyboard Shortcuts](./keyboard-shortcuts) | ✅ Implemented | `@Action(shortcut = ...)`, `@Tab(shortcut = ...)` |
 | [Push Notifications](./notifications) | ✅ Implemented | `@Trigger(OnLoad + OnSuccess)`, `Hydratable`, `MicroFrontend` |
 | [Partial Forms](./partial-forms) | ✅ Implemented | `@FoldedLayout`, `@Section`, nested subform records |
 | [High-density screens](./high-density) | ✅ Implemented | `@Compact`, `StyleConstants.COMPACT` |

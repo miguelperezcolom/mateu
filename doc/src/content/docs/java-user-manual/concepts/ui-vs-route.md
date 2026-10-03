@@ -2,7 +2,11 @@
 title: "UI vs Route"
 ---
 
-`@UI` and `@Route` serve different purposes. `@UI` publishes an application at a base URL. `@Route` defines a screen inside that application.
+`@UI` and the route registry serve different purposes. `@UI` publishes an application (a **mount**) at a base URL. A `routes.yaml` entry defines a screen inside that application.
+
+:::note
+The `@Route`, `@Routes` and `@HomeRoute` annotations were removed. `@UI` is the only routing annotation; inner routes are data in a [`routes.yaml` route registry](/java-ui-definition/route-registry/).
+:::
 
 ---
 
@@ -26,18 +30,25 @@ public class AdminApp {}
 
 ---
 
-## `@Route`
+## Inner routes (`routes.yaml`)
 
-`@Route` defines an internal route inside a UI. It does not publish a new application by itself.
+A `routes.yaml` entry defines an internal route inside a UI. It does not publish a new application by itself.
 
 ```java
-@Route("/products/:id")
 public class ProductForm {
     String id;
 }
 ```
 
-A class annotated only with `@Route` belongs to a UI root published elsewhere. It is reachable through that UI's base URL.
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: products/:id
+    viewModel: com.example.ProductForm
+```
+
+A class bound only by a route entry belongs to a UI root published elsewhere. It is reachable through that UI's base URL.
 
 ---
 
@@ -45,17 +56,16 @@ A class annotated only with `@Route` belongs to a UI root published elsewhere. I
 
 The final URL of a routed screen is built from:
 
-- the base URL declared by `@UI`
-- the internal path declared by `@Route`
+- the base URL declared by `@UI` (or by the route file's `basePath`)
+- the relative path of the `routes.yaml` entry
 
-If `@UI` is at `/admin` and a `@Route` declares `/products/:id`, the full URL becomes `/admin/products/:id`.
+If `@UI` is at `/admin` and its route file declares `products/:id`, the full URL becomes `/admin/products/:id`.
 
 ---
 
 ## Example: a route inside an existing UI
 
-`@Route(parentRoute = …)` no longer exists. A screen inside the `/admin` UI is an entry in that
-UI's `routes.yaml`:
+A screen inside the `/admin` UI is an entry in a route file tagged with that UI's base path:
 
 ```yaml
 type: Routes
@@ -74,11 +84,11 @@ renders the child in its slot; see the [route registry](/java-ui-definition/rout
 ## Mental model
 
 - `@UI` = application root (one per application or sub-application)
-- `@Route` = screen inside that root
+- `routes.yaml` entry = screen inside that root
 
-A class can have both annotations if it is simultaneously an application root and its own first screen. Typically they are separate.
+The `@UI` class is the mount's root view (the entry whose route is `""`). When the app has a menu, its landing page is the first menu item, or whatever the app class returns from `HomeRouteSupplier.homeRoute()`.
 
-Beyond annotations, routes can also be declared as data in a `routes.yaml` route registry, merged over the annotation-derived routes (authored entries win). See the [route registry](/java-ui-definition/route-registry/).
+Routes can also be supplied in code (a `RouteEntrySupplier` bean); `routes.yaml` wins over a supplied entry for the same route. See the [route registry](/java-ui-definition/route-registry/).
 
 ---
 

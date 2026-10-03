@@ -27,7 +27,6 @@ The Mateu page:
 ## Starting a workflow
 
 ```java
-@Route(value = "/orders/new", parentRoute = "")
 public class CreateOrderPage implements ComponentTreeSupplier, ActionHandler {
 
     String customerId;
@@ -68,12 +67,19 @@ public class CreateOrderPage implements ComponentTreeSupplier, ActionHandler {
 }
 ```
 
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: orders/new
+    viewModel: com.example.CreateOrderPage
+```
+
 ---
 
 ## Displaying workflow state
 
 ```java
-@Route(value = "/orders/:workflowId", parentRoute = "")
 public class OrderWorkflowPage implements ComponentTreeSupplier, ActionHandler, TriggersSupplier {
 
     @Override
@@ -96,6 +102,14 @@ public class OrderWorkflowPage implements ComponentTreeSupplier, ActionHandler, 
         return List.of(new OnLoadTrigger("refresh"));
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: orders/:workflowId
+    viewModel: com.example.OrderWorkflowPage
 ```
 
 ---

@@ -332,7 +332,7 @@ Typical customizations:
 Use:
 
 - `Callable<?>` → dynamic UI
-- `@Route` → custom pages
+- `routes.yaml` entries → custom pages
 - embedded orchestrators → master-detail
 
 Example:

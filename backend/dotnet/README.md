@@ -1,10 +1,10 @@
 # Mateu server-side for .NET (C#)
 
 A C# implementation of Mateu's **server side**: turn annotated C# classes into the Mateu component
-tree and serve the `/mateu/v3/sync` API, so the **existing renderers** (web, JavaFX, Compose) render a
+tree and serve the `/mateu/v3/sync` API, so the **existing renderers** (web, React Native, IntelliJ plugin) render a
 C# backend with **zero client changes**. See [`DESIGN.md`](DESIGN.md) for the full plan and roadmap.
 
-> Status: **M1–M4 working & verified live** in the Compose renderer (desktop + iOS) against this server:
+> Status: **M1–M4 working & verified live** in the Compose renderer (desktop + iOS; since retired) against this server:
 > - **M1** — `[UI]` form + `[Button]` action (e.g. `SimpleForm` → "Hello {name}" toast).
 > - **M2** — field types (string/int/bool/date/enum→options), `[Required]`→required, `[Section]`→cards.
 > - **M3** — `Crud<T>`: a searchable listing (table on desktop, cards on phone) **plus full

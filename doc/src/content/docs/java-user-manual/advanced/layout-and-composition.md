@@ -46,9 +46,16 @@ public class StyleConstants {
 ```
 
 ```java
-@Route("/users/:id")
 @Style(StyleConstants.CONTAINER)
 public class UserDetail {}
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: users/:id
+    viewModel: com.example.UserDetail
 ```
 
 Define the constants once and reuse them across pages to keep widths consistent.

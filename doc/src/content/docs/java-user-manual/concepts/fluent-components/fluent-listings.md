@@ -9,7 +9,6 @@ title: "Listings"
 ## The pattern
 
 ```java
-@Route(value = "/my-listing", parentRoute = "")
 public class MyListing implements ComponentTreeSupplier, Listing<MyRow>,
         Searchable, Filterable<MyFilters>, TriggersSupplier {
 
@@ -46,6 +45,14 @@ public class MyListing implements ComponentTreeSupplier, Listing<MyRow>,
         return List.of(new OnLoadTrigger("search"));   // auto-load on page open
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: my-listing
+    viewModel: com.example.MyListing
 ```
 
 ---

@@ -33,8 +33,9 @@ Read this before generating; each line is a trap and its fix.
   inherited from the parent.
 
 - **Routing annotations are not composable.** You can build composed/semantic annotations
-  from any field/method/class Mateu annotation, but **not** from `@UI`/`@Route`/
-  `@HomeRoute`/`@Routes` (resolved at compile time by the annotation processor).
+  from any field/method/class Mateu annotation, but **not** from `@UI`
+  (resolved at compile time by the annotation processor). `@Route`/`@Routes`/`@HomeRoute` no
+  longer exist — inner routes go in `specs/ui/routes.yaml`; never generate them.
 
 - **`ComponentAdapter.deserialize` must guard every assignment** with
   `state.containsKey(...)` — it also builds the initial instance from an *empty* state, so

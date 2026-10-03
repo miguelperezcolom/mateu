@@ -1,7 +1,7 @@
 # Mateu server-side for Python
 
 A Python implementation of Mateu's **server side**: annotate plain Python classes and serve the
-`/mateu/v3/sync` API, so the **existing renderers** (web, JavaFX, Compose) render a Python backend
+`/mateu/v3/sync` API, so the **existing renderers** (web, React Native, IntelliJ plugin) render a Python backend
 with **zero client changes**. See [`DESIGN.md`](DESIGN.md) for the plan and the [C# port](../dotnet)
 for the sibling implementation.
 

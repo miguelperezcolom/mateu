@@ -106,10 +106,10 @@ Every Mateu field, method and class annotation can be used as a meta-annotation 
 domain annotation.
 
 :::caution[Routing annotations are not composable]
-`@UI`, `@Route`, `@Routes` and `@HomeRoute` are **not** resolved through composition.
+`@UI` (the only routing annotation — inner routes live in [`routes.yaml`](/java-ui-definition/route-registry/)) is **not** resolved through composition.
 They are processed by the annotation processor at compile time, which is not
 meta-annotation aware, so composing them would behave inconsistently between compile
-time and runtime. Keep these directly on the class.
+time and runtime. Keep it directly on the class.
 :::
 
 ## Writing your own composable annotation

@@ -76,12 +76,16 @@ public @interface Menu {
 
 Marks a field as a navigation menu entry in the application sidebar. `selected` highlights it as the active entry. `description` is a hint for AI assistants explaining the menu entry's purpose.
 
-## @HomeRoute
+## Home route
+
+`@HomeRoute` was removed. The landing page of an app is its **first menu item**; to point it
+somewhere else, implement `io.mateu.uidl.interfaces.HomeRouteSupplier` on the app class:
 
 ```java
-public @interface HomeRoute {
-  String value();
+@UI("/admin")
+public class AdminApp implements HomeRouteSupplier {
+  @Override public String homeRoute() { return "/admin/dashboard"; }
 }
 ```
 
-Declares which route is the default landing page of the application. Cross-reference: also documented in route.md.
+Cross-reference: see [Route annotations](/java-ui-definition/annotations/route/).

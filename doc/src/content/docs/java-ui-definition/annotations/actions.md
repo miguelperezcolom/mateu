@@ -392,9 +392,9 @@ public record ShippingDetails(String address, String city) {
 }
 ```
 
-### runOnEnter
+### Running an action on Enter
 
-`runOnEnter = true` on an `Action` is equivalent to `shortcut = "enter"`. Both use the same keyboard listener mechanism.
+Use `shortcut = "enter"` — it goes through the same keyboard listener as any other shortcut.
 
 ---
 

@@ -11,7 +11,6 @@ Implement `TriggersSupplier` and return a list of `Trigger` objects from `trigge
 ## The pattern
 
 ```java
-@Route(value = "/my-page", parentRoute = "")
 public class MyPage implements ComponentTreeSupplier, ActionHandler, TriggersSupplier {
 
     @Override
@@ -32,6 +31,14 @@ public class MyPage implements ComponentTreeSupplier, ActionHandler, TriggersSup
         return null;
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: my-page
+    viewModel: com.example.MyPage
 ```
 
 ---
@@ -57,7 +64,6 @@ Parameters:
 Use for: loading initial data, auto-starting background processes, polling.
 
 ```java
-@Route(value = "/dashboard", parentRoute = "")
 public class Dashboard implements ComponentTreeSupplier, ActionHandler, TriggersSupplier {
 
     @Override
@@ -70,6 +76,14 @@ public class Dashboard implements ComponentTreeSupplier, ActionHandler, Triggers
         return new State(Map.of("items", loadItems()));
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: dashboard
+    viewModel: com.example.Dashboard
 ```
 
 ---

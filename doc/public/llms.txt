@@ -2,7 +2,7 @@
 
 > Model-driven UI framework for Java. Annotate Java classes with @UI and Mateu generates forms, CRUD screens, navigation, and a full web UI automatically. Zero frontend code for typical business apps.
 
-Mateu works with Spring Boot (MVC and WebFlux), Quarkus, Micronaut, and Helidon. The frontend ships as pre-built Lit web-components; renderers for Vaadin Lumo, SAP UI5, Oracle Redwood, and PatternFly are included.
+Mateu works with Spring Boot (MVC and WebFlux), Quarkus, Micronaut, and Helidon. The frontend ships as pre-built Lit web-components; renderers for Vaadin (Lumo) and Oracle Redwood (on Oracle Visual Builder) are included.
 
 ## AI reference files
 
@@ -17,10 +17,10 @@ For AI-assisted development, use these context documents with your AI tool (Clau
 - [Quickstart](https://mateu.io/java-user-manual/start-here/quickstart/): Create a Spring Boot project with Mateu in 5 minutes
 - [First app](https://mateu.io/java-user-manual/start-here/first-app/): Build your first form and CRUD
 - [Annotations reference](https://mateu.io/java-ui-definition/annotations/): Every annotation with attributes and examples
-- [Interfaces reference](https://mateu.io/java-ui-definition/interfaces/): ListingBackend, CrudRepository, BannerSupplier, BadgeSupplier, etc.
+- [Interfaces reference](https://mateu.io/java-ui-definition/interfaces/): Listing, CrudStore, BannerSupplier, BadgeSupplier, etc.
 - [UX patterns](https://mateu.io/ux-patterns/): Wizard, high-density screens, split view, autosave, keyboard shortcuts, and more
 - [Components](https://mateu.io/java-ui-definition/components/): Badge, Banner, FAB, Chart, Map, and all fluent components
-- [Design systems](https://mateu.io/design-systems/): Vaadin, SAP UI5, Oracle Redwood, PatternFly
+- [Design systems](https://mateu.io/design-systems/): Vaadin, Oracle Redwood
 
 ## Key concepts
 
@@ -31,7 +31,7 @@ For AI-assisted development, use these context documents with your AI tool (Clau
 - `HttpRequest` can be added to any method signature; Mateu injects it.
 - Action methods return: `void` (stay), `URI` (navigate), `Message` (toast), any Java object (open as view), `PageBanner` (show banner), `new State(this)` (update without navigating).
 - CRUD: extend `AutoCrud<T>` with a record implementing `Identifiable` — zero extra code.
-- Custom listings: extend `Listing<Filters, Row>` and implement `search()`.
+- Custom listings: implement `Listing<Row>` (+ `Searchable`/`Filterable<F>` capabilities) and its `search(SearchRequest, HttpRequest)`.
 - Wizard: extend `Wizard`, declare `WizardStep` fields, annotate the final action with `@WizardCompletionAction`.
 - Dense screens: combine `@Compact` + `@Zones`/`@Zone` + `@Section(zone="...")`.
 - Dynamic banners: `@Banner` on a method or implement `BannerSupplier`.

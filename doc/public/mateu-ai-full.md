@@ -425,9 +425,9 @@ Inline CSS on the wrapping `<div>`.
 @Trigger(type = TriggerType.OnLoad, actionId = "load")
 @Trigger(type = TriggerType.OnLoad, actionId = "load", timeoutMillis = 0)
 @Trigger(type = TriggerType.OnSuccess, actionId = "poll", calledActionId = "poll", timeoutMillis = 10000)
-@Trigger(type = TriggerType.OnEnter)   // fire an action when user presses Enter
+@Trigger(type = TriggerType.OnValueChange, actionId = "recalc", propertyName = "quantity")
 ```
-`TriggerType` values: `OnLoad`, `OnSuccess`, `OnEnter`, `OnChange`.
+`TriggerType` values: `OnLoad`, `OnSuccess`, `OnError`, `OnValueChange`, `OnCustomEvent`.
 
 ---
 
@@ -443,7 +443,7 @@ Inline CSS on the wrapping `<div>`.
 
 ### `@Validation` (cross-field, declarative)
 ```java
-@Validation(filter="endDate < startDate", field="endDate", message="End must be after start")
+@Validation(condition="endDate != null && startDate != null && endDate < startDate", fieldId="endDate", message="End must be after start")
 public class BookingForm { ... }
 ```
 
@@ -520,9 +520,9 @@ record Product(
 ) implements Identifiable {}
 ```
 
-### Repository — `CrudRepository<T>`
+### Store — `CrudStore<T>`
 ```java
-class ProductRepository implements CrudRepository<Product> {
+class ProductStore implements CrudStore<Product> {
     public Optional<Product> findById(String id) { /* ... */ }
     public String save(Product e) { /* persist */ return e.id(); }
     public List<Product> findAll() { /* ... */ }
@@ -535,7 +535,7 @@ class ProductRepository implements CrudRepository<Product> {
     // public Page<Product> find(String searchText, Product filters, Pageable pageable) { ... }
 }
 ```
-`AutoCrud` calls `repository().find(...)` to fill the listing. `Page<T>` =
+`AutoCrud` calls `store().find(...)` to fill the listing (override `store()` to return your `CrudStore`). `Page<T>` =
 `(String searchSignature, int pageSize, int pageNumber, long totalElements, List<T> content)`;
 `Pageable` = `(int page, int size, List<Sort> sort)`, `Sort` = `(String field, Direction direction)`.
 
@@ -544,13 +544,12 @@ class ProductRepository implements CrudRepository<Product> {
 @UI("/orders")
 @Title("Orders")
 @Trigger(type = TriggerType.OnLoad, actionId = "search")
-public class Orders extends Listing<OrderFilters, OrderRow> {
+public class Orders implements Listing<OrderRow>, Searchable, Filterable<OrderFilters> {
 
     @Override
-    public ListingData<OrderRow> search(
-            String searchText, OrderFilters filters,
-            Pageable pageable, HttpRequest httpRequest) {
-        return ListingData.of(repo.findAll(searchText, filters, pageable));
+    public ListingData<OrderRow> search(SearchRequest request, HttpRequest httpRequest) {
+        OrderFilters filters = filters(request);   // typed, from Filterable
+        return ListingData.of(repo.findAll(request.searchText(), filters, request.pageable()));
     }
 
     @Override
@@ -570,7 +569,7 @@ record OrderRow(
 
 ### Export support
 ```java
-public class OrdersListing extends Listing<OrderFilters, OrderRow> {
+public class OrdersListing implements Listing<OrderRow> {
     @Override public boolean csvExportable()   { return true; }
     @Override public boolean excelExportable() { return true; }
     @Override public boolean pdfExportable()   { return true; }
@@ -754,8 +753,8 @@ public class HotelSearch extends HeroSearch<HotelFilters, Hotel> {
     // @Override protected String heroImage() { return "/images/hero.jpg"; }   // optional background
 
     @Override
-    public ListingData<Hotel> search(String searchText, HotelFilters filters,
-                                     Pageable pageable, HttpRequest httpRequest) {
+    public ListingData<Hotel> search(SearchRequest request, HttpRequest httpRequest) {
+        HotelFilters filters = filters(request);
         // query your use case / repository; return a ListingData page
     }
 }
@@ -794,7 +793,7 @@ public class ProductOverview extends ItemOverview {
 
 ## Inline editing on CRUD listings
 
-Annotate the `AutoCrud` class with `@InlineEditing` to edit rows directly in the listing grid — each committed cell persists its row through the repository, no detail-form round-trip:
+Annotate the `AutoCrud` class with `@InlineEditing` to edit rows directly in the listing grid — each committed cell persists its row through the `CrudStore`, no detail-form round-trip:
 
 ```java
 @UI("/stock")
@@ -804,12 +803,12 @@ public class StockCrud extends AutoCrud<StockItem> {
 
     @Override public GridLayout gridLayout() { return GridLayout.table; }  // cell editing lives in the table layout
 
-    @Override public CrudRepository<StockItem> repository() { /* … */ }
+    @Override public CrudStore<StockItem> store() { /* … */ }
 }
 ```
 
 - Editors derive from each field's Java type (same mapping as editable tables); `@ReadOnly` fields stay display-only.
-- Each commit dispatches `update-row` with the edited row; `AutoCrud` rebuilds the entity and calls `repository().save(entity)`. Override `updateRow(Map, HttpRequest)` for partial updates / optimistic locking.
+- Each commit dispatches `update-row` with the edited row; `AutoCrud` rebuilds the entity and calls `store().save(entity)`. Override `updateRow(Map, HttpRequest)` for partial updates / optimistic locking.
 - For **form collections** (a `List` field inside a form) use `@InlineEditing` on the field instead — edits accumulate in the form state and persist with the form's action.
 
 ---
@@ -1032,8 +1031,8 @@ public class CustomerList {
 | Interface | Purpose |
 |---|---|
 | `Identifiable` | Mark the ID field for CRUD. Return `id()`. |
-| `ListingBackend<F,R>` | Custom searchable/filterable grid |
-| `CrudRepository<T>` | Data port for `AutoCrud` |
+| `Listing<Row>` (+ `Searchable`, `Filterable<F>`, …) | Custom searchable/filterable grid — `search(SearchRequest, HttpRequest)` |
+| `CrudStore<T>` | Data port for `AutoCrud` (`store()`) |
 | `Hydratable` | `hydrate(HttpRequest)` called before each render — load data from DB |
 | `ComponentTreeSupplier` | Return a fluent component tree instead of annotated fields |
 | `BannerSupplier` | Programmatic page banners |

@@ -50,7 +50,6 @@ public @interface Trigger {
 | `OnError` | After the action identified by `calledActionId` fails. |
 | `OnValueChange` | When the value of the field named `propertyName` changes. |
 | `OnCustomEvent` | When a browser custom event named `eventName` is dispatched. |
-| `OnEnter` | When the user presses Enter inside an input field. |
 
 ---
 

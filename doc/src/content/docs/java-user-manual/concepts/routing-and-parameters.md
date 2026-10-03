@@ -10,15 +10,22 @@ The URL is just another input to your UI state.
 
 ## Path parameters
 
-Define placeholders in the route using `:name` syntax. Mateu maps them to fields with matching names.
+Define placeholders in the route (its [`routes.yaml` entry](/java-ui-definition/route-registry/)) using `:name` syntax. Mateu maps them to fields with matching names.
 
 ```java
-@Route("/products/:id")
 public class ProductForm {
 
     String id;   // receives the value from the URL
 
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: products/:id
+    viewModel: com.example.ProductForm
 ```
 
 Navigating to `/products/abc-123` sets `id = "abc-123"` before any action runs.
@@ -30,7 +37,6 @@ Navigating to `/products/abc-123` sets `id = "abc-123"` before any action runs.
 Fields not covered by path parameters are populated from the query string automatically.
 
 ```java
-@Route("/products/:id")
 public class ProductForm {
 
     String id;       // from path
@@ -51,7 +57,6 @@ Mateu handles type conversion. A missing parameter uses the field's default Java
 ## Full example
 
 ```java
-@Route("/products/:id")
 public class ProductForm {
 
     String id;

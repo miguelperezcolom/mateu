@@ -11,7 +11,6 @@ Implement `RuleSupplier` and return a list of `Rule` objects from `rules()`. Mat
 ## The pattern
 
 ```java
-@Route(value = "/my-page", parentRoute = "")
 public class MyPage implements ComponentTreeSupplier, RuleSupplier {
 
     @Override
@@ -31,6 +30,14 @@ public class MyPage implements ComponentTreeSupplier, RuleSupplier {
         );
     }
 }
+```
+
+```yaml
+# src/main/resources/specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: my-page
+    viewModel: com.example.MyPage
 ```
 
 Each rule has:
