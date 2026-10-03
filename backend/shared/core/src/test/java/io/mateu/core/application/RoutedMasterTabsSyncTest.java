@@ -117,6 +117,34 @@ class RoutedMasterTabsSyncTest {
     public String note = "notes";
   }
 
+  /** The listing a master is opened from: a row goes to the master's route. */
+  @Title("Customers")
+  @io.mateu.uidl.annotations.RowRoute("/_mdt/customers/${row.id}")
+  public static class Customers extends AutoCrud<Order> {
+    @Override
+    public CrudStore<Order> store() {
+      return new CrudStore<>() {
+        @Override
+        public Optional<Order> findById(String id) {
+          return Optional.empty();
+        }
+
+        @Override
+        public String save(Order entity) {
+          return entity.id;
+        }
+
+        @Override
+        public List<Order> findAll() {
+          return List.of();
+        }
+
+        @Override
+        public void deleteAllById(List<String> selectedIds) {}
+      };
+    }
+  }
+
   /** The master: an App(TABS) with NO menu of its own — its tabs are its registry children. */
   @App(AppVariant.TABS)
   public static class CustomerMaster implements TitleSupplier {
@@ -145,6 +173,7 @@ class RoutedMasterTabsSyncTest {
     @Override
     public List<RouteEntry> routes() {
       return List.of(
+          RouteEntry.of("_mdt/customers", Customers.class.getName()),
           new RouteEntry(
               "_mdt/customers/:customerId",
               null,
@@ -404,6 +433,10 @@ class RoutedMasterTabsSyncTest {
     assertThat(filters)
         .filteredOn(f -> "customerId".equals(f.fieldId()))
         .allMatch(io.mateu.dtos.FormFieldDto::readOnly);
+    // the tab already reads "Orders": the listing does not say it again
+    assertThat(collect(listing, io.mateu.dtos.CrudlDto.class))
+        .extracting(io.mateu.dtos.CrudlDto::title)
+        .containsOnlyNulls();
   }
 
   private static <T> List<T> collect(Object node, Class<T> type) {
@@ -437,6 +470,39 @@ class RoutedMasterTabsSyncTest {
         }
       }
     }
+  }
+
+  @Test
+  void theNewFormOfATabsCrudStartsWithTheMastersId() {
+    var form =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("/_mdt/customers/7/orders/new")
+                .consumedRoute("/_mdt/customers/7/orders")
+                .serverSideType(CustomerOrders.class.getName())
+                .actionId("")
+                .initiatorComponentId("ux")
+                .componentState(
+                    Map.of("_route", "/new", "_componentRoute", "/_mdt/customers/7/orders"))
+                .parameters(Map.of())
+                .build());
+    var states = new ArrayList<Object>();
+    form.fragments().forEach(fragment -> states.add(fragment.state()));
+    assertThat(states)
+        .anySatisfy(state -> assertThat(((Map<?, ?>) state).get("customerId")).isEqualTo("7"));
+  }
+
+  @Test
+  void aRowOfTheListingOpensTheMastersRoute() {
+    var listing =
+        load(
+            "/_mdt/customers",
+            "/_mdt/customers",
+            Customers.class,
+            Map.of("_route", "", "_componentRoute", "/_mdt/customers"));
+    assertThat(collect(listing, io.mateu.dtos.CrudlDto.class))
+        .extracting(io.mateu.dtos.CrudlDto::rowRoute)
+        .containsExactly("/_mdt/customers/${row.id}");
   }
 
   @Test

@@ -27,4 +27,20 @@ public @interface Tab {
    * wins. Independent of {@link #shortcut()}, which only selects the tab on demand.
    */
   boolean open() default false;
+
+  /**
+   * The tab's ROUTE KEY: a URL segment that opens it. Selecting the tab appends it to the page's
+   * URL ({@code /vcns/7} → {@code /vcns/7/gateways}) as a new history entry, so back/forward walk
+   * the tabs and a reload or a pasted link opens this one. Empty means the tab has no URL of its
+   * own (it is still selectable, the URL just does not change).
+   */
+  String key() default "";
+
+  /**
+   * A feature flag that must be on for the tab to show ({@code "policy-simulator"}, or {@code
+   * "!legacy"} for its negation), answered by the {@link io.mateu.uidl.interfaces.FeatureFlags}
+   * beans. Empty means always shown. When the flags leave a single tab, its strip is not drawn —
+   * the tab keeps its key and URL, so nothing moves when the flag flips back.
+   */
+  String show() default "";
 }

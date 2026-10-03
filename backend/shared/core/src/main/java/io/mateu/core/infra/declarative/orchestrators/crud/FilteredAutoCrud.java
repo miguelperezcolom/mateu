@@ -97,6 +97,13 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
   @SuppressWarnings("unchecked")
   public T buildCreationForm(HttpRequest httpRequest) {
     Map<String, Object> data = Map.of();
+    if (!"create".equals(httpRequest.runActionRq().actionId())) {
+      // a crud inside a record master's tab (/customers/7/orders/new): the new child already
+      // belongs to the master — its field named like the route's :customerId starts filled in
+      data =
+          io.mateu.core.application.runaction.RouteChains.scopeValuesFor(
+              entityClass(), httpRequest);
+    }
     if ("create".equals(httpRequest.runActionRq().actionId())) {
       if (httpRequest.runActionRq().parameters() != null
           && httpRequest.runActionRq().parameters().containsKey("initiatorState")) {

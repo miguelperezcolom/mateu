@@ -28,6 +28,7 @@ import "@vaadin/board";
 import "@vaadin/scroller";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import "@infra/ui/mateu-adaptive-tabs.ts";
+import { announceTabRoute, tabIndexFromPath } from "@infra/ui/tabRoutes.ts";
 export const renderFormLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as FormLayout
 
@@ -232,15 +233,38 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
         variant = 'equal-width-tabs'
     }
 
-    // Initial selection: the tab flagged active (open=true) wins, else the first tab.
-    const activeIndex = Math.max(
+    const tabs = (component.children ?? []).map(child => child as ClientSideComponent)
+    // A single visible tab is not a choice: draw its content without the strip. It keeps its route
+    // key (the URL that opens it), so nothing moves when a flag shows the others again.
+    if (tabs.length === 1) {
+        return renderTab(container, tabs[0], baseUrl, state, data, appState, appData)
+    }
+
+    // Initial selection: the tab the URL names (its @Tab(key) as the last path segment), else the
+    // tab flagged active (open=true), else the first tab.
+    const routeKeys = tabs.map(child => (child.metadata as Tab).routeKey)
+    const routedIndex = typeof window !== 'undefined' ? tabIndexFromPath(window.location.pathname, routeKeys) : -1
+    const activeIndex = routedIndex >= 0 ? routedIndex : Math.max(
         0,
-        (component.children ?? []).findIndex(
-            child => ((child as ClientSideComponent).metadata as Tab).active))
+        tabs.findIndex(child => (child.metadata as Tab).active))
 
     const itemsChanged = (e: Event) => {
-        (e.target as Tabs).selected = activeIndex
+        const tabsElement = e.target as Tabs & { __mateuTabsSettled?: boolean }
+        tabsElement.__mateuTabsSettled = false
+        tabsElement.selected = activeIndex
+        // the selection set while the strip renders is not the user choosing a tab
+        setTimeout(() => { tabsElement.__mateuTabsSettled = true })
     }
+
+    // Selecting a tab with a route key pushes its URL (a history entry: back/forward walk the tabs).
+    const selectedChanged = routeKeys.some(key => !!key)
+        ? (e: CustomEvent) => {
+            const tabsElement = e.target as Tabs & { __mateuTabsSettled?: boolean }
+            if (!tabsElement.__mateuTabsSettled) return
+            const index = e.detail?.value
+            if (typeof index === 'number' && index >= 0) announceTabRoute(tabsElement, routeKeys, index)
+        }
+        : undefined
 
     if (metadata.adaptable) {
         // adaptable=true: the backend allows swapping the concrete widget as long as disclosure
@@ -262,6 +286,7 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
                              theme="${variant??nothing}"
                              orientation="${metadata.orientation??nothing}"
                              @items-changed=${itemsChanged}
+                             @selected-changed=${selectedChanged ?? nothing}
                 >
                     ${component.children?.map(child => child as ClientSideComponent).map((child, index) => {
                         const shortcut = (child.metadata as Tab).shortcut
@@ -270,7 +295,7 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
                                     style="${child.style}"
                                     class="${child.cssClasses}"
                                     data-shortcut="${shortcut ?? nothing}"
-                        >${labels[index]}</vaadin-tab>`
+                        >${labels[index]}${tabBadge(child)}</vaadin-tab>`
                     })}
                 </vaadin-tabs>
 
@@ -293,6 +318,7 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
                          class="${component.cssClasses}"
                          orientation="${metadata.orientation??nothing}"
                          @items-changed=${itemsChanged}
+                         @selected-changed=${selectedChanged ?? nothing}
             >
                 ${component.children?.map(child => child as ClientSideComponent).map(child => {
                     const rawLabel = (child.metadata as Tab).label
@@ -303,13 +329,19 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
                                 style="${child.style}"
                                 class="${child.cssClasses}"
                                 data-shortcut="${shortcut ?? nothing}"
-                    >${label}</vaadin-tab>`
+                    >${label}${tabBadge(child)}</vaadin-tab>`
                 })}
             </vaadin-tabs>
 
             ${component.children?.map(child => renderTab(container, child as ClientSideComponent, baseUrl, state, data, appState, appData))}
         </vaadin-tabsheet>
             `
+}
+
+/** The count an eager @Subresource tab carries ("Subnets 12"). */
+const tabBadge = (tab: ClientSideComponent) => {
+    const badge = (tab.metadata as Tab).badge
+    return badge ? html` <span theme="badge pill small contrast" style="margin-inline-start: .35em;">${badge}</span>` : nothing
 }
 
 export const renderTab = (container: LitElement, tab: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {

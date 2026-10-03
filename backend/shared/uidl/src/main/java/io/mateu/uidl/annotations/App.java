@@ -67,4 +67,12 @@ public @interface App {
    * custom renderer understands) for anything the automatic derivation cannot see.
    */
   String[] requires() default {};
+
+  /**
+   * The way back up from this app (decision D3): {@link BackLink#BREADCRUMBS} (the default) keeps
+   * the automatic trail; {@link BackLink#PARENT} draws a single "← Parent" link — labelled with the
+   * title of the nearest route above this one ({@code /customers} for a record master at {@code
+   * /customers/7}) — and drops the trail on the pages inside it.
+   */
+  BackLink backLink() default BackLink.BREADCRUMBS;
 }

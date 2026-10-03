@@ -98,8 +98,17 @@ final class PageContentBuilder {
                     && !Status.class.equals(field.getType()))
         .map(
             field ->
-                mapToComponent(
-                    getValue(field, instance), baseUrl, route, initiatorComponentId, httpRequest))
+                // an orchestrator is an island of its own, never a component mapped in the host's
+                // route context (that re-rendered the host inside itself, endlessly)
+                EmbeddedOrchestratorFieldBuilder.isOrchestrator(field.getType())
+                    ? EmbeddedOrchestratorFieldBuilder.build(
+                        "", field, instance, initiatorComponentId, httpRequest, 1)
+                    : mapToComponent(
+                        getValue(field, instance),
+                        baseUrl,
+                        route,
+                        initiatorComponentId,
+                        httpRequest))
         .toList();
   }
 

@@ -32,6 +32,9 @@ public class CrudlMapper {
     var names = new java.util.LinkedHashSet<String>();
     io.mateu.core.application.runaction.RouteChains.chainOf(httpRequest.runActionRq().route())
         .forEach(link -> names.addAll(link.pathParams().keySet()));
+    names.addAll(
+        io.mateu.core.domain.out.componentmapper.EmbeddedOrchestratorFieldBuilder.scopeOf(
+            httpRequest));
     httpRequest.setAttribute("_routeScope", names);
     return names;
   }
@@ -50,7 +53,9 @@ public class CrudlMapper {
                 crudl.listingType() != null
                     ? CrudlTypeDto.valueOf(crudl.listingType().name())
                     : CrudlTypeDto.table)
-            .title(crudl.title())
+            .title(
+                io.mateu.core.application.runaction.RouteChains.dedupeTitle(
+                    crudl.title(), httpRequest))
             .subtitle(crudl.subtitle())
             .searchable(crudl.searchable())
             .toolbar(crudl.toolbar().stream().map(FormMapper::mapToButtonDto).toList())

@@ -71,6 +71,36 @@ public final class RouteChains {
     }
   }
 
+  /**
+   * The path parameters of the request route's chain that {@code type} has a field for — what a new
+   * child record created under a master starts with ({@code customerId} under {@code
+   * /customers/7/orders/new}). Empty when the route has no chain.
+   */
+  public static java.util.Map<String, Object> scopeValuesFor(
+      Class<?> type, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    if (type == null || httpRequest == null || httpRequest.runActionRq() == null) {
+      return java.util.Map.of();
+    }
+    var chain = chainOf(httpRequest.runActionRq().route());
+    if (chain.size() < 2) {
+      return java.util.Map.of();
+    }
+    var fields = new java.util.HashSet<String>();
+    io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields(type)
+        .forEach(field -> fields.add(field.getName()));
+    var values = new java.util.LinkedHashMap<String, Object>();
+    chain.forEach(
+        link ->
+            link.pathParams()
+                .forEach(
+                    (name, value) -> {
+                      if (fields.contains(name)) {
+                        values.put(name, value);
+                      }
+                    }));
+    return values;
+  }
+
   /** The chain answering {@code path} (outermost first), or empty — never throws. */
   public static List<ChainLink> chainOf(String path) {
     var registry = registry();
@@ -116,6 +146,108 @@ public final class RouteChains {
     } catch (Throwable t) {
       return null;
     }
+  }
+
+  /**
+   * A title the screen should NOT repeat: {@code title} when the request is a routed tab's own page
+   * (the route answered exactly by a child entry) and {@code title} equals that tab's label or the
+   * enclosing master's {@code @Title} — composition draws the label once (the tab), not three times
+   * (OCI's Policies page: page H1, tab and listing H2 all reading "Policies"). Otherwise {@code
+   * title} unchanged.
+   */
+  public static String dedupeTitle(String title, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    if (title == null
+        || title.isBlank()
+        || httpRequest == null
+        || httpRequest.runActionRq() == null) {
+      return title;
+    }
+    try {
+      var route = httpRequest.runActionRq().route();
+      var chain = chainOf(route);
+      if (chain.size() < 2) {
+        return title;
+      }
+      var leaf = chain.get(chain.size() - 1);
+      var requested =
+          "/"
+              + (route == null ? "" : route.split("\\?")[0])
+                  .replaceAll("^/+", "")
+                  .replaceAll("/+$", "");
+      if (!requested.equals(leaf.path())) {
+        return title; // a record inside the tab: its own title
+      }
+      var parent = chain.get(chain.size() - 2);
+      var relative = leaf.path().substring(Math.min(parent.path().length(), leaf.path().length()));
+      var label = tabLabel(leaf.entry(), relative);
+      if (title.trim().equalsIgnoreCase(label.trim())) {
+        return null;
+      }
+      var parentTitle = staticTitleOf(parent.entry().viewModel());
+      if (parentTitle != null && title.trim().equalsIgnoreCase(parentTitle.trim())) {
+        return null;
+      }
+      return title;
+    } catch (Throwable t) {
+      return title;
+    }
+  }
+
+  /**
+   * The label of a child route offered as a tab: its view model's {@code @Title}, else its segment.
+   */
+  public static String tabLabel(RouteEntry child, String relative) {
+    var title = staticTitleOf(child.viewModel());
+    if (title != null) {
+      return title;
+    }
+    var trimmed = relative == null ? "" : relative.replaceAll("^/+", "").replaceAll("/+$", "");
+    var last = trimmed.contains("/") ? trimmed.substring(trimmed.lastIndexOf('/') + 1) : trimmed;
+    return io.mateu.uidl.Humanizer.toUpperCaseFirst(last.replace('-', ' '));
+  }
+
+  private static String staticTitleOf(String viewModel) {
+    if (viewModel == null || viewModel.isBlank()) {
+      return null;
+    }
+    try {
+      var type = Class.forName(viewModel, false, Thread.currentThread().getContextClassLoader());
+      var title =
+          io.mateu.core.infra.reflection.MetaAnnotations.find(
+              type, io.mateu.uidl.annotations.Title.class);
+      return title != null && !title.value().isBlank() ? title.value() : null;
+    } catch (Throwable t) {
+      return null;
+    }
+  }
+
+  /**
+   * Whether the request route runs through an app ancestor declared {@code @App(backLink =
+   * PARENT)}: its pages show no breadcrumb trail (the app's "← Parent" link replaces it).
+   */
+  public static boolean insideBackLinkApp(io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    if (httpRequest == null || httpRequest.runActionRq() == null) {
+      return false;
+    }
+    var chain = chainOf(httpRequest.runActionRq().route());
+    for (int i = 0; i < chain.size() - 1; i++) {
+      var viewModel = chain.get(i).entry().viewModel();
+      if (viewModel == null || viewModel.isBlank()) {
+        continue;
+      }
+      try {
+        var type = Class.forName(viewModel, false, Thread.currentThread().getContextClassLoader());
+        var app =
+            io.mateu.core.infra.reflection.MetaAnnotations.find(
+                type, io.mateu.uidl.annotations.App.class);
+        if (app != null && app.backLink() == io.mateu.uidl.annotations.BackLink.PARENT) {
+          return true;
+        }
+      } catch (Throwable ignored) {
+        // not a class we can read: no say
+      }
+    }
+    return false;
   }
 
   /**

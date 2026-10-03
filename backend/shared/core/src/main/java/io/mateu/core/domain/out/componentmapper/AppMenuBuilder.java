@@ -61,22 +61,8 @@ class AppMenuBuilder {
   }
 
   private static String labelOf(io.mateu.core.application.runaction.RouteChains.ChildRoute child) {
-    var viewModel = child.entry().viewModel();
-    if (viewModel != null && !viewModel.isBlank()) {
-      try {
-        var type = Class.forName(viewModel, false, Thread.currentThread().getContextClassLoader());
-        var title = MetaAnnotations.find(type, io.mateu.uidl.annotations.Title.class);
-        if (title != null && !title.value().isBlank()) {
-          return title.value();
-        }
-      } catch (Throwable ignored) {
-        // fall back to the route segment
-      }
-    }
-    var relative = child.relative().replaceAll("^/+", "");
-    var last =
-        relative.contains("/") ? relative.substring(relative.lastIndexOf('/') + 1) : relative;
-    return io.mateu.uidl.Humanizer.toUpperCaseFirst(last.replace('-', ' '));
+    return io.mateu.core.application.runaction.RouteChains.tabLabel(
+        child.entry(), child.relative());
   }
 
   private static List<Actionable> declaredActionables(

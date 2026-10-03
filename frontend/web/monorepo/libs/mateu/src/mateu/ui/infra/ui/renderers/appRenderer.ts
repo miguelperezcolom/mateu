@@ -10,6 +10,16 @@ import { dispatchAppHeaderAction } from "@infra/ui/renderers/appHeaderActions.ts
 import { notify } from "@application/Notifier.ts";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 import { fabPosition, onFabRail } from "@infra/ui/layout/fabRail.ts";
+import { navigateToRoute } from "@infra/ui/rowRoute.ts";
+import { dirtyGuard } from "@infra/ui/dirtyGuard.ts";
+import { isLazyRoute } from "@infra/ui/mateu-when-visible.ts";
+
+/**
+ * A sub-resource island loaded when shown (`@Subresource(load = ON_OPEN)` → `_lazy=1` on its home
+ * route): wrapped in mateu-when-visible, so a listing in a closed tab is not fetched until opened.
+ */
+const lazyWhen = (lazy: boolean, content: () => ReturnType<typeof html>) =>
+    lazy ? html`<mateu-when-visible style="display: block; width: 100%;" .content="${content}"></mateu-when-visible>` : content()
 // The always-present command-center FAB + full-screen palette (the Ask-Oracle pattern) is mounted
 // once, from the shell base class's updated() lifecycle (see commandCenterMount.ts), so it does not
 // appear in these templates. What the templates DO account for: the FAB sits bottom-right, so when it
@@ -102,6 +112,20 @@ const renderMenuButton = (items: MenuBarItem[], onSelect: (item: MenuBarItem) =>
 
 const fireSelect = (container: MateuApp, handler: (e: CustomEvent) => void) => (item: MenuBarItem) =>
     handler.call(container, { detail: { value: item } } as unknown as CustomEvent)
+
+/**
+ * `@App(backLink = PARENT)`: "← Parent", the way back up OCI-style — to the nearest route above the
+ * app's own (the listing a record master was opened from), labelled with that screen's title.
+ */
+export const renderBackLink = (metadata: App, container: MateuApp) =>
+    metadata.backRoute ? html`
+        <a href="${metadata.backRoute}" class="mateu-back-link"
+           style="align-self: center; margin-left: 10px; white-space: nowrap; font-size: var(--lumo-font-size-s, .875rem);"
+           @click="${(e: Event) => {
+               e.preventDefault()
+               if (!dirtyGuard.confirmLeave()) return
+               navigateToRoute(container, metadata.backRoute!)
+           }}">← ${metadata.backLabel ?? 'Back'}</a>` : nothing
 
 const renderThemeToggle = (metadata: App, container: MateuApp) =>
     metadata.themeToggle ? html`
@@ -328,7 +352,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 </mateu-api-caller>
 
                             </div>
-                        `:html`
+                        `:lazyWhen(isLazyRoute(metadata.homeRoute), () => html`
                             <mateu-api-caller>
                                 <mateu-ux
                                         data-content-view
@@ -346,7 +370,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                         @navigation-requested="${container.updateRoute}"
                                 ></mateu-ux>
                             </mateu-api-caller>
-                        `}
+                        `)}
                         
 `:nothing}
             ${metadata.variant == AppVariant.HAMBURGUER_MENU?html`
@@ -583,11 +607,12 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 style="width: 100%; ${HEADER_ROW} border-bottom: 1px solid var(--lumo-contrast-10pct);" 
                                 theme="spacing"
                                 @navigation-requested="${container.updateRoute}">
+                            ${renderBackLink(metadata, container)}
                             <a href="javascript: void(0);" @click="${() => container.goHome()}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
                             ${renderBrand(metadata)}
                             </a>
                             <nav class="mateu-tabs ${container.component?.cssClasses ?? ''}" style="flex-grow: 1; min-width: 0; margin-left: 1.5rem;">
-                                ${metadata.menu.map((option, i) => html`
+                                ${(metadata.menu?.length ?? 0) < 2 ? nothing : metadata.menu.map((option, i) => html`
                                 <button class="mateu-tab ${i === container.getSelectedIndex(metadata.menu) ? 'mateu-tab--active' : ''}"
                                         @click="${() => container.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix, option.rules)}"
                                 >${option.label}</button>`)}

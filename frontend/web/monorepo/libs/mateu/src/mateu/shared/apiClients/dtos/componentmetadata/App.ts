@@ -45,6 +45,11 @@ export default interface App extends ComponentMetadata {
     chromeless?: boolean
     /** `@NoBreadcrumbs` on the shell: no automatic breadcrumb trail on its pages. */
     noBreadcrumbs?: boolean
+
+    /** @App(backLink = PARENT): the route and label of the "← Parent" link (else undefined). */
+    backRoute?: string
+
+    backLabel?: string
     /** The app's REST source catalogue: every named endpoint its screens reference, declared once.
      * App-wide configuration, so it arrives with the shell rather than on every response. */
     restSources?: RestSourceEntry[] | undefined
