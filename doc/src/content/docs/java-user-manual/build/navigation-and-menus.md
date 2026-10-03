@@ -65,6 +65,18 @@ RemoteMenu workflow = new RemoteMenu("http://localhost:8105/_workflow");
 
 The remote service exposes its own `@Menu` structure. The shell fetches and merges it into the navigation at runtime. That fetch is cached briefly per remote and caller — see [descriptor caching](/mateu-about/shell-and-remote-menus/#descriptor-caching) for the TTL and how to tune it.
 
+Give the entry a label when you want the shell to name the section — it then stays, whatever the
+remote calls itself, and the menu does not change under the reader when the remote answers:
+
+```java
+@Menu
+RemoteMenu booking = new RemoteMenu("/_booking").withLabel("Call center");
+```
+
+A remote that is down leaves its section dimmed and retried, not a broken shell; on a cold load the
+section and the first breadcrumb are known before the remote answers. See
+[how the menus are merged](/mateu-about/shell-and-remote-menus/#how-the-menus-are-merged).
+
 This is the foundation of the [distributed backoffice](/java-user-manual/use-cases/distributed-backoffice/) pattern: each microservice owns its UI, and the shell composes everything.
 
 ---
