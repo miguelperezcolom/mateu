@@ -46,7 +46,7 @@ public record RouteTable(List<RouteEntry> routes) {
    * wins, so matching does not depend on declaration order.
    */
   public Optional<Match> match(String path) {
-    var normalized = path == null ? "" : path.replaceAll("^/+", "").replaceAll("/+$", "");
+    var normalized = trimSlashes(path);
     return routes.stream()
         .map(entry -> matchOne(entry, normalized))
         .flatMap(Optional::stream)
@@ -57,7 +57,7 @@ public record RouteTable(List<RouteEntry> routes) {
   }
 
   private static Optional<Match> matchOne(RouteEntry entry, String path) {
-    var pattern = entry.route().replaceAll("^/+", "").replaceAll("/+$", "");
+    var pattern = trimSlashes(entry.route());
     var patternSegments = pattern.isEmpty() ? new String[0] : pattern.split("/");
     var pathSegments = path.isEmpty() ? new String[0] : path.split("/");
     if (patternSegments.length != pathSegments.length) {
@@ -87,5 +87,25 @@ public record RouteTable(List<RouteEntry> routes) {
       fromRequest.putAll(pathParams);
       return entry.resolveParams(fromRequest);
     }
+  }
+
+  /**
+   * Leading and trailing {@code '/'} stripped in one pass ({@code ""} for null). Not a {@code
+   * replaceAll("/+$", "")}: that regex is quadratic on a long interior run of slashes, and the path
+   * here comes from the client.
+   */
+  static String trimSlashes(String s) {
+    if (s == null) {
+      return "";
+    }
+    int start = 0;
+    int end = s.length();
+    while (start < end && s.charAt(start) == '/') {
+      start++;
+    }
+    while (end > start && s.charAt(end - 1) == '/') {
+      end--;
+    }
+    return s.substring(start, end);
   }
 }

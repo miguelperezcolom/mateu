@@ -136,7 +136,7 @@ public final class RouteChains {
         return null;
       }
       var leaf = chain.get(chain.size() - 1);
-      var requested = "/" + path.split("\\?")[0].replaceAll("^/+", "").replaceAll("/+$", "");
+      var requested = "/" + io.mateu.core.infra.Slashes.trim(path.split("\\?")[0]);
       var pending = registry.outermostPending(path, consumedRoute).orElse(null);
       if (leaf.equals(pending) && !requested.equals(leaf.path())) {
         var viewModel = leaf.entry().viewModel();
@@ -170,10 +170,7 @@ public final class RouteChains {
       }
       var leaf = chain.get(chain.size() - 1);
       var requested =
-          "/"
-              + (route == null ? "" : route.split("\\?")[0])
-                  .replaceAll("^/+", "")
-                  .replaceAll("/+$", "");
+          "/" + io.mateu.core.infra.Slashes.trim(route == null ? "" : route.split("\\?")[0]);
       if (!requested.equals(leaf.path())) {
         return title; // a record inside the tab: its own title
       }
@@ -201,7 +198,7 @@ public final class RouteChains {
     if (title != null) {
       return title;
     }
-    var trimmed = relative == null ? "" : relative.replaceAll("^/+", "").replaceAll("/+$", "");
+    var trimmed = io.mateu.core.infra.Slashes.trim(relative);
     var last = trimmed.contains("/") ? trimmed.substring(trimmed.lastIndexOf('/') + 1) : trimmed;
     return io.mateu.uidl.Humanizer.toUpperCaseFirst(last.replace('-', ' '));
   }
@@ -274,11 +271,11 @@ public final class RouteChains {
       if (children.isEmpty()) {
         return null;
       }
-      var normalized = concretePath.replaceAll("^/+", "").replaceAll("/+$", "");
+      var normalized = io.mateu.core.infra.Slashes.trim(concretePath);
       var match = registry.authored().match(normalized).orElse(null);
       var named = match == null ? null : match.entry().defaultChild();
       if (named != null && !named.isBlank()) {
-        var wanted = "/" + named.replaceAll("^/+", "").replaceAll("/+$", "");
+        var wanted = "/" + io.mateu.core.infra.Slashes.trim(named);
         for (var child : children) {
           if (child.relative().equals(wanted)) {
             return child.path();
@@ -310,16 +307,16 @@ public final class RouteChains {
       return List.of();
     }
     try {
-      var normalized = concretePath.replaceAll("^/+", "").replaceAll("/+$", "");
+      var normalized = io.mateu.core.infra.Slashes.trim(concretePath);
       var match = registry.authored().match(normalized).orElse(null);
       if (match == null) {
         return List.of();
       }
-      var parentRoute = match.entry().route().replaceAll("^/+", "").replaceAll("/+$", "");
+      var parentRoute = io.mateu.core.infra.Slashes.trim(match.entry().route());
       return registry.childrenOf(parentRoute).stream()
           .map(
               child -> {
-                var childRoute = child.route().replaceAll("^/+", "").replaceAll("/+$", "");
+                var childRoute = io.mateu.core.infra.Slashes.trim(child.route());
                 var suffix =
                     childRoute.substring(Math.min(parentRoute.length(), childRoute.length()));
                 if (!suffix.startsWith("/")) {
