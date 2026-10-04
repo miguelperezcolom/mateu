@@ -1500,6 +1500,31 @@ atest('expandRemoteMenus registra a qué pod va cada entrada adoptada', async ()
   } finally { globalThis.fetch = original }
 })
 
+atest('un deep-link bajo un GRUPO de un pod que no es ninguna de sus hojas va a ese pod', async () => {
+  // /tasksgrp/task/<id> —la página de una tarea— no está en el menú: sus hojas son /tasksgrp/tasks y
+  // /tasksgrp/executions, y el grupo que las contiene es /tasksgrp. Sin registrar el grupo salía al
+  // backend de la shell, que contestaba "Not found.". La shell (servidor) ya lo reclama así.
+  const original = globalThis.fetch
+  globalThis.fetch = async () => ({
+    ok: true,
+    json: async () => remoteApp([{ label: 'Forms', route: '/tasksgrp', submenus: [
+      { label: 'Executions', route: '/tasksgrp/executions' },
+      { label: 'Tasks', route: '/tasksgrp/tasks' },
+    ] }], '', 'TasksGrpHome'),
+  })
+  try {
+    await expandRemoteMenus([{ remote: true, baseUrl: '/_tasksgrp-admin', route: '', path: '/tasksgrpAdmin', label: 'Forms' }])
+    const where = remoteRouteOf('/tasksgrp/task/977984b8')
+    assert.ok(where, 'el deep-link bajo el grupo no quedó registrado')
+    assert.equal(where.baseUrl, '/_tasksgrp-admin')
+    assert.equal(where.serverSideType, 'TasksGrpHome')
+    assert.ok(remoteRouteOf('tasksgrp/task/977984b8'), 'también sin la barra inicial, como la ve el nav')
+    // la hoja sigue ganándole al grupo, y lo que no cuelga del grupo no es del pod
+    assert.equal(remoteRouteOf('/tasksgrp/tasks').baseUrl, '/_tasksgrp-admin')
+    assert.equal(remoteRouteOf('/tasksgrpx/task/1'), undefined)
+  } finally { globalThis.fetch = original }
+})
+
 atest('expandRemoteMenus baja a una opción remota ANIDADA en un grupo', async () => {
   const original = globalThis.fetch
   const asked = []
@@ -1771,8 +1796,11 @@ atest('remoteRouteOf casa por prefijo: el detalle vive en el pod de su listado',
     assert.ok(detalle, 'el detalle no encontró su pod')
     assert.equal(detalle.baseUrl, '/_workflow')
     assert.equal(remoteRouteOf('/workflow/processes/4df04a98/edit').baseUrl, '/_workflow')
-    // lo que no cuelga de una ruta registrada NO se adopta (un prefijo no es un "empieza por")
-    assert.equal(remoteRouteOf('/workflow/processesXX'), undefined)
+    // lo que no cuelga de una ruta registrada NO se adopta (un prefijo no es un "empieza por").
+    // /workflow/processesXX ya no sirve de ejemplo: cuelga del GRUPO /workflow que otro test le
+    // registró al mismo pod, y bajo un grupo del pod, es del pod
+    assert.equal(remoteRouteOf('/workflowXX/processes'), undefined)
+    assert.equal(remoteRouteOf('/workflow/processes').baseUrl, '/_workflow')
     assert.equal(remoteRouteOf('/otra/cosa'), undefined)
   } finally { globalThis.fetch = original }
 })
