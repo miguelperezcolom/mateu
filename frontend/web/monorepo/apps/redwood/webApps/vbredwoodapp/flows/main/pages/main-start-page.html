@@ -229,6 +229,9 @@
       <template slot="noData">
         <oj-sp-empty-state primary-text="[[ $variables.mateuPicker.emptyText ]]" secondary-text=""></oj-sp-empty-state>
       </template>
+      <template slot="cellClip">
+        <span :class="[[ ($current.data && $current.data.cls) || '' ]]" :title="[[ ($current.data && $current.data.title) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.text) || '' ]]"></oj-bind-text></span>
+      </template>
     </oj-table>
     <oj-bind-if test="[[ $variables.mateuPicker.paging.visible ]]">
       <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end oj-sm-margin-2x-top">
@@ -2762,6 +2765,11 @@
              en listingOf; el UUID entero queda en el tooltip -->
         <template slot="cellUuid">
           <span :title="[[ ($current.data && $current.data.full) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.text) || '' ]]"></oj-bind-text></span>
+        </template>
+        <!-- ANCHO fijo (@ColumnWidth, flexGrow 0) / tooltipPath: el texto se corta con elipsis
+             al ancho de la columna y entero en el title; {text, title} precomputado en listingOf -->
+        <template slot="cellClip">
+          <span :class="[[ ($current.data && $current.data.cls) || '' ]]" :title="[[ ($current.data && $current.data.title) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.text) || '' ]]"></oj-bind-text></span>
         </template>
         <!-- ACCIONES por fila (ColumnActionGroup): el valor de la celda trae actions[];
              el alias "cell" conserva el contexto de la fila dentro del for-each -->

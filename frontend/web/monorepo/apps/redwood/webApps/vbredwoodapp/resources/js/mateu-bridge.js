@@ -2383,6 +2383,15 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           def.field = c.id + UUID_CELL_SUFFIX
           def.template = 'cellUuid'
         }
+        // ANCHO de la columna (@ColumnWidth: width + flexGrow "0" + tooltipPath en el wire, el
+        // mismo contrato que aplica el gridRenderer de Vaadin): oj-table fija ese ancho; con
+        // flexGrow 0 la columna no crece (min = max = width) y su texto se corta con elipsis,
+        // entero en el tooltip (tooltipPath). Las demás columnas siguen a su contenido.
+        Object.assign(def, columnWidthOf(c))
+        if (!def.template && clipColumn(c)) {
+          def.field = c.id + CLIP_CELL_SUFFIX
+          def.template = 'cellClip'
+        }
         return def
       }),
       // densidad Redwood de la tabla: el 'grid' compacto es para tablas de TRABAJO —
@@ -2406,7 +2415,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       // (las acciones declaradas del ServerSide host, no los botones)
       selectionRequired: ((ctx.tree && ctx.tree.actions) || [])
         .filter((a) => a.rowsSelectedRequired).map((a) => a.id),
-      rows: primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []),
+      rows: clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []),
       // la propiedad por la que ordena el server cada columna (GridColumn.sortingProperty o su id)
       sortFields: Object.fromEntries((md.columns || []).map((col) => col.metadata || col)
         .map((c) => [c.id, c.sortingProperty || c.id])),
@@ -2515,7 +2524,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    */
   function listingSortOf(detail, sortFields) {
     if (!detail || !detail.header) return []
-    const key = String(detail.header).replace(new RegExp('(' + UUID_CELL_SUFFIX + '|' + PRIMARY_CELL_SUFFIX + ')$'), '')
+    const key = String(detail.header).replace(new RegExp('(' + UUID_CELL_SUFFIX + '|' + PRIMARY_CELL_SUFFIX + '|' + CLIP_CELL_SUFFIX + ')$'), '')
     const field = (sortFields && sortFields[key]) || key
     const direction = detail.direction === 'descending' ? 'descending' : 'ascending'
     return [{ field, direction }]
@@ -2547,7 +2556,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       const out = {}
       for (const key of Object.keys(row)) {
         const value = row[key]
-        if (key.endsWith(UUID_CELL_SUFFIX)) {
+        if (key.endsWith(UUID_CELL_SUFFIX) || key.endsWith(CLIP_CELL_SUFFIX)) {
           continue
         }
         if (value && typeof value === 'object' && !Array.isArray(value) && 'badgeClass' in value) {
@@ -2612,6 +2621,43 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   }
 
   const PRIMARY_CELL_SUFFIX = '__primary'
+
+  const CLIP_CELL_SUFFIX = '__clipCell'
+
+  /** El ancho que el wire pide para una columna (GridColumn.width / flexGrow), en las claves de
+   *  oj-table: width (y, si no crece — flexGrow "0" —, minWidth = maxWidth = width). Sin width, {}. */
+  function columnWidthOf(c) {
+    const width = c && typeof c.width === 'string' ? c.width.trim() : (c && typeof c.width === 'number' ? c.width + 'px' : '')
+    if (!width || width === 'auto') return {}
+    return String(c.flexGrow) === '0'
+      ? { width, minWidth: width, maxWidth: width }
+      : { width, minWidth: width }
+  }
+
+  // una columna de TEXTO con ancho fijo (flexGrow 0) o con tooltip: su celda se corta con elipsis
+  // y el texto entero (o el del campo tooltipPath) va al title
+  function clipColumn(c) {
+    return !c.editable && c.dataType !== 'actionGroup' && c.dataType !== 'status' && c.stereotype !== 'primary'
+      && (!!c.tooltipPath || (!!columnWidthOf(c).maxWidth))
+  }
+
+  /** A cada columna recortable se le añade <id>__clipCell = {text, title, cls}: lo que pinta la celda
+   *  (CSP de VB: la plantilla no puede leer un campo variable de la fila). La fila queda intacta. */
+  function clipCellRows(rows, columns) {
+    const cols = (columns || []).map((c) => c.metadata || c).filter(clipColumn)
+    if (!cols.length) return rows
+    const text = (v) => (v == null ? '' : (typeof v === 'object' ? (v.message || v.text || v.label || '') : String(v)))
+    return rows.map((row) => {
+      const out = { ...row }
+      for (const c of cols) {
+        const shown = text(row[c.id])
+        const tip = c.tooltipPath ? text(row[c.tooltipPath]) : ''
+        // solo la columna de ancho fijo se corta; con tooltipPath y sin ancho, el texto sigue entero
+        out[c.id + CLIP_CELL_SUFFIX] = { text: shown, title: tip || shown, cls: columnWidthOf(c).maxWidth ? 'mateu-cell-clip' : '' }
+      }
+      return out
+    })
+  }
 
   /** La celda de cada columna principal: {title, caption, leading} (vacíos si no hay). */
   function primaryCellRows(rows, columns) {

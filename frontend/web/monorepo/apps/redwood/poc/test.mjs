@@ -41,7 +41,7 @@ import {
   welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
   islandContentOf, tabStripOf, withActiveTab, tabBarIdsOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
   entityHeaderOf, pageKpisOf, pageSubtitleOf, itemOverviewPageOf, primaryToolbarButton,
-  filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid,
+  filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid, columnWidthOf,
   smartFiltersMetadataOf, smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters,
   suggestionRowsFor, suggestionFiltersProviderOf, smartFiltersOf, setMetadataProviderFactory, KEYWORD_FILTER,
   listActionOf, listActionRequestOf, rowEditorOf, rowFieldsOf, validateRow, pendingLookupsOf, lookupRequestOf,
@@ -4392,4 +4392,66 @@ test('guided process: el overview sólo va en columna en teléfono (< 600px), no
   const css = webApp('resources/css/app.css')
   assert.match(css, /@media \(min-width: 600px\)[\s\S]*#mateuWizardEl \.oj-sp-guided-process-step-container[\s\S]*display: grid/)
   assert.match(css, /grid-template-columns: repeat\(auto-fit, minmax\(/)
+})
+
+// ANCHO de columna (@ColumnWidth: width "420px" + flexGrow "0" + tooltipPath en el GridColumn,
+// Mateu #703): oj-table fija el ancho (min = max = width), la celda se corta con elipsis y el
+// texto entero va al title; las demás columnas no cambian. La fila queda intacta.
+test('listing: una columna con ancho fijo se corta con elipsis y tooltip; las demás, igual', () => {
+  assert.deepEqual(columnWidthOf({ width: '420px', flexGrow: '0' }), { width: '420px', minWidth: '420px', maxWidth: '420px' })
+  assert.deepEqual(columnWidthOf({ width: '12rem', flexGrow: '1' }), { width: '12rem', minWidth: '12rem' })
+  assert.deepEqual(columnWidthOf({ width: 200, flexGrow: 0 }), { width: '200px', minWidth: '200px', maxWidth: '200px' })
+  assert.deepEqual(columnWidthOf({ width: null, flexGrow: null }), {})
+  assert.deepEqual(columnWidthOf({ width: 'auto' }), {})
+  const content = fx('load-listing-content')
+  content.fragments[0].targetComponentId = ''
+  const crud = findByType(content.fragments[0].component, 'Crud')
+  const col = (id) => crud.metadata.columns.map((c) => c.metadata || c).find((c) => c.id === id)
+  Object.assign(col('name'), { width: '420px', flexGrow: '0', tooltipPath: 'name', autoWidth: false })
+  let reg = reduceContexts(empty(), content)
+  const search = fx('search-listing')
+  search.fragments[0].targetComponentId = ''
+  const page = JSON.parse(JSON.stringify(search))
+  const rows = page.fragments[0].data.crud.page.content
+  rows[0].name = 'A very long title that does not fit in four hundred and twenty pixels at all, not even close'
+  reg = reduceContexts(reg, page)
+  const listing = listingOf(reg.contexts[HOST_ID])
+  const name = listing.columns.find((c) => c.id === 'name')
+  assert.equal(name.width, '420px')
+  assert.equal(name.minWidth, '420px')
+  assert.equal(name.maxWidth, '420px')
+  assert.equal(name.field, 'name__clipCell')
+  assert.equal(name.template, 'cellClip')
+  assert.deepEqual(listing.rows[0].name__clipCell, { text: rows[0].name, title: rows[0].name, cls: 'mateu-cell-clip' })
+  assert.equal(listing.rows[0].name, rows[0].name) // la fila, intacta
+  // el resto de columnas, como antes: sin ancho ni plantilla de recorte
+  for (const c of listing.columns.filter((c) => c.id !== 'name')) {
+    assert.equal(c.width, undefined)
+    assert.notEqual(c.template, 'cellClip')
+  }
+  // ordenar por la cabecera devuelve el id del wire; la selección manda la fila sin la celda
+  assert.deepEqual(listingSortOf({ header: 'name__clipCell', direction: 'ascending' }, listing.sortFields)[0].field, 'name')
+  assert.ok(selectedRowsOf(listing.rows, { all: true, keys: [], except: [] }).every((r) => !('name__clipCell' in r)))
+  // la plantilla existe en la tabla del listado (y en el picker), y app.css corta con elipsis
+  const html = webApp('flows/main/pages/main-start-page.html')
+  assert.equal((html.match(/<template slot="cellClip">/g) || []).length, 2)
+  assert.match(webApp('resources/css/app.css'), /\.mateu-cell-clip \{[\s\S]*text-overflow: ellipsis;[\s\S]*white-space: nowrap;/)
+})
+
+test('listing: tooltipPath sin ancho pone el title de otro campo sin cortar el texto', () => {
+  const content = fx('load-listing-content')
+  content.fragments[0].targetComponentId = ''
+  const crud = findByType(content.fragments[0].component, 'Crud')
+  const col = crud.metadata.columns.map((c) => c.metadata || c).find((c) => c.id === 'name')
+  Object.assign(col, { tooltipPath: 'id' })
+  let reg = reduceContexts(empty(), content)
+  const search = fx('search-listing')
+  search.fragments[0].targetComponentId = ''
+  reg = reduceContexts(reg, search)
+  const listing = listingOf(reg.contexts[HOST_ID])
+  const name = listing.columns.find((c) => c.id === 'name')
+  assert.equal(name.width, undefined)
+  assert.equal(name.template, 'cellClip')
+  const r = listing.rows[0]
+  assert.deepEqual(r.name__clipCell, { text: String(r.name), title: String(r.id), cls: '' })
 })
