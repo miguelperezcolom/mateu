@@ -1353,6 +1353,11 @@ export class MateuTableCrud extends LitElement {
             <slot></slot>
         `
 
+        // The app's accent strip on top of the results, where Redwood draws its colour strip on a
+        // listing (mateu-app applyAccent sets --mateu-page-band-*; mateu-page decides, through
+        // --mateu-crud-band-h, which crud is the page's listing). Zero height with no accent.
+        const accentBand = html`<div class="crud-band" aria-hidden="true"
+            style="flex-shrink: 0; width: 100%; height: var(--mateu-crud-band-h, var(--mateu-page-band-h, 0px)); background-image: var(--mateu-page-band-image, none); background-repeat: repeat-x; background-size: auto 100%;"></div>`
         const paginationHtml = metadata.infiniteScrolling ? nothing : componentRenderer.get()?.renderPagination(this, this.component)
         const importDialog = this.showImportDialog ? html`
             <div role="button" tabindex="0" class="crud-modal-backdrop" @click="${(e: Event) => { if (e.target === e.currentTarget) this.showImportDialog = false }}" @keydown="${onActivate((e: Event) => { if (e.target === e.currentTarget) this.showImportDialog = false })}">
@@ -1400,6 +1405,7 @@ export class MateuTableCrud extends LitElement {
                         <div style="flex: 1; min-width: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData, true)}</div>
                         ${this.renderColumnChooser()}
                     </div>
+                    ${accentBand}
                     <div data-crud-area style="flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column;">${contentHtml}</div>
                     <div style="flex-shrink: 0; ${EDGE_GUTTER}">${paginationHtml}</div>
                 </div>
@@ -1446,7 +1452,8 @@ export class MateuTableCrud extends LitElement {
                     <div style="flex: 1; min-width: 0;">${componentRenderer.get()?.renderFilterBar(this, this.component, this.baseUrl, this.state, this.data, this.appState, this.appData)}</div>
                     ${this.renderColumnChooser()}
                 </div>
-                <div data-crud-area style="flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column;">${contentHtml}</div>
+                ${accentBand}
+                    <div data-crud-area style="flex: 1; overflow-y: auto; min-height: 0; display: flex; flex-direction: column;">${contentHtml}</div>
                 <div style="flex-shrink: 0; ${EDGE_GUTTER}">${paginationHtml}</div>
             </div>
         `

@@ -97,6 +97,10 @@ export interface HeaderIconButton {
     title?: string
     /** a two-state button's state (aria-pressed); undefined for a plain button */
     pressed?: boolean
+    /** a disclosure button's state (aria-expanded), e.g. the hamburger; undefined otherwise */
+    expanded?: boolean
+    /** the id of what a disclosure button opens (aria-controls) */
+    controls?: string
     /** extra classes, e.g. 'mateu-chat-toggle' */
     cssClasses?: string
     onClick: (e: Event) => void

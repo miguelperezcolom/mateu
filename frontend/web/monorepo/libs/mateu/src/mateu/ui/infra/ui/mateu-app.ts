@@ -48,18 +48,32 @@ export const reachableBaseUrl = (app: App, reachedAt: string | undefined): strin
     (app.homeBaseUrl ?? '').includes('://') ? app.homeBaseUrl : (reachedAt || app.homeBaseUrl)
 
 /**
- * The app's brand accent (@App(accentColor)) as the --mateu-accent custom property on the shell,
- * which its styles use in two places only (a line under the menu band, the console name in light
- * theme). Only what the shell set itself is ever removed: an app may set --mateu-accent in its own
- * CSS instead. A value that is not a plain colour (it would end the declaration) is ignored.
+ * The app's brand accent (@App(accentColor)) as the --mateu-accent custom property on the shell —
+ * the console name in the section band (light theme), the welcome hero's background — and the
+ * ACCENT STRIP, Redwood's colour strip: a band drawn where Redwood draws it, not fixed under the
+ * header — under a page's header (mateu-page .page-header-band), on top of a listing's results
+ * (mateu-table-crud .crud-band) and at the foot of the welcome hero. The strip is the app's image
+ * (@App(accentStrip)) repeated along it, else a plain band in the accent colour; it reaches those
+ * places as --mateu-page-band-h / --mateu-page-band-image, which pierce their shadow roots.
+ *
+ * Only what the shell set itself is ever removed: an app may set these in its own CSS instead. A
+ * value that is not a plain colour, or a strip URL that would end the declaration, is ignored.
  */
-export const applyAccent = (host: HTMLElement & { _mateuAccent?: string }, accent: string | undefined) => {
+export const ACCENT_STRIP_HEIGHT = '10px'
+
+const ACCENT_PROPERTIES = ['--mateu-accent', '--mateu-page-band-h', '--mateu-page-band-image']
+
+export const applyAccent = (host: HTMLElement & { _mateuAccent?: string }, accent: string | undefined, strip?: string) => {
     const value = accent && /^[#\w\s(),.%-]+$/.test(accent.trim()) ? accent.trim() : undefined
+    const stripUrl = strip && /^[\w\s/.:%~?&=#+,@-]+$/.test(strip.trim()) ? strip.trim() : undefined
     if (value) {
         host.style.setProperty('--mateu-accent', value)
+        host.style.setProperty('--mateu-page-band-h', ACCENT_STRIP_HEIGHT)
+        host.style.setProperty('--mateu-page-band-image',
+            stripUrl ? `url("${stripUrl}")` : `linear-gradient(${value}, ${value})`)
         host._mateuAccent = value
     } else if (host._mateuAccent) {
-        host.style.removeProperty('--mateu-accent')
+        ACCENT_PROPERTIES.forEach(property => host.style.removeProperty(property))
         host._mateuAccent = undefined
     }
 }
@@ -851,7 +865,7 @@ export class MateuApp extends ComponentElement {
                             .catch(e => console.error('app-scope data source fetch failed', e))
                     }
                 }
-                applyAccent(this, app.accentColor)
+                applyAccent(this, app.accentColor, app.accentStrip)
                 if (app.favicon) {
                     let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null
                     if (!link) {
@@ -988,10 +1002,8 @@ export class MateuApp extends ComponentElement {
             background-color: var(--lumo-base-color);
             color: var(--lumo-body-text-color);
             border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
-            /* The app's brand accent (--mateu-accent, @App(accentColor)): a 3px line along the
-               band's bottom. Not the primary colour — it marks whose app this is, never something
-               to click. With no accent there is no line. */
-            box-shadow: inset 0 -3px 0 var(--mateu-accent, transparent);
+            /* (no accent line here: the app's accent is a strip drawn where Redwood draws its
+               colour strip — under the page header, on top of a listing — see applyAccent) */
         }
         .mateu-app-band-title {
             flex: 0 0 auto;
@@ -1038,7 +1050,24 @@ export class MateuApp extends ComponentElement {
            moves what does not fit into its own "···". The hamburger opens the sections over the
            content, under band 1, with a scrim that closes it. */
         .mateu-app-band2 > .sections-band { flex: 1 1 0; min-width: 0; }
-        .mateu-sections-toggle { display: inline-flex; align-items: center; align-self: center; color: inherit; margin-inline: calc(-1 * var(--lumo-space-s, .5rem)) var(--lumo-space-s, .5rem); }
+        /* the hamburger is one more header icon button (renderSectionsToggle): the header's icon colour
+           and size like the chat, bell and theme toggles; its glyph lines up with the gutter */
+        .mateu-sections-toggle { align-self: center; margin-inline: calc(-1 * var(--lumo-space-s, .5rem)) var(--lumo-space-s, .5rem); }
+        /* Band 2 holds the section on screen. With none (the home) it has nothing to say, so it
+           folds away — and comes back when a section is chosen — sliding and fading rather than
+           jumping (no motion for whoever asks the system for less). */
+        .mateu-section-band {
+            max-height: 4rem;
+            transition: max-height .22s ease, min-height .22s ease, opacity .18s ease, border-bottom-width .22s step-end;
+        }
+        .mateu-section-band.mateu-section-band--empty {
+            max-height: 0; min-height: 0; opacity: 0; overflow: hidden;
+            border-bottom-width: 0;
+            transition: max-height .22s ease, min-height .22s ease, opacity .18s ease, border-bottom-width .22s step-start;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .mateu-section-band, .mateu-section-band.mateu-section-band--empty { transition: none; }
+        }
         .mateu-sections-scrim { position: absolute; inset: 3.5rem 0 0 0; z-index: 199; background: var(--lumo-shade-20pct, rgba(0,0,0,.2)); }
         .mateu-sections-panel {
             position: absolute; top: 3.5rem; bottom: 0; left: 0; z-index: 200;

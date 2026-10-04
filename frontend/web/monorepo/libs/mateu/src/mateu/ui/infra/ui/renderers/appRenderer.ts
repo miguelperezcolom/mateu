@@ -142,7 +142,9 @@ export const renderHeaderIconButton = (button: HeaderIconButton) =>
     componentRenderer.get()?.renderHeaderIconButton?.(button) ?? html`
         <button class="app-chrome-icon-btn ${button.cssClasses ?? ''}" @click="${button.onClick}"
             title="${button.title ?? button.label}" aria-label="${button.label}"
-            aria-pressed="${button.pressed === undefined ? nothing : String(button.pressed)}">
+            aria-pressed="${button.pressed === undefined ? nothing : String(button.pressed)}"
+            aria-expanded="${button.expanded === undefined ? nothing : String(button.expanded)}"
+            aria-controls="${button.controls ?? nothing}">
             ${icon(button.icon, 'width: var(--lumo-icon-size-m, 1.5rem); height: var(--lumo-icon-size-m, 1.5rem); color: currentColor;')}
         </button>`
 
@@ -267,6 +269,21 @@ export const contentUxId = (container: MateuApp, metadata: App): string => {
 }
 
 /**
+ * HAMBURGER_SECTIONS' hamburger: one more of the header's icon buttons (renderHeaderIconButton — the
+ * Vaadin adapter's tertiary icon vaadin-button), in the same thin-stroke glyph size and colour as the
+ * chat, bell and theme toggles, not a heavier glyph of its own. Lumo's thin `menu` turns into its
+ * `cross` while the sections are open, as Redwood's hamburger does.
+ */
+export const renderSectionsToggle = (container: MateuApp) => renderHeaderIconButton({
+    icon: container.sectionsOpen ? 'lumo:cross' : 'lumo:menu',
+    label: chromeText('sections'),
+    expanded: !!container.sectionsOpen,
+    controls: 'mateu-sections-panel',
+    cssClasses: 'mateu-sections-toggle' + (container.sectionsOpen ? ' mateu-sections-toggle--open' : ''),
+    onClick: () => { container.sectionsOpen = !container.sectionsOpen },
+})
+
+/**
  * HAMBURGER_SECTIONS' panel: the sections, the menu's first level and nothing below it. It opens
  * over the content from the hamburger (band 1) and closes on choosing one, on the scrim or on
  * Escape. The section on screen is marked; one whose remote did not answer is dimmed and says why,
@@ -291,7 +308,7 @@ const renderSectionsPanel = (menu: MenuOption[], active: MenuOption | undefined,
  * entries (the menu's second level) as the menu bar, a group of them as a dropdown (the third
  * level). A remote section that has not answered yet shows its name alone: the shell knows it from
  * the route's prefix before the remote says what is in it. With no section on screen (the home)
- * the band stays, empty, so the page does not move under the reader.
+ * the band has nothing to show and folds away, animated (mateu-app: .mateu-section-band--empty).
  */
 const renderSectionBand = (active: MenuOption | undefined, container: MateuApp) => {
     if (!active) return nothing
@@ -549,11 +566,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             style="width: 100%; height: 3.5rem; flex-shrink: 0; align-items: center; background-color: var(--lumo-base-color);"
                             @navigation-requested="${container.updateRoute}">
                     <div class="${HEADER_ROW_CLASS}" style="${HEADER_ROW}" theme="spacing">
-                        <button class="drawer-toggle mateu-sections-toggle" title="${chromeText('sections')}" aria-label="${chromeText('sections')}"
-                                aria-expanded="${container.sectionsOpen ? 'true' : 'false'}" aria-controls="mateu-sections-panel"
-                                @click="${() => { container.sectionsOpen = !container.sectionsOpen }}">
-                            ${icon('vaadin:menu')}
-                        </button>
+                        ${renderSectionsToggle(container)}
                         <a href="javascript: void(0);" @click="${() => { container.sectionsOpen = false; container.goHome() }}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
                         ${renderBrand(metadata, false)}
                         </a>
@@ -562,7 +575,8 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </div>
                     </div>
                     </div>
-                    <nav class="mateu-app-band2 mateu-section-band" aria-label="${active?.label || metadata.title || 'Menu'}"
+                    <nav class="mateu-app-band2 mateu-section-band ${active ? '' : 'mateu-section-band--empty'}"
+                            aria-label="${active?.label || metadata.title || 'Menu'}" ?inert="${!active}"
                             @navigation-requested="${container.updateRoute}">
                         ${renderSectionBand(active, container)}
                     </nav>

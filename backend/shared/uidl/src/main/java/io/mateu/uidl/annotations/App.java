@@ -62,12 +62,20 @@ public @interface App {
   /**
    * The app's brand accent — a CSS colour, e.g. {@code "#D2232A"}. It is NOT the theme's primary
    * colour: primary means "you can click this", the accent only says whose app this is. The Vaadin
-   * shell uses it in exactly two places: a 3px line under the menu band, and the console name in
-   * that band (light theme only — in dark it stays body text, where a brand red loses contrast).
-   * Blank (the default): no accent, the header is unchanged. Exposed to the page as the {@code
-   * --mateu-accent} custom property, which an app's own CSS can also set.
+   * shell uses it for the console name in the section band (light theme only — in dark it stays
+   * body text, where a brand red loses contrast), the welcome hero's background and the accent
+   * strip — where Redwood draws its colour strip: under a page's header, on top of a listing's
+   * results, at the foot of the hero. Blank (the default): no accent. Exposed to the page as the
+   * {@code --mateu-accent} custom property, which an app's own CSS can also set.
    */
   String accentColor() default "";
+
+  /**
+   * The image of the accent strip (see {@link #accentColor()}): a URL, e.g. {@code
+   * "/images/strip.svg"}, repeated along the strip — the app's own take on Redwood's colour strip.
+   * Blank (the default): the strip is a plain band in the accent colour. Ignored with no accent.
+   */
+  String accentStrip() default "";
 
   /**
    * Extra capability tokens this app REQUIRES from whatever renderer/shell hosts it, on top of the

@@ -59,7 +59,7 @@ point.
 | `variant` | `AppVariant` — `AUTO`, `MENU_ON_TOP`, `HAMBURGUER_MENU`, `TABS`, `TILES` |
 | `layout` | `AppLayout` — `SINGLE_SLOT` (default) or `SPLIT` |
 | `drawerClosed` | start with the drawer collapsed |
-| `accentColor` | the brand accent, a CSS colour (`"#D2232A"`): a line under the menu band and the console name — the twin of `@App(accentColor)` |
+| `accentColor` | the brand accent, a CSS colour (`"#D2232A"`): the accent strip (under page headers, on top of listings, at the foot of the hero), the hero background and the console name — the twin of `@App(accentColor)` |
 | `backLink` | `PARENT` draws a single «← Parent» link instead of breadcrumbs (a record master whose tabs are pages) — the twin of `@App(backLink)` |
 | `style`, `cssClasses` | styling hooks |
 | `menu` | a list of navigation items |

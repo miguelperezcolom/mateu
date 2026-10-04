@@ -58,9 +58,15 @@ public record AppDto(
     String askIcon,
     /**
      * The app's brand accent ({@code @App(accentColor)}), a CSS colour; null = no accent. Not the
-     * primary colour: the shell draws it as a line under the menu band and on the console name.
+     * primary colour: the shell draws it on the console name, the welcome hero and the accent
+     * strip.
      */
     String accentColor,
+    /**
+     * The accent strip's image ({@code @App(accentStrip)}), a URL repeated along the strip; null =
+     * a plain band in the accent colour.
+     */
+    String accentStrip,
     /**
      * The app's REST source catalogue: every named endpoint its screens reference, declared once.
      * App-wide configuration, so it travels with the shell rather than on every response.
