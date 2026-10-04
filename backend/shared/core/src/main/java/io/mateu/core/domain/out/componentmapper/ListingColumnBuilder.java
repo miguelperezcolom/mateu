@@ -117,6 +117,10 @@ final class ListingColumnBuilder {
       weight =
           WEIGHT_ESTIMATOR.base(FieldTypeMapper.getDataType(field), getStereotypeForColumn(field));
     }
+    String columnWidth =
+        MetaAnnotations.isPresent(field, ColumnWidth.class)
+            ? MetaAnnotations.find(field, ColumnWidth.class).value()
+            : null;
     // Inline row editing: when the listing class is annotated @InlineEditing, every data column
     // (except @ReadOnly ones) is edited in place; commits dispatch the crud's update-row action.
     boolean editable =
@@ -135,6 +139,12 @@ final class ListingColumnBuilder {
         .priority(priority)
         .identifier(identifier)
         .weight(weight)
+        // @ColumnWidth is a width here too, as in a form's grid (GridColumnBuilder): the column
+        // keeps it instead of growing with its longest cell, which pushed the columns to its
+        // right off the screen. What the width cuts is read on hover.
+        .width(columnWidth)
+        .flexGrow(columnWidth != null ? "0" : null)
+        .tooltipPath(columnWidth != null ? field.getName() : null)
         .editable(editable)
         .editorType(editable ? GridColumnBuilder.getEditorType(field) : null)
         .editorOptions(editable ? GridColumnBuilder.getEditorOptions(field) : null)
