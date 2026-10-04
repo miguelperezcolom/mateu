@@ -9,18 +9,23 @@
     on-oj-sp-home-click="[[ $listeners.homeClicked ]]">
     <!-- HAMBURGUER_MENU: la hamburguesa ABRE el navigator-drawer izquierdo (no un dropdown) -->
     <div slot="start" class="oj-flex oj-sm-flex-wrap-nowrap oj-sm-align-items-center">
+      <!-- la HAMBURGUESA va a la izquierda del todo, delante del logo (como en Redwood / Opera
+           Cloud), y su glifo dice qué hace: ☰ con el menú cerrado, ✕ con él abierto.
+           HAMBURGER_SECTIONS: el menú es un panel FLOTANTE sobre la subcabecera y el contenido
+           (mateuSectionsOverlay, abajo); HAMBURGUER_MENU: el navigator persistente de siempre. -->
+      <oj-bind-if test="[[ $application.variables.mateuMenuDrawerMode || $application.variables.mateuMenuSections ]]">
+        <oj-button id="mateuHamburger" chroming="borderless" display="icons"
+          :class="[[ $application.variables.mateuNavDrawerOpen ? 'mateu-hamburger mateu-hamburger-open oj-sm-margin-2x-end' : 'mateu-hamburger oj-sm-margin-2x-end' ]]"
+          aria-controls="mateuSectionsOverlay"
+          on-oj-action="[[ $listeners.hamburgerClicked ]]">
+          <span slot="startIcon" :class="[[ $application.variables.mateuNavDrawerOpen ? 'oj-ux-ico-close' : 'oj-ux-ico-menu' ]]"></span>
+          Menu
+        </oj-button>
+      </oj-bind-if>
       <!-- logo del @App (marca del cliente, p.ej. RIU) delante de la navegación -->
       <oj-bind-if test="[[ !!$application.variables.mateuShellLogo ]]">
         <img :src="[[ $application.variables.mateuShellLogo ]]" alt="logo"
           class="oj-sm-margin-3x-end" style="height: 22px; display: block;">
-      </oj-bind-if>
-      <!-- HAMBURGER_SECTIONS: la misma hamburguesa, pero el drawer lleva sólo las secciones -->
-      <oj-bind-if test="[[ $application.variables.mateuMenuDrawerMode || $application.variables.mateuMenuSections ]]">
-        <oj-button id="mateuHamburger" chroming="borderless" display="icons"
-          on-oj-action="[[ $listeners.hamburgerClicked ]]">
-          <span slot="startIcon" class="oj-ux-ico-menu"></span>
-          Menu
-        </oj-button>
       </oj-bind-if>
       <!-- TABS con grupos: opciones de PRIMER NIVEL visibles en el header, sin hamburguesa;
            los grupos despliegan un oj-menu (MENU_ON_TOP va en la subcabecera, más abajo) -->
@@ -190,7 +195,12 @@
          y dice por qué (hint). Sin acento de marca: la banda usa los tokens neutros de Redwood.
          Va fuera del drawer del chat: no se desplaza con él. -->
     <oj-bind-if test="[[ $application.variables.mateuMenuSubheader ]]">
-      <nav class="mateu-subheader" :aria-label="[[ $functions.subheaderTitleOf($application.variables.mateuShellTitle, $application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId, $application.variables.mateuMenuSections) || 'Menu' ]]">
+      <!-- sin contenido (HAMBURGER_SECTIONS en la home: ninguna sección en pantalla) la banda se
+           PLIEGA —no queda una franja blanca vacía—, y aparece/desaparece con una transición
+           (app.css, sin ella con prefers-reduced-motion) -->
+      <nav :class="[[ $functions.subheaderClassOf($application.variables.mateuShellTitle, $application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId, $application.variables.mateuMenuSections) ]]"
+        :aria-hidden="[[ $functions.subheaderClassOf($application.variables.mateuShellTitle, $application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId, $application.variables.mateuMenuSections) === 'mateu-subheader' ? null : 'true' ]]"
+        :aria-label="[[ $functions.subheaderTitleOf($application.variables.mateuShellTitle, $application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId, $application.variables.mateuMenuSections) || 'Menu' ]]">
         <oj-bind-if test="[[ !!$functions.subheaderTitleOf($application.variables.mateuShellTitle, $application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId, $application.variables.mateuMenuSections) ]]">
           <button type="button" class="mateu-subheader-title"
             on-click="[[ $listeners.subheaderTitleClicked ]]"><oj-bind-text value="[[ $functions.subheaderTitleOf($application.variables.mateuShellTitle, $application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId, $application.variables.mateuMenuSections) ]]"></oj-bind-text></button>
@@ -238,6 +248,32 @@
           </oj-bind-for-each>
         </div>
       </nav>
+    </oj-bind-if>
+
+    <!-- HAMBURGER_SECTIONS: el menú de secciones es OTRO NIVEL, flotando por encima de la
+         subcabecera y del contenido (no los empuja): un panel a la izquierda bajo la cabecera
+         global —la hamburguesa, ya ✕, queda a la vista para cerrarlo— con un velo detrás. Se
+         cierra con la ✕, con Esc, con un clic fuera (el velo) o al elegir una sección. El id de
+         cada sección es su home —elegirla navega allí, como en Opera— y queda marcada la que
+         está en pantalla. Entra deslizándose (sin animación con prefers-reduced-motion). -->
+    <oj-bind-if test="[[ $application.variables.mateuMenuSections ]]">
+      <div :class="[[ $application.variables.mateuNavDrawerOpen ? 'mateu-sections-scrim mateu-open' : 'mateu-sections-scrim' ]]"
+        aria-hidden="true" on-click="[[ $listeners.sectionsScrimClicked ]]"></div>
+      <div id="mateuSectionsOverlay" role="dialog" aria-label="Secciones"
+        :aria-hidden="[[ $application.variables.mateuNavDrawerOpen ? 'false' : 'true' ]]"
+        :class="[[ $application.variables.mateuNavDrawerOpen ? 'mateu-sections-overlay mateu-open' : 'mateu-sections-overlay' ]]">
+        <oj-navigation-list id="mateuSectionList" drill-mode="none" aria-label="Secciones"
+          selection="[[ $functions.sectionListSelection($application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId) ]]"
+          on-selection-changed="[[ $listeners.navDrawerSelected ]]">
+          <ul>
+            <oj-bind-for-each data="[[ $application.variables.mateuSectionList ]]">
+              <template>
+                <li :id="[[ $current.data.id ]]" :class="[[ $current.data.disabled ? 'oj-disabled' : '' ]]" :title="[[ $current.data.hint || '' ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+              </template>
+            </oj-bind-for-each>
+          </ul>
+        </oj-navigation-list>
+      </div>
     </oj-bind-if>
 
     <!-- ASK ORACLE: el FAB del propio shell (con el glifo de Ask Oracle, oj-ux-ico-oracle-o, o la
@@ -397,27 +433,12 @@
          header — abierto de inicio, NO se oculta al navegar; la hamburguesa lo pliega
          y el contenido se desplaza -->
     <oj-drawer-layout style="flex: 1 1 auto" id="mateuNavDrawer"
-      start-opened="[[ $application.variables.mateuNavDrawerOpen ]]"
+      start-opened="[[ $application.variables.mateuNavDrawerOpen && !$application.variables.mateuMenuSections ]]"
       on-oj-before-close="[[ $listeners.navDrawerClosed ]]">
 
       <!-- 280px = ancho estándar del navigation drawer (patrón del cookbook JET/RDS);
            oj-drawer-layout dimensiona el panel por su contenido, no expone variable -->
       <div slot="start" class="oj-sm-padding-4x-vertical" style="width:280px">
-<!-- HAMBURGER_SECTIONS: sólo las secciones (el primer nivel). El id de cada una es su home
-             —elegirla navega allí, como en Opera— y queda marcada la que está en pantalla. -->
-        <oj-bind-if test="[[ $application.variables.mateuMenuSections ]]">
-          <oj-navigation-list id="mateuSectionList" drill-mode="none" aria-label="Secciones"
-            selection="[[ $functions.sectionListSelection($application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId) ]]"
-            on-selection-changed="[[ $listeners.navDrawerSelected ]]">
-            <ul>
-              <oj-bind-for-each data="[[ $application.variables.mateuSectionList ]]">
-                <template>
-                  <li :id="[[ $current.data.id ]]" :class="[[ $current.data.disabled ? 'oj-disabled' : '' ]]" :title="[[ $current.data.hint || '' ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
-                </template>
-              </oj-bind-for-each>
-            </ul>
-          </oj-navigation-list>
-        </oj-bind-if>
         <oj-bind-if test="[[ !$application.variables.mateuMenuSections ]]">
                 <oj-navigation-list id="mateuNavList" drill-mode="collapsible"
           selection="[[ $application.variables.mateuSelectedNavId ]]"

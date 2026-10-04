@@ -144,6 +144,16 @@
         }
       ]
     },
+    "sectionsScrimClicked": {
+      "chains": [
+        {
+          "chain": "toggleMateuNavDrawer",
+          "parameters": {
+            "open": false
+          }
+        }
+      ]
+    },
     "navDrawerClosed": {
       "chains": [
         {
