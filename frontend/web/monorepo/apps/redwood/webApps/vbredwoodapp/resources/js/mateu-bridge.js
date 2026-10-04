@@ -5040,6 +5040,52 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     }
     document.addEventListener('spBeforeNext', cancel, true)
     document.addEventListener('spBeforeStepNavigate', cancel, true)
+    relaxGuidedProcessOverview()
+  }
+
+  /**
+   * La consulta con la que oj-sp-guided-process decide si su OVERVIEW (la portada con un panel por
+   * paso) va en columna: «(max-width: 767px), (max-height: 767px)». Pensada para un guided process a
+   * pantalla completa, apila los paneles en cuanto la ventana es estrecha O baja — un portátil con la
+   * ventana a menos de 768px de alto ya ve los pasos uno debajo de otro. Con app.css los paneles se
+   * reparten el ancho del contenido (una fila; otra sólo si de verdad no caben), así que la columna
+   * se reserva al teléfono (RDS: < 600px). Cualquier otra consulta pasa intacta.
+   */
+  const GUIDED_PROCESS_VERTICAL_QUERY = '(max-width: 767px), (max-height: 767px)'
+  const GUIDED_PROCESS_PHONE_QUERY = '(max-width: 599px)'
+
+  function guidedProcessMediaQuery(query) {
+    const normalized = String(query == null ? '' : query).replace(/\s+/g, ' ').trim()
+    return normalized === GUIDED_PROCESS_VERTICAL_QUERY ? GUIDED_PROCESS_PHONE_QUERY : query
+  }
+
+  /**
+   * La rueda del ratón sobre el overview: el componente la convierte SIEMPRE en scroll horizontal
+   * (preventDefault), porque en su diseño los paneles desbordan a lo ancho. Repartidos a lo ancho ya
+   * no desbordan, y robarle la rueda a la página sólo impediría bajar (p.ej. a la 2ª fila). Se le
+   * deja el gesto al componente sólo si su contenedor de pasos aún desborda a lo ancho.
+   */
+  function guidedProcessWheelIsNative(stepContainer) {
+    if (!stepContainer) return false
+    return stepContainer.scrollWidth <= stepContainer.clientWidth + 1
+  }
+
+  let guidedProcessOverviewRelaxed = false
+
+  function relaxGuidedProcessOverview() {
+    if (guidedProcessOverviewRelaxed || typeof window === 'undefined' || typeof document === 'undefined') return
+    guidedProcessOverviewRelaxed = true
+    if (typeof window.matchMedia === 'function') {
+      const original = window.matchMedia.bind(window)
+      window.matchMedia = (query) => original(guidedProcessMediaQuery(query))
+    }
+    document.addEventListener('wheel', (event) => {
+      const target = event.target
+      const wizard = target && target.closest ? target.closest('#mateuWizardEl') : null
+      if (!wizard) return
+      const steps = wizard.querySelector('.oj-sp-guided-process-step-container')
+      if (steps && steps.contains(target) && guidedProcessWheelIsNative(steps)) event.stopPropagation()
+    }, { capture: true, passive: true })
   }
 
 
@@ -5830,6 +5876,14 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       if (child.baseUrl) continue
       if (childrenOf(child).length) {
         adoptRemote(childrenOf(child), option, app)
+        // El grupo también es del pod: lo que cuelga de su ruta y no es ninguna de sus hojas —la
+        // página de UNA tarea, /forms/task/<id>, bajo el grupo /forms cuyas hojas son /forms/tasks
+        // y /forms/executions— vive en el mismo pod. Es lo que reclama el servidor de la shell
+        // (RemoteMenuHandler.claimLength cuenta todas las rutas del menú, grupos incluidos); sin
+        // esto ese deep-link salía al backend de la shell, que contesta "Not found.". Solo como
+        // prefijo de respaldo: remoteRouteOf se queda con el registro más largo, así que una hoja
+        // sigue ganándole al grupo que la contiene. El grupo no se marca: lo que navega es la hoja.
+        registerGroupRoute(child.route || child.path || '', option, app, serverSideType)
         continue
       }
       child.baseUrl = option.baseUrl
@@ -5849,6 +5903,20 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       remoteRoutes.set(route, descriptor)
       remoteRoutes.set(String(route).replace(/^\//, ''), descriptor)
     }
+  }
+
+  /** La ruta de un grupo de un pod, registrada como prefijo; la de una hoja ya registrada no se pisa. */
+  function registerGroupRoute(route, option, app, serverSideType) {
+    const bare = String(route || '').replace(/^\//, '')
+    if (!bare || remoteRoutes.has(bare)) return
+    const descriptor = {
+      baseUrl: option.baseUrl,
+      consumedRoute: app.route || '',
+      serverSideType,
+      uriPrefix: option.route,
+    }
+    remoteRoutes.set('/' + bare, descriptor)
+    remoteRoutes.set(bare, descriptor)
   }
 
   function spliceRemote(menu, answers, sections = false, depth = 0) {
