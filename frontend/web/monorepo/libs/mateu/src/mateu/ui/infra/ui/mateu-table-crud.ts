@@ -34,6 +34,7 @@ import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 import { isBackButton, isNavButton } from '@infra/ui/toolbarButtonKinds.ts';
 import { buttonTheme, neutralButtonClass } from '@infra/ui/mateu-content-header.ts';
 import { IDS_PARAM, SEARCH_ALIAS, SEARCH_PARAM } from '@infra/ui/idSetFilter.ts';
+import { isListingOwnLoad } from '@infra/http/localRequests.ts';
 
 const directions: Record<string, string> = {
     asc: 'ascending',
@@ -487,6 +488,16 @@ export class MateuTableCrud extends LitElement {
         clearTimeout(this.loadingTimer)
     }
 
+    /**
+     * `background` for this listing's own read: true when the listing will draw its skeleton for
+     * it (no rows on screen), so the page veil does not spin on top of it (localRequests). Left
+     * undefined otherwise — the action's declared flag and the page indicator decide as before.
+     */
+    private ownLoadingBackground(): true | undefined {
+        const rows = (this.data?.[this.id] as any)?.page?.content as unknown[] | undefined
+        return isListingOwnLoad('search', !!rows?.length) || undefined
+    }
+
     search = () => {
         this.beginLoading()
         const metadata = (this.component as ClientSideComponent).metadata as Crud
@@ -504,7 +515,8 @@ export class MateuTableCrud extends LitElement {
         this.dispatchEvent(new CustomEvent('action-requested', {
             detail: {
                 actionId: 'search',
-                parameters: { crudId: this.id, _searchState: { ...this.state } }
+                parameters: { crudId: this.id, _searchState: { ...this.state } },
+                background: this.ownLoadingBackground()
             },
             bubbles: true,
             composed: true
@@ -654,7 +666,8 @@ export class MateuTableCrud extends LitElement {
             detail: {
                 actionId: 'search',
                 parameters: { crudId: this.id, _searchState: { ...this.state } },
-                callback
+                callback,
+                background: this.ownLoadingBackground()
             },
             bubbles: true,
             composed: true
