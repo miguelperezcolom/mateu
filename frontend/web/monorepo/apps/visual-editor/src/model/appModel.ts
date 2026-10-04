@@ -23,7 +23,7 @@ export interface AppFields {
     style?: string
     cssClasses?: string
     route?: string
-    /** The brand accent, a CSS colour (`@App(accentColor)`): a line under the menu band + the console name. */
+    /** The brand accent, a CSS colour (`@App(accentColor)`): the accent strip, the hero background + the console name. */
     accentColor?: string
     /** `PARENT`: a single "← Parent" link instead of breadcrumbs (`@App(backLink)`, a record master). */
     backLink?: string

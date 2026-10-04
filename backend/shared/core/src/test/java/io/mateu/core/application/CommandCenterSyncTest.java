@@ -47,7 +47,11 @@ class CommandCenterSyncTest {
   @SuppressWarnings("unused")
   @UI("/cc-branded")
   @Title("Branded")
-  @App(askLabel = "Ask RIU", askIcon = " R ", accentColor = " #D2232A ")
+  @App(
+      askLabel = "Ask RIU",
+      askIcon = " R ",
+      accentColor = " #D2232A ",
+      accentStrip = " /images/strip.svg ")
   public static class BrandedAskApp {
     @Menu String home = "/";
   }
@@ -106,5 +110,11 @@ class CommandCenterSyncTest {
   void theAccentIsOnlyThereWhenTheAppDeclaresIt() {
     assertThat(app("/cc-plain").accentColor()).isNull();
     assertThat(app("/cc-branded").accentColor()).isEqualTo("#D2232A");
+  }
+
+  @Test
+  void theAccentStripIsOnlyThereWhenTheAppDeclaresIt() {
+    assertThat(app("/cc-plain").accentStrip()).isNull();
+    assertThat(app("/cc-branded").accentStrip()).isEqualTo("/images/strip.svg");
   }
 }

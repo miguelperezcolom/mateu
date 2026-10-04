@@ -26,4 +26,33 @@ describe("the app's brand accent", () => {
         applyAccent(host, 'red; background: url(x)')
         expect(host.style.getPropertyValue('--mateu-accent')).toBe('')
     })
+
+    it('draws the accent strip as a plain accent band when the app declares no strip image', () => {
+        const host = document.createElement('div')
+        applyAccent(host, '#464c68')
+        expect(host.style.getPropertyValue('--mateu-page-band-h')).toBe('10px')
+        expect(host.style.getPropertyValue('--mateu-page-band-image')).toBe('linear-gradient(#464c68, #464c68)')
+    })
+
+    it("draws the app's strip image (@App(accentStrip)) when it declares one", () => {
+        const host = document.createElement('div')
+        applyAccent(host, '#464c68', ' /images/strip-control-plane.svg ')
+        expect(host.style.getPropertyValue('--mateu-page-band-image')).toBe('url("/images/strip-control-plane.svg")')
+    })
+
+    it('draws no strip with no accent, and removes the one it drew', () => {
+        const host = document.createElement('div')
+        applyAccent(host, undefined, '/images/strip.svg')
+        expect(host.style.getPropertyValue('--mateu-page-band-h')).toBe('')
+        applyAccent(host, '#D2232A')
+        applyAccent(host, undefined)
+        expect(host.style.getPropertyValue('--mateu-page-band-h')).toBe('')
+        expect(host.style.getPropertyValue('--mateu-page-band-image')).toBe('')
+    })
+
+    it('ignores a strip URL that would end the declaration, falling back to the plain band', () => {
+        const host = document.createElement('div')
+        applyAccent(host, '#D2232A', 'x"); background: red')
+        expect(host.style.getPropertyValue('--mateu-page-band-image')).toBe('linear-gradient(#D2232A, #D2232A)')
+    })
 })

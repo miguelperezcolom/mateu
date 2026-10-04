@@ -19,6 +19,10 @@ const TEXTS = {
         chatPlaceholder: 'Write a message…',
         send: 'Send',
         sections: 'Sections',
+        confirmTitle: 'One moment, please',
+        confirmMessage: 'Are you sure?',
+        confirmYes: 'Yes',
+        confirmNo: 'No',
     },
     es: {
         chat: 'Asistente',
@@ -32,6 +36,10 @@ const TEXTS = {
         chatPlaceholder: 'Escribe un mensaje…',
         send: 'Enviar',
         sections: 'Secciones',
+        confirmTitle: 'Un momento',
+        confirmMessage: '¿Seguro?',
+        confirmYes: 'Sí',
+        confirmNo: 'No',
     },
 } as const
 

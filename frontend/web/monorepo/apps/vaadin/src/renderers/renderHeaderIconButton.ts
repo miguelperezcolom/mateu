@@ -15,6 +15,8 @@ export const renderVaadinHeaderIconButton = (button: HeaderIconButton): Template
     <vaadin-button theme="tertiary icon" class="mateu-header-icon-btn ${button.cssClasses ?? ''}"
             @click="${button.onClick}"
             title="${button.title ?? button.label}" aria-label="${button.label}"
-            aria-pressed="${button.pressed === undefined ? nothing : String(button.pressed)}">
+            aria-pressed="${button.pressed === undefined ? nothing : String(button.pressed)}"
+            aria-expanded="${button.expanded === undefined ? nothing : String(button.expanded)}"
+            aria-controls="${button.controls ?? nothing}">
         <vaadin-icon icon="${button.icon}"></vaadin-icon>
     </vaadin-button>`

@@ -56,6 +56,8 @@ export default interface App extends ComponentMetadata {
     askIcon?: string
     /** @App(accentColor): the app's brand accent, a CSS colour (not the primary colour); absent = none */
     accentColor?: string
+    /** @App(accentStrip): the accent strip's image URL, repeated along it; absent = a plain accent band */
+    accentStrip?: string
 
     /** @App(backLink = PARENT): the route and label of the "← Parent" link (else undefined). */
     backRoute?: string
