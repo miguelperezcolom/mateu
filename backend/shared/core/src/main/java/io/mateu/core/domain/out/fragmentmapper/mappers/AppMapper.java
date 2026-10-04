@@ -100,6 +100,7 @@ public final class AppMapper {
                 notBlank(app.accentColor())
                     ? app.accentColor().trim()
                     : appAnnotationValue(app, io.mateu.uidl.annotations.App::accentColor))
+            .accentStrip(appAnnotationValue(app, io.mateu.uidl.annotations.App::accentStrip))
             .requiredCapabilities(getRequiredCapabilities(app, httpRequest))
             .build();
     return new ClientSideComponentDto(

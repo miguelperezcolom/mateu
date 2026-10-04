@@ -183,6 +183,8 @@ export class MateuPage extends LitElement {
         // a page whose first thing is the welcome hero (no header above it): the hero keeps its top
         // gap; under a header it drops it (see :host(:not([data-hero-top])))
         this.toggleAttribute('data-hero-top', this._heroOnTop())
+        // a listing page: its crud draws the accent strip on top of its results (see the styles)
+        this.toggleAttribute('data-crud-page', this._hasCrud())
         if (changedProperties.has('_activeToc')) this._revealActiveInBar()
         if (changedProperties.has('component') && changedProperties.get('component') !== undefined) {
             this._clearAllTimers()
@@ -471,9 +473,13 @@ export class MateuPage extends LitElement {
         const metadata = this.component?.metadata as PageComponent
         const hasHeader = !!(metadata?.title || metadata?.subtitle || (metadata as any)?.overline
             || (metadata as any)?.titlePlaceholder || (metadata as any)?.toolbar?.length)
-        const hasCrud = !!this.component?.children?.some(child =>
+        return hasHeader && !this._hasCrud() && !this._hasWelcomeBanner()
+    }
+
+    /** Whether the page is a listing: a crud among its own children. */
+    private _hasCrud(): boolean {
+        return !!this.component?.children?.some(child =>
             (child as ClientSideComponent).metadata?.type === ComponentMetadataType.Crud)
-        return hasHeader && !hasCrud && !this._hasWelcomeBanner()
     }
 
     /** A welcome hero with no page header above it (a home page). */
@@ -585,8 +591,23 @@ export class MateuPage extends LitElement {
             padding-right: var(--mateu-shell-gutter, 2rem);
         }
 
+        /* The accent strip of a listing goes on top of its results, drawn by the crud itself
+           (mateu-table-crud .crud-band): only the crud that IS this page's listing draws it, not
+           one embedded further down, nor any crud in a nested page. */
+        :host {
+            --mateu-crud-band-h: 0px;
+        }
+        :host([data-crud-page]) {
+            --mateu-crud-band-h: var(--mateu-page-band-h, 0px);
+        }
+        :host([data-nested]) {
+            --mateu-crud-band-h: 0px;
+        }
+
         .page-header-band {
             width: 100%;
+            /* clear of the header's buttons when there is a strip; no gap at all when there is none */
+            margin-top: calc(var(--mateu-page-band-h, 0px) * 0.8);
             height: var(--mateu-page-band-h, 0);
             background-image: var(--mateu-page-band-image, none);
             background-repeat: repeat-x;
