@@ -13,6 +13,7 @@ import {nanoid} from "nanoid";
 import {ComponentMetadataType} from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent.ts";
 import {evaluateExpression, evaluateTemplate, InterpolationContext} from "@infra/ui/interpolation.ts";
+import {onLoadBackground} from "@infra/http/localRequests.ts";
 
 export default abstract class ComponentElement extends MetadataDrivenElement {
 
@@ -367,7 +368,7 @@ export default abstract class ComponentElement extends MetadataDrivenElement {
                         this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                             detail: {
                                 actionId: onloadTrigger.actionId,
-                                background: onloadTrigger.background
+                                background: onLoadBackground(onloadTrigger, this.data)
                             },
                             bubbles: true,
                             composed: true

@@ -18,3 +18,30 @@
  */
 export const isLocalRequest = (actionId: string | undefined): boolean =>
     !!actionId && (actionId.startsWith('search-') || actionId.startsWith('code-') || actionId === '__restfetch__')
+
+/**
+ * A listing's own read (`search`) while it has no rows on screen: the listing draws its skeleton
+ * in place of the rows (mateu-table-crud's "awaiting rows" state), so the page veil on top of it
+ * was a second "loading" for one wait — after 600ms a spinner appeared over the skeleton. It is
+ * local, like a combo's option search.
+ *
+ * Only while the rows are NOT there: a re-search that keeps the old rows visible (Enter in the
+ * filter bar, an infinite-scroll append, a refresh after an action) draws nothing of its own, and
+ * the page indicator is still the only sign that the screen is about to change.
+ */
+export const isListingOwnLoad = (actionId: string | undefined, rowsOnScreen: boolean): boolean =>
+    actionId === 'search' && !rowsOnScreen
+
+/** Whether any listing in a component's data has rows to show (`{<listingId>: {page: {content}}}`). */
+export const anyListingRows = (data: Record<string, unknown> | undefined): boolean =>
+    Object.values(data ?? {}).some(entry =>
+        !!((entry as { page?: { content?: unknown[] } } | null)?.page?.content?.length))
+
+/**
+ * `background` for an OnLoad trigger's call. A routed listing is filled by the OnLoad `search` of
+ * the component around it, while the listing sits there drawing its skeleton — local (see
+ * {@link isListingOwnLoad}). Anything else keeps the trigger's own flag.
+ */
+export const onLoadBackground = (trigger: { actionId?: string, background?: boolean },
+                                 data: Record<string, unknown> | undefined): boolean | undefined =>
+    isListingOwnLoad(trigger.actionId, anyListingRows(data)) ? true : trigger.background
