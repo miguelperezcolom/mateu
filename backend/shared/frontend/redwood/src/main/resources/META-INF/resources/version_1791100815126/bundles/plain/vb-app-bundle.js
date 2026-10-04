@@ -5963,6 +5963,14 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
       if (child.baseUrl) continue
       if (childrenOf(child).length) {
         adoptRemote(childrenOf(child), option, app)
+        // El grupo también es del pod: lo que cuelga de su ruta y no es ninguna de sus hojas —la
+        // página de UNA tarea, /forms/task/<id>, bajo el grupo /forms cuyas hojas son /forms/tasks
+        // y /forms/executions— vive en el mismo pod. Es lo que reclama el servidor de la shell
+        // (RemoteMenuHandler.claimLength cuenta todas las rutas del menú, grupos incluidos); sin
+        // esto ese deep-link salía al backend de la shell, que contesta "Not found.". Solo como
+        // prefijo de respaldo: remoteRouteOf se queda con el registro más largo, así que una hoja
+        // sigue ganándole al grupo que la contiene. El grupo no se marca: lo que navega es la hoja.
+        registerGroupRoute(child.route || child.path || '', option, app, serverSideType)
         continue
       }
       child.baseUrl = option.baseUrl
@@ -5982,6 +5990,20 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
       remoteRoutes.set(route, descriptor)
       remoteRoutes.set(String(route).replace(/^\//, ''), descriptor)
     }
+  }
+
+  /** La ruta de un grupo de un pod, registrada como prefijo; la de una hoja ya registrada no se pisa. */
+  function registerGroupRoute(route, option, app, serverSideType) {
+    const bare = String(route || '').replace(/^\//, '')
+    if (!bare || remoteRoutes.has(bare)) return
+    const descriptor = {
+      baseUrl: option.baseUrl,
+      consumedRoute: app.route || '',
+      serverSideType,
+      uriPrefix: option.route,
+    }
+    remoteRoutes.set('/' + bare, descriptor)
+    remoteRoutes.set(bare, descriptor)
   }
 
   function spliceRemote(menu, answers, sections = false, depth = 0) {
