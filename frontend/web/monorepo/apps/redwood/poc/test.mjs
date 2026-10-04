@@ -43,11 +43,11 @@ import {
   entityHeaderOf, pageKpisOf, pageSubtitleOf, itemOverviewPageOf, primaryToolbarButton,
   filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid, columnWidthOf,
   smartFiltersMetadataOf, smartFilterSuggestionsOf, smartFilterValueOf, filterStateOfSmartFilters,
-  suggestionRowsFor, suggestionFiltersProviderOf, smartFiltersOf, setMetadataProviderFactory, KEYWORD_FILTER,
+  suggestionRowsFor, suggestionFiltersProviderOf, smartFiltersOf, smartFilterDropdownRowsOf, dropdownRowsFor, suggestionsProviderOf, setMetadataProviderFactory, KEYWORD_FILTER,
   listActionOf, listActionRequestOf, rowEditorOf, rowFieldsOf, validateRow, pendingLookupsOf, lookupRequestOf,
   isModalRowEditor, fieldListOf, formSectionsOf, secondaryActionOf, interpolate, ROW_VALIDATING_VERBS,
   wizardStepViewOf, isRichAtom, validationOf, formErrorsOf, selectPlaceholder,
-  backToolbarButton, pageToolbarOf, declaredActionOf, actionTransportOf, overlayTransportOf, confirmationOf,
+  backToolbarButton, pageToolbarOf, declaredActionOf, actionTransportOf, overlayTransportOf, confirmationOf, confirmationDefaultsOf,
   awaitConfirmation, answerConfirmation, queryFiltersOf, formLookupsOf, markLookupsLoaded, filtersOf, LOOKUP_LOADED,
   searchableIdsOf, searchableChipsOf, searchPickerOf, pickerSearchStateOf, withContextState, withSearchableIds,
   IDS_PARAM, idsChipLabelOf, splitListingQuery, listingQueryOf, listingUrlOf,
@@ -2327,12 +2327,44 @@ atest('smart filters: las sugerencias excluyen los filtros aplicados y filtran p
   assert.equal(byKeys.results.get('status').data.label, 'Status')
 })
 
+atest('smart filters: el desplegable del buscador ofrece un filtro por fila, sin los aplicados y filtrado por texto', async () => {
+  const rows = smartFilterDropdownRowsOf(BOOKING_FILTERS)
+  assert.equal(rows.length, BOOKING_FILTERS.length)
+  // cada fila, un chip complejo (sin valor) de su filtro, con el icono de «sugerencia»
+  assert.deepEqual(rows[0].chips.map((c) => c.filter), [rows[0].id])
+  assert.equal(rows[0].category, 'suggestion')
+  // un rango lleva las claves de su valor: sin ellas el editor del popup sale vacío
+  const range = rows.filter((r) => r.chips[0].value && 'gte' in r.chips[0].value)[0]
+  assert.ok(range, 'hay un filtro de rango')
+  const dp = suggestionsProviderOf(rows)
+  const criterion = { op: '$and', criteria: [{ op: '$ne', value: { filters: [{ filter: 'vista' }] } }, { text: '' }] }
+  const it = dp.fetchFirst({ filterCriterion: criterion })[Symbol.asyncIterator]()
+  const first = await it.next()
+  // un bloque con datos y después el final vacío, como un ArrayDataProvider
+  assert.equal(first.done, false)
+  const last = await it.next()
+  assert.equal(last.done, true)
+  assert.deepEqual(last.value.data, [])
+  assert.equal(first.value.data.some((r) => r.id === 'vista'), false)
+  assert.equal(first.value.data.length, rows.length - 1)
+  assert.deepEqual(first.value.metadata.map((m) => m.key), first.value.data.map((r) => r.id))
+  assert.deepEqual(dropdownRowsFor(rows, { text: 'arr' }).map((r) => r.id), ['arrival'])
+  const page = await dp.fetchByOffset({ offset: 0, size: 2, filterCriterion: { text: '' } })
+  assert.equal(page.results.length, 2)
+  const byKeys = await dp.fetchByKeys({ keys: new Set(['status']) })
+  assert.equal(byKeys.results.get('status').data.chips[0].label, 'Status')
+  // el total depende del texto tecleado: desconocido (con el de todas, la lista repetía filas)
+  assert.equal(await dp.getTotalSize(), -1)
+})
+
 atest('smart filters: la config completa lleva sugerencias y metadata; sin filtros, sólo el buscador', async () => {
   setMetadataProviderFactory(async (data) => ({ provided: data }))
   try {
     const config = await smartFiltersOf(BOOKING_FILTERS, { vista: 'IN_HOUSE' }, '')
     assert.equal(config.value.length, 1)
-    assert.equal(typeof config.suggestionFilters.fetchFirst, 'function')
+    // los filtros sin aplicar van en el DESPLEGABLE del buscador, no como botones bajo la caja
+    assert.equal(typeof config.suggestions.fetchFirst, 'function')
+    assert.equal(config.suggestionFilters, undefined)
     assert.equal(config.filtersMetadata.provided.discriminator, 'filter')
     const bare = await smartFiltersOf([], {}, 'hola')
     assert.deepEqual(Object.keys(bare).sort((a, b) => a.localeCompare(b)), ['askHint', 'value'])
@@ -2991,6 +3023,15 @@ test('rowedit: la lista modal es EDITABLE — "+" debajo, Editar/Quitar por fila
   assert.equal(grid.columns[grid.columns.length - 1].template, 'cellListRowActions')
   // la lista no es un campo de texto del form genérico (salía un input "Rooms" bajo la tabla)
   assert.ok(!fieldListOf(host.tree, host.state).some((f) => f.fieldId === 'rooms'))
+  // una habitación recién añadida (sin línea ni total: los pone el servidor) dice «—» en esas
+  // celdas, no un hueco
+  const withNew = { ...host, state: { ...host.state, rooms: [{ line: null, roomTypeCode: 'DBL', adults: 2, total: null }] } }
+  const fresh = (islandContentOf(withNew) || []).flatMap((b) => b.items).find((a) => a.isGrid && a.fieldId === 'rooms')
+  assert.equal(fresh.rows[0].line, '—')
+  assert.equal(fresh.rows[0].total, '—')
+  assert.equal(fresh.rows[0].roomTypeCode, 'DBL')
+  // y el estado que vuelve al servidor no se toca
+  assert.equal(withNew.state.rooms[0].line, null)
 })
 
 test('rowedit: una lista NO modal (o de solo lectura) sigue siendo una tabla sin acciones', () => {
@@ -3037,6 +3078,10 @@ test('rowedit: la respuesta del "+" abre el editor — "New room", pie Cancel ·
   assert.ok(byId.adults.isNumber)
   assert.equal(byId.adults.value, 2)
   assert.ok(byId.line.readonly)
+  // la línea (y el total) de una habitación nueva los pone el servidor: un texto «—», no una
+  // cajita de número vacía
+  assert.ok(byId.line.isEmptyReadonly && !byId.line.isText && !byId.line.isNumber)
+  assert.equal(byId.line.value, '—')
   assert.ok(!byId.childrenAges, 'una lista anidada no se edita en el diálogo')
 })
 
@@ -3356,6 +3401,29 @@ test('page form: fecha-hora, enum con opciones y lookup remoto sin opciones', ()
   assert.ok(byId.vip.isBoolean)
   // sin secciones en el árbol: un grupo sin título con todo
   assert.deepEqual(formSectionsOf(tree, {}).map((s) => s.fields.length), [4])
+})
+
+test('page form: a todo el ancho, con las columnas del wire o dos por defecto', () => {
+  const field = (fieldId, extra) => ({ type: 'ClientSide', id: fieldId, metadata: { type: 'FormField', fieldId, label: fieldId, dataType: 'string', stereotype: 'regular', ...extra } })
+  // sin FormLayout: dos columnas (como el FormLayout de Vaadin en escritorio)
+  const loose = { type: 'ServerSide', id: 'x', children: [{ type: 'ClientSide', metadata: { type: 'Page' }, children: [
+    field('id'), field('name'), field('description'),
+  ] }] }
+  const [plain] = formSectionsOf(loose, {})
+  assert.equal(plain.wideColumns, 2)
+  assert.equal(plain.columns, 1, 'las columnas de siempre siguen ahí para la isla (media columna)')
+  // con FormLayout(maxColumns) en la raíz, las suyas
+  const declared = { type: 'ServerSide', id: 'x', children: [{ type: 'ClientSide', metadata: { type: 'FormLayout', maxColumns: 4 }, children: [
+    field('a'), field('b'),
+  ] }] }
+  const [four] = formSectionsOf(declared, {})
+  assert.equal(four.wideColumns, 4)
+  // el formulario de página y los dos wizards: oj-form-layout a todo el ancho, con wideColumns
+  const html = webApp('flows/main/pages/main-start-page.html')
+  assert.equal((html.match(/<oj-form-layout class="oj-formlayout-full-width" max-columns="\[\[ \$current\.data\.wideColumns \]\]"/g) || []).length, 3)
+  // y el formulario de página ya no va en media columna (oj-md-6)
+  const pageForm = html.slice(html.indexOf('$application.variables.mateuFormMetadata && !$application.variables.mateuWizard'))
+  assert.ok(!pageForm.slice(0, 300).includes('oj-md-6'))
 })
 
 test('secondaryActionOf: la secundaria del header se resuelve por su actionId (y si no, por rótulo)', () => {
@@ -3686,6 +3754,19 @@ test('confirmación: «Activate» pide confirmar con sus textos; los que no decl
   assert.deepEqual(confirmationOf(ctx, 'action-on-row-seed'), { title: 'T', message: 'M', confirmText: 'Crear', denyText: 'Cancelar' })
   assert.equal(declaredActionOf(ctx, 'action-on-row-other').id, 'action-on-row-*')
   assert.equal(confirmationOf(ctx, 'action-on-row-other'), null)
+})
+
+test('confirmación: los textos genéricos van en el idioma de la interfaz (Sí / No en español)', () => {
+  const host = reduceContexts(empty(), fx('crud-view-integration')).contexts[HOST_ID]
+  const es = confirmationOf(host, 'activate', 'es-ES')
+  assert.equal(es.confirmText, 'Sí')
+  assert.equal(es.denyText, 'No')
+  // lo declarado por la acción sigue mandando
+  assert.equal(es.title, 'Activate this integration?')
+  assert.deepEqual(confirmationDefaultsOf('es'), { title: 'Un momento, por favor', message: '¿Estás seguro?', confirmText: 'Sí', denyText: 'No' })
+  // un idioma sin traducción cae al inglés
+  assert.equal(confirmationDefaultsOf('de-DE').confirmText, 'Yes')
+  assert.equal(confirmationOf(host, 'activate', 'en-GB').confirmText, 'Yes')
 })
 
 atest('confirmación: la chain espera la respuesta; abrir otra da la anterior por denegada', async () => {
@@ -4287,6 +4368,7 @@ atest('url filters: un listado sin filtros declarados también pinta el chip de 
   const config = await smartFiltersOf([], { ids: 'a,b' }, '')
   assert.deepEqual(config.value.map((c) => c.filter), ['ids'])
   assert.equal(config.suggestionFilters, undefined)
+  assert.equal(config.suggestions, undefined)
   const plain = await smartFiltersOf([], {}, '')
   assert.deepEqual(Object.keys(plain).sort(), ['askHint', 'value'])
 })

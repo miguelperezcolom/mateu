@@ -856,6 +856,34 @@ oj-sp-simple-ui-shell .oj-sp-rw-ask-simple-uishell-to-edge-page a.oj-sp-rw-chat-
   white-space: nowrap;
 }
 
+/* PIES de wizard y de página: el mismo FAB (72px, alineado con el borde derecho del contenido)
+   tapaba «Next» del wizard horizontal a 1920×1080 cuando su pie quedaba en la franja de abajo del
+   viewport — y el «Continue» del pie sticky del guided process vive SIEMPRE ahí (bottom: 0). Los
+   botones de un pie se apartan de la columna del FAB (88px > 72px, como el pie de paginación), y
+   el contenido lleva al final un margen del alto del FAB: lo último de cualquier página (un pie
+   de acciones) siempre puede quedar por encima de él al hacer scroll hasta el fondo. En un
+   teléfono el FAB es de 44px y va pegado a la esquina. */
+.mateu-wizard-nav,
+oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
+  padding-inline-end: 5.5rem;
+  box-sizing: border-box;
+}
+.mateu-content {
+  padding-bottom: 6rem;
+}
+.oj-sp-inappnav-visible .mateu-content {
+  padding-bottom: 0;
+}
+@media (max-width: 599px) {
+  .mateu-wizard-nav,
+  oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
+    padding-inline-end: 3.5rem;
+  }
+  .mateu-content {
+    padding-bottom: 4rem;
+  }
+}
+
 /* Columna principal del listado (@PrimaryColumn): imagen redonda delante (la bandera del huésped)
    + título y caption apilados. */
 .mateu-primary-cell {
@@ -1018,11 +1046,105 @@ oj-sp-simple-ui-shell .oj-sp-rw-ask-simple-uishell-to-edge-page a.oj-sp-rw-chat-
 @media (min-width: 1440px) {
   .mateu-subheader { --mateu-subheader-gutter: 3rem; }
 }
+/* Sin contenido (HAMBURGER_SECTIONS en la home) la banda se PLIEGA: alto 0, sin borde e invisible
+   —fuera también del árbol de accesibilidad—. Aparece y desaparece con una transición corta de
+   alto y opacidad; con prefers-reduced-motion, de golpe. */
+.mateu-subheader {
+  overflow: hidden;
+  transition: height 200ms ease, opacity 200ms ease, border-bottom-color 200ms ease, visibility 0s linear 0s;
+}
+.mateu-subheader.mateu-subheader-empty {
+  height: 0;
+  opacity: 0;
+  border-bottom-color: transparent;
+  visibility: hidden;
+  transition: height 200ms ease, opacity 150ms ease, border-bottom-color 200ms ease, visibility 0s linear 200ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mateu-subheader,
+  .mateu-subheader.mateu-subheader-empty {
+    transition: none;
+  }
+}
+
+/* ── HAMBURGER_SECTIONS: el menú de secciones FLOTA sobre la aplicación ──────────────────────
+   Otro nivel por encima de la subcabecera y del contenido, que no se mueven: un panel de 280px (el
+   ancho del navigation drawer de RDS) pegado a la izquierda bajo la cabecera global, con la
+   elevación de un drawer, y un velo detrás que cierra al pulsarlo. Entra deslizándose desde la
+   izquierda; con prefers-reduced-motion, aparece sin más. --mateu-sections-top lo fija
+   toggleMateuNavDrawer al borde inferior de la cabecera. */
+.mateu-sections-scrim {
+  position: fixed;
+  inset: var(--mateu-sections-top, 50px) 0 0 0;
+  z-index: 950;
+  background: rgba(22, 21, 19, 0.36);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms ease, visibility 0s linear 200ms;
+}
+.mateu-sections-scrim.mateu-open {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 200ms ease, visibility 0s linear 0s;
+}
+.mateu-sections-overlay {
+  position: fixed;
+  top: var(--mateu-sections-top, 50px);
+  bottom: 0;
+  left: 0;
+  z-index: 951;
+  width: 280px;
+  max-width: 85vw;
+  box-sizing: border-box;
+  padding: var(--oj-core-spacing-4x, 1rem) 0;
+  overflow-y: auto;
+  background-color: var(--oj-core-bg-color-content, #fff);
+  box-shadow: var(--oj-core-box-shadow-lg, 0 8px 24px rgba(0, 0, 0, 0.24));
+  transform: translateX(-100%);
+  visibility: hidden;
+  transition: transform 220ms ease, visibility 0s linear 220ms;
+}
+.mateu-sections-overlay.mateu-open {
+  transform: none;
+  visibility: visible;
+  transition: transform 220ms ease, visibility 0s linear 0s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mateu-sections-scrim,
+  .mateu-sections-scrim.mateu-open,
+  .mateu-sections-overlay,
+  .mateu-sections-overlay.mateu-open {
+    transition: none;
+  }
+}
+/* la hamburguesa, a la izquierda del todo: el borde del contenido, no el del logo */
+.mateu-hamburger {
+  margin-inline-start: calc(-1 * var(--oj-core-spacing-2x, 0.5rem));
+}
+
 /* el drawer del chat mide el alto que deja la cabecera: con la banda, también el de la banda */
-body:has(.mateu-subheader) .mateu-chat-panel {
+body:has(.mateu-subheader:not(.mateu-subheader-empty)) .mateu-chat-panel {
   height: calc(100vh - 50px - 2.75rem);
 }
 @media (max-width: 767px) {
   .mateu-subheader { --mateu-subheader-gutter: 1rem; }
   .mateu-subheader-title { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+}
+
+/* Editor de fila: un campo de sólo lectura todavía vacío (la «Line» y el «Total» de una
+   habitación nueva) es su rótulo y «—», con la tipografía del rótulo y del valor de un campo
+   readonly de JET (label arriba), sin caja ni foco. */
+.mateu-readonly-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding-block: 0.25rem;
+}
+.mateu-readonly-empty-label {
+  font-size: var(--oj-typography-body-sm-font-size, 0.875rem);
+  color: var(--oj-core-text-color-secondary, #6f6c6b);
+}
+.mateu-readonly-empty-value {
+  font-size: var(--oj-typography-body-md-font-size, 1rem);
+  color: var(--oj-core-text-color-secondary, #6f6c6b);
 }

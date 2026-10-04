@@ -10,10 +10,11 @@
 <!-- banda del header de COLECCIÓN (smart search): mismo patrón que la banda genérica —
      fondo a sangre, header (título + búsqueda + acciones + franja) capado a la caja -->
 <!-- FILTROS del listado: DENTRO de la cabecera, por la API smart-filters del componente
-     (bridge.smartFiltersOf): los sin aplicar como sugerencias bajo el buscador, los aplicados
-     como chips en el propio campo (con su ✕) y el editor de cada uno en el popup del
-     componente. Una fila propia fuera del componente quedaba debajo de la franja de color,
-     que así parecía una ilustración suelta entre el buscador y la tabla. -->
+     (bridge.smartFiltersOf): los sin aplicar en el DESPLEGABLE que abre el buscador al entrar
+     en él (elegir uno abre su editor), los aplicados como chips en el propio campo (con su ✕)
+     y el editor de cada uno en el popup del componente. Una fila propia fuera del componente
+     quedaba debajo de la franja de color, que así parecía una ilustración suelta entre el
+     buscador y la tabla. -->
 <!-- P1 · NIVELES DE APP: el maestro de un registro (@App(TABS) con hijos en routes.yaml) es
      contenido, no la shell — su «← Padre» (@App(backLink = PARENT)) y UNA barra de
      pestañas por nivel; cada pestaña es una página con URL propia (elegirla navega). Con una sola
@@ -325,6 +326,14 @@
       <oj-bind-for-each data="[[ $variables.mateuRowEditor.fields ]]">
         <template>
           <div class="oj-flex-item oj-sm-12 oj-md-6 oj-sm-padding-2x-horizontal oj-sm-padding-1x-bottom">
+          <!-- de sólo lectura y todavía sin valor (la línea y el total de una habitación nueva:
+               los pone el servidor): su rótulo y «—», como texto — ni caja ni foco -->
+          <oj-bind-if test="[[ $current.data.isEmptyReadonly ]]">
+            <div class="mateu-readonly-empty">
+              <span class="mateu-readonly-empty-label"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+              <span class="mateu-readonly-empty-value"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text></span>
+            </div>
+          </oj-bind-if>
           <oj-bind-if test="[[ $current.data.isText ]]">
             <oj-input-text class="oj-form-control-full-width"
               label-hint="[[ $current.data.label ]]"
@@ -4540,7 +4549,7 @@
             <oj-bind-if test="[[ $current.data.hasTitle ]]">
               <h3 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
             </oj-bind-if>
-            <oj-form-layout max-columns="[[ $current.data.columns ]]" direction="row">
+            <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.wideColumns ]]" direction="row">
               <oj-bind-for-each data="[[ $current.data.fields ]]">
                 <template>
                   <oj-bind-if test="[[ $current.data.isText ]]">
@@ -4661,7 +4670,7 @@
 
 <oj-bind-if test="[[ !!$application.variables.mateuFormMetadata && !$application.variables.mateuWizard ]]">
   <div class="oj-flex oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical">
-    <div class="oj-flex-item oj-sm-12 oj-md-6">
+    <div class="oj-flex-item oj-sm-12">
       <!-- los campos, AGRUPADOS por sus secciones (@Section: título + columnas del FormLayout;
            bridge.formSectionsOf): sin secciones es un único grupo sin título -->
       <oj-bind-for-each data="[[ $application.variables.mateuFormSections ]]">
@@ -4670,7 +4679,7 @@
             <oj-bind-if test="[[ $current.data.hasTitle ]]">
               <h3 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
             </oj-bind-if>
-            <oj-form-layout max-columns="[[ $current.data.columns ]]" direction="row">
+            <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.wideColumns ]]" direction="row">
               <oj-bind-for-each data="[[ $current.data.fields ]]">
                 <template>
                   <oj-bind-if test="[[ $current.data.isText ]]">
@@ -9054,7 +9063,7 @@
           <oj-bind-if test="[[ $current.data.hasTitle ]]">
             <h3 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
           </oj-bind-if>
-          <oj-form-layout max-columns="[[ $current.data.columns ]]" direction="row">
+          <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.wideColumns ]]" direction="row">
             <oj-bind-for-each data="[[ $current.data.fields ]]">
               <template>
                 <oj-bind-if test="[[ $current.data.isText ]]">
