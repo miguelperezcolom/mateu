@@ -875,6 +875,17 @@ oj-sp-simple-ui-shell .oj-sp-rw-ask-simple-uishell-to-edge-page a.oj-sp-rw-chat-
   flex-direction: column;
 }
 
+/* Columna de ANCHO FIJO del listado (@ColumnWidth: width + flexGrow 0 en el wire): oj-table fija
+   el ancho de la columna y el texto se corta con elipsis en una línea — entero en el title
+   (tooltipPath), como el gridRenderer de Vaadin. */
+.mateu-cell-clip {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Un Element del servidor (HTML: p.ej. la tabla «In other systems» de una reserva) dentro de un
    panel de detalle: los valores largos (enlaces, ids de Salesforce) parten la línea en vez de
    ensanchar el panel o pedir scroll. */
