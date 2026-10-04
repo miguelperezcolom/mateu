@@ -6,6 +6,7 @@
 import assert from 'node:assert/strict'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
+import { guidedProcessMediaQuery, guidedProcessWheelIsNative } from './a11y.mjs'
 import { activeSectionOf, sectionHomeOf, sectionOf } from './navTree.mjs'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -4374,4 +4375,21 @@ test('chat: el menuContext lleva el descriptor de listado de cada entrada (filtr
   const send = webApp('pages/shell-page-chains/chatSend.js')
   assert.match(send, /bridge\.buildChatMenuContext\(/)
   assert.match(send, /menuContext: menuContext/)
+})
+
+test('guided process: el overview sólo va en columna en teléfono (< 600px), no en ventanas bajas', () => {
+  // la consulta con la que oj-sp-guided-process decide la columna se reescribe; el resto, intacta
+  assert.equal(guidedProcessMediaQuery('(max-width: 767px), (max-height: 767px)'), '(max-width: 599px)')
+  assert.equal(guidedProcessMediaQuery(' (max-width: 767px),  (max-height: 767px) '), '(max-width: 599px)')
+  assert.equal(guidedProcessMediaQuery('(min-width: 768px)'), '(min-width: 768px)')
+  assert.equal(guidedProcessMediaQuery('(max-width: 767px)'), '(max-width: 767px)')
+  // la rueda vuelve a la página cuando los pasos ya no desbordan a lo ancho
+  assert.equal(guidedProcessWheelIsNative({ scrollWidth: 1200, clientWidth: 1200 }), true)
+  assert.equal(guidedProcessWheelIsNative({ scrollWidth: 1600, clientWidth: 1200 }), false)
+  assert.equal(guidedProcessWheelIsNative(null), false)
+  // el guard del wizard lo instala, y app.css reparte los paneles a lo ancho desde tablet
+  assert.match(webApp('resources/js/mateu-bridge.js'), /relaxGuidedProcessOverview\(\)/)
+  const css = webApp('resources/css/app.css')
+  assert.match(css, /@media \(min-width: 600px\)[\s\S]*#mateuWizardEl \.oj-sp-guided-process-step-container[\s\S]*display: grid/)
+  assert.match(css, /grid-template-columns: repeat\(auto-fit, minmax\(/)
 })

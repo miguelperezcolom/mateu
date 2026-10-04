@@ -373,4 +373,50 @@ export function guardGuidedProcess() {
   }
   document.addEventListener('spBeforeNext', cancel, true)
   document.addEventListener('spBeforeStepNavigate', cancel, true)
+  relaxGuidedProcessOverview()
+}
+
+/**
+ * La consulta con la que oj-sp-guided-process decide si su OVERVIEW (la portada con un panel por
+ * paso) va en columna: «(max-width: 767px), (max-height: 767px)». Pensada para un guided process a
+ * pantalla completa, apila los paneles en cuanto la ventana es estrecha O baja — un portátil con la
+ * ventana a menos de 768px de alto ya ve los pasos uno debajo de otro. Con app.css los paneles se
+ * reparten el ancho del contenido (una fila; otra sólo si de verdad no caben), así que la columna
+ * se reserva al teléfono (RDS: < 600px). Cualquier otra consulta pasa intacta.
+ */
+export const GUIDED_PROCESS_VERTICAL_QUERY = '(max-width: 767px), (max-height: 767px)'
+export const GUIDED_PROCESS_PHONE_QUERY = '(max-width: 599px)'
+
+export function guidedProcessMediaQuery(query) {
+  const normalized = String(query == null ? '' : query).replace(/\s+/g, ' ').trim()
+  return normalized === GUIDED_PROCESS_VERTICAL_QUERY ? GUIDED_PROCESS_PHONE_QUERY : query
+}
+
+/**
+ * La rueda del ratón sobre el overview: el componente la convierte SIEMPRE en scroll horizontal
+ * (preventDefault), porque en su diseño los paneles desbordan a lo ancho. Repartidos a lo ancho ya
+ * no desbordan, y robarle la rueda a la página sólo impediría bajar (p.ej. a la 2ª fila). Se le
+ * deja el gesto al componente sólo si su contenedor de pasos aún desborda a lo ancho.
+ */
+export function guidedProcessWheelIsNative(stepContainer) {
+  if (!stepContainer) return false
+  return stepContainer.scrollWidth <= stepContainer.clientWidth + 1
+}
+
+let guidedProcessOverviewRelaxed = false
+
+export function relaxGuidedProcessOverview() {
+  if (guidedProcessOverviewRelaxed || typeof window === 'undefined' || typeof document === 'undefined') return
+  guidedProcessOverviewRelaxed = true
+  if (typeof window.matchMedia === 'function') {
+    const original = window.matchMedia.bind(window)
+    window.matchMedia = (query) => original(guidedProcessMediaQuery(query))
+  }
+  document.addEventListener('wheel', (event) => {
+    const target = event.target
+    const wizard = target && target.closest ? target.closest('#mateuWizardEl') : null
+    if (!wizard) return
+    const steps = wizard.querySelector('.oj-sp-guided-process-step-container')
+    if (steps && steps.contains(target) && guidedProcessWheelIsNative(steps)) event.stopPropagation()
+  }, { capture: true, passive: true })
 }
