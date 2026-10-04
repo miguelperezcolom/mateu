@@ -1707,9 +1707,17 @@ viajan por la API del componente (loader de oj-sp 2604.1.0) y los pinta él, por
 - `value` → los aplicados, como chips DENTRO del campo (con su ✕); el texto libre va ahí mismo
   como chips `keyword`. `bridge.smartFilterValueOf` los saca del estado de Mateu y
   `bridge.filterStateOfSmartFilters` hace lo inverso (texto + valores del componentState).
-- `suggestionFilters` → los NO aplicados, un chip por filtro bajo el buscador. Es un DataProvider
-  local mínimo (`suggestionFiltersProviderOf`): el componente pide `fetchFirst` con
-  `{op:'$ne', value:{filters}}` y quita los ya aplicados; un único bloque con `done: true`.
+- `suggestions` → los NO aplicados, en el DESPLEGABLE que abre el buscador al entrar en él (2026-10-04;
+  antes iban en `suggestionFilters`, una fila de botones bajo la caja, que no era lo que se recordaba
+  del smart search). Una fila por filtro (`smartFilterDropdownRowsOf`: `{id, category:'suggestion',
+  chips:[chip]}`); elegirla aplica ese chip complejo y el componente abre su editor
+  (`onSuggestionsListViewItemAction` → `openFilterPopup`). DataProvider local
+  (`suggestionsProviderOf`): el componente lo envuelve en un ListDataProviderView con
+  `{op:'$ne', value:{filters}}` (los aplicados) + `{text}` (lo tecleado). Dos detalles que el
+  oj-list-view del popup exige: el iterador da un bloque con datos (`done: false`) y luego el final
+  vacío, y `getTotalSize` es -1 — con un único bloque `done` o con el total de todas las filas, al
+  teclear «busi» pintaba seis veces «Business key».
+- (`suggestionFiltersProviderOf` sigue exportado; ya no se usa en la cabecera.)
 - `filtersMetadata` → un `JsonMetadataProvider` de oj-dynamic polimórfico por `filter` (el
   fieldId): el editor que abre el popup del componente. Por kind: texto `oj-input-text`, número
   `oj-input-number`, select/booleano `oj-select-single`, multi (enum) `oj-checkboxset` (array),
@@ -1836,3 +1844,27 @@ tapaba contenido. El chat pasa a ser un botón de la cabecera global, como en el
   cabecera oscura y una raya blanca abajo. Hover/pulsado: el mismo velo que el menú superior.
 - El drawer izquierdo (reflow en ancho, overlay a todo el ancho en estrecho) no cambia; al cerrar
   el foco vuelve al botón. El FAB de Ask Oracle no cambia. Borrado `#mateuChatFab` y su CSS.
+
+
+## Lote UX 2026-10-04 (hamburguesa, subcabecera, buscador, formularios, FAB, wizard, confirmación)
+
+- **HAMBURGER_SECTIONS**: la hamburguesa va a la izquierda del todo (delante del logo) y cambia de
+  glifo ☰ ↔ ✕. Las secciones ya no van en el `oj-drawer-layout` (reflow, bajo la subcabecera): son
+  un panel FLOTANTE propio (`#mateuSectionsOverlay`, fixed, 280px, bajo la cabecera global, sobre
+  la subcabecera y el contenido) con velo; se cierra con la ✕, Esc (listener en el documento
+  mientras está abierto), clic en el velo o al elegir sección. oj-drawer-popup no valía: cubre la
+  cabecera y con ella la ✕. Entra deslizándose; sin animación con prefers-reduced-motion.
+- **Subcabecera vacía** (sections en la home): se pliega (`mateu-subheader-empty`, alto 0 + opacidad,
+  transición de 200ms) en vez de dejar una franja blanca.
+- **Formularios de página y wizards**: `oj-formlayout-full-width` y `wideColumns` (las del wire o 2
+  sin declarar, como el FormLayout de Vaadin); el formulario de página ya no va en media columna
+  (`oj-md-6`). El @Colspan sigue sin aplicarse: de los hijos del oj-form-layout clásico sólo
+  oj-label-value tiene `colspan`, y envolver el control en uno descuadra la rejilla y le quita el
+  rótulo (probado) — pide oj-c-form-layout.
+- **FAB**: los pies del wizard (y el sticky del guided process) se apartan de la columna del FAB
+  (padding-inline-end 5.5rem) y el contenido deja 6rem al final.
+- **Editor de fila**: un campo de sólo lectura vacío («Line», «Total» de una habitación nueva) es
+  rótulo + «—», sin caja ni foco; el foco inicial va al primer campo editable. En la tabla de la
+  lista editable, sus celdas vacías dicen «—».
+- **Confirmación**: los textos genéricos en el idioma de la interfaz (`confirmationDefaultsOf`,
+  es → «Sí»/«No»).

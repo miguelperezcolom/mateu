@@ -27,6 +27,19 @@ define(['resources/js/mateu-bridge'], (bridge) => {
       return section ? section.label : '';
     }
 
+    /**
+     * La clase de la subcabecera: plegada (mateu-subheader-empty) cuando no tiene nada que enseñar
+     * —HAMBURGER_SECTIONS en la home, sin sección en pantalla—, para que no quede una franja vacía.
+     */
+    subheaderClassOf(title, tree, selectedRoute, sectionsMode) {
+      // sin `this`: VB puede llamar a las funciones de la página sueltas
+      const section = sectionsMode ? bridge.sectionOf(tree, selectedRoute) : null;
+      const empty = sectionsMode
+        ? !section || (!section.label && !(section.children || []).length)
+        : !title && !(tree || []).length;
+      return empty ? 'mateu-subheader mateu-subheader-empty' : 'mateu-subheader';
+    }
+
     /** HAMBURGER_SECTIONS: la entrada marcada en la lista de secciones (su id es la home). */
     sectionListSelection(tree, selectedRoute) {
       const section = bridge.sectionOf(tree, selectedRoute);

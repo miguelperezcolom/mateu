@@ -360,7 +360,17 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       }
     }
     walk(card, true)
-    return { title, columns: columns > 0 ? Math.min(columns, 4) : 1 }
+    return { title, columns: columns > 0 ? Math.min(columns, 4) : 1, declaredColumns: columns > 0 }
+  }
+
+  /**
+   * Las columnas de un grupo de campos en un formulario a TODO EL ANCHO (página, wizard): las
+   * declaradas (FormLayout maxColumns, @Section(columns)) o, sin declarar, dos — el reparto por
+   * defecto del FormLayout de Vaadin en escritorio. oj-form-layout las baja solo cuando no caben
+   * (cada columna pide 18rem como mínimo), así que en un teléfono vuelve a ser una.
+   */
+  function wideColumnsOf(section) {
+    return section.declaredColumns ? section.columns : 2
   }
 
   /**
@@ -391,7 +401,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           here.fields.push(byId[n.fieldId])
         } else {
           if (!loose || sections[sections.length - 1] !== loose) {
-            loose = { key: 's' + sections.length, title: '', columns: 1, fields: [] }
+            loose = { key: 's' + sections.length, title: '', columns: 1, declaredColumns: false, fields: [] }
             sections.push(loose)
           }
           loose.fields.push(byId[n.fieldId])
@@ -403,9 +413,17 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       }
     }
     walk(tree, true, null)
+    // un formulario sin FormLayout propio (los campos sueltos de un ServerSide) toma sus columnas
+    // del FormLayout raíz, si lo hay
+    const rootColumns = sectionHeadOf(tree)
     return sections
       .filter((sec) => sec.fields.length)
-      .map((sec) => ({ ...sec, hasTitle: !!sec.title }))
+      .map((sec) => {
+        const head = !sec.declaredColumns && rootColumns.declaredColumns ? { ...sec, columns: rootColumns.columns, declaredColumns: true } : sec
+        // (el @Colspan de un campo no se aplica: de los hijos del oj-form-layout clásico sólo
+        // oj-label-value tiene colspan, y envolver el control en uno descuadra la rejilla)
+        return { ...head, hasTitle: !!sec.title, wideColumns: wideColumnsOf(head) }
+      })
   }
 
   /** Proyección del OVERLAY superior del stack (drawer del crud): título + campos + acciones.
@@ -1421,9 +1439,18 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           if (rowEditable) {
             columns.push({ headerText: '', field: '__rowActions', template: 'cellListRowActions', sortable: 'disabled' })
           }
+          // en una lista editable, una celda que aún no tiene valor (la línea y el total de una
+          // habitación recién añadida: los pone el servidor al crear) dice «—», no un hueco
+          const dashEmpty = (row) => {
+            const out = { ...row }
+            for (const col of columns) {
+              if (col.field !== '__rowActions' && (out[col.field] == null || out[col.field] === '')) out[col.field] = EMPTY_VALUE
+            }
+            return out
+          }
           const shown = statusBadgeRows(rows, m.columns).map((row, i) => (rowEditable
             ? {
-              ...row,
+              ...dashEmpty(row),
               _rowNumber: row._rowNumber == null ? i : row._rowNumber,
               __rowKey: String(row._rowNumber == null ? i : row._rowNumber),
               __editActionId: fieldId + '_select',
@@ -3142,13 +3169,105 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     }
   }
 
+  /**
+   * Las filas del DESPLEGABLE del buscador (la propiedad `suggestions` de oj-sp-smart-filters, un
+   * SmartSuggestionChipsDataProvider): una por filtro declarado, cada una con su chip. Al entrar en
+   * el campo el componente las abre en su popup bajo la caja; elegir una aplica ese filtro y, como
+   * es un chip complejo, abre su editor (oj-dynamic, filtersMetadata) — el mismo editor que los chips.
+   * `category: 'suggestion'` es el icono de caja del componente (los otros son historial y texto).
+   */
+  function smartFilterDropdownRowsOf(filters) {
+    return smartFilterSuggestionsOf(filters).map((chip) => ({ id: chip.filter, category: 'suggestion', chips: [chip] }))
+  }
+
+  /** Las filas del desplegable que tocan: fuera los filtros ya aplicados y, si hay texto, las que no lo contienen. */
+  function dropdownRowsFor(rows, criterion) {
+    const parts = !criterion ? [] : criterion.criteria ? criterion.criteria : [criterion]
+    let applied = []
+    let text = ''
+    for (const c of parts) {
+      if (c && c.op === '$ne' && c.value && Array.isArray(c.value.filters)) applied = c.value.filters
+      if (c && typeof c.text === 'string') text = c.text.trim().toLowerCase()
+    }
+    const taken = applied.map((a) => a && a.filter)
+    return (rows || [])
+      .filter((r) => taken.indexOf(r.id) < 0)
+      .filter((r) => !text || r.chips.some((chip) => String(chip.filterLabel || chip.label).toLowerCase().indexOf(text) >= 0))
+  }
+
+  /** Un DataProvider (lo que usa el popup del buscador) sobre las filas locales del desplegable. */
+  function suggestionsProviderOf(rows) {
+    const all = rows || []
+    return {
+      // como un ArrayDataProvider de JET: un bloque con las filas (done: false) y después el final
+      // vacío (done: true). Un único bloque ya «done» lo pinta bien el primer fetch, pero al
+      // refiltrar el oj-list-view del popup conservaba las filas de antes con el dato nuevo
+      fetchFirst(params) {
+        const data = dropdownRowsFor(all, params && params.filterCriterion)
+        return {
+          [Symbol.asyncIterator]: () => {
+            let sent = false
+            return {
+              next: () => {
+                const rowsNow = sent ? [] : data
+                const done = sent
+                sent = true
+                return Promise.resolve({ done, value: { data: rowsNow, metadata: rowsNow.map((r) => ({ key: r.id })), fetchParameters: params } })
+              },
+            }
+          },
+        }
+      },
+      fetchByKeys(params) {
+        const results = new Map()
+        for (const key of (params && params.keys) || []) {
+          const row = all.filter((r) => r.id === key)[0]
+          if (row) results.set(key, { data: row, metadata: { key } })
+        }
+        return Promise.resolve({ fetchParameters: params, results })
+      },
+      containsKeys(params) {
+        const results = new Set()
+        for (const key of (params && params.keys) || []) {
+          if (all.some((r) => r.id === key)) results.add(key)
+        }
+        return Promise.resolve({ containsParameters: params, results })
+      },
+      fetchByOffset(params) {
+        const data = dropdownRowsFor(all, params && params.filterCriterion)
+        const offset = (params && params.offset) || 0
+        const size = params && params.size > 0 ? params.size : data.length
+        const slice = data.slice(offset, offset + size)
+        return Promise.resolve({
+          done: offset + size >= data.length,
+          fetchParameters: params,
+          results: slice.map((r) => ({ data: r, metadata: { key: r.id } })),
+        })
+      },
+      // el filtrado lo hace el propio provider (texto + aplicados): el ListDataProviderView del
+      // componente se lo pasa tal cual
+      getCapability(name) { return name === 'filter' ? { operators: ['$and', '$ne'], textFilter: {} } : null },
+      // el total depende del filtro: «desconocido» (-1). Con el de todas las filas, el oj-list-view
+      // del popup pintaba seis veces «Business key» al teclear «busi»
+      getTotalSize() { return Promise.resolve(-1) },
+      isEmpty() { return all.length ? 'no' : 'yes' },
+      addEventListener() {},
+      removeEventListener() {},
+      dispatchEvent() { return true },
+    }
+  }
+
   // el JsonMetadataProvider de oj-dynamic: lo pone el módulo AMD (el core no depende de JET)
   let metadataProviderFactory = null
   function setMetadataProviderFactory(factory) { metadataProviderFactory = factory }
 
   /**
-   * La configuración ENTERA de `smart-filters` para un listado: sugerencias, aplicados y el
-   * editor de cada filtro. Sin filtros declarados, sólo el buscador de texto (como siempre).
+   * La configuración ENTERA de `smart-filters` para un listado: el desplegable de filtros, los
+   * aplicados y el editor de cada filtro. Sin filtros declarados, sólo el buscador de texto.
+   *
+   * Los filtros sin aplicar se ofrecen en el DESPLEGABLE que abre el buscador al entrar en él
+   * (`suggestions`), no como una fila de botones bajo la caja (`suggestionFilters`, lo que hubo
+   * desde 8af850e63): el buscador del listado vuelve a ser una caja con su menú de filtros.
    */
   async function smartFiltersOf(filters, values, searchText) {
     const config = { askHint: 'Buscar…', value: smartFilterValueOf(filters, values, searchText) }
@@ -3156,7 +3275,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     if ((!filters || !filters.length) && !hasIds) return config
     // sin filtros declarados pero con selección por ids: el chip necesita su metadata, no sugerencias
     if (filters && filters.length) {
-      config.suggestionFilters = suggestionFiltersProviderOf(smartFilterSuggestionsOf(filters))
+      config.suggestions = suggestionsProviderOf(smartFilterDropdownRowsOf(filters))
     }
     if (metadataProviderFactory) {
       config.filtersMetadata = await metadataProviderFactory(smartFiltersMetadataOf(filters))
@@ -3619,6 +3738,18 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       const raw = plainValueOf(state[f.fieldId])
       const widget = fieldWidgetOf(f, ctx.data, { lookups: true, value: raw })
       const error = errors && errors[f.fieldId]
+      // un campo de SÓLO LECTURA todavía vacío (la «Line» y el «Total» de una habitación nueva, que
+      // pone el servidor) se pinta como su rótulo y «—», texto que no se enfoca: un oj-input-number
+      // readonly sin valor es una cajita punteada de 20px que parece un control roto (y, el primero
+      // del diálogo, se quedaba con el foco)
+      if (widget.readonly && !widget.isBoolean && (raw == null || raw === '')) {
+        out.push({
+          ...widget, ...EMPTY_READONLY_WIDGET,
+          value: EMPTY_VALUE,
+          messagesCustom: [],
+        })
+        continue
+      }
       out.push({
         ...widget,
         value: widget.isBoolean ? !!raw : (raw == null || raw === '' ? null : (widget.isNumber ? Number(raw) : raw)),
@@ -3627,6 +3758,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     }
     return out
   }
+
+  /** Lo que se pinta en lugar de un valor que todavía no hay (sólo lectura). */
+  const EMPTY_VALUE = '—'
+  const EMPTY_READONLY_WIDGET = { isText: false, isEmptyReadonly: true, isTextArea: false, isNumber: false, isDate: false, isDateTime: false,
+    isSelect: false, isLookup: false, lookupActionId: '', options: [] }
 
   /** Tipos de campo que el form layout sabe pintar con un widget de JET. */
   const LAYOUT_TYPES = { string: true, integer: true, int: true, long: true, number: true, double: true,
@@ -3978,8 +4114,19 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     }
   }
 
+  // Los textos genéricos del diálogo de confirmación, en el idioma de la interfaz (el lang del
+  // documento, que copy.mjs fija al del navegador — como pagingLangOf): una consola en español no
+  // pregunta «Yes / No».
   const CONFIRMATION_DEFAULTS = {
-    title: 'One moment, please', message: 'Are you sure?', confirmText: 'Yes', denyText: 'No',
+    en: { title: 'One moment, please', message: 'Are you sure?', confirmText: 'Yes', denyText: 'No' },
+    es: { title: 'Un momento, por favor', message: '¿Estás seguro?', confirmText: 'Sí', denyText: 'No' },
+  }
+
+  /** Los textos genéricos del diálogo de confirmación para `lang` (o el idioma de la interfaz). */
+  function confirmationDefaultsOf(lang) {
+    const raw = lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
+      || (typeof navigator !== 'undefined' && navigator.language) || ''
+    return CONFIRMATION_DEFAULTS[String(raw).toLowerCase().split(/[-_]/)[0]] || CONFIRMATION_DEFAULTS.en
   }
 
   /**
@@ -3987,16 +4134,17 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    * si no pide ninguno. Cada texto cae por su cuenta al genérico — como en Vaadin
    * (confirmationTexts.ts): una acción que sólo declara el mensaje los trae vacíos al resto.
    */
-  function confirmationOf(ctx, actionId) {
+  function confirmationOf(ctx, actionId, lang) {
     const action = declaredActionOf(ctx, actionId)
     if (!action || !action.confirmationRequired) return null
     const texts = action.confirmationTexts || {}
+    const defaults = confirmationDefaultsOf(lang)
     const pick = (value, fallback) => (value != null && String(value).trim() ? String(value) : fallback)
     return {
-      title: pick(texts.title, CONFIRMATION_DEFAULTS.title),
-      message: pick(texts.message, CONFIRMATION_DEFAULTS.message),
-      confirmText: pick(texts.confirmationText, CONFIRMATION_DEFAULTS.confirmText),
-      denyText: pick(texts.denialText, CONFIRMATION_DEFAULTS.denyText),
+      title: pick(texts.title, defaults.title),
+      message: pick(texts.message, defaults.message),
+      confirmText: pick(texts.confirmationText, defaults.confirmText),
+      denyText: pick(texts.denialText, defaults.denyText),
     }
   }
 

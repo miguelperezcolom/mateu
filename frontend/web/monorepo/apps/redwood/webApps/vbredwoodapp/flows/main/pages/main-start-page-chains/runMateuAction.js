@@ -713,7 +713,20 @@ define([
         || { id: '', fieldId: '', title: '', subtitle: '', toolbar: [], buttons: [], fields: [] };
       if (rowEditorNow && !$page.variables.mateuRowEditorOpen) {
         $page.variables.mateuRowEditorOpen = true;
+        // el foco, al primer campo EDITABLE: oj-dialog lo deja, al terminar de abrirse
+        // (ojOpen), en el primero que se pueda enfocar, y uno de sólo lectura («Line», que pone
+        // el servidor) se quedaba con el anillo de foco alrededor de un valor vacío
+        const dialog = document.getElementById('mateuRowEditor');
+        const focusFirstEditable = () => {
+          const form = document.getElementById('mateuRowEditorForm');
+          const editable = form && Array.from(form.querySelectorAll('[data-field-id]'))
+            .find((el) => el.tagName.indexOf('OJ-') === 0 && el.readonly !== true && !el.disabled);
+          const target = editable && (editable.querySelector('input, textarea') || editable);
+          if (target && typeof target.focus === 'function') target.focus();
+        };
+        if (dialog) dialog.addEventListener('ojOpen', () => setTimeout(focusFirstEditable, 0), { once: true });
         await Actions.callComponentMethod(context, { selector: '#mateuRowEditor', method: 'open' });
+        setTimeout(focusFirstEditable, 600);
       } else if (!rowEditorNow && $page.variables.mateuRowEditorOpen) {
         // la marca baja ANTES del close: el ojBeforeClose que dispara no es un descarte del usuario
         $page.variables.mateuRowEditorOpen = false;
