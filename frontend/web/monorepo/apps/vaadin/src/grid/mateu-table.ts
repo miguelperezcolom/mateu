@@ -346,6 +346,8 @@ export class MateuTable extends LitElement {
                             return
                         }
                         this.state[this.id + '_selected_items'] = selectedValue;
+                        // multi-line rows: the extra lines (details area) mirror the row's selection
+                        if (multiLine) this.grid?.requestContentUpdate()
                         if (this.metadata?.onRowSelectionChangedActionId) {
                             this.dispatchEvent(new CustomEvent('action-requested', {
                                 detail: {
@@ -429,7 +431,14 @@ export class MateuTable extends LitElement {
      * a details cell through getEventContext).
      */
     renderRowLines(item: any, lines: GridColumn[][], togglesDetail: boolean) {
-        return html`<div class="row-lines"
+        // the details area is not a body cell, so the grid's selected-row tint does not reach it:
+        // the lines carry it themselves (checkbox selection, and the record shown in a split view)
+        const selectedItems: any[] = this.state?.[this.id + '_selected_items'] ?? []
+        const idField = this.identifierFieldName
+        const shownId = this.state?._selectedId ?? this.appState?._splitDetailId
+        const selected = selectedItems.some(s => this.sameRow(s, item))
+            || (!!idField && shownId !== undefined && String(item?.[idField]) === String(shownId))
+        return html`<div class="row-lines" ?data-selected="${selected}"
                          @click="${togglesDetail ? (e: MouseEvent) => {
                              const path = e.composedPath() as HTMLElement[]
                              if (path.some(el => el?.tagName && /^(A|BUTTON|INPUT|VAADIN-BUTTON|VAADIN-CHECKBOX)$/.test(el.tagName))) return
@@ -482,20 +491,21 @@ export class MateuTable extends LitElement {
             background-color: var(--lumo-primary-color-10pct);
         }
         /* multi-line rows: the extra lines sit right under line 1, inside the same row */
-        vaadin-grid[data-multiline]::part(details-cell) {
-            padding-top: 0;
-            padding-bottom: var(--lumo-space-xs);
-        }
-        vaadin-grid[data-multiline]::part(body-cell) {
-            padding-bottom: 0;
+        /* the details cell's content carries the grid's cell padding: the lines bring their own,
+           so a selected row's tint fills the whole area */
+        vaadin-grid[data-multiline] vaadin-grid-cell-content:has(> .row-lines) {
+            padding: 0;
         }
         .row-lines {
             display: flex;
             flex-direction: column;
             gap: 2px;
-            padding: 0 var(--lumo-space-m) var(--lumo-space-xs);
+            padding: 0 var(--lumo-space-m) var(--lumo-space-s);
             font-size: var(--lumo-font-size-s);
             color: var(--lumo-secondary-text-color);
+        }
+        .row-lines[data-selected] {
+            background-color: var(--lumo-primary-color-10pct);
         }
         .row-line {
             display: flex;

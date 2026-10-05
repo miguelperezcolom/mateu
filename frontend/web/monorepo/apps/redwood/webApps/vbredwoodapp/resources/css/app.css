@@ -907,9 +907,14 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
   left: 0;
   right: 0;
   bottom: 0.375rem;
-  padding: 0 1rem;
+  /* alineado con el texto de la primera columna (padding de celda de oj-table) */
+  padding: 0 1.0625rem;
   box-sizing: border-box;
-  pointer-events: auto;
+}
+/* con casillas de selección la columna del selector (sticky, 36px) va encima: las líneas
+   empiezan después, alineadas con la primera columna de datos */
+.mateu-multiline-table.oj-table-multiple-row-selection .mateu-row-lines {
+  left: 2.25rem;
 }
 .mateu-row-line {
   height: var(--mateu-row-line-h);
