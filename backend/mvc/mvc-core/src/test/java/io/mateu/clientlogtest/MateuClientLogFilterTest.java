@@ -19,7 +19,6 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 
 /** {@code POST <baseUrl>/mateu/v3/client-log}: one log line per report, under any base URL. */
@@ -31,7 +30,12 @@ class MateuClientLogFilterTest {
   static class App {
     @Bean
     SecurityFilterChain permitAll(HttpSecurity http) throws Exception {
-      return http.csrf(AbstractHttpConfigurer::disable)
+      // CSRF stays on, as in a real app; only the reports' path is exempt, the way apps exempt
+      // their /mateu/** calls (the browser sends a Bearer token, not a cookie session).
+      return http.csrf(
+              csrf ->
+                  csrf.ignoringRequestMatchers(
+                      request -> request.getRequestURI().endsWith("/mateu/v3/client-log")))
           .authorizeHttpRequests(auth -> auth.anyRequest().permitAll())
           .build();
     }
