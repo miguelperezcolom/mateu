@@ -38,7 +38,9 @@ import { columnBodyRenderer, gridRowDetailsRenderer } from "@vaadin/grid/lit";
 import { detailIndicatorColumn } from "./detailIndicatorColumn.ts";
 import { badge } from "@infra/ui/badgeStyles.ts";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
-import { renderColumnOrGroup } from "./renderColumn.ts";
+import { columnRenderer, renderColumnOrGroup } from "./renderColumn.ts";
+import { splitLines } from "@infra/ui/listingLines.ts";
+import { interpolate } from "@infra/ui/interpolation.ts";
 
 
 @customElement('mateu-table')
@@ -281,6 +283,24 @@ export class MateuTable extends LitElement {
                 ? ((c.metadata as GridGroupColumn).columns ?? []).map(cc => cc.metadata as GridColumn)
                 : [c.metadata as GridColumn])
         const footers = buildAggregateFooters(flatColumnMetas, listing, groupBy)
+        // Multi-line rows (@Line → GridColumn.line): the line-1 columns are the grid's columns; the
+        // others are drawn under each row, spanning it, in the row-details area — which is then
+        // open for EVERY row. The @Details toggle keeps its own state (detailsOpenedItems) and its
+        // content goes under the extra lines.
+        const lines = splitLines(this.metadata?.columns ?? [], c =>
+            c.metadata?.type === ComponentMetadataType.GridGroupColumn ? undefined : c.metadata as GridColumn)
+        const multiLine = lines.extra.length > 0
+        const extraLines = lines.extra.map(line => line.map(c => c.metadata as GridColumn))
+        const gridColumns = multiLine ? lines.first : (this.metadata?.columns ?? [])
+        const hasDetail = !!this.metadata?.detailPath
+        const loadedRows: any[] = (items ?? page?.content ?? []) as any[]
+        const gridDetailsOpened = multiLine ? loadedRows.filter(row => !isGroupRow(row)) : this.detailsOpenedItems
+        const detailsRenderer = multiLine
+            ? gridRowDetailsRenderer<any>((item) => isGroupRow(item) ? html`` : html`
+                ${this.renderRowLines(item, extraLines, hasDetail && !this.metadata?.useButtonForDetail)}
+                ${hasDetail && this.isDetailOpen(item) ? this.renderRowDetail(item[this.metadata?.detailPath!]) : nothing}`,
+                [extraLines, this.detailsOpenedItems, this.state, this.data])
+            : hasDetail ? gridRowDetailsRenderer<any>((item) => this.renderRowDetail(item[this.metadata?.detailPath!])) : undefined
         let theme = '';
         if (this.metadata?.wrapCellContent) {
             theme += ' wrap-cell-content';
@@ -311,6 +331,7 @@ export class MateuTable extends LitElement {
                     item-id-path="_rowNumber"
                     .selectedItems="${selectedItems}"
                     ?data-clickable-rows="${this.metadata?.detailPath && !this.metadata?.useButtonForDetail}"
+                    ?data-multiline="${multiLine}"
                     ?all-rows-visible="${this.metadata?.allRowsVisible}"
                     column-rendering="${this.metadata?.lazyColumnRendering?'lazy':nothing}"
                     ?column-reordering-allowed="${this.metadata?.columnReorderingAllowed}"
@@ -325,6 +346,8 @@ export class MateuTable extends LitElement {
                             return
                         }
                         this.state[this.id + '_selected_items'] = selectedValue;
+                        // multi-line rows: the extra lines (details area) mirror the row's selection
+                        if (multiLine) this.grid?.requestContentUpdate()
                         if (this.metadata?.onRowSelectionChangedActionId) {
                             this.dispatchEvent(new CustomEvent('action-requested', {
                                 detail: {
@@ -344,22 +367,24 @@ export class MateuTable extends LitElement {
                         this.detailsOpenedItems = row ? [row] : []
                     }:undefined)}"
                     @click="${ifDefined(this.metadata?.rowRoute?(event: MouseEvent) => this.navigateToRowRoute(event):undefined)}"
-                    .detailsOpenedItems="${this.detailsOpenedItems}"
-                    ${ifDefined(this.metadata?.detailPath?gridRowDetailsRenderer<any>((item) => this.renderRowDetail(item[this.metadata?.detailPath!])):undefined)}
+                    .detailsOpenedItems="${gridDetailsOpened}"
+                    ${ifDefined(detailsRenderer)}
                     theme="${theme}"
                     style="${this.metadata?.gridStyle}"
             >
                 ${this.metadata?.rowsSelectionEnabled?html`
                     <vaadin-grid-selection-column></vaadin-grid-selection-column>
                 `:nothing}
-                ${this.metadata?.detailPath && !this.metadata?.useButtonForDetail ? detailIndicatorColumn(isGroupRow) : nothing}
-                ${this.metadata?.columns?.map(column => renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data, this.appState, this.appData, footers))}
+                ${this.metadata?.detailPath && !this.metadata?.useButtonForDetail ? detailIndicatorColumn(isGroupRow, multiLine ? this.isDetailOpen : undefined) : nothing}
+                ${gridColumns.map(column => renderColumnOrGroup(column, this, this.baseUrl, this.state, this.data, this.appState, this.appData, footers))}
                 ${this.metadata?.useButtonForDetail?html`
                     <vaadin-grid-column
                             width="44px"
                             flex-grow="0"
                             ${columnBodyRenderer<any>(
-                                    (person, { detailsOpened }) => html`
+                                    (person, { detailsOpened: gridOpened }) => {
+                                        const detailsOpened = multiLine ? this.isDetailOpen(person) : gridOpened
+                                        return html`
               <vaadin-button
                 theme="tertiary icon"
                 title="${detailsOpened ? 'Collapse' : 'Expand'}"
@@ -367,7 +392,7 @@ export class MateuTable extends LitElement {
                 aria-expanded="${detailsOpened ? 'true' : 'false'}"
                 @click="${() => {
                                         this.detailsOpenedItems = detailsOpened
-                                                ? this.detailsOpenedItems.filter((p) => p !== person)
+                                                ? this.detailsOpenedItems.filter((p) => p !== person && !this.sameRow(p, person))
                                                 : [...this.detailsOpenedItems, person];
                                     }}"
               >
@@ -375,8 +400,8 @@ export class MateuTable extends LitElement {
                   .icon="${detailsOpened ? 'lumo:angle-down' : 'lumo:angle-right'}"
                 ></vaadin-icon>
               </vaadin-button>
-            `,
-                                    []
+            `},
+                                    [multiLine]
                             )}
                     ></vaadin-grid-column>
                 `:nothing}
@@ -385,6 +410,50 @@ export class MateuTable extends LitElement {
             </vaadin-grid>
             <slot></slot>
        `
+    }
+
+    private sameRow(a: any, b: any): boolean {
+        if (a === b) return true
+        return a?._rowNumber !== undefined && b?._rowNumber !== undefined && a._rowNumber === b._rowNumber
+    }
+
+    /** Whether the user opened this row's @Details (multi-line rows keep the grid's details area
+     *  open for every row, so the grid's own detailsOpened cannot say it). */
+    isDetailOpen = (row: any): boolean => this.detailsOpenedItems.some(opened => this.sameRow(opened, row))
+
+    /**
+     * The extra lines of a multi-line row (columns with `line` > 1): one line per line number, each
+     * a run of «Label: value» pairs, secondary text, spanning the row. The value is drawn by the
+     * same cell renderer as a column's (status badge, money, link, editor…).
+     *
+     * <p>A click on them is a click on the row: vaadin-grid does not make the details area the
+     * active item, so the @Details toggle is wired here (row routes already resolve the item from
+     * a details cell through getEventContext).
+     */
+    renderRowLines(item: any, lines: GridColumn[][], togglesDetail: boolean) {
+        // the details area is not a body cell, so the grid's selected-row tint does not reach it:
+        // the lines carry it themselves (checkbox selection, and the record shown in a split view)
+        const selectedItems: any[] = this.state?.[this.id + '_selected_items'] ?? []
+        const idField = this.identifierFieldName
+        const shownId = this.state?._selectedId ?? this.appState?._splitDetailId
+        const selected = selectedItems.some(s => this.sameRow(s, item))
+            || (!!idField && shownId !== undefined && String(item?.[idField]) === String(shownId))
+        return html`<div class="row-lines" ?data-selected="${selected}"
+                         @click="${togglesDetail ? (e: MouseEvent) => {
+                             const path = e.composedPath() as HTMLElement[]
+                             if (path.some(el => el?.tagName && /^(A|BUTTON|INPUT|VAADIN-BUTTON|VAADIN-CHECKBOX)$/.test(el.tagName))) return
+                             this.detailsOpenedItems = this.isDetailOpen(item) ? [] : [item]
+                         } : nothing}">
+            ${lines.map(line => html`<div class="row-line">
+                ${line.map(col => html`<span class="row-line-pair" data-column="${col.id}">
+                    <span class="row-line-label">${interpolate(col.label, this.state, this.data)}:</span>
+                    <span class="row-line-value">${columnRenderer(item,
+                            { item, index: 0, selected: false, detailsOpened: true, expanded: false, level: 0 } as any,
+                            { path: col.id, dataset: { dataType: col.dataType ?? '', stereotype: col.stereotype ?? '' } } as any,
+                            col, this, this.baseUrl, this.state, this.data, this.appState, this.appData)}</span>
+                </span>`)}
+            </div>`)}
+        </div>`
     }
 
     /**
@@ -420,6 +489,49 @@ export class MateuTable extends LitElement {
         }
         vaadin-grid::part(selected-row) {
             background-color: var(--lumo-primary-color-10pct);
+        }
+        /* multi-line rows: the extra lines sit right under line 1, inside the same row */
+        /* the details cell's content carries the grid's cell padding: the lines bring their own,
+           so a selected row's tint fills the whole area */
+        vaadin-grid[data-multiline] vaadin-grid-cell-content:has(> .row-lines) {
+            padding: 0;
+        }
+        .row-lines {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 0 var(--lumo-space-m) var(--lumo-space-s);
+            font-size: var(--lumo-font-size-s);
+            color: var(--lumo-secondary-text-color);
+        }
+        .row-lines[data-selected] {
+            background-color: var(--lumo-primary-color-10pct);
+        }
+        .row-line {
+            display: flex;
+            flex-wrap: wrap;
+            column-gap: var(--lumo-space-l);
+            row-gap: 2px;
+            align-items: baseline;
+        }
+        .row-line-pair {
+            display: inline-flex;
+            align-items: baseline;
+            gap: var(--lumo-space-xs);
+            min-width: 0;
+            max-width: 100%;
+        }
+        .row-line-label {
+            color: var(--lumo-tertiary-text-color, var(--lumo-secondary-text-color));
+            white-space: nowrap;
+        }
+        .row-line-value {
+            color: var(--lumo-body-text-color);
+            min-width: 0;
+            overflow: hidden;
+        }
+        .row-line-value > span {
+            display: inline !important;
         }
         vaadin-grid::part(mateu-group-row) {
             background-color: var(--lumo-contrast-5pct, rgba(0, 0, 0, 0.04));

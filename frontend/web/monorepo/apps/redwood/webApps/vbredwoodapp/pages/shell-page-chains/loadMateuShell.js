@@ -227,6 +227,34 @@ define([
         });
       }
 
+      // Un enlace HTML corriente del contenido (`<a href="/journey/bookings/ZUAAKJ">`, el de un
+      // Text/Html de la app) navega DENTRO de la shell, como en Vaadin (el RouterLinkHandler de
+      // Flow): sin esto el navegador cargaba la página entera y la shell volvía a arrancar, 20–40 s
+      // en blanco. Las reglas (clic normal, mismo origen, sin target/download, nada de /_xxx, API
+      // ni ficheros) están en bridge.inAppRouteOfLink. Sólo el contenido de la página (#pageContent):
+      // la cabecera (menú de usuario, enlaces a otras consolas) sigue como siempre. Se escucha en
+      // burbuja: quien ya atendió el clic (el chat, el badge de un widget) lo marcó con
+      // preventDefault y no se toca. Enter sobre un enlace también llega como click. La URL se
+      // empuja al historial en onMateuNavigate (atrás vuelve a la pantalla del enlace).
+      if (!window.__mateuInAppLinksWired) {
+        window.__mateuInAppLinksWired = true;
+        document.addEventListener('click', (event) => {
+          const path = typeof event.composedPath === 'function' ? event.composedPath() : [];
+          const content = document.getElementById('pageContent');
+          if (!content || !path.includes(content)) return;
+          const anchor = path.find((node) => node && node.tagName === 'A');
+          if (!anchor) return;
+          let route = bridge.inAppRouteOfLink(anchor, event, window.location, !window.__mateuUrlPathMode);
+          if (route === '/') route = liveContext().$application.variables.mateuHomeRoute || '';
+          if (!route) return;
+          event.preventDefault();
+          Actions.callChain(liveContext(), {
+            chain: 'onMateuNavigate',
+            params: { event: { detail: { route } } },
+          });
+        });
+      }
+
       // En modo path el historial es SOLO de Mateu, y el router de VB no puede verlo. Toma por
       // «application URL» la ruta con que arrancó la página (/customers → /customers/) y lee
       // cualquier URL por debajo de ella como una página suya (/customers/5 → la página «5»): en

@@ -9,6 +9,7 @@ import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLo
 import { foldoutElementAtomsOf } from './elements.mjs'
 import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat } from './a11y.mjs'
 import { activeSectionOf, sectionHomeOf, sectionOf } from './navTree.mjs'
+import { inAppRouteOfLink } from './links.mjs'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -36,7 +37,7 @@ import {
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers, findByType,
-  listingPagingOf, targetPageOf, listingSearchStateOf, listingSortOf,
+  listingPagingOf, targetPageOf, listingSearchStateOf, listingSortOf, ROW_LINES_FIELD, rowLinesSplit, lineOfColumn,
   ojIconOf, ojIconOrGenericOf, GENERIC_ICON, navTargetOf,
   selectionOfKeySet, selectedRowsOf, withListingSelection,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
@@ -332,6 +333,51 @@ test('listing: la columna principal (@PrimaryColumn) lleva imagen delante y capt
   assert.equal(listing.rows[0].name, 'Laptop') // la fila, intacta
   // ordenar por ella ordena por su sortingProperty
   assert.deepEqual(listingSortOf({ header: 'name', direction: 'ascending' }, listing.sortFields), [{ field: 'sortName', direction: 'ascending' }])
+})
+
+test('listing: filas de varias líneas (@Line) — la línea 1 son las columnas, el resto va debajo como pares', () => {
+  const content = fx('load-listing-content')
+  content.fragments[0].targetComponentId = ''
+  const crud = findByType(content.fragments[0].component, 'Crud')
+  const metas = crud.metadata.columns.map((c) => c.metadata || c)
+  // sin @Line el listado es el de siempre
+  let reg = reduceContexts(empty(), content)
+  const search = JSON.parse(JSON.stringify(fx('search-listing')))
+  search.fragments[0].targetComponentId = ''
+  const plain = listingOf(reduceContexts(reg, search).contexts[HOST_ID])
+  assert.equal(plain.extraLines, 0)
+  assert.equal(plain.tableClass, 'oj-sm-12')
+  assert.ok(plain.columns.every((c) => c.id !== ROW_LINES_FIELD))
+  assert.equal(plain.rows[0][ROW_LINES_FIELD], undefined)
+  // la última columna de datos, a la línea 2
+  const moved = metas.filter((c) => c.dataType === 'string' && c.id !== 'select').slice(-1)[0]
+  moved.line = 2
+  reg = reduceContexts(empty(), content)
+  const listing = listingOf(reduceContexts(reg, search).contexts[HOST_ID])
+  assert.equal(listing.extraLines, 1)
+  assert.match(listing.tableClass, /mateu-multiline-table mateu-lines-1/)
+  // fuera de las columnas de la tabla (cabecera, orden) — y la columna técnica de líneas al final
+  assert.ok(!listing.columns.some((c) => c.id === moved.id))
+  const last = listing.columns[listing.columns.length - 1]
+  assert.equal(last.id, ROW_LINES_FIELD)
+  assert.equal(last.template, 'cellLines')
+  assert.equal(last.sortable, 'disabled')
+  // cada fila lleva sus líneas extra precomputadas: «Etiqueta: valor»
+  const row = listing.rows[0]
+  const lines = row[ROW_LINES_FIELD].lines
+  assert.equal(lines.length, 1)
+  assert.equal(lines[0].pairs.length, 1)
+  assert.equal(lines[0].pairs[0].key, moved.id)
+  assert.equal(lines[0].pairs[0].label, moved.label || moved.id)
+  const raw = search.fragments[0].data.crud.page.content[0][moved.id]
+  assert.equal(lines[0].pairs[0].text, raw == null ? '' : String(raw))
+  // la columna sigue ordenable en el server por su sortField; el selector no lleva la técnica
+  assert.ok(listing.sortFields[moved.id])
+  // un estado en la línea 2 lleva su badge; un dinero, «importe moneda»; la línea 3 va aparte
+  assert.deepEqual(rowLinesSplit([{ metadata: { id: 'a' } }, { metadata: { id: 'b', line: 3 } }, { metadata: { id: 'c', line: 2 } }]).extra
+    .map((l) => l.map((c) => c.metadata.id)), [['c'], ['b']])
+  assert.equal(lineOfColumn({ line: null }), 1)
+  assert.equal(lineOfColumn({ line: 2 }), 2)
 })
 
 test('listing: paginar conserva texto, filtros y orden; el orden va en el vocabulario del server', () => {
@@ -5008,4 +5054,70 @@ test('chat: una pantalla que abre el asistente no le quita el foco al chat', () 
   assert.equal(focusIsInChat(inChat), true)
   assert.equal(focusIsInChat(inPage), false)
   assert.equal(focusIsInChat(null), false)
+})
+
+test('enlaces: un <a href> del contenido a una ruta de la app navega dentro de la shell; el resto, el navegador', () => {
+  const loc = { href: 'https://rw.ec1.mateu.io/booking/bookings/ZUAAKJ', origin: 'https://rw.ec1.mateu.io',
+    pathname: '/booking/bookings/ZUAAKJ', search: '' }
+  const a = (href, attrs = {}) => ({ getAttribute: (n) => (n === 'href' ? href : (n in attrs ? attrs[n] : null)) })
+  const click = { button: 0 }
+  const route = (href, attrs, ev = click, hashMode = false) => inAppRouteOfLink(a(href, attrs), ev, loc, hashMode)
+  // el caso: «Ver recorrido» de la ficha de una reserva
+  assert.equal(route('/journey/bookings/ZUAAKJ'), '/journey/bookings/ZUAAKJ')
+  // con su query; relativo y absoluto del mismo origen también
+  assert.equal(route('/booking/bookings?status=Cancelled&ids=A_B'), '/booking/bookings?status=Cancelled&ids=A_B')
+  assert.equal(route('https://rw.ec1.mateu.io/journey/bookings/X1'), '/journey/bookings/X1')
+  assert.equal(route('../customers/7'), '/booking/customers/7')
+  assert.equal(route('/customers/ana.ruiz'), '/customers/ana.ruiz', 'un id con punto no es un fichero')
+  assert.equal(route('/'), '/', 'la home: la shell la traduce a su ruta de inicio')
+  assert.equal(route('/journey/bookings/X1', { target: '_self' }), '/journey/bookings/X1')
+  assert.equal(route('/journey/bookings/X1', {}, { button: 0, key: 'Enter' }), '/journey/bookings/X1', 'Enter llega como click')
+  // otra consola / otro host / otro esquema: el navegador
+  assert.equal(route('https://vaadin.ec1.mateu.io/journey/bookings/X1'), null)
+  assert.equal(route('//evil.com/x'), null)
+  assert.equal(route('http://rw.ec1.mateu.io/journey/bookings/X1'), null, 'otro origen (esquema)')
+  assert.equal(route('mailto:a@b.c'), null)
+  assert.equal(route('javascript:void(0)'), null)
+  // lo que el autor quiso fuera: otra pestaña, descarga, router-ignore
+  assert.equal(route('/journey/bookings/X1', { target: '_blank' }), null)
+  assert.equal(route('/journey/bookings/X1', { download: '' }), null)
+  assert.equal(route('/journey/bookings/X1', { 'router-ignore': '' }), null)
+  // clic que no es el normal, o que ya atendió otro (chat, badge de widget)
+  assert.equal(route('/journey/bookings/X1', {}, { button: 1 }), null, 'botón del medio')
+  for (const k of ['ctrlKey', 'metaKey', 'shiftKey', 'altKey']) {
+    assert.equal(route('/journey/bookings/X1', {}, { button: 0, [k]: true }), null, k)
+  }
+  assert.equal(route('/journey/bookings/X1', {}, { button: 0, defaultPrevented: true }), null)
+  // anclas de la misma página, href vacío o sin href
+  assert.equal(route('#'), null)
+  assert.equal(route('#expand=recorrido'), null)
+  assert.equal(route('/booking/bookings/ZUAAKJ#expand=recorrido'), null)
+  assert.equal(route(''), null)
+  assert.equal(route(null), null)
+  // no son pantallas: rutas internas, API, login, ficheros, estáticos
+  for (const href of ['/_inbox', '/_journey/mateu/v3/ui', '/api/bookings', '/oauth2/authorization/keycloak', '/login',
+    '/logout', '/files/factura.pdf', '/export/bookings.csv', '/version_123/resources/js/x.js', '/assets/logo.png']) {
+    assert.equal(route(href), null, href)
+  }
+  // en estático (modo hash) `#/ruta` también es una pantalla
+  assert.equal(route('#/journey/bookings/X1', {}, click, true), '/journey/bookings/X1')
+  assert.equal(route('#/journey/bookings/X1', {}, click, false), null)
+  // la shell lo cablea: escucha clics en #pageContent y navega con onMateuNavigate
+  const shell = webApp('pages/shell-page-chains/loadMateuShell.js')
+  assert.match(shell, /bridge\.inAppRouteOfLink\(anchor, event, window\.location/)
+  assert.match(shell, /getElementById\('pageContent'\)/)
+  assert.match(shell, /event\.preventDefault\(\);\s*Actions\.callChain\(liveContext\(\), \{\s*chain: 'onMateuNavigate'/)
+  assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /strip\('links\.mjs'\)/)
+})
+
+test('navegar: lo que la chain asigna (foldout, wizard, cola) se lee de constantes, no de vuelta de la variable', () => {
+  // una variable `any` de VB que tenía un objeto y se pone a null se lee DENTRO de la chain como un
+  // proxy truthy: del detalle de una reserva (foldout) al recorrido, el host no se proyectaba
+  for (const rel of ['pages/shell-page-chains/onMateuNavigate.js', 'flows/main/pages/main-start-page-chains/runMateuAction.js']) {
+    const src = webApp(rel)
+    assert.doesNotMatch(src, /!\s*\$application\.variables\.mateu(Foldout|Queue|Wizard)\b/, rel)
+    assert.doesNotMatch(src, /integratedHeader = !!\(\$application\.variables\.mateuWizard/, rel)
+    assert.doesNotMatch(src, /if \(\$application\.variables\.mateuWizard\)/, rel)
+    assert.match(src, /&& !queueNow && !foldoutNow;/, rel)
+  }
 })

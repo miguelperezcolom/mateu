@@ -1,3 +1,4 @@
+import { byLine } from './listingLines'
 import {customElement, property, state} from "lit/decorators.js";
 import { emptyStateTemplate } from "@infra/ui/renderers/emptyStateRenderer.ts";
 import "@infra/ui/mateu-skeleton.ts";
@@ -1125,9 +1126,12 @@ export class MateuTableCrud extends LitElement {
             // the card shows the first columns as data rows, but STATUS badges and row
             // ACTIONS always make the cut — they carry the row's state and its operations
             // (they used to be silently dropped when declared beyond the sixth column)
+            // multi-line rows (@Line): a card has no lines — it shows the columns line by line, so
+            // the "first six" are the line-1 ones and the secondary lines come after them
+            const cardCols = byLine(allCols)
             const visibleCols = [
-                ...allCols.slice(0, 6),
-                ...allCols.slice(6).filter(c => isActionButtonCol(c) || c.dataType === 'status'),
+                ...cardCols.slice(0, 6),
+                ...cardCols.slice(6).filter(c => isActionButtonCol(c) || c.dataType === 'status'),
             ]
             const imageCols = visibleCols.filter(c => c.stereotype === 'image')
             const titleCol = visibleCols.find(c => c.identifier) ?? visibleCols[0]

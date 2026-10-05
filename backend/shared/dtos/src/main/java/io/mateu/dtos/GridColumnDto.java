@@ -32,5 +32,7 @@ public record GridColumnDto(
     String editorType,
     java.util.List<OptionDto> editorOptions,
     Double weight,
-    String aggregate)
+    String aggregate,
+    /* 1-based line of the row (multi-line rows, @Line); null = line 1 */
+    Integer line)
     implements ComponentMetadataDto {}
