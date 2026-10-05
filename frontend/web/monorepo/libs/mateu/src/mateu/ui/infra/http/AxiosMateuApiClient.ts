@@ -11,6 +11,7 @@ import {awaitBundle, hasBundle, resolveBundledLoad, toSyncPath} from "@infra/htt
 import {classifyRequestFailure} from "@infra/http/requestPolicy.ts";
 import {isIdempotentAction, retryDelayMs, shouldRetry} from "@infra/http/retryPolicy.ts";
 import {connectivity} from "@infra/http/connectivity.ts";
+import {reportClientError} from "@infra/http/clientErrorReporter.ts";
 
 let abortControllers: AbortController[] = []
 
@@ -255,6 +256,8 @@ export class AxiosMateuApiClient implements MateuApiClient {
             await this.abortAll()
             if (loop.firstTrip) {
                 console.error('[mateu] request loop detected — aborting repeated request', loopSignature)
+                reportClientError({ kind: 'request-loop', message: 'A repeating request was detected and stopped',
+                    url: baseUrl + '/mateu/v3/sync/' + (route || '_no_route'), actionId })
             }
             return {
                 messages: loop.firstTrip ? [{

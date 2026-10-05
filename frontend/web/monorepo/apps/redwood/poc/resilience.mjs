@@ -14,6 +14,8 @@
 // Todo lo de aquí es puro salvo `fetchWithPolicy`, para que test.mjs lo pueda ejercitar en
 // Node sin navegador ni backend.
 
+import { clientErrors } from './clientLog.mjs'
+
 // ── clasificación ────────────────────────────────────────────────────────────────────────
 
 /** Ceiling por defecto de una petición, en ms. Lo pisa `@Action(timeoutMillis = …)`. */
@@ -244,6 +246,14 @@ const notify = (which, payload) => {
 
 const delay = (ms) => new Promise((r) => setTimeout(r, ms))
 
+/** La cabecera traceparent de una petición, si la llevaba. */
+function traceparentOf(init) {
+  const h = init && init.headers
+  if (!h) return undefined
+  if (typeof h.get === 'function') return h.get('traceparent') || undefined
+  return h.traceparent || h.Traceparent || undefined
+}
+
 /**
  * Un envío: aplica el timeout (fetch no trae ninguno) y convierte un 4xx/5xx en un error que
  * LLEVA el status, porque fetch resuelve esos como éxito y abajo no habría forma de saberlo.
@@ -433,6 +443,17 @@ export async function fetchWithPolicy(url, init, options = {}) {
         // fetch", y decide si ofrecer reintentar.
         error.failure = failure
         notifyUnlessQuiet('onSettle', { actionId, failure })
+        // al log del servidor (clientLog.mjs): lo que el usuario vio y lo que hubo debajo. Un
+        // 'cancelled' no se informa, y la llamada al propio endpoint no pasa por aquí.
+        clientErrors.report({
+          kind: failure.kind,
+          message: failure.message,
+          status: failure.status,
+          detail: error && error.message,
+          url,
+          actionId,
+          traceparent: traceparentOf(init),
+        })
         throw error
       }
       await delay(retryDelayMs(attempt))

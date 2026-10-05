@@ -4,6 +4,7 @@ import { notify } from "@application/Notifier.ts";
 import { classifyRequestFailure, RequestFailure } from "@infra/http/requestPolicy.ts";
 import { connectivity } from "@infra/http/connectivity.ts";
 import { anyPending } from "@infra/ui/pendingIndicator.ts";
+import { reportClientError, failureReportOf } from "@infra/http/clientErrorReporter.ts";
 
 /**
  * The global busy affordance — the LAST resort, not the first.
@@ -57,6 +58,8 @@ export class MateuApiCaller extends LitElement {
             ?? classifyRequestFailure(detail.reason, { online: connectivity.isOnline() })
         // A cancellation is a decision we took (navigation, loop guard) — never news for the user.
         if (failure.kind === 'cancelled') return
+        // What the user is about to see also goes to the server log (clientErrorReporter).
+        reportClientError(failureReportOf(failure, detail.reason, detail.actionId))
 
         // Anything the client can retry by itself already has been, silently. A retry offered
         // here is the case where repeating was OUR call to make and we declined to make it —

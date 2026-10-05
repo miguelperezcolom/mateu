@@ -63,6 +63,9 @@ define([
       // Se cablea ANTES del primer bootstrapShell para que hasta la carga inicial cuente: si el
       // backend está caído al arrancar, el usuario ve un mensaje en vez de una pantalla muerta.
       bridge.connectivity.start();
+      // Los errores que el usuario ve (y los de JS sin capturar) quedan en el log del servidor:
+      // POST <base>/mateu/v3/client-log con el mismo token que el resto (ver poc/clientLog.mjs).
+      bridge.installClientErrorReporting(base, { headers: bridge.authHeadersOf });
       // Las regiones vivas tienen que EXISTIR antes de que nada escriba en ellas: una creada
       // y rellenada en el mismo tick a menudo no se anuncia.
       bridge.installAnnouncer();

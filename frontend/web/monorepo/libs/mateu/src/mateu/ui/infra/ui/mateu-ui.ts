@@ -12,6 +12,7 @@ import {mountConnectivityBanner} from "@infra/ui/mateu-connectivity-banner.ts";
 import {installAnnouncer} from "@infra/a11y/announcer.ts";
 import {mountSkipLink} from "@infra/ui/mateu-skip-link.ts";
 import {loadBundleManifest} from "@infra/http/bundleStore.ts";
+import {installClientErrorReporting} from "@infra/http/clientErrorReporter.ts";
 import {mirrorThemeAttribute} from "@infra/theme/themeScope.ts";
 import {nanoid} from "nanoid";
 import { nextHistoryUrl, isScreenChange } from './navigationUrl'
@@ -174,6 +175,9 @@ export class MateuUi extends LitElement {
         };
 
         if (this.top == 'true') {
+            // The errors the user sees (and uncaught JS errors) go to the server log, at the app's
+            // own base URL: POST <baseUrl>/mateu/v3/client-log. First top-level mateu-ui wins.
+            installClientErrorReporting(this.baseUrl)
             // In bundle mode, kick off the manifest fetch; the route load awaits it in the api
             // client (awaitBundle), so the first load is answered from the bundle (no backend). A
             // failed manifest fetch just falls back to the backend.
