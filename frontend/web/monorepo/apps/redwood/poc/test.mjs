@@ -9,6 +9,7 @@ import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLo
 import { foldoutElementAtomsOf } from './elements.mjs'
 import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat } from './a11y.mjs'
 import { activeSectionOf, sectionHomeOf, sectionOf } from './navTree.mjs'
+import { inAppRouteOfLink } from './links.mjs'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -5008,4 +5009,58 @@ test('chat: una pantalla que abre el asistente no le quita el foco al chat', () 
   assert.equal(focusIsInChat(inChat), true)
   assert.equal(focusIsInChat(inPage), false)
   assert.equal(focusIsInChat(null), false)
+})
+
+test('enlaces: un <a href> del contenido a una ruta de la app navega dentro de la shell; el resto, el navegador', () => {
+  const loc = { href: 'https://rw.ec1.mateu.io/booking/bookings/ZUAAKJ', origin: 'https://rw.ec1.mateu.io',
+    pathname: '/booking/bookings/ZUAAKJ', search: '' }
+  const a = (href, attrs = {}) => ({ getAttribute: (n) => (n === 'href' ? href : (n in attrs ? attrs[n] : null)) })
+  const click = { button: 0 }
+  const route = (href, attrs, ev = click, hashMode = false) => inAppRouteOfLink(a(href, attrs), ev, loc, hashMode)
+  // el caso: «Ver recorrido» de la ficha de una reserva
+  assert.equal(route('/journey/bookings/ZUAAKJ'), '/journey/bookings/ZUAAKJ')
+  // con su query; relativo y absoluto del mismo origen también
+  assert.equal(route('/booking/bookings?status=Cancelled&ids=A_B'), '/booking/bookings?status=Cancelled&ids=A_B')
+  assert.equal(route('https://rw.ec1.mateu.io/journey/bookings/X1'), '/journey/bookings/X1')
+  assert.equal(route('../customers/7'), '/booking/customers/7')
+  assert.equal(route('/customers/ana.ruiz'), '/customers/ana.ruiz', 'un id con punto no es un fichero')
+  assert.equal(route('/'), '/', 'la home: la shell la traduce a su ruta de inicio')
+  assert.equal(route('/journey/bookings/X1', { target: '_self' }), '/journey/bookings/X1')
+  assert.equal(route('/journey/bookings/X1', {}, { button: 0, key: 'Enter' }), '/journey/bookings/X1', 'Enter llega como click')
+  // otra consola / otro host / otro esquema: el navegador
+  assert.equal(route('https://vaadin.ec1.mateu.io/journey/bookings/X1'), null)
+  assert.equal(route('//evil.com/x'), null)
+  assert.equal(route('http://rw.ec1.mateu.io/journey/bookings/X1'), null, 'otro origen (esquema)')
+  assert.equal(route('mailto:a@b.c'), null)
+  assert.equal(route('javascript:void(0)'), null)
+  // lo que el autor quiso fuera: otra pestaña, descarga, router-ignore
+  assert.equal(route('/journey/bookings/X1', { target: '_blank' }), null)
+  assert.equal(route('/journey/bookings/X1', { download: '' }), null)
+  assert.equal(route('/journey/bookings/X1', { 'router-ignore': '' }), null)
+  // clic que no es el normal, o que ya atendió otro (chat, badge de widget)
+  assert.equal(route('/journey/bookings/X1', {}, { button: 1 }), null, 'botón del medio')
+  for (const k of ['ctrlKey', 'metaKey', 'shiftKey', 'altKey']) {
+    assert.equal(route('/journey/bookings/X1', {}, { button: 0, [k]: true }), null, k)
+  }
+  assert.equal(route('/journey/bookings/X1', {}, { button: 0, defaultPrevented: true }), null)
+  // anclas de la misma página, href vacío o sin href
+  assert.equal(route('#'), null)
+  assert.equal(route('#expand=recorrido'), null)
+  assert.equal(route('/booking/bookings/ZUAAKJ#expand=recorrido'), null)
+  assert.equal(route(''), null)
+  assert.equal(route(null), null)
+  // no son pantallas: rutas internas, API, login, ficheros, estáticos
+  for (const href of ['/_inbox', '/_journey/mateu/v3/ui', '/api/bookings', '/oauth2/authorization/keycloak', '/login',
+    '/logout', '/files/factura.pdf', '/export/bookings.csv', '/version_123/resources/js/x.js', '/assets/logo.png']) {
+    assert.equal(route(href), null, href)
+  }
+  // en estático (modo hash) `#/ruta` también es una pantalla
+  assert.equal(route('#/journey/bookings/X1', {}, click, true), '/journey/bookings/X1')
+  assert.equal(route('#/journey/bookings/X1', {}, click, false), null)
+  // la shell lo cablea: escucha clics en #pageContent y navega con onMateuNavigate
+  const shell = webApp('pages/shell-page-chains/loadMateuShell.js')
+  assert.match(shell, /bridge\.inAppRouteOfLink\(anchor, event, window\.location/)
+  assert.match(shell, /getElementById\('pageContent'\)/)
+  assert.match(shell, /event\.preventDefault\(\);\s*Actions\.callChain\(liveContext\(\), \{\s*chain: 'onMateuNavigate'/)
+  assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /strip\('links\.mjs'\)/)
 })
