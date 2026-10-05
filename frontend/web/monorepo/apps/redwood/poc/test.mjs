@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLogEndpointOf, clientErrors, redactUrl, routeOfRequestUrl } from './clientLog.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
-import { guidedProcessMediaQuery, guidedProcessWheelIsNative } from './a11y.mjs'
+import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat } from './a11y.mjs'
 import { activeSectionOf, sectionHomeOf, sectionOf } from './navTree.mjs'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -24,7 +24,7 @@ import {
 import {
   classifyRequestFailure, isIdempotentAction, shouldRetry, retryDelayMs, MAX_RETRIES,
   connectivity, pendingActions, fetchWithPolicy, setTransportHooks,
-  authHeadersOf, askForReauthentication,
+  authHeadersOf, askForReauthentication, beginView, currentView, isStaleResponse,
 } from './resilience.mjs'
 import {
   buildChatMenuContext, buildChatBody, effectiveChatUrl, tryParseTokenUsage,
@@ -4484,6 +4484,110 @@ atest('clientLog: un fallo clasificado de fetchWithPolicy se informa una vez; un
   }
 })
 
+// ── respuestas para una pantalla que ya no está (la regla de staleViewGuard.ts del renderer web) ──
+// Una petición sale con la pantalla A; el usuario navega a B (onMateuNavigate → beginView) antes
+// de que conteste. Su respuesta — buena o mala — muere en silencio: el chain recibe un rechazo
+// `isStaleResponse` (no la pinta), el ocupado se apaga sin fallo (sin banda de error) y un 401 no
+// pide reautenticar.
+const staleHarness = () => {
+  const pending = []
+  const settles = []
+  const original = globalThis.fetch
+  const originalDocument = globalThis.document
+  let sessionExpired = 0
+  globalThis.document = new EventTarget()
+  globalThis.document.addEventListener('mateu-session-expired', () => { sessionExpired++ })
+  globalThis.fetch = (url, init) => new Promise((resolve) => pending.push({
+    url, body: JSON.parse(init.body),
+    answer: (data) => resolve({ ok: true, status: 200, json: async () => data, text: async () => JSON.stringify(data) }),
+    fail: (status) => resolve({ ok: false, status, json: async () => ({}), text: async () => '' }),
+  }))
+  setTransportHooks({ onStart: () => {}, onSettle: ({ failure }) => { settles.push(failure) } })
+  return {
+    pending, settles, sessionExpired: () => sessionExpired,
+    restore: () => { globalThis.fetch = original; globalThis.document = originalDocument; setTransportHooks(null) },
+  }
+}
+const tick = () => new Promise((r) => setTimeout(r, 0))
+const listingCtx = { id: 'list', tree: { id: 'list', serverSideType: 'io.example.RuleCrud' }, state: {},
+  outbound: { route: '/registro/reglas', consumedRoute: '/registro', serverSideType: 'io.example.RuleCrud', baseUrl: '/_registration-rules' } }
+const rowsOf = (sst) => ({ fragments: [{ targetComponentId: 'list', data: { rows: [{ id: 1, of: sst }] } }],
+  messages: [{ text: 'Cargado', variant: 'success' }] })
+
+atest('una búsqueda que contesta después de navegar a otra pantalla no se aplica ni pone banda', async () => {
+  const h = staleHarness()
+  try {
+    const search = runMateuAction('', listingCtx, '/registro/reglas', 'search', {}).then(
+      (inc) => ({ inc }), (error) => ({ error }))
+    await tick()
+    beginView() // el usuario navega a otra pantalla
+    h.pending[0].answer(rowsOf('io.example.RuleCrud'))
+    const outcome = await search
+    assert.ok(outcome.error && isStaleResponse(outcome.error), 'el chain recibe el rechazo silencioso, no el incremento')
+    assert.deepEqual(h.settles, [null], 'el ocupado se apaga, sin fallo que enseñar')
+  } finally { h.restore() }
+})
+
+atest('un 500 de una pantalla que ya no está: ni banda de error ni reintento', async () => {
+  const h = staleHarness()
+  try {
+    const search = runMateuAction('', listingCtx, '/registro/reglas', 'search', {}).then(
+      (inc) => ({ inc }), (error) => ({ error }))
+    await tick()
+    beginView()
+    h.pending[0].fail(500)
+    const outcome = await search
+    assert.ok(isStaleResponse(outcome.error))
+    assert.deepEqual(h.settles, [null])
+    assert.equal(h.pending.length, 1, 'una lectura de otra pantalla no se reintenta')
+  } finally { h.restore() }
+})
+
+atest('un 401 de una pantalla que ya no está no pide reautenticar', async () => {
+  const h = staleHarness()
+  try {
+    const save = runMateuAction('', listingCtx, '/registro/reglas', 'save', {}).then(
+      (inc) => ({ inc }), (error) => ({ error }))
+    await tick()
+    beginView()
+    h.pending[0].fail(401)
+    const outcome = await save
+    assert.ok(isStaleResponse(outcome.error))
+    assert.equal(h.sessionExpired(), 0)
+    assert.deepEqual(h.settles, [null])
+  } finally { h.restore() }
+})
+
+atest('una navegación superada por otra más nueva no deja su registro (onMateuNavigate corta)', async () => {
+  const h = staleHarness()
+  try {
+    beginView() // navegación 1
+    const first = loadRouteInto('/_integrations', empty(), '/integrations/frontoffice', '', {}).then(
+      (reg) => ({ reg }), (error) => ({ error }))
+    await tick()
+    beginView() // navegación 2, antes de que conteste la 1
+    h.pending[0].answer({ fragments: [{ targetComponentId: '', component: { type: 'ServerSide', id: 'x', serverSideType: 'io.example.Integrations', children: [] } }] })
+    const outcome = await first
+    assert.ok(outcome.error && isStaleResponse(outcome.error), 'la carga vieja no devuelve registro que pintar')
+  } finally { h.restore() }
+})
+
+atest('la pantalla en curso sigue recibiendo sus respuestas; las de fondo (quiet) no son de ninguna pantalla', async () => {
+  const h = staleHarness()
+  try {
+    beginView()
+    const search = runMateuAction('', listingCtx, '/registro/reglas', 'search', {})
+    const widget = callMateu('/_inbox', { route: '/inbox/badge', actionId: 'refresh' }, { quiet: true })
+    await tick()
+    h.pending[0].answer(rowsOf('io.example.RuleCrud'))
+    assert.equal((await search).fragments[0].data.rows[0].of, 'io.example.RuleCrud')
+    beginView() // navegar no corta el refresco de un widget de cabecera
+    h.pending[1].answer({ fragments: [{ targetComponentId: 'badge', data: { count: 3 } }] })
+    assert.equal((await widget).fragments[0].data.count, 3)
+    assert.equal(typeof currentView(), 'number')
+  } finally { h.restore() }
+})
+
 await queue
 console.log(`\n${pass} tests OK (contrato de wire real)`)
 
@@ -4941,4 +5045,12 @@ test('chat: la lista sigue el último mensaje mientras crece; si el lector subi�
     assert.equal(el.scrollTop, 1700)            // envía otra pregunta: vuelve a seguir el final
     stop()
   } finally { globalThis.MutationObserver = saved }
+})
+
+test('chat: una pantalla que abre el asistente no le quita el foco al chat', () => {
+  const inChat = { closest: (s) => (s === '#mateuChatPanel' ? {} : null) }
+  const inPage = { closest: () => null }
+  assert.equal(focusIsInChat(inChat), true)
+  assert.equal(focusIsInChat(inPage), false)
+  assert.equal(focusIsInChat(null), false)
 })

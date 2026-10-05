@@ -25,7 +25,7 @@ import {trackFabAnchor} from "@infra/ui/layout/fabRail.ts";
 import {getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
 import {getStaticFragment, putStaticFragment} from "@infra/staticViewCache.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
-import {actionIsForCurrentView, uxIdentity} from "@infra/ui/staleViewGuard.ts";
+import {actionIsForCurrentView, staleCheck, uxIdentity, ViewGeneration} from "@infra/ui/staleViewGuard.ts";
 
 @customElement('mateu-ux')
 export class MateuUx extends ConnectedElement {
@@ -137,6 +137,20 @@ export class MateuUx extends ConnectedElement {
      * content still fires must not reach the new page's server (see staleViewGuard.ts).
      */
     private contentIdentity: string | undefined
+
+    /**
+     * Which view this ux is on: bumped on every navigation to another view (identity or route;
+     * a reload of the same one keeps it). A request remembers the generation it was sent for, and
+     * its answer dies silently once the ux has moved on (staleViewGuard.ts). Read through
+     * `viewGeneration` so the check sees the live values.
+     */
+    private generation = 0
+    private generationKey: string | undefined
+    private readonly viewGeneration: ViewGeneration = Object.defineProperties({} as ViewGeneration, {
+        generation: { get: () => this.generation },
+        callbackToken: { get: () => this.callbackToken },
+        connected: { get: () => this.isConnected },
+    })
     private releaseFabAnchor: (() => void) | undefined
 
     /** Stable client-cache key for this ux's current route load (see routeStructureCache.ts). */
@@ -340,7 +354,11 @@ export class MateuUx extends ConnectedElement {
                     // Per-action transport knobs declared on the wire (@Action), plus the structure
                     // ETag for a route load (phase b of the client structure cache).
                     {timeoutMillis: detail.timeoutMillis, idempotent: detail.idempotent,
-                        knownStructureHash: detail.knownStructureHash});
+                        knownStructureHash: detail.knownStructureHash,
+                        // its answer dies silently if this ux has moved on to another view by then
+                        // (a route load: also if a newer route load superseded it)
+                        isStale: staleCheck(this.viewGeneration,
+                            detail.initiator === (this as unknown as HTMLElement) && !detail.actionId)});
         }
     }
 
@@ -409,6 +427,12 @@ export class MateuUx extends ConnectedElement {
             _changedProperties.has('consumedRoute') ||
             _changedProperties.has('instant')) {
             if (!this.preventNavigation) {
+                const generationKey = uxIdentity(this.id, this.baseUrl) + '|' + (this.route ?? '')
+                if (generationKey !== this.generationKey) {
+                    // another view: whatever is still in flight for the previous one is moot
+                    this.generationKey = generationKey
+                    this.generation++
+                }
                 this.callbackToken = this.instant || nanoid()
                 // Predict the screen's structure from the client cache so its real layout paints
                 // immediately instead of a generic skeleton. This is a PREDICTION: the server

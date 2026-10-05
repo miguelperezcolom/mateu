@@ -133,6 +133,8 @@ define([
           params: { event: { route: navigateTo } },
         });
       }
+      // Back to the message box once the screen the answer opened is painted: the conversation goes on.
+      if (renderYaml || navigateTo) focusInput();
     }
   }
   return chatSend;

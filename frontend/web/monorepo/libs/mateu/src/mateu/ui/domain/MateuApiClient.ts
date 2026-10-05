@@ -35,6 +35,13 @@ export interface RunActionOptions {
      * whole app (the remote is often another origin, too).
      */
     quiet?: boolean
+    /**
+     * True once the view this request was sent for is no longer on screen (a navigation moved
+     * the ux on). Its answer — success or failure — then dies silently: nothing applied, no toast,
+     * no re-authentication; the initiator is only told the run is over (cancelled). See
+     * staleViewGuard.ts.
+     */
+    isStale?: () => boolean
 }
 
 export interface MateuApiClient {

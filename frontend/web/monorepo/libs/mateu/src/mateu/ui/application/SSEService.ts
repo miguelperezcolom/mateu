@@ -7,6 +7,7 @@ import { notify } from "@application/Notifier.ts";
 import { LitElement } from "lit";
 import { ComponentState } from "@infra/ui/renderers/types.ts";
 import { RunActionOptions } from "@domain/MateuApiClient";
+import { isStaleResponse, StaleResponse } from "@infra/ui/staleViewGuard.ts";
 
 export class SSEService implements Service {
 
@@ -79,7 +80,17 @@ export class SSEService implements Service {
                 headers,
                 body: JSON.stringify(payload)
             }).then(async response => {
-                const reader = response.body?.pipeThrough(new TextDecoderStream()).getReader()
+                // Every chunk is checked: a stream still running when the user navigated away
+                // stops being applied there (staleViewGuard.ts).
+                let reader: ReadableStreamDefaultReader<string> | undefined
+                const dropIfStale = (outcome: 'answered' | 'failed') => {
+                    if (options.isStale?.()) {
+                        void reader?.cancel().catch(() => undefined)
+                        throw new StaleResponse(actionId, outcome)
+                    }
+                }
+                dropIfStale('answered')
+                reader = response.body?.pipeThrough(new TextDecoderStream()).getReader()
                 if (reader) {
                     let buffer = ''
                     while (true) {
@@ -92,6 +103,7 @@ export class SSEService implements Service {
                             const line = event.trim()
                             if (!line) continue
                             if (line.startsWith('data:')) {
+                                dropIfStale('answered')
                                 const uiIncrement = JSON.parse(line.substring('data:'.length).trim())
 
                                 if (callback) {
@@ -126,6 +138,7 @@ export class SSEService implements Service {
                                 } catch (ignored) {
 
                                 }
+                                dropIfStale('failed')
                                 throw new Error(message)
                             }
                         }
@@ -149,6 +162,14 @@ export class SSEService implements Service {
                 }))
             })
                 .catch(reason => {
+                if (isStaleResponse(reason) || options.isStale?.()) {
+                    console.debug?.('mateu: dropped a streamed answer to an action of a view no longer on screen',
+                        actionId, serverSideType, baseUrl)
+                    initiator.dispatchEvent(new CustomEvent('backend-cancelled-event', {
+                        bubbles: true, composed: true, detail: { actionId },
+                    }))
+                    return
+                }
                 initiator.dispatchEvent(new CustomEvent('backend-failed-event', {
                     bubbles: true,
                     composed: true,
