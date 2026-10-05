@@ -3096,6 +3096,9 @@
         },
         "aggregate" : {
           "type" : "string"
+        },
+        "line" : {
+          "type" : "integer"
         }
       }
     },

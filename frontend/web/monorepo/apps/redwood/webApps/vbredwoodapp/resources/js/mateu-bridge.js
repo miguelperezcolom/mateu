@@ -2360,6 +2360,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     if (!crudNode) return null
     const md = crudNode.metadata
     const page = (((ctx.data || {}).crud || {}).page) || {}
+    // FILAS DE VARIAS LÍNEAS (@Line → GridColumn.line): las columnas de la línea 1 son las de la
+    // tabla (cabecera, orden, anchos); las demás se pintan DEBAJO de cada fila, a lo ancho, como
+    // pares «Etiqueta: valor» secundarios — ver rowLinesOf / la plantilla cellLines
+    const lines = rowLinesSplit(md.columns || [])
+    const tableColumns = lines.extra.length ? lines.first : (md.columns || [])
     return {
       // PAGINACIÓN: la página que mandó el server (Page: pageNumber/pageSize/totalElements) →
       // pie de la tabla con el rango y los controles; precomputado (CSP de VB)
@@ -2371,7 +2376,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       searchable: !!md.searchable,
       pageSize: md.pageSize || 20,
       emptyStateMessage: md.emptyStateMessage || 'No data.',
-      columns: (md.columns || []).map((col) => {
+      columns: tableColumns.map((col) => {
         const c = col.metadata || col
         const def = { headerText: c.label || c.id, field: c.id }
         // celda editable → plantilla de editor por tipo (siempre visible, commit por celda:
@@ -2420,7 +2425,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           def.template = 'cellClip'
         }
         return def
-      }),
+      }).concat(lines.extra.length ? [ROW_LINES_COLUMN] : []),
+      // nº de líneas extra (0 = listado normal) y la clase de la tabla que les hace sitio
+      // (PRECOMPUTADA: CSP de VB)
+      extraLines: lines.extra.length,
+      tableClass: lines.extra.length ? 'oj-sm-12 mateu-multiline-table mateu-lines-' + Math.min(lines.extra.length, 4) : 'oj-sm-12',
       // densidad Redwood de la tabla: el 'grid' compacto es para tablas de TRABAJO —
       // se activa cuando el crud es editable inline (@InlineEditing marca las columnas
       // como editable en el wire); un listado de consulta queda en 'list' (aireado).
@@ -2442,7 +2451,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       // (las acciones declaradas del ServerSide host, no los botones)
       selectionRequired: ((ctx.tree && ctx.tree.actions) || [])
         .filter((a) => a.rowsSelectedRequired).map((a) => a.id),
-      rows: clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []),
+      rows: rowLinesRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), lines.extra),
       // la propiedad por la que ordena el server cada columna (GridColumn.sortingProperty o su id)
       sortFields: Object.fromEntries((md.columns || []).map((col) => col.metadata || col)
         .map((c) => [c.id, c.sortingProperty || c.id])),
@@ -2648,6 +2657,82 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   }
 
   const PRIMARY_CELL_SUFFIX = '__primary'
+
+  /** La celda (de la columna técnica ROW_LINES_COLUMN) que pinta las líneas extra de cada fila. */
+  const ROW_LINES_FIELD = '__rowLines'
+
+  const ROW_LINES_COLUMN = {
+    id: ROW_LINES_FIELD,
+    field: ROW_LINES_FIELD,
+    headerText: '',
+    template: 'cellLines',
+    sortable: 'disabled',
+    className: 'mateu-row-lines-cell',
+    headerClassName: 'mateu-row-lines-cell',
+    width: '1px',
+    minWidth: '1px',
+    maxWidth: '1px',
+  }
+
+  /** La línea (1-based) de una columna: su `line` si es > 1; si no, 1. */
+  function lineOfColumn(c) {
+    const line = c && typeof c.line === 'number' ? c.line : 0
+    return line > 1 ? Math.floor(line) : 1
+  }
+
+  /** Reparte las columnas del wire por línea: {first: las de la línea 1, extra: [[línea 2], [línea 3]…]}
+   *  en el orden del wire (las líneas vacías no cuentan). Sin @Line, extra = [] y nada cambia. */
+  function rowLinesSplit(columns) {
+    const first = []
+    const byLine = new Map()
+    for (const col of columns || []) {
+      const c = col.metadata || col
+      const line = c.type === 'GridGroupColumn' ? 1 : lineOfColumn(c)
+      if (line === 1) first.push(col)
+      else {
+        if (!byLine.has(line)) byLine.set(line, [])
+        byLine.get(line).push(col)
+      }
+    }
+    return { first, extra: [...byLine.keys()].sort((a, b) => a - b).map((k) => byLine.get(k)) }
+  }
+
+  /** El texto de un valor en una línea extra: un estado por su mensaje, dinero «importe moneda». */
+  function lineValueText(v) {
+    if (v == null) return ''
+    if (Array.isArray(v)) return v.map(lineValueText).filter(Boolean).join(', ')
+    if (typeof v === 'object') {
+      if (v.message !== undefined) return String(v.message == null ? '' : v.message)
+      if (v.amount !== undefined) return [v.amount, v.currency].filter((x) => x != null).join(' ')
+      return String(v.label || v.text || v.name || '')
+    }
+    if (typeof v === 'boolean') return v ? '✓' : '✗'
+    return String(v)
+  }
+
+  /** A cada fila, <ROW_LINES_FIELD> = {lines: [{key, pairs: [{key, label, text, cls}]}]}: lo que pinta
+   *  la plantilla cellLines (CSP de VB: precomputado). Un estado lleva su badge (cls). */
+  function rowLinesRows(rows, extra) {
+    if (!extra || !extra.length) return rows
+    const lines = extra.map((line) => line.map((col) => col.metadata || col))
+    return rows.map((row) => ({
+      ...row,
+      [ROW_LINES_FIELD]: {
+        lines: lines.map((cols, i) => ({
+          key: 'l' + (i + 2),
+          pairs: cols.map((c) => {
+            const v = row[c.id]
+            return {
+              key: c.id,
+              label: c.label || c.id,
+              text: lineValueText(v),
+              cls: (v && typeof v === 'object' && v.badgeClass) || '',
+            }
+          }),
+        })),
+      },
+    }))
+  }
 
   const CLIP_CELL_SUFFIX = '__clipCell'
 
@@ -3913,7 +3998,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       multi,
       searchable: !!listing.searchable,
       searchText: state.searchText || '',
-      columns: (listing.columns || []).filter((c) => c.id !== 'select'),
+      columns: (listing.columns || []).filter((c) => c.id !== 'select' && c.id !== ROW_LINES_FIELD),
       rows: listing.rows || [],
       isEmpty: !!listing.isEmpty,
       emptyText: listing.emptyStateMessage || 'No data.',

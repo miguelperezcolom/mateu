@@ -2720,7 +2720,7 @@
     <div class="oj-flex-item oj-sm-12 oj-md-12">
       <!-- ojRowAction (clic en fila) en vez de selección: la selección deja estado que la
            tabla RE-EMITE al refrescar tras guardar, reabriendo el drawer -->
-      <oj-table id="mateuTable" class="oj-sm-12"
+      <oj-table id="mateuTable" :class="[[ $application.variables.mateuListing.tableClass || 'oj-sm-12' ]]"
         display="[[ $application.variables.mateuListing.display ]]"
         data="[[ $variables.listingADP ]]"
         columns="[[ $application.variables.mateuListing.columns ]]"
@@ -2779,6 +2779,25 @@
              al ancho de la columna y entero en el title; {text, title} precomputado en listingOf -->
         <template slot="cellClip">
           <span :class="[[ ($current.data && $current.data.cls) || '' ]]" :title="[[ ($current.data && $current.data.title) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.text) || '' ]]"></oj-bind-text></span>
+        </template>
+        <!-- FILAS DE VARIAS LÍNEAS (@Line): la columna técnica __rowLines (1px) pinta las líneas
+             extra de la fila — pares «Etiqueta: valor» secundarios — en un bloque absoluto que
+             ocupa TODO el ancho de la fila, en el hueco que la tabla mateu-lines-N reserva
+             debajo de cada celda (app.css); {lines: [{pairs: [{label, text, cls}]}]} precomputado -->
+        <template slot="cellLines">
+          <div class="mateu-row-lines oj-typography-body-sm">
+            <oj-bind-for-each data="[[ ($current.data && $current.data.lines) || [] ]]">
+              <template data-oj-as="line">
+                <div class="mateu-row-line">
+                  <oj-bind-for-each data="[[ line.data.pairs ]]">
+                    <template data-oj-as="pair">
+                      <span class="mateu-row-line-pair" :data-column="[[ pair.data.key ]]"><span class="oj-text-color-secondary"><oj-bind-text value="[[ pair.data.label ]]"></oj-bind-text>:</span> <span :class="[[ pair.data.cls ]]"><oj-bind-text value="[[ pair.data.text ]]"></oj-bind-text></span></span>
+                    </template>
+                  </oj-bind-for-each>
+                </div>
+              </template>
+            </oj-bind-for-each>
+          </div>
         </template>
         <!-- ACCIONES por fila (ColumnActionGroup): el valor de la celda trae actions[];
              el alias "cell" conserva el contexto de la fila dentro del for-each -->

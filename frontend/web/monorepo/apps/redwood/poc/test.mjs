@@ -36,7 +36,7 @@ import {
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers, findByType,
-  listingPagingOf, targetPageOf, listingSearchStateOf, listingSortOf,
+  listingPagingOf, targetPageOf, listingSearchStateOf, listingSortOf, ROW_LINES_FIELD, rowLinesSplit, lineOfColumn,
   ojIconOf, ojIconOrGenericOf, GENERIC_ICON, navTargetOf,
   selectionOfKeySet, selectedRowsOf, withListingSelection,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
@@ -332,6 +332,51 @@ test('listing: la columna principal (@PrimaryColumn) lleva imagen delante y capt
   assert.equal(listing.rows[0].name, 'Laptop') // la fila, intacta
   // ordenar por ella ordena por su sortingProperty
   assert.deepEqual(listingSortOf({ header: 'name', direction: 'ascending' }, listing.sortFields), [{ field: 'sortName', direction: 'ascending' }])
+})
+
+test('listing: filas de varias líneas (@Line) — la línea 1 son las columnas, el resto va debajo como pares', () => {
+  const content = fx('load-listing-content')
+  content.fragments[0].targetComponentId = ''
+  const crud = findByType(content.fragments[0].component, 'Crud')
+  const metas = crud.metadata.columns.map((c) => c.metadata || c)
+  // sin @Line el listado es el de siempre
+  let reg = reduceContexts(empty(), content)
+  const search = JSON.parse(JSON.stringify(fx('search-listing')))
+  search.fragments[0].targetComponentId = ''
+  const plain = listingOf(reduceContexts(reg, search).contexts[HOST_ID])
+  assert.equal(plain.extraLines, 0)
+  assert.equal(plain.tableClass, 'oj-sm-12')
+  assert.ok(plain.columns.every((c) => c.id !== ROW_LINES_FIELD))
+  assert.equal(plain.rows[0][ROW_LINES_FIELD], undefined)
+  // la última columna de datos, a la línea 2
+  const moved = metas.filter((c) => c.dataType === 'string' && c.id !== 'select').slice(-1)[0]
+  moved.line = 2
+  reg = reduceContexts(empty(), content)
+  const listing = listingOf(reduceContexts(reg, search).contexts[HOST_ID])
+  assert.equal(listing.extraLines, 1)
+  assert.match(listing.tableClass, /mateu-multiline-table mateu-lines-1/)
+  // fuera de las columnas de la tabla (cabecera, orden) — y la columna técnica de líneas al final
+  assert.ok(!listing.columns.some((c) => c.id === moved.id))
+  const last = listing.columns[listing.columns.length - 1]
+  assert.equal(last.id, ROW_LINES_FIELD)
+  assert.equal(last.template, 'cellLines')
+  assert.equal(last.sortable, 'disabled')
+  // cada fila lleva sus líneas extra precomputadas: «Etiqueta: valor»
+  const row = listing.rows[0]
+  const lines = row[ROW_LINES_FIELD].lines
+  assert.equal(lines.length, 1)
+  assert.equal(lines[0].pairs.length, 1)
+  assert.equal(lines[0].pairs[0].key, moved.id)
+  assert.equal(lines[0].pairs[0].label, moved.label || moved.id)
+  const raw = search.fragments[0].data.crud.page.content[0][moved.id]
+  assert.equal(lines[0].pairs[0].text, raw == null ? '' : String(raw))
+  // la columna sigue ordenable en el server por su sortField; el selector no lleva la técnica
+  assert.ok(listing.sortFields[moved.id])
+  // un estado en la línea 2 lleva su badge; un dinero, «importe moneda»; la línea 3 va aparte
+  assert.deepEqual(rowLinesSplit([{ metadata: { id: 'a' } }, { metadata: { id: 'b', line: 3 } }, { metadata: { id: 'c', line: 2 } }]).extra
+    .map((l) => l.map((c) => c.metadata.id)), [['c'], ['b']])
+  assert.equal(lineOfColumn({ line: null }), 1)
+  assert.equal(lineOfColumn({ line: 2 }), 2)
 })
 
 test('listing: paginar conserva texto, filtros y orden; el orden va en el vocabulario del server', () => {
