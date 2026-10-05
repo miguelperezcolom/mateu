@@ -5494,8 +5494,18 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
    */
   function announceNavigation(title) {
     announce(title)
-    if (hasNavigated) focusContentSoon()
+    if (hasNavigated && !focusIsInChat(typeof document === 'undefined' ? null : document.activeElement)) focusContentSoon()
     hasNavigated = true
+  }
+
+  /**
+   * Whether the focus is in the AI chat panel. A screen the assistant opened (its answer navigates)
+   * must not take the focus from the chat: the person is still talking to it, and moving the focus to
+   * the new screen's heading left them clicking back into the message box after every answer. The
+   * title is still announced.
+   */
+  function focusIsInChat(activeElement) {
+    return !!(activeElement && typeof activeElement.closest === 'function' && activeElement.closest('#mateuChatPanel'))
   }
 
   /**
@@ -7869,6 +7879,7 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
     installAnnouncer,
     announce,
     announceNavigation,
+    focusIsInChat,
     focusContent,
     focusContentSoon,
     mountSkipLink,
@@ -11231,6 +11242,8 @@ define('pages/shell-page-chains/chatSend',[
           params: { event: { route: navigateTo } },
         });
       }
+      // Back to the message box once the screen the answer opened is painted: the conversation goes on.
+      if (renderYaml || navigateTo) focusInput();
     }
   }
   return chatSend;
