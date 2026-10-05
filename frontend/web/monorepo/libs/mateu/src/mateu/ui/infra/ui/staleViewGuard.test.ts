@@ -332,6 +332,26 @@ describe('an answer that arrives for a view no longer on screen', () => {
             .toEqual([A.sst])
     })
 
+    it('drops the answer of a ux that left the page meanwhile (a back/forward rebuilds the top ux)', async () => {
+        const { ux, list, outcome, search } = await onPageAWithSearchInFlight()
+        search.answer(searchAnswer(A.sst))
+        await settle()
+        // it is on the page when the next search leaves…
+        document.body.appendChild(ux)
+        ux.manageActionEvent(searchFrom(list, A))
+        await settle()
+        const again = pending.filter(p => p.body.actionId === 'search').pop()!
+        expect(again).not.toBe(search)
+        published = []
+        toasts = []
+        // …and gone when it is answered
+        ux.remove()
+        again.answer(searchAnswer(A.sst))
+        await settle()
+        nothingOfAApplied()
+        expect(outcome).toEqual({ cancelled: 1, succeeded: 1, failed: 0 })
+    })
+
     it('keeps applying the answers of the view on screen', async () => {
         const { outcome, search } = await onPageAWithSearchInFlight()
 

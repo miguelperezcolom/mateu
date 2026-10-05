@@ -149,6 +149,7 @@ export class MateuUx extends ConnectedElement {
     private readonly viewGeneration: ViewGeneration = Object.defineProperties({} as ViewGeneration, {
         generation: { get: () => this.generation },
         callbackToken: { get: () => this.callbackToken },
+        connected: { get: () => this.isConnected },
     })
     private releaseFabAnchor: (() => void) | undefined
 

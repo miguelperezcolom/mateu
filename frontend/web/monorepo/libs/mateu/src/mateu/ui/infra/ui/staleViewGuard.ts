@@ -45,12 +45,16 @@ export const actionIsForCurrentView = (
  * to another view (another identity or another route; not a reload of the same one) starts a new
  * generation, and a request remembers the generation it was sent for. A route load is also
  * superseded by any newer route load of the same ux (its callback token), even of the same route.
+ * And a ux that was on the page when the request left and is gone when it is answered (a back /
+ * forward rebuilds the top-level ux from scratch) has no view left to apply anything to.
  */
 export interface ViewGeneration {
     /** Bumped on every navigation to another view. */
     generation: number
     /** The callback token of the ux's latest route load. */
     callbackToken: string
+    /** Whether the ux is on the page. */
+    connected: boolean
 }
 
 /**
@@ -60,7 +64,10 @@ export interface ViewGeneration {
 export const staleCheck = (ux: ViewGeneration, isRouteLoad: boolean): (() => boolean) => {
     const generation = ux.generation
     const callbackToken = ux.callbackToken
-    return () => ux.generation !== generation || (isRouteLoad && ux.callbackToken !== callbackToken)
+    const connected = ux.connected
+    return () => ux.generation !== generation
+        || (isRouteLoad && ux.callbackToken !== callbackToken)
+        || (connected && !ux.connected)
 }
 
 /** The rejection of a request whose answer arrived for a view no longer on screen. */
