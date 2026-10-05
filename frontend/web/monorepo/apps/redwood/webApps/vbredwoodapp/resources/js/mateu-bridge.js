@@ -5016,6 +5016,38 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     try { fn(payload) } catch (e) { /* la UI no puede tumbar el transporte */ }
   }
 
+  // ── la pantalla en curso ─────────────────────────────────────────────────────────────────
+
+  /**
+   * Qué pantalla hay: un contador que la navegación sube al empezar a cargar otra (beginView). Una
+   * petición de la pantalla (callMateu la estampa sola; no las de fondo: widgets de cabecera, menús
+   * remotos, el chat) recuerda la pantalla para la que salió, y su respuesta — buena o mala — que
+   * llega cuando ya hay otra muere en silencio: no se pinta, no pone banda de error ni pide
+   * reautenticar; sólo libera el ocupado (onSettle sin fallo). Es la misma regla que el renderer web
+   * (staleViewGuard.ts): una petición que salió con la pantalla A y vuelve con la B no es de nadie.
+   */
+  const viewGuard = { generation: 0 }
+
+  /** Empieza otra pantalla: lo que siga en vuelo de la anterior ya no se aplicará. */
+  function beginView() { return ++viewGuard.generation }
+
+  /** La pantalla en curso (para estampar una petición al salir). */
+  function currentView() { return viewGuard.generation }
+
+  /** ¿Ya no está en pantalla la vista para la que salió una petición? (undefined: no atada a ninguna) */
+  function isViewStale(view) { return view != null && view !== viewGuard.generation }
+
+  /** El rechazo de una respuesta que llegó para una pantalla que ya no está. */
+  function staleResponseError(actionId) {
+    const error = new Error(`respuesta a '${actionId || ''}' para una pantalla que ya no está`)
+    error.stale = true
+    error.code = 'ERR_CANCELED'
+    error.failure = { kind: 'cancelled', message: '', retryable: false, status: undefined }
+    return error
+  }
+
+  function isStaleResponse(error) { return !!(error && error.stale === true) }
+
   // ── fetch con política ───────────────────────────────────────────────────────────────────
 
   const delay = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -5192,15 +5224,29 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     // federado, a menudo de otro origen: un pod caído es SU sección no disponible, no "sin conexión"
     const isolated = !!options.isolated
     notifyUnlessQuiet('onStart', { actionId })
+    // `view`: la pantalla para la que sale (currentView); su respuesta muere si ya hay otra
+    const view = options.view
+    const dropStale = () => {
+      // el ocupado se apaga (lo encendió esta petición), sin fallo que enseñar
+      notifyUnlessQuiet('onSettle', { actionId, failure: null })
+      if (typeof console !== 'undefined' && console.debug) {
+        console.debug('mateu: respuesta descartada — su pantalla ya no está', actionId, url)
+      }
+      throw staleResponseError(actionId)
+    }
     let attempt = 0
     let reauthenticated = false
     for (;;) {
       try {
         const res = await sendOnce(url, withAuth(), options.timeoutMillis)
         if (!isolated) connectivity.noteReachable()
+        if (isViewStale(view)) dropStale()
         notifyUnlessQuiet('onSettle', { actionId, failure: null })
         return res
       } catch (error) {
+        if (isStaleResponse(error)) throw error
+        // su pantalla ya no está: ni reautenticar, ni reintentar, ni banda
+        if (isViewStale(view)) dropStale()
         // Un 401 es, casi siempre, el token caducado entre dos refrescos. Se pide a la página que
         // reautentique y se reenvía UNA vez: el servidor rechazó la petición sin ejecutarla, así
         // que repetirla es seguro también para una escritura. Sin nadie que reautentique, o si el
@@ -5966,8 +6012,13 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   // testea en Node (capture.mjs) y se empaqueta en AMD para VB (make-amd.mjs).
 
 
-  /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction). */
+  /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction).
+   *  Sale ATADA a la pantalla en curso (resilience.currentView): si cuando contesta ya hay otra, la
+   *  respuesta se descarta en silencio. Las de fondo (quiet/isolated: widgets, menús remotos) no
+   *  son de ninguna pantalla; `options.view` la fija a mano (null: de ninguna). */
   async function callMateu(base, body, options = {}) {
+    const view = options.view !== undefined ? options.view
+      : (options.quiet || options.isolated) ? null : currentView()
     const bare = (body.route || '').replace(/^\//, '')
     const res = await fetchWithPolicy(`${base}/mateu/v3/sync/${bare || '_no_route'}`, {
       method: 'POST',
@@ -5982,8 +6033,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         ...body,
         route: bare ? `/${bare}` : '',
       }),
-    }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated })
-    return res.json()
+    }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, view })
+    const increment = await res.json()
+    // el cuerpo también tarda: lo que llegue después de cambiar de pantalla tampoco se aplica
+    if (isViewStale(view)) throw staleResponseError(body.actionId)
+    return increment
   }
 
   /** Bootstrap de la shell: el App raíz solo resuelve por el endpoint genérico.
@@ -6148,6 +6202,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    *  callback, comportamiento clásico: lista completa al acabar. */
   async function runMateuActionSse(base, ctx, route, actionId, componentState, extra = {}) {
     const { onIncrement, ...bodyExtra } = extra || {}
+    // atada a la pantalla en curso, como callMateu: cada increment se comprueba al llegar
+    const view = currentView()
     ctx = actionTransportOf(ctx, actionId)
     const outbound = (ctx && ctx.outbound) || {}
     base = outbound.baseUrl != null ? outbound.baseUrl : base
@@ -6169,17 +6225,22 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         route: bare ? `/${bare}` : '',
         actionId,
       }),
-    }, { actionId, timeoutMillis: -1 })
+    }, { actionId, timeoutMillis: -1, view })
     const increments = []
+    let reader
     const handle = async (raw) => {
       const line = raw.trim()
       if (!line.startsWith('data:')) return
+      if (isViewStale(view)) {
+        if (reader && reader.cancel) reader.cancel().catch(() => undefined)
+        throw staleResponseError(actionId)
+      }
       const inc = JSON.parse(line.slice(5).trim())
       const consumed = onIncrement ? await onIncrement(inc) : false
       if (!consumed) increments.push(inc)
     }
     if (res.body && res.body.getReader) {
-      const reader = res.body.getReader()
+      reader = res.body.getReader()
       const decoder = new TextDecoder()
       let buffer = ''
       for (;;) {
@@ -7726,6 +7787,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     installClientErrorReporting,
     clientErrors,
     askForReauthentication,
+    // la pantalla en curso: la navegación la empieza; lo que conteste para otra muere en silencio
+    beginView,
+    currentView,
+    isViewStale,
+    isStaleResponse,
     DEFAULT_TIMEOUT_MS,
     // static bundle: la shell carga el manifest al arrancar; loadRoute responde desde él sin backend
     loadBundleManifest,
