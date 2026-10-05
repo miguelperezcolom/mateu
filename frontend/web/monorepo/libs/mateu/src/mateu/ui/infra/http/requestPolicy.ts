@@ -126,3 +126,10 @@ export const classifyRequestFailure = (
 /** Convenience for call sites that only need the user-facing text. */
 export const describeRequestFailure = (error: unknown, options?: { online?: boolean }): string =>
     classifyRequestFailure(error, options).message
+
+/**
+ * Whether the user should be offered to send the request again by hand. A refusal (403) answers
+ * the same to the same request: a Retry next to "you are not allowed" only invites a second no.
+ */
+export const offersManualRetry = (failure: Pick<RequestFailure, 'kind'>): boolean =>
+    failure.kind !== 'forbidden'

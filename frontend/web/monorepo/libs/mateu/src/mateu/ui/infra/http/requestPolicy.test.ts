@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { classifyRequestFailure, describeRequestFailure } from './requestPolicy'
+import { classifyRequestFailure, describeRequestFailure, offersManualRetry } from './requestPolicy'
 
 /** Shapes the way axios reports each condition. */
 const axiosError = (over: Record<string, unknown>) => ({ message: '', ...over })
@@ -70,6 +70,12 @@ describe('classifyRequestFailure', () => {
         } finally {
             vi.unstubAllGlobals()
         }
+    })
+
+    it('offers no manual Retry for a refusal', () => {
+        expect(offersManualRetry(classifyRequestFailure({ response: { status: 403 } }))).toBe(false)
+        expect(offersManualRetry(classifyRequestFailure({ response: { status: 401 } }))).toBe(true)
+        expect(offersManualRetry(classifyRequestFailure({ response: { status: 500 } }))).toBe(true)
     })
 
     it('treats 408 and 429 as "come back in a moment"', () => {
