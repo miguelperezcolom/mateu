@@ -265,14 +265,21 @@ define([
         ? { overview: foldoutProjection.overview, panels: foldoutProjection.panels }
         : { overview: { blocks: [] }, panels: [] };
       $application.variables.mateuFoldout = foldoutProjection;
+      // Lo que ESTA chain acaba de asignar se lee de las constantes, no de vuelta de la variable:
+      // una variable `any` de VB que tenía un objeto y se pone a null (o a cualquier falsy) se lee
+      // DENTRO de la misma chain como un proxy truthy sobre el valor primitivo (los bindings sí ven
+      // el null). Del detalle de una reserva (foldout) al recorrido, `!mateuFoldout` seguía false
+      // y el contenido del host no se proyectaba: la pantalla quedaba con su cabecera y en blanco.
+      const foldoutNow = foldoutProjection;
       // los Element de sus paneles (HTML del servidor, componentes web) se montan a mano
       // (mismo motivo que los del host: VB no sabe pintar una etiqueta arbitraria)
       bridge.mountElementsSoon(bridge.foldoutElementAtomsOf($application.variables.mateuFoldoutContent), 60);
       $application.variables.mateuSelectPlaceholder = bridge.selectPlaceholder(
         document.documentElement.lang || navigator.language);
-      $application.variables.mateuWizard = bridge.wizardOf(host);
+      const wizardProjection = bridge.wizardOf(host);
+      $application.variables.mateuWizard = wizardProjection;
       // el guided process no avanza por su cuenta: el paso lo decide Mateu (ver el bridge)
-      if ($application.variables.mateuWizard) bridge.guardGuidedProcess();
+      if (wizardProjection) bridge.guardGuidedProcess();
       const islandContext = firstIsland ? reg.contexts[firstIsland.id] : null;
       $application.variables.mateuIsland = islandContext
         ? { fields: bridge.fieldListOf(islandContext.tree, islandContext.state, islandContext.data),
@@ -340,7 +347,7 @@ define([
       $application.variables.mateuFormSections = summary.sections;
       $application.variables.mateuFormValue = summary.formValue;
       $application.variables.mateuFormActions = summary.actions;
-      const wizardNow = $application.variables.mateuWizard;
+      const wizardNow = wizardProjection;
       if (wizardNow) {
         const forwardBtn = bridge.wizardForwardOf(host);
         const forward = forwardBtn
@@ -363,7 +370,8 @@ define([
 
 
       // cola de trabajo del front-office (TaskQueue) + placeholder del detalle
-      $application.variables.mateuQueue = bridge.taskQueueOf(host.tree);
+      const queueNow = bridge.taskQueueOf(host.tree);
+      $application.variables.mateuQueue = queueNow;
       $application.variables.mateuHostEmpty = bridge.emptyStateOf(host.tree);
       // arquetipos compuestos (welcome / general overview / item overview)
       const welcome = bridge.welcomeOf(host);
@@ -398,7 +406,7 @@ define([
           await Actions.callComponentMethod(context, { selector: '#mateuItemTabs', method: 'refresh' });
         } catch (ignored) { /* aún sin montar */ }
       }
-      if (welcome || overviewProjection || itemProjection || $application.variables.mateuFoldout) {
+      if (welcome || overviewProjection || itemProjection || foldoutNow) {
         // sus campos/botones los pintan las ramas del arquetipo (o los paneles del foldout:
         // la vista @FoldoutDetail de un crud), no el form genérico
         $application.variables.mateuFormMetadata = null;
@@ -409,12 +417,12 @@ define([
       // contenido display del HOST (detalle standalone) / de los pasos del wizard:
       // los bloques de islandContentOf con la isla del host (documento) fusionada
       const islandRawBlocks = islandContext ? bridge.islandContentOf(islandContext) : null;
-      const esWizard = !!$application.variables.mateuWizard;
+      const esWizard = !!wizardProjection;
       const sinOtrasRamas = !listingSummary && !welcome && !overviewProjection && !itemProjection
-        && !$application.variables.mateuQueue && !$application.variables.mateuFoldout;
+        && !queueNow && !foldoutNow;
       // un foldout con EntityHeader (p.ej. la Reserva 360) CONSERVA el header de pantalla:
       // el huésped + el CTA van en la banda, el foldout es solo el cuerpo
-      const hostEntity = (!esWizard && (sinOtrasRamas || $application.variables.mateuFoldout))
+      const hostEntity = (!esWizard && (sinOtrasRamas || foldoutNow))
         ? bridge.entityHeaderOf(host) : null;
       // pantalla nueva, pestaña nueva: la activa es estado de CLIENTE y no sobrevive a una
       // navegación (la pestaña 3 de la pantalla anterior no significa nada en ésta)
@@ -508,9 +516,9 @@ define([
       // smart-filter-search del listado) lo suprimen
       // un foldout con acciones de página (la vista @FoldoutDetail de un crud: Edit, Cancel…)
       // conserva el header de vb, que es donde van esas acciones
-      const integratedHeader = !!($application.variables.mateuWizard || welcome
+      const integratedHeader = !!(wizardProjection || welcome
         || overviewProjection || listingSummary
-        || ($application.variables.mateuFoldout && !hostEntity && !hostToolbar.length));
+        || (foldoutNow && !hostEntity && !hostToolbar.length));
       const showHeader = !integratedHeader;
       // 1.3: banners de página → el oj-sp-messages-banner del starter (shell).
       // El ADP se muta con fireDataProviderEvent (asignar .data no refresca)
@@ -562,8 +570,8 @@ define([
       $application.variables.mateuPageMaxWidth = pageStyle.maxWidth;
       $application.variables.mateuPageMargin = pageStyle.margin;
       $application.variables.mateuPagePadding = pageStyle.padding;
-      if ($application.variables.mateuWelcome || $application.variables.mateuOverview
-          || $application.variables.mateuWizard || listingSummary
+      if (welcome || overviewProjection
+          || wizardProjection || listingSummary
           || $application.variables.mateuPageHeader) {
         // header Redwood a sangre: el gutter lo recupera cada rama de contenido
         $application.variables.mateuPagePadding = '0';

@@ -5064,3 +5064,15 @@ test('enlaces: un <a href> del contenido a una ruta de la app navega dentro de l
   assert.match(shell, /event\.preventDefault\(\);\s*Actions\.callChain\(liveContext\(\), \{\s*chain: 'onMateuNavigate'/)
   assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /strip\('links\.mjs'\)/)
 })
+
+test('navegar: lo que la chain asigna (foldout, wizard, cola) se lee de constantes, no de vuelta de la variable', () => {
+  // una variable `any` de VB que tenía un objeto y se pone a null se lee DENTRO de la chain como un
+  // proxy truthy: del detalle de una reserva (foldout) al recorrido, el host no se proyectaba
+  for (const rel of ['pages/shell-page-chains/onMateuNavigate.js', 'flows/main/pages/main-start-page-chains/runMateuAction.js']) {
+    const src = webApp(rel)
+    assert.doesNotMatch(src, /!\s*\$application\.variables\.mateu(Foldout|Queue|Wizard)\b/, rel)
+    assert.doesNotMatch(src, /integratedHeader = !!\(\$application\.variables\.mateuWizard/, rel)
+    assert.doesNotMatch(src, /if \(\$application\.variables\.mateuWizard\)/, rel)
+    assert.match(src, /&& !queueNow && !foldoutNow;/, rel)
+  }
+})

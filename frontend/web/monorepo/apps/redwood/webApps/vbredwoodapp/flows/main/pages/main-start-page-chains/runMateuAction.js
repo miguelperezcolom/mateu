@@ -360,8 +360,13 @@ define([
       // nueva hace que el oj-bind-if recree el subárbol con los bloques frescos.
       // SOLO si algún incremento REPINTÓ el host (hostRepainted) — abrir un drawer (Add)
       // no lo toca, y remontar aquí reseteaba el plegado/animación del foldout.
+      // Lo que esta chain asigna se lee de las constantes, no de vuelta de la variable: una
+      // variable `any` de VB que tenía un objeto y se pone a null se lee DENTRO de la misma chain
+      // como un proxy truthy (los bindings sí ven el null) — ver onMateuNavigate.
+      let foldoutNow = $application.variables.mateuFoldout;
       if (hostRepainted) {
         const foldoutProjection = bridge.foldoutOf(hostAfter);
+        foldoutNow = foldoutProjection;
         const foldoutBefore = $application.variables.mateuFoldout;
         const contentOf = (proj) => proj
           ? { overview: proj.overview, panels: proj.panels }
@@ -386,8 +391,9 @@ define([
         }
         bridge.mountElementsSoon(bridge.foldoutElementAtomsOf($application.variables.mateuFoldoutContent), 60);
       }
-      $application.variables.mateuWizard = bridge.wizardOf(hostAfter);
-      if ($application.variables.mateuWizard) bridge.guardGuidedProcess();
+      const wizardProjection = bridge.wizardOf(hostAfter);
+      $application.variables.mateuWizard = wizardProjection;
+      if (wizardProjection) bridge.guardGuidedProcess();
 
       // header de colección: toolbar del crud → primaryAction/secondaryActions
       const toolbar = listingSummary ? listingSummary.toolbar : [];
@@ -409,7 +415,7 @@ define([
       $application.variables.mateuFormSections = summary.sections;
       $application.variables.mateuFormValue = summary.formValue;
       $application.variables.mateuFormActions = summary.actions;
-      const wizardNow = $application.variables.mateuWizard;
+      const wizardNow = wizardProjection;
       if (wizardNow) {
         const forwardBtn = bridge.wizardForwardOf(hostAfter);
         const forward = forwardBtn
@@ -486,7 +492,8 @@ define([
 
 
       // cola de trabajo del front-office (TaskQueue) + placeholder del detalle
-      $application.variables.mateuQueue = bridge.taskQueueOf(hostAfter.tree);
+      const queueNow = bridge.taskQueueOf(hostAfter.tree);
+      $application.variables.mateuQueue = queueNow;
       $application.variables.mateuHostEmpty = bridge.emptyStateOf(hostAfter.tree);
       // arquetipos compuestos (welcome / general overview / item overview)
       const welcome = bridge.welcomeOf(hostAfter);
@@ -526,11 +533,11 @@ define([
       }
       // contenido display del HOST / de los pasos del wizard (detalle standalone)
       const islandRawBlocks2 = islandCtxAfter ? bridge.islandContentOf(islandCtxAfter) : null;
-      const esWizard2 = !!$application.variables.mateuWizard;
+      const esWizard2 = !!wizardProjection;
       const sinOtrasRamas2 = !listingSummary && !welcome && !overviewProjection && !itemProjection
-        && !$application.variables.mateuQueue && !$application.variables.mateuFoldout;
+        && !queueNow && !foldoutNow;
       // foldout con EntityHeader (la 360): el header de pantalla se conserva
-      const hostEntity2 = (!esWizard2 && (sinOtrasRamas2 || $application.variables.mateuFoldout))
+      const hostEntity2 = (!esWizard2 && (sinOtrasRamas2 || foldoutNow))
         ? bridge.entityHeaderOf(hostAfter) : null;
       let hostBlocks2 = (!esWizard2 && sinOtrasRamas2)
         ? bridge.hostContentOf(hostAfter, islandRawBlocks2,
@@ -604,9 +611,9 @@ define([
       // regla general: el header de página lo pinta SIEMPRE un header de vb; solo los
       // templates que ya integran el suyo (guided process / general overview / welcome /
       // smart-filter-search del listado) lo suprimen
-      const integratedHeader = !!($application.variables.mateuWizard || welcome
+      const integratedHeader = !!(wizardProjection || welcome
         || overviewProjection || listingSummary
-        || ($application.variables.mateuFoldout && !hostEntity2 && !hostToolbarA.length));
+        || (foldoutNow && !hostEntity2 && !hostToolbarA.length));
       const showHeaderA = !integratedHeader;
       const pwAfter = $application.variables.mateuMenuDrawerMode
         ? 'edgeToEdge' : ((hostAfter && hostAfter.pageWidth) || 'fixed');
@@ -667,8 +674,8 @@ define([
       $application.variables.mateuPageMaxWidth = pageStyleA.maxWidth;
       $application.variables.mateuPageMargin = pageStyleA.margin;
       $application.variables.mateuPagePadding = pageStyleA.padding;
-      if ($application.variables.mateuWelcome || $application.variables.mateuOverview
-          || $application.variables.mateuWizard || listingSummary
+      if (welcome || overviewProjection
+          || wizardProjection || listingSummary
           || $application.variables.mateuPageHeader) {
         $application.variables.mateuPagePadding = '0';
       }
