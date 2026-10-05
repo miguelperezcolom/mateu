@@ -13,6 +13,7 @@ import io.mateu.uidl.annotations.Details;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.HiddenInList;
 import io.mateu.uidl.annotations.InlineEditing;
+import io.mateu.uidl.annotations.Line;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.annotations.Priority;
 import io.mateu.uidl.annotations.ReadOnly;
@@ -153,6 +154,10 @@ final class ListingColumnBuilder {
                 ? MetaAnnotations.find(field, io.mateu.uidl.annotations.Aggregate.class)
                     .value()
                     .name()
+                : null)
+        .line(
+            MetaAnnotations.isPresent(field, Line.class)
+                ? MetaAnnotations.find(field, Line.class).value()
                 : null)
         .build();
   }

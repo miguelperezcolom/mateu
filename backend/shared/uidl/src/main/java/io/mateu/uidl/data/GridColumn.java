@@ -34,7 +34,10 @@ public record GridColumn(
     String editorType,
     List<Option> editorOptions,
     Double weight,
-    String aggregate)
+    String aggregate,
+    // Multi-line rows (@Line): the 1-based line of the row this column is drawn on; null/1 = the
+    // ordinary columns. A listing with any column on line > 1 draws each row on several lines.
+    Integer line)
     implements GridContent {
 
   public FieldDataType dataType() {
@@ -50,5 +53,10 @@ public record GridColumn(
    */
   public Integer priority() {
     return priority != null ? priority : Integer.MAX_VALUE;
+  }
+
+  /** The 1-based line of the row this column is drawn on; defaults to 1. */
+  public Integer line() {
+    return line != null && line > 1 ? line : 1;
   }
 }

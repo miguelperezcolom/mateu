@@ -58,6 +58,8 @@ public class GridColumnMapper {
                         .toList())
             .weight(gridColumn.weight())
             .aggregate(gridColumn.aggregate())
+            // only lines > 1 travel: a listing without @Line keeps the wire it had
+            .line(gridColumn.line() > 1 ? gridColumn.line() : null)
             .build(),
         gridColumn.id(),
         List.of(),

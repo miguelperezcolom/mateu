@@ -31,5 +31,9 @@ export default interface GridColumn extends ComponentMetadata {
     weight: number | null
     /** Aggregate function totalled over the whole filtered set (and per group when grouping). */
     aggregate?: 'sum' | 'avg' | 'min' | 'max' | 'count'
+    /** Multi-line rows (`@Line`): the 1-based line of the row this column is drawn on.
+     *  Absent/1 = the ordinary columns; a listing with any column on a line > 1 draws each row
+     *  on several lines (line 1 as columns, the rest as «Label: value» under it). */
+    line?: number | null
 
 }

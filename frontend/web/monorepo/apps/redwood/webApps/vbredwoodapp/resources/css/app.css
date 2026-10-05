@@ -884,6 +884,44 @@ oj-sp-guided-process .oj-sp-guided-process-step-details-footer {
   }
 }
 
+/* FILAS DE VARIAS LÍNEAS (@Line): cada celda de la fila deja debajo el hueco de N líneas
+   (mateu-lines-N) y la columna técnica __rowLines (1px) pinta en él, con position absolute
+   respecto a la FILA (tr position relative), las líneas extra a lo ancho de toda la fila.
+   Cada línea es de una sola línea de texto (elipsis): así el hueco es exacto. */
+.mateu-multiline-table { --mateu-row-line-h: 1.375rem; }
+.mateu-multiline-table .oj-table-body-row { position: relative; }
+.mateu-multiline-table .oj-table-body-row > td { vertical-align: top; }
+.mateu-multiline-table.mateu-lines-1 .oj-table-body-row > td { padding-bottom: calc(var(--mateu-row-line-h) * 1 + 0.5rem); }
+.mateu-multiline-table.mateu-lines-2 .oj-table-body-row > td { padding-bottom: calc(var(--mateu-row-line-h) * 2 + 0.5rem); }
+.mateu-multiline-table.mateu-lines-3 .oj-table-body-row > td { padding-bottom: calc(var(--mateu-row-line-h) * 3 + 0.5rem); }
+.mateu-multiline-table.mateu-lines-4 .oj-table-body-row > td { padding-bottom: calc(var(--mateu-row-line-h) * 4 + 0.5rem); }
+.mateu-multiline-table td.mateu-row-lines-cell,
+.mateu-multiline-table th.mateu-row-lines-cell {
+  position: static;
+  overflow: visible;
+  padding-left: 0;
+  padding-right: 0;
+}
+.mateu-row-lines {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.375rem;
+  padding: 0 1rem;
+  box-sizing: border-box;
+  pointer-events: auto;
+}
+.mateu-row-line {
+  height: var(--mateu-row-line-h);
+  line-height: var(--mateu-row-line-h);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mateu-row-line-pair {
+  margin-inline-end: 1.5rem;
+}
+
 /* Columna principal del listado (@PrimaryColumn): imagen redonda delante (la bandera del huésped)
    + título y caption apilados. */
 .mateu-primary-cell {
