@@ -3,6 +3,32 @@
 define(['resources/js/mateu-bridge'], (bridge) => {
   'use strict';
 
+  /* Ctrl+Shift+M activa/desactiva el micrófono del chat (bridge.isChatMicShortcut), con el foco en
+   * cualquier sitio — el campo del mensaje incluido —: pulsa el botón del micrófono, así que hace lo
+   * mismo que el clic (chatMic) con el mismo estado e indicador. El botón solo existe con el panel
+   * abierto y donde el navegador reconoce la voz; sin él, o deshabilitado (el asistente trabaja), el
+   * atajo no hace nada. Se engancha una vez al documento, en captura: oj-input-text no deja subir
+   * todas sus teclas. */
+  const onMicShortcut = (event) => {
+    if (!bridge.isChatMicShortcut(event)) return;
+    const mic = document.querySelector('#mateuChatMic');
+    if (!mic || mic.disabled) return;
+    event.preventDefault();
+    const button = mic.querySelector('button') || mic;
+    button.click();
+  };
+  // oj-button no pasa aria-keyshortcuts a su <button>: se le pone a cada botón del micrófono que
+  // aparece (uno por estado, se reemplazan al empezar y al acabar de escuchar)
+  const markMicShortcut = () => {
+    const button = document.querySelector('#mateuChatMic button:not([aria-keyshortcuts])');
+    if (button) button.setAttribute('aria-keyshortcuts', bridge.CHAT_MIC_ARIA_KEYSHORTCUTS);
+  };
+  if (!document.__mateuChatMicShortcut) {
+    document.__mateuChatMicShortcut = true;
+    document.addEventListener('keydown', onMicShortcut, true);
+    new MutationObserver(markMicShortcut).observe(document.body, { childList: true, subtree: true });
+  }
+
   class PageModule {
     /**
      * La clase de una opción de primer nivel de la subcabecera (MENU_ON_TOP): marcada si su

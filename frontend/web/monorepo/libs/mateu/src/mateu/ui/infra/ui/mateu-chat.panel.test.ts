@@ -85,3 +85,56 @@ describe("the chat panel's width", () => {
         expect(el.style.getPropertyValue('--mateu-chat-width')).toBe('460px')
     })
 })
+
+describe("the mic's keyboard shortcut (Ctrl+Shift+M)", () => {
+    const calls: string[] = []
+    class FakeRecognition {
+        lang = ''
+        onresult: unknown; onend: unknown; onerror: unknown
+        start() { calls.push('start') }
+        stop() { calls.push('stop') }
+    }
+    const press = (target: EventTarget, over: Partial<KeyboardEventInit> = {}) =>
+        target.dispatchEvent(new KeyboardEvent('keydown', {
+            key: 'M', code: 'KeyM', ctrlKey: true, shiftKey: true, bubbles: true, composed: true, cancelable: true, ...over,
+        }))
+
+    afterEach(() => {
+        calls.length = 0
+        delete (window as unknown as Record<string, unknown>).webkitSpeechRecognition
+    })
+
+    it('starts and stops dictation like the button, also from the message field, and says so on the button', async () => {
+        ;(window as unknown as Record<string, unknown>).webkitSpeechRecognition = FakeRecognition
+        const el = await chat()
+        const mic = $(el, '.input-bar .mic-btn') as HTMLButtonElement
+        expect(mic.getAttribute('aria-keyshortcuts')).toBe('Control+Shift+M')
+        expect(mic.getAttribute('title')).toBe('Dictate (Ctrl+Shift+M)')
+        expect(press(document.body)).toBe(false) // handled: default prevented
+        await el.updateComplete
+        expect(calls).toEqual(['start'])
+        expect(mic.getAttribute('title')).toBe('Stop dictation (Ctrl+Shift+M)')
+        expect(mic.getAttribute('aria-pressed')).toBe('true')
+        press($(el, '.msg-input')!)
+        expect(calls).toEqual(['start', 'stop'])
+        press(document.body, { shiftKey: false })
+        press(document.body, { metaKey: true, ctrlKey: false })
+        expect(calls).toEqual(['start', 'stop'])
+    })
+
+    it('does nothing while the panel is closed, without recognition, or once removed', async () => {
+        ;(window as unknown as Record<string, unknown>).webkitSpeechRecognition = FakeRecognition
+        const el = await chat(c => { c.slot = 'detail-hidden' })
+        expect(press(document.body)).toBe(true)
+        el.slot = 'detail'
+        press(document.body)
+        expect(calls).toEqual(['start'])
+        el.remove()
+        press(document.body)
+        expect(calls).toEqual(['start'])
+        delete (window as unknown as Record<string, unknown>).webkitSpeechRecognition
+        await chat()
+        expect(press(document.body)).toBe(true)
+        expect(calls).toEqual(['start'])
+    })
+})

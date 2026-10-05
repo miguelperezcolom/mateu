@@ -12,6 +12,7 @@ import "./mateu-markdown";
 import {componentRenderer, HeaderIconButton} from "@infra/ui/renderers/ComponentRenderer.ts";
 import {icon} from "@infra/ui/renderers/neutralIcon.ts";
 import {chatText} from "./chatTexts";
+import {CHAT_MIC_ARIA_KEYSHORTCUTS, chatMicTitle, isChatMicShortcut} from "./chatShortcut";
 import {CHAT_WIDE_VW, CHAT_WIDTH, CHAT_WIDTH_STEP, clampChatWidth, dragChatWidth, loadChatWidth, saveChatWidth} from "./chatPanel";
 
 /**
@@ -236,6 +237,19 @@ export class MateuChat extends LitElement {
         }
     }
 
+    /** Whether the panel is on screen: the app shell keeps a closed one in the hidden slot. */
+    private get panelOpen(): boolean {
+        return this.isConnected && this.slot !== 'detail-hidden'
+    }
+
+    /** Ctrl+Shift+M (see chatShortcut) toggles the mic like a click on its button, while the panel
+     *  is open — with the focus anywhere, the message field included. Nothing without recognition. */
+    private onShortcutKeydown = (e: KeyboardEvent) => {
+        if (!isChatMicShortcut(e) || !this.panelOpen || !this.recognitionAvailable) return
+        e.preventDefault()
+        this.startListening()
+    }
+
     onSpeechResult = (event: Event) => {
         if (this.recognition) {
             // Obtener el texto procesado
@@ -270,6 +284,7 @@ export class MateuChat extends LitElement {
     connectedCallback() {
         super.connectedCallback()
         void this.probeLocalAgent();
+        window.addEventListener('keydown', this.onShortcutKeydown, true);
 
 // Comprobar si el navegador es compatible
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -308,6 +323,11 @@ export class MateuChat extends LitElement {
         } else {
         }
 
+    }
+
+    disconnectedCallback() {
+        window.removeEventListener('keydown', this.onShortcutKeydown, true);
+        super.disconnectedCallback()
     }
 
     private scrollBottom() {
@@ -719,7 +739,10 @@ export class MateuChat extends LitElement {
                                @change="${this.onFilesPicked}"/>
                     ` : nothing}
                     <button class="mic-btn"
-                            title="Dictar"
+                            title="${chatMicTitle(this.listening)}"
+                            aria-label="${chatMicTitle(this.listening)}"
+                            aria-keyshortcuts="${CHAT_MIC_ARIA_KEYSHORTCUTS}"
+                            aria-pressed="${this.listening ? 'true' : 'false'}"
                             style="color: ${this.listening ? 'red' : 'var(--lumo-contrast-50pct, #767676)'};"
                             @click="${this.startListening}"
                             ?disabled="${!this.recognitionAvailable}"

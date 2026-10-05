@@ -243,6 +243,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     chatMarkdownToHtml,
     chatRouteOfLink,
     transcriptOf,
+    isChatMicShortcut,
+    CHAT_MIC_ARIA_KEYSHORTCUTS,
   };
 });
 `
