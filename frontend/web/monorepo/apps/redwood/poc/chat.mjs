@@ -408,6 +408,22 @@ export function transcriptOf(event) {
   return (last && last[0] && last[0].transcript ? String(last[0].transcript) : '').trim()
 }
 
+/**
+ * El atajo del micrófono del chat: Ctrl+Shift+M en todas las plataformas (en macOS también Ctrl, no
+ * Cmd — Cmd+Shift+M cambia de perfil en Chrome y Opción+M escribe «µ»). Exactamente Ctrl y Shift,
+ * sin Alt ni Cmd, y no la autorrepetición de la tecla mantenida. La tecla se reconoce por su carácter
+ * (AZERTY incluido) o, en un teclado cuya M no escribe una letra latina, por su posición (KeyM).
+ */
+export const CHAT_MIC_SHORTCUT = 'Ctrl+Shift+M'
+export const CHAT_MIC_ARIA_KEYSHORTCUTS = 'Control+Shift+M'
+
+export function isChatMicShortcut(event) {
+  if (!event || !event.ctrlKey || !event.shiftKey || event.altKey || event.metaKey || event.repeat) return false
+  const key = typeof event.key === 'string' ? event.key : ''
+  if (/^[a-z]$/i.test(key)) return key.toLowerCase() === 'm'
+  return event.code === 'KeyM'
+}
+
 // ── Markdown de las respuestas ──────────────────────────────────────────────────────────────────
 // El agente contesta en markdown (negritas, listas, tablas, código). El chat compartido lo pinta con
 // marked + DOMPurify; aquí no hay npm en el bundle AMD, así que el subconjunto que usan los agentes se
@@ -550,4 +566,31 @@ function mdList(lines, start, advance) {
   advance(i)
   const tag = ordered ? 'ol' : 'ul'
   return `<${tag}>` + items.map((it) => `<li>${it.text}${it.sub}</li>`).join('') + `</${tag}>`
+}
+
+/**
+ * Keeps a chat's message list scrolled to its last message while it grows: a new message, or an
+ * answer streaming in chunk by chunk. Nothing scrolled it, so the answer kept arriving below the
+ * fold. It follows the end only while the reader is at it (within `slack` px): someone who scrolled
+ * up to reread is left there, and is followed again once back at the end or after sending. Returns
+ * a function that stops it. `el` is the scrolling element (overflow-y: auto).
+ */
+export function stickChatToBottom(el, { slack = 48, isUserMessage = (node) => !!(node && node.querySelector && node.querySelector('.mateu-chat-user-text')) } = {}) {
+  if (!el || typeof MutationObserver === 'undefined') return () => {}
+  let stick = true
+  const atEnd = () => el.scrollHeight - el.scrollTop - el.clientHeight <= slack
+  const toEnd = () => { el.scrollTop = el.scrollHeight }
+  const onScroll = () => { stick = atEnd() }
+  el.addEventListener('scroll', onScroll, { passive: true })
+  const observer = new MutationObserver((mutations) => {
+    for (const m of mutations) {
+      for (const node of m.addedNodes || []) {
+        if (node.nodeType === 1 && (isUserMessage(node) || (node.classList && node.classList.contains('mateu-chat-user-text')))) stick = true
+      }
+    }
+    if (stick) toEnd()
+  })
+  observer.observe(el, { childList: true, subtree: true, characterData: true })
+  toEnd()
+  return () => { observer.disconnect(); el.removeEventListener('scroll', onScroll) }
 }

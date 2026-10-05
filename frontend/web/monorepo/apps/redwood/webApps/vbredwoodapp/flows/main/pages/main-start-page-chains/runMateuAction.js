@@ -33,6 +33,8 @@ define([
       try {
         return await this.dispatch(context, { actionId, parameters, event });
       } catch (e) {
+        // su pantalla ya no está (se navegó mientras volaba): muere en silencio
+        if (bridge.isStaleResponse(e)) return undefined;
         // "Reintentar" tiene que re-ejecutar la ACCIÓN entera, no sólo la petición: una
         // respuesta que nadie procesa no cambia nada en pantalla.
         bridge.setLastRetry({ kind: 'action', actionId: actionId || (event && event.target && event.target.dataset && event.target.dataset.actionId), parameters });

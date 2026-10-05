@@ -199,6 +199,11 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     installClientErrorReporting,
     clientErrors,
     askForReauthentication,
+    // la pantalla en curso: la navegación la empieza; lo que conteste para otra muere en silencio
+    beginView,
+    currentView,
+    isViewStale,
+    isStaleResponse,
     DEFAULT_TIMEOUT_MS,
     // static bundle: la shell carga el manifest al arrancar; loadRoute responde desde él sin backend
     loadBundleManifest,
@@ -209,6 +214,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     installAnnouncer,
     announce,
     announceNavigation,
+    focusIsInChat,
     focusContent,
     focusContentSoon,
     mountSkipLink,
@@ -232,6 +238,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     buildChatBody,
     buildChatMenuContext,
     streamChat,
+    stickChatToBottom,
     uploadChatFiles,
     // el panel mientras el asistente trabaja, los contadores de tokens y el dictado
     mergeTurnUsage,
@@ -243,6 +250,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     chatMarkdownToHtml,
     chatRouteOfLink,
     transcriptOf,
+    isChatMicShortcut,
+    CHAT_MIC_ARIA_KEYSHORTCUTS,
   };
 });
 `

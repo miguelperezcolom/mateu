@@ -50,6 +50,11 @@ define([
         return await this.navigate(context, params || {}, () => {
           $application.variables.mateuNavigating = true;
         });
+      } catch (e) {
+        // una respuesta que llegó cuando ya se había navegado a otra pantalla: muere en silencio
+        // (el transporte la descartó: ni se pinta ni pone banda de error)
+        if (bridge.isStaleResponse(e)) return undefined;
+        throw e;
       } finally {
         if (seq === navigationSeq) {
           $application.variables.mateuNavigating = false;
@@ -131,6 +136,9 @@ define([
         pushRouteToUrl($application, target.full);
       }
       startsLoading();
+      // Otra pantalla: lo que siga en vuelo de la anterior (su búsqueda, una acción, una
+      // navegación más lenta que ésta) ya no se pinta cuando conteste (resilience.beginView).
+      const view = bridge.beginView();
 
       const base = $application.constants.mateuBaseUrl;
       const appState = $application.variables.mateuAppState || {};
@@ -147,6 +155,8 @@ define([
         reg = await bridge.loadRouteInto(
           callBase, $application.variables.mateuRegistry, route, '', extra);
       } catch (e) {
+        // superada por otra navegación mientras cargaba: nada que reintentar ni que pintar
+        if (bridge.isStaleResponse(e)) return;
         // La banda de error ya la puso el transporte (onSettle); aquí sólo se deja el
         // reintento a mano, y se corta: sin registro no hay nada que proyectar.
         registerRetry();
@@ -204,6 +214,9 @@ define([
       try {
         reg = await bridge.loadLookups(callBase, reg, bridge.HOST_ID, { appState, route });
       } catch (ignored) { /* sin opciones se quedan como estaban: el campo sigue editable */ }
+
+      // Una navegación más nueva empezó mientras ésta cargaba: lo cargado aquí no se pinta.
+      if (bridge.currentView() !== view) return;
 
       $application.variables.mateuRegistry = reg;
       // P1: los niveles de app (el maestro de un registro con pestañas que son páginas)

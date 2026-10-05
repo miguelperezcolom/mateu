@@ -410,15 +410,28 @@
             </div>
           </oj-bind-if>
           <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-padding-4x-horizontal oj-sm-padding-3x-vertical mateu-chat-composer">
-            <!-- dictar: solo donde el navegador reconoce la voz; lo dictado se envía -->
+            <!-- dictar: solo donde el navegador reconoce la voz; lo dictado se envía.
+                 Ctrl+Shift+M lo pulsa con el panel abierto (shell-page.js). Un botón por estado: el
+                 texto de un oj-button (su tooltip y su nombre accesible) no sigue a un oj-bind-text -->
             <oj-bind-if test="[[ $application.variables.mateuChatMicAvailable ]]">
-              <oj-button id="mateuChatMic" display="icons" class="oj-sm-margin-2x-end"
-                :chroming="[[ $application.variables.mateuChatListening ? 'callToAction' : 'borderless' ]]"
-                :disabled="[[ $application.variables.mateuChatBusy ]]"
-                on-oj-action="[[ $listeners.chatMic ]]">
-                <span slot="startIcon" class="oj-ux-ico-mic-on"></span>
-                <oj-bind-text value="[[ $application.variables.mateuChatListening ? 'Parar el dictado' : 'Dictar el mensaje' ]]"></oj-bind-text>
-              </oj-button>
+              <oj-bind-if test="[[ !$application.variables.mateuChatListening ]]">
+                <oj-button id="mateuChatMic" display="icons" class="oj-sm-margin-2x-end" chroming="borderless"
+                  aria-keyshortcuts="Control+Shift+M"
+                  :disabled="[[ $application.variables.mateuChatBusy ]]"
+                  on-oj-action="[[ $listeners.chatMic ]]">
+                  <span slot="startIcon" class="oj-ux-ico-mic-on"></span>
+                  Dictar (Ctrl+Shift+M)
+                </oj-button>
+              </oj-bind-if>
+              <oj-bind-if test="[[ $application.variables.mateuChatListening ]]">
+                <oj-button id="mateuChatMic" display="icons" class="oj-sm-margin-2x-end" chroming="callToAction"
+                  aria-keyshortcuts="Control+Shift+M"
+                  :disabled="[[ $application.variables.mateuChatBusy ]]"
+                  on-oj-action="[[ $listeners.chatMic ]]">
+                  <span slot="startIcon" class="oj-ux-ico-mic-on"></span>
+                  Detener dictado (Ctrl+Shift+M)
+                </oj-button>
+              </oj-bind-if>
             </oj-bind-if>
             <oj-input-text id="mateuChatInput" class="oj-flex-item oj-sm-margin-2x-end" placeholder="Escribe un mensaje…"
               label-hint="Mensaje para el asistente" label-edge="none"

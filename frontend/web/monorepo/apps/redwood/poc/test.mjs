@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLogEndpointOf, clientErrors, redactUrl, routeOfRequestUrl } from './clientLog.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
-import { guidedProcessMediaQuery, guidedProcessWheelIsNative } from './a11y.mjs'
+import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat } from './a11y.mjs'
 import { activeSectionOf, sectionHomeOf, sectionOf } from './navTree.mjs'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -24,13 +24,14 @@ import {
 import {
   classifyRequestFailure, isIdempotentAction, shouldRetry, retryDelayMs, MAX_RETRIES,
   connectivity, pendingActions, fetchWithPolicy, setTransportHooks,
-  authHeadersOf, askForReauthentication,
+  authHeadersOf, askForReauthentication, beginView, currentView, isStaleResponse,
 } from './resilience.mjs'
 import {
   buildChatMenuContext, buildChatBody, effectiveChatUrl, tryParseTokenUsage,
   tryParseCustomEvent, streamChat, mergeTurnUsage, addUsage, chatStatusText,
   createSseParser, classifyChatPayload, isEmptyUsage, createChatProgress, latestUsage,
-  speechRecognitionCtor, transcriptOf, chatMarkdownToHtml, chatRouteOfLink,
+  speechRecognitionCtor, transcriptOf, chatMarkdownToHtml, chatRouteOfLink, stickChatToBottom, isChatMicShortcut,
+  CHAT_MIC_ARIA_KEYSHORTCUTS,
 } from './chat.mjs'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
@@ -2652,7 +2653,7 @@ test('chat: el panel dice que el asistente trabaja, cuenta los tokens y deja dic
   assert.match(panel, /class="oj-badge oj-badge-subtle[^"]*">entrada/)
   assert.match(panel, /class="oj-badge oj-badge-subtle[^"]*">salida/)
   // micrófono: oj-button de icono Redwood, sólo donde hay reconocimiento de voz, antes del campo
-  const mic = panel.match(/<oj-bind-if test="\[\[ \$application\.variables\.mateuChatMicAvailable \]\]">\s*<oj-button id="mateuChatMic"[\s\S]*?<\/oj-button>/)
+  const mic = panel.match(/<oj-bind-if test="\[\[ \$application\.variables\.mateuChatMicAvailable \]\]">\s*<oj-bind-if test="\[\[ !\$application\.variables\.mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[\s\S]*?<\/oj-button>/)
   assert.ok(mic, 'el botón de dictar depende de mateuChatMicAvailable')
   assert.match(mic[0], /oj-ux-ico-mic-on/)
   assert.match(mic[0], /\$listeners\.chatMic/)
@@ -3819,6 +3820,36 @@ test('chat: el dictado usa el reconocimiento del navegador si existe, y el últi
   assert.equal(transcriptOf(null), '')
 })
 
+test('chat: Ctrl+Shift+M activa/desactiva el micrófono (también en macOS: Ctrl, no Cmd)', () => {
+  const k = (over = {}) => ({ key: 'M', code: 'KeyM', ctrlKey: true, shiftKey: true, altKey: false, metaKey: false, repeat: false, ...over })
+  assert.equal(isChatMicShortcut(k()), true)
+  assert.equal(isChatMicShortcut(k({ key: 'm' })), true)
+  assert.equal(isChatMicShortcut(k({ ctrlKey: false })), false)
+  assert.equal(isChatMicShortcut(k({ shiftKey: false })), false)
+  assert.equal(isChatMicShortcut(k({ altKey: true })), false)
+  assert.equal(isChatMicShortcut(k({ metaKey: true, ctrlKey: false })), false)
+  assert.equal(isChatMicShortcut(k({ metaKey: true })), false)
+  assert.equal(isChatMicShortcut(k({ repeat: true })), false)
+  assert.equal(isChatMicShortcut(k({ key: 'N', code: 'KeyN' })), false)
+  // por el carácter en teclados latinos (AZERTY: la M está donde QWERTY tiene «;»), por posición en el resto
+  assert.equal(isChatMicShortcut(k({ key: 'M', code: 'Semicolon' })), true)
+  assert.equal(isChatMicShortcut(k({ key: 'Q', code: 'KeyM' })), false)
+  assert.equal(isChatMicShortcut(k({ key: 'Ь', code: 'KeyM' })), true)
+  assert.equal(isChatMicShortcut(null), false)
+  assert.equal(CHAT_MIC_ARIA_KEYSHORTCUTS, 'Control+Shift+M')
+  // la página lo engancha al documento y pulsa el botón del micrófono (solo existe con el panel abierto
+  // y reconocimiento de voz); el botón lo anuncia
+  const page = webApp('pages/shell-page.js')
+  assert.match(page, /bridge\.isChatMicShortcut\(event\)/)
+  assert.match(page, /#mateuChatMic/)
+  assert.match(page, /setAttribute\('aria-keyshortcuts', bridge\.CHAT_MIC_ARIA_KEYSHORTCUTS\)/)
+  const shell = webApp('pages/shell-page.html')
+  assert.match(shell, /aria-keyshortcuts="Control\+Shift\+M"/)
+  // un botón por estado (el texto de un oj-button no sigue a un oj-bind-text): el de escuchar resaltado
+  assert.match(shell, /mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[^>]*chroming="callToAction"[\s\S]*?Detener dictado \(Ctrl\+Shift\+M\)\s*<\/oj-button>/)
+  assert.match(shell, /!\$application\.variables\.mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[^>]*chroming="borderless"[\s\S]*?Dictar \(Ctrl\+Shift\+M\)\s*<\/oj-button>/)
+})
+
 // ── gaps de Redwood vistos en la demo de ec-demo1 (3.0-alpha.376) ─────────────────────────
 
 test('cabecera: «Cancel booking» (cancelBooking) es una acción, no la vuelta; cancel-view sí lo es', () => {
@@ -4408,6 +4439,110 @@ atest('clientLog: un fallo clasificado de fetchWithPolicy se informa una vez; un
   }
 })
 
+// ── respuestas para una pantalla que ya no está (la regla de staleViewGuard.ts del renderer web) ──
+// Una petición sale con la pantalla A; el usuario navega a B (onMateuNavigate → beginView) antes
+// de que conteste. Su respuesta — buena o mala — muere en silencio: el chain recibe un rechazo
+// `isStaleResponse` (no la pinta), el ocupado se apaga sin fallo (sin banda de error) y un 401 no
+// pide reautenticar.
+const staleHarness = () => {
+  const pending = []
+  const settles = []
+  const original = globalThis.fetch
+  const originalDocument = globalThis.document
+  let sessionExpired = 0
+  globalThis.document = new EventTarget()
+  globalThis.document.addEventListener('mateu-session-expired', () => { sessionExpired++ })
+  globalThis.fetch = (url, init) => new Promise((resolve) => pending.push({
+    url, body: JSON.parse(init.body),
+    answer: (data) => resolve({ ok: true, status: 200, json: async () => data, text: async () => JSON.stringify(data) }),
+    fail: (status) => resolve({ ok: false, status, json: async () => ({}), text: async () => '' }),
+  }))
+  setTransportHooks({ onStart: () => {}, onSettle: ({ failure }) => { settles.push(failure) } })
+  return {
+    pending, settles, sessionExpired: () => sessionExpired,
+    restore: () => { globalThis.fetch = original; globalThis.document = originalDocument; setTransportHooks(null) },
+  }
+}
+const tick = () => new Promise((r) => setTimeout(r, 0))
+const listingCtx = { id: 'list', tree: { id: 'list', serverSideType: 'io.example.RuleCrud' }, state: {},
+  outbound: { route: '/registro/reglas', consumedRoute: '/registro', serverSideType: 'io.example.RuleCrud', baseUrl: '/_registration-rules' } }
+const rowsOf = (sst) => ({ fragments: [{ targetComponentId: 'list', data: { rows: [{ id: 1, of: sst }] } }],
+  messages: [{ text: 'Cargado', variant: 'success' }] })
+
+atest('una búsqueda que contesta después de navegar a otra pantalla no se aplica ni pone banda', async () => {
+  const h = staleHarness()
+  try {
+    const search = runMateuAction('', listingCtx, '/registro/reglas', 'search', {}).then(
+      (inc) => ({ inc }), (error) => ({ error }))
+    await tick()
+    beginView() // el usuario navega a otra pantalla
+    h.pending[0].answer(rowsOf('io.example.RuleCrud'))
+    const outcome = await search
+    assert.ok(outcome.error && isStaleResponse(outcome.error), 'el chain recibe el rechazo silencioso, no el incremento')
+    assert.deepEqual(h.settles, [null], 'el ocupado se apaga, sin fallo que enseñar')
+  } finally { h.restore() }
+})
+
+atest('un 500 de una pantalla que ya no está: ni banda de error ni reintento', async () => {
+  const h = staleHarness()
+  try {
+    const search = runMateuAction('', listingCtx, '/registro/reglas', 'search', {}).then(
+      (inc) => ({ inc }), (error) => ({ error }))
+    await tick()
+    beginView()
+    h.pending[0].fail(500)
+    const outcome = await search
+    assert.ok(isStaleResponse(outcome.error))
+    assert.deepEqual(h.settles, [null])
+    assert.equal(h.pending.length, 1, 'una lectura de otra pantalla no se reintenta')
+  } finally { h.restore() }
+})
+
+atest('un 401 de una pantalla que ya no está no pide reautenticar', async () => {
+  const h = staleHarness()
+  try {
+    const save = runMateuAction('', listingCtx, '/registro/reglas', 'save', {}).then(
+      (inc) => ({ inc }), (error) => ({ error }))
+    await tick()
+    beginView()
+    h.pending[0].fail(401)
+    const outcome = await save
+    assert.ok(isStaleResponse(outcome.error))
+    assert.equal(h.sessionExpired(), 0)
+    assert.deepEqual(h.settles, [null])
+  } finally { h.restore() }
+})
+
+atest('una navegación superada por otra más nueva no deja su registro (onMateuNavigate corta)', async () => {
+  const h = staleHarness()
+  try {
+    beginView() // navegación 1
+    const first = loadRouteInto('/_integrations', empty(), '/integrations/frontoffice', '', {}).then(
+      (reg) => ({ reg }), (error) => ({ error }))
+    await tick()
+    beginView() // navegación 2, antes de que conteste la 1
+    h.pending[0].answer({ fragments: [{ targetComponentId: '', component: { type: 'ServerSide', id: 'x', serverSideType: 'io.example.Integrations', children: [] } }] })
+    const outcome = await first
+    assert.ok(outcome.error && isStaleResponse(outcome.error), 'la carga vieja no devuelve registro que pintar')
+  } finally { h.restore() }
+})
+
+atest('la pantalla en curso sigue recibiendo sus respuestas; las de fondo (quiet) no son de ninguna pantalla', async () => {
+  const h = staleHarness()
+  try {
+    beginView()
+    const search = runMateuAction('', listingCtx, '/registro/reglas', 'search', {})
+    const widget = callMateu('/_inbox', { route: '/inbox/badge', actionId: 'refresh' }, { quiet: true })
+    await tick()
+    h.pending[0].answer(rowsOf('io.example.RuleCrud'))
+    assert.equal((await search).fragments[0].data.rows[0].of, 'io.example.RuleCrud')
+    beginView() // navegar no corta el refresco de un widget de cabecera
+    h.pending[1].answer({ fragments: [{ targetComponentId: 'badge', data: { count: 3 } }] })
+    assert.equal((await widget).fragments[0].data.count, 3)
+    assert.equal(typeof currentView(), 'number')
+  } finally { h.restore() }
+})
+
 await queue
 console.log(`\n${pass} tests OK (contrato de wire real)`)
 
@@ -4844,4 +4979,33 @@ test('listing: tooltipPath sin ancho pone el title de otro campo sin cortar el t
   assert.equal(name.template, 'cellClip')
   const r = listing.rows[0]
   assert.deepEqual(r.name__clipCell, { text: String(r.name), title: String(r.id), cls: '' })
+})
+
+test('chat: la lista sigue el último mensaje mientras crece; si el lector subió, no lo arrastra', () => {
+  let observed = null
+  const saved = globalThis.MutationObserver
+  globalThis.MutationObserver = class { constructor(cb) { observed = cb } observe() {} disconnect() {} }
+  try {
+    const listeners = {}
+    const el = { scrollHeight: 1000, scrollTop: 0, clientHeight: 400, addEventListener: (t, f) => { listeners[t] = f }, removeEventListener: () => {} }
+    const stop = stickChatToBottom(el)
+    assert.equal(el.scrollTop, 1000)            // al conectar, al final
+    el.scrollHeight = 1300; observed([{ addedNodes: [] }])
+    assert.equal(el.scrollTop, 1300)            // llega un trozo de respuesta: sigue al final
+    el.scrollTop = 200; listeners.scroll()      // el lector sube a releer
+    el.scrollHeight = 1500; observed([{ addedNodes: [] }])
+    assert.equal(el.scrollTop, 200)             // no lo arrastra
+    const userBubble = { nodeType: 1, querySelector: (s) => s === '.mateu-chat-user-text' ? {} : null, classList: { contains: () => false } }
+    el.scrollHeight = 1700; observed([{ addedNodes: [userBubble] }])
+    assert.equal(el.scrollTop, 1700)            // envía otra pregunta: vuelve a seguir el final
+    stop()
+  } finally { globalThis.MutationObserver = saved }
+})
+
+test('chat: una pantalla que abre el asistente no le quita el foco al chat', () => {
+  const inChat = { closest: (s) => (s === '#mateuChatPanel' ? {} : null) }
+  const inPage = { closest: () => null }
+  assert.equal(focusIsInChat(inChat), true)
+  assert.equal(focusIsInChat(inPage), false)
+  assert.equal(focusIsInChat(null), false)
 })

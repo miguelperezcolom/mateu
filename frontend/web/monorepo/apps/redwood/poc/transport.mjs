@@ -4,12 +4,17 @@
 // testea en Node (capture.mjs) y se empaqueta en AMD para VB (make-amd.mjs).
 
 import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf } from './reduceContexts.mjs'
-import { fetchWithPolicy, pendingActions, isIdempotentAction } from './resilience.mjs'
+import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 import { asSection, labelledByShell, markHidden, unavailableMount } from './navTree.mjs'
 
-/** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction). */
+/** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction).
+ *  Sale ATADA a la pantalla en curso (resilience.currentView): si cuando contesta ya hay otra, la
+ *  respuesta se descarta en silencio. Las de fondo (quiet/isolated: widgets, menús remotos) no
+ *  son de ninguna pantalla; `options.view` la fija a mano (null: de ninguna). */
 export async function callMateu(base, body, options = {}) {
+  const view = options.view !== undefined ? options.view
+    : (options.quiet || options.isolated) ? null : currentView()
   const bare = (body.route || '').replace(/^\//, '')
   const res = await fetchWithPolicy(`${base}/mateu/v3/sync/${bare || '_no_route'}`, {
     method: 'POST',
@@ -24,8 +29,11 @@ export async function callMateu(base, body, options = {}) {
       ...body,
       route: bare ? `/${bare}` : '',
     }),
-  }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated })
-  return res.json()
+  }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, view })
+  const increment = await res.json()
+  // el cuerpo también tarda: lo que llegue después de cambiar de pantalla tampoco se aplica
+  if (isViewStale(view)) throw staleResponseError(body.actionId)
+  return increment
 }
 
 /** Bootstrap de la shell: el App raíz solo resuelve por el endpoint genérico.
@@ -190,6 +198,8 @@ export async function loadLookups(base, reg, ctxId = HOST_ID, opts = {}) {
  *  callback, comportamiento clásico: lista completa al acabar. */
 export async function runMateuActionSse(base, ctx, route, actionId, componentState, extra = {}) {
   const { onIncrement, ...bodyExtra } = extra || {}
+  // atada a la pantalla en curso, como callMateu: cada increment se comprueba al llegar
+  const view = currentView()
   ctx = actionTransportOf(ctx, actionId)
   const outbound = (ctx && ctx.outbound) || {}
   base = outbound.baseUrl != null ? outbound.baseUrl : base
@@ -211,17 +221,22 @@ export async function runMateuActionSse(base, ctx, route, actionId, componentSta
       route: bare ? `/${bare}` : '',
       actionId,
     }),
-  }, { actionId, timeoutMillis: -1 })
+  }, { actionId, timeoutMillis: -1, view })
   const increments = []
+  let reader
   const handle = async (raw) => {
     const line = raw.trim()
     if (!line.startsWith('data:')) return
+    if (isViewStale(view)) {
+      if (reader && reader.cancel) reader.cancel().catch(() => undefined)
+      throw staleResponseError(actionId)
+    }
     const inc = JSON.parse(line.slice(5).trim())
     const consumed = onIncrement ? await onIncrement(inc) : false
     if (!consumed) increments.push(inc)
   }
   if (res.body && res.body.getReader) {
-    const reader = res.body.getReader()
+    reader = res.body.getReader()
     const decoder = new TextDecoder()
     let buffer = ''
     for (;;) {
