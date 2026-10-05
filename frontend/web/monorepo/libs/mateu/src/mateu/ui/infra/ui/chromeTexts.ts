@@ -23,6 +23,7 @@ const TEXTS = {
         confirmMessage: 'Are you sure?',
         confirmYes: 'Yes',
         confirmNo: 'No',
+        forbidden: 'You are not allowed to do this.',
     },
     es: {
         chat: 'Asistente',
@@ -40,6 +41,7 @@ const TEXTS = {
         confirmMessage: '¿Seguro?',
         confirmYes: 'Sí',
         confirmNo: 'No',
+        forbidden: 'No tienes permiso para esta acción.',
     },
 } as const
 

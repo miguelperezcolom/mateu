@@ -25,6 +25,7 @@ import {trackFabAnchor} from "@infra/ui/layout/fabRail.ts";
 import {getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
 import {getStaticFragment, putStaticFragment} from "@infra/staticViewCache.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
+import {actionIsForCurrentView, uxIdentity} from "@infra/ui/staleViewGuard.ts";
 
 @customElement('mateu-ux')
 export class MateuUx extends ConnectedElement {
@@ -128,6 +129,14 @@ export class MateuUx extends ConnectedElement {
      * on a timer does not re-walk its own tree three times a tick.
      */
     private lastStampedComponent: Component | undefined
+
+    /**
+     * The identity (id + base url) this ux had when the content now on screen was produced for it
+     * — a fragment landing, or a structure seeded from the cache. When Lit reuses this element for
+     * another page the identity moves on before the new content lands, and actions the outgoing
+     * content still fires must not reach the new page's server (see staleViewGuard.ts).
+     */
+    private contentIdentity: string | undefined
     private releaseFabAnchor: (() => void) | undefined
 
     /** Stable client-cache key for this ux's current route load (see routeStructureCache.ts). */
@@ -295,6 +304,20 @@ export class MateuUx extends ConnectedElement {
             callbackToken: string
         };
         const detail = this.detail1
+        if (e.type == 'server-side-action-requested'
+            && detail.initiator !== (this as unknown as HTMLElement)
+            && !actionIsForCurrentView(this.contentIdentity, uxIdentity(this.id, this.baseUrl), detail.actionId)) {
+            // Fired by the OUTGOING page's content after this element was re-bound to another
+            // page: sending it would carry that page's serverSideType to this page's server. The
+            // initiator is told the run is over (not bubbling: the page's own load is in flight,
+            // and its veil is not this run's to lower).
+            console.debug?.('mateu-ux: dropped an action of the previous view', detail.actionId,
+                detail.serverSideType, 'now', this.baseUrl, this.route)
+            detail.initiator?.dispatchEvent?.(new CustomEvent('backend-cancelled-event', {
+                detail: { actionId: detail.actionId },
+            }))
+            return
+        }
         if (e.type == 'server-side-action-requested') {
                 let selectedService = service
                 if (detail.sse) {
@@ -424,6 +447,7 @@ export class MateuUx extends ConnectedElement {
                             // follow it here: if the server answers state-only, no full
                             // structure will arrive to stamp it later.
                             this.stampPageChrome()
+                            this.contentIdentity = uxIdentity(this.id, this.baseUrl)
                         }
                     }
                     this.manageActionEvent(new CustomEvent('server-side-action-requested', {
@@ -468,6 +492,9 @@ export class MateuUx extends ConnectedElement {
 
     // write state to reactive properties
     applyFragment(fragment: UIFragment) {
+        // Every fragment reaching here answers a request this ux sent under its current id
+        // (ConnectedElement routes them by targetComponentId), so what it shows is this identity's.
+        this.contentIdentity = uxIdentity(this.id, this.baseUrl)
         if (!fragment.component && this.fragment?.component) {
             // A state/data-only fragment (e.g. a host-page push emitted while an embedded
             // mediator loads) must not blank the routed content — merge it onto the current
