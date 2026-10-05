@@ -1,7 +1,7 @@
 import { customElement, state } from "lit/decorators.js";
 import { css, html, LitElement } from "lit";
 import { notify } from "@application/Notifier.ts";
-import { classifyRequestFailure, RequestFailure } from "@infra/http/requestPolicy.ts";
+import { classifyRequestFailure, offersManualRetry, RequestFailure } from "@infra/http/requestPolicy.ts";
 import { connectivity } from "@infra/http/connectivity.ts";
 import { anyPending } from "@infra/ui/pendingIndicator.ts";
 import { reportClientError, failureReportOf } from "@infra/http/clientErrorReporter.ts";
@@ -64,7 +64,7 @@ export class MateuApiCaller extends LitElement {
         // Anything the client can retry by itself already has been, silently. A retry offered
         // here is the case where repeating was OUR call to make and we declined to make it —
         // so the decision goes to the user, who knows whether they can afford a duplicate.
-        const retry = detail.retry as (() => void) | undefined
+        const retry = offersManualRetry(failure) ? detail.retry as (() => void) | undefined : undefined
         notify({
             text: failure.message,
             variant: 'error',

@@ -1,3 +1,5 @@
+import { chromeText } from "../ui/chromeTexts.ts"
+
 /**
  * Request policy — turns a transport failure into something a USER can act on.
  *
@@ -22,8 +24,14 @@ export type RequestFailureKind =
     | 'timeout'
     /** The server answered, but with a 5xx. */
     | 'server'
-    /** Credentials expired or access denied (401/403). */
+    /** Credentials missing or expired (401): the re-auth flow's business. */
     | 'unauthorized'
+    /**
+     * The server knows who you are and refuses THIS (403): a role you lack, or an action/view the
+     * app does not expose (the wire-type allowlist). Signing in again fixes none of that, so it is
+     * not presented as an expired session.
+     */
+    | 'forbidden'
     /** The target is gone (404/410). */
     | 'notFound'
     /** Any other 4xx: the request itself was rejected. */
@@ -54,6 +62,8 @@ const messages: Record<RequestFailureKind, (status?: number) => string> = {
     timeout: () => 'The server is taking too long to answer. Your changes may not have been saved.',
     server: (status) => `The server could not complete the request${status ? ` (error ${status})` : ''}. Please try again.`,
     unauthorized: () => 'Your session is no longer valid. Please sign in again.',
+    // localized: the page's language (chromeTexts), Spanish or English
+    forbidden: () => chromeText('forbidden'),
     notFound: () => 'This is no longer available. It may have been moved or deleted.',
     client: (status) => `The request was rejected${status ? ` (error ${status})` : ''}.`,
     cancelled: () => '',
@@ -103,7 +113,8 @@ export const classifyRequestFailure = (
         if (code === 'ERR_NETWORK' || /network error/i.test(err.message ?? '')) return failure('offline')
         return failure('unknown')
     }
-    if (status === 401 || status === 403) return failure('unauthorized')
+    if (status === 401) return failure('unauthorized')
+    if (status === 403) return failure('forbidden')
     if (status === 404 || status === 410) return failure('notFound')
     // 408 Request Timeout / 429 Too Many Requests / 503 are all "come back in a moment".
     if (status === 408 || status === 429) return failure('timeout')
@@ -115,3 +126,10 @@ export const classifyRequestFailure = (
 /** Convenience for call sites that only need the user-facing text. */
 export const describeRequestFailure = (error: unknown, options?: { online?: boolean }): string =>
     classifyRequestFailure(error, options).message
+
+/**
+ * Whether the user should be offered to send the request again by hand. A refusal (403) answers
+ * the same to the same request: a Retry next to "you are not allowed" only invites a second no.
+ */
+export const offersManualRetry = (failure: Pick<RequestFailure, 'kind'>): boolean =>
+    failure.kind !== 'forbidden'

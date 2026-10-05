@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { classifyRequestFailure, describeRequestFailure } from './requestPolicy'
+import { describe, it, expect, vi } from 'vitest'
+import { classifyRequestFailure, describeRequestFailure, offersManualRetry } from './requestPolicy'
 
 /** Shapes the way axios reports each condition. */
 const axiosError = (over: Record<string, unknown>) => ({ message: '', ...over })
@@ -49,8 +49,33 @@ describe('classifyRequestFailure', () => {
 
     it('separates an expired session from a missing target', () => {
         expect(classifyRequestFailure({ response: { status: 401 } }).kind).toBe('unauthorized')
-        expect(classifyRequestFailure({ response: { status: 403 } }).kind).toBe('unauthorized')
+        expect(classifyRequestFailure({ response: { status: 403 } }).kind).toBe('forbidden')
         expect(classifyRequestFailure({ response: { status: 404 } }).kind).toBe('notFound')
+    })
+
+    it('does not present a 403 as an expired session', () => {
+        // A 403 is a refusal of THIS request (a missing role, or a view type the remote does not
+        // expose — the wire-type allowlist): "sign in again" sends the user to a login that fixes
+        // nothing. Its own kind keeps it apart in the client-error log too.
+        const en = classifyRequestFailure({ response: { status: 403 } })
+        expect(en.kind).toBe('forbidden')
+        expect(en.status).toBe(403)
+        expect(en.retryable).toBe(false)
+        expect(en.message).not.toMatch(/session/i)
+        vi.stubGlobal('document', { documentElement: { lang: 'es' } })
+        try {
+            expect(classifyRequestFailure({ response: { status: 403 } }).message)
+                .toBe('No tienes permiso para esta acción.')
+            expect(classifyRequestFailure({ response: { status: 401 } }).kind).toBe('unauthorized')
+        } finally {
+            vi.unstubAllGlobals()
+        }
+    })
+
+    it('offers no manual Retry for a refusal', () => {
+        expect(offersManualRetry(classifyRequestFailure({ response: { status: 403 } }))).toBe(false)
+        expect(offersManualRetry(classifyRequestFailure({ response: { status: 401 } }))).toBe(true)
+        expect(offersManualRetry(classifyRequestFailure({ response: { status: 500 } }))).toBe(true)
     })
 
     it('treats 408 and 429 as "come back in a moment"', () => {
