@@ -5,6 +5,7 @@
 
 import assert from 'node:assert/strict'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
+import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLogEndpointOf, clientErrors, redactUrl, routeOfRequestUrl } from './clientLog.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
 import { guidedProcessMediaQuery, guidedProcessWheelIsNative } from './a11y.mjs'
 import { activeSectionOf, sectionHomeOf, sectionOf } from './navTree.mjs'
@@ -4229,6 +4230,182 @@ test('P1: una página de solo lectura (sus campos son textos) se pinta, no sale 
   // pero si el form genérico tiene campos, unos textos sueltos no le quitan el sitio
   assert.equal(p1HostContentShown(blocks, { ...summary, fields: [{ fieldId: 'x' }] }), false)
   assert.equal(p1HostContentShown(null, summary), false)
+})
+
+// ── errores del cliente → log del servidor (clientLog.mjs) ──────────────────────────────────
+// Reloj, temporizador y envío inyectados: nada de esperas reales.
+const fakeClientLog = (opts = {}) => {
+  let t = 1_000_000
+  const timers = []
+  const sent = []
+  const reporter = createClientErrorReporter({
+    renderer: 'redwood',
+    now: () => t,
+    schedule: (fn, ms) => { const h = { fn, at: t + ms }; timers.push(h); return h },
+    cancel: (h) => { const i = timers.indexOf(h); if (i >= 0) timers.splice(i, 1) },
+    send: opts.send || ((url, body) => { sent.push({ url, lines: JSON.parse(body) }); return Promise.resolve(204) }),
+    userAgent: 'UA',
+    pageUrl: () => 'https://app/x?code=secret&tab=2#frag',
+    ...opts,
+  })
+  const advance = (ms) => {
+    t += ms
+    for (;;) {
+      const due = timers.filter((h) => h.at <= t).sort((a, b) => a.at - b.at)[0]
+      if (!due) break
+      timers.splice(timers.indexOf(due), 1)
+      due.fn()
+    }
+  }
+  return { reporter, sent, advance, lines: () => sent.flatMap((s) => s.lines) }
+}
+
+test('clientLog: el mismo error repetido es UNA línea, y las repeticiones van en un resumen al cerrar la ventana', () => {
+  const { reporter, sent, advance, lines } = fakeClientLog()
+  const e = { kind: 'unauthorized', status: 401, message: 'Tu sesión ya no es válida. Vuelve a iniciar sesión.', url: '/mateu/v3/sync/bookings', actionId: 'save' }
+  reporter.report(e); reporter.report(e)
+  advance(2000)
+  assert.equal(sent.length, 1)
+  assert.equal(sent[0].url, '/mateu/v3/client-log')
+  const [first] = lines()
+  assert.equal(first.count, 2)
+  assert.equal(first.kind, 'unauthorized')
+  assert.equal(first.route, '/bookings', 'la ruta se saca de la URL de sync')
+  assert.equal(first.renderer, 'redwood')
+  assert.equal(first.pageUrl, 'https://app/x?code=***&tab=2', 'sin fragmento y sin el code del login')
+  // tres más dentro de la ventana: nada sale hasta que se cierra
+  advance(1000); reporter.report(e); advance(1000); reporter.report(e); reporter.report(e)
+  advance(10000)
+  assert.equal(sent.length, 1)
+  advance(60000)
+  assert.equal(sent.length, 2)
+  const summary = lines()[1]
+  assert.equal(summary.count, 3)
+  assert.ok(summary.firstAt < summary.lastAt)
+  // pasada la ventana, el mismo error vuelve a ser noticia
+  reporter.report(e); advance(2000)
+  assert.equal(lines().length, 3)
+  assert.equal(lines()[2].count, 1)
+})
+
+test('clientLog: como mucho 20 líneas por minuto; las que no caben se cuentan en `dropped` de la siguiente', () => {
+  const { reporter, advance, lines } = fakeClientLog()
+  for (let i = 0; i < 30; i++) reporter.report({ kind: 'server', status: 500, message: 'm' + i })
+  advance(2000)
+  assert.equal(lines().length, 20)
+  reporter.report({ kind: 'server', status: 500, message: 'later' })
+  advance(2000)
+  assert.equal(lines().length, 20, 'el minuto aún no ha pasado')
+  advance(60000)
+  reporter.report({ kind: 'server', status: 500, message: 'next minute' })
+  advance(2000)
+  const last = lines()[lines().length - 1]
+  assert.equal(last.message, 'next minute')
+  assert.equal(last.dropped, 11)
+})
+
+test('clientLog: sin bucles — ni el propio endpoint, ni cancelled, ni un envío que falla o lanza', async () => {
+  let calls = 0
+  const { reporter, advance } = fakeClientLog({ send: () => { calls++; if (calls === 1) throw new Error('boom'); return Promise.reject(new Error('offline')) } })
+  reporter.report({ kind: 'offline', url: '/mateu/v3/client-log', message: 'x' })
+  reporter.report({ kind: 'cancelled', message: '' })
+  reporter.report({ kind: 'js-error', message: 'ResizeObserver loop completed with undelivered notifications.' })
+  advance(5000)
+  assert.equal(calls, 0)
+  reporter.report({ kind: 'server', status: 500, message: 'a' })
+  advance(2000)
+  reporter.report({ kind: 'server', status: 500, message: 'b' })
+  advance(2000)
+  await new Promise((r) => setTimeout(r, 0))
+  assert.equal(calls, 2, 'cada fallo de envío se traga; ninguno genera otro informe')
+  assert.equal(reporter._pendingCount(), 2)
+})
+
+test('clientLog: un 404 del endpoint (backend sin él o desactivado) lo apaga para la página', async () => {
+  let calls = 0
+  const { reporter, advance } = fakeClientLog({ send: () => { calls++; return Promise.resolve(404) } })
+  reporter.report({ kind: 'server', status: 500, message: 'a' })
+  advance(2000)
+  await new Promise((r) => setTimeout(r, 0))
+  assert.equal(reporter.isDisabled(), true)
+  reporter.report({ kind: 'server', status: 500, message: 'b' })
+  advance(5000)
+  assert.equal(calls, 1)
+})
+
+test('clientLog: qué respuestas dicen "aquí no hay endpoint" y cuáles son pasajeras', () => {
+  for (const s of [404, 405, 400, 200, 500]) assert.equal(endpointIsMissing(s), true, String(s))
+  for (const s of [undefined, 0, 204, 401, 403, 413, 429, 502, 503, 504]) assert.equal(endpointIsMissing(s), false, String(s))
+})
+
+test('clientLog: trunca message/stack y parte el lote para no pasar del límite del servidor', () => {
+  const { reporter, sent, advance, lines } = fakeClientLog()
+  for (let i = 0; i < 8; i++) reporter.report({ kind: 'js-error', message: i + 'x'.repeat(5000), stack: 'y'.repeat(9000) })
+  advance(2000)
+  assert.equal(lines().length, 8)
+  assert.ok(lines().every((l) => l.message.length === 1001 && l.stack.length === 4001))
+  assert.ok(sent.length > 1, 'más de un envío')
+  assert.ok(sent.every((s) => JSON.stringify(s.lines).length < 16 * 1024))
+})
+
+test('clientLog: el endpoint sólo es del mismo origen', () => {
+  assert.equal(clientLogEndpointOf('', 'https://a'), '/mateu/v3/client-log')
+  assert.equal(clientLogEndpointOf('/admin/', 'https://a'), '/admin/mateu/v3/client-log')
+  assert.equal(clientLogEndpointOf('https://a/admin', 'https://a'), 'https://a/admin/mateu/v3/client-log')
+  assert.equal(clientLogEndpointOf('https://other/admin', 'https://a'), null)
+  assert.equal(redactUrl('/x?access_token=abc&q=1'), '/x?access_token=***&q=1')
+  assert.equal(routeOfRequestUrl('/b/mateu/v3/sync/_no_route'), '')
+})
+
+atest('clientLog: el envío va por fetch keepalive con el Bearer; sendBeacon sólo al salir y sin token', async () => {
+  const original = globalThis.fetch
+  const calls = []
+  globalThis.fetch = async (url, init) => { calls.push({ url, init }); return { status: 204 } }
+  const hadNavigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator')
+  const beacons = []
+  Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { sendBeacon: (u, b) => { beacons.push(u); return true } } })
+  try {
+    const status = await clientLogSender(() => ({ Authorization: 'Bearer T' }))('/mateu/v3/client-log', '[]', { final: true })
+    assert.equal(status, 204)
+    assert.equal(calls[0].init.keepalive, true)
+    assert.equal(calls[0].init.headers.Authorization, 'Bearer T')
+    assert.equal(beacons.length, 0, 'con token, ni al salir se usa sendBeacon (no lleva cabeceras)')
+    await clientLogSender(() => ({}))('/mateu/v3/client-log', '[]', { final: true })
+    assert.equal(beacons.length, 1)
+    assert.equal(calls.length, 1)
+  } finally {
+    globalThis.fetch = original
+    if (hadNavigator) Object.defineProperty(globalThis, 'navigator', hadNavigator); else delete globalThis.navigator
+  }
+})
+
+atest('clientLog: un fallo clasificado de fetchWithPolicy se informa una vez; un abort (cancelled) no', async () => {
+  connectivity.reset()
+  const reports = []
+  clientErrors._reporter = { report: (e) => reports.push(e) }
+  const original = globalThis.fetch
+  try {
+    globalThis.fetch = async () => ({ ok: false, status: 401, text: async () => '' })
+    await assert.rejects(fetchWithPolicy('/mateu/v3/sync/bookings', { headers: { traceparent: '00-abc-def-01' } }, { actionId: 'save' }))
+    assert.equal(reports.length, 1)
+    assert.equal(reports[0].kind, 'unauthorized')
+    assert.equal(reports[0].status, 401)
+    assert.equal(reports[0].actionId, 'save')
+    assert.equal(reports[0].traceparent, '00-abc-def-01')
+    assert.match(reports[0].detail, /HTTP 401/)
+    globalThis.fetch = async () => { const e = new Error('aborted'); e.name = 'AbortError'; throw e }
+    await assert.rejects(fetchWithPolicy('/mateu/v3/sync/x', {}, { actionId: 'go' }))
+    // el reporter de verdad descarta 'cancelled'; aquí se comprueba que el kind llega como tal
+    assert.equal(reports[1].kind, 'cancelled')
+    const real = fakeClientLog()
+    real.reporter.report(reports[1])
+    real.advance(5000)
+    assert.equal(real.sent.length, 0)
+  } finally {
+    globalThis.fetch = original
+    clientErrors._reporter = null
+    connectivity.reset()
+  }
 })
 
 await queue
