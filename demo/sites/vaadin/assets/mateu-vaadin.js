@@ -10939,7 +10939,7 @@ ${i}
                     .dataProvider="${this.metadata?.infiniteScrolling?this.dataProvider:void 0}"
                     page-size="${this.metadata?.pageSize}"
                     multi-sort-on-shift-click
-                    @selected-items-changed="${e=>{let t=(e.detail.value??[]).filter(e=>!Lm(e));this.emptyArray(this.state[this.id+`_selected_items`])&&this.emptyArray(t)||(this.state[this.id+`_selected_items`]=t,this.metadata?.onRowSelectionChangedActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.metadata?.onRowSelectionChangedActionId},bubbles:!0,composed:!0})))}}"
+                    @selected-items-changed="${e=>{let t=(e.detail.value??[]).filter(e=>!Lm(e));this.emptyArray(this.state[this.id+`_selected_items`])&&this.emptyArray(t)||(this.state[this.id+`_selected_items`]=t,c&&this.grid?.requestContentUpdate(),this.metadata?.onRowSelectionChangedActionId&&this.dispatchEvent(new CustomEvent(`action-requested`,{detail:{actionId:this.metadata?.onRowSelectionChangedActionId},bubbles:!0,composed:!0})))}}"
                     @active-item-changed="${E(this.metadata?.detailPath&&!this.metadata?.useButtonForDetail?e=>{let t=e.detail.value;t&&Lm(t)||(this.detailsOpenedItems=t?[t]:[])}:void 0)}"
                     @click="${E(this.metadata?.rowRoute?e=>this.navigateToRowRoute(e):void 0)}"
                     .detailsOpenedItems="${p}"
@@ -10975,7 +10975,7 @@ ${i}
                 ${this.metadata?.columns?.find(e=>e.metadata.tooltipPath)?b`<vaadin-tooltip slot="tooltip" .generator="${this.tooltipGenerator}"></vaadin-tooltip>`:x}
             </vaadin-grid>
             <slot></slot>
-       `}sameRow(e,t){return e===t||e?._rowNumber!==void 0&&t?._rowNumber!==void 0&&e._rowNumber===t._rowNumber}renderRowLines(e,t,n){return b`<div class="row-lines"
+       `}sameRow(e,t){return e===t||e?._rowNumber!==void 0&&t?._rowNumber!==void 0&&e._rowNumber===t._rowNumber}renderRowLines(e,t,n){let r=this.state?.[this.id+`_selected_items`]??[],i=this.identifierFieldName,a=this.state?._selectedId??this.appState?._splitDetailId;return b`<div class="row-lines" ?data-selected="${r.some(t=>this.sameRow(t,e))||!!i&&a!==void 0&&String(e?.[i])===String(a)}"
                          @click="${n?t=>{t.composedPath().some(e=>e?.tagName&&/^(A|BUTTON|INPUT|VAADIN-BUTTON|VAADIN-CHECKBOX)$/.test(e.tagName))||(this.detailsOpenedItems=this.isDetailOpen(e)?[]:[e])}:x}">
             ${t.map(t=>b`<div class="row-line">
                 ${t.map(t=>b`<span class="row-line-pair" data-column="${t.id}">
@@ -11002,20 +11002,21 @@ ${i}
             background-color: var(--lumo-primary-color-10pct);
         }
         /* multi-line rows: the extra lines sit right under line 1, inside the same row */
-        vaadin-grid[data-multiline]::part(details-cell) {
-            padding-top: 0;
-            padding-bottom: var(--lumo-space-xs);
-        }
-        vaadin-grid[data-multiline]::part(body-cell) {
-            padding-bottom: 0;
+        /* the details cell's content carries the grid's cell padding: the lines bring their own,
+           so a selected row's tint fills the whole area */
+        vaadin-grid[data-multiline] vaadin-grid-cell-content:has(> .row-lines) {
+            padding: 0;
         }
         .row-lines {
             display: flex;
             flex-direction: column;
             gap: 2px;
-            padding: 0 var(--lumo-space-m) var(--lumo-space-xs);
+            padding: 0 var(--lumo-space-m) var(--lumo-space-s);
             font-size: var(--lumo-font-size-s);
             color: var(--lumo-secondary-text-color);
+        }
+        .row-lines[data-selected] {
+            background-color: var(--lumo-primary-color-10pct);
         }
         .row-line {
             display: flex;
