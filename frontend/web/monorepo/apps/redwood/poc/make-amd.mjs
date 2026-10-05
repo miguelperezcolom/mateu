@@ -214,6 +214,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     installAnnouncer,
     announce,
     announceNavigation,
+    focusIsInChat,
     focusContent,
     focusContentSoon,
     mountSkipLink,

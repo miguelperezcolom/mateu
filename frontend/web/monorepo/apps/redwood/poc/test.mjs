@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import { autoTrail, parentCrumb } from './breadcrumbs.mjs'
 import { createClientErrorReporter, endpointIsMissing, clientLogSender, clientLogEndpointOf, clientErrors, redactUrl, routeOfRequestUrl } from './clientLog.mjs'
 import { foldoutElementAtomsOf } from './elements.mjs'
-import { guidedProcessMediaQuery, guidedProcessWheelIsNative } from './a11y.mjs'
+import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat } from './a11y.mjs'
 import { activeSectionOf, sectionHomeOf, sectionOf } from './navTree.mjs'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
@@ -5000,4 +5000,12 @@ test('chat: la lista sigue el último mensaje mientras crece; si el lector subi�
     assert.equal(el.scrollTop, 1700)            // envía otra pregunta: vuelve a seguir el final
     stop()
   } finally { globalThis.MutationObserver = saved }
+})
+
+test('chat: una pantalla que abre el asistente no le quita el foco al chat', () => {
+  const inChat = { closest: (s) => (s === '#mateuChatPanel' ? {} : null) }
+  const inPage = { closest: () => null }
+  assert.equal(focusIsInChat(inChat), true)
+  assert.equal(focusIsInChat(inPage), false)
+  assert.equal(focusIsInChat(null), false)
 })
