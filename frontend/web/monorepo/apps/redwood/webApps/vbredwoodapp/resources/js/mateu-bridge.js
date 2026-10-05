@@ -7368,6 +7368,22 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return (last && last[0] && last[0].transcript ? String(last[0].transcript) : '').trim()
   }
 
+  /**
+   * El atajo del micrófono del chat: Ctrl+Shift+M en todas las plataformas (en macOS también Ctrl, no
+   * Cmd — Cmd+Shift+M cambia de perfil en Chrome y Opción+M escribe «µ»). Exactamente Ctrl y Shift,
+   * sin Alt ni Cmd, y no la autorrepetición de la tecla mantenida. La tecla se reconoce por su carácter
+   * (AZERTY incluido) o, en un teclado cuya M no escribe una letra latina, por su posición (KeyM).
+   */
+  const CHAT_MIC_SHORTCUT = 'Ctrl+Shift+M'
+  const CHAT_MIC_ARIA_KEYSHORTCUTS = 'Control+Shift+M'
+
+  function isChatMicShortcut(event) {
+    if (!event || !event.ctrlKey || !event.shiftKey || event.altKey || event.metaKey || event.repeat) return false
+    const key = typeof event.key === 'string' ? event.key : ''
+    if (/^[a-z]$/i.test(key)) return key.toLowerCase() === 'm'
+    return event.code === 'KeyM'
+  }
+
   // ── Markdown de las respuestas ──────────────────────────────────────────────────────────────────
   // El agente contesta en markdown (negritas, listas, tablas, código). El chat compartido lo pinta con
   // marked + DOMPurify; aquí no hay npm en el bundle AMD, así que el subconjunto que usan los agentes se
@@ -7755,5 +7771,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     chatMarkdownToHtml,
     chatRouteOfLink,
     transcriptOf,
+    isChatMicShortcut,
+    CHAT_MIC_ARIA_KEYSHORTCUTS,
   };
 });

@@ -13,6 +13,8 @@ const TEXTS = {
         empty: 'Ask whatever you need: about this screen, your data or how to do something.',
         placeholder: 'Write a message…',
         send: 'Send',
+        dictate: 'Dictate',
+        stopDictation: 'Stop dictation',
     },
     es: {
         title: 'Asistente',
@@ -23,6 +25,8 @@ const TEXTS = {
         empty: 'Pregunta lo que necesites: sobre esta pantalla, tus datos o cómo hacer algo.',
         placeholder: 'Escribe un mensaje…',
         send: 'Enviar',
+        dictate: 'Dictar',
+        stopDictation: 'Detener dictado',
     },
 } as const
 

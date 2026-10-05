@@ -30,7 +30,8 @@ import {
   buildChatMenuContext, buildChatBody, effectiveChatUrl, tryParseTokenUsage,
   tryParseCustomEvent, streamChat, mergeTurnUsage, addUsage, chatStatusText,
   createSseParser, classifyChatPayload, isEmptyUsage, createChatProgress, latestUsage,
-  speechRecognitionCtor, transcriptOf, chatMarkdownToHtml, chatRouteOfLink, stickChatToBottom,
+  speechRecognitionCtor, transcriptOf, chatMarkdownToHtml, chatRouteOfLink, stickChatToBottom, isChatMicShortcut,
+  CHAT_MIC_ARIA_KEYSHORTCUTS,
 } from './chat.mjs'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
@@ -2652,7 +2653,7 @@ test('chat: el panel dice que el asistente trabaja, cuenta los tokens y deja dic
   assert.match(panel, /class="oj-badge oj-badge-subtle[^"]*">entrada/)
   assert.match(panel, /class="oj-badge oj-badge-subtle[^"]*">salida/)
   // micrófono: oj-button de icono Redwood, sólo donde hay reconocimiento de voz, antes del campo
-  const mic = panel.match(/<oj-bind-if test="\[\[ \$application\.variables\.mateuChatMicAvailable \]\]">\s*<oj-button id="mateuChatMic"[\s\S]*?<\/oj-button>/)
+  const mic = panel.match(/<oj-bind-if test="\[\[ \$application\.variables\.mateuChatMicAvailable \]\]">\s*<oj-bind-if test="\[\[ !\$application\.variables\.mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[\s\S]*?<\/oj-button>/)
   assert.ok(mic, 'el botón de dictar depende de mateuChatMicAvailable')
   assert.match(mic[0], /oj-ux-ico-mic-on/)
   assert.match(mic[0], /\$listeners\.chatMic/)
@@ -3817,6 +3818,36 @@ test('chat: el dictado usa el reconocimiento del navegador si existe, y el últi
   assert.equal(transcriptOf({ results: [[{ transcript: 'hola' }], [{ transcript: ' llegadas de hoy ' }]] }), 'llegadas de hoy')
   assert.equal(transcriptOf({ results: [] }), '')
   assert.equal(transcriptOf(null), '')
+})
+
+test('chat: Ctrl+Shift+M activa/desactiva el micrófono (también en macOS: Ctrl, no Cmd)', () => {
+  const k = (over = {}) => ({ key: 'M', code: 'KeyM', ctrlKey: true, shiftKey: true, altKey: false, metaKey: false, repeat: false, ...over })
+  assert.equal(isChatMicShortcut(k()), true)
+  assert.equal(isChatMicShortcut(k({ key: 'm' })), true)
+  assert.equal(isChatMicShortcut(k({ ctrlKey: false })), false)
+  assert.equal(isChatMicShortcut(k({ shiftKey: false })), false)
+  assert.equal(isChatMicShortcut(k({ altKey: true })), false)
+  assert.equal(isChatMicShortcut(k({ metaKey: true, ctrlKey: false })), false)
+  assert.equal(isChatMicShortcut(k({ metaKey: true })), false)
+  assert.equal(isChatMicShortcut(k({ repeat: true })), false)
+  assert.equal(isChatMicShortcut(k({ key: 'N', code: 'KeyN' })), false)
+  // por el carácter en teclados latinos (AZERTY: la M está donde QWERTY tiene «;»), por posición en el resto
+  assert.equal(isChatMicShortcut(k({ key: 'M', code: 'Semicolon' })), true)
+  assert.equal(isChatMicShortcut(k({ key: 'Q', code: 'KeyM' })), false)
+  assert.equal(isChatMicShortcut(k({ key: 'Ь', code: 'KeyM' })), true)
+  assert.equal(isChatMicShortcut(null), false)
+  assert.equal(CHAT_MIC_ARIA_KEYSHORTCUTS, 'Control+Shift+M')
+  // la página lo engancha al documento y pulsa el botón del micrófono (solo existe con el panel abierto
+  // y reconocimiento de voz); el botón lo anuncia
+  const page = webApp('pages/shell-page.js')
+  assert.match(page, /bridge\.isChatMicShortcut\(event\)/)
+  assert.match(page, /#mateuChatMic/)
+  assert.match(page, /setAttribute\('aria-keyshortcuts', bridge\.CHAT_MIC_ARIA_KEYSHORTCUTS\)/)
+  const shell = webApp('pages/shell-page.html')
+  assert.match(shell, /aria-keyshortcuts="Control\+Shift\+M"/)
+  // un botón por estado (el texto de un oj-button no sigue a un oj-bind-text): el de escuchar resaltado
+  assert.match(shell, /mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[^>]*chroming="callToAction"[\s\S]*?Detener dictado \(Ctrl\+Shift\+M\)\s*<\/oj-button>/)
+  assert.match(shell, /!\$application\.variables\.mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[^>]*chroming="borderless"[\s\S]*?Dictar \(Ctrl\+Shift\+M\)\s*<\/oj-button>/)
 })
 
 // ── gaps de Redwood vistos en la demo de ec-demo1 (3.0-alpha.376) ─────────────────────────
