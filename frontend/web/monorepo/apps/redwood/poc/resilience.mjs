@@ -24,6 +24,10 @@ const MESSAGES = {
   timeout: () => 'El servidor tarda demasiado en responder. Puede que tus cambios no se hayan guardado.',
   server: (s) => `El servidor no ha podido completar la petición${s ? ` (error ${s})` : ''}. Inténtalo de nuevo.`,
   unauthorized: () => 'Tu sesión ya no es válida. Vuelve a iniciar sesión.',
+  // Un 403 NO es la sesión: el servidor sabe quién eres y dice que no a ESTO (una acción que la
+  // vista no declara, un rol que falta). Decir "vuelve a iniciar sesión" mandaba a un login que
+  // no arregla nada.
+  forbidden: () => 'No tienes permiso para hacer esto.',
   notFound: () => 'Esto ya no está disponible. Puede que se haya movido o borrado.',
   client: (s) => `La petición ha sido rechazada${s ? ` (error ${s})` : ''}.`,
   cancelled: () => '',
@@ -71,7 +75,8 @@ export function classifyRequestFailure(error, options = {}) {
     }
     return failure('unknown')
   }
-  if (status === 401 || status === 403) return failure('unauthorized')
+  if (status === 401) return failure('unauthorized')
+  if (status === 403) return failure('forbidden')
   if (status === 404 || status === 410) return failure('notFound')
   if (status === 408 || status === 429) return failure('timeout')
   if (status >= 500) return failure('server')
@@ -296,15 +301,19 @@ function authHeaders(init) {
   const already = init && init.headers &&
     (init.headers.Authorization || init.headers.authorization)
   if (already) return null
-  let token = null
+  const token = storedToken()
+  return token ? { Authorization: 'Bearer ' + token } : null
+}
+
+/** El token que dejó el bootstrap, o null (sin localStorage, bloqueado o vacío). */
+function storedToken() {
   try {
-    token = typeof localStorage !== 'undefined' ? localStorage.getItem('__mateu_auth_token') : null
+    return typeof localStorage !== 'undefined' ? localStorage.getItem('__mateu_auth_token') : null
   } catch (e) {
     // Un navegador con el almacenamiento bloqueado. Sin token se sigue: el backend dirá que no,
     // que es mejor que no llamar.
-    token = null
+    return null
   }
-  return token ? { Authorization: 'Bearer ' + token } : null
 }
 
 /**
@@ -316,14 +325,37 @@ export function authHeadersOf() {
   return authHeaders(null) || {}
 }
 
+/** El refresco en marcha, si lo hay: los 401 que llegan mientras tanto esperan a éste. */
+let reauthInFlight = null
+
 /**
  * Pide a la página que reautentique tras un 401, con el mismo contrato que el renderer de Vaadin
  * (sessionGuard.ts): el evento cancelable 'mateu-session-expired' en document, con
  * {retry, giveUp} en el detail. El bootstrap de Mateu lo atiende — fuerza el refresco del token
  * de Keycloak y llama a retry, o manda al login si la sesión ya no existe. Resuelve true si hay
  * que reenviar la petición; false si nadie lo reclamó o la página desistió.
+ *
+ * UN refresco para todos: la pestaña vuelve del fondo con el token caducado y el badge del inbox,
+ * la sincronización del banner y la acción del usuario vuelven 401 a la vez. Cada una lanzando su
+ * evento eran N refrescos forzados en paralelo (y N keycloak.login() si fallaba); ahora los 401
+ * que llegan mientras hay uno en marcha esperan a ése y comparten su respuesta.
+ *
+ * `sentToken` (opcional): el token con el que salió la petición rechazada. Si el que hay ahora es
+ * otro, el refresco ya ocurrió mientras la petición volaba — el del visibilitychange, típicamente
+ * — y basta con reenviar: forzar otro sería tirar uno recién emitido.
  */
-export function askForReauthentication() {
+export function askForReauthentication(sentToken) {
+  if (sentToken !== undefined) {
+    const current = storedToken()
+    if (current && current !== sentToken) return Promise.resolve(true)
+  }
+  if (!reauthInFlight) {
+    reauthInFlight = raiseSessionExpired().finally(() => { reauthInFlight = null })
+  }
+  return reauthInFlight
+}
+
+function raiseSessionExpired() {
   return new Promise((resolve) => {
     if (typeof document === 'undefined' || typeof CustomEvent === 'undefined') {
       resolve(false)
@@ -356,8 +388,12 @@ export function askForReauthentication() {
 export async function fetchWithPolicy(url, init, options = {}) {
   // El token se lee en CADA envío, no una vez: tras un 401 el bootstrap deja uno nuevo en
   // localStorage y el reintento tiene que llevar ese, no el caducado.
+  // El token con el que salió el ÚLTIMO envío (undefined si no llevaba el nuestro): ante un 401
+  // dice si el refresco ya llegó mientras la petición volaba.
+  let sentToken
   const withAuth = () => {
     const auth = authHeaders(init)
+    sentToken = auth ? auth.Authorization.slice('Bearer '.length) : undefined
     return auth ? { ...(init || {}), headers: { ...((init && init.headers) || {}), ...auth } } : init
   }
   const actionId = options.actionId
@@ -387,7 +423,7 @@ export async function fetchWithPolicy(url, init, options = {}) {
       // reintento vuelve a dar 401, falla como siempre.
       if (error && error.status === 401 && !reauthenticated) {
         reauthenticated = true
-        if (await askForReauthentication()) continue
+        if (await askForReauthentication(sentToken)) continue
       }
       const failure = classifyRequestFailure(error, { online: connectivity.isOnline() })
       if (failure.kind === 'offline' && !isolated) connectivity.noteUnreachable()

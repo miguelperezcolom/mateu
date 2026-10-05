@@ -46,6 +46,14 @@ document.addEventListener('mateu-session-expired', e => {
 - The retry happens **once** per request (no loops when the new token is also rejected).
 - Both web renderers raise it: the Vaadin one from its axios client, the Redwood one from its
   bridge's single request path.
+- In the Redwood renderer, 401s that arrive **together** share one event: a tab back from the
+  background whose periodic calls (inbox badge, banner sync) and the user's action all bounce at
+  once triggers a single refresh, and all of them are retried with its token. A request whose
+  token was already replaced while it was in flight (the `visibilitychange` refresh landed first)
+  is simply resent, without raising the event.
+- A **403 is not a session problem** and never raises the event: the server knows who you are and
+  refuses this (an undeclared action, a missing role). Redwood shows "No tienes permiso para hacer
+  esto." instead of the session message.
 - With **no handler registered**, behavior is exactly as before: the request fails — the guard is
   fully opt-in.
 - Because the page never navigates, everything holds: form values, wizard position, scroll,
