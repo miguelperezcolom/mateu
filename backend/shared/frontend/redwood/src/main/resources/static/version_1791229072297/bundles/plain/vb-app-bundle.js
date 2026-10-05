@@ -7645,6 +7645,33 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
     return `<${tag}>` + items.map((it) => `<li>${it.text}${it.sub}</li>`).join('') + `</${tag}>`
   }
 
+  /**
+   * Keeps a chat's message list scrolled to its last message while it grows: a new message, or an
+   * answer streaming in chunk by chunk. Nothing scrolled it, so the answer kept arriving below the
+   * fold. It follows the end only while the reader is at it (within `slack` px): someone who scrolled
+   * up to reread is left there, and is followed again once back at the end or after sending. Returns
+   * a function that stops it. `el` is the scrolling element (overflow-y: auto).
+   */
+  function stickChatToBottom(el, { slack = 48, isUserMessage = (node) => !!(node && node.querySelector && node.querySelector('.mateu-chat-user-text')) } = {}) {
+    if (!el || typeof MutationObserver === 'undefined') return () => {}
+    let stick = true
+    const atEnd = () => el.scrollHeight - el.scrollTop - el.clientHeight <= slack
+    const toEnd = () => { el.scrollTop = el.scrollHeight }
+    const onScroll = () => { stick = atEnd() }
+    el.addEventListener('scroll', onScroll, { passive: true })
+    const observer = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        for (const node of m.addedNodes || []) {
+          if (node.nodeType === 1 && (isUserMessage(node) || (node.classList && node.classList.contains('mateu-chat-user-text')))) stick = true
+        }
+      }
+      if (stick) toEnd()
+    })
+    observer.observe(el, { childList: true, subtree: true, characterData: true })
+    toEnd()
+    return () => { observer.disconnect(); el.removeEventListener('scroll', onScroll) }
+  }
+
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
   setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
   // el editor de cada filtro del buscador (smartFilters.filtersMetadata): oj-dynamic se carga
@@ -7849,6 +7876,7 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider'], (requ
     buildChatBody,
     buildChatMenuContext,
     streamChat,
+    stickChatToBottom,
     uploadChatFiles,
     // el panel mientras el asistente trabaja, los contadores de tokens y el dictado
     mergeTurnUsage,
@@ -12750,6 +12778,38 @@ define('pages/shell-page',['resources/js/mateu-bridge'], (bridge) => {
   'use strict';
 
   class PageModule {
+    constructor() {
+      this.watchChatScroll();
+    }
+
+    /**
+     * Keeps the chat's message list on its last message (bridge.stickChatToBottom). The list lives
+     * in the chat drawer and can be created or re-created later, so the page looks for it whenever
+     * the DOM changes — once per frame — and moves the behaviour to the new element.
+     */
+    watchChatScroll() {
+      if (typeof document === 'undefined' || typeof MutationObserver === 'undefined') return;
+      let current = null;
+      let stop = () => {};
+      let queued = false;
+      const attach = () => {
+        queued = false;
+        const el = document.querySelector('.mateu-chat-messages');
+        if (el && el !== current) {
+          stop();
+          current = el;
+          stop = bridge.stickChatToBottom(el);
+        }
+      };
+      const schedule = () => {
+        if (queued) return;
+        queued = true;
+        (window.requestAnimationFrame || setTimeout)(attach);
+      };
+      new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true });
+      schedule();
+    }
+
     /**
      * La clase de una opción de primer nivel de la subcabecera (MENU_ON_TOP): marcada si su
      * sección es la que está en pantalla (bridge.activeSectionOf). Recibe la ruta seleccionada para
