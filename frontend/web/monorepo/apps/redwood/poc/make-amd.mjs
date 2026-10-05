@@ -232,6 +232,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     buildChatBody,
     buildChatMenuContext,
     streamChat,
+    stickChatToBottom,
     uploadChatFiles,
     // el panel mientras el asistente trabaja, los contadores de tokens y el dictado
     mergeTurnUsage,

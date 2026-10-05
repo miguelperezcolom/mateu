@@ -4,6 +4,38 @@ define(['resources/js/mateu-bridge'], (bridge) => {
   'use strict';
 
   class PageModule {
+    constructor() {
+      this.watchChatScroll();
+    }
+
+    /**
+     * Keeps the chat's message list on its last message (bridge.stickChatToBottom). The list lives
+     * in the chat drawer and can be created or re-created later, so the page looks for it whenever
+     * the DOM changes — once per frame — and moves the behaviour to the new element.
+     */
+    watchChatScroll() {
+      if (typeof document === 'undefined' || typeof MutationObserver === 'undefined') return;
+      let current = null;
+      let stop = () => {};
+      let queued = false;
+      const attach = () => {
+        queued = false;
+        const el = document.querySelector('.mateu-chat-messages');
+        if (el && el !== current) {
+          stop();
+          current = el;
+          stop = bridge.stickChatToBottom(el);
+        }
+      };
+      const schedule = () => {
+        if (queued) return;
+        queued = true;
+        (window.requestAnimationFrame || setTimeout)(attach);
+      };
+      new MutationObserver(schedule).observe(document.body, { childList: true, subtree: true });
+      schedule();
+    }
+
     /**
      * La clase de una opción de primer nivel de la subcabecera (MENU_ON_TOP): marcada si su
      * sección es la que está en pantalla (bridge.activeSectionOf). Recibe la ruta seleccionada para

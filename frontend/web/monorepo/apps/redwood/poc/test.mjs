@@ -30,7 +30,7 @@ import {
   buildChatMenuContext, buildChatBody, effectiveChatUrl, tryParseTokenUsage,
   tryParseCustomEvent, streamChat, mergeTurnUsage, addUsage, chatStatusText,
   createSseParser, classifyChatPayload, isEmptyUsage, createChatProgress, latestUsage,
-  speechRecognitionCtor, transcriptOf, chatMarkdownToHtml, chatRouteOfLink,
+  speechRecognitionCtor, transcriptOf, chatMarkdownToHtml, chatRouteOfLink, stickChatToBottom,
 } from './chat.mjs'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
@@ -4844,4 +4844,25 @@ test('listing: tooltipPath sin ancho pone el title de otro campo sin cortar el t
   assert.equal(name.template, 'cellClip')
   const r = listing.rows[0]
   assert.deepEqual(r.name__clipCell, { text: String(r.name), title: String(r.id), cls: '' })
+})
+
+test('chat: la lista sigue el último mensaje mientras crece; si el lector subió, no lo arrastra', () => {
+  let observed = null
+  const saved = globalThis.MutationObserver
+  globalThis.MutationObserver = class { constructor(cb) { observed = cb } observe() {} disconnect() {} }
+  try {
+    const listeners = {}
+    const el = { scrollHeight: 1000, scrollTop: 0, clientHeight: 400, addEventListener: (t, f) => { listeners[t] = f }, removeEventListener: () => {} }
+    const stop = stickChatToBottom(el)
+    assert.equal(el.scrollTop, 1000)            // al conectar, al final
+    el.scrollHeight = 1300; observed([{ addedNodes: [] }])
+    assert.equal(el.scrollTop, 1300)            // llega un trozo de respuesta: sigue al final
+    el.scrollTop = 200; listeners.scroll()      // el lector sube a releer
+    el.scrollHeight = 1500; observed([{ addedNodes: [] }])
+    assert.equal(el.scrollTop, 200)             // no lo arrastra
+    const userBubble = { nodeType: 1, querySelector: (s) => s === '.mateu-chat-user-text' ? {} : null, classList: { contains: () => false } }
+    el.scrollHeight = 1700; observed([{ addedNodes: [userBubble] }])
+    assert.equal(el.scrollTop, 1700)            // envía otra pregunta: vuelve a seguir el final
+    stop()
+  } finally { globalThis.MutationObserver = saved }
 })

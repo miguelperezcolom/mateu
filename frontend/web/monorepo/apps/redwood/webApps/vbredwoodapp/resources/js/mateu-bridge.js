@@ -7512,6 +7512,33 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return `<${tag}>` + items.map((it) => `<li>${it.text}${it.sub}</li>`).join('') + `</${tag}>`
   }
 
+  /**
+   * Keeps a chat's message list scrolled to its last message while it grows: a new message, or an
+   * answer streaming in chunk by chunk. Nothing scrolled it, so the answer kept arriving below the
+   * fold. It follows the end only while the reader is at it (within `slack` px): someone who scrolled
+   * up to reread is left there, and is followed again once back at the end or after sending. Returns
+   * a function that stops it. `el` is the scrolling element (overflow-y: auto).
+   */
+  function stickChatToBottom(el, { slack = 48, isUserMessage = (node) => !!(node && node.querySelector && node.querySelector('.mateu-chat-user-text')) } = {}) {
+    if (!el || typeof MutationObserver === 'undefined') return () => {}
+    let stick = true
+    const atEnd = () => el.scrollHeight - el.scrollTop - el.clientHeight <= slack
+    const toEnd = () => { el.scrollTop = el.scrollHeight }
+    const onScroll = () => { stick = atEnd() }
+    el.addEventListener('scroll', onScroll, { passive: true })
+    const observer = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        for (const node of m.addedNodes || []) {
+          if (node.nodeType === 1 && (isUserMessage(node) || (node.classList && node.classList.contains('mateu-chat-user-text')))) stick = true
+        }
+      }
+      if (stick) toEnd()
+    })
+    observer.observe(el, { childList: true, subtree: true, characterData: true })
+    toEnd()
+    return () => { observer.disconnect(); el.removeEventListener('scroll', onScroll) }
+  }
+
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
   setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
   // el editor de cada filtro del buscador (smartFilters.filtersMetadata): oj-dynamic se carga
@@ -7716,6 +7743,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     buildChatBody,
     buildChatMenuContext,
     streamChat,
+    stickChatToBottom,
     uploadChatFiles,
     // el panel mientras el asistente trabaja, los contadores de tokens y el dictado
     mergeTurnUsage,
