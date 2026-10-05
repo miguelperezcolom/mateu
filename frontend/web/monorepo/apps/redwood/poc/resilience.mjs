@@ -242,6 +242,38 @@ const notify = (which, payload) => {
   try { fn(payload) } catch (e) { /* la UI no puede tumbar el transporte */ }
 }
 
+// ── la pantalla en curso ─────────────────────────────────────────────────────────────────
+
+/**
+ * Qué pantalla hay: un contador que la navegación sube al empezar a cargar otra (beginView). Una
+ * petición de la pantalla (callMateu la estampa sola; no las de fondo: widgets de cabecera, menús
+ * remotos, el chat) recuerda la pantalla para la que salió, y su respuesta — buena o mala — que
+ * llega cuando ya hay otra muere en silencio: no se pinta, no pone banda de error ni pide
+ * reautenticar; sólo libera el ocupado (onSettle sin fallo). Es la misma regla que el renderer web
+ * (staleViewGuard.ts): una petición que salió con la pantalla A y vuelve con la B no es de nadie.
+ */
+export const viewGuard = { generation: 0 }
+
+/** Empieza otra pantalla: lo que siga en vuelo de la anterior ya no se aplicará. */
+export function beginView() { return ++viewGuard.generation }
+
+/** La pantalla en curso (para estampar una petición al salir). */
+export function currentView() { return viewGuard.generation }
+
+/** ¿Ya no está en pantalla la vista para la que salió una petición? (undefined: no atada a ninguna) */
+export function isViewStale(view) { return view != null && view !== viewGuard.generation }
+
+/** El rechazo de una respuesta que llegó para una pantalla que ya no está. */
+export function staleResponseError(actionId) {
+  const error = new Error(`respuesta a '${actionId || ''}' para una pantalla que ya no está`)
+  error.stale = true
+  error.code = 'ERR_CANCELED'
+  error.failure = { kind: 'cancelled', message: '', retryable: false, status: undefined }
+  return error
+}
+
+export function isStaleResponse(error) { return !!(error && error.stale === true) }
+
 // ── fetch con política ───────────────────────────────────────────────────────────────────
 
 const delay = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -418,15 +450,29 @@ export async function fetchWithPolicy(url, init, options = {}) {
   // federado, a menudo de otro origen: un pod caído es SU sección no disponible, no "sin conexión"
   const isolated = !!options.isolated
   notifyUnlessQuiet('onStart', { actionId })
+  // `view`: la pantalla para la que sale (currentView); su respuesta muere si ya hay otra
+  const view = options.view
+  const dropStale = () => {
+    // el ocupado se apaga (lo encendió esta petición), sin fallo que enseñar
+    notifyUnlessQuiet('onSettle', { actionId, failure: null })
+    if (typeof console !== 'undefined' && console.debug) {
+      console.debug('mateu: respuesta descartada — su pantalla ya no está', actionId, url)
+    }
+    throw staleResponseError(actionId)
+  }
   let attempt = 0
   let reauthenticated = false
   for (;;) {
     try {
       const res = await sendOnce(url, withAuth(), options.timeoutMillis)
       if (!isolated) connectivity.noteReachable()
+      if (isViewStale(view)) dropStale()
       notifyUnlessQuiet('onSettle', { actionId, failure: null })
       return res
     } catch (error) {
+      if (isStaleResponse(error)) throw error
+      // su pantalla ya no está: ni reautenticar, ni reintentar, ni banda
+      if (isViewStale(view)) dropStale()
       // Un 401 es, casi siempre, el token caducado entre dos refrescos. Se pide a la página que
       // reautentique y se reenvía UNA vez: el servidor rechazó la petición sin ejecutarla, así
       // que repetirla es seguro también para una escritura. Sin nadie que reautentique, o si el

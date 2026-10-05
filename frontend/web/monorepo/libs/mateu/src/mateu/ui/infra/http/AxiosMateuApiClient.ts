@@ -12,6 +12,7 @@ import {classifyRequestFailure} from "@infra/http/requestPolicy.ts";
 import {isIdempotentAction, retryDelayMs, shouldRetry} from "@infra/http/retryPolicy.ts";
 import {connectivity} from "@infra/http/connectivity.ts";
 import {reportClientError} from "@infra/http/clientErrorReporter.ts";
+import {StaleResponse} from "@infra/ui/staleViewGuard.ts";
 
 let abortControllers: AbortController[] = []
 
@@ -53,8 +54,11 @@ export class AxiosMateuApiClient implements MateuApiClient {
             }
             return response
         }, (error: unknown) => {
-            const axiosError = error as { response?: { status?: number }, config?: InternalAxiosRequestConfig & { __mateuRetried?: boolean } }
-            if (axiosError?.response?.status === 401 && axiosError.config && !axiosError.config.__mateuRetried) {
+            const axiosError = error as { response?: { status?: number }, config?: InternalAxiosRequestConfig & { __mateuRetried?: boolean, __mateuIsStale?: () => boolean } }
+            if (axiosError?.response?.status === 401 && axiosError.config && !axiosError.config.__mateuRetried
+                // a 401 for a view no longer on screen does not ask the user to log in again: the
+                // answer would be dropped anyway (staleViewGuard.ts)
+                && !axiosError.config.__mateuIsStale?.()) {
                 const config = axiosError.config
                 config.__mateuRetried = true
                 return handleSessionExpired(error, () => this.axiosInstance.request(config))
@@ -89,7 +93,8 @@ export class AxiosMateuApiClient implements MateuApiClient {
      * `retry` closure that re-runs the action end to end so the UI can offer it to the user.
      */
     async wrap<T>(call: () => Promise<T>, initiator: HTMLElement, background: boolean,
-                  actionId: string, retry?: () => void, quiet = false): Promise<T> {
+                  actionId: string, retry?: () => void, quiet = false,
+                  isStale?: () => boolean): Promise<T> {
         if (!background) {
             initiator.dispatchEvent(new CustomEvent('backend-called-event', {
                 bubbles: true,
@@ -98,7 +103,21 @@ export class AxiosMateuApiClient implements MateuApiClient {
                 }
             }))
         }
+        // The answer to a view that is no longer on screen — success or failure — dies here: the
+        // initiator is only told its run is over (its busy state goes), and the caller gets a
+        // StaleResponse it drops without a word (staleViewGuard.ts).
+        const dropStale = (outcome: 'answered' | 'failed'): never => {
+            initiator.dispatchEvent(new CustomEvent('backend-cancelled-event', {
+                bubbles: true,
+                composed: true,
+                detail: {
+                    actionId
+                }
+            }))
+            throw new StaleResponse(actionId, outcome)
+        }
         return call().then(response => {
+            if (isStale?.()) dropStale('answered')
             initiator.dispatchEvent(new CustomEvent('backend-succeeded-event', {
                 bubbles: true,
                 composed: true,
@@ -107,7 +126,8 @@ export class AxiosMateuApiClient implements MateuApiClient {
                 }
             }))
             return response
-        }).catch((reason: unknown) => {
+        }, (reason: unknown) => {
+            if (isStale?.()) dropStale('failed')
             const failure = classifyRequestFailure(reason, {online: connectivity.isOnline()})
             if (quiet) {
                 // the caller reports it its own way (RunActionOptions.quiet)
@@ -146,7 +166,8 @@ export class AxiosMateuApiClient implements MateuApiClient {
      * ({@link shouldRetry}). Each settled attempt also teaches the connectivity tracker whether
      * the backend is reachable — a reply proves the path better than any browser flag.
      */
-    private async sendWithRetry<T>(send: () => Promise<T>, idempotent: boolean, quiet = false): Promise<T> {
+    private async sendWithRetry<T>(send: () => Promise<T>, idempotent: boolean, quiet = false,
+                                   isStale?: () => boolean): Promise<T> {
         let attempt = 0
         for (;;) {
             try {
@@ -159,7 +180,8 @@ export class AxiosMateuApiClient implements MateuApiClient {
                     connectivity.noteUnreachable()
                 }
                 attempt++
-                if (!shouldRetry(failure, attempt, {idempotent})) {
+                // nobody is waiting for the answer of a view no longer on screen
+                if (isStale?.() || !shouldRetry(failure, attempt, {idempotent})) {
                     throw error
                 }
                 await delay(retryDelayMs(attempt))
@@ -188,11 +210,14 @@ export class AxiosMateuApiClient implements MateuApiClient {
         }).finally(() => this.release(abortController));
     }
 
-    async post(uri: string, data: unknown, timeoutMillis?: number): Promise<AxiosResponse<any>> {
+    async post(uri: string, data: unknown, timeoutMillis?: number,
+               isStale?: () => boolean): Promise<AxiosResponse<any>> {
         const abortController =  new AbortController();
         abortControllers = [...abortControllers, abortController]
         return this.axiosInstance.post(uri, data,{
             signal: abortController.signal,
+            // read by the 401 interceptor (no re-authentication for a view no longer on screen)
+            ...(isStale ? {__mateuIsStale: isStale} : {}),
             ...(timeoutMillis && timeoutMillis > 0 ? {timeout: timeoutMillis} : {})
         }).finally(() => this.release(abortController));
     }
@@ -241,7 +266,8 @@ export class AxiosMateuApiClient implements MateuApiClient {
                             f.targetComponentId ? f : { ...f, targetComponentId: initiatorComponentId }),
                     }
                     return await this.wrap<UIIncrement>(
-                        () => Promise.resolve(retargeted), initiator, background, actionId, options.retry)
+                        () => Promise.resolve(retargeted), initiator, background, actionId, options.retry,
+                        false, options.isStale)
                 }
             }
         }
@@ -294,11 +320,11 @@ export class AxiosMateuApiClient implements MateuApiClient {
             knownStructureHash: options.knownStructureHash
         }
         const idempotent = isIdempotentAction(actionId, options.idempotent)
-        const send = () => this.post(uri, payload, options.timeoutMillis)
+        const send = () => this.post(uri, payload, options.timeoutMillis, options.isStale)
             .then((response) => response.data as UIIncrement)
         return await this.wrap<UIIncrement>(
-            () => this.sendWithRetry(send, idempotent, options.quiet), initiator, background, actionId,
-            options.retry, options.quiet)
+            () => this.sendWithRetry(send, idempotent, options.quiet, options.isStale), initiator, background,
+            actionId, options.retry, options.quiet, options.isStale)
     }
 
 }

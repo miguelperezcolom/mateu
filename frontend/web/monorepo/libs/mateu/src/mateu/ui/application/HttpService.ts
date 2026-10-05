@@ -9,6 +9,7 @@ import {LitElement} from "lit";
 import {nanoid} from "nanoid";
 import {ComponentState} from "@infra/ui/renderers/types.ts";
 import {RunActionOptions} from "@domain/MateuApiClient";
+import {isStaleResponse} from "@infra/ui/staleViewGuard.ts";
 
 export class HttpService implements Service {
 
@@ -110,6 +111,17 @@ export class HttpService implements Service {
                 options: { ...options, retry }
             } as RunActionCommand)
 
+            if (options.isStale?.()) {
+                // answered for a view no longer on screen (e.g. a short-circuited answer that did
+                // not go through the transport's own check): nothing of it is applied
+                console.debug?.('mateu: dropped the answer to an action of a view no longer on screen',
+                    actionId, serverSideType, baseUrl)
+                initiator.dispatchEvent(new CustomEvent('backend-cancelled-event', {
+                    bubbles: true, composed: true, detail: { actionId },
+                }))
+                return
+            }
+
             if (callback) {
                 callback(uiIncrement)
             }
@@ -140,6 +152,13 @@ export class HttpService implements Service {
             }))
 
         } catch(reason) {
+            if (isStaleResponse(reason)) {
+                // The view that asked is gone (staleViewGuard.ts): no fragments, no commands, no
+                // toast, no OnSuccess/OnError chain. The transport already released the initiator.
+                console.debug?.('mateu: dropped the answer (' + reason.outcome + ') to an action of a view no longer on screen',
+                    actionId, serverSideType, baseUrl)
+                return
+            }
             console.warn('Action request failed', reason)
                 // The transport already announced (and toasted) a failure it saw itself; raising
                 // a second `backend-failed-event` here would show the user two toasts for one

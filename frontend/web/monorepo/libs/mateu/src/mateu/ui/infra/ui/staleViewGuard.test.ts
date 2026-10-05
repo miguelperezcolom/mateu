@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const runAction = vi.fn()
 vi.mock('@application/service', () => ({ service: { runAction: (...args: unknown[]) => runAction(...args) } }))
@@ -12,6 +12,11 @@ import { ComponentType } from '@mateu/shared/apiClients/dtos/ComponentType'
 import { UIFragmentAction } from '@mateu/shared/apiClients/dtos/UIFragmentAction.ts'
 import UIFragment from '@mateu/shared/apiClients/dtos/UIFragment'
 import ServerSideComponent from '@mateu/shared/apiClients/dtos/ServerSideComponent.ts'
+import { mateuApiClient } from '@infra/http/AxiosMateuApiClient.ts'
+import { upstream } from '@domain/state'
+import Message from '@domain/Message'
+import { setNotifier, ToastMessage } from '@application/Notifier.ts'
+import { AxiosError, AxiosHeaders, InternalAxiosRequestConfig } from 'axios'
 
 // The two pages of the live report (ec1 control plane, HAMBURGER_SECTIONS, one remote per section):
 // a front-office integration listing served by /_integrations, then the registration rules listing
@@ -140,5 +145,211 @@ describe('actionIsForCurrentView', () => {
         expect(actionIsForCurrentView(uxIdentity('a', '/x'), uxIdentity('a', '/y'), 'search')).toBe(false)
         expect(actionIsForCurrentView(uxIdentity('a', '/x'), uxIdentity('b', '/x'), 'search')).toBe(false)
         expect(actionIsForCurrentView(uxIdentity('a', '/x'), uxIdentity('a', '/x'), 'search')).toBe(true)
+    })
+})
+
+// ---------------------------------------------------------------------------------------------
+// The answers: a request sent while its view was on screen and answered after the user moved on.
+// The real HttpService and transport run here; only the network (the axios adapter) is faked, so
+// each request can be answered — or failed — at the moment the test decides.
+// ---------------------------------------------------------------------------------------------
+
+type Pending = {
+    body: { actionId: string, serverSideType: string, initiatorComponentId: string },
+    url: string,
+    answer: (data: unknown) => void,
+    fail: (status: number) => void,
+}
+
+const PAGE_A = A
+const PAGE_B = B
+
+describe('an answer that arrives for a view no longer on screen', () => {
+
+    let pending: Pending[] = []
+    let toasts: ToastMessage[] = []
+    let published: Message[] = []
+    let sessionExpired = 0
+    const onSessionExpired = () => { sessionExpired++ }
+    let subscription: { unsubscribe(): void } | undefined
+    let debug: ReturnType<typeof vi.spyOn>
+
+    beforeEach(async () => {
+        const actual = await vi.importActual<typeof import('@application/HttpService.ts')>('@application/HttpService.ts')
+        runAction.mockReset()
+        runAction.mockImplementation((...args: unknown[]) =>
+            (actual.httpService.runAction as (...a: unknown[]) => Promise<void>)(...args))
+        pending = []
+        toasts = []
+        published = []
+        sessionExpired = 0
+        mateuApiClient.axiosInstance.defaults.adapter = (config: InternalAxiosRequestConfig) =>
+            new Promise((resolve, reject) => pending.push({
+                body: JSON.parse(String(config.data)),
+                url: String(config.url),
+                answer: data => resolve({ data, status: 200, statusText: 'OK',
+                    headers: { 'content-type': 'application/json' }, config, request: {} }),
+                fail: status => reject(new AxiosError('Request failed with status code ' + status,
+                    AxiosError.ERR_BAD_RESPONSE, config, {}, { data: {}, status, statusText: '',
+                        headers: new AxiosHeaders(), config })),
+            }))
+        setNotifier({ show: (message: ToastMessage) => { toasts.push(message) } })
+        subscription = upstream.subscribe(message => { published.push(message) })
+        document.addEventListener('mateu-session-expired', onSessionExpired)
+        debug = vi.spyOn(console, 'debug').mockImplementation(() => undefined)
+    })
+
+    afterEach(() => {
+        subscription?.unsubscribe()
+        document.removeEventListener('mateu-session-expired', onSessionExpired)
+        debug.mockRestore()
+    })
+
+    const settle = () => new Promise(resolve => setTimeout(resolve, 0))
+
+    const request = async (actionId: string, baseUrl: string) => {
+        await settle()
+        const found = pending.find(p => p.body.actionId === actionId && p.url.startsWith(baseUrl))
+        if (!found) throw new Error('no request ' + actionId + ' to ' + baseUrl + ' in ' + JSON.stringify(pending.map(p => [p.url, p.body.actionId])))
+        return found
+    }
+
+    /** What the listing's search answers: its rows, and a toast. */
+    const searchAnswer = (sst: string) => ({
+        fragments: [{ targetComponentId: 'list', action: UIFragmentAction.Replace, component: listing(sst),
+            state: {}, data: { rows: ['row of ' + sst] } }],
+        messages: [{ text: 'Loaded ' + sst, variant: 'success', position: 'bottom-end', duration: 1000 }],
+        commands: [{ targetComponentId: 'list', type: 'SetWindowTitle', data: 'from ' + sst }],
+        appState: { from: sst },
+    })
+
+    /** The ux on page A with its listing; the listing's search in flight. */
+    const onPageAWithSearchInFlight = async () => {
+        const ux = newUx(A)
+        ;(ux as any).updated(new Map([['route', undefined]]))
+        ;(await request('', A.baseUrl)).answer({ fragments: [routeLoadAnswer(A.id, A.sst)] })
+        await settle()
+        const list = document.createElement('div')
+        const outcome = { cancelled: 0, succeeded: 0, failed: 0 }
+        list.addEventListener('backend-cancelled-event', () => outcome.cancelled++)
+        list.addEventListener('backend-succeeded-event', () => outcome.succeeded++)
+        list.addEventListener('backend-failed-event', () => outcome.failed++)
+        ux.manageActionEvent(searchFrom(list, A))
+        published = []
+        toasts = []
+        return { ux, list, outcome, search: await request('search', A.baseUrl) }
+    }
+
+    const nothingOfAApplied = () => {
+        expect(published.filter(m => m.fragment || m.command)).toEqual([])
+        expect(toasts).toEqual([])
+    }
+
+    it('does not apply a search answered after navigating to another remote, and releases the listing', async () => {
+        const { ux, outcome, search } = await onPageAWithSearchInFlight()
+        navigate(ux, B)
+        ;(ux as any).updated(new Map([['route', A.route]]))
+
+        search.answer(searchAnswer(A.sst))
+        await settle()
+
+        nothingOfAApplied()
+        expect(outcome).toEqual({ cancelled: 1, succeeded: 0, failed: 0 })
+        expect(debug).toHaveBeenCalled()
+    })
+
+    it('shows no error for a search that failed after navigating away', async () => {
+        const { ux, outcome, search } = await onPageAWithSearchInFlight()
+        navigate(ux, B)
+        ;(ux as any).updated(new Map([['route', A.route]]))
+
+        search.fail(500)
+        await settle()
+
+        nothingOfAApplied()
+        expect(outcome).toEqual({ cancelled: 1, succeeded: 0, failed: 0 })
+    })
+
+    it('does not ask the user to log in again for a 401 of a view no longer on screen', async () => {
+        const { ux, outcome, search } = await onPageAWithSearchInFlight()
+        navigate(ux, B)
+        ;(ux as any).updated(new Map([['route', A.route]]))
+
+        search.fail(401)
+        await settle()
+
+        expect(sessionExpired).toBe(0)
+        nothingOfAApplied()
+        expect(outcome).toEqual({ cancelled: 1, succeeded: 0, failed: 0 })
+    })
+
+    it('also drops it after moving to another route of the same ux, even when coming back to the first one', async () => {
+        const { ux, search } = await onPageAWithSearchInFlight()
+        const detail = { ...A, route: A.route + '/42' }
+        navigate(ux, detail)
+        ;(ux as any).updated(new Map([['route', A.route]]))
+        navigate(ux, A)
+        ;(ux as any).updated(new Map([['route', detail.route]]))
+
+        search.answer(searchAnswer(A.sst))
+        await settle()
+
+        nothingOfAApplied()
+    })
+
+    it('ignores a route load superseded by a newer one, even of the same route', async () => {
+        // a route not visited by the tests above (the structure cache would seed it)
+        const A = { ...PAGE_A, id: PAGE_A.id + '_3', route: PAGE_A.route + '/3' }
+        const B = { ...PAGE_B, id: PAGE_B.id + '_3', route: PAGE_B.route + '/3' }
+        const ux = newUx(A)
+        ;(ux as any).updated(new Map([['route', undefined]]))
+        const firstLoad = await request('', A.baseUrl)
+        navigate(ux, B)
+        ;(ux as any).updated(new Map([['route', A.route]]))
+        // the user comes back and the route reloads (a new instant): two newer loads of A's route
+        navigate(ux, A)
+        ;(ux as any).updated(new Map([['route', B.route]]))
+        ux.instant = 'reload'
+        ;(ux as any).updated(new Map([['instant', undefined]]))
+        await settle()
+        const loadsOfA = pending.filter(p => p.body.actionId === '' && p.url.startsWith(A.baseUrl))
+        expect(loadsOfA).toHaveLength(3)
+
+        const failedEvents = vi.fn()
+        ux.addEventListener('backend-call-failed', failedEvents)
+        published = []
+        firstLoad.answer({ fragments: [routeLoadAnswer(A.id, 'first load')],
+            messages: [{ text: 'from the first load', variant: 'error' }] })
+        loadsOfA[1].fail(500)
+        await settle()
+        expect(published).toEqual([])
+        expect(toasts).toEqual([])
+        expect(failedEvents).not.toHaveBeenCalled() // which would paint "Not found"
+
+        loadsOfA[2].answer({ fragments: [routeLoadAnswer(A.id, A.sst)] })
+        await settle()
+        expect(published.map(m => (m.fragment?.component as ServerSideComponent | undefined)?.serverSideType))
+            .toEqual([A.sst])
+    })
+
+    it('keeps applying the answers of the view on screen', async () => {
+        const { outcome, search } = await onPageAWithSearchInFlight()
+
+        search.answer(searchAnswer(A.sst))
+        await settle()
+
+        expect(published.filter(m => m.fragment).map(m => m.fragment?.targetComponentId)).toEqual(['list'])
+        expect(published.filter(m => m.command)).toHaveLength(1)
+        expect(toasts.map(t => t.text)).toEqual(['Loaded ' + A.sst])
+        expect(outcome).toEqual({ cancelled: 0, succeeded: 1, failed: 0 })
+    })
+
+    it('keeps reporting the failures of the view on screen', async () => {
+        const { outcome, search } = await onPageAWithSearchInFlight()
+
+        search.fail(400)
+        await settle()
+
+        expect(outcome).toEqual({ cancelled: 0, succeeded: 0, failed: 1 })
     })
 })

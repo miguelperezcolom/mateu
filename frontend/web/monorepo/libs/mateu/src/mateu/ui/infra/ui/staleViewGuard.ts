@@ -34,3 +34,44 @@ export const actionIsForCurrentView = (
     if (contentIdentity === undefined) return true
     return contentIdentity === currentIdentity
 }
+
+/**
+ * The other half of the guard: RESPONSES for a view that is no longer on screen.
+ *
+ * <p>A request can leave while its view is on screen and be answered after the user navigated
+ * away — to another route of the same ux, or to another remote through the same (reused) ux. The
+ * answer belongs to the view that asked: its fragments, commands, state, messages and errors mean
+ * nothing for the view on screen now, so it dies silently. The ux counts its views: a navigation
+ * to another view (another identity or another route; not a reload of the same one) starts a new
+ * generation, and a request remembers the generation it was sent for. A route load is also
+ * superseded by any newer route load of the same ux (its callback token), even of the same route.
+ */
+export interface ViewGeneration {
+    /** Bumped on every navigation to another view. */
+    generation: number
+    /** The callback token of the ux's latest route load. */
+    callbackToken: string
+}
+
+/**
+ * Builds the staleness check a request carries (RunActionOptions.isStale): true once the view the
+ * request was sent for is no longer the one on screen.
+ */
+export const staleCheck = (ux: ViewGeneration, isRouteLoad: boolean): (() => boolean) => {
+    const generation = ux.generation
+    const callbackToken = ux.callbackToken
+    return () => ux.generation !== generation || (isRouteLoad && ux.callbackToken !== callbackToken)
+}
+
+/** The rejection of a request whose answer arrived for a view no longer on screen. */
+export class StaleResponse extends Error {
+    readonly __mateuStale = true
+    readonly __mateuReported = true
+    readonly code = 'ERR_CANCELED'
+    constructor(readonly actionId: string, readonly outcome: 'answered' | 'failed') {
+        super(`response to '${actionId}' arrived for a view no longer on screen`)
+    }
+}
+
+export const isStaleResponse = (reason: unknown): reason is StaleResponse =>
+    !!reason && typeof reason === 'object' && (reason as { __mateuStale?: boolean }).__mateuStale === true

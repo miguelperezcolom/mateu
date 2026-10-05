@@ -199,6 +199,11 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     installClientErrorReporting,
     clientErrors,
     askForReauthentication,
+    // la pantalla en curso: la navegación la empieza; lo que conteste para otra muere en silencio
+    beginView,
+    currentView,
+    isViewStale,
+    isStaleResponse,
     DEFAULT_TIMEOUT_MS,
     // static bundle: la shell carga el manifest al arrancar; loadRoute responde desde él sin backend
     loadBundleManifest,
