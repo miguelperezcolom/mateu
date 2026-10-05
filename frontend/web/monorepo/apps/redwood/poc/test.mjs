@@ -1918,6 +1918,137 @@ atest('fetchWithPolicy ante un 401 sin nadie que reautentique falla como siempre
   }
 })
 
+atest('fetchWithPolicy: dos 401 a la vez comparten UN refresco, y los dos salen con el token nuevo', async () => {
+  // La pestaña vuelve del fondo: el badge del inbox y la sincronización del banner salen con el
+  // token caducado y vuelven 401 juntos. Un solo refresco forzado, no uno por petición.
+  connectivity.reset()
+  const sent = []
+  let token = 'caducado'
+  let refreshes = 0
+  const pending = []
+  const originalFetch = globalThis.fetch
+  const originalStorage = globalThis.localStorage
+  const originalDocument = globalThis.document
+  globalThis.localStorage = { getItem: (k) => (k === '__mateu_auth_token' ? token : null) }
+  globalThis.document = new EventTarget()
+  globalThis.document.addEventListener('mateu-session-expired', (e) => {
+    e.preventDefault()
+    refreshes++
+    // el refresco tarda: el segundo 401 llega con éste aún en marcha
+    pending.push(() => { token = 'nuevo'; e.detail.retry() })
+  })
+  let rejected = 0
+  globalThis.fetch = async (url, init) => {
+    sent.push(`${url} ${init.headers.Authorization}`)
+    if (init.headers.Authorization === 'Bearer nuevo') return { ok: true, json: async () => ({}) }
+    rejected++
+    if (rejected === 2) setTimeout(() => pending.forEach((f) => f()), 5)
+    return { ok: false, status: 401, text: async () => '' }
+  }
+  try {
+    await Promise.all([
+      fetchWithPolicy('https://x/badge', {}, { actionId: 'search', quiet: true }),
+      fetchWithPolicy('https://x/sync', {}, { actionId: 'search', quiet: true }),
+    ])
+    assert.equal(refreshes, 1)
+    assert.deepEqual(sent.filter((s) => s.endsWith('Bearer nuevo')).sort(),
+      ['https://x/badge Bearer nuevo', 'https://x/sync Bearer nuevo'])
+  } finally {
+    globalThis.fetch = originalFetch
+    globalThis.localStorage = originalStorage
+    globalThis.document = originalDocument
+    connectivity.reset()
+  }
+})
+
+atest('fetchWithPolicy: un 401 de una petición que salió ANTES del refresco se reenvía sin forzar otro', async () => {
+  // El visibilitychange ya dejó el token nuevo mientras la petición volaba con el viejo: basta
+  // con reenviar, sin tirar el token recién emitido pidiendo otro.
+  connectivity.reset()
+  const sent = []
+  let token = 'caducado'
+  let refreshes = 0
+  const originalFetch = globalThis.fetch
+  const originalStorage = globalThis.localStorage
+  const originalDocument = globalThis.document
+  globalThis.localStorage = { getItem: (k) => (k === '__mateu_auth_token' ? token : null) }
+  globalThis.document = new EventTarget()
+  globalThis.document.addEventListener('mateu-session-expired', (e) => {
+    e.preventDefault(); refreshes++; e.detail.retry()
+  })
+  globalThis.fetch = async (url, init) => {
+    sent.push(init.headers.Authorization)
+    if (init.headers.Authorization === 'Bearer caducado') {
+      token = 'nuevo' // el refresco del bootstrap aterriza con la petición en vuelo
+      return { ok: false, status: 401, text: async () => '' }
+    }
+    return { ok: true, json: async () => ({}) }
+  }
+  try {
+    await fetchWithPolicy('https://x/', {}, { actionId: 'save' })
+    assert.deepEqual(sent, ['Bearer caducado', 'Bearer nuevo'])
+    assert.equal(refreshes, 0)
+  } finally {
+    globalThis.fetch = originalFetch
+    globalThis.localStorage = originalStorage
+    globalThis.document = originalDocument
+    connectivity.reset()
+  }
+})
+
+atest('fetchWithPolicy: si el refresco falla, el 401 acaba en "sesión no válida" sin reenviar', async () => {
+  connectivity.reset()
+  let calls = 0
+  const originalFetch = globalThis.fetch
+  const originalStorage = globalThis.localStorage
+  const originalDocument = globalThis.document
+  globalThis.localStorage = { getItem: (k) => (k === '__mateu_auth_token' ? 'caducado' : null) }
+  globalThis.document = new EventTarget()
+  globalThis.document.addEventListener('mateu-session-expired', (e) => {
+    e.preventDefault()
+    setTimeout(() => e.detail.giveUp(), 1) // keycloak.updateToken(-1) rechazado
+  })
+  globalThis.fetch = async () => { calls++; return { ok: false, status: 401, text: async () => '' } }
+  try {
+    await assert.rejects(() => fetchWithPolicy('https://x/', {}, { actionId: 'save' }),
+      (e) => e.failure && e.failure.kind === 'unauthorized' && /sesión ya no es válida/.test(e.failure.message))
+    assert.equal(calls, 1)
+  } finally {
+    globalThis.fetch = originalFetch
+    globalThis.localStorage = originalStorage
+    globalThis.document = originalDocument
+    connectivity.reset()
+  }
+})
+
+atest('fetchWithPolicy: un 403 no refresca la sesión ni dice que haya caducado', async () => {
+  // Un 403 es una negativa de verdad (p. ej. una acción que la vista no declara): ni se pide
+  // reautenticar ni se manda al usuario a un login que no lo arregla.
+  connectivity.reset()
+  let calls = 0
+  let raised = 0
+  const originalFetch = globalThis.fetch
+  const originalStorage = globalThis.localStorage
+  const originalDocument = globalThis.document
+  globalThis.localStorage = { getItem: (k) => (k === '__mateu_auth_token' ? 'vigente' : null) }
+  globalThis.document = new EventTarget()
+  globalThis.document.addEventListener('mateu-session-expired', (e) => {
+    e.preventDefault(); raised++; e.detail.retry()
+  })
+  globalThis.fetch = async () => { calls++; return { ok: false, status: 403, text: async () => '' } }
+  try {
+    await assert.rejects(() => fetchWithPolicy('https://x/', {}, { actionId: 'activate' }),
+      (e) => e.failure && e.failure.kind === 'forbidden' && !/sesión/.test(e.failure.message))
+    assert.equal(calls, 1)
+    assert.equal(raised, 0)
+  } finally {
+    globalThis.fetch = originalFetch
+    globalThis.localStorage = originalStorage
+    globalThis.document = originalDocument
+    connectivity.reset()
+  }
+})
+
 atest('fetchWithPolicy llama sin cabecera cuando no hay token, en vez de no llamar', async () => {
   // Sin token se sigue adelante: que conteste el backend. Un 401 explicado es mejor que una
   // pantalla en blanco que no ha preguntado a nadie.
