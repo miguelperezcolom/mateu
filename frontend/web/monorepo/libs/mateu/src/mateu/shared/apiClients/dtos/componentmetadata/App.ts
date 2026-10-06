@@ -58,6 +58,9 @@ export default interface App extends ComponentMetadata {
     accentColor?: string
     /** @App(accentStrip): the accent strip's image URL, repeated along it; absent = a plain accent band */
     accentStrip?: string
+    /** the strip Mateu draws from accentColor when the app declares no accentStrip (a data:image/svg+xml
+     *  URI); the Vaadin shell's only — Redwood shows its own Spectra strips */
+    generatedAccentStrip?: string
 
     /** @App(backLink = PARENT): the route and label of the "← Parent" link (else undefined). */
     backRoute?: string

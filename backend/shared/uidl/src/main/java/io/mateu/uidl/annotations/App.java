@@ -71,11 +71,29 @@ public @interface App {
   String accentColor() default "";
 
   /**
-   * The image of the accent strip (see {@link #accentColor()}): a URL, e.g. {@code
-   * "/images/strip.svg"}, repeated along the strip — the app's own take on Redwood's colour strip.
-   * Blank (the default): the strip is a plain band in the accent colour. Ignored with no accent.
+   * The image of the accent strip (see {@link #accentColor()}), the Vaadin shell's take on
+   * Redwood's decorative colour band (the Redwood renderer shows its own Spectra strips and ignores
+   * all of this):
+   *
+   * <ul>
+   *   <li>blank (the default): Mateu draws the strip itself, from {@link #accentColor()} — hills,
+   *       arches, peaks and blocks in a palette derived from the accent (see {@link
+   *       #accentStripSeed()} and {@code io.mateu.core.infra.AccentStrip}). Only a hex accent
+   *       ({@code #rgb}/{@code #rrggbb}) can be drawn; any other gets the plain band;
+   *   <li>a URL, e.g. {@code "/images/strip.svg"}: the app's own image, repeated along the strip;
+   *   <li>{@code "none"}: no drawing — the strip is a plain band in the accent colour.
+   * </ul>
+   *
+   * Ignored with no accent.
    */
   String accentStrip() default "";
+
+  /**
+   * The seed of the strip Mateu draws when {@link #accentStrip()} is blank: the drawing is a seeded
+   * random walk, so the same accent and seed always give the same strip, and another seed another
+   * strip in the same palette. Try a few and keep the one you like.
+   */
+  int accentStripSeed() default 7;
 
   /**
    * Extra capability tokens this app REQUIRES from whatever renderer/shell hosts it, on top of the

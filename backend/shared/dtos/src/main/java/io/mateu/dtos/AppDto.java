@@ -64,9 +64,16 @@ public record AppDto(
     String accentColor,
     /**
      * The accent strip's image ({@code @App(accentStrip)}), a URL repeated along the strip; null =
-     * a plain band in the accent colour.
+     * none declared ({@code "none"} also travels as null).
      */
     String accentStrip,
+    /**
+     * The strip Mateu draws from the accent colour when the app declares no {@code accentStrip}: a
+     * {@code data:image/svg+xml;base64,…} URI (see {@code io.mateu.core.infra.AccentStrip}). Read
+     * by the Vaadin renderer only — Redwood shows its own Spectra strips. Null when the app
+     * declares a strip, says {@code "none"}, has no accent or a non-hex one.
+     */
+    String generatedAccentStrip,
     /**
      * The app's REST source catalogue: every named endpoint its screens reference, declared once.
      * App-wide configuration, so it travels with the shell rather than on every response.

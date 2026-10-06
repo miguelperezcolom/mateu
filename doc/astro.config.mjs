@@ -362,6 +362,7 @@ export default defineConfig({
 						{ slug: 'design-systems/renderer-contract' },
 						{ slug: 'design-systems/bring-your-own-design-system' },
 						{ slug: 'design-systems/branding-and-design-tokens', label: 'Branding & design tokens' },
+						{ slug: 'design-systems/accent-strip', label: 'Accent colour and strip' },
 						{ slug: 'design-systems/reference-renderer', label: 'The reference renderer' },
 					],
 				},
