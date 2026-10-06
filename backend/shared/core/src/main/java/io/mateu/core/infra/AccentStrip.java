@@ -30,6 +30,7 @@ import java.util.regex.Pattern;
  *
  * <p>The drawing is a seeded random walk along the width, so the same colour, seed and size always
  * give the same strip; another seed gives another strip in the same palette. The result is cached.
+ * The strip tiles without a seam: shapes cut by one edge are drawn again, shifted, at the other.
  *
  * <p>To keep the file (to serve it yourself, or to tweak it by hand):
  *
@@ -126,6 +127,12 @@ public final class AccentStrip {
     return computed;
   }
 
+  /**
+   * One shape of the walk with its texture, drawn already: {@code render(dx)} gives its SVG
+   * elements moved {@code dx} to the right. Its horizontal extent is {@code [x0, x1]}.
+   */
+  private record Motif(double x0, double x1, java.util.function.IntFunction<String> render) {}
+
   private static String draw(Palette p, int seed, int width, int height) {
     var rnd = new Random(seed);
     int H = height;
@@ -153,83 +160,35 @@ public final class AccentStrip {
     int[] weights = {3, 3, 2, 1, 2, 1, 3};
     String[] kinds = {"hill", "hill", "arch", "block", "peak"};
 
+    // SEAMLESS TILING. The strip is a background repeated along x (repeat-x) and scaled to the
+    // band's height with its aspect kept (background-size: auto <h>): at the Vaadin shell's 10px a
+    // 1440×24 tile is 600 CSS px wide, so a wide page shows two or three tiles side by side. A
+    // shape cut by the tile's right edge would end abruptly where the next tile starts afresh: a
+    // visible seam. Stretching one tile over the page instead (background-size: 1440px 10px, or a
+    // wider
+    // aspect) would remove the seam only up to that width and squash every shape sideways, so the
+    // drawing is made periodic instead: every motif is also drawn shifted by ±width wherever that
+    // copy reaches into the tile. Tile N's right edge then continues exactly into tile N+1's left
+    // edge. Each copy is drawn right next to its original, so where shapes overlap they stack in
+    // the same order on both sides of the seam.
     int x = -20;
     while (x < width) {
       int w = randint(rnd, 36, 110);
       String fill = fills.get(weighted(rnd, weights));
       String kind = kinds[rnd.nextInt(kinds.length)];
-      switch (kind) {
-        case "hill" -> {
-          double top = uniform(rnd, 2, H * 0.45);
-          out.append("<path d=\"M")
-              .append(x)
-              .append(' ')
-              .append(H)
-              .append(" L")
-              .append(x)
-              .append(' ')
-              .append(f0(top + 4))
-              .append(" C")
-              .append(f0(x + w * 0.3))
-              .append(' ')
-              .append(f0(top - 10))
-              .append(' ')
-              .append(f0(x + w * 0.6))
-              .append(' ')
-              .append(f0(top + 14))
-              .append(' ')
-              .append(x + w)
-              .append(' ')
-              .append(f0(top + 2))
-              .append(" L")
-              .append(x + w)
-              .append(' ')
-              .append(H)
-              .append(" Z\" fill=\"")
-              .append(fill)
-              .append("\"/>\n");
-          if (rnd.nextDouble() < 0.7) texture(out, rnd, p, H, x + 4, x + w - 4, true);
-        }
-        case "arch" ->
-            out.append("<path d=\"M")
-                .append(x)
-                .append(" 0 Q")
-                .append(f0(x + w / 2.0))
-                .append(' ')
-                .append(f0(H * 1.6))
-                .append(' ')
-                .append(x + w)
-                .append(" 0 Z\" fill=\"")
-                .append(fill)
-                .append("\"/>\n");
-        case "block" -> {
-          out.append("<rect x=\"")
-              .append(x)
-              .append("\" y=\"0\" width=\"")
-              .append(w)
-              .append("\" height=\"")
-              .append(H)
-              .append("\" fill=\"")
-              .append(fill)
-              .append("\"/>\n");
-          if (rnd.nextDouble() < 0.6) texture(out, rnd, p, H, x + 2, x + w - 2, false);
-        }
-        default ->
-            out.append("<path d=\"M")
-                .append(x)
-                .append(' ')
-                .append(H)
-                .append(" L")
-                .append(f0(x + w / 2.0))
-                .append(' ')
-                .append(f0(uniform(rnd, 1, H * 0.4)))
-                .append(" L")
-                .append(x + w)
-                .append(' ')
-                .append(H)
-                .append(" Z\" fill=\"")
-                .append(fill)
-                .append("\"/>\n");
+      Motif motif =
+          switch (kind) {
+            case "hill" -> hill(rnd, p, H, x, w, fill);
+            case "arch" -> arch(H, x, w, fill);
+            case "block" -> block(rnd, p, H, x, w, fill);
+            default -> peak(rnd, H, x, w, fill);
+          };
+      // every whole-width shift k·width at which the motif shows inside the tile (0 included)
+      for (int k = (int) Math.floor(-motif.x1() / width);
+          k <= (int) Math.ceil((width - motif.x0()) / width);
+          k++) {
+        double from = motif.x0() + (double) k * width, to = motif.x1() + (double) k * width;
+        if (k == 0 || (to > 0 && from < width)) out.append(motif.render().apply(k * width));
       }
       x += (int) (w * uniform(rnd, 0.35, 0.75));
     }
@@ -237,31 +196,153 @@ public final class AccentStrip {
     return out.toString();
   }
 
-  /** A run of dots (on a hill) or dashes (on a block) in the ink colour. */
-  private static void texture(
-      StringBuilder out, Random rnd, Palette p, int H, double x0, double x1, boolean dots) {
-    int n = randint(rnd, 6, 12);
-    for (int i = 0; i < n; i++) {
-      if (dots) {
+  private static Motif hill(Random rnd, Palette p, int H, int x, int w, String fill) {
+    double top = uniform(rnd, 2, H * 0.45);
+    long c1x = r0(x + w * 0.3), c1y = r0(top - 10), c2x = r0(x + w * 0.6), c2y = r0(top + 14);
+    long y0 = r0(top + 4), y1 = r0(top + 2);
+    var marks = rnd.nextDouble() < 0.7 ? texture(rnd, H, x + 4, x + w - 4, true) : List.<Mark>of();
+    return new Motif(
+        x,
+        x + w,
+        dx -> {
+          var s = new StringBuilder();
+          s.append("<path d=\"M")
+              .append(x + dx)
+              .append(' ')
+              .append(H)
+              .append(" L")
+              .append(x + dx)
+              .append(' ')
+              .append(y0)
+              .append(" C")
+              .append(c1x + dx)
+              .append(' ')
+              .append(c1y)
+              .append(' ')
+              .append(c2x + dx)
+              .append(' ')
+              .append(c2y)
+              .append(' ')
+              .append(x + w + dx)
+              .append(' ')
+              .append(y1)
+              .append(" L")
+              .append(x + w + dx)
+              .append(' ')
+              .append(H)
+              .append(" Z\" fill=\"")
+              .append(fill)
+              .append("\"/>\n");
+          marks.forEach(m -> m.render(s, p, dx));
+          return s.toString();
+        });
+  }
+
+  private static Motif arch(int H, int x, int w, String fill) {
+    long cx = r0(x + w / 2.0), cy = r0(H * 1.6);
+    return new Motif(
+        x,
+        x + w,
+        dx ->
+            "<path d=\"M"
+                + (x + dx)
+                + " 0 Q"
+                + (cx + dx)
+                + ' '
+                + cy
+                + ' '
+                + (x + w + dx)
+                + " 0 Z\" fill=\""
+                + fill
+                + "\"/>\n");
+  }
+
+  private static Motif block(Random rnd, Palette p, int H, int x, int w, String fill) {
+    var marks = rnd.nextDouble() < 0.6 ? texture(rnd, H, x + 2, x + w - 2, false) : List.<Mark>of();
+    // a dash may run a little past the block's right side
+    double x1 = x + w;
+    for (var m : marks) x1 = Math.max(x1, m.x() + m.width());
+    return new Motif(
+        x,
+        x1,
+        dx -> {
+          var s = new StringBuilder();
+          s.append("<rect x=\"")
+              .append(x + dx)
+              .append("\" y=\"0\" width=\"")
+              .append(w)
+              .append("\" height=\"")
+              .append(H)
+              .append("\" fill=\"")
+              .append(fill)
+              .append("\"/>\n");
+          marks.forEach(m -> m.render(s, p, dx));
+          return s.toString();
+        });
+  }
+
+  private static Motif peak(Random rnd, int H, int x, int w, String fill) {
+    long px = r0(x + w / 2.0), py = r0(uniform(rnd, 1, H * 0.4));
+    return new Motif(
+        x,
+        x + w,
+        dx ->
+            "<path d=\"M"
+                + (x + dx)
+                + ' '
+                + H
+                + " L"
+                + (px + dx)
+                + ' '
+                + py
+                + " L"
+                + (x + w + dx)
+                + ' '
+                + H
+                + " Z\" fill=\""
+                + fill
+                + "\"/>\n");
+  }
+
+  /** One dot (on a hill) or dash (on a block) of a texture, in the ink colour. */
+  private record Mark(boolean dot, long x, String y, int width) {
+    void render(StringBuilder out, Palette p, int dx) {
+      if (dot) {
         out.append("<circle cx=\"")
-            .append(f0(uniform(rnd, x0, x1)))
+            .append(x + dx)
             .append("\" cy=\"")
-            .append(f1(uniform(rnd, 4, H - 3)))
+            .append(y)
             .append("\" r=\"0.9\" fill=\"")
             .append(p.ink())
             .append("\" opacity=\"0.5\"/>\n");
       } else {
         out.append("<rect x=\"")
-            .append(f0(uniform(rnd, x0, x1 - 6)))
+            .append(x + dx)
             .append("\" y=\"")
-            .append(randint(rnd, 6, H - 5))
+            .append(y)
             .append("\" width=\"")
-            .append(randint(rnd, 4, 10))
+            .append(width)
             .append("\" height=\"1.4\" fill=\"")
             .append(p.ink())
             .append("\" opacity=\"0.55\"/>\n");
       }
     }
+  }
+
+  /** A run of dots (on a hill) or dashes (on a block). */
+  private static List<Mark> texture(Random rnd, int H, double x0, double x1, boolean dots) {
+    int n = randint(rnd, 6, 12);
+    var marks = new ArrayList<Mark>(n);
+    for (int i = 0; i < n; i++) {
+      if (dots) {
+        marks.add(new Mark(true, r0(uniform(rnd, x0, x1)), f1(uniform(rnd, 4, H - 3)), 0));
+      } else {
+        long mx = r0(uniform(rnd, x0, x1 - 6));
+        int my = randint(rnd, 6, H - 5);
+        marks.add(new Mark(false, mx, Integer.toString(my), randint(rnd, 4, 10)));
+      }
+    }
+    return marks;
   }
 
   // ── Python's random, on java.util.Random ─────────────────────────────────────────────────
@@ -291,8 +372,8 @@ public final class AccentStrip {
 
   // ── formatting, as Python's "{:.0f}" / "{:.1f}" ─────────────────────────────────────────
 
-  private static String f0(double v) {
-    return Long.toString((long) Math.rint(v));
+  private static long r0(double v) {
+    return (long) Math.rint(v);
   }
 
   private static String f1(double v) {

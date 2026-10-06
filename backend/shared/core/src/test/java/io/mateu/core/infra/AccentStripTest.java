@@ -92,6 +92,115 @@ class AccentStripTest {
     assertThat(svg.length()).isBetween(2_000, 20_000);
   }
 
+  /**
+   * The strip is repeated along x, so tile N's right edge meets tile N+1's left edge: whatever is
+   * drawn across x = width must be drawn, identically and stacked in the same order, across x = 0
+   * shifted by −width — and the other way round. Checked on the SVG's elements, without rendering:
+   * the shapes covering x = width, moved by −width, are exactly the shapes covering x = 0.
+   */
+  @Test
+  void theStripTilesWithoutASeam() {
+    for (var color : List.of("#D2232A", "#464c68", "#0a7")) {
+      for (int seed : new int[] {1, 7, 8, 11, 42, 1234}) {
+        for (int[] size : new int[][] {{1440, 24}, {800, 30}, {100, 24}, {60, 11}}) {
+          int width = size[0];
+          var svg = AccentStrip.svg(color, seed, size[0], size[1]);
+          var shapes = shapes(svg);
+          var atRightEdge =
+              shapes.stream().filter(s -> s.covers(width)).map(s -> s.shifted(-width)).toList();
+          var atLeftEdge = shapes.stream().filter(s -> s.covers(0)).map(Shape::text).toList();
+          assertThat(atRightEdge)
+              .as("%s seed %d at %d×%d", color, seed, size[0], size[1])
+              .isEqualTo(atLeftEdge);
+        }
+      }
+    }
+    // and there is something to check: the default strip has shapes across both edges
+    var shapes = shapes(AccentStrip.svg("#D2232A", 7));
+    assertThat(shapes.stream().filter(s -> s.covers(0))).isNotEmpty();
+    assertThat(shapes.stream().filter(s -> s.covers(1440))).isNotEmpty();
+  }
+
+  /** The original drawing is kept: the seam fix only adds the wrapped copies. */
+  @Test
+  void theWrappedCopiesOnlyAddToTheDrawing() {
+    var shapes = shapes(AccentStrip.svg("#D2232A", 7));
+    // the walk starts at x = −20: the first shape is cut by the left edge, and its copy shifted by
+    // +width closes the right edge
+    assertThat(shapes.get(0).text())
+        .isEqualTo("<path d=\"M-20 24 L28 4 L77 24 Z\" fill=\"#efc971\"/>");
+    assertThat(shapes.get(1).text()).isEqualTo(shapes.get(0).shifted(1440));
+  }
+
+  /** An SVG element of the strip with the x coordinates it is drawn at. */
+  private record Shape(String text, double x0, double x1) {
+    boolean covers(double x) {
+      return x0 < x && x < x1;
+    }
+
+    /** The element's text with every x coordinate moved by dx. */
+    String shifted(int dx) {
+      var m = java.util.regex.Pattern.compile("(d|x|cx)=\"([^\"]*)\"").matcher(text);
+      var out = new StringBuilder();
+      while (m.find()) {
+        String moved;
+        if (m.group(1).equals("d")) {
+          // M x y L x y C x y x y x y … Q x y x y: the numbers alternate x, y
+          var parts = m.group(2).split(" ");
+          var numbers = 0;
+          for (int i = 0; i < parts.length; i++) {
+            var token = parts[i];
+            var command = token.matches("^[A-Z].*") ? token.substring(0, 1) : "";
+            var number = token.substring(command.length());
+            if (number.isEmpty()) continue;
+            if (numbers++ % 2 == 0) number = Long.toString(Long.parseLong(number) + dx);
+            parts[i] = command + number;
+          }
+          moved = String.join(" ", parts);
+        } else {
+          moved = Long.toString(Long.parseLong(m.group(2)) + dx);
+        }
+        m.appendReplacement(
+            out, java.util.regex.Matcher.quoteReplacement(m.group(1) + "=\"" + moved + "\""));
+      }
+      m.appendTail(out);
+      return out.toString();
+    }
+  }
+
+  /** The strip's shapes (the background excluded), in drawing order. */
+  private static List<Shape> shapes(String svg) {
+    var shapes = new java.util.ArrayList<Shape>();
+    for (var line : svg.split("\n")) {
+      if (!line.startsWith("<path")
+          && !line.startsWith("<rect x=")
+          && !line.startsWith("<circle")) {
+        continue;
+      }
+      double x0, x1;
+      if (line.startsWith("<path")) {
+        var d = line.replaceAll(".* d=\"([^\"]*)\".*", "$1").replaceAll("[A-Z]", "").trim();
+        var numbers = d.split("\\s+");
+        x0 = Double.MAX_VALUE;
+        x1 = -Double.MAX_VALUE;
+        for (int i = 0; i < numbers.length; i += 2) {
+          var x = Double.parseDouble(numbers[i]);
+          x0 = Math.min(x0, x);
+          x1 = Math.max(x1, x);
+        }
+      } else if (line.startsWith("<rect")) {
+        x0 = Double.parseDouble(line.replaceAll(".* x=\"([^\"]*)\".*", "$1"));
+        x1 = x0 + Double.parseDouble(line.replaceAll(".* width=\"([^\"]*)\".*", "$1"));
+      } else {
+        var cx = Double.parseDouble(line.replaceAll(".* cx=\"([^\"]*)\".*", "$1"));
+        x0 = cx - 0.9;
+        x1 = cx + 0.9;
+      }
+      shapes.add(new Shape(line, x0, x1));
+    }
+    return shapes;
+  }
+
   @Test
   void theDataUriIsTheSvgInBase64() {
     var uri = AccentStrip.dataUri("#D2232A", 7);

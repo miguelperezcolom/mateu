@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="24" viewBox="0 0 1440 24" preserveAspectRatio="none">
 <rect width="1440" height="24" fill="#d2232a"/>
 <path d="M-20 24 L-20 8 C10 -6 40 18 80 6 L80 24 Z" fill="#a41b21"/>
+<path d="M1420 24 L1420 8 C1450 -6 1480 18 1520 6 L1520 24 Z" fill="#a41b21"/>
 <path d="M37 0 Q82 38 127 0 Z" fill="#dcb3b4"/>
 <path d="M91 24 L91 8 C110 -6 129 18 154 6 L154 24 Z" fill="#c7565a"/>
 <path d="M121 24 L159 5 L197 24 Z" fill="#a41b21"/>
@@ -142,6 +143,17 @@
 <circle cx="1404" cy="18.8" r="0.9" fill="#551215" opacity="0.5"/>
 <circle cx="1394" cy="20.9" r="0.9" fill="#551215" opacity="0.5"/>
 <circle cx="1403" cy="12.4" r="0.9" fill="#551215" opacity="0.5"/>
+<rect x="-46" y="0" width="60" height="24" fill="#a41b21"/>
+<rect x="-21" y="13" width="8" height="1.4" fill="#551215" opacity="0.55"/>
+<rect x="-38" y="6" width="6" height="1.4" fill="#551215" opacity="0.55"/>
+<rect x="-38" y="16" width="5" height="1.4" fill="#551215" opacity="0.55"/>
+<rect x="-10" y="19" width="7" height="1.4" fill="#551215" opacity="0.55"/>
+<rect x="-1" y="6" width="8" height="1.4" fill="#551215" opacity="0.55"/>
+<rect x="-10" y="9" width="8" height="1.4" fill="#551215" opacity="0.55"/>
+<rect x="-11" y="7" width="8" height="1.4" fill="#551215" opacity="0.55"/>
+<rect x="-31" y="14" width="10" height="1.4" fill="#551215" opacity="0.55"/>
+<rect x="-41" y="16" width="8" height="1.4" fill="#551215" opacity="0.55"/>
+<rect x="-32" y="13" width="5" height="1.4" fill="#551215" opacity="0.55"/>
 <rect x="1394" y="0" width="60" height="24" fill="#a41b21"/>
 <rect x="1419" y="13" width="8" height="1.4" fill="#551215" opacity="0.55"/>
 <rect x="1402" y="6" width="6" height="1.4" fill="#551215" opacity="0.55"/>
@@ -153,6 +165,16 @@
 <rect x="1409" y="14" width="10" height="1.4" fill="#551215" opacity="0.55"/>
 <rect x="1399" y="16" width="8" height="1.4" fill="#551215" opacity="0.55"/>
 <rect x="1408" y="13" width="5" height="1.4" fill="#551215" opacity="0.55"/>
+<path d="M-3 24 L-3 12 C21 -2 46 22 78 10 L78 24 Z" fill="#dcb3b4"/>
+<circle cx="39" cy="6.8" r="0.9" fill="#551215" opacity="0.5"/>
+<circle cx="6" cy="9.5" r="0.9" fill="#551215" opacity="0.5"/>
+<circle cx="51" cy="16.4" r="0.9" fill="#551215" opacity="0.5"/>
+<circle cx="63" cy="10.0" r="0.9" fill="#551215" opacity="0.5"/>
+<circle cx="71" cy="8.2" r="0.9" fill="#551215" opacity="0.5"/>
+<circle cx="67" cy="17.4" r="0.9" fill="#551215" opacity="0.5"/>
+<circle cx="25" cy="12.3" r="0.9" fill="#551215" opacity="0.5"/>
+<circle cx="16" cy="15.5" r="0.9" fill="#551215" opacity="0.5"/>
+<circle cx="38" cy="16.0" r="0.9" fill="#551215" opacity="0.5"/>
 <path d="M1437 24 L1437 12 C1461 -2 1486 22 1518 10 L1518 24 Z" fill="#dcb3b4"/>
 <circle cx="1479" cy="6.8" r="0.9" fill="#551215" opacity="0.5"/>
 <circle cx="1446" cy="9.5" r="0.9" fill="#551215" opacity="0.5"/>
