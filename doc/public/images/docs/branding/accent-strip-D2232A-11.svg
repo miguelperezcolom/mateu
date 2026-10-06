@@ -12,6 +12,18 @@
 <circle cx="-14" cy="18.1" r="0.9" fill="#551215" opacity="0.5"/>
 <circle cx="-9" cy="16.6" r="0.9" fill="#551215" opacity="0.5"/>
 <circle cx="62" cy="11.7" r="0.9" fill="#551215" opacity="0.5"/>
+<path d="M1420 24 L1420 12 C1450 -2 1479 22 1519 10 L1519 24 Z" fill="#efc971"/>
+<circle cx="1450" cy="13.4" r="0.9" fill="#551215" opacity="0.5"/>
+<circle cx="1464" cy="20.7" r="0.9" fill="#551215" opacity="0.5"/>
+<circle cx="1446" cy="10.0" r="0.9" fill="#551215" opacity="0.5"/>
+<circle cx="1471" cy="19.4" r="0.9" fill="#551215" opacity="0.5"/>
+<circle cx="1456" cy="4.7" r="0.9" fill="#551215" opacity="0.5"/>
+<circle cx="1489" cy="16.0" r="0.9" fill="#551215" opacity="0.5"/>
+<circle cx="1495" cy="14.5" r="0.9" fill="#551215" opacity="0.5"/>
+<circle cx="1449" cy="9.0" r="0.9" fill="#551215" opacity="0.5"/>
+<circle cx="1426" cy="18.1" r="0.9" fill="#551215" opacity="0.5"/>
+<circle cx="1431" cy="16.6" r="0.9" fill="#551215" opacity="0.5"/>
+<circle cx="1502" cy="11.7" r="0.9" fill="#551215" opacity="0.5"/>
 <path d="M21 24 L74 8 L126 24 Z" fill="#cf8386"/>
 <path d="M78 24 L78 8 C110 -6 143 18 186 6 L186 24 Z" fill="#8cdeda"/>
 <rect x="154" y="0" width="78" height="24" fill="#efc971"/>
@@ -149,7 +161,18 @@
 <circle cx="1291" cy="11.5" r="0.9" fill="#551215" opacity="0.5"/>
 <path d="M1269 24 L1318 2 L1368 24 Z" fill="#cf8386"/>
 <path d="M1317 0 Q1346 38 1375 0 Z" fill="#cf8386"/>
+<path d="M-98 24 L-98 6 C-67 -8 -36 16 5 4 L5 24 Z" fill="#a41b21"/>
 <path d="M1342 24 L1342 6 C1373 -8 1404 16 1445 4 L1445 24 Z" fill="#a41b21"/>
+<rect x="-29" y="0" width="59" height="24" fill="#dcb3b4"/>
+<rect x="-24" y="8" width="10" height="1.4" fill="#551215" opacity="0.55"/>
+<rect x="5" y="14" width="9" height="1.4" fill="#551215" opacity="0.55"/>
+<rect x="-11" y="8" width="5" height="1.4" fill="#551215" opacity="0.55"/>
+<rect x="1" y="19" width="9" height="1.4" fill="#551215" opacity="0.55"/>
+<rect x="-10" y="16" width="10" height="1.4" fill="#551215" opacity="0.55"/>
+<rect x="17" y="10" width="9" height="1.4" fill="#551215" opacity="0.55"/>
+<rect x="-5" y="13" width="7" height="1.4" fill="#551215" opacity="0.55"/>
+<rect x="-11" y="10" width="5" height="1.4" fill="#551215" opacity="0.55"/>
+<rect x="-23" y="18" width="9" height="1.4" fill="#551215" opacity="0.55"/>
 <rect x="1411" y="0" width="59" height="24" fill="#dcb3b4"/>
 <rect x="1416" y="8" width="10" height="1.4" fill="#551215" opacity="0.55"/>
 <rect x="1445" y="14" width="9" height="1.4" fill="#551215" opacity="0.55"/>

@@ -71,6 +71,19 @@ The shapes are placed by a seeded random walk. The same accent and seed always g
 so the strip doesn't change between requests or restarts. Mateu draws it once per accent and seed,
 caches it, and sends it to the browser as a `data:image/svg+xml;base64,…` URI.
 
+### Tiling without a seam
+
+The shell repeats the strip along the band and scales it to the band's height, keeping its
+proportions. At the shell's 10 px height a 1440×24 strip is 600 px wide, so a wide page shows two or
+three copies side by side. To make those copies join invisibly, the generated SVG tiles seamlessly:
+every shape that runs past the right edge is also drawn shifted left by the strip's width, and every
+shape that runs past the left edge is also drawn shifted right by it. Where one copy ends, the next
+continues the same shapes. Stretching a single copy across the page instead would only hide the
+seam up to some width, and would squash every shape sideways.
+
+This applies to the generated strip only. An image you declare with `accentStrip` is repeated as it
+is, so draw it to tile if the band is wider than the image.
+
 ## Picking a seed
 
 `accentStripSeed` defaults to 7. Another seed gives another arrangement of the same palette:
