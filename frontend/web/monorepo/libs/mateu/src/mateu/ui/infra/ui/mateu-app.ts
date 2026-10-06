@@ -53,7 +53,9 @@ export const reachableBaseUrl = (app: App, reachedAt: string | undefined): strin
  * ACCENT STRIP, Redwood's colour strip: a band drawn where Redwood draws it, not fixed under the
  * header — under a page's header (mateu-page .page-header-band), on top of a listing's results
  * (mateu-table-crud .crud-band) and at the foot of the welcome hero. The strip is the app's image
- * (@App(accentStrip)) repeated along it, else a plain band in the accent colour; it reaches those
+ * (@App(accentStrip)) or, when it declares none, the one the server draws from the accent
+ * (generatedAccentStrip, a data:image/svg+xml;base64 URI), repeated along it; with neither (or
+ * @App(accentStrip = "none")) a plain band in the accent colour. It reaches those
  * places as --mateu-page-band-h / --mateu-page-band-image, which pierce their shadow roots.
  *
  * Only what the shell set itself is ever removed: an app may set these in its own CSS instead. A
@@ -65,7 +67,8 @@ const ACCENT_PROPERTIES = ['--mateu-accent', '--mateu-page-band-h', '--mateu-pag
 
 export const applyAccent = (host: HTMLElement & { _mateuAccent?: string }, accent: string | undefined, strip?: string) => {
     const value = accent && /^[#\w\s(),.%-]+$/.test(accent.trim()) ? accent.trim() : undefined
-    const stripUrl = strip && /^[\w\s/.:%~?&=#+,@-]+$/.test(strip.trim()) ? strip.trim() : undefined
+    const stripUrl = strip && (/^[\w\s/.:%~?&=#+,@-]+$/.test(strip.trim())
+        || /^data:image\/svg\+xml;base64,[A-Za-z0-9+/]+=*$/.test(strip.trim())) ? strip.trim() : undefined
     if (value) {
         host.style.setProperty('--mateu-accent', value)
         host.style.setProperty('--mateu-page-band-h', ACCENT_STRIP_HEIGHT)
@@ -865,7 +868,7 @@ export class MateuApp extends ComponentElement {
                             .catch(e => console.error('app-scope data source fetch failed', e))
                     }
                 }
-                applyAccent(this, app.accentColor, app.accentStrip)
+                applyAccent(this, app.accentColor, app.accentStrip || app.generatedAccentStrip)
                 if (app.favicon) {
                     let link = document.querySelector("link[rel~='icon']") as HTMLLinkElement | null
                     if (!link) {

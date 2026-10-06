@@ -56,13 +56,52 @@ class CommandCenterSyncTest {
     @Menu String home = "/";
   }
 
+  @SuppressWarnings("unused")
+  @UI("/cc-generated")
+  @Title("Generated strip")
+  @App(accentColor = "#D2232A")
+  public static class GeneratedStripApp {
+    @Menu String home = "/";
+  }
+
+  @SuppressWarnings("unused")
+  @UI("/cc-generated-seed")
+  @Title("Generated strip, another seed")
+  @App(accentColor = "#D2232A", accentStripSeed = 11)
+  public static class GeneratedStripSeedApp {
+    @Menu String home = "/";
+  }
+
+  @SuppressWarnings("unused")
+  @UI("/cc-no-strip")
+  @Title("No strip")
+  @App(accentColor = "#D2232A", accentStrip = " none ")
+  public static class NoStripApp {
+    @Menu String home = "/";
+  }
+
+  @SuppressWarnings("unused")
+  @UI("/cc-css-accent")
+  @Title("A CSS accent")
+  @App(accentColor = "rgb(210, 35, 42)")
+  public static class CssAccentApp {
+    @Menu String home = "/";
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
     mateu =
         TestMateu.withUis(
-            PlainApp.class, CommandCenterApp.class, ChromelessApp.class, BrandedAskApp.class);
+            PlainApp.class,
+            CommandCenterApp.class,
+            ChromelessApp.class,
+            BrandedAskApp.class,
+            GeneratedStripApp.class,
+            GeneratedStripSeedApp.class,
+            NoStripApp.class,
+            CssAccentApp.class);
   }
 
   @AfterAll
@@ -116,5 +155,44 @@ class CommandCenterSyncTest {
   void theAccentStripIsOnlyThereWhenTheAppDeclaresIt() {
     assertThat(app("/cc-plain").accentStrip()).isNull();
     assertThat(app("/cc-branded").accentStrip()).isEqualTo("/images/strip.svg");
+  }
+
+  @Test
+  void aDeclaredStripImageTravelsAsBeforeAndNothingIsGenerated() {
+    var app = app("/cc-branded");
+    assertThat(app.accentStrip()).isEqualTo("/images/strip.svg");
+    assertThat(app.generatedAccentStrip()).isNull();
+  }
+
+  @Test
+  void anAccentWithNoStripGetsOneDrawnFromItForVaadinOnly() {
+    var app = app("/cc-generated");
+    // accentStrip keeps meaning "what the app declared": Redwood's payload is unchanged
+    assertThat(app.accentStrip()).isNull();
+    assertThat(app.generatedAccentStrip())
+        .isEqualTo(io.mateu.core.infra.AccentStrip.dataUri("#D2232A", 7))
+        .startsWith("data:image/svg+xml;base64,");
+  }
+
+  @Test
+  void theSeedPicksAnotherStrip() {
+    assertThat(app("/cc-generated-seed").generatedAccentStrip())
+        .isEqualTo(io.mateu.core.infra.AccentStrip.dataUri("#D2232A", 11))
+        .isNotEqualTo(app("/cc-generated").generatedAccentStrip());
+  }
+
+  @Test
+  void noneMeansNoStripImageAtAll() {
+    var app = app("/cc-no-strip");
+    assertThat(app.accentColor()).isEqualTo("#D2232A");
+    assertThat(app.accentStrip()).isNull();
+    assertThat(app.generatedAccentStrip()).isNull();
+  }
+
+  @Test
+  void noAccentOrANonHexAccentDrawsNothing() {
+    assertThat(app("/cc-plain").generatedAccentStrip()).isNull();
+    assertThat(app("/cc-css-accent").accentColor()).isEqualTo("rgb(210, 35, 42)");
+    assertThat(app("/cc-css-accent").generatedAccentStrip()).isNull();
   }
 }

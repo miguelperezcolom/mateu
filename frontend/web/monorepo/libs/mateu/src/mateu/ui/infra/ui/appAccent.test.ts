@@ -50,6 +50,21 @@ describe("the app's brand accent", () => {
         expect(host.style.getPropertyValue('--mateu-page-band-image')).toBe('')
     })
 
+    it('draws the strip the server generated from the accent (a base64 SVG data URI)', () => {
+        const host = document.createElement('div')
+        const generated = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciLz4K'
+        applyAccent(host, '#D2232A', generated)
+        expect(host.style.getPropertyValue('--mateu-page-band-image')).toBe(`url("${generated}")`)
+    })
+
+    it('ignores a data URI that is not a base64 SVG, falling back to the plain band', () => {
+        const host = document.createElement('div')
+        applyAccent(host, '#D2232A', 'data:text/html;base64,PHNjcmlwdD4=')
+        expect(host.style.getPropertyValue('--mateu-page-band-image')).toBe('linear-gradient(#D2232A, #D2232A)')
+        applyAccent(host, '#D2232A', 'data:image/svg+xml;utf8,<svg onload="x"/>')
+        expect(host.style.getPropertyValue('--mateu-page-band-image')).toBe('linear-gradient(#D2232A, #D2232A)')
+    })
+
     it('ignores a strip URL that would end the declaration, falling back to the plain band', () => {
         const host = document.createElement('div')
         applyAccent(host, '#D2232A', 'x"); background: red')
