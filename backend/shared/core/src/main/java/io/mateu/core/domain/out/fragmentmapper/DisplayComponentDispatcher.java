@@ -33,6 +33,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.LedgerMapper.mapLe
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MarkdownMapper.mapMarkdownToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MeterMapper.mapMeterToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.MetricCardMapper.mapMetricCardToDto;
+import static io.mateu.core.domain.out.fragmentmapper.mappers.NotFoundMapper.mapNotFoundToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.NoticeMapper.mapNoticeToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.OfferCardMapper.mapOfferCardToDto;
 import static io.mateu.core.domain.out.fragmentmapper.mappers.OrgChartMapper.mapOrgChartToDto;
@@ -98,6 +99,9 @@ final class DisplayComponentDispatcher {
     }
     if (component instanceof EmptyState emptyState) {
       return mapEmptyStateToDto(emptyState);
+    }
+    if (component instanceof io.mateu.uidl.data.NotFound notFound) {
+      return mapNotFoundToDto(notFound);
     }
     if (component instanceof Gantt gantt) {
       return mapGanttToDto(gantt);

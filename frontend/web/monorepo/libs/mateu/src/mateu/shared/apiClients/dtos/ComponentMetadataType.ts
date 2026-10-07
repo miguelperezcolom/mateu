@@ -109,6 +109,7 @@ export enum ComponentMetadataType {
     AddOnPicker = "AddOnPicker",
     Ledger = "Ledger",
     PaymentPicker = "PaymentPicker",
-    ProcessMonitor = "ProcessMonitor"
+    ProcessMonitor = "ProcessMonitor",
+    NotFound = "NotFound"
 
 }

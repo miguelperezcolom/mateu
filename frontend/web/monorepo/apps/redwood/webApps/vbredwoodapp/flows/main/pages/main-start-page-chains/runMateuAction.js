@@ -54,6 +54,17 @@ define([
       }
       // «ir al padre» sin botón de vuelta: lo puso el rastro automático, y es una navegación —
       // la misma que el menú (navigation-requested, que escucha la shell)
+      // la vuelta atrás de la página NOT FOUND (navigationAction del oj-sp-empty-state): navegar a
+      // la ruta que manda el server (el padre del registro que no existe, o la home)
+      if (id === '__notFoundBack') {
+        const backRoute = ($application.variables.mateuNotFound || {}).backRoute;
+        if (backRoute) {
+          document.dispatchEvent(new CustomEvent('navigation-requested', {
+            detail: { route: backRoute }, bubbles: true, composed: true,
+          }));
+        }
+        return;
+      }
       if (id === '__goToParent') {
         const parentRoute = ($application.variables.mateuPageHeader || {}).parentRoute;
         if (parentRoute) {
@@ -495,6 +506,9 @@ define([
       const queueNow = bridge.taskQueueOf(hostAfter.tree);
       $application.variables.mateuQueue = queueNow;
       $application.variables.mateuHostEmpty = bridge.emptyStateOf(hostAfter.tree);
+      // la constante, no la variable: un `any` puesto a null se lee como proxy truthy en la chain
+      const notFoundAfter = bridge.notFoundOf(hostAfter.tree, document.documentElement.lang || navigator.language);
+      $application.variables.mateuNotFound = notFoundAfter;
       // arquetipos compuestos (welcome / general overview / item overview)
       const welcome = bridge.welcomeOf(hostAfter);
       $application.variables.mateuWelcomeTrendItems =
@@ -614,7 +628,7 @@ define([
       const integratedHeader = !!(wizardProjection || welcome
         || overviewProjection || listingSummary
         || (foldoutNow && !hostEntity2 && !hostToolbarA.length));
-      const showHeaderA = !integratedHeader;
+      const showHeaderA = !integratedHeader && !notFoundAfter;
       const pwAfter = $application.variables.mateuMenuDrawerMode
         ? 'edgeToEdge' : ((hostAfter && hostAfter.pageWidth) || 'fixed');
       const showBandA = showHeaderA && pwAfter !== 'edgeToEdge';

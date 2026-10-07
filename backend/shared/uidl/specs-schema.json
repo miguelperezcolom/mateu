@@ -1383,6 +1383,8 @@
       }, {
         "$ref" : "#/$defs/MicroFrontend"
       }, {
+        "$ref" : "#/$defs/NotFound"
+      }, {
         "$ref" : "#/$defs/Notice"
       }, {
         "$ref" : "#/$defs/Notification"
@@ -4030,6 +4032,37 @@
           "type" : "string"
         },
         "target" : {
+          "type" : "string"
+        }
+      }
+    },
+    "NotFound" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "NotFound"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "message" : {
+          "type" : "string"
+        },
+        "backRoute" : {
+          "type" : "string"
+        },
+        "backLabel" : {
+          "type" : "string"
+        },
+        "style" : {
+          "type" : "string"
+        },
+        "cssClasses" : {
           "type" : "string"
         }
       }

@@ -5861,6 +5861,27 @@
     </div>
   </div>
 </oj-bind-if>
+<!-- NOT FOUND: la ruta nombra un registro o pantalla que no existe (una reserva borrada, un enlace
+     mal copiado). El idioma de Redwood para esto es el oj-sp-empty-state a página completa: su
+     ilustración de fondo, el titular (el mensaje de la excepción del server), el texto secundario y
+     la vuelta atrás como navigationAction; encima, el icono de buscar de Redwood. El <h2> oculto da a los lectores de pantalla el titular
+     como encabezado (el texto primario del componente es un div). -->
+<oj-bind-if test="[[ !!$application.variables.mateuNotFound ]]">
+  <div class="mateu-not-found oj-sm-padding-6x-vertical">
+    <!-- el icono de "buscar" de Redwood, alineado con el texto del empty-state (mismo padding) -->
+    <div class="oj-sm-padding-4x-horizontal oj-md-padding-6x-horizontal oj-sm-padding-4x-top" aria-hidden="true">
+      <span class="mateu-not-found-icon oj-ux-ico-search"
+        style="font-size: 3rem; color: var(--oj-core-text-color-secondary);"></span>
+    </div>
+    <h2 class="oj-helper-hidden-accessible"><oj-bind-text value="[[ $application.variables.mateuNotFound.title ]]"></oj-bind-text></h2>
+    <oj-sp-empty-state
+      primary-text="[[ $application.variables.mateuNotFound.title ]]"
+      secondary-text="[[ $application.variables.mateuNotFound.message ]]"
+      navigation-action="[[ $application.variables.mateuNotFound.navigationAction ]]"
+      display-options.layout="fullPage"
+      on-sp-navigation-action="[[ $listeners.notFoundBack ]]"></oj-sp-empty-state>
+  </div>
+</oj-bind-if>
 <!-- EmptyState de página completa (sin cola): p.ej. la bienvenida de la suite -->
 <oj-bind-if test="[[ !$application.variables.mateuQueue && !!$application.variables.mateuHostEmpty ]]">
   <div class="oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical">

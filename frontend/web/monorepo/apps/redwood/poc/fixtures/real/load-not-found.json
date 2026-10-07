@@ -1,0 +1,34 @@
+{
+  "commands": [],
+  "messages": [],
+  "fragments": [
+    {
+      "targetComponentId": "",
+      "component": {
+        "type": "ClientSide",
+        "metadata": {
+          "type": "NotFound",
+          "title": "Stay FO-X6JB7F not found",
+          "message": "It may have been deleted, or the link is wrong.",
+          "backRoute": "/hotel/stays",
+          "backLabel": "Go back"
+        },
+        "id": "not-found",
+        "children": [],
+        "style": null,
+        "cssClasses": null,
+        "slot": null,
+        "sizing": null
+      },
+      "state": null,
+      "data": null,
+      "action": "Replace",
+      "containerId": null
+    }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null,
+  "wireVersion": "3.0"
+}

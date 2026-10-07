@@ -117,7 +117,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
   @JsonSubTypes.Type(value = AddOnPickerDto.class, name = "AddOnPicker"),
   @JsonSubTypes.Type(value = LedgerDto.class, name = "Ledger"),
   @JsonSubTypes.Type(value = PaymentPickerDto.class, name = "PaymentPicker"),
-  @JsonSubTypes.Type(value = ProcessMonitorDto.class, name = "ProcessMonitor")
+  @JsonSubTypes.Type(value = ProcessMonitorDto.class, name = "ProcessMonitor"),
+  @JsonSubTypes.Type(value = NotFoundDto.class, name = "NotFound")
 })
 @Schema(
     oneOf = {
@@ -227,6 +228,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
       AddOnPickerDto.class,
       LedgerDto.class,
       PaymentPickerDto.class,
-      ProcessMonitorDto.class
+      ProcessMonitorDto.class,
+      NotFoundDto.class
     })
 public interface ComponentMetadataDto {}
