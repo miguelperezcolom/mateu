@@ -112,6 +112,7 @@ import { renderAddOnPicker } from "@infra/ui/renderers/addOnPickerRenderer.ts";
 import { renderLedger } from "@infra/ui/renderers/ledgerRenderer.ts";
 import { renderPaymentPicker } from "@infra/ui/renderers/paymentPickerRenderer.ts";
 import { renderProcessMonitor } from "@infra/ui/renderers/processMonitorRenderer.ts";
+import { renderNotFound } from "@infra/ui/renderers/notFoundRenderer.ts";
 export const updateStyle = (component: ClientSideComponent, data: ComponentData): string => {
     let style = component.style
     if (component.id) {
@@ -315,6 +316,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.Ledger]: ({ component }) => renderLedger(component),
     [ComponentMetadataType.PaymentPicker]: ({ component }) => renderPaymentPicker(component),
     [ComponentMetadataType.ProcessMonitor]: ({ component }) => renderProcessMonitor(component),
+    [ComponentMetadataType.NotFound]: ({ component }) => renderNotFound(component),
 }
 
 export const renderClientSideComponent = (container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult => {

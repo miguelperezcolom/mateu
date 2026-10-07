@@ -86,6 +86,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/undo' },
 						{ slug: 'ux-patterns/session-expiry' },
 						{ slug: 'ux-patterns/client-error-log' },
+						{ slug: 'ux-patterns/not-found', label: 'Not Found' },
 						{ slug: 'ux-patterns/audit-diff', label: 'Audit Version Diff' },
 						{ slug: 'ux-patterns/global-search' },
 						{ slug: 'ux-patterns/wizard' },

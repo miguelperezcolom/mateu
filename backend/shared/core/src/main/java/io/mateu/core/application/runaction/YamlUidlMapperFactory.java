@@ -147,6 +147,7 @@ final class YamlUidlMapperFactory {
         new NamedType(DashboardPanel.class, "DashboardPanel"),
         new NamedType(EmbeddedView.class, "EmbeddedView"),
         new NamedType(EmptyState.class, "EmptyState"),
+        new NamedType(io.mateu.uidl.data.NotFound.class, "NotFound"),
         new NamedType(EntityHeader.class, "EntityHeader"),
         new NamedType(Faq.class, "Faq"),
         new NamedType(FeatureGrid.class, "FeatureGrid"),

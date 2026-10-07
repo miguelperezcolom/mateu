@@ -147,6 +147,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     autoSaveOf,
     taskQueueOf,
     emptyStateOf,
+    notFoundOf,
     interpolate,
     islandContentOf,
     mergeNestedContent,

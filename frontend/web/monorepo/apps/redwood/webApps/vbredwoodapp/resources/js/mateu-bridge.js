@@ -1282,6 +1282,33 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     }
   }
 
+  const NOT_FOUND_TEXTS = {
+    es: { title: 'No encontrado', message: 'Puede que se haya borrado o que el enlace no sea correcto.', back: 'Volver' },
+    en: { title: 'Not found', message: 'It may have been deleted, or the link is wrong.', back: 'Go back' },
+  }
+
+  /** Proyección de la página NOT FOUND: lo que contesta el server cuando la ruta nombra un registro
+   *  o una pantalla que no existe (una reserva borrada, un enlace mal copiado) — en lugar de un
+   *  toast de error sobre una página vacía. Se pinta con el idioma de Redwood para esto, el
+   *  oj-sp-empty-state a página completa (su ilustración de fondo + texto primario/secundario + la
+   *  navigationAction como vuelta atrás), dentro de la shell. Los textos los manda el server (el
+   *  mensaje de la excepción como titular); si faltan, los genéricos en el idioma de la página.
+   *  null si el host no es un not-found. */
+  function notFoundOf(tree, lang) {
+    const node = findByType(tree, 'NotFound')
+    if (!node) return null
+    const md = node.metadata || {}
+    const texts = String(lang || '').toLowerCase().startsWith('es') ? NOT_FOUND_TEXTS.es : NOT_FOUND_TEXTS.en
+    const backRoute = md.backRoute || ''
+    return {
+      title: md.title || texts.title,
+      message: md.message || texts.message,
+      backRoute,
+      // la vuelta atrás es la navigationAction del empty-state (un enlace); sin ruta, ninguna
+      navigationAction: backRoute ? { label: md.backLabel || texts.back, display: 'on' } : null,
+    }
+  }
+
   /** Interpolación del wire (labels con plantillas): ${state.clave} → valor del state. */
   /** La ruta que abre una fila (`/customers/${row.id}`), o '' si la plantilla no se resuelve entera. */
   function rowRouteOf(template, row) {
@@ -7883,6 +7910,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     autoSaveOf,
     taskQueueOf,
     emptyStateOf,
+    notFoundOf,
     interpolate,
     islandContentOf,
     mergeNestedContent,

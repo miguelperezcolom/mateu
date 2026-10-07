@@ -100,6 +100,12 @@ public abstract class MultiView
         }
       }
     } catch (Throwable e) {
+      var missing = io.mateu.core.application.runaction.NotFoundPage.find(e);
+      if (missing != null) {
+        // the record this route names does not exist (a detail of a deleted row): not an error to
+        // log and toast — RunActionUseCase answers the not-found page in place of the content
+        throw missing;
+      }
       log.error("when handling route", e);
       return Message.builder()
           .variant(NotificationVariant.error)

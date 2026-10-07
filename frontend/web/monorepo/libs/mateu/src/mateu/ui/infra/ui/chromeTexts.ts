@@ -24,6 +24,9 @@ const TEXTS = {
         confirmYes: 'Yes',
         confirmNo: 'No',
         forbidden: 'You are not allowed to do this.',
+        notFound: 'Not found',
+        notFoundMessage: 'It may have been deleted, or the link is wrong.',
+        goBack: 'Go back',
     },
     es: {
         chat: 'Asistente',
@@ -42,6 +45,9 @@ const TEXTS = {
         confirmYes: 'Sí',
         confirmNo: 'No',
         forbidden: 'No tienes permiso para esta acción.',
+        notFound: 'No encontrado',
+        notFoundMessage: 'Puede que se haya borrado o que el enlace no sea correcto.',
+        goBack: 'Volver',
     },
 } as const
 

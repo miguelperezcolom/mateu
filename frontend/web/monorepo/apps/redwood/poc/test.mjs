@@ -41,7 +41,7 @@ import {
   ojIconOf, ojIconOrGenericOf, GENERIC_ICON, navTargetOf,
   selectionOfKeySet, selectedRowsOf, withListingSelection,
   overlayOf, eventTriggersOf, shellNavOf, foldoutOf, wizardOf, bannersOf, pageStyleOf,
-  welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf,
+  welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, taskQueueOf, emptyStateOf, notFoundOf,
   islandContentOf, tabStripOf, withActiveTab, tabBarIdsOf, collectIslands as collectIslandsFn, mergeNestedContent, hostContentOf, longTaskWatcher,
   entityHeaderOf, pageKpisOf, pageSubtitleOf, itemOverviewPageOf, primaryToolbarButton,
   filterDescriptorOf, filterChipsOf, multiValuesOf, abbreviateUuid, columnWidthOf,
@@ -1037,6 +1037,36 @@ test('front-office: taskQueueOf proyecta grupos/cards/badges y emptyStateOf el p
   assert.match(first.badges[0].badgeClass, /oj-badge/)
   const placeholder = emptyStateOf(reg.contexts[HOST_ID].tree)
   assert.match(placeholder.title, /Selecciona un huésped/)
+})
+
+// 24 bis) NOT FOUND: la ruta nombra un registro que no existe (una reserva borrada). El server ya
+// no contesta un toast de error sobre una página vacía sino un componente NotFound (capturado de
+// mvc-app1: /hotel/stays/FO-X6JB7F, cuyo view(id) lanza NoSuchElementException). Se proyecta al
+// oj-sp-empty-state a página completa: el mensaje de la excepción de titular y la vuelta al padre
+// como su navigationAction.
+test('not found: notFoundOf proyecta titular, texto y vuelta atrás del componente NotFound', () => {
+  const reg = reduceContexts(empty(), fx('load-not-found'))
+  const tree = reg.contexts[HOST_ID].tree
+  const page = notFoundOf(tree, 'en-US')
+  assert.equal(page.title, 'Stay FO-X6JB7F not found')
+  assert.equal(page.message, 'It may have been deleted, or the link is wrong.')
+  assert.equal(page.backRoute, '/hotel/stays')
+  assert.deepEqual(page.navigationAction, { label: 'Go back', display: 'on' })
+  // no es un error: ni toast ni contenido de host que pintar además
+  assert.equal(reg.effects.toasts.length, 0)
+  // cualquier otra pantalla no es un not-found
+  assert.equal(notFoundOf(reduceContexts(empty(), fx('load-form')).contexts[HOST_ID].tree, 'en'), null)
+})
+
+test('not found: sin textos del server, los genéricos en el idioma de la página; sin ruta, sin vuelta', () => {
+  const tree = { type: 'ClientSide', metadata: { type: 'NotFound' }, children: [] }
+  const es = notFoundOf(tree, 'es-ES')
+  assert.equal(es.title, 'No encontrado')
+  assert.match(es.message, /borrado/)
+  assert.equal(es.navigationAction, null)
+  assert.equal(notFoundOf(tree, 'en').title, 'Not found')
+  const back = notFoundOf({ type: 'ClientSide', metadata: { type: 'NotFound', backRoute: '/reservas' } }, 'es')
+  assert.deepEqual(back.navigationAction, { label: 'Volver', display: 'on' })
 })
 
 // 25) Front-office: el detalle del TaskQueue es una isla-mediador de sabor App (nodo

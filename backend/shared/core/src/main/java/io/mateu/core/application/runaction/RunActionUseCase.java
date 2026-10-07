@@ -128,26 +128,57 @@ public class RunActionUseCase {
         .flatMap(result -> mapToUiIncrement(result, command))
         .doOnError(
             e -> {
-              if (io.mateu.core.application.security.MateuForbiddenException.find(e) == null) {
-                log.error("Error handling action {}", command.actionId(), e);
+              if (io.mateu.core.application.security.MateuForbiddenException.find(e) != null) {
+                return;
               }
+              var notFound = missingOnLoad(e, command);
+              if (notFound != null) {
+                // not an application error: the route names something that is not there
+                log.info("Not found: route {} — {}", command.route(), notFound.getMessage());
+                return;
+              }
+              log.error("Error handling action {}", command.actionId(), e);
             })
         .onErrorResume(
-            error ->
-                io.mateu.core.application.security.MateuForbiddenException.find(error) != null
-                    // a refused request is not an application error to show: it answers 403
-                    ? Mono.error(
-                        io.mateu.core.application.security.MateuForbiddenException.find(error))
-                    : mapToUiIncrement(
-                        Message.builder()
-                            .variant(NotificationVariant.error)
-                            .title(extractTitle(error))
-                            .text(extractText(error))
-                            .build(),
-                        command))
+            error -> {
+              var forbidden =
+                  io.mateu.core.application.security.MateuForbiddenException.find(error);
+              if (forbidden != null) {
+                // a refused request is not an application error to show: it answers 403
+                return Mono.error(forbidden);
+              }
+              var notFound = missingOnLoad(error, command);
+              if (notFound != null) {
+                // the page that was asked for does not exist: a not-found page in its place
+                return mapToUiIncrement(NotFoundPage.forMissing(notFound, command), command);
+              }
+              return mapToUiIncrement(
+                  Message.builder()
+                      .variant(NotificationVariant.error)
+                      .title(extractTitle(error))
+                      .text(extractText(error))
+                      .build(),
+                  command);
+            })
         .switchIfEmpty(
-            mapToUiIncrement(
-                Text.builder().text("Not found.").style("color: red;").build(), command));
+            Mono.defer(
+                () ->
+                    NotFoundPage.isLoad(command.actionId())
+                        // a route that resolves to nothing: the same not-found page
+                        ? mapToUiIncrement(NotFoundPage.forUnknownRoute(command), command)
+                        : mapToUiIncrement(
+                            Text.builder().text("Not found.").style("color: red;").build(),
+                            command)));
+  }
+
+  /**
+   * The {@link java.util.NoSuchElementException} behind a failed LOAD of a route — the record or
+   * screen the route names does not exist — or null when the failure is anything else, or happened
+   * running an action on a screen that does exist.
+   */
+  private static java.util.NoSuchElementException missingOnLoad(
+      Throwable error, RunActionCommand command) {
+    return NotFoundPage.isLoad(command.actionId()) ? NotFoundPage.find(error) : null;
   }
 
   // ── Bindable contract ─────────────────────────────────────────────────────

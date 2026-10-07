@@ -621,6 +621,11 @@
       "defaultValue": null,
       "description": "EmptyState suelto del host (placeholder del panel de detalle)"
     },
+    "mateuNotFound": {
+      "type": "any",
+      "defaultValue": null,
+      "description": "p\u00e1gina NOT FOUND del host (la ruta nombra un registro que no existe): {title, message, backRoute, navigationAction} \u2014 notFoundOf del bridge"
+    },
     "mateuNested": {
       "type": "any",
       "defaultValue": null,

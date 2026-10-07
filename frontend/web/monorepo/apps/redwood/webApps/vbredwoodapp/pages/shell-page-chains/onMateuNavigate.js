@@ -339,7 +339,8 @@ define([
       // Navegar en una SPA no cambia la página, así que no hay nada que un lector de pantalla
       // anuncie solo, y el foco se queda en el enlace del menú recién pulsado. Sólo aquí, en
       // una navegación REAL: en un re-render arrancaría el foco del campo que se esté editando.
-      bridge.announceNavigation(summary.title || route);
+      const notFoundTitle = (bridge.notFoundOf(host.tree) || {}).title;
+      bridge.announceNavigation(notFoundTitle || summary.title || route);
       $application.variables.mateuOverviewTranslations = { goToParent: summary.title };
       $application.variables.mateuHostText = summary.text;
       $application.variables.mateuFormMetadata = summary.formMetadata;
@@ -373,6 +374,10 @@ define([
       const queueNow = bridge.taskQueueOf(host.tree);
       $application.variables.mateuQueue = queueNow;
       $application.variables.mateuHostEmpty = bridge.emptyStateOf(host.tree);
+      // la ruta nombra algo que no existe (un registro borrado, un enlace mal copiado): el server
+      // contesta la página NOT FOUND en lugar del contenido, y se pinta ELLA sola, sin cabecera
+      const notFoundNow = bridge.notFoundOf(host.tree, document.documentElement.lang || navigator.language);
+      $application.variables.mateuNotFound = notFoundNow;
       // arquetipos compuestos (welcome / general overview / item overview)
       const welcome = bridge.welcomeOf(host);
       $application.variables.mateuWelcomeTrendItems =
@@ -484,7 +489,12 @@ define([
           await Actions.callComponentMethod(context, { selector: '#' + barId, method: 'refresh' });
         } catch (ignored) { /* aún sin montar */ }
       }
-      if (hostBlocksRicos) {
+      if (notFoundNow) {
+        // la página not-found es TODO el contenido: ni texto suelto ni bloques del host
+        $application.variables.mateuHostContent = [];
+        $application.variables.mateuHostText = '';
+      }
+      if (hostBlocksRicos || notFoundNow) {
         $application.variables.mateuFormMetadata = null;
         $application.variables.mateuFormFieldsList = [];
         $application.variables.mateuFormSections = [];
@@ -519,7 +529,8 @@ define([
       const integratedHeader = !!(wizardProjection || welcome
         || overviewProjection || listingSummary
         || (foldoutNow && !hostEntity && !hostToolbar.length));
-      const showHeader = !integratedHeader;
+      // la página not-found trae su propio titular (el oj-sp-empty-state): sin header de vb
+      const showHeader = !integratedHeader && !notFoundNow;
       // 1.3: banners de página → el oj-sp-messages-banner del starter (shell).
       // El ADP se muta con fireDataProviderEvent (asignar .data no refresca)
       // el selector rápido del listado no sobrevive a la navegación — salvo que el

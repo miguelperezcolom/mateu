@@ -554,6 +554,16 @@
         }
       ]
     },
+    "notFoundBack": {
+      "chains": [
+        {
+          "chain": "runMateuAction",
+          "parameters": {
+            "actionId": "__notFoundBack"
+          }
+        }
+      ]
+    },
     "headerGoToParent": {
       "chains": [
         {
