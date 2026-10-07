@@ -22,7 +22,9 @@ public class ${simpleClassName}Controller {
     // Any route under the UI up to eight segments deep (/hotel/stays/FO-1 on a reload or a shared link)
     // answers the index. A path pattern cannot say "any depth, no dot" in one go, and /** would also
     // swallow the static assets under the UI (dist/assets/mateu.js): a segment with a dot is left alone.
-    @GetMapping(value = {"*", "{s1:[^.]+}/{s2:[^.]+}", "{s1:[^.]+}/{s2:[^.]+}/{s3:[^.]+}", "{s1:[^.]+}/{s2:[^.]+}/{s3:[^.]+}/{s4:[^.]+}", "{s1:[^.]+}/{s2:[^.]+}/{s3:[^.]+}/{s4:[^.]+}/{s5:[^.]+}", "{s1:[^.]+}/{s2:[^.]+}/{s3:[^.]+}/{s4:[^.]+}/{s5:[^.]+}/{s6:[^.]+}", "{s1:[^.]+}/{s2:[^.]+}/{s3:[^.]+}/{s4:[^.]+}/{s5:[^.]+}/{s6:[^.]+}/{s7:[^.]+}", "{s1:[^.]+}/{s2:[^.]+}/{s3:[^.]+}/{s4:[^.]+}/{s5:[^.]+}/{s6:[^.]+}/{s7:[^.]+}/{s8:[^.]+}"}, produces = MediaType.TEXT_HTML_VALUE)
+    // Variables, not "*": a wildcard weighs as 100 variables when Spring picks the most specific pattern,
+    // so the root UI's /{s1}/{s2} would beat /app/* and serve /app/section1.
+    @GetMapping(value = {"{s1}", "{s1:[^.]+}/{s2:[^.]+}", "{s1:[^.]+}/{s2:[^.]+}/{s3:[^.]+}", "{s1:[^.]+}/{s2:[^.]+}/{s3:[^.]+}/{s4:[^.]+}", "{s1:[^.]+}/{s2:[^.]+}/{s3:[^.]+}/{s4:[^.]+}/{s5:[^.]+}", "{s1:[^.]+}/{s2:[^.]+}/{s3:[^.]+}/{s4:[^.]+}/{s5:[^.]+}/{s6:[^.]+}", "{s1:[^.]+}/{s2:[^.]+}/{s3:[^.]+}/{s4:[^.]+}/{s5:[^.]+}/{s6:[^.]+}/{s7:[^.]+}", "{s1:[^.]+}/{s2:[^.]+}/{s3:[^.]+}/{s4:[^.]+}/{s5:[^.]+}/{s6:[^.]+}/{s7:[^.]+}/{s8:[^.]+}"}, produces = MediaType.TEXT_HTML_VALUE)
     public String getIndexAlways() {
         return getIndex();
     }
