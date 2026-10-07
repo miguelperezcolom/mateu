@@ -37,6 +37,21 @@ jobs:
           server-id: central # Value of the distributionManagement/repository/id field of the pom.xml
           server-username: MAVEN_USERNAME
           server-password: MAVEN_PASSWORD
+      # Maven pinned, not the runner's. ubuntu-24.04 20261004 moved it from 3.9.16 to 3.10.0, and with
+      # 3.10.0 central-publishing-maven-plugin 0.11.0 no longer deletes the maven-metadata files from its
+      # staging: they went into the bundle, and Central refused v3.0-alpha.402 ("Bundle has content that
+      # does NOT have a .pom file") — every module's folder and io/mateu itself.
+      - name: Set up Maven 3.9.16
+        run: |
+          set -euo pipefail
+          V=3.9.16
+          URL=https://archive.apache.org/dist/maven/maven-3/$V/binaries/apache-maven-$V-bin.tar.gz
+          curl -fsSL "$URL" -o /tmp/maven.tgz
+          echo "$(curl -fsSL "$URL.sha512" | cut -d' ' -f1)  /tmp/maven.tgz" | sha512sum -c -
+          tar xzf /tmp/maven.tgz -C "$HOME"
+          echo "$HOME/apache-maven-$V/bin" >> "$GITHUB_PATH"
+      - name: Maven version
+        run: mvn -v
       - name: Import GPG Key
         uses: crazy-max/ghaction-import-gpg@v7
         with:
