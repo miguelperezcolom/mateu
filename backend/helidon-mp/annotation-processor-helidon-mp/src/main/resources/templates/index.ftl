@@ -15,7 +15,9 @@ import java.util.Map;
 @Slf4j
 public class ${simpleClassName}Controller {
 
-    @Path("/{path}")
+    // Any route under the UI, however deep (/hotel/stays/FO-1 on a reload or a shared link), answers
+    // the index; a segment with a dot is a static asset (dist/assets/mateu.js) and is left alone.
+    @Path("/{path: [^.]+}")
     @GET
     @Produces(MediaType.TEXT_HTML)
     public String getIndexAlways(String path) {
