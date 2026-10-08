@@ -109,16 +109,28 @@ exactly what the canvas shows once the component is dropped.
   runtime-only embeds).
 - `thumbs.html` + `src/thumbs/harness.ts`: the page that gets screenshotted. It is built apart by
   `vite.thumbs.config.ts` and never shipped in the editor bundle.
-- `src/thumbnails/<renderer>/<Type>.png`: the output. `src/model/thumbnails.ts` picks it up with
-  `import.meta.glob`. Only `vaadin` exists so far, and the DS-neutral canvas deliberately has none.
+- `src/thumbnails/<look>/<Type>.png`: the output, `vaadin` and `redwood`. `src/model/thumbnails.ts`
+  picks it up with `import.meta.glob`. The palette has a **look** selector (Vaadin / Redwood / Names
+  only) that starts from the canvas's design system; the DS-neutral canvas starts with names only.
+- **Redwood** cannot run in the canvas (it is a whole VB app), so the palette is the only Redwood
+  preview in the editor. Its thumbnails come from the VB app itself, and a component it does not
+  paint gets none. The palette then dims it, with a hint that Redwood most likely does not render
+  it.
 
 Regenerate when the catalog or a renderer changes, against **any running Mateu app** (they all answer
 `__preview__`), so the thumbnails show what the server renders, i.e. what ships:
 
 ```bash
-node scripts/thumbnails.mjs --backend http://localhost:8080        # all
+node scripts/thumbnails.mjs --backend http://localhost:8080        # vaadin, all
 node scripts/thumbnails.mjs --backend http://localhost:8080 --only Grid,Card
+
+# redwood: serve the VB app first (cd ../redwood && npm run build && npm run serve → :9006)
+node scripts/thumbnails.mjs --renderer redwood --backend http://localhost:8080 --vb http://localhost:9006
 ```
+
+The Redwood run intercepts the VB app's calls to `/mateu`. The shell gets a one-route App, and that
+route answers the sample's `__preview__` wrapped as a server-side component, exactly as a real
+route's content arrives. It crops the content panel, below the page header.
 
 The run lists what rendered nothing and what the backend could not render. `thumbnails.test.ts`
 fails while a catalog component has neither a thumbnail nor a `NO_THUMBNAIL` entry. Without

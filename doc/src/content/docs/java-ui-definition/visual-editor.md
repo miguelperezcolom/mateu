@@ -211,8 +211,11 @@ holds something a delta cannot.
 
 ## Recognising components in the palette
 
-The **Insert** tab shows every component as a card with a picture of it, as the canvas renderer
-(Vaadin) paints it. Hover a card to see it larger. The pictures are real renders of a small sample
+The **Insert** tab shows every component as a card with a picture of it. Hover a card to see it
+larger. A selector next to the title picks the look: **Vaadin** (what the canvas paints),
+**Redwood** or **Names only**. The canvas cannot run the Redwood renderer, so in the Redwood look the
+palette is your preview of a Redwood app. A component shown dimmed there has no Redwood picture,
+which means the Redwood renderer most likely does not paint it. The pictures are real renders of a small sample
 of each component, regenerated from the catalog, so what you pick is what lands on the canvas. A few
 entries have no picture because there is nothing to see on the page: triggers, menu entries, and
 embeds that only exist at runtime.

@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { parseSchema } from './componentSchema'
 import { NO_THUMBNAIL } from './thumbnailSamples'
-import { thumbnailTypes, thumbnailUrl } from './thumbnails'
+import { defaultLook, thumbnailTypes, thumbnailUrl } from './thumbnails'
 
 /**
  * Palette thumbnail completeness. Every component of the REAL catalog either has a Vaadin thumbnail
@@ -32,10 +32,21 @@ describe('palette thumbnails', () => {
     })
 
     it('keep no stale thumbnail of a component that left the catalog', () => {
-        expect(thumbnailTypes('vaadin').filter((t) => !catalog.includes(t))).toEqual([])
+        for (const look of ['vaadin', 'redwood'] as const) {
+            expect(thumbnailTypes(look).filter((t) => !catalog.includes(t)), look).toEqual([])
+        }
     })
 
-    it('have none for the DS-neutral canvas, where a Lumo picture would mislead', () => {
-        expect(thumbnailTypes('neutral')).toEqual([])
+    it('picture the Redwood core: forms, tabs and the front-office atoms', () => {
+        // Not every component — the Redwood renderer paints a subset, and a missing picture says so.
+        // These it does paint; losing one of them means the generator (or the renderer) broke.
+        for (const t of ['FormLayout', 'TabLayout', 'Badge', 'Notice', 'StatusList']) {
+            expect(thumbnailUrl('redwood', t), t).toBeTruthy()
+        }
+    })
+
+    it('start from the canvas design system, and with none on the DS-neutral canvas', () => {
+        expect(defaultLook('vaadin')).toBe('vaadin')
+        expect(defaultLook('neutral')).toBe('none')
     })
 })

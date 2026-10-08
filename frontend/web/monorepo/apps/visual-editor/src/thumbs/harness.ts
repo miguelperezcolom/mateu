@@ -26,6 +26,8 @@ declare global {
             /** `backend`: render through the server's `__preview__` (proxied same-origin), as what ships does. */
             use(renderer: CanvasRendererId, backend: boolean): Promise<void>
             show(type: string): void
+            /** The page YAML a sample is rendered from — the Redwood run feeds it to the VB app. */
+            sampleYaml(type: string): string
             status(): string
             /** The components that deliberately have no thumbnail. */
             skipped(): Record<string, string>
@@ -47,9 +49,11 @@ window.thumbs = {
     skipped: () => ({ ...NO_THUMBNAIL }),
     show(type) {
         lastStatus = ''
+        canvas().doc = parsePage(window.thumbs.sampleYaml(type))
+    },
+    sampleYaml(type) {
         const spec = SCHEMA.components.get(type)
         if (!spec) throw new Error('unknown component ' + type)
-        // The sample is the only child, so the renderer stamps it `ve-0` — the element to capture.
-        canvas().doc = parsePage(stringify({ type: 'VerticalLayout', padding: true, content: [thumbnailSample(spec)] }))
+        return stringify({ type: 'VerticalLayout', padding: true, content: [thumbnailSample(spec)] })
     },
 }
