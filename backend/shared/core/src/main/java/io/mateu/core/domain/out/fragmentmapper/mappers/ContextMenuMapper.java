@@ -54,6 +54,8 @@ public class ContextMenuMapper {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+    // A freshly authored node (e.g. dropped from the visual editor's palette) has no menu yet.
+    if (menu == null) return List.of();
     return menu.stream()
         .map(
             option ->

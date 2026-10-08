@@ -78,6 +78,14 @@ describe('decorateForPreview', () => {
         expect(tree.content[1].type).toBe('Text')
     })
 
+    it('keeps a grid column id (its row binding) even under content, but still stamps a form field there', () => {
+        const grid = layout('type: VerticalLayout\ncontent:\n  - type: Grid\n    content:\n      - type: GridColumn\n        id: customer\n  - type: FormLayout\n    content:\n      - type: FormField\n        id: email\n')
+        const tree = parse(decorateForPreview(grid)) as any
+        expect(tree.content[0].id).toBe('ve-0')
+        expect(tree.content[0].content[0].id).toBe('customer')
+        expect(tree.content[1].content[0].id).toBe('ve-1-0')
+    })
+
     it('does not mutate the source document', () => {
         const before = JSON.stringify(doc)
         decorateForPreview(doc)
