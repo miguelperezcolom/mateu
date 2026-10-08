@@ -29,6 +29,7 @@ import { TEMPLATES, StarterTemplate } from './model/templates'
 import { bindDataSource, modelViewOptions, scaffoldFieldsFromContract, turnIntoListing, wireAction } from './model/quickStarts'
 import { diffAgainstContract, isInSync } from './model/viewModelSync'
 import { buildScaffoldPrompt, validateScaffoldYaml, stripFences } from './model/aiScaffold'
+import { buildAgentInstruction, decodeShared, encodeShareLink, type SharedDesign } from './model/shareLink'
 import { STEP_TYPES, stepParam, actionSteps, setActionSteps, removeAction, FlowStep } from './model/flowEditor'
 import { buildBundleManifest, clientRenderableRouteCount } from './model/exportBundle'
 import { SCHEMA } from './model/schemaCatalog'
@@ -218,6 +219,7 @@ export class MateuVisualEditor extends LitElement {
         .notice { font-size: 12px; padding: 0.35rem 0.75rem; background: var(--ve-primary-10); color: var(--ve-primary-text);
                   display: flex; gap: 0.5rem; align-items: center; }
         .notice button { padding: 0.1rem 0.4rem; }
+        .notice input.link { flex: 1; min-width: 0; font: 12px ui-monospace, monospace; }
     `
 
     @property() baseUrl = ''
@@ -232,6 +234,8 @@ export class MateuVisualEditor extends LitElement {
     @state() private renderer: CanvasRendererId = loadRendererChoice()
     /** What the canvas last reported about its render (ok / offline fallback / error). */
     @state() private previewStatus?: { kind: 'ok' | 'fallback' | 'error' | 'client'; text: string }
+    /** Whether the "open a share link" bar is showing under the toolbar. */
+    @state() private shareOpen = false
     /** A transient message under the toolbar (e.g. the result of a rename). */
     @state() private notice?: string
     /** Undo/redo over the file text — one history for every editor mode. */
@@ -289,6 +293,12 @@ export class MateuVisualEditor extends LitElement {
         })
         // Load the whole mount (if the host exposes it) to power the reference pickers and the canvas's
         // REST source catalogue — the editor stays fully usable without it.
+        this.loadProject()
+        useCanvasRenderer(this.renderer).then((r) => { this.renderer = r })
+        window.addEventListener('keydown', this.onKeydown)
+    }
+
+    private loadProject() {
         this.host.listFiles?.().then((files) => {
             if (files?.length) {
                 this.project = buildIndex(files)
@@ -298,8 +308,6 @@ export class MateuVisualEditor extends LitElement {
                 this.refreshContract()
             }
         })
-        useCanvasRenderer(this.renderer).then((r) => { this.renderer = r })
-        window.addEventListener('keydown', this.onKeydown)
     }
 
     disconnectedCallback() {
@@ -407,7 +415,8 @@ export class MateuVisualEditor extends LitElement {
                  @mount-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
                  @sources-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}>
                 ${this.renderToolbar()}
-                ${this.notice ? html`<div class="notice">${this.notice}<button class="ghost" @click=${() => (this.notice = undefined)}>✕</button></div>` : html`<div></div>`}
+                ${this.shareOpen ? this.renderOpenLink()
+                    : this.notice ? html`<div class="notice">${this.notice}<button class="ghost" @click=${() => (this.notice = undefined)}>✕</button></div>` : html`<div></div>`}
                 ${this.mode === 'mount'
                     ? html`<mount-editor .yaml=${this.structuredYaml}></mount-editor>`
                     : this.mode === 'app'
@@ -469,6 +478,10 @@ export class MateuVisualEditor extends LitElement {
                         ${this.renderStatus()}
                     </span>
                     <span class="sep"></span>` : ''}
+                <span class="group">
+                    <button class="ghost" @click=${this.copyShareLink} title="Copy a link that opens this file in the editor — the design travels inside the link, nothing is uploaded">Share link</button>
+                    <button class="ghost" @click=${() => (this.shareOpen = !this.shareOpen)} title="Open a share link (e.g. one an AI agent answered with)">Open link…</button>
+                </span>
                 <button @click=${this.exportBundle} title="Download a static bundle manifest (specs mode) — deploy it to any free static host, no backend (€0)">Export bundle</button>
             </div>`
     }
@@ -1056,6 +1069,11 @@ export class MateuVisualEditor extends LitElement {
                 <textarea id="ai-yaml" placeholder="paste the AI's YAML here"></textarea>
                 ${this.aiMsg ? html`<div class="ai-msg">${this.aiMsg}</div>` : ''}
                 <div><button @click=${this.aiLoad}>Load into the page</button></div>
+                <div class="tp-head">…or let a coding agent build it and answer with a link</div>
+                <div class="ai-row">
+                    <button @click=${this.aiCopyAgentInstruction}>Copy agent instruction</button>
+                    <span class="qs-hint">for Claude Code, Codex… — it reads the Mateu agent guide, writes the YAML and replies with a share link; open it with "Open link…"</span>
+                </div>
             </div>`
     }
 
@@ -1088,6 +1106,55 @@ export class MateuVisualEditor extends LitElement {
         this.aiMsg = undefined
         this.refreshContract()
         this.notifyChanged()
+    }
+
+    private aiCopyAgentInstruction = () => {
+        const desc = (this.renderRoot.querySelector('#ai-desc') as HTMLTextAreaElement | null)?.value ?? ''
+        navigator.clipboard?.writeText(buildAgentInstruction(desc, editorLinkBase(), this.currentPath)).catch(() => {})
+        this.aiMsg = 'Agent instruction copied — paste it into Claude Code, Codex… It answers with a link: paste that in "Open link…".'
+    }
+
+    // --- share links: the design travels inside a URL fragment (nothing is uploaded) ---
+
+    /** Copy a link to this file (and, when the host knows it, the rest of the mount) on this editor. */
+    private copyShareLink = async () => {
+        const files = (await this.host.listFiles?.()) ?? []
+        const design: SharedDesign = { v: 1, yaml: this.lastText, ...(this.currentPath ? { path: this.currentPath } : {}) }
+        const others = files.filter((f) => f.path !== this.currentPath)
+        if (others.length) design.files = Object.fromEntries(others.map((f) => [f.path, f.content]))
+        const link = await encodeShareLink(design, editorLinkBase())
+        await navigator.clipboard?.writeText(link).catch(() => {})
+        const what = others.length ? `this file and ${others.length} other file(s) of the mount` : 'this file'
+        this.notice = `Link copied (${Math.ceil(link.length / 1024)} KB) — it carries ${what}; nothing was uploaded.`
+    }
+
+    private renderOpenLink() {
+        return html`<div class="notice">
+            <input class="link" id="share-in" placeholder="Paste a share link (…#mateuz=…) or the shared JSON" @keydown=${(e: KeyboardEvent) => e.key === 'Enter' && this.openShareLink()}>
+            <button @click=${this.openShareLink}>Open</button>
+            <button class="ghost" @click=${() => (this.shareOpen = false)}>✕</button>
+        </div>`
+    }
+
+    /** Load a pasted share link as an ordinary (undoable) edit of the open file. */
+    private openShareLink = async () => {
+        const input = (this.renderRoot.querySelector('#share-in') as HTMLInputElement | null)?.value ?? ''
+        const design = await decodeShared(input)
+        this.shareOpen = false
+        if (!design) { this.notice = 'That is not a Mateu share link.'; return }
+        try { parse(design.yaml) } catch { this.notice = 'The shared YAML does not parse — not applied.'; return }
+        this.load(design.yaml)
+        this.selectedPath = null
+        this.emitText(design.yaml, true)
+        if (this.host.adoptShared) {
+            this.host.adoptShared(design)
+            this.currentPath = this.host.currentPath?.()
+            this.loadProject()
+            this.notice = 'Shared design opened (⌘Z undoes it).'
+        } else {
+            const extra = Object.keys(design.files ?? {}).filter((p) => p !== this.currentPath).length
+            this.notice = `Shared design opened into this file (⌘Z undoes it)${extra ? ` — the link also carries ${extra} other file(s), which an IDE editor cannot write; open the link in a browser editor to see the whole mount` : ''}.`
+        }
     }
 
     // --- static bundle export (Phase 7): the €0 deploy half ---
@@ -1325,4 +1392,10 @@ function triggerLabel(type: string): string {
 
 declare global {
     interface HTMLElementTagNameMap { 'mateu-visual-editor': MateuVisualEditor }
+}
+
+/** The address a share link opens: a configured hosted editor, else this page (when it is a web page). */
+function editorLinkBase(): string {
+    if (window.__mateuEditorUrl) return window.__mateuEditorUrl
+    return /^https?:$/.test(location.protocol) ? location.href.split('#')[0] : 'http://localhost:5199/'
 }

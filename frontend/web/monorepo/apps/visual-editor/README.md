@@ -83,6 +83,19 @@ component to select it, edit its props on the right, add components from the lef
 Quality is measured with `e2e/visual-editor-tasks.mjs` (12 authoring tasks, any build) and the VS Code
 host is live-run with `e2e/vscode-host-live.mjs` (a real VS Code with the extension loaded).
 
+## Share links (`#mateuz=`) and `public/agent.md`
+
+A design can travel in a URL: `{v:1, path?, yaml, files?}` as JSON, raw-deflated and base64url'd
+after `#mateuz=` (or URI-encoded plain JSON after `#mateu=`). It is in the fragment, so nothing
+reaches a server (the idea comes from lnkiai/m3e-canvas, MIT). `model/shareLink.ts` encodes and
+decodes it. `BrowserHost` imports a link on boot (the old draft goes to `*.previous`, and the
+fragment is cleared so a reload keeps your edits). **Open link…** loads a pasted one as an undoable
+edit, and `HostBridge.adoptShared` lets a host take the rest of the mount.
+
+`public/agent.md` is the guide a coding agent follows to produce such a link. It is served next to
+the bundle and published raw on master. Keep it in sync with the document shape:
+`shareLink.test.ts` decodes the exact Node `deflateRawSync` recipe it gives.
+
 ## Status
 
 **Fase A — first slice (this):** app scaffold, 3-pane shell, canvas render via `__preview__`, click-to-

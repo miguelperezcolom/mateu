@@ -209,6 +209,29 @@ view model, the editor saves the smallest thing that expresses your change — a
 your edits are a re-ordering/relabelling of the model's fields, a full **snapshot** only when the tree
 holds something a delta cannot.
 
+## Share links, and designs from a coding agent
+
+**Share link** (toolbar) copies a link that opens the current file in the editor. When the host knows
+the whole mount it carries the other files as well. The design travels **inside the link**: it is
+compressed into the URL fragment (`#mateuz=…`), which a browser never sends to a server. Nothing is
+uploaded, and a statically hosted editor stays static. **Open link…** takes a pasted link (or the
+bare JSON document) and loads it as an ordinary edit, so `⌘Z` undoes it.
+
+Opening a link in a browser replaces the local draft, and the previous one is kept under
+`mateu-visual-editor-yaml.previous`. An IDE editor writes one file, so it loads only the linked file
+and tells you when the link carried more.
+
+The same link is how a **coding agent** hands you a screen. In the **AI** panel, describe the screen
+and click **Copy agent instruction**, then paste it into Claude Code, Codex or a similar agent. The
+instruction points the agent at the [agent guide](https://raw.githubusercontent.com/miguelperezcolom/mateu/master/frontend/web/monorepo/apps/visual-editor/public/agent.md),
+which explains the document format, points at the published schemas and gives a Node/Python
+one-liner that builds the link. The agent answers with a link on *your* editor; open it with
+**Open link…**. This is the reverse of the scaffold prompt above it, and just as tool-agnostic:
+no API key, nothing in between.
+
+A link opens the editor at the page's own address. To point links at a hosted editor instead, set
+`window.__mateuEditorUrl` before the bundle loads.
+
 ## Project awareness — the roadmap
 
 Everything above works today; what is still landing is the **"pick, don't type"** half of each
