@@ -438,7 +438,7 @@ export class MateuVisualEditor extends LitElement {
                                 <div class="left-body">
                                     ${this.leftTab === 'layers'
                                         ? html`<editor-outline .doc=${this.doc} .selectedPath=${this.selectedPath}></editor-outline>`
-                                        : html`<editor-palette></editor-palette>`}
+                                        : html`<editor-palette .renderer=${this.renderer}></editor-palette>`}
                                 </div>
                             </div>
                             <editor-canvas .doc=${this.doc} .baseUrl=${renderBaseUrl(this.previewSource)}

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Mateu palette thumbnails (generator harness)</title>
+    <style>
+      html, body { margin: 0; background: #fff; }
+      body { font-family: system-ui, -apple-system, sans-serif; }
+    </style>
+    <!-- Dev tooling only: scripts/thumbnails.mjs builds this page apart (vite.thumbs.config.ts) and
+         screenshots each component on it. The editor bundle never includes it. -->
+    <script type="module" src="/src/thumbs/harness.ts"></script>
+  </head>
+  <body>
+    <editor-canvas id="canvas" style="display:block; width:720px; min-height:400px"></editor-canvas>
+  </body>
+</html>

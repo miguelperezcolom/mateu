@@ -96,6 +96,34 @@ edit, and `HostBridge.adoptShared` lets a host take the rest of the mount.
 the bundle and published raw on master. Keep it in sync with the document shape:
 `shareLink.test.ts` decodes the exact Node `deflateRawSync` recipe it gives.
 
+## Palette thumbnails (`scripts/thumbnails.mjs`)
+
+The **Insert** palette shows each component as a card with a picture of it, so you recognise it by
+its look rather than its name, and hovering a card shows it larger. The pictures are **screenshots of
+the editor's own canvas** painting a sample of each component, never drawings, so a thumbnail is
+exactly what the canvas shows once the component is dropped.
+
+- `src/model/thumbnailSamples.ts`: the sample per component (a grid with rows, a chart with data…).
+  A part that only renders inside its parent, such as `GridColumn` or `Tab`, is pictured as that
+  parent. `NO_THUMBNAIL` lists, with a reason, the ones that have none (triggers, menu entries,
+  runtime-only embeds).
+- `thumbs.html` + `src/thumbs/harness.ts`: the page that gets screenshotted. It is built apart by
+  `vite.thumbs.config.ts` and never shipped in the editor bundle.
+- `src/thumbnails/<renderer>/<Type>.png`: the output. `src/model/thumbnails.ts` picks it up with
+  `import.meta.glob`. Only `vaadin` exists so far, and the DS-neutral canvas deliberately has none.
+
+Regenerate when the catalog or a renderer changes, against **any running Mateu app** (they all answer
+`__preview__`), so the thumbnails show what the server renders, i.e. what ships:
+
+```bash
+node scripts/thumbnails.mjs --backend http://localhost:8080        # all
+node scripts/thumbnails.mjs --backend http://localhost:8080 --only Grid,Card
+```
+
+The run lists what rendered nothing and what the backend could not render. `thumbnails.test.ts`
+fails while a catalog component has neither a thumbnail nor a `NO_THUMBNAIL` entry. Without
+`--backend` it uses the in-browser expander, which is close to the server render but not identical.
+
 ## Status
 
 **Fase A — first slice (this):** app scaffold, 3-pane shell, canvas render via `__preview__`, click-to-

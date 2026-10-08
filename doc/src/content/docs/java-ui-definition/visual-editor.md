@@ -209,6 +209,14 @@ view model, the editor saves the smallest thing that expresses your change — a
 your edits are a re-ordering/relabelling of the model's fields, a full **snapshot** only when the tree
 holds something a delta cannot.
 
+## Recognising components in the palette
+
+The **Insert** tab shows every component as a card with a picture of it, as the canvas renderer
+(Vaadin) paints it. Hover a card to see it larger. The pictures are real renders of a small sample
+of each component, regenerated from the catalog, so what you pick is what lands on the canvas. A few
+entries have no picture because there is nothing to see on the page: triggers, menu entries, and
+embeds that only exist at runtime.
+
 ## Share links, and designs from a coding agent
 
 **Share link** (toolbar) copies a link that opens the current file in the editor. When the host knows
