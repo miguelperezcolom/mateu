@@ -114,6 +114,9 @@ Rules that keep a page valid:
   and a top-level `actions:` list whose entries (`id` = a button's `actionId`) carry a `restAction`
   with `source: { ref: <name> }`. The named sources live in `sources.yaml` (send it in `files`). A
   complete example, a CRUD with no Java: https://github.com/miguelperezcolom/mateu/tree/master/demo/demo-starwars/src/main/resources/specs/ui
+- Any component may carry a `note:`, a sentence of design intent ("must be unique", "only managers
+  can change it"). Nothing renders it. Write one wherever the person asked for behaviour the layout
+  cannot express: the editor shows the notes and puts them in the prompt that asks for the view model.
 
 Other file kinds are discriminated by `type:` at the root: `UI` (a mount), `AppShell` (title, variant,
 menu), `Routes` (route → `definition` page + optional `viewModel`), and the `sources.yaml` catalogue.

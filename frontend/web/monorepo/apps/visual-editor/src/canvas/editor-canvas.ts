@@ -70,6 +70,10 @@ export class EditorCanvas extends LitElement {
         .toolbar { position: absolute; top: -30px; right: -2px; display: flex; gap: 1px; pointer-events: auto;
                    background: var(--ve-primary, #4f8cff); border-radius: 6px; padding: 2px; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
         .toolbar.below { top: auto; bottom: -30px; }
+        .sticky { position: absolute; right: -2px; top: calc(100% + 4px); width: 14rem; max-height: 6.5rem; overflow: hidden; pointer-events: none;
+                  background: #fff6c4; color: #3b3200; border: 1px solid #ecd98a; border-radius: 4px; padding: 0.3rem 0.45rem;
+                  font: 11px/1.35 var(--ve-font, system-ui); box-shadow: 0 2px 6px rgba(0,0,0,.12); white-space: pre-wrap; z-index: 1; }
+        .sticky.below { top: calc(100% + 34px); }
         .toolbar button { border: none; background: transparent; color: #fff; cursor: pointer; font-size: 12px;
                           line-height: 1; padding: 3px 5px; border-radius: 4px; }
         .toolbar button:hover { background: rgba(255,255,255,.25); }
@@ -95,6 +99,8 @@ export class EditorCanvas extends LitElement {
     @state() private dropIndicator: IndicatorBox | null = null
     @state() private selBox: IndicatorBox | null = null
     @state() private selTag = ''
+    /** The selected component's design note, shown as a sticky on its box (it is never rendered). */
+    @state() private selNote = ''
     @state() private hoverBox: IndicatorBox | null = null
     @state() private hoverTag = ''
 
@@ -297,9 +303,11 @@ export class EditorCanvas extends LitElement {
 
     /** Recompute the selection overlay box + tag from the current selectedPath and rendered DOM. */
     private applyHighlight() {
-        if (!this.selectedPath || !this.doc) { this.selBox = null; this.selTag = ''; return }
+        if (!this.selectedPath || !this.doc) { this.selBox = null; this.selTag = ''; this.selNote = ''; return }
         this.selBox = this.boxFor(this.selectedPath)
-        this.selTag = nodeAt(this.doc, this.selectedPath)?.type ?? ''
+        const node = nodeAt(this.doc, this.selectedPath)
+        this.selTag = node?.type ?? ''
+        this.selNote = typeof node?.note === 'string' ? node.note.trim() : ''
         this.selBelow = this.wantsBelow(this.selectedPath)
     }
 
@@ -326,6 +334,7 @@ export class EditorCanvas extends LitElement {
         return html`<div class="overlay sel" @mousedown=${stop} style=${styleMap({
             left: b.left + 'px', top: b.top + 'px', width: b.width + 'px', height: b.height + 'px' })}>
             <span class="tag ${this.selBelow ? 'below' : ''}">${this.selTag}</span>
+            ${this.selNote ? html`<div class="sticky ${this.selBelow ? 'below' : ''}" title="Design note — not rendered">✎ ${this.selNote}</div>` : ''}
             <div class="toolbar ${this.selBelow ? 'below' : ''}" @mousedown=${stop} @click=${stop}>
                 <button title="Select parent" @click=${this.selectParent}>⤴</button>
                 <button title="Move up" @click=${() => this.emitMove(-1)}>↑</button>

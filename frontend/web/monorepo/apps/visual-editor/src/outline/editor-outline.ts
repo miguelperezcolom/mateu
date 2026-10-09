@@ -27,6 +27,7 @@ export class EditorOutline extends LitElement {
         .caret.leaf { visibility: hidden; }
         .label { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 0.4rem; overflow: hidden; }
         .type { white-space: nowrap; }
+        .noted { color: #a07c00; font-size: 11px; flex: none; }
         .hint { color: var(--ve-tertiary, #9aa2ad); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .actions { display: none; gap: 0.1rem; flex: 0 0 auto; }
         .row:hover .actions, .row.sel .actions { display: flex; }
@@ -74,6 +75,7 @@ export class EditorOutline extends LitElement {
                 <span class="label">
                     <span class="type">${node.type}</span>
                     <span class="hint">${this.hintOf(node)}</span>
+                    ${typeof node.note === 'string' && node.note.trim() ? html`<span class="noted" title=${'Note: ' + node.note}>✎</span>` : nothing}
                 </span>
                 <span class="actions">
                     <button title="Move up" @click=${(e: Event) => { e.stopPropagation(); this.move(path, -1) }}>↑</button>

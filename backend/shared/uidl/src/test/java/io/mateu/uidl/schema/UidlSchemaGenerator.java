@@ -131,8 +131,29 @@ public final class UidlSchemaGenerator {
           recordComponent.getName(),
           schemaFor(recordComponent.getType(), recordComponent.getGenericType()));
     }
+    if (Component.class.isAssignableFrom(type)) {
+      properties.set("note", NOTE.deepCopy());
+    }
     defs.put(type.getSimpleName(), node);
   }
+
+  /**
+   * An authoring-only key every component accepts: the author's intent for that piece of the screen
+   * ("must be unique", "only managers can change this"). It is for the people and the agents
+   * reading the file — the visual editor shows it and puts it in the prompts it writes — and
+   * nothing renders it: the YAML mapper ignores it (unknown properties are not an error there) and
+   * so does the browser's expander. It is not a record component, so it has to be added here, or an
+   * editor pointed at the schema could not tell a note from a typo.
+   */
+  private static final ObjectNode NOTE =
+      MAPPER
+          .createObjectNode()
+          .put("type", "string")
+          .put(
+              "description",
+              "A design note: what this piece of the screen is meant to do. For the people and"
+                  + " agents reading the file (the visual editor puts notes in the prompts it"
+                  + " writes); never rendered.");
 
   /**
    * The schema of one field. Component-typed fields become a {@code $ref} to the polymorphic
