@@ -98,7 +98,11 @@ const LISTING_TYPES = new Set(['Listing', 'Crudl', 'Crud'])
 /** Map one authored fluent node to its wire component. Recurses into a container's children, or —
  *  for a Card-family type — into its single `content`, placed under `metadata.content`; a listing
  *  becomes a Crud with its columns/toolbar/filters expanded. */
-export function expandComponent(node: FluentNode): Component {
+export function expandComponent(authored: FluentNode): Component {
+    // `note:` is the author's design intent (an authoring-only key, see uidl-schema.json): the server
+    // ignores it, so the wire never carries it — and neither does a render made here.
+    const { note, ...node } = authored as FluentNode & { note?: unknown }
+    void note
     if (LISTING_TYPES.has(node.type)) return expandListing(node)
 
     // A business-component reference (coherence-plan #13): resolve it against the shipped catalogue,

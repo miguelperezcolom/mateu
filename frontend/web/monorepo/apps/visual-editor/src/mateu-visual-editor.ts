@@ -41,6 +41,7 @@ import { buildIndex, ProjectIndex, ProjectFile } from './model/projectIndex'
 import { withEdited } from './model/playManifest'
 import { buildMountGraph } from './model/mountGraph'
 import { VIEWPORTS, ViewportId, parseViewport, viewportWidth } from './model/viewport'
+import { collectNotes, buildViewModelPrompt } from './model/notes'
 import { resolveHost, HostBridge } from './host/hostBridge'
 import { watchHostTheme, Theme } from './host/theme'
 import './palette/editor-palette'
@@ -1126,8 +1127,23 @@ export class MateuVisualEditor extends LitElement {
                 <div class="tp-head">…or let a coding agent build it and answer with a link</div>
                 <div class="ai-row">
                     <button @click=${this.aiCopyAgentInstruction}>Copy agent instruction</button>
-                    <span class="qs-hint">for Claude Code, Codex… — it reads the Mateu agent guide, writes the YAML and replies with a share link; open it with "Open link…"</span>
+                    <span class="qs-hint">for Claude Code, Codex… — it reads the Mateu agent guide, writes the YAML and replies with a share link; open it with "Open…"</span>
                 </div>
+                ${this.renderViewModelPrompt()}
+            </div>`
+    }
+
+    /** The step a drawn page cannot take alone: its view model, asked for with the design notes as the spec. */
+    private renderViewModelPrompt() {
+        const notes = collectNotes(this.doc)
+        const bound = this.boundViewModel()
+        return html`
+            <div class="tp-head">${bound ? 'Complete its view model' : 'Give it a view model'} — from the design notes</div>
+            <div class="ai-row">
+                <button @click=${this.aiCopyViewModelPrompt}>Copy view-model prompt</button>
+                <span class="qs-hint">${notes.length
+                    ? `${notes.length} note(s) go in as requirements — select a component and write its Note in Properties to add more`
+                    : 'no notes yet: select a component and write what it should do in its Note (Properties)'}</span>
             </div>`
     }
 
@@ -1166,6 +1182,15 @@ export class MateuVisualEditor extends LitElement {
         const desc = (this.renderRoot.querySelector('#ai-desc') as HTMLTextAreaElement | null)?.value ?? ''
         navigator.clipboard?.writeText(buildAgentInstruction(desc, editorLinkBase(), this.currentPath)).catch(() => {})
         this.aiMsg = 'Agent instruction copied — paste it into Claude Code, Codex… It answers with a link: paste that in "Open link…".'
+    }
+
+    private aiCopyViewModelPrompt = () => {
+        const route = this.project?.routes.find((r) => r.definition && this.currentPath && r.definition === this.currentPath)?.route
+        const prompt = buildViewModelPrompt({
+            yaml: this.lastText, path: this.currentPath, route, viewModel: this.boundViewModel(), notes: collectNotes(this.doc),
+        })
+        navigator.clipboard?.writeText(prompt).catch(() => {})
+        this.aiMsg = 'View-model prompt copied — paste it into your coding agent; it writes the class and wires it in routes.yaml.'
     }
 
     // --- board & play: the whole mount ---

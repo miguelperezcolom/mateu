@@ -112,6 +112,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -144,6 +148,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -227,6 +235,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -252,6 +264,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -269,6 +285,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -355,6 +375,10 @@
         },
         "backLink" : {
           "$ref" : "#/$defs/BackLink"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -372,6 +396,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -417,6 +445,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -442,6 +474,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -483,6 +519,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -508,6 +548,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -530,6 +574,10 @@
         },
         "boardCols" : {
           "type" : "integer"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -552,6 +600,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -571,6 +623,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -607,6 +663,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -632,6 +692,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -696,6 +760,10 @@
         },
         "separatorBefore" : {
           "type" : "boolean"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -731,6 +799,10 @@
           "items" : {
             "$ref" : "#/$defs/Component"
           }
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -769,6 +841,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -824,6 +900,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -873,6 +953,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -944,6 +1028,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -969,6 +1057,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -1056,6 +1148,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -1084,6 +1180,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -1167,6 +1267,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -1207,6 +1311,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -1466,6 +1574,10 @@
         },
         "ref" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -1512,6 +1624,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -1531,6 +1647,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -1581,6 +1701,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -1647,6 +1771,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -1684,6 +1812,10 @@
         },
         "dismiss" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -1713,6 +1845,10 @@
           "items" : {
             "$ref" : "#/$defs/Component"
           }
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -1738,6 +1874,10 @@
         },
         "colspan" : {
           "type" : "integer"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -1766,6 +1906,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -1800,6 +1944,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -1818,7 +1966,11 @@
         "cssClasses" : {
           "type" : "string"
         },
-        "newState" : { }
+        "newState" : { },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        }
       }
     },
     "Details" : {
@@ -1843,6 +1995,10 @@
         },
         "opened" : {
           "type" : "boolean"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -1902,7 +2058,11 @@
         "cssClasses" : {
           "type" : "string"
         },
-        "initialData" : { }
+        "initialData" : { },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        }
       }
     },
     "Directory" : {
@@ -1924,6 +2084,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -1949,6 +2113,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2011,7 +2179,11 @@
         "cssClasses" : {
           "type" : "string"
         },
-        "initialData" : { }
+        "initialData" : { },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        }
       }
     },
     "DrawerPosition" : {
@@ -2050,6 +2222,10 @@
         },
         "html" : {
           "type" : "boolean"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2061,7 +2237,11 @@
           "type" : "string",
           "const" : "EmbeddedView"
         },
-        "view" : { }
+        "view" : { },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        }
       }
     },
     "EmptyState" : {
@@ -2095,6 +2275,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2141,6 +2325,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2177,6 +2365,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2236,6 +2428,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2333,6 +2529,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2383,6 +2583,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2444,6 +2648,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2505,6 +2713,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2524,6 +2736,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2661,6 +2877,10 @@
         },
         "link" : {
           "$ref" : "#/$defs/NavLink"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2686,6 +2906,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2742,6 +2966,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2771,6 +2999,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2802,6 +3034,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2827,6 +3063,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2846,6 +3086,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2871,6 +3115,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -2896,7 +3144,11 @@
           "type" : "string",
           "const" : "FutureComponent"
         },
-        "instance" : { }
+        "instance" : { },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        }
       }
     },
     "Gantt" : {
@@ -2924,6 +3176,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3001,6 +3257,10 @@
         },
         "vaadinGridCellPadding" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3101,6 +3361,10 @@
         },
         "line" : {
           "type" : "integer"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3129,6 +3393,10 @@
           "items" : {
             "$ref" : "#/$defs/Component"
           }
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3185,6 +3453,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3225,6 +3497,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3284,6 +3560,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3307,6 +3587,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3330,6 +3614,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3352,6 +3640,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3377,6 +3669,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3454,6 +3750,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3634,6 +3934,10 @@
         },
         "rowsSource" : {
           "$ref" : "#/$defs/RestDataSource"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3660,6 +3964,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3679,6 +3987,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3710,6 +4022,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3776,6 +4092,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3808,6 +4128,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3833,6 +4157,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3896,6 +4224,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -3980,6 +4312,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -4016,6 +4352,10 @@
         "appState" : { },
         "actionId" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -4064,6 +4404,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -4119,6 +4463,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -4141,6 +4489,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -4199,6 +4551,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -4361,6 +4717,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -4428,6 +4788,10 @@
         },
         "ref" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -4482,6 +4846,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -4560,6 +4928,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -4596,6 +4968,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -4653,6 +5029,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -4713,6 +5093,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -4750,6 +5134,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -4778,6 +5166,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -4912,6 +5304,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -4996,6 +5392,10 @@
         },
         "style" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5193,6 +5593,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5212,6 +5616,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5234,6 +5642,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5263,6 +5675,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5283,6 +5699,10 @@
         },
         "content" : {
           "$ref" : "#/$defs/Component"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5321,6 +5741,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5368,6 +5792,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5385,6 +5813,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5484,6 +5916,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5538,6 +5974,10 @@
         },
         "badge" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5575,6 +6015,10 @@
         },
         "adaptable" : {
           "type" : "boolean"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5613,6 +6057,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5641,6 +6089,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5686,6 +6138,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5726,6 +6182,10 @@
         },
         "attributes" : {
           "type" : "object"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5763,6 +6223,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5811,6 +6275,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5851,6 +6319,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5937,6 +6409,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5956,6 +6432,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },
@@ -5975,6 +6455,10 @@
         },
         "cssClasses" : {
           "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
     },

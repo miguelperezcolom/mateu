@@ -139,6 +139,25 @@ class YamlModelViewSyncTest {
   }
 
   @Test
+  void aDesignNoteIsForTheAuthorsAndNeverReachesTheWire() {
+    // `note:` is an authoring key every component accepts (uidl-schema.json): the visual editor
+    // writes it and puts it in its prompts. The definition still renders, and the note is not sent.
+    var yaml =
+        "type: VerticalLayout\nnote: the whole screen\ncontent:\n"
+            + "  - type: Text\n    text: hi\n    note: greet by name once we know it\n";
+    var increment =
+        mateu.run(
+            RunActionRqDto.builder()
+                .actionId("__preview__")
+                .initiatorComponentId("preview")
+                .parameters(Map.of("_yaml", yaml))
+                .build());
+    assertThat(increment.fragments().get(0).component().children()).hasSize(1);
+    assertThat(new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(increment).toString())
+        .doesNotContain("greet by name");
+  }
+
+  @Test
   void theCanonicalViewModelKeyBindsIdenticallyToTheDeprecatedModelViewAlias() {
     // coherence-plan #5 vocabulary: a definition may name its view model with the canonical key
     // `viewModel:` (specs/ui/yaml-bound-viewmodel.yaml). It must bind exactly like the deprecated

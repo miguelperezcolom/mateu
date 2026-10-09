@@ -96,6 +96,14 @@ edit, and `HostBridge.adoptShared` lets a host take the rest of the mount.
 the bundle and published raw on master. Keep it in sync with the document shape:
 `shareLink.test.ts` decodes the exact Node `deflateRawSync` recipe it gives.
 
+## Design notes (`model/notes.ts`)
+
+`note:` is an authoring-only key on every component. `UidlSchemaGenerator` adds it to each Component
+definition. The server's YAML mapper ignores unknown keys, and the client expander strips it (both
+are pinned by tests). The properties panel edits it, the outline and the canvas selection show it,
+and `buildViewModelPrompt` turns a page's notes (`collectNotes`, slots included) into the prompt
+that asks for its view model.
+
 ## Viewport widths (`model/viewport.ts`)
 
 The canvas can frame the page at desktop, tablet or phone widths (Fill is the default). The choice

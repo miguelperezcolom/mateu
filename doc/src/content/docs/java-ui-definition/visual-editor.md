@@ -209,6 +209,32 @@ view model, the editor saves the smallest thing that expresses your change — a
 your edits are a re-ordering/relabelling of the model's fields, a full **snapshot** only when the tree
 holds something a delta cannot.
 
+## Design notes, and the view model they become
+
+Any component can carry a **note**: a sentence about what it should do, such as "must be unique
+among customers" or "only managers may change it". Select the component and write it in the yellow
+**Note** box at the top of **Properties**. In the file it is the `note:` key:
+
+```yaml
+- type: FormField
+  id: email
+  label: Email
+  note: Must be unique among customers.
+```
+
+A note is never rendered. The schema documents it, and both the server and the browser render
+ignore it. On the canvas the selected component shows its note as a sticky, and **Layers** marks
+noted components with ✎.
+
+Notes are what turn a drawn page into a working one. A page made of only a definition has a layout
+but no behaviour, and the notes say what that behaviour should be. In the **AI** panel, **Copy
+view-model prompt** writes a prompt for your coding agent. It asks for the Java class that the layout
+binds to: fields for the `FormField` ids and `@Action` methods for the buttons. Each note goes in as
+a requirement for its own component, followed by the layout itself and the line that adds the class
+to `routes.yaml`. When the page already has a view model, the prompt asks the agent to complete that
+class instead. Share links carry the notes too, and the agent guide asks agents to leave notes where
+a person asked for behaviour.
+
 ## Checking a page at other widths
 
 The width selector in the toolbar shows the page at the size of a **desktop** (1280 px), a

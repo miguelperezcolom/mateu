@@ -35,6 +35,9 @@ export class EditorProperties extends LitElement {
         label .req { color: #d1495b; }
         input, select { display: block; width: calc(100% - 1.5rem); margin: 0.1rem 0.75rem 0.35rem; padding: 0.35rem 0.5rem;
                 font: 13px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade); border-radius: 6px; box-sizing: border-box; background: var(--ve-base, #fff); color: inherit; }
+        textarea.note { display: block; width: calc(100% - 1.5rem); margin: 0.1rem 0.75rem 0.35rem; padding: 0.35rem 0.5rem; resize: vertical;
+                font: 12px var(--ve-font, system-ui); border: 1px solid #ecd98a; border-radius: 6px; box-sizing: border-box;
+                background: #fffbe6; color: #3b3200; }
         .check { display: flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0.75rem 0.35rem; font: 13px var(--ve-font, system-ui); color: var(--ve-text, #374151); }
         .check input { width: auto; margin: 0; }
         .muted { padding: 0.15rem 0.75rem 0.35rem; font: 12px var(--ve-font, system-ui); color: var(--ve-tertiary, #b0b6be); }
@@ -71,7 +74,8 @@ export class EditorProperties extends LitElement {
 
         const spec = specFor(node.type)
         // Scalar props the schema declares for this component (typed editors).
-        const known = spec ? spec.props.filter((p) => p.kind !== 'children' && p.kind !== 'complex') : []
+        // `note` (the design note) has its own box at the top, not a row among the properties.
+        const known = spec ? spec.props.filter((p) => p.kind !== 'children' && p.kind !== 'complex' && p.name !== 'note') : []
         // Complex props with a dedicated editor (data sources, navigation, options).
         const rich = spec ? spec.props.filter((p) => RICH.has(p.ref ?? '') || (p.kind === 'children' && p.ref === 'Option')) : []
         const slots = slotProps(spec)
@@ -85,7 +89,7 @@ export class EditorProperties extends LitElement {
         const more = known.filter((p) => !isPrimary(p))
         const knownNames = new Set([...known.map((p) => p.name), ...richNames, ...structural.map((p) => p.name)])
         // Props on the node the schema does not know (hand-authored, or a newer catalog) — keep editable.
-        const extra = scalarProps(node).filter((k) => !knownNames.has(k) && (node[k] == null || typeof node[k] !== 'object'))
+        const extra = scalarProps(node).filter((k) => k !== 'note' && !knownNames.has(k) && (node[k] == null || typeof node[k] !== 'object'))
 
         return html`
             <datalist id="ve-partials">${(this.project?.partials ?? []).map((p) => html`<option value=${p}></option>`)}</datalist>
@@ -93,6 +97,10 @@ export class EditorProperties extends LitElement {
             <datalist id="ve-actions">${(this.contract?.actions ?? []).map((a) => html`<option value=${a}></option>`)}</datalist>
             <div class="title">Properties</div>
             <div class="type">${node.type}${spec ? '' : ' (unknown)'}</div>
+            <label for="ve-note">Note <span class="muted-inline">— what this should do; goes in the view-model prompt, never rendered</span></label>
+            <textarea id="ve-note" class="note" rows="2" placeholder="e.g. must be unique · only managers can change it"
+                .value=${typeof node.note === 'string' ? node.note : ''}
+                @change=${(e: Event) => this.fire('prop-changed', { key: 'note', value: (e.target as HTMLTextAreaElement).value.trim() })}></textarea>
 
             ${known.length ? html`<div class="section">Properties</div>` : ''}
             ${primary.map((p) => this.field(p, node[p.name]))}

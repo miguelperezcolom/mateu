@@ -40,6 +40,11 @@ describe('client-side expander — bare-layout definition (Phase 6, increment 1)
         expect(text.children).toEqual([])
     })
 
+    it('drops the authors\' design notes, as the server does — they never reach the wire', () => {
+        const noted = { type: 'VerticalLayout', note: 'the screen', content: [{ type: 'Listing', note: 'paged', columns: [] }, { type: 'Text', text: 'x', note: 'a hint' }] }
+        expect(JSON.stringify(expandComponent(noted as any))).not.toContain('note')
+    })
+
     it('titles the window with the route when the definition declares none, and can override', () => {
         expect(expandDefinition(aboutSpec, 'about').commands![0]).toMatchObject({
             type: 'SetWindowTitle',
