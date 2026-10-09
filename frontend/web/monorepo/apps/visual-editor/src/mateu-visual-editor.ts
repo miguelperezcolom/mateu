@@ -40,6 +40,7 @@ import { isMountYaml } from './model/mountModel'
 import { buildIndex, ProjectIndex, ProjectFile } from './model/projectIndex'
 import { withEdited } from './model/playManifest'
 import { buildMountGraph } from './model/mountGraph'
+import { VIEWPORTS, ViewportId, parseViewport, viewportWidth } from './model/viewport'
 import { resolveHost, HostBridge } from './host/hostBridge'
 import { watchHostTheme, Theme } from './host/theme'
 import './palette/editor-palette'
@@ -69,6 +70,12 @@ const RENDERER_KEY = 'mateu-visual-editor-renderer'
 
 const ICON_UNDO = html`<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M5.5 3.5 2.5 6.5l3 3"/><path d="M2.5 6.5h7a4 4 0 0 1 0 8H7"/></svg>`
 const ICON_REDO = html`<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="m10.5 3.5 3 3-3 3"/><path d="M13.5 6.5h-7a4 4 0 0 0 0 8H9"/></svg>`
+
+const VIEWPORT_KEY = 'mateu-visual-editor-viewport'
+
+function loadViewportChoice(): ViewportId {
+    try { return parseViewport(localStorage.getItem(VIEWPORT_KEY)) } catch { return 'fill' }
+}
 
 function loadRendererChoice(): CanvasRendererId {
     try { return parseCanvasRenderer(localStorage.getItem(RENDERER_KEY)) } catch { return 'vaadin' }
@@ -268,6 +275,8 @@ export class MateuVisualEditor extends LitElement {
      * the arrows between them) or play mode (the mount running, from the files as edited).
      */
     @state() private view: 'edit' | 'board' | 'play' = 'edit'
+    /** The width the canvas frames the page at (persisted per browser); play starts at it too. */
+    @state() private viewport: ViewportId = loadViewportChoice()
     /** The route play mode opened on. */
     @state() private playStart = ''
     /** The data source (view model) members bound to this page, for the field/action binding pickers. */
@@ -445,7 +454,8 @@ export class MateuVisualEditor extends LitElement {
                                         ?canOpen=${!!this.host.openFile}></mount-board>`
                     : this.view === 'play'
                     ? html`<mount-play .files=${this.mountFiles()} .start=${this.playStart} .baseUrl=${renderBaseUrl(this.previewSource)}
-                                       .theme=${this.theme} .editorSources=${this.project?.sources ?? []}></mount-play>`
+                                       .theme=${this.theme} .viewport=${this.viewport}
+                                       .editorSources=${this.project?.sources ?? []}></mount-play>`
                     : this.mode === 'mount'
                     ? html`<mount-editor .yaml=${this.structuredYaml}></mount-editor>`
                     : this.mode === 'app'
@@ -472,7 +482,7 @@ export class MateuVisualEditor extends LitElement {
                             </div>
                             <editor-canvas .doc=${this.doc} .baseUrl=${renderBaseUrl(this.previewSource)}
                                            .clientRender=${rendersClientSide(this.previewSource)} .renderer=${this.renderer} .theme=${this.theme}
-                                           .selectedPath=${this.selectedPath}></editor-canvas>
+                                           .selectedPath=${this.selectedPath} .frameWidth=${viewportWidth(this.viewport)}></editor-canvas>
                             <editor-properties .node=${selected} .project=${this.project} .contract=${this.contract}></editor-properties>
                         </div>
                     </div>
@@ -507,19 +517,21 @@ export class MateuVisualEditor extends LitElement {
                 <span class="spacer"></span>
                 ${page ? html`
                     <span class="group">
-                        <span class="lbl">Preview</span>
                         ${this.renderPreviewSelector()}
                         <select class="renderer" title="The design system the canvas paints with" @change=${this.onRendererChange}>
                             ${CANVAS_RENDERERS.map((r) => html`<option value=${r} ?selected=${r === this.renderer}>${CANVAS_RENDERER_LABELS[r]}</option>`)}
+                        </select>
+                        <select class="viewport" title="The width the page is shown at — check how it adapts" @change=${this.onViewportChange}>
+                            ${VIEWPORTS.map((v) => html`<option value=${v.id} ?selected=${v.id === this.viewport}>${v.label}</option>`)}
                         </select>
                         ${this.renderStatus()}
                     </span>
                     <span class="sep"></span>` : ''}
                 <span class="group">
-                    <button class="ghost" @click=${this.copyShareLink} title="Copy a link that opens this file in the editor — the design travels inside the link, nothing is uploaded">Share link</button>
-                    <button class="ghost" @click=${() => (this.shareOpen = !this.shareOpen)} title="Open a share link (e.g. one an AI agent answered with)">Open link…</button>
+                    <button class="ghost" @click=${this.copyShareLink} title="Copy a link that opens this file in the editor — the design travels inside the link, nothing is uploaded">Share</button>
+                    <button class="ghost" @click=${() => (this.shareOpen = !this.shareOpen)} title="Open a share link (e.g. one an AI agent answered with)">Open…</button>
                 </span>
-                <button @click=${this.exportBundle} title="Download a static bundle manifest (specs mode) — deploy it to any free static host, no backend (€0)">Export bundle</button>
+                <button @click=${this.exportBundle} title="Download a static bundle manifest (specs mode) — deploy it to any free static host, no backend (€0)">Export</button>
             </div>`
     }
 
@@ -558,6 +570,11 @@ export class MateuVisualEditor extends LitElement {
                 <div class="qs-hint">The file exactly as it will be saved (your comments and formatting are kept). Edit it here and click outside to apply.</div>
                 <textarea class="source" .value=${this.lastText} @change=${this.onSourceEdit}></textarea>`
         }
+    }
+
+    private onViewportChange(e: Event) {
+        this.viewport = parseViewport((e.target as HTMLSelectElement).value)
+        try { localStorage.setItem(VIEWPORT_KEY, this.viewport) } catch { /* private mode */ }
     }
 
     private async onRendererChange(e: Event) {

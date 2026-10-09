@@ -89,12 +89,19 @@ A design can travel in a URL: `{v:1, path?, yaml, files?}` as JSON, raw-deflated
 after `#mateuz=` (or URI-encoded plain JSON after `#mateu=`). It is in the fragment, so nothing
 reaches a server (the idea comes from lnkiai/m3e-canvas, MIT). `model/shareLink.ts` encodes and
 decodes it. `BrowserHost` imports a link on boot (the old draft goes to `*.previous`, and the
-fragment is cleared so a reload keeps your edits). **Open link…** loads a pasted one as an undoable
+fragment is cleared so a reload keeps your edits). **Open…** loads a pasted one as an undoable
 edit, and `HostBridge.adoptShared` lets a host take the rest of the mount.
 
 `public/agent.md` is the guide a coding agent follows to produce such a link. It is served next to
 the bundle and published raw on master. Keep it in sync with the document shape:
 `shareLink.test.ts` decodes the exact Node `deflateRawSync` recipe it gives.
+
+## Viewport widths (`model/viewport.ts`)
+
+The canvas can frame the page at desktop, tablet or phone widths (Fill is the default). The choice
+is kept per browser and also used as play mode's starting width. `editor-canvas` takes a `frameWidth`
+and sets a `framed` attribute; the overlays are positioned relative to `.host`, so they keep working
+at any width.
 
 ## Board and play mode (`board/`, `play/`)
 

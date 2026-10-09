@@ -8,10 +8,8 @@ import '@infra/ui/mateu-api-caller.ts'
 import '@infra/ui/mateu-ux.ts'
 import type { ProjectFile } from '../model/projectIndex'
 import { buildPlayManifest } from '../model/playManifest'
+import { VIEWPORTS, ViewportId, viewportWidth } from '../model/viewport'
 
-/** The viewport widths play can pretend to be: what the app looks like on a desk, a tablet, a phone. */
-export const PLAY_WIDTHS = { desktop: 0, tablet: 768, phone: 390 } as const
-export type PlayWidth = keyof typeof PLAY_WIDTHS
 
 /**
  * Play mode (m3e-canvas's "try it"): the mount RUNNING, from the files as edited — click a menu
@@ -62,7 +60,8 @@ export class MountPlay extends LitElement {
 
     @state() private history: string[] = []
     @state() private at = -1
-    @state() private width: PlayWidth = 'desktop'
+    /** The width play frames the app at; starts at the canvas's. */
+    @property() viewport: ViewportId = 'fill'
     @state() private ready = false
     /** Bumped to mount the screen afresh (a reload, a back/forward). */
     @state() private navKey = nanoid()
@@ -105,7 +104,7 @@ export class MountPlay extends LitElement {
     }
 
     render() {
-        const w = PLAY_WIDTHS[this.width]
+        const w = viewportWidth(this.viewport)
         return html`
             <div class="chrome">
                 <button title="Back" ?disabled=${this.at <= 0} @click=${() => this.go(this.at - 1)}>◀</button>
@@ -116,8 +115,8 @@ export class MountPlay extends LitElement {
                     <input .value=${this.typed ?? this.route} @input=${(e: Event) => (this.typed = (e.target as HTMLInputElement).value)}
                            @keydown=${(e: KeyboardEvent) => { if (e.key === 'Enter') this.navigate(this.typed ?? this.route) }} />
                 </label>
-                <select title="Viewport width" @change=${(e: Event) => (this.width = (e.target as HTMLSelectElement).value as PlayWidth)}>
-                    ${(Object.keys(PLAY_WIDTHS) as PlayWidth[]).map((k) => html`<option value=${k} ?selected=${k === this.width}>${label(k)}</option>`)}
+                <select title="Viewport width" @change=${(e: Event) => (this.viewport = (e.target as HTMLSelectElement).value as ViewportId)}>
+                    ${VIEWPORTS.map((v) => html`<option value=${v.id} ?selected=${v.id === this.viewport}>${v.label}</option>`)}
                 </select>
                 <span class="badge" title="The files as edited, run in the browser — nothing is saved or deployed">playing</span>
                 <button class="close" title="Back to the editor (Esc)" @click=${this.close}>Close</button>
@@ -190,10 +189,6 @@ function clean(route: string): string {
     let r = (route ?? '').trim()
     try { if (/^https?:\/\//.test(r)) { const u = new URL(r); r = u.pathname + u.search } } catch { /* not a URL */ }
     return r.replace(/^\/+/, '')
-}
-
-function label(w: PlayWidth): string {
-    return w === 'desktop' ? 'Desktop' : w === 'tablet' ? 'Tablet · 768' : 'Phone · 390'
 }
 
 declare global {
