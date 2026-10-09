@@ -96,6 +96,24 @@ edit, and `HostBridge.adoptShared` lets a host take the rest of the mount.
 the bundle and published raw on master. Keep it in sync with the document shape:
 `shareLink.test.ts` decodes the exact Node `deflateRawSync` recipe it gives.
 
+## Board and play mode (`board/`, `play/`)
+
+Two views of the whole mount, next to the file editor (both from lnkiai/m3e-canvas):
+
+- **Board** (`board/mount-board.ts`) draws every route as a card with a live miniature
+  (`board-preview.ts`: the same render as the canvas, one at a time and only once visible). It draws
+  arrows from the navigation the files declare. `model/mountGraph.ts` derives the screens, the edges
+  (menu, `RouteLink`, `rowRoute`, `successRoute`, `Navigate` steps, nested routes; targets are matched
+  like the router matches them) and the banded auto-layout. The card arrangement is kept in
+  localStorage, one entry per mount.
+- **Play** (`play/mount-play.ts`) runs the mount. `model/playManifest.ts` turns the files, with the
+  edited one laid over its saved copy, into a specs-mode manifest that is loaded into the shared
+  `bundleStore`. A plain `mateu-ux` then loads routes from it, expanded in the browser. It stands in
+  for `mateu-ui` but keeps its own history, because `mateu-ui` owns `window.history` and the editor's
+  page is not the app's. On close it unloads the bundle.
+- Edit from the board goes through `HostBridge.openFile`. The browser host swaps the draft in place;
+  IntelliJ and VS Code handle an `openFile` message by opening the file in another tab.
+
 ## Palette thumbnails (`scripts/thumbnails.mjs`)
 
 The **Insert** palette shows each component as a card with a picture of it, so you recognise it by

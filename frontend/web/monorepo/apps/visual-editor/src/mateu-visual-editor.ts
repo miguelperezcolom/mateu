@@ -37,7 +37,9 @@ import { InferredField } from './model/layoutDelta'
 import { isRoutesYaml } from './model/routesModel'
 import { hasAppShell } from './model/appModel'
 import { isMountYaml } from './model/mountModel'
-import { buildIndex, ProjectIndex } from './model/projectIndex'
+import { buildIndex, ProjectIndex, ProjectFile } from './model/projectIndex'
+import { withEdited } from './model/playManifest'
+import { buildMountGraph } from './model/mountGraph'
 import { resolveHost, HostBridge } from './host/hostBridge'
 import { watchHostTheme, Theme } from './host/theme'
 import './palette/editor-palette'
@@ -48,6 +50,8 @@ import './routes/routes-editor'
 import './app/app-editor'
 import './mount/mount-editor'
 import './sources/sources-editor'
+import './board/mount-board'
+import './play/mount-play'
 
 /** The bottom dock's panels (page mode). One is open at a time; clicking its tab again closes it. */
 type DockTab = 'actions' | 'triggers' | 'quickstart' | 'templates' | 'sync' | 'ai' | 'yaml'
@@ -150,6 +154,9 @@ export class MateuVisualEditor extends LitElement {
         .toolbar .group { display: flex; align-items: center; gap: 0.35rem; }
         .toolbar .sep { width: 1px; align-self: stretch; background: var(--ve-border); margin: 0 0.15rem; }
         .toolbar .lbl { color: var(--ve-tertiary); }
+        .toolbar .views { background: var(--ve-surface); border-radius: var(--ve-radius); padding: 2px; gap: 2px; }
+        .toolbar .views button { border: none; background: transparent; padding: 0.25rem 0.6rem; }
+        .toolbar .views button.on { background: var(--ve-base); box-shadow: 0 1px 2px rgba(0,0,0,.12); font-weight: 600; }
         .toolbar .hint { color: var(--ve-tertiary); font-size: 12px; }
         .toolbar .preview-source { display: flex; align-items: center; gap: 0.35rem; }
         .toolbar .preview-source input { width: 13rem; }
@@ -254,6 +261,15 @@ export class MateuVisualEditor extends LitElement {
     @state() private leftTab: 'layers' | 'insert' = 'layers'
     /** The mount's cross-file reference graph (routes/pages/partials), for the reference pickers. */
     @state() private project?: ProjectIndex
+    /** The mount's files as the host handed them over (the board and play mode read them whole). */
+    @state() private projectFiles: ProjectFile[] = []
+    /**
+     * What fills the work area: the editor for the open file, the board (every screen of the mount and
+     * the arrows between them) or play mode (the mount running, from the files as edited).
+     */
+    @state() private view: 'edit' | 'board' | 'play' = 'edit'
+    /** The route play mode opened on. */
+    @state() private playStart = ''
     /** The data source (view model) members bound to this page, for the field/action binding pickers. */
     @state() private contract?: ContractMembers
     /** Where the canvas gets its render and data from (remote/local/mock/client). Persisted per project. */
@@ -301,6 +317,7 @@ export class MateuVisualEditor extends LitElement {
     private loadProject() {
         this.host.listFiles?.().then((files) => {
             if (files?.length) {
+                this.projectFiles = files
                 this.project = buildIndex(files)
                 // The canvas resolves `rowsSource: {ref}` / `optionsSource: {ref}` against the app's
                 // catalogue, exactly as the running app does — so a listing shows its rows here too.
@@ -342,6 +359,8 @@ export class MateuVisualEditor extends LitElement {
         const mod = e.metaKey || e.ctrlKey
         if (mod && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); e.shiftKey ? this.redo() : this.undo(); return }
         if (mod && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); this.redo(); return }
+        if (this.view === 'play' && e.key === 'Escape') { this.view = 'edit'; return }
+        if (this.view !== 'edit') return
         if (this.mode !== 'page' || !this.doc) return
         const sel = this.selectedPath
         if ((e.key === 'Delete' || e.key === 'Backspace') && sel) { e.preventDefault(); this.onDelete() }
@@ -413,11 +432,21 @@ export class MateuVisualEditor extends LitElement {
                  @routes-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
                  @app-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
                  @mount-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
-                 @sources-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}>
+                 @sources-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
+                 @board-open=${(e: CustomEvent) => this.openFile(e.detail.path)}
+                 @board-play=${(e: CustomEvent) => this.play(e.detail.route)}
+                 @play-close=${() => (this.view = this.playReturn)}>
                 ${this.renderToolbar()}
                 ${this.shareOpen ? this.renderOpenLink()
                     : this.notice ? html`<div class="notice">${this.notice}<button class="ghost" @click=${() => (this.notice = undefined)}>✕</button></div>` : html`<div></div>`}
-                ${this.mode === 'mount'
+                ${this.view === 'board'
+                    ? html`<mount-board .files=${this.mountFiles()} .currentPath=${this.currentPath} .baseUrl=${renderBaseUrl(this.previewSource)}
+                                        .clientRender=${rendersClientSide(this.previewSource)} .theme=${this.theme} .renderer=${this.renderer}
+                                        ?canOpen=${!!this.host.openFile}></mount-board>`
+                    : this.view === 'play'
+                    ? html`<mount-play .files=${this.mountFiles()} .start=${this.playStart} .baseUrl=${renderBaseUrl(this.previewSource)}
+                                       .theme=${this.theme} .editorSources=${this.project?.sources ?? []}></mount-play>`
+                    : this.mode === 'mount'
                     ? html`<mount-editor .yaml=${this.structuredYaml}></mount-editor>`
                     : this.mode === 'app'
                     ? html`<app-editor .yaml=${this.structuredYaml} .project=${this.project}></app-editor>`
@@ -454,7 +483,7 @@ export class MateuVisualEditor extends LitElement {
     }
 
     private renderToolbar() {
-        const page = this.mode === 'page'
+        const page = this.mode === 'page' && this.view === 'edit'
         void this.historyTick
         return html`
             <div class="toolbar">
@@ -466,6 +495,14 @@ export class MateuVisualEditor extends LitElement {
                 <span class="group">
                     <button class="ghost" title="Undo (⌘Z / Ctrl+Z)" ?disabled=${!this.history.canUndo} @click=${this.undo}>${ICON_UNDO} Undo</button>
                     <button class="ghost" title="Redo (⇧⌘Z / Ctrl+Y)" ?disabled=${!this.history.canRedo} @click=${this.redo}>${ICON_REDO} Redo</button>
+                </span>
+                <span class="sep"></span>
+                <span class="group views" role="tablist" title="The open file, or the whole mount">
+                    <button role="tab" class=${this.view === 'edit' ? 'on' : ''} @click=${() => (this.view = 'edit')}>Edit</button>
+                    <button role="tab" class=${this.view === 'board' ? 'on' : ''} @click=${() => (this.view = 'board')}
+                            title="Every screen of the mount, with the arrows between them">Board</button>
+                    <button role="tab" class=${this.view === 'play' ? 'on' : ''} @click=${() => this.play()}
+                            title="Run the mount from this screen, as edited — click through it like the app">▶ Play</button>
                 </span>
                 <span class="spacer"></span>
                 ${page ? html`
@@ -1112,6 +1149,47 @@ export class MateuVisualEditor extends LitElement {
         const desc = (this.renderRoot.querySelector('#ai-desc') as HTMLTextAreaElement | null)?.value ?? ''
         navigator.clipboard?.writeText(buildAgentInstruction(desc, editorLinkBase(), this.currentPath)).catch(() => {})
         this.aiMsg = 'Agent instruction copied — paste it into Claude Code, Codex… It answers with a link: paste that in "Open link…".'
+    }
+
+    // --- board & play: the whole mount ---
+
+    /**
+     * The mount's files with this file's edits laid over its saved copy — what the board draws and play
+     * runs. With no mount at all (a lone draft), the file alone, served at the root, so play still works.
+     */
+    private mountFiles(): ProjectFile[] {
+        const text = this.lastText
+        if (!this.projectFiles.length) {
+            const path = this.currentPath ?? 'page.yaml'
+            return [{ path, content: text }, { path: 'routes.yaml', content: `type: Routes\nroutes:\n  - route: ""\n    layout: ${path}\n` }]
+        }
+        return withEdited(this.projectFiles, this.currentPath, text)
+    }
+
+    /** Where play's Close goes back to: the board when play was started from it. */
+    private playReturn: 'edit' | 'board' = 'edit'
+
+    /** Run the mount from `route`, or from the screen this file is (the first route serving it), else the root. */
+    private play(route?: string) {
+        this.playReturn = this.view === 'board' ? 'board' : 'edit'
+        const files = this.mountFiles()
+        const graph = buildMountGraph(files)
+        const here = graph.screens.find((s) => s.route !== undefined && s.file && s.file === (this.currentPath ?? 'page.yaml').replace(/^specs\/ui\//, ''))
+        this.playStart = route ?? here?.route ?? graph.start ?? ''
+        this.view = 'play'
+    }
+
+    /** Open another file of the mount (the board's Edit): in place in the browser, in a tab in an IDE. */
+    private async openFile(path: string) {
+        const yaml = await this.host.openFile?.(path)
+        if (yaml === undefined) return
+        this.projectFiles = withEdited(this.projectFiles, this.currentPath, this.lastText)
+        this.currentPath = path
+        this.selectedPath = null
+        this.history.reset(yaml)
+        this.historyTick++
+        this.load(yaml)
+        this.view = 'edit'
     }
 
     // --- share links: the design travels inside a URL fragment (nothing is uploaded) ---

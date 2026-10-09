@@ -39,6 +39,12 @@ export interface HostBridge {
      * hosts write one file per editor, so they leave this out and only the opened file is loaded.
      */
     adoptShared?(design: SharedDesign): void
+    /**
+     * Open another file of the mount (the board's Edit). Resolves to its YAML when the editor should
+     * switch to it in place (the standalone browser, which edits one draft at a time), or undefined
+     * when the host opened it itself — an IDE opens it in a tab of its own.
+     */
+    openFile?(path: string): Promise<string | undefined>
     /** Subscribe to out-of-band file changes (the file edited elsewhere). Optional. */
     onExternalChange?(cb: (yaml: string) => void): void
 }
@@ -108,6 +114,11 @@ class MessageHost implements HostBridge {
     currentPath() { return this._path }
     onContentChanged(yaml: string) { this.channel.postMessage({ type: 'contentChanged', yaml }) }
     onExternalChange(cb: (yaml: string) => void) { this._external = cb }
+    /** The IDE opens the file in an editor of its own; this one stays on its file. */
+    openFile(path: string): Promise<string | undefined> {
+        this.channel.postMessage({ type: 'openFile', path })
+        return Promise.resolve(undefined)
+    }
 
     /** Ask the IDE host for the project's files; resolve empty if it does not answer (not yet wired). */
     listFiles(): Promise<ProjectFile[]> {
@@ -157,6 +168,24 @@ class BrowserHost implements HostBridge {
         } catch {
             return []
         }
+    }
+
+    /**
+     * Switch the draft to another file of the mount: the current draft goes back into the project map
+     * first (it is the only copy of its edits), then the other file becomes the draft.
+     */
+    async openFile(path: string) {
+        await this.imported
+        let map: Record<string, string> = {}
+        try { map = JSON.parse(localStorage.getItem(this.projectKey) ?? '{}') } catch { /* start empty */ }
+        if (!(path in map)) return undefined
+        const current = this.currentPath()
+        const draft = localStorage.getItem(this.key)
+        if (current && draft !== null) map[current] = draft
+        localStorage.setItem(this.projectKey, JSON.stringify(map))
+        localStorage.setItem(this.pathKey, path)
+        localStorage.setItem(this.key, map[path])
+        return map[path]
     }
 
     /**

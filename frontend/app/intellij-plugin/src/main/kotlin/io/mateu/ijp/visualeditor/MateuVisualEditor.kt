@@ -8,6 +8,7 @@ import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorState
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Disposer
@@ -99,6 +100,17 @@ class MateuVisualEditor(
             "contentChanged", "save" -> updateDocument(msg.path("yaml").asText())
             // Project awareness: hand the whole mount to the editor so its reference pickers work.
             "listFiles" -> sendFiles()
+            // The board's Edit: open another file of the mount in an editor tab of its own.
+            "openFile" -> openFile(msg.path("path").asText())
+        }
+    }
+
+    /** Open a file of the mount (a path relative to its `specs/ui`) in the IDE, as the board asks. */
+    private fun openFile(path: String) {
+        if (path.isBlank() || path.split('/').contains("..")) return
+        ApplicationManager.getApplication().invokeLater {
+            val target = specsUiRoot(file)?.findFileByRelativePath(path) ?: return@invokeLater
+            FileEditorManager.getInstance(project).openFile(target, true)
         }
     }
 
