@@ -209,6 +209,36 @@ view model, the editor saves the smallest thing that expresses your change — a
 your edits are a re-ordering/relabelling of the model's fields, a full **snapshot** only when the tree
 holds something a delta cannot.
 
+## The board, and playing the app
+
+Next to **Edit** in the toolbar, **Board** shows the whole mount at once: one card per route, each
+a real miniature of its screen, and an arrow wherever one screen takes you to another. The arrows
+are read from the files, not drawn by hand, so the board cannot go out of date:
+
+| Arrow | Where it comes from |
+|---|---|
+| menu | the app shell's `RouteLink`s, nested menus included |
+| button / link | a `RouteLink` in a page, such as a button's `actionable` |
+| row click | a listing's `rowRoute` (`people/${row.id}` lands on `people/:id`) |
+| after save | a REST action's `successRoute` |
+| flow step | a `Navigate` step of a declared flow |
+| nested route | a route's `children` |
+
+The board flags links whose route does not exist. Pages that no route serves get a dashed card. Each
+resource is laid out as a row: the listing, then its record and create form, then the edit form.
+Drag the background to pan and scroll to zoom. Drag a card by its header to move it; the board
+remembers the arrangement for each mount, and **Auto layout** starts it again. Click a card to label
+its arrows. **Edit** opens that card's file: in place in a browser, or in its own tab in IntelliJ
+and VS Code.
+
+**▶ Play** runs the mount from the files as you have edited them, so you can click through it like
+the app. The menu, row clicks, buttons and save landings take you where the app would, and a small
+address bar with back and forward follows along. A mount that is only YAML needs no backend: play
+expands each screen in the browser, the same way a statically deployed bundle does. A route served
+by a view model goes to the preview backend, if you have one. The width selector shows the app on a
+tablet or a phone. Play starts on the screen you are editing; a card's **Play** starts on that card.
+**Close** (or `Esc`) brings you back.
+
 ## Recognising components in the palette
 
 The **Insert** tab shows every component as a card with a picture of it. Hover a card to see it

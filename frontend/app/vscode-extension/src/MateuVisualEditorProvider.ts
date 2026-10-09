@@ -72,6 +72,12 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
             } else if (msg.type === 'listFiles') {
                 // Project awareness: hand the whole mount to the editor's reference pickers.
                 collectSpecsUiFiles(document.uri).then((files) => webview.postMessage({ type: 'files', files }))
+            } else if (msg.type === 'openFile' && typeof msg.path === 'string') {
+                // The board's Edit: open another file of the mount in a visual editor of its own.
+                const root = specsUiRoot(document.uri)
+                if (root && !msg.path.split('/').includes('..')) {
+                    vscode.commands.executeCommand('vscode.openWith', vscode.Uri.joinPath(root, msg.path), 'mateu.visualEditor')
+                }
             }
         })
 
