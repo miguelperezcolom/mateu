@@ -209,6 +209,27 @@ view model, the editor saves the smallest thing that expresses your change — a
 your edits are a re-ordering/relabelling of the model's fields, a full **snapshot** only when the tree
 holds something a delta cannot.
 
+## Tidy
+
+While you build a page, its structure drifts. Fields get dropped loose instead of into a form layout,
+buttons end up one per line, a move leaves a wrapper around a single component, a layout stays
+empty. The **Tidy** tab in the bottom dock lists what it finds, with a count on the tab:
+
+| Rule | What it does |
+|---|---|
+| Put loose fields in a form layout | 2+ `FormField`s in a row, outside a `FormLayout`, go into one |
+| Put stacked buttons in a row | 2+ `Button`s in a row go into a `HorizontalLayout` |
+| Remove wrappers around a single component | a layout holding one component is replaced by it |
+| Merge a layout into its same-direction parent | a `VerticalLayout` directly in a `VerticalLayout` gives up its children |
+| Remove empty layouts | layouts with nothing in them |
+| Label fields that have none, from their id | `birthYear` is labelled “Birth year” |
+| Fields sharing an id | only reported: two fields with one id edit the same value |
+
+The rules are fixed and no AI is involved, so the same page always tidies the same way. They only
+touch layouts that carry nothing but their children: a layout with its own spacing, padding, style
+or id is your decision and stays. Click a finding to select it, untick the rules you do not want and
+**Apply**. The whole tidy is one edit, so `⌘Z` undoes it.
+
 ## Design notes, and the view model they become
 
 Any component can carry a **note**: a sentence about what it should do, such as "must be unique
