@@ -209,6 +209,16 @@ view model, the editor saves the smallest thing that expresses your change — a
 your edits are a re-ordering/relabelling of the model's fields, a full **snapshot** only when the tree
 holds something a delta cannot.
 
+## Checking a page at other widths
+
+The width selector in the toolbar shows the page at the size of a **desktop** (1280 px), a
+**tablet** (768 px) or a **phone** (390 px), framed on the canvas. **Fill** takes the whole pane.
+Mateu screens adapt to the room they are given: form columns collapse, zones stack and listings
+narrow, so it is worth a look before a screen ships. Editing works the same at any width. Components
+that adapt to their container, such as form layouts and zones, show their real behaviour. Anything
+keyed to the browser window's media queries does not, because the editor's window stays wide. Play
+mode starts at the same width and has its own selector.
+
 ## The board, and playing the app
 
 Next to **Edit** in the toolbar, **Board** shows the whole mount at once: one card per route, each
@@ -236,7 +246,7 @@ the app. The menu, row clicks, buttons and save landings take you where the app 
 address bar with back and forward follows along. A mount that is only YAML needs no backend: play
 expands each screen in the browser, the same way a statically deployed bundle does. A route served
 by a view model goes to the preview backend, if you have one. The width selector shows the app on a
-tablet or a phone. Play starts on the screen you are editing; a card's **Play** starts on that card.
+tablet or a phone, starting at the canvas's width. Play starts on the screen you are editing; a card's **Play** starts on that card.
 **Close** (or `Esc`) brings you back.
 
 ## Recognising components in the palette
@@ -252,10 +262,10 @@ embeds that only exist at runtime.
 
 ## Share links, and designs from a coding agent
 
-**Share link** (toolbar) copies a link that opens the current file in the editor. When the host knows
+**Share** (toolbar) copies a link that opens the current file in the editor. When the host knows
 the whole mount it carries the other files as well. The design travels **inside the link**: it is
 compressed into the URL fragment (`#mateuz=…`), which a browser never sends to a server. Nothing is
-uploaded, and a statically hosted editor stays static. **Open link…** takes a pasted link (or the
+uploaded, and a statically hosted editor stays static. **Open…** takes a pasted link (or the
 bare JSON document) and loads it as an ordinary edit, so `⌘Z` undoes it.
 
 Opening a link in a browser replaces the local draft, and the previous one is kept under
@@ -267,7 +277,7 @@ and click **Copy agent instruction**, then paste it into Claude Code, Codex or a
 instruction points the agent at the [agent guide](https://raw.githubusercontent.com/miguelperezcolom/mateu/master/frontend/web/monorepo/apps/visual-editor/public/agent.md),
 which explains the document format, points at the published schemas and gives a Node/Python
 one-liner that builds the link. The agent answers with a link on *your* editor; open it with
-**Open link…**. This is the reverse of the scaffold prompt above it, and just as tool-agnostic:
+**Open…**. This is the reverse of the scaffold prompt above it, and just as tool-agnostic:
 no API key, nothing in between.
 
 A link opens the editor at the page's own address. To point links at a hosted editor instead, set

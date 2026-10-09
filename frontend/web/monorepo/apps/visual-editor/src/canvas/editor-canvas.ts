@@ -46,6 +46,10 @@ type DragSession = {
 export class EditorCanvas extends LitElement {
     static styles = css`
         :host { display: block; height: 100%; overflow: auto; background: var(--ve-canvas-bg, #fff); }
+        /* A framed width: the screen at that width, centred on a neutral backdrop. */
+        :host([framed]) { background: var(--ve-surface, #f3f4f6); }
+        :host([framed]) .host { margin: 1rem auto; min-height: calc(100% - 2rem); background: var(--ve-canvas-bg, #fff);
+                                border-radius: 10px; box-shadow: 0 0 0 1px var(--ve-border, #e3e5e8), 0 6px 24px rgba(0,0,0,.1); }
         .host { min-height: 100%; position: relative; box-sizing: border-box;
                 /* The Vaadin shell's content gutters (mateu-app --mateu-shell-gutter*), so a page sits where it will ship. */
                 padding: var(--ve-page-gutter-top, 1.5rem) var(--ve-page-gutter, 2rem); }
@@ -82,6 +86,8 @@ export class EditorCanvas extends LitElement {
     @property() renderer: CanvasRendererId = 'neutral'
     /** Light/dark: set on the renderer's root, where Lumo's scoped tokens are declared. */
     @property() theme: 'light' | 'dark' = 'light'
+    /** The width the page is framed at (px), or 0 to fill the pane — see model/viewport.ts. */
+    @property({ type: Number }) frameWidth = 0
 
     @state() private error?: string
     /** A non-error note above the canvas (e.g. "backend unreachable — showing the offline render"). */
@@ -115,7 +121,7 @@ export class EditorCanvas extends LitElement {
         return html`
             ${this.error ? html`<div class="status">Preview error: ${this.error}</div>` : ''}
             ${this.info && !this.error ? html`<div class="status info">${this.info}</div>` : ''}
-            <div class="host" @click=${this.onClick} @mousedown=${this.onMouseDown}
+            <div class="host" style=${this.frameWidth ? `width:${this.frameWidth}px` : ''} @click=${this.onClick} @mousedown=${this.onMouseDown}
                  @mousemove=${this.onHover} @mouseleave=${this.clearHover}>
                 <!-- preventNavigation stops mateu-ux from firing its OWN route-load. That load runs on the
                      first updated() (the reactive route/baseurl/instant defaults count as changes) and, with
@@ -175,6 +181,12 @@ export class EditorCanvas extends LitElement {
         if (changed.has('baseUrl') || changed.has('clientRender') || changed.has('renderer')) this.lastYaml = ''
         if (changed.has('doc') || changed.has('baseUrl') || changed.has('clientRender') || changed.has('renderer')) this.schedulePreview()
         if (changed.has('selectedPath')) this.applyHighlight()
+        if (changed.has('frameWidth')) {
+            this.toggleAttribute('framed', this.frameWidth > 0)
+            this.clearHover()
+            // The page reflows to the new width; the selection box has to follow it.
+            requestAnimationFrame(() => requestAnimationFrame(() => this.applyHighlight()))
+        }
     }
 
     private schedulePreview() {
