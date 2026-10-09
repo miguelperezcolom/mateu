@@ -68,21 +68,44 @@ export interface MountGraph {
 export const screenId = (route: string): string => normalizeRoute(route)
 
 export function buildMountGraph(files: ProjectFile[]): MountGraph {
+    const { byPath, routeRows } = readMount(files)
+    const screens = screensOf(routeRows, byPath)
+    const { edges, unresolved } = edgesOf(screens, byPath)
+    const root = screens.find((s) => s.route === '')
+    return { screens, edges, unresolved, start: root?.id ?? screens.find((s) => s.route !== undefined)?.id }
+}
+
+type RouteRows = ReturnType<typeof flattenRoutes>
+
+/** The mount's route table (flattened) and its other files parsed, by path — sources and the mount descriptor left out. */
+function readMount(files: ProjectFile[]): { byPath: Map<string, unknown>; routeRows: RouteRows } {
     const byPath = new Map<string, unknown>()
-    const routeRows: ReturnType<typeof flattenRoutes> = []
+    const routeRows: RouteRows = []
     for (const f of files ?? []) {
         const path = normalizePath(f.path)
         if (!path || isMountYaml(f.content)) continue
         if (isRoutesYaml(f.content)) { routeRows.push(...flattenRoutes(parseRoutes(f.content).routes)); continue }
-        let parsed: unknown
-        try { parsed = parse(f.content) } catch { continue }
-        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-            const type = (parsed as Record<string, unknown>).type
-            if (type === 'Sources' || (!type && Array.isArray((parsed as Record<string, unknown>).sources))) continue
-            byPath.set(path, parsed)
-        }
+        const parsed = parseObject(f.content)
+        if (parsed && !isSourcesDoc(parsed)) byPath.set(path, parsed)
     }
+    return { byPath, routeRows }
+}
 
+function parseObject(text: string): Record<string, unknown> | undefined {
+    try {
+        const parsed = parse(text)
+        return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed as Record<string, unknown> : undefined
+    } catch {
+        return undefined
+    }
+}
+
+function isSourcesDoc(o: Record<string, unknown>): boolean {
+    return o.type === 'Sources' || (!o.type && Array.isArray(o.sources))
+}
+
+/** A screen per route (the first entry wins for a route listed twice), then the pages no route serves. */
+function screensOf(routeRows: RouteRows, byPath: Map<string, unknown>): Screen[] {
     const screens: Screen[] = []
     const seen = new Set<string>()
     const routed = new Set<string>()
@@ -94,13 +117,10 @@ export function buildMountGraph(files: ProjectFile[]): MountGraph {
         const def = file ? byPath.get(file) : undefined
         if (file && def) routed.add(file)
         const type = typeOf(def)
-        const kind: ScreenKind = def
-            ? (type === 'AppShell' ? 'shell' : 'page')
-            : file ? 'missing' : r.viewModel ? 'viewModel' : 'missing'
         const parentRoute = r.absolute.includes('/') && r.absolute !== r.route ? r.absolute.slice(0, r.absolute.length - r.route.length - 1) : undefined
         screens.push({
-            id, route: id, file: file && def ? file : file, viewModel: r.viewModel, kind,
-            title: titleOf(def), type, parent: parentRoute !== undefined ? screenId(parentRoute) : undefined,
+            id, route: id, file, viewModel: r.viewModel, kind: kindOf(def, type, file, r.viewModel),
+            title: titleOf(def), type, parent: parentRoute === undefined ? undefined : screenId(parentRoute),
         })
     }
     // A page no route serves is still a screen of the mount — just not one anybody can reach yet.
@@ -110,7 +130,17 @@ export function buildMountGraph(files: ProjectFile[]): MountGraph {
         if (type === 'AppShell' || type === 'UI' || type === 'Routes') continue
         screens.push({ id: 'file:' + path, file: path, kind: 'unrouted', title: titleOf(def), type })
     }
+    return screens
+}
 
+function kindOf(def: unknown, type: string | undefined, file: string | undefined, viewModel: string | undefined): ScreenKind {
+    if (def) return type === 'AppShell' ? 'shell' : 'page'
+    if (!file && viewModel) return 'viewModel'
+    return 'missing'
+}
+
+/** Every navigation the screens' files declare, matched against the route table. */
+function edgesOf(screens: Screen[], byPath: Map<string, unknown>): { edges: NavEdge[]; unresolved: UnresolvedLink[] } {
     const patterns = screens.filter((s) => s.route !== undefined).map((s) => s.route!)
     const edges: NavEdge[] = []
     const unresolved: UnresolvedLink[] = []
@@ -124,15 +154,12 @@ export function buildMountGraph(files: ProjectFile[]): MountGraph {
         edgeKeys.add(key)
         edges.push({ from, to, via, label })
     }
-
     for (const s of screens) {
         if (s.parent !== undefined) add(s.parent, s.route!, 'child', 'tab')
         const def = s.file ? byPath.get(s.file) : undefined
         if (def) walk(def, s.kind === 'shell', undefined, (target, via, label) => add(s.id, target, via, label))
     }
-
-    const root = screens.find((s) => s.route === '')
-    return { screens, edges, unresolved, start: root?.id ?? screens.find((s) => s.route !== undefined)?.id }
+    return { edges, unresolved }
 }
 
 type Visit = (target: string, via: EdgeVia, label: string) => void
@@ -143,22 +170,21 @@ function walk(node: unknown, inMenu: boolean, label: string | undefined, visit: 
     if (!node || typeof node !== 'object') return
     const o = node as Record<string, unknown>
     const own = typeof o.label === 'string' && o.label.trim() ? o.label.trim() : undefined
-    if (o.type === 'RouteLink' && typeof o.route === 'string') {
-        visit(o.route, inMenu ? 'menu' : 'link', own ?? label ?? o.route)
-    }
-    if (o.type === 'Navigate' && typeof o.route === 'string') {
-        visit(o.route, 'flow', actionId ? `${actionId} flow` : 'flow')
-    }
-    if (typeof o.rowRoute === 'string') visit(o.rowRoute, 'row', 'row click')
-    if (typeof o.successRoute === 'string') visit(o.successRoute, 'save', `after ${actionId ?? 'save'}`)
+    visitOwn(o, inMenu, own ?? label, visit, actionId)
     // A menu's items sit under `menu`/`submenu`; a page's under any other key.
     for (const [k, v] of Object.entries(o)) {
-        if (v && typeof v === 'object') {
-            const childMenu = inMenu || k === 'menu'
-            const id = typeof o.id === 'string' && (k === 'restAction' || k === 'steps') ? o.id : actionId
-            walk(v, childMenu, own ?? label, visit, id)
-        }
+        if (!v || typeof v !== 'object') continue
+        const id = typeof o.id === 'string' && (k === 'restAction' || k === 'steps') ? o.id : actionId
+        walk(v, inMenu || k === 'menu', own ?? label, visit, id)
     }
+}
+
+/** The navigation a single node declares itself. */
+function visitOwn(o: Record<string, unknown>, inMenu: boolean, label: string | undefined, visit: Visit, actionId?: string) {
+    if (o.type === 'RouteLink' && typeof o.route === 'string') visit(o.route, inMenu ? 'menu' : 'link', label ?? o.route)
+    if (o.type === 'Navigate' && typeof o.route === 'string') visit(o.route, 'flow', actionId ? `${actionId} flow` : 'flow')
+    if (typeof o.rowRoute === 'string') visit(o.rowRoute, 'row', 'row click')
+    if (typeof o.successRoute === 'string') visit(o.successRoute, 'save', `after ${actionId ?? 'save'}`)
 }
 
 /**
@@ -173,28 +199,38 @@ export function matchRoute(target: string, patterns: string[]): string | undefin
     for (const p of patterns) {
         const segs = splitRoute(p)
         if (segs.length !== t.length) continue
-        let score = 0
-        let ok = true
-        for (let i = 0; i < segs.length && ok; i++) {
-            const ps = segs[i]
-            const ts = t[i]
-            if (ps.startsWith(':')) score += 2
-            else if (ts === '*') score += 0
-            else if (ps === ts) score += 3
-            else ok = false
-        }
-        if (ok && score > bestScore) { best = p; bestScore = score }
+        const score = matchScore(segs, t)
+        if (score > bestScore) { best = p; bestScore = score }
     }
     return best
 }
 
+/** How well a pattern's segments take a target's: a literal 3, a parameter 2, a placeholder on a literal 0; -1 = no match. */
+function matchScore(pattern: string[], target: string[]): number {
+    let score = 0
+    for (let i = 0; i < pattern.length; i++) {
+        if (pattern[i].startsWith(':')) score += 2
+        else if (pattern[i] === target[i]) score += 3
+        else if (target[i] !== '*') return -1
+    }
+    return score
+}
+
 function splitRoute(r: string): string[] {
-    const clean = normalizeRoute(r).replace(/\$\{[^}]*\}/g, '*')
+    const clean = normalizeRoute(r).replace(/\$\{[^}]{0,200}\}/g, '*')
     return clean ? clean.split('/') : []
 }
 
 function normalizeRoute(r: string): string {
-    return (r ?? '').split('?')[0].replace(/^\/+/, '').replace(/\/+$/, '')
+    return trimSlashes((r ?? '').split('?')[0])
+}
+
+function trimSlashes(s: string): string {
+    let a = 0
+    let b = s.length
+    while (a < b && s[a] === '/') a++
+    while (b > a && s[b - 1] === '/') b--
+    return s.slice(a, b)
 }
 
 function normalizePath(p: string): string {
@@ -247,72 +283,84 @@ export function layoutBoard(graph: MountGraph, aspect = 1.6): Record<string, Boa
     const ids = new Set(graph.screens.map((s) => s.id))
     const placed = new Set<string>()
     const start = graph.start !== undefined && ids.has(graph.start) ? graph.start : undefined
+    if (start !== undefined) placed.add(start)
 
     // One band per screen the start leads to: the screens reached through it, breadth first.
-    type Band = { cells: { id: string; col: number; row: number }[]; cols: number; rows: number }
     const bands: Band[] = []
-    const grow = (roots: string[]): Band => {
-        const cells: Band['cells'] = []
-        const nextFree: number[] = []
-        const rowOf = new Map<string, number>()
-        const queue = roots.map((id) => ({ id, col: 0, parentRow: -1 }))
-        for (const r of roots) placed.add(r)
-        while (queue.length) {
-            const { id, col, parentRow } = queue.shift()!
-            const row = Math.max(parentRow < 0 ? 0 : parentRow, nextFree[col] ?? 0)
-            nextFree[col] = row + 1
-            rowOf.set(id, row)
-            cells.push({ id, col, row })
-            for (const to of next.get(id) ?? []) {
-                if (placed.has(to) || !ids.has(to)) continue
-                placed.add(to)
-                queue.push({ id: to, col: col + 1, parentRow: row })
-            }
-        }
-        return { cells, cols: Math.max(...cells.map((c) => c.col)) + 1, rows: Math.max(...cells.map((c) => c.row)) + 1 }
+    const reach = { next, ids, placed }
+    for (const to of start === undefined ? [] : next.get(start) ?? []) {
+        if (!placed.has(to) && ids.has(to)) bands.push(growBand(to, reach))
     }
-    if (start !== undefined) placed.add(start)
-    for (const to of start !== undefined ? next.get(start) ?? [] : []) {
-        if (!placed.has(to) && ids.has(to)) bands.push(grow([to]))
-    }
-    // What the start does not reach: whatever still has a way in starts its own band; the rest, last.
-    const rest = graph.screens.map((s) => s.id).filter((id) => !placed.has(id))
+    // What the start does not reach: whatever leads somewhere new starts its own band; the rest, last.
     const linkedTo = new Set(graph.edges.map((e) => e.to))
-    for (const id of rest) if (!placed.has(id) && !linkedTo.has(id)) {
-        if (next.get(id)?.some((to) => !placed.has(to))) bands.push(grow([id]))
+    for (const s of graph.screens) {
+        if (placed.has(s.id) || linkedTo.has(s.id)) continue
+        if (next.get(s.id)?.some((to) => !placed.has(to))) bands.push(growBand(s.id, reach))
     }
     const orphans = graph.screens.map((s) => s.id).filter((id) => !placed.has(id))
-    for (const id of orphans) placed.add(id)
-    if (orphans.length) bands.push({ cells: orphans.map((id, i) => ({ id, col: i % 3, row: Math.floor(i / 3) })), cols: Math.min(3, orphans.length), rows: Math.ceil(orphans.length / 3) })
+    if (orphans.length) bands.push(gridBand(orphans))
 
     const colW = CARD_W + GAP_X
     const rowH = CARD_H + GAP_Y
-    const left = start !== undefined ? colW : 0
-    // Pack the bands into k columns (each band below the previous one in its column), and keep the k
-    // whose overall shape is closest to the target aspect.
-    let best: { k: number; offsets: { x: number; y: number }[]; score: number } | undefined
-    for (let k = 1; k <= Math.max(1, bands.length); k++) {
-        const offsets: { x: number; y: number }[] = []
-        const per = Math.ceil(bands.length / k)
-        let x = left
-        let height = 0
-        for (let c = 0; c < k; c++) {
-            const group = bands.slice(c * per, (c + 1) * per)
-            if (!group.length) break
-            let y = 0
-            for (const b of group) { offsets.push({ x, y }); y += b.rows * rowH + GAP_Y }
-            height = Math.max(height, y)
-            x += Math.max(...group.map((b) => b.cols)) * colW + GAP_X
-        }
-        const score = Math.abs(Math.log((x || 1) / (height || 1) / aspect))
-        if (!best || score < best.score) best = { k, offsets, score }
-    }
-
+    const offsets = packBands(bands, start === undefined ? 0 : colW, aspect)
     const out: Record<string, BoardBox> = {}
     if (start !== undefined) out[start] = { x: 0, y: 0 }
     bands.forEach((b, i) => {
-        const o = best!.offsets[i]
-        for (const c of b.cells) out[c.id] = { x: o.x + c.col * colW, y: o.y + c.row * rowH }
+        for (const c of b.cells) out[c.id] = { x: offsets[i].x + c.col * colW, y: offsets[i].y + c.row * rowH }
     })
     return out
+}
+
+type Band = { cells: { id: string; col: number; row: number }[]; cols: number; rows: number }
+type Reach = { next: Map<string, string[]>; ids: Set<string>; placed: Set<string> }
+
+/** A band grown from `root`: breadth first, a column per step, each screen on its parent's row or the first free one below. */
+function growBand(root: string, { next, ids, placed }: Reach): Band {
+    const cells: Band['cells'] = []
+    const nextFree: number[] = []
+    const queue = [{ id: root, col: 0, parentRow: 0 }]
+    placed.add(root)
+    while (queue.length) {
+        const { id, col, parentRow } = queue.shift()!
+        const row = Math.max(parentRow, nextFree[col] ?? 0)
+        nextFree[col] = row + 1
+        cells.push({ id, col, row })
+        for (const to of next.get(id) ?? []) {
+            if (placed.has(to) || !ids.has(to)) continue
+            placed.add(to)
+            queue.push({ id: to, col: col + 1, parentRow: row })
+        }
+    }
+    return { cells, cols: Math.max(...cells.map((c) => c.col)) + 1, rows: Math.max(...cells.map((c) => c.row)) + 1 }
+}
+
+/** Screens with no arrows at all, three to a row. */
+function gridBand(ids: string[]): Band {
+    return { cells: ids.map((id, i) => ({ id, col: i % 3, row: Math.floor(i / 3) })), cols: Math.min(3, ids.length), rows: Math.ceil(ids.length / 3) }
+}
+
+/** Where each band goes: packed into the number of columns that brings the whole board closest to `aspect`. */
+function packBands(bands: Band[], left: number, aspect: number): { x: number; y: number }[] {
+    let best: { offsets: { x: number; y: number }[]; score: number } | undefined
+    for (let k = 1; k <= Math.max(1, bands.length); k++) {
+        const { offsets, width, height } = packInto(bands, k, left)
+        const score = Math.abs(Math.log((width || 1) / (height || 1) / aspect))
+        if (!best || score < best.score) best = { offsets, score }
+    }
+    return best!.offsets
+}
+
+function packInto(bands: Band[], k: number, left: number) {
+    const offsets: { x: number; y: number }[] = []
+    const per = Math.ceil(bands.length / k)
+    let x = left
+    let height = 0
+    for (let c = 0; c * per < bands.length; c++) {
+        const group = bands.slice(c * per, (c + 1) * per)
+        let y = 0
+        for (const b of group) { offsets.push({ x, y }); y += b.rows * (CARD_H + GAP_Y) + GAP_Y }
+        height = Math.max(height, y)
+        x += Math.max(...group.map((b) => b.cols)) * (CARD_W + GAP_X) + GAP_X
+    }
+    return { offsets, width: x, height }
 }

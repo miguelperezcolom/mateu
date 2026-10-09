@@ -82,7 +82,9 @@ export class MountPlay extends LitElement {
         this.removeEventListener('url-update-requested', this.onUrlUpdate)
         this.removeEventListener('navigate-to-requested', this.onNavigateTo)
         // Leave the runtime as the editor had it: no bundle answering route loads, the canvas's catalogue.
-        loadBundleManifest('mateu-play-manifest.json', emptyFetch).then(() => setRestSourceCatalogue(this.editorSources as never))
+        loadBundleManifest('mateu-play-manifest.json', emptyFetch)
+            .then(() => setRestSourceCatalogue(this.editorSources as never))
+            .catch((e) => console.warn('mateu visual editor: leaving play mode', e))
     }
 
     protected willUpdate(changed: PropertyValues) {
@@ -92,12 +94,14 @@ export class MountPlay extends LitElement {
 
     private loadManifest() {
         const manifest = JSON.stringify(buildPlayManifest(this.files))
-        const fetchImpl = (async () => new Response(manifest, { headers: { 'content-type': 'application/json' } })) as unknown as typeof fetch
+        const fetchImpl = (() => Promise.resolve(new Response(manifest, { headers: { 'content-type': 'application/json' } }))) as unknown as typeof fetch
         this.ready = false
-        loadBundleManifest('mateu-play-manifest.json', fetchImpl).then(() => {
-            this.ready = true
-            this.reload()
-        })
+        loadBundleManifest('mateu-play-manifest.json', fetchImpl)
+            .then(() => {
+                this.ready = true
+                this.reload()
+            })
+            .catch((e) => console.warn('mateu visual editor: the mount could not be loaded for play', e))
     }
 
     render() {
@@ -179,7 +183,7 @@ export class MountPlay extends LitElement {
     }
 }
 
-const emptyFetch = (async () => new Response('{}')) as unknown as typeof fetch
+const emptyFetch = (() => Promise.resolve(new Response('{}'))) as unknown as typeof fetch
 
 /** A route as the address bar shows it: no leading slash, no origin. */
 function clean(route: string): string {

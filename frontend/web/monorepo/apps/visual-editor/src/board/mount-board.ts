@@ -102,7 +102,7 @@ export class MountBoard extends LitElement {
         if (changed.has('files')) {
             this.graph = buildMountGraph(this.files)
             this.contents = new Map(this.files.map((f) => [normalize(f.path), f.content]))
-            this.storageKey = 'mateu-visual-editor-board:' + hash(this.graph.screens.map((s) => s.id).sort().join('\n'))
+            this.storageKey = 'mateu-visual-editor-board:' + hash(this.graph.screens.map((s) => s.id).sort((a, b) => a.localeCompare(b)).join('\n'))
             const saved = loadView(this.storageKey)
             const auto = layoutBoard(this.graph)
             this.positions = { ...auto, ...pick(saved?.positions ?? {}, Object.keys(auto)) }
@@ -342,7 +342,7 @@ export class MountBoard extends LitElement {
 function loadView(key: string): BoardView | undefined {
     try {
         const v = JSON.parse(localStorage.getItem(key) ?? 'null')
-        return v && v.positions && v.pan && typeof v.zoom === 'number' ? v : undefined
+        return v?.positions && v.pan && typeof v.zoom === 'number' ? v : undefined
     } catch {
         return undefined
     }
@@ -367,7 +367,7 @@ function labelWidth(text: string): number {
 /** A short, stable key for a mount (its screen ids), so each mount keeps its own arrangement. */
 function hash(s: string): string {
     let h = 0
-    for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0
+    for (const ch of s) h = Math.trunc(Math.imul(31, h) + (ch.codePointAt(0) ?? 0)) % 2147483647
     return (h >>> 0).toString(36)
 }
 

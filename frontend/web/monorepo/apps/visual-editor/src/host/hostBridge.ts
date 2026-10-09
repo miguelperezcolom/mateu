@@ -115,7 +115,10 @@ class MessageHost implements HostBridge {
     onContentChanged(yaml: string) { this.channel.postMessage({ type: 'contentChanged', yaml }) }
     onExternalChange(cb: (yaml: string) => void) { this._external = cb }
     /** The IDE opens the file in an editor of its own; this one stays on its file. */
-    async openFile(path: string) { this.channel.postMessage({ type: 'openFile', path }); return undefined }
+    openFile(path: string): Promise<string | undefined> {
+        this.channel.postMessage({ type: 'openFile', path })
+        return Promise.resolve(undefined)
+    }
 
     /** Ask the IDE host for the project's files; resolve empty if it does not answer (not yet wired). */
     listFiles(): Promise<ProjectFile[]> {
