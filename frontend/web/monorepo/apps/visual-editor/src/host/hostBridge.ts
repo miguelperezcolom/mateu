@@ -6,6 +6,7 @@
  */
 import { SAMPLE_YAML } from '../model/catalog'
 import type { ProjectFile } from '../model/projectIndex'
+import { decodeShared, hasSharedDesign, type SharedDesign } from '../model/shareLink'
 
 export interface HostBridge {
     /** The Mateu backend base URL (`''` = same-origin; the dev server proxies `/mateu`). */
@@ -32,6 +33,12 @@ export interface HostBridge {
      * as a localStorage draft.
      */
     onContentChanged?(yaml: string): void
+    /**
+     * A shared design was opened in the editor (its YAML is already the edited file's content). A host
+     * that can hold a whole mount takes the rest of it — the path and the other files — here. The IDE
+     * hosts write one file per editor, so they leave this out and only the opened file is loaded.
+     */
+    adoptShared?(design: SharedDesign): void
     /** Subscribe to out-of-band file changes (the file edited elsewhere). Optional. */
     onExternalChange?(cb: (yaml: string) => void): void
 }
@@ -52,6 +59,8 @@ declare global {
         acquireVsCodeApi?: () => HostChannel
         __mateuHost?: HostChannel
         __mateuBaseUrl?: string
+        /** The address a share link should open (a hosted editor); defaults to the page's own URL. */
+        __mateuEditorUrl?: string
     }
 }
 
@@ -117,16 +126,20 @@ class BrowserHost implements HostBridge {
     private key = 'mateu-visual-editor-yaml'
     /** A whole mount for standalone dev: a `{path: yaml}` JSON map. Enables the reference pickers. */
     private projectKey = 'mateu-visual-editor-project'
+    private pathKey = 'mateu-visual-editor-path'
+    /** A design arriving in the URL (`#mateuz=…`) is imported once, before anything reads the draft. */
+    private imported: Promise<void> = this.importSharedDesign()
 
     baseUrl() { return window.__mateuBaseUrl ?? '' }
 
     async initialYaml() {
+        await this.imported
         return localStorage.getItem(this.key) ?? SAMPLE_YAML
     }
 
     /** The path of the edited file for standalone dev, if set (enables data-source binding pickers). */
     currentPath() {
-        return localStorage.getItem('mateu-visual-editor-path') ?? undefined
+        return localStorage.getItem(this.pathKey) ?? undefined
     }
 
     // Standalone has no IDE and no native save, so a local edit is kept as a localStorage draft.
@@ -135,6 +148,7 @@ class BrowserHost implements HostBridge {
     }
 
     async listFiles(): Promise<ProjectFile[]> {
+        await this.imported
         const raw = localStorage.getItem(this.projectKey)
         if (!raw) return []
         try {
@@ -143,5 +157,32 @@ class BrowserHost implements HostBridge {
         } catch {
             return []
         }
+    }
+
+    /**
+     * Open a shared link: the design becomes the draft (the previous one is kept under a `.previous`
+     * key, so a stray link never destroys work) and the fragment is cleared, so a reload shows the
+     * edits rather than re-importing the original.
+     */
+    private async importSharedDesign() {
+        if (!hasSharedDesign(location.hash)) return
+        const design = await decodeShared(location.hash)
+        history.replaceState(null, '', location.pathname + location.search)
+        if (!design) return
+        for (const k of [this.key, this.pathKey, this.projectKey]) {
+            const old = localStorage.getItem(k)
+            if (old !== null) localStorage.setItem(k + '.previous', old)
+        }
+        localStorage.setItem(this.key, design.yaml)
+        this.adoptShared(design)
+    }
+
+    adoptShared(design: SharedDesign) {
+        if (design.path) localStorage.setItem(this.pathKey, design.path)
+        else localStorage.removeItem(this.pathKey)
+        if (design.files) {
+            const files = { ...design.files, ...(design.path ? { [design.path]: design.yaml } : {}) }
+            localStorage.setItem(this.projectKey, JSON.stringify(files))
+        } else localStorage.removeItem(this.projectKey)
     }
 }

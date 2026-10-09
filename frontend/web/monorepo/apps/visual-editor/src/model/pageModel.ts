@@ -548,9 +548,12 @@ export function decorateForPreview(doc: PageDoc): string {
 
 function stamp(node: PageNode, path: NodePath): void {
     // A column's or a filter's `id` IS its binding (the row field it reads, the state key it writes),
-    // so a slot item of those kinds keeps it — it is selected from the Layers panel instead.
+    // so a slot item of those kinds keeps it — it is selected from the Layers panel instead. A grid
+    // column keeps it wherever it sits (a Grid lists its columns under `content`): stamped, it would
+    // read a row field called `ve-0-0` and every cell of the preview would come out empty.
     const inSlot = typeof path[path.length - 1] === 'string'
-    if (!(inSlot && SEMANTIC_ID.has(node.type))) node.id = pathToId(path)
+    const keepsId = SEMANTIC_ID.has(node.type) && (inSlot || COLUMN_TYPES.has(node.type))
+    if (!keepsId) node.id = pathToId(path)
     for (const key of presentSlots(node)) {
         (node[key] as PageNode[]).forEach((child, i) => stamp(child, [...path, slotSeg(key, i)]))
     }
@@ -565,3 +568,4 @@ function stamp(node: PageNode, path: NodePath): void {
 
 /** Components whose `id` is a data binding, not a DOM handle. */
 const SEMANTIC_ID = new Set(['FormField', 'GridColumn', 'GridGroupColumn'])
+const COLUMN_TYPES = new Set(['GridColumn', 'GridGroupColumn'])

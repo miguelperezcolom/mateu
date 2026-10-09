@@ -122,6 +122,23 @@ class YamlModelViewSyncTest {
   }
 
   @Test
+  void previewOfAFreshlyDroppedMenuComponentDoesNotFail() {
+    // The editor's palette drops a ContextMenu / Directory with no `menu:` yet; its preview used to
+    // NPE in the mapper (`menu.stream()`), so the canvas showed an error instead of the component.
+    var yaml =
+        "type: VerticalLayout\ncontent:\n  - type: Directory\n"
+            + "  - type: ContextMenu\n    wrapped:\n      type: Text\n      text: hi\n";
+    var increment =
+        mateu.run(
+            RunActionRqDto.builder()
+                .actionId("__preview__")
+                .initiatorComponentId("preview")
+                .parameters(Map.of("_yaml", yaml))
+                .build());
+    assertThat(increment.fragments().get(0).component().children()).hasSize(2);
+  }
+
+  @Test
   void theCanonicalViewModelKeyBindsIdenticallyToTheDeprecatedModelViewAlias() {
     // coherence-plan #5 vocabulary: a definition may name its view model with the canonical key
     // `viewModel:` (specs/ui/yaml-bound-viewmodel.yaml). It must bind exactly like the deprecated

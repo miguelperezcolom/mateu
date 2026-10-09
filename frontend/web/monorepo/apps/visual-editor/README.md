@@ -83,6 +83,59 @@ component to select it, edit its props on the right, add components from the lef
 Quality is measured with `e2e/visual-editor-tasks.mjs` (12 authoring tasks, any build) and the VS Code
 host is live-run with `e2e/vscode-host-live.mjs` (a real VS Code with the extension loaded).
 
+## Share links (`#mateuz=`) and `public/agent.md`
+
+A design can travel in a URL: `{v:1, path?, yaml, files?}` as JSON, raw-deflated and base64url'd
+after `#mateuz=` (or URI-encoded plain JSON after `#mateu=`). It is in the fragment, so nothing
+reaches a server (the idea comes from lnkiai/m3e-canvas, MIT). `model/shareLink.ts` encodes and
+decodes it. `BrowserHost` imports a link on boot (the old draft goes to `*.previous`, and the
+fragment is cleared so a reload keeps your edits). **Open link…** loads a pasted one as an undoable
+edit, and `HostBridge.adoptShared` lets a host take the rest of the mount.
+
+`public/agent.md` is the guide a coding agent follows to produce such a link. It is served next to
+the bundle and published raw on master. Keep it in sync with the document shape:
+`shareLink.test.ts` decodes the exact Node `deflateRawSync` recipe it gives.
+
+## Palette thumbnails (`scripts/thumbnails.mjs`)
+
+The **Insert** palette shows each component as a card with a picture of it, so you recognise it by
+its look rather than its name, and hovering a card shows it larger. The pictures are **screenshots of
+the editor's own canvas** painting a sample of each component, never drawings, so a thumbnail is
+exactly what the canvas shows once the component is dropped.
+
+- `src/model/thumbnailSamples.ts`: the sample per component (a grid with rows, a chart with data…).
+  A part that only renders inside its parent, such as `GridColumn` or `Tab`, is pictured as that
+  parent. `NO_THUMBNAIL` lists, with a reason, the ones that have none (triggers, menu entries,
+  runtime-only embeds).
+- `thumbs.html` + `src/thumbs/harness.ts`: the page that gets screenshotted. It is built apart by
+  `vite.thumbs.config.ts` and never shipped in the editor bundle.
+- `src/thumbnails/<look>/<Type>.png`: the output, `vaadin` and `redwood`. `src/model/thumbnails.ts`
+  picks it up with `import.meta.glob`. The palette has a **look** selector (Vaadin / Redwood / Names
+  only) that starts from the canvas's design system; the DS-neutral canvas starts with names only.
+- **Redwood** cannot run in the canvas (it is a whole VB app), so the palette is the only Redwood
+  preview in the editor. Its thumbnails come from the VB app itself, and a component it does not
+  paint gets none. The palette then dims it, with a hint that Redwood most likely does not render
+  it.
+
+Regenerate when the catalog or a renderer changes, against **any running Mateu app** (they all answer
+`__preview__`), so the thumbnails show what the server renders, i.e. what ships:
+
+```bash
+node scripts/thumbnails.mjs --backend http://localhost:8080        # vaadin, all
+node scripts/thumbnails.mjs --backend http://localhost:8080 --only Grid,Card
+
+# redwood: serve the VB app first (cd ../redwood && npm run build && npm run serve → :9006)
+node scripts/thumbnails.mjs --renderer redwood --backend http://localhost:8080 --vb http://localhost:9006
+```
+
+The Redwood run intercepts the VB app's calls to `/mateu`. The shell gets a one-route App, and that
+route answers the sample's `__preview__` wrapped as a server-side component, exactly as a real
+route's content arrives. It crops the content panel, below the page header.
+
+The run lists what rendered nothing and what the backend could not render. `thumbnails.test.ts`
+fails while a catalog component has neither a thumbnail nor a `NO_THUMBNAIL` entry. Without
+`--backend` it uses the in-browser expander, which is close to the server render but not identical.
+
 ## Status
 
 **Fase A — first slice (this):** app scaffold, 3-pane shell, canvas render via `__preview__`, click-to-

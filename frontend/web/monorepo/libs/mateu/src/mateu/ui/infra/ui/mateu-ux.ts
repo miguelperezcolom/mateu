@@ -25,6 +25,7 @@ import {trackFabAnchor} from "@infra/ui/layout/fabRail.ts";
 import {getCachedStructure, putCachedStructure, structureCacheKey} from "@infra/routeStructureCache.ts";
 import {getStaticFragment, putStaticFragment} from "@infra/staticViewCache.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
+import { badge } from "@infra/ui/badgeStyles.ts";
 import {actionIsForCurrentView, staleCheck, uxIdentity, ViewGeneration} from "@infra/ui/staleViewGuard.ts";
 
 @customElement('mateu-ux')
@@ -714,7 +715,10 @@ export class MateuUx extends ConnectedElement {
             max-width: 16rem;
             margin-block-end: var(--lumo-space-l, 1.5rem);
         }
-  `, linkStyles]
+  `, linkStyles,
+    // A fragment applied straight to the ux (no mateu-component in between — e.g. the visual
+    // editor's canvas) still paints `<span theme="badge …">` like the app does.
+    badge]
 }
 
 declare global {

@@ -7,7 +7,10 @@ import {ifDefined} from "lit/directives/if-defined.js";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { interpolateNested } from "@infra/ui/interpolation.ts";
 export const renderText = (component: ClientSideComponent, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
-    const metadata = component.metadata as Text
+    // The server always writes `container` (default div); a client-side expanded definition carries
+    // only what was authored, so an absent container means the same default — not "Unknown".
+    const metadata = { ...(component.metadata as Text) }
+    metadata.container ??= TextContainer.div
     const colspan = metadata.attributes?.['data-colspan']
     const content = interpolateNested(metadata.text, state, data, appState, appData)
     // Text size (xl/l/s/xs enlarge or reduce the font; m or absent applies nothing) and
