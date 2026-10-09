@@ -98,7 +98,7 @@ const fromBase64Url = (s: string) => {
     return out
 }
 
-async function pipe(bytes: Uint8Array, stream: { readable: ReadableStream<Uint8Array>; writable: WritableStream<Uint8Array> }): Promise<Uint8Array> {
+async function pipe(bytes: Uint8Array, stream: CompressionStream | DecompressionStream): Promise<Uint8Array> {
     const writer = stream.writable.getWriter()
     // The writer's own promises reject on bad input too; the read below is what reports the failure.
     writer.write(bytes as Uint8Array<ArrayBuffer>).catch(() => {})
