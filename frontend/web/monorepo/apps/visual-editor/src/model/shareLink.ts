@@ -87,7 +87,7 @@ function parseDesign(json: string): SharedDesign | null {
 const toBase64Url = (bytes: Uint8Array) => {
     let bin = ''
     for (const b of bytes) bin += String.fromCharCode(b)
-    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
 }
 
 const fromBase64Url = (s: string) => {

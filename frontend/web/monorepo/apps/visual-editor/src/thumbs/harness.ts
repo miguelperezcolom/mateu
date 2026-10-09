@@ -38,7 +38,7 @@ declare global {
 const canvas = () => document.getElementById('canvas') as Canvas
 
 window.thumbs = {
-    types: () => [...SCHEMA.components.keys()].sort(),
+    types: () => [...SCHEMA.components.keys()].sort((a, b) => a.localeCompare(b)),
     async use(renderer, backend) {
         const got = await useCanvasRenderer(renderer)
         canvas().baseUrl = ''

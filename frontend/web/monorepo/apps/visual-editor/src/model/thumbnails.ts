@@ -31,7 +31,7 @@ export function thumbnailUrl(look: ThumbnailLook, type: string): string | undefi
 
 /** The component types that have a thumbnail in a look. */
 export function thumbnailTypes(look: ThumbnailLook): string[] {
-    return Object.keys(THUMBNAILS[look] ?? {}).sort()
+    return Object.keys(THUMBNAILS[look] ?? {}).sort((a, b) => a.localeCompare(b))
 }
 
 /**

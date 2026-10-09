@@ -80,7 +80,13 @@ async function shoot(page, box, file, maxW, maxH) {
 const harness = await newPage()
 const openHarness = async () => {
     for (let i = 0; ; i++) {
-        try { await harness.goto(`http://localhost:${port}/thumbs.html`); break } catch (e) { if (i > 40) throw e; await harness.waitForTimeout(250) }
+        try {
+            await harness.goto(`http://localhost:${port}/thumbs.html`)
+            break
+        } catch (e) {
+            if (i > 40) throw e
+            await harness.waitForTimeout(250)
+        }
     }
     await harness.waitForFunction(() => !!window.thumbs)
     if (renderer === 'vaadin') await harness.evaluate((b) => window.thumbs.use('vaadin', b), !!backend)
