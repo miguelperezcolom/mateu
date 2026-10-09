@@ -96,6 +96,13 @@ edit, and `HostBridge.adoptShared` lets a host take the rest of the mount.
 the bundle and published raw on master. Keep it in sync with the document shape:
 `shareLink.test.ts` decodes the exact Node `deflateRawSync` recipe it gives.
 
+## Tidy (`model/tidy.ts`)
+
+Rule-based structural clean-ups, after m3e-canvas's `lib/tidy.ts`: fixed rules and no model.
+`tidyFindings(doc)` lists them and `applyTidy(doc, rules)` applies the chosen rules until nothing
+more changes. It returns a new doc, and the shell commits the result as one undoable edit. Only
+*plain* layouts (`type` + `content` and nothing else) are unwrapped, merged or dropped.
+
 ## Design notes (`model/notes.ts`)
 
 `note:` is an authoring-only key on every component. `UidlSchemaGenerator` adds it to each Component

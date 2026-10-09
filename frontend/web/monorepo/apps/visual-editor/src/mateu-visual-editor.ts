@@ -42,6 +42,7 @@ import { withEdited } from './model/playManifest'
 import { buildMountGraph } from './model/mountGraph'
 import { VIEWPORTS, ViewportId, parseViewport, viewportWidth } from './model/viewport'
 import { collectNotes, buildViewModelPrompt } from './model/notes'
+import { tidyFindings, applyTidy, TIDY_RULES, TidyRule } from './model/tidy'
 import { resolveHost, HostBridge } from './host/hostBridge'
 import { watchHostTheme, Theme } from './host/theme'
 import './palette/editor-palette'
@@ -56,13 +57,14 @@ import './board/mount-board'
 import './play/mount-play'
 
 /** The bottom dock's panels (page mode). One is open at a time; clicking its tab again closes it. */
-type DockTab = 'actions' | 'triggers' | 'quickstart' | 'templates' | 'sync' | 'ai' | 'yaml'
+type DockTab = 'actions' | 'triggers' | 'quickstart' | 'templates' | 'sync' | 'tidy' | 'ai' | 'yaml'
 const DOCK_TABS: { id: DockTab; label: string; title: string }[] = [
     { id: 'actions', label: 'Actions', title: 'What the page\'s buttons do: REST calls with a toast, or flows of steps' },
     { id: 'triggers', label: 'Triggers', title: 'Run an action on load, on an event, or when a field changes' },
     { id: 'quickstart', label: 'Quick start', title: 'One-click scaffolds: bind data, lay out fields, turn into a listing, wire an action' },
     { id: 'templates', label: 'Templates', title: 'Start the page from a template' },
     { id: 'sync', label: 'Sync', title: 'Compare the page with its view model' },
+    { id: 'tidy', label: 'Tidy', title: 'Clean up the structure: loose fields and buttons, leftover wrappers, empty layouts, missing labels' },
     { id: 'ai', label: 'AI', title: 'Have an AI write the layout' },
     { id: 'yaml', label: 'YAML', title: 'The file as it will be saved' },
 ]
@@ -231,6 +233,9 @@ export class MateuVisualEditor extends LitElement {
         .act-form label { color: var(--ve-secondary); }
         .act-form .full { grid-column: 1 / -1; }
         .act-form input[type=checkbox] { justify-self: start; }
+        .tidy-rule { display: flex; flex-direction: column; align-items: flex-start; gap: 0.1rem; }
+        .tidy-rule label { display: flex; align-items: center; gap: 0.4rem; }
+        .tidy-item { text-align: left; color: var(--ve-secondary); padding: 0.1rem 0.4rem 0.1rem 1.6rem; }
         .notice { font-size: 12px; padding: 0.35rem 0.75rem; background: var(--ve-primary-10); color: var(--ve-primary-text);
                   display: flex; gap: 0.5rem; align-items: center; }
         .notice button { padding: 0.1rem 0.4rem; }
@@ -548,6 +553,7 @@ export class MateuVisualEditor extends LitElement {
         const counts: Partial<Record<DockTab, number>> = {
             actions: this.doc ? pageActions(this.doc).length : 0,
             triggers: this.doc?.triggers?.length ?? 0,
+            tidy: tidyFindings(this.doc).length,
         }
         return html`
             <div class="dock">
@@ -566,11 +572,50 @@ export class MateuVisualEditor extends LitElement {
             case 'quickstart': return this.renderQuickStarts()
             case 'templates': return this.renderTemplateGallery()
             case 'sync': return this.renderSync()
+            case 'tidy': return this.renderTidy()
             case 'ai': return this.renderAi()
             case 'yaml': return html`
                 <div class="qs-hint">The file exactly as it will be saved (your comments and formatting are kept). Edit it here and click outside to apply.</div>
                 <textarea class="source" .value=${this.lastText} @change=${this.onSourceEdit}></textarea>`
         }
+    }
+
+    /** Rules the author has unticked in the Tidy panel (all fixable rules start ticked). */
+    @state() private tidyOff = new Set<TidyRule>()
+
+    private renderTidy() {
+        const findings = tidyFindings(this.doc)
+        if (!findings.length) return html`<div class="tp-empty">Nothing to tidy — the structure is clean.</div>`
+        const fixable = TIDY_RULES.filter((r) => r.fixable && findings.some((f) => f.rule === r.id))
+        const chosen = fixable.filter((r) => !this.tidyOff.has(r.id))
+        return html`
+            <div class="qs-hint">Fixed rules, no AI: they only touch layouts that carry nothing but their children. Click a finding to select it on the canvas.</div>
+            ${TIDY_RULES.filter((r) => findings.some((f) => f.rule === r.id)).map((r) => html`
+                <div class="tidy-rule">
+                    <label class="tp-head">
+                        ${r.fixable ? html`<input type="checkbox" .checked=${!this.tidyOff.has(r.id)} @change=${() => this.toggleTidy(r.id)}>` : html`<span class="tag warn">check</span>`}
+                        ${r.label}
+                    </label>
+                    ${findings.filter((f) => f.rule === r.id).map((f) => html`
+                        <button class="ghost tidy-item" @click=${() => (this.selectedPath = f.path)}>${f.message}</button>`)}
+                </div>`)}
+            ${fixable.length ? html`<div><button class="primary" ?disabled=${!chosen.length} @click=${() => this.tidy(chosen.map((r) => r.id))}>
+                Apply ${chosen.length} rule(s)</button> <span class="qs-hint">one edit — ⌘Z undoes it</span></div>` : ''}`
+    }
+
+    private toggleTidy(rule: TidyRule) {
+        const next = new Set(this.tidyOff)
+        if (!next.delete(rule)) next.add(rule)
+        this.tidyOff = next
+    }
+
+    private tidy(rules: TidyRule[]) {
+        if (!this.doc) return
+        const before = tidyFindings(this.doc).filter((f) => rules.includes(f.rule)).length
+        this.doc = applyTidy(this.doc, rules)
+        this.selectedPath = null
+        this.notifyChanged()
+        this.notice = `Tidied ${before} thing(s).`
     }
 
     private onViewportChange(e: Event) {
