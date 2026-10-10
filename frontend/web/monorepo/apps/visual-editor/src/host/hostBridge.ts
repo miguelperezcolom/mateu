@@ -68,6 +68,17 @@ export interface HostBridge {
      * images folder (creating it) and resolves to it — undefined when the author cancels.
      */
     addImage?(): Promise<ProjectImage | undefined>
+    /**
+     * Write ANOTHER file of the mount (path relative to `specs/ui`; `null` deletes a file the board
+     * created) — the board's edits: a route, a menu entry, a new screen. The current file keeps going
+     * through `onContentChanged`. The host pushes the files again afterwards (`onFilesChanged`).
+     */
+    writeFile?(path: string, content: string | null): void
+}
+
+/** A path the board may write: relative to specs/ui, no `..`, no absolute path. */
+export function isWritablePath(path: string): boolean {
+    return !!path && !path.startsWith('/') && !/^[A-Za-z]:/.test(path) && !path.split(/[\\/]/).includes('..') && /\.ya?ml$/.test(path)
 }
 
 /** Keep what a host sent that looks like an image entry. */
@@ -212,6 +223,10 @@ export class MessageHost implements HostBridge {
 
     onFilesChanged(cb: (files: ProjectFile[]) => void) { this._filesListeners.push(cb) }
 
+    writeFile(path: string, content: string | null) {
+        if (isWritablePath(path)) this.channel.postMessage({ type: 'writeFile', path, content })
+    }
+
     onImagesChanged(cb: (images: ProjectImage[]) => void) { this._imagesListeners.push(cb) }
 
     /** Ask the host for the project's images; empty when it does not answer in time (a late answer,
@@ -270,6 +285,16 @@ class BrowserHost implements HostBridge {
     // Standalone has no IDE and no native save, so a local edit is kept as a localStorage draft.
     onContentChanged(yaml: string) {
         localStorage.setItem(this.key, yaml)
+    }
+
+    /** The board's edits land in the standalone project (a `{path: yaml}` map in localStorage). */
+    writeFile(path: string, content: string | null) {
+        if (!isWritablePath(path)) return
+        let map: Record<string, string> = {}
+        try { map = JSON.parse(localStorage.getItem(this.projectKey) ?? '{}') } catch { /* start empty */ }
+        if (content === null) delete map[path]
+        else map[path] = content
+        localStorage.setItem(this.projectKey, JSON.stringify(map))
     }
 
     async listFiles(): Promise<ProjectFile[]> {

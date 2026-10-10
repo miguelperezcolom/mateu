@@ -136,6 +136,42 @@ class MateuVisualEditor(
             // The image pickers: the project's images, and "Add image to project…".
             "listImages" -> sendImages()
             "addImage" -> addImage()
+            // The board's edits: another file of the mount written (or a file it created, deleted on undo).
+            "writeFile" -> writeFile(msg.path("path").asText(), msg.path("content").let { if (it.isNull || it.isMissingNode) null else it.asText() })
+        }
+    }
+
+    /**
+     * Write a file of the mount (relative to its `specs/ui`) the way an IDE edit does: through its
+     * Document, in an undoable command, then saved (the board's edits are explicit actions on files
+     * that are not open in this editor). A new file is created, folders included; `null` deletes it.
+     */
+    private fun writeFile(path: String, content: String?) {
+        if (!isWritableSpecPath(path)) return
+        ApplicationManager.getApplication().invokeLater {
+            val root = specsUiRoot(file) ?: return@invokeLater
+            WriteCommandAction.runWriteCommandAction(project, "Mateu Board Edit", null, {
+                val existing = root.findFileByRelativePath(path)
+                if (content == null) {
+                    existing?.delete(this)
+                    return@runWriteCommandAction
+                }
+                val target = existing ?: run {
+                    val dir = path.substringBeforeLast('/', "")
+                    val parent = if (dir.isEmpty()) root else com.intellij.openapi.vfs.VfsUtil.createDirectoryIfMissing(root, dir)
+                    parent?.createChildData(this, path.substringAfterLast('/'))
+                } ?: return@runWriteCommandAction
+                val doc = FileDocumentManager.getInstance().getDocument(target)
+                if (doc == null) {
+                    target.setBinaryContent(content.toByteArray(Charsets.UTF_8))
+                } else {
+                    if (target == file) applyingFromWeb = true
+                    try { doc.setText(content) } finally { applyingFromWeb = false }
+                    FileDocumentManager.getInstance().saveDocument(doc)
+                }
+            })
+            filesAlarm.cancelAllRequests()
+            filesAlarm.addRequest({ sendFiles() }, 150)
         }
     }
 
@@ -267,6 +303,13 @@ class MateuVisualEditor(
         ApplicationManager.getApplication().invokeLater {
             b.cefBrowser.executeJavaScript("window.postMessage($json, '*');", b.cefBrowser.url, 0)
         }
+    }
+
+    companion object {
+        /** A path the board may write (`writeFile`): relative to specs/ui, a YAML file, never escaping it. */
+        internal fun isWritableSpecPath(path: String): Boolean =
+            path.isNotBlank() && !path.startsWith("/") && !path.contains('\\') && !Regex("^[A-Za-z]:").containsMatchIn(path) &&
+                !path.split('/').contains("..") && (path.endsWith(".yaml") || path.endsWith(".yml"))
     }
 
     override fun getComponent(): JComponent = browser?.component ?: fallback!!

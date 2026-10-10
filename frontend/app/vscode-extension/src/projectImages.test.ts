@@ -4,7 +4,7 @@ import { tmpdir } from 'os'
 import { dirname, join } from 'path'
 import * as http from 'http'
 import {
-    copyInto, imageFileOf, imageToken, imageUrlPath, isImage, listImages, moduleRootOf, servedUrl, targetDir,
+    copyInto, imageFileOf, imageToken, imageUrlPath, isImage, isWritableSpecPath, listImages, moduleRootOf, servedUrl, targetDir,
 } from './projectImages'
 import { BackendProxy } from './backendProxy'
 
@@ -99,5 +99,13 @@ describe('project images: served by the loopback server', () => {
         })
         expect(await get(url)).toEqual({ status: 200, type: 'image/png', body: 'PNG!' })
         expect((await get(`/__mateu-images/${token}/secret.yaml`)).status).toBe(404)
+    })
+})
+
+describe('the board writes only mount files', () => {
+    it('accepts a YAML path under specs/ui and nothing else', () => {
+        expect(isWritableSpecPath('routes.yaml')).toBe(true)
+        expect(isWritableSpecPath('sales/orders.yml')).toBe(true)
+        for (const p of ['', '/etc/x.yaml', '../pom.xml', 'a/../../x.yaml', 'C:/x.yaml', 'x.json', 'a\\..\\x.yaml']) expect(isWritableSpecPath(p), p).toBe(false)
     })
 })

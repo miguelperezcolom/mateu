@@ -144,3 +144,8 @@ export function imageFileOf(roots: ReadonlyMap<string, string>, urlPath: string)
     if (!file.startsWith(path.resolve(root) + path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) return undefined
     return { file, contentType: IMAGE_TYPES[rel.slice(rel.lastIndexOf('.') + 1).toLowerCase()] ?? 'application/octet-stream' }
 }
+
+/** A path the board may write (`writeFile`): relative to specs/ui, a YAML file, never escaping it. */
+export function isWritableSpecPath(path: string): boolean {
+    return !!path && !path.startsWith('/') && !/^[A-Za-z]:/.test(path) && !path.split(/[\\/]/).includes('..') && /\.ya?ml$/.test(path)
+}

@@ -52,6 +52,7 @@ import { VIEWPORTS, ViewportId, parseViewport, viewportWidth } from './model/vie
 import { collectNotes, buildViewModelPrompt } from './model/notes'
 import { parentSelection, surviving } from './canvas/canvasSelection'
 import type { ProjectImage } from './model/projectImages'
+import { applyWrites, type FileWrite } from './model/boardEdits'
 import { tidyFindings, applyTidy, TIDY_RULES, TidyRule } from './model/tidy'
 import { resolveHost, HostBridge } from './host/hostBridge'
 import { watchHostTheme, Theme } from './host/theme'
@@ -446,6 +447,14 @@ export class MateuVisualEditor extends LitElement {
         // Typing in a field keeps the field's own undo; everywhere else the editor's history answers.
         if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return
         const mod = e.metaKey || e.ctrlKey
+        if (this.view === 'board' && mod && /^[zZyY]$/.test(e.key)) {
+            // on the board, undo/redo are the board's (its edits span several files)
+            e.preventDefault()
+            const board = this.renderRoot.querySelector('mount-board') as (HTMLElement & { undo(): void; redo(): void }) | null
+            if (e.key === 'y' || e.key === 'Y' || e.shiftKey) board?.redo()
+            else board?.undo()
+            return
+        }
         if (mod && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); e.shiftKey ? this.redo() : this.undo(); return }
         if (mod && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); this.redo(); return }
         if (this.view === 'play' && e.key === 'Escape') { this.view = 'edit'; return }
@@ -540,6 +549,7 @@ export class MateuVisualEditor extends LitElement {
                  @types-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
                  @project-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
                  @board-open=${(e: CustomEvent) => this.openFile(e.detail.path)}
+                 @board-write=${this.onBoardWrite}
                  @board-play=${(e: CustomEvent) => this.play(e.detail.route)}
                  @play-close=${() => (this.view = this.playReturn)}>
                 ${this.renderToolbar()}
@@ -548,7 +558,7 @@ export class MateuVisualEditor extends LitElement {
                 ${this.view === 'board'
                     ? html`<mount-board .files=${this.mountFiles()} .currentPath=${this.currentPath} .baseUrl=${renderBaseUrl(this.previewSource)}
                                         .clientRender=${rendersClientSide(this.previewSource)} .theme=${this.theme} .renderer=${this.renderer}
-                                        ?canOpen=${!!this.host.openFile}></mount-board>`
+                                        ?canOpen=${!!this.host.openFile} ?canEdit=${!!this.host.writeFile}></mount-board>`
                     : this.view === 'play'
                     ? html`<mount-play .files=${this.mountFiles()} .start=${this.playStart} .baseUrl=${renderBaseUrl(this.previewSource)}
                                        .theme=${this.theme} .viewport=${this.viewport} .renderer=${this.projectRenderer}
@@ -1442,6 +1452,36 @@ export class MateuVisualEditor extends LitElement {
     }
 
     /** Open another file of the mount (the board's Edit): in place in the browser, in a tab in an IDE. */
+    /**
+     * The board's edits (a route, a menu entry, a new screen, an arrow deleted). The open file goes
+     * through the edit history like any edit; the others through the host (the IDE's documents, the
+     * browser's project). The board re-derives from the files — this list, until the host pushes its
+     * own.
+     */
+    private onBoardWrite = (e: CustomEvent<{ writes: FileWrite[] }>) => {
+        const writes = e.detail.writes
+        const norm = (p: string) => p.replace(/^\/+/, '').replace(/^specs\/ui\//, '')
+        const current = norm(this.currentPath ?? 'page.yaml')
+        if (!this.projectFiles.length) {
+            // a standalone draft with no project yet: the mount the board showed becomes the project
+            const seed = this.mountFiles()
+            for (const f of seed) if (norm(f.path) !== current) this.host.writeFile?.(f.path, f.content)
+            this.projectFiles = seed
+        }
+        for (const w of writes) {
+            if (norm(w.path) === current && w.content !== null) {
+                this.history.push(w.content)
+                this.historyTick++
+                this.load(w.content)
+                this.lastText = w.content
+                this.host.onContentChanged?.(w.content)
+            } else {
+                this.host.writeFile?.(w.path, w.content)
+            }
+        }
+        this.projectFiles = applyWrites(withEdited(this.projectFiles, this.currentPath, this.lastText), writes)
+    }
+
     private async openFile(path: string) {
         const yaml = await this.host.openFile?.(path)
         if (yaml === undefined) return

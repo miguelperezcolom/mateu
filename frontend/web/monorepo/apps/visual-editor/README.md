@@ -158,6 +158,13 @@ Two views of the whole mount, next to the file editor (both from lnkiai/m3e-canv
   `bundleStore`. A plain `mateu-ux` then loads routes from it, expanded in the browser. It stands in
   for `mateu-ui` but keeps its own history, because `mateu-ui` owns `window.history` and the editor's
   page is not the app's. On close it unloads the bundle.
+- **The board edits** (`model/boardEdits.ts` over `model/yamlEdit.ts`): create a missing screen
+  (page + route), give an orphan page a route, draw an arrow (menu entry / button / `rowRoute` /
+  `successRoute`), delete or re-point one. Each is a `BoardChange` of file writes plus their inverse
+  (the board's undo). The writes are minimal text splices located through the YAML node ranges, so
+  nothing else in the file moves. The shell sends the open file through its edit history and the
+  others through `HostBridge.writeFile` (IntelliJ: a Document edit in a write command, saved; VS Code:
+  a WorkspaceEdit, saved; the browser: the localStorage project). The board re-derives from the files.
 - Edit from the board goes through `HostBridge.openFile`. The browser host swaps the draft in place;
   IntelliJ and VS Code handle an `openFile` message by opening the file in another tab.
 - **Image pickers** (`widgets/ve-image-picker.ts`; the rule in `model/projectImages.ts`

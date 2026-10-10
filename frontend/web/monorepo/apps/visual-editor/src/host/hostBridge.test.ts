@@ -129,6 +129,30 @@ describe('MessageHost project files', () => {
     })
 })
 
+describe('the board writes other files of the mount', () => {
+    it('posts writeFile for a YAML path under specs/ui (null deletes), and refuses anything else', async () => {
+        const g = globalThis as unknown as { window?: unknown }
+        const previous = g.window
+        g.window = { addEventListener: () => {}, location: { origin: ORIGIN } }
+        try {
+            const { MessageHost, isWritablePath } = await import('./hostBridge')
+            const posted: unknown[] = []
+            const host = new MessageHost({ postMessage: (m: unknown) => posted.push(m), addEventListener: () => {} } as never)
+            host.writeFile('routes.yaml', 'type: Routes\n')
+            host.writeFile('archive.yaml', null)
+            host.writeFile('../pom.xml', 'x')
+            host.writeFile('/etc/passwd.yaml', 'x')
+            expect(posted.filter((m) => (m as { type: string }).type === 'writeFile')).toEqual([
+                { type: 'writeFile', path: 'routes.yaml', content: 'type: Routes\n' },
+                { type: 'writeFile', path: 'archive.yaml', content: null },
+            ])
+            expect(isWritablePath('sales/orders.yml')).toBe(true)
+            expect(isWritablePath('a/../../x.yaml')).toBe(false)
+            expect(isWritablePath('x.json')).toBe(false)
+        } finally { g.window = previous }
+    })
+})
+
 describe('imagesOf', () => {
     it('drops anything that is not an image entry', async () => {
         const { imagesOf } = await import('./hostBridge')

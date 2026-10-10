@@ -410,6 +410,37 @@ remembers the arrangement for each mount, and **Auto layout** starts it again. C
 its arrows. **Edit** opens that card's file: in place in a browser, or in its own tab in IntelliJ
 and VS Code.
 
+#### Editing the navigation on the board
+
+The board also edits the mount's navigation. Each action changes the YAML that declares it, and only
+the lines involved: comments, quoting and flow `{…}` entries stay as you wrote them. The board then
+redraws itself from the files.
+
+- **Create a missing screen.** A link to a route the mount does not have shows as a red dashed card.
+  **Create screen…** asks for the route, the page file and a template. It writes the page and adds
+  the route to `routes.yaml` in one step. A route whose page file is missing gets the same button,
+  and only the file is created. A parameterised link such as `orders/${row.id}` becomes the route
+  `orders/:id`.
+- **Give a page a route.** A page no route serves has a dashed card with **Add route…**, which adds
+  the entry to `routes.yaml`.
+- **Link two screens.** Hover a card and drag the dot on its right edge onto another card, then
+  choose what the link is. The board only offers what fits the source screen: a **menu entry** from
+  the app shell, in the group you pick (nested groups included); a **button** on a page, in its
+  toolbar, its form buttons or its content; a listing's **row click** (`rowRoute`); or where a REST
+  action lands **after save** (`successRoute`).
+- **Delete or re-point an arrow.** Click an arrow to select it. **Delete** (or the `Delete` key)
+  removes what declares it: the menu entry, the button, the flow step, the `rowRoute` or the
+  `successRoute`. Drag the circle at its end onto another card to point it there; only the target
+  text changes. Arrows between nested routes are edited in the routes file.
+- **New screen.** Double-click the board's background to create a screen at that spot, from a
+  template, with its route.
+- **Undo.** **Undo** and **Redo** in the toolbar, or `⌘Z` / `⇧⌘Z`, revert the board's last edit in
+  every file it touched. Undoing a new screen deletes its file again.
+
+When there is no `routes.yaml`, the board creates one and lists it in the mount (`type: UI`). In
+IntelliJ and VS Code the edits are ordinary editor edits, undoable in the IDE as well, and saved. In
+a browser with no IDE they change the in-browser project.
+
 **▶ Play** runs the mount from the files as you have edited them, so you can click through it like
 the app. The menu (including menu entries that run a shell flow), row clicks, buttons and save landings take you where the app would, and a small
 address bar with back and forward follows along. A mount that is only YAML needs no backend: play

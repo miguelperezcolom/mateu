@@ -3,7 +3,7 @@ import { connectSrc, sourceOrigins } from './csp'
 import * as fs from 'fs'
 import { BackendProxy } from './backendProxy'
 import * as path from 'path'
-import { copyInto, imageUrlPath, isImage, listImages, moduleRootOf, type Found } from './projectImages'
+import { copyInto, imageUrlPath, isImage, isWritableSpecPath, listImages, moduleRootOf, type Found } from './projectImages'
 
 /**
  * Opens Mateu visual-builder pages (`specs/ui/*.yaml`) in the cross-IDE web visual editor, hosted in
@@ -130,6 +130,10 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
                         answer(null)
                     }
                 })
+            } else if (msg.type === 'writeFile' && typeof msg.path === 'string' && (typeof msg.content === 'string' || msg.content === null)) {
+                // The board's edits: another file of the mount (a route, a menu entry, a new screen).
+                const root = specsUiRoot(document.uri)
+                if (root && isWritableSpecPath(msg.path)) writeSpecFile(vscode.Uri.joinPath(root, msg.path), msg.content)
             } else if (msg.type === 'openFile' && typeof msg.path === 'string') {
                 // The board's Edit: open another file of the mount in a visual editor of its own.
                 const root = specsUiRoot(document.uri)
@@ -200,6 +204,34 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
         // Inject the CSP + baseUrl bootstrap before the module entry (which VSCode injects
         // acquireVsCodeApi() ahead of, so the web app already sees the IDE host on first render).
         return html.replace('</head>', `${head}\n  </head>`)
+    }
+}
+
+/**
+ * Write a mount file the way an edit does — a WorkspaceEdit (undoable in VS Code), then saved, since
+ * the board's edits are explicit actions on files that are not open in this editor. A new file is
+ * created; `null` deletes it (the undo of a screen the board created).
+ */
+async function writeSpecFile(uri: vscode.Uri, content: string | null): Promise<void> {
+    const edit = new vscode.WorkspaceEdit()
+    if (content === null) {
+        edit.deleteFile(uri, { ignoreIfNotExists: true })
+        await vscode.workspace.applyEdit(edit)
+        return
+    }
+    let exists = true
+    try { await vscode.workspace.fs.stat(uri) } catch { exists = false }
+    if (!exists) {
+        edit.createFile(uri, { ignoreIfExists: true })
+        edit.insert(uri, new vscode.Position(0, 0), content)
+    } else {
+        const doc = await vscode.workspace.openTextDocument(uri)
+        if (doc.getText() === content) return
+        edit.replace(uri, new vscode.Range(0, 0, doc.lineCount, 0), content)
+    }
+    if (await vscode.workspace.applyEdit(edit)) {
+        const doc = await vscode.workspace.openTextDocument(uri)
+        await doc.save()
     }
 }
 

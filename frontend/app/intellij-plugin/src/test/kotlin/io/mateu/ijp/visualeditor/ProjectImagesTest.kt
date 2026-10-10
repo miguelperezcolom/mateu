@@ -116,4 +116,13 @@ class ProjectImagesTest {
         val missing = http.send(HttpRequest.newBuilder(URI.create("http://127.0.0.1:$port/__mateu-images/$token/secret.yaml")).GET().build(), HttpResponse.BodyHandlers.ofByteArray())
         assertEquals(404, missing.statusCode())
     }
+
+    @Test
+    fun theBoardWritesOnlyMountYamlFiles() {
+        assertTrue(MateuVisualEditor.isWritableSpecPath("routes.yaml"))
+        assertTrue(MateuVisualEditor.isWritableSpecPath("sales/orders.yml"))
+        for (p in listOf("", "/etc/x.yaml", "../pom.xml", "a/../../x.yaml", "C:/x.yaml", "x.json", "a\\x.yaml")) {
+            assertTrue(p, !MateuVisualEditor.isWritableSpecPath(p))
+        }
+    }
 }
