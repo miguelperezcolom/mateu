@@ -65,6 +65,11 @@
         "command": "mateu.newFile",
         "title": "New File…",
         "category": "Mateu"
+      },
+      {
+        "command": "mateu.addRoute",
+        "title": "Add Route…",
+        "category": "Mateu"
       }
     ],
     "menus": {
@@ -72,6 +77,18 @@
         {
           "command": "mateu.newFile",
           "when": "explorerResourceIsFolder",
+          "group": "navigation@10"
+        },
+        {
+          "command": "mateu.addRoute",
+          "when": "!explorerResourceIsFolder && resourcePath =~ /[\\\\/]specs[\\\\/]ui[\\\\/].*\\.ya?ml$/",
+          "group": "navigation@11"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "mateu.addRoute",
+          "when": "mateu.isRoutesFile",
           "group": "navigation@10"
         }
       ]
@@ -100,7 +117,8 @@
     "workspaceContains:**/specs/ui/**/*.yaml",
     "workspaceContains:**/specs/ui/**/*.yml",
     "onCustomEditor:mateu.visualEditor",
-    "onCommand:mateu.newFile"
+    "onCommand:mateu.newFile",
+    "onCommand:mateu.addRoute"
   ],
   "keywords": [
     "mateu",
