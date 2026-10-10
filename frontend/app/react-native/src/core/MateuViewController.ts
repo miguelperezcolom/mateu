@@ -3,6 +3,12 @@ import { MateuSession, NavTarget } from './MateuSession';
 import { externalAuthHeaders, registerRestSources } from './restFetch';
 import { announce } from '../a11y/a11y';
 import { isTimedOnLoad, PollingScheduler } from './polling';
+import { isDev } from '../api/MateuApiClient';
+
+/** Diagnostics only in development builds (a release build must not log user data). */
+const devLog = (...args: unknown[]): void => {
+  if (isDev()) console.log(...args);
+};
 
 type Json = Record<string, any>;
 
@@ -235,7 +241,7 @@ export class MateuViewController {
       // OnSuccess triggers (the polling loop) — only if we are still on the screen that dispatched it
       this.polling.actionSucceeded(generation, actionId);
     } catch (e) {
-      if (silent || this.silentErrors) console.log('[Mateu] action failed:', actionId, errorText(e));
+      if (silent || this.silentErrors) devLog('[Mateu] action failed:', actionId, errorText(e));
       else this.session.notify(null, `Action failed: ${errorText(e)}`, 'error');
     }
   }
@@ -298,7 +304,7 @@ export class MateuViewController {
       const message = interpolate(str(rest['successMessage']), ctx);
       if (message) this.session.notify(null, message, 'info', { duration: 3000 });
     } catch (e) {
-      if (this.silentErrors) console.log('[Mateu] rest action failed:', errorText(e));
+      if (this.silentErrors) devLog('[Mateu] rest action failed:', errorText(e));
       else this.session.notify(null, 'Request failed', 'error');
     }
   }
@@ -323,7 +329,7 @@ export class MateuViewController {
       })) as Json;
       return (increment?.['appData'] as Json)?.['_restfetch'] ?? {};
     } catch (e) {
-      console.log('[Mateu] proxy rest fetch failed:', errorText(e));
+      devLog('[Mateu] proxy rest fetch failed:', errorText(e));
       return {};
     }
   }
@@ -556,7 +562,7 @@ export class MateuViewController {
       if (!text) continue;
       const variant = (str(msg['variant']) || 'info') as 'info' | 'warning' | 'error';
       if (this.silentErrors) {
-        console.log(`[Mateu] ${variant}: ${text}`);
+        devLog(`[Mateu] ${variant}: ${text}`);
         continue;
       }
       // Undoable message (Message.undoActionId): the toast's Undo button dispatches the reverse
