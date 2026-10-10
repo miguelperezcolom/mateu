@@ -1559,6 +1559,8 @@
       }, {
         "$ref" : "#/$defs/MasterDetailLayout"
       }, {
+        "$ref" : "#/$defs/MatrixGrid"
+      }, {
         "$ref" : "#/$defs/MenuBar"
       }, {
         "$ref" : "#/$defs/MessageInput"
@@ -4112,6 +4114,124 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        }
+      }
+    },
+    "MatrixCell" : {
+      "type" : "object",
+      "properties" : {
+        "value" : {
+          "type" : "string"
+        },
+        "tone" : {
+          "type" : "string"
+        },
+        "link" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "MatrixColumn" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "group" : {
+          "type" : "string"
+        },
+        "tone" : {
+          "type" : "string"
+        }
+      }
+    },
+    "MatrixGrid" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "MatrixGrid"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "rowHeaderLabel" : {
+          "type" : "string"
+        },
+        "columns" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MatrixColumn"
+          }
+        },
+        "sections" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MatrixSection"
+          }
+        },
+        "cellActionId" : {
+          "type" : "string"
+        },
+        "editActionId" : {
+          "type" : "string"
+        },
+        "style" : {
+          "type" : "string"
+        },
+        "cssClasses" : {
+          "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        }
+      }
+    },
+    "MatrixRow" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "cells" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MatrixCell"
+          }
+        },
+        "editable" : {
+          "type" : "boolean"
+        },
+        "emphasis" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "MatrixSection" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "collapsed" : {
+          "type" : "boolean"
+        },
+        "rows" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MatrixRow"
+          }
         }
       }
     },

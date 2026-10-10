@@ -92,6 +92,11 @@ from mateu_dtos import (
     ActionPanelMetadata,
     ActionPanelCategoryRecord,
     ActionPanelItemRecord,
+    MatrixGridMetadata,
+    MatrixColumnRecord,
+    MatrixSectionRecord,
+    MatrixRowRecord,
+    MatrixCellRecord,
     SeparatorMetadata,
     CustomComponentMetadata,
     NoticeMetadata,
@@ -1661,6 +1666,48 @@ class ReflectionMapper:
                     ],
                     max_per_category=c.max_per_category if c.max_per_category > 0 else 10,
                     hide_unpopulated_toggle=c.hide_unpopulated_toggle,
+                ),
+                c,
+            )
+        if isinstance(c, fluent.MatrixGrid):
+            n_cols = len(c.columns)
+
+            def matrix_cell(row, i):
+                # one cell per column, always: a short row is padded with blanks, a long one cut
+                cell = row.cells[i] if i < len(row.cells) else None
+                if cell is None:
+                    return MatrixCellRecord(value="", tone=None, link=False)
+                return MatrixCellRecord(
+                    value="" if cell.value is None else cell.value, tone=cell.tone, link=cell.link
+                )
+
+            return self._fluent_client(
+                MatrixGridMetadata(
+                    row_header_label=c.row_header_label,
+                    columns=[
+                        MatrixColumnRecord(id=col.id, label=col.label, group=col.group, tone=col.tone)
+                        for col in c.columns
+                    ],
+                    sections=[
+                        MatrixSectionRecord(
+                            id=sec.id if sec.id and sec.id.strip() else f"section{i}",
+                            title=sec.title,
+                            collapsed=sec.collapsed,
+                            rows=[
+                                MatrixRowRecord(
+                                    id=r.id,
+                                    label=r.label,
+                                    cells=[matrix_cell(r, ci) for ci in range(n_cols)],
+                                    editable=r.editable,
+                                    emphasis=r.emphasis,
+                                )
+                                for r in sec.rows
+                            ],
+                        )
+                        for i, sec in enumerate(c.sections)
+                    ],
+                    cell_action_id=c.cell_action_id,
+                    edit_action_id=c.edit_action_id,
                 ),
                 c,
             )

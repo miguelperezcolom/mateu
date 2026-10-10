@@ -515,6 +515,99 @@ export function wizardOf(ctx) {
   }
 }
 
+// ── MatrixGrid → oj-data-grid ────────────────────────────────────────────────────────────────
+// La matriz (filas × fechas, secciones plegables, celdas que enlazan y filas editables) la pinta
+// el oj-data-grid de JET sobre un RowDataGridProvider de un FlattenedTreeDataProviderView: las
+// secciones son nodos del árbol (el disclosure lo pinta JET), las columnas c0..cN. Aquí se arma
+// la especificación PURA (probada en Node); el provider lo crea la fábrica del bridge.
+let matrixProviderFactory = null
+export function setMatrixProviderFactory(factory) { matrixProviderFactory = factory }
+
+const MATRIX_TONES = { info: 1, success: 1, warning: 1, danger: 1, neutral: 1 }
+const toneClass = (tone) => (tone && MATRIX_TONES[tone] ? 'mateu-matrix-' + tone : '')
+
+/** Clave del estado plegado de una sección (el mismo almacén que los paneles plegables). */
+export const matrixSectionKey = (gridId, sectionId) => 'matrix:' + gridId + ':' + sectionId
+
+export function matrixSpecOf(m, id) {
+  const gridId = String(id || 'matrix').replace(/[^A-Za-z0-9_-]/g, '_')
+  const columns = m.columns || []
+  const columnKeys = columns.map((c, i) => 'c' + i)
+  const cellsOf = (row, sectionId) => {
+    const out = { id: sectionId + '/' + row.id, label: row.label || '', _rowId: row.id, _editable: !!row.editable,
+      _emphasis: !!row.emphasis }
+    columns.forEach((col, i) => {
+      const cell = (row.cells || [])[i] || { value: '' }
+      const cls = ['mateu-matrix-cell', toneClass(cell.tone) || toneClass(col.tone),
+        row.emphasis ? 'mateu-matrix-emphasis' : '', cell.link && m.cellActionId ? 'mateu-matrix-link' : '',
+        row.editable && m.editActionId ? 'mateu-matrix-editable' : ''].filter(Boolean).join(' ')
+      out['c' + i] = { v: cell.value == null ? '' : String(cell.value), cls, link: !!(cell.link && m.cellActionId),
+        editable: !!(row.editable && m.editActionId), rowId: row.id, columnId: col.id }
+    })
+    return out
+  }
+  const data = []
+  const expanded = []
+  for (const section of m.sections || []) {
+    const rows = (section.rows || []).map((r) => cellsOf(r, section.id))
+    if (section.title) {
+      const key = '§' + section.id
+      const blank = {}
+      columnKeys.forEach((k) => { blank[k] = { v: '', cls: 'mateu-matrix-cell mateu-matrix-section-cell', link: false } })
+      data.push({ id: key, label: section.title, _section: section.id, ...blank, children: rows })
+      if (panelExpanded(matrixSectionKey(gridId, section.id), !section.collapsed)) expanded.push(key)
+    } else {
+      data.push(...rows)
+    }
+  }
+  // cabeceras: si hay grupos (el mes), dos niveles — el grupo abarca sus columnas consecutivas
+  const hasGroups = columns.some((c) => c.group)
+  const columnHeaders = []
+  if (!hasGroups) columns.forEach((c) => columnHeaders.push(c.label || c.id))
+  else {
+    for (const c of columns) {
+      const last = columnHeaders[columnHeaders.length - 1]
+      if (c.group && last && last.group === c.group) last.children.push({ data: c.label || c.id })
+      else if (c.group) columnHeaders.push({ data: c.group, group: c.group, children: [{ data: c.label || c.id }] })
+      else columnHeaders.push({ data: c.label || c.id, depth: 2 })
+    }
+  }
+  return { gridId, data, expanded, columnKeys, columnHeaders: hasGroups ? columnHeaders.map(({ group, ...h }) => h) : columnHeaders,
+    rowHeaderLabel: m.rowHeaderLabel || '' }
+}
+
+export function matrixAtomOf(m, id, interp = (x) => x) {
+  const spec = matrixSpecOf({ ...m, rowHeaderLabel: interp(m.rowHeaderLabel || '') }, id)
+  const rows = spec.data.reduce((n, r) => n + 1 + (r.children && spec.expanded.includes(r.id) ? r.children.length : 0), 0)
+  return {
+    isMatrix: true,
+    gridId: 'mateuMatrix-' + spec.gridId,
+    matrixId: spec.gridId,
+    cellActionId: m.cellActionId || '',
+    editActionId: m.editActionId || '',
+    // alto a la medida (cabecera(s) + filas visibles), con techo: el grid hace scroll dentro
+    // (un OBJETO: el :style de JET no acepta la cadena CSS)
+    gridStyle: { width: '100%', height: Math.min(36, 3 + (spec.columnHeaders.some((h) => h && h.children) ? 2.25 : 0) + rows * 2.375) + 'rem' },
+    provider: matrixProviderFactory ? matrixProviderFactory(spec) : null,
+    // el tono va en la CELDA del grid (no en el texto): JET pide la clase por contexto
+    cellClassName: (ctx) => {
+      // en el callback de clase el valor viene en ctx.data.data (en la plantilla, en cell.item)
+      const d = (ctx && ctx.data && ctx.data.data) || (ctx && ctx.item && ctx.item.data && ctx.item.data.data)
+      return 'oj-helper-justify-content-right ' + ((d && d.cls) || '')
+    },
+    // qué celdas se editan lo decide JET (cell.editable): las demás quedan read-only nativas
+    cellEditable: (ctx) => {
+      const d = (ctx && ctx.data && ctx.data.data) || (ctx && ctx.item && ctx.item.data && ctx.item.data.data)
+      return d && d.editable ? 'enable' : 'disable'
+    },
+    columnHeaderClassName: (ctx) => {
+      const col = (m.columns || [])[ctx && ctx.index]
+      return (ctx && ctx.level === 0 && (m.columns || []).some((c) => c.group)) ? '' : toneClass(col && col.tone)
+    },
+    spec,
+  }
+}
+
 /** «ctrl+i» → «Ctrl+I», para el rótulo del disparador. */
 export function shortcutHintOf(shortcut) {
   if (!shortcut) return ''
@@ -570,7 +663,7 @@ export const RICH_ATOM_FLAGS = [
   'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
   // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
   // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
-  'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel',
+  'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix',
 ]
 export function isRichAtom(a) {
   return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -1742,6 +1835,10 @@ export function islandContentOf(ctx, opts = {}) {
         noticeClass: NOTICE_CLASSES[m.theme] || NOTICE_CLASSES.info,
         buttons: collectButtons({ children: kidsOf(node) }, []),
       }, container)
+      return
+    }
+    if (t === 'MatrixGrid') {
+      atom(matrixAtomOf(m, node.id, interp), container)
       return
     }
     if (t === 'ActionPanel') {

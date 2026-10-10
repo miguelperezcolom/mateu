@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { actionPanelColumnsOf, shortcutMatches } from './mateu-action-panel'
+import { ComponentMetadataType } from '@mateu/shared/apiClients/dtos/ComponentMetadataType'
 
 const item = (label: string, extra: Record<string, unknown> = {}) => ({ label, actionId: 'iWantTo', parameters: { what: label }, ...extra })
 const panel = {
+    type: ComponentMetadataType.ActionPanel,
     maxPerCategory: 3,
     categories: [
         { title: 'Modify', actions: [item('Check out'), item('Routing'), item('Traces', { count: 2, populated: true }), item('Packages'), item('Alerts', { count: 30, populated: true })] },
@@ -35,7 +37,7 @@ describe('actionPanelColumnsOf', () => {
     })
 
     it('defaults to 10 per category', () => {
-        const many = { categories: [{ title: 'X', actions: Array.from({ length: 12 }, (_, i) => item('a' + i)) }] }
+        const many = { type: ComponentMetadataType.ActionPanel, categories: [{ title: 'X', actions: Array.from({ length: 12 }, (_, i) => item('a' + i)) }] }
         expect(actionPanelColumnsOf(many)[0].hiddenCount).toBe(2)
     })
 })

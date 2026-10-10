@@ -139,6 +139,22 @@ public static class ComponentMapper
             ap.MaxPerCategory > 0 ? ap.MaxPerCategory : 10,
             ap.HideUnpopulatedToggle)),
 
+        MatrixGrid mg => Dto(mg, new MatrixGridMetadataDto(
+            mg.RowHeaderLabel,
+            mg.Columns.Select(c => new MatrixColumnDto(c.Id, c.Label, c.Group, c.Tone)).ToList(),
+            mg.Sections.Select((s, i) => new MatrixSectionDto(
+                string.IsNullOrWhiteSpace(s.Id) ? "section" + i : s.Id!,
+                s.Title,
+                s.Collapsed,
+                s.Rows.Select(r => new MatrixRowDto(r.Id, r.Label,
+                    // one cell per column, always: a short row is padded with blanks, a long one cut
+                    Enumerable.Range(0, mg.Columns.Count).Select(ci => ci < r.Cells.Count && r.Cells[ci] is { } cell
+                        ? new MatrixCellDto(cell.Value ?? "", cell.Tone, cell.Link)
+                        : new MatrixCellDto("", null, false)).ToList(),
+                    r.Editable, r.Emphasis)).ToList())).ToList(),
+            mg.CellActionId,
+            mg.EditActionId)),
+
         Notice n => Dto(n, new NoticeMetadataDto(n.Text, n.Theme, n.Icon, n.ActionLabel, n.ActionId, n.Slim, n.FullWidth, n.NoIcon, n.Status, n.InlineContent), n.Content.Select(Map)),
         CustomComponent cc => Dto(cc, new CustomComponentMetadataDto(cc.Name, cc.Props), cc.Content.Select(Map)),
 

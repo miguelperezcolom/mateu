@@ -747,6 +747,57 @@ public sealed record ActionPanel : ComponentBase
     public bool HideUnpopulatedToggle { get; init; }
 }
 
+/// <summary>A column of a <see cref="MatrixGrid"/>. Consecutive columns sharing a Group (e.g. the
+/// month) get a spanning header above theirs; Tone (info, success, warning, danger, neutral) tints
+/// the whole column — weekends, a special event.</summary>
+public sealed record MatrixColumn(string Id, string Label)
+{
+    public string? Group { get; init; }
+    public string? Tone { get; init; }
+}
+
+/// <summary>A cell of a <see cref="MatrixGrid"/>: its displayed Value, an optional Tone and whether
+/// it is a Link that runs the grid's CellActionId.</summary>
+public sealed record MatrixCell(string? Value)
+{
+    public string? Tone { get; init; }
+    public bool Link { get; init; }
+
+    public static MatrixCell Of(object? value) => new(value is null ? "" : Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture));
+}
+
+/// <summary>A row of a <see cref="MatrixGrid"/>: one cell per column, in column order. Editable lets
+/// its cells be edited in place; Emphasis marks a total or key row.</summary>
+public sealed record MatrixRow(string Id, string Label)
+{
+    public IReadOnlyList<MatrixCell> Cells { get; init; } = [];
+    public bool Editable { get; init; }
+    public bool Emphasis { get; init; }
+}
+
+/// <summary>A collapsible group of rows of a <see cref="MatrixGrid"/>; Collapsed is its initial
+/// state. A blank Id gets "section&lt;index&gt;" on the wire.</summary>
+public sealed record MatrixSection
+{
+    public string? Id { get; init; }
+    public string? Title { get; init; }
+    public bool Collapsed { get; init; }
+    public IReadOnlyList<MatrixRow> Rows { get; init; } = [];
+}
+
+/// <summary>A MATRIX of values by column — typically metrics or types (rows) by dates (columns), the
+/// shape of an availability or forecast grid. A Link cell dispatches CellActionId on click; a cell of
+/// an Editable row commits through EditActionId. Both receive { _rowId, _columnId, _value } as action
+/// parameters.</summary>
+public sealed record MatrixGrid : ComponentBase
+{
+    public string? RowHeaderLabel { get; init; }
+    public IReadOnlyList<MatrixColumn> Columns { get; init; } = [];
+    public IReadOnlyList<MatrixSection> Sections { get; init; } = [];
+    public string? CellActionId { get; init; }
+    public string? EditActionId { get; init; }
+}
+
 /// <summary>A compact inline banner: a theme-tinted strip with a severity icon and one line of
 /// text (e.g. "2 quejas pendientes"), plus an optional right-aligned action. Theme: "info" |
 /// "success" | "warning" | "danger" (default info).</summary>

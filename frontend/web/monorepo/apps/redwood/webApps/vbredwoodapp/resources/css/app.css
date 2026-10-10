@@ -1273,3 +1273,15 @@ body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-title { 
 .mateu-ap-column.mateu-ap-showall .mateu-ap-more { display: none; }
 .mateu-ap-hide-unpopulated .mateu-ap-unpopulated,
 .mateu-ap-hide-unpopulated .mateu-ap-column-unpopulated { display: none; }
+
+/* ── MatrixGrid (oj-data-grid): tonos de celda/columna, filas destacadas, celdas que enlazan ── */
+.mateu-matrix .mateu-matrix-info { background-color: rgba(0, 110, 200, 0.08); }
+.mateu-matrix .mateu-matrix-success { background-color: rgba(30, 140, 60, 0.10); }
+.mateu-matrix .mateu-matrix-warning { background-color: rgba(220, 140, 0, 0.16); }
+.mateu-matrix .mateu-matrix-danger { background-color: rgba(200, 40, 30, 0.10); color: #b3261e; }
+/* (las variables --oj-core-neutral-N de Redwood son grises medios: tinte explícito y suave) */
+.mateu-matrix .mateu-matrix-neutral { background-color: rgba(0, 0, 0, 0.035); }
+.mateu-matrix .mateu-matrix-emphasis { font-weight: 700; }
+.mateu-matrix .mateu-matrix-section-cell { background-color: rgba(0, 0, 0, 0.02); }
+.mateu-matrix .mateu-matrix-link .mateu-matrix-value { color: var(--oj-core-link-text-color, #0b6bcb); text-decoration: underline; cursor: pointer; }
+.mateu-matrix .mateu-matrix-editable { box-shadow: inset 0 -2px 0 var(--oj-core-border-color, #d6d3cf); }

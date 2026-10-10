@@ -9,6 +9,8 @@ public class BookingsMenu {
 
   @Menu RoomDiary roomDiary;
 
+  @Menu PropertyAvailability propertyAvailability;
+
   @Menu NewReservation newReservation;
 
   @Menu ReservationDetail reservation;

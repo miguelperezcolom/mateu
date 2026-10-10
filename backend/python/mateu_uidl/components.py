@@ -1132,6 +1132,82 @@ class ActionPanel(Component):
 
 
 @dataclass(frozen=True)
+class MatrixColumn:
+    """A column of a :class:`MatrixGrid`. Consecutive columns sharing a ``group`` (e.g. the month)
+    get a spanning header above theirs; ``tone`` (info, success, warning, danger, neutral) tints the
+    whole column — weekends, a special event."""
+
+    id: str | None = None
+    label: str | None = None
+    group: str | None = None
+    tone: str | None = None
+
+
+@dataclass(frozen=True)
+class MatrixCell:
+    """A cell of a :class:`MatrixGrid`: its displayed ``value``, an optional ``tone`` and whether it
+    is a ``link`` that runs the grid's ``cell_action_id``."""
+
+    value: str | None = None
+    tone: str | None = None
+    link: bool = False
+
+    @staticmethod
+    def of(value) -> "MatrixCell":
+        return MatrixCell("" if value is None else str(value))
+
+
+@dataclass(frozen=True)
+class MatrixRow:
+    """A row of a :class:`MatrixGrid`: one cell per column, in column order. ``editable`` lets its
+    cells be edited in place; ``emphasis`` marks a total or key row."""
+
+    id: str | None = None
+    label: str | None = None
+    cells: tuple[MatrixCell, ...] = ()
+    editable: bool = False
+    emphasis: bool = False
+
+    def __post_init__(self):
+        object.__setattr__(self, "cells", tuple(self.cells))
+
+
+@dataclass(frozen=True)
+class MatrixSection:
+    """A collapsible group of rows of a :class:`MatrixGrid`; ``collapsed`` is its initial state. A
+    blank ``id`` gets ``section<index>`` on the wire."""
+
+    id: str | None = None
+    title: str | None = None
+    collapsed: bool = False
+    rows: tuple[MatrixRow, ...] = ()
+
+    def __post_init__(self):
+        object.__setattr__(self, "rows", tuple(self.rows))
+
+
+@dataclass(frozen=True)
+class MatrixGrid(Component):
+    """A MATRIX of values by column — typically metrics or types (rows) by dates (columns), the
+    shape of an availability or forecast grid. A ``link`` cell dispatches ``cell_action_id`` on
+    click; a cell of an ``editable`` row commits through ``edit_action_id``. Both receive
+    ``{"_rowId", "_columnId", "_value"}`` as action parameters."""
+
+    row_header_label: str | None = None
+    columns: tuple[MatrixColumn, ...] = ()
+    sections: tuple[MatrixSection, ...] = ()
+    cell_action_id: str | None = None
+    edit_action_id: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "columns", tuple(self.columns))
+        object.__setattr__(self, "sections", tuple(self.sections))
+
+
+@dataclass(frozen=True)
 class QueueItem:
     """One card of a :class:`TaskQueue` group."""
 
@@ -1518,6 +1594,11 @@ __all__ = [
     "ActionPanelItem",
     "ActionPanelCategory",
     "ActionPanel",
+    "MatrixColumn",
+    "MatrixCell",
+    "MatrixRow",
+    "MatrixSection",
+    "MatrixGrid",
     "QueueItem",
     "QueueGroup",
     "TaskQueue",

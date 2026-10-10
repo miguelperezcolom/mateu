@@ -175,6 +175,10 @@ final class DisplayComponentDispatcher {
     if (component instanceof StatusList statusList) {
       return mapStatusListToDto(statusList);
     }
+    if (component instanceof io.mateu.uidl.data.MatrixGrid matrixGrid) {
+      return io.mateu.core.domain.out.fragmentmapper.mappers.MatrixGridMapper.mapMatrixGridToDto(
+          matrixGrid);
+    }
     if (component instanceof io.mateu.uidl.data.ActionPanel actionPanel) {
       return io.mateu.core.domain.out.fragmentmapper.mappers.ActionPanelMapper.mapActionPanelToDto(
           actionPanel);

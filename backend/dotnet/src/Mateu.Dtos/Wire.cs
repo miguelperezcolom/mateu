@@ -248,6 +248,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(StatusListMetadataDto), "StatusList")]
 [JsonDerivedType(typeof(BulletedListMetadataDto), "BulletedList")]
 [JsonDerivedType(typeof(ActionPanelMetadataDto), "ActionPanel")]
+[JsonDerivedType(typeof(MatrixGridMetadataDto), "MatrixGrid")]
 [JsonDerivedType(typeof(SeparatorMetadataDto), "Separator")]
 [JsonDerivedType(typeof(CustomComponentMetadataDto), "CustomComponent")]
 [JsonDerivedType(typeof(AnchorMetadataDto), "Anchor")]
@@ -543,6 +544,23 @@ public record ActionPanelItemDto(
     int? Count,
     bool Populated,
     bool Disabled);
+
+/// <summary>Matrix grid: rows × columns in collapsible sections; every row carries exactly one cell
+/// per column (mirrors Java's MatrixGridDto).</summary>
+public record MatrixGridMetadataDto(
+    string? RowHeaderLabel,
+    IReadOnlyList<MatrixColumnDto> Columns,
+    IReadOnlyList<MatrixSectionDto> Sections,
+    string? CellActionId,
+    string? EditActionId) : ComponentMetadataDto;
+
+public record MatrixColumnDto(string? Id, string? Label, string? Group, string? Tone);
+
+public record MatrixSectionDto(string Id, string? Title, bool Collapsed, IReadOnlyList<MatrixRowDto> Rows);
+
+public record MatrixRowDto(string? Id, string? Label, IReadOnlyList<MatrixCellDto> Cells, bool Editable, bool Emphasis);
+
+public record MatrixCellDto(string Value, string? Tone, bool Link);
 
 /// <summary>One status-list row; the action dispatches ActionId with { _item: Id }.</summary>
 public record StatusItemDto(

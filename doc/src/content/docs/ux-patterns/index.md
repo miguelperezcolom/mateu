@@ -72,6 +72,7 @@ and edit in a drawer…)? They have their own map: [Page templates](./page-templ
 | [Process monitor](./process-monitor) | ✅ Implemented | `ProcessMonitor` + `ProcessItem` (health + fix) |
 | [Notice](./notice) | ✅ Implemented | `Notice` / `@Notice` (inline banner, status, action) |
 | [Action panel](./action-panel) | ✅ Implemented | `ActionPanel` (categorised "I want to…" overlay, shortcut, show more, hide unpopulated) |
+| [Matrix grid](./matrix-grid) | ✅ Implemented | `MatrixGrid` (rows × dates, collapsible sections, link cells, in-place editing) |
 | [Kanban](./kanban) | ✅ Implemented | `Kanban` + `KanbanColumn`/`KanbanCard` |
 | [Timeline](./timeline) | ✅ Implemented | `Timeline` + `TimelineItem` (activity feed) |
 | [Progress steps](./progress-steps) | ✅ Implemented | `ProgressSteps` (also `@WizardProgress(STEPS)`) |

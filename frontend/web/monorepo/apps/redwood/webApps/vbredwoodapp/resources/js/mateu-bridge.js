@@ -1,7 +1,7 @@
 /* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
  * (tests de contrato: cd poc && node test.mjs). */
-define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (require, ArrayDataProvider, NumberConverter) => {
+define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/ojarraytreedataprovider', 'ojs/ojflattenedtreedataproviderview', 'ojs/ojrowdatagridprovider', 'ojs/ojkeyset'], (require, ArrayDataProvider, NumberConverter, ArrayTreeDataProvider, FlattenedTreeDataProviderView, RowDataGridProvider, KeySet) => {
   'use strict';
   // PERSONALIZACIÓN DE LISTADOS en el navegador: el SELECTOR DE COLUMNAS (cuáles se ven y en qué
   // orden) y las VISTAS GUARDADAS (una combinación con nombre de búsqueda + filtros, con una por
@@ -915,6 +915,99 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
     }
   }
 
+  // ── MatrixGrid → oj-data-grid ────────────────────────────────────────────────────────────────
+  // La matriz (filas × fechas, secciones plegables, celdas que enlazan y filas editables) la pinta
+  // el oj-data-grid de JET sobre un RowDataGridProvider de un FlattenedTreeDataProviderView: las
+  // secciones son nodos del árbol (el disclosure lo pinta JET), las columnas c0..cN. Aquí se arma
+  // la especificación PURA (probada en Node); el provider lo crea la fábrica del bridge.
+  let matrixProviderFactory = null
+  function setMatrixProviderFactory(factory) { matrixProviderFactory = factory }
+
+  const MATRIX_TONES = { info: 1, success: 1, warning: 1, danger: 1, neutral: 1 }
+  const toneClass = (tone) => (tone && MATRIX_TONES[tone] ? 'mateu-matrix-' + tone : '')
+
+  /** Clave del estado plegado de una sección (el mismo almacén que los paneles plegables). */
+  const matrixSectionKey = (gridId, sectionId) => 'matrix:' + gridId + ':' + sectionId
+
+  function matrixSpecOf(m, id) {
+    const gridId = String(id || 'matrix').replace(/[^A-Za-z0-9_-]/g, '_')
+    const columns = m.columns || []
+    const columnKeys = columns.map((c, i) => 'c' + i)
+    const cellsOf = (row, sectionId) => {
+      const out = { id: sectionId + '/' + row.id, label: row.label || '', _rowId: row.id, _editable: !!row.editable,
+        _emphasis: !!row.emphasis }
+      columns.forEach((col, i) => {
+        const cell = (row.cells || [])[i] || { value: '' }
+        const cls = ['mateu-matrix-cell', toneClass(cell.tone) || toneClass(col.tone),
+          row.emphasis ? 'mateu-matrix-emphasis' : '', cell.link && m.cellActionId ? 'mateu-matrix-link' : '',
+          row.editable && m.editActionId ? 'mateu-matrix-editable' : ''].filter(Boolean).join(' ')
+        out['c' + i] = { v: cell.value == null ? '' : String(cell.value), cls, link: !!(cell.link && m.cellActionId),
+          editable: !!(row.editable && m.editActionId), rowId: row.id, columnId: col.id }
+      })
+      return out
+    }
+    const data = []
+    const expanded = []
+    for (const section of m.sections || []) {
+      const rows = (section.rows || []).map((r) => cellsOf(r, section.id))
+      if (section.title) {
+        const key = '§' + section.id
+        const blank = {}
+        columnKeys.forEach((k) => { blank[k] = { v: '', cls: 'mateu-matrix-cell mateu-matrix-section-cell', link: false } })
+        data.push({ id: key, label: section.title, _section: section.id, ...blank, children: rows })
+        if (panelExpanded(matrixSectionKey(gridId, section.id), !section.collapsed)) expanded.push(key)
+      } else {
+        data.push(...rows)
+      }
+    }
+    // cabeceras: si hay grupos (el mes), dos niveles — el grupo abarca sus columnas consecutivas
+    const hasGroups = columns.some((c) => c.group)
+    const columnHeaders = []
+    if (!hasGroups) columns.forEach((c) => columnHeaders.push(c.label || c.id))
+    else {
+      for (const c of columns) {
+        const last = columnHeaders[columnHeaders.length - 1]
+        if (c.group && last && last.group === c.group) last.children.push({ data: c.label || c.id })
+        else if (c.group) columnHeaders.push({ data: c.group, group: c.group, children: [{ data: c.label || c.id }] })
+        else columnHeaders.push({ data: c.label || c.id, depth: 2 })
+      }
+    }
+    return { gridId, data, expanded, columnKeys, columnHeaders: hasGroups ? columnHeaders.map(({ group, ...h }) => h) : columnHeaders,
+      rowHeaderLabel: m.rowHeaderLabel || '' }
+  }
+
+  function matrixAtomOf(m, id, interp = (x) => x) {
+    const spec = matrixSpecOf({ ...m, rowHeaderLabel: interp(m.rowHeaderLabel || '') }, id)
+    const rows = spec.data.reduce((n, r) => n + 1 + (r.children && spec.expanded.includes(r.id) ? r.children.length : 0), 0)
+    return {
+      isMatrix: true,
+      gridId: 'mateuMatrix-' + spec.gridId,
+      matrixId: spec.gridId,
+      cellActionId: m.cellActionId || '',
+      editActionId: m.editActionId || '',
+      // alto a la medida (cabecera(s) + filas visibles), con techo: el grid hace scroll dentro
+      // (un OBJETO: el :style de JET no acepta la cadena CSS)
+      gridStyle: { width: '100%', height: Math.min(36, 3 + (spec.columnHeaders.some((h) => h && h.children) ? 2.25 : 0) + rows * 2.375) + 'rem' },
+      provider: matrixProviderFactory ? matrixProviderFactory(spec) : null,
+      // el tono va en la CELDA del grid (no en el texto): JET pide la clase por contexto
+      cellClassName: (ctx) => {
+        // en el callback de clase el valor viene en ctx.data.data (en la plantilla, en cell.item)
+        const d = (ctx && ctx.data && ctx.data.data) || (ctx && ctx.item && ctx.item.data && ctx.item.data.data)
+        return 'oj-helper-justify-content-right ' + ((d && d.cls) || '')
+      },
+      // qué celdas se editan lo decide JET (cell.editable): las demás quedan read-only nativas
+      cellEditable: (ctx) => {
+        const d = (ctx && ctx.data && ctx.data.data) || (ctx && ctx.item && ctx.item.data && ctx.item.data.data)
+        return d && d.editable ? 'enable' : 'disable'
+      },
+      columnHeaderClassName: (ctx) => {
+        const col = (m.columns || [])[ctx && ctx.index]
+        return (ctx && ctx.level === 0 && (m.columns || []).some((c) => c.group)) ? '' : toneClass(col && col.tone)
+      },
+      spec,
+    }
+  }
+
   /** «ctrl+i» → «Ctrl+I», para el rótulo del disparador. */
   function shortcutHintOf(shortcut) {
     if (!shortcut) return ''
@@ -970,7 +1063,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
     'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
     // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
     // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
-    'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel',
+    'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix',
   ]
   function isRichAtom(a) {
     return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -2142,6 +2235,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
           noticeClass: NOTICE_CLASSES[m.theme] || NOTICE_CLASSES.info,
           buttons: collectButtons({ children: kidsOf(node) }, []),
         }, container)
+        return
+      }
+      if (t === 'MatrixGrid') {
+        atom(matrixAtomOf(m, node.id, interp), container)
         return
       }
       if (t === 'ActionPanel') {
@@ -7574,6 +7671,64 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
   }
 
 
+  // MatrixGrid sobre oj-data-grid: el comportamiento que JET deja a la aplicación, instalado una
+  // vez por documento (como el rango del tape chart o los paneles de acciones):
+  //   - plegar/desplegar una sección: el grid pide (ojExpandRequest/ojCollapseRequest) y aquí se
+  //     cambia el KeySet del FlattenedTreeDataProviderView; el estado se guarda en el almacén de
+  //     paneles para que sobreviva a una re-proyección;
+  //   - editar: qué celdas se editan lo dice cell.editable (matrixAtomOf); al terminar
+  //     (ojBeforeEditEnd) el valor nuevo, si cambió, sale por editActionId;
+  //   - una celda que enlaza: clic → cellActionId. Ambas con { _rowId, _columnId, _value }.
+
+  let matrixSink = null
+  /** Quién ejecuta la acción (la shell reutiliza el sumidero de los Element). */
+  function setMatrixActionSink(fn) { matrixSink = typeof fn === 'function' ? fn : null }
+
+  /** Los parámetros de la acción de una celda. */
+  const matrixCellParams = (rowId, columnId, value) => ({ _rowId: rowId, _columnId: columnId, _value: value })
+
+  /** ¿Hay que lanzar la edición? Sólo si cambió (un Enter sin tocar nada no es una edición). */
+  const matrixEditChanged = (before, after) => String(before ?? '') !== String(after ?? '')
+
+  const gridOf = (el) => (el && el.closest ? el.closest('oj-data-grid.mateu-matrix') : null)
+  const rowKeyOf = (detail) => detail && detail.item && detail.item.metadata && detail.item.metadata.rowItem
+    && detail.item.metadata.rowItem.metadata && detail.item.metadata.rowItem.metadata.key
+
+  function installMatrixGrids(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuMatrixGrids) return
+    doc.__mateuMatrixGrids = true
+    const toggle = (expand) => (e) => {
+      const grid = gridOf(e.target)
+      const state = grid && grid.data && grid.data.__mateu
+      const key = rowKeyOf(e.detail)
+      if (!state || key == null) return
+      state.expanded = expand ? state.expanded.add([key]) : state.expanded.delete([key])
+      state.flat.setExpanded(state.expanded)
+      if (String(key).startsWith('§')) setPanelExpanded(matrixSectionKey(grid.dataset.matrixId, String(key).slice(1)), expand)
+    }
+    doc.addEventListener('ojExpandRequest', toggle(true), true)
+    doc.addEventListener('ojCollapseRequest', toggle(false), true)
+    doc.addEventListener('ojBeforeEditEnd', (e) => {
+      const grid = gridOf(e.target)
+      if (!grid || (e.detail && e.detail.cancelEdit)) return
+      const input = grid.querySelector('oj-input-text[data-mx-row]')
+      if (!input || !matrixSink || !grid.dataset.editAction) return
+      const before = input.getAttribute('data-mx-value')
+      const after = input.value
+      if (!matrixEditChanged(before, after)) return
+      matrixSink(grid.dataset.editAction, matrixCellParams(input.getAttribute('data-mx-row'), input.getAttribute('data-mx-col'), after), {})
+    }, true)
+    doc.addEventListener('click', (e) => {
+      const link = e.target && e.target.closest ? e.target.closest('[data-mx-link="true"]') : null
+      const grid = gridOf(link)
+      if (!link || !grid || !matrixSink || !grid.dataset.cellAction) return
+      matrixSink(grid.dataset.cellAction, matrixCellParams(link.getAttribute('data-mx-row'), link.getAttribute('data-mx-col'), link.textContent), {})
+    }, true)
+  }
+
+  void panelExpanded
+
+
   // TONOS DE FILA del listado (@RowStatus) y filas de GRUPO (@GroupBy) sobre el oj-table de JET.
   // oj-table no tiene clase por fila (sólo plantillas de celda o una plantilla de fila entera que
   // obligaría a repintar todas las columnas a mano), así que una pasada mínima por el DOM: cada `tr`
@@ -9492,6 +9647,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
     const listing = listingOf(reg.contexts[HOST_ID]);
     setListingTones(listing ? listing.rows : []);
   });
+  // MatrixGrid: oj-data-grid sobre un RowDataGridProvider de una vista aplanada del árbol (las
+  // secciones plegables las pinta JET); __mateu guarda lo que installMatrixGrids necesita
+  setMatrixProviderFactory((spec) => {
+    const tree = new ArrayTreeDataProvider(spec.data, { keyAttributes: 'id', childrenAttribute: 'children' });
+    const expanded = new KeySet.KeySetImpl(spec.expanded);
+    const flat = new FlattenedTreeDataProviderView(tree, { expanded });
+    const provider = new RowDataGridProvider.RowDataGridProvider(flat, {
+      columns: { rowHeader: ['label'], databody: spec.columnKeys },
+      columnHeaders: { column: spec.columnHeaders },
+      headerLabels: spec.rowHeaderLabel ? { row: [spec.rowHeaderLabel] } : undefined,
+      expandedObservable: flat.getExpandedObservable(),
+    });
+    provider.__mateu = { flat, expanded };
+    return provider;
+  });
   // campos de captura (fichero, imagen, firma, cámara): JET no los trae
   defineCaptureField();
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
@@ -9536,6 +9706,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
     installStickyHeader,
     installPlanningRange,
     installActionPanels,
+    installMatrixGrids,
+    setMatrixActionSink,
     actionPanelAtomOf,
     shortcutMatches,
     setPlanningRangeSink,

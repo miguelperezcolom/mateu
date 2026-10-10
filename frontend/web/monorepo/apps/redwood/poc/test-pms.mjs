@@ -12,6 +12,8 @@ import { planningAtomOf, planningActionOf, overlayOf, panelExpanded, setPanelExp
 import { installStickyHeader } from './tables.mjs'
 import { actionPanelAtomOf, shortcutHintOf } from './reduceContexts.mjs'
 import { shortcutMatches, parseShortcut } from './actionPanels.mjs'
+import { matrixSpecOf, matrixAtomOf, matrixSectionKey } from './reduceContexts.mjs'
+import { matrixCellParams, matrixEditChanged } from './matrix.mjs'
 import { dayIndexAtX } from './planning.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
 import { listingOf, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
@@ -665,6 +667,89 @@ test('ActionPanel: la plantilla usa oj-dialog + oj-switch de JET y el atajo se i
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installActionPanels\(\)/)
   const css = webApp('resources/css/app.css')
   assert.match(css, /\.mateu-ap-column:not\(\.mateu-ap-showall\) \.mateu-ap-extra \{ display: none; \}/)
+})
+
+// ── #10 MatrixGrid → oj-data-grid ────────────────────────────────────────────────────────────
+const mxCell = (value, extra = {}) => ({ value, tone: null, link: false, ...extra })
+const mxWire = {
+  type: 'MatrixGrid', rowHeaderLabel: 'Room type', cellActionId: 'openDay', editActionId: 'setOverbooking',
+  columns: [
+    { id: '2026-10-17', label: 'Sat 17', group: 'Oct 2026', tone: 'neutral' },
+    { id: '2026-10-31', label: 'Sat 31', group: 'Oct 2026', tone: null },
+    { id: '2026-11-01', label: 'Sun 1', group: 'Nov 2026', tone: null },
+  ],
+  sections: [
+    { id: 'house', title: 'House', collapsed: false, rows: [
+      { id: 'available', label: 'Available', emphasis: true, editable: false,
+        cells: [mxCell('12', { link: true }), mxCell('-1', { tone: 'danger', link: true }), mxCell('4')] }] },
+    { id: 'controls', title: 'Controls', collapsed: true, rows: [
+      { id: 'ob', label: 'Overbooking', emphasis: false, editable: true, cells: [mxCell('0'), mxCell('2'), mxCell('')] }] },
+    { id: 'loose', title: null, collapsed: false, rows: [
+      { id: 'note', label: 'Note', emphasis: false, editable: false, cells: [mxCell('a'), mxCell('b'), mxCell('c')] }] },
+  ],
+}
+test('MatrixGrid: árbol de secciones (nodos §), columnas c0..cN, grupos de mes en dos niveles', () => {
+  const spec = matrixSpecOf(mxWire, 'availability')
+  assert.equal(spec.gridId, 'availability')
+  assert.deepEqual(spec.columnKeys, ['c0', 'c1', 'c2'])
+  assert.deepEqual(spec.data.map((r) => r.id), ['§house', '§controls', 'loose/note'])
+  assert.deepEqual(spec.data[0].children.map((r) => r.id), ['house/available'])
+  // abierta la que no viene plegada; la plegada, cerrada
+  assert.deepEqual(spec.expanded, ['§house'])
+  assert.deepEqual(spec.columnHeaders, [
+    { data: 'Oct 2026', children: [{ data: 'Sat 17' }, { data: 'Sat 31' }] },
+    { data: 'Nov 2026', children: [{ data: 'Sun 1' }] },
+  ])
+  const available = spec.data[0].children[0]
+  assert.equal(available.c1.v, '-1')
+  assert.equal(available.c1.link, true)
+  assert.match(available.c1.cls, /mateu-matrix-danger/)
+  assert.match(available.c0.cls, /mateu-matrix-neutral/, 'el tono de la columna (fin de semana) tiñe la celda')
+  assert.match(available.c0.cls, /mateu-matrix-emphasis/)
+  assert.equal(available.c0.rowId, 'available')
+  assert.equal(available.c0.columnId, '2026-10-17')
+  const ob = spec.data[1].children[0]
+  assert.equal(ob.c0.editable, true)
+  assert.equal(available.c0.editable, false)
+})
+
+test('MatrixGrid: sin cellActionId no hay enlaces, sin editActionId no hay edición; sin grupos, cabecera plana', () => {
+  const spec = matrixSpecOf({ ...mxWire, cellActionId: null, editActionId: null, columns: mxWire.columns.map((c) => ({ ...c, group: null })) }, 'g')
+  assert.equal(spec.data[0].children[0].c0.link, false)
+  assert.equal(spec.data[1].children[0].c0.editable, false)
+  assert.deepEqual(spec.columnHeaders, ['Sat 17', 'Sat 31', 'Sun 1'])
+})
+
+test('MatrixGrid: plegar es estado de cliente que sobrevive a re-proyectar; clase y edición por celda', () => {
+  setPanelExpanded(matrixSectionKey('availability', 'controls'), true)
+  setPanelExpanded(matrixSectionKey('availability', 'house'), false)
+  const a = matrixAtomOf(mxWire, 'availability')
+  assert.deepEqual(a.spec.expanded, ['§controls'])
+  setPanelExpanded(matrixSectionKey('availability', 'controls'), false)
+  setPanelExpanded(matrixSectionKey('availability', 'house'), true)
+  assert.equal(a.isMatrix, true)
+  assert.equal(a.gridId, 'mateuMatrix-availability')
+  assert.equal(typeof a.gridStyle, 'object', 'el :style de JET quiere un objeto')
+  const ctx = (d) => ({ data: { data: d } })
+  const cell = a.spec.data[0].children[0].c1
+  assert.match(a.cellClassName(ctx(cell)), /mateu-matrix-danger/)
+  assert.equal(a.cellEditable(ctx(cell)), 'disable')
+  assert.equal(a.cellEditable(ctx(matrixAtomOf(mxWire, 'availability').spec.data[0].children[0].c0)), 'disable')
+  assert.deepEqual(matrixCellParams('ob', '2026-10-17', '3'), { _rowId: 'ob', _columnId: '2026-10-17', _value: '3' })
+  assert.equal(matrixEditChanged('0', '0'), false)
+  assert.equal(matrixEditChanged('0', '3'), true)
+})
+
+test('MatrixGrid: la plantilla usa oj-data-grid con cell.editable/cell.class-name y la shell instala el comportamiento', () => {
+  const page = webApp('flows/main/pages/main-start-page.html')
+  assert.match(page, /<oj-data-grid class="mateu-matrix/)
+  assert.match(page, /cell\.editable="\[\[ \$current\.data\.cellEditable \]\]"/)
+  assert.match(page, /cell\.class-name="\[\[ \$current\.data\.cellClassName \]\]"/)
+  assert.match(webApp('flows/main/pages/main-start-page.json'), /"oj-data-grid": \{\s*"path": "ojs\/ojdatagrid"/)
+  const shell = webApp('pages/shell-page-chains/loadMateuShell.js')
+  assert.match(shell, /bridge\.installMatrixGrids\(\)/)
+  assert.match(shell, /bridge\.setMatrixActionSink\(runPageAction\)/)
+  assert.match(webApp('resources/js/mateu-bridge.js'), /new RowDataGridProvider\.RowDataGridProvider\(flat/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

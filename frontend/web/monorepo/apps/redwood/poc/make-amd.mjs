@@ -20,12 +20,12 @@ const strip = (file) =>
 
 // bundle.mjs antes de transport.mjs: transport.loadRoute consulta el manifest cargado.
 // chat.mjs es autónomo (solo transporte SSE del chat de IA); va al final del scope compartido.
-const body = `${strip('prefs.mjs')}\n\n${strip('navTree.mjs')}\n\n${strip('links.mjs')}\n\n${strip('reduceContexts.mjs')}\n\n${strip('breadcrumbs.mjs')}\n\n${strip('clientLog.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('a11y.mjs')}\n\n${strip('elements.mjs')}\n\n${strip('files.mjs')}\n\n${strip('inputs.mjs')}\n\n${strip('rules.mjs')}\n\n${strip('planning.mjs')}\n\n${strip('actionPanels.mjs')}\n\n${strip('tables.mjs')}\n\n${strip('bundle.mjs')}\n\n${strip('transport.mjs')}\n\n${strip('widgets.mjs')}\n\n${strip('chat.mjs')}`
+const body = `${strip('prefs.mjs')}\n\n${strip('navTree.mjs')}\n\n${strip('links.mjs')}\n\n${strip('reduceContexts.mjs')}\n\n${strip('breadcrumbs.mjs')}\n\n${strip('clientLog.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('a11y.mjs')}\n\n${strip('elements.mjs')}\n\n${strip('files.mjs')}\n\n${strip('inputs.mjs')}\n\n${strip('rules.mjs')}\n\n${strip('planning.mjs')}\n\n${strip('actionPanels.mjs')}\n\n${strip('matrix.mjs')}\n\n${strip('tables.mjs')}\n\n${strip('bundle.mjs')}\n\n${strip('transport.mjs')}\n\n${strip('widgets.mjs')}\n\n${strip('chat.mjs')}`
 
 const amd = `/* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
  * (tests de contrato: cd poc && node test.mjs). */
-define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (require, ArrayDataProvider, NumberConverter) => {
+define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/ojarraytreedataprovider', 'ojs/ojflattenedtreedataproviderview', 'ojs/ojrowdatagridprovider', 'ojs/ojkeyset'], (require, ArrayDataProvider, NumberConverter, ArrayTreeDataProvider, FlattenedTreeDataProviderView, RowDataGridProvider, KeySet) => {
   'use strict';
 ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
   // el importe de un campo money: IntlNumberConverter con estilo moneda (un objeto JSON ya no vale)
@@ -38,6 +38,21 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // los tonos de fila (@RowStatus) y las filas de grupo del listado del host
     const listing = listingOf(reg.contexts[HOST_ID]);
     setListingTones(listing ? listing.rows : []);
+  });
+  // MatrixGrid: oj-data-grid sobre un RowDataGridProvider de una vista aplanada del árbol (las
+  // secciones plegables las pinta JET); __mateu guarda lo que installMatrixGrids necesita
+  setMatrixProviderFactory((spec) => {
+    const tree = new ArrayTreeDataProvider(spec.data, { keyAttributes: 'id', childrenAttribute: 'children' });
+    const expanded = new KeySet.KeySetImpl(spec.expanded);
+    const flat = new FlattenedTreeDataProviderView(tree, { expanded });
+    const provider = new RowDataGridProvider.RowDataGridProvider(flat, {
+      columns: { rowHeader: ['label'], databody: spec.columnKeys },
+      columnHeaders: { column: spec.columnHeaders },
+      headerLabels: spec.rowHeaderLabel ? { row: [spec.rowHeaderLabel] } : undefined,
+      expandedObservable: flat.getExpandedObservable(),
+    });
+    provider.__mateu = { flat, expanded };
+    return provider;
   });
   // campos de captura (fichero, imagen, firma, cámara): JET no los trae
   defineCaptureField();
@@ -83,6 +98,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     installStickyHeader,
     installPlanningRange,
     installActionPanels,
+    installMatrixGrids,
+    setMatrixActionSink,
     actionPanelAtomOf,
     shortcutMatches,
     setPlanningRangeSink,

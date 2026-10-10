@@ -103,6 +103,7 @@ import { renderTaskProgress } from "@infra/ui/renderers/taskProgressRenderer.ts"
 import { renderStatusList } from "@infra/ui/renderers/statusListRenderer.ts";
 import { renderBulletedList } from "@infra/ui/renderers/bulletedListRenderer.ts";
 import { renderActionPanel } from "@infra/ui/renderers/actionPanelRenderer.ts";
+import { renderMatrixGrid } from "@infra/ui/renderers/matrixGridRenderer.ts";
 import { renderSeparator } from "@infra/ui/renderers/separatorRenderer.ts";
 import { renderCustomComponent } from "@infra/ui/renderers/customComponentRenderer.ts";
 import { renderNotice } from "@infra/ui/renderers/noticeRenderer.ts";
@@ -308,6 +309,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.StatusList]: ({ component }) => renderStatusList(component),
     [ComponentMetadataType.BulletedList]: ({ component }) => renderBulletedList(component),
     [ComponentMetadataType.ActionPanel]: ({ component }) => renderActionPanel(component),
+    [ComponentMetadataType.MatrixGrid]: ({ component }) => renderMatrixGrid(component),
     [ComponentMetadataType.Separator]: ({ component }) => renderSeparator(component),
     [ComponentMetadataType.CustomComponent]: full(renderCustomComponent),
     [ComponentMetadataType.Notice]: full(renderNotice),

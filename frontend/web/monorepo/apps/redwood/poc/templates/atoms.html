@@ -66,6 +66,35 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isMatrix ]]">
+                      <!-- MatrixGrid: oj-data-grid de JET (secciones plegables, cabeceras de fecha, edición en
+                           celda); plegar/editar/enlazar lo atiende installMatrixGrids -->
+                      <oj-data-grid class="mateu-matrix oj-sm-margin-2x-bottom" :id="[[ $current.data.gridId ]]"
+                        :style="[[ $current.data.gridStyle ]]" aria-label="Matrix"
+                        :data-matrix-id="[[ $current.data.matrixId ]]"
+                        :data-cell-action="[[ $current.data.cellActionId ]]"
+                        :data-edit-action="[[ $current.data.editActionId ]]"
+                        data="[[ $current.data.provider ]]" edit-mode="cellNavigation"
+                        cell.class-name="[[ $current.data.cellClassName ]]"
+                        cell.editable="[[ $current.data.cellEditable ]]"
+                        header.column.class-name="[[ $current.data.columnHeaderClassName ]]"
+                        header.row.style="width:14rem" header.column.style="width:6.5rem"
+                        header.row.class-name="oj-helper-justify-content-flex-start">
+                        <template slot="cellTemplate" data-oj-as="cell">
+                          <oj-bind-if test="[[ cell.mode === 'edit' ]]">
+                            <oj-input-text class="oj-form-control-full-width" value="[[ cell.item.data.data.v ]]"
+                              :data-mx-row="[[ cell.item.data.data.rowId ]]" :data-mx-col="[[ cell.item.data.data.columnId ]]"
+                              :data-mx-value="[[ cell.item.data.data.v ]]"></oj-input-text>
+                          </oj-bind-if>
+                          <oj-bind-if test="[[ cell.mode !== 'edit' ]]">
+                            <span class="mateu-matrix-value" :data-mx-row="[[ cell.item.data.data.rowId ]]"
+                              :data-mx-col="[[ cell.item.data.data.columnId ]]"
+                              :data-mx-link="[[ '' + cell.item.data.data.link ]]"
+                              :data-mx-editable="[[ '' + cell.item.data.data.editable ]]"><oj-bind-text value="[[ cell.item.data.data.v ]]"></oj-bind-text></span>
+                          </oj-bind-if>
+                        </template>
+                      </oj-data-grid>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
                            abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->

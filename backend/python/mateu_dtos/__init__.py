@@ -1025,6 +1025,53 @@ class ActionPanelMetadata(Wire):
     hide_unpopulated_toggle: bool = False
 
 
+class MatrixColumnRecord(Wire):
+    """A matrix-grid column (mirrors ``MatrixColumnDto``)."""
+
+    id: str | None = None
+    label: str | None = None
+    group: str | None = None
+    tone: str | None = None
+
+
+class MatrixCellRecord(Wire):
+    """A matrix-grid cell (mirrors ``MatrixCellDto``)."""
+
+    value: str = ""
+    tone: str | None = None
+    link: bool = False
+
+
+class MatrixRowRecord(Wire):
+    """A matrix-grid row (mirrors ``MatrixRowDto``)."""
+
+    id: str | None = None
+    label: str | None = None
+    cells: list[MatrixCellRecord] = Field(default_factory=list)
+    editable: bool = False
+    emphasis: bool = False
+
+
+class MatrixSectionRecord(Wire):
+    """A collapsible matrix-grid section (mirrors ``MatrixSectionDto``)."""
+
+    id: str | None = None
+    title: str | None = None
+    collapsed: bool = False
+    rows: list[MatrixRowRecord] = Field(default_factory=list)
+
+
+class MatrixGridMetadata(Wire):
+    """Matrix grid: rows × columns in collapsible sections (mirrors ``MatrixGridDto``)."""
+
+    type: Literal["MatrixGrid"] = "MatrixGrid"
+    row_header_label: str | None = None
+    columns: list[MatrixColumnRecord] = Field(default_factory=list)
+    sections: list[MatrixSectionRecord] = Field(default_factory=list)
+    cell_action_id: str | None = None
+    edit_action_id: str | None = None
+
+
 class QueueItemRecord(Wire):
     """One task-queue card (mirrors ``QueueItemDto``)."""
 
@@ -1297,6 +1344,7 @@ ComponentMetadata = Annotated[
         StatusListMetadata,
         BulletedListMetadata,
         ActionPanelMetadata,
+        MatrixGridMetadata,
         SeparatorMetadata,
         CustomComponentMetadata,
         AnchorMetadata,

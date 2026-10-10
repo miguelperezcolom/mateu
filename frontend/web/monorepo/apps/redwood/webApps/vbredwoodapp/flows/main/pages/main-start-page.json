@@ -1066,6 +1066,9 @@
       "oj-gantt": {
         "path": "ojs/ojgantt"
       },
+      "oj-data-grid": {
+        "path": "ojs/ojdatagrid"
+      },
       "oj-radioset": {
         "path": "ojs/ojradioset"
       },

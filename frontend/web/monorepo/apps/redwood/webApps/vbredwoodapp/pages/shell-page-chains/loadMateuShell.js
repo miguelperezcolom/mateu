@@ -71,6 +71,9 @@ define([
       bridge.installPlanningRange();
       // «I want to…» (ActionPanel): abrir con su atajo, mostrar más, ocultar vacías, cerrar al elegir
       bridge.installActionPanels();
+      // MatrixGrid (oj-data-grid): plegar secciones, editar filas editables, celdas que enlazan
+      bridge.installMatrixGrids();
+      bridge.setMatrixActionSink(runPageAction);
       // tonos de fila (@RowStatus) y filas de grupo (@GroupBy) del oj-table del listado
       bridge.installRowTones();
       // la ficha de un registro: su cabecera queda fija y se compacta al hacer scroll

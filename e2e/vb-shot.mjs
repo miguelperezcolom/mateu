@@ -11,7 +11,7 @@
  * Pasos (JSON, en orden): {click:"texto visible"} · {clickSel:"css"} · {dblclickSel:"css"} ·
  * {hover:"css"} · {press:"Control+i"} · {fill:["css","valor"]} · {drag:["css origen","css destino"]}
  * · {dragBy:["css",dx,dy]} · {wait:ms} · {download:"texto del botón", expect:"trozo del nombre"} · {element:"css"} (la
- * captura se recorta a ese elemento).
+ * captura se recorta a ese elemento) · {eval:"expresión JS"} (imprime su resultado, para depurar).
  * Opciones: --base (http://localhost:9006) --width 1440 --height 900 --settle 6000 --full
  * Sale con código ≠ 0 si un paso falla o si una descarga esperada no llega.
  */
@@ -65,7 +65,8 @@ try {
       const path = await dl.path()
       console.log('descarga:', name, path ? '(' + (await import('node:fs')).statSync(path).size + ' bytes)' : '')
       if (s.expect && !name.includes(s.expect)) { failed = true; console.log('FAIL descarga inesperada') }
-    } else if (s.element) clip = s.element
+    } else if (s.eval) console.log("eval:", JSON.stringify(await page.evaluate(s.eval)))
+    else if (s.element) clip = s.element
     if (s.wait) await sleep(s.wait)
     else await sleep(600)
   }

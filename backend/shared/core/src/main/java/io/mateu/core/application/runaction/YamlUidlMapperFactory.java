@@ -135,6 +135,7 @@ final class YamlUidlMapperFactory {
         new NamedType(AddOnPicker.class, "AddOnPicker"),
         new NamedType(BulletedList.class, "BulletedList"),
         new NamedType(io.mateu.uidl.data.ActionPanel.class, "ActionPanel"),
+        new NamedType(io.mateu.uidl.data.MatrixGrid.class, "MatrixGrid"),
         new NamedType(ButtonGroup.class, "ButtonGroup"),
         new NamedType(Calendar.class, "Calendar"),
         new NamedType(CalloutCard.class, "CalloutCard"),
