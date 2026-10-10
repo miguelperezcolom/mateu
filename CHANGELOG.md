@@ -110,6 +110,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `DocumentRenderer` turning HTML into PDF (A4/Letter, header/footer, page numbers, embedded font)
   on Apache PDFBox + jsoup. Vaadin, Redwood, React Native (system browser / share sheet) and
   IntelliJ (save dialog / OS viewer / print). See *Documents and printing* in the UX patterns.
+- **`io.mateu:mateu-spring-data`** (optional, `@Experimental`): a ready-made `CrudStore` over a
+  Spring Data JPA repository — `return CrudStores.of(productRepository);` in `store()` and a JPA
+  entity needs no hand-written adapter. Search text, example filters, `between`/`gte`/`lte`/`in`
+  criteria, sorting and paging run in the database (one `Specification`, count + page query); the
+  `@Aggregate`/`@GroupBy` totals too when given an `EntityManager`. A JPA (or Spring Data)
+  `@Version` now joins Mateu's optimistic locking — same conflict dialog, version incremented by the
+  provider, not by Mateu. Guide: Build › Spring Data JPA store.
 
 ### Fixed
 - .NET and Python primary buttons were sent as `"Primary"` and rendered as plain buttons.

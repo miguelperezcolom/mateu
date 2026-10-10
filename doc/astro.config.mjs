@@ -267,6 +267,7 @@ export default defineConfig({
 								{ slug: 'java-user-manual/build/crud-navigation-flow' },
 								{ slug: 'java-user-manual/build/capability-listings' },
 								{ slug: 'java-user-manual/build/auto-orchestrators' },
+								{ slug: 'java-user-manual/build/spring-data', label: 'Spring Data JPA store' },
 								{ slug: 'java-user-manual/build/auto-adapters' },
 								{ slug: 'java-user-manual/build/customizing-crud-and-listings' },
 								{ slug: 'java-user-manual/build/listing-layout' },

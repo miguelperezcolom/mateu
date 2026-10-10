@@ -129,6 +129,7 @@ Experimental today:
 | The **AI assistant** chat panel and its MCP wiring | `@AI`, the `Chat` component (`io.mateu.uidl`); the MCP endpoint (`POST /mateu/mcp`, off by default) and the tool projection it serves; the `agent-cli` modules (not published) |
 | The **new YAML authoring catalogues** | field types (`types.yaml`: `FieldTypeEntry`, `FieldTypeCatalog`, `FieldTypeCatalogSupplier`, `GridColumn.tones`), translations (`Translations`, `TranslationsSupplier`), environments (`Environment`), YAML access keys (`Access`), the project descriptor (`ProjectSettings`, `ProjectRenderer`) and sample data on REST sources (`RestDataSource.sample`, `RestSourceEntry.sample`) — the YAML shapes and the Java types behind them |
 | **Development tooling** | live reload (dev mode, `/mateu/dev/*`), the Redwood embedded `<mateu-ui>` JET component |
+| The **Spring Data JPA store** | `JpaCrudStore`, `CrudStores` in the optional `io.mateu:mateu-spring-data` module ([guide](/java-user-manual/build/spring-data/)) |
 | The **Figma design-to-code pipeline** | the contract packaged at `META-INF/mateu/contract.json` in the uidl jar, the Figma plugin and the modux importer/codegen |
 | The **pattern-gap and PMS-parity features** of `3.0-alpha.409` — weeks old, not yet proven in production | the archetype display options (`Toggle`, `CrudDisplay`, `WizardDisplay`, `GeneralOverviewDisplay`), wizard drafts and navigation hooks (`Draftable`, `stepSkippable`, `beforeStepNavigate`, `@WizardCompletionAction(availableFromStep)`), the record switcher (`RecordSwitcher`, `RecordSwitcherSupplier`), docked panels (`DockedPanel`), the `@Section` affordances (`editAction`/`addAction`/`viewMoreAction`), hero tones, screen-reader announcements (`UICommand.announce`), pre-search content, the action panel, the matrix grid, map markers, drag rows to a drop zone, access keys, card menus, calendar views, hover popovers and cell tooltips, row tones, reorderable dashboards and the shared action catalogue (`actions.yaml`, `ActionCatalog`) |
 
@@ -170,19 +171,19 @@ Python (`mateu_uidl`) ports follow the same boundary for the same concepts.
 | `mateu-dtos` | `io.mateu.dtos` | 270 | 242 | 0 | 28 | 0 |
 | `mateu-uidl` | `io.mateu.uidl` | 6 | 6 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.annotations` | 169 | 163 | 4 | 2 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.data` | 300 | 260 | 34 | 6 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.data` | 303 | 260 | 37 | 6 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.fluent` | 34 | 31 | 0 | 3 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.interfaces` | 106 | 98 | 5 | 1 | 2 |
+| `mateu-uidl` | `io.mateu.uidl.interfaces` | 107 | 98 | 6 | 1 | 2 |
 | `mateu-uidl` | `io.mateu.uidl.layout` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
-| **Total** | | **954** | **836** | **43** | **40** | **35** |
+| **Total** | | **958** | **836** | **47** | **40** | **35** |
 
 **Experimental types** (the whole type and its members):
 
 - `io.mateu.uidl.annotations`: `AI`, `DragRows`, `RowStatus`, `Tooltip`
-- `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `Announcement`, `CalendarDay`, `CalendarView`, `Chat`, `CrudDisplay`, `DockedPanel`, `DropZone`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `GeneralOverviewDisplay`, `HeroTone`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `NotFound`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordSwitcher`, `SwitcherType`, `Toggle`, `Translations`, `WizardDisplay`
-- `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `Draftable`, `FieldTypeCatalogSupplier`, `RecordSwitcherSupplier`, `TranslationsSupplier`
+- `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `Announcement`, `CalendarDay`, `CalendarView`, `Chat`, `CrudDisplay`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `GeneralOverviewDisplay`, `HeroTone`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `NotFound`, `PageSetup`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordSwitcher`, `SwitcherType`, `Toggle`, `Translations`, `WizardDisplay`
+- `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `RecordSwitcherSupplier`, `TranslationsSupplier`
 
 **Experimental members** of otherwise stable types:
 
@@ -217,7 +218,7 @@ Python (`mateu_uidl`) ports follow the same boundary for the same concepts.
 - `io.mateu.uidl.data.RestSourceEntry`: `sample`
 - `io.mateu.uidl.data.RouteEntry`: `access`
 - `io.mateu.uidl.data.RouteLink`: `presentation`
-- `io.mateu.uidl.data.UICommand`: `announce`, `announceAssertive`
+- `io.mateu.uidl.data.UICommand`: `announce`, `announceAssertive`, `print`
 - `io.mateu.uidl.fluent.AppShell`: `accessKeys`
 - `io.mateu.uidl.fluent.Listing`: `dragType`, `preSearch`, `rowStatusField`
 - `io.mateu.uidl.interfaces.Actionable`: `presentation`
