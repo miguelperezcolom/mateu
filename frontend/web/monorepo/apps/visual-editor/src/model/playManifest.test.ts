@@ -36,3 +36,23 @@ describe('withEdited', () => {
         expect(withEdited(files, undefined, 'x')).toBe(files)
     })
 })
+
+describe('buildPlayManifest — field types and sample data', () => {
+    const files = [
+        { path: 'types.yaml', content: 'type: Types\ntypes:\n  - {id: Money, dataType: money}\n' },
+        { path: 'sources.yaml', content: 'type: Sources\nsources:\n  - {name: o, source: {url: /o}, sample: {data: [1]}}\n  - {name: c, source: {url: /c}, sampleFile: fixtures/c.yaml}\n' },
+        { path: 'fixtures/c.yaml', content: '- {id: 7}\n' },
+        { path: 'page.yaml', content: 'type: Listing\n' },
+    ]
+    const m = buildPlayManifest(files, 'now')
+
+    it('ships the types, answers sources from their samples (sampleFile read) and is a mock manifest', () => {
+        expect(m.types?.types.map((t) => t.id)).toEqual(['Money'])
+        expect((m.sources?.sources as any[]).map((s) => s.sample)).toEqual([{ data: [1] }, [{ id: 7 }]])
+        expect(m.mockSources).toBe(true)
+    })
+
+    it('a sample file is not a definition', () => {
+        expect(Object.keys(m.definitions)).toEqual(['page.yaml'])
+    })
+})

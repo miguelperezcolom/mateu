@@ -14,6 +14,11 @@ export interface SourceRow {
     method?: string
     itemsPath?: string
     totalPath?: string
+    /** SAMPLE data — the response the endpoint would return — answered instead of calling it in
+     *  sample mode (always in the editor, mock bundles, apps that opt in). */
+    sample?: unknown
+    /** The same sample read from a JSON/YAML file relative to specs/ui. */
+    sampleFile?: string
     /** Other keys of the entry, verbatim. */
     extra: Record<string, unknown>
     /** Other keys of the entry's `source:` descriptor (headers, body, proxy, valuePath…), verbatim. */
@@ -25,7 +30,7 @@ export interface SourcesDoc {
     preamble: Record<string, unknown>
 }
 
-const ENTRY_KNOWN = ['name', 'description', 'source', 'totalPath']
+const ENTRY_KNOWN = ['name', 'description', 'source', 'totalPath', 'sample', 'sampleFile']
 const SOURCE_KNOWN = ['url', 'method', 'itemsPath']
 
 export function parseSourcesDoc(yaml: string): SourcesDoc {
@@ -42,6 +47,8 @@ export function parseSourcesDoc(yaml: string): SourcesDoc {
             method: src.method,
             itemsPath: src.itemsPath,
             totalPath: e?.totalPath,
+            sample: e?.sample,
+            sampleFile: e?.sampleFile,
             extra: pick(e ?? {}, ENTRY_KNOWN),
             sourceExtra: pick(src, SOURCE_KNOWN),
         }
@@ -60,6 +67,8 @@ export function serializeSourcesDoc(doc: SourcesDoc): string {
         if (r.description) out.description = r.description
         if (Object.keys(source).length) out.source = source
         if (r.totalPath) out.totalPath = r.totalPath
+        if (r.sample !== undefined && r.sample !== null) out.sample = r.sample
+        if (r.sampleFile) out.sampleFile = r.sampleFile
         return { ...out, ...r.extra }
     })
     return stringify({ ...doc.preamble, sources })
@@ -69,4 +78,20 @@ function pick(obj: Record<string, unknown>, known: string[]): Record<string, unk
     const out: Record<string, unknown> = {}
     for (const k of Object.keys(obj)) if (!known.includes(k)) out[k] = obj[k]
     return out
+}
+
+/** A sample as the editor shows it: YAML text ('' when there is none). */
+export function sampleText(sample: unknown): string {
+    return sample === undefined || sample === null ? '' : stringify(sample).trimEnd()
+}
+
+/** The text of the "Sample data" box as a sample: JSON or YAML; blank = no sample; an error when it
+ *  does not parse (the editor keeps the previous sample and says why). */
+export function parseSampleText(text: string): { sample?: unknown; error?: string } {
+    if (!text.trim()) return { sample: undefined }
+    try {
+        return { sample: parse(text) }
+    } catch (e) {
+        return { error: (e as Error).message.split('\n')[0] }
+    }
 }

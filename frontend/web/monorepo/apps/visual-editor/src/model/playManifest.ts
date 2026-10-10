@@ -1,5 +1,5 @@
 import { parse } from 'yaml'
-import type { ProjectFile } from './projectIndex'
+import { parseSources, parseTypes, withSampleFiles, type FieldTypeEntry, type ProjectFile } from './projectIndex'
 import { isRoutesYaml, parseRoutes, flattenRoutes } from './routesModel'
 
 /**
@@ -18,6 +18,11 @@ export interface PlayManifest {
     generatedAt: string
     routes: { routes: PlayRoute[] }
     sources?: { sources: unknown[] }
+    /** The field types (`types.yaml`) the definitions reference by `fieldType:` — expanded in the
+     *  browser like the definitions themselves. */
+    types?: { types: FieldTypeEntry[] }
+    /** Play is a design session: the sources answer with their SAMPLE data (the visual editor's rule). */
+    mockSources: true
     definitions: Record<string, unknown>
 }
 
@@ -34,14 +39,30 @@ export function buildPlayManifest(files: ProjectFile[], generatedAt = new Date()
     const routes: PlayRoute[] = []
     const definitions: Record<string, unknown> = {}
     const sources: unknown[] = []
+    const types: FieldTypeEntry[] = []
+    const sampleFiles = new Set<string>()
     for (const f of files ?? []) {
+        const obj = parseObject(f.content)
+        if (obj && (obj.type === 'Sources' || (!obj.type && Array.isArray(obj.sources)))) {
+            for (const e of parseSources(f.content)) if (typeof e.sampleFile === 'string') sampleFiles.add(normalizePath(e.sampleFile))
+        }
+    }
+    for (const f of files ?? []) {
+        if (sampleFiles.has(normalizePath(f.path))) continue // a source's sample data, not a definition
         if (isRoutesYaml(f.content)) { routes.push(...flattenRoutes(parseRoutes(f.content).routes).map(toPlayRoute)); continue }
         const obj = parseObject(f.content)
         if (!obj || obj.type === 'UI') continue // unreadable, or the mount descriptor
-        if (obj.type === 'Sources' || (!obj.type && Array.isArray(obj.sources))) sources.push(...((obj.sources as unknown[]) ?? []))
+        if (obj.type === 'Sources' || (!obj.type && Array.isArray(obj.sources))) sources.push(...withSampleFiles(parseSources(f.content), files))
+        else if (obj.type === 'Types' || (!obj.type && Array.isArray(obj.types))) types.push(...parseTypes(f.content))
         else definitions[normalizePath(f.path)] = obj
     }
-    return { staticOnly: true, generatedAt, routes: { routes }, sources: sources.length ? { sources } : undefined, definitions }
+    return {
+        staticOnly: true, generatedAt, routes: { routes },
+        sources: sources.length ? { sources } : undefined,
+        types: types.length ? { types } : undefined,
+        mockSources: true,
+        definitions,
+    }
 }
 
 /** A route row as the runtime reads it: `layout:` as the definition, a bare `data: name` as `{ref}`. */
