@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>MateuStarter</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Mateu.NET, the same release as the Java artifacts (3.0-alpha.N is 3.0.0-alpha.N on NuGet). -->
+    <PackageReference Include="Mateu.AspNetCore" Version="__NUGET_VERSION__" />
+    <PackageReference Include="Mateu.Uidl" Version="__NUGET_VERSION__" />
+  </ItemGroup>
+</Project>

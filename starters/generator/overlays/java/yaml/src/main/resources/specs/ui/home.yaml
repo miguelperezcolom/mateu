@@ -1,0 +1,9 @@
+# The home page, declared as data. Open it in the Mateu visual editor (IntelliJ or VS Code) to build
+# it from the palette, or edit the YAML: the editors validate it against the published schema.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: VerticalLayout
+content:
+  - type: HeroSection
+    title: __APP_TITLE__
+    subtitle: This page is declared as data in src/main/resources/specs/ui/home.yaml.
+    centered: true
