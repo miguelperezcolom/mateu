@@ -26,7 +26,7 @@ import { VIEWPORTS, ViewportId, viewportWidth } from '../model/viewport'
 @customElement('mount-play')
 export class MountPlay extends LitElement {
     static styles = css`
-        :host { display: flex; flex-direction: column; height: 100%; min-height: 0; background: var(--ve-surface, #f3f4f6); }
+        :host { display: flex; flex-direction: column; height: 100%; min-height: 0; min-width: 0; background: var(--ve-surface, #f3f4f6); }
         .chrome { display: flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.6rem; background: var(--ve-base, #fff);
                   border-bottom: 1px solid var(--ve-border, #e3e5e8); font: 12px var(--ve-font, system-ui); }
         .chrome button { font: 500 12px var(--ve-font, system-ui); color: var(--ve-text, #1f2937); background: transparent;
@@ -42,8 +42,10 @@ export class MountPlay extends LitElement {
         select { font: 12px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade); border-radius: 4px;
                  padding: 0.2rem 0.3rem; background: var(--ve-base, #fff); color: var(--ve-text, #1f2937); }
         .badge { font-size: 11px; padding: 0.05rem 0.5rem; border-radius: 999px; background: var(--ve-success-10, #e7f6ec); color: var(--ve-success, #13703a); }
-        .stage { flex: 1; min-height: 0; overflow: auto; display: flex; justify-content: center; }
-        .device { background: var(--ve-canvas-bg, #fff); min-height: 100%; width: 100%; box-sizing: border-box; }
+        .stage { flex: 1; min-height: 0; min-width: 0; overflow: auto; display: flex; justify-content: center; }
+        /* min-width 0: a flex item's automatic minimum is its content's, so a long menu strip widened the
+           whole played app (and pushed the address bar out of view) instead of scrolling inside it */
+        .device { background: var(--ve-canvas-bg, #fff); min-height: 100%; width: 100%; min-width: 0; box-sizing: border-box; }
         .device.framed { margin: 1rem 0; min-height: calc(100% - 2rem); border-radius: 14px; box-shadow: 0 0 0 1px var(--ve-border, #e3e5e8), 0 8px 30px rgba(0,0,0,.12); overflow: hidden; }
         mateu-api-caller, mateu-ux { display: block; }
     `
