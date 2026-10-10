@@ -36,6 +36,7 @@ public class ReflectionPageMapper {
               .title(welcomeBanner.title().isBlank() ? getTitle(instance) : welcomeBanner.title())
               .subtitle(welcomeBanner.subtitle().isBlank() ? null : welcomeBanner.subtitle())
               .image(welcomeBanner.image().isBlank() ? null : welcomeBanner.image())
+              .tone(welcomeBanner.tone())
               .centered(true)
               .build());
     }
@@ -58,6 +59,7 @@ public class ReflectionPageMapper {
         .cssClasses(getCssClasses(instance))
         .toc(getToc(instance))
         .peerNav(getPeerNav(instance, httpRequest))
+        .switcher(getSwitcher(instance, httpRequest))
         .timestamp(getTimestamp(instance))
         .pageWidth(getPageWidth(instance))
         .pageType(PageTypeResolver.resolve(instance))

@@ -45,6 +45,33 @@ public class CrudFormComponentBuilder {
     // with the page are built separately from its content — see ValidationMapper.FOR_CREATION_FORM.
     httpRequest.setAttribute(ValidationMapper.FOR_CREATION_FORM, isCreation);
     var buttons = buildToolbar(isCreation, orchestrator);
+    // the edit drawer's "Save and next" (CrudDisplay.saveAndNext, the Redwood
+    // spPrimaryActionAndNext): saves and moves the drawer on to the next row
+    var saveAndNext =
+        buttonsAtBottom
+            && !isCreation
+            && orchestrator.editInDrawer()
+            && orchestrator.display().saveAndNext().shown();
+    if (saveAndNext) {
+      buttons.add(
+          buttons.size() - 1,
+          Button.builder()
+              .label(orchestrator.saveAndNextLabel())
+              .actionId("save-and-next")
+              .disabled(!orchestrator.display().saveAndNext().enabled())
+              .build());
+    }
+    var formActions = new ArrayList<Action>();
+    formActions.add(
+        Action.builder()
+            .id(isCreation ? "create" : "save")
+            .validationRequired(true)
+            .bubble(true)
+            .build());
+    if (saveAndNext) {
+      formActions.add(
+          Action.builder().id("save-and-next").validationRequired(true).bubble(true).build());
+    }
     var builder =
         PageView.builder()
             .title(title)
@@ -62,13 +89,7 @@ public class CrudFormComponentBuilder {
                         isCreation)
                     .stream()
                     .toList())
-            .actions(
-                List.of(
-                    Action.builder()
-                        .id(isCreation ? "create" : "save")
-                        .validationRequired(true)
-                        .bubble(true)
-                        .build()));
+            .actions(formActions);
     if (buttonsAtBottom) {
       builder.buttons(buttons);
     } else {

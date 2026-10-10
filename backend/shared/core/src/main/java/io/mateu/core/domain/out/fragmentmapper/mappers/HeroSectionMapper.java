@@ -24,6 +24,10 @@ public class HeroSectionMapper {
             .image(heroSection.image())
             .height(heroSection.height())
             .centered(heroSection.centered())
+            .tone(
+                heroSection.tone() == null || heroSection.tone() == io.mateu.uidl.data.HeroTone.auto
+                    ? null
+                    : heroSection.tone().name())
             .build(),
         heroSection.id(),
         heroSection.content() != null

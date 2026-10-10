@@ -251,6 +251,17 @@ final class PageMetadataExtractor {
   }
 
   /**
+   * The header's record/context switcher, from a page implementing {@link
+   * io.mateu.uidl.interfaces.RecordSwitcherSupplier}. {@code null} when the page supplies none.
+   */
+  static io.mateu.uidl.data.RecordSwitcher getSwitcher(Object instance, HttpRequest httpRequest) {
+    if (instance instanceof io.mateu.uidl.interfaces.RecordSwitcherSupplier supplier) {
+      return supplier.switcher(httpRequest);
+    }
+    return null;
+  }
+
+  /**
    * The page's "last updated" timestamp from the first {@code @Timestamp} field, as text (an
    * optional label prefix + the value's {@code toString()}). {@code null} when there is no such
    * field or its value is null.
