@@ -1,7 +1,7 @@
 // CI: la fila Redwood de parity.md dice la verdad. Ver coverage.mjs.
 // Uso: node parity-check.mjs           → comprueba (sale ≠ 0 si algo no cuadra)
 //      node parity-check.mjs --write   → regenera la sección de parity.md desde coverage.mjs
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { REDWOOD_COVERAGE, coverageTable } from './coverage.mjs'
@@ -41,7 +41,11 @@ export function coverageProblems({ wireTypes, coverage, source, parity }) {
 const isMain = process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]
 if (isMain) {
   const wireTypes = [...readFileSync(wireFile, 'utf8').matchAll(/name = "([A-Za-z]+)"/g)].map((m) => m[1])
-  const source = readFileSync(join(here, 'reduceContexts.mjs'), 'utf8')
+  // the core is split by surface into core/*.mjs (reduceContexts.mjs re-exports them)
+  const coreDir = join(here, 'core')
+  const source = [join(here, 'reduceContexts.mjs'),
+    ...readdirSync(coreDir).filter((f) => f.endsWith('.mjs')).sort().map((f) => join(coreDir, f))]
+    .map((f) => readFileSync(f, 'utf8')).join('\n')
   let parity = readFileSync(parityFile, 'utf8')
   if (process.argv.includes('--write')) {
     const a = parity.indexOf(START), b = parity.indexOf(END)

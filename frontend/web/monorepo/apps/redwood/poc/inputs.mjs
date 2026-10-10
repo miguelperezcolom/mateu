@@ -1,3 +1,4 @@
+import { chromeText, chromeLanguage } from './i18n.mjs'
 // Campos de CAPTURA de un formulario (fichero, imagen, firma, cámara) para los que JET/Redwood no
 // trae componente: no hay pad de firma ni cámara en oj-*/oj-sp-*, y oj-file-picker sólo entrega
 // File (el valor de Mateu es un data URI que viaja en el estado, sin endpoint de subida — el mismo
@@ -22,17 +23,12 @@ export function safeImageSrc(value) {
   return v
 }
 
-export const CAPTURE_TEXTS = {
-  en: { clear: 'Clear', accept: 'Accept', signAgain: 'Sign again', remove: 'Remove', take: 'Take photo',
-    retake: 'Retake', upload: 'Upload', replace: 'Replace', noCamera: 'Camera unavailable — choose a file',
-    empty: 'No file', start: 'Open camera', signHere: 'Sign here' },
-  es: { clear: 'Borrar', accept: 'Aceptar', signAgain: 'Volver a firmar', remove: 'Quitar', take: 'Hacer foto',
-    retake: 'Repetir', upload: 'Subir', replace: 'Sustituir', noCamera: 'Cámara no disponible — elige un fichero',
-    empty: 'Sin fichero', start: 'Abrir cámara', signHere: 'Firme aquí' },
-}
+const CAPTURE_KEYS = ['clear', 'accept', 'signAgain', 'remove', 'take', 'retake', 'upload', 'replace', 'noCamera', 'empty', 'start', 'signHere']
 
+/** Los textos de los campos de captura en `lang` (catálogo de la interfaz, i18n.mjs). */
 export function captureTexts(lang) {
-  return String(lang || '').toLowerCase().startsWith('es') ? CAPTURE_TEXTS.es : CAPTURE_TEXTS.en
+  const l = chromeLanguage(lang)
+  return Object.fromEntries(CAPTURE_KEYS.map((k) => [k, chromeText('capture' + k[0].toUpperCase() + k.slice(1), null, l)]))
 }
 
 /** ¿El valor es una imagen que se puede enseñar? (data URI de imagen o URL corriente) */
@@ -232,4 +228,60 @@ export function defineCaptureField(win = typeof window !== 'undefined' ? window 
     }
   }
   win.customElements.define('mateu-capture-field', MateuCaptureField)
+}
+
+/** A colour value as a #rrggbb string (what a native colour input takes), '' when it is not one. */
+export function hexColorOf(value) {
+  const v = String(value == null ? '' : value).trim()
+  if (/^#[0-9a-f]{6}$/i.test(v)) return v.toLowerCase()
+  const short = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(v)
+  if (short) return ('#' + short[1] + short[1] + short[2] + short[2] + short[3] + short[3]).toLowerCase()
+  const rgb = /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/i.exec(v)
+  if (rgb) return '#' + [rgb[1], rgb[2], rgb[3]].map((n) => Math.min(255, +n).toString(16).padStart(2, '0')).join('')
+  return ''
+}
+
+/**
+ * `<mateu-color-field value="#3a7bd5" readonly>`: a colour FIELD. JET's oj-color-spectrum is an
+ * inline palette over oj.Color objects, not a form field with a string value — the wire carries a
+ * string — so: a swatch (the platform colour picker) beside an oj-input-text with the hex code,
+ * and the same `valueChanged` contract as mateu-capture-field.
+ */
+export function defineColorField(win = typeof window !== 'undefined' ? window : null) {
+  if (!win || !win.customElements || win.customElements.get('mateu-color-field')) return
+  const doc = win.document
+  class MateuColorField extends win.HTMLElement {
+    static get observedAttributes() { return ['value', 'readonly'] }
+    connectedCallback() { this.render() }
+    attributeChangedCallback() { if (this.isConnected && !this.busy) this.render() }
+    get value() { return this.getAttribute('value') || '' }
+    set value(v) { if (v == null || v === '') this.removeAttribute('value'); else this.setAttribute('value', String(v)) }
+    emit(value) {
+      this.busy = true
+      this.value = value
+      this.busy = false
+      this.dispatchEvent(new win.CustomEvent('valueChanged', {
+        detail: { value: value || null, previousValue: null, updatedFrom: 'internal' }, bubbles: true }))
+      this.render()
+    }
+    render() {
+      const readonly = this.hasAttribute('readonly') && this.getAttribute('readonly') !== 'false'
+      const hex = hexColorOf(this.value)
+      this.textContent = ''
+      this.classList.add('mateu-color-field')
+      const swatch = doc.createElement('input')
+      swatch.type = 'color'
+      swatch.className = 'mateu-color-swatch'
+      swatch.value = hex || '#000000'
+      swatch.disabled = readonly
+      swatch.setAttribute('aria-label', chromeText('colourPicker', { label: this.getAttribute('aria-label') || '' }))
+      swatch.addEventListener('change', () => this.emit(swatch.value))
+      const code = doc.createElement('span')
+      code.className = 'oj-typography-body-md mateu-color-code'
+      code.textContent = this.value || '—'
+      this.appendChild(swatch)
+      this.appendChild(code)
+    }
+  }
+  win.customElements.define('mateu-color-field', MateuColorField)
 }

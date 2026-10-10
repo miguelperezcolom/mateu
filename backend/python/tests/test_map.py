@@ -95,6 +95,23 @@ def test_a_map_without_id_answers_as_map():
     assert dto.id == "map"
     assert dto.metadata.markers == []
     assert dto.metadata.marker_action_id is None
+    # no tile provider declared: the renderers fall back to OpenStreetMap
+    assert dto.metadata.tile_url is None
+    assert dto.metadata.attribution is None
+
+
+def test_the_tile_provider_travels_when_declared():
+    dto = ReflectionMapper().map_component(
+        fluent.Map(
+            zoom="10",
+            tile_url="https://tiles.example.com/{z}/{x}/{y}.png",
+            attribution="© Example Tiles",
+        )
+    )
+    assert dto.metadata.tile_url == "https://tiles.example.com/{z}/{x}/{y}.png"
+    assert dto.metadata.attribution == "© Example Tiles"
+    wire = dto.model_dump(by_alias=True)["metadata"]
+    assert wire["tileUrl"] == "https://tiles.example.com/{z}/{x}/{y}.png"
 
 
 def test_a_marker_click_runs_the_action_with_the_marker_id():

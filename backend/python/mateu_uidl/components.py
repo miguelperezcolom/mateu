@@ -1304,13 +1304,16 @@ class MapMarker:
 class Map(Component):
     """A street map (mirrors Java's ``io.mateu.uidl.data.Map``): ``position`` is the centre as
     ``"lat, lon"`` (free string), ``zoom`` the zoom level as a string. When ``marker_action_id``
-    is set, clicking a marker runs that action with ``{"_markerId": <marker id>}``. A missing
-    ``id`` travels as ``"map"``."""
+    is set, clicking a marker runs that action with ``{"_markerId": <marker id>}``. ``tile_url``
+    (a Leaflet-style template) and ``attribution`` pick the tile provider; ``None`` keeps
+    OpenStreetMap. A missing ``id`` travels as ``"map"``."""
 
     position: str | None = None
     zoom: str | None = None
     markers: tuple[MapMarker, ...] = ()
     marker_action_id: str | None = None
+    tile_url: str | None = None
+    attribution: str | None = None
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None

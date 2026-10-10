@@ -26,7 +26,7 @@ define([
       if (!actionId) {
         return;
       }
-      const base = $application.constants.mateuBaseUrl;
+      const base = bridge.mateuBase($application.constants.mateuBaseUrl);
       const increment = await bridge.callMateu(base, {
         route: '',
         actionId,

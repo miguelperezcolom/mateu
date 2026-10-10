@@ -400,7 +400,9 @@ public record MapMetadataDto(
     string? Position,
     string? Zoom,
     IReadOnlyList<MapMarkerDto> Markers,
-    string? MarkerActionId) : ComponentMetadataDto;
+    string? MarkerActionId,
+    string? TileUrl = null,
+    string? Attribution = null) : ComponentMetadataDto;
 
 /// <summary>One point on a map (mirrors Java's MapMarkerDto).</summary>
 public record MapMarkerDto(

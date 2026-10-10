@@ -24,7 +24,9 @@ public class MapComponentMapper {
                             marker.description(),
                             marker.color()))
                 .toList(),
-            map.markerActionId()),
+            map.markerActionId(),
+            map.tileUrl(),
+            map.attribution()),
         map.id() != null ? map.id() : "map",
         List.of(),
         map.style(),

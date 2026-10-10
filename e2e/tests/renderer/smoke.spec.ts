@@ -23,7 +23,8 @@ test.describe('renderer-agnostic smoke', () => {
 
   test('routing resolves, including SPA sub-routes', async ({ page }) => {
     await page.goto('/app');
-    await expect(page).toHaveTitle(/Menu App/);
+    // the app's title, or (VB/Redwood) the title its home screen sets — either way the app resolved
+    await expect(page).toHaveTitle(/Menu App|Section 1/);
     // A sub-route under the mount is served by the same app shell, not a 404.
     await page.goto('/app/section1');
     await expect(page.locator('mateu-ui')).toBeAttached();
@@ -42,18 +43,22 @@ test.describe('renderer-agnostic smoke', () => {
     // A text input for the String field…
     await expect(page.getByRole('textbox').first()).toBeVisible({ timeout: 15000 });
     // …and a checkbox for the boolean field (this is exactly the bool/boolean matrix hole the
-    // conformance corpus surfaced — a boolean must render as a checkbox on every renderer).
-    await expect(page.getByRole('checkbox').first()).toBeVisible();
+    // conformance corpus surfaced — a boolean must render as a boolean control on every renderer:
+    // a checkbox, or the switch that is Redwood's idiom for it).
+    await expect(page.getByRole('checkbox').or(page.getByRole('switch')).first()).toBeVisible();
   });
 
   test('a listing shows its rows', async ({ page }) => {
     await page.goto('/simple-listing');
     // A grid/table with rows, whatever DOM the renderer uses for it (Vaadin exposes role=treegrid).
+    // JET's oj-table is a <table role="application"> whose rows carry no ARIA role, so on the
+    // VB/Redwood renderer the table and its body rows are found by tag.
     const grid = page
       .getByRole('grid')
       .or(page.getByRole('treegrid'))
-      .or(page.getByRole('table'));
+      .or(page.getByRole('table'))
+      .or(page.locator('oj-table table:visible'));
     await expect(grid.first()).toBeVisible({ timeout: 15000 });
-    await expect(page.getByRole('row').first()).toBeVisible();
+    await expect(page.getByRole('row').or(page.locator('oj-table tbody tr:visible')).first()).toBeVisible();
   });
 });

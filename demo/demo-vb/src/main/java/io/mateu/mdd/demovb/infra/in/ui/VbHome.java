@@ -6,7 +6,10 @@ import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.AppHeaderAction;
 import io.mateu.uidl.data.Message;
+import io.mateu.uidl.annotations.Fab;
+import io.mateu.uidl.data.GlobalSearchResult;
 import io.mateu.uidl.interfaces.AppActionsSupplier;
+import io.mateu.uidl.interfaces.GlobalSearchSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.util.List;
 
@@ -19,13 +22,14 @@ import java.util.List;
 @Title("VB Demo")
 // HAMBURGUER_MENU explícito para exhibir el navigator-drawer del renderer VB
 // (AUTO daría MENU_ON_TOP con este menú: opciones visibles en el header)
-@io.mateu.uidl.annotations.App(io.mateu.uidl.fluent.AppVariant.HAMBURGUER_MENU)
+// themeToggle: the header's light/dark switch (JET's inverted colour scheme on Redwood)
+@io.mateu.uidl.annotations.App(value = io.mateu.uidl.fluent.AppVariant.HAMBURGUER_MENU, themeToggle = true)
 // Chat de IA: sseUrl → el shell VB muestra el panel de conversación. Ruta RELATIVA same-origin (el
 // chat VB antepone el base a la sseUrl) → ChatAgentController, que hace de proxy al agente local del
 // demo (frontend/promo/local-agent.mjs, :8777): autora la definición Mateu y emite `render-screen`,
 // y la pantalla aparece en ChatGenerate.
 @io.mateu.uidl.annotations.AI(sse = "/agent/stream")
-public class VbHome implements AppActionsSupplier {
+public class VbHome implements AppActionsSupplier, GlobalSearchSupplier {
 
   enum Hotel {
     Playa,
@@ -80,6 +84,25 @@ public class VbHome implements AppActionsSupplier {
   public Message syncNow(HttpRequest httpRequest) {
     var hotel = httpRequest.appContext("hotel");
     return new Message("Synced" + (hotel != null ? " @ " + hotel : ""));
+  }
+
+  /** GlobalSearchSupplier: the Ask palette (Redwood) and the ⌘K palette (Vaadin) find these too. */
+  @Override
+  public List<GlobalSearchResult> globalSearch(String searchText, HttpRequest httpRequest) {
+    var text = searchText == null ? "" : searchText.toLowerCase();
+    return List.of(
+            new GlobalSearchResult("Laptop", "LP-100", "/products", "Products"),
+            new GlobalSearchResult("Mouse", "MS-210", "/products", "Products"),
+            new GlobalSearchResult("Ada Lovelace", "Customer 1", "/customers/1", "Customers"))
+        .stream()
+        .filter(r -> (r.label() + " " + r.description()).toLowerCase().contains(text))
+        .toList();
+  }
+
+  /** An app-level floating action button: on every screen. */
+  @Fab(icon = "vaadin:refresh", label = "Quick sync")
+  public Message quickSync(HttpRequest httpRequest) {
+    return new Message("Quick sync done");
   }
 
   public Message exportPdf() {

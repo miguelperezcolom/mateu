@@ -3,6 +3,395 @@
  * (tests de contrato: cd poc && node test.mjs). */
 define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/ojarraytreedataprovider', 'ojs/ojflattenedtreedataproviderview', 'ojs/ojrowdatagridprovider', 'ojs/ojkeyset'], (require, ArrayDataProvider, NumberConverter, ArrayTreeDataProvider, FlattenedTreeDataProviderView, RowDataGridProvider, KeySet) => {
   'use strict';
+  // The renderer's OWN words (its chrome: the shell, the chat panel, error bands, paging, empty
+  // states…) in the interface's language. The app's texts come from the server; these are the few the
+  // renderer draws by itself. Same source of truth as the web renderer (libs/mateu chromeTexts.ts):
+  // the page's language (`<html lang>`, which copy.mjs sets from the browser and VB's
+  // vbInitParams.locale reads), else the browser's, English by default.
+  //
+  // One catalogue for both halves of the app:
+  //  - JS (the bridge, chains): chromeText(key, vars, lang).
+  //  - VB page HTML: `[[ $application.translations.appBundle.<key> ]]` — make-nls.mjs writes the VB
+  //    translation bundle (resources/strings/appBundle/nls/<lang>/appBundle-strings.json) from this
+  //    catalogue, so VB's own locale resolution picks the language and there is nothing to rebind.
+  //
+  // A key missing in a language falls back to English, key by key — a partial language (fr, de…)
+  // only needs the words it has.
+
+  const CHROME_TEXTS = {
+    en: {
+      // ── generic ──
+      close: 'Close',
+      retry: 'Retry',
+      loading: 'Loading',
+      search: 'Search…',
+      noData: 'No data',
+      new: 'New',
+      confirm: 'Confirm',
+      cancel: 'Cancel',
+      save: 'Save',
+      apply: 'Apply',
+      reset: 'Reset',
+      view: 'View',
+      edit: 'Edit',
+      remove: 'Remove',
+      name: 'Name',
+      skipToContent: 'Skip to content',
+      enterValue: 'Enter a value.',
+      selectValue: 'Select a value',
+      progressOf: '{done} of {total}',
+      occupancy: 'Occupancy %',
+      dropHere: 'Drop here',
+      noEvents: 'No events',
+      hideUnpopulated: 'Hide unpopulated',
+      mapUnavailable: 'The map could not be loaded.',
+      // ── shell ──
+      menu: 'Menu',
+      context: 'Context',
+      workContext: 'Working context',
+      sections: 'Sections',
+      searchOrGo: 'Search or go to…',
+      notifications: 'Notifications',
+      markAllRead: 'Mark all read',
+      allCaughtUp: "You're all caught up",
+      notificationsUnread: 'Notifications, {n} unread',
+      undo: 'Undo',
+      askSearch: 'Search',
+      goTo: 'Go to',
+      home: 'Home',
+      listing: 'Listing',
+      quickView: 'Quick view',
+      unsavedLeave: 'There are unsaved changes. Leave this screen?',
+      unavailableMount: '{name} is not available right now. It will be retried.',
+      // ── listing ──
+      columns: 'Columns',
+      views: 'Views',
+      saveView: 'Save view',
+      openWithView: 'Open with this view',
+      saveCurrentView: 'Save current view…',
+      clearFilters: 'Clear filters',
+      pagingOf: 'of',
+      pagingPage: 'Page',
+      pagingFirst: 'First page',
+      pagingPrev: 'Previous page',
+      pagingNext: 'Next page',
+      pagingLast: 'Last page',
+      idsFew: 'Selection: ',
+      idsMany: '{n} selected items',
+      // ── confirmation dialog ──
+      confirmTitle: 'One moment, please',
+      confirmMessage: 'Are you sure?',
+      confirmYes: 'Yes',
+      confirmNo: 'No',
+      // ── not found ──
+      notFoundTitle: 'Not found',
+      notFoundMessage: 'It may have been deleted, or the link is wrong.',
+      goBack: 'Go back',
+      // ── capture fields ──
+      captureClear: 'Clear',
+      captureAccept: 'Accept',
+      captureSignAgain: 'Sign again',
+      captureRemove: 'Remove',
+      captureTake: 'Take photo',
+      captureRetake: 'Retake',
+      captureUpload: 'Upload',
+      captureReplace: 'Replace',
+      captureNoCamera: 'Camera unavailable — choose a file',
+      captureEmpty: 'No file',
+      captureStart: 'Open camera',
+      captureSignHere: 'Sign here',
+      // ── network / errors ──
+      offlineBand: "Offline — changes you make now won't be saved.",
+      errOffline: "You're offline. Your changes were not sent — check the network and try again.",
+      errTimeout: 'The server is taking too long to answer. Your changes may not have been saved.',
+      errServer: 'The server could not complete the request. Try again.',
+      errServerStatus: 'The server could not complete the request (error {status}). Try again.',
+      errUnauthorized: 'Your session is no longer valid. Sign in again.',
+      errForbidden: "You're not allowed to do this.",
+      errNotFound: 'This is no longer available. It may have been moved or deleted.',
+      errClient: 'The request was rejected.',
+      errClientStatus: 'The request was rejected (error {status}).',
+      errUnknown: 'Something went wrong. Try again.',
+      // ── AI chat panel ──
+      chatTitle: 'Assistant',
+      chatOpen: 'Chat',
+      chatPanel: 'Assistant chat',
+      chatClose: 'Close the chat',
+      chatEmpty: 'Ask whatever you need about this screen or the application.',
+      chatPlaceholder: 'Write a message…',
+      chatInputLabel: 'Message for the assistant',
+      chatSend: 'Send',
+      chatDictate: 'Dictate (Ctrl+Shift+M)',
+      chatStopDictation: 'Stop dictation (Ctrl+Shift+M)',
+      chatTokens: 'Tokens',
+      chatTokensIn: 'input',
+      chatTokensOut: 'output',
+      chatTokensTotal: 'total',
+      chatThinking: 'Thinking…',
+      chatThinkingFor: 'Thinking… {s} s',
+      chatAnswering: 'Answering…',
+      chatCalling: 'Calling {name}…',
+      chatAgentError: 'Unknown agent error',
+      chatNoReader: 'Could not read the answer stream.',
+      chatServerError: 'The server answered {status}: {text}',
+      chatUploadFailed: 'Upload failed: {status}',
+      chatAttach: 'Attach files',
+      chatRemoveAttachment: 'Remove {name}',
+      chatTool: 'tool',
+      chatToolsUsed: 'Tools used',
+      chatNoAnswer: 'No answer from the agent. The server closed the connection without sending anything — check that the LLM has its API key configured and is available.',
+      chatEmptyAnswer: 'The agent returned no answer. Check that the LLM is configured correctly (API key).',
+      chatError: 'Error: {message}',
+      chatUploadError: 'Could not upload the files: {message}',
+      chatLocalAgent: 'local agent',
+      chatLocalAgentHint: 'Talking to your local CLI (the companion agent) — no API key',
+      chatExpand: 'Widen the assistant',
+      chatRestore: 'Restore the width',
+      selectRowsFirst: 'You first need to select some rows',
+      searchResults: 'Search results',
+      themeToggle: 'Switch light / dark theme',
+      // ── display components (core/display.mjs) ──
+      recommended: 'Recommended',
+      choose: 'Choose',
+      learnMore: 'Learn more',
+      less: 'Less',
+      more: 'More',
+      open: 'Open',
+      ok: 'OK',
+      message: 'Message',
+      messageSend: 'Send',
+      moreActions: 'More actions',
+      moreInformation: 'More information',
+      previousSlide: 'Previous slide',
+      nextSlide: 'Next slide',
+      slideN: 'Slide {n}',
+      slides: 'Slides',
+      pages: 'Pages',
+      breadcrumb: 'Breadcrumb',
+      directory: 'Directory',
+      heatmap: 'Heatmap',
+      processDiagram: 'Process diagram: {names}',
+      emptyProcess: 'Empty process',
+      cookieConsent: 'Cookie consent',
+      cookieMessage: 'This website uses cookies to ensure you get the best experience on our website.',
+      cookieDismiss: 'Got it',
+      afterStep: 'After {name}',
+      whenCondition: ' when {condition}',
+      parallel: 'parallel',
+      stepAction: 'Action', stepJoin: 'Join', stepFork: 'Fork', stepEnd: 'End', stepUserTask: 'User task', stepProcess: 'Process',
+      workflowInvalid: 'Workflow: the definition is not valid JSON',
+      unsupportedComponent: 'Unsupported component "{type}"{id} — the Redwood renderer has no view for it',
+      customFailed: 'Custom component failed: {message}',
+      askSomething: 'Ask something…',
+      assistantFailed: 'The assistant could not answer: {message}',
+      formatting: 'Formatting',
+      rteBold: 'Bold', rteItalic: 'Italic', rteUnderline: 'Underline', rteBullets: 'Bulleted list', rteNumbers: 'Numbered list',
+      rteLink: 'Link', rteClear: 'Clear formatting', rteLinkPrompt: 'Link URL',
+      colourPicker: '{label} — picker',
+      loadingContent: 'Loading',
+    },
+    es: {
+      close: 'Cerrar',
+      retry: 'Reintentar',
+      loading: 'Cargando',
+      search: 'Buscar…',
+      noData: 'Sin datos',
+      new: 'Nuevo',
+      confirm: 'Confirmar',
+      cancel: 'Cancelar',
+      save: 'Guardar',
+      apply: 'Aplicar',
+      reset: 'Restablecer',
+      view: 'Ver',
+      edit: 'Editar',
+      remove: 'Quitar',
+      name: 'Nombre',
+      skipToContent: 'Saltar al contenido',
+      enterValue: 'Introduce un valor.',
+      selectValue: 'Seleccione un valor',
+      progressOf: '{done} de {total}',
+      occupancy: 'Ocupación %',
+      dropHere: 'Suelta aquí',
+      noEvents: 'Sin eventos',
+      hideUnpopulated: 'Ocultar vacías',
+      mapUnavailable: 'No se ha podido cargar el mapa.',
+      menu: 'Menú',
+      context: 'Contexto',
+      workContext: 'Contexto de trabajo',
+      sections: 'Secciones',
+      searchOrGo: 'Buscar o ir a…',
+      notifications: 'Notificaciones',
+      markAllRead: 'Marcar todas como leídas',
+      allCaughtUp: 'Estás al día',
+      notificationsUnread: 'Notificaciones, {n} sin leer',
+      undo: 'Deshacer',
+      askSearch: 'Buscar',
+      goTo: 'Ir a',
+      home: 'Inicio',
+      listing: 'Listado',
+      quickView: 'Vista rápida',
+      unsavedLeave: 'Hay cambios sin guardar. ¿Salir de esta pantalla?',
+      unavailableMount: '{name} no está disponible ahora. Se volverá a intentar.',
+      columns: 'Columnas',
+      views: 'Vistas',
+      saveView: 'Guardar vista',
+      openWithView: 'Abrir con esta vista',
+      saveCurrentView: 'Guardar la vista actual…',
+      clearFilters: 'Quitar filtros',
+      pagingOf: 'de',
+      pagingPage: 'Página',
+      pagingFirst: 'Primera página',
+      pagingPrev: 'Página anterior',
+      pagingNext: 'Página siguiente',
+      pagingLast: 'Última página',
+      idsFew: 'Selección: ',
+      idsMany: '{n} elementos seleccionados',
+      confirmTitle: 'Un momento, por favor',
+      confirmMessage: '¿Estás seguro?',
+      confirmYes: 'Sí',
+      confirmNo: 'No',
+      notFoundTitle: 'No encontrado',
+      notFoundMessage: 'Puede que se haya borrado o que el enlace no sea correcto.',
+      goBack: 'Volver',
+      captureClear: 'Borrar',
+      captureAccept: 'Aceptar',
+      captureSignAgain: 'Volver a firmar',
+      captureRemove: 'Quitar',
+      captureTake: 'Hacer foto',
+      captureRetake: 'Repetir',
+      captureUpload: 'Subir',
+      captureReplace: 'Sustituir',
+      captureNoCamera: 'Cámara no disponible — elige un fichero',
+      captureEmpty: 'Sin fichero',
+      captureStart: 'Abrir cámara',
+      captureSignHere: 'Firme aquí',
+      offlineBand: 'Sin conexión — los cambios que hagas ahora no se guardarán.',
+      errOffline: 'Sin conexión. Tus cambios no se han enviado — revisa la red e inténtalo de nuevo.',
+      errTimeout: 'El servidor tarda demasiado en responder. Puede que tus cambios no se hayan guardado.',
+      errServer: 'El servidor no ha podido completar la petición. Inténtalo de nuevo.',
+      errServerStatus: 'El servidor no ha podido completar la petición (error {status}). Inténtalo de nuevo.',
+      errUnauthorized: 'Tu sesión ya no es válida. Vuelve a iniciar sesión.',
+      errForbidden: 'No tienes permiso para hacer esto.',
+      errNotFound: 'Esto ya no está disponible. Puede que se haya movido o borrado.',
+      errClient: 'La petición ha sido rechazada.',
+      errClientStatus: 'La petición ha sido rechazada (error {status}).',
+      errUnknown: 'Algo ha ido mal. Inténtalo de nuevo.',
+      chatTitle: 'Asistente',
+      chatOpen: 'Chat',
+      chatPanel: 'Chat del asistente',
+      chatClose: 'Cerrar el chat',
+      chatEmpty: 'Pregunta lo que necesites sobre esta pantalla o la aplicación.',
+      chatPlaceholder: 'Escribe un mensaje…',
+      chatInputLabel: 'Mensaje para el asistente',
+      chatSend: 'Enviar',
+      chatDictate: 'Dictar (Ctrl+Shift+M)',
+      chatStopDictation: 'Detener dictado (Ctrl+Shift+M)',
+      chatTokens: 'Tokens',
+      chatTokensIn: 'entrada',
+      chatTokensOut: 'salida',
+      chatTokensTotal: 'total',
+      chatThinking: 'Pensando…',
+      chatThinkingFor: 'Pensando… {s} s',
+      chatAnswering: 'Respondiendo…',
+      chatCalling: 'Llamando a {name}…',
+      chatAgentError: 'Error desconocido del agente',
+      chatNoReader: 'No se pudo leer la respuesta del agente.',
+      chatServerError: 'El servidor respondió {status}: {text}',
+      chatUploadFailed: 'Falló la subida: {status}',
+      chatAttach: 'Adjuntar ficheros',
+      chatRemoveAttachment: 'Quitar {name}',
+      chatTool: 'herramienta',
+      chatToolsUsed: 'Herramientas usadas',
+      chatNoAnswer: 'No se recibió respuesta del agente. El servidor cerró la conexión sin enviar datos — comprueba que el LLM tiene la API key configurada y está disponible.',
+      chatEmptyAnswer: 'El agente no devolvió ninguna respuesta. Comprueba que el LLM está configurado correctamente (API key).',
+      chatError: 'Error: {message}',
+      chatUploadError: 'No se pudieron subir los ficheros: {message}',
+      chatLocalAgent: 'agente local',
+      chatLocalAgentHint: 'Hablando con tu CLI local (el agente companion) — sin API key',
+      chatExpand: 'Ampliar el asistente',
+      chatRestore: 'Ancho normal',
+      selectRowsFirst: 'Primero tienes que seleccionar alguna fila',
+      searchResults: 'Resultados',
+      themeToggle: 'Cambiar tema claro / oscuro',
+      // ── componentes display (core/display.mjs) ──
+      recommended: 'Recomendado',
+      choose: 'Elegir',
+      learnMore: 'Más información',
+      less: 'Menos',
+      more: 'Más',
+      open: 'Abrir',
+      ok: 'Aceptar',
+      message: 'Mensaje',
+      messageSend: 'Enviar',
+      moreActions: 'Más acciones',
+      moreInformation: 'Más información',
+      previousSlide: 'Diapositiva anterior',
+      nextSlide: 'Diapositiva siguiente',
+      slideN: 'Diapositiva {n}',
+      slides: 'Diapositivas',
+      pages: 'Páginas',
+      breadcrumb: 'Ruta de navegación',
+      directory: 'Directorio',
+      heatmap: 'Mapa de calor',
+      processDiagram: 'Diagrama del proceso: {names}',
+      emptyProcess: 'Proceso vacío',
+      cookieConsent: 'Consentimiento de cookies',
+      cookieMessage: 'Este sitio usa cookies para ofrecerte la mejor experiencia.',
+      cookieDismiss: 'Entendido',
+      afterStep: 'Después de {name}',
+      whenCondition: ' cuando {condition}',
+      parallel: 'en paralelo',
+      stepAction: 'Acción', stepJoin: 'Unión', stepFork: 'Bifurcación', stepEnd: 'Fin', stepUserTask: 'Tarea de usuario', stepProcess: 'Proceso',
+      workflowInvalid: 'Workflow: la definición no es un JSON válido',
+      unsupportedComponent: 'Componente no soportado "{type}"{id} — el renderer Redwood no tiene vista para él',
+      customFailed: 'El componente propio ha fallado: {message}',
+      askSomething: 'Pregunta lo que quieras…',
+      assistantFailed: 'El asistente no ha podido responder: {message}',
+      formatting: 'Formato',
+      rteBold: 'Negrita', rteItalic: 'Cursiva', rteUnderline: 'Subrayado', rteBullets: 'Lista con viñetas', rteNumbers: 'Lista numerada',
+      rteLink: 'Enlace', rteClear: 'Quitar formato', rteLinkPrompt: 'URL del enlace',
+      colourPicker: '{label} — selector',
+      loadingContent: 'Cargando',
+    },
+    // partial languages: only the words they have (the rest falls back to English)
+    ca: { selectValue: 'Seleccioneu un valor' },
+    fr: { selectValue: 'Sélectionnez une valeur' },
+    de: { selectValue: 'Wert auswählen' },
+    it: { selectValue: 'Selezionare un valore' },
+    pt: { selectValue: 'Selecione um valor' },
+    nl: { selectValue: 'Selecteer een waarde' },
+  }
+
+  let explicitLanguage = ''
+
+  /** Pin the chrome language (e.g. from the app); '' goes back to the page's/browser's. */
+  function setChromeLanguage(lang) { explicitLanguage = lang ? String(lang) : '' }
+
+  /** The base language code of the chrome ('en', 'es'…): explicit > <html lang> > browser > 'en'. */
+  function chromeLanguage(lang) {
+    const raw = lang || explicitLanguage
+      || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
+      || (typeof navigator !== 'undefined' && navigator.language) || 'en'
+    return String(raw).toLowerCase().split(/[-_]/)[0] || 'en'
+  }
+
+  /** A chrome text in `lang` (or the interface's language), `{name}` placeholders filled from vars. */
+  function chromeText(key, vars, lang) {
+    const language = chromeLanguage(lang)
+    const dict = CHROME_TEXTS[language] || {}
+    let text = Object.prototype.hasOwnProperty.call(dict, key) ? dict[key] : CHROME_TEXTS.en[key]
+    if (text == null) return key
+    if (vars) text = text.replace(/\{(\w+)\}/g, (m, k) => (vars[k] == null ? m : String(vars[k])))
+    return text
+  }
+
+  /** Every chrome text in `lang`, English filling the gaps (what the VB translation bundle carries). */
+  function chromeTextsOf(lang) {
+    return { ...CHROME_TEXTS.en, ...(CHROME_TEXTS[chromeLanguage(lang)] || {}) }
+  }
+
+
+
   // PERSONALIZACIÓN DE LISTADOS en el navegador: el SELECTOR DE COLUMNAS (cuáles se ven y en qué
   // orden) y las VISTAS GUARDADAS (una combinación con nombre de búsqueda + filtros, con una por
   // defecto). Mismo formato y mismas claves de localStorage que el renderer web (libs/mateu
@@ -130,8 +519,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** Las opciones del menú de vistas (oj-menu): las guardadas (★ la de por defecto) + acciones. */
   function viewsMenuOf(scope, storage) {
     const views = listSavedViews(scope, storage).map((v) => ({ value: 'view:' + v.name, label: (v.isDefault ? '★ ' : '') + v.name }))
-    return views.concat([{ value: 'save', label: 'Save current view…' }])
-      .concat(views.length ? [{ value: 'clear', label: 'Clear filters' }] : [])
+    return views.concat([{ value: 'save', label: chromeText('saveCurrentView') }])
+      .concat(views.length ? [{ value: 'clear', label: chromeText('clearFilters') }] : [])
   }
 
   /** El ámbito de las preferencias: la ruta del listado en pantalla, sin query (en modo hash, lo
@@ -189,6 +578,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     ((loc && loc.pathname) || '') + '#' + (gridId || 'grid')
 
 
+
   // El árbol de navegación: las reglas de libs/mateu/.../navTree.ts que necesita este renderer,
   // PORTADAS (no compartidas): el bridge se construye concatenando estos .mjs (make-amd.mjs) y no
   // puede importar TypeScript. Mismas reglas, mismos casos en test.mjs; si cambia una, cambian las dos.
@@ -233,9 +623,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       name = name.replace(/<[^<>]*>/g, '')
     }
     name = name.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim()
-    return String(language).toLowerCase().startsWith('es')
-      ? `${name} no está disponible ahora. Se volverá a intentar.`
-      : `${name} is not available right now. It will be retried.`
+    return chromeText('unavailableMount', { name }, language || 'en')
   }
 
   /**
@@ -538,6 +926,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
   // TEXTO ENRIQUECIDO (P2 #23): un campo richText/html/markdown de sólo lectura y el componente
   // Markdown se pintan CON formato. VB no estampa HTML desde un binding, así que el átomo lleva el
   // HTML YA SANEADO en data-mateu-html y installRichText lo vuelca en su contenedor. El saneado es
@@ -589,15 +978,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           attrs = ' href="' + escapeAttr(value) + '"' + (/^https?:/i.test(value) ? ' target="_blank" rel="noopener noreferrer"' : '')
         }
       }
+      if (tag === 'th' || tag === 'td') {
+        const align = /\balign\s*=\s*["']?(left|right|center)\b/i.exec(m[2] || '')
+        if (align) attrs = ' align="' + align[1].toLowerCase() + '"'
+      }
       out.push('<' + tag + attrs + '>')
     }
     return out.join('')
   }
 
+  const tableCells = (line) => {
+    const t = line.trim().replace(/^\|/, '').replace(/\|$/, '')
+    return t.split(/(?<!\\)\|/).map((c) => c.trim().replace(/\\\|/g, '|'))
+  }
+  const isTableSeparator = (line) => /\|/.test(line) && tableCells(line).every((c) => /^:?-{1,}:?$/.test(c))
+
   /** Markdown → HTML (saneado): encabezados, párrafos, listas, citas, código, y en línea negrita,
    *  cursiva, código y enlaces. Lo que no reconoce se queda como texto. */
   function markdownToHtml(md) {
-    const inline = (t) => escapeText(t)
+    // HTML written inside the Markdown (an allowed tag: <b>, <br>, <span>…) is kept — the final
+    // sanitizeHtml pass drops what is not on the list and every attribute but a safe href
+    const escapeKeepingTags = (t) => String(t).split(/(<\/?[a-zA-Z][a-zA-Z0-9]*\b(?:[^>"']|"[^"]*"|'[^']*')*>)/)
+      .map((part, i) => (i % 2 && ALLOWED.has(part.replace(/^<\/?([a-zA-Z0-9]+).*$/s, '$1').toLowerCase()) ? part : escapeText(part)))
+      .join('')
+    const inline = (t) => escapeKeepingTags(t)
       .replace(/`([^`]+)`/g, '<code>$1</code>')
       .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
       .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>')
@@ -623,6 +1027,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         continue
       }
       if (!line.trim()) { flushAll(); continue }
+      // GFM table: a header row, a |---|:--:| separator, then body rows
+      if (/\|/.test(line) && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
+        flushAll()
+        const aligns = tableCells(lines[i + 1]).map((c) => (/^:-+:$/.test(c) ? 'center' : /-+:$/.test(c) ? 'right' : ''))
+        const head = tableCells(line)
+        const body = []
+        i += 2
+        while (i < lines.length && /\|/.test(lines[i]) && lines[i].trim()) body.push(tableCells(lines[i++]))
+        i--
+        const cell = (tag, text, k) => '<' + tag + (aligns[k] ? ' align="' + aligns[k] + '"' : '') + '>' + inline(text) + '</' + tag + '>'
+        html.push('<table><thead><tr>' + head.map((c, k) => cell('th', c, k)).join('') + '</tr></thead><tbody>'
+          + body.map((r) => '<tr>' + head.map((_, k) => cell('td', r[k] || '', k)).join('') + '</tr>').join('') + '</tbody></table>')
+        continue
+      }
       const heading = /^\s*(#{1,6})\s+(.*)$/.exec(line)
       if (heading) { flushAll(); html.push('<h' + heading[1].length + '>' + inline(heading[2].trim()) + '</h' + heading[1].length + '>'); continue }
       if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) { flushAll(); html.push('<hr>'); continue }
@@ -643,6 +1061,199 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     flushAll()
     return sanitizeHtml(html.join(''))
+  }
+
+  // ── The stored value of a richText field ─────────────────────────────────────────────────────
+  // (a port of libs/mateu richTextValue.ts — the bridge cannot import libs/mateu.) The value is HTML.
+  // Values written by the old vaadin-rich-text-editor are Quill Delta JSON (`[{"insert":"…"}]` or
+  // `{"ops":[…]}`): they are recognised and turned into the equivalent HTML, so existing data still
+  // opens, and the editor writes HTML from the next edit on.
+
+  const isDeltaOp = (op) => !!op && typeof op === 'object' && 'insert' in op
+
+  /** The ops of a Delta value, or null when the value is not Delta JSON. */
+  function deltaOps(value) {
+    const raw = String(value == null ? '' : value).trim()
+    if (!raw.startsWith('[') && !raw.startsWith('{')) return null
+    try {
+      const parsed = JSON.parse(raw)
+      const ops = Array.isArray(parsed) ? parsed : parsed && Array.isArray(parsed.ops) ? parsed.ops : null
+      return ops && ops.length > 0 && ops.every(isDeltaOp) ? ops : null
+    } catch (e) {
+      // not JSON: plain text or HTML that happens to start with a bracket
+      return null
+    }
+  }
+
+  const deltaEscape = (text) => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  const deltaHref = (href) => {
+    const h = String(href == null ? '' : href).trim()
+    return /^(https?:|mailto:|tel:|\/|#)/i.test(h) || !/^[a-z][a-z0-9+.-]*:/i.test(h) ? h : ''
+  }
+  const deltaInline = (text, a = {}) => {
+    let out = deltaEscape(text)
+    if (a.code) out = '<code>' + out + '</code>'
+    if (a.bold) out = '<strong>' + out + '</strong>'
+    if (a.italic) out = '<em>' + out + '</em>'
+    if (a.underline) out = '<u>' + out + '</u>'
+    if (a.strike) out = '<s>' + out + '</s>'
+    if (a.link && deltaHref(a.link)) out = '<a href="' + deltaEscape(deltaHref(a.link)) + '">' + out + '</a>'
+    return out
+  }
+
+  /** Quill Delta → HTML, for the formats the old editor produced (inline marks, links, headings,
+   *  lists, quotes, code blocks). Line formats live on the newline that ends the line. */
+  function deltaToHtml(ops) {
+    const lines = []
+    let current = ''
+    for (const op of ops) {
+      if (typeof op.insert !== 'string') continue // embeds (images…) are not carried over
+      const parts = op.insert.split('\n')
+      parts.forEach((part, i) => {
+        if (part) current += deltaInline(part, op.attributes)
+        if (i < parts.length - 1) {
+          lines.push({ html: current, attrs: op.attributes || {} })
+          current = ''
+        }
+      })
+    }
+    if (current) lines.push({ html: current, attrs: {} })
+    const out = []
+    let list = null
+    const flush = () => {
+      if (list) out.push('<' + list.tag + '>' + list.items.map((i) => '<li>' + i + '</li>').join('') + '</' + list.tag + '>')
+      list = null
+    }
+    for (const line of lines) {
+      const a = line.attrs
+      const listTag = a.list === 'ordered' ? 'ol' : a.list === 'bullet' ? 'ul' : null
+      if (listTag) {
+        if (!list || list.tag !== listTag) { flush(); list = { tag: listTag, items: [] } }
+        list.items.push(line.html)
+        continue
+      }
+      flush()
+      const level = Number(a.header)
+      if (level >= 1 && level <= 6) out.push('<h' + level + '>' + line.html + '</h' + level + '>')
+      else if (a.blockquote) out.push('<blockquote>' + line.html + '</blockquote>')
+      else if (a['code-block']) out.push('<pre><code>' + line.html + '</code></pre>')
+      else out.push('<p>' + line.html + '</p>')
+    }
+    flush()
+    return out.join('')
+  }
+
+  /** The HTML to open a stored value with: the value itself, or its Delta converted. */
+  function richTextHtml(value) {
+    const ops = deltaOps(value)
+    return ops ? deltaToHtml(ops) : (value == null ? '' : String(value))
+  }
+
+  /** What the editor stores: '' for an editor left empty (only empty paragraphs/breaks), else the
+   *  sanitised HTML. */
+  function richTextValueOf(html) {
+    const clean = sanitizeHtml(html)
+    return clean.replace(/<(p|div)>(\s|&nbsp;|<br>)*<\/\1>/g, '').replace(/<br>/g, '').trim() ? clean : ''
+  }
+
+  /** The toolbar of the editor: each command and its accessible label. */
+  const RICH_TEXT_COMMANDS = [
+    { cmd: 'bold', icon: 'oj-ux-ico-bold', label: 'rteBold', key: 'b' },
+    { cmd: 'italic', icon: 'oj-ux-ico-italics', label: 'rteItalic', key: 'i' },
+    { cmd: 'underline', icon: 'oj-ux-ico-underline', label: 'rteUnderline', key: 'u' },
+    { cmd: 'insertUnorderedList', icon: 'oj-ux-ico-list-bulleted', label: 'rteBullets' },
+    { cmd: 'insertOrderedList', icon: 'oj-ux-ico-number-list', label: 'rteNumbers' },
+    { cmd: 'createLink', icon: 'oj-ux-ico-link', label: 'rteLink' },
+    { cmd: 'removeFormat', icon: 'oj-ux-ico-remove-formatting', label: 'rteClear' },
+  ]
+
+  /**
+   * `<mateu-rich-text-field value="<p>…</p>" readonly>`: the editor of an editable richText field.
+   * JET/Redwood has no rich text editor (oj-text-area is plain text), and the web renderer's editor
+   * (Tiptap) cannot be imported by the bridge — so a small one: a toolbar of oj-buttons over a
+   * contenteditable region. The value is HTML (a legacy Delta opens converted); it leaves as
+   * `valueChanged` {value, updatedFrom:'internal'} — the event shape of a JET component, so the
+   * field chains treat it like any other — on blur, sanitised by the same allowlist as the viewer.
+   */
+  function defineRichTextField(win = typeof window !== 'undefined' ? window : null) {
+    if (!win || !win.customElements || win.customElements.get('mateu-rich-text-field')) return
+    const doc = win.document
+    class MateuRichTextField extends win.HTMLElement {
+      static get observedAttributes() { return ['value', 'readonly', 'aria-label'] }
+      connectedCallback() { this.render() }
+      attributeChangedCallback() { if (this.isConnected && !this.editing) this.render() }
+      get value() { return this.getAttribute('value') || '' }
+      set value(v) { if (v == null || v === '') this.removeAttribute('value'); else this.setAttribute('value', String(v)) }
+      get readonlyNow() { return this.hasAttribute('readonly') && this.getAttribute('readonly') !== 'false' }
+      commit() {
+        if (!this.area) return
+        const value = richTextValueOf(this.area.innerHTML)
+        if (value === richTextValueOf(richTextHtml(this.value))) return
+        this.editing = true
+        this.value = value
+        this.editing = false
+        this.dispatchEvent(new win.CustomEvent('valueChanged', {
+          detail: { value: value || null, previousValue: null, updatedFrom: 'internal' }, bubbles: true }))
+      }
+      render() {
+        this.textContent = ''
+        this.classList.add('mateu-rich-text-field')
+        const html = sanitizeHtml(richTextHtml(this.value))
+        if (this.readonlyNow) {
+          const view = doc.createElement('div')
+          view.className = 'mateu-atom-richtext oj-typography-body-md'
+          view.innerHTML = html
+          this.appendChild(view)
+          this.area = null
+          return
+        }
+        const bar = doc.createElement('div')
+        bar.className = 'mateu-rte-toolbar'
+        bar.setAttribute('role', 'toolbar')
+        bar.setAttribute('aria-label', chromeText('formatting'))
+        const area = doc.createElement('div')
+        area.className = 'mateu-rte-area oj-typography-body-md'
+        area.setAttribute('contenteditable', 'true')
+        area.setAttribute('role', 'textbox')
+        area.setAttribute('aria-multiline', 'true')
+        if (this.getAttribute('aria-label')) area.setAttribute('aria-label', this.getAttribute('aria-label'))
+        area.innerHTML = html
+        for (const c of RICH_TEXT_COMMANDS) {
+          const b = doc.createElement('oj-button')
+          b.setAttribute('data-oj-binding-provider', 'none')
+          b.setAttribute('display', 'icons')
+          b.setAttribute('chroming', 'borderless')
+          b.className = 'oj-button-sm'
+          const icon = doc.createElement('span')
+          icon.setAttribute('slot', 'startIcon')
+          icon.className = c.icon
+          b.appendChild(icon)
+          b.appendChild(doc.createTextNode(chromeText(c.label)))
+          // keep the selection in the editor when the button takes the click
+          b.addEventListener('mousedown', (e) => e.preventDefault())
+          b.addEventListener('ojAction', (e) => {
+            e.stopPropagation()
+            area.focus()
+            if (c.cmd === 'createLink') {
+              const url = win.prompt(chromeText('rteLinkPrompt'), 'https://')
+              if (url && deltaHref(url)) doc.execCommand('createLink', false, url)
+            } else doc.execCommand(c.cmd, false, null)
+            this.commit()
+          })
+          bar.appendChild(b)
+        }
+        area.addEventListener('blur', () => this.commit())
+        area.addEventListener('keydown', (e) => {
+          const mod = e.ctrlKey || e.metaKey
+          const hit = mod && RICH_TEXT_COMMANDS.find((c) => c.key && c.key === String(e.key).toLowerCase())
+          if (hit) { e.preventDefault(); doc.execCommand(hit.cmd, false, null) }
+        })
+        this.area = area
+        this.appendChild(bar)
+        this.appendChild(area)
+      }
+    }
+    win.customElements.define('mateu-rich-text-field', MateuRichTextField)
   }
 
   /** Vuelca el HTML saneado de cada [data-mateu-html] en su contenedor (y cuando cambia). */
@@ -693,7 +1304,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * siendo del navegador. `location` es la de la página (window.location); `hashMode` es la shell
    * servida en estático, cuyas rutas viven en `#/ruta`.
    */
-  function inAppRouteOfLink(anchor, event, location, hashMode = false) {
+  function inAppRouteOfLink(anchor, event, location, hashMode = false, mount = '') {
     if (!anchor || !anchor.getAttribute || !location) return null
     if (event && (event.defaultPrevented || event.button > 0
       || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)) return null
@@ -716,33 +1327,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     if (url.protocol !== 'http:' && url.protocol !== 'https:') return null
     if (url.origin !== location.origin) return null
-    const path = url.pathname || '/'
+    let path = url.pathname || '/'
     // un ancla a esta misma página (#expand=…): la hace el navegador
     if (url.hash && path === location.pathname && url.search === (location.search || '')) return null
+    // the app mounted under a path (@UI("/console")): only links below it are screens of THIS app
+    // (another path is another UI: the browser loads it), its route is the part after the mount and
+    // the mount itself is the home
+    const m = String(mount || '').replace(/\/+$/, '')
+    if (m) {
+      if (path === m || path === m + '/') path = '/'
+      else if (path.startsWith(m + '/')) path = path.slice(m.length)
+      else return null
+    }
     if (NOT_A_SCREEN.test(path) || LOOKS_LIKE_FILE.test(path)) return null
     return path + url.search
   }
 
 
-  // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
-  // En la app VB estas funciones serían métodos de app-flow.js; aquí son funciones
-  // libres para testearlas en Node.
-  //
-  // v3 (2026-07-24): ajustado al WIRE REAL (fixtures/real/*.json, capturados con capture.mjs
-  // contra demo/demo-vb en :9005). Contrato observado:
-  //   - Bootstrap del shell: POST {base}/mateu/v3/components/_/action (route '', __load__) → App.
-  //     Todo lo demás: POST {base}/mateu/v3/sync/{route|_no_route} con actionId '' para cargas.
-  //   - `targetComponentId` es el ECO del `initiatorComponentId` de la request ('' → host), y el
-  //     server DERIVA los ids internos del initiator ('crud1' → 'crud1_app', 'crud1_list'): la
-  //     unicidad de ids entre superficies es responsabilidad del CLIENTE (un contextId por superficie).
-  //   - El estado viaja en `fragment.state`; los overlays (Drawer) llevan `metadata.initialData`.
-  //   - Un mediador (crud, isla) llega como ServerSide cuyo child0 es un App (chromeless): su
-  //     CONTENIDO se carga con una segunda request con consumedRoute=rootRoute del App interior
-  //     + serverSideType=homeServerSideType. `mediatorOf(ctx)` extrae esa info.
-  //   - CloseModal lleva data.eventName → hay que emitir el evento del bus (@SubscribeTo);
-  //     p.ej. el crud refresca el listado suscrito a 'mateu-crud:saved-in-drawer'.
-  //   - Una frontera de isla embebida es un nodo ServerSide interior con id = nombre de campo
-  //     ('_guestNote') y initialData con los marcadores (_embeddedMediator/_inline).
+
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the component tree: walks, fields, actions, islands, overlays, texts.
 
   const HOST_ID = '__root__'
 
@@ -1098,6 +1702,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
+
+
+
+
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): page archetypes projected from the tree: foldout, wizard.
+
   /** Proyección del FOLDOUT (Fase 7): overview + paneles con sus cabeceras (metadata.panels)
    *  y su contenido slotted (overview / panel-N). null si el contexto no es un foldout.
    *  Cada slot proyecta además sus bloques RICOS (mismo pipeline que el host: tarjetas
@@ -1250,6 +1861,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+
+
+
+
+
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): single-component atom projections: matrix, map, action panel, grid tracks, avatar, metric, chart; the wizard step view.
+
   // ── MatrixGrid → oj-data-grid ────────────────────────────────────────────────────────────────
   // La matriz (filas × fechas, secciones plegables, celdas que enlazan y filas editables) la pinta
   // el oj-data-grid de JET sobre un RowDataGridProvider de un FlattenedTreeDataProviderView: las
@@ -1328,7 +1947,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return {
       isMap: true,
       mapId: 'mateuMap-' + (id || 'map'),
-      mapSpec: JSON.stringify({ position: m.position || '', zoom: m.zoom || '', markers, markerActionId: m.markerActionId || '' }),
+      mapSpec: JSON.stringify({
+        position: m.position || '', zoom: m.zoom || '', markers, markerActionId: m.markerActionId || '',
+        // el proveedor de teselas del wire ('' = OSM, ver tileLayerOf en map.mjs)
+        tileUrl: m.tileUrl || '', attribution: m.attribution || '',
+      }),
       mapStyle: { width: '100%', height: mapHeightOf(style) },
     }
   }
@@ -1555,6 +2178,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
     // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
     'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt', 'isImage', 'isAvatar', 'isGallery', 'isRichText', 'isMap',
+    // the display components of core/display.mjs
+    'isKanban', 'isTimeline', 'isPricing', 'isOrgChart', 'isHeatmap', 'isFunnel', 'isFeatureGrid', 'isTestimonials',
+    'isCallout', 'isComments', 'isFileList', 'isChecklist', 'isComparison', 'isProcessMonitor', 'isSkeleton', 'isIcon',
+    'isTooltip', 'isContextMenu', 'isMenuBar', 'isDirectory', 'isMessages', 'isMessageInput', 'isChatComponent', 'isBpmn',
+    'isWorkflow', 'isResult', 'isCookieConsent', 'isConfirmDialog', 'isBreadcrumbs', 'isStepHeader', 'isCarouselPager',
+    'isHero', 'isEmptyStateAtom', 'isProgressBar', 'isCustomSlot',
   ]
   function isRichAtom(a) {
     return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -1632,6 +2261,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }))
     return { wizard, title: title || wizard.title, subtitle: wizard.subtitle, content, sections, nav }
   }
+
+
+
+
+
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): welcome, general/item overview, content tab strips, banners, page style.
 
   /** Helper de RENDER: todos los nodos de un tipo (sin cruzar fronteras de isla). */
   function findAllByType(tree, type) {
@@ -1711,7 +2347,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       ? tm.chartData.datasets[0] : null
     const values = tm ? (tm.values || (dataset ? dataset.data : []) || []) : []
     const labels = tm ? (tm.labels || (tm.chartData ? tm.chartData.labels : []) || []) : []
-    const series = (dataset && dataset.label) || 'Ocupación %'
+    const series = (dataset && dataset.label) || chromeText('occupancy')
     const trend = tm
       ? {
           title: trendPanel.metadata.title || tm.title || '',
@@ -1882,6 +2518,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       padding: '24px',
     }
   }
+
+
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the shell: icons and the navigation menu.
 
   /** Proyección de NAVEGACIÓN de la shell: items de primer nivel + grupos con sus hijos.
    *  Los hijos de un grupo navegan por su ruta COMPUESTA (/gestion/person) con el serverSideType
@@ -2091,6 +2731,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
+
   /** Colores de Chip del wire → clases badge de JET (sistema, Redwood). PRECOMPUTADO (CSP). */
   const BADGE_CLASSES = {
     error: 'oj-badge oj-badge-danger oj-badge-subtle',
@@ -2111,7 +2768,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // una cola DENTRO de un panel de consola es la lista de esa consola (átomo isQueue del
     // dispatcher), no el modo «cola de trabajo + isla» de página completa
     const node = findOutsidePanes(tree, 'TaskQueue')
-    if (!node) return null
+    // …ni la lista de un template con huecos (CollectionDetail: TaskQueue@list junto a su @detail):
+    // es contenido, y el detalle que llega al elegir se pinta a su lado
+    if (!node || node.slot) return null
     return queueProjectionOf(node.metadata)
   }
 
@@ -2144,8 +2803,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** Proyección del EmptyState suelto (placeholder del panel de detalle, o página de
    *  bienvenida). Tras seleccionar un item el server lo sustituye por la isla → null. */
+  /** The PAGE's empty state: the first EmptyState that is not in a slot of a template (a slotted
+   *  one — the @detail placeholder of a CollectionDetail — is content). */
+  const pageEmptyStateNode = (tree) => findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot))
   function emptyStateOf(tree) {
-    const node = findByType(tree, 'EmptyState')
+    const node = pageEmptyStateNode(tree)
     if (!node) return null
     const md = node.metadata
     return {
@@ -2247,6 +2909,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const panelState = {}
   function setPanelExpanded(key, expanded) { panelState[key] = !!expanded }
   function panelExpanded(key, fallback) { return key in panelState ? panelState[key] : !!fallback }
+  // Other CLIENT-side view state of the content (the slide a carousel shows, the page a Grid shows,
+  // the open rows of a tree Grid): a value per key; changing it re-projects (uiValueChanged chain).
+  const uiState = {}
+  function setUiValue(key, value) { uiState[key] = value }
+  function uiValueOf(key, fallback) { return key in uiState ? uiState[key] : fallback }
 
   let converterFactory = null
   function setConverterFactory(factory) { converterFactory = factory }
@@ -2650,8 +3317,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
         const kids = order.map((i) => serverKids[i])
         const spans = order.map((i) => serverSpans[i])
+        // auto-fill / auto-fit tracks (repeat(auto-fit, minmax(16rem, 1fr))): as many tiles per row
+        // as fit at each breakpoint — responsive oj-flex classes instead of stacking them
+        // (no columns and no areas: the web's default, a responsive auto-fit of 16rem tiles)
+        const autoFit = autoFitColClass(m.gridTemplateColumns
+          || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() ? '' : AUTO_FIT_DEFAULT))
         const classes = gridColClasses(m.gridTemplateColumns, spans, kids.length)
-        if (classes && projectSized(kids, classes, tags)) return
+          || (autoFit ? kids.map(() => autoFit) : null)
+        // a slot TEMPLATE (gridTemplateAreas: @Aside, a CollectionDetail…) is the page's layout: its
+        // blocks carry the mark, and the content wins over the generic form (hostContentShown)
+        const templated = !!(m.gridTemplateAreas && String(m.gridTemplateAreas).trim())
+        const allTags = templated ? kids.map((_, i) => ({ ...((tags && tags[i]) || {}), fromTemplate: true })) : tags
+        if (classes && projectSized(kids, classes, allTags)) return
       }
       if (t === 'DashboardLayout') {
         const columns = m.columns > 0 ? m.columns : 3
@@ -2701,6 +3378,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
         const toolbar = (m.toolbar || []).filter((b) => b && b.actionId)
         if (toolbar.length) atom({ isButtons: true, fromPageToolbar: true, buttons: toolbar.map(buttonOf) }, container)
+        for (const child of kidsOf(node)) visit(child, container)
+        return
+      }
+      if (t === 'CustomComponent' && customComponentRegistered(m.name)) {
+        // the app registered a view for it (registerCustomComponent): its slot, then its children
+        atom(customComponentAtomOf(m, node.id), container)
         for (const child of kidsOf(node)) visit(child, container)
         return
       }
@@ -2871,8 +3554,29 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           if (cm.type === 'GridColumn' || cm.id) leafColumns.push(cm)
         }
         ;(m.content || []).forEach(walkCols)
-        const rows = ((m.page && m.page.content) || []).map((r, i) => ({ ...r, _rowNumber: r._rowNumber == null ? i : r._rowNumber }))
-        const columns = leafColumns.map((c) => ({ headerText: interp(c.label || c.id), field: c.id }))
+        const gridKey = 'grid:' + (node.id && node.id !== 'fieldId' ? node.id : 'grid')
+        const raw = (m.page && m.page.content) || []
+        // TREE (Grid.tree, rows with a `children` list): flattened with each row's depth; the first
+        // column carries the disclosure (open rows are client state, like a collapsible)
+        const tree = !!m.tree && raw.some((r) => Array.isArray(r && r.children) && r.children.length)
+        const flat = tree
+          ? flattenTreeRows(raw, (key) => !!uiValueOf(gridKey + ':open:' + key, false)).map((r) => ({
+            ...r,
+            __indentStyle: { paddingInlineStart: (r.__depth * 1.5) + 'rem' },
+            __toggleIcon: r.__hasChildren ? (r.__expanded ? 'oj-ux-ico-chevron-down' : 'oj-ux-ico-chevron-right') : '',
+            __toggleLabel: r.__expanded ? 'Collapse' : 'Expand',
+            __uiKey: gridKey + ':open:' + r.__treeKey,
+            __uiValue: !r.__expanded,
+          }))
+          : raw
+        // PAGING: Grid.size rows per page (client side, the rows travel inline)
+        const paging = gridPageOf(flat, tree ? 0 : (m.size || 0), uiValueOf(gridKey + ':page', 0))
+        const rows = paging.rows.map((r, i) => ({ ...r, _rowNumber: r._rowNumber == null ? i : r._rowNumber }))
+        const columns = leafColumns.map((c, i) => {
+          const def = { headerText: interp(c.label || c.id), field: c.id }
+          if (tree && i === 0) def.template = 'cellTreeToggle'
+          return def
+        })
         atom({
           isGrid: true,
           fieldId: node.id || 'grid',
@@ -2884,6 +3588,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           rowEditable: false,
           addActionId: '',
           addLabel: 'Add',
+          paged: paging.paged,
+          pageText: paging.rangeText,
+          pager: pagerButtonsOf(gridKey + ':page', paging.page - 1, paging.page + 1, paging.prevDisabled, paging.nextDisabled),
         }, container)
         return
       }
@@ -2913,12 +3620,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const wrappedTexts = m.wrapped ? collectTexts(m.wrapped).map(interp).filter(Boolean) : []
         const label = wrappedTexts.join(' ') || (m.wrapped && m.wrapped.metadata && m.wrapped.metadata.label) || 'Details'
         const lines = m.content ? collectTexts(m.content).map(interp).filter(Boolean) : []
-        const text = lines.join('\n')
+        // the content WITH its structure (headings, lists, links, badges…) as sanitised HTML: the
+        // popup shows that, the text lines stay as its accessible fallback
+        const html = m.content ? componentHtmlOf(m.content, interp) : ''
+        const text = lines.join('\n') || (html ? ' ' : '')
         atom({
           isPopover: true,
           label: interp(label),
           hoverText: m.trigger === 'hover' ? text : '',
           clickText: m.trigger === 'hover' ? '' : text,
+          html,
         }, container)
         return
       }
@@ -3132,7 +3843,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             actionId: m.methodActionId,
             parameters: { _method: method.id },
           })),
-          confirmLabel: m.confirmLabel || 'Confirmar',
+          confirmLabel: m.confirmLabel || chromeText('confirm'),
           confirmActionId: m.actionId,
           confirmParameters: { _method: m.selected },
         }, container)
@@ -3160,7 +3871,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           label: interp(m.label || ''),
           value: done,
           max: total,
-          valueText: done + ' de ' + total,
+          valueText: chromeText('progressOf', { done, total }),
           panelClass: complete
             ? 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-success-30'
             : 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-neutral-20',
@@ -3185,6 +3896,143 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         else atom({ isButtons: true, buttons: [buttonOf(m)] }, container)
         return
       }
+      // ── display components with their own projection (core/display.mjs) ──
+      if (t === 'Kanban') { atom(kanbanAtomOf(m, interp), container); return }
+      if (t === 'Timeline') { atom(timelineAtomOf(m, interp), container); return }
+      if (t === 'PricingTable') { atom(pricingAtomOf(m, interp), container); return }
+      if (t === 'OrgChart') { atom(orgChartAtomOf(m, interp), container); return }
+      if (t === 'Heatmap') { atom(heatmapAtomOf(m), container); return }
+      if (t === 'Funnel') { atom(funnelAtomOf(m, interp), container); return }
+      if (t === 'FeatureGrid') { atom(featureGridAtomOf(m, interp), container); return }
+      if (t === 'Testimonials') { atom(testimonialsAtomOf(m, interp), container); return }
+      if (t === 'CalloutCard') { atom(calloutAtomOf(m, interp), container); return }
+      if (t === 'CommentThread') { atom(commentsAtomOf(m, interp), container); return }
+      if (t === 'FileList') { atom(fileListAtomOf(m, interp), container); return }
+      if (t === 'Checklist') { atom(checklistAtomOf(m, interp), container); return }
+      if (t === 'ComparisonCard') { atom(comparisonAtomOf(m, interp), container); return }
+      if (t === 'ProcessMonitor') { atom(processMonitorAtomOf(m, interp), container); return }
+      if (t === 'Skeleton') { atom(skeletonAtomOf(m), container); return }
+      if (t === 'Icon') { atom(iconAtomOf(m), container); return }
+      if (t === 'MenuBar') { atom(menuBarAtomOf(m, interp), container); return }
+      if (t === 'Directory') { atom(directoryAtomOf(m, interp), container); return }
+      if (t === 'MessageList') { atom(messageListAtomOf(m, interp), container); return }
+      if (t === 'MessageInput') { atom(messageInputAtomOf(m, node.id), container); return }
+      if (t === 'Chat') { atom(chatAtomOf(m, node.id), container); return }
+      if (t === 'Bpmn') { atom(bpmnAtomOf(m, node.id), container); return }
+      if (t === 'Workflow') { atom(workflowAtomOf(m), container); return }
+      if (t === 'Result') { atom(resultAtomOf(m, interp), container); return }
+      if (t === 'CookieConsent') { atom(cookieConsentAtomOf(m, interp), container); return }
+      if (t === 'Breadcrumbs') { atom(breadcrumbsAtomOf(m, interp), container); return }
+      if (t === 'Notification') { atom(notificationAtomOf(m, interp), container); return }
+      if (t === 'MicroFrontend') {
+        // a surface of its own, loaded from its baseUrl like a @Subresource (withSubresources paints it)
+        const sub = microFrontendOf(m)
+        atom({ isSubresource: true, islandId: sub.id, subresource: sub }, container)
+        return
+      }
+      if (t === 'HeroSection') {
+        // a hero in the content (the Welcome archetype paints its own with oj-sp-header-welcome-banner)
+        atom(heroAtomOf(m, interp), container)
+        for (const child of kidsOf(node)) visit(child, container)
+        return
+      }
+      // an EmptyState inside the content (the host's FIRST one is the page-level oj-sp-empty-state
+      // of emptyStateOf — painted there, not twice)
+      if (t === 'EmptyState' && !(ctx.kind === 'host' && pageEmptyStateNode(ctx.tree) === node)) {
+        atom(emptyStateAtomOf(m, interp), container)
+        return
+      }
+      // a ProgressBar in the content (a wizard's own progress is its guided process, wizardOf)
+      if (t === 'ProgressBar' && !wizardOf(ctx)) {
+        atom(progressBarAtomOf(m, state, interp), container)
+        return
+      }
+      if (t === 'ConfirmDialog') {
+        // its message is its children; only open while openedCondition holds over the state
+        const lines = kidsOf(node).flatMap((k) => collectTexts(k))
+        atom(confirmDialogAtomOf(m, node.id, state, interp, lines), container)
+        return
+      }
+      if (t === 'Faq') {
+        // like an accordion: a collapsible header per question, the answer after it when open
+        ;(m.items || []).forEach((item, i) => {
+          const key = 'faq:' + (node.id && node.id !== 'fieldId' ? node.id : 'faq') + ':' + i
+          const expanded = panelExpanded(key, !!item.open)
+          atom({ isCollapsible: true, collapsibleKey: key, title: interp(item.question || ''), expanded, disabled: false }, container)
+          if (expanded) atom({ isRichText: true, label: '', html: richHtmlOf('markdown', interp(item.answer || '')) }, container)
+        })
+        return
+      }
+      if (t === 'Tooltip') {
+        // the wrapped component keeps its own view; the tooltip text opens in the shared popup
+        // (hover.mjs) on hover/focus — on the button itself, or on an info marker next to it
+        const text = interp(m.text || '')
+        const wrapped = m.wrapped
+        const wm = wrapped && wrapped.metadata
+        if (wm && wm.type === 'Button') {
+          atom({ isButtons: true, buttons: [{ ...buttonOf(wm), tooltip: text }] }, container)
+          return
+        }
+        const inline = wm && (wm.type === 'Text' || wm.type === 'Badge' || wm.type === 'Icon' || wm.type === 'Anchor')
+        if (inline) {
+          const label = collectTexts(wrapped).map(interp).join(' ') || interp(wm.text || wm.icon || '')
+          atom({ isTooltip: true, label, text }, container)
+          return
+        }
+        if (wrapped) visit(wrapped, container)
+        atom({ isTooltip: true, label: '', text, infoOnly: true }, container)
+        return
+      }
+      if (t === 'ContextMenu') {
+        if (m.wrapped) visit(m.wrapped, container)
+        for (const child of kidsOf(node)) visit(child, container)
+        atom(contextMenuAtomOf(m, interp), container)
+        return
+      }
+      if (t === 'VirtualList') {
+        // every item through the same visitor (a component), or as a line of text (plain data)
+        const items = (m.page && m.page.content) || []
+        for (const item of items) {
+          if (item && typeof item === 'object' && (item.metadata || item.type)) visit(item.metadata ? item : { metadata: item }, container)
+          else if (item && typeof item === 'object') {
+            atom({ isPropertyRow: true, label: String(item.title || item.name || item.label || item.id || ''), value: Object.entries(item).filter(([k, v]) => v != null && typeof v !== 'object' && !/^(title|name|label|id)$/.test(k)).map(([k, v]) => k + ': ' + v).join(' · ') }, container)
+          } else if (item != null) atom({ isText: true, text: String(item), cls: 'oj-typography-body-md' }, container)
+        }
+        return
+      }
+      if (t === 'Stepper') {
+        // a numbered step per child (the wire record carries no fields of its own)
+        kidsOf(node).forEach((child, i) => {
+          const label = (child.metadata && (child.metadata.title || child.metadata.label)) || ''
+          atom({ isStepHeader: true, number: String(i + 1), label: interp(label) }, container)
+          visit(child, container)
+        })
+        return
+      }
+      if (t === 'FormEditor') {
+        // the form the definition describes, painted with the form layout's real widgets (a preview)
+        const def = formEditorFieldsOf(m)
+        if (!def) { atom(unsupportedAtomOf('FormEditor', node.id), container); return }
+        atom({ isText: true, isHeading: true, isH2: false, text: def.name, cls: 'oj-typography-subheading-xs' }, container)
+        if (def.description) atom({ isText: true, text: def.description, cls: 'oj-typography-body-sm oj-text-color-secondary' }, container)
+        const fields = def.fields.map((md) => layoutFieldOf(md, state, ctx.data, 2)).filter(Boolean)
+        if (fields.length) atom({ isFormLayout: true, columns: 2, fields, readonly: false }, container)
+        return
+      }
+      if (t === 'CarouselLayout') {
+        // a carousel of arbitrary content (a gallery took the oj-film-strip branch above): one slide
+        // at a time with its pager — the slide shown is client state (uiValueChanged)
+        const slides = kidsOf(node)
+        if (slides.length > 1) {
+          const key = 'carousel:' + (node.id && node.id !== 'fieldId' ? node.id : 'carousel')
+          const current = Math.max(0, Math.min(slides.length - 1, Number(uiValueOf(key, 0)) || 0))
+          atom(carouselPagerAtomOf(key, current, slides.length, !!m.loop), container)
+          visit(slides[current], container)
+          return
+        }
+      }
+      // a type nobody paints: a visible placeholder (like the web renderers), its children still render
+      if (t && !VISITOR_PASS_THROUGH[t]) atom(unsupportedAtomOf(t, node.id), container)
       for (const child of kidsOf(node)) visit(child, container)
     }
     visit(ctx.tree, null)
@@ -3210,6 +4058,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!blocks || !blocks.length) return false
     const rich = (a) => isRichAtom(a) || !!(a && (a.isTabs || a.isGrid || a.isElement || a.isSubresource))
     if (blocks.some((block) => (block.items || []).some(rich))) return true
+    // the page is laid out by a slot template (a form with its @Aside…): its fields are painted in it
+    if (blocks.some((block) => block.fromTemplate)) return true
     const s = summary || {}
     return !s.formMetadata && !(s.fields || []).length && !(s.sections || []).length && !s.text
   }
@@ -3271,7 +4121,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const crud = findByType(ctx.tree, 'Crud')
         if (!crud) {
           const inner = islandContentOf(ctx)
-          return inner ? inner.flatMap((b) => b.items) : []
+          const items = inner ? inner.flatMap((b) => b.items) : []
+          // a MicroFrontend's surface: its actions go back to IT (dispatchHostBlockAction → surface)
+          return a.subresource && a.subresource.surface ? tagSurfaceActions(items, a.islandId) : items
         }
         const md = crud.metadata || {}
         const wire = (md.columns || []).map((col) => col.metadata || col)
@@ -3410,6 +4262,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     return forward
   }
+
+
+
+
+
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the page header: entity header, KPIs, subtitle, toolbar, back/primary buttons, triggers.
 
   /** El EntityHeader del host (p.ej. el huésped de la Reserva 360) proyectado al HEADER de
    *  pantalla: título = el nombre, subtítulo = subtitle + badges, facts (+métrica) →
@@ -3676,6 +4535,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+
+
+
+
+
+
+
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): listings: the table, paging, sort, selection, filters and the smart search bar.
+
   /** Helper de RENDER: primer nodo del árbol con metadata.type dado. */
   function findByType(tree, type) {
     let found = null
@@ -3850,15 +4719,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  const PAGING_TEXTS = {
-    en: { of: 'of', page: 'Page', first: 'First page', prev: 'Previous page', next: 'Next page', last: 'Last page' },
-    es: { of: 'de', page: 'Página', first: 'Primera página', prev: 'Página anterior', next: 'Página siguiente', last: 'Última página' },
-  }
-
+  // los textos del pie, del catálogo de la interfaz (i18n.mjs)
   function pagingLangOf(lang) {
-    const raw = lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
-      || (typeof navigator !== 'undefined' && navigator.language) || ''
-    return PAGING_TEXTS[String(raw).toLowerCase().split(/[-_]/)[0]] || PAGING_TEXTS.en
+    const l = chromeLanguage(lang)
+    const t = (key) => chromeText(key, null, l)
+    return { of: t('pagingOf'), page: t('pagingPage'), first: t('pagingFirst'), prev: t('pagingPrev'), next: t('pagingNext'), last: t('pagingLast') }
   }
 
   /**
@@ -4352,15 +5217,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** El filtro reservado de la selección por ids (lo aplica el server, ningún listado lo declara). */
   const IDS_PARAM = 'ids'
 
-  const IDS_TEXTS = {
-    en: { few: 'Selection: ', many: (n) => n + ' selected items' },
-    es: { few: 'Selección: ', many: (n) => n + ' elementos seleccionados' },
-  }
-
   function idsTextsOf(lang) {
-    const raw = lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
-      || (typeof navigator !== 'undefined' && navigator.language) || ''
-    return IDS_TEXTS[String(raw).toLowerCase().split(/[-_]/)[0]] || IDS_TEXTS.en
+    const l = chromeLanguage(lang)
+    return { few: chromeText('idsFew', null, l), many: (n) => chromeText('idsMany', { n }, l) }
   }
 
   /** El rótulo del chip de la selección: los ids si son pocos (≤3), si no cuántos son. */
@@ -4739,7 +5598,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * desde 8af850e63): el buscador del listado vuelve a ser una caja con su menú de filtros.
    */
   async function smartFiltersOf(filters, values, searchText) {
-    const config = { askHint: 'Buscar…', value: smartFilterValueOf(filters, values, searchText) }
+    const config = { askHint: chromeText('search'), value: smartFilterValueOf(filters, values, searchText) }
     const hasIds = !isBlank((values || {})[IDS_PARAM])
     if ((!filters || !filters.length) && !hasIds) return config
     // sin filtros declarados pero con selección por ids: el chip necesita su metadata, no sugerencias
@@ -4762,6 +5621,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (Array.isArray(value)) return value.length === 0
     return String(value).trim() === ''
   }
+
+
+
+
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the reducer: increments → contexts/stack/shell, mediators, overlays.
 
   /** Triggers OnLoad del contexto (p.ej. el listing dispara 'search' al cargar). */
   function onLoadTriggers(ctx) {
@@ -4968,6 +5833,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           accessKeys: !!md.accessKeys,
           // NotificationsSupplier del App → la campana de la cabecera (notify.mjs)
           notificationsEnabled: !!md.notificationsEnabled,
+          // GlobalSearchSupplier del App → la paleta Ask busca también entidades (globalSearch.mjs)
+          globalSearchEnabled: !!md.globalSearchEnabled,
+          // @Fab del App: botones flotantes globales (fabs.mjs)
+          fabs: md.fabs || [],
           // el logo del @App (@Logo, p.ej. /images/riu.svg — relativo al backend)
           logo: md.logo || '',
           // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la
@@ -4975,6 +5844,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           homeRoute: md.homeRoute || '',
           // chat de IA (@AI → App.sseUrl): si viene, la shell pinta el botón del chat del agente en la cabecera
           sseUrl: md.sseUrl || '',
+          // @AI(upload) → el botón de adjuntar del chat; @AI(mcp) → el mcpUrl que el agente usa para operar la app
+          uploadUrl: md.uploadUrl || '',
+          mcpUrl: md.mcpUrl || '',
           // el FAB de "ask" del shell (@App(askLabel, askIcon)): vacíos = el FAB neutro (Search)
           askLabel: md.askLabel || '',
           askIcon: md.askIcon || '',
@@ -5079,6 +5951,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (reg.loadedRoute) kept.loadedRoute = reg.loadedRoute
     return { ...kept, contexts, stack, shell, effects }
   }
+
+
+
+
+
+
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): forms: list actions, the modal row editor, field widgets, validation, confirmation, lookups.
 
   // ── EDITOR DE FILAS de una lista del formulario (@DetailFormCustomisation position = modal) ──
   //
@@ -5278,7 +6158,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     let value = raw == null || raw === '' ? null : raw
     if (widget.isBoolean) value = !!raw
     else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
-    else if (widget.isNumber || widget.isMoney) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
+    else if (widget.isNumber || widget.isMoney || widget.isSlider || widget.isStars) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
     else if (widget.isMultiSelect || widget.isCheckboxSet) value = Array.isArray(raw) ? raw.map(plainValueOf) : (raw == null || raw === '' ? [] : String(raw).split(','))
     else if (value != null && typeof value === 'object') value = plainValueOf(value)
     return {
@@ -5524,12 +6404,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }
     if (CAPTURE_MODES[st]) return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || '' }
+    // slider → oj-slider; stars → oj-rating-gauge; color → mateu-color-field (a hex string: JET's
+    // oj-color-spectrum works on oj.Color objects); richText → mateu-rich-text-field (HTML, Delta read)
+    if (st === 'slider') {
+      const min = Number(f.sliderMin) || 0
+      const max = Number(f.sliderMax) > min ? Number(f.sliderMax) : 100
+      return { isSlider: true, min, max, step: Number(f.step) > 0 ? Number(f.step) : 1 }
+    }
+    if (st === 'stars') return { isStars: true, max: Number(f.sliderMax) > 0 ? Number(f.sliderMax) : 5 }
+    if (st === 'color') return { isColor: true }
+    if (st === 'richText' && !f.readOnly) return { isRichEditor: true }
     return null
   }
 
   /** ¿Lo pinta el oj-form-layout? (además de los LAYOUT_TYPES de siempre) */
   function isExtraLayoutField(md) {
     return !!(md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
+      || md.stereotype === 'slider' || md.stereotype === 'stars' || md.stereotype === 'color'
+      || (md.stereotype === 'richText' && !md.readOnly)
       || CAPTURE_MODES[md.stereotype]
       || (md.dataType === 'array' && (md.options || []).length
         && (MULTI_SELECT_STEREOTYPES[md.stereotype] || CHECKBOX_SET_STEREOTYPES[md.stereotype])))
@@ -5550,6 +6442,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         options: (extra.isRadio || extra.isMultiSelect || extra.isCheckboxSet) ? optionsOf(f, data) : [],
         ...flags,
         isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
+        isSlider: false, isStars: false, isColor: false, isRichEditor: false, min: 0, max: 0, step: 1,
         converter: null, captureMode: '', accept: '',
         ...extra,
       }
@@ -5589,6 +6482,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       isTextArea,
       isText: !isSelect && !isBoolean && !isDate && !isDateTime && !isNumber && !isTextArea,
       isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
+      isSlider: false, isStars: false, isColor: false, isRichEditor: false, min: 0, max: 0, step: 1,
       converter: null, captureMode: '', accept: '',
     }
   }
@@ -5664,16 +6558,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // Los textos genéricos del diálogo de confirmación, en el idioma de la interfaz (el lang del
   // documento, que copy.mjs fija al del navegador — como pagingLangOf): una consola en español no
   // pregunta «Yes / No».
-  const CONFIRMATION_DEFAULTS = {
-    en: { title: 'One moment, please', message: 'Are you sure?', confirmText: 'Yes', denyText: 'No' },
-    es: { title: 'Un momento, por favor', message: '¿Estás seguro?', confirmText: 'Sí', denyText: 'No' },
-  }
-
-  /** Los textos genéricos del diálogo de confirmación para `lang` (o el idioma de la interfaz). */
   function confirmationDefaultsOf(lang) {
-    const raw = lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
-      || (typeof navigator !== 'undefined' && navigator.language) || ''
-    return CONFIRMATION_DEFAULTS[String(raw).toLowerCase().split(/[-_]/)[0]] || CONFIRMATION_DEFAULTS.en
+    const l = chromeLanguage(lang)
+    return { title: chromeText('confirmTitle', null, l), message: chromeText('confirmMessage', null, l),
+      confirmText: chromeText('confirmYes', null, l), denyText: chromeText('confirmNo', null, l) }
   }
 
   /**
@@ -5746,19 +6634,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  const SELECT_PLACEHOLDERS = {
-    en: 'Select a value', es: 'Seleccione un valor', ca: 'Seleccioneu un valor', fr: 'Sélectionnez une valeur',
-    de: 'Wert auswählen', it: 'Selezionare un valore', pt: 'Selecione um valor', nl: 'Selecteer een waarde',
-  }
-
   /**
    * El placeholder de los desplegables en el idioma `lang` (el del navegador; inglés si no se
    * conoce). Hace falta uno: un oj-select-one SIN placeholder elige la primera opción por su
    * cuenta, y un obligatorio vacío pasaba la validación con un valor que nadie había elegido.
    */
   function selectPlaceholder(lang) {
-    const base = String(lang || '').toLowerCase().split(/[-_]/)[0]
-    return SELECT_PLACEHOLDERS[base] || SELECT_PLACEHOLDERS.en
+    return chromeText('selectValue', null, String(lang || '').split(/[-_]/)[0] || 'en')
   }
 
   /**
@@ -5870,6 +6752,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return null
   }
 
+
+
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): planning board, gantt, row tones and listing aggregates/groups.
 
   // ── PlanningBoard (Room Diary) sobre oj-gantt ─────────────────────────────────────────────────
   //
@@ -6085,6 +6971,1098 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
+
+
+
+
+
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the DISPLAY components that
+  // were not rendered before (Kanban, Timeline, PricingTable, OrgChart, Heatmap, Funnel, FeatureGrid,
+  // Testimonials, CalloutCard, CommentThread, FileList, Checklist, ComparisonCard, ProcessMonitor,
+  // Skeleton, Icon, MenuBar/ContextMenu, MessageList/MessageInput, Chat, Bpmn, Workflow, Result,
+  // Directory, CookieConsent, ConfirmDialog, Breadcrumbs, Notification…).
+  //
+  // Every function here is PURE: wire metadata → an ATOM (a flat object the atoms template paints).
+  // The VB template evaluator cannot compare, branch or compute (CSP), so every class, text and flag
+  // is precomputed. An atom whose element is clickable carries `actionId` + `parameters`, which the
+  // shared block listener ({{blockAction}}) sends exactly like a button. Where Oracle has a component
+  // the template uses it (oj-chart funnel, oj-avatar, oj-action-card, oj-rating-gauge, oj-checkboxset,
+  // oj-menu-button, oj-collapsible, oj-dialog, oj-button…); where it has none the atom is drawn with
+  // Redwood tokens and classes (app.css, .mateu-*) — each projection says which.
+
+  const SAFE_URL = /^(https?:|mailto:|tel:|\/|#|\.{0,2}\/|[^:]*$)/i
+  /** A link target that is safe to put in an href (no javascript:, data:…); '' otherwise. */
+  function safeHref(url) {
+    const u = String(url == null ? '' : url).trim()
+    if (!u) return ''
+    return SAFE_URL.test(u) && !/^\s*(javascript|data|vbscript):/i.test(u) ? u : ''
+  }
+
+  const keyed = (list) => (list || []).map((x, i) => ({ ...x, key: String(i) }))
+  const str = (v) => (v == null ? '' : String(v))
+  /** A clickable element: the action it sends (blockAction) and the flag pair the template needs. */
+  const clickable = (actionId, parameters) => ({
+    clickable: !!actionId,
+    plain: !actionId,
+    actionId: actionId || '',
+    parameters: parameters || {},
+  })
+  /** A Mateu/Vaadin icon name → a Redwood icon class (the generic one when it has no translation). */
+  function iconClassOf(icon) {
+    if (!icon) return ''
+    return ojIconOf(icon) || GENERIC_ICON
+  }
+  /** An emoji or a short text icon (not an icon NAME): shown as text. */
+  const isGlyph = (icon) => !!icon && !/^[a-z0-9-]+:[a-z0-9-]+$/i.test(icon) && icon.indexOf('oj-ux-') !== 0
+  const glyphOf = (icon) => (isGlyph(icon) ? icon : '')
+  const iconOf = (icon) => (isGlyph(icon) ? '' : iconClassOf(icon))
+
+  // A wire colour: one of the theme tones, or a CSS colour.
+  const WIRE_TONES = { success: 1, warning: 1, danger: 1, error: 1, info: 1, neutral: 1, primary: 1, contrast: 1, normal: 1 }
+  const CSS_COLOR = /^(#[0-9a-f]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\)|var\(--[\w-]+\)|[a-z]+)$/i
+  /** A colour from the wire → a tone class suffix ('success'…) or a CSS colour ('' when neither). */
+  function toneOf(color) {
+    const c = str(color).trim().toLowerCase()
+    if (!c) return ''
+    if (c === 'error') return 'danger'
+    if (c === 'primary' || c === 'normal' || c === 'contrast') return 'info'
+    return WIRE_TONES[c] ? c : ''
+  }
+  function cssColorOf(color) {
+    const c = str(color).trim()
+    return c && !toneOf(c) && CSS_COLOR.test(c) ? c : ''
+  }
+  const badgeClassOf = (color) => BADGE_CLASSES[toneOf(color) || 'contrast'] || BADGE_CLASSES.contrast
+
+  // ── Kanban (JET has no board): columns of oj-panel, cards as oj-action-card when they act ───────
+  function kanbanAtomOf(m, interp = (x) => x) {
+    return {
+      isKanban: true,
+      columns: keyed((m.columns || []).map((col) => {
+        const cards = col.cards || []
+        const color = cssColorOf(col.color)
+        const tone = toneOf(col.color)
+        return {
+          title: interp(str(col.title)),
+          countText: String(cards.length),
+          headerClass: 'mateu-kanban-head' + (tone ? ' mateu-tone-' + tone : ''),
+          headerStyle: color ? { borderTopColor: color } : {},
+          cards: keyed(cards.map((card) => ({
+            title: interp(str(card.title)),
+            description: interp(str(card.description)),
+            badge: interp(str(card.badge)),
+            hasBadge: !!card.badge,
+            badgeClass: badgeClassOf(card.color),
+            cardStyle: cssColorOf(card.color) ? { borderInlineStartColor: cssColorOf(card.color) } : {},
+            cardClass: 'mateu-kanban-card' + (toneOf(card.color) ? ' mateu-tone-' + toneOf(card.color) : ''),
+            ...clickable(card.actionId, { _clickedCard: card }),
+          }))),
+          isEmpty: !cards.length,
+        }
+      })),
+    }
+  }
+
+  // ── Timeline (oj-timeline is deprecated in JET): a Redwood vertical list with markers ────────────
+  function timelineAtomOf(m, interp = (x) => x) {
+    return {
+      isTimeline: true,
+      items: keyed((m.items || []).map((it) => ({
+        title: interp(str(it.title)),
+        description: interp(str(it.description)),
+        timestamp: interp(str(it.timestamp)),
+        iconClass: iconOf(it.icon),
+        glyph: glyphOf(it.icon),
+        dotClass: 'mateu-timeline-dot' + (toneOf(it.color) ? ' mateu-tone-' + toneOf(it.color) : ''),
+        dotStyle: cssColorOf(it.color) ? { backgroundColor: cssColorOf(it.color) } : {},
+        ...clickable(it.actionId, { _clickedItem: it }),
+      }))),
+    }
+  }
+
+  // ── PricingTable: plans as oj-panel cards (featured = the highlighted one), CTA as oj-button ─────
+  function pricingAtomOf(m, interp = (x) => x) {
+    const plans = m.plans || []
+    return {
+      isPricing: true,
+      plans: keyed(plans.map((p) => ({
+        name: interp(str(p.name)),
+        price: interp(str(p.price)),
+        period: interp(str(p.period)),
+        features: (p.features || []).map((f) => interp(str(f))),
+        featured: !!p.featured,
+        cardClass: 'oj-panel oj-sm-padding-6x mateu-pricing-plan' + (p.featured ? ' mateu-pricing-featured' : ''),
+        hasCta: !!p.actionId,
+        ctaLabel: interp(str(p.ctaLabel)) || chromeText('choose'),
+        chroming: p.featured ? 'callToAction' : 'outlined',
+        colClass: 'oj-flex-item oj-sm-12 oj-md-' + Math.max(3, Math.floor(12 / Math.max(1, Math.min(4, plans.length)))),
+        actionId: p.actionId || '',
+        parameters: {},
+      }))),
+    }
+  }
+
+  // ── OrgChart: the tree as an indented outline (VB templates cannot recurse), oj-avatar per node ──
+  function orgChartAtomOf(m, interp = (x) => x) {
+    const nodes = []
+    const walk = (node, depth, last) => {
+      if (!node) return
+      const { children, ...self } = node
+      const av = avatarOf({ name: node.title, image: node.avatar })
+      nodes.push({
+        depth,
+        rowStyle: { paddingInlineStart: (depth * 2) + 'rem' },
+        rowClass: 'mateu-org-node' + (depth ? ' mateu-org-child' : '') + (last ? ' mateu-org-last' : ''),
+        title: interp(str(node.title)),
+        subtitle: interp(str(node.subtitle)),
+        initials: av.initials,
+        src: av.src,
+        ariaLabel: [node.title, node.subtitle].filter(Boolean).join(', '),
+        ...clickable(node.actionId, { _clickedNode: self }),
+      })
+      const kids = children || []
+      kids.forEach((k, i) => walk(k, depth + 1, i === kids.length - 1))
+    }
+    walk(m.root, 0, true)
+    return { isOrgChart: true, nodes: keyed(nodes) }
+  }
+
+  // ── Heatmap (JET has none): a calendar heatmap — a column per week, a row per weekday ────────────
+  const ISO_DAY = /^(\d{4})-(\d{2})-(\d{2})/
+  function heatLevelOf(value, max) {
+    if (!(value > 0) || !(max > 0)) return 0
+    return Math.max(1, Math.min(4, Math.ceil((value / max) * 4)))
+  }
+  function heatmapAtomOf(m) {
+    const cells = (m.cells || []).filter((c) => c && c.date != null)
+    const max = cells.reduce((acc, c) => Math.max(acc, Number(c.value) || 0), 0)
+    const cellOf = (c) => {
+      const level = heatLevelOf(Number(c.value) || 0, max)
+      const text = (c.label ? c.label : c.date + ': ' + (c.value == null ? 0 : c.value))
+      return { cls: 'mateu-heat-cell mateu-heat-' + level, title: text, ariaLabel: text }
+    }
+    const legend = [0, 1, 2, 3, 4].map((l) => ({ key: String(l), cls: 'mateu-heat-cell mateu-heat-' + l }))
+    const dated = cells.every((c) => ISO_DAY.test(String(c.date)))
+    if (!cells.length || !dated) {
+      return { isHeatmap: true, dated: false, weeks: [], flat: keyed(cells.map(cellOf)), legend }
+    }
+    const dayMs = 86400000
+    const toTime = (s) => { const x = ISO_DAY.exec(String(s)); return Date.UTC(+x[1], +x[2] - 1, +x[3]) }
+    const byDay = new Map(cells.map((c) => [toTime(c.date), c]))
+    const times = [...byDay.keys()].sort((a, b) => a - b)
+    // weeks start on Monday: back up to the Monday of the first date
+    const dow = (t) => (new Date(t).getUTCDay() + 6) % 7
+    let t = times[0] - dow(times[0]) * dayMs
+    const end = times[times.length - 1]
+    const weeks = []
+    while (t <= end) {
+      const days = []
+      for (let d = 0; d < 7; d++, t += dayMs) {
+        const c = byDay.get(t)
+        days.push(c ? cellOf(c) : { cls: 'mateu-heat-cell mateu-heat-none', title: '', ariaLabel: '' })
+      }
+      weeks.push({ days: keyed(days) })
+    }
+    return { isHeatmap: true, dated: true, weeks: keyed(weeks), flat: [], legend }
+  }
+
+  // ── Funnel → oj-chart type="funnel" (each stage a series, one group) ─────────────────────────────
+  function funnelAtomOf(m, interp = (x) => x) {
+    const items = (m.stages || []).map((s, i) => {
+      const item = { _rowNumber: i, id: String(i), value: Number(s.value) || 0, series: interp(str(s.label)) || 'Stage ' + (i + 1), group: 'Funnel' }
+      const color = cssColorOf(s.color)
+      if (color) item.color = color
+      return item
+    })
+    return {
+      isFunnel: true,
+      items,
+      provider: dataProviderFactory ? dataProviderFactory(items) : null,
+      chartStyle: { width: '100%', height: Math.max(12, Math.min(28, items.length * 4)) + 'rem' },
+    }
+  }
+
+  // ── FeatureGrid: oj-panel tiles (an oj-action-card when the feature acts) on an oj-flex grid ─────
+  function featureGridAtomOf(m, interp = (x) => x) {
+    const columns = m.columns > 0 && m.columns <= 6 ? m.columns : 3
+    const colClass = 'oj-flex-item oj-sm-12 oj-md-' + Math.max(2, Math.floor(12 / columns))
+    return {
+      isFeatureGrid: true,
+      features: keyed((m.features || []).map((f) => ({
+        title: interp(str(f.title)),
+        description: interp(str(f.description)),
+        iconClass: iconOf(f.icon),
+        glyph: glyphOf(f.icon),
+        colClass,
+        ...clickable(f.actionId, {}),
+      }))),
+    }
+  }
+
+  // ── Testimonials: oj-panel quotes, oj-avatar for the author, oj-rating-gauge (read only) ─────────
+  function testimonialsAtomOf(m, interp = (x) => x) {
+    const items = m.items || []
+    return {
+      isTestimonials: true,
+      items: keyed(items.map((t) => {
+        const av = avatarOf({ name: t.author, image: t.avatar })
+        return {
+          quote: interp(str(t.quote)),
+          author: interp(str(t.author)),
+          role: interp(str(t.role)),
+          initials: av.initials,
+          src: av.src,
+          rating: Math.max(0, Math.min(5, Number(t.rating) || 0)),
+          hasRating: Number(t.rating) > 0,
+          ratingLabel: (Number(t.rating) || 0) + ' / 5',
+          colClass: 'oj-flex-item oj-sm-12 oj-md-' + (items.length >= 3 ? 4 : items.length === 2 ? 6 : 12),
+        }
+      })),
+    }
+  }
+
+  // ── CalloutCard: an oj-panel band with icon, text and an oj-button CTA ───────────────────────────
+  const CALLOUT_CLASSES = {
+    info: 'oj-panel oj-sm-padding-6x mateu-callout mateu-tone-info',
+    success: 'oj-panel oj-sm-padding-6x mateu-callout mateu-tone-success',
+    warning: 'oj-panel oj-sm-padding-6x mateu-callout mateu-tone-warning',
+    danger: 'oj-panel oj-sm-padding-6x mateu-callout mateu-tone-danger',
+    neutral: 'oj-panel oj-sm-padding-6x mateu-callout',
+  }
+  function calloutAtomOf(m, interp = (x) => x) {
+    return {
+      isCallout: true,
+      title: interp(str(m.title)),
+      description: interp(str(m.description)),
+      iconClass: iconOf(m.icon),
+      glyph: glyphOf(m.icon),
+      panelClass: CALLOUT_CLASSES[toneOf(m.theme)] || CALLOUT_CLASSES.neutral,
+      hasCta: !!m.actionId,
+      ctaLabel: interp(str(m.ctaLabel)) || chromeText('learnMore'),
+      actionId: m.actionId || '',
+      parameters: {},
+    }
+  }
+
+  // ── CommentThread: replies indented under their comment, oj-avatar per author ────────────────────
+  function commentsAtomOf(m, interp = (x) => x) {
+    const out = []
+    const walk = (c, depth) => {
+      const av = avatarOf({ name: c.author, image: c.avatar })
+      out.push({
+        depth,
+        rowStyle: { marginInlineStart: (depth * 2.5) + 'rem' },
+        rowClass: 'mateu-comment' + (depth ? ' mateu-comment-reply' : ''),
+        author: interp(str(c.author)),
+        text: interp(str(c.text)),
+        timestamp: interp(str(c.timestamp)),
+        initials: av.initials,
+        src: av.src,
+      })
+      for (const r of c.replies || []) walk(r, depth + 1)
+    }
+    for (const c of m.comments || []) walk(c, 0)
+    return { isComments: true, comments: keyed(out) }
+  }
+
+  // ── FileList: a row per file — icon by type, name as a download link, size · type ───────────────
+  const FILE_ICONS = [
+    [/pdf/i, 'oj-ux-ico-file-pdf'],
+    [/(xls|sheet|csv)/i, 'oj-ux-ico-file-xls'],
+    [/(doc|word)/i, 'oj-ux-ico-file-doc'],
+    [/(png|jpe?g|gif|svg|image|webp)/i, 'oj-ux-ico-file-image'],
+    [/(zip|tar|gz|rar|7z)/i, 'oj-ux-ico-file-zip'],
+  ]
+  function fileIconOf(type, name) {
+    const probe = str(type) + ' ' + str(name).split('.').pop()
+    for (const [re, cls] of FILE_ICONS) if (re.test(probe)) return cls
+    return 'oj-ux-ico-file'
+  }
+  function fileListAtomOf(m, interp = (x) => x) {
+    return {
+      isFileList: true,
+      files: keyed((m.files || []).map((f) => {
+        const href = safeHref(f.url ? elementModuleUrl(f.url) : '')
+        return {
+          name: interp(str(f.name)),
+          meta: [f.size, f.type].filter(Boolean).map(str).join(' · '),
+          iconClass: fileIconOf(f.type, f.name),
+          href,
+          hasHref: !!href && !f.actionId,
+          noHref: !href || !!f.actionId,
+          ...clickable(f.actionId, { _file: f }),
+        }
+      })),
+    }
+  }
+
+  // ── Checklist: oj-checkboxset per item; toggling sends actionId with {_item, _done} ─────────────
+  function checklistAtomOf(m, interp = (x) => x) {
+    const items = m.items || []
+    const done = items.filter((i) => i.done).length
+    return {
+      isChecklist: true,
+      title: interp(str(m.title)),
+      hasTitle: !!m.title,
+      progressText: done + ' / ' + items.length,
+      progressValue: items.length ? Math.round((done / items.length) * 100) : 0,
+      items: keyed(items.map((it) => ({
+        label: interp(str(it.label)),
+        value: it.done ? ['done'] : [],
+        labelClass: it.done ? 'mateu-checklist-done' : '',
+        readonly: !it.actionId,
+        actionId: it.actionId || '',
+        parameters: { _item: it, _done: !it.done },
+      }))),
+    }
+  }
+
+  // ── ComparisonCard: two values side by side and the delta with its trend ────────────────────────
+  const TREND = { up: ['oj-ux-ico-arrow-up', 'oj-text-color-success'], down: ['oj-ux-ico-arrow-down', 'oj-text-color-danger'] }
+  function comparisonAtomOf(m, interp = (x) => x) {
+    const trend = TREND[str(m.trend).toLowerCase()] || ['', 'oj-text-color-secondary']
+    return {
+      isComparison: true,
+      title: interp(str(m.title)),
+      leftLabel: interp(str(m.leftLabel)),
+      leftValue: interp(str(m.leftValue)),
+      rightLabel: interp(str(m.rightLabel)),
+      rightValue: interp(str(m.rightValue)),
+      delta: interp(str(m.delta)),
+      hasDelta: !!m.delta,
+      trendIcon: trend[0],
+      deltaClass: 'oj-typography-body-sm oj-typography-bold ' + trend[1],
+    }
+  }
+
+  // ── ProcessMonitor: a row per process — systems, ok/warning/error counts, status, its action ────
+  const PROCESS_STATUS = { ok: 'success', success: 'success', running: 'info', warning: 'warning', error: 'danger', failed: 'danger', stopped: 'neutral' }
+  function processMonitorAtomOf(m, interp = (x) => x) {
+    return {
+      isProcessMonitor: true,
+      items: keyed((m.items || []).map((p) => ({
+        name: interp(str(p.name)),
+        systems: (p.systems || []).map(str).join(' · '),
+        okText: String(p.ok || 0),
+        warningsText: String(p.warnings || 0),
+        errorsText: String(p.errors || 0),
+        statusLabel: str(p.status),
+        hasStatus: !!p.status,
+        statusClass: BADGE_CLASSES[PROCESS_STATUS[str(p.status).toLowerCase()] || 'contrast'] || BADGE_CLASSES.contrast,
+        hasAction: !!(p.actionId && p.actionLabel),
+        actionLabel: interp(str(p.actionLabel)),
+        actionId: p.actionId || '',
+        parameters: {},
+      }))),
+    }
+  }
+
+  // ── Skeleton: the shell's own shimmer placeholders (JET has no skeleton component) ───────────────
+  const SKELETON_SHAPES = {
+    text: ['mateu-skel-line', 'mateu-skel-line', 'mateu-skel-line mateu-skel-short'],
+    card: ['mateu-skel-block'],
+    grid: ['mateu-skel-row', 'mateu-skel-row', 'mateu-skel-row', 'mateu-skel-row'],
+    form: ['mateu-skel-label', 'mateu-skel-input', 'mateu-skel-label', 'mateu-skel-input'],
+  }
+  function skeletonAtomOf(m) {
+    const shape = SKELETON_SHAPES[str(m.variant)] || SKELETON_SHAPES.text
+    const count = Math.max(1, Math.min(20, Number(m.count) || 1))
+    const shapes = []
+    for (let i = 0; i < count; i++) shapes.push(...shape)
+    return { isSkeleton: true, shapes: keyed(shapes.map((cls) => ({ cls: 'mateu-skeleton-bone ' + cls }))) }
+  }
+
+  // ── Icon: the Redwood icon font (oj-ux-ico-*); an emoji travels as text ─────────────────────────
+  function iconAtomOf(m) {
+    return { isIcon: true, iconClass: iconOf(m.icon), glyph: glyphOf(m.icon), label: str(m.icon) }
+  }
+
+  // ── Menus (MenuBar, ContextMenu, Directory) ─────────────────────────────────────────────────────
+  /** A MenuOption → what its click does: run an action, or navigate to a route/url. */
+  function menuTargetOf(option) {
+    if (!option) return null
+    if (option.actionId) return { kind: 'action', actionId: option.actionId, parameters: option.params || {} }
+    const route = option.route || option.path || ''
+    if (route) {
+      if (/^https?:/i.test(route)) return { kind: 'url', url: route }
+      if (/^[a-z][a-z0-9+.-]*:/i.test(route)) return null // javascript:, data:… go nowhere
+      return { kind: 'navigate', route: route.startsWith('/') ? route : '/' + route }
+    }
+    return null
+  }
+  /** The items of an oj-menu (flattening one submenu level into separators + items). */
+  function menuItemsOf(options, interp = (x) => x) {
+    const out = []
+    const push = (o, prefix) => {
+      if (!o || o.visible === false) return
+      if (o.separator) { out.push({ value: 'sep' + out.length, label: '', isSeparator: true, isItem: false, disabled: true }); return }
+      if ((o.submenus || []).length) {
+        for (const s of o.submenus) push(s, (prefix ? prefix + ' › ' : '') + interp(str(o.label)))
+        return
+      }
+      const target = menuTargetOf(o)
+      out.push({
+        value: String(out.length),
+        label: (prefix ? prefix + ' › ' : '') + interp(str(o.label)),
+        isSeparator: false,
+        isItem: true,
+        disabled: !!o.disabled || !target,
+        iconClass: iconOf(o.icon),
+        target,
+      })
+    }
+    for (const o of options || []) push(o, '')
+    return out
+  }
+  /** What choosing `value` in a menu atom does (null: nothing). */
+  function menuChoiceOf(items, value) {
+    const item = (items || []).find((i) => i.value === String(value))
+    return item && !item.disabled ? item.target : null
+  }
+  /** How a page chain carries out a target: the action chain to call (the host's or the island's
+   *  dispatcher), the route to navigate to, or the url to open. Pure — the chain only executes it. */
+  function dispatchOf(target, variant) {
+    if (!target) return null
+    if (target.kind === 'action') {
+      return { chain: variant === 'island' ? 'dispatchIslandAction' : 'dispatchHostBlockAction',
+        params: { actionId: target.actionId, parameters: target.parameters || {} } }
+    }
+    if (target.kind === 'navigate') return { route: target.route }
+    if (target.kind === 'url') return { url: target.url }
+    return null
+  }
+  function menuBarAtomOf(m, interp = (x) => x) {
+    return {
+      isMenuBar: true,
+      entries: keyed((m.options || []).filter((o) => o && o.visible !== false && !o.separator).map((o) => {
+        const sub = (o.submenus || []).length
+        const target = sub ? null : menuTargetOf(o)
+        return {
+          label: interp(str(o.label)),
+          iconClass: iconOf(o.icon),
+          isMenu: !!sub,
+          isAction: !sub && !!target && target.kind === 'action',
+          isLink: !sub && !!target && target.kind !== 'action',
+          isInert: !sub && !target,
+          href: target && target.kind === 'navigate' ? target.route : target && target.kind === 'url' ? target.url : '',
+          disabled: !!o.disabled,
+          chroming: o.selected ? 'callToAction' : 'borderless',
+          menuItems: sub ? menuItemsOf(o.submenus, interp) : [],
+          actionId: target && target.kind === 'action' ? target.actionId : '',
+          parameters: target && target.kind === 'action' ? target.parameters : {},
+        }
+      })),
+    }
+  }
+  function contextMenuAtomOf(m, interp = (x) => x) {
+    return { isContextMenu: true, label: chromeText('moreActions'), menuItems: menuItemsOf(m.menu, interp), rightClick: !m.activateOnLeftClick }
+  }
+  /** Directory: each top-level entry a column with its title and its links (submenus flattened). */
+  function directoryAtomOf(m, interp = (x) => x) {
+    const linksOf = (o, prefix) => {
+      if (!o || o.visible === false) return []
+      if ((o.submenus || []).length) return o.submenus.flatMap((s) => linksOf(s, prefix))
+      const t = menuTargetOf(o)
+      const href = t ? (t.kind === 'navigate' ? t.route : t.kind === 'url' ? t.url : '') : ''
+      return [{ label: interp(str(o.label)), href: safeHref(href), description: interp(str(o.description)) }]
+    }
+    const groups = (m.menu || []).filter((o) => o && o.visible !== false).map((o) => ({
+      title: interp(str(o.label)),
+      links: keyed((o.submenus || []).length ? linksOf(o, '') : linksOf(o, '')),
+    }))
+    const cols = Math.max(1, Math.min(4, groups.length))
+    return { isDirectory: true, groups: keyed(groups.map((g) => ({ ...g, colClass: 'oj-flex-item oj-sm-12 oj-md-' + Math.floor(12 / cols) }))) }
+  }
+
+  // ── MessageList / MessageInput ────────────────────────────────────────────────────────────────
+  function messageListAtomOf(m, interp = (x) => x) {
+    return {
+      isMessages: true,
+      items: keyed((m.items || []).map((it) => {
+        const av = avatarOf({ name: it.userName, abbreviation: it.userAbbr, image: it.userImg })
+        return {
+          userName: interp(str(it.userName)),
+          time: str(it.time),
+          text: interp(str(it.text)),
+          initials: av.initials,
+          src: av.src,
+          avatarClass: 'mateu-avatar-tone-' + ((Number(it.userColorIndex) || 0) % 6),
+        }
+      })),
+    }
+  }
+  function messageInputAtomOf(m, id) {
+    return {
+      isMessageInput: true,
+      inputId: 'mateuMsg-' + str(id || 'input').replace(/[^\w-]/g, '_'),
+      actionId: m.actionId || '',
+      placeholder: chromeText('message'),
+      sendLabel: chromeText('messageSend'),
+    }
+  }
+  /** What sending a message does (null when there is nothing to send or nowhere to send it). */
+  function messageSendOf(value, actionId) {
+    const text = str(value).trim()
+    if (!text || !actionId) return null
+    return { actionId, parameters: { message: text } }
+  }
+
+  // ── Chat (the component — the app's assistant panel is the shell's): installChatComponents mounts
+  //    the conversation in its slot and streams the answers with poc/chat.mjs ────────────────────
+  function chatAtomOf(m, id) {
+    return {
+      isChatComponent: true,
+      chatId: 'mateuChat-' + str(id || 'chat').replace(/[^\w-]/g, '_'),
+      sseUrl: elementModuleUrl(str(m.sseUrl)),
+      uploadUrl: m.uploadUrl ? elementModuleUrl(str(m.uploadUrl)) : '',
+    }
+  }
+
+  // ── Result: the outcome of an operation — icon by type, message, links ─────────────────────────
+  const RESULT_LOOKS = {
+    success: ['oj-ux-ico-check-circle-s', 'mateu-tone-success'],
+    info: ['oj-ux-ico-information-s', 'mateu-tone-info'],
+    warning: ['oj-ux-ico-warning-s', 'mateu-tone-warning'],
+    error: ['oj-ux-ico-error-s', 'mateu-tone-danger'],
+    ignored: ['oj-ux-ico-information', ''],
+  }
+  const destinationOf = (d, interp) => {
+    if (!d) return null
+    const type = str(d.type)
+    const label = interp(str(d.description || d.value || d.id))
+    if (type === 'Url') return { label, href: safeHref(d.value), isLink: !!safeHref(d.value), isAction: false, actionId: '', parameters: {} }
+    if (type === 'ActionId') return { label, href: '', isLink: false, isAction: true, actionId: d.value || d.id || '', parameters: {} }
+    // View / Component / CustomEvent: a route of the app when the value looks like one
+    const route = str(d.value)
+    if (route.startsWith('/')) return { label, href: route, isLink: true, isAction: false, actionId: '', parameters: {} }
+    return { label, href: '', isLink: false, isAction: !!(d.id), actionId: d.id || '', parameters: {} }
+  }
+  function resultAtomOf(m, interp = (x) => x) {
+    const look = RESULT_LOOKS[str(m.resultType).toLowerCase()] || RESULT_LOOKS.info
+    const links = (m.interestingLinks || []).map((d) => destinationOf(d, interp)).filter(Boolean)
+    const next = destinationOf(m.nowTo, interp)
+    return {
+      isResult: true,
+      title: interp(str(m.title)),
+      message: interp(str(m.message)),
+      iconClass: look[0],
+      panelClass: 'oj-panel oj-sm-padding-8x mateu-result ' + look[1],
+      image: m.leftSideImageUrl ? elementModuleUrl(str(m.leftSideImageUrl)) : '',
+      hasImage: !!m.leftSideImageUrl,
+      links: keyed(links),
+      hasNext: !!next,
+      next: next || { label: '', href: '', isLink: false, isAction: false, actionId: '', parameters: {} },
+      // the «what next» button sends the atom's own action (the block listener reads the atom)
+      actionId: next && next.isAction ? next.actionId : '',
+      parameters: {},
+    }
+  }
+
+  // ── CookieConsent: a band fixed to the bottom; installCookieConsent hides it when the cookie
+  //    exists and stores the cookie on «dismiss» ──────────────────────────────────────────────
+  function cookieConsentAtomOf(m, interp = (x) => x) {
+    const position = str(m.position).toLowerCase()
+    return {
+      isCookieConsent: true,
+      cookieName: str(m.cookieName) || 'cookieconsent_status',
+      message: interp(str(m.message)) || chromeText('cookieMessage'),
+      dismiss: interp(str(m.dismiss)) || chromeText('cookieDismiss'),
+      learnMore: interp(str(m.learnMore)) || chromeText('learnMore'),
+      learnMoreLink: safeHref(m.learnMoreLink),
+      hasLearnMore: !!safeHref(m.learnMoreLink),
+      bandClass: 'mateu-cookie-consent oj-panel oj-sm-padding-4x' + (position.indexOf('top') >= 0 ? ' mateu-cookie-top' : ' mateu-cookie-bottom'),
+    }
+  }
+  /** Whether the consent cookie is set in a cookie string (document.cookie). */
+  function hasConsentCookie(cookieString, name) {
+    return String(cookieString || '').split(';').some((c) => c.trim().split('=')[0] === name)
+  }
+
+  // ── ConfirmDialog: an oj-dialog opened while its condition holds; Confirm / Reject / Cancel ─────
+  /** Evaluates a ConfirmDialog's openedCondition against the state: the same small vocabulary the
+   *  client rules use — a `${state.x}` path, its negation, or a comparison with a literal. */
+  function confirmOpenOf(condition, state) {
+    const c = str(condition).trim()
+    if (!c) return false
+    if (c === 'true') return true
+    if (c === 'false') return false
+    const path = (p) => p.split('.').reduce((v, k) => (v != null && typeof v === 'object' ? v[k] : undefined), state || {})
+    const unwrap = (s) => s.replace(/^\$\{\s*/, '').replace(/\s*\}$/, '').trim()
+    const expr = unwrap(c)
+    const lit = (s) => {
+      const t = s.trim()
+      if (/^(['"]).*\1$/.test(t)) return t.slice(1, -1)
+      if (t === 'true') return true
+      if (t === 'false') return false
+      if (t === 'null' || t === 'undefined') return null
+      if (!isNaN(Number(t)) && t !== '') return Number(t)
+      return t.startsWith('state.') ? path(t.slice(6)) : undefined
+    }
+    const cmp = /^(.+?)\s*(===|!==|==|!=|>=|<=|>|<)\s*(.+)$/.exec(expr)
+    if (cmp) {
+      const a = lit(cmp[1]); const b = lit(cmp[3])
+      switch (cmp[2]) {
+        case '===': case '==': return a == b // eslint-disable-line eqeqeq
+        case '!==': case '!=': return a != b // eslint-disable-line eqeqeq
+        case '>': return a > b
+        case '<': return a < b
+        case '>=': return a >= b
+        default: return a <= b
+      }
+    }
+    if (expr.startsWith('!')) return !lit(expr.slice(1))
+    return !!lit(expr)
+  }
+  function confirmDialogAtomOf(m, id, state, interp = (x) => x, lines = []) {
+    const buttons = []
+    if (m.canCancel) buttons.push({ key: 'cancel', label: m.rejectText && !m.canReject ? interp(m.rejectText) : chromeText('cancel'), chroming: 'outlined', actionId: m.cancelActionId || '', parameters: {} })
+    if (m.canReject) buttons.push({ key: 'reject', label: interp(str(m.rejectText)) || chromeText('confirmNo'), chroming: 'outlined', actionId: m.rejectActionId || '', parameters: {} })
+    buttons.push({ key: 'confirm', label: interp(str(m.confirmText)) || chromeText('ok'), chroming: 'callToAction', actionId: m.confirmActionId || '', parameters: {} })
+    const opened = confirmOpenOf(m.openedCondition, state)
+    return {
+      // painted only while open: the oj-dialog opens itself (initial-visibility) when it appears
+      isConfirmDialog: opened,
+      dialogId: 'mateuConfirmDialog-' + str(id || 'confirm').replace(/[^\w-]/g, '_'),
+      opened,
+      header: interp(str(m.header)),
+      lines: lines.map(interp).filter(Boolean),
+      buttons,
+    }
+  }
+
+  // ── Breadcrumbs (the component in content; the shell keeps its own trail) ───────────────────────
+  function breadcrumbsAtomOf(m, interp = (x) => x) {
+    const crumbs = (m.breadcrumbs || []).map((b) => ({ text: interp(str(b.text)), href: safeHref(b.link), hasHref: !!safeHref(b.link) }))
+    return {
+      isBreadcrumbs: true,
+      crumbs: keyed(crumbs.map((c) => ({ ...c, noHref: !c.hasHref }))),
+      current: interp(str(m.currentItemText)),
+    }
+  }
+
+  // ── Notification (the component): an info band with its title and text ────────────────────────
+  function notificationAtomOf(m, interp = (x) => x) {
+    return {
+      isNotice: true,
+      text: [m.title, m.text].filter(Boolean).map((t) => interp(str(t))).join(' — '),
+      noticeClass: NOTICE_CLASSES.info,
+      buttons: [],
+    }
+  }
+
+  // ── Workflow: the definition as a flow of steps (the web's designer is an editor; Redwood shows it) ─
+  const STEP_LOOKS = {
+    ACTION: ['oj-ux-ico-play', 'stepAction'], JOIN: ['oj-ux-ico-merge', 'stepJoin'], FORK: ['oj-ux-ico-split', 'stepFork'],
+    END: ['oj-ux-ico-stop', 'stepEnd'], USER_TASK: ['oj-ux-ico-user-available', 'stepUserTask'], PROCESS: ['oj-ux-ico-settings', 'stepProcess'],
+  }
+  function workflowOrderOf(steps) {
+    const byId = new Map(steps.map((s) => [s.id, s]))
+    const out = []
+    const seen = new Set()
+    const visit = (s, guard = new Set()) => {
+      if (!s || seen.has(s.id) || guard.has(s.id)) return
+      guard.add(s.id)
+      if (s.preconditionStepId && byId.has(s.preconditionStepId)) visit(byId.get(s.preconditionStepId), guard)
+      seen.add(s.id)
+      out.push(s)
+    }
+    steps.forEach((s) => visit(s))
+    return out
+  }
+  function workflowAtomOf(m) {
+    let wf
+    try { wf = JSON.parse(str(m.value) || '{}') } catch (e) { wf = null }
+    if (!wf || typeof wf !== 'object') return { isNotice: true, text: chromeText('workflowInvalid'), noticeClass: NOTICE_CLASSES.warning, buttons: [] }
+    const steps = Array.isArray(wf.steps) ? wf.steps.filter((s) => s && s.id) : []
+    const names = new Map(steps.map((s) => [s.id, s.name || s.id]))
+    return {
+      isWorkflow: true,
+      name: str(wf.name) || 'Workflow',
+      description: str(wf.description),
+      status: str(wf.status),
+      hasStatus: !!wf.status,
+      statusClass: BADGE_CLASSES[{ ACTIVE: 'success', DRAFT: 'info', DISABLED: 'warning', ARCHIVED: 'contrast' }[wf.status] || 'contrast'],
+      steps: keyed(workflowOrderOf(steps).map((s, i) => {
+        const look = STEP_LOOKS[s.type] || STEP_LOOKS.ACTION
+        return {
+          number: String(i + 1),
+          name: str(s.name) || s.id,
+          typeLabel: chromeText(look[1]) + (s.parallel ? ' · ' + chromeText('parallel') : ''),
+          iconClass: look[0],
+          description: str(s.description),
+          after: s.preconditionStepId ? chromeText('afterStep', { name: names.get(s.preconditionStepId) || s.preconditionStepId })
+            + (s.preconditionExpression ? chromeText('whenCondition', { condition: s.preconditionExpression }) : '') : '',
+        }
+      })),
+      isEmpty: !steps.length,
+    }
+  }
+
+  /** FormEditor: the defined form → FormField metadata the form layout already knows how to paint. */
+  function formEditorFieldsOf(m) {
+    let def
+    try { def = JSON.parse(str(m.value) || '{}') } catch (e) { def = null }
+    if (!def || typeof def !== 'object') return null
+    return {
+      name: str(def.name) || 'Form',
+      description: str(def.description),
+      fields: (Array.isArray(def.fields) ? def.fields : []).filter((f) => f && f.id).map((f) => ({
+        type: 'FormField', fieldId: f.id, label: f.label || f.id, dataType: f.dataType || 'string',
+        stereotype: f.stereotype && f.stereotype !== 'regular' ? f.stereotype : undefined,
+        required: !!f.required, description: f.description || '', readOnly: false,
+      })),
+    }
+  }
+
+  // ── BPMN (bpmn-js is not under a permissive licence): the diagram from its own BPMN-DI ──────────
+  const BPMN_KINDS = {
+    startEvent: 'event', endEvent: 'end', intermediateThrowEvent: 'event', intermediateCatchEvent: 'event', boundaryEvent: 'event',
+    task: 'task', userTask: 'task', serviceTask: 'task', scriptTask: 'task', sendTask: 'task', receiveTask: 'task', manualTask: 'task', businessRuleTask: 'task', callActivity: 'task', subProcess: 'task',
+    exclusiveGateway: 'gateway', parallelGateway: 'gateway', inclusiveGateway: 'gateway', eventBasedGateway: 'gateway', complexGateway: 'gateway',
+    dataObjectReference: 'data', dataStoreReference: 'data', textAnnotation: 'note',
+  }
+  const xmlAttr = (attrs, name) => {
+    const m = new RegExp('(?:^|\\s)' + name + '\\s*=\\s*"([^"]*)"').exec(attrs) || new RegExp('(?:^|\\s)' + name + "\\s*=\\s*'([^']*)'").exec(attrs)
+    return m ? m[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#10;/g, ' ').replace(/&amp;/g, '&') : ''
+  }
+  /** BPMN 2.0 XML → { nodes, flows, width, height }: shapes placed by their BPMNDI bounds; without
+   *  DI, a left-to-right layout by the sequence flows. Pure (no DOMParser: it runs in Node too). */
+  function bpmnDiagramOf(xml) {
+    const src = str(xml)
+    const nodes = []
+    const flows = []
+    const byId = new Map()
+    const tagRe = /<(?:[\w-]+:)?(\w+)\b([^>]*?)(\/?)>/g
+    let t
+    while ((t = tagRe.exec(src))) {
+      const [, tag, attrs] = t
+      if (BPMN_KINDS[tag]) {
+        const n = { id: xmlAttr(attrs, 'id'), tag, kind: BPMN_KINDS[tag], label: xmlAttr(attrs, 'name') }
+        if (n.id) { nodes.push(n); byId.set(n.id, n) }
+      } else if (tag === 'sequenceFlow' || tag === 'messageFlow') {
+        const f = { id: xmlAttr(attrs, 'id'), source: xmlAttr(attrs, 'sourceRef'), target: xmlAttr(attrs, 'targetRef'), label: xmlAttr(attrs, 'name'), points: [] }
+        if (f.id) flows.push(f)
+      }
+    }
+    // text annotations carry their text in a child <text>
+    for (const n of nodes) {
+      if (n.kind === 'note' && !n.label) {
+        const m = new RegExp('<(?:[\\w-]+:)?textAnnotation\\b[^>]*id="' + n.id + '"[^>]*>[\\s\\S]*?<(?:[\\w-]+:)?text>([\\s\\S]*?)</').exec(src)
+        if (m) n.label = m[1].trim()
+      }
+    }
+    // BPMNDI: shapes with Bounds, edges with waypoints
+    const shapeRe = /<(?:[\w-]+:)?BPMNShape\b([^>]*)>([\s\S]*?)<\/(?:[\w-]+:)?BPMNShape>/g
+    let s
+    let placed = 0
+    while ((s = shapeRe.exec(src))) {
+      const n = byId.get(xmlAttr(s[1], 'bpmnElement'))
+      const b = /<(?:[\w-]+:)?Bounds\b([^>]*)\/?>/.exec(s[2])
+      if (n && b) {
+        n.x = +xmlAttr(b[1], 'x'); n.y = +xmlAttr(b[1], 'y'); n.w = +xmlAttr(b[1], 'width'); n.h = +xmlAttr(b[1], 'height')
+        placed++
+      }
+    }
+    const edgeRe = /<(?:[\w-]+:)?BPMNEdge\b([^>]*)>([\s\S]*?)<\/(?:[\w-]+:)?BPMNEdge>/g
+    let e
+    const flowById = new Map(flows.map((f) => [f.id, f]))
+    while ((e = edgeRe.exec(src))) {
+      const f = flowById.get(xmlAttr(e[1], 'bpmnElement'))
+      if (!f) continue
+      const wp = /<(?:[\w-]+:)?waypoint\b([^>]*)\/?>/g
+      let w
+      while ((w = wp.exec(e[2]))) f.points.push([+xmlAttr(w[1], 'x'), +xmlAttr(w[1], 'y')])
+    }
+    const SIZE = { task: [100, 80], gateway: [50, 50], event: [36, 36], end: [36, 36], data: [36, 50], note: [100, 40] }
+    if (placed < nodes.length) {
+      // no (or partial) DI: columns by distance from the start along the flows
+      const rank = new Map()
+      const outgoing = new Map()
+      for (const f of flows) { if (!outgoing.has(f.source)) outgoing.set(f.source, []); outgoing.get(f.source).push(f.target) }
+      const incoming = new Set(flows.map((f) => f.target))
+      const roots = nodes.filter((n) => !incoming.has(n.id))
+      const queue = (roots.length ? roots : nodes.slice(0, 1)).map((n) => [n.id, 0])
+      while (queue.length) {
+        const [id, r] = queue.shift()
+        if (rank.has(id) && rank.get(id) >= r) continue
+        if (r > nodes.length) continue
+        rank.set(id, r)
+        for (const next of outgoing.get(id) || []) queue.push([next, r + 1])
+      }
+      const perRank = new Map()
+      for (const n of nodes) {
+        if (n.x != null) continue
+        const r = rank.has(n.id) ? rank.get(n.id) : 0
+        const row = perRank.get(r) || 0
+        perRank.set(r, row + 1)
+        const [w, h] = SIZE[n.kind] || SIZE.task
+        n.w = w; n.h = h
+        n.x = 40 + r * 160 + (100 - w) / 2
+        n.y = 40 + row * 120 + (80 - h) / 2
+      }
+      for (const f of flows) f.points = []
+    }
+    for (const f of flows) {
+      if (f.points.length >= 2) continue
+      const a = byId.get(f.source); const b = byId.get(f.target)
+      if (a && b && a.x != null && b.x != null) f.points = [[a.x + a.w, a.y + a.h / 2], [b.x, b.y + b.h / 2]]
+    }
+    let maxX = 0; let maxY = 0; let minX = Infinity; let minY = Infinity
+    for (const n of nodes) if (n.x != null) { maxX = Math.max(maxX, n.x + n.w); maxY = Math.max(maxY, n.y + n.h + 20); minX = Math.min(minX, n.x); minY = Math.min(minY, n.y) }
+    for (const f of flows) for (const [x, y] of f.points) { maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); minX = Math.min(minX, x); minY = Math.min(minY, y) }
+    if (!isFinite(minX)) { minX = 0; minY = 0 }
+    return {
+      nodes: nodes.filter((n) => n.x != null),
+      flows: flows.filter((f) => f.points.length >= 2),
+      minX: minX - 20, minY: minY - 20,
+      width: Math.max(100, maxX - minX + 40), height: Math.max(80, maxY - minY + 40),
+    }
+  }
+  function bpmnAtomOf(m, id) {
+    const diagram = bpmnDiagramOf(m.xml)
+    return {
+      isBpmn: true,
+      bpmnId: 'mateuBpmn-' + str(id || 'bpmn').replace(/[^\w-]/g, '_'),
+      spec: JSON.stringify(diagram),
+      isEmpty: !diagram.nodes.length,
+      ariaLabel: chromeText('processDiagram', { names: diagram.nodes.filter((n) => n.label).map((n) => n.label).join(', ') }),
+    }
+  }
+
+  // ── Rich content as HTML (Popover/Tooltip content): a small, SANITISED serialisation ───────────
+  const escapeHtml = (t) => str(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  /** A component subtree → sanitised HTML (texts with their heading level, links, lists, badges,
+   *  markdown, separators; containers as blocks). What it does not know shows as its texts. */
+  function componentHtmlOf(node, interp = (x) => x) {
+    if (!node || typeof node !== 'object') return ''
+    const m = node.metadata || {}
+    const kids = () => {
+      const out = [...(node.children || [])]
+      const inner = m.content
+      if (Array.isArray(inner)) out.push(...inner)
+      else if (inner && typeof inner === 'object') out.push(inner)
+      return out.map((k) => componentHtmlOf(k, interp)).join('')
+    }
+    let html
+    switch (m.type) {
+      case 'Text': {
+        const tag = /^h[1-6]$/.test(m.container || '') ? 'h4' : 'p'
+        html = '<' + tag + '>' + escapeHtml(interp(m.text)) + '</' + tag + '>'
+        break
+      }
+      case 'Anchor': html = '<p><a href="' + escapeHtml(interp(m.url)) + '">' + escapeHtml(interp(m.text || m.url)) + '</a></p>'; break
+      case 'BulletedList': html = '<ul>' + (m.items || []).map((i) => '<li>' + escapeHtml(interp(i)) + '</li>').join('') + '</ul>'; break
+      case 'Badge': html = '<span>' + escapeHtml(interp(m.text)) + '</span> '; break
+      case 'Markdown': html = markdownToHtml(interp(m.markdown || m.text || '')); break
+      case 'Separator': html = '<hr>'; break
+      case 'Button': html = ''; break
+      default: {
+        const inner = kids()
+        html = inner || (m.type ? collectTexts(node).map((x) => '<p>' + escapeHtml(interp(x)) + '</p>').join('') : '')
+        if (inner && /Layout|Card|Div|Container|Section/.test(m.type || '')) html = '<div>' + inner + '</div>'
+      }
+    }
+    return sanitizeHtml(html)
+  }
+
+  // ── Grid paging & tree (the Grid component) ────────────────────────────────────────────────────
+  /** A tree's rows flattened depth-first with their depth; collapsed nodes hide their children. */
+  function flattenTreeRows(rows, isExpanded = () => true, childrenKey = 'children', depth = 0, path = '') {
+    const out = []
+    ;(rows || []).forEach((row, i) => {
+      const key = path ? path + '.' + i : String(i)
+      const kids = Array.isArray(row && row[childrenKey]) ? row[childrenKey] : []
+      const expanded = kids.length ? isExpanded(key) : false
+      const { [childrenKey]: _ignored, ...flat } = row || {}
+      out.push({ ...flat, __depth: depth, __treeKey: key, __hasChildren: kids.length > 0, __expanded: expanded })
+      if (expanded) out.push(...flattenTreeRows(kids, isExpanded, childrenKey, depth + 1, key))
+    })
+    return out
+  }
+  /** Client-side paging of a Grid: the slice shown and the pager texts. */
+  function gridPageOf(rows, size, page) {
+    const total = rows.length
+    const pageSize = size > 0 ? size : total || 1
+    const pages = Math.max(1, Math.ceil(total / pageSize))
+    const current = Math.max(0, Math.min(pages - 1, Number(page) || 0))
+    const from = current * pageSize
+    const shown = rows.slice(from, from + pageSize)
+    return {
+      rows: shown,
+      paged: total > pageSize,
+      page: current,
+      pages,
+      rangeText: (total ? (from + 1) + '–' + (from + shown.length) : '0') + ' ' + chromeText('pagingOf') + ' ' + total,
+      hasPrev: current > 0,
+      hasNext: current < pages - 1,
+      prevDisabled: current <= 0,
+      nextDisabled: current >= pages - 1,
+    }
+  }
+
+  // ── ResponsiveGrid auto-fill / auto-fit: the track minimum → oj-flex responsive column classes ──
+  /** The web renderers' default for a ResponsiveGrid that declares no columns (nor areas). */
+  const AUTO_FIT_DEFAULT = 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))'
+  /** `repeat(auto-fit, minmax(16rem, 1fr))` → classes that put as many tiles per row as fit at each
+   *  breakpoint (sm 0, md 768px, lg 1024px, xl 1280px). null when the template is not that shape. */
+  function autoFitColClass(template) {
+    const m = /repeat\(\s*auto-(?:fill|fit)\s*,\s*minmax\(\s*(?:min\(\s*100%\s*,\s*)?([\d.]+)(px|rem|em)/i.exec(str(template))
+    if (!m) return null
+    const px = parseFloat(m[1]) * (m[2] === 'px' ? 1 : 16)
+    if (!(px > 0)) return null
+    const per = (width) => Math.max(1, Math.min(12, Math.floor(width / px)))
+    const span = (width) => {
+      const n = per(width)
+      // oj-flex columns are twelfths: the largest span that fits n per row
+      return Math.max(1, Math.floor(12 / n))
+    }
+    return 'oj-flex-item oj-sm-' + span(480) + ' oj-md-' + span(768) + ' oj-lg-' + span(1024) + ' oj-xl-' + span(1280) + ' oj-sm-padding-2x-end oj-sm-padding-2x-bottom'
+  }
+
+  // ── HeroSection / EmptyState / ProgressBar in the content ───────────────────────────────────────
+  function heroAtomOf(m, interp = (x) => x) {
+    const image = m.image ? elementModuleUrl(str(m.image)) : ''
+    return {
+      isHero: true,
+      title: interp(str(m.title)),
+      subtitle: interp(str(m.subtitle)),
+      heroClass: 'mateu-hero oj-sm-padding-10x' + (m.centered ? ' mateu-hero-centered' : '') + (image ? ' mateu-hero-image' : ''),
+      heroStyle: image ? { backgroundImage: 'linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)), url("' + image.replace(/"/g, '%22') + '")', minHeight: str(m.height) || '' } : { minHeight: str(m.height) || '' },
+    }
+  }
+  /** EmptyState → oj-sp-empty-state (its call to action as an oj-button below it). */
+  function emptyStateAtomOf(m, interp = (x) => x) {
+    return {
+      isEmptyStateAtom: true,
+      title: [m.icon, interp(str(m.title))].filter(Boolean).join(' '),
+      description: interp(str(m.description)),
+      hasAction: !!(m.actionId && m.actionLabel),
+      actionLabel: interp(str(m.actionLabel)),
+      actionId: m.actionId || '',
+      parameters: {},
+    }
+  }
+  /** ProgressBar → oj-progress-bar: its value (or the state at valueKey) over min…max, or indeterminate. */
+  function progressBarAtomOf(m, state, interp = (x) => x) {
+    const min = Number(m.min) || 0
+    const max = Number(m.max) > min ? Number(m.max) : 1
+    const raw = m.valueKey && state && state[m.valueKey] != null ? Number(state[m.valueKey]) : Number(m.value)
+    const value = Number.isFinite(raw) ? Math.max(min, Math.min(max, raw)) : min
+    return {
+      isProgressBar: true,
+      value: m.indeterminate ? -1 : Math.round(((value - min) / (max - min)) * 100),
+      text: interp(str(m.text)),
+      ariaLabel: interp(str(m.text)) || 'Progress',
+      barClass: 'oj-sm-margin-1x-vertical' + (toneOf(m.theme) ? ' mateu-tone-' + toneOf(m.theme) : ''),
+    }
+  }
+
+  // ── CustomComponent: a registry the app fills (the VB app has no build step of its own) ────────
+  const customComponents = new Map()
+  /** An app registers a view for a custom component type: mount(el, props) paints it into the slot
+   *  (and may return a cleanup). Without one the visible placeholder stays, like the web. */
+  function registerCustomComponent(name, mount) {
+    if (name && typeof mount === 'function') customComponents.set(String(name), mount)
+  }
+  function customComponentRegistered(name) { return customComponents.has(str(name)) }
+  function customComponentMountOf(name) { return customComponents.get(str(name)) || null }
+  function customComponentAtomOf(m, id) {
+    return {
+      isCustomSlot: true,
+      name: str(m.name),
+      slotId: 'mateuCustom-' + str(id || m.name).replace(/[^\w-]/g, '_'),
+      props: JSON.stringify(m.props || {}),
+    }
+  }
+
+  // ── MicroFrontend: another Mateu UI (often another backend) loaded into its own surface ────────
+  /** The surface of a MicroFrontend — loaded like a @Subresource (loadSubresources), but from ITS
+   *  baseUrl, and its actions go back to it (runSurfaceAction). The id is derived from what it
+   *  points at (like the web's microFrontendUxId), so re-projections reuse the loaded surface. */
+  function microFrontendOf(m) {
+    const id = 'mfe_' + [m.baseUrl, m.route, m.consumedRoute, m.serverSideType].map((p) => str(p)).join('|').replace(/[^a-zA-Z0-9]/g, '_')
+    return {
+      id,
+      route: str(m.route),
+      consumedRoute: str(m.consumedRoute),
+      serverSideType: m.serverSideType || undefined,
+      componentState: {},
+      baseUrl: str(m.baseUrl).replace(/\/+$/, ''),
+      appState: m.appState && typeof m.appState === 'object' ? m.appState : null,
+      surface: true,
+      lazy: false,
+    }
+  }
+  /** Tags every object of a surface's atoms that sends an action with the surface it belongs to, so
+   *  the block dispatcher sends it there (deep: the cards of a board, the buttons of a band…). */
+  function tagSurfaceActions(value, surfaceId) {
+    if (Array.isArray(value)) return value.map((v) => tagSurfaceActions(v, surfaceId))
+    // only plain data: a JET data provider or converter is passed through as it is
+    if (!value || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype) return value
+    const out = {}
+    // (the parameters travel to the server as they are)
+    for (const [k, v] of Object.entries(value)) out[k] = k === 'parameters' ? v : tagSurfaceActions(v, surfaceId)
+    if ('actionId' in out) out.surfaceId = surfaceId
+    return out
+  }
+
+  // ── Unknown / unsupported types: a visible placeholder, like the web renderers ───────────────────
+  function unsupportedAtomOf(type, id) {
+    return {
+      isNotice: true,
+      text: chromeText('unsupportedComponent', { type: str(type), id: id && id !== 'fieldId' ? ' (' + id + ')' : '' }),
+      noticeClass: NOTICE_CLASSES.warning,
+      buttons: [],
+      isUnsupported: true,
+    }
+  }
+
+  /** The ‹ › buttons of a client-side pager: each carries the key and the value it sets
+   *  (the uiValueChanged listener reads them from the button's own $current). */
+  function pagerButtonsOf(key, prevValue, nextValue, prevDisabled, nextDisabled, prevLabel = chromeText('pagingPrev'), nextLabel = chromeText('pagingNext')) {
+    return [
+      { key: 'prev', uiKey: key, uiValue: prevValue, label: prevLabel, icon: 'oj-ux-ico-chevron-left', disabled: !!prevDisabled },
+      { key: 'next', uiKey: key, uiValue: nextValue, label: nextLabel, icon: 'oj-ux-ico-chevron-right', disabled: !!nextDisabled },
+    ]
+  }
+
+  // ── CarouselLayout (content slides): the pager above the slide shown ────────────────────────────
+  function carouselPagerAtomOf(key, current, count, loop) {
+    const prev = current > 0 ? current - 1 : (loop ? count - 1 : 0)
+    const next = current < count - 1 ? current + 1 : (loop ? 0 : count - 1)
+    return {
+      isCarouselPager: true,
+      positionText: (current + 1) + ' / ' + count,
+      nav: pagerButtonsOf(key, prev, next, !loop && current === 0, !loop && current === count - 1, chromeText('previousSlide'), chromeText('nextSlide')),
+      dots: keyed(Array.from({ length: count }, (_, i) => ({
+        uiKey: key,
+        uiValue: i,
+        label: chromeText('slideN', { n: i + 1 }),
+        current: i === current,
+        chroming: i === current ? 'callToAction' : 'borderless',
+      }))),
+    }
+  }
+
+  /** The types that legitimately reach the visitor's fall-through: containers whose children are
+   *  painted in the page flow, parts painted by their owner, and roots projected elsewhere (the
+   *  shell, the page header, the listing, the wizard, the overlays). Any OTHER type there has no
+   *  view → a visible placeholder. Kept in sync with coverage.mjs by test-display.mjs. */
+  const VISITOR_PASS_THROUGH = {
+    VerticalLayout: 1, HorizontalLayout: 1, FormItem: 1, FormSection: 1, FormSubSection: 1, FormRow: 1,
+    Scroller: 1, FullWidth: 1, Container: 1, Div: 1, ContentLayout: 1, ResponsiveGrid: 1,
+    BoardLayout: 1, BoardLayoutRow: 1, BoardLayoutItem: 1, SplitLayout: 1, MasterDetailLayout: 1,
+    FoldoutLayout: 1, AccordionPanel: 1, Tab: 1, GridColumn: 1, GridGroupColumn: 1, Breadcrumb: 1,
+    CarouselLayout: 1, DashboardLayout: 1, CustomField: 1,
+    App: 1, Page: 1, Form: 1, Crud: 1, HeroSection: 1, EmptyState: 1, NotFound: 1, ProgressBar: 1,
+    Dialog: 1, Drawer: 1,
+  }
+
+
+
+
   // El rastro automático de una pantalla — la MISMA regla que el renderer web
   // (libs/mateu/.../breadcrumbTrail.ts): el camino de menús hasta la ruta (grupos y la entrada que
   // la muestra, secciones de un pod incluidas) y, pasada la entrada, el nivel del CRUD — el registro
@@ -6186,17 +8164,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const rest = crumbRoute(path).slice(matched.length).split('/').filter(Boolean)
     const lang = page.lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
       || (typeof navigator !== 'undefined' && navigator.language) || ''
-    const es = String(lang).toLowerCase().startsWith('es')
     if (rest.length > 0) {
       const id = decodeURIComponent(rest[0])
       if (id === 'new' || id === 'create') {
-        trail.push({ text: es ? 'Nuevo' : 'New' })
+        trail.push({ text: chromeText('new', null, lang || 'en') })
       } else {
         const recordRoute = matched + '/' + rest[0]
         const title = crumbText(page.title)
         if (rest.length === 1 && title) recordTitles.set(recordRoute, title)
         trail.push({ text: recordTitles.get(recordRoute) || id, route: recordRoute })
-        if (rest[1] === 'edit') trail.push({ text: es ? 'Editar' : 'Edit' })
+        if (rest[1] === 'edit') trail.push({ text: chromeText('edit', null, lang || 'en') })
         else if (rest.length > 1) trail.push({ text: title || decodeURIComponent(rest[rest.length - 1]) })
       }
     }
@@ -6632,24 +8609,26 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // Node sin navegador ni backend.
 
 
+
   // ── clasificación ────────────────────────────────────────────────────────────────────────
 
   /** Ceiling por defecto de una petición, en ms. Lo pisa `@Action(timeoutMillis = …)`. */
   const DEFAULT_TIMEOUT_MS = 60000
 
+  // los textos, en el idioma de la interfaz (i18n.mjs)
   const MESSAGES = {
-    offline: () => 'Sin conexión. Tus cambios no se han enviado — revisa la red e inténtalo de nuevo.',
-    timeout: () => 'El servidor tarda demasiado en responder. Puede que tus cambios no se hayan guardado.',
-    server: (s) => `El servidor no ha podido completar la petición${s ? ` (error ${s})` : ''}. Inténtalo de nuevo.`,
-    unauthorized: () => 'Tu sesión ya no es válida. Vuelve a iniciar sesión.',
+    offline: () => chromeText('errOffline'),
+    timeout: () => chromeText('errTimeout'),
+    server: (s) => (s ? chromeText('errServerStatus', { status: s }) : chromeText('errServer')),
+    unauthorized: () => chromeText('errUnauthorized'),
     // Un 403 NO es la sesión: el servidor sabe quién eres y dice que no a ESTO (una acción que la
     // vista no declara, un rol que falta). Decir "vuelve a iniciar sesión" mandaba a un login que
     // no arregla nada.
-    forbidden: () => 'No tienes permiso para hacer esto.',
-    notFound: () => 'Esto ya no está disponible. Puede que se haya movido o borrado.',
-    client: (s) => `La petición ha sido rechazada${s ? ` (error ${s})` : ''}.`,
+    forbidden: () => chromeText('errForbidden'),
+    notFound: () => chromeText('errNotFound'),
+    client: (s) => (s ? chromeText('errClientStatus', { status: s }) : chromeText('errClient')),
     cancelled: () => '',
-    unknown: () => 'Algo ha ido mal. Inténtalo de nuevo.',
+    unknown: () => chromeText('errUnknown'),
   }
 
   /** Tipos que merece la pena reintentar: o no llegó, o el servidor tuvo un mal momento. */
@@ -7124,6 +9103,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
   // Accesibilidad del renderer VB — la parte que NO traen los componentes oj-*.
   //
   // Medido antes de escribir nada (axe-core sobre la app servida): la composición de oj-sp-*
@@ -7293,7 +9273,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * Oculto por transform y no por display:none, porque un elemento con display:none no puede
    * recibir foco — y entonces el enlace sería inalcanzable, que es justo lo contrario.
    */
-  function mountSkipLink(label = 'Saltar al contenido') {
+  function mountSkipLink(label = chromeText('skipToContent')) {
     if (typeof document === 'undefined') return
     if (!document.body) {
       document.addEventListener('DOMContentLoaded', () => mountSkipLink(label), { once: true })
@@ -7756,6 +9736,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
+
   // BANDEJA DE NOTIFICACIONES y TOASTS CON DESHACER en la shell VB.
   //
   // Bandeja (NotificationsSupplier del App): la campana de la cabecera con el número de no leídas
@@ -7798,7 +9780,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       unread,
       badge: unread > 9 ? '9+' : String(unread),
       hasUnread: unread > 0,
-      label: unread ? 'Notifications, ' + unread + ' unread' : 'Notifications',
+      label: unread ? chromeText('notificationsUnread', { n: unread }) : chromeText('notifications'),
       empty: items.length === 0,
       items,
       provider: notificationsProviderFactory ? notificationsProviderFactory(items) : null,
@@ -7873,7 +9855,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const button = doc.createElement('oj-button')
       button.setAttribute('chroming', 'borderless')
       button.className = 'mateu-undo-button'
-      button.textContent = toast.undoLabel || 'Undo'
+      button.textContent = toast.undoLabel || chromeText('undo')
       button.addEventListener('ojAction', () => {
         if (undoSink) undoSink(toast.undoActionId, toast.undoParameters || {}, {})
         if (typeof msg.close === 'function') msg.close()
@@ -7885,6 +9867,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       host.appendChild(msg)
     }
   }
+
 
 
   // Efectos de DOM que el reducer (puro) solo DESCRIBE: descargar un fichero y abrir una URL en
@@ -7951,6 +9934,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
   // Campos de CAPTURA de un formulario (fichero, imagen, firma, cámara) para los que JET/Redwood no
   // trae componente: no hay pad de firma ni cámara en oj-*/oj-sp-*, y oj-file-picker sólo entrega
   // File (el valor de Mateu es un data URI que viaja en el estado, sin endpoint de subida — el mismo
@@ -7975,17 +9959,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return v
   }
 
-  const CAPTURE_TEXTS = {
-    en: { clear: 'Clear', accept: 'Accept', signAgain: 'Sign again', remove: 'Remove', take: 'Take photo',
-      retake: 'Retake', upload: 'Upload', replace: 'Replace', noCamera: 'Camera unavailable — choose a file',
-      empty: 'No file', start: 'Open camera', signHere: 'Sign here' },
-    es: { clear: 'Borrar', accept: 'Aceptar', signAgain: 'Volver a firmar', remove: 'Quitar', take: 'Hacer foto',
-      retake: 'Repetir', upload: 'Subir', replace: 'Sustituir', noCamera: 'Cámara no disponible — elige un fichero',
-      empty: 'Sin fichero', start: 'Abrir cámara', signHere: 'Firme aquí' },
-  }
+  const CAPTURE_KEYS = ['clear', 'accept', 'signAgain', 'remove', 'take', 'retake', 'upload', 'replace', 'noCamera', 'empty', 'start', 'signHere']
 
+  /** Los textos de los campos de captura en `lang` (catálogo de la interfaz, i18n.mjs). */
   function captureTexts(lang) {
-    return String(lang || '').toLowerCase().startsWith('es') ? CAPTURE_TEXTS.es : CAPTURE_TEXTS.en
+    const l = chromeLanguage(lang)
+    return Object.fromEntries(CAPTURE_KEYS.map((k) => [k, chromeText('capture' + k[0].toUpperCase() + k.slice(1), null, l)]))
   }
 
   /** ¿El valor es una imagen que se puede enseñar? (data URI de imagen o URL corriente) */
@@ -8185,6 +10164,62 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }
     win.customElements.define('mateu-capture-field', MateuCaptureField)
+  }
+
+  /** A colour value as a #rrggbb string (what a native colour input takes), '' when it is not one. */
+  function hexColorOf(value) {
+    const v = String(value == null ? '' : value).trim()
+    if (/^#[0-9a-f]{6}$/i.test(v)) return v.toLowerCase()
+    const short = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(v)
+    if (short) return ('#' + short[1] + short[1] + short[2] + short[2] + short[3] + short[3]).toLowerCase()
+    const rgb = /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/i.exec(v)
+    if (rgb) return '#' + [rgb[1], rgb[2], rgb[3]].map((n) => Math.min(255, +n).toString(16).padStart(2, '0')).join('')
+    return ''
+  }
+
+  /**
+   * `<mateu-color-field value="#3a7bd5" readonly>`: a colour FIELD. JET's oj-color-spectrum is an
+   * inline palette over oj.Color objects, not a form field with a string value — the wire carries a
+   * string — so: a swatch (the platform colour picker) beside an oj-input-text with the hex code,
+   * and the same `valueChanged` contract as mateu-capture-field.
+   */
+  function defineColorField(win = typeof window !== 'undefined' ? window : null) {
+    if (!win || !win.customElements || win.customElements.get('mateu-color-field')) return
+    const doc = win.document
+    class MateuColorField extends win.HTMLElement {
+      static get observedAttributes() { return ['value', 'readonly'] }
+      connectedCallback() { this.render() }
+      attributeChangedCallback() { if (this.isConnected && !this.busy) this.render() }
+      get value() { return this.getAttribute('value') || '' }
+      set value(v) { if (v == null || v === '') this.removeAttribute('value'); else this.setAttribute('value', String(v)) }
+      emit(value) {
+        this.busy = true
+        this.value = value
+        this.busy = false
+        this.dispatchEvent(new win.CustomEvent('valueChanged', {
+          detail: { value: value || null, previousValue: null, updatedFrom: 'internal' }, bubbles: true }))
+        this.render()
+      }
+      render() {
+        const readonly = this.hasAttribute('readonly') && this.getAttribute('readonly') !== 'false'
+        const hex = hexColorOf(this.value)
+        this.textContent = ''
+        this.classList.add('mateu-color-field')
+        const swatch = doc.createElement('input')
+        swatch.type = 'color'
+        swatch.className = 'mateu-color-swatch'
+        swatch.value = hex || '#000000'
+        swatch.disabled = readonly
+        swatch.setAttribute('aria-label', chromeText('colourPicker', { label: this.getAttribute('aria-label') || '' }))
+        swatch.addEventListener('change', () => this.emit(swatch.value))
+        const code = doc.createElement('span')
+        code.className = 'oj-typography-body-md mateu-color-code'
+        code.textContent = this.value || '—'
+        this.appendChild(swatch)
+        this.appendChild(code)
+      }
+    }
+    win.customElements.define('mateu-color-field', MateuColorField)
   }
 
 
@@ -8411,16 +10446,59 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // cambios de campo (`valueChanged` de JET, interno) actualizan el estado vivo y re-evalúan; y,
   // como VB re-pinta de forma asíncrona, se re-aplica unos frames después de cada render.
 
-  let rulesCtx = null
-  let liveState = {}
+  // Rules live on every SURFACE, not only the host: an island (an embedded mediator), the open
+  // drawer or dialog. Each surface's rules act on the fields painted in that surface — the DOM
+  // tells them apart (surfaceOfElement): the overlay panels by their ids, the island by its
+  // data-mateu-surface wrapper, the rest is the host. A field of the same name in the drawer is not
+  // hidden by the host's rule.
+  let surfaces = [] // [{ surface: 'host'|'island'|'overlay', ctx, appState, liveState }]
   let runActionSink = null
 
   /** Quién ejecuta una RunAction de regla (la shell reusa el sumidero de los Element). */
   function setRuleActionSink(fn) { runActionSink = typeof fn === 'function' ? fn : null }
 
+  const hasRules = (ctx) => !!(ctx && ctx.tree && (ctx.tree.rules || []).length)
+
+  /** The surfaces whose rules apply, from a reduced registry: the host, its islands and the
+   *  overlay on top. Pure. */
+  function ruleSurfacesOf(reg, hostId = '__root__') {
+    const out = []
+    const contexts = (reg && reg.contexts) || {}
+    if (hasRules(contexts[hostId])) out.push({ surface: 'host', ctx: contexts[hostId] })
+    for (const [id, ctx] of Object.entries(contexts)) {
+      if (id !== hostId && ctx && ctx.kind === 'island' && hasRules(ctx)) out.push({ surface: 'island', ctx })
+    }
+    const stack = (reg && reg.stack) || []
+    const top = stack.length ? contexts[stack[stack.length - 1]] : null
+    if (hasRules(top)) out.push({ surface: 'overlay', ctx: top })
+    return out
+  }
+
+  /** Which surface an element is painted in. */
+  function surfaceOfElement(el) {
+    if (!el || !el.closest) return 'host'
+    if (el.closest('#mateuDrawerPanel, #mateuModal, #mateuRowDetailPanel')) return 'overlay'
+    if (el.closest('[data-mateu-surface="island"]')) return 'island'
+    return 'host'
+  }
+
+  /** The host only (kept for callers that set one context). */
   function setRulesContext(ctx, appState) {
-    rulesCtx = ctx && ctx.tree && (ctx.tree.rules || []).length ? { ctx, appState: appState || {} } : null
-    liveState = { ...((ctx && ctx.state) || {}) }
+    setRuleSurfaces(hasRules(ctx) ? [{ surface: 'host', ctx }] : [], appState)
+  }
+  /** Every surface of a reduced registry (the reduce hook calls this). */
+  function setRulesContexts(reg, appState) {
+    setRuleSurfaces(ruleSurfacesOf(reg), appState)
+  }
+  function setRuleSurfaces(list, appState) {
+    const before = new Map(surfaces.map((x) => [x.surface + ':' + (x.ctx.id || ''), x]))
+    surfaces = list.map((x) => {
+      // a re-reduction that left the SAME state keeps what the user typed since; a new answer
+      // (another state object) starts from it
+      const kept = before.get(x.surface + ':' + (x.ctx.id || ''))
+      const liveState = kept && kept.ctx.state === x.ctx.state ? kept.liveState : { ...((x.ctx && x.ctx.state) || {}) }
+      return { ...x, appState: appState || {}, liveState }
+    })
     applyRulesSoon()
   }
 
@@ -8440,14 +10518,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
   }
 
-  function applyRulesNow(doc = typeof document !== 'undefined' ? document : null) {
-    if (!rulesCtx || !doc) return 0
-    const { ctx, appState } = rulesCtx
+  function applySurface(doc, entry) {
+    const { ctx, appState, liveState, surface } = entry
     const result = computeRules(ctx.tree.rules, { state: liveState, data: ctx.data || {}, appState, appData: {}, component: ctx.tree })
+    const inSurface = (el) => surfaceOfElement(el) === surface
     let touched = 0
     const flags = fieldFlagsOf(result.data)
     for (const fieldId of Object.keys(flags)) {
       for (const el of doc.querySelectorAll('[data-field-id="' + attrSelectorValue(fieldId) + '"]')) {
+        if (!inSurface(el)) continue
         const f = flags[fieldId]
         if ('hidden' in f) {
           const item = formItemOf(el)
@@ -8467,12 +10546,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const value = result.state[fieldId]
       if (liveState[fieldId] === value) continue
       liveState[fieldId] = value
-      for (const el of doc.querySelectorAll('[data-field-id="' + fieldId + '"]')) {
+      for (const el of doc.querySelectorAll('[data-field-id="' + attrSelectorValue(fieldId) + '"]')) {
+        if (!inSurface(el)) continue
         el.value = value
         el.dispatchEvent(new CustomEvent('valueChanged', { detail: { value, updatedFrom: 'internal' }, bubbles: true }))
       }
     }
-    for (const actionId of result.actions) if (runActionSink) runActionSink(actionId, {}, {})
+    for (const actionId of result.actions) if (runActionSink) runActionSink(actionId, {}, { surface })
+    return touched
+  }
+
+  function applyRulesNow(doc = typeof document !== 'undefined' ? document : null) {
+    if (!surfaces.length || !doc) return 0
+    let touched = 0
+    for (const entry of surfaces) touched += applySurface(doc, entry)
     return touched
   }
 
@@ -8483,7 +10570,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     requestAnimationFrame(tick)
   }
 
-  /** Escucha los cambios de campo del documento (una vez): actualiza el estado vivo y re-evalúa. */
+  /** Escucha los cambios de campo del documento (una vez): actualiza el estado vivo DE SU SUPERFICIE
+   *  y re-evalúa. */
   function installRules(doc = typeof document !== 'undefined' ? document : null) {
     if (!doc || doc.__mateuRulesInstalled) return
     doc.__mateuRulesInstalled = true
@@ -8492,14 +10580,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const fieldId = el && el.getAttribute && el.getAttribute('data-field-id')
       const detail = e.detail || {}
       if (!fieldId || (detail.updatedFrom && detail.updatedFrom !== 'internal')) return
-      liveState[fieldId] = detail.value
+      const surface = surfaceOfElement(el)
+      for (const entry of surfaces) if (entry.surface === surface) entry.liveState[fieldId] = detail.value
       applyRulesNow(doc)
     }, true)
   }
 
   /** Para diagnosticar desde la consola: las reglas en vigor y el estado vivo. */
   function rulesDebug() {
-    return { rules: rulesCtx ? (rulesCtx.ctx.tree.rules || []).length : 0, state: { ...liveState } }
+    return surfaces.map((x) => ({ surface: x.surface, rules: (x.ctx.tree.rules || []).length, state: { ...x.liveState } }))
   }
 
 
@@ -8860,6 +10949,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
   // VENTANAS FLOTANTES al pasar el ratón (y al enfocar con el teclado): el resumen de una tarifa, el
   // detalle de una celda. UNA oj-popup de JET compartida, creada fuera de Knockout, a la que se
   // le cambia el contenido: cualquier elemento con data-mateu-hover (texto, líneas con \n) la abre
@@ -8903,7 +10993,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const open = (el, text) => {
       const p = ensure()
       body.textContent = ''
-      for (const line of hoverLinesOf(text)) {
+      // rich content (a Popover's components): the sanitised HTML; else the text lines
+      const html = el.getAttribute('data-mateu-pop-html') || ''
+      if (html) body.innerHTML = sanitizeHtml(html)
+      else for (const line of hoverLinesOf(text)) {
         const div = doc.createElement('div')
         div.textContent = line
         body.appendChild(div)
@@ -8970,6 +11063,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }, true)
   }
+
 
 
   // ARRASTRAR FILAS A UN DESTINO: las filas de un listado @DragRows(tipo) se arrastran con el dnd
@@ -9187,13 +11281,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   void panelExpanded
 
 
+
   // Map sobre Leaflet: JET no tiene mapa de calles (oj-thematic-map pinta geografía GeoJSON, no
   // teselas), así que el átomo `isMap` es un contenedor que esto llena, una vez por documento como el
   // texto enriquecido o el MatrixGrid:
   //   - Leaflet (1.9.4) y su CSS se cargan del CDN de cdnjs al pintarse el primer mapa — nada se
   //     vendoriza; con requirejs presente (VB) se pide por require, porque un <script> UMD con
   //     requirejs cargado choca con su define anónimo;
-  //   - teselas de OpenStreetMap, como el <mateu-map> del web;
+  //   - teselas de OpenStreetMap, como el <mateu-map> del web — o las del proveedor que el Map
+  //     declara en el wire (tileUrl, plantilla de Leaflet, + attribution): tileLayerOf;
   //   - un marcador = un círculo de su color con la etiqueta al lado (y la descripción al pasar);
   //     pulsarlo lanza markerActionId con { _markerId };
   //   - con marcadores y sin posición, la vista los encuadra (mapViewPlanOf, la misma regla que
@@ -9205,6 +11301,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const DEFAULT_PIN = '#c74634'
   const DEFAULT_ZOOM = 3
   const SINGLE_MARKER_ZOOM = 15
+
+  const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+
+  /** La capa de teselas de un mapa: la del wire (tileUrl + attribution) o, sin tileUrl, OSM. La
+   *  plantilla del wire ya es la de Leaflet ({s}, {z}, {x}, {y}), así que pasa tal cual. */
+  function tileLayerOf(spec) {
+    const url = spec && typeof spec.tileUrl === 'string' ? spec.tileUrl.trim() : ''
+    if (!url) return { url: OSM_TILES, options: { maxZoom: 19, attribution: OSM_ATTRIBUTION } }
+    const attribution = spec.attribution ? String(spec.attribution).trim() : ''
+    return { url, options: { maxZoom: 19, ...(attribution ? { attribution } : {}) } }
+  }
 
   let mapSink = null
   /** Quién ejecuta la acción de un marcador (la shell reutiliza el sumidero de los Element). */
@@ -9280,10 +11387,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function drawMap(L, el, spec) {
     if (el.__mateuMap) { el.__mateuMap.remove(); el.__mateuMap = null }
     const map = L.map(el, { scrollWheelZoom: true })
-    L.tileLayer(OSM_TILES, {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    }).addTo(map)
+    const tiles = tileLayerOf(spec)
+    L.tileLayer(tiles.url, tiles.options).addTo(map)
     for (const m of spec.markers || []) {
       const pin = L.circleMarker([m.latitude, m.longitude], {
         radius: 8, color: '#ffffff', weight: 2, fillColor: m.color || DEFAULT_PIN, fillOpacity: 1,
@@ -9323,7 +11428,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // la especificación pudo cambiar (o el contenedor desaparecer) mientras cargaba
         if (el.__mateuMapSpec === raw && el.isConnected) drawMap(L, el, spec)
       }).catch(() => {
-        el.textContent = 'The map could not be loaded.'
+        el.textContent = chromeText('mapUnavailable')
       })
     }
     const scan = (root) => {
@@ -9595,10 +11700,137 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+  // The mount path of the packaged app (the jar io.mateu:redwood served by a Mateu backend).
+  //
+  // The controller the annotation processor generates for an @UI serves _index.html at the UI's
+  // path and injects a hidden <mateu-ui baseUrl="/console" pathPrefix="/console">. That element is
+  // two things at once:
+  //   - the SIGNAL that the app is served by a Mateu backend → URLs are PATHS (/console/orders),
+  //     not hashes (#/orders, the static serving of vb-serve / VB hosted at Oracle, where the
+  //     server cannot rewrite arbitrary paths to the index);
+  //   - the MOUNT: the API of that UI lives at <mount>/mateu/v3/... (the root /mateu/v3 is ANOTHER
+  //     UI's, or nothing at all when no @UI sits at "").
+  // Routes are RELATIVE to the mount, as on the web renderer (mateu-ui strips its pathPrefix): an
+  // App @UI("/app") lists its menu as '/section1', and the browser shows /app/section1. The mount
+  // itself is the HOME of the UI (the menu's home for an App; the page or crud itself otherwise).
+  // One wrinkle: a crud's inner routes come back from the server already carrying the crud's own
+  // path ('/products/new' for @UI("/products")), so a route that already starts with the mount is
+  // not prefixed twice.
+  // Before this module the packaged app called /mateu/v3 on the ROOT whatever the mount: it booted
+  // the root app's shell at /products, and with no @UI at "" it did not boot at all.
+  //
+  // The pure functions are what the tests pin; initMount/mateuBase/urlOfRoute/currentRouteOf keep
+  // the mount read once at boot (loadMateuShell) for the chains.
+
+  /** '' (root) or '/segment(s)' without a trailing slash. */
+  function normalizeMount(value) {
+    let v = String(value == null ? '' : value).trim()
+    if (!v || v === '/') return ''
+    if (v.charAt(0) !== '/') v = '/' + v
+    return v.replace(/\/+$/, '')
+  }
+
+  /**
+   * The base for /mateu/v3/... calls: the mount the <mateu-ui> carries when there is one (its
+   * attributes as a plain object, or null when the page has no such element), else the development
+   * default (the app-flow constant mateuBaseUrl — an absolute backend URL under vb-serve).
+   */
+  function baseUrlOf(attrs, devDefault) {
+    if (!attrs) return devDefault
+    return normalizeMount(attrs.baseUrl != null ? attrs.baseUrl : attrs.baseurl)
+  }
+
+  /** The Mateu route of a browser path under the mount: '/console/orders' → '/orders', the mount
+   *  itself ('/console', '/console/', '/' at the root) → '' (the home). A path outside the mount is
+   *  returned as is. */
+  function routeOfPath(pathname, mount) {
+    const m = normalizeMount(mount)
+    let p = pathname || '/'
+    if (m) {
+      if (p === m || p === m + '/') return ''
+      if (p.startsWith(m + '/')) p = p.slice(m.length)
+    }
+    return p === '/' ? '' : p
+  }
+
+  /** The browser path of a Mateu route under the mount: '/orders' → '/console/orders', the home
+   *  ('' or '/') → '/console' ('/' at the root). A route may carry its ?query; one that already
+   *  starts with the mount (a crud's inner route) is not prefixed again. */
+  function pathOfRoute(route, mount) {
+    const m = normalizeMount(mount)
+    let r = route == null ? '' : String(route)
+    if (r.charAt(0) === '?') r = '/' + r
+    if (r === '' || r === '/') return m || '/'
+    if (r.startsWith('/?')) return (m || '') + r.slice(m ? 1 : 0)
+    if (r.charAt(0) !== '/') r = '/' + r
+    const path = r.split('?')[0]
+    if (m && (path === m || path.startsWith(m + '/'))) return r
+    return m + r
+  }
+
+  // ── the mount read at boot ─────────────────────────────────────────────────────────────────────
+  let mountPath = null
+
+  /** Reads the <mateu-ui> of the page once: the mount ('' at the root) or null (hash mode). */
+  function initMount(doc) {
+    const el = doc && typeof doc.querySelector === 'function' ? doc.querySelector('mateu-ui') : null
+    mountPath = el ? baseUrlOf({ baseUrl: el.getAttribute('baseUrl') }, '') : null
+    return mountPath
+  }
+
+  /** Test hook / explicit setting: null = hash mode. */
+  function setMount(value) { mountPath = value == null ? null : normalizeMount(value) }
+
+  /** Path mode (served by a Mateu backend) vs hash mode (static serving). */
+  function isPathMode() { return mountPath != null }
+
+  function currentMount() { return mountPath || '' }
+
+  /** The base for API calls: the mount in path mode, the development constant otherwise. */
+  function mateuBase(devDefault) { return mountPath != null ? mountPath : devDefault }
+
+  /** The base for STATIC things the backend serves at its root (images, logos, web-component
+   *  modules, the agent's sseUrl): the origin root in path mode — they are not under the mount, just
+   *  as on the Vaadin renderer —, the development constant (the backend origin) otherwise. */
+  function mateuAssetBase(devDefault) { return mountPath != null ? '' : devDefault }
+
+  /** What goes in history.pushState for a route: its path under the mount, or '#route'. */
+  function urlOfRoute(route) {
+    return mountPath != null ? pathOfRoute(route, mountPath) : '#' + (route || '')
+  }
+
+  /** The route (with its ?query) the browser URL names. */
+  function currentRouteOf(location) {
+    if (!location) return ''
+    if (mountPath == null) return (location.hash || '').replace(/^#/, '')
+    return routeOfPath(location.pathname, mountPath) + (location.search || '')
+  }
+
+  /** A route the server names in full (an App's homeRoute '/console/home') as a route under the mount
+   *  ('/home'); unchanged in hash mode or when it is not under the mount. */
+  function routeUnderMount(route) {
+    if (mountPath == null || !route) return route || ''
+    const [path, query] = String(route).split(/(?=\?)/)
+    const r = routeOfPath(path, mountPath)
+    return (r || (query ? '/' : '')) + (query || '')
+  }
+
+  /** The route part (no query) of the browser path — what to compare a route against. */
+  function currentRoutePathOf(location) {
+    if (!location) return ''
+    return mountPath != null ? routeOfPath(location.pathname, mountPath) : (location.hash || '').replace(/^#/, '').split('?')[0]
+  }
+
+
   // Transporte del bridge — contrato CONFIRMADO contra demo/demo-vb (ver DESIGN-NOTES
   // "Transporte"): bootstrap de la shell por components/_/action; todo lo demás por
   // sync/{route|_no_route} con actionId '' en las cargas. Fuente ÚNICA: este fichero se
   // testea en Node (capture.mjs) y se empaqueta en AMD para VB (make-amd.mjs).
+
+
+
+
+
 
 
   /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction).
@@ -9706,11 +11938,41 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return composeInnerRoute(mediatorBaseOf(outbound, fallbackRoute), flip)
   }
 
+  // ── a mount whose @UI is not an App ───────────────────────────────────────────────────────────
+  // @UI("/hello") on a plain page, @UI("/products") on a crud: the bootstrap (components/_/action)
+  // answers the page itself or nothing at all ("__load__ not supported by ProductsCrud") — never an
+  // App with a menu —, so there is no shell and no home route. Its home is the mount's own UI, which
+  // the sync endpoint resolves for a FRESH load: route '' with consumedRoute '_empty', exactly what
+  // the web renderer sends on a deep link or a reload. The shell remembers that the mount has no App
+  // and the home load ('' or '/') goes out that way.
+  let mountWithoutApp = false
+
+  /** Did the bootstrap answer an App (the root of a console with its menu)? */
+  function bootstrapHasApp(increment) {
+    const fragments = (increment && increment.fragments) || []
+    return fragments.some((f) => {
+      const c = f && f.component
+      if (!c) return false
+      if (c.metadata && c.metadata.type === 'App') return true
+      return (c.children || []).some((child) => child && child.metadata && child.metadata.type === 'App')
+    })
+  }
+
+  function setMountWithoutApp(value) { mountWithoutApp = !!value }
+
   /** Carga de una ruta (actionId '': el __load__ real; extra = consumedRoute/serverSideType…).
    *  Static-bundle: si hay manifest cargado, la carga se responde DESDE el bundle (sin backend);
    *  se espera al fetch del manifest en vuelo (la primera carga puede adelantarlo) y, si la ruta no
    *  está en el bundle, se cae al backend — así un despliegue híbrido (bundle + backend) sigue yendo. */
   const loadRoute = async (base, route, initiator = '', extra = {}) => {
+    // the home of a mount whose @UI is not an App: a fresh load of the mount — see bootstrapHasApp
+    if ((!route || route === '/') && mountWithoutApp && !extra.consumedRoute && extra.serverSideType == null) {
+      extra = { ...extra, consumedRoute: '_empty' }
+    } else if (mountWithoutApp && route && route !== '/') {
+      // …and below the mount (a deep link to /products/new): with no App to resolve it relative to,
+      // the server knows the crud's inner routes by their full path, mount included
+      route = pathOfRoute(route, currentMount())
+    }
     await awaitBundle()
     if (hasBundle()) {
       const bundled = bundledIncrementFor(route, initiator)
@@ -9965,6 +12227,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const wrapperActions = (wrapperTree && wrapperTree.actions) || []
     const info = mediatorOf(next.contexts[ctxId]) || mediatorFromShellApp(firstIncrement, effectiveRoute)
     if (info) {
+      // the home of a mount whose @UI is a crud (route '' or '/', a fresh load): the mediator names
+      // the route of its content — the crud's own path
+      if ((!effectiveRoute || effectiveRoute === '/') && info.homeRoute) effectiveRoute = info.homeRoute
       outbound = {
         route: effectiveRoute,
         consumedRoute: info.rootRoute || effectiveRoute,
@@ -10005,6 +12270,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * y su búsqueda OnLoad (las filas). Devuelve el registro nuevo.
    */
   async function loadSubresource(base, reg, sub, extra = {}) {
+    // a MicroFrontend lives in ITS backend (its baseUrl), with the app state it was given
+    if (sub.baseUrl) base = sub.baseUrl
+    if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
     const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base }
     let next = reduceContexts(reg, await loadRoute(base, sub.route, sub.id, {
       ...extra,
@@ -10028,6 +12296,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * pestaña activa: lo que está en otra pestaña espera a que se abra). Uno que falla se queda como
    * hueco: no tumba la pantalla.
    */
+  /**
+   * An action of a surface that is neither the host nor the island (a MicroFrontend): posted to that
+   * surface with its own state and outbound (route, consumed route, server-side type, base), and the
+   * increment reduced into the registry. Returns the new registry (the chain re-projects the content).
+   */
+  async function runSurfaceAction(reg, surfaceId, actionId, parameters, extra = {}) {
+    const ctx = reg && reg.contexts && reg.contexts[surfaceId]
+    if (!ctx || !actionId) return reg
+    const outbound = ctx.outbound || {}
+    const increment = await runMateuAction(outbound.baseUrl, ctx, outbound.route || '', actionId, ctx.state || {},
+      { ...extra, parameters: parameters || {} })
+    return increment ? reduceContexts(reg, increment) : reg
+  }
+
   async function loadSubresources(base, reg, blocks, extra = {}) {
     let next = reg
     for (const sub of pendingSubresourcesOf(blocks, next.contexts)) {
@@ -10280,6 +12562,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // El HTML se pinta como HTML (lo es en el wire: un <a> con su onclick que emite
   // navigation-requested), con una sola traducción: <vaadin-icon> no existe en Redwood y se cambia
   // por el icono de fuente oj-ux-ico equivalente. La navegación que emite la escucha la shell.
+
+
 
 
   const CONTAINERS = new Set([
@@ -10592,7 +12876,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * vuelve a la lupa.
    */
   function askFabOf(shell, base = '') {
-    const label = String((shell && shell.askLabel) || '').trim() || ASK_FAB_LABEL
+    const label = String((shell && shell.askLabel) || '').trim() || chromeText('askSearch')
     const raw = String((shell && shell.askIcon) || '').trim()
     const glyph = (cls) => ({ label, kind: 'glyph', glyph: cls })
     if (!raw) return glyph(ASK_FAB_GLYPH)
@@ -10665,7 +12949,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // URL (agente local vs sseUrl), aplanar el menú como contexto, discriminar cada payload `data:` y
   // acumular el texto del asistente. Ese núcleo va aquí — probado en Node (poc/test.mjs) — y el bucle
   // de streaming acepta un `fetchImpl` inyectable para no tocar globals. Es la capa "lógica" del
-  // roadmap; el panel VB (gate visual) la consume. Sin imports: se concatena en el bundle AMD.
+  // roadmap; el panel VB (gate visual) la consume. Se concatena en el bundle AMD (make-amd quita el import).
+
 
   /** Discrimina un payload `data:` que es un objeto de uso de tokens ({inputTokens|outputTokens|totalTokens}). */
   function tryParseTokenUsage(payload) {
@@ -10752,7 +13037,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const f of files || []) form.append('files', f)
     if (sessionId) form.append('sessionId', sessionId)
     const response = await fetchImpl(uploadUrl, { method: 'POST', headers, body: form })
-    if (!response.ok) throw new Error(`Upload failed: ${response.status}`)
+    if (!response.ok) throw new Error(chromeText('chatUploadFailed', { status: response.status }))
     const result = await response.json()
     return ((result && result.files) || []).filter((f) => f && f.path)
   }
@@ -10822,7 +13107,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (ev.event === 'agent-delta') return { kind: 'delta', text: typeof detail.text === 'string' ? detail.text : '' }
       if (ev.event === 'agent-status') return { kind: 'status', detail }
       if (ev.event === 'agent-tool') return { kind: 'tool', detail }
-      if (ev.event === 'agent-error') return { kind: 'error', message: String(detail.message || 'Error desconocido del agente') }
+      if (ev.event === 'agent-error') return { kind: 'error', message: String(detail.message || chromeText('chatAgentError')) }
       return { kind: 'event', event: ev.event, detail: ev.detail }
     }
     return { kind: 'text', text: payload ?? '' }
@@ -10855,7 +13140,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       tool(detail, at) {
         p.reported = true
         const d = detail || {}
-        const name = d.name || 'herramienta'
+        const name = d.name || chromeText('chatTool')
         if (d.phase === 'start') {
           p.steps = [...p.steps, { name, server: d.server, kind: d.kind, running: true }]
           p.since = at
@@ -10882,10 +13167,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const secs = Math.max(0, Math.floor((at - p.since) / 1000))
         const withSecs = (s) => (secs > 0 ? `${s} ${secs} s` : s)
         const running = p.runningTool()
-        if (running) return withSecs(`Llamando a ${running.name}…`)
-        if (p.answering) return 'Respondiendo…'
+        if (running) return withSecs(chromeText('chatCalling', { name: running.name }))
+        if (p.answering) return chromeText('chatAnswering')
         if (!p.reported) return null
-        return withSecs(p.statusText || 'Pensando…')
+        return withSecs(p.statusText || chromeText('chatThinking'))
       },
     }
     return p
@@ -10932,10 +13217,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     if (!response.ok) {
       const errorText = response.text ? await response.text() : ''
-      throw new Error(`Servidor respondió ${response.status}: ${errorText}`)
+      throw new Error(chromeText('chatServerError', { status: response.status, text: errorText }))
     }
     const reader = response.body && response.body.getReader ? response.body.getReader() : null
-    if (!reader) throw new Error('No se pudo obtener el reader del stream.')
+    if (!reader) throw new Error(chromeText('chatNoReader'))
 
     const decoder = new TextDecoder()
     const parser = createSseParser()
@@ -11049,9 +13334,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!busy) return ''
     const line = progress && progress.line ? progress.line(typeof now === 'number' ? now : Date.now()) : null
     if (line) return line
-    if (hasText) return 'Respondiendo…'
+    if (hasText) return chromeText('chatAnswering')
     const s = Math.max(0, Math.floor(elapsedSeconds || 0))
-    return s > 0 ? `Pensando… ${s} s` : 'Pensando…'
+    return s > 0 ? chromeText('chatThinkingFor', { s }) : chromeText('chatThinking')
   }
 
   /** El constructor del reconocimiento de voz del navegador, o null donde no existe (Firefox). */
@@ -11254,13 +13539,909 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return () => { observer.disconnect(); el.removeEventListener('scroll', onScroll) }
   }
 
+  // ---- Paridad con el chat web (libs/mateu mateu-chat.ts): lo que el panel VB necesitaba ----------
+  //
+  // El chat compartido manda en cada mensaje, además del texto: el CONTEXTO de la pantalla (url,
+  // título, appState/appData, el estado del componente — su contextProvider), una PROYECCIÓN
+  // autodescriptiva de la pantalla (screenContext.ts: campos con tipo/rótulo/valor + acciones, la
+  // misma que recibe un agente MCP), el `mcpUrl` del @AI y los adjuntos; prefiere el agente LOCAL si
+  // contesta a /health; titula el panel con el @App(askLabel); enseña las herramientas que usa el
+  // agente en el turno en curso; y explica una respuesta vacía o un corte de red. Todo puro aquí.
+
+  /** El agente local (companion) por defecto, el mismo que el chat web. */
+  const LOCAL_AGENT_URL = 'http://127.0.0.1:8776'
+
+  /** ¿Contesta el agente local? (GET <url>/health con un tope de 1,2 s; cualquier fallo = no). */
+  async function probeLocalAgent({ url = LOCAL_AGENT_URL, fetchImpl = globalThis.fetch, timeoutMs = 1200 } = {}) {
+    if (!url || !fetchImpl) return false
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null
+    const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null
+    try {
+      const response = await fetchImpl(url + '/health', controller ? { signal: controller.signal } : {})
+      return !!(response && response.ok)
+    } catch {
+      return false
+    } finally {
+      if (timer) clearTimeout(timer)
+    }
+  }
+
+  /** La configuración del panel desde la shell (el App del bootstrap) y la base del backend. */
+  function chatConfigOf(shell, base = '') {
+    const s = shell || {}
+    const abs = (u) => (u ? (/^[a-z][a-z0-9+.-]*:/i.test(u) ? u : base + u) : '')
+    return {
+      sseUrl: abs(s.sseUrl),
+      uploadUrl: abs(s.uploadUrl),
+      mcpUrl: abs(s.mcpUrl),
+      // el título del panel: la marca del App (@App(askLabel)), si no «Assistant»
+      title: String(s.askLabel || '').trim() || chromeText('chatTitle'),
+    }
+  }
+
+  const mdTypeOf = (node) => (node && node.metadata && typeof node.metadata.type === 'string' ? node.metadata.type : undefined)
+
+  /**
+   * La pantalla proyectada para el agente — port de screenContext.ts `projectScreen`: los FormField
+   * (id, rótulo, tipo, estereotipo, obligatorio, solo lectura, valor del estado, opciones) y las
+   * acciones (las declaradas por el componente, con el rótulo de su botón; y los botones sueltos).
+   */
+  function projectChatScreen(component, state) {
+    if (!component || typeof component !== 'object') return { fields: [], actions: [] }
+    const fieldMds = []
+    const buttons = new Map()
+    let page
+    const seen = new Set()
+    const visit = (node) => {
+      if (!node || typeof node !== 'object' || seen.has(node)) return
+      seen.add(node)
+      if (!Array.isArray(node)) {
+        const t = mdTypeOf(node)
+        if (t === 'FormField' && node.metadata.fieldId) fieldMds.push(node.metadata)
+        else if (t === 'Page' && !page) page = node.metadata
+        else if (t === 'Button' && node.metadata.actionId && !buttons.has(node.metadata.actionId)) buttons.set(node.metadata.actionId, node.metadata.label)
+      }
+      for (const v of Array.isArray(node) ? node : Object.values(node)) if (v && typeof v === 'object') visit(v)
+    }
+    visit(component)
+    const values = state && typeof state === 'object' ? state
+      : (component.initialData && typeof component.initialData === 'object' ? component.initialData : {})
+    const fields = []
+    const seenField = new Set()
+    for (const md of fieldMds) {
+      if (seenField.has(md.fieldId)) continue
+      seenField.add(md.fieldId)
+      const field = {
+        id: md.fieldId,
+        label: md.label != null ? md.label : md.fieldId,
+        dataType: md.dataType || 'string',
+        stereotype: md.stereotype || 'regular',
+        required: !!md.required,
+        readOnly: !!md.readOnly,
+      }
+      if (Object.prototype.hasOwnProperty.call(values, md.fieldId)) field.value = values[md.fieldId]
+      if (Array.isArray(md.options) && md.options.length) {
+        field.options = md.options.map((o) => (o && typeof o === 'object'
+          ? { value: o.value, label: o.label != null ? o.label : String(o.value != null ? o.value : '') }
+          : { value: o, label: String(o) }))
+      }
+      fields.push(field)
+    }
+    const actions = []
+    const seenAction = new Set()
+    for (const a of Array.isArray(component.actions) ? component.actions : []) {
+      if (!a || !a.id || seenAction.has(a.id)) continue
+      seenAction.add(a.id)
+      const action = { id: a.id, label: buttons.get(a.id) != null ? buttons.get(a.id) : a.id }
+      if (a.shortcut) action.shortcut = a.shortcut
+      actions.push(action)
+    }
+    for (const [id, label] of buttons) {
+      if (!seenAction.has(id)) { seenAction.add(id); actions.push({ id, label: label != null ? label : id }) }
+    }
+    const screen = { fields, actions }
+    const title = (page && (page.pageTitle || page.title)) || undefined
+    if (title) screen.title = title
+    if (component.route) screen.route = component.route
+    if (component.serverSideType) screen.serverSideType = component.serverSideType
+    if (component.pageType || (page && page.pageType)) screen.pageType = component.pageType || page.pageType
+    return screen
+  }
+
+  /**
+   * El POST de un turno, con la misma forma que el del chat web: el texto, la sesión, la ruta, los
+   * adjuntos, el contexto (url, título, appState/appData y el estado/datos del contexto HOST del
+   * registro), la pantalla proyectada (si tiene algo), el mcpUrl y, sólo en el primer mensaje de la
+   * sesión (`sendMenu`), el menú. Devuelve `{ body, shown }`: `shown` es lo que se pinta como mensaje
+   * del usuario (el texto + 📎 los adjuntos).
+   */
+  function chatTurnOf({ message, sessionId, attachments = [], registry, appState, appData, url, screenTitle, currentRoute, mcpUrl, menu, sendMenu, origin }) {
+    const text = String(message || '').trim()
+    const host = registry && registry.contexts ? registry.contexts.__root__ : null
+    const context = {
+      url: url || '',
+      screenTitle: screenTitle || '',
+      appState: appState || {},
+      appData: appData || (registry && registry.appData) || {},
+      componentState: (host && host.state) || {},
+      componentData: (host && host.data) || {},
+    }
+    const screen = host && host.tree ? projectChatScreen(host.tree, host.state) : null
+    const hasScreen = !!screen && (screen.fields.length > 0 || screen.actions.length > 0 || !!screen.title)
+    const pageOrigin = origin || (typeof location !== 'undefined' && location.origin) || 'http://localhost'
+    const body = {
+      ...buildChatBody({
+        message: text,
+        sessionId,
+        attachments,
+        context,
+        mcpUrl: mcpUrl ? new URL(mcpUrl, pageOrigin).href : undefined,
+        menuContext: sendMenu ? buildChatMenuContext(menu || []) : undefined,
+        currentRoute,
+      }),
+      ...(hasScreen ? { screen } : {}),
+    }
+    const names = (attachments || []).map((a) => a.name).join(', ')
+    const shown = names ? `${text}${text ? '\n\n' : ''}📎 ${names}` : text
+    return { body, shown }
+  }
+
+  /** El texto final del turno: la respuesta, o por qué no la hay (respuesta vacía, corte de red, error). */
+  function chatTurnTextOf(accumulated, error) {
+    if (error) {
+      const message = (error && error.message) || String(error)
+      const network = message === 'Failed to fetch' || message === 'network error' || message === 'Load failed'
+      if (network && !accumulated) return '⚠️ ' + chromeText('chatNoAnswer')
+      return '⚠️ ' + chromeText('chatError', { message })
+    }
+    if (!accumulated) return '⚠️ ' + chromeText('chatEmptyAnswer')
+    return accumulated
+  }
+
+  /** La duración de una herramienta como el chat web: «850 ms», «1,2 s». */
+  function formatToolDuration(ms) {
+    if (typeof ms !== 'number' || !Number.isFinite(ms)) return ''
+    return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1).replace('.', ',')} s`
+  }
+
+  /** Las herramientas del turno en curso, listas para pintar bajo la respuesta (CSP: todo precomputado). */
+  function chatToolStepsOf(progress) {
+    return ((progress && progress.steps) || []).map((step, i) => ({
+      key: i + ':' + step.name,
+      name: step.name,
+      title: step.server ? `${step.name} (${step.server})` : step.name,
+      icon: step.running ? '…' : step.error ? '✕' : '✓',
+      cls: 'mateu-chat-step ' + (step.running ? 'running' : step.error ? 'failed' : 'done'),
+      time: step.running ? '' : formatToolDuration(step.ms),
+      error: step.error ? String(step.error) : '',
+    }))
+  }
+
+  /** Adjuntos tras una subida: los que había + los nuevos, sin repetir ruta. */
+  function withAttachments(current, added) {
+    const out = (current || []).slice()
+    for (const a of added || []) if (a && a.path && !out.some((b) => b.path === a.path)) out.push({ name: a.name || a.path, path: a.path, removeLabel: chromeText('chatRemoveAttachment', { name: a.name || a.path }) })
+    return out
+  }
+
+
+
+  // RE-PROJECTION after a change of CLIENT state (a panel folded, a tab, a carousel slide, a Grid
+  // page, tiles reordered): the content is projected again from the registry already in memory —
+  // no round trip to the server. The page chains (panelToggled, tilesReordered, uiValueChanged)
+  // used to repeat this inline, each a slightly different copy; they call this now.
+
+  /**
+   * The content variables to assign after a client-side change: `hostContent` (null when the host
+   * content is not the surface on screen — a wizard step, an empty host — so the chain leaves it
+   * alone) and `island` (the island projection with its content refreshed, or null).
+   *
+   * @param {object} vars  the application variables the chains read (mateuRegistry, mateuHostTitle,
+   *                       mateuActiveTabs, mateuHostContent, mateuIsland, mateuIslandId, mateuNestedId)
+   */
+  function reprojectedContentOf(vars) {
+    const reg = vars && vars.mateuRegistry
+    const contexts = (reg && reg.contexts) || {}
+    const host = contexts[HOST_ID]
+    let hostContent = null
+    const shown = Array.isArray(vars.mateuHostContent) ? vars.mateuHostContent : []
+    if (host && shown.length && !wizardOf(host)) {
+      const projected = hostContentOf(host, null, {
+        title: vars.mateuHostTitle || '',
+        activeTabs: vars.mateuActiveTabs,
+        // the header band already paints the host's EntityHeader: without this it came back in the content
+        dropEntityHeader: !!entityHeaderOf(host),
+      }) || []
+      hostContent = withSubresources(projected, contexts)
+    }
+    let island = null
+    const islandCtx = vars.mateuIslandId ? contexts[vars.mateuIslandId] : null
+    if (islandCtx && vars.mateuIsland) {
+      let content = islandContentOf(islandCtx)
+      const nestedCtx = vars.mateuNestedId ? contexts[vars.mateuNestedId] : null
+      const nested = nestedCtx ? islandContentOf(nestedCtx) : null
+      if (content && nested) content = mergeNestedContent(content, nested)
+      island = { ...vars.mateuIsland, content }
+    }
+    return { hostContent, island }
+  }
+
+
+
+
+
+
+
+  // The DOM side of the display atoms that VB bindings cannot paint by themselves: the BPMN diagram
+  // (an SVG drawn from its BPMN-DI), the cookie consent band (a cookie decides whether it shows),
+  // the right click of a ContextMenu, and the Chat component (a streamed conversation). Same idiom as
+  // installRichText/installMaps: the atom leaves a slot with data-* attributes, a MutationObserver
+  // fills each slot when it appears. The pure parts (bpmnDiagramOf, hasConsentCookie,
+  // chatTurnsOf…) are tested in Node; this file only touches the DOM.
+
+  const SVG_NS = 'http://www.w3.org/2000/svg'
+
+  /** Observes the document and calls fill(el) for every element matching `selector` that appears
+   *  (and when one of `attributes` changes on it). */
+  function observeSlots(doc, flag, selector, attributes, fill) {
+    if (!doc || doc[flag] || typeof MutationObserver === 'undefined') return
+    doc[flag] = true
+    const scan = (root) => {
+      if (!root || root.nodeType !== 1) return
+      if (root.matches && root.matches(selector)) fill(root)
+      for (const el of root.querySelectorAll(selector)) fill(el)
+    }
+    scan(doc.body || doc.documentElement)
+    new MutationObserver((records) => {
+      for (const r of records) {
+        if (r.type === 'attributes') { if (r.target.matches && r.target.matches(selector)) fill(r.target) } else for (const n of r.addedNodes) scan(n)
+      }
+    }).observe(doc.body || doc.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: attributes })
+  }
+
+  // ── BPMN ────────────────────────────────────────────────────────────────────────────────────
+  /** Draws the diagram spec (bpmnDiagramOf) as SVG: tasks as rounded boxes, events as circles (the
+   *  end one thicker), gateways as diamonds, flows as arrowed polylines, names as text. */
+  function drawBpmn(el, spec, doc = el.ownerDocument) {
+    const svg = doc.createElementNS(SVG_NS, 'svg')
+    svg.setAttribute('viewBox', [spec.minX, spec.minY, spec.width, spec.height].join(' '))
+    svg.setAttribute('width', '100%')
+    svg.setAttribute('class', 'mateu-bpmn-svg')
+    svg.setAttribute('aria-hidden', 'true')
+    const el2 = (tag, attrs, parent = svg) => {
+      const n = doc.createElementNS(SVG_NS, tag)
+      for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, String(v))
+      parent.appendChild(n)
+      return n
+    }
+    const defs = el2('defs', {})
+    const marker = el2('marker', { id: el.id + '-arrow', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 8, markerHeight: 8, orient: 'auto-start-reverse' }, defs)
+    el2('path', { d: 'M 0 0 L 10 5 L 0 10 z', class: 'mateu-bpmn-arrow' }, marker)
+    for (const f of spec.flows || []) {
+      el2('polyline', { points: f.points.map((p) => p.join(',')).join(' '), class: 'mateu-bpmn-flow', 'marker-end': 'url(#' + el.id + '-arrow)' })
+      if (f.label) {
+        const mid = f.points[Math.floor(f.points.length / 2)]
+        const t = el2('text', { x: mid[0] + 4, y: mid[1] - 4, class: 'mateu-bpmn-flow-label' })
+        t.textContent = f.label
+      }
+    }
+    for (const n of spec.nodes || []) {
+      const cx = n.x + n.w / 2
+      const cy = n.y + n.h / 2
+      if (n.kind === 'event' || n.kind === 'end') {
+        el2('circle', { cx, cy, r: Math.min(n.w, n.h) / 2, class: 'mateu-bpmn-event' + (n.kind === 'end' ? ' mateu-bpmn-end' : '') })
+      } else if (n.kind === 'gateway') {
+        el2('polygon', { points: [[cx, n.y], [n.x + n.w, cy], [cx, n.y + n.h], [n.x, cy]].map((p) => p.join(',')).join(' '), class: 'mateu-bpmn-gateway' })
+      } else if (n.kind === 'note') {
+        el2('path', { d: 'M ' + (n.x + 12) + ' ' + n.y + ' L ' + n.x + ' ' + n.y + ' L ' + n.x + ' ' + (n.y + n.h) + ' L ' + (n.x + 12) + ' ' + (n.y + n.h), class: 'mateu-bpmn-note' })
+      } else {
+        el2('rect', { x: n.x, y: n.y, width: n.w, height: n.h, rx: n.kind === 'data' ? 2 : 10, class: 'mateu-bpmn-task' })
+      }
+      if (n.label) {
+        const inside = n.kind === 'task' || n.kind === 'note'
+        const t = el2('text', {
+          x: inside ? cx : cx, y: inside ? cy : n.y + n.h + 14,
+          'text-anchor': 'middle', 'dominant-baseline': inside ? 'middle' : 'hanging', class: 'mateu-bpmn-label',
+        })
+        // a long name wraps on words over up to three lines inside its box
+        const words = String(n.label).split(/\s+/)
+        const lines = []
+        let line = ''
+        const max = inside ? Math.max(8, Math.floor(n.w / 7)) : 18
+        for (const w of words) {
+          if ((line + ' ' + w).trim().length > max && line) { lines.push(line); line = w } else line = (line + ' ' + w).trim()
+        }
+        if (line) lines.push(line)
+        lines.slice(0, 3).forEach((l, i) => {
+          const span = el2('tspan', { x: cx, dy: i === 0 ? (inside ? -(Math.min(lines.length, 3) - 1) * 7 : 0) : 14 }, t)
+          span.textContent = l
+        })
+      }
+    }
+    el.textContent = ''
+    el.appendChild(svg)
+  }
+
+  function installBpmn(doc = typeof document !== 'undefined' ? document : null) {
+    observeSlots(doc, '__mateuBpmn', '[data-mateu-bpmn]', ['data-mateu-bpmn'], (el) => {
+      const raw = el.getAttribute('data-mateu-bpmn') || ''
+      if (el.__mateuBpmn === raw) return
+      el.__mateuBpmn = raw
+      let spec
+      try { spec = JSON.parse(raw) } catch (e) { return }
+      if (!spec || !(spec.nodes || []).length) { el.textContent = chromeText('emptyProcess'); return }
+      drawBpmn(el, spec, doc)
+    })
+  }
+
+  // ── Cookie consent ─────────────────────────────────────────────────────────────────────────
+  function installCookieConsent(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc) return
+    observeSlots(doc, '__mateuCookie', '[data-mateu-cookie]', ['data-mateu-cookie'], (el) => {
+      const name = el.getAttribute('data-mateu-cookie')
+      el.hidden = !!name && hasConsentCookie(doc.cookie, name)
+    })
+    if (doc.__mateuCookieClicks) return
+    doc.__mateuCookieClicks = true
+    doc.addEventListener('click', (e) => {
+      const btn = e.target && e.target.closest ? e.target.closest('[data-mateu-cookie-dismiss]') : null
+      const band = btn && btn.closest('[data-mateu-cookie]')
+      if (!band) return
+      const name = band.getAttribute('data-mateu-cookie')
+      if (name) doc.cookie = encodeURIComponent(name) + '=dismiss; max-age=' + (365 * 24 * 3600) + '; path=/; SameSite=Lax'
+      band.hidden = true
+    }, true)
+  }
+
+  // ── ContextMenu: right click on the content before the menu opens that menu ───────────────────
+  function installContextMenus(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuContextMenus) return
+    doc.__mateuContextMenus = true
+    doc.addEventListener('contextmenu', (e) => {
+      // the menu atom follows its content in the same block: look up a few levels for one
+      let node = e.target
+      for (let depth = 0; node && depth < 5; depth++, node = node.parentElement) {
+        const holder = node.querySelector && node.querySelector('.mateu-context-menu[data-mateu-context-menu="true"]')
+        if (!holder) continue
+        const menu = holder.querySelector('oj-menu')
+        if (!menu || typeof menu.open !== 'function') return
+        e.preventDefault()
+        try { menu.open(e) } catch (err) { /* not upgraded yet */ }
+        return
+      }
+    })
+  }
+
+  // ── CustomComponent slots: the view the app registered paints itself into its slot ──────────────
+  function installCustomComponents(doc = typeof document !== 'undefined' ? document : null) {
+    observeSlots(doc, '__mateuCustomSlots', '[data-mateu-custom]', ['data-mateu-custom-props'], (el) => {
+      const props = el.getAttribute('data-mateu-custom-props') || '{}'
+      if (el.__mateuCustomProps === props) return
+      el.__mateuCustomProps = props
+      const mount = customComponentMountOf(el.getAttribute('data-mateu-custom'))
+      if (!mount) return
+      if (typeof el.__mateuCustomCleanup === 'function') { try { el.__mateuCustomCleanup() } catch (e) { /* its own */ } }
+      el.textContent = ''
+      let parsed = {}
+      try { parsed = JSON.parse(props) } catch (e) { parsed = {} }
+      try { el.__mateuCustomCleanup = mount(el, parsed) } catch (e) { el.textContent = chromeText('customFailed', { message: e && e.message }) }
+    })
+  }
+
+  // ── The Chat component ─────────────────────────────────────────────────────────────────────
+  /** A conversation's turns → what the panel shows: each with its role class and its HTML (the
+   *  assistant's answer as sanitised Markdown, the user's text escaped). Pure. */
+  function chatTurnsOf(turns) {
+    const escape = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    return (turns || []).map((t) => ({
+      role: t.role,
+      cls: 'mateu-chat-turn mateu-chat-' + (t.role === 'user' ? 'user' : 'assistant'),
+      html: t.role === 'user' ? '<p>' + escape(t.text) + '</p>' : sanitizeHtml(chatMarkdownToHtml(t.text || (t.error ? '' : '…'))),
+    }))
+  }
+
+  const conversations = new Map()
+  const newSessionId = () => 'mateu-' + Math.random().toString(36).slice(2) + Date.now().toString(36)
+
+  function installChatComponents(doc = typeof document !== 'undefined' ? document : null) {
+    observeSlots(doc, '__mateuChatComponents', '[data-mateu-chat-url]', ['data-mateu-chat-url'], (el) => {
+      if (el.__mateuChat) return
+      el.__mateuChat = true
+      const key = el.id || el.getAttribute('data-mateu-chat-url')
+      if (!conversations.has(key)) conversations.set(key, { sessionId: newSessionId(), turns: [], busy: false })
+      const conv = conversations.get(key)
+      el.textContent = ''
+      const log = doc.createElement('div')
+      log.className = 'mateu-chat-log'
+      log.setAttribute('role', 'log')
+      log.setAttribute('aria-live', 'polite')
+      const form = doc.createElement('form')
+      form.className = 'mateu-chat-form'
+      const input = doc.createElement('textarea')
+      input.className = 'mateu-chat-input oj-typography-body-md'
+      input.rows = 2
+      input.setAttribute('aria-label', chromeText('chatInputLabel'))
+      input.placeholder = chromeText('askSomething')
+      const send = doc.createElement('oj-button')
+      send.setAttribute('data-oj-binding-provider', 'none')
+      send.setAttribute('chroming', 'callToAction')
+      send.textContent = chromeText('chatSend')
+      form.appendChild(input)
+      form.appendChild(send)
+      el.appendChild(log)
+      el.appendChild(form)
+      const paint = () => {
+        log.textContent = ''
+        for (const turn of chatTurnsOf(conv.turns)) {
+          const div = doc.createElement('div')
+          div.className = turn.cls
+          div.innerHTML = turn.html
+          log.appendChild(div)
+        }
+        log.scrollTop = log.scrollHeight
+      }
+      const submit = async () => {
+        const text = input.value.trim()
+        if (!text || conv.busy) return
+        input.value = ''
+        conv.busy = true
+        conv.turns.push({ role: 'user', text })
+        const answer = { role: 'assistant', text: '' }
+        conv.turns.push(answer)
+        paint()
+        try {
+          await streamChat({
+            url: el.getAttribute('data-mateu-chat-url'),
+            body: buildChatBody({ message: text, sessionId: conv.sessionId, currentRoute: location.pathname }),
+            headers: () => authHeadersOf(),
+            onText: (all) => { answer.text = all; paint() },
+          })
+        } catch (err) {
+          answer.error = true
+          answer.text = chromeText('assistantFailed', { message: err && err.message ? err.message : String(err) })
+        } finally {
+          conv.busy = false
+          paint()
+        }
+      }
+      send.addEventListener('ojAction', (e) => { e.stopPropagation(); submit() })
+      form.addEventListener('submit', (e) => { e.preventDefault(); submit() })
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() } })
+      paint()
+    })
+  }
+
+
+
+
+  // THE PAGE PROJECTION — what the two big page chains (shell onMateuNavigate: a navigation;
+  // content runMateuAction: an action's answer) assign to the VB variables once the registry is
+  // reduced. Both chains used to carry their own inline copy of it (~300 lines each, already
+  // drifting apart); the pure parts live here now, tested in Node, and the chains are thin adapters
+  // that do the I/O (loads, component refreshes, toasts) and assign what these return. Every function
+  // takes plain values and returns the values to assign — no VB, no DOM.
+
+  /** The generic form steps aside (an archetype, rich content or the not-found page paints the body). */
+  const noGenericFormVars = () => ({ mateuFormMetadata: null, mateuFormFieldsList: [], mateuFormSections: [], mateuFormActions: [] })
+
+  /** The collection header of a listing: its toolbar's first button is the primary action, the
+   *  rest its secondary actions. */
+  function listHeaderVarsOf(listingSummary) {
+    const toolbar = listingSummary ? listingSummary.toolbar : []
+    const primaryToolbar = toolbar.length ? toolbar[0] : null
+    return {
+      mateuListPrimary: primaryToolbar ? { label: primaryToolbar.label } : { label: '', display: 'off' },
+      mateuListPrimaryId: primaryToolbar ? primaryToolbar.actionId : '',
+      mateuListSecondary: toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
+    }
+  }
+
+  /**
+   * The guided process' footer: the forward button (the wizard's own, else the first action that is
+   * not "back"), its primary label, and the step shown. A wizard's form actions are none (back = a
+   * click on the rail, forward = Continue). `shownStep`: the navigation enters through the overview
+   * (''), an action answer keeps the wizard's current step.
+   */
+  function wizardVarsOf(host, wizardProjection, summaryActions, { keepStep = false } = {}) {
+    if (!wizardProjection) {
+      return { mateuWizardForwardId: '', mateuWizardPrimary: { label: '', disabled: true }, mateuWizardShownStep: '' }
+    }
+    const forward = wizardForwardOf(host) || (summaryActions || []).find((a) => a.actionId !== 'back')
+    return {
+      mateuWizardForwardId: forward ? forward.actionId : '',
+      mateuFormActions: [],
+      // never null: the component reads primaryAction.label unconditionally
+      mateuWizardPrimary: forward ? { label: forward.label, disabled: false } : { label: 'Done', disabled: true },
+      mateuWizardShownStep: keepStep ? (wizardProjection.currentStep || '') : '',
+    }
+  }
+
+  /**
+   * The composed archetypes (welcome / general overview / item overview). The welcome hero's look
+   * rotates when the welcome is ENTERED and is kept while one stays on it (`previousLook`: the look
+   * on screen, or null when no welcome was shown).
+   */
+  function archetypeVarsOf(host, previousLook) {
+    const welcome = welcomeOf(host)
+    const overview = generalOverviewOf(host)
+    const item = itemOverviewOf(host)
+    const vars = {
+      mateuWelcomeTrendItems: welcome && welcome.trend ? welcome.trend.items : [],
+      mateuWelcome: welcome,
+      mateuOverview: overview,
+      mateuOverviewOptions: overview ? overview.switcherOptions : [],
+      mateuItemOv: item,
+      // the ATOMS of the first tab (not only its texts)
+      mateuItemTabTexts: item && item.tabs.length ? item.tabs[0].items : [],
+    }
+    if (welcome) {
+      const look = welcomeLookOf(welcomeKeyOf(host), previousLook)
+      vars.mateuWelcomeKey = look.key
+      vars.mateuWelcomeTheme = look.theme
+      vars.mateuWelcomeIlluBg = look.illuBg
+      vars.mateuWelcomeIllu = look.illu
+    }
+    return { vars, welcome, overview, item }
+  }
+
+  /** The island (an embedded mediator) projected: its fields, sections, actions and content; null
+   *  without one. The nested island's atoms are MERGED into its content (they flow through
+   *  $current — reading application variables in deep templates does not re-bind). */
+  function islandVarsOf(islandCtx, nestedBlocks) {
+    if (!islandCtx) return null
+    const island = {
+      fields: fieldListOf(islandCtx.tree, islandCtx.state, islandCtx.data),
+      sections: formSectionsOf(islandCtx.tree, islandCtx.state, islandCtx.data),
+      actions: actionsOf(islandCtx.tree),
+      content: islandContentOf(islandCtx),
+    }
+    return nestedBlocks ? { ...island, content: mergeNestedContent(island.content, nestedBlocks) } : island
+  }
+  /** The nested island's own variable: its atoms flattened, or null. */
+  function nestedVarOf(nestedBlocks) {
+    return nestedBlocks ? { atoms: nestedBlocks.reduce((out, b) => out.concat(b.items), []) } : null
+  }
+
+  /**
+   * Which branch paints the host's body: `hostBlocks` (the generic content, null when another
+   * branch — a listing, an archetype, the queue, a foldout, a wizard — owns the page) and the
+   * EntityHeader the screen header takes (kept on a foldout: the 360 keeps its guest in the band).
+   */
+  function hostContentPlanOf(host, { islandRawBlocks, title, activeTabs, wizard, listing, welcome, overview, item, queue, foldout }) {
+    const noOtherBranch = !listing && !welcome && !overview && !item && !queue && !foldout
+    const hostEntity = (!wizard && (noOtherBranch || foldout)) ? entityHeaderOf(host) : null
+    const opts = { title, dropEntityHeader: !!hostEntity }
+    if (activeTabs !== undefined) opts.activeTabs = activeTabs
+    const hostBlocks = (!wizard && noOtherBranch) ? hostContentOf(host, islandRawBlocks, opts) : null
+    return { hostBlocks, hostEntity, noOtherBranch }
+  }
+
+  /** The native GENERAL OVERVIEW page: an entity page with TWO column blocks (the wide one first)
+   *  → oj-sp-general-overview-page (main/info slots, integrated header). */
+  function generalOverviewPageOf(hostEntity, hostBlocks, { itemOverviewOn = false } = {}) {
+    const zoned = (hostBlocks || []).filter((b) => /oj-md-/.test(b.blockClass || ''))
+    const on = !itemOverviewOn && !!(hostEntity && (hostBlocks || []).length === 2 && zoned.length === 2)
+    const fold = (block) => {
+      const items = block.items || []
+      const titled = items.length && items[0].isHeading && items[0].isH2
+      return {
+        title: titled ? items[0].text : '',
+        blocks: [{ ...block, blockClass: 'oj-flex-item oj-sm-12', items: titled ? items.slice(1) : items }],
+      }
+    }
+    return on
+      ? { on: true, main: fold(zoned[0]), info: fold(zoned[1]) }
+      : { on: false, main: { title: '', blocks: [] }, info: { title: '', blocks: [] } }
+  }
+
+  /**
+   * The page HEADER (Redwood rule: a VB header always paints it, except the templates that bring
+   * their own) and its toolbar: the primary action, the back affordance (goToParent — Redwood has no
+   * breadcrumbs: a back button, else the automatic trail's parent), the secondary actions.
+   */
+  function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeader, pageWidth, gopOn, iopOn = false, listing }) {
+    const showBand = showHeader && pageWidth !== 'edgeToEdge'
+    const showListBand = !!listing && pageWidth !== 'edgeToEdge'
+    const primaryBtn = primaryToolbarButton(hostToolbar)
+    const backBtn = backToolbarButton(hostToolbar)
+    const parentCrumbNav = backBtn ? undefined : parentCrumb(summary.trail)
+    const header = {
+      // with an EntityHeader (a record's card) the band stays FIXED on scroll and compacts
+      bandClass: hostEntity ? 'oj-bg-neutral-30 oj-sm-padding-10x-bottom mateu-sticky-header' : 'oj-bg-neutral-30 oj-sm-padding-10x-bottom',
+      title: hostEntity ? hostEntity.title : (summary.title || ''),
+      subtitle: hostEntity ? hostEntity.subtitle : pageSubtitleOf(host),
+      // without an EntityHeader, the Page's @KPIs are its facts
+      facts: hostEntity ? hostEntity.facts : pageKpisOf(host),
+      showBand: showBand && !gopOn && !iopOn,
+      showInline: showHeader && !showBand && !gopOn && !iopOn,
+      showListBand,
+      showListInline: !!listing && !showListBand,
+      primary: primaryBtn ? { label: primaryBtn.label, display: primaryBtn.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },
+      primaryId: primaryBtn ? primaryBtn.actionId : '',
+      secondary: hostToolbar.filter((b) => b !== primaryBtn && b !== backBtn)
+        .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
+      goToParent: !!backBtn || !!parentCrumbNav,
+      backId: backBtn ? backBtn.actionId : (parentCrumbNav ? '__goToParent' : ''),
+      parentRoute: !backBtn && parentCrumbNav ? parentCrumbNav.route : '',
+      backLabel: backBtn ? backBtn.label : (parentCrumbNav ? parentCrumbNav.text : ''),
+      toolbar: hostToolbar,
+    }
+    // the goToParent's label is "Parent page" by default; the back button names it
+    const translations = backBtn ? { goToParent: backBtn.label } : (parentCrumbNav ? { goToParent: parentCrumbNav.text } : {})
+    return { header, translations, showBand, showListBand }
+  }
+
+  /** The page toolbar is painted ONCE: when the header paints it, the form's button row drops the
+   *  same actions (both projections come from the same metadata.toolbar). */
+  function formActionsBesideHeader(formActions, header, hostToolbar) {
+    if (!((header.showBand || header.showInline) && hostToolbar.length)) return formActions
+    const inHeader = {}
+    for (const b of hostToolbar) inHeader[b.actionId] = true
+    return (formActions || []).filter((a) => !inHeader[a.actionId])
+  }
+
+  /**
+   * The page's width anatomy (RDS 1.6): the shell layout, the content box (max width, margins,
+   * padding) and the header band's box. With the persistent navigator drawer (or the item overview
+   * template) the page goes edge to edge. Pages whose header bleeds (welcome, overview, wizard,
+   * listing, any VB header) have no padding: each branch brings its gutter. With a header BAND the
+   * content overlaps it by 40px (the band peeks out from behind its start).
+   */
+  function pageWidthOf({ host, drawerNav, iopOn = false }) {
+    return (drawerNav || iopOn) ? 'edgeToEdge' : ((host && host.pageWidth) || 'fixed')
+  }
+  function pageLayoutOf({ host, drawerNav, iopOn = false, bleedingHeader, band }) {
+    const edge = drawerNav || iopOn
+    const pageStyle = edge ? pageStyleOf({ pageWidth: 'edgeToEdge' }) : pageStyleOf(host)
+    const pw = pageWidthOf({ host, drawerNav, iopOn })
+    const out = {
+      mateuShellPageLayout: pw === 'fixed' ? 'fixedWidth' : pw,
+      mateuPageMaxWidth: pageStyle.maxWidth,
+      mateuPageMargin: pageStyle.margin,
+      mateuPagePadding: bleedingHeader ? '0' : pageStyle.padding,
+      mateuBandBoxMargin: '0 auto',
+    }
+    if (band) {
+      out.mateuBandBoxMargin = pageStyle.margin
+      const parts = (pageStyle.margin || '0').split(' ')
+      parts[0] = '-40px'
+      if (parts.length === 1) parts.push('auto')
+      out.mateuPageMargin = parts.join(' ')
+    }
+    return { vars: out, pageWidth: pw }
+  }
+
+  /**
+   * The floating action buttons on screen (@Fab): the page's (a method of the page class — its action
+   * goes to the host) and the app's (a method of the @UI app — an app-level action), stacked above
+   * the shell's own FAB. Primary-styled ones are the call to action.
+   */
+  function fabsOf(shell, host) {
+    const page = host && host.tree ? findByType(host.tree, 'Page') : null
+    const row = (f, appLevel) => ({
+      key: (appLevel ? 'app:' : 'page:') + (f.id || f.actionId),
+      label: f.label || f.actionId || '',
+      iconClass: ojIconOrGenericOf(f.icon) || 'oj-ux-ico-plus',
+      actionId: f.actionId || '',
+      parameters: {},
+      appLevel,
+      chroming: f.buttonStyle === 'primary' || !f.buttonStyle ? 'callToAction' : 'outlined',
+    })
+    return [
+      ...((page && page.metadata && page.metadata.fabs) || []).filter((f) => f && f.actionId).map((f) => row(f, false)),
+      ...((shell && shell.fabs) || []).filter((f) => f && f.actionId).map((f) => row(f, true)),
+    ]
+  }
+
+
+
+  // WHAT AN ACTION SENDS, decided before anything leaves (runMateuAction used to decide it inline):
+  // the state it carries (the drawer's with its draft, or the host's with the form draft and the
+  // listing's selection), whether it may leave at all (rows required, required fields empty, a row
+  // editor with empty required fields), and to which ServerSide it goes (the list container, a form
+  // embedded in the overlay, the component that declares it, or the mediator). Pure — tested in Node.
+
+  /**
+   * @param {object} reg     the registry before the action
+   * @param {string} id      the action id
+   * @param {object} inputs  { draft, drawerDraft, rowDraft, parameters, listing, listingRows,
+   *                           listingSelection, formSections }
+   * @returns {object} either a stop — { stop: 'selectionRequired' } | { stop: 'fieldErrors', missing }
+   *   | { stop: 'rowErrors', rowErrors, rowEditor } — or what to send: { componentState, parameters,
+   *   transportCtx, transportExtra, listReq, overlay, host }
+   */
+  function outboundActionOf(reg, id, inputs = {}) {
+    const { draft = {}, drawerDraft = {}, rowDraft = {}, listing, listingRows, listingSelection, formSections } = inputs
+    let parameters = inputs.parameters
+    const host = reg.contexts[HOST_ID]
+    const overlay = overlayOf(reg)
+    let componentState = overlay
+      ? Object.assign({}, overlay.state, drawerDraft)
+      : Object.assign({}, host && host.state, draft)
+
+    // a host action on a listing with selection carries the marked rows (crud_selected_items), as
+    // in Vaadin; the drawer's do not (they act on ITS record)
+    if (!overlay && listing && listing.rowsSelectionEnabled) {
+      componentState = withListingSelection(componentState, listing, listingRows, listingSelection)
+      if ((listing.selectionRequired || []).indexOf(id) >= 0 && !componentState.crud_selected_items.length) {
+        return { stop: 'selectionRequired' }
+      }
+    }
+    // validationRequired (a wizard's next, a form's save): empty required fields are marked on their
+    // field and the action does not leave — what Vaadin does in the browser; the server checks again
+    const validation = !overlay && validationOf(host, id)
+    if (validation) {
+      const missing = formErrorsOf(formSections, draft, validation.fields)
+      if (missing.length) return { stop: 'fieldErrors', missing }
+    }
+    // LIST ACTIONS (the "+" / Edit / Remove of a form's list and its modal editor's buttons) go to
+    // the CONTAINER's ServerSide with ITS state, the dialog's row in parameters.initiatorState
+    const listReq = !overlay && listActionRequestOf(reg, id, { hostDraft: draft, rowDraft, parameters: parameters || {} })
+    let transportCtx = host
+    if (listReq) {
+      // Save / Create validate the row IN the dialog
+      if (ROW_VALIDATING_VERBS[listReq.verb]) {
+        const rowCtx = reg.contexts[listReq.fieldId + '-container']
+        const rowErrors = validateRow(rowCtx, rowDraft)
+        if (Object.keys(rowErrors).length) {
+          return { stop: 'rowErrors', rowErrors, rowEditor: rowEditorOf(reg, { rowDraft, errors: rowErrors }) }
+        }
+      }
+      componentState = listReq.componentState
+      parameters = listReq.parameters
+      transportCtx = listReq.ctx
+    }
+    // TO WHICH ServerSide: a form embedded in the overlay (an EmbeddedView) gets it with its state
+    // and no route; the component of the host that declares it gets it; the rest go to the mediator
+    let transportExtra = {}
+    const overlayTransport = overlay && !listReq ? overlayTransportOf(reg, id) : null
+    if (overlayTransport) {
+      transportCtx = overlayTransport
+      transportExtra = { route: '', consumedRoute: '' }
+    } else if (!listReq && !overlay) {
+      transportCtx = actionTransportOf(host, id)
+    }
+    return { componentState, parameters, transportCtx, transportExtra, listReq, overlay, host }
+  }
+
+  /**
+   * Did the action's answer RE-RENDER the host (a new component with another id)? Then, as the web
+   * does (applyFragment → triggerOnLoad), what just arrived asks for its OnLoad load — without it a
+   * listing repainted by an action came back empty.
+   */
+  function hostReRendered(lastIncrement, hostBefore, hostNow) {
+    return !!(lastIncrement && (lastIncrement.fragments || []).some((f) => f.component && f.action !== 'Add'))
+      && !!(hostNow && hostNow.tree && hostBefore && hostBefore.tree && hostNow.tree.id !== hostBefore.tree.id)
+  }
+
+  /** Did an increment touch the host (any fragment that is not an overlay Add)? */
+  const touchesHost = (inc) => ((inc && inc.fragments) || []).some((f) => f.action !== 'Add')
+
+  /** An answer that ONLY brings messages (a wizard refusing to leave its step) does not change the
+   *  screen: re-projecting it would repaint the form with the server's state and lose what was typed. */
+  function onlyMessagesAnswer({ hostRepainted, flipRoute, events, overlayBefore, overlayNow, lastIncrement }) {
+    return !hostRepainted && !flipRoute && !(events || []).length && !overlayBefore && !overlayNow
+      && !!lastIncrement && !(lastIncrement.fragments || []).length && !(lastIncrement.commands || []).length
+  }
+
+
+
+
+  // GLOBAL SEARCH (the app's GlobalSearchSupplier): typing in the Ask palette also searches the
+  // app's entities through the app-level `_globalsearch` action ({searchText}) — the same contract
+  // as the web ⌘K palette (mateu-app fetchGlobalSearch). The hits ({label, description, route,
+  // category}) go under the destinations, grouped by their category, and choosing one navigates.
+
+  /** The hits of a `_globalsearch` answer: data._globalsearch of the first fragment that has it. */
+  function globalSearchHitsOf(increment) {
+    for (const f of (increment && increment.fragments) || []) {
+      const hits = f && f.data && f.data._globalsearch
+      if (Array.isArray(hits)) return hits.filter((h) => h && h.route)
+    }
+    return []
+  }
+
+  /** The palette rows of the hits, after the destinations; grouped (stable) by category. */
+  function paletteRowsOfHits(hits) {
+    const order = []
+    const byCategory = new Map()
+    for (const h of hits || []) {
+      const category = h.category || chromeText('searchResults')
+      if (!byCategory.has(category)) { byCategory.set(category, []); order.push(category) }
+      byCategory.get(category).push(h)
+    }
+    return order.flatMap((category) => byCategory.get(category).map((h) => ({
+      label: h.label + (h.description ? ' — ' + h.description : ''),
+      route: h.route.startsWith('/') ? h.route : '/' + h.route,
+      icon: 'oj-ux-ico-search',
+      kind: category,
+      isHit: true,
+    })))
+  }
+
+  /** An APP-LEVEL action (an app @Fab, a header action): posted to the app with its serverSideType
+   *  and route '' — the server dispatches app-level actions without menu resolution. */
+  function runAppLevelAction(base, serverSideType, appState, actionId, parameters = {}) {
+    return callMateu(base, {
+      route: '',
+      actionId,
+      componentState: {},
+      parameters,
+      serverSideType: serverSideType || undefined,
+      appState: appState || {},
+    })
+  }
+
+  /** Asks the app for the entities matching `text` ([] when there is nothing to ask). */
+  async function fetchGlobalSearch(base, serverSideType, appState, text) {
+    const searchText = String(text || '').trim()
+    if (!searchText) return []
+    const increment = await callMateu(base, {
+      route: '',
+      actionId: '_globalsearch',
+      componentState: {},
+      parameters: { searchText },
+      serverSideType: serverSideType || undefined,
+      appState: appState || {},
+    })
+    return globalSearchHitsOf(increment)
+  }
+
+
+  // LIGHT / DARK (@App(themeToggle)): the same contract as the web renderers — the user's choice is
+  // kept in localStorage['mateu-theme'] and wins; without one the OS preference (prefers-color-scheme)
+  // decides. Redwood's dark is JET's own inverted colour scheme: `oj-color-invert` on the page (the
+  // classic components' palette) plus `oj-c-colorscheme-dark` (the Core Pack / preact theme) — no
+  // palette is redrawn here.
+
+  const THEME_KEY = 'mateu-theme'
+  const DARK_CLASSES = ['oj-color-invert', 'oj-c-colorscheme-dark', 'mateu-theme-dark']
+
+  /** The theme to start with: the stored choice, else the OS preference, else light. Pure. */
+  function initialThemeOf(stored, prefersDark) {
+    if (stored === 'dark' || stored === 'light') return stored
+    return prefersDark ? 'dark' : 'light'
+  }
+
+  /** The other theme. */
+  const nextThemeOf = (theme) => (theme === 'dark' ? 'light' : 'dark')
+
+  /** Paints a theme on the page (the root element's classes and its `theme` attribute). */
+  function applyTheme(theme, doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc) return theme
+    const root = doc.documentElement
+    for (const cls of DARK_CLASSES) root.classList.toggle(cls, theme === 'dark')
+    root.setAttribute('theme', theme === 'dark' ? 'dark' : 'light')
+    return theme
+  }
+
+  const storage = () => { try { return typeof localStorage !== 'undefined' ? localStorage : null } catch (e) { return null } }
+
+  /** At boot: the stored choice or the OS preference, painted. */
+  function applyInitialTheme(doc = typeof document !== 'undefined' ? document : null, win = typeof window !== 'undefined' ? window : null) {
+    const s = storage()
+    let stored = null
+    try { stored = s ? s.getItem(THEME_KEY) : null } catch (e) { stored = null }
+    const prefersDark = !!(win && win.matchMedia && win.matchMedia('(prefers-color-scheme: dark)').matches)
+    return applyTheme(initialThemeOf(stored, prefersDark), doc)
+  }
+
+  /** The header switch: flips, paints and remembers. Returns the new theme. */
+  function toggleTheme(doc = typeof document !== 'undefined' ? document : null) {
+    const current = doc && doc.documentElement.getAttribute('theme') === 'dark' ? 'dark' : 'light'
+    const next = applyTheme(nextThemeOf(current), doc)
+    const s = storage()
+    try { if (s) s.setItem(THEME_KEY, next) } catch (e) { /* private mode: not remembered */ }
+    return next
+  }
+
   // el importe de un campo money: IntlNumberConverter con estilo moneda (un objeto JSON ya no vale)
   setConverterFactory((spec) => new NumberConverter.IntlNumberConverter(spec.options));
   // reglas del cliente: cada reducción fija su contexto (las del host, con su estado)
   // el selector de columnas: listingOf aplica las preferencias de la ruta en pantalla
   setColumnPrefsReader(() => readColumnPrefs(listingScope()));
   setAfterReduceHook((reg) => {
-    setRulesContext(reg.contexts[HOST_ID]);
+    setRulesContexts(reg);
     // los @Action(shortcut) de la pantalla en curso (keys.mjs)
     setShortcutContext(reg.contexts[HOST_ID]);
     // los tonos de fila (@RowStatus) y las filas de grupo del listado del host
@@ -11286,6 +14467,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   setNotificationsProviderFactory((items) => new ArrayDataProvider(items || [], { keyAttributes: 'id' }));
   // campos de captura (fichero, imagen, firma, cámara): JET no los trae
   defineCaptureField();
+  // an editable richText (HTML; a legacy Delta opens converted) and a colour field: JET has neither
+  defineRichTextField();
+  defineColorField();
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
   setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
   // el editor de cada filtro del buscador (smartFilters.filtersMetadata): oj-dynamic se carga
@@ -11298,6 +14482,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   return {
     HOST_ID,
+    // the renderer's own words (i18n.mjs): chains say them in the interface's language
+    chromeText,
+    chromeLanguage,
+    setChromeLanguage,
+    chromeTextsOf,
     mountElements,
     setElementEventSink,
     setElementModuleBase,
@@ -11480,7 +14669,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     foldoutOf,
     wizardOf,
     callMateu,
+    // the mount of the packaged app (<mateu-ui baseUrl>): API base and route ↔ browser path
+    initMount,
+    isPathMode,
+    currentMount,
+    mateuBase,
+    mateuAssetBase,
+    urlOfRoute,
+    currentRouteOf,
+    currentRoutePathOf,
+    routeOfPath,
+    pathOfRoute,
+    routeUnderMount,
     bootstrapShell,
+    bootstrapHasApp,
+    setMountWithoutApp,
     loadRoute,
     loadRouteInto,
     loadMenuRouteInto,
@@ -11557,6 +14760,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     streamChat,
     stickChatToBottom,
     uploadChatFiles,
+    // paridad con el chat web: config del panel, el turno completo (contexto + pantalla + mcp +
+    // adjuntos), agente local, herramientas en curso y los textos de una respuesta vacía o fallida
+    chatConfigOf,
+    chatTurnOf,
+    chatTurnTextOf,
+    chatToolStepsOf,
+    withAttachments,
+    probeLocalAgent,
+    projectChatScreen,
+    LOCAL_AGENT_URL,
     // el panel mientras el asistente trabaja, los contadores de tokens y el dictado
     mergeTurnUsage,
     addUsage,
@@ -11571,5 +14784,46 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     transcriptOf,
     isChatMicShortcut,
     CHAT_MIC_ARIA_KEYSHORTCUTS,
+    // the display components of core/display.mjs: client view state (carousel slide, Grid page,
+    // tree rows) and its re-projection, content menus, MessageInput, and their DOM installers
+    setUiValue,
+    uiValueOf,
+    reprojectedContentOf,
+    menuChoiceOf,
+    dispatchOf,
+    messageSendOf,
+    installBpmn,
+    installCookieConsent,
+    installContextMenus,
+    installChatComponents,
+    installCustomComponents,
+    // an app registers the view of its own custom components (CustomComponent) here
+    registerCustomComponent,
+    runSurfaceAction,
+    // the page projection and the outbound action plan the two big page chains share
+    // (poc/pageProjection.mjs, poc/actionPlan.mjs)
+    listHeaderVarsOf,
+    wizardVarsOf,
+    archetypeVarsOf,
+    islandVarsOf,
+    nestedVarOf,
+    noGenericFormVars,
+    hostContentPlanOf,
+    generalOverviewPageOf,
+    pageHeaderOf,
+    formActionsBesideHeader,
+    pageWidthOf,
+    pageLayoutOf,
+    outboundActionOf,
+    hostReRendered,
+    touchesHost,
+    onlyMessagesAnswer,
+    fabsOf,
+    // GlobalSearchSupplier in the Ask palette, app-level actions (app @Fab), light/dark
+    fetchGlobalSearch,
+    paletteRowsOfHits,
+    runAppLevelAction,
+    applyInitialTheme,
+    toggleTheme,
   };
 });

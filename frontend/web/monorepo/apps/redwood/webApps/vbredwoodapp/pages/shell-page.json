@@ -250,6 +250,13 @@
         }
       ]
     },
+    "themeToggle": {
+      "chains": [
+        {
+          "chain": "toggleMateuTheme"
+        }
+      ]
+    },
     "chatToggle": {
       "chains": [
         {
@@ -324,6 +331,37 @@
       "chains": [
         {
           "chain": "chatMic"
+        }
+      ]
+    },
+    "chatAttach": {
+      "chains": [
+        {
+          "chain": "chatAttach",
+          "parameters": {
+            "op": "pick"
+          }
+        }
+      ]
+    },
+    "chatRemoveAttachment": {
+      "chains": [
+        {
+          "chain": "chatAttach",
+          "parameters": {
+            "op": "remove",
+            "path": "{{ $current.data.path }}"
+          }
+        }
+      ]
+    },
+    "chatExpand": {
+      "chains": [
+        {
+          "chain": "chatAttach",
+          "parameters": {
+            "op": "expand"
+          }
         }
       ]
     },

@@ -16,4 +16,33 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <build>
+        <plugins>
+            <!-- git keeps ONE copy of the VB app (static/_redwood, served by Spring Boot, Micronaut
+                 and Helidon from classpath static/); Quarkus serves only META-INF/resources, so the
+                 jar gets a second copy there at build time. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>redwood-app-for-meta-inf-resources</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}/META-INF/resources/_redwood</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/resources/static/_redwood</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

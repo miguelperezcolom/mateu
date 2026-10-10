@@ -40,7 +40,7 @@ define([
       }
       // idem que en runMateuAction: la isla anidada vive en el backend de su host
       const base = bridge.baseOf($application.variables.mateuRegistry)
-        || $application.constants.mateuBaseUrl;
+        || bridge.mateuBase($application.constants.mateuBaseUrl);
       const appState = $application.variables.mateuAppState || {};
       let seed = {};
       try { seed = JSON.parse($application.variables.mateuNestedSeed || '{}'); } catch (ignored) { /* sin seed */ }

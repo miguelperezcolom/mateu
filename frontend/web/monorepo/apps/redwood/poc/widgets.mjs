@@ -19,6 +19,7 @@
 
 import { ojIconOf, interpolate, mediatorOf } from './reduceContexts.mjs'
 import { callMateu } from './transport.mjs'
+import { chromeText } from './i18n.mjs'
 
 const CONTAINERS = new Set([
   'HorizontalLayout', 'VerticalLayout', 'FormLayout', 'Container', 'Div', 'Scroller',
@@ -330,7 +331,7 @@ const isImageRef = (value) => /^(data:|https?:|\/\/)/i.test(value) || /[/.]/.tes
  * vuelve a la lupa.
  */
 export function askFabOf(shell, base = '') {
-  const label = String((shell && shell.askLabel) || '').trim() || ASK_FAB_LABEL
+  const label = String((shell && shell.askLabel) || '').trim() || chromeText('askSearch')
   const raw = String((shell && shell.askIcon) || '').trim()
   const glyph = (cls) => ({ label, kind: 'glyph', glyph: cls })
   if (!raw) return glyph(ASK_FAB_GLYPH)

@@ -1,118 +1,160 @@
-# Mateu renderer Redwood (Oracle Visual Builder)
+# Mateu Redwood renderer (Oracle Visual Builder)
 
-Renderer de Mateu construido **dentro de una app Oracle Visual Builder real** (componentes
-`oj-sp`/`oj-dynamic`/`oj-c` auténticos + shell Spectra), de modo que la fidelidad visual Redwood se
-hereda de los componentes de Oracle y el bridge solo alimenta datos. Diseño y decisiones:
-`DESIGN-NOTES.md`; fases y puertas visuales: `RENDERER-ROADMAP.md`; licencias y qué pertenece a
-Oracle: `NOTICE.md`.
+> Spanish version: [README.es.md](README.es.md). Design notes: [DESIGN-NOTES.en.md](DESIGN-NOTES.en.md)
+> (Spanish original: `DESIGN-NOTES.md`). Phases and visual gates: `RENDERER-ROADMAP.md`. Licences and
+> what belongs to Oracle: [NOTICE.md](NOTICE.md) (Spanish: `NOTICE.es.md`).
 
-## Estructura
+The Mateu renderer built **inside a real Oracle Visual Builder app**: genuine `oj-sp`/`oj-dynamic`/
+`oj-c` components and the Spectra shell, so the Redwood look is inherited from Oracle's components
+and the bridge only feeds them data. It renders the same `/mateu/v3` wire model as the Vaadin
+renderer, from a Java, C# or Python backend, and every component type of the catalogue
+(`poc/coverage.mjs`, generated into `doc/.../reference/parity.md`).
+
+## Layout
 
 ```
-webApps/vbredwoodapp/   ← la app VB (páginas, action chains, resources/js/mateu-bridge.js)
-poc/                    ← fuente única del core (reduceContexts.mjs + transport.mjs) + tests de
-                          contrato sobre wire real (node test.mjs) + capture.mjs + make-amd.mjs
-scripts/copy.mjs        ← empaqueta build/optimized en backend/shared/frontend/redwood
+webApps/vbredwoodapp/   ← the VB app: pages, action chains, resources/js/mateu-bridge.js (GENERATED)
+poc/                    ← the single source of the bridge: plain ES modules, tested in Node
+  reduceContexts.mjs    ←   re-exports the core, split by surface in poc/core/*.mjs
+  core/display.mjs      ←   the display components (Kanban, Timeline, BPMN, Checklist…)
+  pageProjection.mjs    ←   what the page chains assign after a navigation / an action
+  actionPlan.mjs        ←   what an action sends, and when it must not leave yet
+  i18n.mjs              ←   the chrome text catalogue (English by default)
+  mount.mjs             ←   the packaged app at any mount path
+  test*.mjs             ←   the suites (npm test)
+  make-amd.mjs          ←   bridge generator (--check in CI)
+  make-html.mjs         ←   expands the atom templates into every surface of the page (--check)
+  make-nls.mjs          ←   writes the VB translation bundle from i18n.mjs (--check)
+  parity-check.mjs      ←   coverage.mjs vs the wire catalogue vs the renderer code vs parity.md
+scripts/copy.mjs        ← packages build/optimized into backend/shared/frontend/redwood
 ```
 
-`resources/js/mateu-bridge.js` es GENERADO (`npm run bridge`) desde `poc/reduceContexts.mjs` +
-`poc/transport.mjs` — tras tocar el core, regenerar y reconstruir.
+The chains are thin adapters: logic lives in `poc/` with unit tests, the chains call the bridge
+and assign what it returns. After touching `poc/`, run `npm run bridge` (CI fails if the
+committed bridge, page or nls bundle are stale).
 
-## Desarrollo local
+## Local development
 
 ```bash
-npm install            # una vez; descarga el tooling grunt de Oracle (CDN de Oracle)
-npm run bridge         # regenera webApps/.../resources/js/mateu-bridge.js desde poc/
-npm test               # tests de contrato del reducer (poc/test.mjs, fixtures de wire real)
-npm run build          # grunt vb-build --no-optimize=true --force → build/optimized
-npm run serve          # grunt vb-serve --port=9006 (sirve build/optimized)
+npm install            # once, INSIDE this directory; downloads Oracle's grunt tooling (Oracle CDN)
+npm run bridge         # regenerates the bridge, the atom templates and the nls bundle from poc/
+npm test               # the Node suites: test.mjs (wire contract), test-pms.mjs, test-display.mjs, test-chains.mjs
+npm run build          # grunt vb-build → build/optimized (the exit code is unreliable: check the output)
+npm run serve          # grunt vb-serve --port=9006 (serves build/optimized; rebuild to see changes)
 ```
 
-Con `demo/demo-vb` corriendo en :9005 como backend. GOTCHA: `vb-build` puede abortar al final en
-una subtarea de red — `build/optimized` queda bien generado; no fiarse del exit code. Y `vb-serve`
-sirve SIEMPRE desde `build/optimized`: los cambios no llegan hasta re-ejecutar `npm run build`.
+With `demo/demo-vb` running on :9005 as the backend. In development the bridge points at the
+backend through the `mateuBaseUrl` constant of `webApps/vbredwoodapp/app-flow.json` (the single
+place to change it; `npm run copy` replaces it with same-origin).
 
-En desarrollo el bridge apunta al backend con la constante `mateuBaseUrl` de
-`webApps/vbredwoodapp/app-flow.json` (punto único de cambio).
+Reference screens: demo-vb's `/components` and `/components-2` are data-only galleries with every
+display component (`demo/demo-vb/src/main/resources/specs/ui/components*.yaml`).
 
-## Probar el renderer local contra una UI YA DESPLEGADA
+### Trying a local build against a DEPLOYED UI
 
-Para no pasar por release → despliegue por cada cambio, `e2e/vb-live-dev.mjs` abre un navegador
-sobre la app desplegada e **intercepta el bundle** de la app VB para servir el que acabas de
-construir aquí:
+`e2e/vb-live-dev.mjs` opens a browser on the deployed app and **intercepts the VB bundle** to
+serve the one you just built — Keycloak, the token, the gateway and federated `/_pod` routes keep
+working; only the renderer JS changes:
 
 ```bash
-cd frontend/web/monorepo/apps/redwood && npm run build   # deja build/optimized
-cd ../../../../e2e && node vb-live-dev.mjs               # rw.ec1.mateu.io, login demo/demo
-node vb-live-dev.mjs --url https://rw-console.ec1.mateu.io --user … --pass …
-node vb-live-dev.mjs --watch                             # reconstruye al guardar y recarga
+npm run build
+cd ../../../../e2e && node vb-live-dev.mjs [--url https://… --user … --pass …] [--watch]
 ```
 
-El navegador sigue estando en el origen desplegado, así que **Keycloak, el token, el gateway y
-las rutas `/_pod` de los menús federados funcionan tal cual**: no hay que abrir CORS, ni dar de
-alta un `redirect_uri` de localhost, ni replicar el arranque de Keycloak que inyecta el
-controller de Mateu. Lo único que cambia es de dónde sale el JS del renderer.
+## Packaged as a Java dependency (renderer jar)
 
-El bundle se lee en CADA petición: reconstruir y recargar la página basta.
-
-## Empaquetado como dependencia Java (jar de renderer)
-
-Igual que el renderer Vaadin (`apps/vaadin` → `backend/shared/frontend/vaadin-lit`):
+Like the Vaadin renderer (`apps/vaadin` → `backend/shared/frontend/vaadin-lit`):
 
 ```bash
-npm run build          # si hay cambios en la app VB / bridge
-npm run copy           # → backend/shared/frontend/redwood/src/main/resources/{static,META-INF/resources}
-# commit de los recursos + mvn install en backend/shared/frontend/redwood
+npm run build && npm run copy   # → backend/shared/frontend/redwood/src/main/resources/static
+# commit the resources + mvn install backend/shared/frontend/redwood
 ```
-
-Cualquier app Java lo consume añadiendo la dependencia (en lugar de `vaadin-lit`):
 
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>redwood</artifactId>
-    <version>0.0.1-MATEU</version>
+    <version>${mateu.version}</version>
 </dependency>
 ```
 
-El controller generado por el AP sirve `_index.html` en la ruta del `@UI` y la app VB llama a
-`/mateu/v3/...` del MISMO origen (el copy sustituye `mateuBaseUrl` por `''`). Las rutas de Mateu
-van **por path, sin hash** (`/products`, deep-links y back/forward incluidos): el
-`SpaRedirectFilter` reenvía cualquier path al index, el copy inyecta `vbInitConfig.BASE_URL =
-'/version_<ts>/'` (la base de módulos del visual-runtime ignora `<base href>` — ver
-DESIGN-NOTES) y los chains detectan el modo por el `<mateu-ui>` oculto que inyecta el controller;
-en serving estático (`vb-serve`, VB hosteado) siguen usando hash (`#/ruta`). App de referencia:
-`demo/demo-vb` (:9005). Limitación v1: la app VB empaquetada asume el `@UI` en la ruta raíz `""`
-(el `<mateu-ui>` oculto transporta el baseUrl para cuando el bridge quiera soportar UIs anidadas
-en otra ruta).
+The controller generated by the annotation processor serves `_index.html` at the `@UI` route and
+injects a hidden `<mateu-ui baseUrl="/route">`. The bridge reads it at boot (`poc/mount.mjs`): the
+API is that mount's (`/route/mateu/v3/...`), so **a `@UI` at any route works** (`@UI("")`,
+`@UI("/console")`, a crud at `@UI("/products")`…). Mateu routes go **by path, no hash**, relative
+to the mount, like the web renderer (deep links and back/forward included); static serving
+(`vb-serve`, hosted VB) keeps hash routes (`#/route`). Images, logo, web-component modules and
+the `sseUrl` load from the backend root, as on Vaadin.
 
-Los componentes JET/oj-sp y el visual-runtime se cargan del CDN de Oracle en runtime: el jar no
-vendoriza nada de `static.oracle.com` (ver `NOTICE.md`) y el navegador necesita acceso al CDN.
+What the jar holds (and why it does not change on every build):
 
-## El FAB de "Ask Oracle" y la marca del App
+- `static/_index.html` — the page the controller serves.
+- `static/_redwood/` — the VB app, in ONE place under a STABLE name (the module's pom copies it to
+  `META-INF/resources/_redwood` at package time for Quarkus); no `bundles/plain`, no source maps.
+- `static/mateu-build-info.json` — `{ sourceHash }` of the sources it was built from
+  (`scripts/source-hash.mjs`); `scripts/check-bundle-freshness.sh` recomputes it in CI.
+- Cache busting is a `?v=<sourceHash>` on every app module require.js loads and on `app.css`; the
+  Mateu handlers serve `/_redwood/**` with `no-cache` + ETag. Same sources → byte-identical output.
 
-La shell tiene dos FABs en la esquina: el de **Ask Oracle** (el propio de `oj-sp-simple-ui-shell`;
-abre el buscador de destinos: navegación + vistas rápidas) y, si el App declara `@AI`, encima, el
-del **chat del agente** (bocadillo `oj-ux-ico-chat`). Por defecto el de Ask Oracle lleva la marca
-de Oracle: el glifo de Ask Oracle de Redwood (`oj-ux-ico-oracle-o`, la "O" que lleva el botón de
-`oj-sp-ask-oracle` en la cabecera de Fusion) y el rótulo "Ask Oracle" (nombre accesible, tooltip y
-título de la paleta).
+JET, the Spectra components (`oj-sp-*`) and the visual runtime load from **Oracle's CDN** at run
+time: nothing from `static.oracle.com` is vendored (see `NOTICE.md`), so the browser needs access
+to it.
 
-Una app que no quiera la marca Oracle pone la suya en su `@App`:
+## Supported browsers
 
-```java
-@App(askLabel = "Ask RIU", askIcon = "R")            // la inicial, en blanco sobre el FAB
-@App(askLabel = "Ask RIU", askIcon = "/images/riu.svg") // su logo (ruta del backend, como @Logo), en un círculo blanco
-```
+The same as the Oracle JET / Visual Builder release it runs on (JET 18.1, VB 2510): the current
+and previous major versions of **Chrome, Edge, Firefox and Safari** on desktop, and **Safari on
+iOS / Chrome on Android** (Oracle JET's browser support policy). Internet Explorer and legacy Edge
+are not supported. CI exercises headless Chromium (smoke, accessibility, slow-network probes and
+the renderer-agnostic Playwright specs — job `renderer-vb`). The renderer needs ES2019+, custom
+elements and `fetch` streams (the AI chat).
 
-`askIcon` admite una o dos letras (la inicial), una imagen (ruta relativa al backend o url
-absoluta/`data:`) o un icono (`oj-ux-ico-…` o un nombre Mateu `vaadin:…` con equivalente);
-cualquier otra cosa, o vacío, deja el glifo de Ask Oracle. `askLabel` vacío deja "Ask Oracle".
-Viajan en el `AppDto` (`askLabel`/`askIcon`); la proyección es `askFabOf` y el marcado del FAB
-del shell `brandAskFab` (`poc/widgets.mjs`).
+## Pinned Oracle CDN versions — how to bump them
 
-## Entregable VB hosteado (kit)
+The renderer pins exact versions of Oracle's CDN artefacts. Everything below is loaded at run time
+(never vendored), so a bump is an edit + rebuild + browser check:
 
-El mismo `webApps/vbredwoodapp` es importable en una app VB alojada en Oracle (VB Studio):
-copiar el kit, poner la `mateuBaseUrl` → pinta Mateu con aspecto Redwood nativo (con CORS abierto
-en el backend). Ver "Entregable final" en `RENDERER-ROADMAP.md`.
+| Artefact | Where it is pinned |
+|---|---|
+| JET (`cdn/jet/<ver>`), telemetry, visual runtime (`cdn/vb/<ver>`) | `visual-application.json` → `dependencies.paths` |
+| VB build tooling (`grunt-vb-build`, `grunt-vb-audit`) | `package.json` devDependencies (tarball URLs) |
+| Spectra / `oj-sp` (`cdn/spectra-ui/oj-sp/<ver>`) | `webApps/vbredwoodapp/app-flow.json` (requirejs paths) |
+| Redwood gallery (icon font, shell textures, welcome illustrations: `cdn/fnd/gallery/<ver>`) | `resources/css/app.css`, `app-flow.json`, `poc/core/overviews.mjs` (`WELCOME_GALLERY`) |
+| Leaflet (cdnjs, not Oracle) | `poc/map.mjs` |
+
+Procedure:
+
+1. Find every pin: `grep -rnE "cdn/(jet|vb|spectra-ui|fnd/gallery)/|grunt-vb-|leaflet/" visual-application.json package.json webApps poc | grep -v mateu-bridge`.
+2. **JET and the visual runtime move together**: grunt-vb-build transpiles for the JET version of
+   its VB release, and a mismatch shows as `JET version mismatch` + dynamic re-renders that never
+   paint (it happened in 2026-09). Take the `jet` path, the `visualRuntime` path, the grunt
+   tarballs and `source.version` from the SAME VB release; keep `vbcs.dt.version` in step.
+3. `npm install` (new tooling), `npm run bridge`, `npm test`, `npm run build`.
+4. Check the icon classes still exist in the new gallery font (the renderer uses `oj-ux-ico-*`
+   names: `grep -oh "oj-ux-ico-[a-z0-9-]*" poc/core/*.mjs poc/templates/*.html webApps/vbredwoodapp/pages/*.html | sort -u`
+   against the font's CSS — a missing glyph renders as an empty box, silently).
+5. Browser check: `npm run copy`, install the redwood module, run demo-vb, then
+   `node e2e/vb-smoke.mjs`, `node e2e/vb-a11y-probe.mjs`, `node e2e/vb-slow-network-probe.mjs`
+   (`VB_URL=http://localhost:9005`) and `RENDERER_VB=1 npx playwright test --project renderer-vb`;
+   compare `/components` and `/components-2` with the captures in `poc/shots/ga-components*.png`.
+6. Update `NOTICE.md` if a third-party version changed.
+
+## Shell features
+
+- **The "Ask" FAB** (the shell's own, `oj-sp-simple-ui-shell`) opens the destinations palette:
+  every menu entry, the quick views of the listing on screen and — with a `GlobalSearchSupplier`
+  on the App — the app's entities (`_globalsearch`, debounced). Neutral by default; an App brands
+  it with `@App(askLabel = "Ask RIU", askIcon = "R" | "/images/riu.svg" | "oj-ux-ico-…")`.
+- **The AI assistant** (`@AI(sse = …)`): a header button opens the chat drawer — streaming, tool
+  steps, attachments (`@AI(upload)`), mcpUrl, menu and screen context, dictation, local agent.
+- **`@App(themeToggle = true)`**: a light/dark switch in the header; dark is JET's own inverted
+  colour scheme, remembered in `localStorage['mateu-theme']` (the OS preference otherwise).
+- **`@Fab`** on the app class or on a page: floating buttons stacked above the shell FAB.
+- **Language**: the renderer's own words come from `poc/i18n.mjs` in the page language
+  (`<html lang>`, the browser's), English by default, Spanish complete.
+
+## Hosted VB deliverable (kit)
+
+The same `webApps/vbredwoodapp` imports into a VB app hosted by Oracle (VB Studio): copy the kit,
+set `mateuBaseUrl` → it paints Mateu with the native Redwood look (with CORS open on the backend).
+See "Final deliverable" in `RENDERER-ROADMAP.md`.

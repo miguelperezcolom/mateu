@@ -12,7 +12,7 @@
  * {hover:"css"} · {press:"Control+i"} · {down:"Alt"} · {up:"Alt"} (mantener una tecla) · {fill:["css","valor"]} · {drag:["css origen","css destino"]}
  * · {dragBy:["css",dx,dy]} · {wait:ms} · {download:"texto del botón", expect:"trozo del nombre"} · {element:"css"} (la
  * captura se recorta a ese elemento) · {eval:"expresión JS"} (imprime su resultado, para depurar).
- * Opciones: --base (http://localhost:9006) --width 1440 --height 900 --settle 6000 --full
+ * Opciones: --base (http://localhost:9006) --width 1440 --height 900 --settle 6000 --full --locale es-ES
  * --path-routes (rutas por path: la app servida por el jar io.mateu:redwood del backend, p.ej. --base http://localhost:9005)
  * --no-cors (Chromium sin same-origin: para apuntar el VB de :9006 a un backend SIN CorsConfig, sólo en pruebas)
  * Sale con código ≠ 0 si un paso falla o si una descarga esperada no llega.
@@ -34,6 +34,8 @@ const browser = await chromium.launch(args['no-cors'] ? { args: ['--disable-web-
 const page = await browser.newPage({
   viewport: { width: +(args.width || 1440), height: +(args.height || 900) },
   acceptDownloads: true,
+  // --locale es-ES: el idioma del navegador, que es el de la interfaz del renderer (poc/i18n.mjs)
+  ...(args.locale ? { locale: args.locale } : {}),
 })
 const errors = []
 page.on('pageerror', (e) => errors.push('PAGEERROR ' + e.message))

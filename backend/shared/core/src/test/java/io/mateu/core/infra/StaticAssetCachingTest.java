@@ -25,6 +25,8 @@ class StaticAssetCachingTest {
   void redwoodVersionedPathsAreTheImmutableOnes() {
     assertThat(StaticAssetCaching.IMMUTABLE_PATTERNS).containsExactly("/version_*/**");
     assertThat(StaticAssetCaching.REVALIDATE_FOLDERS).contains("assets");
+    // the Redwood app under its stable directory name (scripts/copy.mjs in apps/redwood)
+    assertThat(StaticAssetCaching.REVALIDATE_FOLDERS).contains("_redwood");
   }
 
   @Test

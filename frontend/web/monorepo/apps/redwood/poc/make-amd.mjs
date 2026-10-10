@@ -3,8 +3,9 @@
 // test.mjs/capture.mjs). El orden importa: transport.mjs usa lo de resilience.mjs, y al
 // concatenar todo cae en un mismo scope sin imports.
 // Uso: node make-amd.mjs   → escribe ../webApps/vbredwoodapp/resources/js/mateu-bridge.js
+//      node make-amd.mjs --check   → falla si el bridge commiteado no es el que genera poc/ (CI)
 
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
@@ -13,14 +14,29 @@ const out = join(here, '..', 'webApps', 'vbredwoodapp', 'resources', 'js', 'mate
 
 const strip = (file) =>
   readFileSync(join(here, file), 'utf8')
+    // an import may span several lines (import {\n a,\n b,\n} from '…'): the whole statement goes
+    .replace(/^import\s+\{[^}]*\}\s+from\s+'[^']+'\s*$/gm, '')
     .split('\n')
-    .filter((l) => !l.startsWith('import '))
-    .map((l) => l.replace(/^export (async |const |function |class )/, '$1').replace(/^export /, ''))
+    .filter((l) => !l.startsWith('import ') && !/^export \* from /.test(l))
+    .map((l) => l.replace(/^export (async |const |let |function |class )/, '$1').replace(/^export /, ''))
     .join('\n')
+
+// reduceContexts.mjs only re-exports the core, which is split by surface into core/*.mjs: the
+// pieces go in the order it lists them (the order the original single file had).
+const CORE_PIECES = [...readFileSync(join(here, 'reduceContexts.mjs'), 'utf8')
+  .matchAll(/^export \* from '\.\/(core\/[\w-]+\.mjs)'/gm)].map((m) => m[1])
 
 // bundle.mjs antes de transport.mjs: transport.loadRoute consulta el manifest cargado.
 // chat.mjs es autónomo (solo transporte SSE del chat de IA); va al final del scope compartido.
-const body = `${strip('prefs.mjs')}\n\n${strip('navTree.mjs')}\n\n${strip('calendar.mjs')}\n\n${strip('richtext.mjs')}\n\n${strip('links.mjs')}\n\n${strip('reduceContexts.mjs')}\n\n${strip('breadcrumbs.mjs')}\n\n${strip('clientLog.mjs')}\n\n${strip('polling.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('a11y.mjs')}\n\n${strip('elements.mjs')}\n\n${strip('notify.mjs')}\n\n${strip('files.mjs')}\n\n${strip('inputs.mjs')}\n\n${strip('rules.mjs')}\n\n${strip('planning.mjs')}\n\n${strip('actionPanels.mjs')}\n\n${strip('keys.mjs')}\n\n${strip('hover.mjs')}\n\n${strip('dnd.mjs')}\n\n${strip('matrix.mjs')}\n\n${strip('map.mjs')}\n\n${strip('tables.mjs')}\n\n${strip('bundle.mjs')}\n\n${strip('transport.mjs')}\n\n${strip('widgets.mjs')}\n\n${strip('chat.mjs')}`
+export const MODULES = [
+  'i18n.mjs', 'prefs.mjs', 'navTree.mjs', 'calendar.mjs', 'richtext.mjs', 'links.mjs',
+  ...CORE_PIECES,
+  'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'resilience.mjs', 'a11y.mjs', 'elements.mjs',
+  'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'planning.mjs', 'actionPanels.mjs',
+  'keys.mjs', 'hover.mjs', 'dnd.mjs', 'matrix.mjs', 'map.mjs', 'tables.mjs', 'bundle.mjs',
+  'mount.mjs', 'transport.mjs', 'widgets.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs', 'pageProjection.mjs', 'actionPlan.mjs', 'globalSearch.mjs', 'theme.mjs',
+]
+const body = MODULES.map(strip).join('\n\n')
 
 // Todos los módulos caen en UN scope: dos declaraciones de nivel superior con el mismo nombre no
 // fallan, la ÚLTIMA gana en silencio — así el sanitizador de elements.mjs tapó al de richtext.mjs
@@ -54,7 +70,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
   // el selector de columnas: listingOf aplica las preferencias de la ruta en pantalla
   setColumnPrefsReader(() => readColumnPrefs(listingScope()));
   setAfterReduceHook((reg) => {
-    setRulesContext(reg.contexts[HOST_ID]);
+    setRulesContexts(reg);
     // los @Action(shortcut) de la pantalla en curso (keys.mjs)
     setShortcutContext(reg.contexts[HOST_ID]);
     // los tonos de fila (@RowStatus) y las filas de grupo del listado del host
@@ -80,6 +96,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
   setNotificationsProviderFactory((items) => new ArrayDataProvider(items || [], { keyAttributes: 'id' }));
   // campos de captura (fichero, imagen, firma, cámara): JET no los trae
   defineCaptureField();
+  // an editable richText (HTML; a legacy Delta opens converted) and a colour field: JET has neither
+  defineRichTextField();
+  defineColorField();
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
   setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
   // el editor de cada filtro del buscador (smartFilters.filtersMetadata): oj-dynamic se carga
@@ -92,6 +111,11 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
 
   return {
     HOST_ID,
+    // the renderer's own words (i18n.mjs): chains say them in the interface's language
+    chromeText,
+    chromeLanguage,
+    setChromeLanguage,
+    chromeTextsOf,
     mountElements,
     setElementEventSink,
     setElementModuleBase,
@@ -274,7 +298,21 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     foldoutOf,
     wizardOf,
     callMateu,
+    // the mount of the packaged app (<mateu-ui baseUrl>): API base and route ↔ browser path
+    initMount,
+    isPathMode,
+    currentMount,
+    mateuBase,
+    mateuAssetBase,
+    urlOfRoute,
+    currentRouteOf,
+    currentRoutePathOf,
+    routeOfPath,
+    pathOfRoute,
+    routeUnderMount,
     bootstrapShell,
+    bootstrapHasApp,
+    setMountWithoutApp,
     loadRoute,
     loadRouteInto,
     loadMenuRouteInto,
@@ -351,6 +389,16 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     streamChat,
     stickChatToBottom,
     uploadChatFiles,
+    // paridad con el chat web: config del panel, el turno completo (contexto + pantalla + mcp +
+    // adjuntos), agente local, herramientas en curso y los textos de una respuesta vacía o fallida
+    chatConfigOf,
+    chatTurnOf,
+    chatTurnTextOf,
+    chatToolStepsOf,
+    withAttachments,
+    probeLocalAgent,
+    projectChatScreen,
+    LOCAL_AGENT_URL,
     // el panel mientras el asistente trabaja, los contadores de tokens y el dictado
     mergeTurnUsage,
     addUsage,
@@ -365,6 +413,47 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     transcriptOf,
     isChatMicShortcut,
     CHAT_MIC_ARIA_KEYSHORTCUTS,
+    // the display components of core/display.mjs: client view state (carousel slide, Grid page,
+    // tree rows) and its re-projection, content menus, MessageInput, and their DOM installers
+    setUiValue,
+    uiValueOf,
+    reprojectedContentOf,
+    menuChoiceOf,
+    dispatchOf,
+    messageSendOf,
+    installBpmn,
+    installCookieConsent,
+    installContextMenus,
+    installChatComponents,
+    installCustomComponents,
+    // an app registers the view of its own custom components (CustomComponent) here
+    registerCustomComponent,
+    runSurfaceAction,
+    // the page projection and the outbound action plan the two big page chains share
+    // (poc/pageProjection.mjs, poc/actionPlan.mjs)
+    listHeaderVarsOf,
+    wizardVarsOf,
+    archetypeVarsOf,
+    islandVarsOf,
+    nestedVarOf,
+    noGenericFormVars,
+    hostContentPlanOf,
+    generalOverviewPageOf,
+    pageHeaderOf,
+    formActionsBesideHeader,
+    pageWidthOf,
+    pageLayoutOf,
+    outboundActionOf,
+    hostReRendered,
+    touchesHost,
+    onlyMessagesAnswer,
+    fabsOf,
+    // GlobalSearchSupplier in the Ask palette, app-level actions (app @Fab), light/dark
+    fetchGlobalSearch,
+    paletteRowsOfHits,
+    runAppLevelAction,
+    applyInitialTheme,
+    toggleTheme,
   };
 });
 `
@@ -378,6 +467,17 @@ try {
 } catch (e) {
   console.error('mateu-bridge.js no compila: ' + e.message)
   process.exit(1)
+}
+// --check (CI): the committed bridge must be what the sources generate — a poc/ change without
+// `npm run bridge` would otherwise pass the Node tests and ship the old code in the app
+if (process.argv.includes('--check')) {
+  const committed = existsSync(out) ? readFileSync(out, 'utf8') : ''
+  if (committed !== amd) {
+    console.error('mateu-bridge.js no está al día con poc/: ejecuta npm run bridge')
+    process.exit(1)
+  }
+  console.log(`mateu-bridge.js al día (${amd.length} bytes)`)
+  process.exit(0)
 }
 writeFileSync(out, amd)
 console.log(`Escrito ${out} (${amd.length} bytes)`)

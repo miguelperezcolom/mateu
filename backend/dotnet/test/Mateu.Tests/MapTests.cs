@@ -93,6 +93,23 @@ public class MapTests
         var meta = Assert.IsType<MapMetadataDto>(cs.Metadata);
         Assert.Empty(meta.Markers);
         Assert.Null(meta.MarkerActionId);
+        // no tile provider declared: the renderers fall back to OpenStreetMap
+        Assert.Null(meta.TileUrl);
+        Assert.Null(meta.Attribution);
+    }
+
+    [Fact]
+    public void The_tile_provider_travels_when_declared()
+    {
+        var dto = ComponentMapper.Map(new Mateu.Uidl.Map
+        {
+            Zoom = "10",
+            TileUrl = "https://tiles.example.com/{z}/{x}/{y}.png",
+            Attribution = "© Example Tiles",
+        });
+        var meta = Assert.IsType<MapMetadataDto>(Assert.IsType<ClientSideComponentDto>(dto).Metadata);
+        Assert.Equal("https://tiles.example.com/{z}/{x}/{y}.png", meta.TileUrl);
+        Assert.Equal("© Example Tiles", meta.Attribution);
     }
 
     [Fact]

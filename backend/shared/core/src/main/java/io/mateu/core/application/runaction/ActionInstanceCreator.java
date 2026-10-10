@@ -369,6 +369,16 @@ public class ActionInstanceCreator {
     }
     try {
       var appClass = forName(command.serverSideType());
+      // an app-level @Fab (a method of the app class) is dispatched to the app instance too: the
+      // floating button lives on the shell, whatever screen is below it
+      if (java.util.Arrays.stream(appClass.getMethods())
+          .anyMatch(
+              m ->
+                  actionId.equals(m.getName())
+                      && io.mateu.core.infra.reflection.MetaAnnotations.isPresent(
+                          m, io.mateu.uidl.annotations.Fab.class))) {
+        return true;
+      }
       if (!io.mateu.uidl.interfaces.AppActionsSupplier.class.isAssignableFrom(appClass)) {
         return false;
       }

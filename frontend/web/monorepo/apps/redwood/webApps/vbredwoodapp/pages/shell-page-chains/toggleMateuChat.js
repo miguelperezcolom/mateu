@@ -62,6 +62,11 @@ define(['vb/action/actionChain', 'vb/action/actions', 'resources/js/mateu-bridge
       $application.variables.mateuChatOpen = next;
       // el micrófono solo donde el navegador reconoce la voz (no en Firefox)
       if (next) $application.variables.mateuChatMicAvailable = !!bridge.speechRecognitionCtor(window);
+      // el agente LOCAL (companion del usuario, sin api key) gana al del servidor si contesta, como
+      // en el chat web: se pregunta al abrir el panel
+      if (next) {
+        bridge.probeLocalAgent().then((alive) => { $application.variables.mateuChatLocalAgent = alive; });
+      }
       markToggle(next);
       if (next) focusAndWireEnter(); else focusToggle();
     }

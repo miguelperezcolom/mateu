@@ -190,6 +190,8 @@ class MapMetadata(Wire):
     zoom: str | None = None
     markers: list[MapMarkerRecord] = Field(default_factory=list)
     marker_action_id: str | None = None
+    tile_url: str | None = None
+    attribution: str | None = None
 
 
 class DropZoneMetadata(Wire):

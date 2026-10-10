@@ -9,7 +9,7 @@ honest assessment + the plan. Written 2026-09-13.
 | Renderer | Kind | Functional e2e | What exists |
 |---|---|---|---|
 | **Vaadin** (web) | Lit / web components | **Yes** | 16 shared Playwright specs × 5 Java backends (mvc/webflux/quarkus/micronaut/helidon) + 2 federation specs, in CI |
-| **Redwood/VB** (web) | Oracle JET / VB | **No** | ad-hoc probes only (`vb-a11y-probe`, `vb-slow-network-probe`); a11y + slow-network, not functional |
+| **Redwood/VB** (web) | Oracle JET / VB | **Yes** (2026-10-10) | `renderer-vb` Playwright project (the agnostic specs on mvc-app1 built with `io.mateu:redwood`) + `vb-smoke` / `vb-a11y-probe` / `vb-slow-network-probe` on demo-vb, CI job `renderer-vb` (jar built from source) |
 | **React Native** (native) | RN / Expo | **No** | ad-hoc probes only (`rn-a11y-probe`, `slow-network-probe`) via expo-web |
 | **IntelliJ** (desktop) | Swing | **No** | `renderProbe` (JVM: render a wire increment → assert the Swing tree); not a functional suite; SDK env-dependent |
 
@@ -52,7 +52,16 @@ adding a project with a different baseURL — that is the whole point of the agn
   **no `main` landmark** (only app-shell pages do) — a small a11y gap worth closing; (b) the Vaadin
   listing exposes `role=treegrid` (not `grid`/`table`) — the agnostic selector accepts all three.
 
-**Phase 1 — second web renderer (VB/Redwood). ⚠️ HARNESS BUILT, RENDER ENV-GATED (2026-09-13).**
+**Phase 1 — second web renderer (VB/Redwood). ✅ DONE (2026-10-10).** The finding below was not
+headless Chromium: the generated MVC index never promoted the VB boot scripts on an UNSECURED @UI
+(fixed in `index.ftl` on 2026-09-21), and the packaged app called the ROOT `/mateu/v3` whatever its
+mount (fixed with `apps/redwood/poc/mount.mjs` on 2026-10-10). With both, VB paints headless: the
+SUT is mvc-app1 built a second time (`-Dmateu.renderer=redwood -Dsut.build.dir=target-vb`, :8090),
+the `renderer-vb` project runs the agnostic specs (15 pass; the libs/mateu-DOM geometry checks are
+skipped on VB with a reason, and two real Redwood gaps — the @Aside panel beside a form, the
+CollectionDetail detail after a selection — are `test.fixme` with the reason), and the CI job
+`renderer-vb` also runs `vb-smoke.mjs`, `vb-a11y-probe.mjs` and `vb-slow-network-probe.mjs` against
+demo-vb. Historical note (2026-09-13):
 Recipe that works: `cp e2e/sut/apps/mvc-app1 → mvc-app-vb`, swap the frontend dependency
 `io.mateu:vaadin-lit` → `io.mateu:redwood` in its pom, set a free port. It **builds, boots, and serves
 the VB shell**, and the browser **reaches Oracle's JET CDN** (`static.oracle.com/cdn/jet/…`, 4
@@ -94,9 +103,7 @@ renderer (or a port) fails on its own when it regresses.
 
 - **Phase 0 done and green** — the renderer-agnostic smoke suite exists and passes on Vaadin (5/5),
   wired as the `renderer-vaadin` CI project. This is the reusable lever for every other renderer.
-- **Phase 1 attempted, render env-gated** — the VB SUT harness works (builds/boots/serves/reaches the
-  Oracle CDN) but the VB visual-runtime does not render headless, so VB functional e2e is blocked on
-  the bootstrap, not the specs (concrete evidence above, upgrading the earlier "env-fragile" guess).
+- **Phase 1 done (2026-10-10)** — see above: `renderer-vb` project + CI job, headless.
 - **Phases 2–4 not started** — RN (expo-web), IntelliJ (renderProbe, SDK env-gated), and the
   producer×renderer cell remain, per the plan.
 

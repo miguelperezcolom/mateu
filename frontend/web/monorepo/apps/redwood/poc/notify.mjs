@@ -1,4 +1,5 @@
 import { callMateu } from './transport.mjs'
+import { chromeText } from './i18n.mjs'
 // BANDEJA DE NOTIFICACIONES y TOASTS CON DESHACER en la shell VB.
 //
 // Bandeja (NotificationsSupplier del App): la campana de la cabecera con el número de no leídas
@@ -41,7 +42,7 @@ export function notificationsOf(list) {
     unread,
     badge: unread > 9 ? '9+' : String(unread),
     hasUnread: unread > 0,
-    label: unread ? 'Notifications, ' + unread + ' unread' : 'Notifications',
+    label: unread ? chromeText('notificationsUnread', { n: unread }) : chromeText('notifications'),
     empty: items.length === 0,
     items,
     provider: notificationsProviderFactory ? notificationsProviderFactory(items) : null,
@@ -116,7 +117,7 @@ export function showUndoToasts(toasts, doc = typeof document !== 'undefined' ? d
     const button = doc.createElement('oj-button')
     button.setAttribute('chroming', 'borderless')
     button.className = 'mateu-undo-button'
-    button.textContent = toast.undoLabel || 'Undo'
+    button.textContent = toast.undoLabel || chromeText('undo')
     button.addEventListener('ojAction', () => {
       if (undoSink) undoSink(toast.undoActionId, toast.undoParameters || {}, {})
       if (typeof msg.close === 'function') msg.close()

@@ -1,0 +1,138 @@
+# Display components gallery (route components): every display type the Redwood renderer paints
+# beyond forms and listings, authored as data — no Java. The reference screen for the Redwood
+# renderer's coverage (poc/coverage.mjs) and the smoke pass of the browser CI.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Display components
+subtitle: Every component of the catalogue, painted by the renderer
+content:
+- type: CalloutCard
+  title: Upgrade to Pro
+  description: Unlock the planning board and unlimited users.
+  icon: vaadin:star
+  ctaLabel: See plans
+  actionId: seePlans
+  theme: info
+- type: ComparisonCard
+  title: Revenue this month
+  leftLabel: Last month
+  leftValue: "€ 12,400"
+  rightLabel: This month
+  rightValue: "€ 15,100"
+  delta: "+21.8%"
+  trend: up
+- type: Kanban
+  id: board
+  columns:
+  - id: todo
+    title: To do
+    color: info
+    cards:
+    - { id: c1, title: Review contract, description: Legal wants it by Friday, badge: P1, color: danger, actionId: openCard }
+    - { id: c2, title: Book the venue, description: 120 people }
+  - id: doing
+    title: Doing
+    color: warning
+    cards:
+    - { id: c3, title: Design the landing, badge: Design, color: info }
+  - id: done
+    title: Done
+    color: success
+    cards: []
+- type: Timeline
+  items:
+  - { id: t1, title: Order placed, description: 3 items, timestamp: "09:12", icon: vaadin:cart, color: info }
+  - { id: t2, title: Payment received, timestamp: "09:14", icon: vaadin:check, color: success, actionId: openPayment }
+  - { id: t3, title: Shipped, description: Carrier DHL, timestamp: "15:40", icon: vaadin:truck }
+- type: PricingTable
+  plans:
+  - { id: free, name: Free, price: "€0", period: / month, features: [1 user, 3 projects], ctaLabel: Start, actionId: choosePlan }
+  - { id: pro, name: Pro, price: "€19", period: / month, featured: true, features: [10 users, Unlimited projects, Planning board], ctaLabel: Go Pro, actionId: choosePlan }
+  - { id: ent, name: Enterprise, price: Custom, features: [SSO, Audit log, Support SLA], ctaLabel: Contact us, actionId: contact }
+- type: OrgChart
+  root:
+    id: ceo
+    title: Ada Lovelace
+    subtitle: CEO
+    actionId: openPerson
+    children:
+    - id: cto
+      title: Grace Hopper
+      subtitle: CTO
+      children:
+      - { id: dev, title: Alan Turing, subtitle: Engineering }
+    - { id: cfo, title: Mary Somerville, subtitle: CFO }
+- type: Heatmap
+  cells:
+  - { date: "2026-09-01", value: 1 }
+  - { date: "2026-09-02", value: 4 }
+  - { date: "2026-09-03", value: 2 }
+  - { date: "2026-09-08", value: 8, label: "Release day: 8 deploys" }
+  - { date: "2026-09-09", value: 3 }
+  - { date: "2026-09-15", value: 5 }
+  - { date: "2026-09-16", value: 6 }
+  - { date: "2026-09-22", value: 2 }
+  - { date: "2026-09-29", value: 7 }
+- type: Funnel
+  stages:
+  - { label: Visits, value: 1200 }
+  - { label: Sign-ups, value: 420 }
+  - { label: Trials, value: 160 }
+  - { label: Customers, value: 48 }
+- type: FeatureGrid
+  columns: 3
+  features:
+  - { icon: vaadin:bolt, title: Fast, description: Renders in milliseconds }
+  - { icon: vaadin:lock, title: Secure, description: Your data stays yours, actionId: openSecurity }
+  - { icon: vaadin:globe, title: Everywhere, description: Web, native and VB }
+- type: Testimonials
+  items:
+  - { quote: It changed how we build back offices., author: Ada Lovelace, role: CTO at Analytical, rating: 5 }
+  - { quote: We shipped in a week., author: Alan Turing, role: Lead at Enigma, rating: 4 }
+- type: Faq
+  id: faq
+  items:
+  - { question: "Do I need to write frontend code?", answer: "No — the **model** is the UI.", open: true }
+  - { question: "Which renderers are there?", answer: "Vaadin, Redwood (VB), React Native and IntelliJ." }
+- type: CommentThread
+  comments:
+  - id: m1
+    author: Grace Hopper
+    text: "Can we move the launch to Monday?"
+    timestamp: 2 h ago
+    replies:
+    - { id: m2, author: Ada Lovelace, text: Monday works., timestamp: 1 h ago }
+- type: FileList
+  files:
+  - { name: contract.pdf, size: 240 KB, type: application/pdf, url: /files/contract.pdf }
+  - { name: budget.xlsx, size: 18 KB, type: spreadsheet, actionId: openFile }
+- type: Checklist
+  title: Go-live checklist
+  items:
+  - { id: k1, label: DNS configured, done: true, actionId: toggleItem }
+  - { id: k2, label: Certificates installed, done: true, actionId: toggleItem }
+  - { id: k3, label: Backups verified, actionId: toggleItem }
+- type: ProcessMonitor
+  items:
+  - { id: p1, name: Nightly sync, systems: [ERP, CRM], ok: 1204, warnings: 3, errors: 0, status: OK }
+  - { id: p2, name: Invoice export, systems: [ERP, Bank], ok: 88, warnings: 1, errors: 4, status: Error, actionLabel: Retry, actionId: retryProcess }
+- type: MessageList
+  items:
+  - { userName: Ada Lovelace, time: "10:01", text: "Morning! Ready for the review?", userColorIndex: 1 }
+  - { userName: Alan Turing, time: "10:02", text: In five minutes., userColorIndex: 3 }
+- type: MessageInput
+  id: composer
+  actionId: sendMessage
+- type: Breadcrumbs
+  currentItemText: Order 1042
+  breadcrumbs:
+  - { text: Home, link: / }
+  - { text: Orders, link: /orders }
+- type: Notification
+  title: Maintenance window
+  text: Saturday 02:00–04:00 UTC
+- type: Skeleton
+  variant: text
+  count: 1
+- type: Icon
+  icon: Calendar

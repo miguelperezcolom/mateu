@@ -1,6 +1,8 @@
 .idea
 .qodana
 target
+# the e2e SUT built a second time with the Redwood renderer (-Dsut.build.dir=target-vb)
+target-vb
 overlays
 *.iml
 mdd-vaadin/src/main/webapp/tmp

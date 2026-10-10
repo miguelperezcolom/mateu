@@ -1,3 +1,10 @@
 {
-    "root": true
+  "root": true,
+  "es": true,
+  "ca": true,
+  "fr": true,
+  "de": true,
+  "it": true,
+  "pt": true,
+  "nl": true
 }

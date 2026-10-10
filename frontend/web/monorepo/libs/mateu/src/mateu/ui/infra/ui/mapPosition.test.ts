@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_CENTER, DEFAULT_ZOOM, parsePosition, parseZoom, planMapView, SINGLE_MARKER_ZOOM } from './mapPosition'
+import { DEFAULT_CENTER, DEFAULT_ZOOM, parsePosition, parseZoom, planMapView, SINGLE_MARKER_ZOOM, tileSourceOf } from './mapPosition'
 
 describe('parsePosition', () => {
     it('parses "lat, lon"', () => {
@@ -62,5 +62,22 @@ describe('planMapView', () => {
 
     it('no position and no markers is the world view', () => {
         expect(planMapView(undefined, undefined, [])).toEqual({ kind: 'center', center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM })
+    })
+})
+
+describe('tileSourceOf', () => {
+    it('falls back to OpenStreetMap when no tileUrl is declared', () => {
+        expect(tileSourceOf(undefined, undefined)).toEqual({})
+        expect(tileSourceOf('  ', 'ignored')).toEqual({})
+    })
+
+    it('carries the template and the attribution', () => {
+        expect(tileSourceOf('https://tiles.example.com/{z}/{x}/{y}.png', '© Example'))
+            .toEqual({ url: 'https://tiles.example.com/{z}/{x}/{y}.png', attributions: '© Example' })
+    })
+
+    it('translates the Leaflet subdomain placeholder to the OpenLayers one', () => {
+        expect(tileSourceOf('https://{s}.tile.example.com/{z}/{x}/{y}.png', null).url)
+            .toBe('https://{a-c}.tile.example.com/{z}/{x}/{y}.png')
     })
 })

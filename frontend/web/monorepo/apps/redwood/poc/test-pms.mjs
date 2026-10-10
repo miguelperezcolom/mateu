@@ -17,10 +17,12 @@ import { matrixCellParams, matrixEditChanged } from './matrix.mjs'
 import { coverageProblems } from './parity-check.mjs'
 import { coverageTable } from './coverage.mjs'
 import { mapAtomOf, mapHeightOf } from './reduceContexts.mjs'
-import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM } from './map.mjs'
+import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM, tileLayerOf, OSM_TILES } from './map.mjs'
 import { attrSelectorValue } from './rules.mjs'
 import { wizardOf, WIZARD_DONE_STEP } from './reduceContexts.mjs'
 import { safeImageSrc } from './inputs.mjs'
+import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf } from './mount.mjs'
+import { inAppRouteOfLink } from './links.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays } from './calendar.mjs'
 import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf } from './notify.mjs'
@@ -35,7 +37,7 @@ import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, r
 import { listingOf, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
 import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, entityHeaderOf, taskQueueOf, formSectionsOf, layoutFieldOf, HOST_ID } from './reduceContexts.mjs'
 import { localMenuOptionOf, isSentinelHome } from './navTree.mjs'
-import { loadMenuRouteInto, terminalMenuRouteOf } from './transport.mjs'
+import { loadMenuRouteInto, terminalMenuRouteOf, bootstrapHasApp } from './transport.mjs'
 import { fileDownloadOf, triggerDownload, applyDomEffects } from './files.mjs'
 import { evaluateExpression, evaluateTemplate, computeRules, fieldFlagsOf, valueChangeActionOf } from './rules.mjs'
 import { describeFileValue, isImageValue, captureTexts } from './inputs.mjs'
@@ -108,7 +110,7 @@ test('DownloadFile: TODAS las chains que reducen un increment aplican sus efecto
     assert.ok(reduces > 0, rel)
     assert.equal(applies, reduces, `${rel}: ${reduces} reducciones, ${applies} applyDomEffects`)
   }
-  assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /strip\('files\.mjs'\)/)
+  assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /'files\.mjs'/)
 })
 
 test('Anchor: enlace real; _blank abre otra pestaña con noopener; la url se interpola', () => {
@@ -199,7 +201,7 @@ test('Element: contenido HTML con `${…}` se marca para sanearlo al montarlo', 
 test('Element: la shell cablea módulo y sumidero ANTES de navegar; la página escucha el evento de aplicación', () => {
   const shell = webApp('pages/shell-page-chains/loadMateuShell.js')
   assert.ok(shell.indexOf('setElementEventSink') < shell.indexOf("chain: 'onMateuNavigate'"))
-  assert.match(shell, /setElementModuleBase\(base\)/)
+  assert.match(shell, /setElementModuleBase\(assetBase\)/)
   const page = JSON.parse(webApp('flows/main/pages/main-start-page.json'))
   // los eventos de aplicación se escuchan con el prefijo `application:` (sin él no llegan nunca)
   assert.ok(page.eventListeners['application:mateuElementEvent'])
@@ -327,7 +329,8 @@ test('el form layout pinta los mismos widgets nuevos; una lista sin estereotipo 
 test('plantilla: los widgets nuevos están en cada superficie de átomos y en las 7 copias de campos', () => {
   const page = webApp('flows/main/pages/main-start-page.html')
   const surfaces = (page.match(/<!-- @atoms /g) || []).length
-  for (const tag of ['<oj-radioset', '<oj-select-many', '<oj-checkboxset', '<mateu-capture-field'])
+  // (a field's oj-checkboxset opens a line of its own; the Checklist atom's one does not)
+  for (const tag of ['<oj-radioset', '<oj-select-many', '<oj-checkboxset\n', '<mateu-capture-field', '<oj-slider', '<mateu-rich-text-field', '<mateu-color-field'])
     assert.equal(page.split(tag).length - 1, surfaces + 7, tag)
   // cada copia conserva SU listener de cambio
   assert.match(page, /<oj-select-many[^>]*\n[^]*?on-value-changed="\[\[ \$listeners\.mateuRowFieldChanged \]\]"/)
@@ -610,13 +613,18 @@ test('FoldoutLayout dentro de una pestaña: overview en su sitio y paneles plega
 })
 
 test('re-proyecciones del host (pestaña, panel) quitan el EntityHeader que ya pinta la banda', () => {
-  for (const chain of ['contentTabSelected.js', 'panelToggled.js']) {
-    assert.match(webApp('flows/main/pages/main-start-page-chains/' + chain), /dropEntityHeader: !!bridge\.entityHeaderOf\(host\)/, chain)
+  assert.match(webApp('flows/main/pages/main-start-page-chains/contentTabSelected.js'), /dropEntityHeader: !!bridge\.entityHeaderOf\(host\)/)
+  // panelToggled / tilesReordered / uiValueChanged share poc/reproject.mjs
+  for (const chain of ['panelToggled.js', 'tilesReordered.js', 'uiValueChanged.js']) {
+    assert.match(webApp('flows/main/pages/main-start-page-chains/' + chain), /bridge\.reprojectedContentOf\(/, chain)
   }
+  assert.match(readFileSync(join(here, 'reproject.mjs'), 'utf8'), /dropEntityHeader: !!entityHeaderOf\(host\)/)
   const page = webApp('flows/main/pages/main-start-page.html')
   assert.match(page, /oj-collapsible/)
   assert.match(page, /mateuPageHeader\.bandClass/)
-  assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /mateu-sticky-header/)
+  // the header projection (sticky business card with an EntityHeader) is poc/pageProjection.mjs
+  assert.match(readFileSync(join(here, 'pageProjection.mjs'), 'utf8'), /mateu-sticky-header/)
+  assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /bridge\.pageHeaderOf\(/)
 })
 
 test('cabecera fija: body.mateu-scrolled al dejar atrás la cabecera, y sólo cuando cambia', () => {
@@ -1071,7 +1079,7 @@ test('arrastre: el listado @DragRows da su tipo al oj-table; el DropZone es un �
   assert.match(page, /mateuListing\.headerBlocks/)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installDragAndDrop\(\)/)
   // una acción que repinta el host vuelve a pedir su carga OnLoad (el listado no queda vacío)
-  assert.match(webApp('flows/main/pages/main-start-page-chains/runMateuAction.js'), /hostNow\.tree\.id !== host\.tree\.id/)
+  assert.match(webApp('flows/main/pages/main-start-page-chains/runMateuAction.js'), /bridge\.hostReRendered\(lastIncrement, host, hostNow\)/)
 })
 
 import { ganttAtomOf, itemOverviewOf, generalOverviewOf, isRichAtom } from './reduceContexts.mjs'
@@ -1096,7 +1104,7 @@ test('HTML saneado por lista blanca: sin scripts, manejadores, estilos ni enlace
   assert.equal(sanitizeHtml('<a href="&#106;avascript:alert(1)">x</a> 1 < 2'), '<a>x</a> 1 &lt; 2')
 })
 
-test('campos richText / html / markdown: con formato en sólo lectura; editables, un text area', () => {
+test('campos richText / html / markdown: con formato en sólo lectura; un richText editable, su editor', () => {
   const ro = atomsOf(node({ type: 'FormLayout' }, [
     node({ type: 'FormField', fieldId: 'notes', dataType: 'string', stereotype: 'richText', readOnly: true, label: 'Notes' }),
     node({ type: 'FormField', fieldId: 'policy', dataType: 'string', stereotype: 'markdown', readOnly: true, label: 'Policy' }),
@@ -1104,7 +1112,7 @@ test('campos richText / html / markdown: con formato en sólo lectura; editables
   assert.deepEqual(ro.map((a) => [a.label, a.html]), [['Notes', '<p>VIP <b>guest</b></p>'], ['Policy', '<p><strong>No</strong> pets</p>']])
   const [layout] = atomsOf(node({ type: 'FormLayout' }, [node({ type: 'FormField', fieldId: 'notes', dataType: 'string', stereotype: 'richText', label: 'Notes' })]), { notes: '<p>x</p>' })
   assert.ok(layout.isFormLayout)
-  assert.ok(layout.fields[0].isTextArea, 'JET no trae editor de texto enriquecido')
+  assert.ok(layout.fields[0].isRichEditor && !layout.fields[0].isTextArea, 'JET has no rich text editor: mateu-rich-text-field')
   assert.match(webApp('flows/main/pages/main-start-page.html'), /:data-mateu-html="\[\[ \$current\.data\.html \]\]"/)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installRichText\(\)/)
 })
@@ -1269,6 +1277,14 @@ test('P2 #21 mapa: Leaflet con marcadores, encuadre y la acción de un marcador'
   assert.deepEqual(mapViewPlanOf(spec), { kind: 'fit', min: { lat: 39.558, lon: 2.649 }, max: { lat: 39.5715, lon: 2.6735 } })
   assert.deepEqual(mapViewPlanOf({ markers: [] }), { kind: 'center', center: { lat: 0, lon: 0 }, zoom: 3 })
   assert.deepEqual(mapMarkerParams('PMI03'), { _markerId: 'PMI03' })
+  // teselas: sin tileUrl en el wire, OSM con su atribución; con tileUrl, la del Map
+  assert.equal(spec.tileUrl, '')
+  assert.equal(tileLayerOf(spec).url, OSM_TILES)
+  assert.match(tileLayerOf(spec).options.attribution, /OpenStreetMap/)
+  const custom = JSON.parse(mapAtomOf({ markers: [], tileUrl: 'https://{s}.tiles.example.com/{z}/{x}/{y}.png', attribution: '© Example' }, 'm', '').mapSpec)
+  assert.equal(custom.tileUrl, 'https://{s}.tiles.example.com/{z}/{x}/{y}.png')
+  assert.deepEqual(tileLayerOf(custom), { url: 'https://{s}.tiles.example.com/{z}/{x}/{y}.png', options: { maxZoom: 19, attribution: '© Example' } })
+  assert.deepEqual(tileLayerOf({ tileUrl: 'https://t.example/{z}/{x}/{y}.png' }).options, { maxZoom: 19 })
   // cableado: plantilla con el contenedor, shell que lo instala
   const page = webApp('flows/main/pages/main-start-page.html')
   assert.match(page, /:data-map-spec="\[\[ \$current\.data\.mapSpec \]\]"/)
@@ -1300,6 +1316,112 @@ test('proceso guiado terminado: un paso final «Completed» actual (título corr
   assert.ok(done.steps.every((st) => st.status === 'success'))
   assert.equal(done.resumeStepId, '')
   assert.match(webApp('flows/main/pages/main-start-page.html'), /mateuWizard\.completed \? 'mateu-wizard-completed'/)
+})
+
+test('mount: the packaged app serves an @UI at any path — API base and routes come from <mateu-ui baseUrl>', () => {
+  assert.equal(normalizeMount(''), '')
+  assert.equal(normalizeMount('/'), '')
+  assert.equal(normalizeMount('console/'), '/console')
+  assert.equal(normalizeMount('/a/b//'), '/a/b')
+  // the base: the mount when the controller injected <mateu-ui>, the dev constant otherwise
+  assert.equal(baseUrlOf(null, 'http://localhost:9005'), 'http://localhost:9005')
+  assert.equal(baseUrlOf({ baseUrl: '' }, 'http://localhost:9005'), '')
+  assert.equal(baseUrlOf({ baseUrl: '/console' }, 'http://x'), '/console')
+  assert.equal(baseUrlOf({ baseurl: '/console/' }, 'http://x'), '/console')
+  // browser path → Mateu route: relative to the mount, the mount itself is the home
+  assert.equal(routeOfPath('/console', '/console'), '')
+  assert.equal(routeOfPath('/console/', '/console'), '')
+  assert.equal(routeOfPath('/console/products/3', '/console'), '/products/3')
+  assert.equal(routeOfPath('/', ''), '')
+  assert.equal(routeOfPath('/products', ''), '/products')
+  // a path that merely starts like the mount is not under it
+  assert.equal(routeOfPath('/consoles/x', '/console'), '/consoles/x')
+  // Mateu route → browser path
+  assert.equal(pathOfRoute('', '/console'), '/console')
+  assert.equal(pathOfRoute('/', '/console'), '/console')
+  assert.equal(pathOfRoute('/products?status=open', '/console'), '/console/products?status=open')
+  assert.equal(pathOfRoute('products', '/console'), '/console/products')
+  assert.equal(pathOfRoute('', ''), '/')
+  assert.equal(pathOfRoute('/products', ''), '/products')
+  assert.equal(pathOfRoute('?q=1', '/console'), '/console?q=1')
+  assert.equal(pathOfRoute('?q=1', ''), '/?q=1')
+  // a crud's inner route already carries the crud's path (@UI("/products") → '/products/new')
+  assert.equal(pathOfRoute('/products/new', '/products'), '/products/new')
+  assert.equal(pathOfRoute('/products', '/products'), '/products')
+  // round trip
+  for (const r of ['', '/a', '/a/b']) assert.equal(routeOfPath(pathOfRoute(r, '/m'), '/m'), r)
+})
+
+test('mount: read once at boot — path mode under a mount, hash mode without <mateu-ui>', () => {
+  const doc = (attrs) => ({ querySelector: (sel) => (sel === 'mateu-ui' && attrs
+    ? { getAttribute: (n) => (n in attrs ? attrs[n] : null) } : null) })
+  assert.equal(initMount(doc({ baseUrl: '/console' })), '/console')
+  assert.equal(isPathMode(), true)
+  assert.equal(mateuBase('http://localhost:9005'), '/console')
+  // static things stay at the backend root, as on the Vaadin renderer
+  assert.equal(mateuAssetBase('http://localhost:9005'), '')
+  assert.equal(urlOfRoute(''), '/console')
+  assert.equal(urlOfRoute('/orders?x=1'), '/console/orders?x=1')
+  assert.equal(currentRouteOf({ pathname: '/console/orders', search: '?x=1', hash: '' }), '/orders?x=1')
+  assert.equal(currentRoutePathOf({ pathname: '/console/orders', search: '?x=1', hash: '' }), '/orders')
+  assert.equal(currentRouteOf({ pathname: '/console', search: '', hash: '' }), '')
+  // an App's homeRoute comes in full: the route is the part under the mount
+  assert.equal(routeUnderMount('/console/home'), '/home')
+  assert.equal(routeUnderMount('/console/home?x=1'), '/home?x=1')
+  assert.equal(routeUnderMount('/console'), '')
+  assert.equal(routeUnderMount('section1'), 'section1')
+  assert.equal(routeUnderMount(''), '')
+  // the root mount: today's behaviour
+  assert.equal(initMount(doc({ baseUrl: '' })), '')
+  assert.equal(mateuBase('http://localhost:9005'), '')
+  assert.equal(urlOfRoute(''), '/')
+  assert.equal(currentRouteOf({ pathname: '/', search: '', hash: '' }), '')
+  // vb-serve / VB hosted: no <mateu-ui> → hash routes and the dev constant
+  assert.equal(initMount(doc(null)), null)
+  assert.equal(isPathMode(), false)
+  assert.equal(mateuBase('http://localhost:9005'), 'http://localhost:9005')
+  assert.equal(mateuAssetBase('http://localhost:9005'), 'http://localhost:9005')
+  assert.equal(urlOfRoute('/orders'), '#/orders')
+  assert.equal(currentRouteOf({ pathname: '/', search: '', hash: '#/orders?x=1' }), '/orders?x=1')
+  assert.equal(currentRoutePathOf({ pathname: '/', search: '', hash: '#/orders?x=1' }), '/orders')
+  setMount(null)
+})
+
+test('mount: an in-content link is a screen of the app only below the mount, and its route drops the mount', () => {
+  const loc = { href: 'https://h/console/a', origin: 'https://h', pathname: '/console/a', search: '' }
+  const a = (href) => ({ getAttribute: (n) => (n === 'href' ? href : null) })
+  const route = (href) => inAppRouteOfLink(a(href), { button: 0 }, loc, false, '/console')
+  assert.equal(route('/console/orders/3?x=1'), '/orders/3?x=1')
+  assert.equal(route('/console'), '/')
+  assert.equal(route('/other/app'), null)
+  assert.equal(route('/console/_inbox'), null)
+  // the chains use the bridge, not window.location.pathname, as the route
+  const shell = webApp('pages/shell-page-chains/loadMateuShell.js')
+  assert.match(shell, /bridge\.initMount\(document\)/)
+  assert.match(shell, /bridge\.currentRouteOf\(window\.location\)/)
+  assert.match(shell, /bridge\.currentMount\(\)/)
+  for (const chain of ['pages/shell-page-chains/onMateuNavigate.js', 'pages/shell-page-chains/loadMateuShell.js',
+    'flows/main/pages/main-start-page-chains/runMateuAction.js', 'flows/main/pages/main-start-page-chains/runMateuSearch.js']) {
+    assert.doesNotMatch(webApp(chain).replace(/bridge\.mateu(Asset)?Base\(\$application\.constants\.mateuBaseUrl\)/g, ''),
+      /\$application\.constants\.mateuBaseUrl/, chain + ' reads the base without the mount')
+  }
+})
+
+test('mount: an @UI that is not an App (a page, a crud) boots as a fresh load of the mount', () => {
+  // what demo-vb's @UI("/hello") HelloPage answers to the bootstrap (components/_/action)
+  const page = { fragments: [{ targetComponentId: null, component: { type: 'ServerSide', id: 'x',
+    serverSideType: 'io.mateu.mdd.demovb.infra.in.ui.HelloPage', route: '_empty',
+    children: [{ type: 'ClientSide', metadata: { type: 'Page', title: 'Hola' } }] } }] }
+  assert.equal(bootstrapHasApp(page), false)
+  // and @UI("/products") ProductsCrud: an error, no fragments
+  assert.equal(bootstrapHasApp({ messages: [{ variant: 'error', text: '__load__ not supported by ProductsCrud' }], fragments: [] }), false)
+  // an App (the root of a console) keeps the menu's home
+  assert.equal(bootstrapHasApp({ fragments: [{ component: { type: 'ClientSide', metadata: { type: 'App', menu: [] } } }] }), true)
+  assert.equal(bootstrapHasApp({ fragments: [{ component: { type: 'ServerSide', serverSideType: 'X',
+    children: [{ type: 'ClientSide', metadata: { type: 'App' } }] } }] }), true)
+  assert.equal(bootstrapHasApp(null), false)
+  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.setMountWithoutApp\(withoutApp\)/)
+  assert.match(readFileSync(join(here, 'transport.mjs'), 'utf8'), /consumedRoute: '_empty'/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

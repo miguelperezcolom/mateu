@@ -845,13 +845,16 @@ public sealed record MapMarker
 
 /// <summary>A street map (mirrors Java's io.mateu.uidl.data.Map): Position is the centre as
 /// "lat, lon" (free string), Zoom the zoom level as a string. When MarkerActionId is set, clicking
-/// a marker runs that action with the marker's id in parameters._markerId.</summary>
+/// a marker runs that action with the marker's id in parameters._markerId. TileUrl (a Leaflet-style
+/// template) and Attribution pick the tile provider; null keeps OpenStreetMap.</summary>
 public sealed record Map : ComponentBase
 {
     public string? Position { get; init; }
     public string? Zoom { get; init; }
     public IReadOnlyList<MapMarker> Markers { get; init; } = [];
     public string? MarkerActionId { get; init; }
+    public string? TileUrl { get; init; }
+    public string? Attribution { get; init; }
 }
 
 /// <summary>A place to DROP dragged listing rows (a listing decorated [DragRows(type)]): a titled
