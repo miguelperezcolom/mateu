@@ -11,6 +11,12 @@
     </parent>
     <artifactId>demo-vaadin-helidon-mp</artifactId>
 
+    <properties>
+        <!-- Latest Mateu release on Maven Central. Build against your checkout instead with
+             -Dmateu.version=0.0.1-MATEU after installing the backend (see demo/README.md). -->
+        <mateu.version>3.0-alpha.406</mateu.version>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>io.helidon.microprofile.bundles</groupId>
@@ -72,17 +78,17 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>annotation-processor-helidon-mp</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>helidon-mp-core</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>vaadin-lit</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
         </dependency>
     </dependencies>
 

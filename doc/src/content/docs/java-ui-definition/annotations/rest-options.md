@@ -10,7 +10,7 @@ to the array in the JSON response, and maps each item into an option. The field 
 It is the first surface of decoupling the Mateu UI from the Mateu backend: a Mateu form talking to
 any REST API.
 
-**Target:** `FIELD` (and `ANNOTATION_TYPE`, so it composes as a [semantic annotation](./semantic-annotations)).
+**Target:** `FIELD` (and `ANNOTATION_TYPE`, so it composes as a [semantic annotation](/java-ui-definition/annotations/semantic-annotations/)).
 
 ## Example
 
@@ -62,7 +62,7 @@ String city;
 
 :::note
 This is the **options** surface. The same `RestDataSource` descriptor also powers
-[listing rows](./rest-listing), [screen data](./rest-data) and [button actions](./rest-action) —
+[listing rows](/java-ui-definition/annotations/rest-listing/), [screen data](/java-ui-definition/annotations/rest-data/) and [button actions](/java-ui-definition/annotations/rest-action/) —
 all four are shipped.
 :::
 

@@ -25,7 +25,7 @@ The catalogue fixes all four by naming each endpoint once.
 
 ## Declaring it
 
-Two producers feed one table, exactly like the [route registry](./route-registry): annotations are
+Two producers feed one table, exactly like the [route registry](/java-ui-definition/route-registry/): annotations are
 the derived half, an authored `specs/ui/sources.yaml` is merged on top, and **the authored entry
 wins**.
 
@@ -112,7 +112,7 @@ has to build**:
 | value | meaning |
 |---|---|
 | `existing` | somebody else's. Documented, verifiable against their published OpenAPI, never generated. |
-| `generate` | yours to build. It is what [`mateu:server`](../java-user-manual/build/derived-openapi) generates a controller for. |
+| `generate` | yours to build. It is what [`mateu:server`](/java-user-manual/build/derived-openapi/) generates a controller for. |
 | `auto` (default) | inferred from the URL: relative or same-origin is yours, another origin is somebody else's. |
 
 Declare it explicitly when you disagree with the inference:

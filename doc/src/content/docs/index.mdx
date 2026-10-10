@@ -1,10 +1,10 @@
 ---
 title: Mateu
-description: Build backoffice UIs without building a frontend. Backend-driven UI for distributed systems.
+description: "A model-driven UI system for business apps: declare the model once — in Java, C#, Python or YAML — and Mateu derives the UI, on web and native, served by a backend or shipped as a static bundle."
 template: splash
 hero:
   title: Mateu
-  tagline: Build backoffice UIs without building a frontend. Backend-driven UI for distributed systems.
+  tagline: "A model-driven UI system for business apps: declare the model once — in Java, C#, Python or YAML — and Mateu derives the UI, on web and native, served by a backend or shipped as a static bundle."
   actions:
     - text: Quickstart
       link: /java-user-manual/start-here/quickstart/
@@ -41,16 +41,23 @@ That usually means duplicated business concepts, duplicated validation, more glu
 ## The Mateu approach
 
 ```text
-backend (Java · Kotlin · C# · Python) → Mateu wire protocol → browser · desktop · mobile
+model (Java · Kotlin · C# · Python · YAML) → Mateu wire model → browser · desktop · mobile
 ```
 
-> The backend owns the UI.
+> The model owns the UI.
 
-Mateu lets your backend expose real business UIs directly, without turning every internal tool into a separate frontend project.
+You declare what a screen contains; Mateu derives the screen. Served by your backend, or exported
+as a static bundle with no backend at all — without turning every internal tool into a separate
+frontend project.
 
 ```java
-@UI("/orders")
-public class Orders extends AutoCrud<Order> {}
+@UI("/products")
+public class Products extends AutoCrud<Product> {
+    @Override
+    public CrudStore<Product> store() {
+        return new ProductStore(); // your CrudStore<Product>
+    }
+}
 ```
 
 ![Products list — generated from the code above](/images/docs/admin-panel/products-list.png)

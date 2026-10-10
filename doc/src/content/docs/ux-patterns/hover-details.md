@@ -5,6 +5,8 @@ description: Read-only details that appear when pointing at something — a rate
 
 **Status:** ✅ Implemented
 
+![A reservations listing; hovering a rate or guest shows its details](/images/docs/hover-details/reservations.png)
+
 ## Intent
 
 Back-office screens are dense: the rate of a reservation is one number in a column, but the clerk

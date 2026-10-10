@@ -16,29 +16,28 @@ touched. Mateu's production `vaadin-lit` renderer themes through **Lumo variable
 Mateu's own components read those variables (with fallbacks), so a corporate theme is a set of Lumo
 overrides driven by your tokens.
 
-A worked example ships in the repo: [`frontend/reference-renderer/riu-theme.css`](/design-systems/reference-renderer/)
-themes a demo to **Riu**'s brand — Amaranth Red `#D2232A` (Pantone 1795 C) and Aztec Gold `#CA9C4E`
-(Pantone 7407 C). Its shape:
+A worked example ships in the repo: [`frontend/reference-renderer/brand-theme.css`](/design-systems/reference-renderer/)
+themes a demo to a fictitious brand ("Acme") — a red `#D2232A` and a gold `#CA9C4E`. Its shape:
 
 ```css
 :root {
   /* 1 · brand tokens (once) */
-  --riu-red: #d2232a; --riu-gold: #ca9c4e; --riu-ink: #1f1a17; /* … */
+  --brand-red: #d2232a; --brand-gold: #ca9c4e; --brand-ink: #1f1a17; /* … */
   /* 2 · map to Lumo → themes the production vaadin-lit renderer */
-  --lumo-primary-color: var(--riu-red);
+  --lumo-primary-color: var(--brand-red);
   --lumo-primary-text-color: #8f1418;
-  --lumo-error-color: var(--riu-red);
+  --lumo-error-color: var(--brand-red);
   --lumo-border-radius-m: 10px;
-  --lumo-font-family: var(--riu-font-body);
+  --lumo-font-family: var(--brand-font-body);
 }
 ```
 
 Run the [reference renderer](/design-systems/reference-renderer/) and flip the **Theme** switch to see
-the *same wire* rendered default vs. Riu-branded — the proof that brand is a layer, not a rewrite:
+the *same wire* rendered default vs. branded — the proof that brand is a layer, not a rewrite:
 
-| Default | Riu tokens applied |
+| Default | Brand tokens applied |
 |---|---|
-| ![Default theme](/images/docs/branding/riu-brand-demo-default.png) | ![Riu theme](/images/docs/branding/riu-brand-demo-riu.png) |
+| ![Default theme](/images/docs/branding/brand-demo-default.png) | ![Brand theme](/images/docs/branding/brand-demo-brand.png) |
 
 Nothing in the definition changed between the two — only the token layer. **Proven at scale:** Wefox ran
 on Mateu with its own corporate design system in production.
@@ -46,7 +45,7 @@ on Mateu with its own corporate design system in production.
 ### Logos & fonts (bring your own asset)
 Colour and type are tokens; the **logo is your trademark** — drop the official asset into the app
 shell's `logo` slot rather than committing it to the framework. Corporate **webfonts** are licensed
-assets: point the `--…-font-*` tokens at your self-hosted font. (The Riu example uses safe fallbacks and
+assets: point the `--…-font-*` tokens at your self-hosted font. (The example uses safe fallbacks and
 a placeholder wordmark, on purpose.)
 
 ## Where the token layer ends — the escape-hatch playbook

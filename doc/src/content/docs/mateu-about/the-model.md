@@ -30,7 +30,12 @@ The same screen, twice. In Java:
 ```java
 @UI("/orders")
 @Title("Orders")
-public class Orders extends AutoCrud<Order> {}
+public class Orders extends AutoCrud<Order> {
+    @Override
+    public CrudStore<Order> store() {
+        return new OrderStore(); // your CrudStore<Order>
+    }
+}
 ```
 
 As data — a page definition plus the entry that routes to it:

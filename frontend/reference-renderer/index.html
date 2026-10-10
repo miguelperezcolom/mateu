@@ -28,7 +28,7 @@
     .mateu-toast { background: #1a1a1a; color: #fff; padding: .5rem .8rem; border-radius: 6px; margin-bottom: .5rem; }
     mateu-unsupported { display: inline-block; padding: .25rem .5rem; background: #fff3cd; border: 1px dashed #e0b400; border-radius: 6px; color: #7a5b00; font-size: .85rem; }
   </style>
-  <link rel="stylesheet" href="./riu-theme.css" />
+  <link rel="stylesheet" href="./brand-theme.css" />
 </head>
 <body>
   <div class="bar">
@@ -36,7 +36,7 @@
     <label>Route <input class="route" id="route" value="" placeholder="(root)" /></label>
     <button id="go">Load</button>
     <label style="margin-left:1rem">Theme
-      <select id="theme"><option value="">Default</option><option value="riu">Riu</option></select>
+      <select id="theme"><option value="">Default</option><option value="brand">Example brand</option></select>
     </label>
     <span style="margin-left:auto;color:#6b6560;font-size:.85rem">Mateu reference renderer · Core · zero-dep</span>
   </div>
@@ -48,7 +48,7 @@
     const url = document.getElementById('url');
     const route = document.getElementById('route');
     const theme = document.getElementById('theme');
-    const applyTheme = () => document.body.classList.toggle('riu', theme.value === 'riu');
+    const applyTheme = () => document.body.classList.toggle('brand', theme.value === 'brand');
     theme.onchange = applyTheme; applyTheme();
     document.getElementById('go').onclick = () => boot({ mount: app, baseUrl: url.value, route: route.value });
   </script>

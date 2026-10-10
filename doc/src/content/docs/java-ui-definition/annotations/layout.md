@@ -509,10 +509,10 @@ vertically-stacked sections and the form is not a [`@Zones`](#zones--zone) / hor
 @UI("/checkin/:id")
 @Toc
 public class CheckInForm {
-    @Section("Información general de la reserva") ReservationInfo general;
-    @Section("Check-in")                          CheckInData checkIn;
-    @Section(value = "Huéspedes", sticky = true)  GuestList guests;   // pinned
-    @Section("Información cliente")                ClientInfo client;
+    @Section("Booking overview")                 ReservationInfo general;
+    @Section("Check-in")                         CheckInData checkIn;
+    @Section(value = "Guests", sticky = true)    GuestList guests;   // pinned
+    @Section("Customer")                         ClientInfo client;
     // …
 }
 ```

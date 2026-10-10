@@ -1,0 +1,76 @@
+/*
+ * Example brand theme — the design-token layer for Mateu.
+ *
+ * The whole point of "define, don't build": brand lives in TOKENS, not in per-screen code. Load this
+ * one file and every generated screen is on-brand at once — no screen is touched.
+ *
+ * It sets two layers:
+ *   1. --brand-* : the brand's design tokens (the single source of the brand).
+ *   2. --lumo-*  : Vaadin Lumo variables mapped to the tokens — this is what themes the PRODUCTION
+ *                  vaadin-lit renderer (Mateu's components use Lumo vars with fallbacks). Applying this
+ *                  file (or its --lumo-* subset) to a vaadin-lit app rebrands the real renderer.
+ * Below, the .mateu-* rules retheme THIS repo's zero-dependency reference renderer so the brand demo
+ * is self-contained.
+ *
+ * The brand is fictitious ("Acme"): a red #D2232A and a gold #CA9C4E. Your logo is your trademark —
+ * drop the official asset into the app shell's `logo` slot; this file only carries colour/type tokens.
+ * Licensed webfonts are assets too: point the font-family tokens at your self-hosted font.
+ */
+
+:root {
+  /* 1 · Brand design tokens (the brand, once) */
+  --brand-red: #d2232a;
+  --brand-red-dark: #b31e24;      /* hover/active */
+  --brand-red-ink: #8f1418;       /* text on light */
+  --brand-red-10: rgba(210, 35, 42, 0.10);
+  --brand-red-50: rgba(210, 35, 42, 0.50);
+  --brand-gold: #ca9c4e;
+  --brand-gold-10: rgba(202, 156, 78, 0.12);
+  --brand-ink: #1f1a17;
+  --brand-muted: #6b6560;
+  --brand-canvas: #fbf9f8;
+  --brand-surface: #ffffff;
+  --brand-border: #e6e1dc;
+  --brand-radius: 10px;
+  --brand-font-heading: Georgia, "Times New Roman", serif;   /* serif wordmark — placeholder */
+  --brand-font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+
+  /* 2 · Lumo mapping — themes the production vaadin-lit renderer */
+  --lumo-primary-color: var(--brand-red);
+  --lumo-primary-color-50pct: var(--brand-red-50);
+  --lumo-primary-color-10pct: var(--brand-red-10);
+  --lumo-primary-text-color: var(--brand-red-ink);
+  --lumo-error-color: var(--brand-red);
+  --lumo-base-color: var(--brand-surface);
+  --lumo-body-text-color: var(--brand-ink);
+  --lumo-secondary-text-color: var(--brand-muted);
+  --lumo-contrast-10pct: var(--brand-border);
+  --lumo-border-radius-m: var(--brand-radius);
+  --lumo-font-family: var(--brand-font-body);
+}
+
+/* ── Reference-renderer retheme (self-contained brand demo) ─────────────────────── */
+body.brand { background: var(--brand-canvas); color: var(--brand-ink); font-family: var(--brand-font-body); }
+body.brand .bar { border-bottom-color: var(--brand-border); }
+
+/* Brand strip: a brand-red header band (stands in for the logo lockup) */
+body.brand .bar::before {
+  content: "ACME";
+  font-family: var(--brand-font-heading);
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: #fff;
+  background: var(--brand-red);
+  padding: .2rem .55rem;
+  border-radius: 4px;
+  margin-right: .5rem;
+}
+
+body.brand .mateu-page-title { font-family: var(--brand-font-heading); color: var(--brand-red-ink); }
+body.brand .mateu-page-subtitle { color: var(--brand-muted); }
+body.brand .mateu-card { border-color: var(--brand-border); border-radius: var(--brand-radius); border-top: 3px solid var(--brand-gold); }
+body.brand .mateu-input { border-color: var(--brand-border); border-radius: 6px; }
+body.brand .mateu-input:focus { outline: 2px solid var(--brand-red-50); border-color: var(--brand-red); }
+body.brand .mateu-button { background: var(--brand-red); border-radius: 6px; }
+body.brand .mateu-button:hover { background: var(--brand-red-dark); }
+body.brand .mateu-table th { color: var(--brand-red-ink); border-bottom: 2px solid var(--brand-gold); }

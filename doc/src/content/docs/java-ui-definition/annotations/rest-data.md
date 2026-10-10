@@ -9,11 +9,11 @@ server mediating — then merges the object at `resultPath` in the JSON response
 state**, so the fields arrive populated.
 
 It is the screen-data surface of decoupling the Mateu UI from the Mateu backend — after
-[`@RestOptions`](./rest-options) (select options), [`@RestListing`](./rest-listing) (listing rows)
-and [`@RestAction`](./rest-action) (button calls). It is exactly `@RestAction`'s merge, triggered
+[`@RestOptions`](/java-ui-definition/annotations/rest-options/) (select options), [`@RestListing`](/java-ui-definition/annotations/rest-listing/) (listing rows)
+and [`@RestAction`](/java-ui-definition/annotations/rest-action/) (button calls). It is exactly `@RestAction`'s merge, triggered
 **on load** instead of on click.
 
-**Target:** `TYPE` (and `ANNOTATION_TYPE`, so it composes as a [semantic annotation](./semantic-annotations)).
+**Target:** `TYPE` (and `ANNOTATION_TYPE`, so it composes as a [semantic annotation](/java-ui-definition/annotations/semantic-annotations/)).
 
 ## Example
 
@@ -52,7 +52,7 @@ reachable from the browser (CORS-friendly for cross-origin APIs).
 `proxy = true` also works on `@RestData`: the load goes through the Mateu server (no CORS) with
 `${secret.X}` auth injected server-side. To authenticate the direct load instead, register a
 client-side auth provider. Both are described under
-[`@RestOptions`](./rest-options#server-proxy-mode-proxy--true--cors--auth-hardening).
+[`@RestOptions`](/java-ui-definition/annotations/rest-options/#server-proxy-mode-proxy--true--cors--auth-hardening).
 :::
 
 `url` interpolation lets the request depend on a route parameter seeded into the state (e.g.

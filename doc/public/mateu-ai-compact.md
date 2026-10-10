@@ -1,14 +1,28 @@
 # Mateu — AI Reference (Compact)
 
-Mateu is a model-driven UI framework for Java. Annotate Java classes with `@UI` and Mateu generates forms, CRUD screens, navigation, and a full web UI automatically. Zero frontend code for typical business apps.
+Mateu is a model-driven UI system for business apps. You declare the model — here, Java classes annotated with `@UI` (C#, Python and YAML authoring exist too) — and Mateu derives forms, CRUD screens, navigation and a full web UI. Developers write zero frontend code for typical business apps.
 
 **Maven dependency (Spring Boot MVC):**
 ```xml
+<properties>
+  <!-- latest release: https://repo1.maven.org/maven2/io/mateu/mvc-core/maven-metadata.xml -->
+  <mateu.version>3.0-alpha.406</mateu.version>
+</properties>
+
 <dependency>
   <groupId>io.mateu</groupId>
-  <artifactId>mvc</artifactId>
-  <version>LATEST</version>
+  <artifactId>mvc-core</artifactId>
+  <version>${mateu.version}</version>
 </dependency>
+<dependency>
+  <groupId>io.mateu</groupId>
+  <artifactId>vaadin-lit</artifactId>
+  <version>${mateu.version}</version>
+</dependency>
+
+<!-- REQUIRED: maven-compiler-plugin → annotationProcessorPaths must list
+     io.mateu:annotation-processor-mvc:${mateu.version} (and Lombok). Without it no
+     controller is generated and every route 404s. Full pom: starters/spring-mvc/pom.xml -->
 ```
 
 ---
@@ -137,7 +151,12 @@ public class HelloForm {
 
 ```java
 @UI("/products")
-public class Products extends AutoCrud<Product> {}
+public class Products extends AutoCrud<Product> {
+    @Override
+    public CrudStore<Product> store() {
+        return new ProductStore(); // your CrudStore<Product>
+    }
+}
 
 record Product(
     @NotEmpty @EditableOnlyWhenCreating String id,
@@ -283,8 +302,10 @@ public class HotelSearch extends HeroSearch<HotelFilters, Hotel> {
     @Override protected String heroSubtitle() { return "Search by name or zone…"; }
 
     @Override
-    public ListingData<Hotel> search(String searchText, HotelFilters filters,
-                                     Pageable pageable, HttpRequest req) { /* query */ }
+    public ListingData<Hotel> search(SearchRequest request, HttpRequest req) {
+        HotelFilters filters = filters(request);   // typed; request.searchText(), request.pageable()
+        /* query */
+    }
 }
 ```
 

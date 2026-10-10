@@ -1,0 +1,6 @@
+target/
+bin/
+obj/
+__pycache__/
+.pytest_cache/
+.venv/

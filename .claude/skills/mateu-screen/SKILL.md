@@ -75,7 +75,12 @@ Minimal seeds for the two families that need no reference:
 ```java
 // Collection — full-pack CRUD
 @UI("/things")
-public class Things extends AutoCrud<Thing> {}   // Thing implements Identifiable
+public class Things extends AutoCrud<Thing> { // Thing implements Identifiable
+    @Override
+    public CrudStore<Thing> store() {
+        return new ThingStore(); // your CrudStore<Thing>
+    }
+}
 
 // Collection — listing that grows by declaring capabilities (additive):
 // add Searchable (search box), Filterable<F> (filter bar), Navigable<Detail,Id>

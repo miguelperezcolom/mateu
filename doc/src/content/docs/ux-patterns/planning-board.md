@@ -36,6 +36,8 @@ Callable<Component> board = () -> PlanningBoard.builder()
 
 The renderer is dependency-free (plain CSS grid), themes through the standard CSS variables, and works in dark mode. The resource label column stays pinned while the days scroll horizontally; weekends are tinted, today is marked, and hovering a block shows its label, dates and status.
 
+![A planning board: rooms × days, stays as bars](/images/docs/planning-board/tape-chart.png)
+
 ## The action contracts
 
 Both interactions are opt-in — a board without action ids is read-only.

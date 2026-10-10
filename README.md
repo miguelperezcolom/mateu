@@ -51,31 +51,37 @@ JS bundle, so there is one framework version, no runtime composition and no CSS 
 
 ---
 
-## Example (real admin panel)
+## Example (a real admin screen)
 
 With Mateu, this:
 
 ```java
-enum ProductStatus {
-    Available, OutOfStock
-}
+enum ProductStatus { Available, OutOfStock, Discontinued }
 
 record Product(
-    @NotEmpty String id,
+    @EditableOnlyWhenCreating @NotEmpty String id,
     @NotEmpty String name,
+    @Min(0) double price,
     @NotNull ProductStatus status
 ) implements Identifiable {}
 
-@UI("/products")
-public class Products extends AutoCrudOrchestrator<Product> {
+@UI("")
+public class Products extends AutoCrud<Product> {
+
+    @Override
+    public CrudStore<Product> store() {
+        return ProductStore.INSTANCE; // a CrudStore<Product>: findById, save, findAll, deleteAllById
+    }
 }
 ```
 
-becomes:
+becomes a searchable listing with create, detail, edit and delete, validated on both sides:
 
-![Admin panel](https://mateu.io/images/docs/admin-panel/products-list.jpeg)
+![Products CRUD generated from the code above](https://mateu.io/images/docs/first-app/starter-products.png)
 
-👉 See full example: https://mateu.io/java-user-manual/use-cases/admin-panel/
+👉 It is the [`starters/spring-mvc`](starters/spring-mvc) project — clone it and `mvn spring-boot:run`,
+or follow the [quickstart](https://mateu.io/java-user-manual/start-here/quickstart/). The same app on
+WebFlux, Quarkus, Micronaut, Helidon MP, C# and Python lives next to it in [`starters/`](starters).
 
 ---
 
@@ -124,6 +130,17 @@ Have questions, ideas or feedback?
 
 - Docs: https://mateu.io
 - Java manual: https://mateu.io/java-user-manual/
+- Starters (one per runtime): [`starters/`](starters) · Demos: [`demo/`](demo)
+- What changed: [CHANGELOG.md](CHANGELOG.md) · Upgrading: https://mateu.io/reference/migrating-from-alpha/
+- What is public API: https://mateu.io/reference/stability-and-versioning/
+
+---
+
+## Contributing & security
+
+- [CONTRIBUTING.md](CONTRIBUTING.md) — build order, module map, tests, sign-off.
+- [SECURITY.md](SECURITY.md) — report vulnerabilities privately, never in a public issue.
+- [Code of conduct](CODE_OF_CONDUCT.md) · Licensed under [Apache-2.0](LICENSE.txt).
 
 ---
 

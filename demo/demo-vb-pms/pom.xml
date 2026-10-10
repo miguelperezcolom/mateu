@@ -18,6 +18,9 @@
         búsqueda en consola, detalle de reserva, check-in, facturación, pisos, calendario, dashboard,
         cierre del día). Puerto 9010, CORS abierto para la app VB en desarrollo (vb-serve :9006).</description>
     <properties>
+        <!-- Tracks master: install the backend first (cd backend && mvn install -DskipTests).
+             This demo uses features newer than the last release. -->
+        <mateu.version>0.0.1-MATEU</mateu.version>
         <mateu.renderer>redwood</mateu.renderer>
         <java.version>21</java.version>
     </properties>
@@ -42,24 +45,24 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>annotation-processor-mvc</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mvc-core</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
         </dependency>
         <!-- exportación a Excel de los listados (Listing.excelExportable) -->
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>export-excel</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
         </dependency>
         <!-- el renderer VB/Redwood empaquetado: sirve la app VB optimizada en la raíz -->
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>${mateu.renderer}</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
         </dependency>
     </dependencies>
 
@@ -96,7 +99,7 @@
                                 <path>
                                     <groupId>io.mateu</groupId>
                                     <artifactId>annotation-processor-mvc</artifactId>
-                                    <version>0.0.1-MATEU</version>
+                                    <version>${mateu.version}</version>
                                 </path>
                             </annotationProcessorPaths>
                         </configuration>
@@ -116,7 +119,7 @@
                                 <path>
                                     <groupId>io.mateu</groupId>
                                     <artifactId>annotation-processor-mvc</artifactId>
-                                    <version>0.0.1-MATEU</version>
+                                    <version>${mateu.version}</version>
                                 </path>
                             </annotationProcessorPaths>
                         </configuration>
