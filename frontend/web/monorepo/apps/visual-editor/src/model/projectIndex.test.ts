@@ -50,7 +50,7 @@ describe('buildIndex', () => {
     })
 
     it('is empty for no files', () => {
-        expect(buildIndex([])).toEqual({ routes: [], pages: [], partials: [], appShells: [], viewModels: [], sources: [], actions: [] })
+        expect(buildIndex([])).toEqual({ routes: [], pages: [], partials: [], appShells: [], viewModels: [], sources: [], actions: [], types: [], project: { renderer: 'vaadin' } })
     })
 })
 
@@ -64,5 +64,46 @@ describe('buildIndex — sources and nested routes', () => {
         expect(idx.pages).toEqual([])
         expect(idx.routes.map((r) => r.route)).toEqual(['c/:id', 'c/:id/orders'])
         expect(idx.routes[1].definition).toBe('orders.yaml')
+    })
+
+    it('collects the field type catalogue (types.yaml), which is not a page', () => {
+        const idx = buildIndex([
+            { path: 'types.yaml', content: 'type: Types\ntypes:\n  - {id: Money, dataType: money}\n  - {id: Email, stereotype: email}\n  - {label: no id}\n' },
+        ])
+        expect(idx.types.map((t) => t.id)).toEqual(['Money', 'Email'])
+        expect(idx.pages).toEqual([])
+    })
+
+    it("reads a source's sampleFile into its sample, and keeps the file out of the pages", () => {
+        const idx = buildIndex([
+            { path: 'sources.yaml', content: 'sources:\n  - {name: a, source: {url: /a}, sampleFile: fixtures/a.yaml}\n  - {name: b, source: {url: /b}, sample: [1], sampleFile: fixtures/a.yaml}\n' },
+            { path: 'fixtures/a.yaml', content: '- {id: 1}\n' },
+        ])
+        expect(idx.sources[0].sample).toEqual([{ id: 1 }])
+        expect(idx.sources[1].sample).toEqual([1]) // an inline sample wins
+        expect(idx.pages).toEqual([])
+    })
+})
+
+describe('buildIndex: translations and environments', () => {
+    const files: ProjectFile[] = [
+        { path: 'translations/es.yaml', content: 'messages:\n  orders:\n    title: Pedidos\n    new: Nuevo\n' },
+        { path: 'i18n/english.yaml', content: 'type: Translations\nlocale: en\nmessages:\n  orders: {title: Orders}\n  bye: Bye\n' },
+        { path: 'environments/pre.yaml', content: 'sources:\n  orders: {baseUrl: https://pre.acme.com}\n' },
+        { path: 'envs/prod.yaml', content: 'type: Environment\nname: pro\nsources: {}\n' },
+        { path: 'orders.yaml', content: 'type: VerticalLayout\ncontent: []\n' },
+    ]
+
+    it('indexes each catalogue (locale + flattened keys) and keeps them out of the pages', () => {
+        const idx = buildIndex(files)
+        expect(idx.translations?.map((t) => [t.locale, Object.keys(t.messages)])).toEqual([
+            ['es', ['orders.title', 'orders.new']],
+            ['en', ['orders.title', 'bye']],
+        ])
+        expect(idx.pages).toEqual(['orders.yaml'])
+    })
+
+    it('indexes the environments by name (the file name when the file does not say)', () => {
+        expect(buildIndex(files).environments).toEqual(['pre', 'pro'])
     })
 })

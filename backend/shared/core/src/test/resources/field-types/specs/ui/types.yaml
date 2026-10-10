@@ -1,0 +1,17 @@
+type: Types
+types:
+  - id: OrderStatus
+    label: Status
+    dataType: status
+    options:
+      - {value: OPEN, label: Open}
+      - {value: SHIPPED, label: Shipped}
+    tones: {OPEN: warning, SHIPPED: success}
+  - id: Money
+    dataType: money
+    align: end
+  - id: Email
+    label: E-mail
+    stereotype: email
+    placeholder: name@example.com
+    required: true

@@ -130,10 +130,85 @@ public final class MateuBundleExporter {
        * menu) naming an id its owner does not declare resolves it here. Not part of {@link
        * #structureHash()}, for the same reason as the source catalogue.
        */
-      List<io.mateu.dtos.ActionDto> actions) {
+      List<io.mateu.dtos.ActionDto> actions,
+      /**
+       * The translation catalogue, locale → key → text, so a page with no server resolves its
+       * {@code ${i18n.…}} expressions in the browser for the visitor's locale ({@code
+       * AppDto.locale} or {@code navigator.language}). Pre-rendered entries keep the expressions
+       * for that reason. Not part of {@link #structureHash()}: a translation fix does not change
+       * the screens.
+       */
+      Map<String, Map<String, String>> translations,
+      /**
+       * The deployment environment the {@link #sources} were resolved for ({@code
+       * -Dmateu.bundle.environment}), or null when they are as authored. Informative: the catalogue
+       * shipped here is already the resolved one.
+       */
+      String environment,
+      /**
+       * True when the bundle was built with the mock flag ({@code -Dmateu.bundle.mock=true}, see
+       * {@code SampleSources}): the catalogue ships its sources' SAMPLE data and the browser
+       * answers with it instead of calling the endpoints. Null otherwise — and then the samples are
+       * not shipped at all.
+       */
+      Boolean mockSources) {
 
     public BundleManifest {
       actions = actions == null ? List.of() : List.copyOf(actions);
+      translations = translations == null ? Map.of() : translations;
+    }
+
+    /** Pre-sample-mode shape: a bundle that calls its sources for real. */
+    public BundleManifest(
+        String baseUrl,
+        String generatedAt,
+        boolean staticOnly,
+        List<BundleEntry> entries,
+        RouteTable routes,
+        RestSourceCatalog sources,
+        List<String> requiredCapabilities,
+        Map<String, JsonNode> definitions,
+        List<io.mateu.dtos.ActionDto> actions,
+        Map<String, Map<String, String>> translations,
+        String environment) {
+      this(
+          baseUrl,
+          generatedAt,
+          staticOnly,
+          entries,
+          routes,
+          sources,
+          requiredCapabilities,
+          definitions,
+          actions,
+          translations,
+          environment,
+          null);
+    }
+
+    /** Pre-i18n shape: no translations shipped, sources as authored. */
+    public BundleManifest(
+        String baseUrl,
+        String generatedAt,
+        boolean staticOnly,
+        List<BundleEntry> entries,
+        RouteTable routes,
+        RestSourceCatalog sources,
+        List<String> requiredCapabilities,
+        Map<String, JsonNode> definitions,
+        List<io.mateu.dtos.ActionDto> actions) {
+      this(
+          baseUrl,
+          generatedAt,
+          staticOnly,
+          entries,
+          routes,
+          sources,
+          requiredCapabilities,
+          definitions,
+          actions,
+          Map.of(),
+          null);
     }
 
     /** Pre-action-catalogue shape: no catalogue shipped. */
@@ -214,7 +289,7 @@ public final class MateuBundleExporter {
       return aggregateCapabilities(entries);
     }
 
-    private static List<String> aggregateCapabilities(List<BundleEntry> entries) {
+    static List<String> aggregateCapabilities(List<BundleEntry> entries) {
       var mapper = new ObjectMapper();
       var caps = new java.util.TreeSet<String>();
       for (var entry : entries) {
@@ -278,8 +353,10 @@ public final class MateuBundleExporter {
                           + "\u0000"
                           + e.ok()
                           + "\u0000"
-                          + (e.json() == null ? "" : e.json())
-                          + (e.contentJson() == null ? "" : "\u0000" + e.contentJson()))
+                          + withoutCatalogue(e.json())
+                          + (e.contentJson() == null
+                              ? ""
+                              : "\u0000" + withoutCatalogue(e.contentJson())))
               .collect(java.util.stream.Collectors.joining("\u0001"));
       try {
         var digest = java.security.MessageDigest.getInstance("SHA-256");
@@ -293,6 +370,37 @@ public final class MateuBundleExporter {
       } catch (java.security.NoSuchAlgorithmException e) {
         throw new IllegalStateException("SHA-256 is required by the JLS", e);
       }
+    }
+  }
+
+  /**
+   * Entry JSON without the REST source catalogue an app shell carries ({@code AppDto.restSources}):
+   * the catalogue is the per-environment part of a bundle, and re-pointing a bundle at another
+   * environment must leave its {@link BundleManifest#structureHash()} unchanged.
+   */
+  static String withoutCatalogue(String json) {
+    if (json == null) {
+      return "";
+    }
+    if (!json.contains("\"restSources\"")) {
+      return json;
+    }
+    try {
+      var mapper = new ObjectMapper();
+      var tree = mapper.readTree(json);
+      dropRestSources(tree);
+      return mapper.writeValueAsString(tree);
+    } catch (Exception e) {
+      return json;
+    }
+  }
+
+  private static void dropRestSources(JsonNode node) {
+    if (node instanceof com.fasterxml.jackson.databind.node.ObjectNode object) {
+      object.remove("restSources");
+    }
+    if (node != null && node.isContainerNode()) {
+      node.forEach(MateuBundleExporter::dropRestSources);
     }
   }
 
@@ -399,7 +507,8 @@ public final class MateuBundleExporter {
         var def = entry.definition();
         if (def != null
             && (entry.viewModel() == null || entry.viewModel().isBlank())
-            && isClientExpandable(definitions.get(def))) {
+            && isClientExpandable(definitions.get(def))
+            && yamlAccessRestriction("/" + entry.route(), authored, definitions) == null) {
           expandedInBrowser.add(normalizedRoute(entry.route()));
         }
       }
@@ -412,6 +521,9 @@ public final class MateuBundleExporter {
         continue;
       }
       var restriction = identityRestriction(classByRoute.get(normalizedRoute(route)), cl);
+      if (restriction == null) {
+        restriction = yamlAccessRestriction(route, authored, definitions);
+      }
       if (restriction != null) {
         entries.add(new BundleEntry(route, toSyncPath(route), null, false, restriction));
         continue;
@@ -421,16 +533,22 @@ public final class MateuBundleExporter {
               ? exportRoute(baseUrl, route)
               : exportTemplate(baseUrl, route));
     }
+    // Sample data ships only in a bundle built with the mock flag — and then the browser uses it.
+    var mock = io.mateu.core.application.runaction.SampleSources.forBundle();
+    var sources = restSourceCatalogue();
     return new BundleManifest(
         baseUrl,
         java.time.Instant.now().toString(),
         onlyStatic,
         entries,
         authored,
-        restSourceCatalogue(),
+        mock ? sources : sources.strippedOfSamples(),
         BundleManifest.aggregateCapabilitiesOf(entries),
         definitions,
-        actionCatalogue());
+        actionCatalogue(),
+        translationCatalogue(),
+        io.mateu.core.application.runaction.Environments.activeName(),
+        mock ? Boolean.TRUE : null);
   }
 
   /**
@@ -500,6 +618,7 @@ public final class MateuBundleExporter {
    */
   private static Map<String, JsonNode> collectDefinitions(ClassLoader cl, RouteTable authored) {
     var mapper = new YAMLMapper();
+    var types = new io.mateu.core.application.runaction.FieldTypeRegistry();
     var out = new java.util.LinkedHashMap<String, JsonNode>();
     for (var entry : authored.routes()) {
       var def = entry.definition();
@@ -512,7 +631,11 @@ public final class MateuBundleExporter {
           log.warn("bundle: definition {} not found at classpath:{} — omitted", def, path);
           continue;
         }
-        out.put(def, mapper.readTree(is));
+        // Field types are resolved HERE, at build time: a shipped definition is frozen anyway, so
+        // it
+        // travels with its `fieldType` references already expanded and the browser needs no types
+        // table (the vocabulary is design-time, unlike the source catalogue it is not re-pointed).
+        out.put(def, types.resolve(mapper.readTree(is)));
       } catch (Exception e) {
         log.warn("bundle: could not read definition {}: {}", def, e.toString());
       }
@@ -562,6 +685,16 @@ public final class MateuBundleExporter {
     }
   }
 
+  /** The translation catalogue to ship (locale → key → text); empty when there is none. */
+  private static Map<String, Map<String, String>> translationCatalogue() {
+    try {
+      return new io.mateu.core.application.i18n.TranslationRegistry().catalogue();
+    } catch (Throwable t) {
+      log.warn("Could not read the translations for the bundle: {}", t.toString());
+      return Map.of();
+    }
+  }
+
   /**
    * The action catalogue to ship, lowered to wire actions. Built directly for the same reason as
    * {@link #restSourceCatalogue()}: the build-time goal has no bean context.
@@ -578,6 +711,36 @@ public final class MateuBundleExporter {
 
   static String normalizedRoute(String route) {
     return io.mateu.core.infra.Slashes.trim(route);
+  }
+
+  /**
+   * The YAML twin of {@link #identityRestriction}: a route whose entry declares {@code access:}, or
+   * whose definition declares access keys ({@code eyesOnly:}/{@code readOnlyUnless:}/{@code
+   * disabledUnless:}/{@code access:}), depends on WHO asks — kept backend-served, for the same
+   * reason as an {@code @EyesOnly} class. Null when the route is safe to bundle.
+   */
+  static String yamlAccessRestriction(
+      String route, RouteTable authored, Map<String, JsonNode> definitions) {
+    if (authored == null) {
+      return null;
+    }
+    var entry = authored.match(normalizedRoute(route)).map(RouteTable.Match::entry).orElse(null);
+    if (entry == null) {
+      return null;
+    }
+    if (entry.restrictsAccess()) {
+      return "identity-dependent: the route declares access: — kept backend-served";
+    }
+    var definition =
+        entry.definition() == null || definitions == null
+            ? null
+            : definitions.get(entry.definition());
+    if (io.mateu.core.application.security.YamlAccess.declaresAccess(definition)) {
+      return "identity-dependent: definition '"
+          + entry.definition()
+          + "' declares access keys — kept backend-served";
+    }
+    return null;
   }
 
   /**
@@ -782,6 +945,10 @@ public final class MateuBundleExporter {
         requestFactory != null
             ? requestFactory.get()
             : new HeadlessHttpRequest(rq).withAttribute("baseUrl", baseUrl == null ? "" : baseUrl);
+    // ${i18n.…} stays as written in a pre-rendered screen: the bundle serves every visitor, so the
+    // browser resolves it for each one's locale from the catalogue the manifest ships.
+    httpRequest.setAttribute(
+        io.mateu.core.application.i18n.TranslationRegistry.RAW_ATTRIBUTE, true);
     // A custom requestFactory may not carry the rq/baseUrl — the HeadlessHttpRequest default does.
     // A failed route's skip reason is read by the developer building the bundle: ask the error
     // boundary for the real exception text instead of the generic user-facing one.

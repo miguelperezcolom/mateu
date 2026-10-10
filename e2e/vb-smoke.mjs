@@ -12,6 +12,7 @@
 import { chromium } from 'playwright'
 import { mkdirSync } from 'node:fs'
 import { join } from 'node:path'
+import { gotoVbReady } from './vb-ready.mjs'
 
 const VB_URL = (process.env.VB_URL || 'http://localhost:9005').replace(/\/+$/, '')
 const shotsArg = process.argv.indexOf('--shots')
@@ -44,16 +45,14 @@ for (const [route, texts] of SCREENS) {
   page.on('pageerror', (e) => { if (!/Aborting stale fetch/.test(e.message)) errors.push(e.message) })
   let missing = texts
   try {
-    await page.goto(VB_URL + route, { waitUntil: 'networkidle', timeout: 60000 })
-    const deadline = Date.now() + 20000
-    while (Date.now() < deadline) {
-      const shown = await page.evaluate(() => document.body.innerText)
-      missing = texts.filter((t) => !shown.includes(t))
-      if (!missing.length) break
-      await page.waitForTimeout(500)
-    }
+    // ready = shell booted, no load in flight and every expected text shown (vb-ready.mjs), with
+    // the navigation retried once — not networkidle, which the Oracle CDN can hold off for >60s.
+    await gotoVbReady(page, VB_URL + route, { texts })
+    missing = []
   } catch (e) {
-    errors.push(e.message)
+    const shown = await page.evaluate(() => document.body.innerText).catch(() => '')
+    missing = texts.filter((t) => !shown.includes(t))
+    if (!missing.length) errors.push(e.message)
   }
   const ok = !missing.length && !errors.length
   if (!ok) failed++

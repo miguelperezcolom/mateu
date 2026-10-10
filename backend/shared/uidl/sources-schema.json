@@ -54,7 +54,8 @@
         },
         "proxy" : {
           "type" : "boolean"
-        }
+        },
+        "sample" : { }
       }
     },
     "RestSourceEntry" : {
@@ -76,6 +77,10 @@
           "type" : "string"
         },
         "description" : {
+          "type" : "string"
+        },
+        "sample" : { },
+        "sampleFile" : {
           "type" : "string"
         }
       }

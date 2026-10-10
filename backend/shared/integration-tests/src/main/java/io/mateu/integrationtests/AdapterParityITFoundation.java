@@ -7,7 +7,15 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.startsWith;
 
+import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
+import java.util.Iterator;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * The HTTP contract every adapter (MVC, WebFlux, Micronaut, Quarkus, Helidon MP) must honour,
@@ -168,6 +176,89 @@ public class AdapterParityITFoundation {
         .post("/mateu/mcp")
         .then()
         .statusCode(202);
+  }
+
+  /**
+   * The live-reload endpoints ({@code GET /mateu/dev/events}, {@code POST /mateu/dev/reload}) do
+   * not exist unless {@code mateu.dev=true}.
+   */
+  public void servesNoDevEndpointsByDefault() {
+    given()
+        .accept("text/event-stream")
+        .when()
+        .get("/mateu/dev/events")
+        .then()
+        .statusCode(not(equalTo(200)));
+    given().when().post("/mateu/dev/reload").then().statusCode(not(equalTo(204)));
+  }
+
+  /**
+   * With {@code mateu.dev=true}: the index announces the event stream ({@code <meta
+   * name="mateu-dev">}), the stream opens with a {@code hello} carrying the boot id, and {@code
+   * POST /mateu/dev/reload} answers 204 and is pushed to the open stream as a {@code reload} event.
+   */
+  public void servesDevEndpointsWhenEnabled() throws Exception {
+    given()
+        .accept("text/html")
+        .when()
+        .get("/hello")
+        .then()
+        .statusCode(200)
+        .body(containsString("name=\"mateu-dev\""));
+    var client = HttpClient.newHttpClient();
+    var request =
+        java.net.http.HttpRequest.newBuilder(
+                URI.create("http://localhost:" + RestAssured.port + "/mateu/dev/events"))
+            .header("Accept", "text/event-stream")
+            .GET()
+            .build();
+    ExecutorService executor = Executors.newSingleThreadExecutor();
+    try {
+      var response =
+          executor
+              .submit(() -> client.send(request, HttpResponse.BodyHandlers.ofLines()))
+              .get(20, TimeUnit.SECONDS);
+      if (response.statusCode() != 200) {
+        throw new AssertionError("dev events answered " + response.statusCode());
+      }
+      var contentType = response.headers().firstValue("Content-Type").orElse("");
+      if (!contentType.startsWith("text/event-stream")) {
+        throw new AssertionError("dev events content type: " + contentType);
+      }
+      try (var lines = response.body()) {
+        var it = lines.iterator();
+        var hello = nextData(executor, it);
+        if (!hello.contains("\"hello\"") || !hello.contains("bootId")) {
+          throw new AssertionError("first dev event was not a hello: " + hello);
+        }
+        given().when().post("/mateu/dev/reload").then().statusCode(204);
+        String event;
+        do {
+          event = nextData(executor, it);
+        } while (event.contains("\"ping\""));
+        if (!event.contains("\"reload\"")) {
+          throw new AssertionError("reload was not pushed to the stream: " + event);
+        }
+      }
+    } finally {
+      executor.shutdownNow();
+    }
+  }
+
+  private static String nextData(ExecutorService executor, Iterator<String> lines)
+      throws Exception {
+    return executor
+        .submit(
+            () -> {
+              while (lines.hasNext()) {
+                var line = lines.next();
+                if (line.startsWith("data:")) {
+                  return line.substring(5).trim();
+                }
+              }
+              throw new AssertionError("dev event stream ended");
+            })
+        .get(20, TimeUnit.SECONDS);
   }
 
   /** A deep link under a UI answers that UI's index page. */

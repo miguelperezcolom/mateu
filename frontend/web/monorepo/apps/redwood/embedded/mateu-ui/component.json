@@ -1,0 +1,135 @@
+{
+  "name": "mateu-ui",
+  "displayName": "Mateu UI",
+  "description": "Renders a Mateu screen (a model-driven UI served by a Mateu backend) inside this page, with the page's own JET runtime and Redwood theme.",
+  "version": "@VERSION@",
+  "jetVersion": ">=16.0.0 <20.0.0",
+  "license": "Apache-2.0",
+  "icon": {
+    "iconPath": "",
+    "selectedIconPath": "",
+    "hoverIconPath": ""
+  },
+  "properties": {
+    "baseUrl": {
+      "type": "string",
+      "displayName": "Backend base URL",
+      "description": "The URL of the Mateu UI mount: its API is <baseUrl>/mateu/v3/... (e.g. https://erp.acme.com/mateu). Empty = the same origin as this page.",
+      "value": "",
+      "writeback": false
+    },
+    "route": {
+      "type": "string",
+      "displayName": "Route",
+      "description": "The Mateu route to open, relative to the mount (e.g. orders or orders/:id). Empty = the home of the app. Written back when the screen navigates inside the component (bind it with {{ }} to follow it).",
+      "value": "",
+      "writeback": true
+    },
+    "params": {
+      "type": "object",
+      "displayName": "Parameters",
+      "description": "Fills the :placeholders of the route; the rest travel as the query (a listing opens filtered by them).",
+      "value": {},
+      "writeback": false
+    },
+    "initialState": {
+      "type": "object",
+      "displayName": "Initial state",
+      "description": "The component state the first load of the screen is sent with (a form opens pre-filled).",
+      "writeback": false
+    },
+    "appContext": {
+      "type": "object",
+      "displayName": "App context",
+      "description": "The app state (@AppContext values: the active company, hotel, fiscal year…) sent with every request. Changing it reloads the screen.",
+      "value": {},
+      "writeback": false
+    },
+    "token": {
+      "type": "string",
+      "displayName": "Bearer token",
+      "description": "Sent as Authorization: Bearer <token> on every request (a value with its own scheme, 'Basic …', is sent as is).",
+      "value": "",
+      "writeback": false
+    },
+    "headers": {
+      "type": "object",
+      "displayName": "Headers",
+      "description": "Extra headers for every request to the Mateu backend (tenant, correlation id…).",
+      "writeback": false
+    },
+    "headersProvider": {
+      "type": "function",
+      "displayName": "Headers provider",
+      "description": "function(url) returning the headers (or a Promise of them), called on EVERY request: the way to pass a token that rotates. Wins over token/headers.",
+      "writeback": false
+    },
+    "withCredentials": {
+      "type": "boolean",
+      "displayName": "Send cookies",
+      "description": "Sends the browser's cookies to a backend on another origin (fetch credentials: 'include'; the backend must allow credentials for this origin).",
+      "value": false,
+      "writeback": false
+    },
+    "navigation": {
+      "type": "string",
+      "displayName": "Navigation",
+      "description": "internal: navigations the screen asks for happen inside the component (mateu-navigate is fired first and can be cancelled); host: they never happen inside — the page reacts to mateu-navigate.",
+      "enumValues": ["internal", "host"],
+      "value": "internal",
+      "writeback": false
+    }
+  },
+  "events": {
+    "mateuNavigate": {
+      "description": "The screen asks for another route. detail: {route, force}. Cancelable: preventDefault() keeps the component where it is (navigation=internal).",
+      "bubbles": true,
+      "cancelable": true,
+      "detail": { "route": { "type": "string" }, "force": { "type": "boolean" } }
+    },
+    "mateuAction": {
+      "description": "The user ran a Mateu action on the screen. detail: {actionId, parameters}.",
+      "bubbles": true,
+      "cancelable": false,
+      "detail": { "actionId": { "type": "string" }, "parameters": { "type": "object" } }
+    },
+    "mateuTitle": {
+      "description": "The screen's title changed (the page title belongs to the host: the component reports it). detail: {title}.",
+      "bubbles": true,
+      "cancelable": false,
+      "detail": { "title": { "type": "string" } }
+    },
+    "mateuMessage": {
+      "description": "A message for the user (it is also shown inside the component). detail: {summary, message, type, displayMode}.",
+      "bubbles": true,
+      "cancelable": false,
+      "detail": { "summary": { "type": "string" }, "message": { "type": "string" }, "type": { "type": "string" }, "displayMode": { "type": "string" } }
+    },
+    "mateuReady": {
+      "description": "The first screen is painted. detail: {route}.",
+      "bubbles": true,
+      "cancelable": false,
+      "detail": { "route": { "type": "string" } }
+    },
+    "mateuError": {
+      "description": "A request or a step failed. detail: {kind, message, status} or {chain, message}.",
+      "bubbles": true,
+      "cancelable": false,
+      "detail": { "kind": { "type": "string" }, "message": { "type": "string" }, "status": { "type": "number" }, "chain": { "type": "string" } }
+    }
+  },
+  "methods": {
+    "navigate": {
+      "description": "Opens a route inside the component (as setting route + params would).",
+      "params": [
+        { "name": "route", "type": "string" },
+        { "name": "params", "type": "object" }
+      ],
+      "return": "Promise<void>"
+    },
+    "reload": {
+      "description": "Reloads the current screen.",
+      "return": "Promise<void>"
+    }
+  }
+}

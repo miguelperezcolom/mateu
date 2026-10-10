@@ -7,7 +7,7 @@ import { existsSync, readFileSync, readdirSync, type Dirent } from 'node:fs'
 import { parse } from 'yaml'
 import { yamlScalar } from './newFiles'
 
-export type SpecKind = 'mount' | 'routes' | 'sources' | 'actions' | 'appShell' | 'page'
+export type SpecKind = 'mount' | 'routes' | 'sources' | 'actions' | 'types' | 'appShell' | 'project' | 'page' | 'translations' | 'environment'
 
 /** A discovered specs/ui file; `path` is relative to the specs/ui root, `/`-separated. */
 export interface SpecFile {
@@ -38,18 +38,29 @@ function isMap(v: unknown): v is Record<string, unknown> {
 }
 
 /**
- * The kind of a specs/ui file from its top-level `type:` — `UI` (mount), `Routes`, `Sources`,
- * `AppShell`, anything else a page/definition. Null when it does not parse or is not a mapping.
+ * The kind of a specs/ui file from its top-level `type:` — `UI` (mount), `Routes`, `Sources`, `Actions`,
+ * `Types`, `AppShell`, `Project` (the project descriptor), `Translations`, `Environment` (also by convention under `translations/` /
+ * `environments/` when `path` is given and the file has no `type:`), anything else a
+ * page/definition. Null when it does not parse or is not a mapping.
  */
-export function classify(text: string): SpecKind | null {
+export function classify(text: string, path = ''): SpecKind | null {
     const root = tryParse(text)
     if (!isMap(root)) return null
+    const p = path.replace(/\\/g, '/')
     switch (root.type == null ? undefined : String(root.type)) {
         case 'UI': return 'mount'
         case 'Routes': return 'routes'
         case 'Sources': return 'sources'
         case 'Actions': return 'actions'
+        case 'Types': return 'types'
         case 'AppShell': return 'appShell'
+        case 'Project': return 'project'
+        case 'Translations': return 'translations'
+        case 'Environment': return 'environment'
+        case undefined:
+            if (/(^|\/)translations\//.test(p)) return 'translations'
+            if (/(^|\/)environments\//.test(p)) return 'environment'
+            return 'page'
         default: return 'page'
     }
 }
@@ -248,7 +259,7 @@ export function scanSpecs(root: string, override?: (abs: string) => string | und
                         continue
                     }
                 }
-                const kind = classify(text)
+                const kind = classify(text, r)
                 if (kind != null) {
                     files.push({ path: r, kind })
                     texts[r] = text

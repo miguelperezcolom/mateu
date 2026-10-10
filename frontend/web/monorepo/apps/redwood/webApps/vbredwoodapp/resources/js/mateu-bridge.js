@@ -3035,6 +3035,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   function interpolate(text, state) {
+    // `${i18n.clave}` lo resuelve el servidor (o el bundle) antes de llegar aquí; si aún llega, no hay
+    // catálogo detrás: se muestra la CLAVE, nunca la expresión cruda.
+    if (text != null && String(text).includes('i18n.')) {
+      text = String(text).replace(/\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g, (all, key) => key)
+    }
     // `${state.x}` y también `${state['x']}` / `${state["x"]}` (la posición del editor de filas
     // llega como ${state['_position']})
     // y rutas anidadas: `${state.status.message}` (la insignia de un @Status de la cabecera)
@@ -5199,7 +5204,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
         if (value && typeof value === 'object' && !Array.isArray(value) && 'badgeClass' in value) {
           const { badgeClass, ...rest } = value
-          out[key] = rest
+          out[key] = rest.plain ? rest.message : rest
         } else {
           out[key] = value
         }
@@ -5395,18 +5400,61 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })
   }
 
+  // Lifecycle words a REST API commonly answers with, by the badge they read as (the web's
+  // statusColumnRenderer): upper-cased, separators folded to `_`.
+  const STATUS_SUCCESS_WORDS = ['AVAILABLE', 'ACTIVE', 'RUNNING', 'SUCCEEDED', 'SUCCESS', 'OK', 'ENABLED',
+    'READY', 'HEALTHY', 'COMPLETED', 'DONE', 'ATTACHED', 'UP']
+  const STATUS_WARNING_WORDS = ['PROVISIONING', 'UPDATING', 'PENDING', 'STARTING', 'STOPPING', 'IN_PROGRESS',
+    'TERMINATING', 'DELETING', 'CREATING', 'MOVING', 'WAITING', 'ACCEPTED', 'WARNING', 'DEGRADED', 'RESTORING', 'SCALING']
+  const STATUS_DANGER_WORDS = ['FAILED', 'TERMINATED', 'ERROR', 'DELETED', 'STOPPED', 'DISABLED', 'UNHEALTHY',
+    'DOWN', 'CANCELED', 'CANCELLED', 'REJECTED', 'INACTIVE']
+
+  /** A tone name (`success | warning | danger | error | info | neutral`) as a status type. */
+  function statusTypeOfTone(tone) {
+    switch (String(tone == null ? '' : tone).trim().toLowerCase()) {
+      case 'success': return 'SUCCESS'
+      case 'warning': return 'WARNING'
+      case 'danger': case 'error': return 'DANGER'
+      case 'info': return 'INFO'
+      case 'neutral': case 'none': return 'NONE'
+    }
+    return undefined
+  }
+
+  /**
+   * The status type of a PLAIN cell value (a REST API answers `"SHIPPED"`, not `{type, message}`):
+   * the column's declared tone for the value (GridColumn.tones, from a field type) wins over the
+   * lifecycle-word heuristics; anything else is neutral.
+   */
+  function statusTypeOfValue(value, tones) {
+    const message = String(value)
+    const declared = tones ? (tones[message] != null ? tones[message] : tones[message.trim().toUpperCase()]) : undefined
+    const toned = declared ? statusTypeOfTone(declared) : undefined
+    if (toned) return toned
+    const word = message.trim().toUpperCase().replace(/[\s-]+/g, '_')
+    if (STATUS_SUCCESS_WORDS.indexOf(word) >= 0) return 'SUCCESS'
+    if (STATUS_WARNING_WORDS.indexOf(word) >= 0) return 'WARNING'
+    if (STATUS_DANGER_WORDS.indexOf(word) >= 0) return 'DANGER'
+    return 'NONE'
+  }
+
   function statusBadgeRows(rows, columns) {
     const statusCols = columns
       .map((col) => col.metadata || col)
       .filter((c) => c.dataType === 'status')
-      .map((c) => c.id)
     if (!statusCols.length) return rows
     return rows.map((row) => {
       const out = { ...row }
-      for (const id of statusCols) {
+      for (const c of statusCols) {
+        const id = c.id
         const value = out[id]
         if (value && typeof value === 'object') {
           out[id] = { ...value, badgeClass: STATUS_BADGE[value.type] || STATUS_BADGE.NONE }
+        } else if (value != null && value !== '') {
+          // a plain word (a REST row): its badge by the declared tone or the word; `plain` lets
+          // selectedRowsOf hand the row back as it arrived
+          const type = statusTypeOfValue(value, c.tones)
+          out[id] = { type, message: String(value), badgeClass: STATUS_BADGE[type] || STATUS_BADGE.NONE, plain: true }
         }
       }
       return out
@@ -5987,10 +6035,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** Triggers OnLoad del contexto (p.ej. el listing dispara 'search' al cargar). */
   function onLoadTriggers(ctx) {
-    return ((ctx && ctx.tree && ctx.tree.triggers) || [])
+    const ids = ((ctx && ctx.tree && ctx.tree.triggers) || [])
       // los que llevan espera (refresco periódico) los programa polling.mjs, no se lanzan ya
       .filter((t) => t.type === 'OnLoad' && t.actionId && !(t.timeoutMillis > 0))
       .map((t) => t.actionId)
+    // a listing reading its rows from a REST source (rowsSource) loads them on opening, as the web's
+    // mateu-table-crud does — a YAML listing carries no OnLoad trigger of its own
+    if (ids.indexOf('search') < 0 && ctx && ctx.tree
+        && findFirst(ctx.tree, (n) => n && n.metadata && n.metadata.type === 'Crud' && !!n.metadata.rowsSource)) {
+      ids.push('search')
+    }
+    return ids
   }
 
   /**
@@ -8980,6 +9035,81 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const pollingGeneration = () => generation
 
 
+  // The HOST's identity on every Mateu request — for the embedded mode (poc/embedded.mjs), where the
+  // renderer runs as a <mateu-ui> component inside somebody else's Visual Builder app and the
+  // identity belongs to THAT app, not to a bootstrap page of ours.
+  //
+  // The standalone app reads its token from localStorage (resilience.storedToken: the bootstrap page
+  // keeps it there). A host app has no such page: it hands its identity to the component as a
+  // static token, a static header object or a PROVIDER — a function (sync or async) called on every
+  // send, so a host whose token rotates (the VB security provider, an OAuth refresh) is asked again
+  // each time, and the retry after a 401 carries the new one.
+  //
+  // What the host supplies WINS over the stored token: the component speaks for the host page.
+  // Nothing here is set in the standalone app, so its behaviour is unchanged (resilience falls back to
+  // the stored token exactly as before).
+
+  let hostProvider = null
+  let hostCredentialsMode
+  // the last headers a provider answered: what the sync callers get (the chat stream and the client
+  // log build their own fetch and cannot await a provider on every keystroke)
+  let lastHostHeaders = {}
+
+  /**
+   * The host's headers: an object ({Authorization: 'Bearer …', 'X-Tenant': …}), a function returning
+   * one (or a Promise of one), or null to stop sending them.
+   */
+  function setHostHeaderProvider(provider) {
+    hostProvider = provider == null ? null : provider
+    lastHostHeaders = typeof provider === 'object' && provider ? cleanHeaders(provider) : {}
+  }
+
+  function hasHostHeaderProvider() { return hostProvider != null }
+
+  /** fetch's `credentials` for the Mateu calls ('include' sends the host's cookies cross-origin). */
+  function setHostCredentials(mode) {
+    hostCredentialsMode = mode === 'include' || mode === 'same-origin' || mode === 'omit' ? mode : undefined
+  }
+
+  function hostCredentials() { return hostCredentialsMode }
+
+  /** Only string-valued, non-empty headers: a provider answering {Authorization: undefined} (no
+   *  token YET) must not send the literal "undefined". */
+  function cleanHeaders(headers) {
+    const out = {}
+    if (!headers || typeof headers !== 'object') return out
+    for (const name of Object.keys(headers)) {
+      const value = headers[name]
+      if (value == null || value === '') continue
+      out[name] = String(value)
+    }
+    return out
+  }
+
+  /** The host's headers for a request to `url` ({} without a provider, or when it fails: a provider
+   *  that throws must not take the request down with it — the backend will say 401, which is the
+   *  honest answer). */
+  async function hostHeadersFor(url) {
+    if (hostProvider == null) return {}
+    try {
+      const value = typeof hostProvider === 'function' ? await hostProvider(url) : hostProvider
+      lastHostHeaders = cleanHeaders(value)
+    } catch (e) {
+      if (typeof console !== 'undefined' && console.warn) console.warn('mateu: the host header provider failed', e)
+      lastHostHeaders = {}
+    }
+    return lastHostHeaders
+  }
+
+  /** The headers the provider answered last: for the callers that cannot await. */
+  function lastHostHeadersOf() { return { ...lastHostHeaders } }
+
+  /** The host defines Authorization itself (case-insensitive): the stored token must not override it. */
+  function hostAuthorizes(headers) {
+    return !!headers && Object.keys(headers).some((h) => h.toLowerCase() === 'authorization')
+  }
+
+
   // Resiliencia del transporte — el mismo contrato que los renderers web (libs/mateu:
   // requestPolicy + retryPolicy + connectivity + pendingActions), reescrito para ESTE core,
   // que no comparte nada con aquéllos: aquí el transporte es `fetch` pelado, no axios.
@@ -8995,6 +9125,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   //
   // Todo lo de aquí es puro salvo `fetchWithPolicy`, para que test.mjs lo pueda ejercitar en
   // Node sin navegador ni backend.
+
 
 
 
@@ -9347,7 +9478,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * 401 y el panel enseña "Servidor respondió 401". {} si no hay token.
    */
   function authHeadersOf() {
-    return authHeaders(null) || {}
+    // embedded mode (hostHeaders.mjs): the host's headers, as last answered by its provider, win
+    const host = lastHostHeadersOf()
+    return { ...((hostAuthorizes(host) ? null : authHeaders(null)) || {}), ...host }
   }
 
   /** El refresco en marcha, si lo hay: los 401 que llegan mientras tanto esperan a éste. */
@@ -9416,10 +9549,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // El token con el que salió el ÚLTIMO envío (undefined si no llevaba el nuestro): ante un 401
     // dice si el refresco ya llegó mientras la petición volaba.
     let sentToken
-    const withAuth = () => {
-      const auth = authHeaders(init)
+    const withAuth = async () => {
+      // embedded mode: the HOST app's identity (hostHeaders.mjs) — asked on every send, so a retry
+      // after a 401 carries whatever the host has now; it wins over the stored token
+      const host = await hostHeadersFor(url)
+      const credentials = hostCredentials()
+      const auth = hostAuthorizes(host) ? null : authHeaders(init)
       sentToken = auth ? auth.Authorization.slice('Bearer '.length) : undefined
-      return auth ? { ...(init || {}), headers: { ...((init && init.headers) || {}), ...auth } } : init
+      if (!auth && !Object.keys(host).length && !credentials) return init
+      return {
+        ...(init || {}),
+        ...(credentials ? { credentials } : {}),
+        headers: { ...((init && init.headers) || {}), ...(auth || {}), ...host },
+      }
     }
     const actionId = options.actionId
     const idempotent = isIdempotentAction(actionId, options.idempotent)
@@ -9447,7 +9589,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     let reauthenticated = false
     for (;;) {
       try {
-        const res = await sendOnce(url, withAuth(), options.timeoutMillis)
+        const res = await sendOnce(url, await withAuth(), options.timeoutMillis)
         if (!isolated) connectivity.noteReachable()
         if (isViewStale(view)) dropStale()
         notifyUnlessQuiet('onSettle', { actionId, failure: null })
@@ -12071,6 +12213,740 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+  // The FIELD TYPE catalogue on the Redwood side — the twin of libs/mateu expander/fieldTypes.ts and
+  // of the server's FieldTypeResolver. A field type (`specs/ui/types.yaml`) names a domain concept
+  // (OrderStatus, Money, Email) and the attributes it has as a field or a column; a FormField /
+  // GridColumn references one with `fieldType: <id>`.
+  //
+  // The Redwood renderer normally receives a wire that is already resolved (the server's YAML loader,
+  // or the browser expander of libs/mateu, applies the types before anything becomes a component).
+  // It resolves them itself only where it can be handed an unresolved tree: the visual editor's canvas,
+  // whose increment may come from a backend that does not know the project's types.yaml. The rule is
+  // the same on every side:
+  //   1. any OBJECT carrying a string `fieldType` is a reference;
+  //   2. every attribute the type declares is copied onto it UNLESS the object already declares that
+  //      attribute with a non-null value — the type supplies defaults, the field's own win;
+  //   3. the `fieldType` key is removed (the wire never carries it);
+  //   4. an unknown type is warned about once and the object rendered as declared.
+
+  let fieldTypes = []
+
+  /** Replaces the catalogue (the editor's render message, a manifest). */
+  function setFieldTypeCatalogue(incoming) {
+    fieldTypes = Array.isArray(incoming)
+      ? incoming.filter((t) => t && typeof t.id === 'string' && t.id.trim() !== '')
+      : []
+  }
+
+  /** The current catalogue — for tests and diagnostics. */
+  const fieldTypeCatalogue = () => fieldTypes
+
+  /** The attributes a type may supply — FieldTypeEntry's components, exactly. */
+  const FIELD_TYPE_ATTRIBUTES = [
+    'label', 'dataType', 'stereotype', 'placeholder', 'description', 'required', 'readOnly',
+    'options', 'optionsSource', 'min', 'max', 'step', 'colspan', 'style', 'cssClasses',
+    'align', 'width', 'autoWidth', 'tones',
+  ]
+
+  /** What each target can carry: a GridColumn has no `options`, a FormField no `tones`. */
+  const FIELD_TYPE_TARGETS = {
+    GridColumn: ['label', 'dataType', 'stereotype', 'style', 'cssClasses', 'align', 'width', 'autoWidth', 'tones'],
+    FormField: ['label', 'dataType', 'stereotype', 'placeholder', 'description', 'required', 'readOnly',
+      'options', 'optionsSource', 'min', 'max', 'step', 'colspan', 'style', 'cssClasses'],
+  }
+
+  /** Empty values supply nothing (the server serialises a type NON_EMPTY). */
+  const fieldTypeValueIsEmpty = (v) => v === undefined || v === null || v === ''
+    || (Array.isArray(v) && v.length === 0)
+    || (typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length === 0)
+
+  const mentionsFieldType = (node) => {
+    if (Array.isArray(node)) return node.some(mentionsFieldType)
+    if (!node || typeof node !== 'object') return false
+    if (typeof node.fieldType === 'string') return true
+    return Object.keys(node).some((k) => mentionsFieldType(node[k]))
+  }
+
+  const warnedFieldTypes = new Set()
+
+  /**
+   * A copy of `tree` with every `fieldType` reference resolved against `catalogue` (the module's
+   * table when omitted). Returned AS IS when it references no type.
+   */
+  function resolveFieldTypes(tree, catalogue = fieldTypes) {
+    if (!mentionsFieldType(tree)) return tree
+    const byId = new Map((catalogue || []).map((t) => [String(t.id).trim(), t]))
+    const walk = (node) => {
+      if (Array.isArray(node)) return node.map(walk)
+      if (!node || typeof node !== 'object') return node
+      const out = {}
+      for (const k of Object.keys(node)) {
+        if (k !== 'fieldType') out[k] = walk(node[k])
+      }
+      const ref = node.fieldType
+      if (typeof ref === 'string') {
+        const type = byId.get(ref.trim())
+        if (!type) {
+          if (!warnedFieldTypes.has(ref)) {
+            warnedFieldTypes.add(ref)
+            try { console.warn("mateu: unknown field type '" + ref + "' (on '" + String(out.id == null ? '' : out.id) + "') — rendered as declared") } catch (e) { /* no console */ }
+          }
+        } else {
+          const allowed = FIELD_TYPE_TARGETS[String(out.type == null ? '' : out.type)] || FIELD_TYPE_ATTRIBUTES
+          for (const attr of allowed) {
+            const value = type[attr]
+            if (fieldTypeValueIsEmpty(value)) continue
+            if (out[attr] === undefined || out[attr] === null) out[attr] = JSON.parse(JSON.stringify(value))
+          }
+        }
+      }
+      return out
+    }
+    return walk(tree)
+  }
+
+  /** The types of a types.yaml document (already parsed): a `types:` envelope or a bare list. */
+  function fieldTypesOf(doc) {
+    const list = Array.isArray(doc) ? doc : (doc && Array.isArray(doc.types) ? doc.types : [])
+    return list.filter((t) => t && typeof t === 'object' && typeof t.id === 'string' && t.id.trim() !== '')
+  }
+
+
+  // REST SOURCES on the Redwood renderer — the twin of libs/mateu's restSourceCatalogue.ts +
+  // externalOptions.ts + restRowFilters.ts, and of the surfaces that consume them there
+  // (mateu-table-crud `_fetchRowsFromRest`, mateu-field's options, mateu-component `handleRestAction`).
+  // Nothing of that core is shared with this renderer, so every guarantee is restated here.
+  //
+  // A surface may read or write somebody else's endpoint instead of a Mateu action:
+  //   - a listing's `rowsSource` (its rows),
+  //   - a field's `optionsSource` (its options),
+  //   - an action's `restAction` (a write, or the route's `data:` load: the synthetic `__restdata__`).
+  // Each names its endpoint INLINE or BY REF to the app's catalogue (`sources.yaml`, travelling as
+  // AppDto.restSources or the bundle manifest's `sources`), and the surface's own declared values win
+  // over the entry's. The call goes either DIRECT (fetch in the browser) or PROXIED (the reserved
+  // `__restfetch__` server action, so no CORS and the server injects `${secret.X}`), and the choice
+  // is read off the RESOLVED source — a by-ref surface carries nothing but the name.
+  //
+  // SAMPLE MODE (the opt-in rule is the same everywhere): a source carrying `sample:` answers with it
+  // INSTEAD of calling the endpoint — only when the app metadata or a manifest says `mockSources: true`,
+  // or in the visual editor's canvas (editorPreview.mjs). Then a read gets a copy of the sample, a write
+  // succeeds with nothing persisted (null), nothing is proxied, and a listing searches, filters, sorts
+  // and pages the sample in memory whatever totalPath it declares.
+  //
+  // The hook into the transport is `restAnswerOf` (called by runMateuAction before anything goes to
+  // the server): it answers `search` on a listing with a rowsSource and any action declaring a
+  // restAction with an increment built here, shaped like the server's — so the reducer and the chains
+  // do not know the rows came from elsewhere. Field options load in `loadRestOptions` (from
+  // loadLookups). Pure except the default fetch, which every function takes as an argument.
+
+
+
+
+  // ── the catalogue ─────────────────────────────────────────────────────────────────────────────
+
+  let restCatalogue = []
+  let restSampleMode = false
+
+  /** Replaces the catalogue (app metadata, a bundle manifest, the editor's render message). A replace,
+   *  not a merge: a stale entry surviving a deployment change is the failure the indirection removes. */
+  function setRestSourceCatalogue(incoming) {
+    restCatalogue = Array.isArray(incoming) ? incoming.filter((e) => e && typeof e.name === 'string') : []
+  }
+
+  /** The entry with this name, or undefined. */
+  const getRestSource = (name) => (name ? restCatalogue.find((e) => e.name === name) : undefined)
+
+  /** Everything in the catalogue — diagnostics and tests. */
+  const restSourceCatalogue = () => restCatalogue
+
+  const restBlank = (v) => v === undefined || v === null || v === ''
+
+  /** A descriptor with its reference filled in from the catalogue; what the surface declares wins.
+   *  An inline descriptor (or an unknown ref, warned about) comes back as declared. */
+  function resolveRestSource(source) {
+    if (!source || !source.ref) return source
+    const entry = getRestSource(source.ref)
+    if (!entry || !entry.source) {
+      try { console.warn('mateu: no REST source named "' + source.ref + '" in the app\'s catalogue') } catch (e) { /* no console */ }
+      return source
+    }
+    const from = entry.source
+    return {
+      ...source,
+      url: restBlank(source.url) ? from.url : source.url,
+      method: restBlank(source.method) ? from.method : source.method,
+      headers: source.headers && Object.keys(source.headers).length > 0 ? source.headers : from.headers,
+      body: restBlank(source.body) ? from.body : source.body,
+      itemsPath: restBlank(source.itemsPath) ? from.itemsPath : source.itemsPath,
+      valuePath: restBlank(source.valuePath) ? from.valuePath : source.valuePath,
+      labelPath: restBlank(source.labelPath) ? from.labelPath : source.labelPath,
+      proxy: !!(source.proxy || from.proxy),
+      sample: source.sample !== undefined && source.sample !== null
+        ? source.sample
+        : (entry.sample !== undefined && entry.sample !== null ? entry.sample : from.sample),
+    }
+  }
+
+  /** Turns sample mode on (or off: only the tests do). The app and a manifest only ever switch it ON. */
+  function setSampleMode(on) { restSampleMode = !!on }
+
+  /** Whether sources carrying sample data answer with it. */
+  const isSampleMode = () => restSampleMode
+
+  /** The sample a source answers with in sample mode; undefined when it is not answered from one. */
+  function sampleOf(source) {
+    if (!restSampleMode || !source) return undefined
+    const resolved = resolveRestSource(source)
+    return resolved && resolved.sample !== null ? resolved.sample : undefined
+  }
+
+  /** True when this source is answered from its sample (neither fetched nor proxied). */
+  const isSampled = (source) => sampleOf(source) !== undefined
+
+  /** Whether the call goes through the Mateu server: the RESOLVED `proxy`, unless sampled. */
+  const viaProxy = (source) => !!source && !!(resolveRestSource(source) || {}).proxy && !isSampled(source)
+
+  /** The dot path a column/field is read by, honouring the referenced entry's field map. */
+  function pathOfField(source, fieldName) {
+    const entry = getRestSource(source && source.ref)
+    const mapped = entry && entry.fields ? entry.fields[fieldName] : undefined
+    return mapped ? mapped : fieldName
+  }
+
+  /** The referenced entry's total path (the source pages server-side), or undefined. */
+  const totalPathOf = (source) => {
+    const entry = getRestSource(source && source.ref)
+    return (entry && entry.totalPath) || undefined
+  }
+
+  /** The App metadata of an increment (bootstrap: a root App, or the App child of a ServerSide). */
+  function appMetadataOf(increment) {
+    for (const f of (increment && increment.fragments) || []) {
+      const c = f && f.component
+      if (!c) continue
+      if (c.metadata && c.metadata.type === 'App') return c.metadata
+      for (const child of c.children || []) {
+        if (child && child.metadata && child.metadata.type === 'App') return child.metadata
+      }
+    }
+    return null
+  }
+
+  /** Adopts the catalogue an App carries (AppDto.restSources) and its sample-mode opt-in
+   *  (AppDto.mockSources — only ever switches sample mode ON). Returns the increment. */
+  function adoptAppSources(increment) {
+    const app = appMetadataOf(increment)
+    if (!app) return increment
+    if (Array.isArray(app.restSources)) setRestSourceCatalogue(app.restSources)
+    if (app.mockSources) setSampleMode(true)
+    return increment
+  }
+
+  /** Adopts a static bundle's manifest: its `sources` table and its `mockSources` flag. */
+  function adoptManifestSources(manifest) {
+    if (!manifest) return
+    const sources = manifest.sources && Array.isArray(manifest.sources.sources) ? manifest.sources.sources
+      : (Array.isArray(manifest.sources) ? manifest.sources : null)
+    if (sources) setRestSourceCatalogue(sources)
+    if (manifest.mockSources) setSampleMode(true)
+  }
+
+  // ── shaping a response ────────────────────────────────────────────────────────────────────────
+
+  /** Navigates a dot path (`data.items`) into a JSON value; an empty path is identity. */
+  function getByPath(obj, path) {
+    if (!path) return obj
+    return String(path).split('.').reduce((acc, key) => (acc != null && typeof acc === 'object' ? acc[key] : undefined), obj)
+  }
+
+  /** A response as options: `itemsPath` to the array, `valuePath`/`labelPath` of each item; a primitive
+   *  element is its own value and label, a half-specified mapping falls back to the other half. */
+  function mapItemsToOptions(json, itemsPath, valuePath, labelPath) {
+    const arr = getByPath(json, itemsPath)
+    if (!Array.isArray(arr)) return []
+    const vp = valuePath || 'value'
+    const lp = labelPath || 'label'
+    return arr.map((item) => {
+      if (item != null && typeof item === 'object') {
+        const value = getByPath(item, vp)
+        const label = getByPath(item, lp)
+        return { value: value != null ? value : label, label: String(label != null ? label : (value != null ? value : '')) }
+      }
+      return { value: item, label: String(item) }
+    })
+  }
+
+  /** A response as listing rows keyed by column id; `pathOf` maps a column to the path it reads. */
+  function mapItemsToRows(json, itemsPath, columnIds, pathOf = (id) => id) {
+    const arr = getByPath(json, itemsPath)
+    if (!Array.isArray(arr)) return []
+    return arr.map((item) => {
+      const row = {}
+      for (const id of columnIds) row[id] = getByPath(item, pathOf(id))
+      return row
+    })
+  }
+
+  /** Rows + total of an already fetched response (shared by the direct and the proxied legs). */
+  function restPageOf(json, source, columnIds) {
+    const resolved = resolveRestSource(source) || {}
+    const rows = mapItemsToRows(json, resolved.itemsPath, columnIds, (id) => pathOfField(source, id))
+    const raw = getByPath(json, totalPathOf(source))
+    const total = typeof raw === 'number' ? raw : Number(raw)
+    return { rows, total: raw != null && Number.isFinite(total) ? total : null }
+  }
+
+  // ── interpolation: `${state.x}`, `${data.x}`, `${row.x}`, `${appState.x}` ──────────────────────
+
+  const REST_EXPRESSION = /\$\{([^}]*)\}/g
+
+  /** The value an expression names in the scope ({state, data, row, appState, appData}). */
+  function restScopeValue(expr, scope) {
+    const path = String(expr).trim().replace(/\[\s*['"]([^'"\]]+)['"]\s*\]/g, '.$1')
+    const parts = path.split('.').filter((p) => p !== '')
+    if (!parts.length) return undefined
+    let value = scope && Object.prototype.hasOwnProperty.call(scope, parts[0]) ? scope[parts[0]] : undefined
+    for (const part of parts.slice(1)) value = value != null && typeof value === 'object' ? value[part] : undefined
+    return value
+  }
+
+  const restText = (v) => (v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v))
+
+  /** Interpolates a header or a body; `escape` maps each value (the JSON escaping of a JSON body). */
+  function interpolateRest(text, scope, escape = (s) => s) {
+    if (text == null || String(text).indexOf('${') < 0) return text
+    return String(text).replace(REST_EXPRESSION, (all, expr) => escape(restText(restScopeValue(expr, scope))))
+  }
+
+  /**
+   * Interpolates a url with each value encoded BY POSITION — the server's TemplateInterpolator
+   * .interpolateUrl, so the direct and the proxied legs reach the same url: raw in the origin (and a
+   * `${state…}` there is refused: the client state must not choose the host), a path segment in the
+   * path (a dot segment refused), a query component after a literal `?`/`#`. Throws when refused.
+   */
+  function interpolateRestUrl(text, scope) {
+    if (text == null || String(text).indexOf('${') < 0) return text
+    const src = String(text)
+    let out = ''
+    let literal = ''
+    let last = 0
+    let originOpen = false
+    let first = true
+    REST_EXPRESSION.lastIndex = 0
+    let m
+    while ((m = REST_EXPRESSION.exec(src)) !== null) {
+      const lit = src.slice(last, m.index)
+      if (first && lit.indexOf('://') >= 0) originOpen = true
+      if (originOpen) {
+        const from = literal === '' ? lit.indexOf('://') + 3 : 0
+        if (/[/?#]/.test(lit.substring(from))) originOpen = false
+      }
+      literal += lit
+      out += lit
+      const value = restText(restScopeValue(m[1], scope))
+      if (originOpen || (first && lit === '')) {
+        if (/^\s*state\b/.test(m[1])) throw new Error('A client state value cannot choose the origin of a URL: ' + src)
+        out += value
+      } else if (/[?#]/.test(literal)) {
+        out += encodeURIComponent(value)
+      } else {
+        if (value === '.' || value === '..') throw new Error('A dot segment is not a valid path value: ' + value)
+        out += encodeURIComponent(value)
+      }
+      first = false
+      last = REST_EXPRESSION.lastIndex
+    }
+    return out + src.slice(last)
+  }
+
+  /** Escapes a value for the inside of a JSON string (no surrounding quotes: the template wrote them). */
+  function jsonEscape(value) {
+    let out = ''
+    for (const ch of String(value)) {
+      switch (ch) {
+        case '"': out += '\\"'; break
+        case '\\': out += '\\\\'; break
+        case '\n': out += '\\n'; break
+        case '\r': out += '\\r'; break
+        case '\t': out += '\\t'; break
+        case '\b': out += '\\b'; break
+        case '\f': out += '\\f'; break
+        default: out += ch < ' ' ? '\\u' + ch.charCodeAt(0).toString(16).padStart(4, '0') : ch
+      }
+    }
+    return out
+  }
+
+  /** Whether a request declares a JSON body (its values then need escaping). */
+  function declaresJson(headers) {
+    return !!headers && Object.keys(headers).some((name) => name.toLowerCase() === 'content-type'
+      && String(headers[name] || '').toLowerCase().indexOf('json') >= 0)
+  }
+
+  // ── the direct leg ────────────────────────────────────────────────────────────────────────────
+
+  const restClone = (v) => (v === undefined ? v : JSON.parse(JSON.stringify(v)))
+
+  const defaultRestFetch = (url, init) => fetch(url, init)
+
+  /**
+   * Fetches a source in the browser — the single choke point of every surface (= fetchExternalJson).
+   * In sample mode a sampled read answers a copy of its sample and a write null, with no network.
+   * Throws on a non-2xx (the error carries `status`); a 204/205 or an empty body is null.
+   */
+  async function fetchRestJson(declared, scope = {}, fetchImpl = defaultRestFetch) {
+    const source = resolveRestSource(declared) || {}
+    const method = String(source.method || 'GET').toUpperCase()
+    if (isSampled(declared)) {
+      if (method !== 'GET' && method !== 'HEAD') return null
+      return restClone(sampleOf(declared))
+    }
+    if (!source.url) throw new Error('External REST fetch has no url' + (declared && declared.ref ? ' (unknown source "' + declared.ref + '")' : ''))
+    const url = interpolateRestUrl(source.url, scope)
+    const headers = {}
+    for (const k of Object.keys(source.headers || {})) headers[k] = interpolateRest(source.headers[k], scope)
+    const init = { method, headers }
+    if (method !== 'GET' && method !== 'HEAD' && source.body) {
+      init.body = interpolateRest(source.body, scope, declaresJson(headers) ? jsonEscape : undefined)
+    }
+    const res = await fetchImpl(url, init)
+    if (!res.ok) {
+      const err = new Error('External REST fetch failed: ' + res.status)
+      err.status = res.status
+      throw err
+    }
+    if (res.status === 204 || res.status === 205) return null
+    if (typeof res.text !== 'function') return res.json()
+    const text = await res.text()
+    return text.trim() === '' ? null : JSON.parse(text)
+  }
+
+  // ── in-memory search, filters and sort (an unpaged endpoint, or a sample) ─────────────────────
+
+  const restFilterBlank = (v) => v === undefined || v === null || v === '' || (typeof v === 'number' && Number.isNaN(v))
+
+  const restMultiValues = (raw) => {
+    if (Array.isArray(raw)) return raw.map(String)
+    if (typeof raw === 'string' && raw !== '') return raw.split(',').map((v) => v.trim()).filter((v) => v)
+    return []
+  }
+
+  const restWithinRange = (cell, from, to, numeric) => {
+    if (numeric) {
+      const value = Number(cell)
+      if (cell === '' || cell == null || Number.isNaN(value)) return false
+      if (!restFilterBlank(from) && value < Number(from)) return false
+      if (!restFilterBlank(to) && value > Number(to)) return false
+      return true
+    }
+    const text = cell == null ? '' : String(cell)
+    if (text === '') return false
+    if (!restFilterBlank(from) && text < String(from)) return false
+    if (!restFilterBlank(to) && text > String(to)) return false
+    return true
+  }
+
+  function restMatchesFilter(row, field, state) {
+    const id = field.fieldId
+    if (!id) return true
+    const cell = row[id]
+    if (field.stereotype === 'dateRange' || field.stereotype === 'numberRange') {
+      const from = state[id + '_from']
+      const to = state[id + '_to']
+      if (restFilterBlank(from) && restFilterBlank(to)) return true
+      return restWithinRange(cell, from, to, field.stereotype === 'numberRange')
+    }
+    if (field.stereotype === 'multiSelect') {
+      const wanted = restMultiValues(state[id])
+      if (!wanted.length) return true
+      return wanted.indexOf(String(cell == null ? '' : cell)) >= 0
+    }
+    const value = state[id]
+    if (restFilterBlank(value)) return true
+    if (field.dataType === 'boolean' || field.dataType === 'bool' || field.stereotype === 'checkbox' || field.stereotype === 'toggle') {
+      const wanted = typeof value === 'boolean' ? value : String(value).toLowerCase() === 'true'
+      const actual = typeof cell === 'boolean' ? cell : String(cell == null ? '' : cell).toLowerCase() === 'true'
+      return wanted === actual
+    }
+    // an option list is a pick, not a prefix: "male" must not also match "female"
+    if (((field.options || []).length) > 0) return String(cell == null ? '' : cell) === String(value)
+    return String(cell == null ? '' : cell).toLowerCase().indexOf(String(value).toLowerCase()) >= 0
+  }
+
+  /** Rows reduced by the free-text search (over `columnIds`) and every declared filter (= filterExternalRows). */
+  function filterRestRows(rows, columnIds, filters, state) {
+    const st = state || {}
+    const searchText = String(st.searchText == null ? '' : st.searchText).trim().toLowerCase()
+    const declared = (filters || []).map((f) => (f && f.metadata) || f).filter((f) => f && f.fieldId)
+    if (searchText === '' && !declared.length) return rows
+    return rows.filter((row) => {
+      if (searchText !== '' && !columnIds.some((id) => String(row[id] == null ? '' : row[id]).toLowerCase().indexOf(searchText) >= 0)) return false
+      return declared.every((field) => restMatchesFilter(row, field, st))
+    })
+  }
+
+  /** Rows sorted by `[{field|fieldId, direction}]` in order (= sortExternalRows); blanks last. */
+  function sortRestRows(rows, sort) {
+    const keys = (Array.isArray(sort) ? sort : [])
+      .map((s) => ({ id: (s && (s.fieldId || s.field)) || '', desc: !!s && (s.direction === 'descending' || s.direction === 'desc') }))
+      .filter((k) => k.id !== '')
+    if (!keys.length) return rows
+    const compare = (a, b) => {
+      const ab = restFilterBlank(a)
+      const bb = restFilterBlank(b)
+      if (ab || bb) return ab === bb ? 0 : ab ? 1 : -1
+      if (typeof a === 'number' && typeof b === 'number') return a - b
+      return String(a).localeCompare(String(b), undefined, { sensitivity: 'base', numeric: true })
+    }
+    return rows.slice().sort((x, y) => {
+      for (const k of keys) {
+        const c = compare(x[k.id], y[k.id])
+        if (c !== 0) return k.desc ? -c : c
+      }
+      return 0
+    })
+  }
+
+  // ── the listing ───────────────────────────────────────────────────────────────────────────────
+
+  /** The listing (Crud metadata) of a context's surface that reads its rows from a REST source. */
+  function restListingOf(ctx) {
+    const node = ctx && ctx.tree ? findFirst(ctx.tree, (n) => n && n.metadata && n.metadata.type === 'Crud') : null
+    return node && node.metadata && node.metadata.rowsSource ? node : null
+  }
+
+  /** The fields a `rowRoute` template reads off the row (`people/${row.id}` → ['id']). */
+  function rowRouteFieldsOf(template) {
+    const out = []
+    String(template || '').replace(/\$\{\s*row\.([A-Za-z0-9_$.]+)\s*\}/g, (all, path) => { out.push(path.split('.')[0]); return all })
+    return out
+  }
+
+  /** What a REST row carries: the columns, plus what the rowRoute needs to address the record. */
+  function restColumnIdsOf(md) {
+    const ids = (md.columns || []).map((c) => (c && c.metadata ? c.metadata.id || c.id : c && c.id)).filter(Boolean)
+    for (const id of rowRouteFieldsOf(md.rowRoute)) if (ids.indexOf(id) < 0) ids.push(id)
+    return ids
+  }
+
+  /** The identifier column (stable `_rowNumber` across pages), if the listing declares one. */
+  const restIdentifierOf = (md) => {
+    const col = (md.columns || []).map((c) => (c && c.metadata) || c).find((c) => c && c.identifier)
+    return col ? col.id : undefined
+  }
+
+  const restIncrement = (fragments, messages = [], commands = []) => ({ commands, messages, fragments })
+
+  /** The page of a listing, as the server's `search` answers it (a data-only fragment, data.crud.page). */
+  function restListingPage(md, fetched, total, state, serverPaged) {
+    const columnIds = restColumnIdsOf(md)
+    const identifier = restIdentifierOf(md)
+    const rows = fetched.map((row, index) => ({
+      ...row,
+      _rowNumber: identifier != null && row[identifier] != null ? String(row[identifier]) : '_row:' + index,
+    }))
+    const st = state || {}
+    const page = Number(st.page || 0)
+    const serverAnswered = serverPaged && total != null
+    const filtered = serverAnswered ? rows : sortRestRows(filterRestRows(rows, columnIds, md.filters, st), st.sort)
+    const declaredSize = Number(md.pageSize) > 0 ? Number(md.pageSize) : Number(st.size) > 0 ? Number(st.size) : 0
+    const size = declaredSize > 0 ? declaredSize : (filtered.length || 1)
+    const content = serverAnswered ? filtered : filtered.slice(page * size, page * size + size)
+    return { totalElements: serverAnswered ? total : filtered.length, pageSize: size, pageNumber: page, content }
+  }
+
+  /**
+   * Answers the listing's `search`: the rows of its rowsSource — proxied through `__restfetch__`
+   * (`_sourceKind: rows`) when the resolved source says so, direct otherwise; searched, filtered,
+   * sorted and paged in memory unless the source pages server-side (declares a totalPath and is not
+   * sampled). Resolves to the increment the reducer merges.
+   */
+  async function restRowsIncrement(ctx, node, componentState, opts = {}) {
+    const md = node.metadata || node
+    const src = md.rowsSource
+    const columnIds = restColumnIdsOf(md)
+    const sampled = isSampled(src)
+    const serverPaged = totalPathOf(src) != null && !sampled
+    let fetched = []
+    let total = null
+    try {
+      if (viaProxy(src) && opts.server) {
+        const inc = await opts.server({ _sourceKind: 'rows', _sourceId: node.id || 'crud' }, true)
+        const appData = (inc && inc.appData) || {}
+        if (appData._restfetchError) throw new Error('proxied rows failed')
+        ;({ rows: fetched, total } = restPageOf(appData._restfetch, src, columnIds))
+      } else {
+        const json = await fetchRestJson(src, { state: componentState || {}, data: (ctx && ctx.data) || {}, appState: opts.appState || {} }, opts.fetchImpl)
+        ;({ rows: fetched, total } = restPageOf(json, src, columnIds))
+      }
+    } catch (e) {
+      try { console.warn('mateu: external rows fetch failed', e) } catch (ignored) { /* no console */ }
+      fetched = []
+      total = null
+    }
+    const page = restListingPage(md, fetched, total, componentState, serverPaged)
+    return restIncrement([{ targetComponentId: (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || '', data: { crud: { page } } }])
+  }
+
+  // ── field options ─────────────────────────────────────────────────────────────────────────────
+
+  /** The fields of a context with an optionsSource whose options are not loaded for the current url. */
+  function restOptionFieldsOf(ctx, scope) {
+    if (!ctx || !ctx.tree) return []
+    const data = ctx.data || {}
+    const out = []
+    const seen = {}
+    for (const f of collectFields(ctx.tree)) {
+      if (!f.optionsSource || seen[f.fieldId]) continue
+      seen[f.fieldId] = true
+      const resolved = resolveRestSource(f.optionsSource) || {}
+      let signature
+      try { signature = (isSampled(f.optionsSource) ? 'sample:' : '') + String(interpolateRestUrl(resolved.url || resolved.ref || f.optionsSource.ref || '', scope)) } catch (e) { signature = 'refused' }
+      const held = data[f.fieldId]
+      if (held && held[LOOKUP_LOADED] && held.sourceSignature === signature) continue
+      out.push({ field: f, signature })
+    }
+    return out
+  }
+
+  /**
+   * Loads the options of every field of the context backed by an optionsSource (direct, or proxied
+   * through `__restfetch__` with `_sourceKind: options`) into ctx.data[fieldId].content — where
+   * optionsOf reads a select's options. Refetched only when the interpolated url changes. A source
+   * that fails leaves the field with no options (and is not retried until its url changes).
+   */
+  async function loadRestOptions(reg, ctxId, opts = {}) {
+    const ctx = reg && reg.contexts && reg.contexts[ctxId]
+    if (!ctx) return reg
+    const state = { ...(ctx.state || {}), ...(opts.draft || {}) }
+    const scope = { state, data: ctx.data || {}, appState: opts.appState || {} }
+    const pending = restOptionFieldsOf(ctx, scope)
+    if (!pending.length) return reg
+    const loaded = await Promise.all(pending.map(async ({ field, signature }) => {
+      const src = field.optionsSource
+      const resolved = resolveRestSource(src) || {}
+      let content = []
+      try {
+        let json
+        if (viaProxy(src) && opts.server) {
+          const inc = await opts.server({ _sourceKind: 'options', _sourceId: field.fieldId }, true)
+          const appData = (inc && inc.appData) || {}
+          if (appData._restfetchError) throw new Error('proxied options failed')
+          json = appData._restfetch
+        } else {
+          json = await fetchRestJson(src, scope, opts.fetchImpl)
+        }
+        content = mapItemsToOptions(json, resolved.itemsPath, resolved.valuePath, resolved.labelPath)
+      } catch (e) {
+        try { console.warn('mateu: external options fetch failed', e) } catch (ignored) { /* no console */ }
+      }
+      return { fieldId: field.fieldId, value: { content, totalElements: content.length, sourceSignature: signature, [LOOKUP_LOADED]: true } }
+    }))
+    const now = reg.contexts[ctxId]
+    const data = { ...(now.data || {}) }
+    for (const { fieldId, value } of loaded) data[fieldId] = value
+    return { ...reg, contexts: { ...reg.contexts, [ctxId]: { ...now, data } } }
+  }
+
+  // ── REST actions (and the route's `data:` load, `__restdata__`) ──────────────────────────────
+
+  /** The restAction a context declares for this action id, or null. */
+  function restActionOf(ctx, actionId) {
+    const action = declaredActionOf(ctx, actionId)
+    return action && action.restAction && action.restAction.source ? action.restAction : null
+  }
+
+  const restRouteOf = (r) => String(r || '').replace(/^\/+/, '').replace(/\/+$/, '').split('?')[0]
+
+  /**
+   * Runs a restAction (= mateu-component handleRestAction) and answers with the increment the
+   * reducer applies: on success the object at `resultPath` merged into the surface's state, the
+   * interpolated `successMessage` as a toast and `successRoute` as a navigation (back to the route
+   * already on screen: a re-run of the listing's search instead, or nothing would refresh); on
+   * failure an error toast and nothing else. `forEachSelectedRow` runs once per checked row
+   * (crud_selected_items) — in the browser for a direct source, as ONE proxied call otherwise.
+   */
+  async function runRestAction(ctx, actionId, rest, componentState, opts = {}) {
+    const state = componentState || (ctx && ctx.state) || {}
+    const data = (ctx && ctx.data) || {}
+    const target = (ctx && ((ctx.tree && ctx.tree.id) || ctx.id)) || ''
+    const kind = actionId === '__restdata__' ? 'data' : 'action'
+    const isProxy = viaProxy(rest.source) && !!opts.server
+    const failure = (status) => restIncrement([], [{ variant: 'error', text: 'Request failed' + (status > 0 ? ' (HTTP ' + status + ')' : '') }])
+    const success = (json, mergeResult) => {
+      const fragments = []
+      let merged = state
+      if (mergeResult && rest.resultPath != null) {
+        const value = getByPath(json, rest.resultPath)
+        if (value && typeof value === 'object') {
+          merged = { ...state, ...value }
+          fragments.push({ targetComponentId: target, state: value })
+        }
+      }
+      const scope = { state: merged, data, appState: opts.appState || {} }
+      const messages = []
+      const commands = []
+      const msg = interpolateRest(rest.successMessage, scope)
+      if (msg) messages.push({ variant: 'success', text: msg })
+      const route = interpolateRest(rest.successRoute, scope)
+      if (route && route.indexOf('${') < 0) {
+        if (opts.route != null && restRouteOf(route) === restRouteOf(opts.route)) {
+          commands.push({ targetComponentId: target, type: 'RunAction', data: { actionId: 'search' } })
+        } else {
+          commands.push({ targetComponentId: target, type: 'NavigateTo', data: route })
+        }
+      }
+      return restIncrement(fragments, messages, commands)
+    }
+    const fromProxy = (inc, mergeResult) => {
+      const appData = (inc && inc.appData) || {}
+      const err = appData._restfetchError
+      if (err) return failure(typeof err.status === 'number' ? err.status : 0)
+      return success(appData._restfetch, mergeResult)
+    }
+
+    if (rest.forEachSelectedRow) {
+      const rows = state.crud_selected_items || []
+      if (!rows.length) return restIncrement([], [{ variant: 'warning', text: 'Select rows first' }])
+      try {
+        if (isProxy) return fromProxy(await opts.server({ _sourceKind: kind, _sourceId: actionId, _forEachSelectedRow: true }, false), false)
+        await Promise.all(rows.map((row) => fetchRestJson(rest.source, { state: { ...state, ...row }, row, data, appState: opts.appState || {} }, opts.fetchImpl)))
+        return success(null, false)
+      } catch (e) {
+        return failure(e && e.status)
+      }
+    }
+    try {
+      if (isProxy) return fromProxy(await opts.server({ _sourceKind: kind, _sourceId: actionId }, kind === 'data'), true)
+      const json = await fetchRestJson(rest.source, { state, data, appState: opts.appState || {} }, opts.fetchImpl)
+      return success(json, true)
+    } catch (e) {
+      try { console.warn('mateu: rest action failed', e) } catch (ignored) { /* no console */ }
+      return failure(e && e.status)
+    }
+  }
+
+  // ── the transport hook ────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Whether an action of this context is answered from a REST source — and then the promise of its
+   * increment; null when it is an ordinary Mateu action (it goes to the server as always).
+   *
+   * @param opts.server (parameters, idempotent) → Promise<increment>: the `__restfetch__` round trip
+   * @param opts.route the route on screen (a successRoute back to it refreshes instead of navigating)
+   */
+  function restAnswerOf(ctx, actionId, componentState, opts = {}) {
+    if (!ctx || !actionId) return null
+    const rest = restActionOf(ctx, actionId)
+    if (rest) return runRestAction(ctx, actionId, rest, componentState, opts)
+    if (actionId === 'search') {
+      const node = restListingOf(ctx)
+      if (node) return restRowsIncrement(ctx, node, componentState || ctx.state || {}, opts)
+    }
+    return null
+  }
+
+
   // Static-bundle "no backend" mode for the VB/Redwood renderer — the same contract as the web
   // renderers' libs/mateu (bundleStore.ts), rewritten for THIS core (which shares nothing with them:
   // here the transport is `fetch` in transport.mjs, not axios). A build-time exporter (Mateu's
@@ -12084,6 +12960,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // syncPath → parsed increment, for the routes that exported OK. undefined = no bundle loaded.
   let increments
+  // syncPath → the route's CONTENT load, for the routes under an app shell: under a mount whose root
+  // is an app shell the exporter's `json` is the SHELL aimed at the route (the fresh load of a deep
+  // link) and `contentJson` the route's own screen. This core always loads a route INTO the shell it
+  // already booted, so answering that with `json` would paint a shell inside the shell (#557).
+  let contents = new Map()
   // :param route TEMPLATES: a compiled matcher + param names + the pre-rendered structure.
   let templates = []
   // The in-flight manifest load (if any), so a route load can await it before hitting the backend.
@@ -12175,23 +13056,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (!res || !res.ok) return
         const manifest = await res.json()
         const map = new Map()
+        const contentMap = new Map()
         const tpls = []
         for (const e of (manifest.entries || [])) {
           if (!e.ok || !e.json) continue
           try {
             const inc = JSON.parse(e.json)
+            const content = e.contentJson ? JSON.parse(e.contentJson) : undefined
             if (e.routePattern) {
-              tpls.push({ regex: new RegExp(e.routePattern), paramNames: e.paramNames || [], increment: inc })
+              tpls.push({ regex: new RegExp(e.routePattern), paramNames: e.paramNames || [], increment: content || inc })
             } else {
               map.set(e.syncPath, inc)
+              if (content) contentMap.set(e.syncPath, content)
             }
           } catch (err) {
             // skip a malformed entry, keep the rest
           }
         }
         increments = map
+        contents = contentMap
         templates = tpls
         routeEntries = (manifest.routes && manifest.routes.routes) || []
+        bundleTranslations = manifest.translations || {}
+        // the REST source catalogue the bundle ships, and its sample-mode flag (mockSources)
+        adoptManifestSources(manifest)
       } catch (e) {
         // leave bundle mode off
       }
@@ -12210,8 +13098,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** The pre-rendered increment for a route's sync path, or undefined (→ fall back to the backend).
    *  The registry's parameters are applied on the way out, so a statically served route behaves like
    *  the same route served by the backend. */
-  const getBundledIncrement = (syncPath) => {
-    const inc = increments ? increments.get(syncPath) : undefined
+  const getBundledIncrement = (syncPath, content = false) => {
+    const own = content ? contents.get(syncPath) : undefined
+    const inc = own !== undefined ? own : (increments ? increments.get(syncPath) : undefined)
     return inc === undefined ? undefined : applyRouteParams(syncPath, inc)
   }
 
@@ -12243,9 +13132,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  fragments land on the loading surface: the exporter had no initiator, so a fragment's
    *  targetComponentId is null — reduceContexts routes null → HOST, but a load INTO an island must
    *  target that island, so stamp the initiator (matches the web intercept). undefined = not bundled. */
-  function bundledIncrementFor(route, initiator) {
+  function bundledIncrementFor(route, initiator, options = {}) {
     const syncPath = toSyncPath(route)
-    const inc = getBundledIncrement(syncPath) || matchBundledTemplate(syncPath)
+    // a route load INTO the booted shell takes the route's content (see `contents`); the shell's own
+    // bootstrap (and a fresh load of a mount without an App) keeps the exported `json`
+    const inc = localizeBundled(getBundledIncrement(syncPath, !!options.content) || matchBundledTemplate(syncPath))
     if (!inc) return undefined
     return {
       ...inc,
@@ -12254,9 +13145,77 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  // ── translations (the manifest's `translations`, locale → key → text) ─────────────────────────
+  // Pre-rendered entries keep their `${i18n.key}` (the exporter renders RAW): with no server, the
+  // browser resolves them for the visitor's locale — exact → language → 'en' → first; a missing key
+  // shows as the key. Same rules as the server's TranslationRegistry and libs/mateu's bundleStore.
+  let bundleTranslations = {}
+  let bundleLocaleOverride
+
+  /** Chooses the bundle locale over the app's (AppDto.locale) and the browser's; undefined = those. */
+  function setBundleLocale(locale) { bundleLocaleOverride = locale || undefined }
+
+  const bundleNormLocale = (l) => String(l || '').trim().replace(/_/g, '-').toLowerCase()
+
+  /** The catalogue locale for the preferred ones (most preferred first), or undefined when empty. */
+  function pickBundleLocale(catalogue, preferred) {
+    const keys = Object.keys(catalogue || {})
+    if (!keys.length) return undefined
+    const find = (l) => keys.find((k) => bundleNormLocale(k) === l)
+    for (const p of preferred || []) {
+      const n = bundleNormLocale(p)
+      if (!n) continue
+      const hit = find(n) || find(n.split('-')[0])
+      if (hit) return hit
+    }
+    return find('en') || keys[0]
+  }
+
+  const BUNDLE_I18N = /\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g
+
+  function bundleAppLocale() {
+    const inc = increments ? increments.get('_no_route') : undefined
+    const md = inc && inc.fragments && inc.fragments[0] && inc.fragments[0].component
+      && inc.fragments[0].component.metadata
+    return md && md.type === 'App' && md.locale ? md.locale : undefined
+  }
+
+  function bundleBrowserLocales() {
+    const nav = typeof navigator !== 'undefined' ? navigator : undefined
+    return nav ? [...(nav.languages || []), nav.language].filter(Boolean) : []
+  }
+
+  /** `inc` with every `${i18n.…}` resolved (a copy), or `inc` itself when there is nothing to do. */
+  function localizeBundled(inc) {
+    if (!inc || !Object.keys(bundleTranslations).length) return inc
+    const json = JSON.stringify(inc)
+    if (!json.includes('i18n.')) return inc
+    const locale = pickBundleLocale(bundleTranslations,
+      [bundleLocaleOverride, bundleAppLocale(), ...bundleBrowserLocales()])
+    const fallback = pickBundleLocale(bundleTranslations, [])
+    const messages = (locale && bundleTranslations[locale]) || {}
+    const fallbackMessages = (fallback && bundleTranslations[fallback]) || {}
+    const walk = (v) => {
+      if (typeof v === 'string') {
+        return v.replace(BUNDLE_I18N, (all, key) => messages[key] ?? fallbackMessages[key] ?? key)
+      }
+      if (Array.isArray(v)) return v.map(walk)
+      if (v && typeof v === 'object') {
+        const out = {}
+        for (const k of Object.keys(v)) out[k] = walk(v[k])
+        return out
+      }
+      return v
+    }
+    return walk(inc)
+  }
+
   /** Test hook: seed/clear the in-memory bundle directly. */
-  function __setBundleForTests(m, t, r) {
+  function __setBundleForTests(m, t, r, tr, c) {
+    bundleTranslations = tr || {}
+    bundleLocaleOverride = undefined
     increments = m
+    contents = c || new Map()
     templates = t || []
     routeEntries = r || []
     pending = undefined
@@ -12341,6 +13300,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return mountPath
   }
 
+  /** The static bundle's manifest URL, when the page's <mateu-ui> names one (`bundleUrl`, stamped
+   *  by the mateu-bundle goal's index.html — the same attribute the web renderers read). '' = none. */
+  function bundleUrlOf(doc) {
+    const el = doc && typeof doc.querySelector === 'function' ? doc.querySelector('mateu-ui') : null
+    const url = el ? el.getAttribute('bundleUrl') || el.getAttribute('bundleurl') : null
+    return url || ''
+  }
+
   /** Test hook / explicit setting: null = hash mode. */
   function setMount(value) { mountPath = value == null ? null : normalizeMount(value) }
 
@@ -12397,6 +13364,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction).
    *  Sale ATADA a la pantalla en curso (resilience.currentView): si cuando contesta ya hay otra, la
    *  respuesta se descarta en silencio. Las de fondo (quiet/isolated: widgets, menús remotos) no
@@ -12433,20 +13401,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  la app arranque igual. Sólo en el fallo — el camino feliz no cambia. */
   async function bootstrapShell(base, initiator = 'shell') {
     await awaitBundle()
+    // with a bundle that can boot the shell by itself, the backend is only PROBED: on a static host
+    // its absence is the normal case, not an error band nor a sign of being offline
+    const fallback = hasBundle() ? bundledIncrementFor('', initiator) : undefined
     try {
       const res = await fetchWithPolicy(`${base}/mateu/v3/components/_/action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
-      }, { actionId: '__load__' })
+      }, fallback ? { actionId: '__load__', quiet: true, isolated: true } : { actionId: '__load__' })
       const increment = await res.json()
       observeWireVersion(increment)
-      return increment
+      // the App carries the REST source catalogue (restSources) and the sample-mode opt-in
+      return adoptAppSources(increment)
     } catch (e) {
-      if (hasBundle()) {
-        const bundled = bundledIncrementFor('', initiator)
-        if (bundled) return bundled
-      }
+      if (fallback) return fallback
       throw e
     }
   }
@@ -12542,7 +13511,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     await awaitBundle()
     if (hasBundle()) {
-      const bundled = bundledIncrementFor(route, initiator)
+      // a load INTO the shell (any but the fresh '_empty' one) gets the route's content, never the
+      // shell aimed at it
+      const bundled = bundledIncrementFor(route, initiator, { content: extra.consumedRoute !== '_empty' })
       if (bundled) return bundled
     }
     return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
@@ -12552,6 +13523,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  Los 4 campos de ruta salen del `outbound` que loadRouteInto estampó al cargar el
    *  contexto (un mediador necesita consumedRoute + serverSideType también en las acciones). */
   function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
+    // A REST-backed action never reaches the Mateu server as itself: the `search` of a listing with a
+    // rowsSource, and any action declaring a restAction (the route's `__restdata__` load included),
+    // are answered here — direct with fetch, or proxied through the reserved `__restfetch__` action
+    // (restSources.mjs). The increment is shaped like the server's, so the chains do not know.
+    const restAnswer = restAnswerOf(ctx, actionId, componentState, {
+      route,
+      appState: (extra && extra.appState) || {},
+      server: (parameters, idempotent) => runMateuAction(base, ctx, route, '__restfetch__', componentState,
+        { ...extra, parameters, idempotent: !!idempotent }),
+    })
+    if (restAnswer) return restAnswer
     // los OnSuccess (refresco periódico) se leen del contexto que LANZA la acción
     const source = ctx
     // la acción va al ServerSide que la DECLARA (la vista, no el mediador que la cargó): también
@@ -12600,6 +13582,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * fallan, para no repetirlas en cada acción. Devuelve el registro nuevo.
    */
   async function loadLookups(base, reg, ctxId = HOST_ID, opts = {}) {
+    // the options of the fields backed by a REST source (optionsSource) — direct, or proxied
+    reg = await loadRestOptions(reg, ctxId, {
+      draft: opts.draft,
+      appState: opts.appState || {},
+      server: (parameters, idempotent) => {
+        const owner = reg.contexts[ctxId]
+        return runMateuAction(base, owner, opts.route || '', '__restfetch__', { ...(owner.state || {}), ...(opts.draft || {}) },
+          { parameters, appState: opts.appState || {}, idempotent: !!idempotent })
+      },
+    })
     const ctx = reg && reg.contexts && reg.contexts[ctxId]
     const pending = formLookupsOf(ctx)
     if (!pending.length) return reg
@@ -12761,6 +13753,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * Devuelve el registro nuevo. targetId = clave del contexto destino (initiator).
    */
   async function loadRouteInto(base, reg, route, targetId = '', extra = {}) {
+    // live reload (liveReload.mjs): lo tecleado viaja con la carga — un view model se hidrata con
+    // ello — y se vuelve a poner sobre la respuesta, para que una página sólo-definición lo conserve
+    const liveState = extra && extra.liveState
+    if (extra && 'liveState' in extra) {
+      const { liveState: _omit, ...rest } = extra
+      extra = liveState ? { ...rest, componentState: liveState } : rest
+    }
     // el INCREMENTO crudo se conserva: la 1ª carga de una opción de menú llega como App de mediador
     // (ClientSide type App), que reduceContexts encamina al CHROME (shell) y no al contexto —
     // mediatorOf(host) no lo ve, así que hay que sacar el mediador del incremento mismo.
@@ -12829,6 +13828,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             .map((a) => ({ id: a.id, commands: a.commands || null })),
         },
       },
+    }
+    if (liveState && next.contexts[ctxId]) {
+      next = {
+        ...next,
+        contexts: {
+          ...next.contexts,
+          [ctxId]: { ...next.contexts[ctxId], state: { ...(next.contexts[ctxId].state || {}), ...liveState } },
+        },
+      }
     }
     // los niveles de app (maestros) de la pantalla del HOST: una barra de pestañas por nivel
     if (targetId === '') next = { ...next, appLevels, loadedRoute: effectiveRoute }
@@ -15037,6 +16045,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   //
   // Pure except installEditorPreview (DOM + window), so test.mjs exercises the protocol, the answers
   // and the stamping with plain objects.
+  //
+  // The canvas designs with SAMPLE data: installing the preview switches sample mode on (the same
+  // opt-in rule as everywhere — the visual editor always previews with samples), and each render
+  // message may carry the project's REST source catalogue (`sources`, sources.yaml with its `sample:`
+  // data) and its field types (`types`, types.yaml): a listing reading `rowsSource: {ref}` paints the
+  // sample rows, a select with `optionsSource: {ref}` the sample options, and a `fieldType:` reference
+  // the handed increment still carries is resolved here (restSources.mjs, fieldTypes.mjs).
+
+
 
   /** The single route of the preview app. */
   const PREVIEW_ROUTE = '/preview'
@@ -15076,20 +16093,44 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function previewLoadIncrement(fragment, request = {}) {
     if (!fragment || !fragment.component) return EMPTY_INCREMENT()
     const state = fragment.state || {}
+    const own = fragment.component
+    // A page with BEHAVIOUR already arrives as a ServerSide component carrying its actions and
+    // triggers (the route's `data:` → `__restdata__` + its OnLoad, a restAction button): it IS the
+    // page, so it is used as such — wrapped, its triggers would never fire (they are read off the
+    // page's own tree) and its restActions would never be found.
+    const page = own.type === 'ServerSide'
+      ? {
+        ...own, id: 'mateu-editor-page', serverSideType: own.serverSideType || PREVIEW_SST,
+        route: request.route || PREVIEW_ROUTE, actions: own.actions || [], triggers: own.triggers || [],
+        rules: own.rules || [], initialData: { ...(own.initialData || {}), ...state },
+      }
+      : {
+        type: 'ServerSide', id: 'mateu-editor-page', serverSideType: PREVIEW_SST,
+        route: request.route || PREVIEW_ROUTE, actions: [], triggers: [], rules: [],
+        children: [own], initialData: state,
+      }
     return {
       commands: [], messages: [],
       fragments: [{
         targetComponentId: request.initiatorComponentId || '',
         action: 'Replace',
-        state,
+        state: own.type === 'ServerSide' ? page.initialData : state,
         data: fragment.data || {},
-        component: {
-          type: 'ServerSide', id: 'mateu-editor-page', serverSideType: PREVIEW_SST,
-          route: request.route || PREVIEW_ROUTE, actions: [], triggers: [], rules: [],
-          children: [fragment.component], initialData: state,
-        },
+        component: page,
       }],
     }
+  }
+
+  /**
+   * What a render message brings besides the fragment: the project's source catalogue and field
+   * types are adopted (a message without them leaves the previous ones), and the fragment comes back
+   * with any `fieldType:` reference resolved.
+   */
+  function adoptRenderMessage(msg) {
+    if (!msg || !msg.fragment) return null
+    if (Array.isArray(msg.sources)) setRestSourceCatalogue(msg.sources)
+    if (Array.isArray(msg.types)) setFieldTypeCatalogue(msg.types)
+    return resolveFieldTypes(msg.fragment)
   }
 
   /** The answer to a request the app sends to its backend, or null when it is not a Mateu call
@@ -15196,6 +16237,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const doc = win.document
     const post = (msg) => { try { win.parent.postMessage({ [PREVIEW_MESSAGE_KEY]: msg.kind, ...msg }, '*') } catch (e) { /* no parent */ } }
     doc.documentElement.classList.add('mateu-editor-preview')
+    // the editor always previews REST sources with their sample data (never the live endpoint)
+    setSampleMode(true)
     const style = doc.createElement('style')
     style.textContent = EDITOR_PREVIEW_CSS
     doc.head.appendChild(style)
@@ -15300,7 +16343,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!msg || typeof msg !== 'object') return
       const kind = msg[PREVIEW_MESSAGE_KEY]
       if (kind === 'render' && msg.fragment) {
-        fragment = msg.fragment
+        fragment = adoptRenderMessage(msg)
         const pending = waiters
         waiters = []
         pending.forEach((resolve) => resolve(fragment))
@@ -15320,6 +16363,770 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         stampSoon()
       },
     }
+  }
+
+
+  // EMBEDDED MODE — the renderer as a JET Custom Component (<mateu-ui>) dropped on a page of
+  // somebody else's Visual Builder app, next to the standalone app (the full VB app in the jar).
+  //
+  // ONE core, two modes. Standalone renders the content page of OUR VB app (main-start-page) through
+  // VB's runtime: page module + action chains + variables. Embedded renders the SAME page markup and
+  // runs the SAME chains, with the HOST's JET runtime and theme and without VB's: the markup is plain
+  // JET templating (oj-bind-*, Knockout) — the only VB in it is the names of the binding context
+  // ($application, $page, $variables, $listeners, $current) and the chains only use five Actions of
+  // VB's API. So this module brings the minimal runtime that gives those names their meaning — the
+  // descriptors (app-flow.json, the page JSONs) say what variables and listeners exist, exactly as
+  // they say it to VB — and the component (embedded/mateu-ui-viewModel.js) binds the page to it. No
+  // projection, chain or template is written twice: a fix to the content page is a fix to both.
+  //
+  // What the host sees is the component API (component.json): properties (baseUrl, route, params,
+  // initialState, appContext, token / headers / headersProvider, navigation) and DOM events
+  // (on-mateu-navigate, on-mateu-action, on-mateu-title, on-mateu-message, on-mateu-ready, on-mateu-error).
+  //
+  // The bridge is a module with module-level state (the registry hooks, the view in flight, the
+  // mount): ONE <mateu-ui> per page. A second instance would share it — documented as a limitation.
+
+
+
+
+  // ── the component's properties ───────────────────────────────────────────────────────────────
+
+  /** The DOM events the component fires on its own element (bubbling). JET's convention: the event
+   *  TYPE is camelCase (mateuNavigate) and a page listens with the kebab attribute on-mateu-navigate. */
+  const EMBEDDED_EVENTS = Object.freeze({
+    navigate: 'mateuNavigate',
+    action: 'mateuAction',
+    title: 'mateuTitle',
+    message: 'mateuMessage',
+    ready: 'mateuReady',
+    error: 'mateuError',
+  })
+
+  /** How a navigation the SCREEN asks for (a row click, a NavigateTo, a link) is handled:
+   *  - 'internal' (default): it happens inside the component; `mateuNavigate` is fired first and
+   *    is CANCELABLE — a host listener calling preventDefault() takes it over;
+   *  - 'host': it never happens inside; `mateuNavigate` is fired and the host decides (typically it
+   *    navigates its own flow, or sets the component's `route`). */
+  const NAVIGATION_POLICIES = Object.freeze(['internal', 'host'])
+
+  /** A property that may arrive as an object or as its JSON (an HTML attribute is a string). */
+  function parseJsonProp(value, fallback = null) {
+    if (value == null || value === '') return fallback
+    if (typeof value === 'object') return value
+    try {
+      const parsed = JSON.parse(String(value))
+      return parsed == null ? fallback : parsed
+    } catch (e) {
+      return fallback
+    }
+  }
+
+  /** The backend base: the URL of the Mateu mount (its API is <base>/mateu/v3/...), no trailing
+   *  slash. '' = same origin as the host page. */
+  function normalizeBaseUrl(value) {
+    const v = String(value == null ? '' : value).trim()
+    return v.replace(/\/+$/, '')
+  }
+
+  /** Images, logos and web-component modules are served from the backend ROOT, not from the mount
+   *  (as on the Vaadin renderer): the ORIGIN of an absolute base, '' for a relative one. */
+  function assetBaseOf(baseUrl) {
+    const m = /^(https?:\/\/[^/]+)/i.exec(String(baseUrl || ''))
+    return m ? m[1] : ''
+  }
+
+  /** The component's properties, normalised (the component and the tests share this reading). */
+  function embeddedConfigOf(props = {}) {
+    const navigation = NAVIGATION_POLICIES.includes(props.navigation) ? props.navigation : 'internal'
+    const headers = parseJsonProp(props.headers, null)
+    return {
+      baseUrl: normalizeBaseUrl(props.baseUrl),
+      route: String(props.route == null ? '' : props.route).trim(),
+      params: parseJsonProp(props.params, {}) || {},
+      initialState: parseJsonProp(props.initialState, null),
+      appContext: parseJsonProp(props.appContext, {}) || {},
+      navigation,
+      token: props.token ? String(props.token) : '',
+      headers: headers && typeof headers === 'object' ? headers : null,
+      headersProvider: typeof props.headersProvider === 'function' ? props.headersProvider : null,
+      withCredentials: props.withCredentials === true || props.withCredentials === 'true',
+    }
+  }
+
+  /** The header provider the transport asks on every send (hostHeaders.mjs): the host's provider
+   *  (called each time — a token that rotates is read fresh), else the static headers + token. */
+  function headerProviderOf(config) {
+    const fixed = { ...(config.headers || {}) }
+    if (config.token) fixed.Authorization = /^\w+\s/.test(config.token) ? config.token : 'Bearer ' + config.token
+    if (config.headersProvider) {
+      const provider = config.headersProvider
+      return async (url) => ({ ...fixed, ...((await provider(url)) || {}) })
+    }
+    return Object.keys(fixed).length ? fixed : null
+  }
+
+  /**
+   * The Mateu route the component opens: `route` with its `:placeholders` filled from `params`, the
+   * rest of `params` as the query (`orders` + {status: 'OPEN'} → /orders?status=OPEN — a listing
+   * opens filtered, the same as a deep link with filters). '' → the home of the app.
+   */
+  function composeEmbeddedRoute(route, params = {}) {
+    let r = String(route == null ? '' : route).trim()
+    const rest = {}
+    for (const key of Object.keys(params || {})) {
+      const value = params[key]
+      const placeholder = new RegExp('(^|/):' + key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?=/|$|\\?)')
+      if (placeholder.test(r)) r = r.replace(placeholder, '$1' + encodeURIComponent(value == null ? '' : String(value)))
+      else if (value != null && value !== '') rest[key] = value
+    }
+    if (r && r.charAt(0) !== '/' && r.charAt(0) !== '?') r = '/' + r
+    const query = Object.keys(rest)
+      .map((k) => encodeURIComponent(k) + '=' + encodeURIComponent(typeof rest[k] === 'object' ? JSON.stringify(rest[k]) : String(rest[k])))
+      .join('&')
+    if (!query) return r
+    return r + (r.indexOf('?') >= 0 ? '&' : '?') + query
+  }
+
+  /** What changed between two readings of the properties, and what the component must do about it:
+   *  'boot' (the backend or the identity changed: start over), 'navigate' (another screen),
+   *  'context' (the app context: reload the screen with it), or nothing. */
+  function propertyChangeOf(previous, next) {
+    if (!previous) return 'boot'
+    if (previous.baseUrl !== next.baseUrl || previous.withCredentials !== next.withCredentials) return 'boot'
+    if (JSON.stringify(previous.appContext) !== JSON.stringify(next.appContext)) return 'context'
+    if (previous.route !== next.route || JSON.stringify(previous.params) !== JSON.stringify(next.params)
+        || JSON.stringify(previous.initialState) !== JSON.stringify(next.initialState)) return 'navigate'
+    return null
+  }
+
+  // ── the mode switch the chains consult ───────────────────────────────────────────────────────
+
+  let embeddedHost = null
+
+  /** The component registers itself here (null when it is gone): the chains ask isEmbedded() before
+   *  touching what belongs to the host page — its URL, its title. */
+  function setEmbeddedHost(host) { embeddedHost = host || null }
+
+  function isEmbedded() { return embeddedHost != null }
+
+  /** Fires one of EMBEDDED_EVENTS on the component; true unless a listener cancelled it (and true
+   *  when there is no component: standalone has nobody to ask). */
+  function emitEmbedded(name, detail) {
+    if (!embeddedHost || typeof embeddedHost.emit !== 'function') return true
+    return embeddedHost.emit(name, detail) !== false
+  }
+
+  /** The page title: the document's in standalone; in a host page the title is the HOST's, so the
+   *  component reports it (mateuTitle) and lets the host decide. */
+  // the last title reported: the screen's title arrives twice (its SetWindowTitle and its header)
+  let lastTitle = null
+  function isNewTitle(title) {
+    if (title == null || title === '' || String(title) === lastTitle) return false
+    lastTitle = String(title)
+    return true
+  }
+
+  function setDocTitle(title) {
+    if (title == null || title === '') return
+    if (isEmbedded()) {
+      if (isNewTitle(title)) emitEmbedded(EMBEDDED_EVENTS.title, { title: String(title) })
+      return
+    }
+    if (typeof document !== 'undefined') document.title = title
+  }
+
+  // the initial state the host seeds the FIRST load of a screen with (initialState): consumed once
+  let embeddedSeed = null
+
+  function setEmbeddedSeed(state) {
+    embeddedSeed = state && typeof state === 'object' && Object.keys(state).length ? state : null
+  }
+
+  /** The extra of a route load: {componentState} once after setEmbeddedSeed, {} otherwise. */
+  function takeEmbeddedSeed() {
+    const seed = embeddedSeed
+    embeddedSeed = null
+    return seed ? { componentState: seed } : {}
+  }
+
+  /** The route a navigation request names (onMateuNavigate's event: a menu selection, a NavigateTo,
+   *  a link), or null. */
+  function navigationRouteOf(params) {
+    const event = params && params.event
+    const detail = (event && (event.detail || event)) || {}
+    for (const key of ['route', 'currentId', 'selectedValue', 'value']) {
+      if (detail[key] != null && detail[key] !== '') return String(detail[key])
+    }
+    return null
+  }
+
+  /**
+   * The Mateu route an ordinary link of the content names (`<a href="/journey/bookings/7">` in a
+   * Text/Html of the app), or null (the browser follows it). Standalone resolves it against the
+   * page's own URL (links.inAppRouteOfLink); embedded, the page is the HOST's, so it is resolved
+   * against the BACKEND (base-url): the app's links are written for the app, not for its host.
+   * `hostLocation` is used when the base is relative ('' = same origin as the host page).
+   */
+  function embeddedRouteOfLink(anchor, event, baseUrl, hostLocation) {
+    let base
+    try {
+      base = new URL((normalizeBaseUrl(baseUrl) || '') + '/', hostLocation ? hostLocation.href : undefined)
+    } catch (e) {
+      return null
+    }
+    const mount = base.pathname.replace(/\/+$/, '')
+    const location = { href: base.href, origin: base.origin, pathname: base.pathname, search: '' }
+    return inAppRouteOfLink(anchor, event, location, false, mount)
+  }
+
+  /** Whether a navigation the SCREEN asked for happens inside the component. */
+  function navigatesInside(policy, notCancelled) {
+    return policy !== 'host' && notCancelled
+  }
+
+  // ── the minimal runtime for VB's descriptors ─────────────────────────────────────────────────
+
+  /** VB's ActionChain: the chains only extend it (their logic is in run()). */
+  class EmbeddedActionChain {}
+
+  const PATH = /^(!!|!)?\s*(\$[A-Za-z]\w*(?:\.[A-Za-z_$][\w$]*)*)$/
+
+  /**
+   * Evaluates one listener-parameter expression of the descriptors: '{{ $event.detail.value }}',
+   * '{{ !!$event.force }}', '{{ true }}' — dotted paths from the scope roots, optionally negated,
+   * and literals. That is the whole grammar the descriptors use (a test pins it), so no eval and
+   * nothing a CSP forbids. Objects and arrays are evaluated member by member; anything else is
+   * returned as is.
+   */
+  function evalDescriptorValue(value, scope) {
+    if (Array.isArray(value)) return value.map((v) => evalDescriptorValue(v, scope))
+    if (value && typeof value === 'object') {
+      const out = {}
+      for (const k of Object.keys(value)) out[k] = evalDescriptorValue(value[k], scope)
+      return out
+    }
+    if (typeof value !== 'string') return value
+    const m = /^\{\{\s*([\s\S]*?)\s*\}\}$/.exec(value)
+    if (!m) return value
+    return evalDescriptorExpression(m[1], scope)
+  }
+
+  function evalDescriptorExpression(expr, scope) {
+    const e = String(expr).trim()
+    if (e === 'true') return true
+    if (e === 'false') return false
+    if (e === 'null') return null
+    if (/^-?\d+(\.\d+)?$/.test(e)) return Number(e)
+    if (/^'[^']*'$/.test(e)) return e.slice(1, -1)
+    const m = PATH.exec(e)
+    if (!m) throw new Error('mateu-ui: unsupported descriptor expression: ' + e)
+    const parts = m[2].split('.')
+    let v = scope ? scope[parts[0]] : undefined
+    for (let i = 1; i < parts.length && v != null; i++) v = v[parts[i]]
+    if (m[1] === '!!') return !!v
+    if (m[1] === '!') return !v
+    return v
+  }
+
+  /** The value a variable starts with: its defaultValue, else the empty value of its type. */
+  function defaultOfVariable(def) {
+    if (def && Object.prototype.hasOwnProperty.call(def, 'defaultValue')) {
+      const d = def.defaultValue
+      return d && typeof d === 'object' ? JSON.parse(JSON.stringify(d)) : d
+    }
+    const type = def && def.type
+    if (type === 'string') return ''
+    if (type === 'boolean') return false
+    if (type === 'number') return 0
+    if (typeof type === 'string' && type.endsWith('[]')) return []
+    return undefined
+  }
+
+  const ADP_TYPE = /ArrayDataProvider/
+
+  /**
+   * Builds the runtime over the descriptors.
+   *
+   * @param opts.app        app-flow.json (variables, constants)
+   * @param opts.pages      the page descriptors, merged into ONE page scope (the content page and
+   *                        the parts of the shell page the embedded frame keeps: banner, toast)
+   * @param opts.chains     { name: ChainClass } (the generated bundle of our chain modules)
+   * @param opts.constants  overrides of app constants (mateuBaseUrl ← the base-url property)
+   * @param opts.translations { appBundle: { key: text } }
+   * @param opts.observable (initial) => ko-like observable (fn(), fn(v)) — the binding sees changes
+   * @param opts.adpFactory (rows, keyAttributes) => { provider, setData(rows), add(items), remove(keys), refresh() }
+   * @param opts.root       the component element: component methods are looked up inside it first
+   * @param opts.policy     () => the navigation policy (read at each navigation: it is a property)
+   * @param opts.emit       (name, detail) => notCancelled — fires the component's DOM events
+   */
+  function createVbRuntime(opts) {
+    const observable = opts.observable
+    const pages = opts.pages || []
+    const appDefs = (opts.app && opts.app.variables) || {}
+    const appConstants = {}
+    for (const [k, def] of Object.entries((opts.app && opts.app.constants) || {})) {
+      appConstants[k] = def && Object.prototype.hasOwnProperty.call(def, 'defaultValue') ? def.defaultValue : def
+    }
+    Object.assign(appConstants, opts.constants || {})
+
+    const watchers = new Map() // 'app.x' | 'page.x' → [fn]
+    const watch = (key, fn) => { if (!watchers.has(key)) watchers.set(key, []); watchers.get(key).push(fn) }
+    const adps = []
+
+    const makeVariables = (defs, scopeKey) => {
+      const vars = {}
+      for (const [name, def] of Object.entries(defs)) {
+        if (def && typeof def.type === 'string' && ADP_TYPE.test(def.type)) {
+          const dv = (def.defaultValue || {})
+          const keyAttributes = dv.keyAttributes || 'id'
+          const source = typeof dv.data === 'string' ? /^\{\{\s*\$(application\.variables|variables|page\.variables)\.(\w+)\s*\}\}$/.exec(dv.data) : null
+          const adp = opts.adpFactory([], keyAttributes)
+          adps.push(adp)
+          if (source) watch((source[1] === 'application.variables' ? 'app.' : 'page.') + source[2], (rows) => adp.setData(rows || []))
+          const box = observable(adp.provider)
+          Object.defineProperty(vars, name, { enumerable: true, get: () => box(), set: (v) => box(v) })
+          continue
+        }
+        const box = observable(defaultOfVariable(def))
+        const key = scopeKey + '.' + name
+        Object.defineProperty(vars, name, {
+          enumerable: true,
+          get: () => box(),
+          set: (v) => {
+            box(v)
+            for (const fn of watchers.get(key) || []) fn(v)
+          },
+        })
+      }
+      return vars
+    }
+
+    const pageDefs = {}
+    const listenerDefs = {}
+    for (const page of pages) {
+      Object.assign(pageDefs, page.variables || {})
+      Object.assign(listenerDefs, page.eventListeners || {})
+    }
+    const $application = {
+      variables: makeVariables(appDefs, 'app'),
+      constants: appConstants,
+      translations: opts.translations || { appBundle: {} },
+      user: { isAuthenticated: false, roles: [], permissions: [] },
+    }
+    const $page = { variables: makeVariables(pageDefs, 'page'), constants: {} }
+    // the ADPs bound to a variable start with its value (a later assignment re-feeds them)
+    for (const page of pages) {
+      for (const [name, def] of Object.entries(page.variables || {})) {
+        const dv = def && def.defaultValue
+        if (!(def && ADP_TYPE.test(String(def.type)) && dv && typeof dv.data === 'string')) continue
+        const m = /^\{\{\s*\$(application\.variables|variables|page\.variables)\.(\w+)\s*\}\}$/.exec(dv.data)
+        if (m) {
+          const scope = m[1] === 'application.variables' ? $application.variables : $page.variables
+          const rows = scope[m[2]]
+          const adp = $page.variables[name] && adps.find((a) => a.provider === $page.variables[name])
+          if (adp && Array.isArray(rows) && rows.length) adp.setData(rows)
+        }
+      }
+    }
+
+    // the screen's title is the host's to show (its header, its breadcrumbs, document.title): every
+    // new one is reported (mateuTitle)
+    watch('app.mateuHostTitle', (title) => {
+      if (opts.emit && isNewTitle(title)) opts.emit(EMBEDDED_EVENTS.title, { title: String(title) })
+    })
+
+    const runtime = {}
+    const context = () => ({
+      $application,
+      $page,
+      $variables: $page.variables,
+      $flow: { variables: {}, constants: {} },
+      $constants: $page.constants,
+      __mateuRuntime: runtime,
+    })
+
+    const chainError = (name, e) => {
+      if (e && e.stale === true) return
+      if (typeof console !== 'undefined' && console.error) console.error('mateu-ui: chain ' + name + ' failed', e)
+      if (opts.emit) opts.emit(EMBEDDED_EVENTS.error, { chain: name, message: (e && e.message) || String(e) })
+    }
+
+    /** Runs one chain by name (the VB chain id), as VB does: a new instance, run(context, params). */
+    runtime.callChain = async (name, params = {}, ctx = context()) => {
+      const Chain = (opts.chains || {})[name]
+      if (!Chain) {
+        if (typeof console !== 'undefined' && console.warn) console.warn('mateu-ui: no chain ' + name + ' in the embedded runtime')
+        return undefined
+      }
+      if (name === 'onMateuNavigate' && !(params && params.__fromHost)) {
+        // a navigation the SCREEN asked for: the host hears it first, and the policy decides
+        const route = navigationRouteOf(params)
+        if (route != null) {
+          const notCancelled = opts.emit ? opts.emit(EMBEDDED_EVENTS.navigate, { route, force: !!(params && params.force) }) : true
+          const policy = typeof opts.policy === 'function' ? opts.policy() : 'internal'
+          if (!navigatesInside(policy, notCancelled)) return undefined
+        }
+      }
+      if (name === 'runMateuAction' && opts.emit && params && params.actionId) {
+        opts.emit(EMBEDDED_EVENTS.action, { actionId: params.actionId, parameters: params.parameters || {} })
+      }
+      const clean = params && params.__fromHost ? Object.assign({}, params, { __fromHost: undefined }) : params
+      return new Chain().run(ctx, clean || {})
+    }
+
+    /** The listeners of the descriptors, as the page binds them: on-x="[[ $listeners.name ]]".
+     *  JET calls a listener with (event, data, bindingContext); $current is the binding context's. */
+    const $listeners = {}
+    const runListener = async (name, $event, $current) => {
+      const def = listenerDefs[name]
+      if (!def) return
+      const ctx = context()
+      const scope = { ...ctx, $event, $current }
+      for (const step of def.chains || []) {
+        try {
+          const params = evalDescriptorValue(step.parameters || {}, scope)
+          await runtime.callChain(step.chain, params, ctx)
+        } catch (e) {
+          chainError(step.chain, e)
+        }
+      }
+    }
+    for (const name of Object.keys(listenerDefs)) {
+      $listeners[name] = (event, data, bindingContext) => {
+        const current = bindingContext && bindingContext.$current !== undefined ? bindingContext.$current
+          : (data && data.$current !== undefined ? data.$current : undefined)
+        runListener(name, event, current)
+      }
+    }
+    runtime.runListener = runListener
+
+    /** VB's application events (Actions.fireEvent 'application:x'): the listeners of that name. */
+    runtime.fireEvent = (name, payload) => runListener(name, payload, undefined)
+
+    runtime.findElement = (selector) => {
+      const root = opts.root
+      const inRoot = root && typeof root.querySelector === 'function' ? root.querySelector(selector) : null
+      if (inRoot) return inRoot
+      // an open oj-dialog / drawer lives in JET's popup layer (body), not under the component
+      return typeof document !== 'undefined' ? document.querySelector(selector) : null
+    }
+
+    runtime.context = context
+    /** Calls fn with every new value of a variable ('app.x' or 'page.x'). */
+    runtime.watch = watch
+    runtime.$application = $application
+    runtime.$page = $page
+    runtime.$listeners = $listeners
+    runtime.adps = adps
+    /** What the component's view binds against: the same names a VB page sees. */
+    runtime.bindingContext = { $application, $page, $variables: $page.variables, $listeners, $flow: { variables: {} } }
+    return runtime
+  }
+
+  /** VB's Actions, the five the chains use (a test pins that no chain uses another). Each finds the
+   *  runtime in the context it is given — the one the runtime built for that chain. */
+  const runtimeOf = (context) => {
+    const rt = context && context.__mateuRuntime
+    if (!rt) throw new Error('mateu-ui: an action outside the embedded runtime')
+    return rt
+  }
+
+  const embeddedActions = Object.freeze({
+    callChain(context, { chain, params } = {}) {
+      return runtimeOf(context).callChain(chain, params || {}, context)
+    },
+    async callComponentMethod(context, { selector, method, params } = {}) {
+      const el = runtimeOf(context).findElement(selector)
+      if (!el || typeof el[method] !== 'function') throw new Error('mateu-ui: no ' + selector + '.' + method + '()')
+      return el[method](...(params || []))
+    },
+    fireEvent(context, { name, payload } = {}) {
+      return runtimeOf(context).fireEvent(name, payload)
+    },
+    fireNotificationEvent(context, notification = {}) {
+      const rt = runtimeOf(context)
+      if (rt.emitMessage) rt.emitMessage(notification)
+      return rt.fireEvent('vbNotification', notification)
+    },
+    async fireDataProviderEvent(context, { target, add, remove, refresh } = {}) {
+      const rt = runtimeOf(context)
+      const adp = rt.adps.find((a) => a.provider === target)
+      if (!adp) return
+      if (remove && remove.keys) adp.remove(remove.keys)
+      if (add && add.data) adp.add(Array.isArray(add.data) ? add.data : [add.data])
+      if (refresh !== undefined) adp.refresh()
+    },
+  })
+
+  // ── booting the content runtime inside a host page ───────────────────────────────────────────
+
+  /**
+   * The document-level pieces of the content runtime: what loadMateuShell installs before its first
+   * navigation (rules, calendars, maps, keys, drag and drop…) — the page markup relies on them. The
+   * standalone shell keeps its own list in its chain; test-embedded.mjs reads that chain and fails if
+   * it installs something this list does not (or does not explicitly leave out, NOT_IN_EMBEDDED), so
+   * the two cannot drift apart silently.
+   */
+  const CONTENT_INSTALLERS = Object.freeze([
+    'installRules', 'installPlanningRange', 'installActionPanels', 'installTileReorder', 'installRichText',
+    'installMatrixGrids', 'installCalendars', 'installMaps', 'installRowTones', 'installStickyHeader',
+    'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
+    'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
+    'trackPressedControls',
+  ])
+
+  /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
+  const CONTENT_ACTION_SINKS = Object.freeze([
+    'setElementEventSink', 'setRuleActionSink', 'setCalendarActionSink', 'setMatrixActionSink',
+    'setMapActionSink', 'setPlanningRangeSink', 'setUndoSink', 'setPollingRunner', 'setDropSink',
+    'setKeysActionSink',
+  ])
+
+  /** What the standalone shell installs and the component deliberately does NOT, and why. */
+  const NOT_IN_EMBEDDED = Object.freeze({
+    // a skip link is the first child of the BODY: the host page owns its own landmarks
+    mountSkipLink: 'the host page owns the document landmarks',
+    // it reports EVERY uncaught error of the page to the Mateu backend: in a host page most of them
+    // are the host's own, and they are not ours to ship to another server
+    installClientErrorReporting: 'would ship the host page errors to the Mateu backend',
+    // the IDE visual editor's canvas frames the STANDALONE app (its preview page), never a host app
+    installEditorPreview: 'the visual editor previews the standalone app only',
+    // the tile-reorder sink is wired, with its own payload, by installEmbeddedContentRuntime
+    setTileReorderSink: 'wired separately (its payload is a scope, not an action)',
+    // live reload (dev mode) answers an app-level change by reloading the WINDOW: in a host page that
+    // is the host's app, not ours — the embedded component is not live-reloaded (yet)
+    installDevLiveReload: 'an app-level reload would reload the host page',
+  })
+
+  /**
+   * Installs the content runtime for an embedded component: the same pieces loadMateuShell installs
+   * (CONTENT_INSTALLERS), with every action sink running the page action through the runtime, plus
+   * the transport hooks that feed the busy bar, the error band and the offline band of the frame.
+   */
+  let contentInstalled = false
+  let currentVars = null
+
+  function installEmbeddedContentRuntime(b, runtime) {
+    const runPageAction = (actionId, parameters, atom) => runtime.fireEvent('application:mateuElementEvent', {
+      actionId, parameters, fromNested: !!(atom && atom.fromNested),
+    })
+    for (const sink of CONTENT_ACTION_SINKS) if (typeof b[sink] === 'function') b[sink](runPageAction)
+    if (typeof b.setTileReorderSink === 'function') {
+      b.setTileReorderSink((scope) => runtime.fireEvent('application:mateuTilesReordered', { scope: scope || '' }))
+    }
+    // the document-level listeners once per page; the sinks and hooks above/below follow the
+    // CURRENT component (a new <mateu-ui> takes them over)
+    const vars = runtime.$application.variables
+    if (!contentInstalled) {
+      contentInstalled = true
+      for (const name of CONTENT_INSTALLERS) if (typeof b[name] === 'function') b[name]()
+      if (b.connectivity) {
+        b.connectivity.start()
+        b.connectivity.subscribe((online) => { if (currentVars) currentVars.mateuOffline = !online })
+      }
+    }
+    currentVars = vars
+    if (typeof b.setTransportHooks === 'function') {
+      b.setTransportHooks({
+        onStart: () => { vars.mateuBusy = true; if (b.markPressedControlBusy) b.markPressedControlBusy() },
+        onSettle: ({ failure }) => {
+          vars.mateuBusy = false
+          if (b.clearPressedControlBusy) b.clearPressedControlBusy()
+          if (failure && failure.kind !== 'cancelled') {
+            vars.mateuLastError = failure.message
+            if (b.announce) b.announce(failure.message, { politeness: 'assertive' })
+            emitEmbedded(EMBEDDED_EVENTS.error, { kind: failure.kind, message: failure.message, status: failure.status })
+          }
+        },
+      })
+    }
+  }
+
+  /**
+   * Boots (or re-boots, when the backend or the identity change) the component: the host's identity
+   * and app context, the App of the mount (its REST sources, its home, its menu routes — never
+   * painted: the host owns the chrome), then the route the properties name. Mirrors loadMateuShell
+   * minus the shell chrome; the navigation itself is the shell's own chain (onMateuNavigate).
+   */
+  async function bootEmbedded(b, runtime, config) {
+    const vars = runtime.$application.variables
+    setHostHeaderProvider(headerProviderOf(config))
+    setHostCredentials(config.withCredentials ? 'include' : undefined)
+    // no mount: a host page's URL is the host's — routes never reach it (hash mode, pushes skipped)
+    setMount(null)
+    runtime.$application.constants.mateuBaseUrl = config.baseUrl
+    if (b.setElementModuleBase) b.setElementModuleBase(assetBaseOf(config.baseUrl))
+    vars.mateuAppState = { ...(config.appContext || {}) }
+    const boot = await b.bootstrapShell(config.baseUrl, 'shell')
+    const withoutApp = !b.bootstrapHasApp(boot)
+    b.setMountWithoutApp(withoutApp)
+    const reg = b.reduceContexts({ contexts: {}, stack: [], shell: null }, boot)
+    if (reg.shell && reg.shell.menu && b.expandRemoteMenus) {
+      reg.shell.menu = await b.expandRemoteMenus(reg.shell.menu, { sections: reg.shell.variant === 'HAMBURGER_SECTIONS' })
+    }
+    vars.mateuRegistry = reg
+    const nav = b.shellNavOf(reg)
+    vars.mateuShellSST = nav.serverSideType || ''
+    const firstLeaf = (nav.menuTree || []).find((entry) => !entry.hasChildren)
+    const homeRoute = b.routeUnderMount(nav.homeRoute) || (firstLeaf ? firstLeaf.id : '') || (withoutApp ? '/' : '')
+    vars.mateuHomeRoute = homeRoute
+    await navigateEmbedded(runtime, config, homeRoute)
+    emitEmbedded(EMBEDDED_EVENTS.ready, { route: vars.mateuSelectedNavId || vars.mateuSelectedRoute || '' })
+  }
+
+  /** The host asked for a screen (the route/params/initialState properties): it always happens —
+   *  the policy is for what the SCREEN asks for. */
+  function navigateEmbedded(runtime, config, homeRoute) {
+    const route = composeEmbeddedRoute(config.route, config.params) || homeRoute || runtime.$application.variables.mateuHomeRoute || ''
+    if (!route) return Promise.resolve()
+    setEmbeddedSeed(config.initialState)
+    return runtime.callChain('onMateuNavigate', { event: { detail: { route } }, force: true, __fromHost: true })
+  }
+
+  /** The routines the bridge exports for the component (make-amd adds them to its return). */
+  const EMBEDDED_API = {
+    EMBEDDED_EVENTS,
+    embeddedConfigOf,
+    headerProviderOf,
+    composeEmbeddedRoute,
+    propertyChangeOf,
+    navigationRouteOf,
+    embeddedRouteOfLink,
+    assetBaseOf,
+    setEmbeddedHost,
+    isEmbedded,
+    emitEmbedded,
+    setDocTitle,
+    setEmbeddedSeed,
+    takeEmbeddedSeed,
+    createVbRuntime,
+    embeddedActions,
+    EmbeddedActionChain,
+    CONTENT_INSTALLERS,
+    CONTENT_ACTION_SINKS,
+    installEmbeddedContentRuntime,
+    bootEmbedded,
+    navigateEmbedded,
+    setHostHeaderProvider,
+    setHostCredentials,
+  }
+
+
+  // LIVE RELOAD (modo desarrollo del backend, mateu.dev=true): el mismo contrato que
+  // libs/mateu/src/mateu/ui/infra/dev/liveReloadPolicy.ts — aquí no se hereda nada del core web.
+  //
+  // El backend en modo dev estampa <meta name="mateu-dev" content="/mateu/dev/events"> en el índice
+  // y sirve ese stream SSE: `hello` (con bootId: si cambia, el servidor se reinició → repintar),
+  // `specs-changed` (scope page|app), `reload` (el IDE tras un HotSwap) y `ping`. Una ráfaga de
+  // eventos se colapsa en UNA recarga. `page` repinta la ruta en pantalla CONSERVANDO lo tecleado
+  // (la shell lo pasa a onMateuNavigate como liveState); `app` vuelve a montar la app en la misma URL.
+
+  /** Qué significa un mensaje del stream: { action: 'none'|'page'|'app', bootId, reason }. */
+  function liveReloadDecision(message, knownBootId) {
+    if (!message || typeof message !== 'object') return { action: 'none', bootId: knownBootId }
+    if (message.type === 'hello') {
+      const restarted = !!knownBootId && !!message.bootId && message.bootId !== knownBootId
+      return {
+        action: restarted ? 'page' : 'none',
+        bootId: message.bootId || knownBootId,
+        reason: restarted ? 'server restarted' : undefined,
+      }
+    }
+    if (message.type === 'specs-changed' || message.type === 'reload') {
+      const files = message.files || []
+      const names = files.map((f) => f.substring(f.lastIndexOf('/') + 1))
+      const reason = message.type === 'reload'
+        ? 'reload requested'
+        : names.length === 0 ? 'specs changed'
+          : names.length <= 2 ? names.join(', ') : `${names[0]} and ${names.length - 1} more`
+      return { action: message.scope === 'app' ? 'app' : 'page', bootId: knownBootId, reason }
+    }
+    return { action: 'none', bootId: knownBootId }
+  }
+
+  /** La más fuerte de dos recargas pendientes (app absorbe page). */
+  function strongerReload(a, b) {
+    const rank = { none: 0, page: 1, app: 2 }
+    return (rank[a] || 0) >= (rank[b] || 0) ? a : b
+  }
+
+  /** Dónde está el stream, si el índice lo anuncia (o la app lo fija en window.__MATEU_DEV_EVENTS__). */
+  function devEventsUrlOf(doc, win) {
+    if (win && win.__MATEU_DEV_EVENTS__) return win.__MATEU_DEV_EVENTS__
+    const meta = doc && doc.querySelector ? doc.querySelector('meta[name="mateu-dev"]') : null
+    return (meta && meta.content) || undefined
+  }
+
+  let liveReloadSource = null
+
+  // Lo tecleado en el form del host vive en el borrador de la página de contenido ($page.mateuDraft),
+  // que la shell no ve: la chain que lo acumula lo apunta aquí, con la ruta en que se tecleó.
+  let liveDraft = { route: null, draft: null }
+  function noteLiveDraft(route, draft) { liveDraft = { route: route == null ? null : route, draft } }
+  /** El borrador tecleado en `route` (nada si era de otra pantalla). */
+  function liveDraftFor(route) {
+    return liveDraft.draft && liveDraft.route === (route == null ? null : route) ? liveDraft.draft : null
+  }
+
+  /**
+   * Se suscribe al stream (una vez) y llama a onReload(action, reason) tras cada ráfaga. Sin
+   * <meta name="mateu-dev"> no hace nada. `EventSourceImpl` y `timer` se inyectan en los tests.
+   */
+  function installDevLiveReload(doc, win, onReload, EventSourceImpl, timer = setTimeout) {
+    const ES = EventSourceImpl || (win && win.EventSource)
+    if (liveReloadSource || !ES) return null
+    const url = devEventsUrlOf(doc, win)
+    if (!url) return null
+    const source = new ES(url)
+    liveReloadSource = source
+    let bootId
+    let pending = 'none'
+    let reason
+    let handle
+    source.onmessage = (event) => {
+      let message
+      try { message = JSON.parse(event.data) } catch (e) { return }
+      const decision = liveReloadDecision(message, bootId)
+      bootId = decision.bootId
+      if (decision.action === 'none') return
+      pending = strongerReload(pending, decision.action)
+      reason = decision.reason
+      if (handle !== undefined) clearTimeout(handle)
+      handle = timer(() => {
+        const action = pending
+        pending = 'none'
+        handle = undefined
+        onReload(action, reason)
+        showReloadedPill(doc, reason)
+      }, 60)
+    }
+    return source
+  }
+
+  /** Tests. */
+  function resetDevLiveReload() {
+    if (liveReloadSource && liveReloadSource.close) liveReloadSource.close()
+    liveReloadSource = null
+  }
+
+  /** Una píldora discreta abajo a la izquierda que se desvanece sola. */
+  function showReloadedPill(doc, reason) {
+    if (!doc || !doc.body || !doc.createElement) return
+    let pill = doc.getElementById('mateu-live-reload-indicator')
+    if (!pill) {
+      pill = doc.createElement('div')
+      pill.id = 'mateu-live-reload-indicator'
+      pill.setAttribute('role', 'status')
+      pill.setAttribute('aria-live', 'polite')
+      pill.style.cssText = 'position:fixed;left:12px;bottom:12px;z-index:2147483000;padding:4px 10px;'
+        + 'border-radius:999px;font:12px/1.4 system-ui,sans-serif;background:rgba(30,30,30,.82);'
+        + 'color:#fff;pointer-events:none;transition:opacity .4s ease;opacity:0'
+      doc.body.appendChild(pill)
+    }
+    pill.textContent = '↻ Reloaded' + (reason ? ' · ' + reason : '')
+    pill.style.opacity = '1'
+    clearTimeout(pill.__mateuFade)
+    pill.__mateuFade = setTimeout(() => { pill.style.opacity = '0' }, 1800)
   }
 
   // el importe de un campo money: IntlNumberConverter con estilo moneda (un objeto JSON ya no vale)
@@ -15378,6 +17185,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   return {
     HOST_ID,
+    // live reload contra un backend en modo dev (poc/liveReload.mjs)
+    installDevLiveReload,
+    devEventsUrlOf,
+    noteLiveDraft,
+    liveDraftFor,
+    // embedded mode (embedded.mjs): the <mateu-ui> component's runtime and boot
+    ...EMBEDDED_API,
     // the renderer's own words (i18n.mjs): chains say them in the interface's language
     chromeText,
     chromeLanguage,
@@ -15634,6 +17448,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     DEFAULT_TIMEOUT_MS,
     // static bundle: la shell carga el manifest al arrancar; loadRoute responde desde él sin backend
     loadBundleManifest,
+    bundleUrlOf,
     hasBundle,
     awaitBundle,
     // the IDE's visual editor paints with this app in an iframe (editorPreview.mjs): it hands the

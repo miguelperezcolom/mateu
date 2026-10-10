@@ -51,7 +51,8 @@ public class ComponentTreeSupplierMapper {
         TreeActionHarvester.withTreeActions(
             ActionMapper.mapActions(componentTreeSupplier, httpRequest),
             componentTreeSupplier,
-            leaf),
+            leaf,
+            httpRequest),
         TriggerMapper.mapTriggers(componentTreeSupplier, httpRequest),
         RuleMapper.mapRules(componentTreeSupplier, httpRequest),
         ValidationMapper.mapValidations(componentTreeSupplier, route, httpRequest),

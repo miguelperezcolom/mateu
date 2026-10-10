@@ -19,6 +19,11 @@ public sealed record CatalogAction(string Id)
     public IReadOnlyList<FlowStep> Steps { get; init; } = [];
     public CatalogRestAction? RestAction { get; init; }
 
+    /// <summary>Who may run it (authored <c>access:</c>; null = anybody). A caller who does not
+    /// satisfy it never receives the entry, buttons naming it are disabled, and a call that reaches
+    /// the server anyway answers 403 — the same as a page's own declared action. Never on the wire.</summary>
+    public Access? Access { get; init; }
+
     /// <summary>True when the action runs in the browser: a non-empty flow or a REST call.</summary>
     public bool ClientRunnable() => Steps.Count > 0 || RestAction is not null;
 }

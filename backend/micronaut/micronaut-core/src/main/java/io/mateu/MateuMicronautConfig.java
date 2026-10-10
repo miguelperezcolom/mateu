@@ -19,6 +19,9 @@ import io.micronaut.serde.annotation.SerdeImport;
 @Import(
     packages = {
       "io.mateu.core.application",
+      // the translation catalogue (YamlUidlLoader / YamlAppLoader inject it): without it the
+      // first YAML-backed request fails with "No bean of type TranslationRegistry"
+      "io.mateu.core.application.i18n",
       "io.mateu.core.application.runaction",
       "io.mateu.core.application.security",
       "io.mateu.core.domain.act",

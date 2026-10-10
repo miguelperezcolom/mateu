@@ -11,12 +11,14 @@
 // Server-only fields the renderer does not require (wireVersion, appData/appState) are omitted — see
 // the render-parity note in design/phase6-client-side-expander.md.
 
+import { withoutAccessKeys } from './accessKeys.ts'
 import type UIIncrement from '@mateu/shared/apiClients/dtos/UIIncrement'
 import { UIFragmentAction } from '@mateu/shared/apiClients/dtos/UIFragmentAction'
 import { expandComponent, type FluentNode } from '@infra/expander/expandComponent'
 import type Component from '@mateu/shared/apiClients/dtos/Component'
 import { ComponentType } from '@mateu/shared/apiClients/dtos/ComponentType'
 import { actionCatalogue, referencedCatalogueActions } from '@infra/ui/actionCatalogue'
+import { resolveFieldTypes } from '@infra/expander/fieldTypes'
 
 /** A parsed definition: either an envelope with a `layout:` (+ optional viewModel/actions/triggers),
  *  or a bare component tree (the whole object IS the layout). Loose by design — the authored surface
@@ -66,6 +68,11 @@ export interface ExpansionContext {
  *    pair `@RestData` produces), so the record arrives with no backend. */
 export function expandDefinition(spec: DefinitionSpec, route: string, title?: string,
                                  ctx: ExpansionContext = {}): UIIncrement {
+    // No server, no identity: the access keys are cosmetic here (rendered unrestricted, warned once).
+    spec = withoutAccessKeys(spec)
+    // `fieldType:` references take their type's attributes as defaults BEFORE anything is expanded,
+    // exactly as the server's YAML loader does (FieldTypeResolver) — same rule, same output.
+    spec = resolveFieldTypes(spec)
     const layout = layoutOf(spec)
     if (!layout) throw new Error(`Definition for route "${route}" has no layout to expand`)
 

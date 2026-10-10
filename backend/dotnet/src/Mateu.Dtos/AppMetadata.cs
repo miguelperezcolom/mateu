@@ -94,6 +94,13 @@ public record AppMetadataDto(
     /// does not declare against this list before a server dispatch. Empty when there is none.
     /// (Mirrors io.mateu.dtos.AppDto.actionCatalogue.)</summary>
     public IReadOnlyList<ActionDto> ActionCatalogue { get; init; } = [];
+
+    /// <summary>True when the server runs in SAMPLE mode (<c>MATEU_SOURCES_MOCK=true</c> or the
+    /// handler's MockSources option): REST sources carrying sample data answer with it on the
+    /// proxied leg AND the direct one, so the client turns sample mode on. Null (omitted) otherwise —
+    /// never silently in production. (Mirrors io.mateu.dtos.AppDto.mockSources.)</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public bool? MockSources { get; init; }
 }
 
 /// <summary>One named entry of the REST source catalogue as it travels to the renderer. Provenance is
@@ -104,7 +111,10 @@ public record RestSourceEntryDto(
     IReadOnlyDictionary<string, string> Fields,
     string TotalPath,
     string Provenance,
-    string Description);
+    string Description,
+    // The response sample, ONLY when the app runs in sample mode; omitted otherwise.
+    [property: System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    object? Sample = null);
 
 /// <summary>One named business component with its resolved composition. (Mirrors
 /// io.mateu.dtos.ComponentEntryDto.)</summary>

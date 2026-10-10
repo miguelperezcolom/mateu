@@ -70,6 +70,7 @@ export default defineConfig({
 					label: 'UX Patterns',
 					items: [
 						{ slug: 'ux-patterns', label: 'Overview & Principles' },
+						{ slug: 'ux-patterns/how-ux-is-evaluated', label: 'How UX is evaluated' },
 						{ slug: 'ux-patterns/page-templates', label: 'Page Templates' },
 						{ slug: 'ux-patterns/choosing-a-page-template', label: 'Choosing a Page Template' },
 						{ slug: 'ux-patterns/navigation', label: 'Navigation & Menus' },
@@ -281,6 +282,7 @@ export default defineConfig({
 								{ slug: 'java-user-manual/build/static-bundle' },
 								{ slug: 'java-user-manual/build/deploy-to-production', label: 'Deploy to production' },
 								{ slug: 'java-user-manual/build/static-ui' },
+								{ slug: 'java-user-manual/build/live-reload', label: 'Live reload (development mode)' },
 							],
 						},
 						{
@@ -342,6 +344,11 @@ export default defineConfig({
 						{ slug: 'java-ui-definition/route-registry' },
 						{ slug: 'java-ui-definition/rest-source-catalogue' },
 						{ slug: 'java-ui-definition/action-catalogue' },
+						{ slug: 'java-ui-definition/environments' },
+						{ slug: 'java-ui-definition/yaml-security', label: 'Permissions in YAML' },
+						{ slug: 'java-ui-definition/yaml-i18n', label: 'Translations in YAML' },
+						{ slug: 'java-ui-definition/field-types' },
+						{ slug: 'java-ui-definition/project-settings', label: 'Project Settings (Renderer)' },
 						{ slug: 'java-ui-definition/yaml-app-shell', label: 'App Shell as Data' },
 						{ slug: 'java-ui-definition/partials' },
 						{ slug: 'java-ui-definition/visual-editor', label: 'Authoring with the Visual Editor' },

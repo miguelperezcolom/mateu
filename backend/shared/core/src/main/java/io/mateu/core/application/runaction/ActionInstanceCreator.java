@@ -89,10 +89,7 @@ public class ActionInstanceCreator {
     // set) still goes through findRouteResolver, so a class mediator keeps serving its own
     // sub-routes.
     if (wrapsInAppShell(command)) {
-      var app =
-          yamlAppLoader.load(
-              routeRegistry.rootDefinitionFor(command.route()),
-              routeRegistry.mountHomeFor(command.route()));
+      var app = shellFor(command);
       return appMenuResolver
           .resolveMenuIfApp(finalCommand, app, routeInstanceCreator::findRouteResolver)
           .switchIfEmpty((Mono) Mono.just(app));
@@ -112,8 +109,7 @@ public class ActionInstanceCreator {
    * carries the home route and the frontend navigates there.
    */
   private Mono<?> loadYaml(RunActionCommand command) {
-    var appDefinition = routeRegistry.rootDefinitionFor(command.route());
-    var app = yamlAppLoader.load(appDefinition, routeRegistry.mountHomeFor(command.route()));
+    var app = shellFor(command);
     if (app == null || isTerminalRoute(command.route()) || isAppLevelAction(command)) {
       return loadYamlPage(command);
     }
@@ -131,13 +127,27 @@ public class ActionInstanceCreator {
   }
 
   /**
+   * The data-authored app shell of the route's mount AS THIS REQUEST SEES IT (menu items it may not
+   * reach and {@code ${i18n.…}} resolved — see {@link YamlAppLoader#load(String, String,
+   * io.mateu.uidl.interfaces.HttpRequest, java.util.function.Predicate)}), or null.
+   */
+  private io.mateu.uidl.fluent.AppShell shellFor(RunActionCommand command) {
+    var httpRequest = command.httpRequest();
+    return yamlAppLoader.load(
+        routeRegistry.rootDefinitionFor(command.route()),
+        routeRegistry.mountHomeFor(command.route()),
+        httpRequest,
+        path -> routeRegistry.isReachable(path, httpRequest));
+  }
+
+  /**
    * A YAML page for the route (no app shell involved). A bare layout renders as-is (static); a page
    * that declares a {@code modelView:} instantiates that class as the ModelView (state + actions),
    * and the reflective mapper re-applies the YAML layout to it (by route). Empty when there is no
    * spec.
    */
   private Mono<?> loadYamlPage(RunActionCommand command) {
-    var spec = yamlUidlLoader.loadSpec(command.route());
+    var spec = yamlUidlLoader.loadSpec(command.route(), command.httpRequest());
     if (spec == null) {
       return Mono.empty();
     }
@@ -169,7 +179,7 @@ public class ActionInstanceCreator {
     if (layout == null) {
       return null;
     }
-    var declaredActions = withCatalogue(layout, actions);
+    var declaredActions = withCatalogue(layout, actions, command.httpRequest());
     var declaredTriggers =
         triggers == null ? java.util.List.<io.mateu.uidl.fluent.Trigger>of() : triggers;
     var pathOnly = stripQuery(command.route());
@@ -217,11 +227,13 @@ public class ActionInstanceCreator {
    * component only claims the actions it advertises).
    */
   private java.util.List<io.mateu.uidl.fluent.Action> withCatalogue(
-      io.mateu.uidl.fluent.Component layout, java.util.List<io.mateu.uidl.fluent.Action> actions) {
+      io.mateu.uidl.fluent.Component layout,
+      java.util.List<io.mateu.uidl.fluent.Action> actions,
+      io.mateu.uidl.interfaces.HttpRequest httpRequest) {
     var own = actions == null ? java.util.List.<io.mateu.uidl.fluent.Action>of() : actions;
     var owned = new java.util.HashSet<String>();
     own.forEach(a -> owned.add(a.id()));
-    var fromCatalogue = actionRegistry.referencedBy(layout, own, owned);
+    var fromCatalogue = actionRegistry.referencedBy(layout, own, owned, httpRequest);
     if (fromCatalogue.isEmpty()) {
       return own;
     }

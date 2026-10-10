@@ -52,7 +52,7 @@ frontend/web/monorepo/    ← TypeScript/Lit/Vite monorepo (workspaces: apps/*, 
                             generado desde poc/); poc/ = fuente única del core (reduceContexts +
                             transport) con 32 tests de contrato (node test.mjs); `npm run build`
                             (grunt vb-build) → build/optimized; `npm run copy` empaqueta ese build
-                            en backend/shared/frontend/redwood (jar io.mateu:redwood — añadirlo
+                            en backend/shared/frontend/redwood (jar io.mateu:mateu-redwood — añadirlo
                             como dependencia en lugar de vaadin-lit sirve la app VB: _index.html
                             con marcadores AQUIELTITULODELAPAGINA + AQUIUI/HASTAAQUIUI — el
                             <mateu-ui> que inyecta el controller queda display:none, transporta
@@ -84,7 +84,7 @@ e2e/              ← Playwright end-to-end tests + SUT (subject under test) app
 
 ### Two-Step Annotation Processing
 
-`@UI` classes can live in a framework-agnostic module (no Spring/Quarkus dep, only `io.mateu:uidl`).
+`@UI` classes can live in a framework-agnostic module (no Spring/Quarkus dep, only `io.mateu:mateu-uidl`).
 
 1. **Indexer AP** (`annotation-processor-indexer`) — compile the UI module with this AP; it writes `META-INF/mateu/ui-registrations` into the jar.
 2. **Framework AP** (e.g. `annotation-processor-mvc`) — compile the app module with this AP **and** with the UI module on the AP classpath; it reads the index and generates Spring MVC / WebFlux / Micronaut / Quarkus controllers.
@@ -242,6 +242,39 @@ environment without a rebuild.
   serialised uidl record needs a name that is not a getter.** Pinned by a round-trip test.
 - Tests: `RestSourceRegistryTest` (12), `restSourceCatalogue.test.ts` (12). User docs:
   `doc/.../java-ui-definition/rest-source-catalogue.md`.
+
+### More authored kinds under `specs/ui/` (2026-10-10)
+
+Each file kind is a `type:` branch of `specs-schema.json` and a New › Mateu file kind in IntelliJ/
+VS Code; YAML wins over the code supplier, like routes and sources. All but project settings are
+ported to .NET/Python.
+
+- **Action catalogue** — `actions.yaml` / any `type: Actions` file + `ActionCatalogSupplier`: named
+  client-runnable actions (flows, `restAction`) a page or the shell runs by id, resolved OWNER FIRST
+  (the page/shell's own actions win). Wire `AppDto.actionCatalogue`, bundle `manifest.actions`.
+  Docs `java-ui-definition/action-catalogue.md`.
+- **Access keys in YAML** — `access:` on routes, `eyesOnly`/`readOnlyUnless`/`disabledUnless` on
+  components and catalogue actions, applied SERVER-side per request (refused route/action → 403,
+  locked fields dropped from state); cosmetic (shown unrestricted) in Play and static bundles.
+  Docs `yaml-security.md`.
+- **Translations** — `type: Translations` / `translations/<locale>.yaml` + `TranslationsSupplier`;
+  `${i18n.key}` in any YAML text, resolved per request locale (the bundle ships the catalogue and the
+  browser resolves it). Docs `yaml-i18n.md`.
+- **Environments** — `type: Environment` / `environments/<name>.yaml`: per-source overrides
+  (`baseUrl`/`url`/`headers`/`proxy`, never secrets) for `MATEU_ENVIRONMENT` / `-Dmateu.environment`
+  / `-Dmateu.bundle.environment`. An overlay keeps the source's sample data. Docs `environments.md`.
+- **Field types** — `types.yaml` (`type: Types`) + `FieldTypeCatalogSupplier`: a `FormField`/
+  `GridColumn` names one by `fieldType:` and takes its attributes (incl. status `tones`) as defaults,
+  its own winning; resolved by the YAML loader and by the browser expander. Docs `field-types.md`.
+- **Sample data on sources** — `sample:` / `sampleFile:` on a `sources.yaml` entry (or an inline
+  source): answered INSTEAD of calling the endpoint only in sample mode — always in the visual
+  editor, a bundle built with `-Dmateu.bundle.mock=true`, an app run with `mateu.sources.mock=true` /
+  `MATEU_SOURCES_MOCK=true` (`AppDto.mockSources`); writes succeed without persisting. Never
+  otherwise, and outside sample mode the samples do not travel.
+- **Project settings** — `specs/ui/project.yaml` (`type: Project`): `renderer: vaadin|redwood`,
+  chosen once for the editor canvas, Play, `mateu-bundle:bundle` (`-Dmateu.bundle.renderer`
+  overrides) and the IDEs; the server warns at startup when the classpath serves another renderer.
+  Docs `project-settings.md`.
 
 ### Response shaping: what a source can and cannot normalise (2026-09-08)
 
@@ -421,7 +454,7 @@ Nine work streams were integrated on `integration/ga` for the first beta/GA. The
 
 ## Figma design-to-code pipeline (IN PROGRESS, 2026-07-15)
 
-`design/figma/contract.json` is the single source of truth of the Figma ⇄ Mateu mapping (64 components + 10 page templates, full catalog): Figma component names `Mateu/<Category>/<Name>`, variant axes named after the Mateu annotation/record params, `#config` text-layer convention for non-visual props (`fieldId=email; actionId=save`), text-layer → param mapping (headings map to `title`, the modux node field — NOT the Java param name), per-language construct notes, and a declarative `sketch` the plugin draws. **Page templates (2026-07-19)**: the `Mateu/Page Templates/*` category carries full-page entries (Smart Search, To-do List, Calendar, Dashboard, Welcome, Hero Search, Collection Detail, General Overview, Item Overview, Foldout) with kinds like `smartSearchPage`/`todoList`/`calendarPage` and the `pageWidth` variant axis (fixed/fullWidth/edgeToEdge — the first RDS template parameter) on all of them; the modux importer + codegen need those kinds registered when the mirrors sync. `design/figma/plugin` (TS + esbuild, `npm run build`) is a data-driven Figma plugin that BUILDS the library from the contract when run inside Figma (one page per category, component sets from variant axes) — regenerate + republish when the catalog grows; verify with tsc only (Figma can't run headless). The reverse path lives in modux (`model-driven-generator`, `application/usecases/project/importfigma/`): Figma REST JSON → contract → `PageEntity` + `UiComponentNodeEntity` trees (`params` map added; kinds extended). Import conventions: top-level frames = pages, instance internals are chrome (texts harvested, never children), containers absorb the SIBLINGS that follow them (the `@Section` semantics), `Mateu · *` canvases are skipped. **The contract is PUBLISHED (2026-08-12)**: `design/figma/contract.json` is packaged into the `io.mateu:uidl` jar at `META-INF/mateu/contract.json` (a build-time resource copy in uidl's pom, NOT a checked-in duplicate — that would just be a fourth mirror), pinned by `FigmaContractPackagedTest`. Consumers should READ IT FROM THE ARTIFACT instead of keeping a copy. The hand-kept mirrors in modux (`model-driven-generator` and `figma-maven-plugin`, both `src/main/resources/figma/mateu-contract.json`) had already drifted **15 components behind** — the entire Page Templates category — so modux's importer/codegen cannot handle those frames at all; migrating them to the dependency is the pending cross-repo half. **Build-time codegen (2026-07-15)**: modux's `figma-maven-plugin` (goal `figma:generate`, GENERATE_SOURCES) scans `src/main/figma/*.json` (downloaded `GET /v1/files/:key` payloads) and emits one view class per designed frame in java/csharp/python under `target/generated-sources/figma` (java joins the build via addCompileSourceRoot); fields/sections/notices/texts/bullets/separators/buttons come out ready, display components and wizard/crud frames as TODO skeletons. It embeds its own light reader (`FigmaScreenReader`, same conventions as the importer) + a THIRD contract mirror in its resources — sync all mirrors when contract.json changes. PENDING (fase 3): modux generation templates consuming the imported kinds (full-model path) + deeper emitters (wizard steps, crud wiring). User docs: `doc/.../design-systems/figma.md` (includes the end-to-end flow + maven plugin usage).
+`design/figma/contract.json` is the single source of truth of the Figma ⇄ Mateu mapping (64 components + 10 page templates, full catalog): Figma component names `Mateu/<Category>/<Name>`, variant axes named after the Mateu annotation/record params, `#config` text-layer convention for non-visual props (`fieldId=email; actionId=save`), text-layer → param mapping (headings map to `title`, the modux node field — NOT the Java param name), per-language construct notes, and a declarative `sketch` the plugin draws. **Page templates (2026-07-19)**: the `Mateu/Page Templates/*` category carries full-page entries (Smart Search, To-do List, Calendar, Dashboard, Welcome, Hero Search, Collection Detail, General Overview, Item Overview, Foldout) with kinds like `smartSearchPage`/`todoList`/`calendarPage` and the `pageWidth` variant axis (fixed/fullWidth/edgeToEdge — the first RDS template parameter) on all of them; the modux importer + codegen need those kinds registered when the mirrors sync. `design/figma/plugin` (TS + esbuild, `npm run build`) is a data-driven Figma plugin that BUILDS the library from the contract when run inside Figma (one page per category, component sets from variant axes) — regenerate + republish when the catalog grows; verify with tsc only (Figma can't run headless). The reverse path lives in modux (`model-driven-generator`, `application/usecases/project/importfigma/`): Figma REST JSON → contract → `PageEntity` + `UiComponentNodeEntity` trees (`params` map added; kinds extended). Import conventions: top-level frames = pages, instance internals are chrome (texts harvested, never children), containers absorb the SIBLINGS that follow them (the `@Section` semantics), `Mateu · *` canvases are skipped. **The contract is PUBLISHED (2026-08-12)**: `design/figma/contract.json` is packaged into the `io.mateu:mateu-uidl` jar at `META-INF/mateu/contract.json` (a build-time resource copy in uidl's pom, NOT a checked-in duplicate — that would just be a fourth mirror), pinned by `FigmaContractPackagedTest`. Consumers should READ IT FROM THE ARTIFACT instead of keeping a copy. The hand-kept mirrors in modux (`model-driven-generator` and `figma-maven-plugin`, both `src/main/resources/figma/mateu-contract.json`) had already drifted **15 components behind** — the entire Page Templates category — so modux's importer/codegen cannot handle those frames at all; migrating them to the dependency is the pending cross-repo half. **Build-time codegen (2026-07-15)**: modux's `figma-maven-plugin` (goal `figma:generate`, GENERATE_SOURCES) scans `src/main/figma/*.json` (downloaded `GET /v1/files/:key` payloads) and emits one view class per designed frame in java/csharp/python under `target/generated-sources/figma` (java joins the build via addCompileSourceRoot); fields/sections/notices/texts/bullets/separators/buttons come out ready, display components and wizard/crud frames as TODO skeletons. It embeds its own light reader (`FigmaScreenReader`, same conventions as the importer) + a THIRD contract mirror in its resources — sync all mirrors when contract.json changes. PENDING (fase 3): modux generation templates consuming the imported kinds (full-model path) + deeper emitters (wizard steps, crud wiring). User docs: `doc/.../design-systems/figma.md` (includes the end-to-end flow + maven plugin usage).
 
 ## Creating a Release
 

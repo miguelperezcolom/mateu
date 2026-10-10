@@ -123,7 +123,14 @@ public record AppDto(
      * #actions}. A client resolves an id its owner (the page, the shell) does not declare against
      * this list before falling back to a server dispatch. Empty when the app declares none.
      */
-    List<ActionDto> actionCatalogue)
+    List<ActionDto> actionCatalogue,
+    /**
+     * True when the server runs in SAMPLE mode ({@code mateu.sources.mock=true}): REST sources that
+     * carry sample data answer with it instead of being called, on the proxied leg (server) AND the
+     * direct one (browser) — so the client needs to know. Null (absent) otherwise: never silently
+     * in production.
+     */
+    Boolean mockSources)
     implements ComponentMetadataDto {
 
   public AppDto {

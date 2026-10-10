@@ -28,6 +28,16 @@ scaffolding del starter (sección 4, que conservan sus cabeceras de copyright de
 (`oj-sp-*`) y el visual-runtime se referencian por URL y se cargan del CDN de Oracle en tiempo
 de ejecución, exactamente igual que en una app VB alojada en Oracle.
 
+### El componente embebido (`mateu-ui-<versión>.zip`)
+
+`npm run build` genera también el JET Custom Component `<mateu-ui>` (`build/embedded/`, lo produce
+`poc/make-embedded.mjs` a partir de los ficheros de arriba y de `embedded/mateu-ui/`). Contiene
+**solo código de Mateu** — ningún fichero de Oracle: JET, el tema Redwood, los componentes Spectra y
+el Core Pack son los que ya carga la aplicación ANFITRIONA. Importado en una aplicación de Oracle
+Visual Builder, se ejecuta íntegramente bajo el acuerdo con Oracle de esa aplicación. En una página
+que no tenga configuradas las rutas de módulo `oj-sp`/`oj-dynamic`/`oj-oars` (una página JET sin
+VB), el componente las apunta al CDN de Oracle — por URL, nunca copiadas.
+
 ## Qué pertenece a Oracle
 
 ### 1. Oracle JET y el tema Redwood — UPL 1.0 (open source)

@@ -13,7 +13,7 @@
  *    the Vaadin renderer. Without `--backend` it falls back to the in-browser expander, which is
  *    close but not identical — the run says which ones fell back.
  *  - redwood: the same harness with the canvas switched to Redwood — the editor's Redwood canvas,
- *    i.e. the REAL VB app of io.mateu:redwood framed in editor-preview mode and handed the sample's
+ *    i.e. the REAL VB app of io.mateu:mateu-redwood framed in editor-preview mode and handed the sample's
  *    `__preview__` (apps/redwood/poc/editorPreview.mjs). No VB dev server to run: the app is served
  *    from the jar's resources (MATEU_REDWOOD_STATIC overrides — rebuild them with `npm run build &&
  *    npm run copy` in apps/redwood after touching its poc/). Needs Oracle's CDN.

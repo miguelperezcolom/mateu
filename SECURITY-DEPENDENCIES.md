@@ -17,7 +17,7 @@ developer machine or in CI, against our own inputs, and never in a Mateu app's r
 `@oracle/grunt-vb-audit`, which are tarballs pinned to Oracle's CDN (`static.oracle.com`): we cannot
 upgrade their dependencies, only override them, and Oracle's tooling is not ours to patch. Everything
 below is `dev: true` in the lockfile — it runs only when someone runs `npm run build` / `serve` in
-`apps/redwood`; the renderer we ship (the `io.mateu:redwood` jar) is the OUTPUT of that build, with
+`apps/redwood`; the renderer we ship (the `io.mateu:mateu-redwood` jar) is the OUTPUT of that build, with
 none of these packages in it.
 
 | Alert | Package | Advisory | Why it stays |

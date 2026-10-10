@@ -20,7 +20,13 @@ public sealed partial class SyncHandler
             ActionGuard.EnsureViewVisible(type);
             var kind = StateString(GetState(rq.Parameters, "_sourceKind"));
             var id = StateString(GetState(rq.Parameters, "_sourceId"));
-            if (ResolveProxySource(type, rq, kind, id) is { } source)
+            var source = ResolveProxySource(type, rq, kind, id);
+            // SAMPLE mode (opt-in only): a source carrying sample data answers with it instead of
+            // being called — the proxied twin of the browser's short-circuit, so both legs agree. A
+            // read gets the sample; a write succeeds without persisting anything.
+            if (source is { Sample: { } sample } && SampleMode)
+                json = SampleSources.IsRead(source.Method) ? sample : new Dictionary<string, object?>();
+            else if (source is not null)
                 json = await FetchProxyAsync(source, rq.ComponentState, cancellationToken).ConfigureAwait(false)
                        ?? new Dictionary<string, object?>();
         }

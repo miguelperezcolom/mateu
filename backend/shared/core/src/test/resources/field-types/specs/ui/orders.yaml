@@ -1,0 +1,9 @@
+type: Listing
+title: Orders
+rowsSource: {ref: orders}
+columns:
+  - {type: GridColumn, id: id, label: Id, identifier: true}
+  - {type: GridColumn, id: status, fieldType: OrderStatus}
+  - {type: GridColumn, id: total, fieldType: Money, label: Amount}
+filters:
+  - {type: FormField, id: status, fieldType: OrderStatus}

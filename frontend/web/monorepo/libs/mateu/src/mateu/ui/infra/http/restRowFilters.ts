@@ -114,3 +114,32 @@ export function filterExternalRows(
         return declared.every(field => matchesFilter(row, field, state ?? {}))
     })
 }
+
+/**
+ * In-memory sort of rows fetched without server-side paging (an endpoint that answers the whole
+ * collection, or a source answered from its SAMPLE): the listing's `sort` state, `[{fieldId,
+ * direction}]`, applied in order. Numbers compare numerically, everything else as case-insensitive
+ * text; a blank value sorts last either way. Returns a new array; no sort = the rows untouched.
+ */
+export function sortExternalRows(
+    rows: Record<string, unknown>[],
+    sort: { fieldId?: string; field?: string; direction?: string }[] | undefined,
+): Record<string, unknown>[] {
+    const keys = (Array.isArray(sort) ? sort : [])
+        .map(s => ({ id: s?.fieldId ?? s?.field ?? '', desc: s?.direction === 'descending' || s?.direction === 'desc' }))
+        .filter(k => k.id !== '')
+    if (keys.length === 0) return rows
+    const compare = (a: unknown, b: unknown): number => {
+        const aBlank = blank(a), bBlank = blank(b)
+        if (aBlank || bBlank) return aBlank === bBlank ? 0 : aBlank ? 1 : -1
+        if (typeof a === 'number' && typeof b === 'number') return a - b
+        return String(a).localeCompare(String(b), undefined, { sensitivity: 'base', numeric: true })
+    }
+    return [...rows].sort((x, y) => {
+        for (const k of keys) {
+            const c = compare(x[k.id], y[k.id])
+            if (c !== 0) return k.desc ? -c : c
+        }
+        return 0
+    })
+}

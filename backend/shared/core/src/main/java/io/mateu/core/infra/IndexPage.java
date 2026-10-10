@@ -68,6 +68,8 @@ public final class IndexPage {
 
   /** Reads {@code indexHtmlPath} off the classpath (relative to {@code anchor}) and renders it. */
   public static String render(Class<?> anchor, String indexHtmlPath, Spec spec) {
+    // Where the served renderer is resolved: warn (once) when it is not the project's declared one.
+    ProjectRendererCheck.warnOnce(Thread.currentThread().getContextClassLoader());
     return render(InputStreamReader.readFromClasspath(anchor, indexHtmlPath), spec);
   }
 
@@ -93,7 +95,25 @@ public final class IndexPage {
     if (!spec.extraHead().isEmpty()) {
       html = html.replace("</head>", spec.extraHead() + "</head>");
     }
-    return html;
+    return devHead(html);
+  }
+
+  /** The meta tag a dev-mode page carries: where the live-reload events are. */
+  public static final String DEV_META =
+      "<meta name=\"mateu-dev\" content=\""
+          + io.mateu.core.infra.dev.DevEndpoint.EVENTS_PATH
+          + "\">";
+
+  /**
+   * In development mode ({@link io.mateu.core.infra.dev.DevMode}) the page announces the
+   * live-reload event stream with a {@code <meta name="mateu-dev">}, so every renderer subscribes
+   * to it; outside dev mode the page is untouched.
+   */
+  public static String devHead(String html) {
+    if (!io.mateu.core.infra.dev.DevMode.enabled() || html.contains("name=\"mateu-dev\"")) {
+      return html;
+    }
+    return html.replace("</head>", DEV_META + "</head>");
   }
 
   /**

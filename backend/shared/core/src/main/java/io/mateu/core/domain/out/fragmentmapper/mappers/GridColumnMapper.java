@@ -60,6 +60,10 @@ public class GridColumnMapper {
             .aggregate(gridColumn.aggregate())
             // only lines > 1 travel: a listing without @Line keeps the wire it had
             .line(gridColumn.line() > 1 ? gridColumn.line() : null)
+            .tones(
+                gridColumn.tones() == null || gridColumn.tones().isEmpty()
+                    ? null
+                    : gridColumn.tones())
             .build(),
         gridColumn.id(),
         List.of(),

@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 @Named
 @Singleton
 @Slf4j
-public class ComponentRegistry {
+public class ComponentRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
   /** The conventional authored catalogue. */
   static final String CONVENTIONAL_COMPONENTS = "specs/ui/components.yaml";
@@ -52,6 +52,16 @@ public class ComponentRegistry {
   private final ObjectMapper yaml = YamlUidlMapperFactory.create();
 
   private volatile ComponentCatalog catalog;
+
+  public ComponentRegistry() {
+    io.mateu.core.infra.dev.DevSpecs.register(this);
+  }
+
+  /** Dev mode: a spec changed — the catalogue is read again on next use. */
+  @Override
+  public void invalidateSpecs() {
+    catalog = null;
+  }
 
   /** The merged catalogue (authored over derived), loaded once. */
   public ComponentCatalog catalog() {
@@ -225,7 +235,9 @@ public class ComponentRegistry {
    * bare array; each entry is {@code {name, component}} with the component a fluent tree.
    */
   public ComponentCatalog authoredFrom(ClassLoader classLoader) {
-    var cl = classLoader == null ? ComponentRegistry.class.getClassLoader() : classLoader;
+    var cl =
+        io.mateu.core.infra.dev.DevSpecs.classLoader(
+            classLoader == null ? ComponentRegistry.class.getClassLoader() : classLoader);
     try (InputStream is = cl.getResourceAsStream(CONVENTIONAL_COMPONENTS)) {
       if (is == null) {
         return ComponentCatalog.empty();
@@ -266,7 +278,8 @@ public class ComponentRegistry {
       return null;
     }
     try {
-      var component = yaml.treeToValue(componentNode, Component.class);
+      var component =
+          yaml.treeToValue(FieldTypeRegistry.resolveWithAppTypes(componentNode), Component.class);
       return new ComponentEntry(nameNode.asText(), component);
     } catch (Exception e) {
       log.warn(

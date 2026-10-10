@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 @MicronautTest
 @Property(name = "mateu.cors.allowed-origins", value = AdapterParityITFoundation.ALLOWED_ORIGIN)
 @Property(name = "mateu.mcp.enabled", value = "true")
+@Property(name = "mateu.dev", value = "true")
 class AdapterParityEnabledTest {
 
   @Inject EmbeddedServer server;
@@ -32,5 +33,10 @@ class AdapterParityEnabledTest {
   @Test
   void servesMcpWhenEnabled() {
     contract.servesMcpWhenEnabled();
+  }
+
+  @Test
+  void servesDevEndpointsWhenEnabled() throws Exception {
+    contract.servesDevEndpointsWhenEnabled();
   }
 }

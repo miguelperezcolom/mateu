@@ -7,9 +7,9 @@ import * as path from 'path'
  * `vscode-webview://` origin does not have), so the editor frames it from this server instead:
  *
  *  - `/redwood-preview.html` and its `/assets/…` — the canvas page, from the bundle (`media/`);
- *  - `/redwood/…` — the Redwood/VB app of io.mateu:redwood, which the editor's build copies into the
+ *  - `/redwood/…` — the Redwood/VB app of io.mateu:mateu-redwood, which the editor's build copies into the
  *    bundle under `redwood/`; a bundle without it falls back to the configured backend's own Redwood
- *    app (`/redwood/x` → `<backend>/x`, what a backend depending on io.mateu:redwood serves at root).
+ *    app (`/redwood/x` → `<backend>/x`, what a backend depending on io.mateu:mateu-redwood serves at root).
  *
  * JET, the Spectra components and the VB runtime are never served from here: Oracle's CDN.
  */

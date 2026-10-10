@@ -19,6 +19,16 @@
 //
 // Pure except installEditorPreview (DOM + window), so test.mjs exercises the protocol, the answers
 // and the stamping with plain objects.
+//
+// The canvas designs with SAMPLE data: installing the preview switches sample mode on (the same
+// opt-in rule as everywhere — the visual editor always previews with samples), and each render
+// message may carry the project's REST source catalogue (`sources`, sources.yaml with its `sample:`
+// data) and its field types (`types`, types.yaml): a listing reading `rowsSource: {ref}` paints the
+// sample rows, a select with `optionsSource: {ref}` the sample options, and a `fieldType:` reference
+// the handed increment still carries is resolved here (restSources.mjs, fieldTypes.mjs).
+
+import { setRestSourceCatalogue, setSampleMode } from './restSources.mjs'
+import { setFieldTypeCatalogue, resolveFieldTypes } from './fieldTypes.mjs'
 
 /** The single route of the preview app. */
 export const PREVIEW_ROUTE = '/preview'
@@ -58,20 +68,44 @@ export function previewAppIncrement(initiator = 'shell') {
 export function previewLoadIncrement(fragment, request = {}) {
   if (!fragment || !fragment.component) return EMPTY_INCREMENT()
   const state = fragment.state || {}
+  const own = fragment.component
+  // A page with BEHAVIOUR already arrives as a ServerSide component carrying its actions and
+  // triggers (the route's `data:` → `__restdata__` + its OnLoad, a restAction button): it IS the
+  // page, so it is used as such — wrapped, its triggers would never fire (they are read off the
+  // page's own tree) and its restActions would never be found.
+  const page = own.type === 'ServerSide'
+    ? {
+      ...own, id: 'mateu-editor-page', serverSideType: own.serverSideType || PREVIEW_SST,
+      route: request.route || PREVIEW_ROUTE, actions: own.actions || [], triggers: own.triggers || [],
+      rules: own.rules || [], initialData: { ...(own.initialData || {}), ...state },
+    }
+    : {
+      type: 'ServerSide', id: 'mateu-editor-page', serverSideType: PREVIEW_SST,
+      route: request.route || PREVIEW_ROUTE, actions: [], triggers: [], rules: [],
+      children: [own], initialData: state,
+    }
   return {
     commands: [], messages: [],
     fragments: [{
       targetComponentId: request.initiatorComponentId || '',
       action: 'Replace',
-      state,
+      state: own.type === 'ServerSide' ? page.initialData : state,
       data: fragment.data || {},
-      component: {
-        type: 'ServerSide', id: 'mateu-editor-page', serverSideType: PREVIEW_SST,
-        route: request.route || PREVIEW_ROUTE, actions: [], triggers: [], rules: [],
-        children: [fragment.component], initialData: state,
-      },
+      component: page,
     }],
   }
+}
+
+/**
+ * What a render message brings besides the fragment: the project's source catalogue and field
+ * types are adopted (a message without them leaves the previous ones), and the fragment comes back
+ * with any `fieldType:` reference resolved.
+ */
+export function adoptRenderMessage(msg) {
+  if (!msg || !msg.fragment) return null
+  if (Array.isArray(msg.sources)) setRestSourceCatalogue(msg.sources)
+  if (Array.isArray(msg.types)) setFieldTypeCatalogue(msg.types)
+  return resolveFieldTypes(msg.fragment)
 }
 
 /** The answer to a request the app sends to its backend, or null when it is not a Mateu call
@@ -178,6 +212,8 @@ export function installEditorPreview(win, opts = {}) {
   const doc = win.document
   const post = (msg) => { try { win.parent.postMessage({ [PREVIEW_MESSAGE_KEY]: msg.kind, ...msg }, '*') } catch (e) { /* no parent */ } }
   doc.documentElement.classList.add('mateu-editor-preview')
+  // the editor always previews REST sources with their sample data (never the live endpoint)
+  setSampleMode(true)
   const style = doc.createElement('style')
   style.textContent = EDITOR_PREVIEW_CSS
   doc.head.appendChild(style)
@@ -282,7 +318,7 @@ export function installEditorPreview(win, opts = {}) {
     if (!msg || typeof msg !== 'object') return
     const kind = msg[PREVIEW_MESSAGE_KEY]
     if (kind === 'render' && msg.fragment) {
-      fragment = msg.fragment
+      fragment = adoptRenderMessage(msg)
       const pending = waiters
       waiters = []
       pending.forEach((resolve) => resolve(fragment))

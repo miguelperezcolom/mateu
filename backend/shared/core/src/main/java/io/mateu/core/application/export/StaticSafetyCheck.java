@@ -32,7 +32,9 @@ import java.util.Set;
  *
  * <ul>
  *   <li>a route that could not be bundled at all (it would be backend-served, and there is none);
- *   <li>{@code @EyesOnly} — a screen that depends on WHO asks cannot be one file for everyone;
+ *   <li>{@code @EyesOnly} — a screen that depends on WHO asks cannot be one file for everyone; the
+ *       same for the YAML access keys ({@code access:} on a route, {@code eyesOnly:} / {@code
+ *       readOnlyUnless:} / {@code disabledUnless:} / {@code access:} in a definition);
  *   <li>Java action methods ({@code @Button}, {@code @Toolbar}, {@code @ListToolbarButton}, …)
  *       without {@code @RestAction}, and {@code ActionHandler}s;
  *   <li>rows from {@code Listing.search} (a {@code Listing} with no {@code @RestListing}) or from a
@@ -103,6 +105,23 @@ public final class StaticSafetyCheck {
         manifest.definitions() != null ? manifest.definitions() : Map.<String, JsonNode>of();
     for (var entry : routes) {
       var def = entry.definition() == null ? null : definitions.get(entry.definition());
+      // YAML access rules depend on WHO asks: with no server there is no identity to check them
+      // against, so a static bundle would show everybody the same (unrestricted or denied) screen.
+      if (entry.restrictsAccess()) {
+        out.add(
+            new Violation(
+                "/" + entry.route(),
+                "declares access: — it depends on who asks, and a static bundle has no identity"));
+      }
+      if (io.mateu.core.application.security.YamlAccess.declaresAccess(def)) {
+        out.add(
+            new Violation(
+                "/" + entry.route(),
+                "its definition '"
+                    + entry.definition()
+                    + "' declares access keys (eyesOnly/readOnlyUnless/disabledUnless/access) —"
+                    + " they depend on who asks, and a static bundle has no identity"));
+      }
       if (def == null) {
         continue;
       }

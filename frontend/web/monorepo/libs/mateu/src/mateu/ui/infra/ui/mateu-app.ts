@@ -1,7 +1,7 @@
 import { customElement, query, state } from "lit/decorators.js";
 import {css, html, nothing, PropertyValues, TemplateResult} from "lit";
 import ComponentElement from "@infra/ui/ComponentElement";
-import { setRestSourceCatalogue } from '../http/restSourceCatalogue.ts'
+import { setRestSourceCatalogue, setSampleMode } from '../http/restSourceCatalogue.ts'
 import { setComponentCatalogue } from '../http/componentCatalogue.ts'
 import { announceCapabilityMismatch } from '../capabilities/capabilities.ts'
 import { fetchExternalJson } from '../http/externalOptions.ts'
@@ -370,7 +370,7 @@ export class MateuApp extends ComponentElement {
     }
 
     itemSelected = (e: MenuBarItemSelectedEvent) => {
-        const v = e.detail.value as any
+        const v = e.detail.value as unknown as MenuOption
         // a remote section whose remote did not answer: nothing to open — ask it again instead
         if (v.unavailable) {
             retryUnavailableMenus()
@@ -380,7 +380,7 @@ export class MateuApp extends ComponentElement {
     }
 
     itemSelectedTiles = (e: MenuBarItemSelectedEvent) => {
-        const option: MenuOption = (e.detail.value as any)._menuOption
+        const option: MenuOption = (e.detail.value as unknown as { _menuOption: MenuOption })._menuOption
         if (option.submenus && option.submenus.length > 0) {
             this.tilesMenuOption = option
         } else {
@@ -923,6 +923,9 @@ export class MateuApp extends ComponentElement {
                 // The ACTION catalogue: an id a page or the shell names but does not declare runs
                 // the catalogue's flow / REST call before going to the server.
                 setActionCatalogue(app.actionCatalogue)
+                // Sample mode is only ever switched ON by the app (the server opted in with
+                // mateu.sources.mock=true); an app without the flag leaves it as it is.
+                if (app.mockSources) setSampleMode(true)
                 // The business-component catalogue (coherence-plan #13): a ComponentRef carries only
                 // a name, so the compositions have to be in place before anything renders one.
                 setComponentCatalogue(app.components)

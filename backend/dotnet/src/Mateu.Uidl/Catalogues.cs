@@ -48,6 +48,15 @@ public sealed record RestDataSource
     public string? LabelPath { get; init; }
     public bool Proxy { get; init; }
 
+    /// <summary>SAMPLE data: the response this endpoint would return (so the paths apply as usual),
+    /// answered INSTEAD of calling it — only in sample mode (the visual editor, a bundle built with
+    /// the mock flag, or an app that opted in with <c>MATEU_SOURCES_MOCK=true</c>). Never silently in
+    /// production. Plain data (dictionaries, lists, scalars); null = no sample.</summary>
+    public object? Sample { get; init; }
+
+    /// <summary>True when this descriptor carries sample data.</summary>
+    public bool CarriesSample() => Sample is not null;
+
     /// <summary>A descriptor that only names a catalogue entry.</summary>
     public static RestDataSource OfRef(string name) => new() { Ref = name.Trim() };
 
@@ -69,6 +78,7 @@ public sealed record RestDataSource
             ValuePath = Blank(ValuePath) ? from.ValuePath : ValuePath,
             LabelPath = Blank(LabelPath) ? from.LabelPath : LabelPath,
             Proxy = Proxy || from.Proxy,
+            Sample = Sample ?? entry.EffectiveSample(),
         };
     }
 
@@ -85,6 +95,18 @@ public sealed record RestSourceEntry(string Name, RestDataSource Source)
     public IReadOnlyDictionary<string, string> Fields { get; init; } = new Dictionary<string, string>();
     public string TotalPath { get; init; } = "";
     public string Description { get; init; } = "";
+
+    /// <summary>SAMPLE data — the response the endpoint would return — answered INSTEAD of calling
+    /// it, in sample mode only (see <see cref="RestDataSource.Sample"/>).</summary>
+    public object? Sample { get; init; }
+
+    /// <summary>The same sample read from a JSON/YAML file, relative to the specs directory; the
+    /// loader inlines it into <see cref="Sample"/> (an inline <c>sample:</c> wins).</summary>
+    public string SampleFile { get; init; } = "";
+
+    /// <summary>The sample this entry answers with in sample mode: its own, else the one its source
+    /// carries inline; null when it has none.</summary>
+    public object? EffectiveSample() => Sample ?? Source?.Sample;
 
     /// <summary>The effective provenance, never Auto: a declared value wins; Auto reads the url.</summary>
     public RestSourceProvenance EffectiveProvenance() =>

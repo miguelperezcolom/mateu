@@ -26,8 +26,25 @@ public sealed class MateuOptions
     /// shows its message.</summary>
     public bool? DetailedErrors { get; set; }
 
+    /// <summary>Development mode (live reload): specs watched, every cache dropped on change and
+    /// <c>GET /mateu/dev/events</c> + <c>POST /mateu/dev/reload</c> served. Null (the default) means
+    /// "only when the MATEU_DEV environment variable is true" — never set it in a production profile.</summary>
+    public bool? Dev { get; set; }
+
     /// <summary>The client proxied REST fetches use (null → a shared client with a 60 s timeout).</summary>
     public HttpClient? HttpClient { get; set; }
+
+    /// <summary>The deployment environment whose <c>type: Environment</c> file is overlaid on the REST
+    /// source catalogue (re-pointing base urls / urls / headers / proxy without editing
+    /// sources.yaml). Null (the default) reads MATEU_ENVIRONMENT; none → the catalogue as authored.
+    /// Never put a secret in an environment file — use <c>${secret.X}</c>.</summary>
+    public string? Environment { get; set; }
+
+    /// <summary>SAMPLE mode: REST sources that carry sample data (<c>sample:</c> / <c>sampleFile:</c>
+    /// in sources.yaml) answer with it instead of being called, on the proxied leg and — told by the
+    /// app metadata — the browser's direct one. Null (the default) reads the environment variable
+    /// <c>MATEU_SOURCES_MOCK</c> (<c>true</c>/<c>1</c>). Never switch it on in production.</summary>
+    public bool? MockSources { get; set; }
 }
 
 /// <summary>The default claims → <see cref="Identity"/> mapping. Claim names vary by issuer, so

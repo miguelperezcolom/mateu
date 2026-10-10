@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import java.util.Map;
 import lombok.Builder;
 
@@ -41,10 +42,45 @@ public record RestDataSource(
      * When true the fetch goes through the Mateu server (proxy mode) — it resolves CORS and keeps
      * auth secrets server-side; false (default) = the renderer fetches the endpoint directly.
      */
-    boolean proxy) {
+    boolean proxy,
+    /**
+     * SAMPLE data: the response this endpoint would return (so {@code itemsPath}/{@code totalPath}
+     * apply as usual), used INSTEAD of calling it — only in sample mode: always in the visual
+     * editor, in a bundle built with the mock flag, and at runtime only when the app opts in with
+     * {@code mateu.sources.mock=true}. Never silently in production. Null = no sample.
+     */
+    @Experimental("sample data / sample mode") Object sample) {
 
   public RestDataSource {
     ref = ref == null ? "" : ref.trim();
+  }
+
+  /** The descriptor without sample data — the shape every existing caller builds. */
+  public RestDataSource(
+      String ref,
+      String url,
+      String method,
+      Map<String, String> headers,
+      String body,
+      String itemsPath,
+      String valuePath,
+      String labelPath,
+      boolean proxy) {
+    this(ref, url, method, headers, body, itemsPath, valuePath, labelPath, proxy, null);
+  }
+
+  /**
+   * True when this descriptor carries sample data. Named {@code carriesSample}, not {@code
+   * hasSample}/{@code isSampled}, so Jackson never reads it as a property.
+   */
+  public boolean carriesSample() {
+    return sample != null;
+  }
+
+  /** This descriptor with the given sample data (null clears it). */
+  public RestDataSource withSample(Object sampleData) {
+    return new RestDataSource(
+        ref, url, method, headers, body, itemsPath, valuePath, labelPath, proxy, sampleData);
   }
 
   /**
@@ -84,7 +120,8 @@ public record RestDataSource(
         blank(itemsPath) ? from.itemsPath() : itemsPath,
         blank(valuePath) ? from.valuePath() : valuePath,
         blank(labelPath) ? from.labelPath() : labelPath,
-        proxy || from.proxy());
+        proxy || from.proxy(),
+        sample != null ? sample : entry.effectiveSample());
   }
 
   private static boolean blank(String value) {

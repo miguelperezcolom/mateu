@@ -1,6 +1,7 @@
 import * as vscode from 'vscode'
 import { connectSrc, sourceOrigins } from './csp'
 import * as fs from 'fs'
+import { randomBytes } from 'crypto'
 import { BackendProxy } from './backendProxy'
 
 /**
@@ -150,11 +151,9 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
     }
 }
 
+// A CSP nonce is only worth anything if it cannot be predicted: from the CSPRNG, not Math.random.
 function makeNonce(): string {
-    let s = ''
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-    for (let i = 0; i < 32; i++) s += chars.charAt(Math.floor(Math.random() * chars.length))
-    return s
+    return randomBytes(24).toString('base64url')
 }
 
 /**

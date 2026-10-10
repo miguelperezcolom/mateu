@@ -139,7 +139,9 @@ define([
       // del manifest AQUÍ, antes del bootstrap. bootstrapShell/loadRoute esperan al fetch en vuelo
       // (awaitBundle) y responden desde el bundle cuando la ruta está — así las cargas van sin
       // backend y, si el backend no está, hasta la shell cae a la ruta raíz bundleada.
-      const bundleUrl = $application.constants.mateuBundleUrl;
+      // the bundle's index.html names it on <mateu-ui bundleUrl> (a static Redwood bundle); the
+      // app constant stays for a hand-configured VB deployment
+      const bundleUrl = bridge.bundleUrlOf(document) || $application.constants.mateuBundleUrl;
       if (bundleUrl) bridge.loadBundleManifest(bundleUrl);
 
       // Resiliencia del transporte (mismo contrato que los renderers web, ver poc/resilience.mjs).
@@ -364,6 +366,36 @@ define([
           Actions.callChain(liveContext(), {
             chain: 'onMateuNavigate',
             params: { event: { detail: { route } } },
+          });
+        });
+      }
+
+      // LIVE RELOAD (sólo si el índice trae <meta name="mateu-dev">: un backend con mateu.dev=true).
+      // Un cambio de página repinta la ruta en pantalla conservando lo tecleado (liveState); uno de
+      // app (rutas, montajes, la shell) vuelve a montar la app en la misma URL.
+      if (!window.__mateuLiveReloadWired) {
+        window.__mateuLiveReloadWired = true;
+        bridge.installDevLiveReload(document, window, (action) => {
+          if (action === 'app') {
+            window.location.reload();
+            return;
+          }
+          const ctx = liveContext();
+          const reg = ctx.$application.variables.mateuRegistry;
+          const host = reg && reg.contexts ? reg.contexts[bridge.HOST_ID] : null;
+          const route = window.__mateuLoadedFull || urlRoute() || ctx.$application.variables.mateuHomeRoute || '';
+          if (!route) {
+            window.location.reload();
+            return;
+          }
+          Actions.callChain(ctx, {
+            chain: 'onMateuNavigate',
+            params: {
+              event: { detail: { route } },
+              fromUrl: true,
+              force: true,
+              liveState: Object.assign({}, (host && host.state) || {}, bridge.liveDraftFor(window.__mateuLoadedFull) || {}),
+            },
           });
         });
       }

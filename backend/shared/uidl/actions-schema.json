@@ -229,7 +229,8 @@
         },
         "proxy" : {
           "type" : "boolean"
-        }
+        },
+        "sample" : { }
       }
     },
     "RunAction" : {

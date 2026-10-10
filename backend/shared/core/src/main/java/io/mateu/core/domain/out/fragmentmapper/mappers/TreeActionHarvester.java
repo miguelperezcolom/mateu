@@ -32,6 +32,18 @@ public final class TreeActionHarvester {
 
   public static List<ActionDto> withTreeActions(
       List<ActionDto> declared, Object view, ComponentDto tree) {
+    return withTreeActions(declared, view, tree, null);
+  }
+
+  /**
+   * As {@link #withTreeActions(List, Object, ComponentDto)}, for one caller: a catalogue action
+   * whose {@code access:} the caller does not satisfy is not advertised.
+   */
+  public static List<ActionDto> withTreeActions(
+      List<ActionDto> declared,
+      Object view,
+      ComponentDto tree,
+      io.mateu.uidl.interfaces.HttpRequest httpRequest) {
     var referenced = new LinkedHashSet<String>();
     collect(tree, referenced, new java.util.IdentityHashMap<>());
     if (referenced.isEmpty()) {
@@ -59,7 +71,7 @@ public final class TreeActionHarvester {
         unresolved.add(id);
       }
     }
-    all.addAll(ActionCatalogMapper.referenced(unresolved, known));
+    all.addAll(ActionCatalogMapper.referenced(unresolved, known, httpRequest));
     return all;
   }
 
