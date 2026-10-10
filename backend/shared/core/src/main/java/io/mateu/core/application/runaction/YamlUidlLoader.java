@@ -89,10 +89,21 @@ public class YamlUidlLoader {
    */
   private final RouteRegistry routeRegistry;
 
+  /**
+   * The app's field types ({@code specs/ui/types.yaml} + code suppliers): a field or column naming
+   * one by {@code fieldType:} takes the type's attributes as defaults before it is built.
+   */
+  private final FieldTypeRegistry fieldTypes;
+
   @jakarta.inject.Inject
-  public YamlUidlLoader(RouteRegistry routeRegistry) {
+  public YamlUidlLoader(RouteRegistry routeRegistry, FieldTypeRegistry fieldTypes) {
     this.mapper = YamlUidlMapperFactory.create();
     this.routeRegistry = routeRegistry;
+    this.fieldTypes = fieldTypes == null ? new FieldTypeRegistry() : fieldTypes;
+  }
+
+  public YamlUidlLoader(RouteRegistry routeRegistry) {
+    this(routeRegistry, new FieldTypeRegistry());
   }
 
   /** Without a registry: the convention alone, as before it existed. */
@@ -378,7 +389,9 @@ public class YamlUidlLoader {
       return null;
     }
     var node = root.has("layout") ? root.get("layout") : root;
-    return mapper.treeToValue(node, Component.class);
+    // Field types are defaults resolved BEFORE the tree becomes components, so a FormField and a
+    // GridColumn share one vocabulary and the wire never carries `fieldType`.
+    return mapper.treeToValue(fieldTypes.resolve(node), Component.class);
   }
 
   private InputStream resolve(String path) {

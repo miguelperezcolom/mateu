@@ -72,7 +72,9 @@ class UidlSchemaTest {
     // catalogue, component) and carry the defs they reference (RouteEntry, RestSourceEntry and the
     // component catalog) — a specs/ui file kind missing from here is one the editor cannot
     // validate.
-    assertThat(generated.get("oneOf")).hasSize(5);
+    // at least: mount, routes envelope, bare route list, sources, types, component (other catalogue
+    // kinds may add their own branch)
+    assertThat(generated.get("oneOf").size()).isGreaterThanOrEqualTo(6);
     assertThat(generated.get("$defs").has("RouteEntry")).isTrue();
     assertThat(generated.get("$defs").has("RestSourceEntry")).isTrue();
     assertThat(generated.get("$defs").has("Component")).isTrue();
@@ -130,6 +132,43 @@ class UidlSchemaTest {
             "show");
   }
 
+  private static Path typesSchemaFile() {
+    return Path.of(System.getProperty("user.dir")).resolve("types-schema.json");
+  }
+
+  @Test
+  void theCheckedInTypesSchemaMatchesTheFieldTypeEntryRecord() throws IOException {
+    var generated = UidlSchemaGenerator.generateTypes();
+
+    if (Boolean.getBoolean("uidl.schema.write")) {
+      UidlSchemaGenerator.write(typesSchemaFile(), generated);
+      return;
+    }
+
+    assertThat(MAPPER.readTree(Files.readString(typesSchemaFile())))
+        .as("types-schema.json is stale — regenerate it (see this class's javadoc)")
+        .isEqualTo(generated);
+  }
+
+  @Test
+  void aFormFieldAndAGridColumnMayReferenceAFieldType() {
+    var defs = UidlSchemaGenerator.generate().get("$defs");
+    assertThat(defs.get("FormField").get("properties").has("fieldType")).isTrue();
+    assertThat(defs.get("GridColumn").get("properties").has("fieldType")).isTrue();
+  }
+
+  @Test
+  void theSpecsSchemaHasATypesBranch() {
+    var oneOf = UidlSchemaGenerator.generateSpecs().get("oneOf");
+    var hasTypes = false;
+    for (var branch : oneOf) {
+      var type = branch.path("properties").path("type").path("const").asText("");
+      hasTypes |= "Types".equals(type);
+    }
+    assertThat(hasTypes).isTrue();
+    assertThat(UidlSchemaGenerator.generateSpecs().get("$defs").has("FieldTypeEntry")).isTrue();
+  }
+
   private static Path sourcesSchemaFile() {
     return Path.of(System.getProperty("user.dir")).resolve("sources-schema.json");
   }
@@ -167,7 +206,14 @@ class UidlSchemaTest {
     assertThat(properties.fieldNames())
         .toIterable()
         .containsExactlyInAnyOrder(
-            "name", "source", "provenance", "fields", "totalPath", "description");
+            "name",
+            "source",
+            "provenance",
+            "fields",
+            "totalPath",
+            "description",
+            "sample",
+            "sampleFile");
   }
 
   @Test

@@ -116,7 +116,14 @@ public record AppDto(
      * lowered to {@code commands}, which the client applies when a menu leaf's {@code RunAction}
      * rule names it — no server round-trip. Empty for a shell that declares none.
      */
-    List<ActionDto> actions)
+    List<ActionDto> actions,
+    /**
+     * True when the server runs in SAMPLE mode ({@code mateu.sources.mock=true}): REST sources that
+     * carry sample data answer with it instead of being called, on the proxied leg (server) AND the
+     * direct one (browser) — so the client needs to know. Null (absent) otherwise: never silently
+     * in production.
+     */
+    Boolean mockSources)
     implements ComponentMetadataDto {
 
   public AppDto {

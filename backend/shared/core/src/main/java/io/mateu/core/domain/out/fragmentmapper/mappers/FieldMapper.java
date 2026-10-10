@@ -115,7 +115,8 @@ public class FieldMapper {
         source.itemsPath(),
         source.valuePath(),
         source.labelPath(),
-        source.proxy());
+        source.proxy(),
+        source.sample());
   }
 
   static RemoteCoordinatesDto mapRemoteCoordinates(RemoteCoordinates remoteCoordinates) {

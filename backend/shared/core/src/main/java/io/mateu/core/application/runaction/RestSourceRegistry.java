@@ -238,13 +238,46 @@ public class RestSourceRegistry {
       log.warn("Ignoring a REST source with no name in {}", CONVENTIONAL_SOURCES);
       return null;
     }
+    var sampleFile = text(node, "sampleFile");
     return new RestSourceEntry(
         name,
         sourceOf(node.get("source")),
         provenanceOf(node),
         mapOf(node, "fields"),
         text(node, "totalPath"),
-        text(node, "description"));
+        text(node, "description"),
+        node.hasNonNull("sample") ? plain(node.get("sample")) : sampleFromFile(name, sampleFile),
+        sampleFile);
+  }
+
+  /**
+   * A {@code sampleFile:} (JSON or YAML, relative to {@code specs/ui}) as plain data, or null when
+   * none is declared or it cannot be read — a missing sample is WARNed about and the source simply
+   * has none, it never takes the catalogue down.
+   */
+  private Object sampleFromFile(String sourceName, String sampleFile) {
+    if (sampleFile == null || sampleFile.isBlank()) {
+      return null;
+    }
+    var path = "specs/ui/" + sampleFile.replaceFirst("^/+", "").replaceFirst("^specs/ui/", "");
+    try (InputStream is = classLoader().getResourceAsStream(path)) {
+      if (is == null) {
+        log.warn("REST source '{}': sampleFile {} not found", sourceName, path);
+        return null;
+      }
+      return plain(yaml.readTree(is)); // YAML is a superset of JSON: one reader for both
+    } catch (Exception e) {
+      log.warn(
+          "REST source '{}': could not read sampleFile {}: {}", sourceName, path, e.getMessage());
+      return null;
+    }
+  }
+
+  private static final ObjectMapper PLAIN = new ObjectMapper();
+
+  /** A JSON tree as plain maps/lists/scalars — what the wire and the manifest carry. */
+  static Object plain(JsonNode node) {
+    return node == null || node.isNull() ? null : PLAIN.convertValue(node, Object.class);
   }
 
   /** The nested {@code source:} object as a descriptor. */
@@ -262,6 +295,7 @@ public class RestSourceRegistry {
         .valuePath(node.hasNonNull("valuePath") ? node.get("valuePath").asText() : "value")
         .labelPath(node.hasNonNull("labelPath") ? node.get("labelPath").asText() : "label")
         .proxy(node.hasNonNull("proxy") && node.get("proxy").asBoolean())
+        .sample(node.hasNonNull("sample") ? plain(node.get("sample")) : null)
         .build();
   }
 

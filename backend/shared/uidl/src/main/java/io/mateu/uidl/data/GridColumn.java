@@ -37,7 +37,11 @@ public record GridColumn(
     String aggregate,
     // Multi-line rows (@Line): the 1-based line of the row this column is drawn on; null/1 = the
     // ordinary columns. A listing with any column on line > 1 draws each row on several lines.
-    Integer line)
+    Integer line,
+    // A status column's badge tone per VALUE (OPEN -> warning): success | warning | danger | info |
+    // neutral, like @RowStatus. Usually supplied by a field type (types.yaml). Null = none, every
+    // value reads by its word as before.
+    java.util.Map<String, String> tones)
     implements GridContent {
 
   public FieldDataType dataType() {

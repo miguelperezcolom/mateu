@@ -123,7 +123,36 @@ public final class MateuBundleExporter {
        * it is purely additive. Only client-expandable definitions travel; a {@code viewModel} route
        * needs a backend and is omitted.
        */
-      Map<String, JsonNode> definitions) {
+      Map<String, JsonNode> definitions,
+      /**
+       * True when the bundle was built with the mock flag ({@code -Dmateu.bundle.mock=true}, see
+       * {@code SampleSources}): the catalogue ships its sources' SAMPLE data and the browser
+       * answers with it instead of calling the endpoints. Null otherwise — and then the samples are
+       * not shipped at all.
+       */
+      Boolean mockSources) {
+
+    /** Pre-sample-mode shape: a bundle that calls its sources for real. */
+    public BundleManifest(
+        String baseUrl,
+        String generatedAt,
+        boolean staticOnly,
+        List<BundleEntry> entries,
+        RouteTable routes,
+        RestSourceCatalog sources,
+        List<String> requiredCapabilities,
+        Map<String, JsonNode> definitions) {
+      this(
+          baseUrl,
+          generatedAt,
+          staticOnly,
+          entries,
+          routes,
+          sources,
+          requiredCapabilities,
+          definitions,
+          null);
+    }
 
     /** Pre-registry shape, kept so existing callers and golden files are unaffected. */
     public BundleManifest(
@@ -177,7 +206,7 @@ public final class MateuBundleExporter {
      * JSON. Walks for the KEY rather than a known DTO shape, so it keeps working if the AppDto
      * moves within the tree — the same channel-independent approach the OpenAPI derivation uses.
      */
-    private static List<String> aggregateCapabilities(List<BundleEntry> entries) {
+    static List<String> aggregateCapabilities(List<BundleEntry> entries) {
       var mapper = new ObjectMapper();
       var caps = new java.util.TreeSet<String>();
       for (var entry : entries) {
@@ -384,14 +413,19 @@ public final class MateuBundleExporter {
               ? exportRoute(baseUrl, route)
               : exportTemplate(baseUrl, route));
     }
+    // Sample data ships only in a bundle built with the mock flag — and then the browser uses it.
+    var mock = io.mateu.core.application.runaction.SampleSources.forBundle();
+    var sources = restSourceCatalogue();
     return new BundleManifest(
         baseUrl,
         java.time.Instant.now().toString(),
         onlyStatic,
         entries,
         authored,
-        restSourceCatalogue(),
-        definitions);
+        mock ? sources : sources.strippedOfSamples(),
+        BundleManifest.aggregateCapabilities(entries),
+        definitions,
+        mock ? Boolean.TRUE : null);
   }
 
   /**
@@ -461,6 +495,7 @@ public final class MateuBundleExporter {
    */
   private static Map<String, JsonNode> collectDefinitions(ClassLoader cl, RouteTable authored) {
     var mapper = new YAMLMapper();
+    var types = new io.mateu.core.application.runaction.FieldTypeRegistry();
     var out = new java.util.LinkedHashMap<String, JsonNode>();
     for (var entry : authored.routes()) {
       var def = entry.definition();
@@ -473,7 +508,11 @@ public final class MateuBundleExporter {
           log.warn("bundle: definition {} not found at classpath:{} — omitted", def, path);
           continue;
         }
-        out.put(def, mapper.readTree(is));
+        // Field types are resolved HERE, at build time: a shipped definition is frozen anyway, so
+        // it
+        // travels with its `fieldType` references already expanded and the browser needs no types
+        // table (the vocabulary is design-time, unlike the source catalogue it is not re-pointed).
+        out.put(def, types.resolve(mapper.readTree(is)));
       } catch (Exception e) {
         log.warn("bundle: could not read definition {}: {}", def, e.toString());
       }

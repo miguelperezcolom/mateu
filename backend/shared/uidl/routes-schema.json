@@ -58,7 +58,8 @@
         },
         "proxy" : {
           "type" : "boolean"
-        }
+        },
+        "sample" : { }
       }
     },
     "RouteEntry" : {

@@ -27,6 +27,12 @@ import java.util.Map;
  *     server-side; blank means the response carries no total and the renderer pages what it fetched
  *     in memory
  * @param description a line for humans, and the {@code summary} of the derived operation
+ * @param sample SAMPLE data — the response the endpoint would return (so {@code itemsPath} and
+ *     {@code totalPath} apply as usual) — answered INSTEAD of calling it, in sample mode only:
+ *     always in the visual editor, in a bundle built with the mock flag, and at runtime only when
+ *     the app opts in ({@code mateu.sources.mock=true}). Never silently in production.
+ * @param sampleFile the same sample read from a JSON/YAML file, relative to {@code specs/ui}; the
+ *     loader inlines it into {@code sample} (an inline {@code sample} wins)
  */
 public record RestSourceEntry(
     String name,
@@ -34,7 +40,9 @@ public record RestSourceEntry(
     RestSourceProvenance provenance,
     Map<String, String> fields,
     String totalPath,
-    String description) {
+    String description,
+    Object sample,
+    String sampleFile) {
 
   public RestSourceEntry {
     name = name == null ? "" : name.trim();
@@ -42,6 +50,36 @@ public record RestSourceEntry(
     fields = fields == null ? Map.of() : Map.copyOf(fields);
     totalPath = totalPath == null ? "" : totalPath;
     description = description == null ? "" : description;
+    sampleFile = sampleFile == null ? "" : sampleFile;
+  }
+
+  /** An entry with no sample data — the shape every existing caller builds. */
+  public RestSourceEntry(
+      String name,
+      RestDataSource source,
+      RestSourceProvenance provenance,
+      Map<String, String> fields,
+      String totalPath,
+      String description) {
+    this(name, source, provenance, fields, totalPath, description, null, "");
+  }
+
+  /**
+   * The sample this entry answers with in sample mode: its own {@code sample}, else the one its
+   * {@code source} carries inline; null when it has none. Not a getter on purpose (manifest Jackson
+   * gotcha — see {@link RestSourceCatalog#hasNoSources()}).
+   */
+  public Object effectiveSample() {
+    if (sample != null) {
+      return sample;
+    }
+    return source == null ? null : source.sample();
+  }
+
+  /** This entry with the given sample data. */
+  public RestSourceEntry withSample(Object sampleData) {
+    return new RestSourceEntry(
+        name, source, provenance, fields, totalPath, description, sampleData, sampleFile);
   }
 
   /** A source with no field mapping and an inferred provenance — the common case. */
@@ -67,6 +105,7 @@ public record RestSourceEntry(
   public RestSourceEntry withField(String fieldName, String path) {
     var merged = new LinkedHashMap<>(fields);
     merged.put(fieldName, path);
-    return new RestSourceEntry(name, source, provenance, merged, totalPath, description);
+    return new RestSourceEntry(
+        name, source, provenance, merged, totalPath, description, sample, sampleFile);
   }
 }

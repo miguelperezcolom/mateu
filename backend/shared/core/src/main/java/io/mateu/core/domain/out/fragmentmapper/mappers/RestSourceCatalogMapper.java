@@ -29,20 +29,33 @@ final class RestSourceCatalogMapper {
   }
 
   static List<RestSourceEntryDto> map(RestSourceCatalog catalogue) {
+    return map(catalogue, io.mateu.core.application.runaction.SampleSources.enabled());
+  }
+
+  /**
+   * The catalogue as wire entries. The samples travel only in sample mode: a production app does
+   * not ship design-time data it will never use.
+   */
+  static List<RestSourceEntryDto> map(RestSourceCatalog catalogue, boolean withSamples) {
     if (catalogue == null || catalogue.hasNoSources()) {
       return List.of();
     }
-    return catalogue.sources().stream().map(RestSourceCatalogMapper::map).toList();
+    return catalogue.sources().stream().map(entry -> map(entry, withSamples)).toList();
   }
 
-  private static RestSourceEntryDto map(RestSourceEntry entry) {
+  private static RestSourceEntryDto map(RestSourceEntry entry, boolean withSamples) {
+    var source = entry.source();
+    if (!withSamples && source != null && source.carriesSample()) {
+      source = source.withSample(null);
+    }
     return new RestSourceEntryDto(
         entry.name(),
-        FieldMapper.mapRestDataSource(entry.source()),
+        FieldMapper.mapRestDataSource(source),
         entry.fields(),
         entry.totalPath(),
         entry.effectiveProvenance().name(),
-        entry.description());
+        entry.description(),
+        withSamples ? entry.sample() : null);
   }
 
   /**
