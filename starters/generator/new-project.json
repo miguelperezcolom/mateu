@@ -24,9 +24,7 @@
     {"id": "python", "label": "Python (FastAPI)", "language": "python", "renderers": [], "samples": ["crud"], "run": "pip install -r requirements.txt && uvicorn main:app --port 8080", "url": "http://localhost:8080"}
   ],
   "$incompatible": "Combinations the generator refuses, with the reason shown to the user. Each is verified to fail at runtime; remove an entry once the framework supports it.",
-  "incompatible": [
-    {"renderer": "redwood", "sample": "crud", "reason": "The Redwood renderer does not render an AutoCrud mounted at the app root yet: pick the Vaadin renderer, or the Empty sample."}
-  ],
+  "incompatible": [],
   "buildTools": [
     {"id": "maven", "label": "Maven", "languages": ["java"]}
   ],
