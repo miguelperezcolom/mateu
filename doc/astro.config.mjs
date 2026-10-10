@@ -161,6 +161,7 @@ export default defineConfig({
 						{ slug: 'ux-patterns/inline-crud-editing', label: 'Inline Editing in Listings' },
 						{ slug: 'ux-patterns/layout-inference', label: 'Layout Inference' },
 						{ slug: 'ux-patterns/slow-connections', label: 'Slow Connections' },
+						{ slug: 'ux-patterns/documents-and-printing', label: 'Documents and Printing' },
 						{ slug: 'ux-patterns/accessibility', label: 'Accessibility' },
 						{ slug: 'ux-patterns/client-side-caching', label: 'Client-Side Caching' },
 					],

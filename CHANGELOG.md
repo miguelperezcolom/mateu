@@ -76,6 +76,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   split into modules, identity and secrets providers, Excel/PDF exports, embedded islands and more.
 - IDE tooling: New › Mateu for every specs/ui file kind, Add Route…, a settings page and
   authentication in IntelliJ; the same in VS Code ("Mateu: New File…", "Mateu: Add Route…").
+- **Documents and printing** (`@Experimental`): an action returns a `Document` (filename, media
+  type, bytes or a lazy supplier, `inline`|`attachment`, `printed()`) and the client shows it in a
+  new tab, downloads it or opens the print dialog for it. Small documents ride the response; large
+  and lazy ones are fetched once from a short-lived URL, `<baseUrl>/mateu/v3/documents/<token>`,
+  served by all five Java adapters, ASP.NET Core and FastAPI. `UICommand.print()` prints the current
+  page without the app chrome (Ctrl+P too). New optional module `io.mateu:mateu-documents`: a
+  `DocumentRenderer` turning HTML into PDF (A4/Letter, header/footer, page numbers, embedded font)
+  on Apache PDFBox + jsoup. Vaadin, Redwood, React Native (system browser / share sheet) and
+  IntelliJ (save dialog / OS viewer / print). See *Documents and printing* in the UX patterns.
 
 ### Fixed
 - .NET and Python primary buttons were sent as `"Primary"` and rendered as plain buttons.

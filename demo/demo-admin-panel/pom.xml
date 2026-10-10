@@ -66,6 +66,12 @@
             <artifactId>mateu-vaadin</artifactId>
             <version>${mateu.version}</version>
         </dependency>
+        <!-- optional: HTML to PDF for the documents demo (/documents-demo) -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-documents</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
