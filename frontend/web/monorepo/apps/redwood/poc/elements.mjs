@@ -77,7 +77,7 @@ export function wireElementEvents(element, atom) {
 const DROP_TAGS = /^(script|iframe|object|embed|link|meta|base|frame|frameset|noscript)$/i
 const URL_ATTRS = /^(href|src|xlink:href|action|formaction|background|poster)$/i
 
-export function sanitizeHtml(html, doc = typeof document !== 'undefined' ? document : null) {
+export function sanitizeElementHtml(html, doc = typeof document !== 'undefined' ? document : null) {
   if (!doc || html == null) return html == null ? '' : String(html)
   const tpl = doc.createElement('template')
   tpl.innerHTML = String(html)
@@ -131,7 +131,7 @@ function hydrate(element, atom) {
   if (atom.style) element.setAttribute('style', atom.style)
   if (atom.cssClasses) element.setAttribute('class', atom.cssClasses)
   if (atom.content) {
-    if (atom.asHtml) element.innerHTML = atom.dataInContent ? sanitizeHtml(atom.content) : atom.content
+    if (atom.asHtml) element.innerHTML = atom.dataInContent ? sanitizeElementHtml(atom.content) : atom.content
     else element.textContent = atom.content
   }
   wireElementEvents(element, atom)

@@ -22,6 +22,26 @@ const strip = (file) =>
 // chat.mjs es autónomo (solo transporte SSE del chat de IA); va al final del scope compartido.
 const body = `${strip('prefs.mjs')}\n\n${strip('navTree.mjs')}\n\n${strip('calendar.mjs')}\n\n${strip('richtext.mjs')}\n\n${strip('links.mjs')}\n\n${strip('reduceContexts.mjs')}\n\n${strip('breadcrumbs.mjs')}\n\n${strip('clientLog.mjs')}\n\n${strip('polling.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('a11y.mjs')}\n\n${strip('elements.mjs')}\n\n${strip('notify.mjs')}\n\n${strip('files.mjs')}\n\n${strip('inputs.mjs')}\n\n${strip('rules.mjs')}\n\n${strip('planning.mjs')}\n\n${strip('actionPanels.mjs')}\n\n${strip('keys.mjs')}\n\n${strip('hover.mjs')}\n\n${strip('dnd.mjs')}\n\n${strip('matrix.mjs')}\n\n${strip('map.mjs')}\n\n${strip('tables.mjs')}\n\n${strip('bundle.mjs')}\n\n${strip('transport.mjs')}\n\n${strip('widgets.mjs')}\n\n${strip('chat.mjs')}`
 
+// Todos los módulos caen en UN scope: dos declaraciones de nivel superior con el mismo nombre no
+// fallan, la ÚLTIMA gana en silencio — así el sanitizador de elements.mjs tapó al de richtext.mjs
+// (el que comprobaban los tests) en todo el bridge. Cualquier nombre repetido rompe el build.
+{
+  const seen = new Map()
+  const decl = /^(?:async\s+)?function\s*\*?\s*([A-Za-z_$][\w$]*)|^(?:const|let|var|class)\s+([A-Za-z_$][\w$]*)/
+  const dups = []
+  for (const line of body.split('\n')) {
+    const m = decl.exec(line)
+    if (!m) continue
+    const name = m[1] || m[2]
+    if (seen.has(name)) dups.push(name)
+    seen.set(name, true)
+  }
+  if (dups.length) {
+    console.error('make-amd: nombres repetidos en el scope compartido del bridge: ' + [...new Set(dups)].join(', '))
+    process.exit(1)
+  }
+}
+
 const amd = `/* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
  * (tests de contrato: cd poc && node test.mjs). */
