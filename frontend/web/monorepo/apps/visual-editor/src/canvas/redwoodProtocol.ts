@@ -11,7 +11,10 @@ export const PREVIEW_KEY = 'mateuPreview'
 export type PreviewFragment = { component?: unknown; state?: unknown; data?: unknown; [k: string]: unknown }
 
 export type EditorToFrame =
-    | { mateuPreview: 'render'; fragment: PreviewFragment }
+    /** `sources` (the project's REST source catalogue, sample data included) and `types` (its field
+     *  types) travel with every render: the frame previews sources with their samples and resolves a
+     *  `fieldType:` the fragment still carries (apps/redwood/poc/editorPreview.mjs adoptRenderMessage). */
+    | { mateuPreview: 'render'; fragment: PreviewFragment; sources?: unknown[]; types?: unknown[] }
     | { mateuPreview: 'select'; id: string | null; label?: string; reveal?: boolean }
 
 export type FrameToEditor =
@@ -37,7 +40,13 @@ export function frameMessageOf(data: unknown): FrameToEditor | null {
     return typeof kind === 'string' && KINDS.has(kind) ? (data as FrameToEditor) : null
 }
 
-export const renderMessage = (fragment: PreviewFragment): EditorToFrame => ({ [PREVIEW_KEY]: 'render', fragment: JSON.parse(JSON.stringify(fragment)) } as EditorToFrame)
+export const renderMessage = (fragment: PreviewFragment, catalogues: { sources?: unknown[]; types?: unknown[] } = {}): EditorToFrame => {
+    const plain = (v: unknown) => JSON.parse(JSON.stringify(v))
+    const msg: Record<string, unknown> = { [PREVIEW_KEY]: 'render', fragment: plain(fragment) }
+    if (Array.isArray(catalogues.sources)) msg.sources = plain(catalogues.sources)
+    if (Array.isArray(catalogues.types)) msg.types = plain(catalogues.types)
+    return msg as EditorToFrame
+}
 
 export const selectMessage = (id: string | null, label = '', reveal = false): EditorToFrame =>
     ({ [PREVIEW_KEY]: 'select', id, label, reveal } as EditorToFrame)

@@ -13,6 +13,7 @@ import { pageActions, upsertAction, newRestAction, setActionField, PageAction } 
 import { newSlotItem } from './model/componentSchema'
 import { isSourcesYaml } from './model/projectIndex'
 import { setRestSourceCatalogue } from '@infra/http/restSourceCatalogue.ts'
+import { setFieldTypeCatalogue, typesOf } from '@infra/expander/fieldTypes.ts'
 import {
     CanvasRendererId, CANVAS_RENDERERS, CANVAS_RENDERER_LABELS, useCanvasRenderer, parseCanvasRenderer,
 } from './canvas/canvasRenderer'
@@ -346,6 +347,9 @@ export class MateuVisualEditor extends LitElement {
         // The canvas resolves `rowsSource: {ref}` / `optionsSource: {ref}` against the app's
         // catalogue, exactly as the running app does — so a listing shows its rows here too.
         setRestSourceCatalogue(this.project.sources as never)
+        // …and the field types (types.yaml) a `fieldType:` reference resolves against, in the
+        // client-side expander and in the Redwood canvas (which gets them with every render)
+        setFieldTypeCatalogue(projectFieldTypes(files))
         this.refreshContract()
     }
 
@@ -1580,4 +1584,16 @@ declare global {
 function editorLinkBase(): string {
     if (window.__mateuEditorUrl) return window.__mateuEditorUrl
     return /^https?:$/.test(location.protocol) ? location.href.split('#')[0] : 'http://localhost:5199/'
+}
+
+/** The field types the mount's types.yaml files declare (`type: Types`, or a top-level `types:` list). */
+function projectFieldTypes(files: ProjectFile[]) {
+    const out: ReturnType<typeof typesOf> = []
+    for (const f of files) {
+        let root: any
+        try { root = parse(f.content ?? '') } catch { continue }
+        if (!root || typeof root !== 'object' || Array.isArray(root)) continue
+        if (root.type === 'Types' || (!root.type && Array.isArray(root.types))) out.push(...typesOf(root))
+    }
+    return out
 }
