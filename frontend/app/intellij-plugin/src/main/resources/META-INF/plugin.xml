@@ -59,6 +59,7 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
         <!-- New | Mateu skeletons (customisable in Settings | Editor | File and Code Templates). Listed in
              /mateu/new-file-kinds.json; NewMateuFileSkeletonsTest keeps the three in sync. -->
         <internalFileTemplate name="Mateu App Shell"/>
+        <internalFileTemplate name="Mateu Project"/>
         <internalFileTemplate name="Mateu Page Blank"/>
         <internalFileTemplate name="Mateu Page Calendar"/>
         <internalFileTemplate name="Mateu Page Collection Detail"/>

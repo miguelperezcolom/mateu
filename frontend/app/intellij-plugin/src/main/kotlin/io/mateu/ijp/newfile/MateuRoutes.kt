@@ -15,7 +15,7 @@ import org.yaml.snakeyaml.constructor.SafeConstructor
  */
 object MateuRoutes {
 
-    enum class SpecKind { MOUNT, ROUTES, SOURCES, APP_SHELL, PAGE }
+    enum class SpecKind { MOUNT, ROUTES, SOURCES, APP_SHELL, PROJECT, PAGE }
 
     /** A discovered specs/ui file; [path] is relative to the specs/ui root, `/`-separated. */
     data class SpecFile(val path: String, val kind: SpecKind) {
@@ -48,6 +48,7 @@ object MateuRoutes {
             "Routes" -> SpecKind.ROUTES
             "Sources" -> SpecKind.SOURCES
             "AppShell" -> SpecKind.APP_SHELL
+            "Project" -> SpecKind.PROJECT
             else -> SpecKind.PAGE
         }
     }
