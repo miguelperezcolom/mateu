@@ -1,5 +1,6 @@
 package io.mateu.sample1.app.patterns;
 
+import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Section;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
@@ -28,7 +29,7 @@ public class SwitcherPage implements RecordSwitcherSupplier {
           new Customer("c2", "Grace Hopper", "New York", "Public sector"),
           new Customer("c3", "José Martí", "La Habana", "SMB"));
 
-  public String customer = "c1";
+  @Hidden public String customer = "c1";
 
   @Section(value = "Contact", editAction = "editContact")
   public String name = "Ada Lovelace";
