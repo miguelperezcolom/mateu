@@ -11,6 +11,7 @@ import lombok.Builder;
 @Builder
 public record NumberRange(Double from, Double to) {
 
+  @com.fasterxml.jackson.annotation.JsonIgnore // a helper, not a property (round-trip tested)
   public boolean isEmpty() {
     return from == null && to == null;
   }
