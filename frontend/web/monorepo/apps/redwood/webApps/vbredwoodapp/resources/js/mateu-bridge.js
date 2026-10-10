@@ -742,9 +742,15 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
 
   /** ¿Es un átomo RICO (display de verdad, no un campo suelto)? Cuando el contenido de una pantalla
    *  los trae, el formulario genérico sobra: sus campos ya se ven en ellos. */
+  const RICH_ATOM_FLAGS = [
+    'isEntityHeader', 'isTaskProgress', 'isMeter', 'isStatusList', 'isLedger', 'isPayment',
+    'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
+    // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
+    // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
+    'isAnchor',
+  ]
   function isRichAtom(a) {
-    return !!(a && (a.isEntityHeader || a.isTaskProgress || a.isMeter || a.isStatusList || a.isLedger
-      || a.isPayment || a.isResourceGrid || a.isAddOns || a.isStat || a.isNotice || a.isPropertyRow))
+    return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
   }
 
   /** ¿Es este bloque de botones el PIE del wizard (Back / Next / la acción de completar)? */
@@ -1624,10 +1630,10 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         return
       }
       if (t === 'CustomField') {
-        // envoltorio: lo que importa es lo que lleva dentro (metadata.content)
-        const inner = m.content
-        if (Array.isArray(inner)) inner.forEach((c) => visit(c, container))
-        else if (inner && typeof inner === 'object') visit(inner, container)
+        // envoltorio: lo que importa es lo que lleva dentro — en metadata.content o, para un
+        // campo que guarda un componente (un Anchor, un Chart… declarado como campo del form),
+        // en children: mirando solo content esos campos desaparecían sin dejar rastro
+        for (const child of kidsOf(node)) visit(child, container)
         return
       }
       if (t === 'Element') {

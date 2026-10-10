@@ -8,7 +8,7 @@ import assert from 'node:assert/strict'
 import { readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { reduceContexts, islandContentOf, HOST_ID } from './reduceContexts.mjs'
+import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, HOST_ID } from './reduceContexts.mjs'
 import { fileDownloadOf, triggerDownload, applyDomEffects } from './files.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -86,12 +86,24 @@ test('Anchor: enlace real; _blank abre otra pestaña con noopener; la url se int
     node({ type: 'Anchor', text: 'Folio en PDF', url: '/files/folio-${state.id}.pdf', target: '_blank' }),
     node({ type: 'Anchor', text: 'Reserva', url: '/reservations/${state.id}' }),
     node({ type: 'Anchor', text: 'sin url', url: '' }),
+    // un Anchor declarado como CAMPO de un formulario llega envuelto en un CustomField (children)
+    node({ type: 'CustomField' }, [node({ type: 'Anchor', text: 'Guía', url: 'https://docs.example', target: '_blank' })]),
   ]), { id: 'R1' })
   const links = atoms.filter((a) => a.isAnchor)
-  assert.equal(links.length, 2)
+  assert.equal(links.length, 3)
+  assert.equal(links[2].href, 'https://docs.example')
   assert.deepEqual(links[0], { isAnchor: true, text: 'Folio en PDF', href: '/files/folio-R1.pdf', target: '_blank', rel: 'noopener noreferrer' })
   assert.equal(links[1].target, '_self')
   assert.equal(links[1].href, '/reservations/R1')
+})
+
+test('Anchor en un formulario real (/billing): se pinta el contenido rico, no el formulario genérico', () => {
+  const reg = reduceContexts(empty(), fixture('billing'))
+  const blocks = hostContentOf(reg.contexts[HOST_ID], null, {})
+  const items = blocks.flatMap((b) => b.items || [])
+  assert.ok(items.some((a) => a.isAnchor), 'el Anchor no se proyectó')
+  assert.ok(items.some((a) => a.isFormLayout), 'los campos tienen que seguir en el oj-form-layout')
+  assert.equal(hostContentShown(blocks, summarizeHost(reg)), true)
 })
 
 test('plantilla: el átomo isAnchor está en la plantilla única y expandido en todas las superficies', () => {

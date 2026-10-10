@@ -62,6 +62,17 @@ public record UICommand(UICommandType type, Object data) {
     return new UICommand(UICommandType.MarkAsDirty, null);
   }
 
+  /**
+   * Makes the browser download {@code content} as {@code filename} (a generated PDF, a CSV
+   * export…). The bytes travel base64-encoded in the response; no download endpoint is needed.
+   */
+  public static UICommand downloadFile(String filename, String mimeType, byte[] content) {
+    return new UICommand(
+        UICommandType.DownloadFile,
+        new FileDownload(
+            filename, mimeType, java.util.Base64.getEncoder().encodeToString(content)));
+  }
+
   /** Clears the dirty state; return this from a save action after persisting changes. */
   public static UICommand markAsClean() {
     return new UICommand(UICommandType.MarkAsClean, null);
