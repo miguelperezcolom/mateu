@@ -121,6 +121,13 @@ define([
             content: bridge.mergeNestedContent(bridge.islandContentOf(islandNow), nestedBlocks) }
         : null;
 
+      // los Element (componentes web, HTML del servidor) del host, del paso del wizard y de la
+      // isla se vuelven a montar: tras una acción de la isla sus huecos se repintan vacíos
+      bridge.mountElementsSoon([].concat(
+        bridge.elementAtomsOf($application.variables.mateuHostContent),
+        bridge.elementAtomsOf($application.variables.mateuWizardContent),
+        bridge.elementAtomsOf(($application.variables.mateuIsland || {}).content)));
+
       for (const toast of allToasts) {
         $page.variables.mateuToastText = toast.text;
         await Actions.callComponentMethod(context, {

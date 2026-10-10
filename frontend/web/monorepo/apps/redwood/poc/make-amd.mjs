@@ -41,6 +41,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
   return {
     HOST_ID,
     mountElements,
+    setElementEventSink,
+    setElementModuleBase,
     mountElementsSoon,
     elementAtomsOf,
     foldoutElementAtomsOf,
@@ -133,6 +135,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     shellNavOf,
     // la subcabecera MENU_ON_TOP: la sección en pantalla y el acento de marca del App
     activeSectionOf,
+    localMenuOptionOf,
+    isSentinelHome,
     sectionOf,
     sectionHomeOf,
     ojIconOf,
@@ -170,6 +174,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     bootstrapShell,
     loadRoute,
     loadRouteInto,
+    loadMenuRouteInto,
     composeInnerRoute,
     mediatorBaseOf,
     routeFlipOf,

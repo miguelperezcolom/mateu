@@ -716,8 +716,9 @@ test('shellNavOf: grupos con rutas terminales + selectores de contexto + header 
   assert.equal(nav.mode, 'drawer')
   const group = nav.menuTree.find((m) => m.hasChildren)
   assert.equal(group.label, 'Gestion')
-  // la ruta compuesta (/gestion/person) NO resuelve por sync → se navega por la terminal
-  assert.deepEqual(group.children.map((c) => c.id), ['/person', '/island-host'])
+  // la ruta COMPUESTA, como Vaadin: resuelve con el serverSideType del app (loadMenuRouteInto),
+  // y un RouteLink de grupo (/gestion/island-host) cae a su terminal si el servidor no la reconoce
+  assert.deepEqual(group.children.map((c) => c.id), ['/gestion/person', '/gestion/island-host'])
   assert.equal(nav.selectors[0].fieldName, 'hotel')
   assert.deepEqual(nav.selectors[0].options.map((o) => o.value), ['Playa', 'Centro'])
   const menu = nav.headerActions.find((a) => a.hasChildren)
@@ -1884,13 +1885,14 @@ atest('remoteRouteOf casa por prefijo: el detalle vive en el pod de su listado',
   } finally { globalThis.fetch = original }
 })
 
-atest('una hoja LOCAL bajo un grupo se sigue navegando por su ruta terminal', async () => {
-  // El contrapunto del test anterior: sin baseUrl no hay pod, y la ruta compuesta del menú
-  // (/gestion/person) no resuelve por sync — se navega por /person, como hasta ahora.
+atest('una hoja LOCAL bajo un grupo se navega por su ruta compuesta (como Vaadin)', async () => {
+  // El contrapunto del test anterior: sin baseUrl no hay pod. La ruta compuesta (/gestion/person)
+  // resuelve con el serverSideType del app — loadMenuRouteInto lo añade, y cae a la terminal si
+  // el servidor no la reconoce (un RouteLink de grupo); ver test-pms.mjs.
   const nav = shellNavOf({ shell: { menu: [
     { label: 'Gestion', route: '/gestion', submenus: [{ label: 'Person', route: '/gestion/person' }] },
   ] } })
-  assert.deepEqual(nav.menuTree[0].children.map((c) => c.id), ['/person'])
+  assert.deepEqual(nav.menuTree[0].children.map((c) => c.id), ['/gestion/person'])
 })
 
 atest('el contexto recuerda de qué pod se cargó, y sus acciones vuelven allí', async () => {

@@ -51,6 +51,17 @@ define([
       const { $application } = context;
 
       const base = $application.constants.mateuBaseUrl;
+      // Element (componentes web): su módulo `import` relativo lo sirve el BACKEND (otro origen en
+      // vb-serve / VB alojado), y sus eventos (Element.on) ejecutan acciones de la página de
+      // contenido, así que viajan como evento de aplicación (el camino del Reintentar). Antes de
+      // la primera navegación: el contenido inicial ya puede traer Elements.
+      bridge.setElementModuleBase(base);
+      bridge.setElementEventSink((actionId, parameters, atom) => {
+        Actions.fireEvent(window.__mateuShellContext || context, {
+          name: 'application:mateuElementEvent',
+          payload: { actionId, parameters, fromNested: !!(atom && atom.fromNested) },
+        });
+      });
 
       // Static-bundle (modo sin backend): si hay un mateuBundleUrl configurado, se arranca la carga
       // del manifest AQUÍ, antes del bootstrap. bootstrapShell/loadRoute esperan al fetch en vuelo

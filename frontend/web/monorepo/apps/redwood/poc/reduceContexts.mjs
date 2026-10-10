@@ -1,5 +1,5 @@
 import { autoTrail } from './breadcrumbs.mjs'
-import { sectionHomeOf, sectionRoutes } from './navTree.mjs'
+import { sectionHomeOf, sectionRoutes, isSentinelHome } from './navTree.mjs'
 // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
 // En la app VB estas funciones serían métodos de app-flow.js; aquí son funciones
 // libres para testearlas en Node.
@@ -831,8 +831,9 @@ export function pageStyleOf(ctx) {
 }
 
 /** Proyección de NAVEGACIÓN de la shell: items de primer nivel + grupos con sus hijos.
- *  Un grupo (submenus en el wire) NO resuelve por sync — sus hijos navegan por la ruta
- *  TERMINAL (la compuesta /gestion/person da "Not found."; se recorta el prefijo del padre).
+ *  Los hijos de un grupo navegan por su ruta COMPUESTA (/gestion/person) con el serverSideType
+ *  del app (como Vaadin); un RouteLink dentro de un grupo no resuelve así y se carga por su
+ *  ruta TERMINAL (loadMenuRouteInto, en transport.mjs).
  *  Selectores de contexto y acciones de cabecera salen listos para bindings simples. */
 // Iconos de menú: el wire trae nombres NEUTRALES (convención Mateu: set de Vaadin,
 // p.ej. "vaadin:calendar-user") — cada renderer los traduce a su set; aquí, al icon
@@ -911,9 +912,12 @@ export function ojIconOrGenericOf(icon) {
  */
 function navNodeOf(option, parentRoute) {
   const raw = option.route || option.path || ''
-  const id = !option.baseUrl && parentRoute && raw.indexOf(parentRoute + '/') === 0
-    ? raw.slice(parentRoute.length)
-    : raw
+  // la ruta COMPUESTA (/gestion/person), como en Vaadin: es un camino de menú que el backend
+  // resuelve con el serverSideType del app (onMateuNavigate lo añade vía localMenuOptionOf).
+  // Recortarla a la terminal (/person) sólo funcionaba si el campo @Menu se llamaba como la ruta
+  // @UI de su clase; con `@Menu FloorPlan floorPlan` + @UI("/floor-plan") quedaba sin dueño.
+  void parentRoute
+  const id = raw
   // una entrada OCULTA (@Menu @Hidden, visible:false) no se dibuja a ninguna profundidad: su ruta
   // sigue resolviendo (la registra el transporte), pero el menú no la enseña
   const children = (option.submenus || option.submenu || []).filter((child) => child.visible !== false)
@@ -994,7 +998,12 @@ export function shellNavOf(reg) {
       children: (a.children || []).map((c) => ({ actionId: c.actionId, label: c.label })),
     })),
     serverSideType: shell.serverSideType,
-    homeRoute: shell.homeRoute || '',
+    // sin home declarada (centinela del servidor) → la primera pantalla del menú EN PROFUNDIDAD:
+    // con secciones (HAMBURGER_SECTIONS) el primer nivel son grupos y la home de la sección es su
+    // primera entrada; el centinela se cargaba tal cual y la app arrancaba en «Not found.»
+    homeRoute: isSentinelHome(shell.homeRoute)
+      ? ((menuTree.find((node) => node.home) || {}).home || '')
+      : shell.homeRoute,
   }
 }
 
@@ -1168,6 +1177,7 @@ export function islandContentOf(ctx, opts = {}) {
   }
   const blocks = []
   let plain = null
+  let elementOrdinal = 0
   const atom = (a, container) => {
     if (container) { container.items.push(a); return }
     if (!plain) { plain = { isPlain: true, items: [] }; blocks.push(plain) }
@@ -1412,7 +1422,11 @@ export function islandContentOf(ctx, opts = {}) {
       for (const key of Object.keys(m.attributes || {})) attributes[key] = interp(m.attributes[key])
       atom({
         isElement: true,
-        elementId: node.id || m.name,
+        // el servidor manda un id de relleno ("fieldId") a TODOS los Element (un record sin id):
+        // dos en la misma pantalla (un plano por planta, dos tablas en un foldout) compartían
+        // hueco y se pisaban. Sin id propio, nombre + ordinal: estable mientras la estructura
+        // de la pantalla no cambie
+        elementId: node.id && node.id !== 'fieldId' ? node.id : m.name + '#' + (elementOrdinal++),
         name: m.name,
         importUrl: (m.attributes || {}).import || '',
         attributes,
@@ -1420,6 +1434,8 @@ export function islandContentOf(ctx, opts = {}) {
         cssClasses: node.cssClasses || '',
         content: interp(m.content || ''),
         asHtml: !!m.html,
+        // el contenido llevaba `${…}` → ha entrado DATO en el marcado: se sanea al montarlo
+        dataInContent: String(m.content || '').indexOf('${') >= 0,
         on: m.on || null,
       }, container)
       return

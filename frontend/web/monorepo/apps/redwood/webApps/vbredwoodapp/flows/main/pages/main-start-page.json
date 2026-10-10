@@ -624,7 +624,7 @@
         }
       ]
     },
-    "mateuRetryAction": {
+    "application:mateuRetryAction": {
       "chains": [
         {
           "parameters": {
@@ -632,6 +632,18 @@
             "parameters": "{{ $event.parameters }}"
           },
           "chain": "runMateuAction"
+        }
+      ]
+    },
+    "application:mateuElementEvent": {
+      "chains": [
+        {
+          "parameters": {
+            "actionId": "{{ $event.actionId }}",
+            "parameters": "{{ $event.parameters }}",
+            "fromNested": "{{ $event.fromNested }}"
+          },
+          "chain": "dispatchHostBlockAction"
         }
       ]
     },

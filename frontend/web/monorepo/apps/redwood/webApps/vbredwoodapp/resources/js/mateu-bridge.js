@@ -179,6 +179,35 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return id == null ? null : ((sections || []).find((section) => section.id === id) || null)
   }
 
+  /** Las rutas centinela del servidor que significan «no hay home declarada»: la shell abre entonces
+   *  la primera pantalla del menú (en profundidad), como la home de una sección. */
+  function isSentinelHome(route) {
+    const r = String(route || '')
+    return !r || /(^|\/)_no_home_route$/.test(r) || /(^|\/)_page$/.test(r)
+  }
+
+  /**
+   * La opción LOCAL del menú (no remota) que cubre una ruta —la de prefijo más largo, por tramos—,
+   * o null. Una ruta de menú (`/inventory/floorPlan`) es del APP: el servidor sólo la resuelve si la
+   * petición lleva el serverSideType del app que declara ese menú; sin él contesta «Not found.»
+   * (en demo-vb no se notaba porque cada @Menu se llamaba como la ruta @UI de su clase).
+   */
+  function localMenuOptionOf(menu, route) {
+    const path = String(route || '').split('?')[0]
+    if (!path) return null
+    let best = null
+    const visit = (options) => {
+      for (const o of options || []) {
+        if (!o || o.remote || o.baseUrl) continue
+        const r = o.route || o.path
+        if (r && routeCovers(r, path) && (!best || r.length > (best.route || best.path).length)) best = o
+        visit(o.submenus || o.submenu)
+      }
+    }
+    visit(menu)
+    return best
+  }
+
 
   // Los enlaces HTML corrientes dentro del contenido (`<a href="/journey/bookings/ZUAAKJ">Ver
   // recorrido</a>`, de un Text/Html de la app) navegan DENTRO de la shell, como en Vaadin: allí el
@@ -1064,8 +1093,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   }
 
   /** Proyección de NAVEGACIÓN de la shell: items de primer nivel + grupos con sus hijos.
-   *  Un grupo (submenus en el wire) NO resuelve por sync — sus hijos navegan por la ruta
-   *  TERMINAL (la compuesta /gestion/person da "Not found."; se recorta el prefijo del padre).
+   *  Los hijos de un grupo navegan por su ruta COMPUESTA (/gestion/person) con el serverSideType
+   *  del app (como Vaadin); un RouteLink dentro de un grupo no resuelve así y se carga por su
+   *  ruta TERMINAL (loadMenuRouteInto, en transport.mjs).
    *  Selectores de contexto y acciones de cabecera salen listos para bindings simples. */
   // Iconos de menú: el wire trae nombres NEUTRALES (convención Mateu: set de Vaadin,
   // p.ej. "vaadin:calendar-user") — cada renderer los traduce a su set; aquí, al icon
@@ -1144,9 +1174,12 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    */
   function navNodeOf(option, parentRoute) {
     const raw = option.route || option.path || ''
-    const id = !option.baseUrl && parentRoute && raw.indexOf(parentRoute + '/') === 0
-      ? raw.slice(parentRoute.length)
-      : raw
+    // la ruta COMPUESTA (/gestion/person), como en Vaadin: es un camino de menú que el backend
+    // resuelve con el serverSideType del app (onMateuNavigate lo añade vía localMenuOptionOf).
+    // Recortarla a la terminal (/person) sólo funcionaba si el campo @Menu se llamaba como la ruta
+    // @UI de su clase; con `@Menu FloorPlan floorPlan` + @UI("/floor-plan") quedaba sin dueño.
+    void parentRoute
+    const id = raw
     // una entrada OCULTA (@Menu @Hidden, visible:false) no se dibuja a ninguna profundidad: su ruta
     // sigue resolviendo (la registra el transporte), pero el menú no la enseña
     const children = (option.submenus || option.submenu || []).filter((child) => child.visible !== false)
@@ -1227,7 +1260,12 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         children: (a.children || []).map((c) => ({ actionId: c.actionId, label: c.label })),
       })),
       serverSideType: shell.serverSideType,
-      homeRoute: shell.homeRoute || '',
+      // sin home declarada (centinela del servidor) → la primera pantalla del menú EN PROFUNDIDAD:
+      // con secciones (HAMBURGER_SECTIONS) el primer nivel son grupos y la home de la sección es su
+      // primera entrada; el centinela se cargaba tal cual y la app arrancaba en «Not found.»
+      homeRoute: isSentinelHome(shell.homeRoute)
+        ? ((menuTree.find((node) => node.home) || {}).home || '')
+        : shell.homeRoute,
     }
   }
 
@@ -1401,6 +1439,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     }
     const blocks = []
     let plain = null
+    let elementOrdinal = 0
     const atom = (a, container) => {
       if (container) { container.items.push(a); return }
       if (!plain) { plain = { isPlain: true, items: [] }; blocks.push(plain) }
@@ -1645,7 +1684,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         for (const key of Object.keys(m.attributes || {})) attributes[key] = interp(m.attributes[key])
         atom({
           isElement: true,
-          elementId: node.id || m.name,
+          // el servidor manda un id de relleno ("fieldId") a TODOS los Element (un record sin id):
+          // dos en la misma pantalla (un plano por planta, dos tablas en un foldout) compartían
+          // hueco y se pisaban. Sin id propio, nombre + ordinal: estable mientras la estructura
+          // de la pantalla no cambie
+          elementId: node.id && node.id !== 'fieldId' ? node.id : m.name + '#' + (elementOrdinal++),
           name: m.name,
           importUrl: (m.attributes || {}).import || '',
           attributes,
@@ -1653,6 +1696,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           cssClasses: node.cssClasses || '',
           content: interp(m.content || ''),
           asHtml: !!m.html,
+          // el contenido llevaba `${…}` → ha entrado DATO en el marcado: se sanea al montarlo
+          dataInContent: String(m.content || '').indexOf('${') >= 0,
           on: m.on || null,
         }, container)
         return
@@ -5917,6 +5962,95 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
 
   const loaded = {}
 
+  // ── eventos del componente → acción en el servidor ─────────────────────────────────────────────
+  // `Element.on` = { nombreDeEvento: actionId }. Es la vía de escape oficial (un grafo, un editor,
+  // un plano de planta de terceros), así que su ida y vuelta tiene que funcionar entera: el evento
+  // viaja como parámetro `event` de la acción, igual que en el renderer web compartido —el
+  // `detail` de un CustomEvent, o las propiedades primitivas de cualquier otro evento—. La app
+  // registra un sumidero (setElementEventSink) que sabe en qué superficie se ejecuta la acción;
+  // sin sumidero (Node, tests) los eventos se ignoran.
+
+  let sink = null
+  let moduleBase = ''
+
+  /** Base del backend Mateu (la constante mateuBaseUrl): un `import` RELATIVO lo sirve el backend,
+   *  no la app VB — en VB alojado en Oracle o en vb-serve son orígenes distintos. '' = mismo origen. */
+  function setElementModuleBase(base) {
+    moduleBase = String(base || '').replace(/\/$/, '')
+  }
+
+  /** La URL de la que se carga el módulo de un Element. */
+  function elementModuleUrl(importUrl, base = moduleBase) {
+    if (!importUrl) return ''
+    if (/^[a-z][a-z0-9+.-]*:/i.test(importUrl) || importUrl.startsWith('//')) return importUrl
+    const root = String(base || '').replace(/\/+$/, '')
+    return root ? root + (importUrl.startsWith('/') ? '' : '/') + importUrl : importUrl
+  }
+
+  /** La app VB registra aquí quién ejecuta la acción de un evento: (actionId, parameters, atom). */
+  function setElementEventSink(fn) {
+    sink = typeof fn === 'function' ? fn : null
+  }
+
+  /** El evento tal como viaja al servidor (mismo criterio que libs/mateu elementRenderer). */
+  function serializeElementEvent(e) {
+    if (e == null) return null
+    if (typeof CustomEvent !== 'undefined' && e instanceof CustomEvent) return e.detail
+    if (e.detail !== undefined && e.constructor && e.constructor.name === 'CustomEvent') return e.detail
+    const out = {}
+    for (const k in e) {
+      const v = e[k]
+      if (typeof v === 'number' || typeof v === 'string' || typeof v === 'boolean') out[k] = v
+    }
+    return out
+  }
+
+  /** Engancha UNA vez cada evento declarado; la acción se lee al dispararse (la del último render),
+   *  así un re-render que cambia `on` no duplica listeners ni deja el actionId viejo. */
+  function wireElementEvents(element, atom) {
+    element.__mateuAtom = atom
+    const wired = element.__mateuWired || (element.__mateuWired = {})
+    for (const eventName of Object.keys(atom.on || {})) {
+      if (wired[eventName]) continue
+      wired[eventName] = true
+      element.addEventListener(eventName, (e) => {
+        const current = element.__mateuAtom || {}
+        const actionId = (current.on || {})[eventName]
+        if (!actionId || !sink) return
+        sink(actionId, { event: serializeElementEvent(e) }, current)
+      })
+    }
+  }
+
+  // ── HTML con DATOS: saneado ────────────────────────────────────────────────────────────────────
+  // El contenido escrito en la definición se confía tal cual; en cuanto `${…}` ha metido datos en
+  // él se sanea (sin scripts, sin manejadores on…, sin URLs javascript:) — XSS almacenado. El
+  // renderer web lo hace con DOMPurify; aquí no hay dependencias, así que un saneado por DOM con
+  // las mismas reglas.
+  const DROP_TAGS = /^(script|iframe|object|embed|link|meta|base|frame|frameset|noscript)$/i
+  const URL_ATTRS = /^(href|src|xlink:href|action|formaction|background|poster)$/i
+
+  function sanitizeHtml(html, doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || html == null) return html == null ? '' : String(html)
+    const tpl = doc.createElement('template')
+    tpl.innerHTML = String(html)
+    const walk = (root) => {
+      for (const el of [...root.querySelectorAll('*')]) {
+        if (DROP_TAGS.test(el.tagName)) { el.remove(); continue }
+        for (const attr of [...el.attributes]) {
+          const name = attr.name
+          const value = String(attr.value || '').replace(/[\s\u0000-\u001f]/g, '').toLowerCase()
+          if (/^on/i.test(name)
+            || (URL_ATTRS.test(name) && (value.startsWith('javascript:') || value.startsWith('vbscript:')
+              || (value.startsWith('data:') && !value.startsWith('data:image/'))))
+            || (name === 'srcdoc')) el.removeAttribute(name)
+        }
+      }
+    }
+    walk(tpl.content)
+    return tpl.innerHTML
+  }
+
   /**
    * Carga el módulo que define la etiqueta, una sola vez. El elemento se puede crear antes: los
    * componentes web se "actualizan" solos en cuanto su definición llega.
@@ -5950,9 +6084,10 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     if (atom.style) element.setAttribute('style', atom.style)
     if (atom.cssClasses) element.setAttribute('class', atom.cssClasses)
     if (atom.content) {
-      if (atom.asHtml) element.innerHTML = atom.content
+      if (atom.asHtml) element.innerHTML = atom.dataInContent ? sanitizeHtml(atom.content) : atom.content
       else element.textContent = atom.content
     }
+    wireElementEvents(element, atom)
   }
 
   /** Hidrata los huecos `.mateu-element` que haya en el documento. Devuelve cuántos quedaron
@@ -5966,7 +6101,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     for (const hole of holes) {
       const atom = byId[hole.getAttribute('data-element-id')]
       if (!atom) continue
-      ensureDefined(atom.name, atom.importUrl)
+      ensureDefined(atom.name, elementModuleUrl(atom.importUrl))
       let element = hole.firstElementChild
       if (!element || element.tagName.toLowerCase() !== atom.name.toLowerCase()) {
         hole.textContent = ''
@@ -6540,6 +6675,49 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       }
     }
     return null
+  }
+
+  /** ¿La carga contestó el «Not found.» del servidor (un Text suelto, sin ServerSide)? */
+  function isServerNotFound(ctx) {
+    const t = ctx && ctx.tree
+    return !!(t && t.type === 'ClientSide' && t.metadata && t.metadata.type === 'Text'
+      && /^not found\.?$/i.test(String(t.metadata.text || '').trim()))
+  }
+
+  /** La ruta TERMINAL de una entrada de menú dentro de un grupo (/gestion/island-host → /island-host),
+   *  o null si no cuelga de ningún grupo. */
+  function terminalMenuRouteOf(menu, route) {
+    const path = String(route || '').split('?')[0]
+    const query = String(route || '').slice(path.length)
+    let found = null
+    const visit = (options, parent) => {
+      for (const o of options || []) {
+        const r = o && (o.route || o.path)
+        if (!r) continue
+        if (parent && r === path && r.indexOf(parent + '/') === 0) found = r.slice(parent.length) + query
+        visit(o.submenus || o.submenu, r)
+      }
+    }
+    visit(menu, '')
+    return found
+  }
+
+  /**
+   * Carga una ruta del MENÚ LOCAL: la compuesta con el serverSideType del app que la declara (lo
+   * que hace Vaadin al elegir la opción); si el servidor no la reconoce —un RouteLink metido en un
+   * grupo apunta a una ruta absoluta que no es camino de menú— se reintenta por la terminal.
+   * Una ruta que no es del menú se carga tal cual.
+   */
+  async function loadMenuRouteInto(base, reg, route, targetId = '', extra = {}) {
+    const shell = (reg && reg.shell) || {}
+    const option = localMenuOptionOf(shell.menu, route)
+    if (!option) return loadRouteInto(base, reg, route, targetId, extra)
+    const next = await loadRouteInto(base, reg, route, targetId,
+      { ...extra, serverSideType: option.serverSideType || shell.serverSideType })
+    const terminal = terminalMenuRouteOf(shell.menu, route)
+    if (terminal && isServerNotFound(next.contexts[targetId === '' ? HOST_ID : targetId]))
+      return loadRouteInto(base, reg, terminal, targetId, extra)
+    return next
   }
 
   /**
@@ -7884,6 +8062,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   return {
     HOST_ID,
     mountElements,
+    setElementEventSink,
+    setElementModuleBase,
     mountElementsSoon,
     elementAtomsOf,
     foldoutElementAtomsOf,
@@ -7976,6 +8156,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     shellNavOf,
     // la subcabecera MENU_ON_TOP: la sección en pantalla y el acento de marca del App
     activeSectionOf,
+    localMenuOptionOf,
+    isSentinelHome,
     sectionOf,
     sectionHomeOf,
     ojIconOf,
@@ -8013,6 +8195,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     bootstrapShell,
     loadRoute,
     loadRouteInto,
+    loadMenuRouteInto,
     composeInnerRoute,
     mediatorBaseOf,
     routeFlipOf,

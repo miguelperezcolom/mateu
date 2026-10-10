@@ -837,6 +837,14 @@
         "actionId": "string",
         "parameters": "any"
       }
+    },
+    "mateuElementEvent": {
+      "description": "evento de un Element (componente web) con accion en Element.on: la shell lo reenvia a la pagina de contenido, que sabe en que superficie ejecutarla",
+      "payloadType": {
+        "actionId": "string",
+        "parameters": "any",
+        "fromNested": "boolean"
+      }
     }
   }
 }

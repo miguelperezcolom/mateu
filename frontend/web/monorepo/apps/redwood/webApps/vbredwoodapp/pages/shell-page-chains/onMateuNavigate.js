@@ -152,8 +152,11 @@ define([
         : { appState };
       let reg;
       try {
-        reg = await bridge.loadRouteInto(
-          callBase, $application.variables.mateuRegistry, route, '', extra);
+        // una ruta del MENÚ local es del app que lo declara: se carga con su serverSideType (sin
+        // él el servidor contesta «Not found.»), y un RouteLink de grupo cae a su ruta terminal
+        reg = remote
+          ? await bridge.loadRouteInto(callBase, $application.variables.mateuRegistry, route, '', extra)
+          : await bridge.loadMenuRouteInto(callBase, $application.variables.mateuRegistry, route, '', extra);
       } catch (e) {
         // superada por otra navegación mientras cargaba: nada que reintentar ni que pintar
         if (bridge.isStaleResponse(e)) return;

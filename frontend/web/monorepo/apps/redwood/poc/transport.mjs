@@ -6,7 +6,7 @@
 import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf } from './reduceContexts.mjs'
 import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
-import { asSection, labelledByShell, markHidden, unavailableMount } from './navTree.mjs'
+import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf } from './navTree.mjs'
 
 /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction).
  *  Sale ATADA a la pantalla en curso (resilience.currentView): si cuando contesta ya hay otra, la
@@ -281,6 +281,49 @@ function mediatorFromShellApp(increment, route) {
     }
   }
   return null
+}
+
+/** ¿La carga contestó el «Not found.» del servidor (un Text suelto, sin ServerSide)? */
+export function isServerNotFound(ctx) {
+  const t = ctx && ctx.tree
+  return !!(t && t.type === 'ClientSide' && t.metadata && t.metadata.type === 'Text'
+    && /^not found\.?$/i.test(String(t.metadata.text || '').trim()))
+}
+
+/** La ruta TERMINAL de una entrada de menú dentro de un grupo (/gestion/island-host → /island-host),
+ *  o null si no cuelga de ningún grupo. */
+export function terminalMenuRouteOf(menu, route) {
+  const path = String(route || '').split('?')[0]
+  const query = String(route || '').slice(path.length)
+  let found = null
+  const visit = (options, parent) => {
+    for (const o of options || []) {
+      const r = o && (o.route || o.path)
+      if (!r) continue
+      if (parent && r === path && r.indexOf(parent + '/') === 0) found = r.slice(parent.length) + query
+      visit(o.submenus || o.submenu, r)
+    }
+  }
+  visit(menu, '')
+  return found
+}
+
+/**
+ * Carga una ruta del MENÚ LOCAL: la compuesta con el serverSideType del app que la declara (lo
+ * que hace Vaadin al elegir la opción); si el servidor no la reconoce —un RouteLink metido en un
+ * grupo apunta a una ruta absoluta que no es camino de menú— se reintenta por la terminal.
+ * Una ruta que no es del menú se carga tal cual.
+ */
+export async function loadMenuRouteInto(base, reg, route, targetId = '', extra = {}) {
+  const shell = (reg && reg.shell) || {}
+  const option = localMenuOptionOf(shell.menu, route)
+  if (!option) return loadRouteInto(base, reg, route, targetId, extra)
+  const next = await loadRouteInto(base, reg, route, targetId,
+    { ...extra, serverSideType: option.serverSideType || shell.serverSideType })
+  const terminal = terminalMenuRouteOf(shell.menu, route)
+  if (terminal && isServerNotFound(next.contexts[targetId === '' ? HOST_ID : targetId]))
+    return loadRouteInto(base, reg, terminal, targetId, extra)
+  return next
 }
 
 /**
