@@ -59,7 +59,7 @@ class MateuBomCompletenessTest {
     List<String> broken = new ArrayList<>();
     int relocations = 0;
     try (Stream<Path> dirs = Files.list(BACKEND.resolve("relocations"))) {
-      for (Path dir : dirs.filter(Files::isDirectory).toList()) {
+      for (Path dir : dirs.filter(d -> Files.isRegularFile(d.resolve("pom.xml"))).toList()) {
         String pom = Files.readString(dir.resolve("pom.xml"));
         String oldId = artifactIdOf(pom);
         var target =
