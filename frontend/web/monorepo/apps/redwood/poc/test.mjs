@@ -4779,7 +4779,7 @@ test('chat: el panel VB tiene lo del web — título de marca, agente local, mod
   assert.match(send, /bridge\.effectiveChatUrl\(/)
   assert.match(send, /bridge\.chatTurnTextOf\(accumulated, failure\)/)
   assert.match(webApp('pages/shell-page-chains/toggleMateuChat.js'), /bridge\.probeLocalAgent\(\)/)
-  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.chatConfigOf\(reg\.shell, base\)/)
+  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.chatConfigOf\(reg\.shell, assetBase\)/)
   const attach = webApp('pages/shell-page-chains/chatAttach.js')
   assert.match(attach, /bridge\.uploadChatFiles\(/)
   assert.match(attach, /headers: bridge\.authHeadersOf\(\)/)
@@ -5082,7 +5082,7 @@ test('url filters: ir al MISMO listado con otra query aplica exactamente la nuev
   assert.match(nav, /window\.__mateuLoadedFull/)
   assert.match(nav, /bridge\.splitListingQuery\(target\.filters\)/)
   // un deep-link con query la conserva en la URL (el router de VB la quitaba al arrancar)
-  assert.match(nav, /history\.replaceState\(window\.history\.state, '', target\.full\)/)
+  assert.match(nav, /history\.replaceState\(window\.history\.state, '', bridge\.urlOfRoute\(target\.full\)\)/)
   // cambiar filtros reescribe la URL
   assert.match(webApp('flows/main/pages/main-start-page-chains/smartFiltersChanged.js'), /bridge\.listingUrlOf\(/)
 })

@@ -64,8 +64,40 @@ check vaadin \
   "backend/shared/frontend/vaadin-lit/src/main/resources/static/assets/mateu-vaadin.js" \
   "frontend/web/monorepo/apps/vaadin/src frontend/web/monorepo/libs/mateu/src"
 
-check redwood \
-  "backend/shared/frontend/redwood/src/main/resources/static" \
-  "frontend/web/monorepo/apps/redwood/poc frontend/web/monorepo/apps/redwood/webApps"
+# Redwood: the jar is stamped with a hash of the sources it was built from (static/mateu-build-info.json,
+# written by apps/redwood/scripts/copy.mjs; apps/redwood/scripts/source-hash.mjs defines the sources).
+# Stronger than ancestry: it fails on ANY difference - a bundle built from a dirty tree, from another
+# branch, or before a source change that merged later - and it is deterministic, because the hash is
+# over the sources, not over the build output. A jar from before the stamp falls back to ancestry.
+redwood_resources="backend/shared/frontend/redwood/src/main/resources"
+redwood_stamp="$redwood_resources/static/mateu-build-info.json"
+if [ -f "$redwood_stamp" ]; then
+  built=$(node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).sourceHash || "")' "$redwood_stamp")
+  current=$(node frontend/web/monorepo/apps/redwood/scripts/source-hash.mjs)
+  if [ "$built" = "$current" ]; then
+    echo "OK redwood: the jar was built from the current sources ($current)"
+  else
+    status=1
+    echo
+    echo "STALE  redwood"
+    echo "  the jar was built from sources hashing to   $built"
+    echo "  but the sources now hash to                 $current"
+    echo
+    echo "  Regenerate and commit it:"
+    echo
+    echo "    cd frontend/web/monorepo/apps/redwood && npm run bridge && npm run build && npm run copy"
+    echo
+  fi
+  # the pre-2026-10 layout (a version_<timestamp>/ per build, and a second copy under
+  # META-INF/resources) must not linger next to the new one: it is ~20 MB nobody serves
+  if ls -d "$redwood_resources"/static/version_* >/dev/null 2>&1 || [ -d "$redwood_resources/META-INF" ]; then
+    status=1
+    echo "STALE  redwood: old layout left behind (static/version_*/ or META-INF/) - npm run copy removes it"
+  fi
+else
+  check redwood \
+    "$redwood_resources/static" \
+    "frontend/web/monorepo/apps/redwood/poc frontend/web/monorepo/apps/redwood/webApps"
+fi
 
 exit $status

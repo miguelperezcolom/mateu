@@ -5,6 +5,9 @@
  * propio transporte (apps/redwood/poc/transport.mjs, fetch pelado) y no comparte nada con
  * libs/mateu — así que las garantías hay que comprobarlas otra vez aquí, no heredarlas.
  *
+ * VB_URL (default http://localhost:9006/): the app to probe — the packaged app served by demo-vb
+ * itself (VB_URL=http://localhost:9005/, path routes; what CI runs) or vb-serve (hash routes).
+ *
  * Uso (demo-vb en :9005, renderer servido en :9006):
  *   cd frontend/web/monorepo/apps/redwood && npm run serve
  *   cd e2e && node vb-slow-network-probe.mjs
@@ -12,6 +15,7 @@
  * Sale con código distinto de cero si falla alguna comprobación.
  */
 import { chromium } from 'playwright'
+const VB_URL = process.env.VB_URL || 'http://localhost:9006/'
 const sleep = (ms) => new Promise(r => setTimeout(r, ms))
 const results = []
 const check = (n, ok, d='') => { results.push(ok); console.log(`${ok?'PASS':'FAIL'}  ${n}${d?` — ${d}`:''}`) }
@@ -22,7 +26,7 @@ const browser = await chromium.launch()
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 } })
   const page = await ctx.newPage()
-  await page.goto('http://localhost:9006/', { waitUntil: 'networkidle' })
+  await page.goto(VB_URL, { waitUntil: 'networkidle' })
   await sleep(6000)
   await page.route(SYNC, async r => { await sleep(3000); await r.continue() })
   page.getByText('Products', { exact: true }).first().click().catch(()=>{})
@@ -36,7 +40,7 @@ const browser = await chromium.launch()
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 } })
   const page = await ctx.newPage()
-  await page.goto('http://localhost:9006/', { waitUntil: 'networkidle' })
+  await page.goto(VB_URL, { waitUntil: 'networkidle' })
   await sleep(6000)
   await page.route(SYNC, r => r.abort('failed'))
   page.getByText('Products', { exact: true }).first().click().catch(()=>{})
@@ -60,7 +64,7 @@ const browser = await chromium.launch()
     if (body.includes('"actionId":""')) { loads++; if (loads === 1) return r.fulfill({ status: 503, body: 'no' }) }
     await r.continue()
   })
-  await page.goto('http://localhost:9006/', { waitUntil: 'networkidle' })
+  await page.goto(VB_URL, { waitUntil: 'networkidle' })
   await sleep(7000)
   check('una lectura que topa con un 503 se reintenta sola', loads >= 2, `${loads} intento(s)`)
   await ctx.close()
@@ -71,7 +75,7 @@ const browser = await chromium.launch()
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 } })
   const page = await ctx.newPage()
   await page.route(SYNC, async r => { await sleep(4000); await r.continue() })
-  page.goto('http://localhost:9006/').catch(()=>{})
+  page.goto(VB_URL).catch(()=>{})
   await sleep(6000)
   check('una carga sin contenido aún enseña un esqueleto', await page.locator('.mateu-skeleton').count() > 0)
   await page.screenshot({ path: '/tmp/vb-skeleton.png' })
@@ -82,14 +86,14 @@ const browser = await chromium.launch()
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 } })
   const page = await ctx.newPage()
-  await page.goto('http://localhost:9006/', { waitUntil: 'networkidle' })
+  await page.goto(VB_URL, { waitUntil: 'networkidle' })
   await sleep(6000)
   await page.getByText('Products', { exact: true }).first().click().catch(()=>{})
   await sleep(4000)
 
   // acción lenta → el botón pulsado queda marcado
   await page.route(SYNC, async r => { await sleep(3000); await r.continue() })
-  const btn = page.locator('oj-button:visible, oj-c-button:visible').filter({ hasText: /Do something on rows|Set as blue/i }).first()
+  const btn = page.locator('oj-button:visible, oj-c-button:visible').filter({ hasText: /Do something on rows|Set as blue|^\s*New\s*$/i }).first()
   if (await btn.count()) {
     await btn.click().catch(()=>{})
     await sleep(800)
@@ -108,16 +112,24 @@ const browser = await chromium.launch()
     if (failNext) { failNext = false; return r.abort('failed') }
     await r.continue()
   })
-  await page.getByText('Reservations', { exact: true }).first().click().catch(()=>{})
+  // the next screen of the menu: Reservations (demo-vb-pms) or Stock (demo-vb)
+  // (the overlay the pressed button may have opened goes first; and the entry is looked up in the
+  // navigation list when there is one — "Stock" is also a column of the Products listing)
+  await page.keyboard.press('Escape').catch(()=>{})
+  await sleep(800)
+  const navList = page.locator('#mateuNavList')
+  const next = ((await navList.count()) ? navList : page).getByText(/^(Reservations|Stock)$/).first()
+  const nextName = ((await next.textContent().catch(() => '')) || '').trim()
+  await next.click().catch(()=>{})
   await sleep(2500)
-  const retry = page.locator('.mateu-error-band oj-button').filter({ hasText: /reintentar/i }).first()
+  const retry = page.locator('.mateu-error-band oj-button').filter({ hasText: /reintentar|retry/i }).first()
   check('un fallo ofrece Reintentar', await retry.count() > 0)
   if (await retry.count()) {
     await retry.click()
     await sleep(4500)
     const title = await page.evaluate(() => (document.querySelector('[data-mateu-live-region="polite"]')||{}).textContent || '')
     check('Reintentar re-ejecuta la navegación y la pantalla carga',
-      /reservations/i.test(title), JSON.stringify(title.trim()))
+      !!nextName && title.toLowerCase().includes(nextName.toLowerCase()), JSON.stringify(title.trim()))
   }
   await ctx.close()
 }

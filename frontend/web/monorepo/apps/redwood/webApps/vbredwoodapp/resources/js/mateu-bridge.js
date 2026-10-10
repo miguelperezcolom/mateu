@@ -1300,7 +1300,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * siendo del navegador. `location` es la de la página (window.location); `hashMode` es la shell
    * servida en estático, cuyas rutas viven en `#/ruta`.
    */
-  function inAppRouteOfLink(anchor, event, location, hashMode = false) {
+  function inAppRouteOfLink(anchor, event, location, hashMode = false, mount = '') {
     if (!anchor || !anchor.getAttribute || !location) return null
     if (event && (event.defaultPrevented || event.button > 0
       || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)) return null
@@ -1323,9 +1323,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     if (url.protocol !== 'http:' && url.protocol !== 'https:') return null
     if (url.origin !== location.origin) return null
-    const path = url.pathname || '/'
+    let path = url.pathname || '/'
     // un ancla a esta misma página (#expand=…): la hace el navegador
     if (url.hash && path === location.pathname && url.search === (location.search || '')) return null
+    // the app mounted under a path (@UI("/console")): only links below it are screens of THIS app
+    // (another path is another UI: the browser loads it), its route is the part after the mount and
+    // the mount itself is the home
+    const m = String(mount || '').replace(/\/+$/, '')
+    if (m) {
+      if (path === m || path === m + '/') path = '/'
+      else if (path.startsWith(m + '/')) path = path.slice(m.length)
+      else return null
+    }
     if (NOT_A_SCREEN.test(path) || LOOKS_LIKE_FILE.test(path)) return null
     return path + url.search
   }
@@ -11666,10 +11675,133 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+  // The mount path of the packaged app (the jar io.mateu:redwood served by a Mateu backend).
+  //
+  // The controller the annotation processor generates for an @UI serves _index.html at the UI's
+  // path and injects a hidden <mateu-ui baseUrl="/console" pathPrefix="/console">. That element is
+  // two things at once:
+  //   - the SIGNAL that the app is served by a Mateu backend → URLs are PATHS (/console/orders),
+  //     not hashes (#/orders, the static serving of vb-serve / VB hosted at Oracle, where the
+  //     server cannot rewrite arbitrary paths to the index);
+  //   - the MOUNT: the API of that UI lives at <mount>/mateu/v3/... (the root /mateu/v3 is ANOTHER
+  //     UI's, or nothing at all when no @UI sits at "").
+  // Routes are RELATIVE to the mount, as on the web renderer (mateu-ui strips its pathPrefix): an
+  // App @UI("/app") lists its menu as '/section1', and the browser shows /app/section1. The mount
+  // itself is the HOME of the UI (the menu's home for an App; the page or crud itself otherwise).
+  // One wrinkle: a crud's inner routes come back from the server already carrying the crud's own
+  // path ('/products/new' for @UI("/products")), so a route that already starts with the mount is
+  // not prefixed twice.
+  // Before this module the packaged app called /mateu/v3 on the ROOT whatever the mount: it booted
+  // the root app's shell at /products, and with no @UI at "" it did not boot at all.
+  //
+  // The pure functions are what the tests pin; initMount/mateuBase/urlOfRoute/currentRouteOf keep
+  // the mount read once at boot (loadMateuShell) for the chains.
+
+  /** '' (root) or '/segment(s)' without a trailing slash. */
+  function normalizeMount(value) {
+    let v = String(value == null ? '' : value).trim()
+    if (!v || v === '/') return ''
+    if (v.charAt(0) !== '/') v = '/' + v
+    return v.replace(/\/+$/, '')
+  }
+
+  /**
+   * The base for /mateu/v3/... calls: the mount the <mateu-ui> carries when there is one (its
+   * attributes as a plain object, or null when the page has no such element), else the development
+   * default (the app-flow constant mateuBaseUrl — an absolute backend URL under vb-serve).
+   */
+  function baseUrlOf(attrs, devDefault) {
+    if (!attrs) return devDefault
+    return normalizeMount(attrs.baseUrl != null ? attrs.baseUrl : attrs.baseurl)
+  }
+
+  /** The Mateu route of a browser path under the mount: '/console/orders' → '/orders', the mount
+   *  itself ('/console', '/console/', '/' at the root) → '' (the home). A path outside the mount is
+   *  returned as is. */
+  function routeOfPath(pathname, mount) {
+    const m = normalizeMount(mount)
+    let p = pathname || '/'
+    if (m) {
+      if (p === m || p === m + '/') return ''
+      if (p.startsWith(m + '/')) p = p.slice(m.length)
+    }
+    return p === '/' ? '' : p
+  }
+
+  /** The browser path of a Mateu route under the mount: '/orders' → '/console/orders', the home
+   *  ('' or '/') → '/console' ('/' at the root). A route may carry its ?query; one that already
+   *  starts with the mount (a crud's inner route) is not prefixed again. */
+  function pathOfRoute(route, mount) {
+    const m = normalizeMount(mount)
+    let r = route == null ? '' : String(route)
+    if (r.charAt(0) === '?') r = '/' + r
+    if (r === '' || r === '/') return m || '/'
+    if (r.startsWith('/?')) return (m || '') + r.slice(m ? 1 : 0)
+    if (r.charAt(0) !== '/') r = '/' + r
+    const path = r.split('?')[0]
+    if (m && (path === m || path.startsWith(m + '/'))) return r
+    return m + r
+  }
+
+  // ── the mount read at boot ─────────────────────────────────────────────────────────────────────
+  let mountPath = null
+
+  /** Reads the <mateu-ui> of the page once: the mount ('' at the root) or null (hash mode). */
+  function initMount(doc) {
+    const el = doc && typeof doc.querySelector === 'function' ? doc.querySelector('mateu-ui') : null
+    mountPath = el ? baseUrlOf({ baseUrl: el.getAttribute('baseUrl') }, '') : null
+    return mountPath
+  }
+
+  /** Test hook / explicit setting: null = hash mode. */
+  function setMount(value) { mountPath = value == null ? null : normalizeMount(value) }
+
+  /** Path mode (served by a Mateu backend) vs hash mode (static serving). */
+  function isPathMode() { return mountPath != null }
+
+  function currentMount() { return mountPath || '' }
+
+  /** The base for API calls: the mount in path mode, the development constant otherwise. */
+  function mateuBase(devDefault) { return mountPath != null ? mountPath : devDefault }
+
+  /** The base for STATIC things the backend serves at its root (images, logos, web-component
+   *  modules, the agent's sseUrl): the origin root in path mode — they are not under the mount, just
+   *  as on the Vaadin renderer —, the development constant (the backend origin) otherwise. */
+  function mateuAssetBase(devDefault) { return mountPath != null ? '' : devDefault }
+
+  /** What goes in history.pushState for a route: its path under the mount, or '#route'. */
+  function urlOfRoute(route) {
+    return mountPath != null ? pathOfRoute(route, mountPath) : '#' + (route || '')
+  }
+
+  /** The route (with its ?query) the browser URL names. */
+  function currentRouteOf(location) {
+    if (!location) return ''
+    if (mountPath == null) return (location.hash || '').replace(/^#/, '')
+    return routeOfPath(location.pathname, mountPath) + (location.search || '')
+  }
+
+  /** A route the server names in full (an App's homeRoute '/console/home') as a route under the mount
+   *  ('/home'); unchanged in hash mode or when it is not under the mount. */
+  function routeUnderMount(route) {
+    if (mountPath == null || !route) return route || ''
+    const [path, query] = String(route).split(/(?=\?)/)
+    const r = routeOfPath(path, mountPath)
+    return (r || (query ? '/' : '')) + (query || '')
+  }
+
+  /** The route part (no query) of the browser path — what to compare a route against. */
+  function currentRoutePathOf(location) {
+    if (!location) return ''
+    return mountPath != null ? routeOfPath(location.pathname, mountPath) : (location.hash || '').replace(/^#/, '').split('?')[0]
+  }
+
+
   // Transporte del bridge — contrato CONFIRMADO contra demo/demo-vb (ver DESIGN-NOTES
   // "Transporte"): bootstrap de la shell por components/_/action; todo lo demás por
   // sync/{route|_no_route} con actionId '' en las cargas. Fuente ÚNICA: este fichero se
   // testea en Node (capture.mjs) y se empaqueta en AMD para VB (make-amd.mjs).
+
 
 
 
@@ -11781,11 +11913,41 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return composeInnerRoute(mediatorBaseOf(outbound, fallbackRoute), flip)
   }
 
+  // ── a mount whose @UI is not an App ───────────────────────────────────────────────────────────
+  // @UI("/hello") on a plain page, @UI("/products") on a crud: the bootstrap (components/_/action)
+  // answers the page itself or nothing at all ("__load__ not supported by ProductsCrud") — never an
+  // App with a menu —, so there is no shell and no home route. Its home is the mount's own UI, which
+  // the sync endpoint resolves for a FRESH load: route '' with consumedRoute '_empty', exactly what
+  // the web renderer sends on a deep link or a reload. The shell remembers that the mount has no App
+  // and the home load ('' or '/') goes out that way.
+  let mountWithoutApp = false
+
+  /** Did the bootstrap answer an App (the root of a console with its menu)? */
+  function bootstrapHasApp(increment) {
+    const fragments = (increment && increment.fragments) || []
+    return fragments.some((f) => {
+      const c = f && f.component
+      if (!c) return false
+      if (c.metadata && c.metadata.type === 'App') return true
+      return (c.children || []).some((child) => child && child.metadata && child.metadata.type === 'App')
+    })
+  }
+
+  function setMountWithoutApp(value) { mountWithoutApp = !!value }
+
   /** Carga de una ruta (actionId '': el __load__ real; extra = consumedRoute/serverSideType…).
    *  Static-bundle: si hay manifest cargado, la carga se responde DESDE el bundle (sin backend);
    *  se espera al fetch del manifest en vuelo (la primera carga puede adelantarlo) y, si la ruta no
    *  está en el bundle, se cae al backend — así un despliegue híbrido (bundle + backend) sigue yendo. */
   const loadRoute = async (base, route, initiator = '', extra = {}) => {
+    // the home of a mount whose @UI is not an App: a fresh load of the mount — see bootstrapHasApp
+    if ((!route || route === '/') && mountWithoutApp && !extra.consumedRoute && extra.serverSideType == null) {
+      extra = { ...extra, consumedRoute: '_empty' }
+    } else if (mountWithoutApp && route && route !== '/') {
+      // …and below the mount (a deep link to /products/new): with no App to resolve it relative to,
+      // the server knows the crud's inner routes by their full path, mount included
+      route = pathOfRoute(route, currentMount())
+    }
     await awaitBundle()
     if (hasBundle()) {
       const bundled = bundledIncrementFor(route, initiator)
@@ -12040,6 +12202,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const wrapperActions = (wrapperTree && wrapperTree.actions) || []
     const info = mediatorOf(next.contexts[ctxId]) || mediatorFromShellApp(firstIncrement, effectiveRoute)
     if (info) {
+      // the home of a mount whose @UI is a crud (route '' or '/', a fresh load): the mediator names
+      // the route of its content — the crud's own path
+      if ((!effectiveRoute || effectiveRoute === '/') && info.homeRoute) effectiveRoute = info.homeRoute
       outbound = {
         route: effectiveRoute,
         consumedRoute: info.rootRoute || effectiveRoute,
@@ -14346,7 +14511,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     foldoutOf,
     wizardOf,
     callMateu,
+    // the mount of the packaged app (<mateu-ui baseUrl>): API base and route ↔ browser path
+    initMount,
+    isPathMode,
+    currentMount,
+    mateuBase,
+    mateuAssetBase,
+    urlOfRoute,
+    currentRouteOf,
+    currentRoutePathOf,
+    routeOfPath,
+    pathOfRoute,
+    routeUnderMount,
     bootstrapShell,
+    bootstrapHasApp,
+    setMountWithoutApp,
     loadRoute,
     loadRouteInto,
     loadMenuRouteInto,

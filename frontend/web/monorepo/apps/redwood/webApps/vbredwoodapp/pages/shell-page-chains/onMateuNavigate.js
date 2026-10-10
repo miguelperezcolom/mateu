@@ -24,7 +24,7 @@ define([
       const home = $application.variables.mateuHomeRoute || '';
       // la ruta puede traer ?query (la vista de un listado): la URL la conserva, para que
       // atrás/adelante vuelvan con sus filtros — o sin ninguno
-      const target = (!route || route === home) ? '/' : route;
+      const target = bridge.urlOfRoute((!route || route === home) ? '' : route);
       if (window.location.pathname + (window.location.search || '') !== target) {
         window.history.pushState(null, '', target);
       }
@@ -120,7 +120,7 @@ define([
         if (!window.confirm(bridge.chromeText('unsavedLeave'))) {
           const previous = $application.variables.mateuSelectedRoute;
           if (previous) {
-            window.history.replaceState(null, '', '#' + previous);
+            window.history.replaceState(null, '', bridge.urlOfRoute(previous));
           }
           return;
         }
@@ -140,7 +140,7 @@ define([
       // navegación más lenta que ésta) ya no se pinta cuando conteste (resilience.beginView).
       const view = bridge.beginView();
 
-      const base = $application.constants.mateuBaseUrl;
+      const base = bridge.mateuBase($application.constants.mateuBaseUrl);
       const appState = $application.variables.mateuAppState || {};
       // Una entrada traída de otro pod SOLO se puede cargar llamando a ese pod. El bridge
       // registró a dónde va cada una al expandir el menú; sin esta consulta la petición saldría
@@ -252,9 +252,9 @@ define([
       // query de la URL al arrancar; se repone, para que la dirección diga lo que se ve (y una
       // recarga o un enlace copiado lo conserven). Sólo la query: el path es el mismo.
       if (fromUrl && window.__mateuUrlPathMode && target.full.indexOf('?') >= 0
-          && window.location.pathname === target.route
-          && window.location.pathname + (window.location.search || '') !== target.full) {
-        window.history.replaceState(window.history.state, '', target.full);
+          && bridge.currentRoutePathOf(window.location) === target.route
+          && bridge.currentRouteOf(window.location) !== target.full) {
+        window.history.replaceState(window.history.state, '', bridge.urlOfRoute(target.full));
       }
 
       const host = reg.contexts[bridge.HOST_ID];

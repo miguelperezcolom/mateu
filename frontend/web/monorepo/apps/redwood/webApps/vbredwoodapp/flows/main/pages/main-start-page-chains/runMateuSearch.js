@@ -26,7 +26,7 @@ define([
 
       // idem que en runMateuAction: el listado se busca en el backend del que se cargó
       const base = bridge.baseOf($application.variables.mateuRegistry)
-        || $application.constants.mateuBaseUrl;
+        || bridge.mateuBase($application.constants.mateuBaseUrl);
       const before = $application.variables.mateuRegistry;
       const host = before.contexts[bridge.HOST_ID];
       const listing = bridge.listingOf(host);
