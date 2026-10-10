@@ -102,6 +102,7 @@ public final class AppMapper {
             .generatedAccentStrip(getGeneratedAccentStrip(app))
             .requiredCapabilities(getRequiredCapabilities(app, httpRequest))
             .locale(getLocale(httpRequest))
+            .actions(mapShellActions(app))
             .build();
     return new ClientSideComponentDto(
         appDto,
@@ -373,7 +374,17 @@ public final class AppMapper {
     return s != null && !s.isBlank();
   }
 
+  /**
+   * The shell's declared actions, each flow lowered to wire commands by the same mapper a page's
+   * actions go through — so a menu leaf running one needs no server round-trip.
+   */
+  private static List<ActionDto> mapShellActions(AppShell app) {
+    if (app.actions() == null || app.actions().isEmpty()) return List.of();
+    return app.actions().stream().map(ActionDtoMapper::mapAction).toList();
+  }
+
   private static boolean getThemeToggle(AppShell app) {
+    if (app.themeToggle() != null) return app.themeToggle();
     if (app.serverSideType() == null) return false;
     var appClass = forName(app.serverSideType());
     if (MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
@@ -461,6 +472,9 @@ public final class AppMapper {
   }
 
   private static boolean getCommandCenter(AppShell app) {
+    if (app.commandCenter() != null || app.chromeless() != null) {
+      return Boolean.TRUE.equals(app.commandCenter()) || Boolean.TRUE.equals(app.chromeless());
+    }
     if (app.serverSideType() == null) return false;
     var appClass = forName(app.serverSideType());
     if (MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
@@ -472,6 +486,7 @@ public final class AppMapper {
 
   /** Access keys mode: {@code @App(accessKeys = true)} on the app class. */
   private static boolean getAccessKeys(AppShell app) {
+    if (app.accessKeys() != null) return app.accessKeys();
     if (app.serverSideType() == null) return false;
     var appClass = forName(app.serverSideType());
     if (MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
@@ -484,6 +499,7 @@ public final class AppMapper {
    * Chromeless drops the nav chrome; it implies the command center so navigation stays possible.
    */
   private static boolean getChromeless(AppShell app) {
+    if (app.chromeless() != null) return app.chromeless();
     if (app.serverSideType() == null) return false;
     var appClass = forName(app.serverSideType());
     if (MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
