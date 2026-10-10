@@ -593,9 +593,11 @@ is honoured with two edges:
   remote `search-<field>` action, not `optionsSource`; a one-to-many reference to an external
   catalogue is not wired yet. It spans three widget branches and is deliberately deferred rather
   than half-wired.
-- **VB/Redwood REST sources.** The Redwood/VB line resolves REST sources **by ref natively** and does
-  not consume the shared catalogue the way the Vaadin/native renderers do — by design for now (its
-  transport shares no core with the web renderers).
+- **VB/Redwood REST sources.** Since 2026-10-10 the Redwood/VB core (`poc/restSources.mjs`) consumes
+  the catalogue like the web: listing `rowsSource`, field `optionsSource`, route `data:` and
+  `restAction`s, resolved by `ref` against `AppDto.restSources` / the bundle manifest, direct or
+  proxied (`__restfetch__`), with sample data under the same opt-in rule and column `tones`. Its
+  `${…}` interpolation covers dotted paths only, not the web's full expression language.
 
 Update this page whenever parity moves — it is referenced from the language manuals and the
 [Rosetta](/reference/language-rosetta/).
