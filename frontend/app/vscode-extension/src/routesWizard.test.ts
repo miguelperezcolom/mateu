@@ -52,6 +52,8 @@ describe('classify', () => {
         expect(classify('type: Environment\nname: pre\nsources: {}\n')).toBe('environment')
         expect(classify('sources: {}\n', 'environments/pre.yaml')).toBe('environment')
         expect(classify('type: Types\ntypes: []\n')).toBe('types')
+        // the project descriptor is settings, never a page a route could point at
+        expect(classify('type: Project\nrenderer: redwood\n', 'project.yaml')).toBe('project')
         expect(classify('type: AppShell\ntitle: x\n')).toBe('appShell')
         expect(classify('type: Form\ntitle: x\n')).toBe('page')
         expect(classify('title: no type\n')).toBe('page')
