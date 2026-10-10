@@ -1,0 +1,57 @@
+{
+ "fragments": [
+  {
+   "targetComponentId": "",
+   "action": "Replace",
+   "component": {
+    "type": "ClientSide",
+    "id": "c69",
+    "metadata": {
+     "type": "VerticalLayout"
+    },
+    "children": [
+     {
+      "type": "ClientSide",
+      "id": "c66",
+      "metadata": {
+       "type": "Dialog",
+       "id": "dlg",
+       "headerTitle": "Inline dialog",
+       "content": {
+        "type": "ClientSide",
+        "id": "c65",
+        "metadata": {
+         "type": "Text",
+         "text": "Dialog body"
+        },
+        "children": []
+       }
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c68",
+      "metadata": {
+       "type": "Drawer",
+       "id": "drw",
+       "headerTitle": "Inline drawer",
+       "content": {
+        "type": "ClientSide",
+        "id": "c67",
+        "metadata": {
+         "type": "Text",
+         "text": "Drawer body"
+        },
+        "children": []
+       }
+      },
+      "children": []
+     }
+    ]
+   },
+   "state": {},
+   "data": {}
+  }
+ ]
+}

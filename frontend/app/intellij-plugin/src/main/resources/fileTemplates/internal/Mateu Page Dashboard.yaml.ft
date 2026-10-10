@@ -1,0 +1,21 @@
+# Dashboard: a KPI band over a grid of titled panels. A MetricCard with an actionId is clickable.
+type: VerticalLayout
+__PAGE_WIDTH__
+content:
+  - {type: Text, text: __TITLE__, container: h2}
+  - type: Scoreboard
+    metrics:
+      - {type: MetricCard, title: Revenue, value: "1.2M", unit: EUR, trend: up, trendLabel: +8% vs last month}
+      - {type: MetricCard, title: Orders, value: "3,480", trend: up, trendLabel: +3%}
+      - {type: MetricCard, title: Returns, value: "1.9%", trend: down, trendLabel: -0.4 pts}
+  - type: DashboardLayout
+    columns: 2
+    items:
+      - type: DashboardPanel
+        title: Sales by region
+        colSpan: 1
+        content: {type: Text, text: Put a Chart here}
+      - type: DashboardPanel
+        title: Latest orders
+        colSpan: 1
+        content: {type: Text, text: Put a Listing here}

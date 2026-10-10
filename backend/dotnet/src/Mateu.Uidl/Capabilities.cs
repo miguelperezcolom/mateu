@@ -88,6 +88,25 @@ public sealed record ListingData<TRow>(IReadOnlyList<TRow> Content, long? TotalE
 
     /// <summary>True when the content is already one page of a larger result set.</summary>
     public bool Paged => TotalElements is not null;
+
+    /// <summary>The [GroupBy] group summaries over the WHOLE result set, when the listing computed
+    /// them itself (a database GROUP BY); null lets the engine synthesize counts from the rows it
+    /// got (mirrors ListingData.groups / withSynthesizedGroups).</summary>
+    public IReadOnlyList<GroupSummary>? Groups { get; init; }
+
+    /// <summary>The [Aggregate] column totals over the whole result set, when computed by the
+    /// listing; null otherwise (mirrors ListingData.aggregates).</summary>
+    public IReadOnlyDictionary<string, object?>? Aggregates { get; init; }
+
+    public ListingData<TRow> WithGroups(IReadOnlyList<GroupSummary> groups) => this with { Groups = groups };
+
+    /// <summary>This data with counted groups synthesized from its content by the [GroupBy] column
+    /// of <paramref name="rowType"/>, unless it already carries groups (Java's
+    /// ListingData.withSynthesizedGroups).</summary>
+    public ListingData<TRow> WithSynthesizedGroups(Type rowType) =>
+        Groups is { Count: > 0 } || GroupSummaries.Synthesize(Content, rowType) is not { } groups
+            ? this
+            : this with { Groups = groups };
 }
 
 /// <summary>A listing: rows shown as a sortable, paginated grid. Implement

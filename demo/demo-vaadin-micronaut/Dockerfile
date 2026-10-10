@@ -4,6 +4,6 @@ FROM azul/zulu-openjdk-alpine:21.0.8-21.44-x86
 #RUN update-ms-fonts
 
 COPY target/demo-vaadin-micronaut-0.1.jar app.jar
-EXPOSE 8091
+EXPOSE 8093
 
 ENTRYPOINT ["java","-jar","/app.jar"]

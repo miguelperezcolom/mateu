@@ -20,7 +20,7 @@ target app when taking Redwood screenshots.
 ```bash
 cd demo/demo-redwood-showcase
 mvn spring-boot:run
-# → http://localhost:8595
+# → http://localhost:8597
 ```
 
 The Redwood frontend assets come from the `redwood-oj-lit` artifact. After changing the renderer
@@ -36,7 +36,7 @@ cd backend/shared/frontend/redwood-oj-lit && mvn install -DskipTests
 
 ```bash
 cd e2e
-node screenshot.mjs --url http://localhost:8595/catalog --output /tmp/catalog.png --settle 6000
+node screenshot.mjs --url http://localhost:8597/catalog --output /tmp/catalog.png --settle 6000
 # dashboard / wizard render no <mateu-page>; wait for the root component instead:
-node screenshot.mjs --url http://localhost:8595/dashboard --output /tmp/dash.png --wait-for mateu-ui --settle 7000
+node screenshot.mjs --url http://localhost:8597/dashboard --output /tmp/dash.png --wait-for mateu-ui --settle 7000
 ```

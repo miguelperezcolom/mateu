@@ -61,6 +61,28 @@ public sealed class WizardProgressAttribute(string style) : Attribute
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class SeparatorBeforeAttribute : Attribute;
 
+/// <summary>Renders the property's VALUE as a text block instead of an input: a <c>Text</c>
+/// component whose text is <c>${state.&lt;field&gt;}</c>, so it follows the state. Container is the
+/// HTML element (default "p"), Size the font size (xl | l | m | s | xs; m applies nothing) and
+/// NoMargins drops the block margins. (C# analogue of Java's @Text field annotation; the fluent
+/// counterpart is the Text component.)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class TextAttribute : Attribute
+{
+    public string Container { get; set; } = "p";
+    public string Size { get; set; } = "m";
+    public bool NoMargins { get; set; }
+}
+
+/// <summary>How many columns of its form row the field spans (Java's @Colspan). Without it a field
+/// spans one column, except the intrinsically wide widgets (grid, textarea, rich text, html,
+/// markdown), which span the whole row of a multi-column section.</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class ColspanAttribute(int value) : Attribute
+{
+    public int Value { get; } = value;
+}
+
 /// <summary>Renders a collection property (typically a list of strings) as a plain read-only
 /// bulleted list (&lt;ul&gt;). Shorthand for the "bulletedList" stereotype; the fluent counterpart
 /// is the BulletedList component.</summary>
@@ -172,6 +194,14 @@ public sealed class ActionOptionsAttribute : Attribute
 public sealed class RestActionAttribute(string url) : Attribute
 {
     public string Url { get; } = url;
+
+    /// <summary>The name of a REST source catalogue entry to take the endpoint from (sources.yaml /
+    /// [RestSource] / IRestSourceCatalogSupplier); blank = inline (<see cref="Url"/>). Paths declared
+    /// here still win over the entry's. Use the parameterless form: <c>[RestAction(Source = "countries")]</c>.</summary>
+    public string Source { get; init; } = "";
+
+    /// <summary>By reference: the endpoint comes from the catalogue entry named by <see cref="Source"/>.</summary>
+    public RestActionAttribute() : this("") { }
     public string Method { get; init; } = "POST";
 
     /// <summary>Request headers as "Name: Value" strings (values interpolated).</summary>
@@ -200,6 +230,14 @@ public sealed class RestActionAttribute(string url) : Attribute
 public sealed class RestDataAttribute(string url) : Attribute
 {
     public string Url { get; } = url;
+
+    /// <summary>The name of a REST source catalogue entry to take the endpoint from (sources.yaml /
+    /// [RestSource] / IRestSourceCatalogSupplier); blank = inline (<see cref="Url"/>). Paths declared
+    /// here still win over the entry's. Use the parameterless form: <c>[RestData(Source = "countries")]</c>.</summary>
+    public string Source { get; init; } = "";
+
+    /// <summary>By reference: the endpoint comes from the catalogue entry named by <see cref="Source"/>.</summary>
+    public RestDataAttribute() : this("") { }
     public string Method { get; init; } = "GET";
 
     /// <summary>Request headers as "Name: Value" strings (values interpolated).</summary>

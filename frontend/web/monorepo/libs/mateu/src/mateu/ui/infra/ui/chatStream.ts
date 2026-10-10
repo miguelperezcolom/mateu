@@ -1,3 +1,4 @@
+import { chatText } from './chatTexts'
 /**
  * The chat's SSE stream, read as SSE — by EVENT, not by line — and turned into what the panel shows:
  * the answer, the token bar and a progress line while the agent works.
@@ -134,7 +135,7 @@ export function classifyChatPayload(payload: string): ChatStreamMessage {
                     case 'agent-tool':
                         return { kind: 'tool', detail: detail as AgentToolDetail };
                     case 'agent-error':
-                        return { kind: 'error', message: String(detail.message ?? 'Error desconocido del agente') };
+                        return { kind: 'error', message: String(detail.message ?? chatText('agentError')) };
                     default:
                         return { kind: 'event', event: obj.event, detail: obj.detail ?? {} };
                 }
@@ -254,10 +255,10 @@ export class ChatProgress {
         const secs = Math.max(0, Math.floor((now - this.since) / 1000));
         const withSecs = (s: string) => (secs > 0 ? `${s} ${secs} s` : s);
         const running = this.runningTool;
-        if (running) return withSecs(`Llamando a ${running.name}…`);
-        if (this.answering) return 'Respondiendo…';
+        if (running) return withSecs(chatText('callingTool').replace('{name}', running.name));
+        if (this.answering) return chatText('answering');
         if (!this.reported) return null;
-        return withSecs(this.statusText || 'Pensando…');
+        return withSecs(this.statusText || chatText('thinking'));
     }
 }
 

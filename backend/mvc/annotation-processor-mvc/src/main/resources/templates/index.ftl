@@ -1,290 +1,36 @@
 package ${pkgName};
 
-import org.springframework.http.HttpStatus;
+import io.mateu.core.infra.IndexPage;
 import org.springframework.beans.factory.annotation.Value;
-import io.mateu.core.infra.InputStreamReader;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-
 @RestController("${pkgName}.${simpleClassName}Controller")
 @RequestMapping("<#if path?has_content>${path}<#else>/</#if>")
-@Slf4j
 public class ${simpleClassName}Controller {
 
-    @Value("${r"${spring.devtools.livereload.enabled:false}"}")
-    private boolean liveReloadEnabled;
+<#assign extraHead><#list metas as m><meta<#if m.name?has_content> name="${m.name}"</#if><#if m.httpEquiv?has_content> http-equiv="${m.httpEquiv}"</#if><#if m.charset?has_content> charset="${m.charset}"</#if> content="${m.content}"></#list><#list links as l><link rel="${l.rel}" href="${l.href}"<#if l.type?has_content> type="${l.type}"</#if><#if l.as?has_content> as="${l.as}"</#if><#if l.crossorigin> crossorigin</#if>></#list><#list scripts as s><script<#if s.type?has_content> type="${s.type}"</#if> src="${s.src}"<#if s.crossorigin> crossorigin</#if><#if s.defer> defer</#if><#if s.async> async</#if>></script></#list></#assign>
+    // The page itself is built by io.mateu.core.infra.IndexPage — ONE implementation for every
+    // adapter (title, favicon, @Meta/@Link/@Script, Keycloak SSO, the deferred-boot replayer that
+    // starts a Visual Builder (redwood) page, and its fallback when the Oracle runtime cannot load).
+    private static final IndexPage.Spec SPEC = new IndexPage.Spec(
+            "${path?j_string}",
+            "${pageTitle?j_string}",
+            "${favicon?j_string}",
+            java.util.List.of(<#list externalScripts as x>"${x?j_string}"<#sep>, </#sep></#list>),
+            <#if keycloak??>new IndexPage.Keycloak("${keycloak.url?j_string}", "${keycloak.realm?j_string}", "${keycloak.clientId?j_string}", "${keycloak.jsUrl?j_string}")<#else>null</#if>,
+            "${extraHead?j_string}",
+            false);
 
     @Value("${r"${mateu.debug:false}"}")
     private boolean debug;
 
+    // Deep links (/orders/42 on a reload or a shared link) are forwarded here by SpaRedirectFilter.
     @GetMapping(value = "", produces = MediaType.TEXT_HTML_VALUE)
     public String getIndex() {
-        String html = InputStreamReader.readFromClasspath(this.getClass(), "${indexHtmlPath}");
-<#list externalScripts as x>
-        html = html.replaceAll("<title>AQUIELTITULODELAPAGINA</title>", "<script type='module' src='${x}'></script><title>AQUIELTITULODELAPAGINA</title>");
-</#list>
-        html = html.replaceAll("<!-- AQUIFAVICON -->", "${favicon}");
-        html = html.replaceAll("AQUIELTITULODELAPAGINA", "${pageTitle}");
-<#if keycloak??>
-        String keycloakStuff = """
-<script type="module">
-    import Keycloak from '${keycloak.jsUrl}';
-
-    // 1. Iniciamos la descarga del script de la UI inmediatamente,
-    // sin esperar al init de Keycloak
-    // Empieza a bajar el bundle de la UI ya, sin esperar al init de Keycloak. Vacío cuando la
-    // página no arranca por un módulo único — ver bootDeferred() más abajo.
-    if ('__MATEU_BUNDLE__') {
-        const mateuScript = document.createElement('link');
-        mateuScript.rel = 'modulepreload';
-        mateuScript.href = '__MATEU_BUNDLE__';
-        document.head.appendChild(mateuScript);
-    }
-
-    /**
-     * Vuelve a poner en marcha los scripts que la página aplazó hasta haber token.
-     *
-     * Una página que no arranca por un módulo único — una app de Visual Builder, por ejemplo —
-     * marca sus scripts de arranque como text/mateu-deferred, que ningún navegador ejecuta, y
-     * guarda el src en data-src para que tampoco se descarguen. Se reponen aquí EN ORDEN y
-     * esperando a cada uno: son dependientes entre sí (require.js antes que su config, y ésta
-     * antes del runtime), así que lanzarlos a la vez arranca la app a medio cargar.
-     */
-    async function bootDeferred(nodes) {
-        for (const old of nodes) {
-            const s = document.createElement('script');
-            for (const a of Array.from(old.attributes)) {
-                if (a.name === 'type' || a.name === 'data-src') continue;
-                s.setAttribute(a.name, a.value);
-            }
-            const src = old.getAttribute('data-src');
-            const done = src
-                ? new Promise((ok, ko) => { s.onload = ok; s.onerror = () => ko(new Error(src)); })
-                : Promise.resolve();
-            if (src) s.src = src; else s.text = old.textContent;
-            old.parentNode.replaceChild(s, old);
-            await done;
-        }
-    }
-
-    const keycloak = new Keycloak({
-        url: '${keycloak.url}',
-        realm: '${keycloak.realm}',
-        clientId: '${keycloak.clientId}'
-    });
-
-    async function initKeycloak() {
-
-        // The token as the renderers read it: every request carries localStorage.__mateu_auth_token.
-        function storeToken() {
-            localStorage.setItem('__mateu_auth_token', keycloak.token);
-            localStorage.setItem('__mateu_auth_subject', keycloak.subject);
-        }
-        // Refreshes the token (minValidity seconds ahead; -1 forces it). A refresh that fails means the
-        // Keycloak session itself is gone — expired, revoked, or the realm was reset — and no request can
-        // succeed any more, so the page goes back to the login instead of leaving the user in front of
-        // "your session is no longer valid" with a retry that resends the same dead token.
-        function refreshToken(minValidity) {
-            return keycloak.updateToken(minValidity).then(function (refreshed) {
-                if (refreshed) {
-                    storeToken();
-                }
-                return refreshed;
-            }).catch(function (e) {
-                console.log('failed to refresh the token, or the session has expired', e);
-                keycloak.login();
-                throw e;
-            });
-        }
-        keycloak.onTokenExpired = function () {
-            refreshToken(30).catch(function () {});
-        }
-        // Timers do not run in a background tab or on a sleeping laptop, so onTokenExpired can fire too
-        // late: check again whenever the page comes back into view.
-        document.addEventListener('visibilitychange', function () {
-            if (document.visibilityState === 'visible' && keycloak.authenticated) {
-                refreshToken(30).catch(function () {});
-            }
-        });
-        // A request answered 401 (the token expired between two checks): the renderers raise the
-        // cancelable 'mateu-session-expired' event with {retry, giveUp}. Take it, force a refresh and
-        // retry the request once — the action goes through and the user's work is not lost.
-        document.addEventListener('mateu-session-expired', function (e) {
-            e.preventDefault();
-            refreshToken(-1).then(function () {
-                e.detail.retry();
-            }, function () {
-                e.detail.giveUp();
-            });
-        });
-        keycloak.init({
-            onLoad: 'login-required',
-        }).then(function(authenticated) {
-            console.log(authenticated ? 'authenticated' : 'not authenticated');
-            if (authenticated) {
-                storeToken();
-                const deferred = Array.from(
-                    document.querySelectorAll('script[type="text/mateu-deferred"]'));
-                if (deferred.length) {
-                    // La página trae su propio arranque y su propia raíz; sólo le faltaba el
-                    // token. Aun así se le añade el mateu-ui, oculto: no está ahí para pintar
-                    // nada, sino porque TRANSPORTA el baseUrl y es la SEÑAL de que a esta página
-                    // la sirve el backend de Mateu — que es lo que decide si la shell rutea por
-                    // path (/ruta) o por hash (#/ruta). Sin él, la misma app cambiaba de esquema
-                    // de URL por el mero hecho de estar securizada, que no tiene nada que ver.
-                    // Va ANTES de arrancar: la shell lo consulta nada más entrar.
-                    const u = document.createElement('mateu-ui');
-                    u.setAttribute('baseUrl', '${path}');
-                    u.setAttribute('pathPrefix', '${path}');
-                    u.setAttribute('style', 'display:none;');
-                    document.body.appendChild(u);
-
-                    bootDeferred(deferred).catch(function (e) {
-                        console.log('failed to boot the deferred scripts', e);
-                    });
-                } else {
-                    const s = document.createElement('script');
-                    s.setAttribute('type', 'module')
-                    s.setAttribute('src', '__MATEU_BUNDLE__')
-                    document.head.appendChild(s);
-
-                    const u = document.createElement('mateu-ui');
-                    u.setAttribute('baseUrl', '${path}');
-                    u.setAttribute('pathPrefix', '${path}');
-                    u.setAttribute('style', 'width:100%;height:100vh;');
-                    document.body.appendChild(u);
-                }
-
-            }
-        }).catch(function(e) {
-            console.log('failed to initialize', e);
-        });
-    }
-
-    async function logout() {
-
-        console.log('logout');
-
-        // 1. Limpiamos local storage
-        localStorage.removeItem('__mateu_auth_token');
-        localStorage.removeItem('__mateu_auth_subject');
-
-        // 2. Ejecutamos el logout de Keycloak
-        keycloak.logout({
-            redirectUri: window.location.origin,
-            post_logout_redirect_uri: '${path}'
-        });
-    }
-
-    // EXPOSICIÓN GLOBAL:
-    window.logout = logout;
-
-    // Ejecutamos la función
-    initKeycloak();
-</script>
-""";
-        // The module this page boots itself with, read off the page rather than assumed.
-        //
-        // This used to be the literal "/assets/mateu-vaadin.js", in four places, which quietly
-        // made @KeycloakSecured a Vaadin-only annotation: a shell whose pom names a different
-        // Mateu frontend got a bootstrap that preloads a bundle it does not ship. Whatever the
-        // renderer calls its entry point, the page already says so.
-        String mateuBundle = null;
-        int moduleAt = html.indexOf("<script type=\"module\" crossorigin src=\"");
-        if (moduleAt >= 0) {
-            int from = moduleAt + "<script type=\"module\" crossorigin src=\"".length();
-            int to = html.indexOf('"', from);
-            if (to > from) {
-                mateuBundle = html.substring(from, to);
-            }
-        }
-
-        // Two shapes of page, and the difference is not cosmetic.
-        //
-        // A page that boots Mateu itself — a module script plus a <mateu-ui> root, which is what
-        // the Vite-built renderers ship — has that boot DISABLED here and re-created after
-        // authentication, so the UI never starts without a token and never loads twice. That is
-        // what the AQUIJS/AQUIUI markers are for, and it is the "silent SSO, no double load"
-        // behaviour this template exists to provide.
-        //
-        // A page that boots some other way has nothing for that surgery to operate on. It used to
-        // reach indexOf("<!-- AQUIJS -->") anyway, get -1, and die on substring(0, -1) with a
-        // StringIndexOutOfBoundsException — a 500 with no explanation.
-        boolean bootsItself = mateuBundle != null
-                && html.contains("<!-- AQUIJS -->") && html.contains("<!-- HASTAAQUIJS -->")
-                && html.contains("<!-- AQUIUI -->") && html.contains("<!-- HASTAAQUIUI -->");
-
-        // A page with nowhere to put the Keycloak script is REFUSED, loudly.
-        //
-        // The tempting fallback is to serve it anyway and leave its own boot alone, the way the
-        // webflux template does. That is wrong here, and it is worth being explicit about why:
-        // this @UI is @KeycloakSecured, and a page served without the script that acquires the
-        // token is an UNAUTHENTICATED console that looks like it loaded. A 500 is a bad failure; a
-        // console that opens and asks nobody for credentials is a worse one.
-        //
-        // It happens when a frontend artifact ships a page that is not a Mateu bootstrap: the
-        // `redwood` artifact is an Oracle Visual Builder application, loaded by its own loader,
-        // with no mateu-ui root and none of these markers. Swapping vaadin-lit for it in a shell's
-        // pom is a one-line change that works for an unsecured app and cannot work for a secured
-        // one until that page grows a bootstrap of its own.
-        if (!html.contains("<!-- AQUIKEYCLOAK -->")) {
-            throw new IllegalStateException(
-                "This UI is @KeycloakSecured, but the Mateu frontend artifact on the classpath "
-                + "ships an _index.html with no <!-- AQUIKEYCLOAK --> marker, so there is nowhere "
-                + "to put the script that acquires the token. Serving the page anyway would "
-                + "publish an unauthenticated console, so it is refused instead. That artifact "
-                + "does not provide a Mateu bootstrap page.");
-        }
-
-        keycloakStuff = keycloakStuff.replace("__MATEU_BUNDLE__",
-                bootsItself ? mateuBundle : "");
-        html = html.replaceAll("<!-- AQUIKEYCLOAK -->", java.util.regex.Matcher.quoteReplacement(keycloakStuff));
-
-        if (bootsItself) {
-            html = html.substring(0, html.indexOf("<!-- AQUIUI -->"))
-            + html.substring(html.indexOf("<!-- HASTAAQUIUI -->"));
-            html = html.substring(0, html.indexOf("<!-- AQUIJS -->"))
-            + "<link rel=\"modulepreload\" href=\"" + mateuBundle + "\" />"
-            + html.substring(html.indexOf("<!-- HASTAAQUIJS -->"));
-            html = html.replaceAll(java.util.regex.Pattern.quote(
-                "<script type=\"module\" crossorigin src=\"" + mateuBundle + "\"></script>"), "");
-            // The stylesheet is NOT stripped any more. It used to be, and nothing ever put it
-            // back: every @KeycloakSecured page therefore rendered without its renderer's own
-            // stylesheet, which on the Vaadin one meant the body kept its default 8px margin and
-            // the whole app sat that far down its viewport, with the bottom of it — the chat
-            // panel's input bar, among other things — hanging off the edge.
-        }
-<#else >
-    html = html.substring(0, html.indexOf("<!-- AQUIUI -->"))
-    + "<mateu-ui baseUrl=\"${path}\" pathPrefix=\"${path}\"" + (debug ? " debug=\"true\"" : "") + " style=\"width:100%;height:100vh;\"></mateu-ui>"
-    // A page that does not boot itself with a single ES module — a Visual Builder (redwood) app —
-    // parks its boot scripts as type="text/mateu-deferred" (require.js, its bundle config, the
-    // visual-runtime) so no browser runs them, and stashes the src in data-src so they are not even
-    // fetched. Only the @KeycloakSecured path promoted them (after the token); an UNSECURED app got
-    // <mateu-ui> and inert scripts, so the VB runtime never started. Promote them here too, IN ORDER
-    // and awaiting each (they depend on one another). A Vite-built renderer (vaadin) has no deferred
-    // scripts, so this is a no-op there.
-    + "<script>(function(){var all=document.getElementsByTagName('script'),d=[];for(var j=0;j<all.length;j++){if(all[j].type==='text/mateu-deferred')d.push(all[j]);}if(!d.length)return;var i=0;(function n(){if(i>=d.length)return;var o=d[i++],s=document.createElement('script');for(var k=0;k<o.attributes.length;k++){var a=o.attributes[k];if(a.name==='type'||a.name==='data-src')continue;s.setAttribute(a.name,a.value);}var u=o.getAttribute('data-src');if(u){s.onload=n;s.onerror=function(){console.log('mateu: deferred boot failed',u);};s.src=u;}else{s.text=o.textContent;}o.parentNode.replaceChild(s,o);if(!u)n();})();})();</script>"
-    + html.substring(html.indexOf("<!-- HASTAAQUIUI -->"));
-</#if>
-<#if metas?has_content || links?has_content || scripts?has_content>
-        StringBuilder extraHead = new StringBuilder();
-<#list metas as m>
-        extraHead.append("<meta<#if m.name?has_content> name=\"${m.name}\"</#if><#if m.httpEquiv?has_content> http-equiv=\"${m.httpEquiv}\"</#if><#if m.charset?has_content> charset=\"${m.charset}\"</#if> content=\"${m.content}\">");
-</#list>
-<#list links as l>
-        extraHead.append("<link rel=\"${l.rel}\" href=\"${l.href}\"<#if l.type?has_content> type=\"${l.type}\"</#if><#if l.as?has_content> as=\"${l.as}\"</#if><#if l.crossorigin> crossorigin</#if>>");
-</#list>
-<#list scripts as s>
-        extraHead.append("<script<#if s.type?has_content> type=\"${s.type}\"</#if> src=\"${s.src}\"<#if s.crossorigin> crossorigin</#if><#if s.defer> defer</#if><#if s.async> async</#if>></script>");
-</#list>
-        html = html.replace("</head>", extraHead + "</head>");
-</#if>
-        return html;
+        return IndexPage.render(getClass(), "${indexHtmlPath}", SPEC.withDebug(debug));
     }
 
 }

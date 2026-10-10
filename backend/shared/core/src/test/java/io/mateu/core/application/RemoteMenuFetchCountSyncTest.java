@@ -109,7 +109,7 @@ class RemoteMenuFetchCountSyncTest {
   void oneNavigationAsksTheRemoteOnce() {
     viaUrl("/workflow/processes");
 
-    assertThat(CALLS).containsExactly("null/_workflow");
+    assertThat(CALLS).containsExactly("http://localhost:8080/_workflow");
   }
 
   /**
@@ -122,7 +122,7 @@ class RemoteMenuFetchCountSyncTest {
     viaUrl("/workflow/definitions");
     viaUrl("/workflow/processes");
 
-    assertThat(CALLS).containsExactly("null/_workflow");
+    assertThat(CALLS).containsExactly("http://localhost:8080/_workflow");
   }
 
   /** Each remote is still its own entry — one answer must never stand in for another's. */
@@ -131,6 +131,7 @@ class RemoteMenuFetchCountSyncTest {
     viaUrl("/workflow/processes");
     viaUrl("/booking/processes");
 
-    assertThat(CALLS).containsExactly("null/_workflow", "null/_booking");
+    assertThat(CALLS)
+        .containsExactly("http://localhost:8080/_workflow", "http://localhost:8080/_booking");
   }
 }

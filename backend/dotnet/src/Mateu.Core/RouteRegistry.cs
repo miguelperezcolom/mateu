@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Mateu.Dtos;
 using YamlDotNet.Serialization;
 
@@ -251,9 +252,10 @@ public sealed class RouteRegistry
                 }
                 mounts.Add(new MountDescriptor(basePath, routeFiles));
             }
-            catch
+            catch (Exception e)
             {
-                // a broken descriptor must not take app enumeration down — skip it.
+                // a broken descriptor must not take app enumeration down — skip it, but say so.
+                MateuLogging.For("Mateu.Routes").LogWarning(e, "Mount descriptor {File} skipped: {Error}", file, e.Message);
             }
         }
         return mounts;
@@ -285,9 +287,10 @@ public sealed class RouteRegistry
                 var definition = new RouteTable(entries).Match(mount.BasePath)?.Entry.Definition;
                 if (!string.IsNullOrWhiteSpace(definition)) return definition;
             }
-            catch
+            catch (Exception e)
             {
-                // ignore a broken route file — try the next one.
+                // a broken route file is skipped — try the next one, but say so.
+                MateuLogging.For("Mateu.Routes").LogWarning(e, "Route file {File} skipped: {Error}", path, e.Message);
             }
         }
         return null;
@@ -325,11 +328,13 @@ public sealed class RouteRegistry
             }
             return new RouteTable(entries);
         }
-        catch
+        catch (Exception e)
         {
             // A broken routes.yaml must not take the app down: the attribute-declared routes still
             // work. Losing every route because of a syntax error in an optional file would be worse
-            // than the problem the file solves.
+            // than the problem the file solves — but losing them SILENTLY is how a typo becomes a day
+            // of "why is my route 404".
+            MateuLogging.For("Mateu.Routes").LogWarning(e, "{Path} ignored, its routes are not served: {Error}", path, e.Message);
             return RouteTable.Empty;
         }
     }

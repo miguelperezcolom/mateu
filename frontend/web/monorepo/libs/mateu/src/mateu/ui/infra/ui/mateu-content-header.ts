@@ -18,6 +18,8 @@ import { shellTrail, pathOfPage, Crumb, navigateLikeMenu, onShellMenuChange } fr
 import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
+import { safeNavigate } from '@infra/ui/safeNavigate.ts'
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 export { possiblyHtml } from './interpolation'
 
@@ -232,7 +234,7 @@ export class MateuContentHeader extends LitElement {
     renderBtn = (button: Button) => {
         if ((this.data ?? {})[button.actionId + '.hidden']) return nothing
         const label = this.evalLabel(button.label)
-        // Renderers with their own design system (Redwood, SLDS…) provide the button through
+        // Renderers with their own design system provide the button through
         // the renderToolbarButton hook; the Vaadin default stays here.
         const custom = componentRenderer.get()?.renderToolbarButton?.(
             button, label, () => this.handleButtonClick(button))
@@ -267,7 +269,7 @@ export class MateuContentHeader extends LitElement {
                 ${inline.map(this.renderBtn)}
                 ${menu.length ? html`
                     <div class="overflow-wrap">
-                        <button class="mtb overflow-btn" title="Más acciones" aria-haspopup="true"
+                        <button class="mtb overflow-btn" title="${chromeText('moreActions')}" aria-label="${chromeText('moreActions')}" aria-haspopup="true"
                                 aria-expanded="${this._overflowOpen}"
                                 @click="${(e: Event) => { e.stopPropagation(); this._overflowOpen = !this._overflowOpen }}">⋯</button>
                         ${this._overflowOpen ? html`
@@ -293,13 +295,15 @@ export class MateuContentHeader extends LitElement {
         return html`
             <div style="display: flex; gap: var(--lumo-space-xs, .25rem); align-items: center;" class="peer-nav">
                 <button class="mtb tertiary peer-nav-prev"
-                        title="${peerNav.prevLabel ?? 'Previous'}"
+                        title="${peerNav.prevLabel ?? chromeText('previous')}"
+                        aria-label="${peerNav.prevLabel ?? chromeText('previous')}"
                         ?disabled="${!peerNav.prevRoute}"
-                        @click="${() => { if (peerNav.prevRoute) window.location.href = peerNav.prevRoute }}">‹</button>
+                        @click="${() => { if (peerNav.prevRoute) safeNavigate(peerNav.prevRoute) }}">‹</button>
                 <button class="mtb tertiary peer-nav-next"
-                        title="${peerNav.nextLabel ?? 'Next'}"
+                        title="${peerNav.nextLabel ?? chromeText('next')}"
+                        aria-label="${peerNav.nextLabel ?? chromeText('next')}"
                         ?disabled="${!peerNav.nextRoute}"
-                        @click="${() => { if (peerNav.nextRoute) window.location.href = peerNav.nextRoute }}">›</button>
+                        @click="${() => { if (peerNav.nextRoute) safeNavigate(peerNav.nextRoute) }}">›</button>
             </div>
         `
     }
@@ -319,8 +323,9 @@ export class MateuContentHeader extends LitElement {
 
     /** Inside the app for a path (the menu's own navigation), a full load for anything else. */
     private goToCrumb(route: string) {
-        if (/^[a-z]+:\/\//i.test(route)) {
-            window.location.href = route
+        if (/^[a-z][a-z0-9+.-]*:/i.test(route)) {
+            // an absolute URL (any scheme): followed only when it is http(s) — never javascript:
+            safeNavigate(route)
             return
         }
         if (!dirtyGuard.confirmLeave()) return
@@ -368,7 +373,7 @@ export class MateuContentHeader extends LitElement {
         const crumbs = this.crumbsOf(metadata as Form, level)
         return html`
             ${crumbs.length > 0 ? html`
-                <nav class="breadcrumbs-bar" aria-label="Breadcrumb">
+                <nav class="breadcrumbs-bar" aria-label="${chromeText('breadcrumb')}">
                     ${crumbs.map((crumb, index: number) => html`
                         ${index > 0 ? html`<span class="breadcrumb-sep" aria-hidden="true">›</span>` : nothing}
                         ${crumb.route

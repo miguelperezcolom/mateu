@@ -15,9 +15,15 @@ object ContractClient {
   private const val CONTRACT_ACTION = "__contract__"
   private const val CONTRACT_KEY = "_contract"
 
-  fun fetch(fqn: String): ModelViewContract? {
-    val config = loadMateuConfig()
-    val client = MateuApiClient(config.baseUrl, "mateu-plugin-contract")
+  fun fetch(project: com.intellij.openapi.project.Project, fqn: String): ModelViewContract? {
+    val config = loadMateuConfig(project)
+    // Contract lookups only make sense against a backend this project was pointed at.
+    if (!config.configured) return null
+    val client = MateuApiClient(
+      config.baseUrl,
+      "mateu-plugin-contract",
+      tokenProvider = io.mateu.ijp.auth.MateuAuthService.getInstance(project),
+    )
     val response =
       client.runAction(
         route = "",

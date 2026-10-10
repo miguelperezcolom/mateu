@@ -1,4 +1,5 @@
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
+import { chromeTextf } from './chromeTexts'
 
 /**
  * The navigation tree: one menu, worked out from the route — which section and which entry are
@@ -228,12 +229,7 @@ export type RemoteAnswer = { app: RemoteApp } | { failed: true }
 
 /** Why a section is disabled, in the UI's language. */
 export function unavailableHint(label: string, lang?: string): string {
-    const language = lang || (typeof document !== 'undefined' && document.documentElement?.lang)
-        || (typeof navigator !== 'undefined' && navigator.language) || ''
-    const name = plainText(label)
-    return language.toLowerCase().startsWith('es')
-        ? `${name} no está disponible ahora. Se volverá a intentar.`
-        : `${name} is not available right now. It will be retried.`
+    return chromeTextf('sectionUnavailable', { name: plainText(label) }, lang)
 }
 
 const markHidden = (menu: MenuOption[]): MenuOption[] =>

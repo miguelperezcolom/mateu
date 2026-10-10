@@ -254,6 +254,26 @@ function renderItem(item: Sketch, ctx: { variants: Record<string, string> }): Sc
       f.name = 'slot';
       return f;
     }
+    case 'tile': {
+      // A small outlined card (KPI tile, wizard step, result card, dashboard panel). A trailing
+      // token carrying a digit ("Revenue 1.2M€", "Orders 3,421") is drawn as the tile's VALUE
+      // under a muted label; anything else is a single medium caption.
+      const f = frameNode({ dir: 'VERTICAL', gap: 4, pad: 12, bg: LUMO.base, radius: LUMO.radiusM, stroke: LUMO.contrast20 });
+      f.resize(item.w ?? 120, item.h ?? 56);
+      f.primaryAxisSizingMode = item.h ? 'FIXED' : 'AUTO';
+      f.counterAxisSizingMode = 'FIXED';
+      const text: string = item.text ?? 'Tile';
+      const cut = text.lastIndexOf(' ');
+      const tail = cut > 0 ? text.substring(cut + 1) : '';
+      if (/\d/.test(tail)) {
+        f.appendChild(textNode(text.substring(0, cut), { size: LUMO.sizeXs, color: LUMO.secondary, name: 'label' }));
+        f.appendChild(textNode(tail, { size: LUMO.sizeL, bold: true, name: 'value' }));
+      } else {
+        f.appendChild(textNode(text, { size: LUMO.sizeS, medium: true, name: text }));
+      }
+      f.name = 'tile';
+      return f;
+    }
     case 'listrow': {
       const row = frameNode({ dir: 'HORIZONTAL', gap: 8, pad: 8, spread: !!item.chip });
       row.strokes = [solid(LUMO.contrast10)];

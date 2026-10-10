@@ -1,5 +1,6 @@
 import {customElement, property, state} from "lit/decorators.js";
 import {css, html, LitElement, nothing, TemplateResult} from "lit";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * Signature capture for a @Signature String field: a drawing canvas (mouse/touch via pointer
@@ -107,11 +108,11 @@ export class MateuSignaturePad extends LitElement {
                     @pointerup="${this.endStroke}"
                     @pointercancel="${this.endStroke}"></canvas>
             <div class="actions">
-                <button class="button" @click="${this.clear}">Clear</button>
+                <button class="button" @click="${this.clear}">${chromeText('clear')}</button>
                 <button class="button button--primary" ?disabled="${!this.hasStrokes}"
-                        @click="${this.accept}">Accept</button>
+                        @click="${this.accept}">${chromeText('accept')}</button>
                 ${this.value ? html`
-                    <button class="button" @click="${() => { this.signing = false }}">Cancel</button>` : nothing}
+                    <button class="button" @click="${() => { this.signing = false }}">${chromeText('cancel')}</button>` : nothing}
             </div>`
     }
 
@@ -123,8 +124,8 @@ export class MateuSignaturePad extends LitElement {
         return html`
             <img class="preview" src="${this.value}" alt="Signature"/>
             <div class="actions">
-                <button class="button" @click="${() => { this.signing = true; this.hasStrokes = false; this.updateComplete.then(() => this.clear()) }}">Sign again</button>
-                <button class="button button--danger" @click="${() => this.emit('')}">Delete</button>
+                <button class="button" @click="${() => { this.signing = true; this.hasStrokes = false; this.updateComplete.then(() => this.clear()) }}">${chromeText('signAgain')}</button>
+                <button class="button button--danger" @click="${() => this.emit('')}">${chromeText('delete')}</button>
             </div>`
     }
 

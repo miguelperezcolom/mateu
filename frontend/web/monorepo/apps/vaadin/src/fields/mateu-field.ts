@@ -5,8 +5,10 @@ import '@components/mateu-camera-capture.ts';
 import '@components/mateu-file-upload.ts';
 import { fieldAttribute } from '@components/mateu-file-upload.ts';
 import '@components/mateu-bulleted-list.ts';
+import '@components/mateu-range-slider.ts';
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
-import { interpolate } from '@components/interpolation'
+import { interpolate, templateResolver } from '@components/interpolation'
 import { isNoOpCommit, numericCommitValue } from '@components/fieldValue'
 import { isSearchableMulti, removeSearchableId, searchableBaseFieldId, searchableChips, searchableIds } from '@components/searchableMulti'
 import { isInside, readOnlyAsPlainText } from '@infra/ui/foldoutGeometry.ts'
@@ -34,7 +36,6 @@ import "@vaadin/upload"
 import "@vaadin/list-box"
 import "@vaadin/markdown"
 import '@vaadin/item'
-import '@polymer/paper-toggle-button'
 import "@vaadin-component-factory/vcf-date-range-picker"
 import { safeHtml } from "@infra/ui/safeHtml.ts";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
@@ -44,7 +45,6 @@ import '@components/mateu-choice'
 import './mateu-money-field'
 import { ComboBoxLitRenderer, comboBoxRenderer } from "@vaadin/combo-box/lit";
 import { ifDefined } from "lit/directives/if-defined.js";
-import { dialogFooterRenderer, dialogRenderer } from "@vaadin/dialog/lit";
 import { popoverRenderer } from "@vaadin/popover/lit";
 import { allIcons } from "@infra/ui/allIcons.ts";
 import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
@@ -58,6 +58,9 @@ import {evalIfNecessary} from "@infra/ui/renderers/avatarRenderer.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import {TextField} from "@vaadin/text-field";
 import {announce} from "@infra/a11y/announcer.ts";
+import { safeNavigate } from '@infra/ui/safeNavigate.ts'
+import { safeHref } from '@infra/ui/safeNavigate.ts'
+import { displayedValue, formatMoney } from './fieldDisplay'
 
 type ValueChangedDetail = { value: unknown; fieldId: string | undefined }
 
@@ -66,21 +69,6 @@ interface FileLike {
     name: string
 }
 
-
-// UI5's ColorPicker/RangeSlider are only needed by the color-picker and range-slider field
-// stereotypes. Load them LAZILY (a dynamic import on first use) so every other renderer/field does
-// not pull in the whole @ui5/webcomponents library — and its global ui5-announcement-area — just to
-// render a text field. Memoized so the modules load at most once per page.
-let ui5FieldComponentsPromise: Promise<unknown> | null = null
-const ensureUi5FieldComponents = (): Promise<unknown> => {
-    if (!ui5FieldComponentsPromise) {
-        ui5FieldComponentsPromise = Promise.all([
-            import("@ui5/webcomponents/dist/ColorPicker.js"),
-            import("@ui5/webcomponents/dist/RangeSlider.js"),
-        ])
-    }
-    return ui5FieldComponentsPromise
-}
 
 @customElement('mateu-field')
 export class MateuField extends LitElement {
@@ -93,16 +81,6 @@ export class MateuField extends LitElement {
     connectedCallback() {
         super.connectedCallback()
         this.inFoldout = isInside(this, 'mateu-vaadin-foldout')
-    }
-
-    // Set once the lazily-loaded UI5 field components (color-picker / range-slider) have registered,
-    // so the element re-renders and the placed <ui5-*> upgrades.
-    @state()
-    private ui5FieldComponentsReady = false
-
-    private loadUi5FieldComponents() {
-        if (this.ui5FieldComponentsReady) return
-        ensureUi5FieldComponents().then(() => { this.ui5FieldComponentsReady = true })
     }
 
     @property()
@@ -128,12 +106,6 @@ export class MateuField extends LitElement {
 
     @property()
     labelAlreadyRendered: boolean | undefined
-
-    @state()
-    colorPickerOpened = false
-
-    @state()
-    colorPickerValue : string | undefined = undefined
 
     comboData: Option[] = []
 
@@ -191,32 +163,6 @@ export class MateuField extends LitElement {
     }
 
     rendered = false
-
-    renderColorPicker = () => {
-        this.loadUi5FieldComponents()
-        const fieldId = this.field?.fieldId!
-        const value = this.state && fieldId in this.state?this.state[ fieldId]:this.field?.initialValue
-        return html`
-            <ui5-color-picker value="${value}" @change="${(e: CustomEvent) => this.colorPickerValue = (e.target as HTMLInputElement).value}">Picker</ui5-color-picker>
-        `
-    }
-
-    saveColor = () => {
-        this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
-            detail: {
-                value: this.colorPickerValue,
-                fieldId: this.field!.fieldId
-            },
-            bubbles: true,
-            composed: true
-        }))
-        this.colorPickerOpened = false
-    }
-
-    renderColorPickerFooter = () => {
-        return html`<vaadin-button @click="${() => this.colorPickerOpened = false}">Cancel</vaadin-button>
-        <vaadin-button theme="primary" @click="${this.saveColor}">Save</vaadin-button>`
-    }
 
     checked = (e:Event) => {
         const input = e.target as HTMLInputElement;
@@ -447,7 +393,7 @@ export class MateuField extends LitElement {
             ?? 'calc(var(--lumo-font-size-s) * 1.6 + (var(--lumo-size-m) - var(--lumo-icon-size-s)) / 2)'
         return html`<a
                 data-navlink
-                href="${href}"
+                href="${ifDefined(safeHref(href))}"
                 title="${title}"
                 target="${ifDefined(link.target || undefined)}"
                 style="display: flex; align-items: center; color: var(--lumo-secondary-text-color); align-self: flex-start; margin-top: ${marginTop};"
@@ -782,22 +728,9 @@ export class MateuField extends LitElement {
             if ((v === undefined || v === null || v === '') && fromData(this.field.fieldId) !== undefined) v = fromData(this.field.fieldId)
             const lookupLabel = fromData(this.field.fieldId + '-label')
             if (lookupLabel !== undefined && lookupLabel !== '') v = lookupLabel
-            const amountObj = (v && typeof v === 'object' && 'value' in (v as any)) ? (v as any) : null
-            if (v && (v as any).value) v = (v as any).value
-            const isBool = this.field?.dataType == 'bool' || v === true || v === false
-            const isMoney = this.field?.dataType == 'money'
-            const hasValue = v !== null && v !== undefined && v !== ''
-            let display = hasValue ? String(v) : '—'
-            if (isMoney && hasValue) {
-                const num = typeof v === 'number' ? v : parseFloat(String(v))
-                if (!isNaN(num)) {
-                    display = (amountObj && amountObj.locale && amountObj.currency)
-                        ? new Intl.NumberFormat(amountObj.locale, { style: 'currency', currency: amountObj.currency }).format(num)
-                        : new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num)
-                }
-            }
+            const { isBool, checked, isMoney, display } = displayedValue(v, this.field?.dataType)
             const valueBody = isBool
-                ? html`<vaadin-icon icon="${(v === true || v === 'true') ? 'vaadin:check' : 'vaadin:minus'}" style="height: 16px; width: 16px;"></vaadin-icon>`
+                ? html`<vaadin-icon icon="${checked ? 'vaadin:check' : 'vaadin:minus'}" style="height: 16px; width: 16px;"></vaadin-icon>`
                 : html`<span style="font-weight: 500; text-align: right; word-break: break-word; margin-left: auto;${isMoney ? ' font-variant-numeric: tabular-nums;' : ''}">${display}</span>`
             const showLabel = labelText && labelText != 'null'
             return html`<div
@@ -824,22 +757,9 @@ export class MateuField extends LitElement {
     private renderPlainTextField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
         if (!this.field) return html``
             let v = evalIfNecessary(value, this.state, this.data)
-            const amountObj = (v && typeof v === 'object' && 'value' in (v as any)) ? (v as any) : null
-            if (v && (v as any).value) v = (v as any).value
-            const isBool = this.field?.dataType == 'bool' || v === true || v === false
-            const isMoney = this.field?.dataType == 'money'
-            const hasValue = v !== null && v !== undefined && v !== ''
-            let display = hasValue ? String(v) : '—'
-            if (isMoney && hasValue) {
-                const num = typeof v === 'number' ? v : parseFloat(String(v))
-                if (!isNaN(num)) {
-                    display = (amountObj && amountObj.locale && amountObj.currency)
-                        ? new Intl.NumberFormat(amountObj.locale, { style: 'currency', currency: amountObj.currency }).format(num)
-                        : new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num)
-                }
-            }
+            const { isBool, checked, isMoney, display } = displayedValue(v, this.field?.dataType)
             const body = isBool
-                ? html`<vaadin-icon icon="${(v === true || v === 'true') ? 'vaadin:check' : 'vaadin:minus'}" style="height: 16px; width: 16px;"></vaadin-icon>`
+                ? html`<vaadin-icon icon="${checked ? 'vaadin:check' : 'vaadin:minus'}" style="height: 16px; width: 16px;"></vaadin-icon>`
                 : this.field?.multiline
                     ? html`<span style="font-weight: 500; white-space: pre-wrap; word-break: break-word;">${display}</span>`
                     : html`<span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;${isMoney ? ' font-variant-numeric: tabular-nums;' : ''}">${display}</span>`
@@ -933,7 +853,7 @@ export class MateuField extends LitElement {
                 ><vaadin-icon
                         slot="suffix"
                         icon="vaadin:copy"
-                        title="Copiar"
+                        title="${chromeText('copy')}" aria-label="${chromeText('copy')}"
                         ?hidden="${strValue.length <= 15}"
                         style="cursor: pointer; color: var(--lumo-secondary-text-color);"
                         @click="${() => this.copyValue(strValue)}"
@@ -998,7 +918,7 @@ export class MateuField extends LitElement {
                         ${readOnly ? nothing : html`<vaadin-button
                                 theme="icon tertiary-inline small"
                                 aria-label="Remove ${chip.label}"
-                                title="Remove"
+                                title="${chromeText('remove')}"
                                 @click="${() => remove(chip.id)}"
                         ><vaadin-icon icon="vaadin:close-small"></vaadin-icon></vaadin-button>`}
                     </span>`)}
@@ -1007,7 +927,7 @@ export class MateuField extends LitElement {
                             theme="small tertiary"
                             class="searchable-add"
                             @click="${search}"
-                    ><vaadin-icon icon="lumo:search" slot="prefix"></vaadin-icon>Add</vaadin-button>`}
+                    ><vaadin-icon icon="lumo:search" slot="prefix"></vaadin-icon>${chromeText('add')}</vaadin-button>`}
                 </div>
             </vaadin-custom-field>
         `
@@ -1115,7 +1035,7 @@ export class MateuField extends LitElement {
                                 composed: true
                             }))
                         } else {
-                            fetchExternalOptions(src, (t) => interpolate(t, this.state, this.data))
+                            fetchExternalOptions(src, templateResolver(this.state, this.data))
                                 .then((opts) => {
                                     this.data[this.id] = { content: opts, totalElements: opts.length, sourceSignature: signature }
                                     this.requestUpdate()
@@ -1605,7 +1525,7 @@ export class MateuField extends LitElement {
                             label="${label}"
                             .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
-                    ><a href="${value}">${value}</a></vaadin-custom-field>`
+                    ><a href="${ifDefined(safeHref(value))}">${value}</a></vaadin-custom-field>`
                 }
                 return html`
                             <vaadin-text-field
@@ -1620,7 +1540,7 @@ export class MateuField extends LitElement {
                                 <vaadin-icon slot="suffix"
                                              icon="vaadin:external-link"
                                              style="cursor: pointer;"
-                                             @click="${() => window.open(value, '_blank')?.focus()}"
+                                             @click="${() => safeNavigate(value, { newTab: true })}"
                                 ></vaadin-icon>
                             </vaadin-text-field>
                 `
@@ -1770,11 +1690,11 @@ export class MateuField extends LitElement {
                             <vaadin-horizontal-layout theme="spacing" style="justify-content: flex-start;">
                                 <vaadin-button @click="${this.triggerImageUpload}">
                                     <vaadin-icon icon="vaadin:upload" slot="prefix"></vaadin-icon>
-                                    ${hasImage ? 'Replace' : 'Upload'}
+                                    ${hasImage ? chromeText('replace') : chromeText('upload')}
                                 </vaadin-button>
                                 ${hasImage ? html`<vaadin-button theme="error tertiary" @click="${this.imageDelete}">
                                     <vaadin-icon icon="vaadin:trash" slot="prefix"></vaadin-icon>
-                                    Delete
+                                    ${chromeText('delete')}
                                 </vaadin-button>` : nothing}
                             </vaadin-horizontal-layout>
                         </vaadin-vertical-layout>
@@ -1808,22 +1728,7 @@ export class MateuField extends LitElement {
                                 composed: true
                             }))
                         }}"/>
-                        <!--
-                        <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
-                            <span style="background-color: ${value}; display: inline-block; height: 20px; width: 40px; border: 1px solid var(--lumo-secondary-text-color);"></span>
-                            <vaadin-button @click="${() => this.colorPickerOpened = true}">Change</vaadin-button>
-                        </vaadin-horizontal-layout>
-                        -->
                     </vaadin-custom-field>
-                    <vaadin-dialog
-  header-title="Choose color"
-  .opened="${this.colorPickerOpened}"
-  @closed="${() => {
-                    this.colorPickerOpened = false;
-                }}"
-  ${dialogRenderer(this.renderColorPicker, [])}
-  ${dialogFooterRenderer(this.renderColorPickerFooter, [])}
-></vaadin-dialog>
                 `
             }
             return html`
@@ -1940,11 +1845,14 @@ export class MateuField extends LitElement {
                             ?required="${this.field.required || nothing}"
                             data-colspan="${this.field.colspan}"
                     >
-                        <paper-toggle-button id="${this.field.fieldId}"
-                                             ?disabled=${this.field.disabled}
-                                             ?checked=${value}
-                                             @change=${this.checked}>
-                        </paper-toggle-button>
+                        <label class="mateu-switch">
+                            <input type="checkbox" role="switch" id="${this.field.fieldId}"
+                                   aria-label="${label}"
+                                   ?disabled=${this.field.disabled}
+                                   .checked=${!!value}
+                                   @change=${this.checked}>
+                            <span class="track" aria-hidden="true"></span>
+                        </label>
                     </vaadin-custom-field>
                 `
             }
@@ -2274,21 +2182,7 @@ export class MateuField extends LitElement {
     private renderMoneyField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
         if (!this.field) return html``
             if (this.field.readOnly) {
-                const amount = value
-                let formatted = amount
-                if (amount && amount.locale && amount.currency) {
-                    formatted = new Intl.NumberFormat(amount.locale, { style: "currency", currency: amount.currency }).format(
-                        amount.value,
-                    )
-                } else {
-                    formatted = new Intl.NumberFormat("de-DE", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-
-                    }).format(
-                        amount,
-                    )
-                }
+                const formatted = formatMoney(value)
                 return html`<vaadin-custom-field
                         id="${this.field.fieldId}"
                         label="${label}"
@@ -2326,7 +2220,6 @@ export class MateuField extends LitElement {
 
     private renderRangeField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
         if (!this.field) return html``
-            this.loadUi5FieldComponents()
             const range = value as {
                 from: number
                 to: number
@@ -2337,10 +2230,12 @@ export class MateuField extends LitElement {
                         label="${label}"
                         .helperText="${this.helperText()}"
                         data-colspan="${this.field.colspan}"
-                ><ui5-range-slider start-value="${range?.from??0}" end-value="${range?.to??0}" 
+                ><mateu-range-slider start-value="${range?.from??0}" end-value="${range?.to??0}" 
                                    min="${this.field.sliderMin??0}" 
                                    max="${(this.field.sliderMax)??10}"
                                    step="${this.field.step || nothing}"
+                                   from-label="${chromeText('rangeFrom')}"
+                                   to-label="${chromeText('rangeTo')}"
                                    @change="${(e: Event) => {
                                        const values = e.target as unknown as {
                                            startValue: number
@@ -2359,11 +2254,22 @@ export class MateuField extends LitElement {
                                        }))
                                    }}"
                                    style="min-width: 10rem;"
-                ></ui5-range-slider></vaadin-custom-field>
+                ></mateu-range-slider></vaadin-custom-field>
             `
     }
 
     static styles = css`
+        /* the toggle stereotype: a native checkbox with role=switch (was a Polymer paper-toggle-button) */
+        .mateu-switch { position: relative; display: inline-flex; align-items: center; cursor: pointer; }
+        .mateu-switch input { position: absolute; opacity: 0; width: 2.25rem; height: 1.25rem; margin: 0; cursor: pointer; }
+        .mateu-switch .track { width: 2.25rem; height: 1.25rem; border-radius: 1rem; background: var(--lumo-contrast-30pct, #bbb);
+            position: relative; transition: background .15s; }
+        .mateu-switch .track::after { content: ''; position: absolute; top: .125rem; left: .125rem; width: 1rem; height: 1rem;
+            border-radius: 50%; background: var(--lumo-base-color, #fff); transition: transform .15s; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+        .mateu-switch input:checked + .track { background: var(--lumo-primary-color, #1676f3); }
+        .mateu-switch input:checked + .track::after { transform: translateX(1rem); }
+        .mateu-switch input:focus-visible + .track { box-shadow: 0 0 0 2px var(--lumo-primary-color-50pct, #1676f380); }
+        .mateu-switch input:disabled + .track { opacity: .5; }
         /* multi-valued @Searchable: the ids as chips, then «Add» */
         .searchable-multi {
             display: flex;

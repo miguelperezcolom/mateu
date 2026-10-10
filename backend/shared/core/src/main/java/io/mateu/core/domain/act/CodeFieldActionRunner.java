@@ -12,6 +12,7 @@ import io.mateu.uidl.data.State;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.LookupLabelSupplier;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +21,7 @@ import reactor.core.publisher.Flux;
 
 @Slf4j
 @Named
+@Singleton
 public class CodeFieldActionRunner implements ActionRunner {
 
   @Override

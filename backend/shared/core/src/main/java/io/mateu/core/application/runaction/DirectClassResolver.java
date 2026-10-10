@@ -56,7 +56,7 @@ final class DirectClassResolver {
       if (!isApp(forName(instanceTypeName), route)) {
         setResolvedRoute(command.httpRequest(), route);
         setResolvedPath(command.httpRequest(), route);
-        log.info("direct class (absolute) {} → {}", route, instanceTypeName);
+        log.debug("direct class (absolute) {} → {}", route, instanceTypeName);
         return createInstance(
             command, instanceTypeName, instanceFactoryProvider, route, routedClass);
       }
@@ -69,7 +69,7 @@ final class DirectClassResolver {
       if (!isApp(forName(instanceTypeName), route)) {
         setResolvedRoute(command.httpRequest(), route);
         setResolvedPath(command.httpRequest(), route);
-        log.info("direct class (resolve) {} → {}", route, instanceTypeName);
+        log.debug("direct class (resolve) {} → {}", route, instanceTypeName);
         return createInstance(
             command, instanceTypeName, instanceFactoryProvider, route, routedClass);
       }
@@ -85,7 +85,7 @@ final class DirectClassResolver {
           if (resolvedClass != null) {
             setResolvedRoute(command.httpRequest(), route);
             var instanceTypeName = resolvedClass.getName();
-            log.info("direct class (routeResolver) {} → {}", route, instanceTypeName);
+            log.debug("direct class (routeResolver) {} → {}", route, instanceTypeName);
             return createInstance(
                 command,
                 instanceTypeName,
@@ -106,7 +106,7 @@ final class DirectClassResolver {
       }
     }
 
-    log.info("no direct class matched {}", route);
+    log.debug("no direct class matched {}", route);
     return Mono.empty();
   }
 

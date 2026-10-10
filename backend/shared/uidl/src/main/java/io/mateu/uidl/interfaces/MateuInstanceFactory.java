@@ -4,7 +4,8 @@ import java.util.Map;
 
 public class MateuInstanceFactory {
 
-  private static InstanceFactory _instanceFactory;
+  // volatile: set by the container thread at startup, read by request threads
+  private static volatile InstanceFactory _instanceFactory;
 
   public static void setInstanceFactory(InstanceFactory instanceFactory) {
     _instanceFactory = instanceFactory;
@@ -15,10 +16,11 @@ public class MateuInstanceFactory {
     if (Map.class.isAssignableFrom(type)) {
       return (T) data;
     }
-    if (_instanceFactory == null) {
+    var instanceFactory = _instanceFactory;
+    if (instanceFactory == null) {
       throw new IllegalStateException(
           "MateuInstanceFactory has not been initialized. Call setInstanceFactory() first.");
     }
-    return _instanceFactory.newInstance(type, data, httpRequest);
+    return instanceFactory.newInstance(type, data, httpRequest);
   }
 }

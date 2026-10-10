@@ -13,6 +13,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.InstanceFactory;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,7 @@ import reactor.core.publisher.Flux;
  * containment, or the {@code LookupOptionsSupplier}'s own search.
  */
 @Named
+@Singleton
 public class AppContextSearchActionRunner implements ActionRunner {
 
   public static final String ACTION_PREFIX = "_appcontext-search-";

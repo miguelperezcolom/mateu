@@ -121,15 +121,26 @@ Requires **Gradle 9** (IntelliJ Platform Gradle Plugin 2.17) and JDK/JBR 21.
 
 ## Configure the backend
 
-`src/main/resources/application.properties`:
+Per project, in **Settings | Tools | Mateu** (stored in `.idea/mateu.xml`):
 
-```properties
-mateu.baseUrl=http://localhost:8592
-mateu.route=/
-mateu.config={}
+- **Base URL** of the Mateu backend (default when only a registry is used: `http://localhost:8080`),
+  the **start route**, or an **app registry URL + app id**.
+- **Authentication**: none, a **bearer token** (kept in the IDE credential store, never in the
+  project), or **OpenID Connect** device sign-in (issuer + client id; the refresh token is kept in the
+  credential store and access tokens are refreshed silently; a 401 offers to sign in again).
+
+A project with no backend configured is left untouched: no HTTP calls, no tool window stripe
+buttons, no toolbar widget, no window-title changes. JVM system properties override the settings
+(`-Dmateu.baseUrl`, `-Dmateu.route`, `-Dmateu.registryUrl`, `-Dmateu.appId`, `-Dmateu.token`), e.g.
+
+```bash
+./gradlew runIde -Dmateu.baseUrl=http://localhost:8592   # demo/demo-admin-panel
 ```
 
-`8592` pairs with the repo's `demo/demo-admin-panel` (`mvn spring-boot:run`).
+`-Dmateu.debug=true` logs every sync request/response to stdout.
+
+The **standalone desktop distribution** (`buildInstaller`) passes `-Dmateu.focused=true`: only there
+does the plugin act as an app shell (frame title, focused chrome, landing on the home route).
 
 ## Package
 

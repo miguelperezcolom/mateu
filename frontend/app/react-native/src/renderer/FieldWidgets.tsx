@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { buttonA11y } from '../a11y/a11y';
+import { stripHtml } from './htmlText';
 
 /** Widgets for the long tail of field stereotypes (radio, multiSelect, slider, stepper, stars,
  *  color, image upload, money text, light markdown) — dependency-free except expo-image-picker. */
@@ -262,19 +263,6 @@ export function LinkText({ value }: { value: string }) {
     </TouchableOpacity>
   );
 }
-
-const stripHtml = (html: string): string =>
-  html
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/(p|div|li|h[1-6])>/gi, '\n')
-    .replace(/<li[^>]*>/gi, '• ')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    // &amp; LAST: decoding it first turned a literal "&amp;lt;" into "<" (double unescaping)
-    .replace(/&amp;/g, '&')
-    .trim();
 
 /** Light markdown/HTML rendering: headings, bold-only lines, bullets — enough for @Help texts
  *  and read-only content fields without pulling a rendering dependency. */

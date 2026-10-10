@@ -47,16 +47,47 @@ public class Hydrater {
                         getActualValue(entry, object, instanceFactory, httpRequest);
                     setValue(entry.getKey(), object, actualValue);
                   } catch (Exception ex) {
-                    log.debug(
-                        "Could not hydrate field '{}': {} - {}",
-                        entry.getKey(),
-                        ex.getClass().getSimpleName(),
-                        ex.getMessage());
+                    warnOnce(object.getClass(), entry.getKey(), ex);
                   }
                 });
       }
     }
     return object;
+  }
+
+  /** The (class, field) pairs already reported, per class so an unloaded class takes them along. */
+  private static final ClassValue<java.util.Set<String>> REPORTED =
+      new ClassValue<>() {
+        @Override
+        protected java.util.Set<String> computeValue(Class<?> type) {
+          return java.util.concurrent.ConcurrentHashMap.newKeySet();
+        }
+      };
+
+  /**
+   * A value that could not be written into a field: the field silently kept its server-side value
+   * (initializer) — a typed value reset, a form that "forgets" what the user entered. That deserves
+   * a WARN, but once per (class, field), not once per request. A key that names no field at all is
+   * client noise (or probing) and stays at DEBUG, so the set stays bounded by the real fields.
+   */
+  static void warnOnce(Class<?> type, String key, Exception ex) {
+    var field = getFieldByName(type, key);
+    if (field != null && REPORTED.get(type).add(key)) {
+      // the exception's message is left to DEBUG: it often quotes the rejected VALUE
+      log.warn(
+          "Could not hydrate field '{}' of {}: {} (the field kept its server-side value; further"
+              + " failures of this field are logged at DEBUG)",
+          key,
+          type.getName(),
+          ex.getClass().getSimpleName());
+      return;
+    }
+    log.debug(
+        "Could not hydrate field '{}' of {}: {} - {}",
+        key,
+        type.getSimpleName(),
+        ex.getClass().getSimpleName(),
+        ex.getMessage());
   }
 
   /**

@@ -29,7 +29,7 @@ import reactor.core.publisher.Flux;
  *       configured {@link UICommand}s and schedules auto-close if requested.
  * </ol>
  *
- * <h3>Minimal usage</h3>
+ * <h2>Minimal usage</h2>
  *
  * <pre>{@code
  * @Button
@@ -42,7 +42,7 @@ import reactor.core.publisher.Flux;
  * }
  * }</pre>
  *
- * <h3>With progress bar, auto-close, and navigation</h3>
+ * <h2>With progress bar, auto-close, and navigation</h2>
  *
  * <pre>{@code
  * return LongTask.create("Importing data...")

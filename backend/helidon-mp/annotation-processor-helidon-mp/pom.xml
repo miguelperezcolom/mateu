@@ -11,8 +11,8 @@
     <artifactId>annotation-processor-helidon-mp</artifactId>
     <packaging>jar</packaging>
 
-    <name>annotation-processor-helidon-mp</name>
-    <url>http://maven.apache.org</url>
+    <name>Mateu annotation processor for Helidon MP</name>
+    <description>Generates the JAX-RS controllers of the @UI classes for Helidon MP at compile time. Put it on the annotationProcessorPaths only, never on the runtime classpath.</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

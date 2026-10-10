@@ -10,7 +10,8 @@
 
     <artifactId>webflux-core</artifactId>
 
-    <name>webflux-core</name>
+    <name>Mateu Spring WebFlux adapter</name>
+    <description>Runtime of the Mateu adapter for Spring Boot (Spring WebFlux).</description>
     <url>https://mateu.io</url>
 
     <properties>

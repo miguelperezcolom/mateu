@@ -6,9 +6,11 @@ import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.UploadEnabled;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import reactor.core.publisher.Flux;
 
 @Named
+@Singleton
 public class ImportActionRunner implements ActionRunner {
 
   @Override

@@ -50,6 +50,8 @@ export default defineConfig({
         ],
         // 2. ALIAS: Mapeo de rutas absolutas para que el monorepo no se pierda.
         alias: {
+            // No usage statistics (and no Function(...) eval under a strict CSP): see the stub.
+            '@vaadin/vaadin-usage-statistics/vaadin-usage-statistics.js': resolve(__dirname, './src/stubs/vaadin-usage-statistics.ts'),
             // Corrección para componentes antiguos (VCF) que buscan carpetas /src/
             '@vaadin/component-base/src/styles/style-props.js': resolve(__dirname, '../../node_modules/@vaadin/component-base/src/styles/style-props.js'),
             '@vaadin/component-base/src/warnings.js': resolve(__dirname, '../../node_modules/@vaadin/component-base/src/warnings.js'),
@@ -121,8 +123,7 @@ export default defineConfig({
     },
     build: {
         // After the manualChunks split below, the remaining >500 kB chunks are
-        // single third-party libraries (vendor-vaadin 1.9 MB eager, vendor-ui5
-        // 0.6 MB eager; vendor-diagrams 1.6 MB, vendor-highcharts 0.8 MB and
+        // single third-party libraries (vendor-vaadin 1.6 MB eager; vendor-diagrams 1.6 MB, vendor-highcharts 0.8 MB and
         // vendor-chartjs 0.25 MB are lazy-loaded async chunks — see mateu-bpmn.ts,
         // mateu-chart.ts and elementRenderer.ts in
         // libs/mateu) that cannot be split further,

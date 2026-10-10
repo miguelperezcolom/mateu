@@ -7,6 +7,7 @@ import io.mateu.uidl.data.Data;
 import io.mateu.uidl.interfaces.GlobalSearchSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 import reactor.core.publisher.Flux;
@@ -18,6 +19,7 @@ import reactor.core.publisher.Flux;
  * GlobalSearchSupplier}.
  */
 @Named
+@Singleton
 public class GlobalSearchActionRunner implements ActionRunner {
 
   public static final String ACTION_ID = "_globalsearch";

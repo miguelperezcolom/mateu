@@ -33,6 +33,36 @@ RemoteMenu users = new RemoteMenu("/_users")
 
 Each remote menu points to a UI exposed by another service.
 
+### Where the shell asks a remote
+
+The shell itself calls each remote (server to server) to read its descriptor. Where that call goes
+is decided by **configuration only**, never by the request:
+
+- an **absolute** `baseUrl` (`https://forms.acme.com`) is asked as written;
+- a **relative** `baseUrl` (`/_users` — another path of the same deployment) is resolved against
+  this server's own base url: the `mateu.self-base-url` setting (an origin, e.g.
+  `https://shell.acme.com`), else what the adapter knows of its local socket (Spring MVC and WebFlux
+  over plain http answer `http://localhost:<port>`). When neither is known the remote is treated as
+  unreachable — set the property.
+
+| Property | Env var | Default |
+| --- | --- | --- |
+| `mateu.self-base-url` | `MATEU_SELF_BASE_URL` | unset (adapter's local socket) |
+| `mateu.remote.allowed-hosts` | `MATEU_REMOTE_ALLOWED_HOSTS` | unset (any http/https host) |
+| `mateu.remote.timeout-seconds` | `MATEU_REMOTE_TIMEOUT_SECONDS` | `30` |
+
+`mateu.remote.allowed-hosts` is an optional comma-separated allow-list (`forms.acme.com,
+orders.internal:8080`): when set, a call to any other host is refused. An entry without a port allows
+every port of that host; with one, it must match the port written in the url. A route appended to the
+remote's url can never leave `<baseUrl>/mateu/v3/sync/` (a `..` that would is refused).
+
+:::caution[Changed in 3.0-beta]
+A relative remote used to be resolved against the request's `Origin` header. Any non-browser client
+sets that header to whatever it likes, so the server could be made to POST to an internal host
+(server-side request forgery). If your shell relied on it behind TLS or on Quarkus/Micronaut/Helidon,
+set `mateu.self-base-url`.
+:::
+
 ### Descriptor caching
 
 To build the navigation, the shell asks each remote for its descriptor (title, menu, home wiring). That is an HTTP round trip landing on the remote's home route, and it happens every time the shell resolves a route — the first of the two requests a user sees on every page change.

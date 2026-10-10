@@ -5,10 +5,9 @@ import "@infra/ui/mateu-command-center.ts";
 
 /**
  * Mounts the shared command-center element (the Ask-Oracle FAB + full-screen palette) into an app
- * shell's shadow root, imperatively, from the shell's `updated()` lifecycle. Every shell — whether it
- * renders via the shared appRenderer (Vaadin) or its own `render()` (Redwood, SAP UI5) — inherits one
- * of the two base classes (MateuApp / MateuRendererApp), so calling this from their `updated()` covers
- * ALL of them from ONE place, with no per-shell template surgery.
+ * shell's shadow root, imperatively, from the shell's `updated()` lifecycle. The app shell (MateuApp)
+ * calls this from its `updated()`, so every app variant gets it from ONE place, with no per-variant
+ * template surgery.
  *
  * Why the shadow root and not document.body: the command center navigates by dispatching the
  * `route-changed` / `navigate-to-requested` pair, which mateu-ui / mateu-ux listen for on THEMSELVES
@@ -20,8 +19,8 @@ import "@infra/ui/mateu-command-center.ts";
  * range it created, so the appended node survives re-renders) and its `.app` / `.baseUrl` are re-synced
  * on every update so it follows navigation.
  */
-// Document-wide singleton: several app shells can be alive at once (e.g. redwood-oj nests a MEDIATOR
-// shell per crud), and each runs updated(); without a singleton every shell would mount its own FAB
+// Document-wide singleton: several app shells can be alive at once (a crud nests a MEDIATOR shell),
+// and each runs updated(); without a singleton every shell would mount its own FAB
 // and every ⌘K would open several overlapping overlays. The first shell that wants it owns the one
 // element; other shells only refresh its props.
 let current: MateuCommandCenter | null = null

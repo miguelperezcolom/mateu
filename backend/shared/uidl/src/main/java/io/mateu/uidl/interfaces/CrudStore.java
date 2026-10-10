@@ -16,10 +16,10 @@ import java.util.Optional;
  * thin adapter over your persistence (a JPA repository, a Mongo collection, a Map, a remote API…).
  * Mateu materializes the listing, view and forms by itself; this only supplies the data. Implement
  * it inline or as a bean and return it from {@code AutoCrud.store()}. The core CRUD operations are
- * {@link #findById(String)}, {@link #save(Object)}, {@link #findAll()} and {@link
- * #deleteAllById(List)}; {@link #find(String, Identifiable, Pageable)} is the single
- * search+filter+sort+paginate entry point that fills the listing — it defaults to filtering {@code
- * findAll()} in memory, so override it to push the work to the database.
+ * {@link #findById(String)}, {@link #save(T)}, {@link #findAll()} and {@link #deleteAllById(List)};
+ * {@link #find(String, T, Pageable)} is the single search+filter+sort+paginate entry point that
+ * fills the listing — it defaults to filtering {@code findAll()} in memory, so override it to push
+ * the work to the database.
  *
  * <p>For the whole CRUD lifecycle with distinct view/editor/creation objects (when this data port
  * is not enough), extend {@code Crud} directly and implement its lifecycle methods ({@code view},
@@ -66,12 +66,11 @@ public interface CrudStore<T extends Identifiable> {
   }
 
   /**
-   * Like {@link #find(String, Identifiable, Pageable)} plus the {@code criteria} the example object
-   * can't express: date/number ranges and value lists (see {@link FilterCriterion}). The framework
-   * calls this overload only when such criteria exist, so implementations that override the 3-arg
-   * {@code find} keep working unchanged for plain searches; override this one too to push
-   * range/list filtering to the database (the default applies everything in memory over {@link
-   * #findAll()}).
+   * Like {@link #find(String, T, Pageable)} plus the {@code criteria} the example object can't
+   * express: date/number ranges and value lists (see {@link FilterCriterion}). The framework calls
+   * this overload only when such criteria exist, so implementations that override the 3-arg {@code
+   * find} keep working unchanged for plain searches; override this one too to push range/list
+   * filtering to the database (the default applies everything in memory over {@link #findAll()}).
    */
   default Page<T> find(
       String searchText, T filters, List<FilterCriterion> criteria, Pageable pageable) {

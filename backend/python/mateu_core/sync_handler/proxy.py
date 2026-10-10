@@ -10,6 +10,7 @@ import urllib.request
 
 from mateu_dtos import UIIncrement
 
+from ..url_template import interpolate_url, secret_env_name
 from ._base import MixinBase
 from ._common import (
     log,
@@ -45,7 +46,8 @@ class ProxyHandlerMixin(MixinBase):
         """Fetch a resolved source server-side (url/headers/body interpolated); an empty object on
         any non-2xx or transport error."""
         try:
-            url = self._interpolate(source.url, state)
+            # values percent-encoded by position: client state cannot steer the server's request
+            url = interpolate_url(source.url or "", lambda expr: self._value_of(expr, state))
             if not url.lower().startswith(("http://", "https://")):
                 # urllib also opens file:// and ftp:// — a proxy source is an HTTP endpoint only.
                 log.warning("Proxy fetch refused: %r is not an http(s) url", url)
@@ -67,25 +69,33 @@ class ProxyHandlerMixin(MixinBase):
             return {}
 
     def _resolve_secret(self, key: str) -> str | None:
-        """Resolve a secret: the injected provider first, then the same-named env var."""
+        """Resolve a secret: the injected provider first, then the environment — but ONLY variables
+        prefixed ``MATEU_SECRET_`` (``${secret.API_TOKEN}`` reads ``MATEU_SECRET_API_TOKEN``). A
+        template must not be able to read just any variable of the process (database passwords,
+        cloud credentials) and send it to an endpoint."""
         if self._secrets is not None:
             value = self._secrets(key)
             if value is not None:
                 return value
-        return os.environ.get(key)
+        return os.environ.get(secret_env_name(key))
+
+    def _value_of(self, expr: str, state: dict) -> str:
+        """The string a ${state.x}/${secret.X} placeholder resolves to (unknown → empty)."""
+        if expr.startswith("state."):
+            v = state.get(expr[6:])
+            if v is None:
+                return ""
+            if isinstance(v, bool):
+                return "true" if v else "false"
+            return str(v)
+        if expr.startswith("secret."):
+            return self._resolve_secret(expr[7:]) or ""
+        return ""
 
     def _interpolate(self, template: str | None, state: dict) -> str:
         """Interpolate ${state.x}/${secret.X} placeholders (unknown → empty)."""
         if not template:
             return template or ""
-
-        def repl(m: re.Match) -> str:
-            expr = m.group(1).strip()
-            if expr.startswith("state."):
-                v = state.get(expr[6:])
-                return "" if v is None else str(v)
-            if expr.startswith("secret."):
-                return self._resolve_secret(expr[7:]) or ""
-            return ""
-
-        return re.sub(r"\$\{([^}]+)\}", repl, template)
+        return re.sub(
+            r"\$\{([^}]+)\}", lambda m: self._value_of(m.group(1).strip(), state), template
+        )

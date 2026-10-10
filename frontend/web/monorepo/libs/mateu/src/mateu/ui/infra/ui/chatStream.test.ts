@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { ChatAnswer, ChatProgress, classifyChatPayload, formatToolDuration, isEmptyUsage, SseParser } from './chatStream'
 
 const parseAll = (...pieces: string[]) => {
@@ -83,6 +83,10 @@ describe('ChatAnswer', () => {
 })
 
 describe('ChatProgress', () => {
+    // the chat speaks the page's language; these expectations are the Spanish catalogue's
+    beforeAll(() => { vi.stubGlobal('navigator', { language: 'es-ES' }) })
+    afterAll(() => { vi.unstubAllGlobals() })
+
     it('says nothing for an agent that reports nothing', () => {
         expect(new ChatProgress(0).line(5000)).toBeNull()
     })

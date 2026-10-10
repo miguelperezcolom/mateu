@@ -1,7 +1,8 @@
 import Constants from 'expo-constants';
 import * as Updates from 'expo-updates';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Modal, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { MateuAppProvider, useAppContext } from './src/context/AppContext';
 import {
   fetchRegistryEntry,
@@ -10,6 +11,11 @@ import {
   RegistryEntry,
   updateRequired,
 } from './src/core/AppRegistry';
+import { onSignedOut, setTokenProvider } from './src/core/auth';
+import { OidcTokenProvider } from './src/core/oidc';
+import { oidcConfigFrom, oidcConfigFromEnv, type OidcConfig } from './src/core/oidcConfig';
+import { platformStore } from './src/core/secureStore';
+import { installSessionId } from './src/core/sessionId';
 import { AppRenderer } from './src/renderer/AppRenderer';
 import { MateuViewHost } from './src/renderer/MateuViewHost';
 
@@ -27,17 +33,30 @@ const MATEU_BACKEND_PORT = Number(process.env.EXPO_PUBLIC_MATEU_BACKEND_PORT) ||
 // (e.g. EXPO_PUBLIC_MATEU_ROUTE=/rest-data). Empty = the home route.
 const MATEU_ROUTE = process.env.EXPO_PUBLIC_MATEU_ROUTE || '';
 const devHost = Constants.expoConfig?.hostUri?.split(':')[0];
-const DEV_CONFIG = {
+interface BootConfig {
+  baseUrl: string;
+  appState: Record<string, unknown>;
+  /** Sign-in for a secured backend (registry `auth` block, or EXPO_PUBLIC_MATEU_OIDC_* in dev). */
+  oidc: OidcConfig | null;
+}
+
+const DEV_CONFIG: BootConfig = {
   baseUrl: `http://${Platform.OS === 'web' || !devHost ? 'localhost' : devHost}:${MATEU_BACKEND_PORT}`,
-  sessionId: 'native-session-1',
-  appState: { tenantId: '1111', profile: 'dev' } as Record<string, unknown>,
+  appState: { tenantId: '1111', profile: 'dev' },
+  oidc: oidcConfigFromEnv({
+    EXPO_PUBLIC_MATEU_OIDC_ISSUER: process.env.EXPO_PUBLIC_MATEU_OIDC_ISSUER,
+    EXPO_PUBLIC_MATEU_OIDC_CLIENT_ID: process.env.EXPO_PUBLIC_MATEU_OIDC_CLIENT_ID,
+    EXPO_PUBLIC_MATEU_OIDC_SCOPES: process.env.EXPO_PUBLIC_MATEU_OIDC_SCOPES,
+    EXPO_PUBLIC_MATEU_OIDC_AUDIENCE: process.env.EXPO_PUBLIC_MATEU_OIDC_AUDIENCE,
+    EXPO_PUBLIC_MATEU_OIDC_LOGIN_ON_START: process.env.EXPO_PUBLIC_MATEU_OIDC_LOGIN_ON_START,
+  }),
 };
 
-function configFromEntry(entry: RegistryEntry) {
+function configFromEntry(entry: RegistryEntry): BootConfig {
   return {
     baseUrl: entry.baseUrl.replace(/\/+$/, ''),
-    sessionId: 'native-session-1',
     appState: { ...(entry.parameters ?? {}) },
+    oidc: oidcConfigFrom(entry.auth),
   };
 }
 // ─────────────────────────────────────────────────────────────────────────────
@@ -161,6 +180,8 @@ function MateuRoot() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // A server speaking another wire major: say so once, visibly, instead of rendering oddly.
+    api.onWireMismatch = (message) => session.notify('Version mismatch', message, 'warning', { duration: 12000 });
     api
       .initialLoad(MATEU_ROUTE, appState)
       .then((result) => {
@@ -319,9 +340,70 @@ function RegistryBoot() {
     return <UpdateRequiredScreen entry={entry} onRecheck={() => void load()} />;
   }
 
-  const config = entry ? configFromEntry(entry) : DEV_CONFIG;
+  return <AuthGate config={entry ? configFromEntry(entry) : DEV_CONFIG} />;
+}
+
+/**
+ * Identity gate: resolves the install's session id (random, persisted — never shared between
+ * installs), registers the OIDC token provider when the backend is secured, and — unless the
+ * config says to sign in lazily — asks the user to sign in before the first screen. After that
+ * every Mateu request carries `Authorization: Bearer`; a 401 refreshes or re-prompts and retries.
+ */
+function AuthGate({ config }: { config: BootConfig }) {
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [phase, setPhase] = useState<'checking' | 'signin' | 'ready'>('checking');
+  const [signInError, setSignInError] = useState('');
+  const provider = React.useMemo(() => (config.oidc ? new OidcTokenProvider(config.oidc, platformStore) : null), [config.oidc]);
+
+  useEffect(() => {
+    let alive = true;
+    setTokenProvider(provider ?? undefined);
+    void (async () => {
+      const id = await installSessionId(platformStore);
+      const needsSignIn = !!provider && config.oidc?.loginOnStart !== false && !(await provider.isSignedIn());
+      if (!alive) return;
+      setSessionId(id);
+      setPhase(needsSignIn ? 'signin' : 'ready');
+    })();
+    const off = onSignedOut(() => setPhase(provider ? 'signin' : 'ready'));
+    return () => {
+      alive = false;
+      off();
+      setTokenProvider(undefined);
+    };
+  }, [provider, config.oidc]);
+
+  const signIn = async () => {
+    setSignInError('');
+    try {
+      if (await provider!.login()) setPhase('ready');
+      else setSignInError('Sign-in was cancelled.');
+    } catch (e) {
+      setSignInError(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  if (phase === 'checking' || !sessionId) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#0070f3" />
+      </View>
+    );
+  }
+  if (phase === 'signin') {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.updateTitle} accessibilityRole="header">Sign in</Text>
+        <Text style={styles.updateDetail}>This app needs you to sign in with your organisation account.</Text>
+        <TouchableOpacity accessibilityRole="button" style={styles.updateButton} onPress={() => void signIn()}>
+          <Text style={styles.updateButtonText}>Sign in</Text>
+        </TouchableOpacity>
+        {!!signInError && <Text style={[styles.errorDetail, styles.signInError]}>{signInError}</Text>}
+      </View>
+    );
+  }
   return (
-    <MateuAppProvider config={config}>
+    <MateuAppProvider config={{ baseUrl: config.baseUrl, sessionId, appState: config.appState }}>
       <MateuRoot />
       <OverlayHost />
       <ToastHost />
@@ -332,9 +414,11 @@ function RegistryBoot() {
 
 export default function App() {
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <RegistryBoot />
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.safeArea}>
+        <RegistryBoot />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
@@ -367,5 +451,6 @@ const styles = StyleSheet.create({
   updateButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
   updateFallback: { marginTop: 16, alignItems: 'center' },
   updateRecheck: { marginTop: 20, padding: 8 },
+  signInError: { marginTop: 12 },
   updateRecheckText: { color: '#0070f3', fontSize: 13, fontWeight: '600' },
 });

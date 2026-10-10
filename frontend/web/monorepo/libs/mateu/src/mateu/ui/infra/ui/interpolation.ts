@@ -1,4 +1,5 @@
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import { evaluate } from "@infra/ui/expression.ts";
 
 /**
  * Extra named variables made available to an interpolated expression, besides
@@ -97,30 +98,12 @@ const parseTemplate = (text: string): Segment[] => {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Expression compilation: only metadata-provided expression bodies ever reach `new Function`.
-// `new Function` (not `eval`) so minifiers cannot rename the context variables.
+// Expression evaluation: only metadata-provided expression bodies are ever evaluated, and by
+// Mateu's own sandboxed evaluator (expression.ts) — never `new Function`/`eval`, so the client
+// runs under a Content Security Policy without 'unsafe-eval'.
 // ---------------------------------------------------------------------------------------------
 
-type Compiled = (...args: unknown[]) => unknown
-const MAX_COMPILED = 500
-const compiled = new Map<string, Compiled>()
-
-const compile = (keys: string[], expr: string): Compiled => {
-    const cacheKey = keys.join(',') + '\u0000' + expr
-    let fn = compiled.get(cacheKey)
-    if (!fn) {
-        // the newline keeps a trailing line comment from swallowing the closing parenthesis
-        fn = new Function(...keys, 'return (' + expr + '\n)') as Compiled
-        if (compiled.size >= MAX_COMPILED) {
-            compiled.delete(compiled.keys().next().value!)
-        }
-        compiled.set(cacheKey, fn)
-    }
-    return fn
-}
-
-const evalExpr = (expr: string, ctx: InterpolationContext): unknown =>
-    compile(Object.keys(ctx), expr)(...Object.values(ctx))
+const evalExpr = (expr: string, ctx: InterpolationContext): unknown => evaluate(expr, ctx)
 
 /**
  * Evaluates the `${…}` expressions of a text that is SHOWN and concatenates them with its
@@ -310,7 +293,7 @@ export const interpolateAndEvaluate = (
         }
     }
     // not cached: the source carries data values
-    return new Function(...Object.keys(ctx), 'return (' + source + '\n)')(...Object.values(ctx))
+    return evaluate(source, ctx, { cache: false })
 }
 
 /**
@@ -325,8 +308,7 @@ export const evaluateExpression = (
     data?: ComponentData,
     extra?: InterpolationContext
 ): unknown => {
-    const ctx = buildContext(state, data, extra)
-    return new Function(...Object.keys(ctx), `return (${expr})`)(...Object.values(ctx))
+    return evaluate(expr, buildContext(state, data, extra))
 }
 
 /**
@@ -341,3 +323,87 @@ export const evaluateTemplate = (
     data?: ComponentData,
     extra?: InterpolationContext
 ): string => renderDisplayTemplate(text, buildContext(state, data, extra))
+
+// ---------------------------------------------------------------------------------------------
+// URL templates: values percent-encoded by POSITION
+// ---------------------------------------------------------------------------------------------
+
+/**
+ * Percent-encodes everything but the RFC 3986 unreserved characters (`A-Z a-z 0-9 - . _ ~`),
+ * UTF-8, upper-case hex — byte for byte what the server's `TemplateInterpolator.urlEncode`, .NET's
+ * `Uri.EscapeDataString` and Python's `quote(v, safe="")` produce. `encodeURIComponent` leaves
+ * `!'()*` raw, so those are escaped on top.
+ */
+export const urlEncode = (value: string): string =>
+    encodeURIComponent(value).replace(/[!'()*]/g, (c) => '%' + c.charCodeAt(0).toString(16).toUpperCase())
+
+/**
+ * Interpolates a URL template, encoding every substituted value by where it lands — the browser
+ * twin of the server's `TemplateInterpolator.interpolateUrl`, so a DIRECT call and a PROXIED one
+ * reach the same url (every defect in this area has been the two legs disagreeing):
+ *
+ * - in the ORIGIN (scheme + authority, or a template that starts with `${…}` — a configured base)
+ *   the value is substituted raw, but a `${state…}` there is refused: the client state must not
+ *   choose the host;
+ * - in the PATH it is encoded as a segment (`/` → `%2F`), and a dot segment (`.`/`..`) is refused,
+ *   because URL parsers resolve those even percent-encoded;
+ * - after a literal `?` or `#` it is encoded as a query component.
+ *
+ * Without it an id of `1/../../admin?x=` turned `/people/${state.id}` into a request for `/admin`.
+ * Throws when a value is refused — the fetch fails instead of going somewhere it should not.
+ */
+export function interpolateUrl(
+    text: string | undefined,
+    state?: ComponentState,
+    data?: ComponentData,
+    extra?: InterpolationContext
+): string | undefined {
+    if (!text?.includes('${')) return text
+    const ctx = buildContext(state, data, extra)
+    const segments = parseTemplate(text)
+    const first = segments[0]
+    // an absolute url whose scheme is written literally: the origin runs to the first / ? # after ://
+    let originOpen = !!first && 'lit' in first && first.lit.includes('://')
+    let literalSoFar = ''
+    let out = ''
+    segments.forEach((seg, index) => {
+        if ('lit' in seg) {
+            if (originOpen) {
+                const from = literalSoFar === '' ? seg.lit.indexOf('://') + 3 : 0
+                if (/[/?#]/.test(seg.lit.substring(from))) originOpen = false
+            }
+            literalSoFar += seg.lit
+            out += seg.lit
+            return
+        }
+        const value = String(evalExpr(seg.expr, ctx) ?? '')
+        if (originOpen || index === 0) {
+            if (/^\s*state\b/.test(seg.expr)) {
+                throw new Error('A client state value cannot choose the origin of a URL: ' + text)
+            }
+            out += value
+        } else if (/[?#]/.test(literalSoFar)) {
+            out += urlEncode(value)
+        } else {
+            if (value === '.' || value === '..') throw new Error('A dot segment is not a valid path value: ' + value)
+            out += urlEncode(value)
+        }
+    })
+    return out
+}
+
+/** A `${…}` resolver for a REST call: interpolates a header/body, and — through `.url` — a url. */
+export type TemplateResolver = ((tpl: string | undefined) => string | undefined) & {
+    url?: (tpl: string | undefined) => string | undefined
+}
+
+/**
+ * The resolver to hand `fetchExternalJson` and friends: plain interpolation for headers and body,
+ * position-aware encoding ({@link interpolateUrl}) for the url. Use it instead of a bare
+ * `(t) => interpolate(t, state, data)`, which would put the values in the url unencoded.
+ */
+export function templateResolver(state?: ComponentState, data?: ComponentData, extra?: InterpolationContext): TemplateResolver {
+    const resolve: TemplateResolver = (t) => interpolate(t, state, data, extra)
+    resolve.url = (t) => interpolateUrl(t, state, data, extra)
+    return resolve
+}

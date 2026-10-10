@@ -88,15 +88,17 @@ add_mateu(
   no `key` it reads the claims unverified**, like Java, which assumes a gateway verified the token —
   pass `key=` to verify here. It needs the `jwt` extra; without PyJWT no identity resolves and every
   gate denies.
-- **Secrets.** `secrets_provider(key)` resolves `${secret.KEY}`; unset → the same-named env var. Only
+- **Secrets.** `secrets_provider(key)` resolves `${secret.KEY}`; unset → the env var `MATEU_SECRET_<KEY>` (only that prefix, never an arbitrary variable). Only
   proxied fetches (`__restfetch__`) see them.
 - **CORS (breaking change).** `add_mateu` used to allow every origin. Now CORS is off unless
   `cors_origins` lists them; `cors=True` without origins raises. A renderer served by the same app
   needs none.
-- **Errors.** An unhandled exception answers an error toast, never a raw 500: a generic text with a
-  correlation id (also in the `X-Mateu-Correlation-Id` header and the logged traceback). `dev=True`
-  shows the exception like Java; raise `mateu_uidl.UserFacingError("…", title="…")` for a message
-  written for the user. A denied action answers 403.
+- **Errors.** An unhandled exception answers an error toast, never a raw 500 — the same texts as
+  Java and .NET ("Something went wrong" / "An unexpected error occurred. Reference: <id>"), the
+  reference being the request's correlation id (also in the `X-Mateu-Correlation-Id` header and the
+  logged traceback). `dev=True` / `MATEU_ERRORS_DETAILED=true` shows the exception; raise
+  `mateu_uidl.UserFacingException("…", title="…")` for a message written for the user. A denied
+  action answers 403.
 - **Concurrency.** The handler runs in the threadpool (a slow proxied upstream never blocks the event
   loop); per-request state lives in `ContextVar`s.
 - **Audience is a projection, not security.** `Audience()` / `@audience` read the client-controlled

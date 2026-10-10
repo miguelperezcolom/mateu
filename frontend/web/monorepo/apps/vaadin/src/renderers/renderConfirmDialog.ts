@@ -8,7 +8,7 @@ import { interpolateAndEvaluate } from "@infra/ui/interpolation.ts";
 /**
  * Vaadin adapter ConfirmDialog → vaadin-confirm-dialog. Lives in apps/vaadin so the core stays
  * @vaadin-free; registered by VaadinComponentRenderer (the core renders a native modal). The confirm/
- * reject/cancel buttons dispatch their action ids (parity with the native + sapui5 renderers).
+ * reject/cancel buttons dispatch their action ids (parity with the native renderers).
  */
 const dispatchAction = (target: EventTarget | null, actionId?: string) => {
     if (!target) return

@@ -1,6 +1,5 @@
 package io.mateu;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mateu.core.infra.reflection.DefaultInstanceFactory;
 import io.mateu.uidl.interfaces.RouteResolver;
 import io.mateu.uidl.interfaces.RoutedClassProvider;
@@ -36,11 +35,6 @@ public class HelidonCDIProducer {
    */
   void eagerlyInitStaticFactories(@Observes @Initialized(ApplicationScoped.class) Object event) {
     instanceFactory.get().toString();
-  }
-
-  @Produces
-  public ObjectMapper objectMapper() {
-    return new ObjectMapper();
   }
 
   @Produces

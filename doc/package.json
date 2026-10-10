@@ -8,7 +8,9 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "check-links": "node scripts/check-links.mjs",
+    "verify": "astro build && node scripts/check-links.mjs"
   },
   "dependencies": {
     "@astrojs/starlight": "^0.41.4",
@@ -17,5 +19,8 @@
   },
   "overrides": {
     "esbuild": "^0.28.1"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

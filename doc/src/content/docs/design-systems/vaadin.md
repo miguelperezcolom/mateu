@@ -5,9 +5,7 @@ description: "Mateu's default renderer, built on Vaadin Lumo web components."
 
 The Vaadin renderer is Mateu's default frontend. It uses Vaadin Lumo web components and works with Spring Boot, Quarkus, Micronaut, and Helidon.
 
-<p align="center"><img src="../../../images/vaadin-logo.svg?raw=true" width="70"/></p>
-
-<p align="center"><img src="../../../images/basic-form-vaadin.png?raw=true" width="600"/></p>
+![A form rendered by the Vaadin renderer](/images/docs/design-systems/basic-form-vaadin.png)
 
 **Demo:** https://vaadin.mateu.io/
 

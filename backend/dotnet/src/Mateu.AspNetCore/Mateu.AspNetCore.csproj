@@ -1,12 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <PackageId>Mateu.AspNetCore</PackageId>
+    <Description>Mateu for ASP.NET Core: AddMateu()/MapMateu() — DI, identity and the POST /mateu/v3/sync endpoint that serves any Mateu renderer.</Description>
+    <IsPackable>true</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Public API docs are welcome but not yet complete: a missing XML comment must not fail the build. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
     <RootNamespace>Mateu.AspNetCore</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="../Mateu.Core/Mateu.Core.csproj" />
+    <InternalsVisibleTo Include="Mateu.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../../PACKAGE.md" Pack="true" PackagePath="README.md" Visible="false" />
   </ItemGroup>
 </Project>

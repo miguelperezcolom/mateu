@@ -318,9 +318,16 @@ class SubresourceSyncTest {
 
   @Test
   void anInlineOrchestratorWithNoRouteFailsLoudlyInsteadOfReloadingForever() {
-    var increment = mateu.sync("/_net/trap");
-    assertThat(increment.messages()).isNotEmpty();
-    assertThat(increment.messages().get(0).text()).contains("no route of its own");
+    // a configuration error for the developer: its text shows in development (detailed errors);
+    // in production the user gets the generic error and the log carries the text
+    System.setProperty(io.mateu.core.application.runaction.ErrorBoundary.DETAILED, "true");
+    try {
+      var increment = mateu.sync("/_net/trap");
+      assertThat(increment.messages()).isNotEmpty();
+      assertThat(increment.messages().get(0).text()).contains("no route of its own");
+    } finally {
+      System.clearProperty(io.mateu.core.application.runaction.ErrorBoundary.DETAILED);
+    }
   }
 
   @Test

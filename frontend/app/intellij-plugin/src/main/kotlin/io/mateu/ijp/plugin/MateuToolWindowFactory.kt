@@ -19,6 +19,10 @@ val MATEU_SESSION: com.intellij.openapi.util.Key<AppSession> =
  * before this panel is ever opened; the tool window just adopts the already-rendered navigator.
  */
 class MateuToolWindowFactory : ToolWindowFactory, DumbAware {
+    /** Only projects pointed at a Mateu backend (or the standalone distribution) get the stripe
+     *  button; Settings | Tools | Mateu flips it on when a backend is configured. */
+    override fun shouldBeAvailable(project: Project): Boolean = loadMateuConfig(project).configured
+
 
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         val svc = project.service<MateuProjectService>()

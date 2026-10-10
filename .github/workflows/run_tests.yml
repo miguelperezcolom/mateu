@@ -77,11 +77,28 @@ jobs:
       - name: Bundled frontend dependencies are under approved licences
         run: node scripts/check-frontend-licenses.mjs
 
+      # no-eval/no-new-func are ERRORS (the client runs under a CSP without 'unsafe-eval');
+      # no-console/no-explicit-any warnings are capped by --max-warnings (ratchet it down).
+      - name: Lint (ESLint)
+        run: cd frontend/web/monorepo && npm run lint
+
       - name: Typecheck and build the library
         run: cd frontend/web/monorepo/libs/mateu && npm run build
 
-      - name: Unit tests
-        run: cd frontend/web/monorepo/libs/mateu && npm test
+      # Coverage is a ratchet: the thresholds in vitest.config.ts are the measured values, so a PR
+      # can only keep or raise them.
+      - name: Unit tests (with coverage thresholds)
+        run: cd frontend/web/monorepo/libs/mateu && npm run test:coverage
+
+      # The JavaScript every page loads eagerly has a recorded ceiling (scripts/bundle-budget.json):
+      # @ui5 once sat in a preloaded chunk (≈640 KB on every page) for one optional field.
+      - name: Vaadin renderer — typecheck, tests (with coverage thresholds), build and eager bundle budget
+        run: |
+          cd frontend/web/monorepo/apps/vaadin
+          npx tsc --noEmit -p .
+          npm run test:coverage
+          npx vite build
+          node scripts/check-bundle-budget.mjs
 
       # The visual editor (embedded in both IDE plugins) has its own vitest suite (~120 tests, <1s)
       # that only ran by hand. Same order as above: typecheck before the tests.
@@ -123,8 +140,57 @@ jobs:
       - name: React Native renderer unit tests
         run: cd frontend/app/react-native && node --test 'src/**/*.test.ts'
 
-      - name: VS Code extension tests
-        run: cd frontend/app/vscode-extension && npm ci --ignore-scripts && npx vitest run
+      - name: React Native renderer wire coverage (every wire type rendered, parity.md in sync)
+        run: cd frontend/app/react-native && node scripts/parity-check.mjs
+
+      - name: React Native renderer type check
+        run: cd frontend/app/react-native && npm ci --ignore-scripts && npx tsc --noEmit
+
+      # Typecheck, unit tests (manifest contract + New File skeletons) and a real non-interactive
+      # `vsce package` — packaging stages LICENSE, the specs schema, the New File templates and the
+      # visual-editor bundle (the one committed in the IntelliJ plugin, since the monorepo is not
+      # installed here), so a broken staging step fails the PR instead of the release.
+      - name: VS Code extension — typecheck, tests and packaging
+        run: |
+          cd frontend/app/vscode-extension
+          npm ci --ignore-scripts
+          npm run compile
+          npm test
+          npm run package < /dev/null
+          rm -f *.vsix
+
+      # The Figma plugin draws the library from design/figma/contract.json: its test fails when a
+      # sketch primitive used by the contract has no case in renderItem (the `tile` gap).
+      - name: Figma plugin — typecheck and tests
+        run: |
+          cd design/figma/plugin
+          npm ci --ignore-scripts
+          npm run typecheck
+          npm test
+
+  # The IntelliJ plugin's suite (settings/auth, New | Mateu skeletons validated against the specs
+  # schema, wire-type parity, headless rendering of every component type, the YAML binding
+  # annotator) only ran on a developer's machine. The platform download is cached by setup-gradle.
+  intellij-plugin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v5
+        with:
+          java-version: 21
+          distribution: zulu
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+
+      # copyVisualEditor is skipped (with a warning) because the web monorepo is not installed: the
+      # tests run against the committed visual-editor bundle, which bundle-freshness guards.
+      - name: IntelliJ plugin tests
+        run: cd frontend/app/intellij-plugin && ./gradlew test --console=plain
 
   e2e:
     runs-on: ubuntu-latest
@@ -310,11 +376,19 @@ jobs:
           mvn -B verify -Dgpg.skip=true -Dmaven.javadoc.skip=true --file backend/pom.xml
           -pl shared/core,shared/uidl,shared/annotation-processor-core,shared/annotation-processor-indexer,shared/agent-cli,webflux/webflux-core
 
+      # The .NET port multi-targets both supported LTS runtimes (net8.0 until its 2026-11-10 end of
+      # support, and net10.0): the 10 SDK builds both, the 8 runtime runs the net8.0 leg. `dotnet test`
+      # runs the suite once per target framework, so both legs (and the conformance gate) are tested.
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: |
+            8.0.x
+            10.0.x
 
-      - name: .NET tests
+      - name: .NET tests (net8.0 + net10.0)
         run: cd backend/dotnet && dotnet test
+
+      - name: .NET packages build
+        run: cd backend/dotnet && for p in src/*/*.csproj; do dotnet pack "$p" -c Release -o /tmp/nupkgs; done
 

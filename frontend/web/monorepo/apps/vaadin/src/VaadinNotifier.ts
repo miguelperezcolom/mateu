@@ -1,6 +1,7 @@
 import { Notification, NotificationPosition } from '@vaadin/notification'
 import { Notifier, ToastMessage } from '@application/Notifier.ts'
 import { announce } from '@infra/a11y/announcer.ts'
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * Vaadin {@link Notifier} adapter — renders toasts with vaadin-notification for full Lumo
@@ -24,11 +25,11 @@ function mapPosition(position: string | undefined): NotificationPosition {
 /** One inline control on the toast: a client-side closure (Retry) or a server action (Undo). */
 function controlOf(message: ToastMessage, initiator: HTMLElement) {
     if (message.onAction) {
-        return { label: message.actionLabel ?? 'Retry', run: message.onAction }
+        return { label: message.actionLabel ?? chromeText('retry'), run: message.onAction }
     }
     if (message.undoActionId) {
         return {
-            label: message.undoLabel ?? 'Undo',
+            label: message.undoLabel ?? chromeText('undo'),
             run: () => initiator.dispatchEvent(new CustomEvent('action-requested', {
                 detail: { actionId: message.undoActionId, parameters: message.undoParameters ?? {} },
                 bubbles: true,

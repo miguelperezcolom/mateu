@@ -5,6 +5,8 @@ description: Rows of metrics or types by columns of dates, in collapsible sectio
 
 **Status:** ✅ Implemented
 
+![A matrix grid: availability per room type and day, in collapsible sections](/images/docs/matrix-grid/property-availability.png)
+
 ## Intent
 
 Some screens are not a list of records but a **matrix**: what you are looking at is a value at the crossing of a row (a metric, a room type, a product) and a column (a date). Hotel availability, a sales forecast, a staffing plan. A listing grid cannot say "click *this* cell" or "edit the value for Tuesday", and a form has no columns. OPERA Cloud's **Property Availability** is the reference: house totals, availability by room type and controls by date, sections that fold, figures that open the day, and an overbooking row edited in place.

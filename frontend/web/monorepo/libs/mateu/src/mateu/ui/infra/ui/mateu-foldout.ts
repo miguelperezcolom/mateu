@@ -2,6 +2,7 @@ import { css, html, LitElement, nothing } from "lit";
 import { customElement, property, state } from 'lit/decorators.js';
 import FoldoutPanelInfo from "@mateu/shared/apiClients/dtos/componentmetadata/FoldoutPanelInfo";
 import FoldoutNavigation from "@mateu/shared/apiClients/dtos/componentmetadata/FoldoutNavigation";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * Redwood-style foldout: a fixed overview panel on the left plus lateral fold-out panels.
@@ -277,7 +278,7 @@ export class MateuFoldout extends LitElement {
         /* The visual treatment is tokenised: the fallbacks reproduce the original bordered-card
            look (Vaadin), while a design system can switch to the RDS "Foldout" anatomy — frameless
            columns split by vertical dividers, a gold accent under each panel title — by setting the
-           --mateu-foldout-* custom properties (see redwood-oj index.css). */
+           --mateu-foldout-* custom properties. */
         .overview {
             position: relative;
             flex: 0 0 var(--mateu-foldout-overview-width, 20rem);
@@ -402,7 +403,7 @@ export class MateuFoldout extends LitElement {
             gap: .5rem;
         }
         /* "Show all" affordance — hidden by default so non-RDS renderers keep flat panels; a design
-           system opts in by setting --mateu-foldout-expand-display (see redwood-oj index.css). */
+           system opts in by setting --mateu-foldout-expand-display. */
         button.panel-expand {
             display: var(--mateu-foldout-expand-display, none);
             border: none;
@@ -467,9 +468,9 @@ export class MateuFoldout extends LitElement {
             return html`
                 <div class="expanded-view" part="expanded-view">
                     <div class="expanded-header">
-                        <button class="nav-parent" title="Back"
+                        <button class="nav-parent" title="${chromeText('back')}"
                                 @click="${() => this.collapsePanel()}">
-                            <span>‹</span><span>Back</span>
+                            <span>‹</span><span>${chromeText('back')}</span>
                         </button>
                         <span class="nav-title">${p.title}</span>
                         ${p.subtitle ? html`<span class="subtitle">${p.subtitle}</span>` : nothing}
@@ -485,19 +486,19 @@ export class MateuFoldout extends LitElement {
             ${nav ? html`
                 <div class="nav-header" part="nav-header">
                     ${nav.parentActionId ? html`
-                        <button class="nav-parent" title="${nav.parentLabel ?? 'Back'}"
+                        <button class="nav-parent" title="${nav.parentLabel ?? chromeText('back')}"
                                 @click="${() => this.navAction(nav.parentActionId)}">
-                            <span>‹</span><span>${nav.parentLabel ?? 'Back'}</span>
+                            <span>‹</span><span>${nav.parentLabel ?? chromeText('back')}</span>
                         </button>
                     ` : nothing}
                     ${nav.title ? html`<span class="nav-title">${nav.title}</span>` : nothing}
                     <span class="nav-spacer"></span>
                     ${nav.previousActionId ? html`
-                        <button class="nav-move" title="Previous"
+                        <button class="nav-move" title="${chromeText('previous')}" aria-label="${chromeText('previous')}"
                                 @click="${() => this.navAction(nav.previousActionId)}">‹</button>
                     ` : nothing}
                     ${nav.nextActionId ? html`
-                        <button class="nav-move" title="Next"
+                        <button class="nav-move" title="${chromeText('next')}" aria-label="${chromeText('next')}"
                                 @click="${() => this.navAction(nav.nextActionId)}">›</button>
                     ` : nothing}
                 </div>
@@ -518,9 +519,9 @@ export class MateuFoldout extends LitElement {
             <div class="columns" part="columns">
                 <div class="overview" part="overview">
                     ${this.overviewEditActionId ? html`
-                        <button class="overview-edit" title="Edit"
+                        <button class="overview-edit" title="${chromeText('edit')}"
                                 @click="${() => this.navAction(this.overviewEditActionId)}">
-                            <span>✎</span><span>Edit</span>
+                            <span>✎</span><span>${chromeText('edit')}</span>
                         </button>
                     ` : nothing}
                     <slot name="overview"></slot>
@@ -536,9 +537,9 @@ export class MateuFoldout extends LitElement {
                                     ${panel.subtitle ? html`<div class="subtitle">${panel.subtitle}</div>` : ''}
                                 </div>
                                 <span class="panel-actions">
-                                    <button class="panel-expand" title="Show all"
+                                    <button class="panel-expand" title="${chromeText('showAll')}" aria-label="${chromeText('showAll')}"
                                             @click="${(e: Event) => this.expandPanel(index, e)}">⤢</button>
-                                    <button class="fold" title="Fold" @click="${(e: Event) => { e.stopPropagation(); this.toggle(index) }}">⟨</button>
+                                    <button class="fold" title="${chromeText('fold')}" aria-label="${chromeText('fold')}" @click="${(e: Event) => { e.stopPropagation(); this.toggle(index) }}">⟨</button>
                                 </span>
                             </div>
                             <div style="flex: 1; min-height: 0;">

@@ -2,9 +2,14 @@
   "name": "mateu-visual-editor",
   "displayName": "Mateu Visual Editor",
   "description": "Visual editor for Mateu YAML pages — palette + WYSIWYG canvas + properties, in one view. Shares the exact web bundle with the IntelliJ (JCEF) host.",
-  "version": "0.0.1",
+  "icon": "images/icon.png",
+  "version": "0.1.0",
   "publisher": "miguelperezcolom",
   "license": "Apache-2.0",
+  "homepage": "https://github.com/miguelperezcolom/mateu/tree/master/frontend/app/vscode-extension#readme",
+  "bugs": {
+    "url": "https://github.com/miguelperezcolom/mateu/issues"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/miguelperezcolom/mateu.git",
@@ -14,6 +19,8 @@
     "vscode": "^1.85.0"
   },
   "categories": [
+    "Visualization",
+    "Programming Languages",
     "Other"
   ],
   "main": "./out/extension.js",
@@ -42,18 +49,47 @@
           "description": "Mateu backend base URL, serving the reserved __preview__ / __contract__ sync actions. Point it at a running Mateu app — e.g. the repo's demo-starwars on http://localhost:8600 (it has authored specs/ui pages)."
         }
       }
+    },
+    "yamlValidation": [
+      {
+        "fileMatch": "**/specs/ui/**/*.yaml",
+        "url": "./schema/specs-schema.json"
+      },
+      {
+        "fileMatch": "**/specs/ui/**/*.yml",
+        "url": "./schema/specs-schema.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "mateu.newFile",
+        "title": "New File…",
+        "category": "Mateu"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "mateu.newFile",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation@10"
+        }
+      ]
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run copy:web && npm run compile",
+    "vscode:prepublish": "npm run stage && npm run compile",
+    "stage": "node scripts/prepackage.mjs",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
     "copy:web": "cd ../../web/monorepo/apps/visual-editor && npm run build && rm -rf ../../../../app/vscode-extension/media && mkdir -p ../../../../app/vscode-extension/media && cp -rf dist/* ../../../../app/vscode-extension/media/",
-    "test": "vitest run"
+    "test": "vitest run",
+    "package": "vsce package --out mateu-visual-editor.vsix"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.85.0",
+    "@vscode/vsce": "^3.9.2",
     "typescript": "^5.4.0",
     "vitest": "^2.1.0"
   },
@@ -61,6 +97,16 @@
     "yaml": "^2.4.0"
   },
   "activationEvents": [
-    "onLanguage:yaml"
+    "workspaceContains:**/specs/ui/**/*.yaml",
+    "workspaceContains:**/specs/ui/**/*.yml",
+    "onCustomEditor:mateu.visualEditor",
+    "onCommand:mateu.newFile"
+  ],
+  "keywords": [
+    "mateu",
+    "low-code",
+    "yaml",
+    "visual editor",
+    "ui"
   ]
 }

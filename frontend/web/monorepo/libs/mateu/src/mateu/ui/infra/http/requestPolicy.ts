@@ -1,4 +1,4 @@
-import { chromeText } from "../ui/chromeTexts.ts"
+import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 
 /**
  * Request policy — turns a transport failure into something a USER can act on.
@@ -57,17 +57,19 @@ interface TransportError {
     response?: { status?: number }
 }
 
+const errorStatus = (status?: number): string => (status ? chromeTextf('errorStatus', { status }) : '')
+
+// every message in the page's language (chromeTexts)
 const messages: Record<RequestFailureKind, (status?: number) => string> = {
-    offline: () => 'No connection. Your changes have not been sent — check your network and try again.',
-    timeout: () => 'The server is taking too long to answer. Your changes may not have been saved.',
-    server: (status) => `The server could not complete the request${status ? ` (error ${status})` : ''}. Please try again.`,
-    unauthorized: () => 'Your session is no longer valid. Please sign in again.',
-    // localized: the page's language (chromeTexts), Spanish or English
+    offline: () => chromeText('failOffline'),
+    timeout: () => chromeText('failTimeout'),
+    server: (status) => chromeTextf('failServer', { status: errorStatus(status) }),
+    unauthorized: () => chromeText('failUnauthorized'),
     forbidden: () => chromeText('forbidden'),
-    notFound: () => 'This is no longer available. It may have been moved or deleted.',
-    client: (status) => `The request was rejected${status ? ` (error ${status})` : ''}.`,
+    notFound: () => chromeText('failNotFound'),
+    client: (status) => chromeTextf('failClient', { status: errorStatus(status) }),
     cancelled: () => '',
-    unknown: () => 'Something went wrong. Please try again.',
+    unknown: () => chromeText('failUnknown'),
 }
 
 /** Kinds worth re-sending: the request either never arrived or hit a transient server condition. */

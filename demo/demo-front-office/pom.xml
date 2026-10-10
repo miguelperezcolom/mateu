@@ -27,6 +27,9 @@
         <url/>
     </scm>
     <properties>
+        <!-- Tracks master: install the backend first (cd backend && mvn install -DskipTests).
+             This demo uses features newer than the last release. -->
+        <mateu.version>0.0.1-MATEU</mateu.version>
         <java.version>21</java.version>
     </properties>
     <dependencies>
@@ -60,18 +63,18 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>annotation-processor-mvc</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mvc-core</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
         </dependency>
         <!-- this dependency provides the frontend component based on vaadin web components -->
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>vaadin-lit</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
         </dependency>
     </dependencies>
 
@@ -108,7 +111,7 @@
                                 <path>
                                     <groupId>io.mateu</groupId>
                                     <artifactId>annotation-processor-mvc</artifactId>
-                                    <version>0.0.1-MATEU</version>
+                                    <version>${mateu.version}</version>
                                 </path>
                             </annotationProcessorPaths>
                         </configuration>
@@ -128,7 +131,7 @@
                                 <path>
                                     <groupId>io.mateu</groupId>
                                     <artifactId>annotation-processor-mvc</artifactId>
-                                    <version>0.0.1-MATEU</version>
+                                    <version>${mateu.version}</version>
                                 </path>
                             </annotationProcessorPaths>
                         </configuration>

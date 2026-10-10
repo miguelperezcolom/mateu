@@ -14,7 +14,7 @@ import { canMove, dropOn, moveToLabel, subscribeDropZones, zoneLabel, zonesAccep
 import { useViewController } from './MateuViewHost';
 import { getHiddenColumns, setHiddenColumns } from './columnPrefs';
 import { listSavedViews, saveView, deleteView, setDefaultView, defaultView, SavedView } from './savedViews';
-import { interpolate } from '../core/expressions';
+import { interpolate, interpolateUrl } from '../core/expressions';
 import { fetchExternalJson, mapItemsToRows, resolveRestSource } from '../core/restFetch';
 import { DateField } from './DateField';
 import { FormFieldRenderer, GridRowForm } from './FormFieldRenderer';
@@ -176,7 +176,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     // direct fetch otherwise. Both resolve to the same JSON → mapItemsToRows.
     const jsonPromise = rowsResolved.proxy
       ? controller.fetchViaProxy('rows', String(component['id'] ?? 'crud'))
-      : fetchExternalJson(rowsSource, restResolve);
+      : fetchExternalJson(rowsSource, restResolve, (t) => interpolateUrl(String(t ?? ''), { state, appState: controller.session.appState }));
     jsonPromise
       .then((json) => {
         if (cancelled) return;

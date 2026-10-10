@@ -1,0 +1,17 @@
+# Welcome page: a hero with calls to action over highlight tiles.
+type: VerticalLayout
+__PAGE_WIDTH__
+content:
+  - type: HeroSection
+    title: __TITLE__
+    subtitle: Everything you need, one click away.
+    centered: true
+    content:
+      - {type: Button, label: Get started, actionId: getStarted, buttonStyle: primary}
+      - {type: Button, label: Learn more, actionId: learnMore, buttonStyle: secondary}
+  - type: DashboardLayout
+    columns: 3
+    items:
+      - {type: DashboardPanel, title: Orders, content: {type: Text, text: Track and manage orders.}}
+      - {type: DashboardPanel, title: Customers, content: {type: Text, text: Everyone you sell to.}}
+      - {type: DashboardPanel, title: Reports, content: {type: Text, text: How the business is doing.}}

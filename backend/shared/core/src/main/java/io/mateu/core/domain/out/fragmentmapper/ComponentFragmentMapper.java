@@ -10,8 +10,10 @@ import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 
 @Named
+@Singleton
 public class ComponentFragmentMapper implements FragmentMapper {
 
   @Override

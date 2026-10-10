@@ -66,7 +66,7 @@ def add_mateu(
       UNVERIFIED like Java's ``Authorizer`` (put a verifier in front, or pass
       ``jwt_identity_provider(key=...)`` to verify here). Requires the ``jwt`` extra.
     - ``secrets_provider`` — ``key -> value`` for ``${secret.KEY}`` in proxied REST sources; None →
-      the same-named environment variable.
+      the environment variable ``MATEU_SECRET_<KEY>`` (never an arbitrary one).
     - ``dev`` — show exception details in error toasts (default: ``MATEU_DEV`` env var). Off in
       production: users then see a generic text with a correlation id, the detail goes to the log.
 
@@ -114,16 +114,18 @@ def add_mateu(
         with bound_request(mateu_request):
             return fn()
 
-    def failed(error: Exception, mateu_request: MateuRequest) -> JSONResponse:
+    def failed(error: Exception, mateu_request: MateuRequest, action_id: str | None = None) -> JSONResponse:
+        # A UserFacingException / validation error shows its message; anything else a generic one
+        # with the correlation id as reference, the full exception logged under it (mateu.errors).
         cid = mateu_request.correlation_id or new_correlation_id()
-        log.exception("Unhandled error answering a Mateu request [correlation id %s]", cid, exc_info=error)
-        increment = error_increment(error, cid, show_details)
+        increment = error_increment(error, cid, show_details, action_id)
         return JSONResponse(
             increment.model_dump(by_alias=True, mode="json"), headers={CORRELATION_HEADER: cid}
         )
 
     async def sync(request: Request, route: str = "") -> JSONResponse:
         mateu_request = request_of(request)
+        rq: RunActionRq | None = None
         try:
             body = await request.body()
             rq = RunActionRq.model_validate_json(body) if body else RunActionRq()
@@ -137,7 +139,7 @@ def add_mateu(
             # generic error message; the reason was logged by the guard and the method never ran.
             return JSONResponse(status_code=403, content=_FORBIDDEN_BODY)
         except Exception as error:  # noqa: BLE001 - the error boundary: never a raw 500
-            return failed(error, mateu_request)
+            return failed(error, mateu_request, rq.action_id if rq is not None else None)
         return JSONResponse(
             increment.model_dump(by_alias=True, mode="json"),
             headers={CORRELATION_HEADER: mateu_request.correlation_id or ""},

@@ -7,6 +7,7 @@ import io.mateu.uidl.data.Data;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.NotificationsSupplier;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 import reactor.core.publisher.Flux;
@@ -23,6 +24,7 @@ import reactor.core.publisher.Flux;
  * </ul>
  */
 @Named
+@Singleton
 public class NotificationsActionRunner implements ActionRunner {
 
   public static final String ACTION_PREFIX = "_notifications-";

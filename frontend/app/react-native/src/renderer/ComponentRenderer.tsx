@@ -39,6 +39,14 @@ import { MateuViewHost, useViewController } from './MateuViewHost';
 import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import { resolveCustomComponent } from './customComponents';
+import {
+  AvatarGroupRenderer, AvatarRenderer, BoardLayoutRenderer, BoardLayoutRowRenderer, BpmnRenderer, BreadcrumbRenderer,
+  BreadcrumbsRenderer, CarouselRenderer, ChatRenderer, ContentLayoutRenderer, ContextMenuRenderer, CookieConsentRenderer,
+  DetailsRenderer, DirectoryRenderer, DrawerInlineRenderer, ElementRenderer, FormEditorRenderer, GridColumnRenderer,
+  GridRenderer, IconRenderer, LabelledChildrenRenderer, MasterDetailRenderer, MenuBarRenderer, MessageInputRenderer,
+  MessageListRenderer, NestedAppRenderer, NotFoundRenderer, NotificationRenderer, ResponsiveGridRenderer,
+  ResultRenderer, StepperRenderer, TooltipRenderer, VirtualListRenderer, WorkflowRenderer,
+} from './WireComponents';
 
 interface Props {
   component: unknown;
@@ -75,7 +83,7 @@ function MicroFrontendIsland({ metadata }: { metadata: Record<string, unknown> }
   const { session } = useAppContext();
   const baseUrl = (metadata['baseUrl'] as string) ?? '';
   const remoteSession = React.useMemo(
-    () => (baseUrl && baseUrl !== session.api.baseUrl ? new MateuSession(baseUrl, 'microfrontend', { ...session.appState }) : session),
+    () => (baseUrl && baseUrl !== session.api.baseUrl ? new MateuSession(baseUrl, session.api.sessionId, { ...session.appState }) : session),
     [baseUrl, session],
   );
   return (
@@ -309,6 +317,79 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return metadata['content'] ? <ComponentRenderer component={metadata['content']} state={state} /> : null;
     case 'MicroFrontend':
       return <MicroFrontendIsland metadata={metadata} />;
+
+    // ── the rest of the wire catalogue (WireComponents.tsx) ──
+    case 'App':
+      return <NestedAppRenderer metadata={metadata} />;
+    case 'Grid':
+      return <GridRenderer component={component} state={state} data={data} />;
+    case 'GridColumn':
+      return <GridColumnRenderer metadata={metadata} />;
+    case 'VirtualList':
+      return <VirtualListRenderer metadata={metadata} state={state} data={data} />;
+    case 'Details':
+      return <DetailsRenderer metadata={metadata} state={state} data={data} />;
+    case 'Breadcrumbs':
+      return <BreadcrumbsRenderer metadata={metadata} />;
+    case 'Breadcrumb':
+      return <BreadcrumbRenderer metadata={metadata} />;
+    case 'Avatar':
+      return <AvatarRenderer metadata={metadata} />;
+    case 'AvatarGroup':
+      return <AvatarGroupRenderer metadata={metadata} />;
+    case 'Icon':
+      return <IconRenderer metadata={metadata} />;
+    case 'MenuBar':
+      return <MenuBarRenderer metadata={metadata} />;
+    case 'ContextMenu':
+      return <ContextMenuRenderer metadata={metadata} state={state} data={data} />;
+    case 'Tooltip':
+      return <TooltipRenderer metadata={metadata} state={state} data={data} />;
+    case 'Directory':
+      return <DirectoryRenderer metadata={metadata} />;
+    case 'MasterDetailLayout':
+      return <MasterDetailRenderer component={component} state={state} data={data} />;
+    case 'CarouselLayout':
+      return <CarouselRenderer component={component} metadata={metadata} state={state} data={data} />;
+    case 'ContentLayout':
+      return <ContentLayoutRenderer component={component} metadata={metadata} state={state} data={data} />;
+    case 'ResponsiveGrid':
+      return <ResponsiveGridRenderer component={component} metadata={metadata} state={state} data={data} />;
+    case 'BoardLayout':
+      return <BoardLayoutRenderer component={component} state={state} data={data} />;
+    case 'BoardLayoutRow':
+      return <BoardLayoutRowRenderer component={component} state={state} data={data} />;
+    case 'BoardLayoutItem':
+    case 'FormItem':
+    case 'Tab':
+    case 'AccordionPanel':
+      return <LabelledChildrenRenderer component={component} state={state} data={data} />;
+    case 'Stepper':
+      return <StepperRenderer component={component} state={state} data={data} />;
+    case 'Chat':
+      return <ChatRenderer metadata={metadata} />;
+    case 'MessageList':
+      return <MessageListRenderer metadata={metadata} />;
+    case 'MessageInput':
+      return <MessageInputRenderer metadata={metadata} />;
+    case 'Result':
+      return <ResultRenderer metadata={metadata} />;
+    case 'NotFound':
+      return <NotFoundRenderer metadata={metadata} />;
+    case 'Drawer':
+      return <DrawerInlineRenderer metadata={metadata} state={state} data={data} />;
+    case 'Notification':
+      return <NotificationRenderer metadata={metadata} />;
+    case 'CookieConsent':
+      return <CookieConsentRenderer metadata={metadata} />;
+    case 'Element':
+      return <ElementRenderer metadata={metadata} state={state} data={data} />;
+    case 'Bpmn':
+      return <BpmnRenderer metadata={metadata} />;
+    case 'Workflow':
+      return <WorkflowRenderer metadata={metadata} />;
+    case 'FormEditor':
+      return <FormEditorRenderer metadata={metadata} />;
 
     case 'CustomComponent': {
       // The per-renderer escape hatch (#14): a registered renderer paints it; otherwise degrade to a

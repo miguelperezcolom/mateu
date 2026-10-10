@@ -31,7 +31,7 @@ cd frontend/app/intellij-plugin
 ./gradlew runIde        # launches an IDE with the plugin installed
 ```
 
-Then open a project and reveal the **Mateu** tool window. See `frontend/app/intellij-plugin/README.md` for platform overrides and the `renderProbe` verification harness (render the captured wire JSON to a Swing tree + PNG without booting the IDE).
+Then open a project, point it at your backend in **Settings | Tools | Mateu** (base URL or app registry, plus bearer-token or OpenID Connect sign-in — see [IDE tooling](/native/ide-tooling/)), or pass `-Dmateu.baseUrl=…` to `runIde`, and reveal the **Mateu** tool window. A project with no backend configured is left untouched. See `frontend/app/intellij-plugin/README.md` for platform overrides and the `renderProbe` verification harness (render the captured wire JSON to a Swing tree + PNG without booting the IDE).
 
 **Ship it as an installer** — one Gradle task bundles the plugin *with* the IDE:
 
@@ -51,7 +51,7 @@ coordinates into the launcher, which is how a production desktop installable get
 
 ## Mobile — React Native
 
-The React Native renderer runs your Mateu backend as a **native mobile application** on iOS and Android. It is built with [Expo](https://expo.dev) and TypeScript, and uses React Navigation for screen and drawer management.
+The React Native renderer runs your Mateu backend as a **native mobile application** on iOS and Android. It is built with [Expo](https://expo.dev) and TypeScript, and uses React Navigation for screen and drawer management. Pointing it at a backend, signing in to a secured backend (OIDC) and store builds have their own page: **[React Native renderer](/native/react-native/)**.
 
 **How it works:**
 
@@ -59,7 +59,7 @@ The React Native renderer runs your Mateu backend as a **native mobile applicati
 2. If the root component is of type `App`, `AppRenderer` builds the navigation structure — a Drawer for `NAVIGATION_LAYOUT`/`MENU_ON_LEFT` variants, a Bottom Tab navigator for `TABS`, or a simple Stack for `MEDIATOR`.
 3. Each menu entry maps to a content screen that fetches its data on demand; detail navigations push screens onto a per-screen view stack with a back bar.
 4. Pages, forms, CRUD tables, and individual fields are rendered as native React Native components (`TextInput`, `Switch`, `FlatList`, `TouchableOpacity`, etc.).
-5. The dashboard/display components are supported too: `MetricCard`, `Scoreboard`, `DashboardPanel`, `DashboardLayout` (rendered mobile-first as a single-column stack with the KPI band on top), `FoldoutLayout` (overview card + accordion of panels), `HeroSection`, `EmptyState`, `Skeleton`, and `Gantt` (horizontal-scrollable timeline with proportional bars, progress fill, and today marker).
+5. **Every** component type of the wire has a native rendering — dashboards (`DashboardLayout` mobile-first, KPI band on top), foldouts (overview card + accordion), Gantt, grids, menus, carousels, outcome pages, read-only BPMN/workflow diagrams… — with documented mobile adaptations (long-press instead of hover or right-click, multi-column layouts stacking on a phone). CI enforces it: see the [React Native component coverage](/reference/parity/#react-native-component-coverage).
 
 **Key files:**
 
@@ -80,7 +80,9 @@ The React Native renderer runs your Mateu backend as a **native mobile applicati
 | `src/renderer/ComponentRenderer.tsx` | Dispatcher — routes each component node to the right renderer |
 | `src/renderer/LayoutRenderer.tsx` | Renders horizontal and vertical layouts |
 | `src/renderer/DashboardRenderer.tsx` | Renders `MetricCard`, `Scoreboard`, `DashboardPanel`, `DashboardLayout` |
-| `src/renderer/DisplayRenderer.tsx` | Renders `FoldoutLayout`, `HeroSection`, `EmptyState`, `Skeleton`, `Gantt` |
+| `src/renderer/DisplayRenderer.tsx` | Renders `FoldoutLayout`, `HeroSection`, `EmptyState`, `Skeleton`, `Gantt` and the other display components |
+| `src/renderer/WireComponents.tsx` | Grids, menus, breadcrumbs, avatars, messaging, layouts, outcome pages, elements, diagrams |
+| `src/core/auth.ts` / `oidc.ts` | Token provider (Bearer), built-in OIDC sign-in, 401 re-auth |
 | `src/api/metadata.ts` | TypeScript wire types for the dashboard/display component metadata |
 
 **Source:** `frontend/app/react-native/`
@@ -171,14 +173,15 @@ npm run submit:ios          # upload to App Store Connect (API key)
 ```
 
 Set the installable's [app-registry](#app-registry-pointing-installables-at-their-backend)
-coordinates in the build profile's `env` block in `eas.json` — that is how a store build knows its
-registry. EAS also hosts the **over-the-air updates** the registry's version gate triggers
+coordinates as variables of the profile's **EAS environment** (`npx eas-cli env:create`) — that is
+how a store build knows its registry; store credentials live in EAS too, never in the repository
+(details: [store builds](/native/react-native/#4-store-builds)). EAS also hosts the **over-the-air updates** the registry's version gate triggers
 (`expo-updates`; `runtimeVersion` is pinned to the app version so updates only reach compatible
 installables).
 
 ### Running and testing the mobile renderer
 
-All options assume a Mateu backend running locally (e.g. the demo at `http://localhost:8592` — the port is configured in `App.tsx`, `MATEU_BACKEND_PORT`). From your IDE (IntelliJ included) the commands below run fine from the integrated terminal, or as an **npm Run Configuration** (Run → Edit Configurations → `+` → npm → pick the module's `package.json` and the `web`/`start` script) so launching the renderer is one click.
+All options assume a Mateu backend running locally (by default `http://localhost:8594`, the `demo-front-office` app — override with `EXPO_PUBLIC_MATEU_BACKEND_PORT`, e.g. `8595` for `demo-admin-panel`). From your IDE (IntelliJ included) the commands below run fine from the integrated terminal, or as an **npm Run Configuration** (Run → Edit Configurations → `+` → npm → pick the module's `package.json` and the `web`/`start` script) so launching the renderer is one click.
 
 **1. Browser with a phone viewport — fastest, zero install**
 
@@ -198,7 +201,7 @@ cd frontend/app/react-native
 npm start              # expo start — prints a QR code
 ```
 
-Scan the QR with the camera (iOS) or from Expo Go (Android). The app opens on the phone with hot reload. The backend host is **derived automatically** from the Expo dev server the bundle was loaded from (`hostUri`), so as long as the backend runs on the same machine as `expo start`, no configuration is needed — just make sure your firewall allows ports **8081** (Metro) and your backend port (e.g. **8592**). If your network isolates Wi-Fi clients, `npx expo start --tunnel` routes around it (over the internet, slower).
+Scan the QR with the camera (iOS) or from Expo Go (Android). The app opens on the phone with hot reload. The backend host is **derived automatically** from the Expo dev server the bundle was loaded from (`hostUri`), so as long as the backend runs on the same machine as `expo start`, no configuration is needed — just make sure your firewall allows ports **8081** (Metro) and your backend port (e.g. **8594**). If your network isolates Wi-Fi clients, `npx expo start --tunnel` routes around it (over the internet, slower).
 
 **3. Android emulator / iOS simulator**
 

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using Mateu.Uidl;
 
@@ -19,8 +20,12 @@ namespace Mateu.Core;
 /// </remarks>
 public sealed class YamlSpecLoader
 {
-    /// <summary>A parsed page spec: the layout, plus the ModelView class name when the YAML declares one.</summary>
-    public sealed record Spec(string? ModelView, IComponent? Layout);
+    /// <summary>A parsed page spec: the layout, plus the ModelView class name when the YAML declares
+    /// one, plus its <c>layoutDelta:</c> (empty when none; a delta-only page has no Layout).</summary>
+    public sealed record Spec(string? ModelView, IComponent? Layout)
+    {
+        public LayoutDelta Delta { get; init; } = LayoutDelta.Empty;
+    }
 
     private static readonly Spec None = new(null, null);
     private readonly ConcurrentDictionary<string, Spec> _byRoute = new();
@@ -61,16 +66,22 @@ public sealed class YamlSpecLoader
         if (!File.Exists(path)) return None;
         try
         {
-            var (modelView, layout) = YamlComponentBuilder.ParseSpec(File.ReadAllText(path), _partials);
-            if (layout is null) return None;
+            var (modelView, layout, delta) = YamlComponentBuilder.ParsePage(File.ReadAllText(path), _partials);
+            if (layout is null && delta.IsEmpty) return None;
             // The definition is layout; the binding to a view model belongs to the route entry. A
             // YAML that still declares modelView: keeps working and wins — but a definition shared
             // by several routes must NOT name one, or it could only ever serve the class it names.
             if (string.IsNullOrWhiteSpace(modelView) && !string.IsNullOrWhiteSpace(entry?.ViewModel))
                 modelView = entry!.ViewModel;
-            return new Spec(modelView, layout);
+            return new Spec(modelView, layout) { Delta = delta };
         }
-        catch { return None; }
+        catch (Exception e)
+        {
+            // An unparseable definition used to answer a silent "Not found." — indistinguishable
+            // from a route nobody declared. Say which file and why.
+            MateuLogging.For("Mateu.Yaml").LogWarning(e, "YAML definition {Path} could not be loaded: {Error}", path, e.Message);
+            return None;
+        }
     }
 
     private static string Normalize(string? route)

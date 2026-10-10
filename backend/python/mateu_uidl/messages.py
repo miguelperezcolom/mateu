@@ -9,14 +9,22 @@ from typing import TypeVar
 T = TypeVar("T")
 
 # ── User-facing data types ─────────────────────────────────────────────────────
-class UserFacingError(Exception):
-    """An error whose message is written FOR the user. Raised from an action, its text is shown
-    in the error toast as is — unlike any other exception, which the error boundary answers with a
-    generic text and a correlation id (the detail goes to the log). ``title`` heads the toast."""
+class UserFacingException(Exception):
+    """An error whose message is MEANT for the user (mirrors Java's ``io.mateu.uidl.UserFacingException``):
+    raise it from an action and its message is shown in the error toast as written, with its
+    optional title. Every other exception is treated as a bug — the user sees a generic "Something
+    went wrong" with a reference id and the exception is logged at ERROR under that id. Set
+    ``MATEU_ERRORS_DETAILED=true`` (or ``add_mateu(..., dev=True)``) in development to see the raw
+    exception in the toast."""
 
-    def __init__(self, message: str, title: str = "Error"):
+    def __init__(self, message: str, title: str | None = None):
         super().__init__(message)
+        self.message = message
         self.title = title
+
+
+#: The earlier name of :class:`UserFacingException`, kept as an alias.
+UserFacingError = UserFacingException
 
 
 class MessageVariant(Enum):

@@ -25,11 +25,13 @@ import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 
 @Named
+@Singleton
 @RequiredArgsConstructor(onConstructor_ = @Inject)
 public class ReflectionObjectToComponentMapper {
 

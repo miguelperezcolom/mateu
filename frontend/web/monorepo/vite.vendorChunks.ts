@@ -1,5 +1,4 @@
-// Code-splitting shared by every renderer app's vite.config (apps/vaadin,
-// apps/sapui5, apps/redhat, apps/redwood-oj): keep heavy vendors in their own
+// Code-splitting for the renderer app's vite.config (apps/vaadin): keep heavy vendors in their own
 // chunks so each entry (assets/mateu-<renderer>.js) stays small. Safe with the
 // static serving model: the entry is loaded as <script type="module"
 // src="/assets/mateu-<renderer>.js"> and the browser resolves the chunk imports
@@ -41,7 +40,6 @@ export const vendorChunks = (id: string): string | undefined => {
     // mateu-rich-text-editor.ts, so it comes out as an async chunk
     if (pkg.startsWith('@tiptap/') || pkg.startsWith('prosemirror-') || pkg === 'orderedmap'
         || pkg === 'rope-sequence' || pkg === 'w3c-keyname' || pkg === 'linkifyjs') return 'vendor-editor'
-    if (pkg.startsWith('@ui5/')) return 'vendor-ui5'
     if (pkg === 'lit' || pkg === 'lit-html' || pkg === 'lit-element'
         || pkg.startsWith('@lit/') || pkg.startsWith('@lit-labs/')) return 'vendor-lit'
     // Vaadin/Polymer web components, plus the packages that import them

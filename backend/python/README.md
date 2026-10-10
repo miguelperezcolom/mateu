@@ -129,15 +129,18 @@ add_mateu(
   as Java does, assuming a gateway/middleware verified the token; pass `key=` to verify here. It
   needs the `jwt` extra; without PyJWT no identity is resolved and every gate denies.
 - **Secrets.** `secrets_provider(key) -> str | None` resolves `${secret.KEY}`; unset → the
-  same-named environment variable. Only the proxy channel (`__restfetch__`) ever sees them.
+  environment variable `MATEU_SECRET_<KEY>` (never an arbitrary one). Only the proxy channel (`__restfetch__`) ever sees them.
 - **CORS (breaking).** `add_mateu` used to install `allow_origins=["*"]` by default. CORS is now
   off unless `cors_origins=[...]` lists the allowed origins (`["*"]` still works if you mean it);
   `cors=True` without origins raises. A renderer served by the same app needs no CORS.
-- **Errors.** An unhandled exception answers an error toast, never a raw 500: a generic text
-  carrying a correlation id (also in the `X-Mateu-Correlation-Id` header and in the logged
-  traceback). `dev=True` (or `MATEU_DEV=true`) shows the exception class and message instead, like
-  Java; raise `mateu_uidl.UserFacingError("…", title="…")` for a message written for the user,
-  which is always shown. A denied action still answers 403.
+- **Errors.** An unhandled exception answers an error toast, never a raw 500 — the same texts as
+  Java and .NET: "Something went wrong" / "An unexpected error occurred. Reference: <id>", the
+  reference being the request's correlation id (also in the `X-Mateu-Correlation-Id` header and in
+  the ERROR log line with the traceback, logger `mateu.errors`). `dev=True` (or `MATEU_DEV=true` /
+  `MATEU_ERRORS_DETAILED=true`) shows the exception instead; raise
+  `mateu_uidl.UserFacingException("…", title="…")` (alias `UserFacingError`) for a message written
+  for the user, always shown; a pydantic validation error shows its messages. A denied action
+  still answers 403.
 - **Concurrency.** The handler runs in Starlette's threadpool, so a slow proxied upstream
   (`proxy_timeout_seconds`, default 30) never blocks the event loop; per-request state (the
   request, the matched route seed, the audience) lives in `ContextVar`s, never on the shared

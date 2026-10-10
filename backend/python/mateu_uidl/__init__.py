@@ -26,6 +26,7 @@ from .messages import (  # noqa: F401
     MessageVariant,
     T,
     UserFacingError,
+    UserFacingException,
 )
 from .markers import (  # noqa: F401
     Aggregate,
@@ -249,6 +250,7 @@ from .adapters import (  # noqa: F401
 
 
 __all__ = [
+    "UserFacingException",
     "Inline",
     "AdaptedView",
     "ComponentAdapter",

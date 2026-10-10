@@ -2,9 +2,7 @@ package io.mateu.core.application.export;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.mateu.core.application.MateuService;
 import io.mateu.core.application.runaction.RestSourceRegistry;
 import io.mateu.core.application.runaction.RouteRegistry;
@@ -707,6 +705,9 @@ public final class MateuBundleExporter {
             ? requestFactory.get()
             : new HeadlessHttpRequest(rq).withAttribute("baseUrl", baseUrl == null ? "" : baseUrl);
     // A custom requestFactory may not carry the rq/baseUrl — the HeadlessHttpRequest default does.
+    // A failed route's skip reason is read by the developer building the bundle: ask the error
+    // boundary for the real exception text instead of the generic user-facing one.
+    httpRequest.setAttribute(io.mateu.core.application.runaction.ErrorBoundary.DETAILED, true);
     var increment =
         service.runAction("", rq, baseUrl == null ? "" : baseUrl, httpRequest).blockFirst();
     if (increment == null) {
@@ -784,14 +785,10 @@ public final class MateuBundleExporter {
   }
 
   /**
-   * The wire ObjectMapper. MUST stay in sync with {@code io.mateu.SerializationConfiguration}
-   * (mvc-core) — core cannot depend on mvc-core, so this is a deliberate duplicate, pinned by
-   * MateuBundleExporterTest's byte-compat test.
+   * The wire ObjectMapper — {@link io.mateu.core.infra.WireMapper}, the one every adapter uses
+   * (pinned by MateuBundleExporterTest's byte-compat test).
    */
   public static ObjectMapper defaultWireMapper() {
-    return new ObjectMapper()
-        .registerModule(new JavaTimeModule())
-        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-        .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+    return io.mateu.core.infra.WireMapper.create();
   }
 }

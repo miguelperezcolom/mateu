@@ -5,7 +5,6 @@ import { html, nothing } from "lit";
 export const renderChart = (component: ClientSideComponent) => {
     const metadata = component.metadata as Chart
 
-    //console.log('metadata', metadata)
 
     return html`
         <mateu-chart 

@@ -1,6 +1,6 @@
 # Mateu
 
-> Model-driven UI framework for Java. Annotate Java classes with @UI and Mateu generates forms, CRUD screens, navigation, and a full web UI automatically. Zero frontend code for typical business apps.
+> Model-driven UI system for business apps. Declare the model once — as code (Java with @UI, C# with [UI], Python with @ui) or as data (YAML specs) — and Mateu derives forms, CRUD screens, navigation, wizards and full app shells, rendered on the web and natively, served by a backend or shipped as a static bundle. Zero frontend code for typical business apps.
 
 Mateu works with Spring Boot (MVC and WebFlux), Quarkus, Micronaut, and Helidon. The frontend ships as pre-built Lit web-components; renderers for Vaadin (Lumo) and Oracle Redwood (on Oracle Visual Builder) are included.
 
@@ -14,13 +14,15 @@ For AI-assisted development, use these context documents with your AI tool (Clau
 
 ## Documentation
 
-- [Quickstart](https://mateu.io/java-user-manual/start-here/quickstart/): Create a Spring Boot project with Mateu in 5 minutes
+- [Quickstart](https://mateu.io/java-user-manual/start-here/quickstart/): A complete Spring Boot CRUD app in six files (the `starters/spring-mvc` project; `starters/` has one per runtime, incl. C# and Python)
 - [First app](https://mateu.io/java-user-manual/start-here/first-app/): Build your first form and CRUD
 - [Annotations reference](https://mateu.io/java-ui-definition/annotations/): Every annotation with attributes and examples
 - [Interfaces reference](https://mateu.io/java-ui-definition/interfaces/): Listing, CrudStore, BannerSupplier, BadgeSupplier, etc.
 - [UX patterns](https://mateu.io/ux-patterns/): Wizard, high-density screens, split view, autosave, keyboard shortcuts, and more
 - [Components](https://mateu.io/java-ui-definition/components/): Badge, Banner, FAB, Chart, Map, and all fluent components
 - [Design systems](https://mateu.io/design-systems/): Vaadin, Oracle Redwood
+- [Deploy to production](https://mateu.io/java-user-manual/build/deploy-to-production/): packaging, proxies, auth, CSP, CORS, static bundles
+- [Stability & versioning](https://mateu.io/reference/stability-and-versioning/) and [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/): what is public API; every rename (CrudRepository→CrudStore, @Route removed → routes.yaml, ListingBackend→Listing, …)
 
 ## Key concepts
 
@@ -30,7 +32,7 @@ For AI-assisted development, use these context documents with your AI tool (Clau
 - Bean validation (`@NotNull`, `@NotEmpty`, `@Min`, `@Max`) is enforced client-side and server-side automatically.
 - `HttpRequest` can be added to any method signature; Mateu injects it.
 - Action methods return: `void` (stay), `URI` (navigate), `Message` (toast), any Java object (open as view), `PageBanner` (show banner), `new State(this)` (update without navigating).
-- CRUD: extend `AutoCrud<T>` with a record implementing `Identifiable` — zero extra code.
+- CRUD: extend `AutoCrud<T>` (T a record implementing `Identifiable`) and override the one mandatory method, `store()`, returning a `CrudStore<T>` (findById, save, findAll, deleteAllById).
 - Custom listings: implement `Listing<Row>` (+ `Searchable`/`Filterable<F>` capabilities) and its `search(SearchRequest, HttpRequest)`.
 - Wizard: extend `Wizard`, declare `WizardStep` fields, annotate the final action with `@WizardCompletionAction`.
 - Dense screens: combine `@Compact` + `@Zones`/`@Zone` + `@Section(zone="...")`.

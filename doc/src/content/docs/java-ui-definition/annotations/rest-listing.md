@@ -9,10 +9,10 @@ array in the JSON response, and maps each item into a row by reading each **colu
 name** (so a `Row(String code, String name)` reads `code`/`name` from each item). The columns come
 from the `Listing<Row>`'s Row type as usual.
 
-It is the listing sibling of [`@RestOptions`](./rest-options) — the same decoupling idea, one level
+It is the listing sibling of [`@RestOptions`](/java-ui-definition/annotations/rest-options/) — the same decoupling idea, one level
 up: a Mateu table talking to any REST API.
 
-**Target:** `TYPE` (and `ANNOTATION_TYPE`, so it composes as a [semantic annotation](./semantic-annotations)).
+**Target:** `TYPE` (and `ANNOTATION_TYPE`, so it composes as a [semantic annotation](/java-ui-definition/annotations/semantic-annotations/)).
 
 ## Example
 
@@ -63,12 +63,12 @@ needs nothing). The listing is read-only.
 `proxy = true` also works on `@RestListing`: the rows are fetched through the Mateu server (no CORS)
 with `${secret.X}` auth injected server-side. To authenticate the direct fetch instead, register a
 client-side auth provider. Both are described under
-[`@RestOptions`](./rest-options#server-proxy-mode-proxy--true--cors--auth-hardening).
+[`@RestOptions`](/java-ui-definition/annotations/rest-options/#server-proxy-mode-proxy--true--cors--auth-hardening).
 :::
 
 :::note
-All four surfaces are shipped: [options](./rest-options), [listing rows](./rest-listing),
-[screen data](./rest-data) and [button actions](./rest-action) — each reusing the same
+All four surfaces are shipped: [options](/java-ui-definition/annotations/rest-options/), [listing rows](/java-ui-definition/annotations/rest-listing/),
+[screen data](/java-ui-definition/annotations/rest-data/) and [button actions](/java-ui-definition/annotations/rest-action/) — each reusing the same
 `RestDataSource` descriptor.
 :::
 

@@ -9,7 +9,7 @@ Every page gets a breadcrumb trail without declaring one. The shell builds it fr
 knows:
 
 1. **The menu path** to the page's route — the group(s) and the entry the menu shows for it
-   (`Call center › Reservas`), sections a federated pod contributed included. The entry whose route is
+   (`Call center › Bookings`), sections a federated pod contributed included. The entry whose route is
    the longest prefix of the current one wins; the home entry never matches by prefix.
 2. **The CRUD level**, from what the route has past that entry: the record (named with the record page's
    own title, e.g. `QN29HB · Giulia Keller`), then `Editar` / `Nuevo` (`Edit` / `New` outside Spanish).

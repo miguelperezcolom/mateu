@@ -1,0 +1,17 @@
+components:
+  - name: AgencySelector
+    component:
+      type: FormField
+      id: agency
+      dataType: string
+      label: Agency
+  - name: Greeting
+    component:
+      type: VerticalLayout
+      content:
+        - type: Text
+          text: Hello from YAML
+        - type: Button
+          label: Wave
+          actionId: wave
+  - name: Broken

@@ -60,7 +60,7 @@ export abstract class BasicComponentRenderer implements ComponentRenderer {
 
     renderTableComponent(container: MateuTableCrud, component: ClientSideComponent | undefined, _baseUrl: string | undefined, state: ComponentState, _data: ComponentData, _appState: ComponentState, _appData: ComponentData): TemplateResult {
         // DS-neutral crud listing table. The Vaadin adapter overrides this with the vaadin-grid
-        // based <mateu-table> (sorting/editing/virtual scroll); sapui5 with its ui5-table.
+        // based <mateu-table> (sorting/editing/virtual scroll).
         const rows = (container.data?.[container.id] as any)?.page?.content ?? []
         return renderNeutralTable(component!, rows, state[component?.id!]?.emptyStateMessage as string | undefined)
     }

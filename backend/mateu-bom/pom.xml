@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Mateu's bill of materials: import it once and declare every Mateu artifact without a version.
+
+  Deliberately NOT a child of the backend parent: an imported BOM brings its whole effective
+  dependencyManagement, and the parent's (Spring Boot, Quarkus pins, Lombok…) must never be forced
+  onto an application. So it carries its own publishing metadata and signing.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>io.mateu</groupId>
+  <artifactId>mateu-bom</artifactId>
+  <version>0.0.1-MATEU</version>
+  <packaging>pom</packaging>
+
+  <name>Mateu BOM</name>
+  <description>Bill of materials of Mateu: every public Mateu artifact at one consistent version.</description>
+  <url>https://github.com/miguelperezcolom/mateu</url>
+
+  <licenses>
+    <license>
+      <name>Apache License, Version 2.0</name>
+      <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+    </license>
+  </licenses>
+
+  <scm>
+    <connection>scm:git:https://github.com/miguelperezcolom/mateu.git</connection>
+    <developerConnection>scm:git:git@github.com:miguelperezcolom/mateu.git</developerConnection>
+    <url>https://github.com/miguelperezcolom/mateu</url>
+  </scm>
+
+  <developers>
+    <developer>
+      <id>miguelperezcolom</id>
+      <name>Miguel Pérez Colom</name>
+      <email>miguelperezcolom@gmail.com</email>
+      <url>https://github.com/miguelperezcolom/</url>
+      <organization>Mateu.io</organization>
+      <organizationUrl>http://mateu.io</organizationUrl>
+    </developer>
+  </developers>
+
+  <properties>
+    <project.build.outputTimestamp>2026-10-10T00:00:00Z</project.build.outputTimestamp>
+  </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <!-- the UI-declaration API and the wire -->
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>uidl</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>dtos</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <!-- annotation processors: put them on the annotationProcessorPaths, never on the runtime
+           classpath -->
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>annotation-processor-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>annotation-processor-indexer</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>annotation-processor-mvc</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>annotation-processor-webflux</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>annotation-processor-micronaut</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>annotation-processor-quarkus</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>annotation-processor-helidon-mp</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <!-- framework adapters -->
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>mvc-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>webflux-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>micronaut-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>quarkus-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>helidon-mp-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <!-- web renderers (choose one) -->
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>vaadin-lit</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>redwood</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <!-- optional exporters -->
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>export-excel</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>export-pdf</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>3.2.8</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+            <configuration>
+              <gpgArguments>
+                <arg>--pinentry-mode</arg>
+                <arg>loopback</arg>
+              </gpgArguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.sonatype.central</groupId>
+        <artifactId>central-publishing-maven-plugin</artifactId>
+        <version>0.11.0</version>
+        <extensions>true</extensions>
+        <configuration>
+          <publishingServerId>central</publishingServerId>
+          <autoPublish>true</autoPublish>
+          <waitUntil>published</waitUntil>
+          <waitMaxTime>3600</waitMaxTime>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

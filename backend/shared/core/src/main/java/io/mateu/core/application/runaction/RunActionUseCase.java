@@ -8,8 +8,6 @@ import io.mateu.core.infra.TemplateInterpolator;
 import io.mateu.dtos.ModelViewContractDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIIncrementDto;
-import io.mateu.uidl.data.Message;
-import io.mateu.uidl.data.NotificationVariant;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -18,7 +16,6 @@ import io.mateu.uidl.interfaces.RouteHandler;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -87,7 +84,7 @@ public class RunActionUseCase {
   // ── Main entry point ──────────────────────────────────────────────────────
 
   public Flux<UIIncrementDto> handle(RunActionCommand command) {
-    log.info("run action {}", command.actionId());
+    log.debug("run action {}", command.actionId());
     // The client names the server-side type it is talking to; only types the application exposes
     // may be resolved (C1). Refused here, before anything loads, instantiates or asks the
     // container for the class — every path below (contract, preview, rest proxy, actions) and
@@ -128,16 +125,13 @@ public class RunActionUseCase {
         .flatMap(result -> mapToUiIncrement(result, command))
         .doOnError(
             e -> {
-              if (io.mateu.core.application.security.MateuForbiddenException.find(e) != null) {
-                return;
-              }
               var notFound = missingOnLoad(e, command);
               if (notFound != null) {
                 // not an application error: the route names something that is not there
+                // one INFO line, like an access log 404: no state, no stack trace
                 log.info("Not found: route {} — {}", command.route(), notFound.getMessage());
-                return;
               }
-              log.error("Error handling action {}", command.actionId(), e);
+              // anything else is logged by the ErrorBoundary, once, with its reference id
             })
         .onErrorResume(
             error -> {
@@ -152,12 +146,10 @@ public class RunActionUseCase {
                 // the page that was asked for does not exist: a not-found page in its place
                 return mapToUiIncrement(NotFoundPage.forMissing(notFound, command), command);
               }
+              // the user sees a UserFacingException's / validation message, or a generic one with
+              // a reference id the full error is logged under (never a raw exception message)
               return mapToUiIncrement(
-                  Message.builder()
-                      .variant(NotificationVariant.error)
-                      .title(extractTitle(error))
-                      .text(extractText(error))
-                      .build(),
+                  ErrorBoundary.toMessage(error, command.actionId(), command.httpRequest()),
                   command);
             })
         .switchIfEmpty(
@@ -275,7 +267,13 @@ public class RunActionUseCase {
                 io.mateu.core.infra.declarative.orchestrators.crud.CapabilityCrud.bridgeIfNeeded(
                     instance))
         .flatMap(instance -> routeIfNeeded(command, instance))
-        .map(instance -> toRestFetchResponse(instance, command))
+        // The upstream call is a BLOCKING java.net.http send (once per selected row on the bulk
+        // path): it must not run on the reactive event-loop thread that serves every other request,
+        // so the whole fetch moves to the bounded elastic pool, made for exactly this.
+        .flatMap(
+            instance ->
+                Mono.fromCallable(() -> toRestFetchResponse(instance, command))
+                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic()))
         .flux();
   }
 
@@ -373,15 +371,19 @@ public class RunActionUseCase {
   private Object performRestCall(
       io.mateu.uidl.data.RestDataSource source, java.util.Map<String, Object> state) {
     java.util.function.Function<String, String> secrets = this::resolveSecret;
-    var url = TemplateInterpolator.interpolate(source.url(), state, secrets);
     var method =
         source.method() == null || source.method().isBlank()
             ? "GET"
             : source.method().toUpperCase();
+    // Logged by its TEMPLATE, never the resolved url: that may carry a ${secret.X} in its query.
+    var url = source.url();
     try {
+      // Values are percent-encoded by position (TemplateInterpolator.interpolateUrl), so a value
+      // from the client state cannot add path segments, a query or another host to the request.
+      var resolvedUrl = TemplateInterpolator.interpolateUrl(source.url(), state, secrets);
       var builder =
           java.net.http.HttpRequest.newBuilder()
-              .uri(java.net.URI.create(url))
+              .uri(java.net.URI.create(resolvedUrl))
               .timeout(java.time.Duration.ofSeconds(60))
               .header("Accept", "application/json");
       if (source.headers() != null) {
@@ -440,8 +442,24 @@ public class RunActionUseCase {
     return REST_MAPPER.readValue(body, Object.class);
   }
 
-  /** A {@code ${secret.X}} value: the first non-null SecretsProvider bean, else the environment. */
-  private String resolveSecret(String key) {
+  /** The only environment variables a {@code ${secret.X}} may fall back to. */
+  public static final String SECRET_ENV_PREFIX = "MATEU_SECRET_";
+
+  /**
+   * The environment variable {@code ${secret.KEY}} falls back to: {@code MATEU_SECRET_KEY} (a key
+   * that already carries the prefix is used as is). Restricted on purpose: the fallback used to
+   * read ANY variable of the process, so a template naming {@code ${secret.DB_PASSWORD}} (or a
+   * cloud credential) would send it to whatever endpoint the source declared.
+   */
+  public static String secretEnvName(String key) {
+    return key.startsWith(SECRET_ENV_PREFIX) ? key : SECRET_ENV_PREFIX + key;
+  }
+
+  /**
+   * A {@code ${secret.X}} value: the first non-null SecretsProvider bean, else the environment
+   * variable {@code MATEU_SECRET_X} (see {@link #secretEnvName}).
+   */
+  String resolveSecret(String key) {
     try {
       for (var p :
           io.mateu.uidl.di.MateuBeanProvider.getBeans(
@@ -454,29 +472,7 @@ public class RunActionUseCase {
     } catch (Exception ignored) {
       // no provider registered (e.g. tests) — fall through to the environment
     }
-    return System.getenv(key);
-  }
-
-  private String extractTitle(Throwable e) {
-    return getSourceException(e).getClass().getSimpleName();
-  }
-
-  private Throwable getSourceException(Throwable e) {
-    if (e instanceof InvocationTargetException ite) {
-      return ite.getTargetException();
-    }
-    if (e.getCause() != null) {
-      return e.getCause();
-    }
-    return e;
-  }
-
-  private String extractText(Throwable e) {
-    var sourceException = getSourceException(e);
-    if (sourceException.getMessage() != null) {
-      return sourceException.getMessage();
-    }
-    return sourceException.getClass().getSimpleName();
+    return System.getenv(secretEnvName(key));
   }
 
   private Mono<UIIncrementDto> mapToUiIncrement(Object result, RunActionCommand command) {

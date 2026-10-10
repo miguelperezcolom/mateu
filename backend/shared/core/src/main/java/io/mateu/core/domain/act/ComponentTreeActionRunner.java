@@ -10,9 +10,11 @@ import io.mateu.uidl.fluent.Form;
 import io.mateu.uidl.interfaces.ComponentTreeSupplier;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import reactor.core.publisher.Flux;
 
 @Named
+@Singleton
 public class ComponentTreeActionRunner implements ActionRunner {
 
   // todo: cacheable?

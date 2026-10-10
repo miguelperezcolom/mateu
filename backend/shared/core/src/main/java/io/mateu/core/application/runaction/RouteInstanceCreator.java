@@ -41,8 +41,8 @@ public class RouteInstanceCreator {
    */
   public Mono<?> findRouteResolver(RunActionCommand command) {
     List<String> segments = createRoutes(command);
-    log.info("findRouteResolver segments={}", segments);
-    log.info(
+    log.debug("findRouteResolver segments={}", segments);
+    log.debug(
         "route: {}, consumedRoute: {}, serverSideType: {}",
         command.route(),
         command.consumedRoute(),
@@ -100,12 +100,12 @@ public class RouteInstanceCreator {
                                 .getApp(command.httpRequest())
                                 .withServerSideType(instanceTypeName)
                             : app);
-        log.info("app {} → {}", route, instanceTypeName);
+        log.debug("app {} → {}", route, instanceTypeName);
         return instance.flatMap(
             app -> appMenuResolver.resolveRemoteMenuForRoute(command, app, command.httpRequest()));
       }
     }
-    log.info("no app matches {}", route);
+    log.debug("no app matches {}", route);
     return Mono.empty();
   }
 

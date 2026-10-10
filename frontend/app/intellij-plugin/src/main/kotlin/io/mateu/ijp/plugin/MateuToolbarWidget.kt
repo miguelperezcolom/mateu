@@ -8,10 +8,11 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.DefaultActionGroup
 import com.intellij.openapi.actionSystem.Separator
 import com.intellij.openapi.project.DumbAware
-import com.intellij.openapi.ui.popup.JBPopup
-import com.intellij.openapi.ui.popup.JBPopupFactory
 import com.intellij.openapi.util.IconLoader
-import com.intellij.openapi.wm.impl.ExpandableComboAction
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.actionSystem.DataContext
+import com.intellij.openapi.actionSystem.ex.ComboBoxAction
+import javax.swing.JComponent
 import io.mateu.ijp.api.bool
 import io.mateu.ijp.api.text
 import io.mateu.ijp.state.AppSession
@@ -21,9 +22,10 @@ import io.mateu.ijp.state.AppSession
  * chevron, right where the Version Control widget sits (the classic menu bar is collapsed behind
  * the hamburger icon in the new UI, so a MainMenu group alone is effectively invisible). Clicking
  * it pops the same action tree as the menu-bar group ([appMenuActions]). Hidden until the Mateu
- * navigator boots the app and publishes its menu.
+ * navigator boots the app and publishes its menu — i.e. it never shows in a project that has no Mateu
+ * backend configured. Built on the public [ComboBoxAction] (not the internal `ExpandableComboAction`).
  */
-class MateuToolbarWidget : ExpandableComboAction(), DumbAware {
+class MateuToolbarWidget : ComboBoxAction(), DumbAware {
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.EDT
 
@@ -38,14 +40,12 @@ class MateuToolbarWidget : ExpandableComboAction(), DumbAware {
         }
     }
 
-    override fun createPopup(event: AnActionEvent): JBPopup {
-        val session = event.project?.getUserData(MATEU_SESSION)
+    override fun createPopupActionGroup(button: JComponent, dataContext: DataContext): DefaultActionGroup {
+        val session = dataContext.getData(CommonDataKeys.PROJECT)?.getUserData(MATEU_SESSION)
         val group = DefaultActionGroup()
         val menu = session?.appMenu
         if (session != null && menu != null) appMenuActions(session, menu).forEach { group.add(it) }
-        return JBPopupFactory.getInstance().createActionGroupPopup(
-            null, group, event.dataContext, JBPopupFactory.ActionSelectionAid.SPEEDSEARCH, true,
-        )
+        return group
     }
 
     companion object {

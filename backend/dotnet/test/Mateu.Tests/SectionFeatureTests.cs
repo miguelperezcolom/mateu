@@ -170,8 +170,8 @@ public class SectionFeatureTests
             .ToList();
         Assert.Equal(["Datos"], sectionHeadings);
         // exactly one section Card (the frameless one carries no mateu-section marker)
-        Assert.Single(Objects(root)
-            .Where(o => o.TryGetProperty("cssClasses", out var c) && c.GetString() == "mateu-section"));
+        Assert.Single(Objects(root),
+            o => o.TryGetProperty("cssClasses", out var c) && c.GetString() == "mateu-section");
         // the frameless section's field still travels, its value in the component initialData / state
         Assert.Equal("sin marco", root.GetProperty("fragments")[0]
             .GetProperty("component").GetProperty("initialData").GetProperty("aviso").GetString());

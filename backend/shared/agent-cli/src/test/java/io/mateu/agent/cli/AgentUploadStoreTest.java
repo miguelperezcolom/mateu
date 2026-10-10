@@ -74,4 +74,14 @@ class AgentUploadStoreTest {
     assertTrue(store.hasFiles(""));
     assertEquals(store.sessionDir(""), store.sessionDir("   "));
   }
+
+  @Test
+  void a_session_id_cannot_leave_the_upload_root(@TempDir Path base) {
+    var store = store(base);
+    var root = base.toAbsolutePath().normalize();
+    for (var id : List.of("../../etc", "..", "/etc/passwd", "a/../../b", "..\\..\\x")) {
+      var dir = store.sessionDir(id);
+      assertEquals(root, dir.getParent(), "session " + id + " escaped to " + dir);
+    }
+  }
 }

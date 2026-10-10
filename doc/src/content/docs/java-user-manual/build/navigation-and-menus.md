@@ -315,7 +315,12 @@ Mateu populates `name` from the URL segment automatically when the page is navig
 
 ```java
 @UI("/users")                          // top-level
-public class UsersPage extends AutoCrud<User> {}
+public class UsersPage extends AutoCrud<User> {
+    @Override
+    public CrudStore<User> store() {
+        return new UserStore(); // your CrudStore<User>
+    }
+}
 
 public class UserEditorPage {}           // bound to the /users CRUD in routes.yaml
 ```

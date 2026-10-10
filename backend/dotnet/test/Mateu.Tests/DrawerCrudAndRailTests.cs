@@ -59,7 +59,7 @@ public class DrawerCrudAndRailTests
         var fragment = Assert.Single(inc.Fragments);
         Assert.Equal("Add", fragment.Action);
         Assert.Contains("\"type\":\"Drawer\"", Render(inc));
-        Assert.Empty(inc.Commands.Where(c => c.Type == "NavigateTo"));
+        Assert.DoesNotContain(inc.Commands, c => c.Type == "NavigateTo");
     }
 
     [Fact]
@@ -88,11 +88,11 @@ public class DrawerCrudAndRailTests
                 { ["name"] = JsonDocument.Parse("\"Gamma\"").RootElement },
         });
         Assert.Equal(before + 1, DrawerContacts.Stored.Count);
-        Assert.Empty(inc.Commands.Where(c => c.Type == "NavigateTo"));
-        var close = Assert.Single(inc.Commands.Where(c => c.Type == "CloseModal"));
+        Assert.DoesNotContain(inc.Commands, c => c.Type == "NavigateTo");
+        var close = Assert.Single(inc.Commands, c => c.Type == "CloseModal");
         Assert.Contains(SyncHandler.SavedInDrawerEvent, Render(inc));
         Assert.Equal("ux_list", close.TargetComponentId);
-        Assert.Single(inc.Commands.Where(c => c.Type == "RunAction"));
+        Assert.Single(inc.Commands, c => c.Type == "RunAction");
         Assert.Equal("Saved", Assert.Single(inc.Messages).Text);
     }
 
@@ -104,7 +104,7 @@ public class DrawerCrudAndRailTests
             Route = "/drawer-contacts", ActionId = "cancel-new",
             ServerSideType = typeof(DrawerContacts).FullName, InitiatorComponentId = "ux_list",
         });
-        Assert.Single(inc.Commands.Where(c => c.Type == "CloseModal"));
+        Assert.Single(inc.Commands, c => c.Type == "CloseModal");
         Assert.Empty(inc.Fragments);
     }
 

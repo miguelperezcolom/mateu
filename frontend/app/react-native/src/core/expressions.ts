@@ -1,3 +1,5 @@
+import { interpolateUrlWith } from './urlTemplate';
+
 /**
  * Tiny expression evaluator for rule filters, validation conditions and `${...}` label
  * interpolation. Hermes (React Native's JS engine) forbids `eval`/`new Function`, so this is a
@@ -218,6 +220,17 @@ export function interpolate(template: string, ctx: Ctx): string {
     try {
       const v = evaluateExpression(expr.trim(), ctx);
       return v === null || v === undefined ? '' : String(v);
+    } catch {
+      return '';
+    }
+  });
+}
+
+/** A url template interpolated with its values percent-encoded by position (see urlTemplate.ts). */
+export function interpolateUrl(template: string, ctx: Ctx): string {
+  return interpolateUrlWith(template, (expr) => {
+    try {
+      return evaluateExpression(expr, ctx);
     } catch {
       return '';
     }

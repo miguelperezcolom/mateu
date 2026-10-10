@@ -7,6 +7,7 @@ import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 import {
     agendaOf, datesBetween, dayOf, eventsOn, monthWeeks, periodOf, timeRangeOf, todayIso, toneClassOf,
 } from '@infra/ui/calendarModel.ts';
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * Dependency-free calendar with four views — the month grid (Mon–Sun), the week (seven columns,
@@ -217,7 +218,7 @@ export class MateuCalendar extends LitElement {
     private renderList(anchor: string) {
         const { from, to } = periodOf('list', anchor)
         const agenda = agendaOf(this.events, from, to)
-        if (!agenda.length) return html`<div class="agenda"><div class="empty">No events</div></div>`
+        if (!agenda.length) return html`<div class="agenda"><div class="empty">${chromeText('noEvents')}</div></div>`
         return html`
             <div class="agenda">
                 ${agenda.map(({ date, events }) => {
@@ -251,7 +252,7 @@ export class MateuCalendar extends LitElement {
             <div class="head">
                 <div class="title">${this.titleOf(view, anchor)}</div>
                 ${this.views && this.views.length > 1 ? html`
-                    <div class="switcher" role="group" aria-label="View">
+                    <div class="switcher" role="group" aria-label="${chromeText('calendarView')}">
                         ${this.views.map((v) => html`<button type="button" aria-pressed="${v === view ? 'true' : 'false'}"
                             @click="${() => { this.shown = v }}">${v.charAt(0).toUpperCase() + v.slice(1)}</button>`)}
                     </div>` : nothing}

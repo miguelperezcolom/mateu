@@ -33,7 +33,7 @@ final class AbsoluteRouteDispatcher {
       if (resolvedClass != null) {
         setResolvedRoute(httpRequest, route);
         var instanceTypeName = resolvedClass.getName();
-        log.info("absolute {} resolved to {}", route, instance);
+        log.debug("absolute {} resolved to {}", route, instance);
         return instanceFactoryProvider
             .get(instanceTypeName)
             .createInstance(instanceTypeName, data, httpRequest);

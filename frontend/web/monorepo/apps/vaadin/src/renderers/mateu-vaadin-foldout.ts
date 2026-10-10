@@ -3,6 +3,7 @@ import { customElement, property, query, state } from 'lit/decorators.js';
 import FoldoutPanelInfo from "@mateu/shared/apiClients/dtos/componentmetadata/FoldoutPanelInfo";
 import FoldoutNavigation from "@mateu/shared/apiClients/dtos/componentmetadata/FoldoutNavigation";
 import { foldoutSectionStyle, mergeOpenStates, visibleSections, wheelToRow, VerticalScroller } from "@infra/ui/foldoutGeometry.ts";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * Vaadin-specific foldout, drawn as Redwood's (oj-sp-foldout-layout, see foldoutGeometry.ts): a
@@ -646,23 +647,23 @@ export class MateuVaadinFoldout extends LitElement {
                                 ${hasToolbar ? html`
                                     <div class="section-toolbar" part="section-toolbar">
                                         ${nav?.parentActionId ? html`
-                                            <button class="tb-parent" title="${nav.parentLabel ?? 'Back'}"
+                                            <button class="tb-parent" title="${nav.parentLabel ?? chromeText('back')}"
                                                     @click="${() => this.navAction(nav.parentActionId)}">
-                                                <span>‹</span><span>${nav.parentLabel ?? 'Back'}</span>
+                                                <span>‹</span><span>${nav.parentLabel ?? chromeText('back')}</span>
                                             </button>
                                         ` : nothing}
                                         ${nav?.previousActionId ? html`
-                                            <button class="tb-move" title="Previous"
+                                            <button class="tb-move" title="${chromeText('previous')}" aria-label="${chromeText('previous')}"
                                                     @click="${() => this.navAction(nav.previousActionId)}">‹</button>
                                         ` : nothing}
                                         ${nav?.nextActionId ? html`
-                                            <button class="tb-move" title="Next"
+                                            <button class="tb-move" title="${chromeText('next')}" aria-label="${chromeText('next')}"
                                                     @click="${() => this.navAction(nav.nextActionId)}">›</button>
                                         ` : nothing}
                                         ${this.overviewEditActionId ? html`
-                                            <button class="tb-edit" title="Edit"
+                                            <button class="tb-edit" title="${chromeText('edit')}"
                                                     @click="${() => this.navAction(this.overviewEditActionId)}">
-                                                <span>✎</span><span>Edit</span>
+                                                <span>✎</span><span>${chromeText('edit')}</span>
                                             </button>
                                         ` : nothing}
                                     </div>
@@ -704,7 +705,7 @@ export class MateuVaadinFoldout extends LitElement {
                                 ${panel.title ? html`<h3>${panel.title}${panel.subtitle ? html` <span class="subtitle" style="font-weight: 400;">· ${panel.subtitle}</span>` : nothing}</h3>` : nothing}
                                 ${!panel.title && panel.subtitle ? html`<div class="subtitle">${panel.subtitle}</div>` : nothing}
                                 </div>
-                                ${foldable ? html`<button class="panel-fold" title="Fold" aria-expanded="true"
+                                ${foldable ? html`<button class="panel-fold" title="${chromeText('fold')}" aria-label="${chromeText('fold')}" aria-expanded="true"
                                         @click="${() => this._toggle(index)}">‹</button>` : nothing}
                             </div>
                         ` : nothing}
@@ -715,7 +716,7 @@ export class MateuVaadinFoldout extends LitElement {
                 `})}
             </div>
             ${this._less || this._more ? html`
-                <nav class="dots" part="paging-dots" aria-label="Panels">
+                <nav class="dots" part="paging-dots" aria-label="${chromeText('panels')}">
                     ${[this.headerTitle || 'Overview', ...this.panels.map(p => p.title ?? '')].map((title, i) => html`
                         <button class="dot ${this._visible[i] ? 'on' : ''}" title="${title}"
                                 aria-label="${title}" aria-current="${this._visible[i] ? 'true' : 'false'}"

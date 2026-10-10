@@ -25,6 +25,8 @@ import {
 import { registerRemoteMenuRetry } from "@infra/ui/remoteMenuRetry.ts";
 import { announce } from "@infra/a11y/announcer.ts";
 import { fragmentIsCurrent } from "@infra/ui/callbackTokenGuard.ts";
+import { safeNavigate } from '@infra/ui/safeNavigate.ts'
+import { ConnectionScope } from '@infra/ui/connectionScope.ts'
 
 export default abstract class ConnectedElement extends LitElement {
 
@@ -37,6 +39,12 @@ export default abstract class ConnectedElement extends LitElement {
     callbackToken = ''
 
     private upstreamSubscription: Subscription | undefined;
+
+    /**
+     * Listeners that must die with this component (document-level ones, and those on elements it
+     * appends to <head>/<body>, which outlive it): register them with `{ signal: this.connection.signal }`.
+     */
+    protected connection = new ConnectionScope()
 
     connectedCallback() {
         super.connectedCallback()
@@ -210,6 +218,7 @@ export default abstract class ConnectedElement extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         this.upstreamSubscription?.unsubscribe();
+        this.connection.abort()
     }
 
     abstract applyFragment(fragment: UIFragment):void
@@ -238,23 +247,8 @@ export default abstract class ConnectedElement extends LitElement {
         }
         if ('NavigateTo' == command.type) {
             const destination = command.data as string
-            if (destination) {
-                if (true) {
-                    if (destination.startsWith('http:') || destination.startsWith('https:')) {
-                        window.open(command.data as string, '_blank');
-                    } else {
-                        window.location.href = command.data as string
-                    }
-                } else {
-                    this.dispatchEvent(new CustomEvent('navigate-to-requested', {
-                        detail: {
-                            route: destination
-                        },
-                        bubbles: true,
-                        composed: true
-                    }))
-                }
-            }
+            // server-sent: only http(s)/relative, same-origin here, cross-origin in a new tab
+            if (destination) safeNavigate(destination)
         }
         if ('PushStateToHistory' == command.type) {
             const destination = command.data as string
@@ -377,6 +371,8 @@ export default abstract class ConnectedElement extends LitElement {
                 element.setAttribute(k, data.attributes[k])
             }
             for (let k in data.on) {
+                // the element outlives this component (it is appended to <head>/<body>): the
+                // listener must not keep calling back into a disconnected component
                 element.addEventListener(k, (e: Event) => {
                     this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                         detail: {
@@ -388,7 +384,7 @@ export default abstract class ConnectedElement extends LitElement {
                         bubbles: true,
                         composed: true
                     }))
-                })
+                }, { signal: this.connection.signal })
         }
             return element
     }
@@ -418,7 +414,7 @@ export default abstract class ConnectedElement extends LitElement {
     closeModal = () => {
         // Overlays (dialogs and drawers) are appended to the initiator's render root in opening
         // order, so the last one in DOM order is the top of the stack. On shells that render to
-        // light DOM (no shadow root — e.g. redwood-oj) the overlay is a plain descendant, so
+        // light DOM (no shadow root) the overlay is a plain descendant, so
         // fall back to querying the element itself.
         const overlays = (this.shadowRoot ?? this).querySelectorAll('mateu-dialog, mateu-drawer')
         if (overlays && overlays.length > 0) {

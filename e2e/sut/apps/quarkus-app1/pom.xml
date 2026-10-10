@@ -14,7 +14,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-        <quarkus.platform.version>3.17.8</quarkus.platform.version>
+        <quarkus.platform.version>3.38.0</quarkus.platform.version>
         <mateu.version>0.0.1-MATEU</mateu.version>
         <skipITs>true</skipITs>
     </properties>
@@ -40,6 +40,11 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-rest</artifactId>
+        </dependency>
+        <!-- the Mateu wire is Jackson (quarkus-core declares it `provided`) -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest-jackson</artifactId>
         </dependency>
 
         <!-- Mateu Quarkus runtime -->

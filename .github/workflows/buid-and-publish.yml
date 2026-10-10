@@ -142,3 +142,46 @@ jobs:
       - name: No PyPI credentials — skipped
         if: env.PYPI_API_TOKEN == '' && env.TRUSTED != 'true'
         run: echo "::notice::PyPI publish skipped — no PYPI_API_TOKEN secret and PYPI_TRUSTED_PUBLISHING is not 'true'."
+
+  # The .NET port ships to NuGet in LOCKSTEP with the Maven artifacts: same release, same number,
+  # spelled as SemVer (tag v3.0-alpha.N → 3.0.0-alpha.N; v3.0.1 → 3.0.1). Gated on the same tests as
+  # the Maven job (the called test workflow includes the .NET suites + the conformance gate). Without
+  # the NUGET_API_KEY secret the job builds the packages and stops — a fork, or a repo not yet
+  # registered on nuget.org, gets a green run instead of a failed release.
+  nuget:
+    needs: e2e
+    if: startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Package version from the release tag
+        run: |
+          TAG='${{ github.event.release.tag_name }}'
+          V="${TAG#v}"
+          # major.minor[-pre] → major.minor.0[-pre]; a full major.minor.patch is left as is.
+          V=$(echo "$V" | sed -E 's/^([0-9]+)\.([0-9]+)(-|$)/\1.\2.0\3/')
+          echo "NUGET_VERSION=$V" >> "$GITHUB_ENV"
+          echo "NuGet version: $V"
+      - name: Pack
+        run: |
+          cd backend/dotnet
+          for p in src/*/*.csproj; do
+            dotnet pack "$p" -c Release -o "$RUNNER_TEMP/nupkgs" -p:MateuVersion="$NUGET_VERSION"
+          done
+          ls -l "$RUNNER_TEMP/nupkgs"
+      - name: Push to NuGet
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if [ -z "$NUGET_API_KEY" ]; then
+            echo "::notice::NUGET_API_KEY is not set — packages built, nothing pushed."
+            exit 0
+          fi
+          dotnet nuget push "$RUNNER_TEMP/nupkgs/*.nupkg" --api-key "$NUGET_API_KEY" \
+            --source https://api.nuget.org/v3/index.json --skip-duplicate

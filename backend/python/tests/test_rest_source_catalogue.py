@@ -239,7 +239,7 @@ def fetched(monkeypatch):
         return _Response(json.dumps([{"code": "x"}]).encode())
 
     monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
-    monkeypatch.setenv("API_KEY", "k-123")
+    monkeypatch.setenv("MATEU_SECRET_API_KEY", "k-123")  # env fallback reads MATEU_SECRET_<KEY> only
     return calls
 
 

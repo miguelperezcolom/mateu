@@ -1,8 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <PackageId>Mateu.Core</PackageId>
+    <Description>Mateu engine for .NET: route registry, reflection mapper (view model to component tree), action dispatch and the /mateu/v3/sync use case.</Description>
+    <IsPackable>true</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Public API docs are welcome but not yet complete: a missing XML comment must not fail the build. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
     <RootNamespace>Mateu.Core</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
@@ -10,6 +13,10 @@
     <ProjectReference Include="../Mateu.Dtos/Mateu.Dtos.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="YamlDotNet" Version="18.1.0" />
+    <PackageReference Include="YamlDotNet" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="../../PACKAGE.md" Pack="true" PackagePath="README.md" Visible="false" />
   </ItemGroup>
 </Project>

@@ -6,7 +6,7 @@ description: Derive the API contract from the endpoints your screens already dec
 **Status:** ✅ Emitter, contract check, server generator and Maven goals implemented. Not yet exposed
 as a runtime endpoint.
 
-Every entry of the [source catalogue](../../java-ui-definition/rest-source-catalogue), and every
+Every entry of the [source catalogue](/java-ui-definition/rest-source-catalogue/), and every
 `@RestOptions`, `@RestListing`, `@RestData` and `@RestAction`, already states a URL, a method, the
 parameters it interpolates and the shape it reads back. **That is an endpoint contract** — it was just
 never written down.
@@ -78,7 +78,7 @@ Each operation carries two vendor extensions:
 
 - `x-mateu-source` — the catalogue entry it came from.
 - `x-mateu-provenance` — `generate` when this project owes the endpoint, `existing` when somebody else
-  already serves it (see [the catalogue](../../java-ui-definition/rest-source-catalogue)).
+  already serves it (see [the catalogue](/java-ui-definition/rest-source-catalogue/)).
 
 That distinction keeps both derived artifacts honest. The generator builds only what you owe, so a third
 party's API never gets a Spring controller; and the contract check has its best use on the `existing`

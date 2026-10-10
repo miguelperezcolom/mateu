@@ -1,0 +1,19 @@
+# Listing / CRUD page: rows come from a named source in sources.yaml; rowRoute opens the record.
+type: Listing
+title: __TITLE__
+__PAGE_WIDTH__
+searchable: true
+gridLayout: table
+rowsSource:
+  ref: orders
+rowRoute: orders/${row.id}
+toolbar:
+  - {type: Button, label: New, actionId: new, buttonStyle: primary}
+filters:
+  - {type: FormField, id: status, label: Status, dataType: string, stereotype: select,
+     options: [{value: open, label: Open}, {value: closed, label: Closed}]}
+columns:
+  - {type: GridColumn, id: id, label: Id, identifier: true}
+  - {type: GridColumn, id: customerName, label: Customer, sortable: true}
+  - {type: GridColumn, id: total, label: Total, dataType: money, align: end}
+  - {type: GridColumn, id: status, label: Status, dataType: status}

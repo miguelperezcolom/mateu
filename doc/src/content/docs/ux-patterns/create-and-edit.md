@@ -28,6 +28,8 @@ All of it renders with the same anatomy (page header, color strip, footer action
 
 `editInDrawer()` on the crud switches New/Edit to the **Create and Edit — Drawer** template: the form slides over the listing, which never unmounts; saving persists, closes the drawer and re-runs the search in place. See [Drawer](/ux-patterns/drawer/#crud-editing-in-a-drawer-editindrawer) and the `/drawer-crud-demo` showcase page.
 
+![Edit in a drawer over the listing](/images/docs/drawer/edit-in-drawer.png)
+
 ## When to use what
 
 - Few fields, fast data entry → **Simple** (default `AutoCrud`).

@@ -1,6 +1,7 @@
 import { customElement, property } from "lit/decorators.js";
 import { css, html, LitElement, nothing } from "lit";
 import { computePagination } from "./pagination";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 @customElement('mateu-pagination')
 export class MateuPagination extends LitElement {
@@ -32,14 +33,14 @@ export class MateuPagination extends LitElement {
         return html`
             <div class="bar">
                 ${multiPage ? html`
-                    <button class="nav" title="First page" ?disabled="${isFirst}"
+                    <button class="nav" title="${chromeText('firstPage')}" aria-label="${chromeText('firstPage')}" ?disabled="${isFirst}"
                         @click="${() => this.dispatch(0)}" data-testid="page-first">«</button>
-                    <button class="nav" title="Previous page" ?disabled="${isFirst}"
+                    <button class="nav" title="${chromeText('previousPage')}" aria-label="${chromeText('previousPage')}" ?disabled="${isFirst}"
                         @click="${() => this.dispatch(currentPage - 1)}" data-testid="page-prev">‹</button>
                     <span class="page-indicator">Page ${currentPage + 1}${totalPages != undefined ? html` of ${totalPages}` : nothing}</span>
-                    <button class="nav" title="Next page" ?disabled="${isLast}"
+                    <button class="nav" title="${chromeText('nextPage')}" aria-label="${chromeText('nextPage')}" ?disabled="${isLast}"
                         @click="${() => this.dispatch(currentPage + 1)}" data-testid="page-next">›</button>
-                    <button class="nav" title="Last page" ?disabled="${isLast || totalPages == undefined}"
+                    <button class="nav" title="${chromeText('lastPage')}" aria-label="${chromeText('lastPage')}" ?disabled="${isLast || totalPages == undefined}"
                         @click="${() => this.dispatch(totalPages! - 1)}" data-testid="page-last">»</button>
                     <span class="separator"></span>
                 ` : nothing}

@@ -1,0 +1,23 @@
+type: Sources
+sources:
+  - name: countries
+    description: ISO country codes (authored — replaces the attribute-declared entry outright)
+    source:
+      url: https://restcountries.com/v3.1/all?fields=cca2,name
+      valuePath: cca2
+      labelPath: name.common
+  - name: orders
+    provenance: generate
+    totalPath: meta.total
+    fields:
+      customerName: customer.name
+    source:
+      url: /api/orders?since=${state.since}
+      itemsPath: data
+  - name: partners
+    provenance: nonsense
+    source:
+      url: https://partners.example.com/api/list?key=${secret.PARTNERS_KEY}
+      proxy: true
+  - source:
+      url: https://nameless.example.com

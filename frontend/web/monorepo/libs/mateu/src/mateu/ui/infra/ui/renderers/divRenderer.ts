@@ -2,13 +2,13 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { html, LitElement, nothing } from "lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import Div from "@mateu/shared/apiClients/dtos/componentmetadata/Div.ts";
-import { unsafeHTML } from "lit/directives/unsafe-html.js";
+import { safeHtml } from "@infra/ui/safeHtml.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 export const renderDiv = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as Div
     return html`<div
                 slot="${component.slot??nothing}"
                 style="${component.style}" class="${component.cssClasses}"
-        >${metadata.content?unsafeHTML(metadata.content):nothing}${component.children?.map(content => renderComponent(container, content, baseUrl, state, data, appState, appData))}</div>
+        >${metadata.content?safeHtml(metadata.content):nothing}${component.children?.map(content => renderComponent(container, content, baseUrl, state, data, appState, appData))}</div>
     `
 }

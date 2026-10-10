@@ -336,9 +336,7 @@ Everything above works today; what is still landing is the **"pick, don't type"*
 reference. The editors are currently **single-file** — each one edits the file it was opened on and
 does not yet know what sibling files the mount contains — so a reference is authored as a string. The
 project-awareness work gives the editor a view of the whole mount so it can offer the pickers this
-manual describes and validate that a reference resolves. The full design, the per-reference gap list
-and the host contract it needs live in the design note
-`design/visual-editor-project-awareness.md`.
+manual describes and validate that a reference resolves.
 
 ## See also
 

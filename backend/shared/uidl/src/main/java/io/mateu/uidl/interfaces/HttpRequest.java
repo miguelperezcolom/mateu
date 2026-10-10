@@ -25,6 +25,17 @@ public interface HttpRequest {
     return (String) getAttribute("uriPrefix");
   }
 
+  /**
+   * The origin ({@code scheme://host:port}) this server can call ITSELF at, as the adapter knows it
+   * from the local socket — never from a request header ({@code Host}, {@code Origin}, {@code
+   * X-Forwarded-*} are all the client's to set). Used to resolve a relative federated {@code
+   * RemoteMenu} when {@code mateu.self-base-url} is not configured. {@code null} when the adapter
+   * cannot tell (the default, and over TLS, where a loopback url would not match the certificate).
+   */
+  default String getSelfBaseUrl() {
+    return null;
+  }
+
   default RunActionRqDto runActionRq() {
     var value = getAttribute("payload_run_action_rq");
     if (value instanceof Optional<?> optional) {

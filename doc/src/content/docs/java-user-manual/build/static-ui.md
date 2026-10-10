@@ -138,7 +138,7 @@ The e2e fails if anything calls `/mateu/v3/**`: there is no Mateu backend in the
 ## What is not possible statically yet
 
 The demo covers the read-navigate-delete loop of a console. What MAUI does beyond it, and Mateu does
-not yet do without a server, is planned in `design/maui-parity-plan.md` (P5 · S1–S4):
+not yet do without a server, is on the roadmap:
 
 - **Expressions** (S1) — `${…}` is JavaScript evaluated with `new Function` (needs CSP
   `unsafe-eval`), with no `route`/`flags`/`t()` scopes; a safe, symmetric expression language is S1.

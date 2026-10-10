@@ -290,6 +290,14 @@ class ReflectionMapper(
         #: model type → ComponentAdapter (set by the SyncHandler from the registry).
         self.adapters: dict = {}
 
+    def _locale(self) -> str | None:
+        """The UI language the translator declares, or None (the browser decides)."""
+        locale = getattr(self.translator, "locale", None) if self.translator else None
+        try:
+            return locale() if callable(locale) else None
+        except Exception:  # noqa: BLE001 - no locale is a valid answer
+            return None
+
     def authorized(self, gate) -> bool:
         """Whether the caller passes ``gate`` (mirrors Java's Authorizer): AND across declared
         dimensions, OR within each; nothing declared → unrestricted; no identity → unauthorized."""
