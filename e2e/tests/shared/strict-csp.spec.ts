@@ -59,7 +59,7 @@ const violations = async (page: Page, consoleCsp: string[]) => {
 };
 
 /** Form, every field kind (rules, conditions, templates), validation, listing, shell, layouts. */
-const ROUTES = ['/', '/all-types', '/validation', '/app', '/items', '/tabs', '/sections', '/accordion', '/overlays'];
+const ROUTES = ['/', '/all-types', '/validation', '/app', '/items', '/tabs', '/sections', '/accordion', '/overlays', '/hidden-fields'];
 
 test.describe('strict Content Security Policy (no unsafe-eval)', () => {
   for (const route of ROUTES) {
@@ -79,7 +79,7 @@ test.describe('strict Content Security Policy (no unsafe-eval)', () => {
     });
   }
 
-  test('typing in a form (rules and validations re-evaluate) stays within the policy', async ({ page }) => {
+  test('validating a form on the client (its conditions are expressions) stays within the policy', async ({ page }) => {
     const consoleCsp: string[] = [];
     page.on('console', (msg) => {
       if (/Content Security Policy|Refused to/i.test(msg.text())) consoleCsp.push(msg.text());
@@ -87,10 +87,13 @@ test.describe('strict Content Security Policy (no unsafe-eval)', () => {
     await withStrictCsp(page);
     await page.goto('/validation');
     await page.waitForSelector('mateu-page', { timeout: 15000 });
+    await page.waitForTimeout(800);
     const input = page.locator('vaadin-text-field input, input').first();
     await input.fill('x');
     await input.fill('');
     await page.keyboard.press('Tab');
+    // submitting with the required fields empty runs every validation condition client-side
+    await page.locator('vaadin-button', { hasText: /validate|save|submit/i }).first().click();
     await page.waitForTimeout(800);
     expect(await violations(page, consoleCsp)).toEqual([]);
   });
