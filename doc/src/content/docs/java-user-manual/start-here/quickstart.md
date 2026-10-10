@@ -21,6 +21,13 @@ for AI assistants. See [Create your project](/java-create-your-project/). Prefer
 [Quickstart: YAML only](/java-user-manual/start-here/quickstart-yaml/).
 :::
 
+:::caution[The archetype needs a JDK 21–25]
+Maven's archetype plugin runs a Groovy script that cannot read newer class files: on JDK 26+ it
+fails with *"BUG! exception in phase 'semantic analysis' … Unsupported class file major version
+70"* and leaves a half-generated folder (`variants/`, `generator/`). Delete that folder and rerun
+with `JAVA_HOME` pointing at a JDK 21–25. The IDE wizards have no such limit.
+:::
+
 ![The Products CRUD the quickstart builds](/images/docs/first-app/starter-products.png)
 
 ## The project
@@ -308,7 +315,10 @@ view, **Edit** for the form, **New** to create — the id is editable only when 
 
 | Symptom | Cause |
 |---|---|
-| Every URL answers 404 / "Not found" | the annotation processor did not run: check `annotationProcessorPaths` (and that no other processor list replaced it) |
+| Every URL answers 404 / "Not found", and the log says *"Mateu found no UI to serve"* | the annotation processor did not run: check `annotationProcessorPaths` (and that no other processor list replaced it), then `mvn clean compile` |
+| Build fails: *"@UI("") on … uses the same path as …"* | two `@UI` classes declare the same path: give one another path, or make it an inner route in `specs/ui/routes.yaml` |
+| Build fails: *"type argument Product is not within bounds of type-variable T"* | the record must `implement Identifiable` (it marks the `id` the CRUD reads and writes by) |
+| Build fails: *"… does not override abstract method store()"* | an `AutoCrud` must return its `CrudStore` from `store()` |
 | Blank page, no errors | the renderer dependency (`mateu-vaadin`) is missing |
 | Compiles, but your class is not used | the `@UI` class is outside the packages `@SpringBootApplication` scans |
 
