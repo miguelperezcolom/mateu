@@ -119,6 +119,32 @@ public final class MountRegistry {
     return found;
   }
 
+  /**
+   * Every {@code type: Project} descriptor under {@code specs/ui/**}, as resource paths, in
+   * discovery order. There should be one ({@code specs/ui/project.yaml}); the caller decides what
+   * to do with more.
+   */
+  public List<String> projectDescriptors(ClassLoader classLoader) {
+    var cl = classLoader == null ? MountRegistry.class.getClassLoader() : classLoader;
+    var found = new ArrayList<String>();
+    for (var resourcePath : scanYamlResourcePaths(cl)) {
+      try (InputStream is = cl.getResourceAsStream(resourcePath)) {
+        if (is == null) {
+          continue;
+        }
+        var root = yaml.readTree(is);
+        if (root != null
+            && root.isObject()
+            && io.mateu.uidl.data.ProjectSettings.TYPE.equals(text(root, "type"))) {
+          found.add(resourcePath);
+        }
+      } catch (Exception e) {
+        // not a YAML this scan can read — some other file's business
+      }
+    }
+    return found;
+  }
+
   /** Reads one resource; returns a Mount only when it carries {@code type: UI}. */
   private Mount readMount(ClassLoader cl, String resourcePath) {
     try (InputStream is = cl.getResourceAsStream(resourcePath)) {
