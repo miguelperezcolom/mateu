@@ -15,7 +15,7 @@ import org.yaml.snakeyaml.constructor.SafeConstructor
  */
 object MateuRoutes {
 
-    enum class SpecKind { MOUNT, ROUTES, SOURCES, APP_SHELL, PAGE }
+    enum class SpecKind { MOUNT, ROUTES, SOURCES, ACTIONS, APP_SHELL, PAGE }
 
     /** A discovered specs/ui file; [path] is relative to the specs/ui root, `/`-separated. */
     data class SpecFile(val path: String, val kind: SpecKind) {
@@ -38,7 +38,7 @@ object MateuRoutes {
         runCatching { yaml().load<Any?>(text) }.getOrElse { throw IllegalArgumentException("Not valid YAML: ${it.message}", it) }
 
     /**
-     * The kind of a specs/ui file from its top-level `type:` — `UI` (mount), `Routes`, `Sources`,
+     * The kind of a specs/ui file from its top-level `type:` — `UI` (mount), `Routes`, `Sources`, `Actions`,
      * `AppShell`, anything else a page/definition. Null when it does not parse or is not a mapping.
      */
     fun classify(text: String): SpecKind? {
@@ -47,6 +47,7 @@ object MateuRoutes {
             "UI" -> SpecKind.MOUNT
             "Routes" -> SpecKind.ROUTES
             "Sources" -> SpecKind.SOURCES
+            "Actions" -> SpecKind.ACTIONS
             "AppShell" -> SpecKind.APP_SHELL
             else -> SpecKind.PAGE
         }

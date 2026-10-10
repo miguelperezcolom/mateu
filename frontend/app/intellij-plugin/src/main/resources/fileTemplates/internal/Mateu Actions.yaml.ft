@@ -1,0 +1,6 @@
+# Action catalogue: named CLIENT-RUNNABLE actions — flows (`steps:`) or REST calls (`restAction:`)
+# — declared once and run by id from the shell menu (a RuleLink's RunAction) or any page button.
+# Ids are global; a page's or shell's own action of the same id wins. Server logic stays an
+# @Action method. See https://mateu.io/java-ui-definition/action-catalogue/
+type: Actions
+actions: []
