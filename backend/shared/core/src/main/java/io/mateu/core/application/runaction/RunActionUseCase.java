@@ -105,6 +105,7 @@ public class RunActionUseCase {
     }
     return (Mono.just(command)
             .flatMap(ignored -> actionInstanceCreator.createInstance(command))
+            .map(instance -> enforceClassLevelAccess(instance, command))
             // a plain routed Listing declaring interaction capabilities is bridged into the CRUD
             // engine BEFORE routing/dispatch, so it gets the mediator with only its declared routes
             .map(
@@ -112,6 +113,7 @@ public class RunActionUseCase {
                     io.mateu.core.infra.declarative.orchestrators.crud.CapabilityCrud
                         .bridgeIfNeeded(instance))
             .flatMap(instance -> routeIfNeeded(command, instance))
+            .map(instance -> enforceClassLevelAccess(instance, command))
             .flatMapMany(
                 instance ->
                     actionRunnerProvider
@@ -187,11 +189,13 @@ public class RunActionUseCase {
   private Flux<UIIncrementDto> handleContract(RunActionCommand command) {
     return Mono.just(command)
         .flatMap(ignored -> actionInstanceCreator.createInstance(command))
+        .map(instance -> enforceClassLevelAccess(instance, command))
         .map(
             instance ->
                 io.mateu.core.infra.declarative.orchestrators.crud.CapabilityCrud.bridgeIfNeeded(
                     instance))
         .flatMap(instance -> routeIfNeeded(command, instance))
+        .map(instance -> enforceClassLevelAccess(instance, command))
         // Map the instance as a plain load (no action is run) so we get its component, then reduce
         // the response to just the extracted contract.
         .flatMap(instance -> mapToUiIncrement(instance, command))
@@ -262,11 +266,13 @@ public class RunActionUseCase {
   private Flux<UIIncrementDto> handleRestFetch(RunActionCommand command) {
     return Mono.just(command)
         .flatMap(ignored -> actionInstanceCreator.createInstance(command))
+        .map(instance -> enforceClassLevelAccess(instance, command))
         .map(
             instance ->
                 io.mateu.core.infra.declarative.orchestrators.crud.CapabilityCrud.bridgeIfNeeded(
                     instance))
         .flatMap(instance -> routeIfNeeded(command, instance))
+        .map(instance -> enforceClassLevelAccess(instance, command))
         // The upstream call is a BLOCKING java.net.http send (once per selected row on the bulk
         // path): it must not run on the reactive event-loop thread that serves every other request,
         // so the whole fetch moves to the bounded elastic pool, made for exactly this.
@@ -527,6 +533,34 @@ public class RunActionUseCase {
   }
 
   // ── Routing ───────────────────────────────────────────────────────────────
+
+  /**
+   * A class-level {@code @EyesOnly} on the view the request resolved to must hold on EVERY request,
+   * including the first load of a route — where the client names no {@code serverSideType} yet, so
+   * {@link io.mateu.core.application.security.WireTypePolicy#check} has nothing to refuse. Without
+   * this a restricted screen was only hidden from the menu: typing its URL rendered it. Checked on
+   * the instance created for the route and again on what a {@code RouteHandler} hands over.
+   */
+  static Object enforceClassLevelAccess(Object instance, RunActionCommand command) {
+    if (instance == null || instance instanceof Mono<?>) {
+      return instance;
+    }
+    Class<?> type = instance.getClass();
+    if (type.getName().contains("$$") && type.getSuperclass() != null) {
+      type = type.getSuperclass(); // a container proxy: the annotations live on the user class
+    }
+    if (!io.mateu.core.application.security.WireTypePolicy.classLevelAccessGranted(
+        type, command.httpRequest())) {
+      log.warn(
+          "Refused request: route '{}' resolved to @EyesOnly type '{}' and the caller's token does"
+              + " not satisfy it",
+          command.route(),
+          type.getName());
+      throw new io.mateu.core.application.security.MateuForbiddenException(
+          "route not allowed for caller: " + command.route());
+    }
+    return instance;
+  }
 
   static Mono<?> routeIfNeeded(RunActionCommand command, Object instance) {
     if (instance instanceof Mono<?> mono) {
