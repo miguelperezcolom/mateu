@@ -214,7 +214,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Full field-stereotype set (radio, multiSelect, slider, stepper, stars, color, image upload, money, markdown…) | ✅ | 🟡 radio, multi-select, checkboxes, toggle, number/money (`oj-input-number`), textarea, dates, lookups, file/image/signature/photo; **no** slider, stars, color or rich text/markdown yet | ✅ | ✅ |
 | Client-side rules (visible/disabled/state) + \${...} interpolation | ✅ | 🟡 CSP-safe engine (visible/disabled/required/value + `OnValueChange`) on the page's own form; not yet inside drawers/dialogs or embedded islands | ✅ (shared engine) | ✅ (no-eval engine) |
 | Page banners (@Banner + action-returned) | ✅ | ✅ | ✅ | ✅ |
-| FABs, header badges, KPIs, charts | ✅ | 🟡 header badges + KPIs; charts only in the Welcome archetype's trend panel; **no** FABs | ✅ (FABs as header buttons) | ✅ |
+| FABs, header badges, KPIs, charts | ✅ | 🟡 header badges, KPIs, `MetricCard`/`Scoreboard` tiles and charts on any page (`oj-chart`: bar, line, area, pie, doughnut, polar, several series); **no** FABs | ✅ (FABs as header buttons) | ✅ |
 | @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | ✅ | ✅ | ✅ |
 | AI chat (sseUrl) / theme toggle | ✅ | 🟡 AI chat (the shell chat FAB's Ask Oracle palette has a 💬 Chat mode — a streaming panel wired to the shared transport core); the `themeToggle` flag is read but **no toggle is drawn** | ✅ chat (theme = the IDE's own) | ✅ |
 | App context selector | ✅ | ✅ | ✅ (navigator combos) | ✅ |
@@ -223,7 +223,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Photo capture | ✅ getUserMedia | ✅ | 🟡 file picker (no desktop camera API) | ✅ expo-camera |
 | Tree select dropdown | ✅ | ✅ | ✅ (JTree popup) | ✅ |
 | Tree lookup selector (dialog) | ✅ | ✅ | ✅ (tree layout) | ✅ (tree layout) |
-| Dashboards, Gantt, foldouts, skeletons | ✅ | 🟡 foldouts (`oj-sp-foldout-layout`, and collapsible panels inside a tab) ✅; dashboards only as the Welcome archetype's tiles; the `Gantt` and `Skeleton` components are **not** rendered (the Room Diary's `PlanningBoard` is, on `oj-gantt`) | ✅ | ✅ |
+| Dashboards, Gantt, foldouts, skeletons | ✅ | 🟡 foldouts (`oj-sp-foldout-layout`, and collapsible panels inside a tab) and dashboards (KPI band, tiles by `colSpan`, `oj-chart`) ✅; the `Gantt` and `Skeleton` components are **not** rendered (the Room Diary's `PlanningBoard` is, on `oj-gantt`) | ✅ | ✅ |
 | Custom components (`registerCustomComponent`; unknown → visible placeholder) — the per-renderer escape hatch, each renderer with its own registry + graceful degradation (placeholder + slotted children) | ✅ | 🟡 placeholder + slotted children (bridge projection) | 🟡 registry + placeholder | 🟡 registry + placeholder |
 | High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | 🟡 the front-office set + `Stat` ✅; Kanban, Timeline, Calendar, PricingTable, OrgChart, Heatmap, Funnel, FeatureGrid, Testimonials, Faq, CalloutCard, CommentThread, FileList, Checklist, ComparisonCard **not rendered** — see the coverage table below | ✅ | ✅ |
 | App header actions (buttons + dropdown groups) | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
@@ -251,8 +251,8 @@ not the feature rows above — is the authority when a screen looks emptier on R
 
 <!-- redwood-coverage:start -->
 Generated from `frontend/web/monorepo/apps/redwood/poc/coverage.mjs` and checked in CI against the
-wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 40 rendered, 15 layout
-containers, 8 partial, 44 not rendered (they are dropped silently — the
+wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 46 rendered, 12 layout
+containers, 5 partial, 44 not rendered (they are dropped silently — the
 children of a container still render).
 
 | Component | Redwood | How |
@@ -266,7 +266,10 @@ children of a container still render).
 | `BulletedList` | ✅ |  |
 | `Button` | ✅ | oj-button |
 | `Card` | ✅ | oj-panel |
+| `Chart` | ✅ | oj-chart: bar, line, pie, doughnut, radar/polar area, scatter; several series |
 | `Crud` | ✅ | oj-table + smart search; groups, totals, tones, columns, saved views, export |
+| `DashboardLayout` | ✅ | oj-flex columns, each panel its colSpan |
+| `DashboardPanel` | ✅ | oj-panel tile (title, subtitle, content) |
 | `Details` | ✅ | oj-collapsible (client-side state) |
 | `Dialog` | ✅ | oj-dialog (overlay stack) |
 | `Drawer` | ✅ | oj-drawer-popup (overlay stack), subtitle, footer actions |
@@ -281,6 +284,7 @@ children of a container still render).
 | `MasterDetailLayout` | ✅ | list + detail panes |
 | `MatrixGrid` | ✅ | oj-data-grid |
 | `Meter` | ✅ | oj-progress-bar |
+| `MetricCard` | ✅ | KPI tile: value, trend, drill-in action |
 | `NotFound` | ✅ |  |
 | `Notice` | ✅ | oj-sp-message-banner style band + actions |
 | `OfferCard` | ✅ |  |
@@ -289,6 +293,7 @@ children of a container still render).
 | `PlanningBoard` | ✅ | oj-gantt (move, resize, double click, range selection) |
 | `ProgressSteps` | ✅ | oj-train |
 | `ResourceGrid` | ✅ |  |
+| `Scoreboard` | ✅ | KPI band |
 | `Separator` | ✅ |  |
 | `SplitLayout` | ✅ | two panes |
 | `Stat` | ✅ |  |
@@ -297,29 +302,24 @@ children of a container still render).
 | `TaskProgress` | ✅ |  |
 | `TaskQueue` | ✅ |  |
 | `Text` | ✅ |  |
+| `TrendChart` | ✅ | oj-chart line/area |
 | `BoardLayout` | ✅ layout | children stacked, not a board |
 | `CarouselLayout` | ✅ layout | slides stacked, no carousel |
 | `Container` | ✅ layout |  |
 | `ContentLayout` | ✅ layout |  |
 | `CustomField` | ✅ layout | its component in place |
-| `DashboardLayout` | ✅ layout | panels in flow (the Welcome archetype projects them as tiles) |
 | `Div` | ✅ layout |  |
 | `FormItem` | ✅ layout |  |
 | `FormSection` | ✅ layout |  |
 | `FormSubSection` | ✅ layout |  |
 | `FullWidth` | ✅ layout |  |
-| `ResponsiveGrid` | ✅ layout | children stacked, not a grid |
-| `Scoreboard` | ✅ layout | its MetricCards in flow |
 | `Scroller` | ✅ layout |  |
 | `VerticalLayout` | ✅ layout |  |
-| `Chart` | 🟡 | Welcome archetype trend panel only |
 | `CustomComponent` | 🟡 | visible placeholder + slotted children (no VB registry) |
-| `DashboardPanel` | 🟡 | tiles in the Welcome archetype only |
 | `EmptyState` | 🟡 | page-level empty state only |
 | `HeroSection` | 🟡 | Welcome archetype hero only |
-| `MetricCard` | 🟡 | Welcome archetype tiles only |
 | `ProgressBar` | 🟡 | wizard progress only |
-| `TrendChart` | 🟡 | Welcome archetype trend panel only |
+| `ResponsiveGrid` | 🟡 | fixed tracks → oj-flex columns sized by their fr weights and spans; auto-fill/auto-fit grids stack |
 | `AccordionPanel` | ↳ | of AccordionLayout |
 | `BoardLayoutItem` | ↳ | of BoardLayout |
 | `BoardLayoutRow` | ↳ | of BoardLayout |

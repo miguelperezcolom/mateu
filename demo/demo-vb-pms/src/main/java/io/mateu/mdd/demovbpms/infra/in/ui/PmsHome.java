@@ -20,6 +20,8 @@ import io.mateu.uidl.fluent.AppVariant;
 @App(AppVariant.HAMBURGER_SECTIONS)
 public class PmsHome {
 
+  @Menu io.mateu.mdd.demovbpms.infra.in.ui.home.HomeMenu home;
+
   @Menu BookingsMenu bookings;
 
   @Menu FrontDeskMenu frontDesk;

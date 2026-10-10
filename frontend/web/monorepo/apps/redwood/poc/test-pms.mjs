@@ -16,6 +16,7 @@ import { matrixSpecOf, matrixAtomOf, matrixSectionKey } from './reduceContexts.m
 import { matrixCellParams, matrixEditChanged } from './matrix.mjs'
 import { coverageProblems } from './parity-check.mjs'
 import { coverageTable } from './coverage.mjs'
+import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass } from './reduceContexts.mjs'
 import { dayIndexAtX } from './planning.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
 import { listingOf, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
@@ -765,6 +766,55 @@ test('parity-check: detecta tipos sin clasificar, promesas sin rama, ramas sin p
   assert.match(coverageProblems({ ...ok, source: "findByType(panel, 'Chart')" }).join(), /Text is claimed full but the renderer has no t === 'Text'/)
   assert.match(coverageProblems({ ...ok, source: source + " t === 'Kanban'" }).join(), /Kanban is marked none but the renderer has/)
   assert.match(coverageProblems({ ...ok, parity: '<!-- redwood-coverage:start -->\nold\n<!-- redwood-coverage:end -->' }).join(), /stale/)
+})
+
+// ── P1 #13 dashboard y gráficos en cualquier página ──────────────────────────────────────────
+test('dashboard real (/home/dashboard): KPIs en una banda a todo el ancho y paneles con su colSpan', () => {
+  const reg = fixture('dashboard').reduce((r, inc) => reduceContexts(r, inc), empty())
+  const blocks = hostContentOf(reg.contexts[HOST_ID], null, { title: 'Dashboard' })
+  const kpis = blocks[0].items.find((a) => a.isScoreboard)
+  assert.ok(kpis, 'la banda de KPIs')
+  assert.deepEqual(kpis.metrics.map((x) => x.title), ['Arrivals today', 'In house', 'Departures today', 'Occupancy tonight'])
+  assert.equal(kpis.metrics[1].actionId, 'openInHouse')
+  assert.match(blocks[0].blockClass, /oj-md-12/)
+  const panels = blocks.slice(1)
+  assert.deepEqual(panels.map((b) => (b.blockClass.match(/oj-md-(\d+)/) || [])[1]), ['8', '4', '8', '4'])
+  assert.ok(panels.every((b) => b.isCard && b.items.some((a) => a.isChart)))
+  const charts = panels.map((b) => b.items.find((a) => a.isChart))
+  assert.deepEqual(charts.map((c) => c.chartType), ['line', 'pie', 'bar', 'pie'])
+  assert.equal(charts[1].innerRadius, 0.55, 'doughnut = tarta con hueco')
+  assert.equal(charts[0].legend, 'on', 'dos series → leyenda')
+})
+
+test('Chart → items de oj-chart: varias series; en tarta cada etiqueta es una porción; polar y dispersión', () => {
+  const m = { chartType: 'bar', chartData: { labels: ['STD', 'SUP'], datasets: [{ label: 'Room', data: [10, 20] }, { label: 'Extras', data: [1, 2] }] } }
+  const a = chartAtomOf(m, 'Chart')
+  assert.deepEqual(a.items.map((i) => [i.series, i.group, i.value]), [['Room', 'STD', 10], ['Room', 'SUP', 20], ['Extras', 'STD', 1], ['Extras', 'SUP', 2]])
+  assert.deepEqual(a.items.map((i) => i._rowNumber), [0, 1, 2, 3], 'clave del ArrayDataProvider')
+  const pie = chartAtomOf({ ...m, chartType: 'pie', chartData: { labels: ['a', 'b'], datasets: [{ label: 'X', data: [1, 3] }] } }, 'Chart')
+  assert.deepEqual(pie.items.map((i) => [i.series, i.group]), [['a', 'X'], ['b', 'X']])
+  assert.equal(chartAtomOf({ ...m, chartType: 'radar' }, 'Chart').coordinateSystem, 'polar')
+  assert.equal(chartAtomOf({ ...m, chartType: 'scatter' }, 'Chart').lineType, 'none')
+  const trend = chartAtomOf({ title: 'Occ', values: [1, 2], labels: ['d1', 'd2'], area: true }, 'TrendChart')
+  assert.equal(trend.chartType, 'area')
+  assert.equal(trend.title, 'Occ')
+  assert.equal(typeof trend.chartStyle, 'object')
+})
+
+test('MetricCard: tendencia con flecha y color; ResponsiveGrid: pesos de pista y auto-colocación', () => {
+  const k = metricOf({ title: 'Occ', value: 53, unit: '%', trend: 'down', trendLabel: 'vs LW', actionId: 'x' })
+  assert.equal(k.value, '53')
+  assert.equal(k.trendText, '▼ vs LW')
+  assert.match(k.trendClass, /mateu-trend-down/)
+  assert.deepEqual(gridTrackWeights('repeat(3, minmax(0, 1fr))'), [1, 1, 1])
+  assert.deepEqual(gridTrackWeights('64fr 36fr'), [64, 36])
+  assert.deepEqual(gridTrackWeights('62% 38%'), [62, 38], 'las zonas de @Zones viajan en %')
+  assert.deepEqual(gridTrackWeights('repeat(auto-fill, minmax(16rem, 1fr))'), [], 'auto-fill: lo decide el ancho, se apila')
+  assert.deepEqual(gridColClasses('64fr 36fr', [], 2).map((c) => c.match(/oj-md-(\d+)/)[1]), ['8', '4'])
+  // span 2 + span 2 en 3 pistas: el segundo no cabe → fila nueva
+  assert.deepEqual(gridColClasses('1fr 1fr 1fr', [2, 2, 1], 3).map((c) => c.match(/oj-md-(\d+)/)[1]), ['8', '8', '4'])
+  assert.equal(gridColClasses('1fr', [], 2), null)
+  assert.match(panelColClass(2, 3), /oj-md-8/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

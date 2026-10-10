@@ -1056,6 +1056,122 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  /** Las pistas de un grid-template-columns como PESOS: repeat(N, x) se expande, «Nfr», «N%» y
+   *  minmax(…, Nfr) pesan N, lo demás (px, rem, auto, min-content…) pesa 1 — una aproximación: el
+   *  flex de JET reparte en doceavos, no en pistas. */
+  function gridTrackWeights(template) {
+    const src = String(template || '').trim()
+    if (!src) return []
+    // trocea por espacios de primer nivel (no dentro de paréntesis)
+    const tokens = []
+    let depth = 0, cur = ''
+    for (const ch of src) {
+      if (ch === '(') depth++
+      if (ch === ')') depth--
+      if (/\s/.test(ch) && depth === 0) { if (cur) tokens.push(cur); cur = '' } else cur += ch
+    }
+    if (cur) tokens.push(cur)
+    const weightOf = (tok) => {
+      const fr = /(\d*\.?\d+)(fr|%)\)?$/.exec(tok)
+      return fr ? Number(fr[1]) : 1
+    }
+    const out = []
+    for (const tok of tokens) {
+      const rep = /^repeat\(\s*(\d+)\s*,\s*(.+)\)$/.exec(tok)
+      if (rep) {
+        const inner = gridTrackWeights(rep[2])
+        for (let i = 0; i < Number(rep[1]); i++) out.push(...inner)
+      } else if (/^repeat\(/.test(tok)) return [] // auto-fill/auto-fit: lo decide el ancho, no se sabe aquí
+      else out.push(weightOf(tok))
+    }
+    return out
+  }
+
+  /** Clase oj-flex de cada hijo de una rejilla (auto-colocación CSS: en orden, saltando de fila
+   *  cuando el span no cabe). null si la rejilla es de una pista (o no se sabe): se apila. */
+  function gridColClasses(template, colSpans, count) {
+    const weights = gridTrackWeights(template)
+    if (weights.length < 2) return null
+    const total = weights.reduce((a, b) => a + b, 0)
+    const classes = []
+    let cursor = 0
+    for (let i = 0; i < count; i++) {
+      const span = Math.max(1, Math.min(weights.length, (colSpans && colSpans[i]) || 1))
+      if (cursor + span > weights.length) cursor = 0
+      const share = weights.slice(cursor, cursor + span).reduce((a, b) => a + b, 0) / total
+      const twelfths = Math.max(1, Math.min(12, Math.round(12 * share)))
+      classes.push('oj-flex-item oj-sm-12 oj-md-' + twelfths + (twelfths < 12 ? ' oj-sm-padding-2x-end' : ''))
+      cursor = (cursor + span) % weights.length
+    }
+    return classes
+  }
+
+  /** «colSpan de N columnas» → la clase oj-flex del bloque (doceavos, nunca más de 12). */
+  function panelColClass(colSpan, columns) {
+    const span = Math.max(1, Math.min(columns, colSpan > 0 ? colSpan : 1))
+    const twelfths = Math.max(1, Math.min(12, Math.round((12 * span) / columns)))
+    return 'oj-flex-item oj-sm-12 oj-md-' + twelfths + ' oj-sm-padding-2x-end'
+  }
+
+  const TREND_TEXT = { up: '▲', down: '▼', neutral: '■' }
+  /** Un MetricCard (KPI) listo para la plantilla: valor grande, tendencia con color, y si lleva
+   *  actionId, un botón que lanza la acción (p.ej. la búsqueda filtrada que lo explica). */
+  function metricOf(m, interp = (x) => x) {
+    const trend = m.trend || ''
+    return {
+      title: interp(m.title || ''),
+      value: String(m.value == null ? '' : m.value),
+      unit: m.unit || '',
+      trendText: trend ? (TREND_TEXT[trend] || '') + (m.trendLabel ? ' ' + interp(m.trendLabel) : '') : (m.trendLabel ? interp(m.trendLabel) : ''),
+      trendClass: 'oj-typography-body-sm ' + (trend === 'up' ? 'mateu-trend-up' : trend === 'down' ? 'mateu-trend-down' : 'oj-text-color-secondary'),
+      description: interp(m.description || ''),
+      actionId: m.actionId || '',
+      parameters: {},
+    }
+  }
+
+  // Chart.js (el vocabulario del wire) → oj-chart de JET
+  const CHART_TYPES = {
+    bar: { type: 'bar' }, line: { type: 'line' }, pie: { type: 'pie' }, doughnut: { type: 'pie', innerRadius: 0.55 },
+    radar: { type: 'line', polar: true }, polarArea: { type: 'bar', polar: true },
+    scatter: { type: 'line', markersOnly: true }, bubble: { type: 'line', markersOnly: true },
+  }
+  /** Un Chart (series × etiquetas) o un TrendChart (una serie) → átomo de oj-chart: los ITEMS
+   *  precomputados ({series, group, value}); en una tarta cada etiqueta es una serie (una porción). */
+  function chartAtomOf(m, t, interp = (x) => x) {
+    const trend = t === 'TrendChart'
+    const labels = (trend ? m.labels : m.chartData && m.chartData.labels) || []
+    const datasets = trend
+      ? [{ label: m.title || '', data: m.values || [] }]
+      : ((m.chartData && m.chartData.datasets) || [])
+    const spec = trend ? { type: m.area ? 'area' : 'line' } : (CHART_TYPES[m.chartType] || CHART_TYPES.bar)
+    const pie = spec.type === 'pie'
+    const items = []
+    datasets.forEach((d, si) => (d.data || []).forEach((value, i) => {
+      const label = labels[i] != null ? String(labels[i]) : String(i + 1)
+      items.push({
+        _rowNumber: items.length,
+        id: si + ':' + i,
+        value: value == null ? null : Number(value),
+        series: pie ? label : (d.label || 'Series ' + (si + 1)),
+        group: pie ? (d.label || 'Total') : label,
+      })
+    }))
+    return {
+      isChart: true,
+      title: trend ? interp(m.title || '') : '',
+      chartType: spec.type,
+      coordinateSystem: spec.polar ? 'polar' : 'cartesian',
+      innerRadius: spec.innerRadius || 0,
+      lineType: spec.markersOnly ? 'none' : 'auto',
+      markerDisplayed: spec.markersOnly ? 'on' : 'auto',
+      legend: datasets.length > 1 || pie ? 'on' : 'off',
+      chartStyle: { width: '100%', height: pie ? '18rem' : '16rem' },
+      items,
+      provider: dataProviderFactory ? dataProviderFactory(items) : null,
+    }
+  }
+
   /** ¿Es un átomo RICO (display de verdad, no un campo suelto)? Cuando el contenido de una pantalla
    *  los trae, el formulario genérico sobra: sus campos ya se ven en ellos. */
   const RICH_ATOM_FLAGS = [
@@ -1063,7 +1179,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
     // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
     // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
-    'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix',
+    'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard',
   ]
   function isRichAtom(a) {
     return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -1827,6 +1943,44 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
       })
     }
+    // hijos con su clase de columna YA calculada (rejillas: ResponsiveGrid, DashboardLayout)
+    // Devuelve false (y no deja nada) si alguna columna genera bloques que no se pueden fusionar en
+    // una celda: una isla anidada (el hoisting convierte su bloque entero en la isla) o un bloque
+    // especial sin átomos — entonces el llamante apila los hijos como antes.
+    const projectSized = (children, colClasses) => {
+      const start = blocks.length
+      const out = []
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i]
+        const before = blocks.length
+        plain = null
+        if (child && child.metadata && child.metadata.type === 'DashboardPanel') visitDashboardPanel(child, null)
+        else visit(child, null)
+        plain = null
+        const created = blocks.splice(before)
+        if (created.length === 1) out.push({ ...created[0], colClass: colClasses[i] })
+        else if (created.length > 1) {
+          if (created.some((b) => !Array.isArray(b.items) || b.items.some((a) => a && a.isNested))) {
+            blocks.splice(start)
+            return false
+          }
+          out.push({ isPlain: true, colClass: colClasses[i], items: created.flatMap((b) => b.items) })
+        }
+      }
+      blocks.push(...out)
+      return true
+    }
+    // un DashboardPanel = una tarjeta-bloque (título + subtítulo + su contenido) con su ancho
+    const visitDashboardPanel = (panel, colClass) => {
+      const pm = panel.metadata || {}
+      const card = { isCard: true, items: [], ...(colClass ? { colClass } : {}) }
+      blocks.push(card)
+      plain = null
+      if (pm.title) card.items.push({ isText: true, text: interp(pm.title), cls: 'oj-typography-subheading-xs' })
+      if (pm.subtitle) card.items.push({ isText: true, text: interp(pm.subtitle), cls: 'oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-bottom' })
+      for (const child of kidsOf(panel)) visit(child, card)
+      plain = null
+    }
     const visit = (node, container) => {
       if (!node || typeof node !== 'object') return
       // @Subresource: el listado embebido es OTRA superficie (su ServerSide). Deja un hueco que
@@ -2064,6 +2218,48 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           dataInContent: String(m.content || '').indexOf('${') >= 0,
           on: m.on || null,
         }, container)
+        return
+      }
+      // ── DASHBOARD en cualquier página: rejilla de paneles (cada DashboardPanel, una tarjeta con su
+      // ancho en columnas), banda de KPIs (Scoreboard/MetricCard) y gráficos (oj-chart) ──
+      // ResponsiveGrid (la rejilla general): sus pistas (grid-template-columns) y los colSpans de
+      // cada hijo → bloques-columna oj-flex de su ancho. Dentro de una tarjeta, apilado.
+      if (t === 'ResponsiveGrid' && !container) {
+        // el span de cada hijo: el del wire (colSpans) o el que el hijo lleva consigo — un
+        // DashboardPanel su colSpan, la banda de KPIs (Scoreboard) la fila entera
+        const kids = kidsOf(node)
+        const spans = kids.map((k, i) => (m.colSpans && m.colSpans[i])
+          || (k && k.metadata && k.metadata.type === 'DashboardPanel' ? k.metadata.colSpan
+            : k && k.metadata && k.metadata.type === 'Scoreboard' ? 999 : 1))
+        const classes = gridColClasses(m.gridTemplateColumns, spans, kids.length)
+        if (classes && projectSized(kids, classes)) return
+      }
+      if (t === 'DashboardLayout') {
+        const columns = m.columns > 0 ? m.columns : 3
+        const kids = kidsOf(node)
+        if (projectSized(kids, kids.map((k) => panelColClass(k && k.metadata && k.metadata.colSpan, columns)))) return
+        for (const child of kids) visit(child, container)
+        return
+      }
+      if (t === 'DashboardPanel') {
+        visitDashboardPanel(node, null)
+        return
+      }
+      if (t === 'Scoreboard') {
+        const metrics = findAllByType(node, 'MetricCard').map((n) => metricOf(n.metadata, interp))
+        if (metrics.length) atom({ isScoreboard: true, metrics }, container)
+        return
+      }
+      if (t === 'MetricCard') {
+        // consecutivos se juntan en la misma banda (como los botones)
+        const target = container || plain
+        const last = target && target.items.length ? target.items[target.items.length - 1] : null
+        if (last && last.isScoreboard) last.metrics.push(metricOf(m, interp))
+        else atom({ isScoreboard: true, metrics: [metricOf(m, interp)] }, container)
+        return
+      }
+      if (t === 'Chart' || t === 'TrendChart') {
+        atom(chartAtomOf(m, t, interp), container)
         return
       }
       if (t === 'Card') {

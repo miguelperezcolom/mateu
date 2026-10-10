@@ -30,7 +30,7 @@ your call per screen (Mateu only composes it for you in two fully-derivable case
 | **Guided Process** | `Wizard` + `@WizardProgress(RAIL)` — step form with the sticky lateral rail (`current \| total` counter over the vertical step list) | `/branching-wizard` | [Wizard](/ux-patterns/wizard/) | ✅ |
 | **Item Overview** | `ItemOverview` archetype — sticky key-info panel + tabbed detail | `/product-overview` | [Item overview](/ux-patterns/item-overview/) | 🟡 panels holding components Redwood does not render come out empty |
 | **Foldout Layout** | `Foldout` archetype — fixed overview + lateral fold-out panels | `/foldout-demo` | [Foldout](/ux-patterns/foldout/) | ✅ `oj-sp-foldout-layout` |
-| **Dashboard** | `Dashboard` archetype — KPI scoreboard band + responsive tile grid | `/dashboard-demo` | [Dashboard](/ux-patterns/dashboard/) | — KPI cards and tiles are dropped |
+| **Dashboard** | `Dashboard` archetype — KPI scoreboard band + responsive tile grid | `/dashboard-demo` | [Dashboard](/ux-patterns/dashboard/) | ✅ KPI band + `oj-chart` tiles |
 | **Welcome Page** | `Welcome` archetype — hero with CTAs + highlight tiles | `/welcome-demo` | [Welcome page](/ux-patterns/welcome-page/) | ✅ |
 | **Empty States** | `EmptyState` component — used by every listing and archetype automatically | `/empty-skeleton-demo` | [Empty states & skeletons](/ux-patterns/empty-states-and-skeletons/) | ✅ (`Skeleton` —) |
 | **Data Management** (grid ⇄ Gantt) | `DataManagement` archetype — the same data as a grid and a Gantt with a toolbar switcher (full-width). Dense editable grids use `@InlineEditing` + `@Compact` | `/data-management-demo` | [Data management](/ux-patterns/data-management/) | — neither view renders (`Grid`, `Gantt`) |

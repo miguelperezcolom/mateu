@@ -1,0 +1,550 @@
+[
+ {
+  "commands": [],
+  "messages": [],
+  "fragments": [
+   {
+    "targetComponentId": "",
+    "component": {
+     "type": "ServerSide",
+     "id": "68241040-6c7b-405f-8d7a-cda9f90b8423",
+     "serverSideType": "io.mateu.mdd.demovbpms.infra.in.ui.home.PmsDashboard",
+     "route": "",
+     "children": [
+      {
+       "type": "ClientSide",
+       "metadata": {
+        "type": "ResponsiveGrid",
+        "gridTemplateColumns": "1fr 1fr 1fr",
+        "gap": null,
+        "colSpans": null,
+        "stackBelow": null,
+        "gridTemplateAreas": null,
+        "stickyAreas": null
+       },
+       "id": "io.mateu.mdd.demovbpms.infra.in.ui.home.PmsDashboard",
+       "children": [
+        {
+         "type": "ClientSide",
+         "metadata": {
+          "type": "Scoreboard"
+         },
+         "id": null,
+         "children": [
+          {
+           "type": "ClientSide",
+           "metadata": {
+            "type": "MetricCard",
+            "title": "Arrivals today",
+            "value": "4",
+            "unit": null,
+            "trend": null,
+            "trendLabel": null,
+            "icon": null,
+            "description": "Open the list",
+            "actionId": "openArrivals"
+           },
+           "id": "arrivals",
+           "children": [],
+           "style": null,
+           "cssClasses": null,
+           "slot": null,
+           "sizing": null
+          },
+          {
+           "type": "ClientSide",
+           "metadata": {
+            "type": "MetricCard",
+            "title": "In house",
+            "value": "17",
+            "unit": null,
+            "trend": null,
+            "trendLabel": null,
+            "icon": null,
+            "description": "Open the list",
+            "actionId": "openInHouse"
+           },
+           "id": "inHouse",
+           "children": [],
+           "style": null,
+           "cssClasses": null,
+           "slot": null,
+           "sizing": null
+          },
+          {
+           "type": "ClientSide",
+           "metadata": {
+            "type": "MetricCard",
+            "title": "Departures today",
+            "value": "5",
+            "unit": null,
+            "trend": null,
+            "trendLabel": null,
+            "icon": null,
+            "description": "Open the list",
+            "actionId": "openDepartures"
+           },
+           "id": "departures",
+           "children": [],
+           "style": null,
+           "cssClasses": null,
+           "slot": null,
+           "sizing": null
+          },
+          {
+           "type": "ClientSide",
+           "metadata": {
+            "type": "MetricCard",
+            "title": "Occupancy tonight",
+            "value": "53",
+            "unit": "%",
+            "trend": "up",
+            "trendLabel": "vs last week",
+            "icon": null,
+            "description": "Mateu Beach Resort",
+            "actionId": null
+           },
+           "id": "occupancy",
+           "children": [],
+           "style": null,
+           "cssClasses": null,
+           "slot": null,
+           "sizing": null
+          }
+         ],
+         "style": null,
+         "cssClasses": null,
+         "slot": null,
+         "sizing": null
+        },
+        {
+         "type": "ClientSide",
+         "metadata": {
+          "type": "DashboardPanel",
+          "title": "Occupancy — next 14 days",
+          "subtitle": "Occupancy % and rooms sold",
+          "colSpan": 2,
+          "rowSpan": 1
+         },
+         "id": "forecast",
+         "children": [
+          {
+           "type": "ClientSide",
+           "metadata": {
+            "type": "Chart",
+            "chartType": "line",
+            "chartData": {
+             "labels": [
+              "Mon 12",
+              "Tue 13",
+              "Wed 14",
+              "Thu 15",
+              "Fri 16",
+              "Sat 17",
+              "Sun 18",
+              "Mon 19",
+              "Tue 20",
+              "Wed 21",
+              "Thu 22",
+              "Fri 23",
+              "Sat 24",
+              "Sun 25"
+             ],
+             "datasets": [
+              {
+               "label": "Occupancy %",
+               "data": [
+                53,
+                48,
+                60,
+                53,
+                58,
+                68,
+                65,
+                68,
+                75,
+                65,
+                70,
+                70,
+                55,
+                63
+               ]
+              },
+              {
+               "label": "Rooms sold",
+               "data": [
+                21,
+                19,
+                24,
+                21,
+                23,
+                27,
+                26,
+                27,
+                30,
+                26,
+                28,
+                28,
+                22,
+                25
+               ]
+              }
+             ]
+            },
+            "chartOptions": {
+             "maintainAspectRatio": false,
+             "scales": null
+            }
+           },
+           "id": "fieldId",
+           "children": [],
+           "style": "",
+           "cssClasses": "",
+           "slot": null,
+           "sizing": null
+          }
+         ],
+         "style": null,
+         "cssClasses": null,
+         "slot": null,
+         "sizing": null
+        },
+        {
+         "type": "ClientSide",
+         "metadata": {
+          "type": "DashboardPanel",
+          "title": "Reservations by status",
+          "subtitle": null,
+          "colSpan": 1,
+          "rowSpan": 1
+         },
+         "id": "statuses",
+         "children": [
+          {
+           "type": "ClientSide",
+           "metadata": {
+            "type": "Chart",
+            "chartType": "doughnut",
+            "chartData": {
+             "labels": [
+              "reserved",
+              "due in",
+              "in house",
+              "due out",
+              "checked out",
+              "cancelled"
+             ],
+             "datasets": [
+              {
+               "label": "Reservations",
+               "data": [
+                186,
+                4,
+                17,
+                5,
+                7,
+                0
+               ]
+              }
+             ]
+            },
+            "chartOptions": {
+             "maintainAspectRatio": false,
+             "scales": null
+            }
+           },
+           "id": "fieldId",
+           "children": [],
+           "style": "",
+           "cssClasses": "",
+           "slot": null,
+           "sizing": null
+          }
+         ],
+         "style": null,
+         "cssClasses": null,
+         "slot": null,
+         "sizing": null
+        },
+        {
+         "type": "ClientSide",
+         "metadata": {
+          "type": "DashboardPanel",
+          "title": "Revenue by room type",
+          "subtitle": "Room and extras, € (in house)",
+          "colSpan": 2,
+          "rowSpan": 1
+         },
+         "id": "revenue",
+         "children": [
+          {
+           "type": "ClientSide",
+           "metadata": {
+            "type": "Chart",
+            "chartType": "bar",
+            "chartData": {
+             "labels": [
+              "STD",
+              "SUP",
+              "JRS",
+              "STE"
+             ],
+             "datasets": [
+              {
+               "label": "Room",
+               "data": [
+                3631,
+                4128,
+                1428,
+                2066
+               ]
+              },
+              {
+               "label": "Extras",
+               "data": [
+                581,
+                700,
+                400,
+                238
+               ]
+              }
+             ]
+            },
+            "chartOptions": {
+             "maintainAspectRatio": false,
+             "scales": null
+            }
+           },
+           "id": "fieldId",
+           "children": [],
+           "style": "",
+           "cssClasses": "",
+           "slot": null,
+           "sizing": null
+          }
+         ],
+         "style": null,
+         "cssClasses": null,
+         "slot": null,
+         "sizing": null
+        },
+        {
+         "type": "ClientSide",
+         "metadata": {
+          "type": "DashboardPanel",
+          "title": "Room status",
+          "subtitle": null,
+          "colSpan": 1,
+          "rowSpan": 1
+         },
+         "id": "rooms",
+         "children": [
+          {
+           "type": "ClientSide",
+           "metadata": {
+            "type": "Chart",
+            "chartType": "pie",
+            "chartData": {
+             "labels": [
+              "Clean",
+              "Inspected",
+              "Dirty",
+              "Pickup",
+              "Out of service",
+              "Out of order"
+             ],
+             "datasets": [
+              {
+               "label": "Rooms",
+               "data": [
+                9,
+                13,
+                8,
+                9,
+                0,
+                1
+               ]
+              }
+             ]
+            },
+            "chartOptions": {
+             "maintainAspectRatio": false,
+             "scales": null
+            }
+           },
+           "id": "fieldId",
+           "children": [],
+           "style": "",
+           "cssClasses": "",
+           "slot": null,
+           "sizing": null
+          }
+         ],
+         "style": null,
+         "cssClasses": null,
+         "slot": null,
+         "sizing": null
+        }
+       ],
+       "style": "align-items: stretch;",
+       "cssClasses": null,
+       "slot": null,
+       "sizing": null
+      }
+     ],
+     "initialData": {},
+     "style": null,
+     "cssClasses": null,
+     "actions": [
+      {
+       "id": "openArrivals",
+       "validationRequired": false,
+       "confirmationRequired": false,
+       "rowsSelectedRequired": false,
+       "confirmationTexts": null,
+       "modalStyle": null,
+       "modalTitle": null,
+       "customEvent": null,
+       "href": "",
+       "js": "",
+       "background": false,
+       "sse": false,
+       "fieldsToValidate": "",
+       "bubble": false,
+       "shortcut": null,
+       "timeoutMillis": 0,
+       "idempotent": false,
+       "restAction": null,
+       "commands": null
+      },
+      {
+       "id": "openInHouse",
+       "validationRequired": false,
+       "confirmationRequired": false,
+       "rowsSelectedRequired": false,
+       "confirmationTexts": null,
+       "modalStyle": null,
+       "modalTitle": null,
+       "customEvent": null,
+       "href": "",
+       "js": "",
+       "background": false,
+       "sse": false,
+       "fieldsToValidate": "",
+       "bubble": false,
+       "shortcut": null,
+       "timeoutMillis": 0,
+       "idempotent": false,
+       "restAction": null,
+       "commands": null
+      },
+      {
+       "id": "openDepartures",
+       "validationRequired": false,
+       "confirmationRequired": false,
+       "rowsSelectedRequired": false,
+       "confirmationTexts": null,
+       "modalStyle": null,
+       "modalTitle": null,
+       "customEvent": null,
+       "href": "",
+       "js": "",
+       "background": false,
+       "sse": false,
+       "fieldsToValidate": "",
+       "bubble": false,
+       "shortcut": null,
+       "timeoutMillis": 0,
+       "idempotent": false,
+       "restAction": null,
+       "commands": null
+      },
+      {
+       "id": "openArrivals",
+       "validationRequired": false,
+       "confirmationRequired": false,
+       "rowsSelectedRequired": false,
+       "confirmationTexts": null,
+       "modalStyle": null,
+       "modalTitle": null,
+       "customEvent": null,
+       "href": "",
+       "js": "",
+       "background": false,
+       "sse": false,
+       "fieldsToValidate": "",
+       "bubble": false,
+       "shortcut": null,
+       "timeoutMillis": 0,
+       "idempotent": false,
+       "restAction": null,
+       "commands": null
+      },
+      {
+       "id": "openInHouse",
+       "validationRequired": false,
+       "confirmationRequired": false,
+       "rowsSelectedRequired": false,
+       "confirmationTexts": null,
+       "modalStyle": null,
+       "modalTitle": null,
+       "customEvent": null,
+       "href": "",
+       "js": "",
+       "background": false,
+       "sse": false,
+       "fieldsToValidate": "",
+       "bubble": false,
+       "shortcut": null,
+       "timeoutMillis": 0,
+       "idempotent": false,
+       "restAction": null,
+       "commands": null
+      },
+      {
+       "id": "openDepartures",
+       "validationRequired": false,
+       "confirmationRequired": false,
+       "rowsSelectedRequired": false,
+       "confirmationTexts": null,
+       "modalStyle": null,
+       "modalTitle": null,
+       "customEvent": null,
+       "href": "",
+       "js": "",
+       "background": false,
+       "sse": false,
+       "fieldsToValidate": "",
+       "bubble": false,
+       "shortcut": null,
+       "timeoutMillis": 0,
+       "idempotent": false,
+       "restAction": null,
+       "commands": null
+      }
+     ],
+     "triggers": [],
+     "rules": [],
+     "validations": [],
+     "slot": null,
+     "containerId": null,
+     "confirmOnNavigationIfDirty": false,
+     "emitsName": null,
+     "pageWidth": null,
+     "pageType": "dashboard",
+     "staticView": false,
+     "structureHash": "86a322ea6f66a450a168238bc43d85478cac0aa9c423b0ad5b93b69b5d1ccbc3"
+    },
+    "state": {},
+    "data": {},
+    "action": "Replace",
+    "containerId": null
+   }
+  ],
+  "banners": [],
+  "appendBanners": false,
+  "appData": null,
+  "appState": null,
+  "wireVersion": "3.0"
+ }
+]

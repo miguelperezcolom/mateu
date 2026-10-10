@@ -66,6 +66,49 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isScoreboard ]]">
+                      <!-- banda de KPIs (Scoreboard / MetricCard): valor grande, tendencia, y el botón de la
+                           acción que lo explica (p.ej. la búsqueda filtrada) -->
+                      <div class="oj-flex mateu-scoreboard oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.metrics ]]">
+                          <template>
+                            <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric">
+                              <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                              <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
+                                <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
+                              <div :class="[[ $current.data.trendClass ]]"><oj-bind-text value="[[ $current.data.trendText ]]"></oj-bind-text></div>
+                              <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              <oj-bind-if test="[[ !!$current.data.actionId ]]">
+                                <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
+                                  on-oj-action="[[ $listeners.{{blockAction}} ]]">View</oj-button>
+                              </oj-bind-if>
+                            </div>
+                          </template>
+                        </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isChart ]]">
+                      <!-- Chart / TrendChart: el oj-chart de JET (barras, líneas, área, tarta/donut, polar),
+                           varias series; los items vienen precomputados -->
+                      <div class="oj-sm-margin-2x-bottom">
+                        <oj-bind-if test="[[ !!$current.data.title ]]">
+                          <div class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                        </oj-bind-if>
+                        <oj-chart :type="[[ $current.data.chartType ]]" data="[[ $current.data.provider ]]"
+                          coordinate-system="[[ $current.data.coordinateSystem ]]"
+                          style-defaults.pie-inner-radius="[[ $current.data.innerRadius ]]"
+                          style-defaults.line-type="[[ $current.data.lineType ]]"
+                          style-defaults.marker-displayed="[[ $current.data.markerDisplayed ]]"
+                          legend.rendered="[[ $current.data.legend ]]" legend.position="bottom"
+                          animation-on-display="auto" hover-behavior="dim"
+                          :style="[[ $current.data.chartStyle ]]">
+                          <template slot="itemTemplate" data-oj-as="item">
+                            <oj-chart-item value="[[ item.data.value ]]" group-id="[[ [item.data.group] ]]"
+                              series-id="[[ item.data.series ]]"></oj-chart-item>
+                          </template>
+                        </oj-chart>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMatrix ]]">
                       <!-- MatrixGrid: oj-data-grid de JET (secciones plegables, cabeceras de fecha, edición en
                            celda); plegar/editar/enlazar lo atiende installMatrixGrids -->

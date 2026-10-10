@@ -1285,3 +1285,8 @@ body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-title { 
 .mateu-matrix .mateu-matrix-section-cell { background-color: rgba(0, 0, 0, 0.02); }
 .mateu-matrix .mateu-matrix-link .mateu-matrix-value { color: var(--oj-core-link-text-color, #0b6bcb); text-decoration: underline; cursor: pointer; }
 .mateu-matrix .mateu-matrix-editable { box-shadow: inset 0 -2px 0 var(--oj-core-border-color, #d6d3cf); }
+
+/* ── KPIs (Scoreboard / MetricCard) ── */
+.mateu-scoreboard .mateu-metric { min-width: 12rem; }
+.mateu-trend-up { color: var(--oj-core-success-3, #2e7d32); }
+.mateu-trend-down { color: var(--oj-core-danger-3, #b3261e); }
