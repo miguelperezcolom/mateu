@@ -115,8 +115,6 @@
   "chatEmptyAnswer": "El agente no devolvió ninguna respuesta. Comprueba que el LLM está configurado correctamente (API key).",
   "chatError": "Error: {message}",
   "chatUploadError": "No se pudieron subir los ficheros: {message}",
-  "chatLocalAgent": "agente local",
-  "chatLocalAgentHint": "Hablando con tu CLI local (el agente companion) — sin API key",
   "chatExpand": "Ampliar el asistente",
   "chatRestore": "Ancho normal",
   "selectRowsFirst": "Primero tienes que seleccionar alguna fila",

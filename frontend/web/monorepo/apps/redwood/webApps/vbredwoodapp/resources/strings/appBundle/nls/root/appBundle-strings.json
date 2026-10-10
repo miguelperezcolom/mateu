@@ -115,8 +115,6 @@
   "chatEmptyAnswer": "The agent returned no answer. Check that the LLM is configured correctly (API key).",
   "chatError": "Error: {message}",
   "chatUploadError": "Could not upload the files: {message}",
-  "chatLocalAgent": "local agent",
-  "chatLocalAgentHint": "Talking to your local CLI (the companion agent) — no API key",
   "chatExpand": "Widen the assistant",
   "chatRestore": "Restore the width",
   "selectRowsFirst": "You first need to select some rows",

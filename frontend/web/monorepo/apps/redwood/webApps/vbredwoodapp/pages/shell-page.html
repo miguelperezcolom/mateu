@@ -449,11 +449,6 @@
           <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-padding-4x-start oj-sm-padding-2x-end oj-sm-padding-2x-vertical mateu-chat-panel-header">
             <span class="oj-ux-ico-chat oj-ux-icon-size-5x oj-sm-margin-2x-end" aria-hidden="true"></span>
             <h2 class="oj-typography-heading-xs oj-flex-item oj-sm-margin-0"><oj-bind-text value="[[ $application.variables.mateuChatTitle || $application.translations.appBundle.chatTitle ]]"></oj-bind-text></h2>
-            <!-- el agente LOCAL (companion del usuario) contesta: el chat habla con él, sin api key -->
-            <oj-bind-if test="[[ $application.variables.mateuChatLocalAgent ]]">
-              <span class="oj-badge oj-badge-info oj-badge-subtle oj-sm-margin-2x-end mateu-chat-local-agent"
-                :title="[[ $application.translations.appBundle.chatLocalAgentHint ]]"><oj-bind-text value="[[ $application.translations.appBundle.chatLocalAgent ]]"></oj-bind-text></span>
-            </oj-bind-if>
             <!-- modo ancho (60vw), como el del chat web: un botón por estado (el texto de un
                  oj-button no sigue a un binding) -->
             <oj-bind-if test="[[ !$application.variables.mateuChatExpanded ]]">

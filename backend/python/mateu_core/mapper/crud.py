@@ -65,6 +65,8 @@ from ..reflection import (
 )
 from ..registry import type_name
 from ..validation import client_validations
+from mateu_uidl.export import ExportColumn
+
 from ..export import FORMATS
 from ._base import MixinBase
 from ._common import (
@@ -81,15 +83,20 @@ from ._common import (
 
 class CrudMapperMixin(MixinBase):
     # ── CRUD ───────────────────────────────────────────────────────────────────
+    def _exportable(self, cls, instance, action_id: str) -> bool:
+        """Whether a crud offers ``action_id`` (export-csv|export-excel|export-pdf): it opted in
+        AND an exporter writes the format (Mateu ships no Excel / PDF engine; Java shows the button
+        only when a ListingExporter bean exists)."""
+        fmt = FORMATS.get(action_id)
+        return fmt is not None and self._opted_into_export(cls, instance, action_id) and self.exporters.offers(fmt[1])
+
     @staticmethod
-    def _exportable(cls, instance, action_id: str) -> bool:
-        """Whether a crud answers ``action_id`` (export-csv|export-excel|export-pdf): its
-        ``<format>_exportable()`` hook says yes AND the format's library is installed (Java shows
-        the button only when an exporter bean exists)."""
+    def _opted_into_export(cls, instance, action_id: str) -> bool:
+        """Whether the crud's ``<format>_exportable()`` hook says yes to ``action_id``."""
         fmt = FORMATS.get(action_id)
         if fmt is None:
             return False
-        hook_name, _, _, _, _, available = fmt
+        hook_name, _ = fmt
         hook = getattr(instance if instance is not None else cls, hook_name, None)
         if hook is None:
             return False
@@ -98,12 +105,7 @@ class CrudMapperMixin(MixinBase):
         except Exception as e:  # noqa: BLE001 - logged, not fatal
             _log.warning("A crud that cannot be built offers no %s (%s)", action_id, e)
             return False
-        return wanted and available()
-
-    @staticmethod
-    def _csv_exportable(cls, instance=None) -> bool:
-        """Whether a crud answers export-csv (its ``csv_exportable()`` hook, default False)."""
-        return CrudMapperMixin._exportable(cls, instance, "export-csv")
+        return wanted
 
     def group_action_buttons(self, cls) -> list[Button]:
         """The ``@group_action`` methods as group-header buttons (Java's PageListingBuilder)."""
@@ -160,7 +162,7 @@ class CrudMapperMixin(MixinBase):
         # download (mirrors Java's ListRouteResolver export buttons).
         exports = self.export_action_ids(cls, instance)
         for i, aid in enumerate(exports):
-            toolbar.insert(i, Button(label=FORMATS[aid][1], action_id=aid))
+            toolbar.insert(i, Button(label=FORMATS[aid][1].button_label, action_id=aid))
         # @list_toolbar_button methods: BULK list actions — a listing toolbar button dispatching
         # action-on-row-<method> over the grid's selected rows; the action advertises the
         # confirmation/selection-required flags the frontend enforces (mirrors Java's
@@ -314,11 +316,11 @@ class CrudMapperMixin(MixinBase):
                 return camel_case(f.name)
         return None
 
-    def export_columns(self, element) -> list[tuple[str, str]]:
+    def export_columns(self, element) -> list[ExportColumn]:
         """The columns of a crud export: (field name, column label) for every visible entity field
         (mirrors Java's ExportActionRunner.buildExportColumns)."""
         return [
-            (f.name, f.marker(Label).value if f.has(Label) else humanize(f.name))
+            ExportColumn(f.name, f.marker(Label).value if f.has(Label) else humanize(f.name))
             for f in view_fields(element)
             if self.visible(f)
         ]

@@ -34,7 +34,7 @@ Python attributes can't carry C#-style attributes, so:
 
 ```bash
 pip install "mateu-ui[server]"     # the package + uvicorn
-pip install "mateu-ui[all]"        # + openpyxl / reportlab (Excel / PDF export)
+pip install "mateu-ui[all]"        # the FastAPI server extras
 ```
 
 The distribution is **`mateu-ui`** (the PyPI name `mateu` belongs to an unrelated project); you
@@ -668,8 +668,31 @@ instead of Next; the last step becomes the read-only result screen, reached only
 ## Exports
 
 `csv_exportable()`, `excel_exportable()` and `pdf_exportable()` on a `Crud` add Export CSV / Excel
-/ PDF buttons (the whole filtered result set). Excel uses openpyxl (MIT), PDF reportlab (BSD) —
-the `export` extra; a format whose library is missing is not offered.
+/ PDF buttons (the whole filtered result set). Mateu ships **no spreadsheet or PDF engine**: CSV
+has a built-in writer, and Excel / PDF are written by a `ListingExporter` subclass of yours, in a
+module you register (it is discovered like the other suppliers and built with no arguments). It
+receives a `ListingExport` (format, title, columns, every filtered row, search text) and returns an
+`ExportedFile` (bytes, optional media type and filename). Without one, the Excel / PDF buttons are
+not offered. A starting point with openpyxl (your dependency, not Mateu's):
+
+```python
+import io
+from openpyxl import Workbook
+from mateu_uidl import ExportedFile, ExportFormat, ListingExport, ListingExporter
+
+class ExcelExporter(ListingExporter):
+    format = ExportFormat.EXCEL
+
+    def export(self, export: ListingExport) -> ExportedFile:
+        book = Workbook()
+        sheet = book.active
+        sheet.append([c.label for c in export.columns])
+        for row in export.rows:
+            sheet.append([c.text_of(row) for c in export.columns])
+        out = io.BytesIO()
+        book.save(out)
+        return ExportedFile(out.getvalue())
+```
 
 ## Catalogues: REST sources and business components
 

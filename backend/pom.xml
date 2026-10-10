@@ -401,8 +401,6 @@
                maven.deploy.skip) -->
           <excludeArtifacts>
             <artifact>integration-tests</artifact>
-            <artifact>agent-cli</artifact>
-            <artifact>agent-cli-companion</artifact>
           </excludeArtifacts>
         </configuration>
       </plugin>

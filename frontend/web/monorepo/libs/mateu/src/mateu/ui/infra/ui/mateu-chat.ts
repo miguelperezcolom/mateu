@@ -83,20 +83,9 @@ export class MateuChat extends LitElement {
     @property({attribute: false})
     contextProvider?: () => unknown;
 
-    /**
-     * Base url of the LOCAL agent companion. When a companion answers /health
-     * there, the chat prefers it over the server's sseUrl: the LLM runs through
-     * the USER's authenticated CLI — no api key, even with a remote server.
-     */
-    @property()
-    localAgentUrl = 'http://127.0.0.1:8776';
-
-    /** The app's MCP endpoint (from @AI(mcp=…)): forwarded so the agent — local companion included — can operate THIS app. */
+    /** The app's MCP endpoint (from @AI(mcp=…)): forwarded so the agent can operate THIS app. */
     @property({attribute: false})
     mcpUrl?: string;
-
-    @state()
-    private localAgentAlive = false;
 
     @property()
     sseUrl: string | undefined
@@ -270,22 +259,8 @@ export class MateuChat extends LitElement {
         }
     }
 
-    private probeLocalAgent = async () => {
-        if (!this.localAgentUrl) return;
-        try {
-            const controller = new AbortController();
-            const timer = setTimeout(() => controller.abort(), 1200);
-            const response = await fetch(this.localAgentUrl + '/health', { signal: controller.signal });
-            clearTimeout(timer);
-            this.localAgentAlive = response.ok;
-        } catch {
-            this.localAgentAlive = false;
-        }
-    };
-
     connectedCallback() {
         super.connectedCallback()
-        void this.probeLocalAgent();
         window.addEventListener('keydown', this.onShortcutKeydown, true);
 
 // Comprobar si el navegador es compatible
@@ -452,9 +427,7 @@ export class MateuChat extends LitElement {
     send = async (e: CustomEvent) => {
         this.messageInputElement?.setAttribute("disabled", "disabled");
         const text = e.detail.value.trim();
-        const effectiveSseUrl = this.localAgentAlive
-            ? this.localAgentUrl + '/mateu/agent/stream'
-            : this.sseUrl;
+        const effectiveSseUrl = this.sseUrl;
         // a message with only attachments (no text) is still worth sending
         const attachments = this.attachments;
         if ((!text && attachments.length === 0) || !effectiveSseUrl) return;
@@ -667,9 +640,6 @@ export class MateuChat extends LitElement {
                 <div class="chat-header">
                     ${icon('vaadin:comments-o', '', 'chat-title-icon')}
                     <h2 class="chat-title">${this.label?.trim() || chatText('title')}</h2>
-                    ${this.localAgentAlive
-                        ? html`<span class="local-agent-badge" title="Hablando con tu CLI local (companion en ${this.localAgentUrl}) — sin api key">agente local</span>`
-                        : nothing}
                     <div class="chat-header-actions">
                         ${chatHeaderButton({
                             icon: this.expanded ? 'vaadin:compress' : 'vaadin:expand-full',
@@ -832,17 +802,6 @@ export class MateuChat extends LitElement {
         }
         .attachment-remove:hover { background: var(--lumo-contrast-20pct, #dcdcdc); }
 
-        .local-agent-badge {
-            font: 600 10px ui-sans-serif, system-ui, sans-serif;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            color: #047857;
-            background: #d1fae5;
-            border-radius: 999px;
-            padding: 2px 8px;
-            margin-left: 8px;
-            cursor: default;
-        }
 
         /* The panel's header: its icon and title (a panel title, not a caption), then the
            expand/close buttons grouped at the end — tertiary icon buttons like the app header's. */

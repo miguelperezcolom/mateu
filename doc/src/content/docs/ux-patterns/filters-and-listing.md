@@ -184,35 +184,7 @@ public class ProductsListing implements Listing<ProductRow>, Searchable, Filtera
 }
 ```
 
-CSV export is included in the `core` module. Excel and PDF export are in **optional modules** that must be added as Maven dependencies — see [Export modules](#export-modules) below.
-
-## Export modules
-
-CSV export works out of the box. Excel and PDF require adding the corresponding optional module to your project's `pom.xml`:
-
-**Excel** (Apache POI, Apache 2.0):
-
-```xml
-<dependency>
-    <groupId>io.mateu</groupId>
-    <artifactId>mateu-export-excel</artifactId>
-    <version>${mateu.version}</version>
-</dependency>
-```
-
-**PDF** (Apache PDFBox, Apache 2.0):
-
-```xml
-<dependency>
-    <groupId>io.mateu</groupId>
-    <artifactId>mateu-export-pdf</artifactId>
-    <version>${mateu.version}</version>
-</dependency>
-```
-
-Once the dependency is on the classpath the framework detects it automatically via CDI — no configuration needed. The export buttons appear only when the corresponding module is present, so adding neither module gives a clean toolbar with no dead buttons.
-
-Both modules produce A4 landscape files. The Excel exporter auto-sizes columns; the PDF exporter repeats the header on each page and alternates row background colours for readability.
+Mateu decides what is exported (the whole filtered result set, the visible columns) and delivers the file; **writing** it is your application's job. CSV works out of the box (core carries a dependency-free CSV writer). Excel and PDF need a `ListingExporter` bean of yours, written with the library you choose — until one is registered the Excel / PDF buttons are simply not offered, so there are no dead buttons. See [Export engines](/java-ui-definition/interfaces/listing/#export-engines) for the port and two implementations to copy (Apache POI, Apache PDFBox).
 
 ## URL sync and saved views
 

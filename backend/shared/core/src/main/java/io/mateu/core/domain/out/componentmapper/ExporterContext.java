@@ -1,32 +1,31 @@
 package io.mateu.core.domain.out.componentmapper;
 
+import io.mateu.uidl.data.ExportFormat;
+import java.util.EnumSet;
+import java.util.Set;
+
+/**
+ * The export formats some registered {@link io.mateu.uidl.interfaces.ListingExporter} writes, for
+ * the duration of one mapping (the listing builders read it to decide which Export buttons to
+ * offer).
+ */
 public final class ExporterContext {
 
-  private static final ThreadLocal<Boolean> EXCEL = new ThreadLocal<>();
-  private static final ThreadLocal<Boolean> PDF = new ThreadLocal<>();
-  private static final ThreadLocal<Boolean> CSV = new ThreadLocal<>();
+  private static final ThreadLocal<Set<ExportFormat>> AVAILABLE = new ThreadLocal<>();
 
-  static void set(boolean excel, boolean pdf, boolean csv) {
-    EXCEL.set(excel);
-    PDF.set(pdf);
-    CSV.set(csv);
+  private ExporterContext() {}
+
+  static void set(Set<ExportFormat> available) {
+    AVAILABLE.set(available);
   }
 
   static void clear() {
-    EXCEL.remove();
-    PDF.remove();
-    CSV.remove();
+    AVAILABLE.remove();
   }
 
-  public static boolean isExcelAvailable() {
-    return Boolean.TRUE.equals(EXCEL.get());
-  }
-
-  public static boolean isPdfAvailable() {
-    return Boolean.TRUE.equals(PDF.get());
-  }
-
-  public static boolean isCsvAvailable() {
-    return Boolean.TRUE.equals(CSV.get());
+  /** The formats an exporter is registered for (empty outside a mapping). */
+  public static Set<ExportFormat> available() {
+    var available = AVAILABLE.get();
+    return available != null ? available : EnumSet.noneOf(ExportFormat.class);
   }
 }

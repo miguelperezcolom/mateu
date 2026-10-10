@@ -40,9 +40,7 @@ dependencies = [
 [project.optional-dependencies]
 # The ASGI server the samples and the README use. Not a hard dependency: any ASGI server works.
 server = ["uvicorn>=0.27"]
-# Excel (openpyxl, MIT) and PDF (reportlab, BSD) listing exporters.
-export = ["openpyxl>=3.1", "reportlab>=4.0"]
-all = ["mateu-ui[server,export]"]
+all = ["mateu-ui[server]"]
 dev = ["pytest>=8", "httpx>=0.27", "mypy>=1.10", "types-PyYAML", "build>=1.2"]
 
 [project.urls]

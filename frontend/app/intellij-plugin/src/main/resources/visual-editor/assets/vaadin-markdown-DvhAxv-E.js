@@ -1,1 +1,0 @@
-import"./vaadinCanvasRenderer-Bxez-XS9.js";

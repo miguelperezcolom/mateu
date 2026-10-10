@@ -170,14 +170,14 @@ Python (`mateu_uidl`) ports follow the same boundary for the same concepts.
 | `mateu-dtos` | `io.mateu.dtos` | 270 | 242 | 0 | 28 | 0 |
 | `mateu-uidl` | `io.mateu.uidl` | 6 | 6 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.annotations` | 169 | 163 | 4 | 2 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.data` | 303 | 260 | 37 | 6 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.data` | 306 | 263 | 37 | 6 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.fluent` | 34 | 31 | 0 | 3 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.interfaces` | 107 | 98 | 6 | 1 | 2 |
+| `mateu-uidl` | `io.mateu.uidl.interfaces` | 105 | 96 | 6 | 1 | 2 |
 | `mateu-uidl` | `io.mateu.uidl.layout` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **960** | **838** | **47** | **40** | **35** |
+| **Total** | | **961** | **839** | **47** | **40** | **35** |
 
 **Experimental types** (the whole type and its members):
 

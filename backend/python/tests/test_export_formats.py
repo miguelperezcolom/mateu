@@ -1,11 +1,11 @@
-"""Excel and PDF listing exports (openpyxl MIT, reportlab BSD — the ``export`` extra), the Python
-mirror of Java's ExcelExporter / PdfExporter beans: offered in Java's order, real files, and not
-offered when the library is missing (Java shows the button only with an exporter bean)."""
+"""Listing exports through the ``ListingExporter`` port (Java's ExportActionRunner + the
+ListingExporter beans): Mateu ships no Excel / PDF engine, so the application's exporters are
+discovered among the registered sources; the buttons follow Java's order, and a format nobody
+writes is neither offered nor answered with a crash."""
 
 from __future__ import annotations
 
 import base64
-import io
 import sys
 from pathlib import Path
 
@@ -14,7 +14,16 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
-from mateu_uidl import Crud, title, ui  # noqa: E402
+from mateu_uidl import (  # noqa: E402
+    Crud,
+    ExportedFile,
+    ExportFormat,
+    ListingExport,
+    ListingExporter,
+    title,
+    ui,
+)
+from mateu_uidl.messages import UserFacingException  # noqa: E402
 
 
 class Row:
@@ -49,15 +58,37 @@ class NoExport(Crud[Row]):
         return []
 
 
+class SampleExcelExporter(ListingExporter):
+    """A stand-in for the app's spreadsheet engine (openpyxl, xlsxwriter…): a readable digest."""
+
+    format = ExportFormat.EXCEL
+    last: ListingExport | None = None
+
+    def export(self, export: ListingExport) -> ExportedFile:
+        SampleExcelExporter.last = export
+        lines = [" | ".join(c.label for c in export.columns)]
+        lines += [" | ".join(c.text_of(r) for c in export.columns) for r in export.rows]
+        return ExportedFile(f"{export.title}\n".encode() + "\n".join(lines).encode())
+
+
+class SamplePdfExporter(ListingExporter):
+    format = ExportFormat.PDF
+
+    def export(self, export: ListingExport) -> ExportedFile:
+        return ExportedFile(b"%PDF-sample", filename="guests.pdf")
+
+
 MODULE = sys.modules[__name__]
 
 
-def handler() -> SyncHandler:
-    return SyncHandler(MateuRegistry(MODULE))
+def handler(with_exporters: bool = True) -> SyncHandler:
+    if with_exporters:
+        return SyncHandler(MateuRegistry(MODULE))
+    return SyncHandler(MateuRegistry(AllFormats, NoExport))
 
 
-def toolbar_ids(cls) -> list[str]:
-    inc = handler().handle(RunActionRq(server_side_type=type_name(cls)))
+def toolbar_ids(cls, with_exporters: bool = True) -> list[str]:
+    inc = handler(with_exporters).handle(RunActionRq(server_side_type=type_name(cls)))
 
     def walk(n):
         if isinstance(n, dict):
@@ -72,8 +103,8 @@ def toolbar_ids(cls) -> list[str]:
     return [b["actionId"] for b in crud["toolbar"]]
 
 
-def export(cls, action_id, search=""):
-    return handler().handle(
+def export(cls, action_id, search="", with_exporters: bool = True):
+    return handler(with_exporters).handle(
         RunActionRq(
             route="/ex-all",
             action_id=action_id,
@@ -85,42 +116,42 @@ def export(cls, action_id, search=""):
 
 
 def test_every_format_is_offered_in_java_order():
-    pytest.importorskip("openpyxl")
-    pytest.importorskip("reportlab")
     assert toolbar_ids(AllFormats)[:3] == ["export-csv", "export-excel", "export-pdf"]
     assert not [i for i in toolbar_ids(NoExport) if i.startswith("export-")]
 
 
-def test_excel_export_is_a_real_workbook_with_typed_cells():
-    openpyxl = pytest.importorskip("openpyxl")
+def test_the_exporter_receives_the_title_columns_and_rows():
     data = export(AllFormats, "export-excel").commands[0].data
+    # no filename / media type answered: the format's defaults
     assert data["filename"] == "export.xlsx"
     assert data["mimeType"] == "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-    book = openpyxl.load_workbook(io.BytesIO(base64.b64decode(data["base64Content"])))
-    sheet = book["Export"]
-    assert [[c.value for c in row] for row in sheet.iter_rows()] == [
-        ["Id", "Name", "Nights"],
-        ["1", "Ana", 3],
-        ["2", "Luis <Jr>", 1],
-    ]
-    assert sheet["A1"].font.bold
+    assert base64.b64decode(data["base64Content"]).decode() == (
+        "Guests\nId | Name | Nights\n1 | Ana | 3\n2 | Luis <Jr> | 1"
+    )
+    handed = SampleExcelExporter.last
+    assert handed is not None and handed.format is ExportFormat.EXCEL
+    assert handed.columns[2].value_of(handed.rows[0]) == 3
 
 
-def test_pdf_export_is_a_pdf():
-    pytest.importorskip("reportlab")
+def test_the_exporters_filename_wins():
     data = export(AllFormats, "export-pdf").commands[0].data
-    assert (data["filename"], data["mimeType"]) == ("export.pdf", "application/pdf")
-    assert base64.b64decode(data["base64Content"]).startswith(b"%PDF")
+    assert (data["filename"], data["mimeType"]) == ("guests.pdf", "application/pdf")
+    assert base64.b64decode(data["base64Content"]) == b"%PDF-sample"
 
 
-def test_a_format_whose_library_is_missing_is_neither_offered_nor_answered(monkeypatch):
-    import mateu_core.export as export_module
+def test_csv_is_built_in():
+    data = export(AllFormats, "export-csv", with_exporters=False).commands[0].data
+    assert data["filename"] == "export.csv"
+    assert base64.b64decode(data["base64Content"]).decode() == "Id,Name,Nights\n1,Ana,3\n2,Luis <Jr>,1\n"
 
-    pytest.importorskip("reportlab")
-    monkeypatch.setattr(export_module, "excel_available", lambda: False)
-    ids = toolbar_ids(AllFormats)
-    assert "export-excel" not in ids and "export-pdf" in ids
-    assert "DownloadFile" not in [c.type for c in export(AllFormats, "export-excel").commands]
+
+def test_without_an_exporter_excel_and_pdf_are_neither_offered_nor_crash():
+    ids = toolbar_ids(AllFormats, with_exporters=False)
+    assert "export-csv" in ids
+    assert "export-excel" not in ids and "export-pdf" not in ids
+    with pytest.raises(UserFacingException) as raised:
+        export(AllFormats, "export-excel", with_exporters=False)
+    assert raised.value.title == "Export not available"
 
 
 def test_a_crud_that_does_not_opt_in_refuses_the_export():

@@ -71,12 +71,10 @@ public static class MateuExtensions
                     : null)
             {
                 MockSources = options.MockSources,
-                // Listing exports: an exporter registered as a service replaces the built-in writer
-                // of its format (Java: the CsvExporter/ExcelExporter/PdfExporter beans).
-                Exporters = new Mateu.Core.Export.MateuExporters(
-                    sp.GetService<ICsvExporter>() ?? Mateu.Core.Export.MateuExporters.BuiltIn.Csv,
-                    sp.GetService<IExcelExporter>() ?? Mateu.Core.Export.MateuExporters.BuiltIn.Excel,
-                    sp.GetService<IPdfExporter>() ?? Mateu.Core.Export.MateuExporters.BuiltIn.Pdf),
+                // Listing exports: Mateu ships no Excel / PDF engine — every IListingExporter the app
+                // registers as a service writes its format (Java: the ListingExporter beans); CSV
+                // falls back to the built-in writer.
+                Exporters = new Mateu.Core.Export.MateuExporters(sp.GetServices<IListingExporter>()),
             };
         });
         return services;

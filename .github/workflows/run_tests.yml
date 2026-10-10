@@ -528,7 +528,7 @@ jobs:
       # Install the reactor artifacts to the local repo first, then run the module suites with the
       # JaCoCo coverage gate (`verify`). Core is where the ~1200 unit tests + the Java conformance
       # runner live; uidl (schema/annotation tests), the two annotation processors (one carries a
-      # 70% per-package coverage floor), agent-cli and webflux-core's in-JVM *IT suite also have
+      # 70% per-package coverage floor) and webflux-core's in-JVM *IT suite also have
       # tests, which used to run nowhere because `-pl shared/core` left them out. The adapters are
       # otherwise exercised end to end by the e2e job above.
       - name: Build backend
@@ -546,7 +546,7 @@ jobs:
       - name: Java module tests + coverage gate + API compatibility
         run: >-
           mvn -B verify -Dgpg.skip=true -Dmaven.javadoc.skip=true --file backend/pom.xml
-          -pl shared/core,shared/uidl,shared/dtos,shared/annotation-processor-core,shared/annotation-processor-indexer,shared/agent-cli,webflux/webflux-core
+          -pl shared/core,shared/uidl,shared/dtos,shared/annotation-processor-core,shared/annotation-processor-indexer,webflux/webflux-core
 
       - name: API compatibility report
         if: always()

@@ -264,6 +264,7 @@ from .wizard import WizardMapperMixin
 from .crud import CrudMapperMixin
 from .layout import LayoutMapperMixin
 from .fields import FieldMapperMixin
+from ..export import Exporters
 
 
 class ReflectionMapper(
@@ -291,6 +292,8 @@ class ReflectionMapper(
         self.action_catalog: Any = None
         #: model type → ComponentAdapter (set by the SyncHandler from the registry).
         self.adapters: dict = {}
+        #: The listing exporters (set by the SyncHandler); default = the built-in CSV writer only.
+        self.exporters: Any = Exporters()
         #: The translation catalogue (a TranslationRegistry, set by the SyncHandler); None = none.
         self.translations: Any = None
         #: The app's field type catalogue (a FieldTypeRegistry) for FieldType() markers on

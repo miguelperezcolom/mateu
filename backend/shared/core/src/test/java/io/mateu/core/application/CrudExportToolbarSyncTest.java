@@ -34,6 +34,17 @@ class CrudExportToolbarSyncTest {
       return true;
     }
 
+    // opted in, but no ListingExporter writes these formats in this backend
+    @Override
+    public boolean excelExportable() {
+      return true;
+    }
+
+    @Override
+    public boolean pdfExportable() {
+      return true;
+    }
+
     @Override
     public CrudStore<Guest> store() {
       return new CrudStore<>() {
@@ -93,6 +104,10 @@ class CrudExportToolbarSyncTest {
     if (listing.isEmpty()) listing = crudls(mateu.sync("/guests-export"));
     assertThat(listing).isNotEmpty();
     assertThat(listing.get(0).toolbar()).extracting(ButtonDto::actionId).contains("export-csv");
+    // Mateu ships no Excel / PDF engine: without the application's exporter, no button
+    assertThat(listing.get(0).toolbar())
+        .extracting(ButtonDto::actionId)
+        .doesNotContain("export-excel", "export-pdf");
     var exported =
         mateu.run(
             RunActionRqDto.builder()
@@ -106,5 +121,24 @@ class CrudExportToolbarSyncTest {
         .extracting(UICommandDto::type)
         .asString()
         .contains("DownloadFile");
+  }
+
+  @Test
+  void anExportNobodyWritesIsAMessageNotAnError() {
+    var exported =
+        mateu.run(
+            RunActionRqDto.builder()
+                .route("/guests-export")
+                .consumedRoute("/guests-export")
+                .serverSideType(GuestsCrud.class.getName())
+                .actionId("export-excel")
+                .initiatorComponentId("c1_app")
+                .build());
+    assertThat(exported.commands())
+        .extracting(UICommandDto::type)
+        .asString()
+        .doesNotContain("DownloadFile");
+    assertThat(exported.messages()).hasSize(1);
+    assertThat(exported.messages().get(0).title()).isEqualTo("Export not available");
   }
 }

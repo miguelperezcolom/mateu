@@ -105,7 +105,7 @@ Override any of the three export methods to add the corresponding button to the 
 @Override public boolean csvExportable()   { return true; }
 ```
 
-Excel and PDF require optional modules on the classpath. See [Listing (reference)](/java-ui-definition/interfaces/listing/) for the dependency details.
+CSV works out of the box. Excel and PDF are written by a `ListingExporter` bean of your own (Mateu ships no spreadsheet / PDF engine); until one is registered those buttons are not shown. See [Export engines](/java-ui-definition/interfaces/listing/#export-engines).
 
 ---
 

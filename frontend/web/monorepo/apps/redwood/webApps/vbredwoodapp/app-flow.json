@@ -853,11 +853,6 @@
       "defaultValue": "",
       "description": "el endpoint MCP de la app (@AI(mcp)): viaja en cada mensaje para que el agente pueda operar ESTA app"
     },
-    "mateuChatLocalAgent": {
-      "type": "boolean",
-      "defaultValue": false,
-      "description": "el agente LOCAL (companion en 127.0.0.1:8776) contesto a /health: el chat habla con el, sin api key"
-    },
     "mateuChatAttachments": {
       "type": "any",
       "defaultValue": [],

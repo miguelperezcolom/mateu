@@ -423,22 +423,19 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     clearFieldErrorMarks,
     guardGuidedProcess,
     // chat de IA: el panel de conversación (sseUrl) usa estas para POSTear y consumir el stream
-    effectiveChatUrl,
     buildChatBody,
     buildChatMenuContext,
     streamChat,
     stickChatToBottom,
     uploadChatFiles,
     // paridad con el chat web: config del panel, el turno completo (contexto + pantalla + mcp +
-    // adjuntos), agente local, herramientas en curso y los textos de una respuesta vacía o fallida
+    // adjuntos), herramientas en curso y los textos de una respuesta vacía o fallida
     chatConfigOf,
     chatTurnOf,
     chatTurnTextOf,
     chatToolStepsOf,
     withAttachments,
-    probeLocalAgent,
     projectChatScreen,
-    LOCAL_AGENT_URL,
     // el panel mientras el asistente trabaja, los contadores de tokens y el dictado
     mergeTurnUsage,
     addUsage,

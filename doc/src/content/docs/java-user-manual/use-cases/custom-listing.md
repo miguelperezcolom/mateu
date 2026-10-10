@@ -209,7 +209,7 @@ Changes (Listing<ChangeRow> + Searchable)
 
 ## 4. Enabling export
 
-Override `pdfExportable()`, `excelExportable()`, or `csvExportable()` to show export buttons in the toolbar. The framework calls `search()` with the current filters and produces the file.
+Override `pdfExportable()`, `excelExportable()`, or `csvExportable()` to show export buttons in the toolbar. The framework calls `search()` with the current filters and hands the rows to the exporter that writes the file.
 
 ```java
 public class Changes implements Listing<ChangeRow>, Searchable {
@@ -226,7 +226,7 @@ public class Changes implements Listing<ChangeRow>, Searchable {
 }
 ```
 
-All three methods default to `false`; override only the formats you want to expose.
+All three methods default to `false`; override only the formats you want to expose. CSV is written by core; Excel and PDF by a `ListingExporter` bean of yours — see [Export engines](/java-ui-definition/interfaces/listing/#export-engines).
 
 ---
 

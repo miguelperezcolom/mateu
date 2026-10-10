@@ -31,12 +31,12 @@ import {
   authHeadersOf, askForReauthentication, beginView, currentView, isStaleResponse,
 } from './resilience.mjs'
 import {
-  buildChatMenuContext, buildChatBody, effectiveChatUrl, tryParseTokenUsage,
+  buildChatMenuContext, buildChatBody, tryParseTokenUsage,
   tryParseCustomEvent, streamChat, mergeTurnUsage, addUsage, chatStatusText,
   createSseParser, classifyChatPayload, isEmptyUsage, createChatProgress, latestUsage,
   speechRecognitionCtor, transcriptOf, chatMarkdownToHtml, chatRouteOfLink, stickChatToBottom, isChatMicShortcut,
   CHAT_MIC_ARIA_KEYSHORTCUTS,
-  chatConfigOf, chatTurnOf, chatTurnTextOf, chatToolStepsOf, withAttachments, probeLocalAgent, LOCAL_AGENT_URL,
+  chatConfigOf, chatTurnOf, chatTurnTextOf, chatToolStepsOf, withAttachments,
 } from './chat.mjs'
 import { CHROME_TEXTS, chromeText, chromeLanguage, setChromeLanguage, chromeTextsOf } from './i18n.mjs'
 import { nlsFiles } from './make-nls.mjs'
@@ -2855,11 +2855,6 @@ test('chat: buildChatMenuContext aplana el menú a path + navigation (salta sepa
   assert.equal(ctx[0].description, 'todas')
 })
 
-test('chat: effectiveChatUrl usa el agente local si vive, si no el sseUrl', () => {
-  assert.equal(effectiveChatUrl({ localAgentAlive: true, localAgentUrl: 'http://localhost:9999', sseUrl: '/sse' }), 'http://localhost:9999/mateu/agent/stream')
-  assert.equal(effectiveChatUrl({ localAgentAlive: false, localAgentUrl: 'http://localhost:9999', sseUrl: '/sse' }), '/sse')
-})
-
 test('chat: buildChatBody solo incluye lo presente (menuContext en el 1er mensaje)', () => {
   assert.deepEqual(buildChatBody({ message: 'hola', sessionId: 's1' }), { message: 'hola', sessionId: 's1' })
   const full = buildChatBody({ message: 'hola', sessionId: 's1', attachments: [{ name: 'a', path: 'p' }], context: { route: '/x' }, mcpUrl: 'http://m', menuContext: [{ path: ['A'] }] })
@@ -4819,22 +4814,10 @@ test('chat: adjuntos — se acumulan sin repetir y cada chip lleva el nombre acc
   assert.equal(withAttachments(a, [{ name: 'a.pdf', path: 'p/a' }, { name: 'b', path: 'p/b' }]).length, 2)
 })
 
-atest('chat: el agente local gana si contesta a /health (con tope de tiempo); si no, el sseUrl', async () => {
-  const seen = []
-  assert.equal(await probeLocalAgent({ fetchImpl: async (u) => { seen.push(u); return { ok: true } } }), true)
-  assert.equal(seen[0], LOCAL_AGENT_URL + '/health')
-  assert.equal(await probeLocalAgent({ fetchImpl: async () => { throw new TypeError('Failed to fetch') } }), false)
-  // un companion que no contesta: el tope de tiempo aborta la petición (fetch rechaza al abortar)
-  const hanging = (u, { signal }) => new Promise((_, reject) => signal.addEventListener('abort', () => reject(new Error('aborted'))))
-  assert.equal(await probeLocalAgent({ fetchImpl: hanging, timeoutMs: 10 }), false)
-  assert.equal(effectiveChatUrl({ localAgentAlive: true, localAgentUrl: LOCAL_AGENT_URL, sseUrl: '/s' }), LOCAL_AGENT_URL + '/mateu/agent/stream')
-  assert.equal(effectiveChatUrl({ localAgentAlive: false, localAgentUrl: LOCAL_AGENT_URL, sseUrl: '/s' }), '/s')
-})
-
-test('chat: el panel VB tiene lo del web — título de marca, agente local, modo ancho, herramientas, adjuntos', () => {
+test('chat: el panel VB tiene lo del web — título de marca, modo ancho, herramientas, adjuntos', () => {
   const shell = webApp('pages/shell-page.html')
   assert.match(shell, /mateuChatTitle \|\| \$application\.translations\.appBundle\.chatTitle/)
-  assert.match(shell, /mateuChatLocalAgent/)
+  assert.doesNotMatch(shell, /mateuChatLocalAgent/)
   assert.match(shell, /mateu-chat-wide/)
   assert.match(shell, /id="mateuChatSteps"/)
   assert.match(shell, /id="mateuChatAttach"/)
@@ -4842,11 +4825,11 @@ test('chat: el panel VB tiene lo del web — título de marca, agente local, mod
   const listeners = JSON.parse(webApp('pages/shell-page.json')).eventListeners
   for (const l of ['chatAttach', 'chatRemoveAttachment', 'chatExpand']) assert.equal(listeners[l].chains[0].chain, 'chatAttach', l)
   const flow = JSON.parse(webApp('app-flow.json'))
-  for (const v of ['mateuChatTitle', 'mateuChatUploadUrl', 'mateuChatMcpUrl', 'mateuChatLocalAgent', 'mateuChatAttachments', 'mateuChatSteps', 'mateuChatExpanded']) assert.ok(flow.variables[v], v)
+  for (const v of ['mateuChatTitle', 'mateuChatUploadUrl', 'mateuChatMcpUrl', 'mateuChatAttachments', 'mateuChatSteps', 'mateuChatExpanded']) assert.ok(flow.variables[v], v)
   const send = webApp('pages/shell-page-chains/chatSend.js')
-  assert.match(send, /bridge\.effectiveChatUrl\(/)
+  assert.match(send, /url: vars\.mateuChatSseUrl/)
   assert.match(send, /bridge\.chatTurnTextOf\(accumulated, failure\)/)
-  assert.match(webApp('pages/shell-page-chains/toggleMateuChat.js'), /bridge\.probeLocalAgent\(\)/)
+  assert.doesNotMatch(webApp('pages/shell-page-chains/toggleMateuChat.js'), /probeLocalAgent/)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.chatConfigOf\(reg\.shell, assetBase\)/)
   const attach = webApp('pages/shell-page-chains/chatAttach.js')
   assert.match(attach, /bridge\.uploadChatFiles\(/)

@@ -27,6 +27,8 @@ from mateu_dtos import (
 )
 
 from mateu_uidl import components as fluent
+from mateu_uidl.export import ListingExport
+from mateu_uidl.messages import UserFacingException
 
 from .. import action_guard
 from ..naming import camel_case
@@ -76,8 +78,8 @@ class CrudHandlerMixin(MixinBase):
         if aid == "delete":
             return self.navigate(base_route, None if id_ is None else self.delete(crud, id_), rq)
         # Crud.<format>_exportable: only an exportable crud answers its export (the id is wire
-        # input), and only when the format's library is installed.
-        if aid in FORMATS and self.mapper._exportable(crud_type, crud, aid):
+        # input); the format's exporter is looked up when it runs.
+        if aid in FORMATS and self.mapper._opted_into_export(crud_type, crud, aid):
             return self.export_listing(crud, crud_type, element, aid, rq)
         # edit_in_drawer (the Redwood "Create and Edit - Drawer" template): New and row clicks
         # open the crud form in a Drawer over the listing instead of navigating; cancels just
@@ -114,16 +116,35 @@ class CrudHandlerMixin(MixinBase):
     def export_listing(self, crud, crud_type, element, action_id: str, rq: RunActionRq) -> UIIncrement:
         """export-csv / export-excel / export-pdf on an exportable crud: the WHOLE filtered result
         set (search text + smart search bar filters, the same rows the listing pages through), one
-        column per visible entity field, answered as a DownloadFile command (mirrors Java's
-        ExportActionRunner + its Csv/Excel/Pdf exporters)."""
-        _, _, filename, mime_type, exporter, _ = FORMATS[action_id]
+        column per visible entity field, handed to the format's ListingExporter and answered as a
+        DownloadFile command (mirrors Java's ExportActionRunner)."""
+        _, export_format = FORMATS[action_id]
+        exporter = self.mapper.exporters.for_format(export_format)
+        if exporter is None:
+            # the button only shows while an exporter exists: a request naming a format nobody
+            # writes is a message for the user, never a crash
+            raise UserFacingException(
+                "This application has no exporter for that format.", title="Export not available"
+            )
         rows = self._filtered_rows(crud, view_fields(element), rq)
-        columns = self.mapper.export_columns(element)
-        content = base64.b64encode(exporter(rows, columns, self.title(crud_type))).decode("ascii")
+        file = exporter.export(
+            ListingExport(
+                format=export_format,
+                title=self.title(crud_type),
+                columns=self.mapper.export_columns(element),
+                rows=rows,
+                search_text=(rq.component_state or {}).get("searchText"),
+            )
+        )
+        content = base64.b64encode(file.content).decode("ascii")
         return UIIncrement(commands=[UICommand(
             target_component_id=self.target(rq),
             type="DownloadFile",
-            data={"filename": filename, "mimeType": mime_type, "base64Content": content},
+            data={
+                "filename": file.filename or export_format.default_filename,
+                "mimeType": file.media_type or export_format.default_media_type,
+                "base64Content": content,
+            },
         )])
 
     def export_csv(self, crud, element, rq: RunActionRq) -> UIIncrement:

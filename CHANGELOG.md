@@ -32,6 +32,22 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - `CONTRIBUTING.md`, `SECURITY.md` (private reporting through GitHub Security Advisories), a pull
   request template and `CODEOWNERS`.
 
+### Mateu ships UI only
+- **Listing export engines are the application's.** The `mateu-export-excel` (Apache POI) and
+  `mateu-export-pdf` (PDFBox) modules are **removed** (with their relocation poms and BOM entries),
+  and no spreadsheet / PDF library is in Mateu's dependency graph any more. Mateu keeps everything
+  that is UI — the Export buttons, the choice of columns, rows and filters, the download — and
+  generation is a port the application implements: `ListingExporter` (`format()` +
+  `export(ListingExport, HttpRequest)` → `ExportedFile`), replacing `ExcelExporter` / `PdfExporter`
+  / `CsvExporter`. A listing opted into Excel / PDF shows the button only while an exporter for that
+  format is registered; a request for a format nobody writes is answered with a message, never a 500.
+  CSV keeps its dependency-free built-in writer. Same in the ports: .NET `IListingExporter` (the
+  hand-written xlsx / PDF writers are gone), Python `ListingExporter` (the `export` extra with
+  openpyxl / reportlab is gone). See [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/).
+- **`agent-cli` and `agent-cli-companion` removed** — the development bridge from the AI chat to a
+  local LLM CLI is not UI. The chat panel, its SSE contract and the MCP endpoint stay; the chat no
+  longer probes `127.0.0.1:8776` for a local companion (web and Redwood).
+
 ### Public API
 - **`@Experimental`** (`io.mateu.uidl.annotations`) marks API outside the stability promise — it may
   change in a minor release. Marked today: the AI assistant (`@AI`, `Chat`, the MCP wiring); the

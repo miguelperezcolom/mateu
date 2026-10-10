@@ -11,8 +11,8 @@ import io.mateu.uidl.data.FileDownload;
 import io.mateu.uidl.data.ListingData;
 import io.mateu.uidl.data.SearchRequest;
 import io.mateu.uidl.data.UICommand;
-import io.mateu.uidl.interfaces.CsvExporter;
 import io.mateu.uidl.interfaces.HttpRequest;
+import io.mateu.uidl.interfaces.ListingExporter;
 import io.mateu.uidl.interfaces.ReactiveListing;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -56,12 +56,15 @@ class ExportActionRunnerReactiveTest {
     return new BeanProvider() {
       @Override
       public <T> T getBean(Class<T> clazz) {
-        return clazz == CsvExporter.class ? clazz.cast(new DefaultCsvExporter()) : null;
+        return null;
       }
 
       @Override
+      @SuppressWarnings("unchecked")
       public <T> Collection<T> getBeans(Class<T> clazz) {
-        return List.of();
+        return clazz == ListingExporter.class
+            ? (Collection<T>) List.of(new DefaultCsvExporter())
+            : List.of();
       }
     };
   }

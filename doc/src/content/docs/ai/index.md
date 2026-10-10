@@ -35,8 +35,8 @@ That is all that is required on the Java side.
 
 `@AI` has two optional attributes beyond `sse`:
 
-- `mcp` — path (or absolute URL) of the app's MCP endpoint. The chat forwards it with every message so the agent — in-process or the user's local companion — can operate **this** app through its tools.
-- `upload` — path (or absolute URL) where the chat POSTs attached files (multipart). When set, the chat panel shows an **attach** button; each upload is saved server-side (its URL travels to the frontend as `ChatDto.uploadUrl`) and the assistant reads it — e.g. the `agent-cli` module saves it to a local directory and exposes it through a filesystem MCP server. Empty (the default) = no file attachments.
+- `mcp` — path (or absolute URL) of the app's MCP endpoint. The chat forwards it with every message so the agent can operate **this** app through its tools.
+- `upload` — path (or absolute URL) where the chat POSTs attached files (multipart). When set, the chat panel shows an **attach** button; each upload is saved server-side (its URL travels to the frontend as `ChatDto.uploadUrl`) and the assistant reads it — your endpoint decides where it is stored and how the agent reaches it (e.g. through a filesystem MCP server). Empty (the default) = no file attachments.
 
 ```java
 @UI("")
@@ -238,44 +238,6 @@ public class AiChatController {
 }
 ```
 
-## Remote server, local CLI: the companion
-
-With the app deployed on a server, the user's authenticated CLI is unreachable — so the
-`agent-cli-companion` runnable jar serves the same SSE contract on the user's own
-`127.0.0.1:8776`. Start it naming which origin may use it
-(`--mateu.agent.companion.allow-origins=https://app.acme.com`); the chat probes `/health`,
-prefers the companion when alive, and wears an «agente local» badge so the user knows who
-they are talking to. No api key at any point.
-
-## No API key? Use the CLI pseudo-agent (local development)
-
-If you develop with an LLM CLI already authenticated on your machine (`claude`, `gemini`), you don't need to implement — or configure a key for — an SSE endpoint at all. The `io.mateu:mateu-agent-cli` module is a **pseudo-agent for local development** that serves the whole contract above by bridging to that CLI.
-
-```xml
-<dependency>
-  <groupId>io.mateu</groupId>
-  <artifactId>mateu-agent-cli</artifactId>
-</dependency>
-```
-
-```java
-@UI("")
-@AI(sse = "/mateu/agent/stream")
-public class MyApp { ... }
-```
-
-What it does:
-
-- Auto-detects the CLI on the `PATH` (`claude` preferred, then `gemini`); override with `mateu.agent.cli.command`.
-- Streams the answer line by line, exactly as the contract requires.
-- With `claude`, keeps conversation continuity (`--resume`, mapping the chat's `sessionId` to the CLI's session) and reports token usage.
-- Teaches the model the `{"event": "navigation-requested", ...}` protocol using the `menuContext`, so "take me to bookings" navigates the app.
-- Runs the CLI in a throwaway temp directory and reports failures as `agent-error` events.
-
-Configuration: `mateu.agent.cli.command` (`auto` | `claude` | `gemini`), `mateu.agent.cli.path` (default `/mateu/agent/stream`), `mateu.agent.cli.timeout-seconds` (default `180`).
-
-**Security note:** this is meant for localhost — it lends the caller your locally authenticated CLI. An exposed server should run a real agent (an API-backed endpoint like the one above). See the module's README (`backend/shared/agent-cli`) for details.
-
 ## LLM-driven UI interactions
 
 The AI assistant is not limited to returning text.
@@ -359,7 +321,7 @@ Only emit one event per response. Never show the raw JSON to the user.
 ## Summary
 
 - Annotate your root UI class with `@AI(sse = "<url>")`.
-- Implement an SSE endpoint at that URL — or, for local development, add `io.mateu:mateu-agent-cli` and point at `/mateu/agent/stream` (no API key needed).
+- Implement an SSE endpoint at that URL (Mateu ships the chat panel and its contract, not the agent).
 - Mateu handles the rest: button, panel, streaming UI.
 - Stream the reply line by line, or token by token with `agent-delta` events (and `agent-status` / `agent-tool` to show progress); replies render as markdown and may embed images (`data:` URIs included) and inline SVG.
 - Emit `{"event": "...", "detail": {...}}` in the stream to trigger UI actions from the LLM; emit token-usage JSON to feed the token bar.

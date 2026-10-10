@@ -144,8 +144,6 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatEmptyAnswer: 'The agent returned no answer. Check that the LLM is configured correctly (API key).',
       chatError: 'Error: {message}',
       chatUploadError: 'Could not upload the files: {message}',
-      chatLocalAgent: 'local agent',
-      chatLocalAgentHint: 'Talking to your local CLI (the companion agent) — no API key',
       chatExpand: 'Widen the assistant',
       chatRestore: 'Restore the width',
       selectRowsFirst: 'You first need to select some rows',
@@ -308,8 +306,6 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatEmptyAnswer: 'El agente no devolvió ninguna respuesta. Comprueba que el LLM está configurado correctamente (API key).',
       chatError: 'Error: {message}',
       chatUploadError: 'No se pudieron subir los ficheros: {message}',
-      chatLocalAgent: 'agente local',
-      chatLocalAgentHint: 'Hablando con tu CLI local (el agente companion) — sin API key',
       chatExpand: 'Ampliar el asistente',
       chatRestore: 'Ancho normal',
       selectRowsFirst: 'Primero tienes que seleccionar alguna fila',
@@ -14849,11 +14845,6 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return result
   }
 
-  /** La URL efectiva del stream: el agente local si respondió a /health, si no el `sseUrl` del wire. */
-  function effectiveChatUrl({ localAgentAlive, localAgentUrl, sseUrl }) {
-    return localAgentAlive && localAgentUrl ? localAgentUrl + '/mateu/agent/stream' : sseUrl
-  }
-
   /** El body del POST del chat. `menuContext` solo viaja en el primer mensaje (lo decide el llamante). */
   function buildChatBody({ message, sessionId, attachments, context, mcpUrl, menuContext, currentRoute }) {
     return {
@@ -15382,27 +15373,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // El chat compartido manda en cada mensaje, además del texto: el CONTEXTO de la pantalla (url,
   // título, appState/appData, el estado del componente — su contextProvider), una PROYECCIÓN
   // autodescriptiva de la pantalla (screenContext.ts: campos con tipo/rótulo/valor + acciones, la
-  // misma que recibe un agente MCP), el `mcpUrl` del @AI y los adjuntos; prefiere el agente LOCAL si
-  // contesta a /health; titula el panel con el @App(askLabel); enseña las herramientas que usa el
+  // misma que recibe un agente MCP), el `mcpUrl` del @AI y los adjuntos; titula el panel con el @App(askLabel); enseña las herramientas que usa el
   // agente en el turno en curso; y explica una respuesta vacía o un corte de red. Todo puro aquí.
-
-  /** El agente local (companion) por defecto, el mismo que el chat web. */
-  const LOCAL_AGENT_URL = 'http://127.0.0.1:8776'
-
-  /** ¿Contesta el agente local? (GET <url>/health con un tope de 1,2 s; cualquier fallo = no). */
-  async function probeLocalAgent({ url = LOCAL_AGENT_URL, fetchImpl = globalThis.fetch, timeoutMs = 1200 } = {}) {
-    if (!url || !fetchImpl) return false
-    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null
-    const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null
-    try {
-      const response = await fetchImpl(url + '/health', controller ? { signal: controller.signal } : {})
-      return !!(response && response.ok)
-    } catch {
-      return false
-    } finally {
-      if (timer) clearTimeout(timer)
-    }
-  }
 
   /** La configuración del panel desde la shell (el App del bootstrap) y la base del backend. */
   function chatConfigOf(shell, base = '') {
@@ -17806,22 +17778,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     clearFieldErrorMarks,
     guardGuidedProcess,
     // chat de IA: el panel de conversación (sseUrl) usa estas para POSTear y consumir el stream
-    effectiveChatUrl,
     buildChatBody,
     buildChatMenuContext,
     streamChat,
     stickChatToBottom,
     uploadChatFiles,
     // paridad con el chat web: config del panel, el turno completo (contexto + pantalla + mcp +
-    // adjuntos), agente local, herramientas en curso y los textos de una respuesta vacía o fallida
+    // adjuntos), herramientas en curso y los textos de una respuesta vacía o fallida
     chatConfigOf,
     chatTurnOf,
     chatTurnTextOf,
     chatToolStepsOf,
     withAttachments,
-    probeLocalAgent,
     projectChatScreen,
-    LOCAL_AGENT_URL,
     // el panel mientras el asistente trabaja, los contadores de tokens y el dictado
     mergeTurnUsage,
     addUsage,

@@ -582,9 +582,38 @@ public class CheckIn
 `CsvExportable`, `ExcelExportable` and `PdfExportable` (on `Crud<T>`, on `Listing<F,R>`, or on any
 listing implementing `ICrudExports`) add **Export CSV / Excel / PDF** to the listing toolbar. Each
 exports the WHOLE filtered result set (search text, filters and sort — not just the page) and
-answers a `DownloadFile`. The built-in writers have no third-party dependency (an Office Open XML
-workbook and a paginated PDF table); register your own `ICsvExporter`, `IExcelExporter` or
-`IPdfExporter` as a service to replace them.
+answers a `DownloadFile`.
+
+Mateu ships **no spreadsheet or PDF engine**: the file is written by an `IListingExporter` you
+register as a service, one per `ExportFormat`. It receives a `ListingExport` (format, title,
+columns, every filtered row, search text) and returns an `ExportedFile` (bytes, plus an optional
+media type and filename — null takes `export.xlsx` / `export.pdf` / `export.csv`). The Excel / PDF
+buttons show only while an exporter for that format is registered. CSV has a built-in,
+dependency-free writer, which a CSV exporter of yours replaces. A starting point with ClosedXML
+(your dependency, not Mateu's):
+
+```csharp
+public sealed class ExcelExporter : IListingExporter
+{
+    public ExportFormat Format => ExportFormat.Excel;
+
+    public ExportedFile Export(ListingExport export)
+    {
+        using var book = new XLWorkbook();
+        var sheet = book.AddWorksheet("Export");
+        for (var c = 0; c < export.Columns.Count; c++)
+            sheet.Cell(1, c + 1).Value = export.Columns[c].Label;
+        for (var r = 0; r < export.Rows.Count; r++)
+            for (var c = 0; c < export.Columns.Count; c++)
+                sheet.Cell(r + 2, c + 1).Value = export.Columns[c].TextOf(export.Rows[r]);
+        using var stream = new MemoryStream();
+        book.SaveAs(stream);
+        return new ExportedFile(stream.ToArray());
+    }
+}
+
+builder.Services.AddSingleton<IListingExporter, ExcelExporter>();
+```
 
 ## Group actions
 
