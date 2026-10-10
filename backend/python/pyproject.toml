@@ -1,14 +1,87 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
 [project]
-name = "mateu"
-version = "0.1.0"
+# `mateu` on PyPI belongs to an unrelated project (a board-game AI), so the distribution is
+# published as `mateu-ui`. The IMPORT names are unchanged: mateu_uidl, mateu_dtos, mateu_core,
+# mateu_fastapi.
+name = "mateu-ui"
+dynamic = ["version"]
 description = "Mateu server-side for Python — annotate Python classes; any Mateu renderer renders them."
+readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "Apache-2.0" }
-dependencies = ["fastapi>=0.110", "uvicorn>=0.27", "pydantic>=2.6", "pyyaml>=6"]
+license = "Apache-2.0"
+authors = [{ name = "Miguel Pérez Colom" }]
+keywords = ["ui", "low-code", "model-driven", "backend-driven-ui", "fastapi", "crud", "forms"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Framework :: FastAPI",
+    "Framework :: Pydantic :: 2",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: User Interfaces",
+    "Typing :: Typed",
+]
+# Lower bounds are exercised by the CI "lowest-deps" job; pydantic is capped below the next major
+# because the wire model leans on v2's discriminated unions and alias generators.
+dependencies = [
+    "fastapi>=0.110",
+    "pydantic>=2.6,<3",
+    "pyyaml>=6",
+]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "httpx>=0.27"]
+# The ASGI server the samples and the README use. Not a hard dependency: any ASGI server works.
+server = ["uvicorn>=0.27"]
+# Reads a Bearer JWT's claims into the request identity (add_mateu's default identity provider).
+jwt = ["PyJWT>=2.8"]
+# Excel (openpyxl, MIT) and PDF (reportlab, BSD) listing exporters.
+export = ["openpyxl>=3.1", "reportlab>=4.0"]
+# Async proxy fetches for `__restfetch__` (falls back to urllib in a worker thread without it).
+http = ["httpx>=0.27"]
+all = ["mateu-ui[server,jwt,export,http]"]
+dev = ["pytest>=8", "httpx>=0.27", "mypy>=1.10", "types-PyYAML", "build>=1.2"]
+
+[project.urls]
+Homepage = "https://mateu.io"
+Documentation = "https://mateu.io"
+Repository = "https://github.com/miguelperezcolom/mateu"
+Issues = "https://github.com/miguelperezcolom/mateu/issues"
+Source = "https://github.com/miguelperezcolom/mateu/tree/master/backend/python"
+
+[tool.hatch.version]
+path = "mateu_core/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mateu_uidl", "mateu_dtos", "mateu_core", "mateu_fastapi"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "mateu_uidl",
+    "mateu_dtos",
+    "mateu_core",
+    "mateu_fastapi",
+    "README.md",
+    "DESIGN.md",
+    "pyproject.toml",
+]
+exclude = ["**/__pycache__"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.11"
+packages = ["mateu_uidl", "mateu_dtos", "mateu_core", "mateu_fastapi"]
+plugins = ["pydantic.mypy"]
+ignore_missing_imports = true
+check_untyped_defs = false
+warn_unused_ignores = false
