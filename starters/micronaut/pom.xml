@@ -29,7 +29,7 @@
         <!-- The latest Mateu release on Maven Central. To build against your local checkout instead,
              install the backend (cd backend && mvn install -DskipTests) and pass
              -Dmateu.version=0.0.1-MATEU -->
-        <mateu.version>3.0-alpha.405</mateu.version>
+        <mateu.version>3.0-alpha.406</mateu.version>
     </properties>
 
     <dependencies>
