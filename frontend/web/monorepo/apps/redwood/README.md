@@ -22,12 +22,17 @@ poc/                    ← the single source of the bridge: plain ES modules, t
   i18n.mjs              ←   the chrome text catalogue (English by default)
   mount.mjs             ←   the packaged app at any mount path
   editorPreview.mjs     ←   editor-preview mode: the IDE visual editor's Redwood canvas (an iframe)
+  embedded.mjs          ←   EMBEDDED mode: the <mateu-ui> component's runtime, properties and boot
+  hostHeaders.mjs       ←   the host app's identity (token / headers / provider) on every request
+  make-embedded.mjs     ←   builds the <mateu-ui> component package (build/embedded/*.zip)
   test*.mjs             ←   the suites (npm test)
   make-amd.mjs          ←   bridge generator (--check in CI)
   make-html.mjs         ←   expands the atom templates into every surface of the page (--check)
   make-nls.mjs          ←   writes the VB translation bundle from i18n.mjs (--check)
   parity-check.mjs      ←   coverage.mjs vs the wire catalogue vs the renderer code vs parity.md
 scripts/copy.mjs        ← packages build/optimized into backend/shared/frontend/redwood
+embedded/mateu-ui/      ← the <mateu-ui> JET Custom Component's own code (component.json, loader, viewModel)
+embedded/harness/       ← a plain JET host page to try the component (npm run serve:embedded)
 ```
 
 The chains are thin adapters: logic lives in `poc/` with unit tests, the chains call the bridge
@@ -133,6 +138,7 @@ The renderer pins exact versions of Oracle's CDN artefacts. Everything below is 
 | Spectra / `oj-sp` (`cdn/spectra-ui/oj-sp/<ver>`) | `webApps/vbredwoodapp/app-flow.json` (requirejs paths) |
 | Redwood gallery (icon font, shell textures, welcome illustrations: `cdn/fnd/gallery/<ver>`) | `resources/css/app.css`, `app-flow.json`, `poc/core/overviews.mjs` (`WELCOME_GALLERY`) |
 | Leaflet (cdnjs, not Oracle) | `poc/map.mjs` |
+| OARS packs (`cdn/oars/packs/oj-oars|oj-oacp/<ver>`), only for a NON-VB host of `<mateu-ui>` | `poc/make-embedded.mjs` (`HOST_FALLBACK_PATHS`) |
 
 Procedure:
 
@@ -150,6 +156,38 @@ Procedure:
    (`VB_URL=http://localhost:9005`) and `RENDERER_VB=1 npx playwright test --project renderer-vb`;
    compare `/components` and `/components-2` with the captures in `poc/shots/ga-components*.png`.
 6. Update `NOTICE.md` if a third-party version changed.
+
+## Two modes: standalone and embedded
+
+The same renderer ships two ways:
+
+- **Standalone** — this VB app, packaged in the jar (above): Mateu's shell, menu and routes.
+- **Embedded** — `<mateu-ui>`, a JET Custom Component a Visual Builder developer imports into THEIR
+  app and drops on a page (`<mateu-ui base-url="https://erp.acme.com/mateu" route="orders">`). It
+  renders with the host's JET runtime and Redwood theme (no second runtime, no iframe).
+
+ONE core: the component's view is this app's content page (`main-start-page.html`, inside the
+content frame of `shell-page.html` between the `@embedded-frame` markers) and its viewModel runs the
+same action chains, on a minimal runtime (`poc/embedded.mjs`) that gives the page's binding names
+(`$application`, `$page`, `$variables`, `$listeners`) and the chains' five VB Actions their meaning
+without the VB runtime. The descriptors (`app-flow.json`, the page JSONs) say what variables and
+listeners exist, exactly as they say it to VB. The chains only learn three things: leave the host's
+URL and title alone (`bridge.isEmbedded()`, `bridge.setDocTitle`) and seed the first load
+(`bridge.takeEmbeddedSeed()`). The content runtime (rules, calendars, maps, keys…) is the list
+loadMateuShell installs — `test-embedded.mjs` fails if they drift.
+
+```bash
+npm run build            # the VB app AND build/embedded/mateu-ui/ + build/embedded/mateu-ui-<version>.zip
+npm run build:embedded   # only the component (after npm run bridge)
+npm run serve:embedded   # the host harness on :9131 (a plain JET page, JET from Oracle's CDN)
+cd ../../../../../e2e && HOST_URL=http://localhost:9131 BACKEND_URL=http://localhost:9005 node vb-embedded-probe.mjs
+```
+
+The backend must allow the harness/VB origin: `mateu.cors.allowed-origins=http://localhost:9131`.
+The zip is not part of the jar: it is attached to the GitHub release
+(`gh release upload v3.0-alpha.N build/embedded/mateu-ui-<version>.zip`). How to import and use it
+in Visual Builder (properties, events, identity, CORS, limitations, the manual test plan in a real
+VB instance): `doc/src/content/docs/design-systems/oracle-redwood.md`.
 
 ## Shell features
 
