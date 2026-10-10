@@ -58,4 +58,36 @@ class ShellFlowsTest : TestCase() {
         assertFalse(ShellFlows.isRuleLeaf(json.readTree("""{"label": "Home", "route": "/home", "rules": []}""")))
         assertFalse(ShellFlows.isRuleLeaf(json.readTree("""{"label": "Home", "route": "/home"}""")))
     }
+
+    // ── the app's ACTION catalogue (App.actionCatalogue, as ActionCatalogueSyncTest pins it) ──
+    private val catalogue = json.readTree(
+        """
+        [
+          {"id": "newOrder", "commands": [{"type": "NavigateTo", "data": "elsewhere"}]},
+          {"id": "refreshCustomers", "restAction": {"source": {"url": "https://example.test/api/customers"}}},
+          {"id": "chained", "commands": [{"type": "RunAction", "data": {"actionId": "fromCatalogue"}}]},
+          {"id": "fromCatalogue", "commands": [{"type": "NavigateTo", "data": "home"}]},
+          {"id": "loop", "commands": [{"type": "RunAction", "data": {"actionId": "loop"}}]}
+        ]
+        """.trimIndent(),
+    )
+
+    fun testAnIdTheShellDoesNotDeclareRunsTheCatalogueEntry() {
+        assertEquals(listOf(ShellFlows.Effect.Navigate("home")), ShellFlows.effects(leaf("chained"), actions, catalogue))
+        val rest = ShellFlows.effects(leaf("refreshCustomers"), actions, catalogue)
+        assertTrue(rest.single() is ShellFlows.Effect.RestAction)
+    }
+
+    fun testOwnerFirstTheShellsOwnActionWins() {
+        assertEquals(listOf(ShellFlows.Effect.Navigate("orders/new")), ShellFlows.effects(leaf("newOrder"), actions, catalogue))
+        // an owner entry without a flow is the owner's server action: the catalogue does not shadow it
+        assertEquals(listOf(ShellFlows.Effect.RunAction("serverOnly")), ShellFlows.effects(leaf("serverOnly"), actions, catalogue))
+        assertFalse(ShellFlows.isClientRunnable(ShellFlows.resolve("serverOnly", actions, catalogue)))
+        assertTrue(ShellFlows.isClientRunnable(ShellFlows.resolve("refreshCustomers", actions, catalogue)))
+    }
+
+    fun testUnknownIdsGoToTheServerAndASelfReferencingFlowCannotLoop() {
+        assertEquals(listOf(ShellFlows.Effect.RunAction("nope")), ShellFlows.effects(leaf("nope"), actions, catalogue))
+        assertEquals(listOf(ShellFlows.Effect.RunAction("loop")), ShellFlows.actionEffects("loop", null, catalogue))
+    }
 }
