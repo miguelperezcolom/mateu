@@ -170,20 +170,20 @@ Python (`mateu_uidl`) ports follow the same boundary for the same concepts.
 | `mateu-dtos` | `io.mateu.dtos` | 270 | 242 | 0 | 28 | 0 |
 | `mateu-uidl` | `io.mateu.uidl` | 6 | 6 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.annotations` | 169 | 163 | 4 | 2 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.data` | 300 | 260 | 34 | 6 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.data` | 303 | 260 | 37 | 6 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.fluent` | 34 | 31 | 0 | 3 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.interfaces` | 106 | 98 | 5 | 1 | 2 |
+| `mateu-uidl` | `io.mateu.uidl.interfaces` | 107 | 98 | 6 | 1 | 2 |
 | `mateu-uidl` | `io.mateu.uidl.layout` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
-| **Total** | | **956** | **838** | **43** | **40** | **35** |
+| **Total** | | **960** | **838** | **47** | **40** | **35** |
 
 **Experimental types** (the whole type and its members):
 
 - `io.mateu.uidl.annotations`: `AI`, `DragRows`, `RowStatus`, `Tooltip`
-- `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `Announcement`, `CalendarDay`, `CalendarView`, `Chat`, `CrudDisplay`, `DockedPanel`, `DropZone`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `GeneralOverviewDisplay`, `HeroTone`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `NotFound`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordSwitcher`, `SwitcherType`, `Toggle`, `Translations`, `WizardDisplay`
-- `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `Draftable`, `FieldTypeCatalogSupplier`, `RecordSwitcherSupplier`, `TranslationsSupplier`
+- `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `Announcement`, `CalendarDay`, `CalendarView`, `Chat`, `CrudDisplay`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `GeneralOverviewDisplay`, `HeroTone`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `NotFound`, `PageSetup`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordSwitcher`, `SwitcherType`, `Toggle`, `Translations`, `WizardDisplay`
+- `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `RecordSwitcherSupplier`, `TranslationsSupplier`
 
 **Experimental members** of otherwise stable types:
 
@@ -218,7 +218,7 @@ Python (`mateu_uidl`) ports follow the same boundary for the same concepts.
 - `io.mateu.uidl.data.RestSourceEntry`: `sample`
 - `io.mateu.uidl.data.RouteEntry`: `access`
 - `io.mateu.uidl.data.RouteLink`: `presentation`
-- `io.mateu.uidl.data.UICommand`: `announce`, `announceAssertive`
+- `io.mateu.uidl.data.UICommand`: `announce`, `announceAssertive`, `print`
 - `io.mateu.uidl.fluent.AppShell`: `accessKeys`
 - `io.mateu.uidl.fluent.Listing`: `dragType`, `preSearch`, `rowStatusField`
 - `io.mateu.uidl.interfaces.Actionable`: `presentation`

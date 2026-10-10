@@ -20,5 +20,10 @@ public enum UICommandType {
    * Announces a text to assistive technology through the page's live region (the Redwood {@code
    * announcement} slot); data must be an {@link Announcement}.
    */
-  Announce
+  Announce,
+  /**
+   * Prints the current page with the browser's print dialog; the renderers' print stylesheet hides
+   * the app chrome (navigation, toolbars, overlays). No data.
+   */
+  Print
 }

@@ -1194,6 +1194,15 @@ class AppContext(val session: AppSession) {
                     contentPane?.let { io.mateu.ijp.ui.announce(it, a.text, a.assertive) }
                 }
             }
+            // A Document (or a listing export): saved, opened with the OS viewer or printed.
+            "DownloadFile" -> io.mateu.ijp.ui.Documents.planOf(cmdData, session.baseUrl)?.let { presentDocument(it) }
+            // UICommand.print(): the rendered panel through the system print dialog.
+            "Print" -> SwingUtilities.invokeLater {
+                contentPane?.let { pane ->
+                    runCatching { io.mateu.ijp.ui.Documents.printComponent(pane) }
+                        .onFailure { showMessage(it.message ?: "Printing failed", "error") }
+                }
+            }
             "CloseModal" -> {
                 // closeModal([eventName[, payload]]): close the topmost overlay, then emit the
                 // named event so the host page can react (e.g. reload) — same contract as the web.
@@ -1202,6 +1211,35 @@ class AppContext(val session: AppSession) {
             }
             // PushStateToHistory: no browser history on desktop.
         }
+    }
+
+    // ── documents ──────────────────────────────────────────────────────────────────────
+    /** Fetches the document off the EDT, then saves it (attachment) or opens/prints it (inline). */
+    private fun presentDocument(plan: io.mateu.ijp.ui.Documents.Plan) {
+        Thread({
+            val bytes = runCatching { io.mateu.ijp.ui.Documents.bytesOf(plan) }
+            SwingUtilities.invokeLater {
+                bytes.onFailure { showMessage(it.message ?: "The document could not be fetched", "error") }
+                bytes.onSuccess { content ->
+                    if (plan.inline) {
+                        val file = io.mateu.ijp.ui.Documents.tempFileOf(plan, content)
+                        if (!io.mateu.ijp.ui.Documents.openWithOs(file, plan.print)) saveDocument(plan, content)
+                    } else {
+                        saveDocument(plan, content)
+                    }
+                }
+            }
+        }, "mateu-document").apply { isDaemon = true }.start()
+    }
+
+    private fun saveDocument(plan: io.mateu.ijp.ui.Documents.Plan, content: ByteArray) {
+        val chooser = javax.swing.JFileChooser().apply {
+            dialogTitle = plan.filename
+            selectedFile = java.io.File(plan.filename)
+        }
+        if (chooser.showSaveDialog(contentPane) != javax.swing.JFileChooser.APPROVE_OPTION) return
+        runCatching { chooser.selectedFile.writeBytes(content) }
+            .onFailure { showMessage(it.message ?: "The document could not be saved", "error") }
     }
 
     // ── server-side component loading ──────────────────────────────────────────────────

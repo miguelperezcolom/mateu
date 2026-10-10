@@ -20,6 +20,10 @@ Example::
 
 from __future__ import annotations
 
+from .documents import (  # noqa: F401
+    Document,
+    DocumentDisposition,
+)
 from .messages import (  # noqa: F401
     BannerTheme,
     Message,
@@ -278,6 +282,8 @@ BadgeInHeader = HeaderBadge  # Java @BadgeInHeader
 PageWidthStyle = PageWidth  # Java / .NET PageWidthStyle (Python's @page_width takes it)
 
 __all__ = [
+    "Document",
+    "DocumentDisposition",
     "Access",
     "Translations",
     "TranslationsSupplier",

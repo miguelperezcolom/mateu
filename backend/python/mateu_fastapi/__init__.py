@@ -26,7 +26,7 @@ from starlette.concurrency import run_in_threadpool
 from mateu_core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_core.errors import dev_mode_from_env, error_increment, new_correlation_id
 from mateu_core.identity import framework_identity_provider, warn_on_startup
-from mateu_core import dev_specs
+from mateu_core import dev_specs, documents
 from mateu_core.mcp import handle_jsonrpc
 from mateu_core.request_context import MateuRequest, bound_request, normalise_headers
 from mateu_uidl import Identity
@@ -193,6 +193,15 @@ def add_mateu(
 
     app.add_api_route(f"{prefix}/mateu/v3/sync/{{route:path}}", sync, methods=["POST"])
     app.add_api_route(f"{prefix}/mateu/v3/sync", sync, methods=["POST"])
+
+    # A document an action parked (mateu_core.documents), served ONCE. No auth beyond the token: a
+    # new tab or a download link cannot carry a bearer token, and the 256-bit, short-lived,
+    # single-use token was only handed out to a user allowed to run the action.
+    async def document(token: str) -> Response:
+        served = await run_in_threadpool(documents.serve, token)
+        return Response(content=served.body, status_code=served.status, headers=served.headers)
+
+    app.add_api_route(f"{prefix}{documents.PATH_MARKER}{{token}}", document, methods=["GET"])
 
     # Native MCP endpoint — the app is also an MCP (the agent-operability plane). A JSON-RPC 2.0
     # message in, the projected wire out; reuses the SyncHandler so RBAC applies as on sync.

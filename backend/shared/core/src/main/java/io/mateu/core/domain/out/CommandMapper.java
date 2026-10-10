@@ -3,8 +3,10 @@ package io.mateu.core.domain.out;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getTitle;
 import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isPage;
 
+import io.mateu.core.infra.documents.DocumentCommands;
 import io.mateu.dtos.UICommandDto;
 import io.mateu.dtos.UICommandTypeDto;
+import io.mateu.uidl.data.Document;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.data.UICommandType;
 import io.mateu.uidl.fluent.Step;
@@ -77,6 +79,11 @@ public class CommandMapper {
     if (instance instanceof UICommand command) {
       result.add(mapCommand(targetComponentId, command));
     }
+    // a Document is shown or downloaded: lowered to a DownloadFile command, the bytes inline or
+    // behind a single-use URL (DocumentCommands decides)
+    if (instance instanceof Document document) {
+      result.add(mapDocument(targetComponentId, document, baseUrl));
+    }
     // A flow Step is behavior returned from a method: lower it to its wire command (coherence-plan
     // #3). v0 verbs are 1:1 with a UICommand, so a returned Step (or a list of them) becomes
     // commands on the increment — the flow model made live, additively.
@@ -86,18 +93,21 @@ public class CommandMapper {
     if (instance instanceof Collection<?> collection) {
       result.addAll(
           collection.stream()
-              .filter(o -> o instanceof UICommand || o instanceof Step)
+              .filter(o -> o instanceof UICommand || o instanceof Step || o instanceof Document)
               .map(
                   o ->
-                      mapCommand(
-                          targetComponentId, o instanceof Step s ? s.toCommand() : (UICommand) o))
+                      o instanceof Document document
+                          ? mapDocument(targetComponentId, document, baseUrl)
+                          : mapCommand(
+                              targetComponentId,
+                              o instanceof Step s ? s.toCommand() : (UICommand) o))
               .toList());
     }
     return result;
   }
 
   private static boolean isCommandResult(Object instance) {
-    if (instance instanceof UICommand || instance instanceof Step) {
+    if (instance instanceof UICommand || instance instanceof Step || instance instanceof Document) {
       return true;
     }
     // a wire DTO handed back as is — a LongTask progress step is a UIFragmentDto aimed at the
@@ -109,7 +119,8 @@ public class CommandMapper {
     }
     return instance instanceof Collection<?> collection
         && !collection.isEmpty()
-        && collection.stream().allMatch(o -> o instanceof UICommand || o instanceof Step);
+        && collection.stream()
+            .allMatch(o -> o instanceof UICommand || o instanceof Step || o instanceof Document);
   }
 
   // same marker check as EditableView.isEmbedded / EmbeddedOrchestratorFieldBuilder
@@ -121,6 +132,14 @@ public class CommandMapper {
     return (rq.route() != null && rq.route().contains("_embeddedMediator"))
         || (rq.serverSideComponentRoute() != null
             && rq.serverSideComponentRoute().contains("_embeddedMediator"));
+  }
+
+  private static UICommandDto mapDocument(
+      String targetComponentId, Document document, String baseUrl) {
+    return new UICommandDto(
+        targetComponentId,
+        UICommandTypeDto.DownloadFile,
+        DocumentCommands.toFileDownload(document, baseUrl));
   }
 
   private static UICommandDto mapCommand(String targetComponentId, UICommand command) {

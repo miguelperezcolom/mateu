@@ -39,7 +39,7 @@ import { listingOf, rowClickOpensRecord, groupedRows, rowToneOf, aggregateFooter
 import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, entityHeaderOf, taskQueueOf, formSectionsOf, layoutFieldOf, HOST_ID } from './reduceContexts.mjs'
 import { localMenuOptionOf, isSentinelHome } from './navTree.mjs'
 import { loadMenuRouteInto, terminalMenuRouteOf, bootstrapHasApp, mediatorConsumedRoute, mediatorBaseOf, composeInnerRoute } from './transport.mjs'
-import { fileDownloadOf, triggerDownload, applyDomEffects } from './files.mjs'
+import { fileDownloadOf, triggerDownload, applyDomEffects, documentUrlOf, noteDocumentBase, PRINT_CSS } from './files.mjs'
 import { evaluateExpression, evaluateTemplate, computeRules, fieldFlagsOf, valueChangeActionOf } from './rules.mjs'
 import { describeFileValue, isImageValue, captureTexts } from './inputs.mjs'
 import { wireElementEvents, serializeElementEvent, setElementEventSink, elementModuleUrl } from './elements.mjs'
@@ -89,11 +89,86 @@ test('DownloadFile: el reducer acumula TODOS los ficheros del increment', () => 
 
 test('DownloadFile: se descarga como Blob con su nombre y tipo; sin contenido no hace nada', () => {
   const { env, log } = fakeEnv()
-  assert.equal(triggerDownload({ filename: 'folio.pdf', mimeType: 'application/pdf', base64Content: 'JVBERi0=' }, env), true)
+  assert.equal(triggerDownload({ filename: 'folio.pdf', mimeType: 'application/pdf', base64Content: 'JVBERi0=' }, env), 'downloaded')
   assert.deepEqual(log, [['url', 'application/pdf'], ['append', 'folio.pdf'], ['click', 'folio.pdf', 'blob:x'], ['remove'], ['revoke', 'blob:x']])
   assert.equal(fileDownloadOf({ filename: 'x' }), null)
   assert.equal(fileDownloadOf({ base64Content: 'eA==' }).filename, 'export')
   assert.equal(applyDomEffects({ downloads: [{ base64Content: 'eA==' }, {}] }, null, fakeEnv().env), 1)
+})
+
+test('Document: inline se abre en otra pestaña (sin opener); un bloqueador de popups lo convierte en descarga', () => {
+  const { env, log } = fakeEnv()
+  const tab = { opener: {} }
+  env.open = (href, target) => { log.push(['open', href, target]); return tab }
+  assert.equal(triggerDownload({ filename: 'folio.pdf', mimeType: 'application/pdf', base64Content: 'JVBERi0=', disposition: 'inline' }, env), 'opened')
+  assert.deepEqual(log[1], ['open', 'blob:x', '_blank'])
+  assert.equal(tab.opener, null)
+  const blocked = fakeEnv()
+  blocked.env.open = () => null
+  assert.equal(triggerDownload({ filename: 'folio.pdf', base64Content: 'JVBERi0=', disposition: 'inline' }, blocked.env), 'downloaded')
+  assert.ok(blocked.log.some((l) => l[0] === 'click'))
+})
+
+test('Document: los grandes llegan por una URL de un solo uso, resuelta contra el backend', () => {
+  noteDocumentBase('http://localhost:9005')
+  assert.equal(documentUrlOf('/mateu/v3/documents/tok'), 'http://localhost:9005/mateu/v3/documents/tok')
+  assert.equal(documentUrlOf('javascript:alert(1)'), null)
+  assert.equal(documentUrlOf('//evil.example/x'), null)
+  const f = fileDownloadOf({ filename: 'big.pdf', url: '/mateu/v3/documents/tok', disposition: 'inline', print: true })
+  assert.equal(f.url, 'http://localhost:9005/mateu/v3/documents/tok')
+  assert.equal(f.print, true)
+  assert.equal(fileDownloadOf({ filename: 'x', url: 'javascript:alert(1)' }), null)
+  // print sólo tiene sentido mostrado
+  assert.equal(fileDownloadOf({ filename: 'x', base64Content: 'eA==', print: true }).print, false)
+  noteDocumentBase('')
+  const { env, log } = fakeEnv()
+  env.open = (href) => { log.push(['open', href]); return {} }
+  assert.equal(triggerDownload({ filename: 'big.pdf', url: '/mateu/v3/documents/tok', disposition: 'inline' }, env), 'opened')
+  assert.deepEqual(log, [['open', '/mateu/v3/documents/tok']]) // ni Blob ni object URL
+})
+
+test('Document: print lo imprime en un iframe oculto, sin popup', () => {
+  const log = []
+  let onload
+  const frame = {
+    style: {}, setAttribute: (k, v) => log.push(['attr', k, v]),
+    addEventListener: (ev, fn) => { onload = fn },
+    contentWindow: { focus() {}, print() { log.push(['print']) } },
+    remove() { log.push(['frame-removed']) },
+  }
+  const env = {
+    atob: (b) => Buffer.from(b, 'base64').toString('binary'),
+    Blob: class { constructor(parts, opts) { this.type = opts.type } },
+    URL: { createObjectURL: () => 'blob:p', revokeObjectURL: () => {} },
+    setTimeout: () => {},
+    open: () => { log.push(['open']); return {} },
+    document: { body: { appendChild: (f) => log.push(['append', f.src]) }, createElement: () => frame },
+  }
+  assert.equal(triggerDownload({ filename: 'f.pdf', base64Content: 'JVBERi0=', disposition: 'inline', print: true }, env), 'printing')
+  assert.deepEqual(log.find((l) => l[0] === 'append'), ['append', 'blob:p'])
+  onload()
+  assert.ok(log.some((l) => l[0] === 'print'))
+  assert.ok(!log.some((l) => l[0] === 'open'))
+})
+
+test('Print: el reducer lo describe y applyDomEffects imprime la página sin chrome', () => {
+  const reg = reduceContexts(empty(), { commands: [{ type: 'Print', data: null }] })
+  assert.equal(reg.effects.print, true)
+  const appended = []
+  let printed = 0
+  const env = {
+    print: () => { printed++ },
+    document: {
+      head: { appendChild: (s) => appended.push(s) },
+      createElement: () => ({ setAttribute() {}, textContent: '' }),
+      querySelectorAll: () => [],
+    },
+  }
+  applyDomEffects(reg.effects, null, env)
+  assert.equal(printed, 1)
+  assert.equal(appended.length, 1)
+  assert.match(appended[0].textContent, /@media print/)
+  assert.match(PRINT_CSS, /oj-sp-global-header/)
 })
 
 test('DownloadFile: TODAS las chains que reducen un increment aplican sus efectos de DOM', () => {

@@ -46,6 +46,12 @@ class UICommand(Wire):
         )
 
     @staticmethod
+    def print() -> "UICommand":
+        """Prints the current page with the browser's print dialog, leaving the app chrome out
+        (EXPERIMENTAL; mirrors Java's UICommand.print)."""
+        return UICommand(target_component_id="ux_main", type="Print")
+
+    @staticmethod
     def dispatch_event(event_name: str, detail: Any | None = None) -> "UICommand":
         """Emits a named custom event from the current component (mirrors Java's
         UICommand.dispatchEvent) — @subscribe_to counterparts react to it."""

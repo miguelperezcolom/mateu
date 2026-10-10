@@ -90,6 +90,16 @@ public record UICommand(UICommandType type, Object data) {
     return new UICommand(UICommandType.Announce, new Announcement(text, true));
   }
 
+  /**
+   * Prints the current page: the client opens the browser's print dialog, with a print stylesheet
+   * that leaves out the app chrome (menus, toolbars, buttons, overlays). To print a generated
+   * document instead, return {@code Document.printed()}.
+   */
+  @io.mateu.uidl.annotations.Experimental("documents API, 2026-10")
+  public static UICommand print() {
+    return new UICommand(UICommandType.Print, null);
+  }
+
   /** Clears the dirty state; return this from a save action after persisting changes. */
   public static UICommand markAsClean() {
     return new UICommand(UICommandType.MarkAsClean, null);

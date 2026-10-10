@@ -400,6 +400,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // accesibilidad: lo que los componentes oj-* no traen (una SPA no cambia de página, así
     // que no hay nada que un lector de pantalla anuncie por su cuenta)
     installAnnouncer,
+    installPrintSupport,
     announce,
     announceNavigation,
     focusIsInChat,

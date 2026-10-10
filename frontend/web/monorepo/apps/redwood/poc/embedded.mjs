@@ -529,6 +529,9 @@ export const NOT_IN_EMBEDDED = Object.freeze({
   // live reload (dev mode) answers an app-level change by reloading the WINDOW: in a host page that
   // is the host's app, not ours — the embedded component is not live-reloaded (yet)
   installDevLiveReload: 'an app-level reload would reload the host page',
+  // Ctrl+P prints the HOST page: its print stylesheet is the host's to decide (UICommand.print
+  // still works inside the component — applyDomEffects prepares the sheet when it runs)
+  installPrintSupport: 'the host page owns what its own Ctrl+P prints',
 })
 
 /**

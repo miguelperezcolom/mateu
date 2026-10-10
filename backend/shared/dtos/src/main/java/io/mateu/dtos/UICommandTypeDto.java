@@ -13,5 +13,6 @@ public enum UICommandTypeDto {
   MarkAsDirty,
   MarkAsClean,
   DownloadFile,
-  Announce
+  Announce,
+  Print
 }
