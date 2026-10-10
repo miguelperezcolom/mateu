@@ -35,6 +35,24 @@ public sealed partial class SyncHandler
         var columns = _mapper.ExportColumns(element)
             .Select(c => new ExportColumn(c.Property.Name, c.Label))
             .ToList();
+        return Download(kind, rows, columns, rq);
+    }
+
+    /// <summary>Exports what a LISTING's search returned for an unpaged request (Java exports any
+    /// Listing, not only a Crud): the ListingData content, one column per visible row property.</summary>
+    private UIIncrementDto ExportRows(string kind, object? found, Type rowType, RunActionRqDto rq)
+    {
+        var rows = found?.GetType().GetProperty("Content")?.GetValue(found) is System.Collections.IEnumerable content
+            ? content.Cast<object>().ToList()
+            : [];
+        var columns = _mapper.ExportColumns(rowType)
+            .Select(c => new ExportColumn(c.Property.Name, c.Label))
+            .ToList();
+        return Download(kind, rows, columns, rq);
+    }
+
+    private UIIncrementDto Download(string kind, List<object> rows, List<ExportColumn> columns, RunActionRqDto rq)
+    {
         var (bytes, filename, mimeType) = kind switch
         {
             "excel" => (Exporters.Excel.Export(rows, columns), "export.xlsx",

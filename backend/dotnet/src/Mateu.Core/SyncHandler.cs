@@ -167,6 +167,13 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         if (ReflectionMapper.ListingTypes(type) is { } listing)
         {
             var view = Activator.CreateInstance(type)!;
+            if (ExportKind(view, rq.ActionId) is { } listingExport)
+            {
+                var all = new SearchRequest(SearchText(rq), AssembleFilters(listing.Filters, rq.ComponentState),
+                    null, new Pageable(0, int.MaxValue, PageableOf(rq).Sort));
+                return ExportRows(listingExport,
+                    type.GetMethod("Search", [typeof(SearchRequest)])!.Invoke(view, [all]), listing.Row, rq);
+            }
             return rq.ActionId switch
             {
                 "search" => ListingSearch(view, listing.Filters, listing.Row, rq),

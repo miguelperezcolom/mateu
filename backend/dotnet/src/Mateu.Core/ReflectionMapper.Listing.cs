@@ -35,6 +35,26 @@ public sealed partial class ReflectionMapper
     internal static bool IsSelector(Type viewType) =>
         viewType.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISelector<>));
 
+    /// <summary>The export buttons of a listing that opted in (ICrudExports: CsvExportable /
+    /// ExcelExportable / PdfExportable), first in the toolbar in Java's order, plus their actions —
+    /// any Listing exports in Java, not only a Crud (Listing.csvExportable &amp; co).</summary>
+    private static void AddExportButtons(object? listing, List<ButtonDto> toolbar, List<ActionDto> actions)
+    {
+        if (listing is not ICrudExports exports) return;
+        var at = 0;
+        foreach (var (on, label, actionId) in new[]
+                 {
+                     (exports.CsvExportable, "Export CSV", "export-csv"),
+                     (exports.ExcelExportable, "Export Excel", "export-excel"),
+                     (exports.PdfExportable, "Export PDF", "export-pdf"),
+                 })
+        {
+            if (!on) continue;
+            toolbar.Insert(at++, new ButtonDto(label, actionId));
+            actions.Add(new ActionDto(actionId, ValidationRequired: false));
+        }
+    }
+
     internal ServerSideComponentDto MapListing(Type viewType, Type filters, Type row, string route)
     {
         var title = viewType.Find<TitleAttribute>()?.Value ?? Naming.Humanize(viewType.Name);
@@ -60,6 +80,8 @@ public sealed partial class ReflectionMapper
             }))
             .ToList();
         var actions = new List<ActionDto> { new("search") };
+        var toolbar = new List<ButtonDto>();
+        AddExportButtons(instance, toolbar, actions);
         if (IsSelector(viewType))
         {
             // The rows of a selector dialog show a Select button (the frontend keys on the
@@ -78,7 +100,7 @@ public sealed partial class ReflectionMapper
             actions.Add(new ActionDto("action-on-row-" + button.ActionId, ValidationRequired: false));
         var gridLayout = viewType.GetMethod("GridLayout")!
             .Invoke(instance, []) as string ?? "auto";
-        var crud = Client(new CrudMetadataDto(title, columns, [])
+        var crud = Client(new CrudMetadataDto(title, columns, toolbar)
         {
             CanEdit = false,
             Filters = MapListingFilters(filters),
@@ -286,6 +308,7 @@ public sealed partial class ReflectionMapper
             .ToList();
         var toolbar = new List<ButtonDto>();
         var actions = new List<ActionDto> { new("search") };
+        AddExportButtons(instance, toolbar, actions);
         if (rowsClickable) actions.Add(new ActionDto("view", ValidationRequired: false));
         if (profile.CanCreate)
         {

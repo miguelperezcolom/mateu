@@ -162,9 +162,18 @@ public sealed record NumberRange(decimal? From = null, decimal? To = null)
 /// IListing + ISearchable + IFilterable, pre-declared. (C# analogue of Java's Listing +
 /// Searchable + Filterable.)
 /// </summary>
-public abstract class Listing<TFilters, TRow> : IListing<TRow>, ISearchable, IFilterable<TFilters>
+public abstract class Listing<TFilters, TRow> : IListing<TRow>, ISearchable, IFilterable<TFilters>, ICrudExports
     where TFilters : class, new() where TRow : class
 {
+    /// <summary>Export buttons on the listing toolbar (Java's Listing.csvExportable /
+    /// excelExportable / pdfExportable): each exports the whole filtered result set — the listing's
+    /// Search with an unpaged request. A capability IListing opts in by implementing ICrudExports.</summary>
+    public virtual bool CsvExportable => false;
+
+    public virtual bool ExcelExportable => false;
+
+    public virtual bool PdfExportable => false;
+
     /// <summary>Rows matching the free-text search and the applied filters.</summary>
     public abstract ListingData<TRow> Search(SearchRequest request);
 

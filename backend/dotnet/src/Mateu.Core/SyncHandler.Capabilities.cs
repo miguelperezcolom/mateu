@@ -33,6 +33,17 @@ public sealed partial class SyncHandler
         // Reference fields on the detail/edit/create forms keep working like on cruds.
         if (rq.ActionId?.StartsWith("search-") == true) return FieldSearch(listing, rq);
         if (rq.ActionId?.StartsWith("codesearch-") == true) return FieldCodeSearch(profile.EditorType, rq);
+        // A listing that opted into an export answers it with the whole filtered result set.
+        if (ExportKind(listing, rq.ActionId) is { } export)
+        {
+            var all = new SearchRequest(
+                profile.Searchable ? SearchText(rq) : null,
+                profile.FiltersType is { } filtersType ? AssembleFilters(filtersType, rq.ComponentState) : null,
+                null,
+                new Pageable(0, int.MaxValue, PageableOf(rq).Sort));
+            return ExportRows(export, profile.ListingInterface.GetMethod("Search")!.Invoke(listing, [all]),
+                profile.RowType, rq);
+        }
 
         return rq.ActionId switch
         {

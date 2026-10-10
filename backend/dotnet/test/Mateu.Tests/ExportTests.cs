@@ -210,4 +210,56 @@ public class ExportTests
         Assert.Equal("ZZ1", BuiltInExcelExporter.Ref(701, 1));
         Assert.Equal("AAA1", BuiltInExcelExporter.Ref(702, 1));
     }
+
+    [Fact]
+    public void Any_listing_that_opts_in_exports_its_whole_filtered_result_set()
+    {
+        // Java exports any Listing (Listing.csvExportable & co), not only a Crud.
+        var handler = Handler();
+        foreach (var (type, route) in new[] { (typeof(ExGuestListing), "ex-guest-listing"), (typeof(ExCapListing), "ex-cap-listing") })
+        {
+            var render = JsonSerializer.Serialize(handler.Handle(new RunActionRqDto { Route = route }), Json);
+            Assert.Contains("\"label\":\"Export CSV\",\"actionId\":\"export-csv\"", render);
+            Assert.DoesNotContain("export-pdf", render);
+            var (filename, _, bytes) = Download(handler.Handle(new RunActionRqDto
+            {
+                Route = route, ActionId = "export-csv", ServerSideType = type.FullName, InitiatorComponentId = "c1",
+                ComponentState = new() { ["searchText"] = JsonSerializer.SerializeToElement("Guest 1"), ["size"] = JsonSerializer.SerializeToElement(10) },
+            }));
+            Assert.Equal("export.csv", filename);
+            var lines = Encoding.UTF8.GetString(bytes).Trim().Split('\n');
+            // header + every match (Guest 1, 10-19, 100-120 = 32), not just the first page of 10
+            Assert.Equal(33, lines.Length);
+            // a format the listing did not opt into is refused
+            var pdf = handler.Handle(new RunActionRqDto
+            {
+                Route = route, ActionId = "export-pdf", ServerSideType = type.FullName, InitiatorComponentId = "c1",
+            });
+            Assert.DoesNotContain(pdf.Commands, c => c.Type == "DownloadFile");
+        }
+    }
+}
+
+public class ExGuestListingFilters { }
+
+[UI("ex-guest-listing"), Title("Guest listing")]
+public class ExGuestListing : Listing<ExGuestListingFilters, ExGuest>
+{
+    public override bool CsvExportable => true;
+
+    public override ListingData<ExGuest> Search(SearchRequest request) =>
+        ListingData.From(ExGuests.All.Where(g => g.Name.Contains(request.SearchText ?? "")).ToList());
+}
+
+[UI("ex-cap-listing"), Title("Guest capability listing")]
+public class ExCapListing : IListing<ExGuest>, Mateu.Uidl.ISearchable, INavigable<ExGuest, string>, ICrudExports
+{
+    public bool CsvExportable => true;
+    public bool ExcelExportable => false;
+    public bool PdfExportable => false;
+
+    public ListingData<ExGuest> Search(SearchRequest request) =>
+        ListingData.From(ExGuests.All.Where(g => g.Name.Contains(request.SearchText ?? "")).ToList());
+
+    public ExGuest View(string id) => ExGuests.All.First(g => g.Id == id);
 }
