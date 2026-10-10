@@ -9,6 +9,7 @@ import io.mateu.core.application.security.MateuForbiddenException;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Listing;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.lang.reflect.Method;
 import reactor.core.publisher.Flux;
 
@@ -20,6 +21,7 @@ import reactor.core.publisher.Flux;
  * interface half lives in {@code Listing.handleActionOnRow}.
  */
 @Named
+@Singleton
 public class ListingRowActionRunner implements ActionRunner {
 
   @Override

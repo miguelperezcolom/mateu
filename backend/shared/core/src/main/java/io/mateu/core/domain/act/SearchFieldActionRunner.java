@@ -13,6 +13,7 @@ import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.LookupOptionsSupplier;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.Map;
 import reactor.core.publisher.Flux;
 
 @Named
+@Singleton
 public class SearchFieldActionRunner implements ActionRunner {
 
   @Override

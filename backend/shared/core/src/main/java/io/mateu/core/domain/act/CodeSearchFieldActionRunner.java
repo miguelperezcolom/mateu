@@ -21,6 +21,7 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.SearchableSelection;
 import io.mateu.uidl.interfaces.Selector;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.lang.reflect.ParameterizedType;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -29,6 +30,7 @@ import java.util.UUID;
 import reactor.core.publisher.Flux;
 
 @Named
+@Singleton
 public class CodeSearchFieldActionRunner implements ActionRunner {
 
   @Override

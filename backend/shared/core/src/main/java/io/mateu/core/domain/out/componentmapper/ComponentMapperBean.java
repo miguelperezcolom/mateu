@@ -8,10 +8,12 @@ import io.mateu.uidl.interfaces.*;
 import io.mateu.uidl.reflection.ComponentMapper;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.util.Collection;
 import lombok.RequiredArgsConstructor;
 
 @Named
+@Singleton
 @RequiredArgsConstructor(onConstructor_ = @Inject)
 public class ComponentMapperBean implements ComponentMapper {
 
