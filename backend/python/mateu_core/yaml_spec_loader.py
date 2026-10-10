@@ -20,15 +20,17 @@ from pathlib import Path
 
 from mateu_core.partial_registry import PartialRegistry
 from mateu_core.route_registry import RouteRegistry
-from mateu_core.yaml_preview import parse_spec
+from mateu_core.yaml_preview import parse_spec_with_delta
 
 
 @dataclass(frozen=True)
 class Spec:
-    """A parsed page spec: the layout, plus the ModelView class name when the YAML declares one."""
+    """A parsed page spec: the layout (or, for a ``layoutDelta:`` page, the delta to re-apply over
+    the view model's inferred layout), plus the ModelView class name when known."""
 
     model_view: str | None
     layout: object | None
+    delta: object | None = None
 
 
 class YamlSpecLoader:
@@ -62,17 +64,19 @@ class YamlSpecLoader:
         if not path.is_file():
             return None
         try:
-            model_view, layout = parse_spec(path.read_text(), self.partials)
+            model_view, layout, delta = parse_spec_with_delta(path.read_text(), self.partials)
         except OSError:
             return None
-        if layout is None:
+        if layout is None and delta is None:
             return None
         # The definition is layout; the binding to a view model belongs to the route entry. A YAML
         # that still declares modelView: keeps working and wins — but a definition shared by several
         # routes must NOT name one, or it could only ever serve the class it names.
         if not model_view and entry is not None:
             model_view = entry.view_model or None
-        return Spec(model_view, layout)
+        if layout is None and not model_view:
+            return None  # a delta with no view model to infer from: nothing to render
+        return Spec(model_view, layout, delta)
 
 
 def _normalize(route: str | None) -> str:

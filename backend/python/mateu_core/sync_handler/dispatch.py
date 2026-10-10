@@ -23,6 +23,7 @@ from mateu_uidl import (
 from .. import capabilities
 from ..mapper import set_current_audience
 from ..registry import type_name
+from .. import layout_delta
 from ._base import MixinBase
 from ._common import (
     _route_seed,
@@ -205,11 +206,17 @@ class DispatchMixin(MixinBase):
         # A YAML page bound to this modelView re-applies its layout on every render (first load AND
         # any in-place re-render) so the layout stays authoritative (mirrors Java's
         # ReflectionObjectToComponentMapper.layout_for_route).
-        layout_override = (
-            yaml_spec.layout
-            if yaml_spec is not None and yaml_spec.model_view == type_name(type_)
-            else None
-        )
+        bound_spec = yaml_spec is not None and yaml_spec.model_view == type_name(type_)
+        layout_override = yaml_spec.layout if bound_spec else None
+        # A layoutDelta: page re-applies its delta over the view model's INFERRED layout on every
+        # render of this request (Java's LayoutDeltaApplier).
+        delta_token = layout_delta.activate(type_, yaml_spec.delta if bound_spec else None)
+        try:
+            return self._handle_view(type_, rq, layout_override)
+        finally:
+            layout_delta.deactivate(delta_token)
+
+    def _handle_view(self, type_, rq: RunActionRq, layout_override) -> UIIncrement:
 
         # 2b. The notification inbox's app-level actions — dispatched with the app's
         # serverSideType (the same rail as the @app_context pickers' remote search), exempt

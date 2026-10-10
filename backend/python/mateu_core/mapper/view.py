@@ -17,6 +17,8 @@ from mateu_uidl import (
 
 from ..action_guard import resolve_action
 from ..islands import is_inline_request
+from ..layout_delta import active_for as active_layout_delta
+from ..layout_delta import apply as apply_layout_delta
 from ..validation import client_validations
 from ..naming import (
     camel_case,
@@ -215,6 +217,8 @@ class ViewMapperMixin(MixinBase):
         # resolves the DECLARED source, injects ${secret.X} and fetches server-side).
         if self._has_proxy_source(cls, instance):
             actions = list(actions) + [Action(id="__restfetch__")]
+        # A layoutDelta: page: the human's decisions re-applied over the freshly inferred layout.
+        server_children = apply_layout_delta(server_children, active_layout_delta(cls))
         return ServerSideComponent(
             id=_id(),
             server_side_type=type_name(cls),
