@@ -1,0 +1,20 @@
+# Field type catalogue: reusable field / column definitions, declared ONCE and referenced by id from
+# any field or column with `fieldType: <id>` (e.g. `{type: GridColumn, id: status, fieldType: OrderStatus}`).
+# A type only supplies DEFAULTS: whatever the field or column declares itself wins.
+type: Types
+types: []
+# Example — replace `types: []` above with:
+# types:
+#   - id: OrderStatus
+#     label: Status
+#     dataType: status
+#     options: [{value: OPEN, label: Open}, {value: SHIPPED, label: Shipped}]
+#     tones: {OPEN: warning, SHIPPED: success}   # success | warning | danger | info | neutral
+#   - id: Money
+#     dataType: money
+#     align: end
+#   - id: Email
+#     label: E-mail
+#     stereotype: email
+#     placeholder: name@example.com
+#     required: true

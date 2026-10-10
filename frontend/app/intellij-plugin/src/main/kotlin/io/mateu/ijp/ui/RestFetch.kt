@@ -80,7 +80,54 @@ object RestFetch {
         }
         val proxy = source.path("proxy").asBoolean(false) || from.path("proxy").asBoolean(false)
         merged.put("proxy", proxy)
+        // the entry's sample (or the one its own source carries) unless the surface declares one
+        val ownSample = source.get("sample")
+        val sample = if (ownSample != null && !ownSample.isNull) ownSample
+            else restSource(ref)?.get("sample")?.takeIf { !it.isNull } ?: from.get("sample")?.takeIf { !it.isNull }
+        if (sample != null) merged.set<JsonNode>("sample", sample) else merged.remove("sample")
         return merged
+    }
+
+    // ── Sample mode ─────────────────────────────────────────────────────────
+    // A source may carry SAMPLE data (`sample:` / `sampleFile:` in sources.yaml, or `sample:` inline):
+    // the response the endpoint would return. It answers INSTEAD of calling the endpoint only in
+    // sample mode — the same rule as libs/mateu restSourceCatalogue.ts and the server's SampleSources.
+    // The plugin loads no bundles and its visual editor runs the web bundle, so the ONLY switch here
+    // is the app metadata (`AppDto.mockSources: true`, sent when the server opted in with
+    // mateu.sources.mock=true). Only ever switched ON by the app; never silently in production.
+    @Volatile
+    var sampleMode: Boolean = false
+        private set
+
+    /** Turns sample mode on (or off — only tests do that). */
+    fun setSampleMode(on: Boolean) {
+        sampleMode = on
+    }
+
+    /** The sample a source answers with in sample mode (resolving its `ref`); null when it is not
+     *  answered from a sample (sample mode off, or the source carries none). */
+    fun sampleOf(source: JsonNode?): JsonNode? {
+        if (!sampleMode || source == null || source.isMissingNode || source.isNull) return null
+        return resolveRestSource(source).get("sample")?.takeIf { !it.isNull && !it.isMissingNode }
+    }
+
+    /** True when this source is answered from its sample — neither fetched nor proxied, and a
+     *  listing over it searches, filters, sorts and pages in memory. */
+    fun isSampled(source: JsonNode?): Boolean = sampleOf(source) != null
+
+    /** Whether the fetch goes through the Mateu server: the RESOLVED `proxy`, unless sample mode
+     *  answers it on the client. */
+    fun viaProxy(source: JsonNode?): Boolean =
+        source != null && !source.isMissingNode && resolveRestSource(source).path("proxy").asBoolean(false) &&
+            !isSampled(source)
+
+    /** The sample-mode answer for a call: a READ gets a deep copy of the sample, a WRITE succeeds
+     *  with JSON null (nothing persisted, nothing to merge). Kotlin null = not sampled, do the call. */
+    fun sampledResponse(source: JsonNode?, method: String? = null): JsonNode? {
+        val sample = sampleOf(source) ?: return null
+        val m = method.orEmpty().ifBlank { resolveRestSource(source!!).text("method") }.ifBlank { "GET" }.uppercase()
+        if (m != "GET" && m != "HEAD") return com.fasterxml.jackson.databind.node.NullNode.instance
+        return sample.deepCopy()
     }
 
     /** Navigate a dot path (`data.items`, `name.common`) into a JSON value; blank path is identity. */
@@ -95,6 +142,8 @@ object RestFetch {
     /** Fetch a RestDataSource node (`url`/`method`/`headers`/`body`), interpolating each against ctx.
      *  Resolves a catalogue `ref` first. */
     fun fetch(apiClient: MateuApiClient, declared: JsonNode, ctx: Map<String, Any?>): JsonNode {
+        // SAMPLE mode: a sampled source is not fetched — a read gets a copy of the sample, a write null.
+        sampledResponse(declared)?.let { return it }
         val source = resolveRestSource(declared)
         val url = Expressions.interpolateUrl(source.text("url"), ctx)
         val method = source.text("method").ifBlank { "GET" }.uppercase()

@@ -25,6 +25,7 @@ class MateuRoutesTest : TestCase() {
         assertEquals(SpecKind.MOUNT, MateuRoutes.classify("type: UI\nbasePath: /\n"))
         assertEquals(SpecKind.ROUTES, MateuRoutes.classify("type: Routes\nroutes: []\n"))
         assertEquals(SpecKind.SOURCES, MateuRoutes.classify("type: Sources\nsources: []\n"))
+        assertEquals(SpecKind.TYPES, MateuRoutes.classify("type: Types\ntypes: []\n"))
         assertEquals(SpecKind.APP_SHELL, MateuRoutes.classify("type: AppShell\ntitle: x\n"))
         assertEquals(SpecKind.PAGE, MateuRoutes.classify("type: Form\ntitle: x\n"))
         assertEquals(SpecKind.PAGE, MateuRoutes.classify("title: no type\n"))

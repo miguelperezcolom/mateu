@@ -26,7 +26,7 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
       backend; the standalone desktop distribution keeps its app-shell behaviour.</li>
   <li>Renders every Mateu wire component type (grids, details, breadcrumbs, avatars, menus,
       carousels, chat, results, BPMN/workflow, cookie consent and more).</li>
-  <li>New | Mateu file templates for UI mounts, routes, app shells, REST sources and pages.</li>
+  <li>New | Mateu file templates for UI mounts, routes, app shells, REST sources, field types and pages.</li>
 </ul>
 ]]></change-notes>
 
@@ -79,6 +79,7 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
         <internalFileTemplate name="Mateu Page Wizard"/>
         <internalFileTemplate name="Mateu Routes"/>
         <internalFileTemplate name="Mateu Sources"/>
+        <internalFileTemplate name="Mateu Types"/>
         <internalFileTemplate name="Mateu UI Mount"/>
     </extensions>
 
@@ -94,7 +95,7 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
                 text="Mateu" description="Mateu application menu">
             <add-to-group group-id="MainToolbarLeft" anchor="last"/>
         </action>
-        <!-- New | Mateu: one entry per specs/ui file kind (UI mount, routes, app shell, sources, page). -->
+        <!-- New | Mateu: one entry per specs/ui file kind (UI mount, routes, app shell, sources, field types, page). -->
         <group id="io.mateu.NewGroup" class="io.mateu.ijp.newfile.MateuNewFileGroup">
             <add-to-group group-id="NewGroup" anchor="last"/>
         </group>

@@ -34,6 +34,14 @@
       "schemaType": "Sources"
     },
     {
+      "id": "types",
+      "label": "Field Types",
+      "description": "Reusable field/column definitions (type: Types) that fields and columns reference with fieldType: <id>.",
+      "fileName": "types",
+      "template": "Mateu Types",
+      "schemaType": "Types"
+    },
+    {
       "id": "page",
       "label": "Page…",
       "description": "A page / component definition, started from a page template.",
