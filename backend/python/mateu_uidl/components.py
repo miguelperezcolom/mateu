@@ -190,6 +190,10 @@ class ResponsiveGrid(Component):
     #: Named areas pinned with position:sticky while the rest of the grid scrolls (coherence-plan
     #: #7): a child whose slot is listed here gets a sticky wrapper. Empty = none.
     sticky_areas: tuple[str, ...] = ()
+    #: The viewer may rearrange the tiles by dragging them. The order is the viewer's own, kept by
+    #: the renderer per screen, keyed by each child's id (its index when it has none); the server's
+    #: order stays the default. False = fixed order.
+    reorderable: bool = False
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None

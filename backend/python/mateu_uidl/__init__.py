@@ -1753,6 +1753,11 @@ class Dashboard(ComponentTreeSupplier):
     def columns(self) -> int:
         return 0
 
+    def reorderable(self) -> bool:
+        """Whether the viewer may drag the tiles into their own order. The order is kept per viewer
+        by the renderer; the field order stays the default. Default: False."""
+        return False
+
 
 class Foldout(ComponentTreeSupplier):
     """Declarative Redwood-style foldout page: the first component field without ``Panel`` is the

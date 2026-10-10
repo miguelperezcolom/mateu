@@ -16,7 +16,11 @@ public abstract class Dashboard : IComponentTreeSupplier
     /// <summary>Number of grid columns; 0 (default) means responsive auto-fit.</summary>
     protected virtual int Columns => 0;
 
-    public IComponent Component() => ArchetypeComposers.ComposeDashboard(this, Columns);
+    /// <summary>Whether the viewer may drag the tiles into their own order. The order is kept per
+    /// viewer by the renderer; the property order stays the default. Default: false.</summary>
+    protected virtual bool Reorderable => false;
+
+    public IComponent Component() => ArchetypeComposers.ComposeDashboard(this, Columns, Reorderable);
 
     /// <summary>The dashboard composes its own full-width grid, so it drops the tree-supplier's
     /// centered envelope. (Java parity: Dashboard.style() returns null.)</summary>
@@ -146,7 +150,7 @@ public abstract class ItemOverview : IComponentTreeSupplier
 /// analogue of Java's DashboardComposer/WelcomeComposer.</summary>
 public static class ArchetypeComposers
 {
-    public static IComponent ComposeDashboard(object host, int columns)
+    public static IComponent ComposeDashboard(object host, int columns, bool reorderable = false)
     {
         var items = new List<IComponent>();
         var pendingMetrics = new List<MetricCard>();
@@ -176,6 +180,7 @@ public static class ArchetypeComposers
             Id = Archetypes.IdOf(host),
             Columns = tracks,
             Content = items,
+            Reorderable = reorderable,
             Style = "align-items: stretch;",
         };
     }

@@ -129,6 +129,20 @@ class SalesDashboard(Dashboard):
         return Message("Drilling into revenue")
 
 
+@ui("reorderable-dashboard")
+class ReorderableDashboard(Dashboard):
+    arrivals: Annotated[Text, Panel("Arrivals")] = Text(text="12", id="arr")
+    departures: Annotated[Text, Panel("Departures")] = Text(text="9", id="dep")
+
+    def reorderable(self) -> bool:
+        return True
+
+
+@ui("fixed-dashboard")
+class FixedDashboard(Dashboard):
+    arrivals: Annotated[Text, Panel("Arrivals")] = Text(text="12", id="arr")
+
+
 @ui("project-plan")
 @title("Project plan")
 class ProjectPlan(ComponentTreeSupplier):
@@ -868,7 +882,7 @@ def find(children, meta_type):
 def test_dashboard_archetype_emits_scoreboard_panels_and_gantt():
     doc = render(SalesDashboard)
     (layout,) = page_children(doc)
-    assert layout["metadata"] == {"type": "ResponsiveGrid", "gridTemplateColumns": None, "gap": None, "colSpans": None, "stackBelow": None, "gridTemplateAreas": None, "stickyAreas": None}
+    assert layout["metadata"] == {"type": "ResponsiveGrid", "gridTemplateColumns": None, "gap": None, "colSpans": None, "stackBelow": None, "gridTemplateAreas": None, "stickyAreas": None, "reorderable": False}
 
     scoreboard, panel, note = layout["children"]
 
@@ -928,6 +942,15 @@ def test_dashboard_archetype_emits_scoreboard_panels_and_gantt():
         RunActionRq(action_id="openRevenue", server_side_type=type_name(SalesDashboard))
     )
     assert inc.messages[0].text == "Drilling into revenue"
+
+
+def test_a_dashboard_can_let_the_viewer_reorder_its_tiles_keyed_by_their_ids():
+    (grid,) = page_children(render(ReorderableDashboard))
+    assert grid["metadata"]["reorderable"] is True
+    # the tiles carry their field names as ids: the key the viewer's order is kept by
+    assert [c["id"] for c in grid["children"]] == ["arrivals", "departures"]
+    (fixed,) = page_children(render(FixedDashboard))
+    assert fixed["metadata"]["reorderable"] is False
 
 
 def test_component_tree_supplier_emits_kanban():

@@ -137,6 +137,10 @@ public sealed record ResponsiveGrid : ComponentBase
     /// <summary>Named areas pinned with position:sticky while the rest of the grid scrolls (coherence
     /// -plan #7): a child whose slot is listed here gets a sticky wrapper. Null/empty = none.</summary>
     public IReadOnlyList<string>? StickyAreas { get; init; }
+    /// <summary>The viewer may rearrange the tiles by dragging them. The order is the viewer's own,
+    /// kept by the renderer per screen, keyed by each child's id (its index when it has none); the
+    /// server's order stays the default. False = fixed order.</summary>
+    public bool Reorderable { get; init; }
 
     /// <summary>The CSS grid-template-columns resolved from the tracks (e.g. "auto 1fr 15rem").</summary>
     public string? GridTemplateColumns() =>

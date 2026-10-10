@@ -1077,12 +1077,16 @@ class ReflectionMapper:
         flush()
         # A Dashboard subclass configures its columns; an @auto_page plain class keeps auto-fit.
         columns = instance.columns() if isinstance(instance, Dashboard) else 0
+        reorderable = instance.reorderable() if isinstance(instance, Dashboard) else False
         # Consolidated onto the one responsive grid (coherence-plan #9): N columns → N fill tracks;
         # 0 → auto-fit. The tiles and the scoreboard band carry their own grid-column span, so the
         # grid needs no per-child spans; align-items:stretch keeps the tiles equal-height.
         tracks = tuple(fluent.GridTrack.fill() for _ in range(columns)) if columns > 0 else ()
         return fluent.ResponsiveGrid(
-            columns=tracks, content=tuple(items), style="align-items: stretch;"
+            columns=tracks,
+            content=tuple(items),
+            reorderable=reorderable,
+            style="align-items: stretch;",
         )
 
     def compose_foldout(self, instance: Foldout) -> fluent.FoldoutLayout:
@@ -1253,6 +1257,7 @@ class ReflectionMapper:
                     stack_below=c.stack_below,
                     grid_template_areas=c.grid_template_areas,
                     sticky_areas=list(c.sticky_areas) or None,
+                    reorderable=c.reorderable,
                 ),
                 c,
                 children,

@@ -336,7 +336,7 @@ children of a container still render).
 | `Markdown` | 🟡 | headings, paragraphs and bullet lists as Redwood typography; inline emphasis, links and code lose their marks; no tables or raw HTML |
 | `Popover` | 🟡 | trigger + the content as text lines in a shared oj-popup (hover/focus or click); the wrapped component shows as its text |
 | `ProgressBar` | 🟡 | wizard progress only |
-| `ResponsiveGrid` | 🟡 | fixed tracks → oj-flex columns sized by their fr weights and spans; auto-fill/auto-fit grids stack |
+| `ResponsiveGrid` | 🟡 | fixed tracks → oj-flex columns sized by their fr weights and spans; auto-fill/auto-fit grids stack; reorderable tiles drag (and Alt+←/→) |
 | `AccordionPanel` | ↳ | of AccordionLayout |
 | `BoardLayoutItem` | ↳ | of BoardLayout |
 | `BoardLayoutRow` | ↳ | of BoardLayout |

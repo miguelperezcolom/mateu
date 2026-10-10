@@ -431,6 +431,23 @@ public class Dash : Dashboard
     public Message Refresh() => new("refreshed");
 }
 
+public class ReorderableDash : Dashboard
+{
+    protected override bool Reorderable => true;
+
+    [Panel(Title = "Arrivals")]
+    public IComponent Arrivals { get; } = new Text("12") { Id = "arr" };
+
+    [Panel(Title = "Departures")]
+    public IComponent Departures { get; } = new Text("9") { Id = "dep" };
+}
+
+public class FixedDash : Dashboard
+{
+    [Panel(Title = "Arrivals")]
+    public IComponent Arrivals { get; } = new Text("12") { Id = "arr" };
+}
+
 [UI("fold"), Title("Fold")]
 public class Fold : Foldout
 {
@@ -599,6 +616,18 @@ public class ComponentTests
         // Tile actionIds are advertised so the renderer routes them back.
         Assert.Contains("{\"id\":\"openRevenue\"", json);
         Assert.Contains("{\"id\":\"refresh\"", json);
+    }
+
+    [Fact]
+    public void A_dashboard_can_let_the_viewer_reorder_its_tiles_keyed_by_their_ids()
+    {
+        var grid = (ClientSideComponentDto)ComponentMapper.Map(new ReorderableDash().Component());
+        Assert.True(((ResponsiveGridMetadataDto)grid.Metadata).Reorderable);
+        // the tiles carry their property names as ids: the key the viewer's order is kept by
+        Assert.Equal(["arrivals", "departures"],
+            grid.Children.Select(c => ((ClientSideComponentDto)c).Id).ToList());
+        var fixedGrid = (ClientSideComponentDto)ComponentMapper.Map(new FixedDash().Component());
+        Assert.False(((ResponsiveGridMetadataDto)fixedGrid.Metadata).Reorderable);
     }
 
     [Fact]
