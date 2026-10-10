@@ -1,0 +1,9 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/routes-schema.json
+# Inner routes of the root mount (@UI("") on SimpleForm). Authored as data, so every adapter's
+# route registry (and its SPA deep-link fallback) is exercised the same way.
+type: Routes
+routes:
+
+  # A streamed action (LongTask over SSE) on a NON-root route: /long-task.
+  - route: long-task
+    viewModel: io.mateu.sample1.LongTaskForm
