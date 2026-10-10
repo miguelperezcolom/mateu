@@ -29,6 +29,8 @@ const TEXTS = {
         goBack: 'Go back',
         rangeFrom: 'From',
         rangeTo: 'To',
+        previous: 'Previous',
+        next: 'Next',
     },
     es: {
         chat: 'Asistente',
@@ -52,6 +54,8 @@ const TEXTS = {
         goBack: 'Volver',
         rangeFrom: 'Desde',
         rangeTo: 'Hasta',
+        previous: 'Anterior',
+        next: 'Siguiente',
     },
 } as const
 

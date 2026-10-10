@@ -5,7 +5,7 @@ import { css, svg, TemplateResult } from "lit";
  * editor, chat…): plain <button> styling plus a few inline SVG icons.
  *
  * Rationale (renderer parity phase 2): these components used to pull in vaadin-button /
- * vaadin-icon for their small toolbars, which made every renderer (sapui5, redhat, redwood)
+ * vaadin-icon for their small toolbars, which made every non-Vaadin renderer
  * load Vaadin chrome for otherwise framework-agnostic components. The styles below use Lumo
  * CSS custom properties WITH neutral fallbacks, so under the Vaadin renderer they pick up the
  * theme and look as before, while under any other renderer they degrade to a clean neutral

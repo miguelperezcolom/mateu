@@ -132,7 +132,7 @@ export class MateuNotificationBell extends LitElement {
         }
         const route = notification.route
         if (route) {
-            // navigate exactly like a local menu click on the shells (MateuRendererApp.navigate):
+            // navigate exactly like a local menu click on the shell:
             // route-changed pushes the URL, navigate-to-requested re-routes the top-level ux
             if (!dirtyGuard.confirmLeave()) return
             this.closePanel()

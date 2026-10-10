@@ -277,7 +277,7 @@ export class MateuFoldout extends LitElement {
         /* The visual treatment is tokenised: the fallbacks reproduce the original bordered-card
            look (Vaadin), while a design system can switch to the RDS "Foldout" anatomy — frameless
            columns split by vertical dividers, a gold accent under each panel title — by setting the
-           --mateu-foldout-* custom properties (see redwood-oj index.css). */
+           --mateu-foldout-* custom properties. */
         .overview {
             position: relative;
             flex: 0 0 var(--mateu-foldout-overview-width, 20rem);
@@ -402,7 +402,7 @@ export class MateuFoldout extends LitElement {
             gap: .5rem;
         }
         /* "Show all" affordance — hidden by default so non-RDS renderers keep flat panels; a design
-           system opts in by setting --mateu-foldout-expand-display (see redwood-oj index.css). */
+           system opts in by setting --mateu-foldout-expand-display. */
         button.panel-expand {
             display: var(--mateu-foldout-expand-display, none);
             border: none;

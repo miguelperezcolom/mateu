@@ -21,7 +21,7 @@ interface FlatItem { label: string, breadcrumb: string, route: string }
  * OR on ⌘K / Ctrl+K.
  *
  * Design-system neutral: Lumo custom properties with hard fallbacks, so it renders on every shell
- * (Vaadin, Redwood, SAP UI5, PatternFly, SLDS). Navigation is emitted as the same
+ * (every renderer). Navigation is emitted as the same
  * `route-changed` + `navigate-to-requested` event pair every shell already honors, so this element
  * needs no shell-specific glue — a shell just drops `<mateu-command-center .app .baseUrl>` once.
  */

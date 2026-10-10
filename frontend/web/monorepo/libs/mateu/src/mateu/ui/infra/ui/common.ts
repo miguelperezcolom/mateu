@@ -5,7 +5,7 @@
  * its OWN state in parameters.initiatorState. That originating state — the form the button lives on,
  * WITH its id — is what the server's getComponentState(EntityType.class) must see; the ancestor's
  * own state (the crud list: filters/paging, no id) is not. So prefer the initiatorState when
- * present. Mirrors what the CSS-renderer shell (MateuRendererApp.handleUnhandledAction) already
+ * present. Mirrors what the app shell already
  * does, making every renderer consistent. A direct (non-bubbled) action has no initiatorState, so
  * its own state is used unchanged.
  */

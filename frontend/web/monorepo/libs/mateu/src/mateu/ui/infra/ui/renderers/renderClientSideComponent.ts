@@ -148,7 +148,6 @@ export const updateMedata = (component: ClientSideComponent, data: ComponentData
             }
         }
     }
-    //console.log('metadata', component, data, metadata)
     return metadata
 }
 

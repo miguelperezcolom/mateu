@@ -233,7 +233,7 @@ export class MateuContentHeader extends LitElement {
     renderBtn = (button: Button) => {
         if ((this.data ?? {})[button.actionId + '.hidden']) return nothing
         const label = this.evalLabel(button.label)
-        // Renderers with their own design system (Redwood, SLDS…) provide the button through
+        // Renderers with their own design system provide the button through
         // the renderToolbarButton hook; the Vaadin default stays here.
         const custom = componentRenderer.get()?.renderToolbarButton?.(
             button, label, () => this.handleButtonClick(button))

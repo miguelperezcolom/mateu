@@ -286,7 +286,7 @@ export const chooseUriPrefix = (container: MateuApp, metadata: App) => {
  * and was dropped by applyFragment — the bug where a CRUD showed no initial rows and the page flipped
  * to edge-to-edge (the bare shell) until you re-ran a search. A deterministic route-derived id makes
  * successive incarnations of the same page reuse the same id, so those responses still land. Mirrors
- * {@code MateuRendererApp._contentUxId}, the same fix already carried by the DS-native shells.
+ * the same fix the DS-native shells carried.
  */
 export const contentUxId = (container: MateuApp, metadata: App): string => {
     const identity =

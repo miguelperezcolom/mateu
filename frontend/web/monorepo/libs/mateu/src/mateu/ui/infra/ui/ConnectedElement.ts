@@ -414,7 +414,7 @@ export default abstract class ConnectedElement extends LitElement {
     closeModal = () => {
         // Overlays (dialogs and drawers) are appended to the initiator's render root in opening
         // order, so the last one in DOM order is the top of the stack. On shells that render to
-        // light DOM (no shadow root — e.g. redwood-oj) the overlay is a plain descendant, so
+        // light DOM (no shadow root) the overlay is a plain descendant, so
         // fall back to querying the element itself.
         const overlays = (this.shadowRoot ?? this).querySelectorAll('mateu-dialog, mateu-drawer')
         if (overlays && overlays.length > 0) {

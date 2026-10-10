@@ -20,7 +20,7 @@ import { gridCell } from "@infra/ui/renderers/gridPrimitive.ts";
 /*
  * Design-system-neutral layout renderers — flex / CSS grid / native <details>, no `@vaadin`.
  * The Vaadin adapter (apps/vaadin/renderers/renderLayouts) overrides every layout type with the
- * pixel-perfect vaadin-* components; sapui5 has its own. These are the safe defaults any other
+ * pixel-perfect vaadin-* components. These are the safe defaults any other
  * renderer inherits.
  */
 

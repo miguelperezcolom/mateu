@@ -950,7 +950,7 @@ export class MateuTableCrud extends LitElement {
     render(): TemplateResult {
 
 
-        // One crud header toolbar button. Renderers with their own design system (Redwood, SLDS…)
+        // One crud header toolbar button. Renderers with their own design system
         // provide it through the renderToolbarButton hook; the Vaadin default stays here.
         const renderToolbarButton = (button: Button): TemplateResult => {
             const custom = componentRenderer.get()?.renderToolbarButton?.(
@@ -1391,7 +1391,7 @@ export class MateuTableCrud extends LitElement {
                     /* Scoped to the listing area: a grid field inside a FORM must keep sizing
                        itself, so the fill is expressed here and never on the table component. */
                     [data-crud-area] > * { flex: 1 1 auto; min-height: 0; }
-                    [data-crud-area] mateu-table, [data-crud-area] mateu-redwood-table { display: flex; flex-direction: column; }
+                    [data-crud-area] mateu-table { display: flex; flex-direction: column; }
                     [data-crud-area] vaadin-grid { height: 100%; min-height: 0; }
                 </style>
                 <div data-crud-box style="${this.boxStyle()} width: 100%; box-sizing: border-box;">
@@ -1448,7 +1448,7 @@ export class MateuTableCrud extends LitElement {
                     /* Scoped to the listing area: a grid field inside a FORM must keep sizing
                        itself, so the fill is expressed here and never on the table component. */
                     [data-crud-area] > * { flex: 1 1 auto; min-height: 0; }
-                    [data-crud-area] mateu-table, [data-crud-area] mateu-redwood-table { display: flex; flex-direction: column; }
+                    [data-crud-area] mateu-table { display: flex; flex-direction: column; }
                     [data-crud-area] vaadin-grid { height: 100%; min-height: 0; }
                 </style>
             <div data-crud-box style="${this.boxStyle()}">

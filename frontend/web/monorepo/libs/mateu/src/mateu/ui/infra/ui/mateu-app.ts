@@ -25,7 +25,6 @@ import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
 
 // DS-neutral stand-ins for the vaadin-menu-bar / vaadin-app-layout types this base class used.
-// (sapui5 overrides the rendering methods; the Vaadin renderer's chrome now renders neutrally too.)
 export type MenuBarItem = { text?: string; route?: string; checked?: boolean; disabled?: boolean; className?: string; component?: unknown; children?: MenuBarItem[]; [key: string]: unknown }
 type MenuBarItemSelectedEvent = CustomEvent<{ value: MenuBarItem }>
 type AppLayout = HTMLElement & { drawerOpened?: boolean }

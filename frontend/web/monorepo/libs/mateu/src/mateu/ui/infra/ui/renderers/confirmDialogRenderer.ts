@@ -9,7 +9,7 @@ import { interpolateAndEvaluate } from "@infra/ui/interpolation.ts";
  * Design-system-neutral ConfirmDialog — a native modal (backdrop + card) with confirm/reject/cancel
  * buttons wired to their action ids (no `@vaadin`). The Vaadin adapter overrides it with
  * vaadin-confirm-dialog. NOTE: this native version wires confirmActionId/rejectActionId/cancelActionId
- * (like the sapui5 renderer already did) — the old vaadin-confirm-dialog path never dispatched them.
+ * — the old vaadin-confirm-dialog path never dispatched them.
  */
 const dispatchAction = (target: EventTarget | null, actionId?: string) => {
     if (!target) return

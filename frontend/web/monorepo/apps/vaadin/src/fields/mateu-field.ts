@@ -36,7 +36,6 @@ import "@vaadin/upload"
 import "@vaadin/list-box"
 import "@vaadin/markdown"
 import '@vaadin/item'
-import '@polymer/paper-toggle-button'
 import "@vaadin-component-factory/vcf-date-range-picker"
 import { safeHtml } from "@infra/ui/safeHtml.ts";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
@@ -1871,11 +1870,14 @@ export class MateuField extends LitElement {
                             ?required="${this.field.required || nothing}"
                             data-colspan="${this.field.colspan}"
                     >
-                        <paper-toggle-button id="${this.field.fieldId}"
-                                             ?disabled=${this.field.disabled}
-                                             ?checked=${value}
-                                             @change=${this.checked}>
-                        </paper-toggle-button>
+                        <label class="mateu-switch">
+                            <input type="checkbox" role="switch" id="${this.field.fieldId}"
+                                   aria-label="${label}"
+                                   ?disabled=${this.field.disabled}
+                                   .checked=${!!value}
+                                   @change=${this.checked}>
+                            <span class="track" aria-hidden="true"></span>
+                        </label>
                     </vaadin-custom-field>
                 `
             }
@@ -2296,6 +2298,17 @@ export class MateuField extends LitElement {
     }
 
     static styles = css`
+        /* the toggle stereotype: a native checkbox with role=switch (was a Polymer paper-toggle-button) */
+        .mateu-switch { position: relative; display: inline-flex; align-items: center; cursor: pointer; }
+        .mateu-switch input { position: absolute; opacity: 0; width: 2.25rem; height: 1.25rem; margin: 0; cursor: pointer; }
+        .mateu-switch .track { width: 2.25rem; height: 1.25rem; border-radius: 1rem; background: var(--lumo-contrast-30pct, #bbb);
+            position: relative; transition: background .15s; }
+        .mateu-switch .track::after { content: ''; position: absolute; top: .125rem; left: .125rem; width: 1rem; height: 1rem;
+            border-radius: 50%; background: var(--lumo-base-color, #fff); transition: transform .15s; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+        .mateu-switch input:checked + .track { background: var(--lumo-primary-color, #1676f3); }
+        .mateu-switch input:checked + .track::after { transform: translateX(1rem); }
+        .mateu-switch input:focus-visible + .track { box-shadow: 0 0 0 2px var(--lumo-primary-color-50pct, #1676f380); }
+        .mateu-switch input:disabled + .track { opacity: .5; }
         /* multi-valued @Searchable: the ids as chips, then «Add» */
         .searchable-multi {
             display: flex;

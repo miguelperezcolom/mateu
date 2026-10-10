@@ -6,7 +6,6 @@ import {badge} from '@infra/ui/badgeStyles.ts';
 import { linkStyles } from "@infra/ui/linkStyles.ts";
 import './mateu-map'
 import './mateu-markdown'
-import "@fabricelements/skeleton-carousel"
 import './mateu-form'
 import './mateu-table-crud'
 import './mateu-app'
@@ -345,7 +344,6 @@ export class MateuComponent extends ComponentElement {
                 // ComponentElement._keepEditedFieldValues.
                 this.adoptEditedState(detail.fieldId, newState)
 
-                //console.log('value changed?', this.state[detail.fieldId], this.formerState[detail.fieldId])
                 if ((this.state[detail.fieldId] || this.formerState[detail.fieldId])  && this.state[detail.fieldId] != this.formerState[detail.fieldId]) {
                     if (this.component?.confirmOnNavigationIfDirty) {
                         this.dispatchEvent(new CustomEvent('dirty', {

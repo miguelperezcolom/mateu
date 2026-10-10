@@ -7,7 +7,7 @@ import { uuidAwareText } from "@infra/ui/uuidCell.ts";
  * Design-system-neutral table renderer — a plain HTML <table>, no `@vaadin`. Shared by the core
  * Grid / Table switch entries and by BasicComponentRenderer.renderTableComponent (crud listing).
  * The Vaadin adapter overrides these with the vaadin-grid based gridRenderer / <mateu-table> for
- * sorting, editing, virtual scrolling, etc.; sapui5 has its own ui5-table. Cells are plain text.
+ * sorting, editing, virtual scrolling, etc. Cells are plain text.
  */
 
 interface Col { id: string; label: string; autoWidth?: boolean; width?: string }
