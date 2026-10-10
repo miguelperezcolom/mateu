@@ -90,6 +90,10 @@ class AppMetadata(Wire):
     #: actions, each flow lowered to ``commands``. A client resolves an id its owner does not declare
     #: against this list before a server dispatch (mirrors AppDto.actionCatalogue).
     action_catalogue: list["Action"] = Field(default_factory=list)
+    #: True when the server runs in SAMPLE mode (``MATEU_SOURCES_MOCK=true``): the client switches
+    #: its sample mode on, so the direct leg answers sampled sources with their samples too. None
+    #: (absent) otherwise (mirrors AppDto.mockSources).
+    mock_sources: bool | None = None
 
 
 class AppContextSelector(Wire):

@@ -115,6 +115,11 @@ public record RestDataSourceDto(string Url)
     /// io.mateu.dtos.RestDataSourceDto.ref.)</summary>
     public string? Ref { get; init; }
 
+    /// <summary>SAMPLE data answered instead of calling the endpoint, in sample mode only; absent
+    /// (omitted from the JSON) when there is none. (Mirrors io.mateu.dtos.RestDataSourceDto.sample.)</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public object? Sample { get; init; }
+
     /// <summary>A descriptor that only names a catalogue entry — the <c>data: countries</c>
     /// shorthand (empty Url, Ref set).</summary>
     public static RestDataSourceDto FromRef(string name) => new("") { Ref = name };

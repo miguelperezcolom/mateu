@@ -4,8 +4,9 @@ import { StatusType } from "@mateu/shared/apiClients/dtos/componentmetadata/Stat
 
 export const renderStatusCell = (item: any,
                                  _model: GridItemModel<any>,
-                                 column: VaadinGridColumn) => {
-    const status = toStatus(item[column.path!])
+                                 column: VaadinGridColumn,
+                                 tones?: Record<string, string> | null) => {
+    const status = toStatus(item[column.path!], tones)
     return status?html`<span theme="badge pill ${getThemeForBadgetType(status.type)}">${status.message}</span>`:html``
 }
 
@@ -24,10 +25,14 @@ const DANGER_WORDS = new Set(['FAILED', 'TERMINATED', 'ERROR', 'DELETED', 'STOPP
  * plain word (`"AVAILABLE"`), which used to paint an EMPTY badge — the static-UI case, where nobody
  * maps the API's response. A plain word is shown as is, with the badge its usual meaning gives it.
  */
-export const toStatus = (value: unknown): { type: StatusType, message: string } | undefined => {
+export const toStatus = (value: unknown, tones?: Record<string, string> | null): { type: StatusType, message: string } | undefined => {
     if (value === null || value === undefined || value === '') return undefined
     if (typeof value === 'object') return value as { type: StatusType, message: string }
     const message = String(value)
+    // A declared tone for this VALUE (a field type's `tones: {OPEN: warning}`) wins over the word.
+    const declared = tones ? (tones[message] ?? tones[message.trim().toUpperCase()]) : undefined
+    const toned = declared ? statusTypeOfTone(declared) : undefined
+    if (toned) return { type: toned, message }
     const word = message.trim().toUpperCase().replace(/[\s-]+/g, '_')
     const type = SUCCESS_WORDS.has(word) ? StatusType.SUCCESS
         : WARNING_WORDS.has(word) ? StatusType.WARNING
@@ -44,4 +49,15 @@ export const getThemeForBadgetType = (type: StatusType): string => {
         case StatusType.NONE: return 'contrast';
     }
     return '';
+}
+/** A tone name (`success | warning | danger | error | info | neutral`, like @RowStatus) as a status. */
+export const statusTypeOfTone = (tone: string): StatusType | undefined => {
+    switch (String(tone).trim().toLowerCase()) {
+        case 'success': return StatusType.SUCCESS
+        case 'warning': return StatusType.WARNING
+        case 'danger': case 'error': return StatusType.DANGER
+        case 'info': return StatusType.INFO
+        case 'neutral': case 'none': return StatusType.NONE
+    }
+    return undefined
 }

@@ -292,7 +292,10 @@ class ReflectionMapper(
         #: model type → ComponentAdapter (set by the SyncHandler from the registry).
         self.adapters: dict = {}
         #: The translation catalogue (a TranslationRegistry, set by the SyncHandler); None = none.
-        self.translations = None
+        self.translations: Any = None
+        #: The app's field type catalogue (a FieldTypeRegistry) for FieldType() markers on
+        #: listing columns; None = the default one over MATEU_SPECS_DIR.
+        self.field_types: Any = None
 
     def _locale(self) -> str | None:
         """The UI language the translator declares, or None (the browser decides)."""

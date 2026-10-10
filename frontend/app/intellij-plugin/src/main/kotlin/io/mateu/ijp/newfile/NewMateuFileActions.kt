@@ -20,7 +20,7 @@ import com.intellij.psi.PsiManager
 private val MATEU_ICON = IconLoader.getIcon("/icons/mateu.svg", MateuNewFileGroup::class.java)
 
 /**
- * New | Mateu — one entry per specs/ui file kind (UI mount, routes, app shell, REST sources, page),
+ * New | Mateu — one entry per specs/ui file kind (UI mount, routes, app shell, REST sources, field types, page),
  * plus Route… when the specs folder already has a routes file. Shown wherever the platform's New menu
  * is (project view, ⌘N on a folder).
  */

@@ -13,7 +13,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     Func<string, string?>? secrets = null, HttpClient? http = null,
     RestSourceRegistry? restSources = null, ComponentRegistry? components = null,
     Func<string?>? locale = null, TranslationRegistry? translations = null, string? specsDir = null,
-    ActionRegistry? actionCatalog = null)
+    ActionRegistry? actionCatalog = null, FieldTypeRegistry? fieldTypes = null)
 {
     /// <summary>The request's own locale (the adapter reads the first Accept-Language tag) — the
     /// fallback of the UI language when the app's ITranslator does not name one (Java's
@@ -35,6 +35,18 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     private readonly RestSourceRegistry _restSources = restSources ?? new RestSourceRegistry(registry, specsDir);
     private readonly ComponentRegistry _components = components ?? new ComponentRegistry(registry, specsDir);
 
+    /// <summary>The field type catalogue (types.yaml over IFieldTypeCatalogSupplier implementers): a
+    /// definition's <c>fieldType:</c> references, and a row property's [FieldType], resolve against it.</summary>
+    private readonly FieldTypeRegistry _fieldTypes = fieldTypes ??= new FieldTypeRegistry(registry, specsDir);
+
+    /// <summary>SAMPLE mode: REST sources carrying sample data answer with it instead of being
+    /// called (the proxied leg here; the app metadata's MockSources tells the browser to do the same
+    /// on the direct one). Null (the default) reads the environment (<c>MATEU_SOURCES_MOCK=true</c>);
+    /// never on silently in production.</summary>
+    public bool? MockSources { get; init; }
+
+    private bool SampleMode => MockSources ?? SampleSources.EnabledByEnvironment();
+
     private static readonly HttpClient DefaultHttp = new() { Timeout = TimeSpan.FromSeconds(60) };
 
     /// <summary>The client proxied REST fetches go through (injectable: a host-configured client,
@@ -50,7 +62,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     /// <summary>The loader builds its OWN registry: a field initialiser cannot reference another
     /// instance field, and routes.yaml is a small file each side parses once and caches, so sharing
     /// the instance is not worth a constructor just for it.</summary>
-    private readonly YamlSpecLoader _yaml = new(specsDir, translations: translations);
+    private readonly YamlSpecLoader _yaml = new(specsDir, translations: translations, fieldTypes: fieldTypes);
 
     /// <summary>Handles a sync call asynchronously — the entry point of the HTTP endpoint. The only
     /// step that does I/O of its own, the proxied REST fetch (<c>__restfetch__</c>), is awaited end
@@ -91,7 +103,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         // __preview__ reserved action / YamlUidlLoader.parseText).
         if (rq.ActionId == "__preview__" && rq.Parameters.TryGetValue("_yaml", out var yamlParam))
         {
-            var previewTree = YamlComponentBuilder.Parse(StateString(yamlParam) ?? "")
+            var previewTree = YamlComponentBuilder.Parse(StateString(yamlParam) ?? "", types: _fieldTypes)
                               ?? new Text("Invalid YAML");
             return FragmentResponse("Preview", ComponentMapper.Map(previewTree), rq);
         }
@@ -157,7 +169,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     {
         ActionGuard.SetIdentity(identity);
         RequestLocale.Value = locale?.Invoke();
-        MateuCatalogs.Set(_restSources.Catalog, _components.Catalog);
+        MateuCatalogs.Set(_restSources.Catalog, _components.Catalog, _fieldTypes.Catalog);
         // the catalogue entries whose access: the caller does not satisfy are never shipped, buttons
         // naming them are disabled and a call to them answers 403 (like a page's own declared action)
         MateuCatalogs.SetActions(_actionCatalog.Catalog, _actionCatalog.RefusedFor(ActionGuard.Authorized));
@@ -370,7 +382,8 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         // non-empty REST source catalogue adds the rest-sources capability (Java's AppMapper).
         if (app is { Metadata: AppMetadataDto catalogued })
         {
-            var sources = MateuCatalogs.MapCatalogue(MateuCatalogs.Sources);
+            var sampleMode = SampleMode;
+            var sources = MateuCatalogs.MapCatalogue(MateuCatalogs.Sources, withSamples: sampleMode);
             var caps = new SortedSet<string>(catalogued.RequiredCapabilities, StringComparer.Ordinal);
             if (sources.Count > 0) caps.Add(Capabilities.RestSources);
             app = app with
@@ -381,6 +394,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
                     Components = MateuCatalogs.MapComponents(MateuCatalogs.Components),
                     ActionCatalogue = ActionRegistry.MapCatalogue(MateuCatalogs.ActionsForCaller),
                     RequiredCapabilities = caps.ToList(),
+                    MockSources = sampleMode ? true : null,
                 },
             };
         }

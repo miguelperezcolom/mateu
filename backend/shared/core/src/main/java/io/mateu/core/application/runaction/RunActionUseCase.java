@@ -299,6 +299,15 @@ public class RunActionUseCase {
         command.componentState() != null
             ? command.componentState()
             : java.util.Map.<String, Object>of();
+    // SAMPLE mode (opt-in only, see SampleSources): a source carrying sample data answers with it
+    // instead of being called — the proxied twin of the browser's short-circuit in
+    // fetchExternalJson, so both legs agree. A read gets the sample; a write (and a bulk one)
+    // succeeds without persisting anything.
+    if (SampleSources.enabled() && source.carriesSample()) {
+      var method = source.method() == null ? "GET" : source.method().trim().toUpperCase();
+      Object body = "GET".equals(method) || method.isEmpty() ? source.sample() : java.util.Map.of();
+      return UIIncrementDto.builder().appData(java.util.Map.of(RESTFETCH_KEY, body)).build();
+    }
     // Bulk (forEachSelectedRow): the loop runs on the SERVER, once per selected listing row, each
     // row merged OVER the component state so a per-id url like `.../people/${state.id}` resolves to
     // that row's id. Doing it here — rather than firing N calls from the browser — keeps the secret

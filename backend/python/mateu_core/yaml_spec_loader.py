@@ -59,6 +59,7 @@ class YamlSpecLoader:
         registry: RouteRegistry | None = None,
         partials: PartialRegistry | None = None,
         translations: TranslationRegistry | None = None,
+        field_types=None,
     ) -> None:
         self._dir = Path(directory or os.environ.get("MATEU_SPECS_DIR") or Path("specs") / "ui")
         self._by_route: dict[str, Spec | None] = {}
@@ -73,9 +74,16 @@ class YamlSpecLoader:
         self.translations = (
             translations if translations is not None else TranslationRegistry(str(self._dir))
         )
+        #: The field type catalogue (``specs/ui/types.yaml`` + code suppliers): a field naming a
+        #: type by ``fieldType:`` takes its attributes as defaults before it is built.
+        if field_types is None:
+            from mateu_core.field_type_registry import FieldTypeRegistry
+
+            field_types = FieldTypeRegistry(str(self._dir))
+        self.field_types = field_types
         #: The action catalogue (an ActionRegistry, set by the SyncHandler): a catalogue entry with
         #: ``access:`` that a definition names is enforced like the definition's own actions.
-        self.action_catalog = None
+        self.action_catalog: Any = None
 
     def _names_restricted_catalogue_action(self, tree: Any) -> bool:
         catalog = self.action_catalog
@@ -128,7 +136,7 @@ class YamlSpecLoader:
             if tree is None:
                 return None
             self.translations.translate_tree(tree, locale)
-            _, layout, delta = parse_spec_tree(tree, self.partials)
+            _, layout, delta = parse_spec_tree(tree, self.partials, self.field_types)
             return Spec(spec.model_view, layout, delta, None, refused, locked)
         except Exception as e:  # noqa: BLE001 - fall back to the shared spec
             _log.warning("Failed to personalise the YAML spec for %s: %s", route, e)
@@ -151,7 +159,7 @@ class YamlSpecLoader:
             data = yaml.safe_load(path.read_text())
         except (OSError, yaml.YAMLError):
             return None
-        model_view, layout, delta = parse_spec_tree(data, self.partials)
+        model_view, layout, delta = parse_spec_tree(data, self.partials, self.field_types)
         # A spec that depends on who asks or in which language keeps its source tree, so it can be
         # re-derived per request (load_spec_for); everything else is shared as-is.
         source = (

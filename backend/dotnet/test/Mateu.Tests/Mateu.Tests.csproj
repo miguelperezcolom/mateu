@@ -19,5 +19,7 @@
     <!-- Catalogue fixtures live OUTSIDE specs/ui on purpose: a sources.yaml there would put a REST
          source catalogue on every app the suite renders (the conformance app cases included). -->
     <Content Include="catalogue-specs/**/*.yaml" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Field types + sample data fixtures (types.yaml, sources.yaml with a JSON sampleFile). -->
+    <Content Include="field-types-specs/**/*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

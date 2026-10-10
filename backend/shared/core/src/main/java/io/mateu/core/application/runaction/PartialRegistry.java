@@ -95,7 +95,7 @@ public final class PartialRegistry {
         log.warn("No partial definition for ref '{}' (looked for classpath:{})", ref, path);
         return NONE;
       }
-      var root = mapper.readTree(in);
+      var root = FieldTypeRegistry.resolveWithAppTypes(mapper.readTree(in));
       if (root == null || root.isNull()) {
         return NONE;
       }

@@ -11,9 +11,10 @@ import { EditHistory } from './model/history'
 import { renameBinding, mentionsIn } from './model/rename'
 import { pageActions, upsertAction, newRestAction, setActionField, PageAction } from './model/pageActions'
 import { newSlotItem } from './model/componentSchema'
-import { isSourcesYaml, catalogueActionOptions } from './model/projectIndex'
+import { isSourcesYaml, isTypesYaml, parseTypes, catalogueActionOptions } from './model/projectIndex'
 import { isActionsYaml } from './model/actionsModel'
-import { setRestSourceCatalogue } from '@infra/http/restSourceCatalogue.ts'
+import { setRestSourceCatalogue, setSampleMode } from '@infra/http/restSourceCatalogue.ts'
+import { setFieldTypeCatalogue } from '@infra/expander/fieldTypes.ts'
 import {
     CanvasRendererId, CANVAS_RENDERERS, CANVAS_RENDERER_LABELS, useCanvasRenderer, parseCanvasRenderer,
 } from './canvas/canvasRenderer'
@@ -56,6 +57,7 @@ import './app/app-editor'
 import './mount/mount-editor'
 import './sources/sources-editor'
 import './actions/actions-editor'
+import './types/types-editor'
 import './board/mount-board'
 import './play/mount-play'
 import './widgets/ve-combo'
@@ -272,8 +274,10 @@ export class MateuVisualEditor extends LitElement {
      * (page/partial); `mount` = a `type: UI` descriptor; `app` = a `type: AppShell` definition;
      * `routes` = a pure route file. Each is its OWN file — no mixing.
      */
-    @state() private mode: 'page' | 'mount' | 'app' | 'routes' | 'sources' | 'actions' | 'data' = 'page'
+    @state() private mode: 'page' | 'mount' | 'app' | 'routes' | 'sources' | 'actions' | 'types' | 'data' = 'page'
     @state() private structuredYaml = ''
+    /** The field type catalogue last published to the expander (JSON), to repaint when it changes. */
+    private lastTypes?: string
     /** Which left-panel tab is showing: the layers tree (navigate/reorder) or the insert palette. */
     @state() private leftTab: 'layers' | 'insert' = 'layers'
     /** The mount's cross-file reference graph (routes/pages/partials), for the reference pickers. */
@@ -328,6 +332,9 @@ export class MateuVisualEditor extends LitElement {
         })
         // Load the whole mount (if the host exposes it) to power the reference pickers and the canvas's
         // REST source catalogue — the editor stays fully usable without it.
+        // The editor is a design session: REST sources answer with their SAMPLE data (canvas and
+        // Play) — the visual editor's half of the sample-mode rule (see restSourceCatalogue.ts).
+        setSampleMode(true)
         this.loadProject()
         // The stored choice loads lazily; a pick made meanwhile (the Vaadin chunk can take a while
         // on a cold dev server) must not be overwritten when that load lands.
@@ -349,6 +356,15 @@ export class MateuVisualEditor extends LitElement {
         // The canvas resolves `rowsSource: {ref}` / `optionsSource: {ref}` against the app's
         // catalogue, exactly as the running app does — so a listing shows its rows here too.
         setRestSourceCatalogue(this.project.sources as never)
+        // …and `fieldType:` references against the mount's field types (types.yaml).
+        const types = JSON.stringify(this.project.types)
+        setFieldTypeCatalogue(this.project.types as never)
+        // The canvas may have painted before the mount's files arrived: a page referencing a type
+        // has to be painted again once the vocabulary is known (and whenever it changes).
+        if (types !== this.lastTypes) {
+            this.lastTypes = types
+            if (this.mode === 'page' && this.doc) this.doc = { ...this.doc }
+        }
         this.refreshContract()
     }
 
@@ -357,6 +373,7 @@ export class MateuVisualEditor extends LitElement {
         window.removeEventListener('keydown', this.onKeydown)
         this.unwatchTheme?.()
         registerExternalJsonMock(null) // don't leak the mock past this editor instance
+        setSampleMode(false) // nor the design session's sample mode
     }
 
     /**
@@ -459,6 +476,7 @@ export class MateuVisualEditor extends LitElement {
                  @mount-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
                  @sources-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
                  @actions-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
+                 @types-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
                  @board-open=${(e: CustomEvent) => this.openFile(e.detail.path)}
                  @board-play=${(e: CustomEvent) => this.play(e.detail.route)}
                  @play-close=${() => (this.view = this.playReturn)}>
@@ -485,6 +503,8 @@ export class MateuVisualEditor extends LitElement {
                     ? html`<actions-editor .yaml=${this.structuredYaml} .project=${this.project}></actions-editor>`
                     : this.mode === 'data'
                     ? this.renderDataFile()
+                    : this.mode === 'types'
+                    ? html`<types-editor .yaml=${this.structuredYaml}></types-editor>`
                     : html`
                 <div class="work">
                     <div style="display:grid; grid-template-rows:auto 1fr; min-height:0">
@@ -794,6 +814,11 @@ export class MateuVisualEditor extends LitElement {
             this.structuredYaml = yaml
             return
         }
+        if (isTypesYaml(yaml)) {
+            this.mode = 'types'
+            this.structuredYaml = yaml
+            return
+        }
         if (isMountYaml(yaml)) {
             this.mode = 'mount'
             this.structuredYaml = yaml
@@ -992,6 +1017,7 @@ export class MateuVisualEditor extends LitElement {
         if (this.mode === 'routes') return html`<span class="shape routes" title="A route file — pure routing: each URL bound to a definition and an optional view model.">routes</span>`
         if (this.mode === 'actions') return html`<span class="shape actions" title="The action catalogue — named client-runnable actions (flows, REST calls) run by id from the menu and any page.">actions</span>`
         if (this.mode === 'data') return html`<span class="shape sources" title="A Translations catalogue or an Environment — plain YAML, validated by the specs schema.">data</span>`
+        if (this.mode === 'types') return html`<span class="shape sources" title="The field type catalogue — the domain vocabulary, named once and referenced by fieldType.">types</span>`
         if (this.mode === 'sources') return html`<span class="shape sources" title="The REST source catalogue — each external endpoint named once, referenced by name.">sources</span>`
         if (this.mode === 'page' && this.doc?.fragment) return html`<span class="shape partial" title="A reusable partial — a rootless content: list, inlined wherever a Partial ref names it.">partial</span>`
         return ''
@@ -1002,6 +1028,7 @@ export class MateuVisualEditor extends LitElement {
         this.structuredYaml = yaml
         this.notifyChanged()
         if (this.mode === 'sources') setRestSourceCatalogue(parseSourcesFromText(this.lastText) as never)
+        if (this.mode === 'types') setFieldTypeCatalogue(parseTypes(this.lastText) as never)
     }
 
     /** A page edit — re-render (new doc reference) and notify the host. */

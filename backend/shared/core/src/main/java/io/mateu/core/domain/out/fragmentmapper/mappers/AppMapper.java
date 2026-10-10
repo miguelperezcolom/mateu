@@ -68,6 +68,8 @@ public final class AppMapper {
                 getAppServerSideType(
                     componentSupplier, app, route, appRouteForMenu, httpRequest, selectedOption))
             .restSources(RestSourceCatalogMapper.mapCatalogue())
+            .mockSources(
+                io.mateu.core.application.runaction.SampleSources.enabled() ? Boolean.TRUE : null)
             .components(ComponentCatalogMapper.mapCatalogue(baseUrl, route, httpRequest))
             .appDataSource(
                 httpRequest.getAttribute("_routeAppData")

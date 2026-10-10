@@ -561,7 +561,12 @@ class AppContext(val session: AppSession) {
         val ctx = mapOf<String, Any?>("state" to currentComponentState, "appState" to appState)
         background(
             work = {
-                if (source.path("proxy").asBoolean(false)) {
+                // SAMPLE mode: a sampled source is neither fetched nor proxied — a read answers with a
+                // copy of the sample, a write succeeds with null (nothing persisted, nothing to merge).
+                val sampled = io.mateu.ijp.ui.RestFetch.sampledResponse(source)
+                if (sampled != null) {
+                    sampled
+                } else if (io.mateu.ijp.ui.RestFetch.viaProxy(source)) {
                     // Proxy mode: route through the Mateu server (no CORS, secrets injected
                     // server-side) via the reserved __restfetch__ action. The __restdata__
                     // (screen-load) id resolves the class @RestData source; any other id is a
@@ -911,6 +916,8 @@ class AppContext(val session: AppSession) {
             ?: component.path("children").path(0).path("metadata").takeIf { it.text("type") == "App" }
         if (appMeta != null && appMeta.has("restSources")) RestFetch.registerRestSources(appMeta.path("restSources"))
         if (appMeta != null && appMeta.has("actionCatalogue")) session.actionCatalogue = appMeta.path("actionCatalogue")
+        // Sample mode is only ever switched ON by the app (the server opted in with mateu.sources.mock).
+        if (appMeta != null && appMeta.path("mockSources").asBoolean(false)) RestFetch.setSampleMode(true)
 
         // Overlay fragments (action Add + Drawer/Dialog component) stack over the page instead of
         // replacing it — shown as a side panel anchored to the IDE window.

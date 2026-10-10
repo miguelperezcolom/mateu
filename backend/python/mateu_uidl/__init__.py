@@ -251,6 +251,11 @@ from .adapters import (  # noqa: F401
 )
 from .i18n import Translations, TranslationsSupplier  # noqa: F401
 from .environments import Environment, SourceOverride  # noqa: F401
+from .field_types import (  # noqa: F401
+    FieldType,
+    FieldTypeCatalogSupplier,
+    FieldTypeEntry,
+)
 
 
 __all__ = [
@@ -277,6 +282,9 @@ __all__ = [
     "ActionCatalogSupplier",
     "CatalogAction",
     "CatalogRestAction",
+    "FieldType",
+    "FieldTypeCatalogSupplier",
+    "FieldTypeEntry",
     "RestSourceEntry",
     "RestSourceKind",
     "RestSourceProvenance",

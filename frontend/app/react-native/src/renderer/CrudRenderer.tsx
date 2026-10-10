@@ -15,7 +15,8 @@ import { useViewController } from './MateuViewHost';
 import { getHiddenColumns, setHiddenColumns } from './columnPrefs';
 import { listSavedViews, saveView, deleteView, setDefaultView, defaultView, SavedView } from './savedViews';
 import { interpolate, interpolateUrl } from '../core/expressions';
-import { fetchExternalJson, mapItemsToRows, resolveRestSource } from '../core/restFetch';
+import { fetchExternalJson, mapItemsToRows, resolveRestSource, viaProxy } from '../core/restFetch';
+import { restListingPage } from '../core/restListing';
 import { DateField } from './DateField';
 import { FormFieldRenderer, GridRowForm } from './FormFieldRenderer';
 import { theme } from '../theme';
@@ -169,12 +170,26 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   const restResolve = (t: unknown): string => interpolate(String(t ?? ''), { state, appState: controller.session.appState });
   const rowsUrl = rowsResolved ? restResolve(rowsResolved.url) : '';
   const [restRows, setRestRows] = useState<Record<string, unknown>[]>([]);
+  // The REST listing is fetched WHOLE (RN does not honour totalPath, and a source answered from its
+  // SAMPLE cannot honour `${state.page}` either): search, filters, sort and page apply in memory over
+  // the component state — the web's mateu-table-crud unpaged path.
+  const restPageSize = Number(metadata['pageSize'] ?? 0) || 0;
+  const showRestPage = (rows: Record<string, unknown>[]) =>
+    setLiveData({
+      page: restListingPage(rows, {
+        columnIds,
+        filters: (metadata['filters'] as FilterFieldMeta[]) ?? [],
+        state: controller.currentComponentState,
+        pageSize: restPageSize,
+      }),
+    });
   useEffect(() => {
     if (!rowsSource || !rowsResolved) return;
     let cancelled = false;
     // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets server-side);
     // direct fetch otherwise. Both resolve to the same JSON → mapItemsToRows.
-    const jsonPromise = rowsResolved.proxy
+    // A sampled source (sample mode) is never proxied: fetchExternalJson answers it from the sample.
+    const jsonPromise = viaProxy(rowsSource as Record<string, unknown>)
       ? controller.fetchViaProxy('rows', String(component['id'] ?? 'crud'))
       : fetchExternalJson(rowsSource, restResolve, (t) => interpolateUrl(String(t ?? ''), { state, appState: controller.session.appState }));
     jsonPromise
@@ -182,7 +197,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         if (cancelled) return;
         const rows = mapItemsToRows(json, rowsResolved.itemsPath, columnIds) as Record<string, unknown>[];
         setRestRows(rows);
-        setLiveData({ page: { content: rows, totalElements: rows.length, pageSize: rows.length, pageNumber: 0 } });
+        showRestPage(rows);
       })
       .catch((e) => console.warn('mateu: external rows fetch failed', e));
     return () => { cancelled = true; };
@@ -213,16 +228,8 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
 
   const doSearch = (values?: Record<string, unknown>, searchTextOverride?: string) => {
     const effectiveSearchText = searchTextOverride ?? searchText;
-    // @RestListing: filter the client-fetched rows in memory — no server round-trip.
-    if (rowsSource) {
-      const q = effectiveSearchText.trim().toLowerCase();
-      const filtered = q
-        ? restRows.filter((r) => columnIds.some((id) => String(r[id] ?? '').toLowerCase().includes(q)))
-        : restRows;
-      setLiveData({ page: { content: filtered, totalElements: filtered.length, pageSize: filtered.length, pageNumber: 0 } });
-      return;
-    }
-    controller.seedSearchState();
+    // @RestListing: search/filter the client-fetched rows in memory — no server round-trip.
+    if (!rowsSource) controller.seedSearchState();
     controller.currentComponentState['searchText'] = effectiveSearchText;
     controller.currentComponentState['page'] = 0;
     for (const [k, v] of Object.entries(values ?? filterValues)) {
@@ -231,6 +238,10 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
       } else {
         controller.currentComponentState[k] = v;
       }
+    }
+    if (rowsSource) {
+      showRestPage(restRows);
+      return;
     }
     void controller.runAction('search');
   };
@@ -244,9 +255,10 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   // Pagination is a SEARCH with the new page in the component state (the same idiom the web
   // renderer and toggleSort use) — there is no nextPage/prevPage server action.
   const changePage = (delta: number) => {
-    controller.seedSearchState();
+    if (!rowsSource) controller.seedSearchState();
     const current = Number(controller.currentComponentState['page'] ?? 0);
     controller.currentComponentState['page'] = Math.max(0, current + delta);
+    if (rowsSource) return showRestPage(restRows);
     void controller.runAction('search');
   };
 
@@ -261,9 +273,10 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
           ? ({ field, direction: 'descending' } as const)
           : null;
     setSortState(next);
-    controller.seedSearchState();
+    if (!rowsSource) controller.seedSearchState();
     controller.currentComponentState['sort'] = next ? [next] : [];
     controller.currentComponentState['page'] = 0;
+    if (rowsSource) return showRestPage(restRows);
     void controller.runAction('search');
   };
   const sortMark = (field: string) =>

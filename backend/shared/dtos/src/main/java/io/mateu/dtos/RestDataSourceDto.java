@@ -37,4 +37,21 @@ public record RestDataSourceDto(
     String itemsPath,
     String valuePath,
     String labelPath,
-    boolean proxy) {}
+    boolean proxy,
+    /* sample data answered instead of calling the endpoint, in sample mode only; null = none */
+    Object sample) {
+
+  /** The descriptor without sample data. */
+  public RestDataSourceDto(
+      String ref,
+      String url,
+      String method,
+      Map<String, String> headers,
+      String body,
+      String itemsPath,
+      String valuePath,
+      String labelPath,
+      boolean proxy) {
+    this(ref, url, method, headers, body, itemsPath, valuePath, labelPath, proxy, null);
+  }
+}

@@ -44,6 +44,35 @@ export interface ProjectIndex {
     environments?: string[]
     /** The ACTION catalogue (every `type: Actions` file): named client-runnable actions, by id. */
     actions: CatalogueAction[]
+    /** The field type catalogue (`types.yaml`): the domain vocabulary a field / column names by
+     *  `fieldType:`, as authored. */
+    types: FieldTypeEntry[]
+}
+
+/** One field type of the catalogue (`types.yaml`) — the shape the expander's catalogue takes. */
+export interface FieldTypeEntry {
+    id: string
+    dataType?: string
+    stereotype?: string
+    label?: string
+    [k: string]: unknown
+}
+
+/** Whether this YAML is the field type catalogue (`type: Types`, or a top-level `types:` list). */
+export function isTypesYaml(yaml: string): boolean {
+    let root: unknown
+    try { root = parse(yaml) } catch { return false }
+    if (!root || typeof root !== 'object' || Array.isArray(root)) return false
+    const type = (root as any).type
+    return type === 'Types' || (!type && Array.isArray((root as any).types))
+}
+
+/** The entries of a types file (those with an id). */
+export function parseTypes(yaml: string): FieldTypeEntry[] {
+    let root: any
+    try { root = parse(yaml) } catch { return [] }
+    const list = Array.isArray(root?.types) ? root.types : Array.isArray(root) ? root : []
+    return list.filter((t: any) => t && typeof t.id === 'string' && t.id.trim() !== '')
 }
 
 /** One entry of the REST source catalogue — the shape the renderer's catalogue takes. */
@@ -97,19 +126,26 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
     const translations: TranslationsFile[] = []
     const environments: string[] = []
     const actions = new Map<string, CatalogueAction>()
+    const types: FieldTypeEntry[] = []
+    // A source's sample file is data, not a page — keep it out of the page list.
+    const sampleFiles = new Set((files ?? []).filter((f) => isSourcesYaml(f.content ?? ''))
+        .flatMap((f) => parseSources(f.content))
+        .map((e) => (typeof e.sampleFile === 'string' ? normalize(e.sampleFile) : ''))
+        .filter(Boolean))
 
     for (const f of files ?? []) {
         const path = normalize(f.path)
         const content = f.content ?? ''
-        if (!path) continue
+        if (!path || sampleFiles.has(path)) continue
         if (isMountYaml(content)) continue // the mount descriptor is not itself a reference target
-        if (isSourcesYaml(content)) { sources.push(...parseSources(content)); continue }
         const catalogue = parseTranslationsFile(path, content)
         if (catalogue) { translations.push(catalogue); continue }
         const environment = environmentName(path, content)
         if (environment) { environments.push(environment); continue }
         // A later file's entry replaces an earlier one of the same id, as the runtime merges them.
         if (isActionsYaml(content)) { for (const a of parseActionCatalogue(content)) actions.set(a.id, a); continue }
+        if (isSourcesYaml(content)) { sources.push(...withSampleFiles(parseSources(content), files)); continue }
+        if (isTypesYaml(content)) { types.push(...parseTypes(content)); continue }
         if (isRoutesYaml(content)) {
             // Children are flattened to their absolute route, as the loader does.
             for (const r of flattenRoutes(parseRoutes(content).routes)) {
@@ -134,7 +170,23 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
         ...(translations.length ? { translations } : {}),
         ...(environments.length ? { environments: dedupe(environments) } : {}),
         actions: [...actions.values()],
+        types,
     }
+}
+
+/**
+ * The entries with each `sampleFile:` (JSON or YAML, relative to specs/ui) read into `sample` from the
+ * mount's files — what the server's RestSourceRegistry does at load, so the canvas and Play answer a
+ * source from its sample file too. An inline `sample` wins; an unreadable file leaves none.
+ */
+export function withSampleFiles(entries: SourceEntry[], files: ProjectFile[]): SourceEntry[] {
+    return entries.map((e) => {
+        const file = typeof e.sampleFile === 'string' ? normalize(e.sampleFile) : ''
+        if (!file || e.sample !== undefined) return e
+        const found = (files ?? []).find((f) => normalize(f.path) === file)
+        if (!found) return e
+        try { return { ...e, sample: parse(found.content) } } catch { return e }
+    })
 }
 
 function isPartial(path: string): boolean {

@@ -72,6 +72,8 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | — Proxy mode for views with no annotation to read (`RestSourceSupplier`: a view assembled at runtime declares its sources programmatically, and they gate `__restfetch__` and resolve a proxy fetch exactly as annotations do) | ✅ | ✅ | ✅ |
 | [REST source catalogue](/java-ui-definition/rest-source-catalogue/) (`specs/ui/sources.yaml` + `@RestSource`/`RestSourceCatalogSupplier` → a named endpoint referenced by `ref`; two producers, authored wins). Java and .NET carry the registry (catalogue reader + `ref` resolution + `AppDto.restSources`); Python carries it too (`@rest_source` / `RestSourceCatalogSupplier` / `sources.yaml`, `AppMetadata.restSources`, refs resolved server-side for proxy fetches) | ✅ | ✅ | ✅ |
 | [Action catalogue](/java-ui-definition/action-catalogue/) (`specs/ui/actions.yaml` + any `type: Actions` file + `ActionCatalogSupplier` → named client-runnable actions — flows / `restAction` — run by id from the shell menu or any page; two producers, authored wins; owner first, then the catalogue, then the server; non-runnable entries rejected with a warning). `AppDto.actionCatalogue` lowered on all three; a page carries the entries its tree names. .NET (`IActionCatalogSupplier`) and Python (`ActionCatalogSupplier`) have no YAML shell/page `actions:`, so "owner" there is the view's methods; no bundle exporter in the ports | ✅ | ✅ | ✅ |
+| [Field types](/java-ui-definition/field-types/) (`specs/ui/types.yaml` + `FieldTypeCatalogSupplier` → a named domain type a `FormField`/`GridColumn` references by `fieldType:`; the type's attributes are defaults, the field's own win, unknown → warn + render as declared; `GridColumn.tones` per-value badge tones). Resolved by the Java YAML loader, the browser expander and the .NET/Python YAML loaders (same rule); .NET/Python also add a `[FieldType]`/`FieldType()` marker for listing row fields since their YAML builders have no listing | ✅ | ✅ | ✅ |
+| [Sample data on REST sources](/java-ui-definition/rest-source-catalogue/#sample-data-designing-without-an-api) (`sample:`/`sampleFile:`, answered instead of calling the endpoint ONLY in sample mode: visual editor, `-Dmateu.bundle.mock=true` bundles, or an app opted in with `mateu.sources.mock=true`/`MATEU_SOURCES_MOCK=true` → `AppDto.mockSources`; reads get the sample, writes succeed without persisting; proxied and direct legs agree). Renderers: Vaadin/libs, React Native and IntelliJ honour it; .NET/Python short-circuit their proxy leg (no bulk/bundle there) | ✅ | ✅ | ✅ |
 | [Business components](/java-ui-definition/component-catalogue/) (`specs/ui/components.yaml` + `@BusinessComponent`/`ComponentCatalogSupplier` + `ComponentRef` → a named, BOUND composition of existing pieces referenced by name; ports for free, resolves with no backend). Same two-producers/authored-wins registry as the source catalogue; .NET and Python carry it too (`ComponentRef` expanded server-side, `AppDto.components`; Python `@business_component` / `fluent.ComponentRef`) | ✅ | ✅ | ✅ |
 | [Custom components](/java-ui-definition/custom-components/) (`CustomComponent(name, props, content)` — a genuinely NEW rendering as data; the per-renderer escape hatch). The WIRE is data and identical across backends; the RENDERING is per-renderer (`registerCustomComponent`, degrading to `<mateu-unsupported>`) | ✅ | ✅ | ✅ |
 | Sizing intent (`hug`/`fill`/`fixed:<len>` as portable data on the component; a listing infers `fill`) | ✅ | ✅ | ✅ |
@@ -595,9 +597,11 @@ is honoured with two edges:
   remote `search-<field>` action, not `optionsSource`; a one-to-many reference to an external
   catalogue is not wired yet. It spans three widget branches and is deliberately deferred rather
   than half-wired.
-- **VB/Redwood REST sources.** The Redwood/VB line resolves REST sources **by ref natively** and does
-  not consume the shared catalogue the way the Vaadin/native renderers do — by design for now (its
-  transport shares no core with the web renderers).
+- **VB/Redwood REST sources.** Since 2026-10-10 the Redwood/VB core (`poc/restSources.mjs`) consumes
+  the catalogue like the web: listing `rowsSource`, field `optionsSource`, route `data:` and
+  `restAction`s, resolved by `ref` against `AppDto.restSources` / the bundle manifest, direct or
+  proxied (`__restfetch__`), with sample data under the same opt-in rule and column `tones`. Its
+  `${…}` interpolation covers dotted paths only, not the web's full expression language.
 
 Update this page whenever parity moves — it is referenced from the language manuals and the
 [Rosetta](/reference/language-rosetta/).

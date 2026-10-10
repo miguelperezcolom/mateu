@@ -1,0 +1,169 @@
+{
+  "$schema" : "http://json-schema.org/draft-07/schema#",
+  "$id" : "https://mateu.io/uidl/types-schema.json",
+  "version" : "3.0",
+  "title" : "Mateu field type catalogue",
+  "description" : "JSON Schema for a mount's field type catalogue — the domain vocabulary (OrderStatus, Money, Email): what a concept looks like as a field or a column, declared once. A FormField or GridColumn references one by `fieldType: <id>`; the type's attributes are its defaults and the field's own win. GENERATED from FieldTypeEntry by UidlSchemaGenerator — do not edit by hand.",
+  "oneOf" : [ {
+    "type" : "object",
+    "properties" : {
+      "type" : {
+        "const" : "Types"
+      },
+      "types" : {
+        "type" : "array",
+        "items" : {
+          "$ref" : "#/$defs/FieldTypeEntry"
+        }
+      }
+    },
+    "required" : [ "types" ]
+  }, {
+    "type" : "array",
+    "items" : {
+      "$ref" : "#/$defs/FieldTypeEntry"
+    }
+  } ],
+  "$defs" : {
+    "ColumnAlignment" : {
+      "type" : "string",
+      "enum" : [ "start", "center", "end" ]
+    },
+    "FieldDataType" : {
+      "type" : "string",
+      "enum" : [ "integer", "string", "number", "date", "time", "dateTime", "bool", "array", "file", "status", "money", "component", "menu", "range", "action", "actionGroup", "dateRange" ]
+    },
+    "FieldStereotype" : {
+      "type" : "string",
+      "enum" : [ "regular", "radio", "checkbox", "textarea", "toggle", "combobox", "select", "email", "password", "richText", "listBox", "html", "markdown", "image", "uploadableImage", "fileUpload", "icon", "link", "money", "grid", "color", "choice", "popover", "slider", "button", "stars", "searchable", "badge", "plainText", "bulletedList", "dateRange", "numberRange", "treeSelect", "signature", "camera", "multiSelect", "primary" ]
+    },
+    "FieldTypeEntry" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "dataType" : {
+          "$ref" : "#/$defs/FieldDataType"
+        },
+        "stereotype" : {
+          "$ref" : "#/$defs/FieldStereotype"
+        },
+        "placeholder" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "required" : {
+          "type" : "boolean"
+        },
+        "readOnly" : {
+          "type" : "boolean"
+        },
+        "options" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Option"
+          }
+        },
+        "optionsSource" : {
+          "$ref" : "#/$defs/RestDataSource"
+        },
+        "min" : {
+          "type" : "number"
+        },
+        "max" : {
+          "type" : "number"
+        },
+        "step" : {
+          "type" : "number"
+        },
+        "colspan" : {
+          "type" : "integer"
+        },
+        "style" : {
+          "type" : "string"
+        },
+        "cssClasses" : {
+          "type" : "string"
+        },
+        "align" : {
+          "$ref" : "#/$defs/ColumnAlignment"
+        },
+        "width" : {
+          "type" : "string"
+        },
+        "autoWidth" : {
+          "type" : "boolean"
+        },
+        "tones" : {
+          "type" : "object"
+        }
+      }
+    },
+    "Option" : {
+      "type" : "object",
+      "properties" : {
+        "value" : { },
+        "label" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "image" : {
+          "type" : "string"
+        },
+        "imageStyle" : {
+          "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "children" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Option"
+          }
+        }
+      }
+    },
+    "RestDataSource" : {
+      "type" : "object",
+      "properties" : {
+        "ref" : {
+          "type" : "string"
+        },
+        "url" : {
+          "type" : "string"
+        },
+        "method" : {
+          "type" : "string"
+        },
+        "headers" : {
+          "type" : "object"
+        },
+        "body" : {
+          "type" : "string"
+        },
+        "itemsPath" : {
+          "type" : "string"
+        },
+        "valuePath" : {
+          "type" : "string"
+        },
+        "labelPath" : {
+          "type" : "string"
+        },
+        "proxy" : {
+          "type" : "boolean"
+        },
+        "sample" : { }
+      }
+    }
+  }
+}

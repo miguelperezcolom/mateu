@@ -76,7 +76,7 @@ def parse(root: Any, relative_path: str | None) -> Translations | None:
     if not isinstance(root, dict):
         return None
     kind = root.get("type") or ""
-    conventional = bool(relative_path) and relative_path.startswith(CONVENTIONAL_DIR + "/")
+    conventional = relative_path is not None and relative_path.startswith(CONVENTIONAL_DIR + "/")
     if kind != "Translations" and not (conventional and not kind):
         return None
     locale = str(root.get("locale") or "").strip()

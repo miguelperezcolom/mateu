@@ -709,7 +709,8 @@ private fun restOptionsCombo(ctx: AppContext, fieldId: String, source: JsonNode,
         val opts = try {
             // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets
             // server-side); direct fetch otherwise. Both resolve to the same JSON.
-            val json = if (resolved.path("proxy").asBoolean(false)) ctx.fetchViaProxy("options", fieldId)
+            // A sampled source (sample mode) is never proxied: RestFetch.fetch answers it from the sample.
+            val json = if (RestFetch.viaProxy(source)) ctx.fetchViaProxy("options", fieldId)
                        else RestFetch.fetch(ctx.apiClient, source, exprCtx)
             val arr = RestFetch.valueAtPath(json, resolved.text("itemsPath"))
             val valuePath = resolved.text("valuePath").ifBlank { "value" }

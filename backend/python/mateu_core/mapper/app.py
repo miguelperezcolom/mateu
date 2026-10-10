@@ -28,7 +28,7 @@ from mateu_uidl import (
     Rule,
 )
 
-from .. import capabilities
+from .. import capabilities, sample_sources
 from ..naming import humanize
 from ..reflection import methods_with
 from ..registry import (
@@ -169,6 +169,9 @@ class AppMapperMixin(MixinBase):
             rest_sources=self.rest_sources.wire() if self.rest_sources is not None else [],
             components=self._component_catalogue(),
             action_catalogue=self.action_catalog.wire(self.authorized) if self.action_catalog is not None else [],
+            # Sample mode (MATEU_SOURCES_MOCK=true): tell the client so its direct leg answers
+            # sampled sources with their samples too. True or absent (mirrors AppDto.mockSources).
+            mock_sources=True if sample_sources.enabled() else None,
             required_capabilities=self._required_capabilities(
                 cls,
                 sse_url=sse_url,

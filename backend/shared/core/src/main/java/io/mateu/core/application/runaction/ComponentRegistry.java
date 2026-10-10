@@ -158,7 +158,8 @@ public class ComponentRegistry {
       return null;
     }
     try {
-      var component = yaml.treeToValue(componentNode, Component.class);
+      var component =
+          yaml.treeToValue(FieldTypeRegistry.resolveWithAppTypes(componentNode), Component.class);
       return new ComponentEntry(nameNode.asText(), component);
     } catch (Exception e) {
       log.warn(

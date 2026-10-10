@@ -34,5 +34,7 @@ public record GridColumnDto(
     Double weight,
     String aggregate,
     /* 1-based line of the row (multi-line rows, @Line); null = line 1 */
-    Integer line)
+    Integer line,
+    /* a status column's badge tone per value (success | warning | danger | info | neutral) */
+    java.util.Map<String, String> tones)
     implements ComponentMetadataDto {}

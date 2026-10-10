@@ -7,7 +7,7 @@ import { existsSync, readFileSync, readdirSync, type Dirent } from 'node:fs'
 import { parse } from 'yaml'
 import { yamlScalar } from './newFiles'
 
-export type SpecKind = 'mount' | 'routes' | 'sources' | 'actions' | 'appShell' | 'page' | 'translations' | 'environment'
+export type SpecKind = 'mount' | 'routes' | 'sources' | 'actions' | 'types' | 'appShell' | 'page' | 'translations' | 'environment'
 
 /** A discovered specs/ui file; `path` is relative to the specs/ui root, `/`-separated. */
 export interface SpecFile {
@@ -38,8 +38,8 @@ function isMap(v: unknown): v is Record<string, unknown> {
 }
 
 /**
- * The kind of a specs/ui file from its top-level `type:` — `UI` (mount), `Routes`, `Sources`,
- * `AppShell`, `Translations`, `Environment` (also by convention under `translations/` /
+ * The kind of a specs/ui file from its top-level `type:` — `UI` (mount), `Routes`, `Sources`, `Actions`,
+ * `Types`, `AppShell`, `Translations`, `Environment` (also by convention under `translations/` /
  * `environments/` when `path` is given and the file has no `type:`), anything else a
  * page/definition. Null when it does not parse or is not a mapping.
  */
@@ -52,6 +52,7 @@ export function classify(text: string, path = ''): SpecKind | null {
         case 'Routes': return 'routes'
         case 'Sources': return 'sources'
         case 'Actions': return 'actions'
+        case 'Types': return 'types'
         case 'AppShell': return 'appShell'
         case 'Translations': return 'translations'
         case 'Environment': return 'environment'

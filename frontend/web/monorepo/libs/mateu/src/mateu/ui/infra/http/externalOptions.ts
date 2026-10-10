@@ -1,7 +1,7 @@
 import type RestDataSource from '@mateu/shared/apiClients/dtos/componentmetadata/RestDataSource.ts'
 import { externalAuthHeaders } from './externalAuth.ts'
 import { declaresJson } from './jsonTemplate.ts'
-import { pathOfField, resolveRestSource, totalPathOf } from './restSourceCatalogue.ts'
+import { isSampled, pathOfField, resolveRestSource, sampleOf, totalPathOf } from './restSourceCatalogue.ts'
 import type { TemplateResolver } from '../ui/interpolation.ts'
 
 /**
@@ -119,6 +119,13 @@ export async function fetchExternalJson(
         const mockUrl = source.url ? (resolveUrl(source.url) ?? source.url) : ''
         const mocked = externalJsonMock({ url: mockUrl, ref: declared.ref, method })
         if (mocked !== undefined) return mocked
+    }
+    // SAMPLE mode (see restSourceCatalogue): a source carrying sample data answers with it — a read
+    // gets a copy of the sample, a write succeeds without persisting anything (null = nothing to
+    // merge, like a 204). The server's proxied leg applies the very same rule.
+    if (isSampled(declared)) {
+        if (method !== 'GET' && method !== 'HEAD') return null
+        return structuredClone(sampleOf(declared))
     }
     if (!source.url) throw new Error(`External REST fetch has no url${declared.ref ? ` (unknown source "${declared.ref}")` : ''}`)
     const url = resolveUrl(source.url) ?? source.url

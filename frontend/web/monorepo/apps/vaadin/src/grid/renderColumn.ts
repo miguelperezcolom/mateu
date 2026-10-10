@@ -417,7 +417,7 @@ export const columnRenderer = (item: any,
         return renderEditableCell(item, column, container, state)
     }
     if ('status' == type) {
-        return renderStatusCell(item, model, vaadinColumn)
+        return renderStatusCell(item, model, vaadinColumn, column.tones)
     }
     if ('primary' == stereotype) {
         return renderPrimaryCell(item, column, vaadinColumn)

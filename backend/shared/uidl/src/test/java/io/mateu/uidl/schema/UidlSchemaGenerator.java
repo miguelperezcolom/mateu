@@ -85,6 +85,7 @@ public final class UidlSchemaGenerator {
         .sorted()
         .forEach(name -> oneOf.addObject().put("$ref", "#/$defs/" + name));
     generator.defs.put("Component", componentDef);
+    addFieldTypeReference(generator.defs);
 
     var root = MAPPER.createObjectNode();
     root.put("$schema", "http://json-schema.org/draft-07/schema#");
@@ -100,6 +101,71 @@ public final class UidlSchemaGenerator {
     var defsNode = root.putObject("$defs");
     generator.defs.forEach(defsNode::set);
     return root;
+  }
+
+  /**
+   * The ONE authored key that is not a record component: {@code fieldType}, on a form field and a
+   * grid column, naming an entry of the field type catalogue ({@code types.yaml}). It is resolved
+   * before the tree becomes components (the type's attributes become the field's defaults) and
+   * never reaches the record or the wire — so it is added here rather than to the records, which
+   * would otherwise carry a key nothing reads.
+   */
+  static void addFieldTypeReference(Map<String, ObjectNode> defs) {
+    for (var name : List.of("FormField", "GridColumn")) {
+      var def = defs.get(name);
+      if (def != null && def.get("properties") instanceof ObjectNode properties) {
+        properties
+            .putObject("fieldType")
+            .put("type", "string")
+            .put(
+                "description",
+                "The id of a field type of the app's catalogue (specs/ui/types.yaml): its"
+                    + " attributes are this field's defaults, and what the field declares itself"
+                    + " wins.");
+      }
+    }
+  }
+
+  /**
+   * The schema of the authored FIELD TYPE catalogue ({@code specs/ui/types.yaml}), derived from
+   * {@link io.mateu.uidl.data.FieldTypeEntry} — a {@code types:} envelope (optionally {@code type:
+   * Types}) or a bare list, like the source catalogue.
+   */
+  public static ObjectNode generateTypes() {
+    var generator = new UidlSchemaGenerator();
+    generator.defineValueRecord(io.mateu.uidl.data.FieldTypeEntry.class);
+
+    var list = MAPPER.createObjectNode().put("type", "array");
+    list.putObject("items").put("$ref", "#/$defs/FieldTypeEntry");
+
+    var root = MAPPER.createObjectNode();
+    root.put("$schema", "http://json-schema.org/draft-07/schema#");
+    root.put("$id", "https://mateu.io/uidl/types-schema.json");
+    root.put("version", SCHEMA_VERSION);
+    root.put("title", "Mateu field type catalogue");
+    root.put(
+        "description",
+        "JSON Schema for a mount's field type catalogue — the domain vocabulary (OrderStatus,"
+            + " Money, Email): what a concept looks like as a field or a column, declared once. A"
+            + " FormField or GridColumn references one by `fieldType: <id>`; the type's attributes"
+            + " are its defaults and the field's own win. GENERATED from FieldTypeEntry by"
+            + " UidlSchemaGenerator — do not edit by hand.");
+    var oneOf = root.putArray("oneOf");
+    oneOf.add(typesEnvelope(list));
+    oneOf.add(list);
+    var defsNode = root.putObject("$defs");
+    generator.defs.forEach(defsNode::set);
+    return root;
+  }
+
+  private static ObjectNode typesEnvelope(ObjectNode list) {
+    var envelope = MAPPER.createObjectNode();
+    envelope.put("type", "object");
+    var props = envelope.putObject("properties");
+    props.putObject("type").put("const", "Types");
+    props.set("types", list.deepCopy());
+    envelope.putArray("required").add("types");
+    return envelope;
   }
 
   /** Every component record that belongs to the authoring surface, sorted by simple name. */
@@ -763,6 +829,13 @@ public final class UidlSchemaGenerator {
         .put("$ref", "#/$defs/SourceOverride");
     environment.putArray("required").add("sources");
 
+    // The field type catalogue (types.yaml): FieldTypeEntry (and anything it nests) into $defs.
+    var typesGen = new UidlSchemaGenerator();
+    typesGen.defineValueRecord(io.mateu.uidl.data.FieldTypeEntry.class);
+    typesGen.defs.forEach(defs::putIfAbsent);
+    var typeList = MAPPER.createObjectNode().put("type", "array");
+    typeList.putObject("items").put("$ref", "#/$defs/FieldTypeEntry");
+
     var oneOf = MAPPER.createArrayNode();
     oneOf.add(mount);
     oneOf.add(routesEnvelope);
@@ -771,6 +844,7 @@ public final class UidlSchemaGenerator {
     oneOf.add(actionsEnvelope(actionList)); // the action catalogue
     oneOf.add(translations);
     oneOf.add(environment);
+    oneOf.add(typesEnvelope(typeList));
     oneOf.add(pageDefinition); // app shell / page
     root.set("oneOf", oneOf);
 
@@ -782,7 +856,7 @@ public final class UidlSchemaGenerator {
         "Unified JSON Schema for every file under specs/ui/: a `type: UI` mount, a `type: Routes`"
             + " route file, a `type: Sources` REST source catalogue, a `type: Actions` action"
             + " catalogue, a `type: Translations` message catalogue, a `type: Environment` source"
-            + " overlay, or a component definition"
+            + " overlay, a `type: Types` field type catalogue, or a component definition"
             + " (`type: AppShell` app shell / a page). The `type` field selects the branch."
             + " GENERATED by UidlSchemaGenerator — do not edit by hand.");
     return root;

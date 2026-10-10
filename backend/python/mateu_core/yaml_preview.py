@@ -12,6 +12,7 @@ built tree — so nothing downstream, and no renderer, has to know partials exis
 
 from __future__ import annotations
 
+from contextvars import ContextVar
 from typing import Any
 
 import yaml
@@ -24,8 +25,42 @@ _MAX_DEPTH = 20
 
 _DEFAULT_PARTIALS = PartialRegistry()
 
+#: The field type catalogue `fieldType:` references resolve against while a tree is being built
+#: (a contextvar so the partials expanded mid-build are resolved too, without threading it through
+#: every builder). Set by the entry points below.
+_types: ContextVar[Any] = ContextVar("mateu_field_types", default=None)
 
-def build_from_yaml(text: str, partials: PartialRegistry | None = None) -> fluent.Component | None:
+
+def _types_of(field_types):
+    if field_types is not None:
+        return field_types
+    from .field_type_registry import default_registry
+
+    return default_registry()
+
+
+def _resolve_types(node: Any) -> Any:
+    """``node`` with its ``fieldType`` references resolved (Java's FieldTypeResolver): the type
+    supplies defaults, the node's own attributes win, the key never reaches the wire."""
+    from .field_type_registry import mentions_a_field_type
+
+    if not mentions_a_field_type(node):
+        return node
+    registry = _types.get() or _types_of(None)
+    return registry.resolve(node)
+
+
+def _with_types(field_types, fn, *args):
+    token = _types.set(_types_of(field_types))
+    try:
+        return fn(*args)
+    finally:
+        _types.reset(token)
+
+
+def build_from_yaml(
+    text: str, partials: PartialRegistry | None = None, field_types=None
+) -> fluent.Component | None:
     """Parse YAML page text and build a fluent component tree (or ``None`` on failure)."""
     try:
         data = yaml.safe_load(text)
@@ -33,27 +68,29 @@ def build_from_yaml(text: str, partials: PartialRegistry | None = None) -> fluen
         return None
     if isinstance(data, dict) and "layout" in data:
         data = data["layout"]  # page envelope → render the layout
-    return _single(data, partials or _DEFAULT_PARTIALS, [])
+    return _with_types(field_types, _single, data, partials or _DEFAULT_PARTIALS, [])
 
 
-def build_node(node: Any, partials: PartialRegistry | None = None) -> fluent.Component | None:
+def build_node(
+    node: Any, partials: PartialRegistry | None = None, field_types=None
+) -> fluent.Component | None:
     """One already-parsed YAML node (a dict) as a fluent component tree."""
-    return _single(node, partials or _DEFAULT_PARTIALS, [])
+    return _with_types(field_types, _single, node, partials or _DEFAULT_PARTIALS, [])
 
 
 def parse_spec(
-    text: str, partials: PartialRegistry | None = None
+    text: str, partials: PartialRegistry | None = None, field_types=None
 ) -> tuple[str | None, fluent.Component | None]:
     """Parse a page spec (a file under specs/ui): the declared ModelView class name (or ``None``
     for a bare, unbound layout) plus the layout component. Envelope-aware — a ``layout:`` key holds
     the tree and a ``viewModel:`` (or the deprecated ``modelView:``) key names the logic class the
     tooling binds it to. A ``layoutDelta:`` page has no layout of its own (see
     :func:`parse_spec_with_delta`)."""
-    model_view, layout, _ = parse_spec_with_delta(text, partials)
+    model_view, layout, _ = parse_spec_with_delta(text, partials, field_types)
     return model_view, layout
 
 
-def parse_spec_with_delta(text: str, partials: PartialRegistry | None = None):
+def parse_spec_with_delta(text: str, partials: PartialRegistry | None = None, field_types=None):
     """``(view model class name, layout, layout delta)``. A ``layoutDelta:`` is not a layout: it
     is a diff re-applied over the INFERRED layout of the view model, so such a page returns no
     layout and the parsed :class:`~mateu_core.layout_delta.LayoutDelta`."""
@@ -63,26 +100,27 @@ def parse_spec_with_delta(text: str, partials: PartialRegistry | None = None):
         data = yaml.safe_load(text)
     except yaml.YAMLError:
         return None, None, None
-    return parse_spec_tree(data, partials)
+    return parse_spec_tree(data, partials, field_types)
 
 
-def parse_spec_tree(data: Any, partials: PartialRegistry | None = None):
+def parse_spec_tree(data: Any, partials: PartialRegistry | None = None, field_types=None):
     """:func:`parse_spec_with_delta` over an already-parsed YAML tree — what a spec re-derived per
     request (access keys / ``${i18n.…}`` applied to its source tree) is built from."""
     from .layout_delta import LayoutDelta
 
     registry = partials or _DEFAULT_PARTIALS
     if not isinstance(data, dict):
-        return None, _single(data, registry, []), None
+        return None, _with_types(field_types, _single, data, registry, []), None
     model_view = data.get("viewModel") or data.get("modelView")
     if "layout" not in data and "layoutDelta" in data:
         return model_view, None, LayoutDelta.parse(data.get("layoutDelta"))
     layout_node = data["layout"] if "layout" in data else data
-    return model_view, _single(layout_node, registry, []), None
+    return model_view, _with_types(field_types, _single, layout_node, registry, []), None
 
 
 def _single(node: Any, partials: PartialRegistry, chain: list[str]) -> fluent.Component | None:
     """What a node becomes in a slot that holds exactly one component."""
+    node = _resolve_types(node)
     expanded = _in_list(node, partials, chain)
     if not expanded:
         return None
@@ -102,7 +140,7 @@ def _in_list(node: Any, partials: PartialRegistry, chain: list[str]) -> list[flu
         try:
             resolved: list[fluent.Component] = []
             for child in partials.resolve(ref):
-                resolved.extend(_in_list(child, partials, chain))
+                resolved.extend(_in_list(_resolve_types(child), partials, chain))
             return resolved
         finally:
             chain.pop()
@@ -128,11 +166,14 @@ def _build(node: Any, partials: PartialRegistry, chain: list[str]) -> fluent.Com
     if kind == "FormField":
         return fluent.FormField(
             field_id=node.get("id", ""),  # YAML id → wire binding key field_id
-            data_type=node.get("dataType", "string"),
+            data_type=node.get("dataType") or "string",
             label=node.get("label"),
-            stereotype=node.get("stereotype", "regular"),
+            stereotype=node.get("stereotype") or "regular",
             required=bool(node.get("required", False)),
             read_only=bool(node.get("readOnly", False)),
+            options=_options(node.get("options")),
+            style=node.get("style"),
+            css_classes=node.get("cssClasses"),
         )
     if kind == "Button":
         return fluent.Button(
@@ -146,6 +187,20 @@ def _build(node: Any, partials: PartialRegistry, chain: list[str]) -> fluent.Com
     if kind == "ComponentRef":
         return fluent.ComponentRef(ref=str(node.get("ref") or ""))
     return fluent.Text(text=f"Unsupported component: {kind}")
+
+
+def _options(raw: Any) -> tuple:
+    """YAML ``options`` ({value, label} maps, or bare values) as the fluent (value, label) pairs."""
+    if not isinstance(raw, list):
+        return ()
+    out = []
+    for o in raw:
+        if isinstance(o, dict):
+            value = o.get("value")
+            out.append((value, str(o.get("label") if o.get("label") is not None else value)))
+        elif o is not None:
+            out.append((o, str(o)))
+    return tuple(out)
 
 
 def _children(node: dict, partials: PartialRegistry, chain: list[str]) -> tuple:

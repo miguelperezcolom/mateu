@@ -69,6 +69,7 @@ public static class MateuExtensions
                     ? TranslationRegistry.AcceptLanguage(ctx.Request.Headers.AcceptLanguage.ToString())
                     : null)
             {
+                MockSources = options.MockSources,
                 // Listing exports: an exporter registered as a service replaces the built-in writer
                 // of its format (Java: the CsvExporter/ExcelExporter/PdfExporter beans).
                 Exporters = new Mateu.Core.Export.MateuExporters(

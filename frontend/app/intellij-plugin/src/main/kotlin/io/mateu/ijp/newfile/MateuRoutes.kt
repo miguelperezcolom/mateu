@@ -15,7 +15,7 @@ import org.yaml.snakeyaml.constructor.SafeConstructor
  */
 object MateuRoutes {
 
-    enum class SpecKind { MOUNT, ROUTES, SOURCES, ACTIONS, APP_SHELL, PAGE, TRANSLATIONS, ENVIRONMENT }
+    enum class SpecKind { MOUNT, ROUTES, SOURCES, ACTIONS, TYPES, APP_SHELL, PAGE, TRANSLATIONS, ENVIRONMENT }
 
     /** A discovered specs/ui file; [path] is relative to the specs/ui root, `/`-separated. */
     data class SpecFile(val path: String, val kind: SpecKind) {
@@ -39,7 +39,7 @@ object MateuRoutes {
 
     /**
      * The kind of a specs/ui file from its top-level `type:` — `UI` (mount), `Routes`, `Sources`, `Actions`,
-     * `AppShell`, `Translations`, `Environment` (also by convention under `translations/` /
+     * `Types`, `AppShell`, `Translations`, `Environment` (also by convention under `translations/` /
      * `environments/` when [path] is given and the file has no `type:`), anything else a
      * page/definition. Null when it does not parse or is not a mapping.
      */
@@ -51,6 +51,7 @@ object MateuRoutes {
             "Routes" -> SpecKind.ROUTES
             "Sources" -> SpecKind.SOURCES
             "Actions" -> SpecKind.ACTIONS
+            "Types" -> SpecKind.TYPES
             "AppShell" -> SpecKind.APP_SHELL
             "Translations" -> SpecKind.TRANSLATIONS
             "Environment" -> SpecKind.ENVIRONMENT

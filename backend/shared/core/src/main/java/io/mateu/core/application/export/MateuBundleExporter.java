@@ -144,11 +144,46 @@ public final class MateuBundleExporter {
        * -Dmateu.bundle.environment}), or null when they are as authored. Informative: the catalogue
        * shipped here is already the resolved one.
        */
-      String environment) {
+      String environment,
+      /**
+       * True when the bundle was built with the mock flag ({@code -Dmateu.bundle.mock=true}, see
+       * {@code SampleSources}): the catalogue ships its sources' SAMPLE data and the browser
+       * answers with it instead of calling the endpoints. Null otherwise — and then the samples are
+       * not shipped at all.
+       */
+      Boolean mockSources) {
 
     public BundleManifest {
       actions = actions == null ? List.of() : List.copyOf(actions);
       translations = translations == null ? Map.of() : translations;
+    }
+
+    /** Pre-sample-mode shape: a bundle that calls its sources for real. */
+    public BundleManifest(
+        String baseUrl,
+        String generatedAt,
+        boolean staticOnly,
+        List<BundleEntry> entries,
+        RouteTable routes,
+        RestSourceCatalog sources,
+        List<String> requiredCapabilities,
+        Map<String, JsonNode> definitions,
+        List<io.mateu.dtos.ActionDto> actions,
+        Map<String, Map<String, String>> translations,
+        String environment) {
+      this(
+          baseUrl,
+          generatedAt,
+          staticOnly,
+          entries,
+          routes,
+          sources,
+          requiredCapabilities,
+          definitions,
+          actions,
+          translations,
+          environment,
+          null);
     }
 
     /** Pre-i18n shape: no translations shipped, sources as authored. */
@@ -254,7 +289,7 @@ public final class MateuBundleExporter {
       return aggregateCapabilities(entries);
     }
 
-    private static List<String> aggregateCapabilities(List<BundleEntry> entries) {
+    static List<String> aggregateCapabilities(List<BundleEntry> entries) {
       var mapper = new ObjectMapper();
       var caps = new java.util.TreeSet<String>();
       for (var entry : entries) {
@@ -498,18 +533,22 @@ public final class MateuBundleExporter {
               ? exportRoute(baseUrl, route)
               : exportTemplate(baseUrl, route));
     }
+    // Sample data ships only in a bundle built with the mock flag — and then the browser uses it.
+    var mock = io.mateu.core.application.runaction.SampleSources.forBundle();
+    var sources = restSourceCatalogue();
     return new BundleManifest(
         baseUrl,
         java.time.Instant.now().toString(),
         onlyStatic,
         entries,
         authored,
-        restSourceCatalogue(),
+        mock ? sources : sources.strippedOfSamples(),
         BundleManifest.aggregateCapabilitiesOf(entries),
         definitions,
         actionCatalogue(),
         translationCatalogue(),
-        io.mateu.core.application.runaction.Environments.activeName());
+        io.mateu.core.application.runaction.Environments.activeName(),
+        mock ? Boolean.TRUE : null);
   }
 
   /**
@@ -579,6 +618,7 @@ public final class MateuBundleExporter {
    */
   private static Map<String, JsonNode> collectDefinitions(ClassLoader cl, RouteTable authored) {
     var mapper = new YAMLMapper();
+    var types = new io.mateu.core.application.runaction.FieldTypeRegistry();
     var out = new java.util.LinkedHashMap<String, JsonNode>();
     for (var entry : authored.routes()) {
       var def = entry.definition();
@@ -591,7 +631,11 @@ public final class MateuBundleExporter {
           log.warn("bundle: definition {} not found at classpath:{} — omitted", def, path);
           continue;
         }
-        out.put(def, mapper.readTree(is));
+        // Field types are resolved HERE, at build time: a shipped definition is frozen anyway, so
+        // it
+        // travels with its `fieldType` references already expanded and the browser needs no types
+        // table (the vocabulary is design-time, unlike the source catalogue it is not re-pointed).
+        out.put(def, types.resolve(mapper.readTree(is)));
       } catch (Exception e) {
         log.warn("bundle: could not read definition {}: {}", def, e.toString());
       }

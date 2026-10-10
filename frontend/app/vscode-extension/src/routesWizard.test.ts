@@ -51,6 +51,7 @@ describe('classify', () => {
         expect(classify('messages: {a: b}\n', 'translations/es.yaml')).toBe('translations')
         expect(classify('type: Environment\nname: pre\nsources: {}\n')).toBe('environment')
         expect(classify('sources: {}\n', 'environments/pre.yaml')).toBe('environment')
+        expect(classify('type: Types\ntypes: []\n')).toBe('types')
         expect(classify('type: AppShell\ntitle: x\n')).toBe('appShell')
         expect(classify('type: Form\ntitle: x\n')).toBe('page')
         expect(classify('title: no type\n')).toBe('page')

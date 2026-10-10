@@ -30,6 +30,7 @@ class MateuRoutesTest : TestCase() {
         assertEquals(SpecKind.TRANSLATIONS, MateuRoutes.classify("messages: {a: b}\n", "translations/es.yaml"))
         assertEquals(SpecKind.ENVIRONMENT, MateuRoutes.classify("type: Environment\nname: pre\nsources: {}\n"))
         assertEquals(SpecKind.ENVIRONMENT, MateuRoutes.classify("sources: {}\n", "environments/pre.yaml"))
+        assertEquals(SpecKind.TYPES, MateuRoutes.classify("type: Types\ntypes: []\n"))
         assertEquals(SpecKind.APP_SHELL, MateuRoutes.classify("type: AppShell\ntitle: x\n"))
         assertEquals(SpecKind.PAGE, MateuRoutes.classify("type: Form\ntitle: x\n"))
         assertEquals(SpecKind.PAGE, MateuRoutes.classify("title: no type\n"))

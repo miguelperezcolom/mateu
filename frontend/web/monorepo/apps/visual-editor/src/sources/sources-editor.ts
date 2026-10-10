@@ -1,6 +1,6 @@
 import { LitElement, html, css, PropertyValues } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
-import { SourcesDoc, SourceRow, parseSourcesDoc, serializeSourcesDoc } from '../model/sourcesModel'
+import { SourcesDoc, SourceRow, parseSampleText, parseSourcesDoc, sampleText, serializeSourcesDoc } from '../model/sourcesModel'
 
 /**
  * The REST source catalogue editor (`sources.yaml`) — the plan's "Services" surface: one row per
@@ -26,10 +26,15 @@ export class SourcesEditor extends LitElement {
         button.del { color: var(--ve-error, #b00020); }
         .add { margin: 0.5rem 1rem 1.5rem; }
         .empty { padding: 1rem; color: var(--ve-tertiary, #9ca3af); }
+        textarea.sample { min-height: 6rem; }
+        .sample-help { grid-column: 2; color: var(--ve-tertiary, #9ca3af); font-size: 11px; }
+        .sample-error { grid-column: 2; color: var(--ve-error, #b00020); font-size: 11px; }
     `
 
     @property() yaml = ''
     @state() private doc: SourcesDoc = { rows: [], preamble: {} }
+    /** A sample box whose text does not parse: row index → the parser's message. */
+    @state() private sampleErrors: Record<number, string> = {}
     private lastEmitted?: string
 
     updated(changed: PropertyValues) {
@@ -58,6 +63,12 @@ export class SourcesEditor extends LitElement {
             </select>
             <label>items path</label><input .value=${r.itemsPath ?? ''} @change=${set('itemsPath')} placeholder="content (where the rows are)" />
             <label>total path</label><input .value=${r.totalPath ?? ''} @change=${set('totalPath')} placeholder="totalElements (server-side paging)" />
+            <label>sample data</label><textarea class="sample" spellcheck="false" .value=${sampleText(r.sample)}
+                @change=${(e: Event) => this.setSample(i, (e.target as HTMLTextAreaElement).value)}
+                placeholder=${'the response the endpoint would return, as JSON or YAML — e.g.\ndata:\n  - {id: 1, name: Acme}\nmeta: {total: 1}'}></textarea>
+            ${this.sampleErrors[i] ? html`<span class="sample-error">${this.sampleErrors[i]}</span>`
+                : html`<span class="sample-help">Answered instead of calling the endpoint here and in Play — at runtime only when the app opts in (mateu.sources.mock=true). Its paths apply as usual.</span>`}
+            <label>sample file</label><input .value=${r.sampleFile ?? ''} @change=${set('sampleFile')} placeholder="fixtures/orders.json (relative to specs/ui)" />
             <div class="row-end"><span>${hidden ? `${hidden} more key(s) kept as written (headers, body, field map…)` : ''}</span>
                 <button class="del" @click=${() => this.removeRow(i)}>Delete</button></div>
         </div>`
@@ -69,6 +80,17 @@ export class SourcesEditor extends LitElement {
         if (value.trim()) row[key] = value.trim()
         else if (key !== 'name') delete row[key]
         rows[i] = row as unknown as SourceRow
+        this.commit({ ...this.doc, rows })
+    }
+
+    private setSample(i: number, text: string) {
+        const { sample, error } = parseSampleText(text)
+        if (error) { this.sampleErrors = { ...this.sampleErrors, [i]: error }; return }
+        const { [i]: _, ...rest } = this.sampleErrors
+        void _
+        this.sampleErrors = rest
+        const rows = [...this.doc.rows]
+        rows[i] = { ...rows[i], sample }
         this.commit({ ...this.doc, rows })
     }
 

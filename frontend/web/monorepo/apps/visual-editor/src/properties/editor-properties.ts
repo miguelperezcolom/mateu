@@ -149,6 +149,14 @@ export class EditorProperties extends LitElement {
      *  actions first, then the view model's). Null when the prop is not a reference. */
     private pickerOptionsFor(prop: string): ComboOption[] | null {
         if (this.node?.type === 'Partial' && prop === 'ref') return (this.project?.partials ?? []).map((p) => ({ value: p }))
+        // A field / column names a type of the mount's vocabulary (types.yaml): its attributes become
+        // the defaults, what the node declares itself wins.
+        if ((this.node?.type === 'FormField' || this.node?.type === 'GridColumn') && prop === 'fieldType') {
+            return (this.project?.types ?? []).map((t) => ({
+                value: t.id,
+                hint: [t.dataType, t.stereotype].filter((v) => v && v !== 'regular').join(' · ') || 'field type',
+            }))
+        }
         if (this.node?.type === 'FormField' && prop === 'id') return (this.contract?.fields ?? []).map((f) => ({ value: f, hint: 'view model' }))
         const i18n = this.translationOptions(prop)
         if (i18n) return i18n
@@ -335,8 +343,8 @@ export class EditorProperties extends LitElement {
 
 /** Per component, the properties shown before "More properties" (anything already set also shows). */
 const COMMON: Record<string, string[]> = {
-    FormField: ['id', 'label', 'dataType', 'stereotype', 'required', 'readOnly', 'placeholder', 'description', 'colspan'],
-    GridColumn: ['id', 'label', 'dataType', 'stereotype', 'align', 'width', 'identifier', 'sortable'],
+    FormField: ['id', 'fieldType', 'label', 'dataType', 'stereotype', 'required', 'readOnly', 'placeholder', 'description', 'colspan'],
+    GridColumn: ['id', 'fieldType', 'label', 'dataType', 'stereotype', 'align', 'width', 'identifier', 'sortable'],
     Button: ['label', 'actionId', 'buttonStyle', 'color', 'variant', 'iconOnLeft', 'disabled'],
     Listing: ['title', 'subtitle', 'searchable', 'pageSize', 'rowRoute', 'rowsSelectionEnabled', 'gridLayout', 'filtersLayout'],
     Form: ['title', 'subtitle', 'readOnly'],

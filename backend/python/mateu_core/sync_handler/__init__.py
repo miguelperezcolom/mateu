@@ -106,6 +106,7 @@ from ._common import (  # noqa: F401 - the public import path of every helper
 from ..component_registry import ComponentRegistry
 from ..action_registry import ActionRegistry
 from ..rest_source_registry import RestSourceRegistry
+from ..field_type_registry import FieldTypeRegistry
 from .. import action_guard, islands
 from ._base import MixinBase
 from .dispatch import DispatchMixin
@@ -149,6 +150,7 @@ class SyncHandler(
         environment: str | None = None,
         translations=None,
         action_catalog: ActionRegistry | None = None,
+        field_types: FieldTypeRegistry | None = None,
     ):
         self.registry = registry
         #: Upper bound for a proxied (__restfetch__) upstream call.
@@ -183,13 +185,22 @@ class SyncHandler(
             suppliers=getattr(registry, "translations_suppliers", [])
         )
         self.mapper.translations = self.translations
+        #: The field type catalogue: FieldTypeCatalogSupplier classes (code) with
+        #: specs/ui/types.yaml on top (authored wins). Resolves `fieldType:` in YAML definitions
+        #: and FieldType() markers on listing columns.
+        self.field_types = field_types or FieldTypeRegistry(
+            suppliers=getattr(registry, "field_type_suppliers", []),
+        )
+        self.mapper.field_types = self.field_types
         #: resolves ${secret.X} for proxy mode; None → same-named env var fallback.
         self._secrets = secrets_provider
         #: The mount's authored route registry: specs/ui/routes.yaml merged OVER the routes
         #: contributed in code by RouteEntrySupplier subclasses (discovered by the MateuRegistry).
         #: Shared with the spec loader so both see one table.
         self.routes = RouteRegistry(supplied=getattr(registry, "supplied_routes", None))
-        self.yaml_specs = YamlSpecLoader(registry=self.routes, translations=self.translations)
+        self.yaml_specs = YamlSpecLoader(
+            registry=self.routes, translations=self.translations, field_types=self.field_types
+        )
         self.yaml_specs.action_catalog = self.action_catalog
 
     def handle(self, rq: RunActionRq, request_base_url: str | None = None) -> UIIncrement:

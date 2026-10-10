@@ -34,6 +34,12 @@ public sealed class MateuOptions
     /// sources.yaml). Null (the default) reads MATEU_ENVIRONMENT; none → the catalogue as authored.
     /// Never put a secret in an environment file — use <c>${secret.X}</c>.</summary>
     public string? Environment { get; set; }
+
+    /// <summary>SAMPLE mode: REST sources that carry sample data (<c>sample:</c> / <c>sampleFile:</c>
+    /// in sources.yaml) answer with it instead of being called, on the proxied leg and — told by the
+    /// app metadata — the browser's direct one. Null (the default) reads the environment variable
+    /// <c>MATEU_SOURCES_MOCK</c> (<c>true</c>/<c>1</c>). Never switch it on in production.</summary>
+    public bool? MockSources { get; set; }
 }
 
 /// <summary>The default claims → <see cref="Identity"/> mapping. Claim names vary by issuer, so

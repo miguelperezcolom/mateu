@@ -213,14 +213,18 @@ public final class Environments {
             source.itemsPath(),
             source.valuePath(),
             source.labelPath(),
-            override.proxy() != null ? override.proxy() : source.proxy());
+            override.proxy() != null ? override.proxy() : source.proxy(),
+            source.sample());
+    // the sample data survives a re-point: an environment moves the endpoint, not its samples
     return new RestSourceEntry(
         entry.name(),
         repointed,
         entry.provenance(),
         entry.fields(),
         entry.totalPath(),
-        entry.description());
+        entry.description(),
+        entry.sample(),
+        entry.sampleFile());
   }
 
   /**

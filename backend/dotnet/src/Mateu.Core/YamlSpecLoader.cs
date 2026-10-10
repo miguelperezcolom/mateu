@@ -55,14 +55,19 @@ public sealed class YamlSpecLoader
     /// <summary>The catalogue <c>${i18n.…}</c> expressions resolve against.</summary>
     private readonly TranslationRegistry _translations;
 
+    /// <summary>The field types (<c>types.yaml</c> + code suppliers) a <c>fieldType:</c> reference
+    /// in a definition is resolved against, before the tree is built.</summary>
+    private readonly FieldTypeRegistry _fieldTypes;
+
     public YamlSpecLoader(string? dir = null, RouteRegistry? registry = null, PartialRegistry? partials = null,
-        TranslationRegistry? translations = null)
+        TranslationRegistry? translations = null, FieldTypeRegistry? fieldTypes = null)
     {
         _dir = dir ?? Environment.GetEnvironmentVariable("MATEU_SPECS_DIR")
                    ?? Path.Combine("specs", "ui");
         _registry = registry ?? new RouteRegistry(_dir);
         _partials = partials ?? new PartialRegistry(_dir);
         _translations = translations ?? new TranslationRegistry(dir: _dir);
+        _fieldTypes = fieldTypes ?? new FieldTypeRegistry(_dir);
     }
 
     /// <summary>The route registry this loader resolves definitions through.</summary>
@@ -93,7 +98,7 @@ public sealed class YamlSpecLoader
             else tree = YamlAccess.DeepCopy(tree);
             if (tree is null) return null;
             tree = _translations.TranslateTree(tree, locale);
-            var (_, layout, delta) = YamlComponentBuilder.ParsePageNode(tree, _partials);
+            var (_, layout, delta) = YamlComponentBuilder.ParsePageNode(tree, _partials, _fieldTypes);
             return spec with { Layout = layout, Delta = delta, Source = null, RefusedActions = refused, LockedFields = locked };
         }
         catch (Exception e)
@@ -122,7 +127,7 @@ public sealed class YamlSpecLoader
         try
         {
             var root = YamlComponentBuilder.Deserialize(File.ReadAllText(path));
-            var (modelView, layout, delta) = YamlComponentBuilder.ParsePageNode(root, _partials);
+            var (modelView, layout, delta) = YamlComponentBuilder.ParsePageNode(root, _partials, _fieldTypes);
             if (layout is null && delta.IsEmpty) return None;
             // A spec that depends on who asks or in which language keeps its source tree, so it can
             // be re-derived per request; everything else is shared as-is.

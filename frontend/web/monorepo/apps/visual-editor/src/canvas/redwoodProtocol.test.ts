@@ -18,6 +18,11 @@ describe('the Redwood canvas protocol', () => {
         expect(msg[PREVIEW_KEY as 'mateuPreview']).toBe('render')
         expect(msg.fragment).toEqual(fragment)
         expect(msg.fragment).not.toBe(fragment)
+        // the project's catalogues travel with the render (sources with their samples, field types)
+        const withCatalogues = renderMessage(fragment, { sources: [{ name: 'orders', sample: [1] }], types: [{ id: 'Money' }] }) as Record<string, unknown>
+        expect(withCatalogues.sources).toEqual([{ name: 'orders', sample: [1] }])
+        expect(withCatalogues.types).toEqual([{ id: 'Money' }])
+        expect('sources' in (msg as object)).toBe(false)
         expect(selectMessage('ve-1', 'Button', true)).toEqual({ mateuPreview: 'select', id: 've-1', label: 'Button', reveal: true })
     })
 

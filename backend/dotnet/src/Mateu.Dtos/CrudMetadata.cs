@@ -108,6 +108,11 @@ public record GridColumnMetaDto(string Id, string Label)
 
     /// <summary>The static text of a button column ("Edit").</summary>
     public string? Text { get; init; }
+
+    /// <summary>A status column's badge tone per VALUE (success | warning | danger | info | neutral),
+    /// from the column's field type; omitted when it declares none. (Mirrors GridColumnDto.tones.)</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyDictionary<string, string>? Tones { get; init; }
 }
 
 public record TriggerDto(string Type, string ActionId);

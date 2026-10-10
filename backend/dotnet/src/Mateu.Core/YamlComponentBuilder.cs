@@ -34,9 +34,10 @@ public static class YamlComponentBuilder
     }
 
     /// <summary>An already-deserialised YAML node as a component (components.yaml entries).</summary>
-    internal static IComponent? FromNode(object? node) => Single(node, PartialRegistry.Default, []);
+    internal static IComponent? FromNode(object? node, FieldTypeRegistry? types = null) =>
+        Single(node, new Ctx(PartialRegistry.Default, types ?? FieldTypeRegistry.None), []);
 
-    public static IComponent? Parse(string yaml, PartialRegistry? partials = null)
+    public static IComponent? Parse(string yaml, PartialRegistry? partials = null, FieldTypeRegistry? types = null)
     {
         if (string.IsNullOrWhiteSpace(yaml)) return null;
         var root = Deserialize(yaml);
@@ -45,7 +46,7 @@ public static class YamlComponentBuilder
         var node = root is IDictionary<object, object> map && map.TryGetValue("layout", out var layout)
             ? layout
             : root;
-        return Single(node, partials ?? PartialRegistry.Default, []);
+        return Single(node, new Ctx(partials ?? PartialRegistry.Default, types ?? FieldTypeRegistry.None), []);
     }
 
     /// <summary>
@@ -53,9 +54,10 @@ public static class YamlComponentBuilder
     /// bare, unbound layout) plus the layout component. Envelope-aware — a `layout:` key holds the
     /// tree and a `modelView:` key names the logic class the tooling binds it to.
     /// </summary>
-    public static (string? ModelView, IComponent? Layout) ParseSpec(string yaml, PartialRegistry? partials = null)
+    public static (string? ModelView, IComponent? Layout) ParseSpec(
+        string yaml, PartialRegistry? partials = null, FieldTypeRegistry? types = null)
     {
-        var (modelView, layout, _) = ParsePage(yaml, partials);
+        var (modelView, layout, _) = ParsePage(yaml, partials, types);
         return (modelView, layout);
     }
 
@@ -66,20 +68,20 @@ public static class YamlComponentBuilder
     /// YamlUidlLoader.deltaOf).
     /// </summary>
     public static (string? ModelView, IComponent? Layout, LayoutDelta Delta) ParsePage(
-        string yaml, PartialRegistry? partials = null)
+        string yaml, PartialRegistry? partials = null, FieldTypeRegistry? types = null)
     {
         if (string.IsNullOrWhiteSpace(yaml)) return (null, null, LayoutDelta.Empty);
-        return ParsePageNode(Deserialize(yaml), partials);
+        return ParsePageNode(Deserialize(yaml), partials, types);
     }
 
-    /// <summary><see cref="ParsePage(string, PartialRegistry?)"/> over an already-deserialised tree —
+    /// <summary><see cref="ParsePage(string, PartialRegistry?, FieldTypeRegistry?)"/> over an already-deserialised tree —
     /// what a per-request personalised spec (access keys applied, <c>${i18n.…}</c> resolved) is
     /// re-built from.</summary>
     public static (string? ModelView, IComponent? Layout, LayoutDelta Delta) ParsePageNode(
-        object? root, PartialRegistry? partials = null)
+        object? root, PartialRegistry? partials = null, FieldTypeRegistry? types = null)
     {
         if (root is null) return (null, null, LayoutDelta.Empty);
-        var registry = partials ?? PartialRegistry.Default;
+        var registry = new Ctx(partials ?? PartialRegistry.Default, types ?? FieldTypeRegistry.None);
         if (root is not IDictionary<object, object> map) return (null, Single(root, registry, []), LayoutDelta.Empty);
         var modelView = map.TryGetValue("modelView", out var mv) ? mv?.ToString()
             : map.TryGetValue("viewModel", out var vm) ? vm?.ToString() : null;
@@ -120,7 +122,12 @@ public static class YamlComponentBuilder
     }
 
     /// <summary>What a node becomes in a slot that holds exactly one component.</summary>
-    private static IComponent? Single(object? node, PartialRegistry partials, List<string> chain)
+    /// <summary>What a build carries down the tree: the partials to splice and the field types to
+    /// resolve (a <c>fieldType:</c> reference is resolved on each node before it is built, partial
+    /// nodes included).</summary>
+    private sealed record Ctx(PartialRegistry Partials, FieldTypeRegistry Types);
+
+    private static IComponent? Single(object? node, Ctx partials, List<string> chain)
     {
         var expanded = InList(node, partials, chain);
         return expanded.Count switch
@@ -133,7 +140,7 @@ public static class YamlComponentBuilder
     }
 
     /// <summary>What a node becomes in a content list — where a partial may contribute several.</summary>
-    private static List<IComponent> InList(object? node, PartialRegistry partials, List<string> chain)
+    private static List<IComponent> InList(object? node, Ctx partials, List<string> chain)
     {
         if (node is IDictionary<object, object> map && Str(map, "type") == "Partial")
         {
@@ -142,7 +149,7 @@ public static class YamlComponentBuilder
             chain.Add(reference);
             try
             {
-                return partials.Resolve(reference)
+                return partials.Partials.Resolve(reference)
                     .SelectMany(child => InList(child, partials, chain))
                     .ToList();
             }
@@ -155,9 +162,10 @@ public static class YamlComponentBuilder
         return built is null ? [] : [built];
     }
 
-    private static IComponent? Build(object? node, PartialRegistry partials, List<string> chain)
+    private static IComponent? Build(object? node, Ctx partials, List<string> chain)
     {
-        if (node is not IDictionary<object, object> map) return null;
+        if (node is not IDictionary<object, object> declared) return null;
+        var map = partials.Types.Resolve(declared);
         return Str(map, "type") switch
         {
             "VerticalLayout" => new VerticalLayout { Spacing = Bool(map, "spacing"), Content = Children(map, partials, chain) },
@@ -172,6 +180,13 @@ public static class YamlComponentBuilder
                 Stereotype = Str(map, "stereotype") ?? "regular",
                 Required = Bool(map, "required"),
                 ReadOnly = Bool(map, "readOnly"),
+                Options = map.TryGetValue("options", out var o) && o is IEnumerable<object> options
+                    ? options.OfType<IDictionary<object, object>>()
+                        .Select(opt => new Option(Str(opt, "value") ?? "", Str(opt, "label") ?? Str(opt, "value") ?? ""))
+                        .ToList()
+                    : [],
+                Style = Str(map, "style"),
+                CssClasses = Str(map, "cssClasses"),
             },
             "Button" => new Button(Str(map, "label") ?? "", Str(map, "actionId") ?? "")
             {
@@ -186,7 +201,7 @@ public static class YamlComponentBuilder
     }
 
     private static IReadOnlyList<IComponent> Children(
-        IDictionary<object, object> map, PartialRegistry partials, List<string> chain)
+        IDictionary<object, object> map, Ctx partials, List<string> chain)
     {
         if (!map.TryGetValue("content", out var content) || content is not IEnumerable<object> seq)
             return [];

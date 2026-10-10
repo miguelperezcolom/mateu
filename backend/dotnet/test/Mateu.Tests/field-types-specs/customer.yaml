@@ -1,0 +1,6 @@
+type: VerticalLayout
+content:
+  - {type: FormField, id: email, fieldType: Email}
+  - {type: FormField, id: backup, fieldType: Email, label: Backup e-mail, required: false}
+  - {type: FormField, id: phone, fieldType: Phone}
+  - {type: FormField, id: nickname, fieldType: Nope, label: Nickname}

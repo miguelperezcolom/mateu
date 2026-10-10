@@ -36,6 +36,27 @@ public record RestSourceCatalog(List<RestSourceEntry> sources) {
     return sources.isEmpty();
   }
 
+  /**
+   * This catalogue without any sample data — what ships when sample mode is off, so design-time
+   * data never travels to production. Not a getter (manifest Jackson gotcha, see above).
+   */
+  public RestSourceCatalog strippedOfSamples() {
+    return new RestSourceCatalog(
+        sources.stream()
+            .map(
+                entry ->
+                    new RestSourceEntry(
+                        entry.name(),
+                        entry.source() == null ? null : entry.source().withSample(null),
+                        entry.provenance(),
+                        entry.fields(),
+                        entry.totalPath(),
+                        entry.description(),
+                        null,
+                        entry.sampleFile()))
+            .toList());
+  }
+
   /** The entry a surface references, or empty when the catalogue does not name it. */
   public Optional<RestSourceEntry> get(String name) {
     if (name == null || name.isBlank()) {
