@@ -115,6 +115,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // live reload contra un backend en modo dev (poc/liveReload.mjs)
     installDevLiveReload,
     devEventsUrlOf,
+    noteLiveDraft,
+    liveDraftFor,
     // the renderer's own words (i18n.mjs): chains say them in the interface's language
     chromeText,
     chromeLanguage,

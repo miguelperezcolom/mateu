@@ -7,6 +7,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import {
   liveReloadDecision, strongerReload, devEventsUrlOf, installDevLiveReload, resetDevLiveReload,
+  noteLiveDraft, liveDraftFor,
 } from './liveReload.mjs'
 import { loadRouteInto } from './transport.mjs'
 
@@ -94,10 +95,17 @@ test('la carga lleva lo tecleado como componentState y lo repone sobre la respue
   }
 })
 
+test('el borrador tecleado se apunta con su ruta y sólo vale para esa pantalla', () => {
+  noteLiveDraft('/live-demo', { name: 'Ada' })
+  assert.deepEqual(liveDraftFor('/live-demo'), { name: 'Ada' })
+  assert.equal(liveDraftFor('/otra'), null)
+})
+
 test('la shell lo cablea: un cambio de página navega a la ruta en pantalla con liveState', () => {
   const shell = webApp('pages/shell-page-chains/loadMateuShell.js')
   assert.match(shell, /bridge\.installDevLiveReload\(document, window,/)
-  assert.match(shell, /liveState: host && host\.state/)
+  assert.match(shell, /liveState: Object\.assign\(\{\}, \(host && host\.state\) \|\| \{\}, bridge\.liveDraftFor\(/)
+  assert.match(webApp('flows/main/pages/main-start-page-chains/mateuFieldEdited.js'), /bridge\.noteLiveDraft\(window\.__mateuLoadedFull, draft\)/)
   const nav = webApp('pages/shell-page-chains/onMateuNavigate.js')
   assert.match(nav, /navigate\(context, \{ event, force, fromUrl, liveState \}/)
   assert.match(nav, /if \(liveState\) extra\.liveState = liveState;/)

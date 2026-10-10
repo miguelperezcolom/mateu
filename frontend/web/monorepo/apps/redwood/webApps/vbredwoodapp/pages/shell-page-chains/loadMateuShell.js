@@ -367,7 +367,7 @@ define([
               event: { detail: { route } },
               fromUrl: true,
               force: true,
-              liveState: host && host.state ? Object.assign({}, host.state) : undefined,
+              liveState: Object.assign({}, (host && host.state) || {}, bridge.liveDraftFor(window.__mateuLoadedFull) || {}),
             },
           });
         });

@@ -9,7 +9,8 @@
  *   4. after the backend restarts, the page re-renders by itself (again in place)
  *
  * Usage (a SUT app with -Dmateu.dev=true -Dmateu.dev.specs-dir=$SPECS, serving a `live-demo`
- * route whose definition is $SPECS/live-demo.yaml with the text "Live label v1"):
+ * route whose definition is $SPECS/live-demo.yaml showing "Live label v1" — as a Text and/or in a
+ * field label, which every renderer paints):
  *   BASE=http://localhost:18093 SPECS=/path/to/specs RESTART="./start-sut.sh" STOP="kill …" \
  *     OUT=/tmp/shots node live-reload-probe.mjs
  * RESTART/STOP are optional (step 4 is skipped without them). Exits non-zero on any failure.
@@ -24,6 +25,8 @@ const SPECS = process.env.SPECS
 const OUT = process.env.OUT ?? '/tmp/mateu-live-reload-probe'
 const STOP = process.env.STOP
 const RESTART = process.env.RESTART
+// the text field of the page: Vaadin by default; the Redwood renderer: INPUT='oj-c-input-text input'
+const INPUT = process.env.INPUT ?? 'vaadin-text-field input'
 if (!SPECS) {
     console.error('SPECS (the dev specs directory) is required')
     process.exit(2)
@@ -36,7 +39,7 @@ const check = (name, pass, detail = '') => {
     console.log(`${pass ? '✓' : '✗'} ${name}${detail ? ' — ' + detail : ''}`)
 }
 const setLabel = (from, to) =>
-    writeFileSync(definition, readFileSync(definition, 'utf8').replace(from, to))
+    writeFileSync(definition, readFileSync(definition, 'utf8').replaceAll(from, to))
 
 const browser = await chromium.launch()
 const page = await browser.newPage({ viewport: { width: 1100, height: 700 } })
@@ -53,8 +56,8 @@ try {
     await page.goto(`${BASE}/live-demo`)
     check('the index announces the dev event stream',
         (await page.locator('meta[name="mateu-dev"]').count()) === 1)
-    await page.getByText('Live label v1').waitFor({ timeout: 20000 })
-    const input = page.locator('vaadin-text-field input').first()
+    await page.getByText('Live label v1').first().waitFor({ timeout: 60000 })
+    const input = page.locator(INPUT).first()
     await input.fill('Ada Lovelace')
     await input.press('Tab')
     // a marker on window: a full page load would wipe it
@@ -64,13 +67,13 @@ try {
     await page.waitForTimeout(1000)
 
     setLabel('Live label v1', 'Live label v2')
-    await page.getByText('Live label v2').waitFor({ timeout: 15000 })
+    await page.getByText('Live label v2').first().waitFor({ timeout: 15000 })
     check('an edited YAML label shows up without touching the browser', true)
     check('it was re-rendered IN PLACE (no navigation, no full page load)',
         navigations === navigationsBefore
             && (await page.evaluate(() => window.__liveReloadMarker)) === 'still here',
         `navigations ${navigations - navigationsBefore}`)
-    const kept = await page.locator('vaadin-text-field input').first().inputValue()
+    const kept = await page.locator(INPUT).first().inputValue()
     check('the value typed into a field survived the reload', kept === 'Ada Lovelace', `"${kept}"`)
     const pill = page.locator('#mateu-live-reload-indicator')
     check('an unobtrusive indicator says it reloaded',
@@ -91,9 +94,9 @@ try {
         // changed while the server was down: only the restart can bring it to the screen
         setLabel('Live label v2', 'Live label v3')
         execSync(RESTART, { stdio: 'inherit' })
-        await page.getByText('Live label v3').waitFor({ timeout: 30000 })
+        await page.getByText('Live label v3').first().waitFor({ timeout: 30000 })
         check('after a backend restart the page re-renders by itself', true)
-        const keptAfterRestart = await page.locator('vaadin-text-field input').first().inputValue()
+        const keptAfterRestart = await page.locator(INPUT).first().inputValue()
         check('…keeping the typed value', keptAfterRestart === 'Ada Lovelace', `"${keptAfterRestart}"`)
         check('…in place, too',
             (await page.evaluate(() => window.__liveReloadMarker)) === 'still here'
@@ -106,7 +109,7 @@ try {
 } finally {
     await browser.close()
     // leave the definition as the probe found it
-    setLabel(/Live label v\d/, 'Live label v1')
+    setLabel(/Live label v\d/g, 'Live label v1')
 }
 const failed = results.filter((r) => !r.pass)
 console.log(`\n${results.length - failed.length}/${results.length} checks passed`)

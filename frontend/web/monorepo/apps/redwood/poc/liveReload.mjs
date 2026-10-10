@@ -45,6 +45,15 @@ export function devEventsUrlOf(doc, win) {
 
 let liveReloadSource = null
 
+// Lo tecleado en el form del host vive en el borrador de la página de contenido ($page.mateuDraft),
+// que la shell no ve: la chain que lo acumula lo apunta aquí, con la ruta en que se tecleó.
+let liveDraft = { route: null, draft: null }
+export function noteLiveDraft(route, draft) { liveDraft = { route: route == null ? null : route, draft } }
+/** El borrador tecleado en `route` (nada si era de otra pantalla). */
+export function liveDraftFor(route) {
+  return liveDraft.draft && liveDraft.route === (route == null ? null : route) ? liveDraft.draft : null
+}
+
 /**
  * Se suscribe al stream (una vez) y llama a onReload(action, reason) tras cada ráfaga. Sin
  * <meta name="mateu-dev"> no hace nada. `EventSourceImpl` y `timer` se inyectan en los tests.
