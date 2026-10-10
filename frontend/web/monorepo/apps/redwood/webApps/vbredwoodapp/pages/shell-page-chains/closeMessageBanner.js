@@ -1,30 +1,15 @@
-/* Copyright (c) 2026, Oracle and/or its affiliates */
+/* Mateu — Apache License 2.0 (LICENSE.txt en la raíz del repositorio) */
 
-define([
-  'vb/action/actionChain',
-  'vb/action/actions',
-  'vb/action/actionUtils',
-], (
-  ActionChain,
-  Actions,
-) => {
+// El usuario cierra un aviso de la banda de mensajes del shell.
+define(['vb/action/actionChain', 'vb/action/actions'], (ActionChain, Actions) => {
   'use strict';
 
   class closeMessageBanner extends ActionChain {
-
-    /**
-     * @param {Object} context
-     */
     async run(context, { event }) {
-      const { $page } = context;
-
       await Actions.fireDataProviderEvent(context, {
-        target: $page.variables.messagesBannerADP,
-        remove: {
-          keys: [event.detail.messageId],
-        },
+        target: context.$page.variables.messagesBannerADP,
+        remove: { keys: [event.detail.messageId] },
       });
-
     }
   }
 

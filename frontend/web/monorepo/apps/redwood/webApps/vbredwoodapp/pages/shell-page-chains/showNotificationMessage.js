@@ -1,52 +1,34 @@
-/* Copyright (c) 2026, Oracle and/or its affiliates */
+/* Mateu — Apache License 2.0 (LICENSE.txt en la raíz del repositorio) */
 
-define([
-  'vb/action/actionChain',
-  'vb/action/actions',
-  'vb/action/actionUtils',
-], (
-  ActionChain,
-  Actions,
-) => {
+// Un aviso en la banda de mensajes del shell (Actions.fireNotificationEvent). Los transitorios se
+// retiran solos a los 5 segundos; el resto, cuando el usuario los cierra (closeMessageBanner).
+define(['vb/action/actionChain', 'vb/action/actions'], (ActionChain, Actions) => {
   'use strict';
 
-  class showNotificationMessage extends ActionChain {
+  const TRANSIENT_MILLIS = 5000;
 
-    /**
-     * @param {Object} context
-     * @param {Object} params
-     * @param {{summary:string,message:string,displayMode:string,type:string,key:string,target:string}} params.event
-     */
+  class showNotificationMessage extends ActionChain {
+    /** @param {{event: {summary: string, message: string, displayMode: string, type: string}}} params */
     async run(context, { event }) {
       const { $page } = context;
-
-      let msg = {
-        messageType: event.type === "confirmation" ? "general-success" : "general-"+event.type,
-        primaryText: event.summary,
-        secondaryText: event.message,
-        id: $page.variables.messageId
-      };
-      $page.variables.messageId++;
-
+      const id = $page.variables.messageId;
+      $page.variables.messageId = id + 1;
+      const banner = $page.variables.messagesBannerADP;
       await Actions.fireDataProviderEvent(context, {
-        target: $page.variables.messagesBannerADP,
+        target: banner,
         add: {
-          data: msg,
+          data: {
+            id,
+            // la banda distingue general-success / general-error / general-warning / general-info
+            messageType: 'general-' + (event.type === 'confirmation' ? 'success' : event.type),
+            primaryText: event.summary,
+            secondaryText: event.message,
+          },
         },
       });
-
-      if (event.displayMode === "transient") {
-        setTimeout(() => {
-          Actions.fireDataProviderEvent(context, {
-            target: $page.variables.messagesBannerADP,
-            remove: {
-              keys: [msg.id],
-            },
-          });
-        }, 5000);
+      if (event.displayMode === 'transient') {
+        setTimeout(() => Actions.fireDataProviderEvent(context, { target: banner, remove: { keys: [id] } }), TRANSIENT_MILLIS);
       }
-
-
     }
   }
 

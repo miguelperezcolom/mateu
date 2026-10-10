@@ -1,32 +1,14 @@
-/* Copyright (c) 2026, Oracle and/or its affiliates */
+/* Mateu — Apache License 2.0 (LICENSE.txt en la raíz del repositorio) */
 
-define([
-  'vb/action/actionChain',
-  'vb/action/actions',
-  'vb/action/actionUtils',
-], (
-  ActionChain,
-  Actions,
-) => {
+// Un toast del shell: el mensaje del evento al oj-sp-messages-toast de la página.
+define(['vb/action/actionChain', 'vb/action/actions'], (ActionChain, Actions) => {
   'use strict';
 
   class showMessageToast extends ActionChain {
-
-    /**
-     * @param {Object} context
-     * @param {Object} params
-     * @param {{message:string}} params.event
-     */
+    /** @param {{event: {message: string}}} params */
     async run(context, { event }) {
-      const { $page } = context;
-
-      $page.variables.messageToast = event.message;
-
-      await Actions.callComponentMethod(context, {
-        selector: '#messageToast',
-        method: 'open',
-      });
-
+      context.$page.variables.messageToast = event.message;
+      await Actions.callComponentMethod(context, { selector: '#messageToast', method: 'open' });
     }
   }
 

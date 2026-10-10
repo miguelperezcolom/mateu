@@ -1,10 +1,8 @@
-/* Copyright (c) 2026, Oracle and/or its affiliates */
+/* Mateu — Apache License 2.0 (LICENSE.txt en la raíz del repositorio) */
 
-define(['oj-sp/spectra-shell/config/config'], function() {
+// Módulo de la aplicación VB. Carga la configuración del shell de Spectra (oj-sp) antes de que
+// arranque cualquier página; no aporta funciones propias, la lógica vive en el bridge (poc/).
+define(['oj-sp/spectra-shell/config/config'], () => {
   'use strict';
-
-  class AppModule {
-  }
-
-  return AppModule;
+  return class MateuAppModule {};
 });

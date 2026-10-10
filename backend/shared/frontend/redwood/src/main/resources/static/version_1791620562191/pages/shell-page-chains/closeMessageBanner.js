@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context,{event}){await Actions.fireDataProviderEvent(context,{target:context.$page.variables.messagesBannerADP,remove:{keys:[event.detail.messageId]}})}};});
+//# sourceMappingURL=closeMessageBanner.js.map

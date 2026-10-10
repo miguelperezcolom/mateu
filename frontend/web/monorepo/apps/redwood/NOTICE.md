@@ -7,7 +7,7 @@ licencia de Mateu, qué pertenece a Oracle, y qué necesita un usuario para ejec
 ## Qué se publica aquí (licencia de Mateu)
 
 Todo el código de autoría propia de este directorio se publica bajo la licencia de
-Mateu (ver `LICENSE` en la raíz del repositorio):
+Mateu (ver `LICENSE.txt` en la raíz del repositorio):
 
 - `poc/` — el bridge (`reduceContexts.mjs`, `transport.mjs`, `make-amd.mjs`)
   y sus tests de contrato sobre wire real (`test.mjs`, `fixtures/`).
@@ -65,11 +65,15 @@ redistribuyen con este repositorio.
 
 ### 4. Scaffolding del starter de Visual Builder
 
-Unos pocos ficheros de `webApps/vbredwoodapp/` proceden de la plantilla
-starter que genera la tooling de Visual Builder para las aplicaciones de sus usuarios
-(p. ej. `index.html`, `app-flow.js`, `pages/shell-page.js` y las chains
-`showMessageToast.js` / `closeMessageBanner.js`). Conservan sus cabeceras de
-copyright de Oracle y no deben desprenderse de ellas.
+Solo `webApps/vbredwoodapp/index.html` procede de la plantilla starter que genera la tooling de
+Visual Builder (el marcado que arranca el runtime de VB). Conserva su cabecera de copyright de
+Oracle. El resto de ficheros que la plantilla aportaba —los módulos vacíos de app, flujo y página,
+las chains de toast y banda de mensajes, el `Gruntfile.js`— se han reescrito desde cero como código
+de Mateu, y `pages/shell-page.js`, que es código de Mateu y llevaba la cabecera de Oracle que VB
+estampa al crear un fichero, lleva ahora la de Mateu.
+
+La marca: por defecto el FAB del shell es neutro («Search» con la lupa). El aspecto de «Ask Oracle»
+solo aparece si la app lo pide con `@App(askLabel, askIcon)`.
 
 ## Terceros que no son de Oracle
 

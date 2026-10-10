@@ -4975,7 +4975,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           homeRoute: md.homeRoute || '',
           // chat de IA (@AI → App.sseUrl): si viene, la shell pinta el botón del chat del agente en la cabecera
           sseUrl: md.sseUrl || '',
-          // el FAB de "ask" del shell (@App(askLabel, askIcon)): vacíos = la marca de Ask Oracle
+          // el FAB de "ask" del shell (@App(askLabel, askIcon)): vacíos = el FAB neutro (Search)
           askLabel: md.askLabel || '',
           askIcon: md.askIcon || '',
           // los widgets de CABECERA (WidgetSupplier / @Widget): viajan como hijos del App con
@@ -10568,15 +10568,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // ── FAB de "ask" del shell ──────────────────────────────────────────────────────────────────
   // oj-sp-simple-ui-shell estampa su propio FAB (evento ojSpChatAction) con `oj-ux-ico-oracle-chat`:
-  // el bocadillo de conversación del asistente DIGITAL de Oracle. Aquí ese FAB abre Ask Oracle — el
-  // buscador de destinos —, y el chat del agente tiene su propio FAB con `oj-ux-ico-chat`: dos
-  // bocadillos para dos cosas distintas. Así que el del shell lleva la marca de Ask Oracle, el glifo
-  // que usa el propio oj-sp-ask-oracle en la cabecera de Fusion (`oj-ux-ico-oracle-o`, la "O" de
-  // Oracle), y su rótulo. Un App que no quiera la marca Oracle pone la suya con @App(askLabel,
-  // askIcon): una inicial, una imagen (su logo) o un icono.
+  // el bocadillo de conversación del asistente DIGITAL de Oracle. Aquí ese FAB abre el buscador de
+  // destinos, y el chat del agente tiene su propio FAB con `oj-ux-ico-chat`: dos bocadillos para dos
+  // cosas distintas. Por defecto es NEUTRO — «Search» con la lupa —: una app Mateu no es un producto
+  // de Oracle y no debe parecerlo (riesgo de marca). Quien quiera el aspecto de Ask Oracle, o su
+  // propia marca, lo pone con @App(askLabel, askIcon): una inicial, una imagen (su logo) o un icono
+  // (`oj-ux-ico-oracle-o` es la "O" de Ask Oracle).
 
-  const ASK_FAB_LABEL = 'Ask Oracle'
-  const ASK_FAB_GLYPH = 'oj-ux-ico-oracle-o'
+  const ASK_FAB_LABEL = 'Search'
+  const ASK_FAB_GLYPH = 'oj-ux-ico-search'
   /** El glifo con el que lo estampa el shell (el que se quita). */
   const SHELL_CHAT_GLYPH = 'oj-ux-ico-oracle-chat'
 
@@ -10584,12 +10584,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /**
    * Qué lleva el FAB de "ask" del shell: `{ label, kind, glyph?, text?, src? }`.
-   *  - sin @App(askIcon): el glifo de Ask Oracle de Redwood (kind 'glyph');
+   *  - sin @App(askIcon): la lupa (kind 'glyph'), neutra;
    *  - una o dos letras ("R"): la inicial (kind 'initial');
    *  - una ruta o url ("/images/riu.svg"): la imagen (kind 'image'), relativa al backend como el logo;
    *  - `oj-ux-ico-…` o un nombre Mateu (`vaadin:…`) con equivalente: ese icono (kind 'glyph').
    * Un askIcon que no es nada de eso (un icono sin equivalente, una palabra) no deja el FAB vacío:
-   * vuelve al glifo de Ask Oracle.
+   * vuelve a la lupa.
    */
   function askFabOf(shell, base = '') {
     const label = String((shell && shell.askLabel) || '').trim() || ASK_FAB_LABEL
@@ -11494,7 +11494,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     baseOf,
     // widgets de cabecera del App: área de perfil (usermenu) + zona de acciones, remotos vivos
     headerWidgetsOf,
-    // el FAB de "ask" del shell: su marca (Ask Oracle por defecto, o la del @App) y su nombre
+    // el FAB de "ask" del shell: su marca (neutra por defecto, o la del @App) y su nombre
     askFabOf,
     brandAskFab,
     startRemoteWidget,

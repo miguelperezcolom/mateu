@@ -306,15 +306,15 @@ export function mountHeaderHtmlSoon(id, html, frames = 30) {
 
 // ── FAB de "ask" del shell ──────────────────────────────────────────────────────────────────
 // oj-sp-simple-ui-shell estampa su propio FAB (evento ojSpChatAction) con `oj-ux-ico-oracle-chat`:
-// el bocadillo de conversación del asistente DIGITAL de Oracle. Aquí ese FAB abre Ask Oracle — el
-// buscador de destinos —, y el chat del agente tiene su propio FAB con `oj-ux-ico-chat`: dos
-// bocadillos para dos cosas distintas. Así que el del shell lleva la marca de Ask Oracle, el glifo
-// que usa el propio oj-sp-ask-oracle en la cabecera de Fusion (`oj-ux-ico-oracle-o`, la "O" de
-// Oracle), y su rótulo. Un App que no quiera la marca Oracle pone la suya con @App(askLabel,
-// askIcon): una inicial, una imagen (su logo) o un icono.
+// el bocadillo de conversación del asistente DIGITAL de Oracle. Aquí ese FAB abre el buscador de
+// destinos, y el chat del agente tiene su propio FAB con `oj-ux-ico-chat`: dos bocadillos para dos
+// cosas distintas. Por defecto es NEUTRO — «Search» con la lupa —: una app Mateu no es un producto
+// de Oracle y no debe parecerlo (riesgo de marca). Quien quiera el aspecto de Ask Oracle, o su
+// propia marca, lo pone con @App(askLabel, askIcon): una inicial, una imagen (su logo) o un icono
+// (`oj-ux-ico-oracle-o` es la "O" de Ask Oracle).
 
-export const ASK_FAB_LABEL = 'Ask Oracle'
-export const ASK_FAB_GLYPH = 'oj-ux-ico-oracle-o'
+export const ASK_FAB_LABEL = 'Search'
+export const ASK_FAB_GLYPH = 'oj-ux-ico-search'
 /** El glifo con el que lo estampa el shell (el que se quita). */
 export const SHELL_CHAT_GLYPH = 'oj-ux-ico-oracle-chat'
 
@@ -322,12 +322,12 @@ const isImageRef = (value) => /^(data:|https?:|\/\/)/i.test(value) || /[/.]/.tes
 
 /**
  * Qué lleva el FAB de "ask" del shell: `{ label, kind, glyph?, text?, src? }`.
- *  - sin @App(askIcon): el glifo de Ask Oracle de Redwood (kind 'glyph');
+ *  - sin @App(askIcon): la lupa (kind 'glyph'), neutra;
  *  - una o dos letras ("R"): la inicial (kind 'initial');
  *  - una ruta o url ("/images/riu.svg"): la imagen (kind 'image'), relativa al backend como el logo;
  *  - `oj-ux-ico-…` o un nombre Mateu (`vaadin:…`) con equivalente: ese icono (kind 'glyph').
  * Un askIcon que no es nada de eso (un icono sin equivalente, una palabra) no deja el FAB vacío:
- * vuelve al glifo de Ask Oracle.
+ * vuelve a la lupa.
  */
 export function askFabOf(shell, base = '') {
   const label = String((shell && shell.askLabel) || '').trim() || ASK_FAB_LABEL
