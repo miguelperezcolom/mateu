@@ -490,11 +490,27 @@ class LayoutMapperMixin(MixinBase):
             out.append(self.map_field(f, instance, read_only))
         return out
 
+    #: Stereotypes that are intrinsically wide: in a multi-column form they span the whole row
+    #: unless a Colspan() says otherwise (Java's FormLayoutBuilder.WIDE_STEREOTYPES).
+    WIDE_STEREOTYPES = frozenset(("grid", "textarea", "richText", "html", "markdown"))
+
+    def _widened(self, field, max_columns: int):
+        meta = field.metadata
+        if (
+            max_columns > 1
+            and isinstance(meta, FormFieldMetadata)
+            and (meta.colspan or 1) <= 1
+            and meta.stereotype in self.WIDE_STEREOTYPES
+        ):
+            return field.model_copy(update={"metadata": meta.model_copy(update={"colspan": max_columns})})
+        return field
+
     def form_rows(self, fields, max_columns: int = 2) -> list:
         rows = []
         pending = []
         used = 0  # columns consumed by the pending row (fields carry a colspan)
         for field in fields:
+            field = self._widened(field, max_columns)
             # A separator always takes a full row of its own (data-colspan spans the columns).
             if isinstance(field.metadata, SeparatorMetadata):
                 if pending:

@@ -19,6 +19,7 @@ from .layout import (  # noqa: F401
     CardMetadata,
     DivMetadata,
     FormLayoutMetadata,
+    FormMetadata,
     FormRowMetadata,
     FormSectionMetadata,
     HorizontalLayoutMetadata,

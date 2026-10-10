@@ -115,6 +115,7 @@ from .proxy import ProxyHandlerMixin
 from .contract import ContractHandlerMixin
 from .actions import ActionHandlerMixin
 from .helpers import ResponseHelpersMixin
+from .grid_field import GridFieldHandlerMixin
 
 
 class SyncHandler(
@@ -129,6 +130,7 @@ class SyncHandler(
     ContractHandlerMixin,
     ActionHandlerMixin,
     ResponseHelpersMixin,
+    GridFieldHandlerMixin,
     MixinBase,
 ):
     def __init__(

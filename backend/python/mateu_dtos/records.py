@@ -56,10 +56,23 @@ class GridColumnMeta(Wire):
     #: The row field whose text the cell shows on hover (Tooltip("other_field") on the row field);
     #: None when the column declares none (mirrors GridColumnDto.tooltipPath).
     tooltip_path: str | None = None
+    #: The column sizes to its content (header + widest cell) — true unless a width is fixed.
+    auto_width: bool = False
+    #: A fixed column width (e.g. "3rem"); None shares the remaining space.
+    width: str | None = None
+    #: flex-grow of the column ("0" for fixed/auto columns).
+    flex_grow: str | None = None
+    #: The text of a button-stereotype cell (e.g. a grid field's "Edit" column).
+    text: str | None = None
 
 
 class GridColumn(Wire):
+    """A grid column travels as a client-side component whose metadata is the column (mirrors
+    Java, where a column is a ClientSideComponentDto with GridColumnDto metadata)."""
+
+    type: Literal["ClientSide"] = "ClientSide"
     metadata: GridColumnMeta
+    id: str | None = None
 
 
 class MenuItem(Wire):

@@ -54,6 +54,21 @@ class PageMetadata(Wire):
     title_placeholder: str | None = None
 
 
+class FormMetadata(Wire):
+    """A titled form panel with its own toolbar (header) and buttons (footer) — e.g. the row editor
+    of a grid field (mirrors io.mateu.dtos.FormDto, wire type "Form")."""
+
+    type: Literal["Form"] = "Form"
+    title: str | None = None
+    subtitle: str | None = None
+    read_only: bool = False
+    no_header: bool = False
+    toolbar: list["Button"] = Field(default_factory=list)
+    buttons: list["Button"] = Field(default_factory=list)
+    header: list["Component"] = Field(default_factory=list)
+    footer: list["Component"] = Field(default_factory=list)
+
+
 class CardMetadata(Wire):
     type: Literal["Card"] = "Card"
     content: "Component"

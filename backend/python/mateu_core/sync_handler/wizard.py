@@ -21,6 +21,10 @@ class WizardHandlerMixin(MixinBase):
         total = max(steps, default=1)
         route = "/" + normalize(getattr(type_, "__mateu_ui__", ""))
 
+        list_action = self.list_field_action(type_, rq.action_id)
+        if list_action is not None:
+            # a grid field of the step: its row editing never leaves the step
+            return self.handle_list_field_action(type_, *list_action, rq)
         if rq.action_id == "back":
             step = max(1, step - 1)
         elif rq.action_id == "next" and step >= total:

@@ -66,6 +66,21 @@ class FormFieldMetadata(Wire):
     #: Generic field attributes (mirrors ``FormFieldDto.attributes``, a list of key/value
     #: pairs) — e.g. the ``FileUpload`` accept filter travels as {"key": "accept", "value": ".csv"}.
     attributes: list["PairRecord"] = Field(default_factory=list)
+    #: The field's own CSS (a grid field defaults to "min-width: 10rem; width: 100%;").
+    style: str | None = None
+    #: Grid fields: cells edit in place (InlineEditing()).
+    inline_editing: bool = False
+    #: Grid fields: where the row editor opens (right|left|top|bottom|modal…; mirrors
+    #: FormFieldDto.formPosition), its CSS/theme and its column count.
+    form_position: str | None = None
+    form_style: str | None = None
+    form_theme: str | None = None
+    form_columns: int = 0
+    #: Grid fields: the min height the grid keeps while the row editor is shown.
+    min_height_when_detail_visible: str | None = None
+    #: Grid fields: the row field shown as an expandable detail, and whether a button opens it.
+    detail_path: str | None = None
+    use_button_for_detail: bool = False
 
 
 class PairRecord(Wire):

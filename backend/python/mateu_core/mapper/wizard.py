@@ -72,7 +72,7 @@ class WizardMapperMixin(MixinBase):
         back = self.client(ButtonMetadata(label="Back", action_id="back", disabled=current == 1), None, [])
         nxt = self.client(
             ButtonMetadata(
-                label="Finish" if current == total else "Next", action_id="next", button_style="Primary"
+                label="Finish" if current == total else "Next", action_id="next", button_style="primary"
             ),
             None,
             [],
@@ -139,7 +139,11 @@ class WizardMapperMixin(MixinBase):
                 initial[camel_case(f.name)] = _row_cell(getattr(instance, f.name, None))
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(cls), route=route, children=[layout],
-            initial_data=initial, actions=[], triggers=[],
+            initial_data=initial,
+            # the current step's field actions (a grid's row editing, lookups…): the renderer only
+            # sends what the component advertises
+            actions=self.field_actions(cls, [f for f, s in step_fields if s == current]),
+            triggers=[],
             page_width=getattr(cls, "__mateu_page_width__", None),
             page_type=page_type_of(cls),
             # only the CURRENT step's constraints: the others are not on screen (Java's

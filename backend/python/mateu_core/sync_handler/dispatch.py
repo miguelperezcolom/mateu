@@ -233,6 +233,11 @@ class DispatchMixin(MixinBase):
             # The archetype's data (and its click's action_on) may depend on the inbound
             # request — the port's analogue of Java's HttpRequest injection.
             instance.http_request = rq
+        # 4a. A list (grid) field's row editing: add / select / create / save / move / remove
+        # edit the rows held in the form state (Java's FieldCrudActionRunner).
+        list_action = self.list_field_action(type_, rq.action_id)
+        if list_action is not None:
+            return self.handle_list_field_action(type_, *list_action, rq)
         if rq.action_id and rq.action_id.startswith("search-"):
             return self.field_search(instance, rq)
         if rq.action_id and rq.action_id.startswith("codesearch-"):

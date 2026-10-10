@@ -26,7 +26,7 @@ from mateu_dtos import (
     RestAction,
     RestDataSource,
 )
-from mateu_uidl import Max, Min, Pattern, Size
+from mateu_uidl import Colspan, DetailForm, Hidden, Max, Min, Pattern, Size
 from mateu_uidl import Text as TextMarker
 from mateu_uidl import (
     BulletedList,
@@ -96,12 +96,12 @@ def is_list_field(f) -> bool:
 
 
 class FieldMapperMixin(MixinBase):
-    def field_actions(self, cls) -> list[Action]:
+    def field_actions(self, cls, only=None) -> list[Action]:
         """The actions a view's FIELDS declare, in Java's ``FieldActionCollector`` order: the
         row-editing actions of every list field, the ``OnRowSelected()`` row-click actions, the
         per-column lookup search of inline-editing grids, ``Lookup()`` searches and ``Searchable()``
         code / selector lookups."""
-        fields = [f for f in view_fields(cls) if self.visible(f)]
+        fields = [f for f in (only if only is not None else view_fields(cls)) if self.visible(f)]
         out: list[Action] = []
 
         def add(action: Action) -> None:
@@ -160,25 +160,35 @@ class FieldMapperMixin(MixinBase):
 
     def map_grid_field(self, f, row_type, instance, read_only: bool) -> ClientSideComponent:
         """A list-of-rows field → a grid FormField (dataType "array", stereotype "grid", one
-        GridColumn per row field, rows identified by position). Mirrors Java's
-        GridColumnBuilder.getFormFieldForArray."""
+        GridColumn per row field, rows identified by ``_rowNumber``) plus, when editable, the
+        row editor's wiring: a trailing "Edit" column (``<field>_select``), the editor's position,
+        column count and the grid's min height while it shows. Mirrors Java's
+        GridColumnBuilder.createCrudForField."""
         field_id = camel_case(f.name)
         # InlineEditing() on the grid field: cells edit in place, commits accumulate in the form
-        # state (the frontend's renderEditableCell form-grid path) and save with the form.
+        # state (the frontend's renderEditableCell form-grid path) and save with the form; it
+        # replaces the row editor.
         inline = not read_only and f.has(InlineEditing)
         columns = []
         for c in view_fields(row_type):
             if not self.visible(c):
                 continue
+            hidden = c.marker(Hidden)
+            if hidden is not None and not hidden.value:
+                continue  # an unconditional Hidden() column is not a column at all
+            if is_list_field(c):
+                continue  # a nested list is not a cell
             editable = inline and not c.has(ReadOnly)
             # The form instance's options(field_name) method can feed an editable cell's select
             # options (Java parity: the grid inline-editor machinery consults the form's
             # OptionsSupplier — e.g. the import wizard's targetField cell).
             supplied = self._supplied_options(instance, camel_case(c.name)) if editable else []
-            columns.append(GridColumn(metadata=GridColumnMeta(
+            columns.append(GridColumn(id=camel_case(c.name), metadata=GridColumnMeta(
                 id=camel_case(c.name),
                 label=(c.marker(Label).value if c.has(Label) else humanize(c.name)),
-                data_type=self.infer_data_type(c.type, c),
+                # A form grid's column type is coarse (Java's ColumnTypeMapper): booleans show
+                # as such, everything else as text — the cell editor carries the real type.
+                data_type="bool" if c.type is bool else "string",
                 editable=editable,
                 editor_type=(
                     ("select" if supplied and not is_enum(c.type) else self.editor_type_of(c))
@@ -189,11 +199,26 @@ class FieldMapperMixin(MixinBase):
                                   if is_enum(c.type) else None))
                     if editable else None
                 ),
-                stereotype=self.column_stereotype_of(c),
+                stereotype=self.column_stereotype_of(c) or "regular",
                 caption_path=self.caption_path_of(c),
                 leading_path=self.leading_path_of(c),
+                # no fixed width → the column sizes to its content (Java's GridColumnMapper)
+                auto_width=True,
+            )))
+        # The per-row "Edit" button opens the row editor; inline editing replaces it.
+        if not read_only and not inline:
+            columns.append(GridColumn(id="_select", metadata=GridColumnMeta(
+                id="_select",
+                label="",
+                data_type="string",
+                stereotype="button",
+                text="Edit",
+                action_id=f"{field_id}_select",
+                width="3rem",
             )))
         on_row = f.marker(OnRowSelected)
+        detail = f.marker(DetailForm) or DetailForm()
+        style = "min-width: 10rem; width: 100%;"
         meta = FormFieldMetadata(
             field_id=field_id,
             data_type="array",
@@ -202,11 +227,24 @@ class FieldMapperMixin(MixinBase):
             read_only=read_only,
             columns=columns,
             item_id_path="_rowNumber",
+            inline_editing=inline,
+            colspan=f.marker(Colspan).value if f.has(Colspan) else 1,
+            style=style,
+            slider_max=0,
             # Grid rows ride in the component initialData / fragment state, not as an initialValue.
-            on_item_selection_action_id=camel_case(on_row.value) if on_row else None,
+            # OnRowSelected() binds the click to a method; an editable grid without it selects the
+            # row for its editor (<field>_selected), a read-only one dispatches nothing.
+            on_item_selection_action_id=(
+                camel_case(on_row.value) if on_row else (None if read_only else f"{field_id}_selected")
+            ),
             row_selection_shortcut=on_row.shortcut if on_row and on_row.shortcut else None,
+            form_position=detail.position,
+            form_style=detail.style,
+            form_theme=detail.theme,
+            form_columns=detail.columns or class_flag(row_type, "__mateu_form_layout_columns__", 2),
+            min_height_when_detail_visible=detail.min_height_when_detail_visible,
         )
-        return self.client(meta, field_id, [])
+        return ClientSideComponent(metadata=meta, id=field_id, children=[], style=style)
 
     def map_field(self, f, instance, read_only: bool = False) -> ClientSideComponent:
         field_id = camel_case(f.name)
@@ -261,7 +299,9 @@ class FieldMapperMixin(MixinBase):
             # An integer field shows the +/- step buttons; a textarea spans both columns (Java
             # parity). initialValue is NOT emitted per field — the values ride in initialData/state.
             step_buttons_visible=(t is int),
-            colspan=2 if stereotype == "textarea" else 1,
+            # an explicit Colspan() wins; intrinsically wide fields are widened to the full row
+            # when the rows are laid out (LayoutMapperMixin.form_rows)
+            colspan=f.marker(Colspan).value if f.has(Colspan) else 1,
             link=self.link_of(f, instance),
             # Lookup(): the combo box loads its options remotely through the field's
             # search-<fieldId> action (answered from the view's options(field_name) method).

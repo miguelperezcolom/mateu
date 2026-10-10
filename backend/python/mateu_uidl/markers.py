@@ -76,6 +76,29 @@ class Text:
 
 
 @dataclass(frozen=True)
+class Colspan:
+    """How many form columns the field spans (Java's ``@Colspan``). Without it a field spans one
+    column, except the intrinsically wide ones — grids, textareas, rich text, html and markdown —
+    which span the whole row of a multi-column form."""
+
+    value: int
+
+
+@dataclass(frozen=True)
+class DetailForm:
+    """Customises a grid field's row editor (Java's ``@DetailFormCustomisation`` +
+    ``@MasterDetail``): where it opens (``right``/``left``/``top``/``bottom``/``modal``), its column
+    count (0 = the row type's own), CSS and theme, and the min height the grid keeps while the
+    editor shows."""
+
+    position: str = "right"
+    columns: int = 0
+    style: str | None = None
+    theme: str | None = None
+    min_height_when_detail_visible: str = "16rem;"
+
+
+@dataclass(frozen=True)
 class SeparatorBefore:
     """Paints a horizontal divider line (``<hr>``) above the field, occupying the full form
     width — for separating groups of contents inside a section or form without starting a new

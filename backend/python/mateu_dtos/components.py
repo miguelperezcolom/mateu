@@ -64,6 +64,7 @@ from .front_office import (
     TaskQueueMetadata,
 )
 from .layout import (
+    FormMetadata,
     CardMetadata,
     DivMetadata,
     FormLayoutMetadata,
@@ -108,6 +109,7 @@ ComponentMetadata = Annotated[
     Union[
         AppMetadata,
         PageMetadata,
+        FormMetadata,
         CardMetadata,
         DivMetadata,
         VerticalLayoutMetadata,

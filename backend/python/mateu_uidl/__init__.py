@@ -31,6 +31,8 @@ from .markers import (  # noqa: F401
     Aggregate,
     AggregateFunction,
     BulletedList,
+    Colspan,
+    DetailForm,
     Disabled,
     FileUpload,
     GroupBy,
@@ -222,6 +224,8 @@ from .constraints import (  # noqa: F401
 
 
 __all__ = [
+    "Colspan",
+    "DetailForm",
     "Max",
     "Min",
     "Pattern",

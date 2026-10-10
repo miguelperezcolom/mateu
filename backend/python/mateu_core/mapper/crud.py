@@ -456,12 +456,12 @@ class CrudMapperMixin(MixinBase):
         elif mode == "edit":
             toolbar = [
                 Button(label="Cancel", action_id="cancel-edit"),
-                Button(label="Save", action_id=save_action_id, button_style="Primary"),
+                Button(label="Save", action_id=save_action_id, button_style="primary"),
             ]
         else:  # new
             toolbar = [
                 Button(label="Cancel", action_id="cancel-new"),
-                Button(label="Save", action_id=save_action_id, button_style="Primary"),
+                Button(label="Save", action_id=save_action_id, button_style="primary"),
             ]
         page = self.client(
             PageMetadata(title=title, page_title=title, toolbar=toolbar,
