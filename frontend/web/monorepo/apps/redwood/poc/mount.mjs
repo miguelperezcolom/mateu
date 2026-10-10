@@ -76,6 +76,14 @@ export function initMount(doc) {
   return mountPath
 }
 
+/** The static bundle's manifest URL, when the page's <mateu-ui> names one (`bundleUrl`, stamped
+ *  by the mateu-bundle goal's index.html — the same attribute the web renderers read). '' = none. */
+export function bundleUrlOf(doc) {
+  const el = doc && typeof doc.querySelector === 'function' ? doc.querySelector('mateu-ui') : null
+  const url = el ? el.getAttribute('bundleUrl') || el.getAttribute('bundleurl') : null
+  return url || ''
+}
+
 /** Test hook / explicit setting: null = hash mode. */
 export function setMount(value) { mountPath = value == null ? null : normalizeMount(value) }
 

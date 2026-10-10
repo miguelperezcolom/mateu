@@ -72,6 +72,12 @@ def _data_source_of(node: dict, *keys: str) -> "RestSourceRef | None":
     return None
 
 
+def _access_of(node):
+    from .yaml_access import access_of
+
+    return access_of(node)
+
+
 def _flatten_node(
     node: dict, parent_route: str | None, prefix: str, out: list["RouteEntry"]
 ) -> None:
@@ -96,6 +102,7 @@ def _flatten_node(
             app_state=_params_of(node, "appState", "app_state"),
             data=_data_source_of(node, "data"),
             app_data=_data_source_of(node, "appData", "app_data"),
+            access=_access_of(node.get("access")),
         )
     )
     children = node.get("children")
@@ -168,6 +175,12 @@ class RouteEntry:
     app_state: dict[str, Any] = field(default_factory=dict)
     data: RestSourceRef | None = None
     app_data: RestSourceRef | None = None
+    #: Who may reach this route (``access:``). An unsatisfied restriction answers 403 — for this
+    #: route AND every route nested under it — the same as a class-level ``@eyes_only``.
+    access: Any = None
+
+    def restricts_access(self) -> bool:
+        return self.access is not None and self.access.restricts()
 
     def has_parent(self) -> bool:
         """Whether this route fills the slot of a parent screen rather than replacing the page."""
@@ -310,6 +323,13 @@ class RouteRegistry:
         # Code-authored routes join the authored side UNDER the YAML (routes.yaml wins on collision).
         self._supplied = RouteTable(tuple(flatten(supplied or [])))
         self._authored: RouteTable | None = None
+        from mateu_core import dev_specs
+
+        dev_specs.register(self)
+
+    def invalidate_specs(self) -> None:
+        """Dev mode: a spec changed — the authored table is read again on next use."""
+        self._authored = None
 
     def authored(self) -> RouteTable:
         """routes.yaml merged OVER the code-supplied routes, so YAML wins the last-mile override and
@@ -354,6 +374,51 @@ class RouteRegistry:
 
     def match(self, path: str | None) -> Match | None:
         return self.authored().match(path)
+
+    def chain(self, path: str | None) -> list[RouteEntry]:
+        """The authored entry answering ``path`` preceded by its ``parent`` ancestors, outermost
+        first (empty when the table does not know the path)."""
+        table = self.authored()
+        m = table.match(path)
+        if m is None:
+            return []
+        by_route = {_normalize(e.route): e for e in table.routes}
+        out = [m.entry]
+        seen = {_normalize(m.entry.route)}
+        entry = m.entry
+        while entry.has_parent():
+            parent = by_route.get(_normalize(entry.parent))
+            if parent is None or _normalize(parent.route) in seen:
+                break
+            seen.add(_normalize(parent.route))
+            out.insert(0, parent)
+            entry = parent
+        return out
+
+    def refusing_entry(self, path: str | None, authorized) -> RouteEntry | None:
+        """The authored entry whose ``access:`` refuses the caller ``path``, or None when it is
+        reachable. The deepest entry answering the path or a prefix of it (a crud's ``/new`` is still
+        that crud's route) decides, together with all its ancestors; the root entry guards the root
+        path only. ``authorized`` is the mapper's gate check (the one matching rule). Mirrors Java's
+        ``RouteRegistry.refusingEntry``."""
+        table = self.authored()
+        if not any(e.restricts_access() for e in table.routes):
+            return None
+        normalized = _normalize((path or "").split("?", 1)[0])
+        segments = normalized.split("/") if normalized else []
+        lowest = 0 if not segments else 1
+        for n in range(len(segments), lowest - 1, -1):
+            prefix = "/".join(segments[:n])
+            if table.match(prefix) is None:
+                continue
+            for entry in self.chain(prefix):
+                if entry.restricts_access() and not authorized(entry.access):
+                    return entry
+            return None
+        return None
+
+    def is_reachable(self, path: str | None, authorized) -> bool:
+        return self.refusing_entry(path, authorized) is None
 
     def apps(self, derived: "list[AppRef] | None" = None) -> list[AppRef]:
         """Every app of the deployment, from TWO producers merged into ONE table — the same

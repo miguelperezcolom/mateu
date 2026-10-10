@@ -20,7 +20,7 @@ import com.intellij.psi.PsiManager
 private val MATEU_ICON = IconLoader.getIcon("/icons/mateu.svg", MateuNewFileGroup::class.java)
 
 /**
- * New | Mateu — one entry per specs/ui file kind (UI mount, routes, app shell, REST sources, page),
+ * New | Mateu — one entry per specs/ui file kind (UI mount, routes, app shell, REST sources, field types, page),
  * plus Route… when the specs folder already has a routes file. Shown wherever the platform's New menu
  * is (project view, ⌘N on a folder).
  */
@@ -57,6 +57,11 @@ class NewMateuFileAction(private val kind: MateuNewFiles.FileKind) :
     AnAction(kind.label, kind.description, MATEU_ICON), DumbAware {
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
+
+    override fun update(e: AnActionEvent) {
+        // the project descriptor is one per project: offered only while there is none
+        e.presentation.isEnabledAndVisible = !kind.singleton || e.project?.let { !ProjectRenderer.hasDescriptor(it) } ?: false
+    }
 
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return

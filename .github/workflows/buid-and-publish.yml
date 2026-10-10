@@ -7,7 +7,8 @@ on:
   release:
     types: [published]
 
-# Publishing goes to Maven Central with its own secrets; nothing here writes to GitHub. Read-only
+# Publishing goes to Maven Central with its own secrets; the only write to GitHub is the
+# redwood-embedded job attaching its zip to the release (its own job-level contents: write). Read-only
 # also caps the called run_tests.yml (a called workflow cannot exceed its caller's permissions).
 permissions:
   contents: read
@@ -85,6 +86,34 @@ jobs:
         env:
           MAVEN_USERNAME: ${{ secrets.CENTRAL_TOKEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.CENTRAL_TOKEN_PASSWORD }}
+
+  # The Redwood EMBEDDED component (<mateu-ui>, a JET Custom Component a Visual Builder developer
+  # imports into their own app) is not a Maven/PyPI/NuGet artifact: it ships as a zip attached to the
+  # framework's GitHub Release, built from the committed sources (poc/ + the generated bridge +
+  # embedded/mateu-ui) with Node alone — nothing from Oracle's CDN goes in (see NOTICE.md). The only
+  # job that writes to GitHub, so the only one with contents: write.
+  redwood-embedded:
+    needs: e2e
+    if: startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Build the embedded component package
+        run: |
+          cd frontend/web/monorepo/apps/redwood
+          node poc/test-embedded.mjs
+          node poc/make-embedded.mjs
+          ls build/embedded/mateu-ui-*.zip
+      - name: Attach it to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$TAG" frontend/web/monorepo/apps/redwood/build/embedded/mateu-ui-*.zip --clobber --repo "$GITHUB_REPOSITORY"
 
   # The Python port ships to PyPI as `mateu-ui` (the name `mateu` is taken by an unrelated project),
   # in lockstep with Maven: the same framework release, the version derived from the same tag

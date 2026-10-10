@@ -28,7 +28,20 @@ public record RestSourceEntryDto(
     Map<String, String> fields,
     String totalPath,
     String provenance,
-    String description) {
+    String description,
+    /* the response sample answered instead of calling the endpoint, in sample mode only; it
+    travels only when the app runs in sample mode (or a bundle is built with the mock flag) */
+    Object sample) {
+
+  public RestSourceEntryDto(
+      String name,
+      RestDataSourceDto source,
+      Map<String, String> fields,
+      String totalPath,
+      String provenance,
+      String description) {
+    this(name, source, fields, totalPath, provenance, description, null);
+  }
 
   public RestSourceEntryDto {
     fields = Collections.unmodifiableMap(fields != null ? fields : Map.of());

@@ -34,6 +34,13 @@ class PartialRegistry:
         self._dir = Path(directory or os.environ.get("MATEU_SPECS_DIR") or Path("specs") / "ui")
         self._by_ref: dict[str, list[Any]] = {}
         self._registered: dict[str, list[Any]] = {}
+        from mateu_core import dev_specs
+
+        dev_specs.register(self)
+
+    def invalidate_specs(self) -> None:
+        """Dev mode: a spec changed — the YAML partials are read again (code registrations stay)."""
+        self._by_ref.clear()
 
     def register(self, ref: str, nodes: list[Any]) -> None:
         """Contribute a partial programmatically. A registration wins over a file of the same name —

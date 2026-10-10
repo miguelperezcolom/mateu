@@ -1,6 +1,6 @@
 import {customElement, property} from "lit/decorators.js";
 import { jsonSafe } from '@infra/http/jsonTemplate.ts'
-import { resolveRestSource } from '@infra/http/restSourceCatalogue.ts'
+import { viaProxy } from '@infra/http/restSourceCatalogue.ts'
 import {css, html, nothing, PropertyValues, render, TemplateResult, unsafeCSS} from "lit";
 import {badge} from '@infra/ui/badgeStyles.ts';
 import { linkStyles } from "@infra/ui/linkStyles.ts";
@@ -620,7 +620,8 @@ export class MateuComponent extends ComponentElement {
         // about the endpoint, declared once in the catalogue. Reading the flag before resolving sent
         // every by-ref call down the direct path — where `${secret.X}` does not exist, so the header
         // travelled as its own placeholder and the endpoint answered 401.
-        const isProxy = !!resolveRestSource(rest.source)?.proxy
+        // …and a source answered from its SAMPLE (sample mode) is never proxied: there may be no server.
+        const isProxy = viaProxy(rest.source)
         const kind = actionId === '__restdata__' ? 'data' : 'action'
 
         // Bulk: run the call once per checked row (crud_selected_items). For a PROXY source the loop

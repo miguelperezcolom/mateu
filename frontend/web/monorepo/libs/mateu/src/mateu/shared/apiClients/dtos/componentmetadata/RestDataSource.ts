@@ -23,4 +23,7 @@ export default interface RestDataSource {
      * fetching directly from the browser. The renderer dispatches the reserved `__restfetch__`
      * action instead of a direct `fetch`. */
     proxy?: boolean | undefined
+    /** SAMPLE data: the response this endpoint would return, answered INSTEAD of calling it — only
+     * in sample mode (the visual editor, a mock-flagged bundle, an app that opted in). */
+    sample?: unknown
 }

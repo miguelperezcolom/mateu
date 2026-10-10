@@ -47,6 +47,20 @@
           "type": "string",
           "default": "http://localhost:8080",
           "description": "Mateu backend base URL, serving the reserved __preview__ / __contract__ sync actions. Point it at a running Mateu app (the starters and Spring Boot default to 8080; the repo's demo-starwars, with authored specs/ui pages, runs on http://localhost:8600)."
+        },
+        "mateu.renderer": {
+          "type": "string",
+          "enum": [
+            "vaadin",
+            "redwood"
+          ],
+          "default": "vaadin",
+          "scope": "resource",
+          "enumDescriptions": [
+            "Vaadin (Lumo) — served by io.mateu:mateu-vaadin (the default)",
+            "Redwood (Oracle Visual Builder) — served by io.mateu:mateu-redwood"
+          ],
+          "markdownDescription": "The renderer the whole project paints with. **Stored in `specs/ui/project.yaml`** (`type: Project`) — the file is the truth: changing this setting writes it, and the setting follows the file whenever it changes. The visual editor and Play open in it and the static bundle ships it; a served app renders with its Maven dependency (the server warns when the two disagree). Same as *Mateu: Project Settings…*."
         }
       }
     },
@@ -69,6 +83,21 @@
       {
         "command": "mateu.addRoute",
         "title": "Add Route…",
+        "category": "Mateu"
+      },
+      {
+        "command": "mateu.projectSettings",
+        "title": "Project Settings…",
+        "category": "Mateu"
+      },
+      {
+        "command": "mateu.runLive",
+        "title": "Run App (Live)",
+        "category": "Mateu"
+      },
+      {
+        "command": "mateu.reloadScreen",
+        "title": "Reload Screen",
         "category": "Mateu"
       }
     ],
@@ -118,7 +147,10 @@
     "workspaceContains:**/specs/ui/**/*.yml",
     "onCustomEditor:mateu.visualEditor",
     "onCommand:mateu.newFile",
-    "onCommand:mateu.addRoute"
+    "onCommand:mateu.addRoute",
+    "onCommand:mateu.projectSettings",
+    "onCommand:mateu.runLive",
+    "onCommand:mateu.reloadScreen"
   ],
   "keywords": [
     "mateu",

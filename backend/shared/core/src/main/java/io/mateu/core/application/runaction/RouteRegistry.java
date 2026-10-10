@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Named
 @Singleton
-public class RouteRegistry {
+public class RouteRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
   /**
    * The conventional route file of the implicit root mount, used when no {@code type: UI} exists.
@@ -53,6 +53,19 @@ public class RouteRegistry {
   private volatile RouteTable authored;
   private volatile List<Mount> mounts;
   private volatile Map<String, String> homes;
+
+  public RouteRegistry() {
+    io.mateu.core.infra.dev.DevSpecs.register(this);
+  }
+
+  /** Dev mode: a spec changed — the tables are read again on next use. */
+  @Override
+  public synchronized void invalidateSpecs() {
+    table = null;
+    authored = null;
+    mounts = null;
+    homes = null;
+  }
 
   /** Mount homes already warned about (descriptor#home), so a bad home is logged once per JVM. */
   private static final Set<String> WARNED_HOMES =
@@ -76,6 +89,43 @@ public class RouteRegistry {
   /** The entry answering a concrete path, with the path parameters read off it. */
   public Optional<RouteTable.Match> match(String path) {
     return table().match(path);
+  }
+
+  /**
+   * Whether the caller may reach {@code path}: every authored entry answering it — the deepest
+   * entry matching the path or a prefix of it (a crud's {@code /new} and {@code /:id/edit} are
+   * still that crud's route), and all its {@link RouteEntry#parent} ancestors — must have its
+   * {@code access:} satisfied. A path no authored entry answers is not restricted here.
+   */
+  public boolean isReachable(String path, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    return refusingEntry(path, httpRequest) == null;
+  }
+
+  /**
+   * The authored entry whose {@code access:} refuses the caller {@code path}, or null when it is
+   * reachable (see {@link #isReachable}).
+   */
+  public RouteEntry refusingEntry(String path, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    var table = authored();
+    if (table.routes().stream().noneMatch(RouteEntry::restrictsAccess)) {
+      return null; // the common case: nothing in the table is restricted
+    }
+    var normalized = normalize(stripQuery(path == null ? "" : path));
+    var segments = normalized.isEmpty() ? new String[0] : normalized.split("/");
+    // the root entry ("") guards the root path only: it must not guard routes it does not own
+    for (int n = segments.length; n >= (segments.length == 0 ? 0 : 1); n--) {
+      var prefix = String.join("/", java.util.Arrays.copyOf(segments, n));
+      if (table.match(prefix).isEmpty()) {
+        continue;
+      }
+      for (var link : chain(prefix)) {
+        if (!io.mateu.core.domain.Authorizer.isAuthorized(link.entry().access(), httpRequest)) {
+          return link.entry();
+        }
+      }
+      return null; // the deepest answering entry decides; a shallower one is a different route
+    }
+    return null;
   }
 
   /**
@@ -365,6 +415,9 @@ public class RouteRegistry {
 
   RouteTable load(ClassLoader classLoader) {
     var cl = classLoader == null ? RouteRegistry.class.getClassLoader() : classLoader;
+    // The registry loads at startup (or on the first request): the moment to say, once, that the
+    // project's declared renderer is not the one this classpath serves.
+    io.mateu.core.infra.ProjectRendererCheck.warnOnce(cl);
     var derived = derivedFrom(cl);
     var supplied = suppliedFrom(cl);
     var authoredTable = authoredFrom(cl);
@@ -437,7 +490,8 @@ public class RouteRegistry {
             node.data(),
             node.appData(),
             node.defaultChild(),
-            node.show()));
+            node.show(),
+            node.access()));
     for (var child : node.children()) {
       flattenEntry(child, full, full, out);
     }
@@ -586,7 +640,8 @@ public class RouteRegistry {
                 homeEntry.data(),
                 homeEntry.appData(),
                 null,
-                homeEntry.show()));
+                homeEntry.show(),
+                homeEntry.access()));
       }
     }
     return valid;
@@ -658,7 +713,9 @@ public class RouteRegistry {
 
   /** Reads a route file (a {@code routes:} envelope or a bare list) into relative-route entries. */
   private List<RouteEntry> readRouteEntries(ClassLoader classLoader, String resourcePath) {
-    try (InputStream is = classLoader.getResourceAsStream(resourcePath)) {
+    try (InputStream is =
+        io.mateu.core.infra.dev.DevSpecs.classLoader(classLoader)
+            .getResourceAsStream(resourcePath)) {
       if (is == null) {
         return List.of();
       }
@@ -715,7 +772,8 @@ public class RouteRegistry {
             dataSourceOf(node, "data"),
             dataSourceOf(node, "appData"),
             node.hasNonNull("defaultChild") ? normalize(node.get("defaultChild").asText()) : null,
-            node.hasNonNull("show") ? node.get("show").asText() : null));
+            node.hasNonNull("show") ? node.get("show").asText() : null,
+            io.mateu.core.application.security.YamlAccess.accessOf(node.get("access"))));
     var childrenNode = node.get("children");
     if (childrenNode != null && childrenNode.isArray()) {
       for (var child : childrenNode) {
@@ -756,7 +814,8 @@ public class RouteRegistry {
         entry.data(),
         entry.appData(),
         entry.defaultChild(),
-        entry.show());
+        entry.show(),
+        entry.access());
   }
 
   /**

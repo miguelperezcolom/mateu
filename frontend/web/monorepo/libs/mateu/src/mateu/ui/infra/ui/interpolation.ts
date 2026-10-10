@@ -116,10 +116,21 @@ const evalExpr = (expr: string, ctx: InterpolationContext): unknown => evaluate(
 const renderDisplayTemplate = (text: string, ctx: InterpolationContext): string => {
     let out = ''
     for (const seg of parseTemplate(text)) {
-        out += 'lit' in seg ? seg.lit : String(evalExpr(seg.expr, ctx) ?? '')
+        if ('lit' in seg) {
+            out += seg.lit
+            continue
+        }
+        // `${i18n.key}` is resolved BEFORE the text gets here — by the server, or in bundle mode by
+        // the bundle store from the manifest's catalogue. One that still arrives has no catalogue
+        // behind it: show the key, never a blank or the raw expression.
+        const i18nKey = I18N_KEY.exec(seg.expr)
+        out += i18nKey ? i18nKey[1] : String(evalExpr(seg.expr, ctx) ?? '')
     }
     return out
 }
+
+/** A display expression that is just an i18n key reference (`i18n.orders.title`). */
+const I18N_KEY = /^\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*$/
 
 const buildContext = (
     state?: ComponentState,

@@ -42,6 +42,39 @@
       "schemaType": "Actions"
     },
     {
+      "id": "translations",
+      "label": "Translations",
+      "description": "One language's messages (type: Translations): name the file after the locale (en, es…); labels say ${i18n.key}.",
+      "fileName": "en",
+      "template": "Mateu Translations",
+      "schemaType": "Translations"
+    },
+    {
+      "id": "environment",
+      "label": "Environment",
+      "description": "A deployment environment (type: Environment) re-pointing named REST sources — base url, url, headers, proxy — for MATEU_ENVIRONMENT. No secrets here.",
+      "fileName": "pre",
+      "template": "Mateu Environment",
+      "schemaType": "Environment"
+    },
+    {
+      "id": "types",
+      "label": "Field Types",
+      "description": "Reusable field/column definitions (type: Types) that fields and columns reference with fieldType: <id>.",
+      "fileName": "types",
+      "template": "Mateu Types",
+      "schemaType": "Types"
+    },
+    {
+      "id": "project",
+      "label": "Project Settings",
+      "description": "The project descriptor (type: Project, specs/ui/project.yaml): the renderer the whole project paints with (vaadin | redwood). One per project — offered only while the project has none.",
+      "fileName": "project",
+      "template": "Mateu Project",
+      "schemaType": "Project",
+      "singleton": true
+    },
+    {
       "id": "page",
       "label": "Page…",
       "description": "A page / component definition, started from a page template.",

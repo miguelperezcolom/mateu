@@ -1,0 +1,12 @@
+# Fixture for FieldTypesSyncTest / SampleSourcesSyncTest (served through a class loader that answers
+# specs/ui/** ONLY from this directory, so the shared test specs/ui is untouched).
+type: Routes
+routes:
+  - route: ft-orders
+    definition: orders.yaml
+  - route: ft-customer
+    definition: customer.yaml
+  - route: ft-unknown
+    definition: unknown.yaml
+  - route: ft-sampled
+    definition: sampled.yaml

@@ -62,6 +62,10 @@ import java.util.Map;
  * @param defaultChild for a route with {@link #children}: the child (its route RELATIVE to this
  *     one, e.g. {@code orders}) that opens when this route is reached on its own — the default tab
  *     of a record master. {@code null} means the FIRST child. Ignored on a route without children.
+ * @param access who may reach this route ({@code access:} in {@code routes.yaml}). An unsatisfied
+ *     restriction answers 403 — for this route AND every route nested under it — the same as a
+ *     class-level {@code @EyesOnly} on a {@code @UI}; a menu link to it is hidden. {@code null} =
+ *     anybody. Decided on the server from the request identity.
  */
 public record RouteEntry(
     String route,
@@ -76,7 +80,8 @@ public record RouteEntry(
     RestDataSource data,
     RestDataSource appData,
     String defaultChild,
-    String show) {
+    String show,
+    Access access) {
 
   public RouteEntry {
     route = route == null ? "" : route;
@@ -85,6 +90,38 @@ public record RouteEntry(
     children = children == null ? List.of() : List.copyOf(children);
     state = state == null ? Map.of() : Map.copyOf(state);
     appState = appState == null ? Map.of() : Map.copyOf(appState);
+  }
+
+  /** An entry with no access restriction (the shape before {@code access:} existed). */
+  public RouteEntry(
+      String route,
+      String definition,
+      String viewModel,
+      Map<String, Object> fixedParams,
+      Map<String, Object> defaultParams,
+      String parent,
+      List<RouteEntry> children,
+      Map<String, Object> state,
+      Map<String, Object> appState,
+      RestDataSource data,
+      RestDataSource appData,
+      String defaultChild,
+      String show) {
+    this(
+        route,
+        definition,
+        viewModel,
+        fixedParams,
+        defaultParams,
+        parent,
+        children,
+        state,
+        appState,
+        data,
+        appData,
+        defaultChild,
+        show,
+        null);
   }
 
   /** An entry with no explicit default child (the first child, if any, is the default). */
@@ -182,6 +219,11 @@ public record RouteEntry(
   /** The plain case: a route backed by a view model, no parameters pinned, no slot host. */
   public static RouteEntry of(String route, String viewModel) {
     return new RouteEntry(route, null, viewModel, null, null, null, null);
+  }
+
+  /** Whether this route declares an identity restriction (named so it is not read as a getter). */
+  public boolean restrictsAccess() {
+    return access != null && access.restricts();
   }
 
   /** Whether this route fills the slot of a parent screen rather than replacing the page. */

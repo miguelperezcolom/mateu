@@ -1,6 +1,6 @@
 import { evaluateExpression, interpolate, interpolateUrl } from './expressions';
 import { MateuSession, NavTarget } from './MateuSession';
-import { externalAuthHeaders, registerRestSources } from './restFetch';
+import { externalAuthHeaders, registerRestSources, resolveRestSource, sampledResponse, setSampleMode, viaProxy } from './restFetch';
 import { announce, announceLive } from '../a11y/a11y';
 import { isTimedOnLoad, PollingScheduler } from './polling';
 import { isDev } from '../api/MateuApiClient';
@@ -292,7 +292,12 @@ export class MateuViewController {
     const resolve = (t: unknown): string => interpolate(str(t), ctx);
     try {
       let json: unknown;
-      if (source['proxy']) {
+      // SAMPLE mode: a sampled source is neither fetched nor proxied — a read answers with a copy of
+      // the sample, a write succeeds with null (nothing persisted, nothing to merge).
+      const sampled = sampledResponse(source, str(resolveRestSource(source)['method']) || 'GET');
+      if (sampled !== undefined) {
+        json = sampled;
+      } else if (viaProxy(source)) {
         // Proxy mode: route through the Mateu server (no CORS, secrets injected server-side) via
         // the reserved __restfetch__ action. The __restdata__ (screen-load) id resolves the class
         // @RestData source; any other id is a @RestAction method — hence the source kind.
@@ -726,6 +731,8 @@ export class MateuViewController {
     // that references a source by `ref` can resolve it — before the home-route hop below returns.
     if (meta['type'] === 'App' && meta['restSources'] !== undefined) registerRestSources(meta['restSources']);
     if (meta['type'] === 'App' && meta['actionCatalogue'] !== undefined) registerActionCatalogue(meta['actionCatalogue']);
+    // Sample mode is only ever switched ON by the app (the server opted in with mateu.sources.mock).
+    if (meta['type'] === 'App' && meta['mockSources'] === true) setSampleMode(true);
     if (component['type'] !== 'ServerSide' && meta['type'] === 'App') {
       const homeRoute = str(meta['homeRoute']);
       const homeConsumed = str(meta['homeConsumedRoute']);
@@ -750,6 +757,7 @@ export class MateuViewController {
         const firstIsApp = first['type'] === 'ClientSide' && firstMeta['type'] === 'App';
         if (firstMeta['type'] === 'App' && firstMeta['restSources'] !== undefined) registerRestSources(firstMeta['restSources']);
         if (firstMeta['type'] === 'App' && firstMeta['actionCatalogue'] !== undefined) registerActionCatalogue(firstMeta['actionCatalogue']);
+        if (firstMeta['type'] === 'App' && firstMeta['mockSources'] === true) setSampleMode(true);
         if (firstIsApp) {
           // Crud MEDIATOR shell: don't render the App chrome — navigate to its home route.
           const homeRoute = str(firstMeta['homeRoute']);

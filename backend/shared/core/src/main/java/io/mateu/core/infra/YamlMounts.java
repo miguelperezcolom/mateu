@@ -89,15 +89,17 @@ public final class YamlMounts {
    * {@code /{basePath}/mateu/v3/**} and the YAML-defined mount answers.
    */
   public static String indexHtml(String basePath, String title) {
+    ProjectRendererCheck.warnOnce(Thread.currentThread().getContextClassLoader());
     String html = InputStreamReader.readFromClasspath(YamlMounts.class, "/static/_index.html");
     html = html.replace("<!-- AQUIFAVICON -->", "");
     // replace, not replaceAll: the title is authored text, and a "$" in it ("Costs in $") is a
     // group reference to replaceAll — IllegalArgumentException, a 500 on every page load.
     html = html.replace("AQUIELTITULODELAPAGINA", title);
-    return IndexPage.mountUi(
-        html,
-        "<mateu-ui baseUrl=\""
-            + basePath
-            + "\" pathPrefix=\"\" style=\"width:100%;height:100vh;\"></mateu-ui>");
+    return IndexPage.devHead(
+        IndexPage.mountUi(
+            html,
+            "<mateu-ui baseUrl=\""
+                + basePath
+                + "\" pathPrefix=\"\" style=\"width:100%;height:100vh;\"></mateu-ui>"));
   }
 }

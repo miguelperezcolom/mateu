@@ -1,0 +1,13 @@
+layout:
+  type: VerticalLayout
+  content:
+    - {type: Button, id: load-button, label: Load, actionId: load}
+actions:
+  - id: load
+    restAction:
+      source: {ref: orders, method: GET, proxy: true}
+      resultPath: ""
+  - id: create
+    restAction:
+      source: {ref: orders, method: POST, proxy: true, body: '{"customer":"${state.customer}"}'}
+      successMessage: Created

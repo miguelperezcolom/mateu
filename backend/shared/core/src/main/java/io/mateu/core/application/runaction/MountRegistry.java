@@ -77,7 +77,9 @@ public final class MountRegistry {
 
   /** All mounts declared as {@code type: UI} files on the classpath, in discovery order. */
   public List<Mount> mounts(ClassLoader classLoader) {
-    var cl = classLoader == null ? MountRegistry.class.getClassLoader() : classLoader;
+    var cl =
+        io.mateu.core.infra.dev.DevSpecs.classLoader(
+            classLoader == null ? MountRegistry.class.getClassLoader() : classLoader);
     var mounts = new ArrayList<Mount>();
     for (var resourcePath : scanYamlResourcePaths(cl)) {
       var mount = readMount(cl, resourcePath);
@@ -100,7 +102,9 @@ public final class MountRegistry {
    * rather than being listed by a {@code type: UI} descriptor.
    */
   public List<RouteFileMount> routeFileMounts(ClassLoader classLoader) {
-    var cl = classLoader == null ? MountRegistry.class.getClassLoader() : classLoader;
+    var cl =
+        io.mateu.core.infra.dev.DevSpecs.classLoader(
+            classLoader == null ? MountRegistry.class.getClassLoader() : classLoader);
     var found = new ArrayList<RouteFileMount>();
     for (var resourcePath : scanYamlResourcePaths(cl)) {
       try (InputStream is = cl.getResourceAsStream(resourcePath)) {
@@ -114,6 +118,32 @@ public final class MountRegistry {
         found.add(new RouteFileMount(text(root, "basePath"), resourcePath));
       } catch (Exception e) {
         log.warn("Failed to read route file {}: {}", resourcePath, e.getMessage());
+      }
+    }
+    return found;
+  }
+
+  /**
+   * Every {@code type: Project} descriptor under {@code specs/ui/**}, as resource paths, in
+   * discovery order. There should be one ({@code specs/ui/project.yaml}); the caller decides what
+   * to do with more.
+   */
+  public List<String> projectDescriptors(ClassLoader classLoader) {
+    var cl = classLoader == null ? MountRegistry.class.getClassLoader() : classLoader;
+    var found = new ArrayList<String>();
+    for (var resourcePath : scanYamlResourcePaths(cl)) {
+      try (InputStream is = cl.getResourceAsStream(resourcePath)) {
+        if (is == null) {
+          continue;
+        }
+        var root = yaml.readTree(is);
+        if (root != null
+            && root.isObject()
+            && io.mateu.uidl.data.ProjectSettings.TYPE.equals(text(root, "type"))) {
+          found.add(resourcePath);
+        }
+      } catch (Exception e) {
+        // not a YAML this scan can read — some other file's business
       }
     }
     return found;
@@ -144,8 +174,17 @@ public final class MountRegistry {
     }
   }
 
+  /**
+   * Every {@code *.yaml}/{@code *.yml} resource path under {@code specs/ui/} (recursive), across
+   * the classpath — for the other file kinds discovered by their {@code type:} ({@code
+   * Translations}, {@code Environment}).
+   */
+  public static Set<String> yamlResourcePaths(ClassLoader cl) {
+    return scanYamlResourcePaths(cl);
+  }
+
   /** Every {@code *.yaml}/{@code *.yml} resource path under {@code specs/ui/} (recursive). */
-  Set<String> scanYamlResourcePaths(ClassLoader cl) {
+  static Set<String> scanYamlResourcePaths(ClassLoader cl) {
     var paths = new LinkedHashSet<String>();
     try {
       var urls = cl.getResources(ROOT);

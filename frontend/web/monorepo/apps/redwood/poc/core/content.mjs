@@ -136,6 +136,11 @@ export function rowRouteOf(template, row) {
 }
 
 export function interpolate(text, state) {
+  // `${i18n.clave}` lo resuelve el servidor (o el bundle) antes de llegar aquí; si aún llega, no hay
+  // catálogo detrás: se muestra la CLAVE, nunca la expresión cruda.
+  if (text != null && String(text).includes('i18n.')) {
+    text = String(text).replace(/\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g, (all, key) => key)
+  }
   // `${state.x}` y también `${state['x']}` / `${state["x"]}` (la posición del editor de filas
   // llega como ${state['_position']})
   // y rutas anidadas: `${state.status.message}` (la insignia de un @Status de la cabecera)

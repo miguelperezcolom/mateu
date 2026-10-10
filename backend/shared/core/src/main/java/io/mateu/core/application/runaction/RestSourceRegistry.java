@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Named
 @Singleton
-public class RestSourceRegistry {
+public class RestSourceRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
   /** The conventional authored catalogue. */
   static final String CONVENTIONAL_SOURCES = "specs/ui/sources.yaml";
@@ -51,6 +51,16 @@ public class RestSourceRegistry {
   private final ObjectMapper yaml = new ObjectMapper(new YAMLFactory());
 
   private volatile RestSourceCatalog catalog;
+
+  public RestSourceRegistry() {
+    io.mateu.core.infra.dev.DevSpecs.register(this);
+  }
+
+  /** Dev mode: a spec changed — the catalogue is read again on next use. */
+  @Override
+  public void invalidateSpecs() {
+    catalog = null;
+  }
 
   /** The merged catalogue (authored over derived), loaded once. */
   public RestSourceCatalog catalog() {
@@ -75,7 +85,9 @@ public class RestSourceRegistry {
   RestSourceCatalog load(ClassLoader classLoader) {
     var derived = derivedFrom(classLoader);
     var authored = authoredFrom(classLoader);
-    var merged = authored.mergedOver(derived);
+    // The active deployment environment (mateu.environment / MATEU_ENVIRONMENT) re-points named
+    // sources on top of everything — so the wire, the proxy and the bundle manifest all see it.
+    var merged = Environments.overlayActive(authored.mergedOver(derived), classLoader);
     if (!merged.hasNoSources()) {
       log.info(
           "REST source catalogue: {} source(s) ({} derived, {} authored) — {} to implement, {}"
@@ -196,7 +208,9 @@ public class RestSourceRegistry {
    * list.
    */
   public RestSourceCatalog authoredFrom(ClassLoader classLoader) {
-    var cl = classLoader == null ? RestSourceRegistry.class.getClassLoader() : classLoader;
+    var cl =
+        io.mateu.core.infra.dev.DevSpecs.classLoader(
+            classLoader == null ? RestSourceRegistry.class.getClassLoader() : classLoader);
     try (InputStream is = cl.getResourceAsStream(CONVENTIONAL_SOURCES)) {
       if (is == null) {
         return RestSourceCatalog.empty();
@@ -238,13 +252,48 @@ public class RestSourceRegistry {
       log.warn("Ignoring a REST source with no name in {}", CONVENTIONAL_SOURCES);
       return null;
     }
+    var sampleFile = text(node, "sampleFile");
     return new RestSourceEntry(
         name,
         sourceOf(node.get("source")),
         provenanceOf(node),
         mapOf(node, "fields"),
         text(node, "totalPath"),
-        text(node, "description"));
+        text(node, "description"),
+        node.hasNonNull("sample") ? plain(node.get("sample")) : sampleFromFile(name, sampleFile),
+        sampleFile);
+  }
+
+  /**
+   * A {@code sampleFile:} (JSON or YAML, relative to {@code specs/ui}) as plain data, or null when
+   * none is declared or it cannot be read — a missing sample is WARNed about and the source simply
+   * has none, it never takes the catalogue down.
+   */
+  private Object sampleFromFile(String sourceName, String sampleFile) {
+    if (sampleFile == null || sampleFile.isBlank()) {
+      return null;
+    }
+    var path = "specs/ui/" + sampleFile.replaceFirst("^/+", "").replaceFirst("^specs/ui/", "");
+    // dev mode: the sample file is read from the sources, so editing it reloads like sources.yaml
+    try (InputStream is =
+        io.mateu.core.infra.dev.DevSpecs.classLoader(classLoader()).getResourceAsStream(path)) {
+      if (is == null) {
+        log.warn("REST source '{}': sampleFile {} not found", sourceName, path);
+        return null;
+      }
+      return plain(yaml.readTree(is)); // YAML is a superset of JSON: one reader for both
+    } catch (Exception e) {
+      log.warn(
+          "REST source '{}': could not read sampleFile {}: {}", sourceName, path, e.getMessage());
+      return null;
+    }
+  }
+
+  private static final ObjectMapper PLAIN = new ObjectMapper();
+
+  /** A JSON tree as plain maps/lists/scalars — what the wire and the manifest carry. */
+  static Object plain(JsonNode node) {
+    return node == null || node.isNull() ? null : PLAIN.convertValue(node, Object.class);
   }
 
   /** The nested {@code source:} object as a descriptor. */
@@ -262,6 +311,7 @@ public class RestSourceRegistry {
         .valuePath(node.hasNonNull("valuePath") ? node.get("valuePath").asText() : "value")
         .labelPath(node.hasNonNull("labelPath") ? node.get("labelPath").asText() : "label")
         .proxy(node.hasNonNull("proxy") && node.get("proxy").asBoolean())
+        .sample(node.hasNonNull("sample") ? plain(node.get("sample")) : null)
         .build();
   }
 

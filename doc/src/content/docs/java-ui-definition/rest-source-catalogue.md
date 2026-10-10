@@ -135,6 +135,55 @@ endpoint the proxy calls is resolved from a table the server holds, rather than 
 scattered across fields, and never from the request. That is what keeps the proxy from becoming an
 open relay.
 
+## Per-environment overrides
+
+`pre` and `pro` usually differ only in where the endpoints live. An
+[environment](/java-ui-definition/environments/) file re-points named sources — `baseUrl`, `url`,
+`headers`, `proxy` — for `MATEU_ENVIRONMENT=pre`, without editing `sources.yaml`, and the overlay
+reaches the wire, the proxy and the bundle manifest alike.
+
+## Sample data: designing without an API
+
+A source can carry **sample data** — the response the endpoint would return — so a listing, a
+select or a record shows realistic rows with no backend and no API at all:
+
+```yaml
+sources:
+  - name: orders
+    source: {url: /api/orders, itemsPath: data}
+    totalPath: meta.total
+    sample:                    # the RESPONSE, so itemsPath / totalPath / fields apply as usual
+      data:
+        - {id: 1, customer: Acme, status: OPEN, total: 120.5}
+      meta: {total: 1}
+  - name: customers
+    source: {url: /api/customers}
+    sampleFile: fixtures/customers.json   # JSON or YAML, relative to specs/ui
+```
+
+An inline source may carry `sample:` too (`rowsSource: {url: …, sample: […]}`); the surface's own
+sample wins over the catalogue entry's.
+
+**When is the sample used?** Only in *sample mode*, and the rule is the same for every renderer and
+on both legs:
+
+| Where | Sample mode |
+|---|---|
+| The visual editor — canvas and Play | **always** |
+| A bundle built with `-Dmateu.bundle.mock=true` | on (the manifest says `mockSources: true`) |
+| A running app | **only** when it opts in: `-Dmateu.sources.mock=true` or `MATEU_SOURCES_MOCK=true` (the app metadata then says `mockSources: true`) |
+| Anywhere else | **never** — the endpoint is called |
+
+Outside sample mode the samples do not even travel: neither the app metadata nor a bundle manifest
+carries them.
+
+**What happens in sample mode.** A sampled source is never called and never proxied: a read answers
+with a copy of the sample; a **write (POST/PUT/PATCH/DELETE) succeeds without persisting anything** —
+the success message shows, nothing is stored, and a reload shows the sample as it was. A listing over
+a sampled source searches, filters, sorts and pages the sample **in memory**, even when the source
+declares a `totalPath` (a sample cannot honour `${state.page}`). Both legs agree: the browser's direct
+fetch and the server's proxied `__restfetch__` short-circuit identically.
+
 ## What is not covered
 
 The mapping reaches **any JSON whose pieces are reachable by a dot path** — no envelope convention is

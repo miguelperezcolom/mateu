@@ -128,8 +128,63 @@ export function resolveRestSource(source: Json): Json {
     valuePath: blank(source['valuePath']) ? from['valuePath'] : source['valuePath'],
     labelPath: blank(source['labelPath']) ? from['labelPath'] : source['labelPath'],
     proxy: source['proxy'] || from['proxy'],
+    // the entry's sample (or the one its own source carries) unless the surface declares one
+    sample: source['sample'] !== undefined && source['sample'] !== null
+      ? source['sample']
+      : (getRestSource(String(ref))?.['sample'] ?? from['sample']),
   };
 }
+
+// ── Sample mode ─────────────────────────────────────────────────────────────
+// A source may carry SAMPLE data (`sample:` / `sampleFile:` in sources.yaml, or `sample:` inline):
+// the response the endpoint would return. It is answered INSTEAD of calling the endpoint only in
+// sample mode — the same rule as libs/mateu restSourceCatalogue.ts and the server's SampleSources:
+// RN has no editor and loads no bundles, so the ONLY switch is the app metadata (`AppDto.mockSources:
+// true`, sent when the server opted in with mateu.sources.mock=true). It is only ever switched ON by
+// the app; an app without the flag leaves it as it is. Never silently in production.
+let sampleMode = false;
+
+/** Turns sample mode on (or off — only tests do that). */
+export function setSampleMode(on: boolean): void {
+  sampleMode = !!on;
+}
+
+/** Whether sources carrying sample data answer with it. */
+export function isSampleMode(): boolean {
+  return sampleMode;
+}
+
+/** The sample a source answers with in sample mode (resolving its `ref`); undefined when it is not
+ *  answered from a sample (sample mode off, or the source carries none). */
+export function sampleOf(source: Json | undefined): unknown {
+  if (!sampleMode || !source) return undefined;
+  const resolved = resolveRestSource(source);
+  return resolved?.['sample'] === null ? undefined : resolved?.['sample'];
+}
+
+/** True when this source is answered from its sample — neither fetched nor proxied, and a listing
+ *  over it searches, filters, sorts and pages in memory. */
+export function isSampled(source: Json | undefined): boolean {
+  return sampleOf(source) !== undefined;
+}
+
+/** Whether the fetch of this source goes through the Mateu server: the RESOLVED `proxy`, unless
+ *  sample mode answers it on the device. */
+export function viaProxy(source: Json | undefined): boolean {
+  return !!source && !!resolveRestSource(source)?.['proxy'] && !isSampled(source);
+}
+
+/** The sample-mode answer for a call: a READ gets a deep copy of the sample, a WRITE succeeds with
+ *  null (nothing persisted, nothing to merge). `undefined` = not sampled, do the real call. */
+export function sampledResponse(source: Json | undefined, method?: string): unknown {
+  if (!isSampled(source)) return undefined;
+  const m = String(method ?? 'GET').toUpperCase();
+  if (m !== 'GET' && m !== 'HEAD') return null;
+  return deepCopy(sampleOf(source));
+}
+
+const deepCopy = (v: unknown): unknown =>
+  typeof structuredClone === 'function' ? structuredClone(v) : JSON.parse(JSON.stringify(v));
 
 /** Interpolate url/headers/body of a RestDataSource and fetch it. `resolve` runs `${state.x}`
  *  interpolation. Resolves a `ref` against the catalogue first. Throws on a non-2xx response. */
@@ -139,6 +194,8 @@ export async function fetchExternalJson(
   resolveUrl: (t: unknown) => string = resolve,
 ): Promise<unknown> {
   const source = resolveRestSource(declared);
+  // SAMPLE mode: a sampled source is not fetched — a read gets a copy of the sample, a write null.
+  if (isSampled(declared)) return sampledResponse(declared, String(source['method'] ?? 'GET'));
   // the url resolves with its values percent-encoded by position (interpolateUrl), like the proxy
   const url = resolveUrl(source['url']);
   const method = String(source['method'] ?? 'GET').toUpperCase();

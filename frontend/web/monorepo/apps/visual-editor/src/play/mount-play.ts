@@ -2,13 +2,15 @@ import { LitElement, html, css, PropertyValues } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
 import { keyed } from 'lit/directives/keyed.js'
 import { nanoid } from 'nanoid'
-import { loadBundleManifest } from '@infra/http/bundleStore.ts'
+import { loadBundleManifest, setBundleLocale, getBundleLocale } from '@infra/http/bundleStore.ts'
 import { setRestSourceCatalogue } from '@infra/http/restSourceCatalogue.ts'
 import '@infra/ui/mateu-api-caller.ts'
 import '@infra/ui/mateu-ux.ts'
 import type { ProjectFile } from '../model/projectIndex'
-import { buildPlayManifest } from '../model/playManifest'
+import { buildPlayManifest, filesDeclareAccess } from '../model/playManifest'
 import { VIEWPORTS, ViewportId, viewportWidth } from '../model/viewport'
+import { PROJECT_RENDERER_LABELS, type ProjectRendererId } from '../model/projectSettings'
+import './redwood-play'
 
 
 /**
@@ -22,6 +24,10 @@ import { VIEWPORTS, ViewportId, viewportWidth } from '../model/viewport'
  * history of its OWN: `mateu-ui` drives `window.history`, and the editor's page is not the app's.
  * So the screen's navigations (`url-update-requested`, `navigate-to-requested`) stop here and move
  * the fake address bar instead. Emits `play-close`.
+ *
+ * It plays in the PROJECT's renderer (`project.yaml`): Vaadin runs right here (libs/mateu), Redwood
+ * runs as the real Visual Builder app in an iframe whose backend is this editor (redwood-play.ts) —
+ * the menu, the routes and this address bar's back/forward all work the same in both.
  */
 @customElement('mount-play')
 export class MountPlay extends LitElement {
@@ -41,6 +47,7 @@ export class MountPlay extends LitElement {
         .address .scheme { color: var(--ve-tertiary, #9ca3af); font: 12px ui-monospace, monospace; }
         select { font: 12px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade); border-radius: 4px;
                  padding: 0.2rem 0.3rem; background: var(--ve-base, #fff); color: var(--ve-text, #1f2937); }
+        .badge.note { background: var(--ve-warning-10, #fff4dc); color: var(--ve-warning, #8a5a00); }
         .badge { font-size: 11px; padding: 0.05rem 0.5rem; border-radius: 999px; background: var(--ve-success-10, #e7f6ec); color: var(--ve-success, #13703a); }
         .stage { flex: 1; min-height: 0; min-width: 0; overflow: auto; display: flex; justify-content: center; }
         /* min-width 0: a flex item's automatic minimum is its content's, so a long menu strip widened the
@@ -57,6 +64,8 @@ export class MountPlay extends LitElement {
     /** The backend for what the browser cannot expand (view-model routes, server actions); '' = none. */
     @property() baseUrl = ''
     @property() theme: 'light' | 'dark' = 'light'
+    /** The renderer the app plays in — the project's (project.yaml), not the canvas's peek. */
+    @property() renderer: ProjectRendererId = 'vaadin'
     /** The catalogue the editor's canvas resolves `ref`s against, put back when play closes. */
     @property({ attribute: false }) editorSources: unknown[] = []
 
@@ -69,6 +78,13 @@ export class MountPlay extends LitElement {
     @state() private navKey = nanoid()
     @state() private instant = nanoid()
     @state() private typed?: string
+    /** The locales the project's translations declare, and the one being played. */
+    @state() private locales: string[] = []
+    @state() private locale?: string
+    /** Whether the files declare access rules (cosmetic here: no identity to check them against). */
+    @state() private accessRules = false
+    /** Bumped to boot the Redwood app afresh (Reload); navigations travel as messages instead. */
+    @state() private bootKey = nanoid()
 
     private get route(): string { return this.history[this.at] ?? '' }
 
@@ -83,6 +99,7 @@ export class MountPlay extends LitElement {
         this.removeEventListener('url-update-requested', this.onUrlUpdate)
         this.removeEventListener('navigate-to-requested', this.onNavigateTo)
         // Leave the runtime as the editor had it: no bundle answering route loads, the canvas's catalogue.
+        setBundleLocale(undefined)
         loadBundleManifest('mateu-play-manifest.json', emptyFetch)
             .then(() => setRestSourceCatalogue(this.editorSources as never))
             .catch((e) => console.warn('mateu visual editor: leaving play mode', e))
@@ -94,13 +111,19 @@ export class MountPlay extends LitElement {
     }
 
     private loadManifest() {
-        const manifest = JSON.stringify(buildPlayManifest(this.files))
+        const built = buildPlayManifest(this.files)
+        this.locales = Object.keys(built.translations ?? {})
+        this.accessRules = filesDeclareAccess(this.files)
+        const manifest = JSON.stringify(built)
         const fetchImpl = (() => Promise.resolve(new Response(manifest, { headers: { 'content-type': 'application/json' } }))) as unknown as typeof fetch
         this.ready = false
         loadBundleManifest('mateu-play-manifest.json', fetchImpl)
             .then(() => {
+                // the played locale: the one chosen in the toolbar, else the browser's → en → the first
+                setBundleLocale(this.locale && this.locales.includes(this.locale) ? this.locale : undefined)
+                this.locale = getBundleLocale()
                 this.ready = true
-                this.reload()
+                this.refresh()
             })
             .catch((e) => console.warn('mateu visual editor: the mount could not be loaded for play', e))
     }
@@ -120,16 +143,25 @@ export class MountPlay extends LitElement {
                 <select title="Viewport width" @change=${(e: Event) => (this.viewport = (e.target as HTMLSelectElement).value as ViewportId)}>
                     ${VIEWPORTS.map((v) => html`<option value=${v.id} ?selected=${v.id === this.viewport}>${v.label}</option>`)}
                 </select>
+                ${this.locales.length > 1 ? html`<select title="Language — resolves the \${i18n.…} labels with the project's translations"
+                        aria-label="Language" @change=${this.onLocale}>
+                    ${this.locales.map((l) => html`<option value=${l} ?selected=${l === this.locale}>${l}</option>`)}
+                </select>` : ''}
+                ${this.accessRules ? html`<span class="badge note"
+                    title="access / eyesOnly / readOnlyUnless / disabledUnless are decided on the server from the caller's token. Play has no identity, so it shows everything.">access rules: not applied in Play</span>` : ''}
                 <span class="badge" title="The files as edited, run in the browser — nothing is saved or deployed">playing</span>
+                <span class="badge renderer" title="The project's renderer (project.yaml) — Play always uses it">${PROJECT_RENDERER_LABELS[this.renderer] ?? this.renderer}</span>
                 <button class="close" title="Back to the editor (Esc)" @click=${this.close}>Close</button>
             </div>
             <div class="stage">
                 <div class="device ${w ? 'framed' : ''}" style=${w ? `width:${w}px; flex:none` : ''}>
-                    ${this.ready ? keyed(this.navKey, html`
+                    ${!this.ready ? '' : this.renderer === 'redwood' ? keyed(this.bootKey, html`
+                        <redwood-play .route=${this.route} .baseUrl=${this.baseUrl}
+                                      @play-route=${this.onRedwoodRoute}></redwood-play>`) : keyed(this.navKey, html`
                         <mateu-api-caller>
                             <mateu-ux id="_ux" baseurl=${this.baseUrl} route=${this.route} consumedRoute="_empty"
                                       instant=${this.instant} top="true" theme=${this.theme}></mateu-ux>
-                        </mateu-api-caller>`) : ''}
+                        </mateu-api-caller>`)}
                 </div>
             </div>`
     }
@@ -139,7 +171,7 @@ export class MountPlay extends LitElement {
         const r = clean(route)
         this.push(r)
         this.typed = undefined
-        this.reload()
+        this.refresh()
     }
 
     private push(route: string) {
@@ -152,12 +184,33 @@ export class MountPlay extends LitElement {
         if (i < 0 || i >= this.history.length) return
         this.at = i
         this.typed = undefined
+        this.refresh()
+    }
+
+    private onLocale = (e: Event) => {
+        this.locale = (e.target as HTMLSelectElement).value
+        setBundleLocale(this.locale)
         this.reload()
     }
 
     private reload = () => {
         this.navKey = nanoid()
         this.instant = nanoid()
+        this.bootKey = nanoid()
+    }
+
+    /** A navigation: Vaadin remounts the screen; the running Redwood app is moved by its route property. */
+    private refresh() {
+        if (this.renderer === 'redwood') return
+        this.navKey = nanoid()
+        this.instant = nanoid()
+    }
+
+    /** The Redwood app moved (its menu, a row, a link): the address bar follows. */
+    private onRedwoodRoute = (e: Event) => {
+        e.stopPropagation()
+        const route = (e as CustomEvent).detail?.route
+        if (typeof route === 'string') { this.push(clean(route)); this.typed = undefined }
     }
 
     private close = () => this.dispatchEvent(new CustomEvent('play-close', { bubbles: true, composed: true }))

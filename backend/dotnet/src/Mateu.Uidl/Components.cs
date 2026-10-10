@@ -1109,7 +1109,8 @@ public sealed record Button(string Label, string ActionId) : ComponentBase
 {
     public bool Primary { get; init; }
 
-    /// <summary>Shown but inert (e.g. a Toggle.Disabled affordance).</summary>
+    /// <summary>Rendered disabled (e.g. a YAML <c>disabledUnless:</c> the caller does not satisfy, a
+    /// button naming a declared action the caller may not run, or a Toggle.Disabled affordance).</summary>
     public bool Disabled { get; init; }
 
     /// <summary>Explicit button style ("primary" | "secondary" | "tertiary"…); null keeps

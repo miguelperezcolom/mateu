@@ -14,7 +14,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable
+from typing import Any, Callable
 
 
 class RestSourceProvenance(Enum):
@@ -68,6 +68,9 @@ class RestDataSource:
     value_path: str = "value"
     label_path: str = "label"
     proxy: bool = False
+    #: SAMPLE data: the response the endpoint would return, answered instead of calling it — only
+    #: in sample mode (``MATEU_SOURCES_MOCK=true``, the visual editor, a mock bundle).
+    sample: Any = None
 
     def has_ref(self) -> bool:
         return bool(self.ref and self.ref.strip())
@@ -85,6 +88,16 @@ class RestSourceEntry:
     fields: dict[str, str] = field(default_factory=dict)
     total_path: str = ""
     description: str = ""
+    #: The response the endpoint would return (inline ``sample:``), used only in sample mode.
+    sample: Any = None
+    #: A ``sampleFile:`` (JSON or YAML, relative to specs/ui), inlined into ``sample`` at load.
+    sample_file: str = ""
+
+    def effective_sample(self) -> Any:
+        """The entry's sample, else its source's (Java's ``RestSourceEntry.effectiveSample``)."""
+        if self.sample is not None:
+            return self.sample
+        return self.source.sample if self.source is not None else None
 
     def effective_provenance(self) -> RestSourceProvenance:
         return RestSourceProvenance.resolve(self.provenance, self.source.url if self.source else None)
@@ -149,6 +162,7 @@ def rest_source(
     provenance: RestSourceProvenance = RestSourceProvenance.auto,
     description: str = "",
     proxy: bool = False,
+    sample: Any = None,
 ) -> Callable[[type], type]:
     """Class-level, repeatable: declares one named catalogue entry (Java's ``@RestSource``).
     ``headers`` are ``"Name: Value"`` strings and ``fields`` ``"name=dot.path"`` strings."""
@@ -169,6 +183,7 @@ def rest_source(
         fields=_pairs(fields, "="),
         total_path=total_path,
         description=description,
+        sample=sample,
     )
 
     def deco(cls: type) -> type:

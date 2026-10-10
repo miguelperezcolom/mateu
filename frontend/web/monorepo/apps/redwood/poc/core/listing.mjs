@@ -335,7 +335,7 @@ export function selectedRowsOf(rows, selection) {
       }
       if (value && typeof value === 'object' && !Array.isArray(value) && 'badgeClass' in value) {
         const { badgeClass, ...rest } = value
-        out[key] = rest
+        out[key] = rest.plain ? rest.message : rest
       } else {
         out[key] = value
       }
@@ -531,18 +531,61 @@ export function primaryCellRows(rows, columns) {
   })
 }
 
+// Lifecycle words a REST API commonly answers with, by the badge they read as (the web's
+// statusColumnRenderer): upper-cased, separators folded to `_`.
+const STATUS_SUCCESS_WORDS = ['AVAILABLE', 'ACTIVE', 'RUNNING', 'SUCCEEDED', 'SUCCESS', 'OK', 'ENABLED',
+  'READY', 'HEALTHY', 'COMPLETED', 'DONE', 'ATTACHED', 'UP']
+const STATUS_WARNING_WORDS = ['PROVISIONING', 'UPDATING', 'PENDING', 'STARTING', 'STOPPING', 'IN_PROGRESS',
+  'TERMINATING', 'DELETING', 'CREATING', 'MOVING', 'WAITING', 'ACCEPTED', 'WARNING', 'DEGRADED', 'RESTORING', 'SCALING']
+const STATUS_DANGER_WORDS = ['FAILED', 'TERMINATED', 'ERROR', 'DELETED', 'STOPPED', 'DISABLED', 'UNHEALTHY',
+  'DOWN', 'CANCELED', 'CANCELLED', 'REJECTED', 'INACTIVE']
+
+/** A tone name (`success | warning | danger | error | info | neutral`) as a status type. */
+export function statusTypeOfTone(tone) {
+  switch (String(tone == null ? '' : tone).trim().toLowerCase()) {
+    case 'success': return 'SUCCESS'
+    case 'warning': return 'WARNING'
+    case 'danger': case 'error': return 'DANGER'
+    case 'info': return 'INFO'
+    case 'neutral': case 'none': return 'NONE'
+  }
+  return undefined
+}
+
+/**
+ * The status type of a PLAIN cell value (a REST API answers `"SHIPPED"`, not `{type, message}`):
+ * the column's declared tone for the value (GridColumn.tones, from a field type) wins over the
+ * lifecycle-word heuristics; anything else is neutral.
+ */
+export function statusTypeOfValue(value, tones) {
+  const message = String(value)
+  const declared = tones ? (tones[message] != null ? tones[message] : tones[message.trim().toUpperCase()]) : undefined
+  const toned = declared ? statusTypeOfTone(declared) : undefined
+  if (toned) return toned
+  const word = message.trim().toUpperCase().replace(/[\s-]+/g, '_')
+  if (STATUS_SUCCESS_WORDS.indexOf(word) >= 0) return 'SUCCESS'
+  if (STATUS_WARNING_WORDS.indexOf(word) >= 0) return 'WARNING'
+  if (STATUS_DANGER_WORDS.indexOf(word) >= 0) return 'DANGER'
+  return 'NONE'
+}
+
 export function statusBadgeRows(rows, columns) {
   const statusCols = columns
     .map((col) => col.metadata || col)
     .filter((c) => c.dataType === 'status')
-    .map((c) => c.id)
   if (!statusCols.length) return rows
   return rows.map((row) => {
     const out = { ...row }
-    for (const id of statusCols) {
+    for (const c of statusCols) {
+      const id = c.id
       const value = out[id]
       if (value && typeof value === 'object') {
         out[id] = { ...value, badgeClass: STATUS_BADGE[value.type] || STATUS_BADGE.NONE }
+      } else if (value != null && value !== '') {
+        // a plain word (a REST row): its badge by the declared tone or the word; `plain` lets
+        // selectedRowsOf hand the row back as it arrived
+        const type = statusTypeOfValue(value, c.tones)
+        out[id] = { type, message: String(value), badgeClass: STATUS_BADGE[type] || STATUS_BADGE.NONE, plain: true }
       }
     }
     return out

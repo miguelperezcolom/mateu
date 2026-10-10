@@ -1,0 +1,7 @@
+# One language's messages. Labels anywhere in specs/ui say ${i18n.<key>} (nested keys join with
+# dots: orders: {title: …} is ${i18n.orders.title}); the server resolves them for the visitor's
+# language (Accept-Language): exact locale → its language → en → the key itself.
+# Add one file per language, each with the same keys.
+type: Translations
+locale: __NAME__
+messages: {}

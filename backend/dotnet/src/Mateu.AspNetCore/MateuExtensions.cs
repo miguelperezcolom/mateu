@@ -39,6 +39,7 @@ public static class MateuExtensions
     {
         var options = new MateuOptions();
         configure(options);
+        if (options.Dev ?? DevSpecs.Enabled) DevSpecs.Enable(true);
         services.AddSingleton(options);
         services.AddHttpContextAccessor();
         services.AddSingleton(new MateuRegistry(assemblies));
@@ -59,8 +60,17 @@ public static class MateuExtensions
                 // Read per call: the handler is a singleton, the identity is the current request's.
                 identity: () => accessor.HttpContext is { } ctx ? options.Identity(ctx) : null,
                 secrets: secrets,
-                http: options.HttpClient)
+                http: options.HttpClient,
+                restSources: options.Environment is { } environment
+                    ? new RestSourceRegistry(registry, environment: environment)
+                    : null,
+                // The request's locale (first Accept-Language tag): the UI language when the app's
+                // ITranslator names none, and what ${i18n.…} expressions resolve for.
+                locale: () => accessor.HttpContext is { } ctx
+                    ? TranslationRegistry.AcceptLanguage(ctx.Request.Headers.AcceptLanguage.ToString())
+                    : null)
             {
+                MockSources = options.MockSources,
                 // Listing exports: an exporter registered as a service replaces the built-in writer
                 // of its format (Java: the CsvExporter/ExcelExporter/PdfExporter beans).
                 Exporters = new Mateu.Core.Export.MateuExporters(
@@ -85,6 +95,10 @@ public static class MateuExtensions
             await JsonSerializer.SerializeAsync(ctx.Response.Body, increment, Json, ctx.RequestAborted);
         });
 
+        // Live reload (development mode only): the event stream and the re-render trigger. Absent
+        // otherwise — a production app does not even route them.
+        if (DevSpecs.Enabled) MapDevEndpoints(app);
+
         // Native MCP endpoint — the app is also an MCP (the agent-operability plane). A JSON-RPC 2.0
         // message in, the projected wire out; reuses the SyncHandler so RBAC applies as on sync.
         app.MapPost(prefix + "/mateu/mcp", async (HttpContext ctx, SyncHandler handler) =>
@@ -99,6 +113,38 @@ public static class MateuExtensions
             }
             ctx.Response.ContentType = "application/json";
             await ctx.Response.WriteAsync(response.ToJsonString(Json));
+        });
+    }
+
+    /// <summary><c>GET /mateu/dev/events</c> (SSE: hello with the boot id, then every change, a ping
+    /// every 15 s) and <c>POST /mateu/dev/reload[?scope=app]</c> (204), at the server root like Java's.</summary>
+    internal static void MapDevEndpoints(WebApplication app)
+    {
+        app.MapGet(DevSpecs.EventsPath, async (HttpContext ctx) =>
+        {
+            ctx.Response.ContentType = "text/event-stream";
+            ctx.Response.Headers.CacheControl = "no-cache";
+            var queue = System.Threading.Channels.Channel.CreateUnbounded<string>();
+            queue.Writer.TryWrite(DevSpecs.Hello());
+            using var subscription = DevSpecs.Subscribe(json => queue.Writer.TryWrite(json));
+            using var pings = new Timer(_ => queue.Writer.TryWrite("{\"type\":\"ping\"}"), null, 15000, 15000);
+            try
+            {
+                await foreach (var json in queue.Reader.ReadAllAsync(ctx.RequestAborted))
+                {
+                    await ctx.Response.WriteAsync("data: " + json + "\n\n", ctx.RequestAborted);
+                    await ctx.Response.Body.FlushAsync(ctx.RequestAborted);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // the browser went away
+            }
+        });
+        app.MapPost(DevSpecs.ReloadPath, (HttpContext ctx) =>
+        {
+            DevSpecs.Reload(ctx.Request.Query["scope"].FirstOrDefault());
+            return Results.NoContent();
         });
     }
 

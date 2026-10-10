@@ -21,6 +21,7 @@ from typing import Any
 
 import yaml
 
+from . import sample_sources
 from mateu_dtos import RestDataSource as RestDataSourceDto
 from mateu_dtos import RestSourceEntryRecord
 from mateu_uidl.rest_sources import (
@@ -42,13 +43,24 @@ class RestSourceRegistry:
         classes: list[type] | None = None,
         suppliers: list[type] | None = None,
         file: str | Path | None = None,
+        environment: str | None = None,
     ) -> None:
         self._dir = Path(directory or os.environ.get("MATEU_SPECS_DIR") or Path("specs") / "ui")
+        #: The deployment environment to overlay (``environments/<name>.yaml``); None → the
+        #: ``MATEU_ENVIRONMENT`` variable; neither → the catalogue as authored.
+        self._environment = environment
         self._file = Path(file) if file is not None else None
         self._classes = list(classes or [])
         self._suppliers = list(suppliers or [])
         self._catalog: list[RestSourceEntry] | None = None
         self._lock = threading.Lock()
+        from mateu_core import dev_specs
+
+        dev_specs.register(self)
+
+    def invalidate_specs(self) -> None:
+        """Dev mode: a spec changed — the catalogue is read again on next use."""
+        self._catalog = None
 
     # ── the catalogue ─────────────────────────────────────────────────────────
     def catalog(self) -> list[RestSourceEntry]:
@@ -56,7 +68,14 @@ class RestSourceRegistry:
         if self._catalog is None:
             with self._lock:
                 if self._catalog is None:
-                    self._catalog = merged_over(self.authored(), self.derived())
+                    # The active deployment environment re-points named sources on top of
+                    # everything — so the wire and the proxy both see it (Java's Environments).
+                    from .environments import active, overlay
+
+                    self._catalog = overlay(
+                        merged_over(self.authored(), self.derived()),
+                        active(self._dir, self._environment),
+                    )
         return self._catalog
 
     def get(self, name: str | None) -> RestSourceEntry | None:
@@ -95,7 +114,7 @@ class RestSourceRegistry:
             return []
         out = []
         for node in nodes:
-            entry = entry_of(node, path)
+            entry = entry_of(node, path, path.parent)
             if entry is not None:
                 out.append(entry)
         return out
@@ -125,11 +144,16 @@ class RestSourceRegistry:
             value_path=pick(declared.value_path, src.value_path),
             label_path=pick(declared.label_path, src.label_path),
             proxy=bool(declared.proxy or src.proxy),
+            # the surface's own sample > the entry's > the entry's source's
+            sample=declared.sample if declared.sample is not None else entry.effective_sample(),
         )
 
-    def wire(self) -> list[RestSourceEntryRecord]:
-        """The catalogue as wire entries (AppMetadata.restSources)."""
-        return [entry_record(e) for e in self.catalog()]
+    def wire(self, with_samples: bool | None = None) -> list[RestSourceEntryRecord]:
+        """The catalogue as wire entries (AppMetadata.restSources). The samples travel only in
+        sample mode: a production app does not ship design-time data it will never use."""
+        if with_samples is None:
+            with_samples = sample_sources.enabled()
+        return [entry_record(e, with_samples) for e in self.catalog()]
 
 
 def merged_over(authored: list[RestSourceEntry], derived: list[RestSourceEntry]) -> list[RestSourceEntry]:
@@ -151,7 +175,7 @@ def _map(node: dict, key: str) -> dict[str, str]:
     return {str(k): str(v) for k, v in value.items()} if isinstance(value, dict) else {}
 
 
-def entry_of(node: Any, where: Any = FILE) -> RestSourceEntry | None:
+def entry_of(node: Any, where: Any = FILE, specs_dir: Path | None = None) -> RestSourceEntry | None:
     """One authored YAML entry: the keys ARE the record's (``name``, ``source``, ``provenance``,
     ``fields``, ``totalPath``, ``description``), the request nested under ``source:``."""
     if not isinstance(node, dict):
@@ -172,7 +196,12 @@ def entry_of(node: Any, where: Any = FILE) -> RestSourceEntry | None:
         value_path=_text(raw, "valuePath") or _text(raw, "value_path") or "value",
         label_path=_text(raw, "labelPath") or _text(raw, "label_path") or "label",
         proxy=bool(raw.get("proxy", False)),
+        sample=raw.get("sample"),
     )
+    sample_file = _text(node, "sampleFile") or _text(node, "sample_file")
+    sample = node.get("sample")
+    if sample is None and sample_file.strip():
+        sample = sample_from_file(name, sample_file, specs_dir)
     declared = _text(node, "provenance").strip()
     try:
         provenance = RestSourceProvenance(declared) if declared else RestSourceProvenance.auto
@@ -186,7 +215,28 @@ def entry_of(node: Any, where: Any = FILE) -> RestSourceEntry | None:
         fields=_map(node, "fields"),
         total_path=_text(node, "totalPath") or _text(node, "total_path"),
         description=_text(node, "description"),
+        sample=sample,
+        sample_file=sample_file,
     )
+
+
+def sample_from_file(source_name: str, sample_file: str, specs_dir: Path | None) -> Any:
+    """A ``sampleFile:`` (JSON or YAML — YAML is a superset of JSON, one reader for both),
+    relative to specs/ui, as plain data; None (WARNed) when it cannot be read — a missing sample
+    never takes the catalogue down."""
+    base = specs_dir or Path(os.environ.get("MATEU_SPECS_DIR") or Path("specs") / "ui")
+    relative = sample_file.strip().lstrip("/")
+    if relative.startswith("specs/ui/"):
+        relative = relative[len("specs/ui/"):]
+    path = base / relative
+    if not path.is_file():
+        log.warning("REST source '%s': sampleFile %s not found", source_name, path)
+        return None
+    try:
+        return yaml.safe_load(path.read_text(encoding="utf-8"))
+    except Exception as e:  # noqa: BLE001
+        log.warning("REST source '%s': could not read sampleFile %s: %s", source_name, path, e)
+        return None
 
 
 def source_dto(src: RestDataSource) -> RestDataSourceDto:
@@ -201,17 +251,22 @@ def source_dto(src: RestDataSource) -> RestDataSourceDto:
         value_path=src.value_path or None,
         label_path=src.label_path or None,
         proxy=src.proxy,
+        sample=src.sample,
     )
 
 
-def entry_record(entry: RestSourceEntry) -> RestSourceEntryRecord:
+def entry_record(entry: RestSourceEntry, with_samples: bool = False) -> RestSourceEntryRecord:
+    source = source_dto(entry.source)
+    if not with_samples:
+        source = source.model_copy(update={"sample": None})
     return RestSourceEntryRecord(
         name=entry.name,
-        source=source_dto(entry.source),
+        source=source,
         fields=dict(entry.fields),
         total_path=entry.total_path or None,
         provenance=entry.effective_provenance().value,
         description=entry.description or None,
+        sample=entry.sample if with_samples else None,
     )
 
 

@@ -26,7 +26,7 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
       backend; the standalone desktop distribution keeps its app-shell behaviour.</li>
   <li>Renders every Mateu wire component type (grids, details, breadcrumbs, avatars, menus,
       carousels, chat, results, BPMN/workflow, cookie consent and more).</li>
-  <li>New | Mateu file templates for UI mounts, routes, app shells, REST sources and pages.</li>
+  <li>New | Mateu file templates for UI mounts, routes, app shells, REST sources, field types and pages.</li>
 </ul>
 ]]></change-notes>
 
@@ -59,6 +59,7 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
         <!-- New | Mateu skeletons (customisable in Settings | Editor | File and Code Templates). Listed in
              /mateu/new-file-kinds.json; NewMateuFileSkeletonsTest keeps the three in sync. -->
         <internalFileTemplate name="Mateu App Shell"/>
+        <internalFileTemplate name="Mateu Project"/>
         <internalFileTemplate name="Mateu Page Blank"/>
         <internalFileTemplate name="Mateu Page Calendar"/>
         <internalFileTemplate name="Mateu Page Collection Detail"/>
@@ -80,6 +81,9 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
         <internalFileTemplate name="Mateu Routes"/>
         <internalFileTemplate name="Mateu Sources"/>
         <internalFileTemplate name="Mateu Actions"/>
+        <internalFileTemplate name="Mateu Translations"/>
+        <internalFileTemplate name="Mateu Environment"/>
+        <internalFileTemplate name="Mateu Types"/>
         <internalFileTemplate name="Mateu UI Mount"/>
     </extensions>
 
@@ -95,10 +99,24 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
                 text="Mateu" description="Mateu application menu">
             <add-to-group group-id="MainToolbarLeft" anchor="last"/>
         </action>
-        <!-- New | Mateu: one entry per specs/ui file kind (UI mount, routes, app shell, sources, page). -->
+        <!-- New | Mateu: one entry per specs/ui file kind (UI mount, routes, app shell, sources, field types, page). -->
         <group id="io.mateu.NewGroup" class="io.mateu.ijp.newfile.MateuNewFileGroup">
             <add-to-group group-id="NewGroup" anchor="last"/>
         </group>
+        <!-- Live development: the app in development mode (mateu.dev=true) with the debugger attached,
+             opened; spec edits and HotSwaps re-render the open screen. See io.mateu.ijp.live. -->
+        <action id="io.mateu.RunLive" class="io.mateu.ijp.live.RunMateuLiveAction"
+                text="Run Mateu App (Live)"
+                description="Start this project's Mateu app in development mode (live reload) with the debugger attached, and open it">
+            <add-to-group group-id="RunMenu" anchor="last"/>
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
+        <action id="io.mateu.ReloadScreen" class="io.mateu.ijp.live.ReloadMateuScreenAction"
+                text="Reload Mateu Screen"
+                description="Re-render the screen open in the browsers of a Mateu app running in development mode">
+            <add-to-group group-id="RunMenu" anchor="last"/>
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
         <!-- Add Route…: append one entry to a type: Routes file (shown only on such a file). -->
         <action id="io.mateu.AddRoute" class="io.mateu.ijp.newfile.AddMateuRouteAction"
                 text="Add Mateu Route…" description="Append a route to this Mateu route registry (type: Routes)">

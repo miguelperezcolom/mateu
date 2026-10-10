@@ -192,7 +192,12 @@ class DispatchMixin(MixinBase):
                 type_ = self.registry.type_by_name(route_match.entry.view_model)
         if type_ is None:
             type_ = self.registry.resolve(rq.server_side_type, rq.route)
-        yaml_spec = self.yaml_specs.load_spec(rq.route)
+        from ..translations import locale_of
+
+        # As THIS request sees it: access keys applied for the caller, ${i18n.…} for their locale.
+        yaml_spec = self.yaml_specs.load_spec_for(
+            rq.route, self.mapper.authorized, locale_of(self.mapper)
+        )
         if type_ is None and yaml_spec is not None:
             # A route with no view class → a YAML page. A bare layout renders as a static, unbound
             # page; a page that declares modelView: instantiates that logic class (state + actions)
