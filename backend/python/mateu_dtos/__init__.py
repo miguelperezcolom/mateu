@@ -309,6 +309,10 @@ class CrudMetadata(Wire):
     #: Rows can be dragged onto a DropZone accepting this type (@drag_rows); None = not draggable
     #: (mirrors CrudlDto.dragType).
     drag_type: str | None = None
+    #: The RowStatus() field of the row class (camelCase field id): its value (success | warning
+    #: | danger | info | neutral) tones the whole row. None = no row tones (mirrors
+    #: CrudlDto.rowStatusField).
+    row_status_field: str | None = None
 
 
 class ProgressBarMetadata(Wire):

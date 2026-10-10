@@ -840,6 +840,11 @@ public record CrudMetadataDto(
     /// <summary>Rows can be dragged onto a DropZone accepting this type ([DragRows]); null = not
     /// draggable (mirrors CrudlDto.dragType).</summary>
     public string? DragType { get; init; }
+
+    /// <summary>The [RowStatus] property of the row class (camelCase field id): its value
+    /// (success | warning | danger | info | neutral) tones the whole row. Null = no row tones
+    /// (mirrors CrudlDto.rowStatusField).</summary>
+    public string? RowStatusField { get; init; }
 }
 
 public record GridColumnDto(GridColumnMetaDto Metadata);

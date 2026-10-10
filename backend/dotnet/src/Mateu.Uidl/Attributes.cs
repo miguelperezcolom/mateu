@@ -114,6 +114,15 @@ public sealed class PrimaryColumnAttribute : Attribute
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class GroupByAttribute : Attribute;
 
+/// <summary>Marks the property of a listing ROW whose value tones the whole row — a reservation
+/// due out, a room out of order, a charge in dispute. The value names the tone: success, warning,
+/// danger (also error), info or neutral; for an enum its constant name (lower-cased) is used, so an
+/// enum whose constants are those tones works as is; a Status value uses its type. Any other value
+/// leaves the row untoned. One per row class — first declared wins. Travels as
+/// CrudMetadataDto.RowStatusField. (C# analogue of Java's @RowStatus.)</summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
+public sealed class RowStatusAttribute : Attribute;
+
 /// <summary>A method exposed as a button at the bottom of the page.</summary>
 [AttributeUsage(AttributeTargets.Method | AttributeTargets.Class)]
 public sealed class ButtonAttribute(string? label = null) : Attribute

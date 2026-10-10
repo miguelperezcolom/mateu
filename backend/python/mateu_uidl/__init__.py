@@ -252,6 +252,16 @@ class GroupBy:
     The Python analogue of Java's ``@GroupBy``."""
 
 
+@dataclass(frozen=True)
+class RowStatus:
+    """Marks the field of a listing ROW whose value tones the whole row — a reservation due out,
+    a room out of order, a charge in dispute. The value names the tone: ``success``,
+    ``warning``, ``danger`` (also ``error``), ``info`` or ``neutral``; for an enum its member
+    name (lower-cased) is used, so an enum whose members are those tones works as is. Any other
+    value leaves the row untoned. One per row class — first declared wins. Travels as
+    ``CrudMetadata.row_status_field``. The Python analogue of Java's ``@RowStatus``."""
+
+
 class TreeSelect:
     """Renders the field's dropdown as a TREE: the options carry children (supply them from the
     view's ``options(field_name)`` method). With ``leaves_only=True`` only leaves select."""
@@ -1446,6 +1456,14 @@ class Crud(Generic[T]):
     def delete(self, id: str) -> None:  # override to store
         ...
 
+    def csv_exportable(self) -> bool:
+        """Override to return True and the listing toolbar offers "Export CSV" (action
+        ``export-csv``), which downloads the WHOLE filtered result set (search text + smart
+        search bar filters) as a CSV file, one column per visible entity field. The analogue of
+        Java's ``Listing.csvExportable`` on an AutoCrud (Excel/PDF have no exporter in this
+        port)."""
+        return False
+
     @staticmethod
     def id_of(entity) -> str | None:
         v = getattr(entity, "id", None)
@@ -1806,7 +1824,7 @@ __all__ = [
     "menu_group",
     "Message", "MessageVariant", "BannerTheme", "PageBanner", "PageWidth", "PageType",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "RestOptions", "Hidden", "Disabled", "OnRowSelected", "Tooltip", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel", "SizeMode", "size", "FlowStep", "Navigate", "Emit", "CloseOverlay", "RunAction", "MarkClean", "MarkDirty",
+    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "RestOptions", "Hidden", "Disabled", "OnRowSelected", "Tooltip", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "RowStatus", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel", "SizeMode", "size", "FlowStep", "Navigate", "Emit", "CloseOverlay", "RunAction", "MarkClean", "MarkDirty",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "static_view",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",

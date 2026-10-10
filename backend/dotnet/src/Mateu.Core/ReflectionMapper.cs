@@ -1151,6 +1151,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             Filters = MapListingFilters(filters),
             GridLayout = gridLayout,
             GroupBy = GroupByOf(row),
+            RowStatusField = RowStatusFieldOf(row),
             DragType = DragTypeOf(viewType),
             // [RestListing]: rows fetched client-side from an arbitrary REST endpoint.
             RowsSource = RestListingOf(viewType),
@@ -1219,6 +1220,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         // remove the matching chrome — no New without CanCreate, no selection/Delete without
         // CanDelete, no clickable rows without CanView/CanEdit (mirrors Java's Crud switches).
         bool Hook(string name) => viewType.GetProperty(name)?.GetValue(crud) as bool? ?? true;
+        bool Hook0(string name) => viewType.GetProperty(name)?.GetValue(crud) as bool? ?? false;
         var canView = Hook("CanView");
         var canEdit = Hook("CanEdit");
         var canCreate = Hook("CanCreate");
@@ -1256,6 +1258,14 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             toolbar.Add(new ButtonDto("New", "new"));
             actions.Add(new ActionDto("new"));
         }
+        // Export the listing (Crud.CsvExportable): the whole filtered set as a CSV download
+        // (mirrors Java's ListRouteResolver export buttons; the port's built-in CSV writer is the
+        // exporter, and Excel/PDF have none here).
+        if (Hook0("CsvExportable"))
+        {
+            toolbar.Insert(0, new ButtonDto("Export CSV", "export-csv"));
+            actions.Add(new ActionDto("export-csv", ValidationRequired: false));
+        }
         if (canDelete)
         {
             toolbar.Add(new ButtonDto("Delete", "delete"));
@@ -1283,6 +1293,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             Filters = MapCrudFilters(element),
             CrudlType = hero is not null ? "cards" : "table",
             GroupBy = GroupByOf(element),
+            RowStatusField = RowStatusFieldOf(element),
             DragType = DragTypeOf(viewType),
             RowsSelectionEnabled = canDelete,
         }, "crud", []) with { Sizing = "fill" };
@@ -1372,6 +1383,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             Filters = profile.FiltersType is { } filtersType ? MapListingFilters(filtersType) : [],
             GridLayout = gridLayout,
             GroupBy = GroupByOf(profile.RowType),
+            RowStatusField = RowStatusFieldOf(profile.RowType),
             DragType = DragTypeOf(viewType),
             RowsSelectionEnabled = profile.CanDelete,
         }, "crud", []) with { Sizing = "fill" };
@@ -1556,6 +1568,21 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         EditableProperties(row).FirstOrDefault(p => p.Find<GroupByAttribute>() != null) is { } group
             ? Naming.CamelCase(group.Name)
             : null;
+
+    /// <summary>The [RowStatus] property of a row class (camelCase field id) — its value tones the
+    /// row; first declared wins, null when none (mirrors ListingSummarySpec.rowStatusFieldOf).</summary>
+    internal static string? RowStatusFieldOf(Type row) =>
+        EditableProperties(row).FirstOrDefault(p => p.Find<RowStatusAttribute>() != null) is { } status
+            ? Naming.CamelCase(status.Name)
+            : null;
+
+    /// <summary>The columns of a crud export: the listing's visible entity properties with their
+    /// column labels (mirrors Java's ExportActionRunner.buildExportColumns).</summary>
+    internal List<(PropertyInfo Property, string Label)> ExportColumns(Type element) =>
+        EditableProperties(element)
+            .Where(Visible)
+            .Select(p => (p, p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name)))
+            .ToList();
 
     /// <summary>The smart search bar's filters for a Crud entity (mirrors the Java AutoCrud
     /// semantics): every basic property and every enum becomes a filter — enums upgrade to

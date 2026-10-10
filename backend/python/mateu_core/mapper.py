@@ -174,6 +174,7 @@ from mateu_uidl import (
     GlobalSearchSupplier,
     MenuSupplier,
     GroupBy,
+    RowStatus,
     HeaderBadge,
     HeroSearch,
     Hidden,
@@ -2268,6 +2269,17 @@ class ReflectionMapper:
         )
 
     # ── CRUD ───────────────────────────────────────────────────────────────────
+    @staticmethod
+    def _csv_exportable(cls, instance=None) -> bool:
+        """Whether a crud answers export-csv (its ``csv_exportable()`` hook, default False)."""
+        hook = getattr(instance if instance is not None else cls, "csv_exportable", None)
+        if hook is None:
+            return False
+        try:
+            return bool(hook() if instance is not None else hook(cls()))
+        except Exception:  # noqa: BLE001 - a crud that cannot be built offers no export
+            return False
+
     def map_crud(self, cls, element, route: str, instance=None) -> ServerSideComponent:
         title = getattr(cls, "__mateu_title__", humanize(cls.__name__))
         # HeroSearch: a centered hero header over the listing, results as cards, no auto-search.
@@ -2298,6 +2310,12 @@ class ReflectionMapper:
                 tooltip_path=self.tooltip_path_of(f),
             )))
         toolbar = [Button(label="New", action_id="new"), Button(label="Delete", action_id="delete")]
+        # Export the listing (Crud.csv_exportable): the whole filtered set as a CSV download
+        # (mirrors Java's ListRouteResolver export buttons; the port's built-in CSV writer is the
+        # exporter, and Excel/PDF have none here).
+        csv_exportable = self._csv_exportable(cls, instance)
+        if csv_exportable:
+            toolbar.insert(0, Button(label="Export CSV", action_id="export-csv"))
         # @list_toolbar_button methods: BULK list actions — a listing toolbar button dispatching
         # action-on-row-<method> over the grid's selected rows; the action advertises the
         # confirmation/selection-required flags the frontend enforces (mirrors Java's
@@ -2322,6 +2340,7 @@ class ReflectionMapper:
                 filters=self.crud_filters(element),
                 crudl_type="cards" if hero is not None else "table",
                 group_by=self.group_by_of(element),
+                row_status_field=self.row_status_field_of(element),
                 drag_type=self.drag_type_of(cls),
                 # a full Crud has all the capabilities: delete needs row selection
                 rows_selection_enabled=True,
@@ -2343,6 +2362,8 @@ class ReflectionMapper:
         page_children.append(crud)
         page = self.client(PageMetadata(page_type=page_type_of(cls)), None, page_children)
         actions = [Action(id="search"), Action(id="new"), Action(id="delete")]
+        if csv_exportable:
+            actions.append(Action(id="export-csv", validation_required=False))
         if inline:
             actions.append(Action(id="update-row"))
         actions.extend(bulk_actions)
@@ -2392,6 +2413,24 @@ class ReflectionMapper:
         none (mirrors Java's ListingSummarySpec.dragTypeOf)."""
         t = getattr(listing_cls, "__mateu_drag_rows__", None)
         return t if isinstance(t, str) and t.strip() else None
+
+    @staticmethod
+    def row_status_field_of(row_type) -> str | None:
+        """The RowStatus() field of a row class (camelCase field id) — its value tones the row;
+        first declared wins, None when none (mirrors Java's ListingSummarySpec.rowStatusFieldOf)."""
+        for f in view_fields(row_type):
+            if f.has(RowStatus):
+                return camel_case(f.name)
+        return None
+
+    def export_columns(self, element) -> list[tuple[str, str]]:
+        """The columns of a crud export: (field name, column label) for every visible entity field
+        (mirrors Java's ExportActionRunner.buildExportColumns)."""
+        return [
+            (f.name, f.marker(Label).value if f.has(Label) else humanize(f.name))
+            for f in view_fields(element)
+            if self.visible(f)
+        ]
 
     @staticmethod
     def group_by_of(row_type) -> str | None:
@@ -2507,6 +2546,8 @@ class ReflectionMapper:
                          filters=self.listing_filters(filters_type) if filters_type is not None else [],
                          grid_layout=cls().grid_layout(),
                          group_by=self.group_by_of(row_type) if row_type is not None else None,
+                         row_status_field=(self.row_status_field_of(row_type)
+                                           if row_type is not None else None),
                          # @rest_listing: rows fetched client-side from an arbitrary REST endpoint.
                          rows_source=self._rest_listing(cls),
                          drag_type=self.drag_type_of(cls)),

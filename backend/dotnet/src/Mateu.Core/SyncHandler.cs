@@ -302,6 +302,9 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             "create" or "save" => CrudSave(crud, crudType, element, id, rq, baseRoute),
             "update-row" => UpdateRow(crud, crudType, element, rq),
             "delete" => Navigate(baseRoute, id is null ? null : Delete(crud, id), rq),
+            // Crud.CsvExportable: only an exportable crud answers export-csv (the id is wire input).
+            "export-csv" when crudType.GetProperty("CsvExportable")?.GetValue(crud) is true =>
+                ExportCsv(crud, element, rq),
             // EditInDrawer (the Redwood "Create and Edit - Drawer" template): New and row clicks
             // open the crud form in a Drawer over the listing instead of navigating; cancels just
             // close it. Route-based /new — /{id}/edit deep links keep working unchanged.
@@ -322,6 +325,33 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             { } aid when aid.StartsWith("action-on-row-") => ActionOnRows(crud, crudType, element, rq),
             _ => Error($"Action not found: {rq.ActionId}"),
         };
+    }
+
+    /// <summary>export-csv on a Crud.CsvExportable crud: the WHOLE filtered result set (search
+    /// text + smart-search-bar filters, the same rows the listing pages through) as a CSV file,
+    /// one column per visible entity property, answered as a DownloadFile command (mirrors Java's
+    /// ExportActionRunner + DefaultCsvExporter).</summary>
+    private UIIncrementDto ExportCsv(object crud, Type element, RunActionRqDto rq)
+    {
+        var props = ReflectionMapper.EditableProperties(element).ToList();
+        var rows = FilteredRows(crud, rq, props);
+        var columns = _mapper.ExportColumns(element);
+        static string Escape(string? value) =>
+            value is null ? ""
+            : value.Contains(',') || value.Contains('"') || value.Contains('\n')
+                ? "\"" + value.Replace("\"", "\"\"") + "\""
+                : value;
+        var sb = new System.Text.StringBuilder();
+        sb.Append(string.Join(",", columns.Select(c => Escape(c.Label)))).Append('\n');
+        foreach (var row in rows)
+            sb.Append(string.Join(",", columns.Select(c =>
+                Escape(c.Property.GetValue(row) is { } v ? Convert.ToString(v, System.Globalization.CultureInfo.InvariantCulture) : "")))).Append('\n');
+        var content = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(sb.ToString()));
+        return UIIncrementDto.Of(commands:
+        [
+            new UICommandDto(Target(rq), "DownloadFile",
+                new { filename = "export.csv", mimeType = "text/csv", base64Content = content }),
+        ]);
     }
 
     /// <summary>A [ListToolbarButton] bulk action: runs the named method on the crud with the
