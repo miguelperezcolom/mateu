@@ -8086,6 +8086,16 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider', 'ojs/o
   // Lo puro (cómo se lee un fichero, qué texto enseña) está exportado y probado en Node; lo de DOM
   // se define una vez por documento (defineCaptureField).
 
+  /** Only what an <img> may load: a data:image URI (what capture fields store), http(s) or a relative
+   *  path. Anything else (javascript:, other data: types…) shows nothing. */
+  function safeImageSrc(value) {
+    const v = String(value || '').trim()
+    if (/^data:image\/[a-z0-9.+-]+[;,]/i.test(v)) return v
+    if (/^https?:\/\//i.test(v)) return v
+    if (/^[a-z][a-z0-9+.-]*:/i.test(v)) return ''
+    return v
+  }
+
   const CAPTURE_TEXTS = {
     en: { clear: 'Clear', accept: 'Accept', signAgain: 'Sign again', remove: 'Remove', take: 'Take photo',
       retake: 'Retake', upload: 'Upload', replace: 'Replace', noCamera: 'Camera unavailable — choose a file',
@@ -8188,7 +8198,7 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider', 'ojs/o
 
         if (value && (mode !== 'file' || isImageValue(value))) {
           const img = doc.createElement('img')
-          img.src = value
+          img.src = safeImageSrc(value)
           img.alt = ''
           img.className = 'mateu-capture-preview' + (mode === 'signature' ? ' mateu-capture-signature' : '')
           box.appendChild(img)
@@ -8538,6 +8548,14 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider', 'ojs/o
     return (el.closest && el.closest('oj-label-value')) || el
   }
 
+  /** A value safe inside a quoted attribute selector: CSS.escape when the browser has it, else the
+   *  backslash and the quote escaped (the backslash FIRST, or the quote's escape gets doubled). */
+  function attrSelectorValue(value) {
+    const s = String(value)
+    if (typeof CSS !== 'undefined' && CSS && typeof CSS.escape === 'function') return CSS.escape(s)
+    return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+  }
+
   function applyRulesNow(doc = typeof document !== 'undefined' ? document : null) {
     if (!rulesCtx || !doc) return 0
     const { ctx, appState } = rulesCtx
@@ -8545,7 +8563,7 @@ define('resources/js/mateu-bridge',['require', 'ojs/ojarraydataprovider', 'ojs/o
     let touched = 0
     const flags = fieldFlagsOf(result.data)
     for (const fieldId of Object.keys(flags)) {
-      for (const el of doc.querySelectorAll('[data-field-id="' + String(fieldId).replace(/"/g, '\\"') + '"]')) {
+      for (const el of doc.querySelectorAll('[data-field-id="' + attrSelectorValue(fieldId) + '"]')) {
         const f = flags[fieldId]
         if ('hidden' in f) {
           const item = formItemOf(el)

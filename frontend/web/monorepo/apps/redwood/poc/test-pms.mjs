@@ -18,6 +18,8 @@ import { coverageProblems } from './parity-check.mjs'
 import { coverageTable } from './coverage.mjs'
 import { mapAtomOf, mapHeightOf } from './reduceContexts.mjs'
 import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM } from './map.mjs'
+import { attrSelectorValue } from './rules.mjs'
+import { safeImageSrc } from './inputs.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays } from './calendar.mjs'
 import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf } from './notify.mjs'
@@ -1269,6 +1271,15 @@ test('P2 #21 mapa: Leaflet con marcadores, encuadre y la acción de un marcador'
   const page = webApp('flows/main/pages/main-start-page.html')
   assert.match(page, /:data-map-spec="\[\[ \$current\.data\.mapSpec \]\]"/)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installMaps\(\)/)
+})
+
+test('seguridad: el selector de una regla escapa comillas y barras; una imagen sólo carga data:image, http(s) o rutas relativas', () => {
+  assert.equal(attrSelectorValue('a"b\\c'), 'a\\"b\\\\c')
+  assert.equal(safeImageSrc('data:image/png;base64,AA'), 'data:image/png;base64,AA')
+  assert.equal(safeImageSrc('https://x/y.png'), 'https://x/y.png')
+  assert.equal(safeImageSrc('/img/a.png'), '/img/a.png')
+  assert.equal(safeImageSrc('javascript:alert(1)'), '')
+  assert.equal(safeImageSrc('data:text/html,<b>x</b>'), '')
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

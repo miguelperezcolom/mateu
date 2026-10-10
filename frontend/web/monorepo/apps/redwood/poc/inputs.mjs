@@ -12,6 +12,16 @@
 // Lo puro (cómo se lee un fichero, qué texto enseña) está exportado y probado en Node; lo de DOM
 // se define una vez por documento (defineCaptureField).
 
+/** Only what an <img> may load: a data:image URI (what capture fields store), http(s) or a relative
+ *  path. Anything else (javascript:, other data: types…) shows nothing. */
+export function safeImageSrc(value) {
+  const v = String(value || '').trim()
+  if (/^data:image\/[a-z0-9.+-]+[;,]/i.test(v)) return v
+  if (/^https?:\/\//i.test(v)) return v
+  if (/^[a-z][a-z0-9+.-]*:/i.test(v)) return ''
+  return v
+}
+
 export const CAPTURE_TEXTS = {
   en: { clear: 'Clear', accept: 'Accept', signAgain: 'Sign again', remove: 'Remove', take: 'Take photo',
     retake: 'Retake', upload: 'Upload', replace: 'Replace', noCamera: 'Camera unavailable — choose a file',
@@ -114,7 +124,7 @@ export function defineCaptureField(win = typeof window !== 'undefined' ? window 
 
       if (value && (mode !== 'file' || isImageValue(value))) {
         const img = doc.createElement('img')
-        img.src = value
+        img.src = safeImageSrc(value)
         img.alt = ''
         img.className = 'mateu-capture-preview' + (mode === 'signature' ? ' mateu-capture-signature' : '')
         box.appendChild(img)

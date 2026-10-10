@@ -242,6 +242,14 @@ function formItemOf(el) {
   return (el.closest && el.closest('oj-label-value')) || el
 }
 
+/** A value safe inside a quoted attribute selector: CSS.escape when the browser has it, else the
+ *  backslash and the quote escaped (the backslash FIRST, or the quote's escape gets doubled). */
+export function attrSelectorValue(value) {
+  const s = String(value)
+  if (typeof CSS !== 'undefined' && CSS && typeof CSS.escape === 'function') return CSS.escape(s)
+  return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+}
+
 export function applyRulesNow(doc = typeof document !== 'undefined' ? document : null) {
   if (!rulesCtx || !doc) return 0
   const { ctx, appState } = rulesCtx
@@ -249,7 +257,7 @@ export function applyRulesNow(doc = typeof document !== 'undefined' ? document :
   let touched = 0
   const flags = fieldFlagsOf(result.data)
   for (const fieldId of Object.keys(flags)) {
-    for (const el of doc.querySelectorAll('[data-field-id="' + String(fieldId).replace(/"/g, '\\"') + '"]')) {
+    for (const el of doc.querySelectorAll('[data-field-id="' + attrSelectorValue(fieldId) + '"]')) {
       const f = flags[fieldId]
       if ('hidden' in f) {
         const item = formItemOf(el)
