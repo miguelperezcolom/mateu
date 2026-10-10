@@ -39,6 +39,7 @@ The captures are in `frontend/web/monorepo/apps/redwood/poc/shots/`.
 | Bookings › Room diary | `/bookings/roomDiary` | Room Diary: rooms × 1–28 days, bars in their colour, hover summary, drag to move or resize, select empty cells to book (003 "About the Room Diary", "Using Click, Drag and Drop") | `pms-room-diary.png`, `pms-room-diary-range.png`, `pms-room-diary-new-stay.png` |
 | Bookings › Property availability | `/bookings/propertyAvailability` | Property Availability: metrics × dates in collapsible sections, cells that link, the overbooking row edited in place (003 "Property Availability") | `pms-property-availability.png`, `pms-property-availability-edited.png` |
 | Bookings › New reservation | `/bookings/newReservation` | Look to Book: arrival, nights and departure linked; fields shown and enabled from others (003 "Using Look to Book Sales Screen") | `pms-new-reservation-rules.png` |
+| Bookings › Sales map | `/bookings/salesMap` | The map view of the Look to Book Sales Screen: the chain's properties on a street map, coloured by tonight's availability; a property opens its summary (003 "Using Look to Book Sales Screen") | `pms-sales-map.png`, `pms-sales-map-property.png` |
 | Bookings › Reservation | `/bookings/reservation` | Presentation page: header that sticks on scroll, collapsible panels, tabs (nested in the changes log), folio windows as a foldout, rate popover, formatted traces and notes, the *I Want To…* overlay on Ctrl+I (001 "Presentation Pages", "I Want to Menu"; 003 "Managing Reservation Alerts") | `pms-reservation-panels.png`, `pms-reservation-sticky.png`, `pms-nested-tabs.png`, `pms-rate-popover.png`, `pms-reservation-notes.png`, `pms-i-want-to.png` |
 | Bookings › Quick access | — | A menu group shown as cards | — |
 | Front desk › Check-in | `/frontDesk/checkIn` | Registration card: identification, deposit, signature on the tablet, ID scanned with the camera (004 "Checking in Reservations"; 002 "Using the Desktop ID Document Scanner") | `pms-registration-card.png` |
@@ -55,8 +56,9 @@ The access keys (Alt+letter on the section band) show on every screen: `pms-acce
 
 ## What is not here
 
-- **Map view** (Reservation Sales Screen). JET has no tile map component: `oj-thematic-map` needs
-  GeoJSON geography and is not a street map. Mateu's `Map` carries only a position and a zoom. A
-  map would be an `Element` wrapping a map web component, as the floor plan does.
 - **Page Composer** and real devices (payment terminal, key encoder, physical scanner) are out of
   scope. The screens around them (signature, camera) are here.
+
+The Sales map draws with Leaflet on Redwood, since JET has no street map component, and with
+OpenLayers on Vaadin, both over OpenStreetMap tiles. Those tile servers are not meant for heavy
+production traffic.
