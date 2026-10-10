@@ -182,14 +182,29 @@ class SearchRequest:
 
 
 @dataclass(frozen=True)
+class GroupSummary:
+    """One group of a ``GroupBy()`` listing: its value (as text), how many rows it has, its value
+    for every ``Aggregate()`` column, and the ``@group_action`` ids it must NOT show (Java's
+    ``GroupSummary``)."""
+
+    value: str
+    count: int
+    aggregates: dict = dataclass_field(default_factory=dict)
+    hidden_actions: tuple = ()
+
+
+@dataclass(frozen=True)
 class ListingData:
     """What a listing search returns: the ``Row`` objects plus an optional real total. With
     ``total_elements`` set the framework treats ``rows`` as the already-paged window (database
-    pushdown); left ``None`` the framework sorts and paginates ``rows`` in memory. The Python
-    analogue of ``io.mateu.uidl.data.ListingData``."""
+    pushdown); left ``None`` the framework sorts and paginates ``rows`` in memory. ``groups``: the
+    ``GroupBy()`` summaries the search computed itself — when left None the framework synthesizes
+    them (one per group value, counted over the returned rows; Java's
+    ``ListingData.withSynthesizedGroups``). The Python analogue of ``io.mateu.uidl.data.ListingData``."""
 
     rows: list
     total_elements: int | None = None
+    groups: list | None = None
 
     @staticmethod
     def of(rows: Iterable) -> "ListingData":

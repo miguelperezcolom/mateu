@@ -146,6 +146,10 @@ class CrudHandlerMixin(MixinBase):
         selection = raw if isinstance(raw, list) else []
         args = []
         for p in params:
+            if p.name == "group_value":
+                # a @group_action: the clicked group header's value
+                args.append((rq.parameters or {}).get("_groupValue"))
+                continue
             row_type = self._selected_row_type(p.annotation, element)
             if row_type is None:
                 args.append(None)

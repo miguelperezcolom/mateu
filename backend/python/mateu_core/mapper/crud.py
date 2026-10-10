@@ -99,6 +99,13 @@ class CrudMapperMixin(MixinBase):
         """Whether a crud answers export-csv (its ``csv_exportable()`` hook, default False)."""
         return CrudMapperMixin._exportable(cls, instance, "export-csv")
 
+    def group_action_buttons(self, cls) -> list[Button]:
+        """The ``@group_action`` methods as group-header buttons (Java's PageListingBuilder)."""
+        return [
+            Button(label=self.T(getattr(fn, "__mateu_group_action__")), action_id=camel_case(name))
+            for name, fn in methods_with(cls, "__mateu_group_action__")
+        ]
+
     def export_action_ids(self, cls, instance=None) -> list[str]:
         """The export actions a crud offers, in Java's toolbar order (CSV, Excel, PDF)."""
         return [aid for aid in FORMATS if self._exportable(cls, instance, aid)]
@@ -162,6 +169,7 @@ class CrudMapperMixin(MixinBase):
                 filters=self.crud_filters(element),
                 crudl_type="cards" if hero is not None else "table",
                 group_by=self.group_by_of(element),
+                group_actions=self.group_action_buttons(cls),
                 row_status_field=self.row_status_field_of(element),
                 drag_type=self.drag_type_of(cls),
                 # a full Crud has all the capabilities: delete needs row selection
@@ -368,6 +376,7 @@ class CrudMapperMixin(MixinBase):
                          filters=self.listing_filters(filters_type) if filters_type is not None else [],
                          grid_layout=cls().grid_layout(),
                          group_by=self.group_by_of(row_type) if row_type is not None else None,
+                         group_actions=self.group_action_buttons(cls),
                          row_status_field=(self.row_status_field_of(row_type)
                                            if row_type is not None else None),
                          # @rest_listing: rows fetched client-side from an arbitrary REST endpoint.

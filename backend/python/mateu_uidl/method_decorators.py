@@ -211,3 +211,16 @@ def wizard_completion_action(label: str = "Finish"):
         return fn
 
     return deco
+
+
+def group_action(label: str):
+    """Marks a listing / crud method as an action on a ``GroupBy()`` group (Java's
+    ``@GroupAction``): the grid renders a ``label`` button on every group header row, dispatching
+    ``action-on-row-<method>`` with the clicked group's value in ``_groupValue``. A parameter named
+    ``group_value`` receives it."""
+
+    def deco(fn):
+        fn.__mateu_group_action__ = label
+        return fn
+
+    return deco

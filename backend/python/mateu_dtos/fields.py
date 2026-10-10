@@ -167,6 +167,9 @@ class CrudMetadata(Wire):
     #: by it — implicit primary sort + a group subtotal row whenever the value changes. None
     #: when the row class declares no GroupBy() column (mirrors CrudlDto.groupBy).
     group_by: str | None = None
+    #: @group_action buttons rendered on every group header row; each dispatches
+    #: action-on-row-<actionId> with the group value in _groupValue (mirrors CrudlDto.groupActions).
+    group_actions: list["Button"] = Field(default_factory=list)
     #: Row selection checkboxes on (a Deletable listing / a full crud); mirrors
     #: CrudlDto.rowsSelectionEnabled.
     rows_selection_enabled: bool = False

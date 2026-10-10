@@ -42,7 +42,9 @@ from ..naming import (
     camel_case,
     humanize,
 )
-from ..reflection import view_fields
+from mateu_uidl import GroupActionVisibility
+
+from ..reflection import methods_with, view_fields
 from ..validation import violations
 from ._base import MixinBase
 from ._common import (
@@ -121,22 +123,40 @@ class SearchHandlerMixin(MixinBase):
         request = self.build_search_request(view, filters_type, rq)
         found = self._invoke(view.search, request, rq)
         props = view_fields(row_type) if row_type is not None else []
+        supplied_groups = None
         if isinstance(found, ListingData):
+            if found.groups is not None:
+                supplied_groups = [
+                    {
+                        "value": g.value,
+                        "count": g.count,
+                        "aggregates": dict(g.aggregates or {}),
+                        **({"hiddenActions": list(g.hidden_actions)} if g.hidden_actions else {}),
+                    }
+                    for g in found.groups
+                ]
             if found.total_elements is not None:
                 rows = [self._row_dict(item, props) for item in found.rows]
-                data = {"crud": {"page": {
+                crud_data: dict = {"page": {
                     "content": rows,
                     "pageSize": request.pageable.size,
                     "pageNumber": request.pageable.page,
                     "totalElements": found.total_elements,
-                }}}
+                }}
+                groups = supplied_groups if supplied_groups is not None else self._synthesized_groups(list(found.rows), props)
+                if groups is not None:
+                    crud_data["groups"] = self._apply_group_visibility(view, groups)
                 return UIIncrement.of(
-                    fragments=[UIFragment(target_component_id=self.target(rq), data=data, action="Replace")]
+                    fragments=[UIFragment(target_component_id=self.target(rq), data={"crud": crud_data}, action="Replace")]
                 )
             items = list(found.rows)
         else:
             items = list(found or [])
-        return self._page_rows(items, props, rq)
+        increment = self._page_rows(items, props, rq)
+        groups = supplied_groups if supplied_groups is not None else self._synthesized_groups(items, props)
+        if groups is not None:
+            increment.fragments[0].data["crud"]["groups"] = self._apply_group_visibility(view, groups)
+        return increment
 
     def assemble_filters(self, filters_type, state: dict):
         filters = filters_type()
@@ -260,6 +280,8 @@ class SearchHandlerMixin(MixinBase):
                 "totalElements": found.total_elements,
             }}
             self._attach_summaries(crud_data, spec, lambda: self._filtered_rows(crud, props, rq))
+            if "groups" in crud_data:
+                crud_data["groups"] = self._apply_group_visibility(crud, crud_data["groups"])
             return UIIncrement.of(
                 fragments=[UIFragment(target_component_id=self.target(rq), data={"crud": crud_data}, action="Replace")]
             )
@@ -295,6 +317,8 @@ class SearchHandlerMixin(MixinBase):
             }
         }
         self._attach_summaries(crud_data, spec, lambda: items)
+        if "groups" in crud_data:
+            crud_data["groups"] = self._apply_group_visibility(crud, crud_data["groups"])
         return UIIncrement.of(
             fragments=[UIFragment(target_component_id=self.target(rq), data={"crud": crud_data}, action="Replace")]
         )
@@ -360,6 +384,37 @@ class SearchHandlerMixin(MixinBase):
                 for value, members in by_group.items()
             ]
         crud_data["groups"] = groups
+
+    def _apply_group_visibility(self, view, groups: list[dict]) -> list[dict]:
+        """A ``GroupActionVisibility`` listing is asked per group and per ``@group_action``; the
+        ones answering False ride as the group's ``hiddenActions`` (Java's
+        ``GroupActions.applyVisibility``)."""
+        if not isinstance(view, GroupActionVisibility) or not groups:
+            return groups
+        methods = [name for name, _ in methods_with(type(view), "__mateu_group_action__")]
+        if not methods:
+            return groups
+        out = []
+        for group in groups:
+            hidden = [
+                camel_case(m) for m in methods if not view.group_action_visible(m, group.get("value"))
+            ]
+            out.append({**group, "hiddenActions": hidden} if hidden else group)
+        return out
+
+    @staticmethod
+    def _synthesized_groups(items: list, props) -> list[dict] | None:
+        """One summary per ``GroupBy()`` value, counted over the returned rows in order of
+        appearance — for a custom listing that computed none (Java's
+        ``ListingData.withSynthesizedGroups``)."""
+        group_by = next((p.name for p in props if p.has(GroupBy)), None)
+        if group_by is None or not items:
+            return None
+        counts: dict[str, int] = {}
+        for item in items:
+            key = str(getattr(item, group_by, None))
+            counts[key] = counts.get(key, 0) + 1
+        return [{"value": value, "count": count, "aggregates": {}} for value, count in counts.items()]
 
     @staticmethod
     def _aggregate_over(rows: list, aggregates: list) -> dict:

@@ -104,12 +104,20 @@ def resolve_action(type_, action_id: str | None, advertised: Callable[[], set[st
     return None
 
 
+GROUP_ACTION_MARKER = "__mateu_group_action__"
+
+
 def resolve_row_action(type_, name: str | None):
-    """The ``@list_toolbar_button`` function a bulk ``action-on-row-{name}`` may invoke, or None."""
+    """The ``@list_toolbar_button`` (bulk) or ``@group_action`` (group header) function an
+    ``action-on-row-{name}`` may invoke, or None."""
     if not name or name.startswith("_"):
         return None
     for member, val, _klass in _members(type_):
-        if camel_case(member) == name and inspect.isfunction(val) and hasattr(val, ROW_ACTION_MARKER):
+        if (
+            camel_case(member) == name
+            and inspect.isfunction(val)
+            and (hasattr(val, ROW_ACTION_MARKER) or hasattr(val, GROUP_ACTION_MARKER))
+        ):
             return val
     return None
 

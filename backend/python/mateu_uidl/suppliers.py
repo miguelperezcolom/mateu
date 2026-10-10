@@ -174,3 +174,12 @@ class AppSupplier:
 
     def get_app(self) -> AppShell:
         raise NotImplementedError
+
+
+class GroupActionVisibility:
+    """Implemented by a listing / crud whose ``@group_action`` buttons are not always applicable:
+    asked per group and per action, the group header row only shows the actions answering True
+    (Java's ``GroupActionVisibility``)."""
+
+    def group_action_visible(self, method_name: str, group_value: str) -> bool:
+        raise NotImplementedError
