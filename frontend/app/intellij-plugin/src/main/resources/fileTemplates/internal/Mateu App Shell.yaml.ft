@@ -1,21 +1,27 @@
 # The app shell: the chrome around every screen — title, menu, home. Bind it to the mount root
-# ("") in routes.yaml. Menu entries route to entries of the route registry.
+# ("") in routes.yaml. Menu entries route to entries of the route registry; the home is the first
+# navigable entry unless you declare `homeRoute:`.
 type: AppShell
 title: __TITLE__
-subtitle: A Mateu app
 variant: AUTO
-homeRoute: home
-menu:
-  - type: RouteLink
-    label: Home
-    route: home
-    icon: vaadin:home
-  - type: Menu
-    label: Sales
-    submenu:
-      - type: RouteLink
-        label: Orders
-        route: orders
-      - type: RouteLink
-        label: Customers
-        route: customers
+menu: []
+# Add one entry per screen you route to, e.g.:
+#   - type: RouteLink
+#     label: Orders
+#     route: orders
+#
+# A menu entry can also RUN a flow instead of navigating: declare it under `actions:` (the same
+# shape a page definition uses — steps run in the browser, no backend needed) and point a RuleLink
+# at its id:
+#
+# actions:
+#   - id: newOrder
+#     steps:
+#       - type: Navigate
+#         route: orders/new
+# menu:
+#   - type: RuleLink
+#     label: New order
+#     rules:
+#       - action: RunAction
+#         actionId: newOrder
