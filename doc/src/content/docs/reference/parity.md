@@ -216,25 +216,25 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Inline editing (@InlineEditing, update-row) | ✅ | ✅ | ✅ (row form) | ✅ (row form) |
 | Date picker | ✅ | ✅ | ✅ (calendar popup) | ✅ (own calendar) |
 | Remote lookup select (@Lookup / searchable) | ✅ | ✅ | ✅ | ✅ |
-| Full field-stereotype set (radio, multiSelect, slider, stepper, stars, color, image upload, money, markdown…) | ✅ | 🟡 radio, multi-select, checkboxes, toggle, number/money (`oj-input-number`), textarea, dates, lookups, file/image/signature/photo; **no** slider, stars, color or rich text/markdown yet | ✅ | ✅ |
-| Client-side rules (visible/disabled/state) + \${...} interpolation | ✅ | 🟡 CSP-safe engine (visible/disabled/required/value + `OnValueChange`) on the page's own form; not yet inside drawers/dialogs or embedded islands | ✅ (shared engine) | ✅ (no-eval engine) |
+| Full field-stereotype set (radio, multiSelect, slider, stepper, stars, color, image upload, money, markdown…) | ✅ | ✅ radio, multi-select, checkboxes, toggle, number/money (`oj-input-number`), textarea, dates, lookups, file/image/signature/photo, slider (`oj-slider`), stars (`oj-rating-gauge`), color, rich text (own editor: HTML, legacy Quill Delta read), markdown/html read-only | ✅ | ✅ |
+| Client-side rules (visible/disabled/state) + \${...} interpolation | ✅ | ✅ CSP-safe engine (visible/disabled/required/value + `OnValueChange`) on every surface: the page, embedded islands and the open drawer/dialog | ✅ (shared engine) | ✅ (no-eval engine) |
 | Page banners (@Banner + action-returned) | ✅ | ✅ | ✅ | ✅ |
-| FABs, header badges, KPIs, charts | ✅ | 🟡 header badges, KPIs, `MetricCard`/`Scoreboard` tiles and charts on any page (`oj-chart`: bar, line, area, pie, doughnut, polar, several series); **no** FABs | ✅ (FABs as header buttons) | ✅ |
+| FABs, header badges, KPIs, charts | ✅ | ✅ header badges, KPIs, `MetricCard`/`Scoreboard` tiles and charts on any page (`oj-chart`: bar, line, area, pie, doughnut, polar, funnel, several series); page and app `@Fab`s stacked above the shell FAB | ✅ (FABs as header buttons) | ✅ |
 | @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | ✅ | ✅ | ✅ |
 | Periodic refresh (`OnLoad` with `timeoutMillis` + `OnSuccess` loop, `background`) | ✅ | ✅ (stops when the screen changes) | ✅ (stops when the view changes or its tab closes) | ✅ (stops when the screen changes or unmounts) |
 | Keyboard shortcuts (`@Action(shortcut)`, `@Tab(shortcut)`) + access keys mode (`@App(accessKeys)`: hold Alt, Alt+letter) | ✅ | ✅ | ✅ (Swing mnemonics) | — (no hardware-key model) |
 | Hover details (`Popover` with `trigger = hover`, `@Tooltip("otherField")` on listing cells) | ✅ | ✅ (shared `oj-popup`) | ✅ | 🟡 press / long-press (no hover on touch) |
 | Drag rows to a destination (`@DragRows` + `DropZone`: origin and destination in one action) | ✅ | ✅ (`oj-table` dnd) | ✅ | 🟡 "Move to…" picker (no drag on touch) |
-| AI chat (sseUrl) / theme toggle | ✅ | 🟡 AI chat ✅ at parity with the web panel (header button + left drawer: streaming, agent progress and tool steps, token usage, markdown answers with in-app links, screen context + projection, `mcpUrl`, `@AI(upload)` attachments, local agent, dictation, wide mode, `render-screen`/navigation events); the `themeToggle` flag is read but **no toggle is drawn** | ✅ chat (theme = the IDE's own) | ✅ |
+| AI chat (sseUrl) / theme toggle | ✅ | ✅ AI chat at parity with the web panel (header button + left drawer: streaming, agent progress and tool steps, token usage, markdown answers with in-app links, screen context + projection, `mcpUrl`, `@AI(upload)` attachments, local agent, dictation, wide mode, `render-screen`/navigation events); `@App(themeToggle)` draws a header light/dark switch (JET's inverted colour scheme, remembered like the web) | ✅ chat (theme = the IDE's own) | ✅ |
 | App context selector | ✅ | ✅ | ✅ (navigator combos) | ✅ |
 | — searchable picker w/ remote search | ✅ | ✅ | 🟡 loaded options only | ✅ |
 | Signature capture | ✅ canvas | ✅ canvas (own element: JET has no signature pad) | ✅ mouse canvas | ✅ svg + view-shot |
 | Photo capture | ✅ getUserMedia | ✅ | 🟡 file picker (no desktop camera API) | ✅ expo-camera |
 | Tree select dropdown | ✅ | ✅ | ✅ (JTree popup) | ✅ |
 | Tree lookup selector (dialog) | ✅ | ✅ | ✅ (tree layout) | ✅ (tree layout) |
-| Dashboards, Gantt, foldouts, skeletons | ✅ | 🟡 foldouts (`oj-sp-foldout-layout`, and collapsible panels inside a tab) and dashboards (KPI band, tiles by `colSpan`, `oj-chart`) ✅; the `Gantt` and `Skeleton` components are **not** rendered (the Room Diary's `PlanningBoard` is, on `oj-gantt`) | ✅ | ✅ |
-| Custom components (`registerCustomComponent`; unknown → visible placeholder) — the per-renderer escape hatch, each renderer with its own registry + graceful degradation (placeholder + slotted children) | ✅ | 🟡 placeholder + slotted children (bridge projection) | 🟡 registry + placeholder | 🟡 registry + placeholder |
-| High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | 🟡 the front-office set, `Stat` and `Calendar` (month/week/day/list) ✅; Kanban, Timeline, PricingTable, OrgChart, Heatmap, Funnel, FeatureGrid, Testimonials, Faq, CalloutCard, CommentThread, FileList, Checklist, ComparisonCard **not rendered** — see the coverage table below | ✅ | ✅ |
+| Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ foldouts (`oj-sp-foldout-layout`, collapsible panels inside a tab), dashboards (KPI band, tiles by `colSpan`, `oj-chart`), `Gantt` and `PlanningBoard` on `oj-gantt`, `Skeleton` | ✅ | ✅ |
+| Custom components (`registerCustomComponent`; unknown → visible placeholder) — the per-renderer escape hatch, each renderer with its own registry + graceful degradation (placeholder + slotted children) | ✅ | ✅ registry (`bridge.registerCustomComponent(name, mount)`) + placeholder and slotted children | 🟡 registry + placeholder | 🟡 registry + placeholder |
+| High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | ✅ every type — Oracle components where they exist (oj-chart funnel, oj-avatar, oj-action-card, oj-rating-gauge, oj-checkboxset, oj-menu-button, oj-collapsible, oj-dialog…), Redwood-token atoms where JET has none (board, timeline, heatmap, org outline, BPMN); see the coverage table below | ✅ | ✅ |
 | App header actions (buttons + dropdown groups) | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
 | Bulk row selection + selection-required toolbar actions | ✅ | ✅ | ✅ (native multi-select) | ✅ (checkbox column) |
 | Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (Views menu: apply/save/default/delete, persisted) | 🟡 apply/save/default/delete (session-scoped) |
@@ -242,7 +242,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | ✅ |
 | Notification bell (inbox, unread count) | ✅ | ✅ (header bell + `oj-popup` with an `oj-list-view`) | ✅ (sidebar popup) | ✅ (drawer row) |
 | Undoable toasts (Undo button) | ✅ | ✅ (JET `oj-message` with the Undo `oj-button` in its detail slot — `oj-sp-messages-toast` has no actions) | ✅ (balloon action) | ✅ (toast button) |
-| Entity search (GlobalSearchSupplier: ⌘K palette / search box) | ✅ palette | 🟡 Ask Oracle command palette (navigation); GlobalSearchSupplier entity results not wired | ✅ sidebar search | ✅ drawer search |
+| Entity search (GlobalSearchSupplier: ⌘K palette / search box) | ✅ palette | ✅ the Ask palette: destinations + GlobalSearchSupplier entity results by category | ✅ sidebar search | ✅ drawer search |
 | Planning board (tape chart) | ✅ drag+select | ✅ `oj-gantt`: move, resize, double click, range selection, hover summary | ✅ drag+select (MouseListener + pure PlanningDrag) | ✅ drag+select (PanResponder + pure planningDrag) |
 | Session-expiry re-auth + retry (`onSessionExpired`) | ✅ | ✅ | ✅ (SessionGuard, sync re-auth) | ✅ (sessionGuard, retry once) |
 | Card menus (`@Menu(display = cards)`: a group opening as a panel of cards) | ✅ | ✅ (`oj-popup`) | ✅ | ✅ |
@@ -255,8 +255,8 @@ Every renderer speaks the same wire; the depth of widget support varies.
 ### Redwood component coverage
 
 What the Redwood/VB renderer does with each component type of the wire. A type it does not
-render is **dropped silently** (its children, if it is a container, still render), so this table —
-not the feature rows above — is the authority when a screen looks emptier on Redwood than on Vaadin.
+render shows a visible "Unsupported component" placeholder (its children, if it is a container, still
+render), so this table — not the feature rows above — is the authority on what Redwood paints.
 
 <!-- redwood-coverage:start -->
 Generated from `frontend/web/monorepo/apps/redwood/poc/coverage.mjs` and checked in CI against the
