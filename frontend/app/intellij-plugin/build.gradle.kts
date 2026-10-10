@@ -536,5 +536,15 @@ tasks.register<JavaExec>("renderProbe") {
         "--add-opens=java.desktop/javax.swing=ALL-UNNAMED",
         "--add-opens=java.base/java.lang=ALL-UNNAMED",
         "--add-opens=java.base/java.util=ALL-UNNAMED",
+        "--add-opens=java.desktop/javax.swing.plaf.basic=ALL-UNNAMED",
+        "--add-opens=java.desktop/com.apple.laf=ALL-UNNAMED",
     )
+    // JBScrollPane's macOS scroll bars load JNA, whose native dispatch library ships in the IDE's
+    // lib/jna/<arch> folder (not inside the jna jar) — point JNA at it or every scrollable screen dies
+    // with UnsatisfiedLinkError on a Mac.
+    doFirst {
+        val ideLib = classpath.files.firstOrNull { it.name == "app-client.jar" }?.parentFile
+        val jnaDir = ideLib?.resolve("jna")?.listFiles()?.firstOrNull { it.isDirectory }
+        if (jnaDir != null) jvmArgs("-Djna.boot.library.path=${jnaDir.absolutePath}", "-Djna.nosys=true")
+    }
 }

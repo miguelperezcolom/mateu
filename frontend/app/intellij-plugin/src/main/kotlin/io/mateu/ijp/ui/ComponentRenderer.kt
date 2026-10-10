@@ -114,6 +114,47 @@ class ComponentRenderer(val ctx: AppContext) {
             "PaymentPicker" -> renderPaymentPicker(this, metadata)
             "ProcessMonitor" -> renderProcessMonitor(this, metadata)
             "Image" -> renderStandaloneImage(metadata)
+            // ── layouts ──
+            "MasterDetailLayout" -> renderMasterDetail(this, component, state, data)
+            "CarouselLayout" -> renderCarousel(this, component, metadata, state, data)
+            "BoardLayout", "BoardLayoutRow", "BoardLayoutItem" -> renderBoard(this, component, metadata, state, data)
+            "ContentLayout" -> renderContentLayout(this, component, metadata, state, data)
+            "ResponsiveGrid" -> renderResponsiveGrid(this, component, metadata, state, data)
+            "FormItem" -> renderFormItem(this, component, state, data)
+            // A Tab / AccordionPanel outside its TabLayout / AccordionLayout; a bare Stepper groups its children.
+            "Tab", "AccordionPanel" -> renderTitledChildren(this, component, metadata, state, data)
+            "Stepper" -> renderChildren(component, state, data)
+            // ── navigation ──
+            "Breadcrumbs", "Breadcrumb" -> renderBreadcrumbs(ctx, metadata)
+            "MenuBar" -> renderMenuBar(ctx, metadata)
+            "ContextMenu" -> renderContextMenu(this, metadata, state, data)
+            "Directory" -> renderDirectory(ctx, metadata)
+            // ── display ──
+            "Grid" -> renderGrid(this, component, metadata, state, data)
+            // A GridColumn outside its Grid: just its header text.
+            "GridColumn" -> JBLabel(metadata.text("label", metadata.text("id")))
+            "VirtualList" -> renderVirtualList(component, metadata, state, data)
+            "Avatar" -> renderAvatar(metadata)
+            "AvatarGroup" -> renderAvatarGroup(metadata)
+            "Icon" -> renderIcon(metadata)
+            "Details" -> renderDetails(this, metadata, state, data)
+            "Tooltip" -> renderTooltip(this, metadata, state, data)
+            "Notification" -> renderNotification(metadata)
+            "Result" -> renderResult(ctx, metadata)
+            "NotFound" -> renderNotFound(ctx, metadata)
+            "CookieConsent" -> renderCookieConsent(metadata)
+            "Element" -> renderElement(ctx, metadata)
+            "Bpmn" -> renderBpmn(metadata)
+            "Workflow" -> renderSourceView("Workflow", metadata.text("value"))
+            "FormEditor" -> renderSourceView("Form definition", metadata.text("value"))
+            // ── conversation ──
+            "Chat" -> renderChat(ctx, metadata)
+            "MessageList" -> renderMessageList(metadata)
+            "MessageInput" -> renderMessageInput(ctx, metadata)
+            // ── overlays met inline, islands ──
+            "Dialog", "Drawer" -> renderInlineOverlay(ctx, component, state, data)
+            "ConfirmDialog" -> renderConfirmDialog(this, component, metadata, state, data)
+            "MicroFrontend" -> renderMicroFrontend(ctx, metadata)
             "CustomComponent" -> {
                 // The per-renderer escape hatch (#14): a registered renderer paints it; otherwise
                 // degrade to a visible placeholder that still shows the slotted children.
