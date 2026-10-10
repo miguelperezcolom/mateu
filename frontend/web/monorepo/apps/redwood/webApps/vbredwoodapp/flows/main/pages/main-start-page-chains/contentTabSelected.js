@@ -46,9 +46,10 @@ define([
       const picked = bar ? bar.tabs.find((t) => t.id === tabId) : null;
       if (picked && picked.routeKey && window.__mateuUrlPathMode) {
         const keys = bar.tabs.map((t) => t.routeKey).filter((k) => !!k);
-        const path = bridge.tabRoutePath(window.location.pathname, keys, picked.routeKey);
-        if (path !== window.location.pathname) {
-          window.history.pushState(null, '', path);
+        const current = bridge.currentRoutePathOf(window.location);
+        const path = bridge.tabRoutePath(current, keys, picked.routeKey);
+        if (path !== current) {
+          window.history.pushState(null, '', bridge.urlOfRoute(path));
           $application.variables.mateuSelectedRoute = path;
           $application.variables.mateuSelectedNavId = path;
         }
@@ -67,7 +68,7 @@ define([
       }) || [];
       // la pestaña ya se ve; sus @Subresource (lazy: se cargan al abrirla) llegan después
       $application.variables.mateuHostContent = bridge.withSubresources(projected, reg.contexts);
-      reg = await bridge.loadSubresources(bridge.baseOf(reg) || $application.constants.mateuBaseUrl,
+      reg = await bridge.loadSubresources(bridge.baseOf(reg) || bridge.mateuBase($application.constants.mateuBaseUrl),
         reg, projected, { appState: $application.variables.mateuAppState || {} });
       $application.variables.mateuRegistry = reg;
       const blocks = bridge.withSubresources(projected, reg.contexts);

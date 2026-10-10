@@ -20,7 +20,7 @@ const LOOKS_LIKE_FILE = /\.(pdf|csv|tsv|xlsx?|docx?|pptx?|odt|ods|zip|gz|tar|jso
  * siendo del navegador. `location` es la de la página (window.location); `hashMode` es la shell
  * servida en estático, cuyas rutas viven en `#/ruta`.
  */
-export function inAppRouteOfLink(anchor, event, location, hashMode = false) {
+export function inAppRouteOfLink(anchor, event, location, hashMode = false, mount = '') {
   if (!anchor || !anchor.getAttribute || !location) return null
   if (event && (event.defaultPrevented || event.button > 0
     || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey)) return null
@@ -43,9 +43,17 @@ export function inAppRouteOfLink(anchor, event, location, hashMode = false) {
   }
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return null
   if (url.origin !== location.origin) return null
-  const path = url.pathname || '/'
+  let path = url.pathname || '/'
   // un ancla a esta misma página (#expand=…): la hace el navegador
   if (url.hash && path === location.pathname && url.search === (location.search || '')) return null
+  // the app mounted under a path (@UI("/console")): only links below it are screens of the app,
+  // and the route is the part after the mount
+  const m = String(mount || '').replace(/\/+$/, '')
+  if (m) {
+    if (path === m || path === m + '/') path = '/'
+    else if (path.startsWith(m + '/')) path = path.slice(m.length)
+    else return null
+  }
   if (NOT_A_SCREEN.test(path) || LOOKS_LIKE_FILE.test(path)) return null
   return path + url.search
 }

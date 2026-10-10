@@ -31,7 +31,7 @@ export const MODULES = [
   'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'resilience.mjs', 'a11y.mjs', 'elements.mjs',
   'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'planning.mjs', 'actionPanels.mjs',
   'keys.mjs', 'hover.mjs', 'dnd.mjs', 'matrix.mjs', 'map.mjs', 'tables.mjs', 'bundle.mjs',
-  'transport.mjs', 'widgets.mjs', 'chat.mjs',
+  'mount.mjs', 'transport.mjs', 'widgets.mjs', 'chat.mjs',
 ]
 const body = MODULES.map(strip).join('\n\n')
 
@@ -287,6 +287,17 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     foldoutOf,
     wizardOf,
     callMateu,
+    // the mount of the packaged app (<mateu-ui baseUrl>): API base and route ↔ browser path
+    initMount,
+    isPathMode,
+    currentMount,
+    mateuBase,
+    mateuAssetBase,
+    urlOfRoute,
+    currentRouteOf,
+    currentRoutePathOf,
+    routeOfPath,
+    pathOfRoute,
     bootstrapShell,
     loadRoute,
     loadRouteInto,

@@ -21,6 +21,8 @@ import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM } from './map.mjs'
 import { attrSelectorValue } from './rules.mjs'
 import { wizardOf, WIZARD_DONE_STEP } from './reduceContexts.mjs'
 import { safeImageSrc } from './inputs.mjs'
+import { normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf } from './mount.mjs'
+import { inAppRouteOfLink } from './links.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays } from './calendar.mjs'
 import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf } from './notify.mjs'
@@ -199,7 +201,7 @@ test('Element: contenido HTML con `${…}` se marca para sanearlo al montarlo', 
 test('Element: la shell cablea módulo y sumidero ANTES de navegar; la página escucha el evento de aplicación', () => {
   const shell = webApp('pages/shell-page-chains/loadMateuShell.js')
   assert.ok(shell.indexOf('setElementEventSink') < shell.indexOf("chain: 'onMateuNavigate'"))
-  assert.match(shell, /setElementModuleBase\(base\)/)
+  assert.match(shell, /setElementModuleBase\(assetBase\)/)
   const page = JSON.parse(webApp('flows/main/pages/main-start-page.json'))
   // los eventos de aplicación se escuchan con el prefijo `application:` (sin él no llegan nunca)
   assert.ok(page.eventListeners['application:mateuElementEvent'])
@@ -1300,6 +1302,85 @@ test('proceso guiado terminado: un paso final «Completed» actual (título corr
   assert.ok(done.steps.every((st) => st.status === 'success'))
   assert.equal(done.resumeStepId, '')
   assert.match(webApp('flows/main/pages/main-start-page.html'), /mateuWizard\.completed \? 'mateu-wizard-completed'/)
+})
+
+test('mount: the packaged app serves an @UI at any path — API base and routes come from <mateu-ui baseUrl>', () => {
+  assert.equal(normalizeMount(''), '')
+  assert.equal(normalizeMount('/'), '')
+  assert.equal(normalizeMount('console/'), '/console')
+  assert.equal(normalizeMount('/a/b//'), '/a/b')
+  // the base: the mount when the controller injected <mateu-ui>, the dev constant otherwise
+  assert.equal(baseUrlOf(null, 'http://localhost:9005'), 'http://localhost:9005')
+  assert.equal(baseUrlOf({ baseUrl: '' }, 'http://localhost:9005'), '')
+  assert.equal(baseUrlOf({ baseUrl: '/console' }, 'http://x'), '/console')
+  assert.equal(baseUrlOf({ baseurl: '/console/' }, 'http://x'), '/console')
+  // browser path → Mateu route
+  assert.equal(routeOfPath('/console', '/console'), '')
+  assert.equal(routeOfPath('/console/', '/console'), '')
+  assert.equal(routeOfPath('/console/products/3', '/console'), '/products/3')
+  assert.equal(routeOfPath('/', ''), '')
+  assert.equal(routeOfPath('/products', ''), '/products')
+  // a path that merely starts like the mount is not under it
+  assert.equal(routeOfPath('/consoles/x', '/console'), '/consoles/x')
+  // Mateu route → browser path
+  assert.equal(pathOfRoute('', '/console'), '/console')
+  assert.equal(pathOfRoute('/', '/console'), '/console')
+  assert.equal(pathOfRoute('/products?status=open', '/console'), '/console/products?status=open')
+  assert.equal(pathOfRoute('products', '/console'), '/console/products')
+  assert.equal(pathOfRoute('', ''), '/')
+  assert.equal(pathOfRoute('/products', ''), '/products')
+  assert.equal(pathOfRoute('?q=1', '/console'), '/console?q=1')
+  assert.equal(pathOfRoute('?q=1', ''), '/?q=1')
+  // round trip
+  for (const r of ['', '/a', '/a/b?c=1']) assert.equal(routeOfPath(pathOfRoute(r, '/m').split('?')[0], '/m') + (r.includes('?') ? '?' + r.split('?')[1] : ''), r)
+})
+
+test('mount: read once at boot — path mode under a mount, hash mode without <mateu-ui>', () => {
+  const doc = (attrs) => ({ querySelector: (sel) => (sel === 'mateu-ui' && attrs
+    ? { getAttribute: (n) => (n in attrs ? attrs[n] : null) } : null) })
+  assert.equal(initMount(doc({ baseUrl: '/console' })), '/console')
+  assert.equal(isPathMode(), true)
+  assert.equal(mateuBase('http://localhost:9005'), '/console')
+  // static things stay at the backend root, as on the Vaadin renderer
+  assert.equal(mateuAssetBase('http://localhost:9005'), '')
+  assert.equal(urlOfRoute(''), '/console')
+  assert.equal(urlOfRoute('/orders?x=1'), '/console/orders?x=1')
+  assert.equal(currentRouteOf({ pathname: '/console/orders', search: '?x=1', hash: '' }), '/orders?x=1')
+  assert.equal(currentRoutePathOf({ pathname: '/console/orders', search: '?x=1', hash: '' }), '/orders')
+  // the root mount: today's behaviour
+  assert.equal(initMount(doc({ baseUrl: '' })), '')
+  assert.equal(mateuBase('http://localhost:9005'), '')
+  assert.equal(urlOfRoute(''), '/')
+  assert.equal(currentRouteOf({ pathname: '/', search: '', hash: '' }), '')
+  // vb-serve / VB hosted: no <mateu-ui> → hash routes and the dev constant
+  assert.equal(initMount(doc(null)), null)
+  assert.equal(isPathMode(), false)
+  assert.equal(mateuBase('http://localhost:9005'), 'http://localhost:9005')
+  assert.equal(mateuAssetBase('http://localhost:9005'), 'http://localhost:9005')
+  assert.equal(urlOfRoute('/orders'), '#/orders')
+  assert.equal(currentRouteOf({ pathname: '/', search: '', hash: '#/orders?x=1' }), '/orders?x=1')
+  assert.equal(currentRoutePathOf({ pathname: '/', search: '', hash: '#/orders?x=1' }), '/orders')
+  setMount(null)
+})
+
+test('mount: an in-content link is a screen of the app only below the mount, and its route drops the mount', () => {
+  const loc = { href: 'https://h/console/a', origin: 'https://h', pathname: '/console/a', search: '' }
+  const a = (href) => ({ getAttribute: (n) => (n === 'href' ? href : null) })
+  const route = (href) => inAppRouteOfLink(a(href), { button: 0 }, loc, false, '/console')
+  assert.equal(route('/console/orders/3?x=1'), '/orders/3?x=1')
+  assert.equal(route('/console'), '/')
+  assert.equal(route('/other/app'), null)
+  assert.equal(route('/console/_inbox'), null)
+  // the chains use the bridge, not window.location.pathname, as the route
+  const shell = webApp('pages/shell-page-chains/loadMateuShell.js')
+  assert.match(shell, /bridge\.initMount\(document\)/)
+  assert.match(shell, /bridge\.currentRouteOf\(window\.location\)/)
+  assert.match(shell, /bridge\.currentMount\(\)/)
+  for (const chain of ['pages/shell-page-chains/onMateuNavigate.js', 'pages/shell-page-chains/loadMateuShell.js',
+    'flows/main/pages/main-start-page-chains/runMateuAction.js', 'flows/main/pages/main-start-page-chains/runMateuSearch.js']) {
+    assert.doesNotMatch(webApp(chain).replace(/bridge\.mateu(Asset)?Base\(\$application\.constants\.mateuBaseUrl\)/g, ''),
+      /\$application\.constants\.mateuBaseUrl/, chain + ' reads the base without the mount')
+  }
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

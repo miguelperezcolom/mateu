@@ -4919,7 +4919,7 @@ test('url filters: ir al MISMO listado con otra query aplica exactamente la nuev
   assert.match(nav, /window\.__mateuLoadedFull/)
   assert.match(nav, /bridge\.splitListingQuery\(target\.filters\)/)
   // un deep-link con query la conserva en la URL (el router de VB la quitaba al arrancar)
-  assert.match(nav, /history\.replaceState\(window\.history\.state, '', target\.full\)/)
+  assert.match(nav, /history\.replaceState\(window\.history\.state, '', bridge\.urlOfRoute\(target\.full\)\)/)
   // cambiar filtros reescribe la URL
   assert.match(webApp('flows/main/pages/main-start-page-chains/smartFiltersChanged.js'), /bridge\.listingUrlOf\(/)
 })

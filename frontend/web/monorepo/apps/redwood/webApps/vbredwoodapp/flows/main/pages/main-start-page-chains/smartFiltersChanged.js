@@ -47,9 +47,9 @@ define([
       if (window.__mateuUrlPathMode) {
         // sólo si la URL es la de este listado (un prefijo de contexto, un maestro con pestañas:
         // mejor no tocarla que escribir una ruta que no es)
-        if (window.location.pathname === full.split('?')[0]
-            && window.location.pathname + (window.location.search || '') !== full) {
-          window.history.replaceState(window.history.state, '', full);
+        if (bridge.currentRoutePathOf(window.location) === full.split('?')[0]
+            && bridge.currentRouteOf(window.location) !== full) {
+          window.history.replaceState(window.history.state, '', bridge.urlOfRoute(full));
         }
       } else if (window.location.hash !== '#' + full) {
         window.history.replaceState(window.history.state, '', '#' + full);

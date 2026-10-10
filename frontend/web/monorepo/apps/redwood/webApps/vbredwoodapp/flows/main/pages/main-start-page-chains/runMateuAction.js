@@ -78,7 +78,7 @@ define([
       // La pantalla puede venir de otro pod (menú federado): sus cargas y acciones siguen
       // hablando con ESE backend, no con el de la shell.
       const base = bridge.baseOf($application.variables.mateuRegistry)
-        || $application.constants.mateuBaseUrl;
+        || bridge.mateuBase($application.constants.mateuBaseUrl);
       const before = $application.variables.mateuRegistry;
       const host = before.contexts[bridge.HOST_ID];
       const route = $application.variables.mateuSelectedRoute;
@@ -286,7 +286,7 @@ define([
           $application.variables.mateuSelectedNavId = urlRoute;
           try {
             window.history.pushState(
-              null, '', window.__mateuUrlPathMode ? (urlRoute || '/') : '#' + urlRoute);
+              null, '', bridge.urlOfRoute(urlRoute));
           } catch (ignored) { /* sin history en algunos contextos */ }
         }
         applyInc(await bridge.loadRoute(base, flipRoute, '', {

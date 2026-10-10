@@ -50,12 +50,17 @@ define([
     async run(context) {
       const { $application } = context;
 
-      const base = $application.constants.mateuBaseUrl;
+      // el montaje del @UI (<mateu-ui baseUrl>) antes de nada: de él cuelga la API
+      bridge.initMount(document);
+      const base = bridge.mateuBase($application.constants.mateuBaseUrl);
       // Element (componentes web): su módulo `import` relativo lo sirve el BACKEND (otro origen en
       // vb-serve / VB alojado), y sus eventos (Element.on) ejecutan acciones de la página de
       // contenido, así que viajan como evento de aplicación (el camino del Reintentar). Antes de
       // la primera navegación: el contenido inicial ya puede traer Elements.
-      bridge.setElementModuleBase(base);
+      // imágenes, logo, módulos de componentes web y el sseUrl: de la RAÍZ del backend (no del
+      // montaje del @UI), como en el renderer Vaadin
+      const assetBase = bridge.mateuAssetBase($application.constants.mateuBaseUrl);
+      bridge.setElementModuleBase(assetBase);
       const runPageAction = (actionId, parameters, atom) => {
         Actions.fireEvent(window.__mateuShellContext || context, {
           name: 'application:mateuElementEvent',
@@ -209,13 +214,13 @@ define([
       }
       // logo del @App (URL relativa al backend Mateu) → imagen de marca en el header
       $application.variables.mateuShellLogo = reg.shell && reg.shell.logo
-        ? base + reg.shell.logo : '';
+        ? assetBase + reg.shell.logo : '';
       // chat de IA (@AI → App.sseUrl): endpoint del agente, same-origin del backend Mateu.
       // Con esto puesto sale el botón del chat en la cabecera (su drawer a la izquierda).
       $application.variables.mateuChatSseUrl = reg.shell && reg.shell.sseUrl
-        ? base + reg.shell.sseUrl : '';
+        ? assetBase + reg.shell.sseUrl : '';
       // el FAB de "ask": Ask Oracle con su glifo, o el rótulo/icono del @App(askLabel, askIcon)
-      const askFab = bridge.askFabOf(reg.shell, base);
+      const askFab = bridge.askFabOf(reg.shell, assetBase);
       $application.variables.mateuAskLabel = askFab.label;
       brandAskFabSoon(askFab);
       if (reg.shell && reg.shell.title) {
@@ -242,13 +247,13 @@ define([
       // (jar de renderer: el controller generado inyecta un <mateu-ui> oculto, la señal),
       // modo HASH (#/ruta) en serving estático (vb-serve local / VB hosteado en Oracle,
       // donde el server no puede reescribir paths arbitrarios al index)
-      const pathMode = !!document.querySelector('mateu-ui');
+      // El <mateu-ui> lleva además el MONTAJE del @UI (baseUrl="/console"): la API cuelga de él
+      // y las rutas son relativas a él (bridge.initMount; '' en la raíz).
+      const pathMode = bridge.initMount(document) != null;
       window.__mateuUrlPathMode = pathMode;
       // con su query: `?integration=MRU01` son los filtros con que se abre un listado (Vaadin
       // los aplica; aquí se perdían al arrancar y el listado salía sin filtrar)
-      const urlRoute = () => (pathMode
-        ? (window.location.pathname === '/' ? '' : window.location.pathname + (window.location.search || ''))
-        : (window.location.hash || '').replace(/^#/, ''));
+      const urlRoute = () => bridge.currentRouteOf(window.location);
 
       // deep-link — si la URL trae ruta, bootear ESA ruta. Con la query con que se abrió la
       // página (index.html la guarda al cargar: el router de VB la quita de la URL al arrancar)
@@ -306,7 +311,8 @@ define([
           if (!content || !path.includes(content)) return;
           const anchor = path.find((node) => node && node.tagName === 'A');
           if (!anchor) return;
-          let route = bridge.inAppRouteOfLink(anchor, event, window.location, !window.__mateuUrlPathMode);
+          let route = bridge.inAppRouteOfLink(anchor, event, window.location, !window.__mateuUrlPathMode,
+            bridge.currentMount());
           if (route === '/') route = liveContext().$application.variables.mateuHomeRoute || '';
           if (!route) return;
           event.preventDefault();
