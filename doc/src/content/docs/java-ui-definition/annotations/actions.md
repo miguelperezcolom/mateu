@@ -238,6 +238,10 @@ public @interface ListToolbarButton {
 @UI("/products")
 @Slf4j
 public class Products extends AutoCrud<Product> {
+    @Override
+    public CrudStore<Product> store() {
+        return new ProductStore(); // your CrudStore<Product>
+    }
 
     @ListToolbarButton
     void doSomethingOnRows(List<Product> selection) {

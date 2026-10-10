@@ -21,6 +21,11 @@ Annotate the `Crud` with `@SplitCrud`. The framework renders the list on the lef
 @UI("/orders")
 @SplitCrud
 public class OrdersCrud extends AutoCrud<Order> {
+    @Override
+    public CrudStore<Order> store() {
+        return new OrderStore(); // your CrudStore<Order>
+    }
+
     // nothing else needed
 }
 ```

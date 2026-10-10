@@ -137,7 +137,12 @@ public class HelloForm {
 
 ```java
 @UI("/products")
-public class Products extends AutoCrud<Product> {}
+public class Products extends AutoCrud<Product> {
+    @Override
+    public CrudStore<Product> store() {
+        return new ProductStore(); // your CrudStore<Product>
+    }
+}
 
 record Product(
     @NotEmpty @EditableOnlyWhenCreating String id,

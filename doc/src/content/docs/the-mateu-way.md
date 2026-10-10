@@ -54,7 +54,12 @@ the point: the first version of every screen should be minutes, not days.
 
 ```java
 @UI("/products")
-public class Products extends AutoCrud<Product> {}
+public class Products extends AutoCrud<Product> {
+    @Override
+    public CrudStore<Product> store() {
+        return new ProductStore(); // your CrudStore<Product>
+    }
+}
 ```
 
 Searchable listing with smart-search filters, detail view, edit and creation forms, validation,

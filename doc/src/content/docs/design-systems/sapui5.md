@@ -1,44 +1,32 @@
 ---
-title: "SAP Fiori / UI5"
-description: "Mateu renderer built on SAP UI5 and Fiori components."
+title: "SAP Fiori / UI5 (retired)"
+description: "The SAP UI5 renderer was retired; this page only keeps old links working."
 ---
-
 
 :::danger[Retired renderer]
 The SAP UI5 renderer was **retired**. There is no `sapui5-lit` artifact to depend on and no source
-app behind it (`apps/sapui5` was deleted). The supported web renderers are
-[Vaadin](/design-systems/vaadin/) and [Oracle Redwood](/design-systems/oracle-redwood/); see the
-[parity matrix](/reference/parity/).
-
-This page is kept only so existing links do not break, and describes what the renderer used to do.
+app behind it. The supported web renderers are [Vaadin](/design-systems/vaadin/) and
+[Oracle Redwood](/design-systems/oracle-redwood/); see the [parity matrix](/reference/parity/).
 :::
 
-The SAP renderer uses UI5 web components and optionally SAP Fiori components. Use it when your UIs need to look and feel like SAP applications, or when they will be embedded inside an existing SAP Fiori launchpad.
+## If you used it
 
-<div style="display: flex; width: 100%; align-items: center; justify-content: center;">
-  <img src="../../../images/phenix_blue.svg?raw=true" width="60" style="margin-right: 10px;"/>
-  <img src="../../../images/fiori.png?raw=true" width="60"/>
-</div>
-
-<p align="center"><img src="../../../images/basic-form-sapui5.png?raw=true" width="600"/></p>
-
-**Demo:** https://sapui5.mateu.io/
-
-## Add to your project
+Replace the renderer dependency with one of the supported ones — your `@UI` classes, YAML
+definitions and backend code do not change, because every renderer consumes the same wire model:
 
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>sapui5-lit</artifactId>
+    <artifactId>vaadin-lit</artifactId>
     <version>MATEU_VERSION</version>
 </dependency>
 ```
 
-## Licensing note
-
-UI5 is open source and freely available. SAP Fiori components require a valid SAP license. The Mateu SAP renderer is built primarily on UI5 components, with some Fiori components for specific patterns. A fully open-source UI5-only variant is planned.
+If what you need is a look that matches an existing SAP Fiori launchpad, the
+[bring-your-own design system](/design-systems/bring-your-own-design-system/) guide describes how a
+renderer is built against the [renderer contract](/design-systems/renderer-contract/).
 
 ## Related
 
 - [Design systems overview](/design-systems/)
-- [Embedded UI](/java-user-manual/use-cases/embedded-ui/)
+- [Migrating from alpha](/reference/migrating-from-alpha/)

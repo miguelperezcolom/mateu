@@ -203,6 +203,11 @@ For the "Create and Edit - Drawer" pattern (Oracle Redwood's RDS template), you 
 @UI("/contacts")
 public class ContactsCrud extends AutoCrud<Contact> {
   @Override
+  public CrudStore<Contact> store() {
+    return new ContactStore(); // your CrudStore<Contact>
+  }
+
+  @Override
   public boolean editInDrawer() {
     return true;
   }
