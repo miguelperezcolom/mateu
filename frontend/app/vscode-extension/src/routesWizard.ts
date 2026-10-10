@@ -7,7 +7,7 @@ import { existsSync, readFileSync, readdirSync, type Dirent } from 'node:fs'
 import { parse } from 'yaml'
 import { yamlScalar } from './newFiles'
 
-export type SpecKind = 'mount' | 'routes' | 'sources' | 'appShell' | 'page' | 'translations' | 'environment'
+export type SpecKind = 'mount' | 'routes' | 'sources' | 'actions' | 'appShell' | 'page' | 'translations' | 'environment'
 
 /** A discovered specs/ui file; `path` is relative to the specs/ui root, `/`-separated. */
 export interface SpecFile {
@@ -51,6 +51,7 @@ export function classify(text: string, path = ''): SpecKind | null {
         case 'UI': return 'mount'
         case 'Routes': return 'routes'
         case 'Sources': return 'sources'
+        case 'Actions': return 'actions'
         case 'AppShell': return 'appShell'
         case 'Translations': return 'translations'
         case 'Environment': return 'environment'

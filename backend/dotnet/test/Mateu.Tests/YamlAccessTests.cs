@@ -183,4 +183,126 @@ public class YamlAccessTests
         Assert.Equal(["a", "b"], YamlAccess.AccessOf(new List<object> { "a", "b" })!.Roles);
         Assert.Null(YamlAccess.AccessOf(new Dictionary<object, object>()));
     }
+
+    // ── the action catalogue's access: (actions.yaml / type: Actions) ───────────────────────
+
+    private static readonly ActionCatalog RestrictedCatalog = new(
+    [
+        new CatalogAction("wipe") { Steps = [new Navigate("wiped")], Access = Access.OfRoles("manager") },
+        new CatalogAction("newOrder") { Steps = [new Navigate("orders/new")], Access = Access.OfRoles("manager") },
+        new CatalogAction("open") { Steps = [new Navigate("opened")] },
+    ]);
+
+    private static readonly string CatalogueDir = CatalogueSpecs();
+
+    private static string CatalogueSpecs()
+    {
+        var dir = Directory.CreateTempSubdirectory("yaml-access-catalogue-").FullName;
+        File.WriteAllText(Path.Combine(dir, "routes.yaml"), """
+            routes:
+              - route: sec-catalogue
+                definition: page.yaml
+              - route: sec-owner
+                definition: owner.yaml
+            """);
+        File.WriteAllText(Path.Combine(dir, "page.yaml"), """
+            layout:
+              type: VerticalLayout
+              content:
+                - type: Button
+                  label: Wipe
+                  actionId: wipe
+                - type: Button
+                  label: Open
+                  actionId: open
+            """);
+        // OWNER FIRST: a page that declares its own `wipe` is the page's, never the catalogue's
+        File.WriteAllText(Path.Combine(dir, "owner.yaml"), """
+            actions:
+              - id: wipe
+                steps:
+                  - type: Navigate
+                    route: own
+            layout:
+              type: VerticalLayout
+              content:
+                - type: Button
+                  label: Wipe
+                  actionId: wipe
+            """);
+        return dir;
+    }
+
+    private static SyncHandler CatalogueHandler(params string[] roles) =>
+        new(new MateuRegistry(typeof(CataloguePage).Assembly),
+            identity: () => roles.Length == 0 ? null : new Identity(Roles: roles),
+            specsDir: CatalogueDir, actionCatalog: new ActionRegistry(RestrictedCatalog));
+
+    [Fact]
+    public void A_restricted_catalogue_action_is_refused_like_a_page_action()
+    {
+        var refused = ById(CatalogueHandler("hr").Handle(new RunActionRqDto { Route = "/sec-catalogue" }));
+        Assert.True(refused["wipe"].GetProperty("disabled").GetBoolean());
+        Assert.False(refused["open"].GetProperty("disabled").GetBoolean());
+        Assert.Throws<MateuForbiddenException>(() =>
+            CatalogueHandler("hr").Handle(new RunActionRqDto { Route = "/sec-catalogue", ActionId = "wipe" }));
+        Assert.Throws<MateuForbiddenException>(() => CatalogueHandler("hr").Handle(new RunActionRqDto
+        {
+            Route = "/sec-catalogue", ActionId = "__restfetch__",
+            Parameters = new() { ["_sourceKind"] = "ACTION", ["_sourceId"] = "wipe" },
+        }));
+        // the page's own action of the same id is the page's: not refused
+        Assert.False(ById(CatalogueHandler("hr").Handle(new RunActionRqDto { Route = "/sec-owner" }))["wipe"]
+            .GetProperty("disabled").GetBoolean());
+        CatalogueHandler("hr").Handle(new RunActionRqDto { Route = "/sec-owner", ActionId = "wipe" });
+    }
+
+    [Fact]
+    public void A_restricted_catalogue_action_is_granted_to_an_authorized_caller()
+    {
+        var granted = ById(CatalogueHandler("manager").Handle(new RunActionRqDto { Route = "/sec-catalogue" }));
+        Assert.False(granted["wipe"].GetProperty("disabled").GetBoolean());
+        CatalogueHandler("manager").Handle(new RunActionRqDto { Route = "/sec-catalogue", ActionId = "wipe" });
+    }
+
+    [Fact]
+    public void The_catalogue_on_the_wire_excludes_the_entries_the_caller_may_not_run()
+    {
+        string App(params string[] roles) => Json(CatalogueHandler(roles).Handle(new RunActionRqDto
+        {
+            ServerSideType = typeof(Wire.ContextApp).FullName,
+        }));
+        Assert.DoesNotContain("\"id\":\"wipe\"", App("hr"));
+        Assert.Contains("\"id\":\"open\"", App("hr"));
+        Assert.Contains("\"id\":\"wipe\"", App("manager"));
+
+        // a page naming a refused entry does not get it shipped either
+        List<string> PageActions(params string[] roles) => CatalogueHandler(roles)
+            .Handle(new RunActionRqDto { Route = "catalogue-page" })
+            .Fragments.Select(f => f.Component).OfType<ServerSideComponentDto>().First()
+            .Actions.Where(a => a.Commands is not null).Select(a => a.Id).ToList();
+        Assert.DoesNotContain("newOrder", PageActions("hr"));
+        Assert.Contains("newOrder", PageActions("manager"));
+    }
+
+    [Fact]
+    public void An_authored_catalogue_entry_remembers_its_access()
+    {
+        var dir = Directory.CreateTempSubdirectory("yaml-access-actions-").FullName;
+        File.WriteAllText(Path.Combine(dir, "actions.yaml"), """
+            actions:
+              - id: wipe
+                access: {roles: [manager]}
+                steps: [{type: Navigate, route: x}]
+              - id: open
+                steps: [{type: Navigate, route: y}]
+            """);
+        var registry = new ActionRegistry(ActionRegistry.AuthoredFrom(dir));
+        Assert.Equal(["wipe"], registry.RestrictedIds());
+        Assert.Equal(["wipe"], registry.RefusedFor(a => a is null));
+        Assert.Empty(registry.RefusedFor(_ => true));
+        Assert.Equal(["open"], registry.CatalogFor(a => a is null).Actions.Select(a => a.Id));
+        Assert.True(registry.Grants("open", a => a is null));
+        Assert.False(registry.Grants("wipe", a => a is null));
+    }
 }

@@ -8,7 +8,7 @@ import { customElement, property, state } from 'lit/decorators.js'
 import { PageNode, scalarProps } from '../model/pageModel'
 import { PropSpec, slotProps } from '../model/componentSchema'
 import { specFor } from '../model/schemaCatalog'
-import type { ProjectIndex } from '../model/projectIndex'
+import { catalogueActionOptions, type ProjectIndex } from '../model/projectIndex'
 import type { ContractMembers } from '../model/contract'
 
 /**
@@ -156,6 +156,8 @@ export class EditorProperties extends LitElement {
             return [
                 ...this.pageActionIds.map((a) => ({ value: a, hint: 'this page' })),
                 ...(this.contract?.actions ?? []).map((a) => ({ value: a, hint: 'view model' })),
+                // then the shared catalogue — the page's own action of the same id wins at runtime
+                ...catalogueActionOptions(this.project, this.pageActionIds),
             ]
         }
         return null

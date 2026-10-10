@@ -80,9 +80,14 @@ public sealed class YamlSpecLoader
         {
             var tree = spec.Source;
             IReadOnlySet<string> refused = new HashSet<string>(), locked = new HashSet<string>();
-            if (YamlAccess.DeclaresAccess(tree))
+            // the action catalogue's restricted entries this page names (not its own): enforced
+            // like the page's own refused actions (mirrors Java's catalogueActionsRefusedIn)
+            var catalogueRefused = ActionRegistry.CatalogueIdsNamedBy(tree);
+            catalogueRefused.IntersectWith(MateuCatalogs.RefusedActions);
+            if (YamlAccess.DeclaresAccess(tree) || catalogueRefused.Count > 0)
             {
-                var applied = YamlAccess.Apply(tree, granted, path => _registry.IsReachable(path, granted));
+                var applied = YamlAccess.Apply(tree, granted, path => _registry.IsReachable(path, granted),
+                    catalogueRefused);
                 (tree, refused, locked) = (applied.Tree, applied.RefusedActions, applied.LockedFields);
             }
             else tree = YamlAccess.DeepCopy(tree);
@@ -121,7 +126,8 @@ public sealed class YamlSpecLoader
             if (layout is null && delta.IsEmpty) return None;
             // A spec that depends on who asks or in which language keeps its source tree, so it can
             // be re-derived per request; everything else is shared as-is.
-            var dependsOnRequest = YamlAccess.DeclaresAccess(root) || TranslationRegistry.MentionsI18n(root);
+            var dependsOnRequest = YamlAccess.DeclaresAccess(root) || TranslationRegistry.MentionsI18n(root)
+                                   || ReferencesRestrictedCatalogueAction(root);
             // The definition is layout; the binding to a view model belongs to the route entry. A
             // YAML that still declares modelView: keeps working and wins — but a definition shared
             // by several routes must NOT name one, or it could only ever serve the class it names.
@@ -136,6 +142,14 @@ public sealed class YamlSpecLoader
             MateuLogging.For("Mateu.Yaml").LogWarning(e, "YAML definition {Path} could not be loaded: {Error}", path, e.Message);
             return None;
         }
+    }
+
+    /// <summary>Whether the tree names a catalogue action that declares <c>access:</c> (the catalogue
+    /// in effect for the request — set by the SyncHandler).</summary>
+    private static bool ReferencesRestrictedCatalogueAction(object? root)
+    {
+        var restricted = ActionRegistry.RestrictedIn(MateuCatalogs.Actions);
+        return restricted.Count > 0 && ActionRegistry.CatalogueIdsNamedBy(root).Overlaps(restricted);
     }
 
     private static string Normalize(string? route)

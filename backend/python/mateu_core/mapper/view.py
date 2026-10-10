@@ -112,9 +112,20 @@ class ViewMapperMixin(MixinBase):
             for a in tree_ids:
                 # handled = the method the action guard would let this id run
                 handled = resolve_action(cls, a, lambda: set(tree_ids)) is not None
-                if a not in known and (not is_tree_supplier or handled):
+                # OWNER FIRST, then the action catalogue: an id the view neither declares nor has a
+                # method for runs the catalogue entry of that id (Java's TreeActionHarvester).
+                from_catalogue = (
+                    not handled and self.action_catalog is not None and self.action_catalog.get(a) is not None
+                )
+                if a not in known and not from_catalogue and (not is_tree_supplier or handled):
                     known.add(a)
                     actions.append(Action(id=a))
+            if self.action_catalog is not None:
+                from ..action_registry import to_dto
+
+                for entry in self.action_catalog.referenced_by(tree_ids, known, self.authorized):
+                    known.add(entry.id)
+                    actions.append(to_dto(entry))
         else:
             # Compact mode tightens the form: the FormLayout's minimum column width drops to 7em.
             compact_cw = "7em" if class_flag(cls, "__mateu_compact__", False) else None

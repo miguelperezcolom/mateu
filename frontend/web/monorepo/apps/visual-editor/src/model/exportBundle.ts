@@ -1,5 +1,6 @@
 import { parse } from 'yaml'
 import { ProjectFile } from './projectIndex'
+import { lowerCatalogue } from '@infra/ui/actionCatalogue.ts'
 
 /**
  * Export the authored mount as a **static bundle manifest** (visual-editor Phase 7 — the €0 deploy half).
@@ -15,6 +16,8 @@ export interface BundleManifest {
     generatedAt: string
     routes?: { routes: unknown[] }
     sources?: { sources: unknown[] }
+    /** The ACTION catalogue (every `type: Actions` file), shipped once and lowered — `BundleManifest.actions`. */
+    actions?: unknown[]
     /** Raw authored definitions keyed by file name (e.g. `about.yaml`) — what specs mode expands. */
     definitions: Record<string, unknown>
 }
@@ -23,6 +26,7 @@ export function buildBundleManifest(files: ProjectFile[], generatedAt: string): 
     const definitions: Record<string, unknown> = {}
     let routes: { routes: unknown[] } | undefined
     let sources: { sources: unknown[] } | undefined
+    const actions: unknown[] = []
 
     for (const f of files) {
         let obj: Record<string, unknown>
@@ -37,13 +41,15 @@ export function buildBundleManifest(files: ProjectFile[], generatedAt: string): 
         // The route registry and the REST-source catalogue travel as their own manifest sections.
         if (type === 'Routes' || (Array.isArray(obj.routes) && !type)) { routes = { routes: (obj.routes as unknown[]) ?? [] }; continue }
         if (type === 'Sources' || (Array.isArray(obj.sources) && !type)) { sources = { sources: (obj.sources as unknown[]) ?? [] }; continue }
+        if (type === 'Actions') { actions.push(...((obj.actions as unknown[]) ?? [])); continue }
         // The mount descriptor and the app shell are not definitions a route expands — skip them.
         if (type === 'UI' || type === 'AppShell') continue
         // Everything else is an authored definition (a page `layout:`, a bare component, a partial).
         definitions[basename(f.path)] = obj
     }
 
-    return { staticOnly: true, generatedAt, routes, sources, definitions }
+    const lowered = lowerCatalogue(actions)
+    return { staticOnly: true, generatedAt, routes, sources, ...(lowered.length ? { actions: lowered } : {}), definitions }
 }
 
 /** How many routes would render with NO backend (definition-only), for the export summary. */

@@ -73,6 +73,27 @@ class YamlSpecLoader:
         self.translations = (
             translations if translations is not None else TranslationRegistry(str(self._dir))
         )
+        #: The action catalogue (an ActionRegistry, set by the SyncHandler): a catalogue entry with
+        #: ``access:`` that a definition names is enforced like the definition's own actions.
+        self.action_catalog = None
+
+    def _names_restricted_catalogue_action(self, tree: Any) -> bool:
+        catalog = self.action_catalog
+        if catalog is None or not catalog.restricts_any():
+            return False
+        from mateu_core.action_registry import catalogue_ids_named_by
+
+        return bool(catalogue_ids_named_by(tree) & catalog.restricted_ids())
+
+    def _catalogue_actions_refused_in(self, tree: Any, authorized) -> set[str]:
+        """The catalogue actions ``tree`` names (OWNER FIRST: not the ones it declares itself)
+        that the caller may NOT run (Java's ``catalogueActionsRefusedIn``)."""
+        catalog = self.action_catalog
+        if catalog is None or not catalog.restricts_any():
+            return set()
+        from mateu_core.action_registry import catalogue_ids_named_by
+
+        return catalogue_ids_named_by(tree) & catalog.refused_for(authorized)
 
     def load_spec_for(
         self,
@@ -91,11 +112,13 @@ class YamlSpecLoader:
             tree = spec.source
             refused: frozenset = frozenset()
             locked: frozenset = frozenset()
-            if yaml_access.declares_access(tree):
+            catalogue_refused = self._catalogue_actions_refused_in(tree, authorized)
+            if yaml_access.declares_access(tree) or catalogue_refused:
                 applied = yaml_access.apply(
                     tree,
                     authorized,
                     lambda path: self._registry.is_reachable(path, authorized),
+                    catalogue_refused,
                 )
                 tree, refused, locked = applied.tree, applied.refused_actions, applied.locked_fields
             else:
@@ -131,7 +154,15 @@ class YamlSpecLoader:
         model_view, layout, delta = parse_spec_tree(data, self.partials)
         # A spec that depends on who asks or in which language keeps its source tree, so it can be
         # re-derived per request (load_spec_for); everything else is shared as-is.
-        source = data if (yaml_access.declares_access(data) or mentions_i18n(data)) else None
+        source = (
+            data
+            if (
+                yaml_access.declares_access(data)
+                or mentions_i18n(data)
+                or self._names_restricted_catalogue_action(data)
+            )
+            else None
+        )
         if layout is None and delta is None:
             return None
         # The definition is layout; the binding to a view model belongs to the route entry. A YAML

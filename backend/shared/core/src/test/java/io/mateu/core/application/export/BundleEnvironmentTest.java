@@ -68,6 +68,7 @@ class BundleEnvironmentTest {
             null,
             List.of(),
             Map.of(),
+            List.of(),
             Map.of("es", Map.of("greeting.title", "Hola")),
             "pre");
     var json = JSON.readTree(JSON.writeValueAsString(manifest));
@@ -112,7 +113,17 @@ class BundleEnvironmentTest {
 
     var manifest =
         new BundleManifest(
-            "", "now", true, List.of(), table, null, List.of(), definitions, Map.of(), null);
+            "",
+            "now",
+            true,
+            List.of(),
+            table,
+            null,
+            List.of(),
+            definitions,
+            List.of(),
+            Map.of(),
+            null);
     var violations = StaticSafetyCheck.check(manifest, Map.of(), null);
     assertThat(violations)
         .anyMatch(v -> v.route().equals("/admin") && v.reason().contains("access:"))

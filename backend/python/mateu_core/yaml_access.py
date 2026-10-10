@@ -86,12 +86,19 @@ def apply(
     root: Any,
     authorized: Callable[[Any], bool],
     route_reachable: Callable[[str], bool] | None = None,
+    also_refused: set[str] | frozenset[str] | None = None,
 ) -> Applied:
-    """Applies the access keys of ``root`` for the caller ``authorized`` answers for, on a COPY."""
+    """Applies the access keys of ``root`` for the caller ``authorized`` answers for, on a COPY.
+
+    ``also_refused``: ids of actions refused elsewhere — the action CATALOGUE's restricted entries
+    the tree names — enforced like the tree's own: buttons naming them disabled, and reported in
+    ``refused_actions`` so a call that reaches the server is refused (Java's
+    ``YamlAccess.apply(..., alsoRefused)``)."""
     if root is None:
         return Applied(None)
     tree = copy.deepcopy(root)
     walker = _Walker(authorized, route_reachable)
+    walker.refused.update(also_refused or ())
     if walker.removes(tree, None):
         return Applied(None, frozenset(walker.refused), frozenset(walker.locked))
     walker.walk(tree, None, False)

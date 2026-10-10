@@ -38,6 +38,8 @@ class MateuRegistry:
         self.catalog_suppliers: list[type] = []
         #: ComponentCatalogSupplier subclasses (the code half of the business-component catalogue).
         self.component_suppliers: list[type] = []
+        #: ActionCatalogSupplier subclasses (the code half of the action catalogue).
+        self.action_suppliers: list[type] = []
         #: model type → its ComponentAdapter instance (the ComponentAdapter SPI).
         self.adapters: dict[type, object] = {}
         #: TranslationsSupplier subclasses (the code half of the translation catalogue; the
@@ -108,6 +110,16 @@ class MateuRegistry:
             and cls not in self.translations_suppliers
         ):
             self.translations_suppliers.append(cls)
+
+        from mateu_uidl.action_catalog import ActionCatalogSupplier
+
+        if (
+            isinstance(cls, type)
+            and issubclass(cls, ActionCatalogSupplier)
+            and cls is not ActionCatalogSupplier
+            and cls not in self.action_suppliers
+        ):
+            self.action_suppliers.append(cls)
         if is_catalog_supplier(cls) and cls not in self.component_suppliers:
             self.component_suppliers.append(cls)
         if (

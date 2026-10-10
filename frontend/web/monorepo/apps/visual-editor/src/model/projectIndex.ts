@@ -3,6 +3,8 @@ import { isRoutesYaml, parseRoutes, flattenRoutes } from './routesModel'
 import { parse } from 'yaml'
 import { hasAppShell } from './appModel'
 import { environmentName, parseTranslationsFile, type TranslationsFile } from './translationsModel'
+import { isActionsYaml, parseActionCatalogue, type CatalogueAction } from './actionsModel'
+import type { ComboOption } from '../widgets/comboModel'
 
 /**
  * A file of the mount as the host hands it over: a path relative to `specs/ui/` plus its raw YAML.
@@ -40,6 +42,8 @@ export interface ProjectIndex {
     translations?: TranslationsFile[]
     /** The deployment environments (`type: Environment` / `environments/<name>.yaml`), by name. */
     environments?: string[]
+    /** The ACTION catalogue (every `type: Actions` file): named client-runnable actions, by id. */
+    actions: CatalogueAction[]
 }
 
 /** One entry of the REST source catalogue — the shape the renderer's catalogue takes. */
@@ -69,6 +73,17 @@ export function parseSources(yaml: string): SourceEntry[] {
     return list.filter((s: any) => s && typeof s.name === 'string')
 }
 
+/**
+ * The catalogue ids an actionId picker offers (hint `catalog`), minus the ones the OWNER already
+ * offers itself — the owner's action of the same id wins at runtime, so listing both would mislead.
+ */
+export function catalogueActionOptions(project: ProjectIndex | undefined, owned: Iterable<string | undefined> = []): ComboOption[] {
+    const skip = new Set<string | undefined>(owned)
+    return (project?.actions ?? [])
+        .filter((a) => a.kind !== 'other' && !skip.has(a.id))
+        .map((a) => ({ value: a.id, hint: 'catalog' }))
+}
+
 const PARTIALS_DIR = 'partials/'
 
 /** Build the reference index from the mount's authored files. Pure — the unit of the pickers. */
@@ -81,6 +96,7 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
     const sources: SourceEntry[] = []
     const translations: TranslationsFile[] = []
     const environments: string[] = []
+    const actions = new Map<string, CatalogueAction>()
 
     for (const f of files ?? []) {
         const path = normalize(f.path)
@@ -92,6 +108,8 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
         if (catalogue) { translations.push(catalogue); continue }
         const environment = environmentName(path, content)
         if (environment) { environments.push(environment); continue }
+        // A later file's entry replaces an earlier one of the same id, as the runtime merges them.
+        if (isActionsYaml(content)) { for (const a of parseActionCatalogue(content)) actions.set(a.id, a); continue }
         if (isRoutesYaml(content)) {
             // Children are flattened to their absolute route, as the loader does.
             for (const r of flattenRoutes(parseRoutes(content).routes)) {
@@ -115,6 +133,7 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
         // only when present, so an index of a mount without them keeps its shape
         ...(translations.length ? { translations } : {}),
         ...(environments.length ? { environments: dedupe(environments) } : {}),
+        actions: [...actions.values()],
     }
 }
 

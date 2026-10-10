@@ -1,0 +1,21 @@
+# A definition-only page whose buttons name catalogue actions; it overrides `refresh` locally.
+layout:
+  type: VerticalLayout
+  content:
+    - type: Button
+      id: new-order
+      label: New order
+      actionId: newOrder
+    - type: Button
+      id: refresh
+      label: Refresh
+      actionId: refresh
+    - type: Button
+      id: chained
+      label: Chained
+      actionId: chained
+actions:
+  - id: refresh
+    steps:
+      - type: Emit
+        event: page-refresh

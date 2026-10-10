@@ -25,6 +25,7 @@ class MateuRoutesTest : TestCase() {
         assertEquals(SpecKind.MOUNT, MateuRoutes.classify("type: UI\nbasePath: /\n"))
         assertEquals(SpecKind.ROUTES, MateuRoutes.classify("type: Routes\nroutes: []\n"))
         assertEquals(SpecKind.SOURCES, MateuRoutes.classify("type: Sources\nsources: []\n"))
+        assertEquals(SpecKind.ACTIONS, MateuRoutes.classify("type: Actions\nactions: []\n"))
         assertEquals(SpecKind.TRANSLATIONS, MateuRoutes.classify("type: Translations\nlocale: es\nmessages: {}\n"))
         assertEquals(SpecKind.TRANSLATIONS, MateuRoutes.classify("messages: {a: b}\n", "translations/es.yaml"))
         assertEquals(SpecKind.ENVIRONMENT, MateuRoutes.classify("type: Environment\nname: pre\nsources: {}\n"))

@@ -26,6 +26,20 @@ describe('buildPlayManifest', () => {
     })
 })
 
+describe('buildPlayManifest — the action catalogue', () => {
+    const m = buildPlayManifest([
+        { path: 'actions.yaml', content: 'type: Actions\nactions:\n  - id: newOrder\n    description: Start\n    steps:\n      - {type: Navigate, route: orders/new}\n  - id: serverOnly\n' },
+        { path: 'more/other.yaml', content: 'type: Actions\nactions:\n  - {id: other, steps: [{type: MarkClean}]}\n' },
+    ], 'now')
+    it('ships every type: Actions file as ONE lowered catalogue, never as a definition', () => {
+        expect(Object.keys(m.definitions)).toEqual([])
+        expect(m.actions).toEqual([
+            { id: 'newOrder', commands: [{ targetComponentId: null, type: 'NavigateTo', data: 'orders/new' }] },
+            { id: 'other', commands: [{ targetComponentId: null, type: 'MarkAsClean', data: null }] },
+        ])
+    })
+})
+
 describe('withEdited', () => {
     const files = [{ path: 'a.yaml', content: 'old' }, { path: 'b.yaml', content: 'b' }]
     it('lays the edited text over the saved copy', () => {

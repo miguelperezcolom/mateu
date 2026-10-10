@@ -341,6 +341,7 @@ export default defineConfig({
 						{ slug: 'java-ui-definition/yaml-ui-definition' },
 						{ slug: 'java-ui-definition/route-registry' },
 						{ slug: 'java-ui-definition/rest-source-catalogue' },
+						{ slug: 'java-ui-definition/action-catalogue' },
 						{ slug: 'java-ui-definition/environments' },
 						{ slug: 'java-ui-definition/yaml-security', label: 'Permissions in YAML' },
 						{ slug: 'java-ui-definition/yaml-i18n', label: 'Translations in YAML' },

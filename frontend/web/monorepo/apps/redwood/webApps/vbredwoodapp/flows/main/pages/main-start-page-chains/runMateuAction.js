@@ -154,7 +154,13 @@ define([
         allEvents.push.apply(allEvents, reg.effects.events || []);
         allToasts.push.apply(allToasts, reg.effects.toasts || []);
       };
-      if (isSse) {
+      // OWNER FIRST, then the app's ACTION catalogue: a flow the page declares — or, when the page
+      // does not declare the id, the catalogue's — runs HERE with no server round trip, reduced
+      // like any increment (NavigateTo / DispatchEvent / CloseModal / MarkAsClean …).
+      const clientFlow = bridge.pageFlowOf(before, id);
+      if (clientFlow) {
+        applyInc({ commands: clientFlow, fragments: [], messages: [] });
+      } else if (isSse) {
         // LongTask: el diálogo de progreso se pinta EN VIVO según llega el stream; sus
         // increments (Add del Dialog + state-only del progreso) se CONSUMEN aquí y no se
         // reducen — los commands/messages del último (p.ej. el dispatchEvent del

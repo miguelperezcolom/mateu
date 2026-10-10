@@ -104,6 +104,7 @@ from ._common import (  # noqa: F401 - the public import path of every helper
     view_fields,
 )
 from ..component_registry import ComponentRegistry
+from ..action_registry import ActionRegistry
 from ..rest_source_registry import RestSourceRegistry
 from .. import action_guard, islands
 from ._base import MixinBase
@@ -147,6 +148,7 @@ class SyncHandler(
         components: ComponentRegistry | None = None,
         environment: str | None = None,
         translations=None,
+        action_catalog: ActionRegistry | None = None,
     ):
         self.registry = registry
         #: Upper bound for a proxied (__restfetch__) upstream call.
@@ -164,7 +166,13 @@ class SyncHandler(
             classes=getattr(registry, "classes", []),
             suppliers=getattr(registry, "component_suppliers", []),
         )
+        #: The action catalogue: ActionCatalogSupplier classes (derived), specs/ui/actions.yaml and
+        #: any `type: Actions` file on top (authored).
+        self.action_catalog = action_catalog or ActionRegistry(
+            suppliers=getattr(registry, "action_suppliers", []),
+        )
         self.mapper = ReflectionMapper(translator, identity_provider, self.rest_sources, self.components)
+        self.mapper.action_catalog = self.action_catalog
         self.mapper.adapters = getattr(registry, "adapters", {})
         #: The translation catalogue: TranslationsSupplier classes (code) under the
         #: `type: Translations` files of the specs directory (authored wins). ${i18n.key} in YAML
@@ -182,6 +190,7 @@ class SyncHandler(
         #: Shared with the spec loader so both see one table.
         self.routes = RouteRegistry(supplied=getattr(registry, "supplied_routes", None))
         self.yaml_specs = YamlSpecLoader(registry=self.routes, translations=self.translations)
+        self.yaml_specs.action_catalog = self.action_catalog
 
     def handle(self, rq: RunActionRq, request_base_url: str | None = None) -> UIIncrement:
         # A route (routes.yaml) may seed state/appState/data/appData. `state` folds into the

@@ -262,6 +262,53 @@ public class YamlUidlLoader {
     return command;
   }
 
+  /** The action catalogue, when there is a bean context to ask (null in a bare unit test). */
+  private static ActionRegistry actionRegistry() {
+    try {
+      return io.mateu.uidl.di.MateuBeanProvider.getBean(ActionRegistry.class);
+    } catch (Throwable t) {
+      return null;
+    }
+  }
+
+  /** Whether {@code tree} names a catalogue action that declares {@code access:}. */
+  private static boolean referencesRestrictedCatalogueAction(JsonNode tree) {
+    var registry = actionRegistry();
+    if (registry == null || !registry.restrictsAny()) {
+      return false;
+    }
+    return catalogueIdsNamedBy(tree).stream().anyMatch(registry.restrictedIds()::contains);
+  }
+
+  /**
+   * The action ids {@code tree} names that its own {@code actions:} do not declare — OWNER FIRST:
+   * an id the page declares is the page's, never the catalogue's.
+   */
+  private static java.util.Set<String> catalogueIdsNamedBy(JsonNode tree) {
+    var ids = new java.util.LinkedHashSet<String>();
+    ActionRegistry.collectIds(tree, ids);
+    var own = tree == null ? null : tree.get("actions");
+    if (own != null && own.isArray()) {
+      own.forEach(action -> ids.remove(action.path("id").asText()));
+    }
+    return ids;
+  }
+
+  /**
+   * The catalogue actions {@code tree} names that the caller may NOT run — enforced like a page's
+   * own restricted actions: buttons disabled, a call that reaches the server refused.
+   */
+  private static java.util.Set<String> catalogueActionsRefusedIn(
+      JsonNode tree, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    var registry = actionRegistry();
+    if (registry == null || !registry.restrictsAny()) {
+      return java.util.Set.of();
+    }
+    var ids = catalogueIdsNamedBy(tree);
+    ids.retainAll(registry.refusedFor(httpRequest));
+    return ids;
+  }
+
   private static io.mateu.core.application.security.MateuForbiddenException refusedAction(
       String actionId) {
     log.warn(
@@ -287,10 +334,15 @@ public class YamlUidlLoader {
       var tree = spec.source();
       java.util.Set<String> refused = java.util.Set.of();
       java.util.Set<String> locked = java.util.Set.of();
-      if (io.mateu.core.application.security.YamlAccess.declaresAccess(tree)) {
+      var catalogueRefused = catalogueActionsRefusedIn(tree, httpRequest);
+      if (io.mateu.core.application.security.YamlAccess.declaresAccess(tree)
+          || !catalogueRefused.isEmpty()) {
         var applied =
             io.mateu.core.application.security.YamlAccess.apply(
-                tree, httpRequest, path -> routeRegistry.isReachable(path, httpRequest));
+                tree,
+                httpRequest,
+                path -> routeRegistry.isReachable(path, httpRequest),
+                catalogueRefused);
         tree = applied.tree();
         refused = applied.refusedActions();
         locked = applied.lockedFields();
@@ -411,7 +463,8 @@ public class YamlUidlLoader {
       // re-derived per request (loadSpec(route, httpRequest)); everything else is shared as-is.
       var dependsOnRequest =
           io.mateu.core.application.security.YamlAccess.declaresAccess(root)
-              || io.mateu.core.application.i18n.TranslationRegistry.mentionsI18n(root);
+              || io.mateu.core.application.i18n.TranslationRegistry.mentionsI18n(root)
+              || referencesRestrictedCatalogueAction(root);
       return new YamlPageSpec(
           modelView, layout, delta, actions, triggers, dependsOnRequest ? root : null, null, null);
     } catch (Exception e) {

@@ -257,6 +257,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     isMenuRuleId,
     menuRulesOf,
     menuRulePlanOf,
+    // the ACTION catalogue: a page button / menu leaf runs the owner's flow, then the catalogue's
+    pageFlowOf,
+    catalogueActionOf,
     dismissOverlay,
     // @Searchable: el selector en su diálogo, y los chips del campo
     searchPickerOf,

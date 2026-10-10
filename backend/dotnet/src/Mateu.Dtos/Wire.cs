@@ -184,6 +184,11 @@ public record ActionDto(
     /// not the whole form (mirrors io.mateu.dtos.ActionDto.fieldsToValidate).</summary>
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? FieldsToValidate { get; init; }
+    /// <summary>A declared client-side flow lowered to the wire commands the client applies with no
+    /// server round trip (an action-catalogue entry's steps); null for a normal server-dispatched
+    /// action (mirrors io.mateu.dtos.ActionDto.commands).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<UICommandDto>? Commands { get; init; }
 }
 
 /// <summary>Descriptor for a button that calls an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE

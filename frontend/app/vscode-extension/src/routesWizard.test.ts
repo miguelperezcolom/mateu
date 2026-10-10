@@ -46,6 +46,7 @@ describe('classify', () => {
         expect(classify('type: UI\nbasePath: /\n')).toBe('mount')
         expect(classify('type: Routes\nroutes: []\n')).toBe('routes')
         expect(classify('type: Sources\nsources: []\n')).toBe('sources')
+        expect(classify('type: Actions\nactions: []\n')).toBe('actions')
         expect(classify('type: Translations\nlocale: es\nmessages: {}\n')).toBe('translations')
         expect(classify('messages: {a: b}\n', 'translations/es.yaml')).toBe('translations')
         expect(classify('type: Environment\nname: pre\nsources: {}\n')).toBe('environment')

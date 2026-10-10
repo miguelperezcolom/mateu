@@ -69,10 +69,11 @@ class UidlSchemaTest {
     }
 
     // The unified schema must offer every branch (mount, routes envelope, bare route list, source
-    // catalogue, component) and carry the defs they reference (RouteEntry, RestSourceEntry and the
+    // catalogue, action catalogue, component) and carry the defs they reference (RouteEntry,
+    // RestSourceEntry and the
     // component catalog) — a specs/ui file kind missing from here is one the editor cannot
     // validate.
-    assertThat(generated.get("oneOf")).hasSize(7);
+    assertThat(generated.get("oneOf")).hasSize(8);
     assertThat(generated.get("$defs").has("RouteEntry")).isTrue();
     // translations + environments (the i18n catalogue and the REST source overlay)
     assertThat(generated.get("$defs").has("SourceOverride")).isTrue();
@@ -136,6 +137,41 @@ class UidlSchemaTest {
 
   private static Path sourcesSchemaFile() {
     return Path.of(System.getProperty("user.dir")).resolve("sources-schema.json");
+  }
+
+  private static Path actionsSchemaFile() {
+    return Path.of(System.getProperty("user.dir")).resolve("actions-schema.json");
+  }
+
+  @Test
+  void theCheckedInActionsSchemaMatchesTheActionRecord() throws IOException {
+    var generated = UidlSchemaGenerator.generateActions();
+    if (Boolean.getBoolean("uidl.schema.write")) {
+      UidlSchemaGenerator.write(actionsSchemaFile(), generated);
+    }
+    assertThat(MAPPER.readTree(Files.readString(actionsSchemaFile())))
+        .as("actions-schema.json is stale — regenerate it (see this class's javadoc)")
+        .isEqualTo(generated);
+  }
+
+  @Test
+  void theActionsSchemaDescribesAFlowAndARestActionEntry() {
+    var action = UidlSchemaGenerator.generateActions().get("$defs").get("Action").get("properties");
+    assertThat(action.has("id")).isTrue();
+    assertThat(action.has("steps")).as("a catalogue entry may be a flow").isTrue();
+    assertThat(action.has("restAction")).as("or a REST call").isTrue();
+    assertThat(action.has("description")).isTrue();
+  }
+
+  @Test
+  void theSpecsSchemaHasAnActionsBranch() {
+    var branches = UidlSchemaGenerator.generateSpecs().get("oneOf");
+    var found = false;
+    for (var branch : branches) {
+      var type = branch.path("properties").path("type").path("const").asText();
+      found |= "Actions".equals(type);
+    }
+    assertThat(found).as("specs-schema.json should accept a `type: Actions` file").isTrue();
   }
 
   @Test

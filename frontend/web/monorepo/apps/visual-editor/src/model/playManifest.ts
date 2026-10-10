@@ -2,6 +2,7 @@ import { parse } from 'yaml'
 import type { ProjectFile } from './projectIndex'
 import { isRoutesYaml, parseRoutes, flattenRoutes } from './routesModel'
 import { catalogueOf, environmentName, parseTranslationsFile, type TranslationsFile } from './translationsModel'
+import { lowerCatalogue } from '@infra/ui/actionCatalogue.ts'
 
 /**
  * The manifest play mode runs the mount from: the same "specs mode" shape a static bundle ships
@@ -19,6 +20,8 @@ export interface PlayManifest {
     generatedAt: string
     routes: { routes: PlayRoute[] }
     sources?: { sources: unknown[] }
+    /** The ACTION catalogue (every `type: Actions` file), lowered exactly as the server ships it. */
+    actions?: unknown[]
     definitions: Record<string, unknown>
     /** locale → key → text: the shared runtime resolves `${i18n.…}` with it, as for a static bundle. */
     translations?: Record<string, Record<string, string>>
@@ -38,6 +41,7 @@ export function buildPlayManifest(files: ProjectFile[], generatedAt = new Date()
     const definitions: Record<string, unknown> = {}
     const sources: unknown[] = []
     const catalogues: TranslationsFile[] = []
+    const actions: unknown[] = []
     for (const f of files ?? []) {
         if (isRoutesYaml(f.content)) { routes.push(...flattenRoutes(parseRoutes(f.content).routes).map(toPlayRoute)); continue }
         // a message catalogue travels as the manifest's `translations`; an environment re-points the
@@ -48,9 +52,14 @@ export function buildPlayManifest(files: ProjectFile[], generatedAt = new Date()
         const obj = parseObject(f.content)
         if (!obj || obj.type === 'UI') continue // unreadable, or the mount descriptor
         if (obj.type === 'Sources' || (!obj.type && Array.isArray(obj.sources))) sources.push(...((obj.sources as unknown[]) ?? []))
+        else if (obj.type === 'Actions') actions.push(...((obj.actions as unknown[]) ?? []))
         else definitions[normalizePath(f.path)] = obj
     }
-    const manifest: PlayManifest = { staticOnly: true, generatedAt, routes: { routes }, sources: sources.length ? { sources } : undefined, definitions }
+    const lowered = lowerCatalogue(actions)
+    const manifest: PlayManifest = {
+        staticOnly: true, generatedAt, routes: { routes }, sources: sources.length ? { sources } : undefined,
+        ...(lowered.length ? { actions: lowered } : {}), definitions,
+    }
     if (catalogues.length) manifest.translations = catalogueOf(catalogues)
     return manifest
 }

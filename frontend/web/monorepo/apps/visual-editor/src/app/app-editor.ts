@@ -7,7 +7,7 @@ import {
 } from '../model/appModel'
 import { STEP_TYPES, stepParam, type FlowStep } from '../model/flowEditor'
 import { enumValues } from '../model/schemaCatalog'
-import type { ProjectIndex } from '../model/projectIndex'
+import { catalogueActionOptions, type ProjectIndex } from '../model/projectIndex'
 import '../widgets/ve-combo'
 import { formatAccessInline, parseAccessInline } from '../model/access'
 import type { ComboOption } from '../widgets/comboModel'
@@ -67,9 +67,11 @@ export class AppEditor extends LitElement {
             .map((r) => ({ value: r.route, hint: r.definition ?? r.viewModel }))
     }
 
-    /** The shell's own flows — what a menu Action item, or a RunAction step, can run. */
+    /** The shell's own flows first, then the shared action catalogue — what a menu Action item, or a
+     *  RunAction step, can run (the shell's own action of the same id wins at runtime). */
     private get actionOptions(): ComboOption[] {
-        return appActionIds(this.doc).map((id) => ({ value: id, hint: 'flow' }))
+        const own = appActionIds(this.doc)
+        return [...own.map((id) => ({ value: id, hint: 'flow' })), ...catalogueActionOptions(this.project, own)]
     }
 
     updated(changed: PropertyValues) {
@@ -278,8 +280,8 @@ export class AppEditor extends LitElement {
                 <span class="kind">Action</span>
                 <div class="menu-row">
                     <input placeholder="Label" .value=${item.label ?? ''} @change=${(e: Event) => this.setItem(path, 'label', (e.target as HTMLInputElement).value)} />
-                    <ve-combo placeholder="actionId" title="One of the shell's flows (Actions above), or a server @Action id"
-                        .options=${this.actionOptions} empty-text="No flows yet — add one in Actions, or type a server @Action id"
+                    <ve-combo placeholder="actionId" title="One of the shell's flows (Actions above), an action of the catalogue, or a server @Action id"
+                        .options=${this.actionOptions} empty-text="No flows yet — add one in Actions or in an action catalogue, or type a server @Action id"
                         .value=${item.actionId ?? ''} @change=${(e: Event) => this.setItem(path, 'actionId', (e.target as HTMLInputElement).value)}></ve-combo>
                     ${this.accessInput(item, path)}
                     ${this.delBtn(path)}

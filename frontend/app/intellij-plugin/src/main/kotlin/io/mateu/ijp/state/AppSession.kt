@@ -98,6 +98,12 @@ class AppSession(
     /** The shell's declared actions (`App.actions`): a flow carries its steps lowered to `commands`. */
     var appActions: com.fasterxml.jackson.databind.JsonNode? = null
 
+    /** The app's ACTION catalogue (`App.actionCatalogue`): resolved after the owner's own actions. */
+    var actionCatalogue: com.fasterxml.jackson.databind.JsonNode? = null
+
+    /** Runs a catalogue REST action reached from the menu (no view state); set by the host view. */
+    var restActionRunner: ((String, com.fasterxml.jackson.databind.JsonNode) -> Unit)? = null
+
     /** The app's root route (`App.rootRoute`): shell-flow routes are relative to the mount. */
     var appRootRoute: String = ""
 
@@ -116,7 +122,7 @@ class AppSession(
             openViewHandler?.invoke(t("label"), t("route"), t("consumedRoute"), t("serverSideType"), t("actionId"))
             return
         }
-        for (effect in ShellFlows.effects(item, appActions)) {
+        for (effect in ShellFlows.effects(item, appActions, actionCatalogue)) {
             when (effect) {
                 is ShellFlows.Effect.Navigate -> {
                     val root = appRootRoute.trimEnd('/')
@@ -130,6 +136,14 @@ class AppSession(
                     appServerSideType ?: homeServerSideType,
                     effect.actionId,
                 )
+                is ShellFlows.Effect.RestAction -> restActionRunner?.invoke(effect.actionId, effect.restAction)
+                    ?: openViewHandler?.invoke(
+                        t("label").ifBlank { effect.actionId },
+                        homeRoute ?: appRootRoute,
+                        homeConsumedRoute ?: "",
+                        appServerSideType ?: homeServerSideType,
+                        effect.actionId,
+                    )
                 is ShellFlows.Effect.Event -> dispatchEvent(effect.eventName, effect.payload)
                 is ShellFlows.Effect.CloseOverlay -> {
                     closeTopOverlay()

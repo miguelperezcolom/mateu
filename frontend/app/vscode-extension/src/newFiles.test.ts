@@ -23,7 +23,7 @@ describe('New › Mateu catalogue', () => {
     it('resolves the shared catalogue (staged templates/ or the IntelliJ plugin resources)', () => {
         expect(existsSync(roots.catalogue)).toBe(true)
         expect(catalogue.files.map((f) => f.id)).toEqual(
-            expect.arrayContaining(['mount', 'routes', 'appShell', 'sources', 'translations', 'environment', 'page']),
+            expect.arrayContaining(['mount', 'routes', 'appShell', 'sources', 'actions', 'translations', 'environment', 'page']),
         )
         expect(catalogue.pageTemplates.length).toBeGreaterThanOrEqual(17)
     })

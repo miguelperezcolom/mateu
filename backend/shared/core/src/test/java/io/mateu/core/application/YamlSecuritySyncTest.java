@@ -375,6 +375,64 @@ class YamlSecuritySyncTest {
     assertThat(manager == null || !(manager instanceof MateuForbiddenException)).isTrue();
   }
 
+  // ── catalogue actions ───────────────────────────────────────────────────────────────────────
+
+  private Path catalogue() {
+    return SpecsDir.write(
+        dir,
+        Map.of(
+            "routes.yaml",
+            """
+            type: Routes
+            routes:
+              - route: tools
+                layout: tools.yaml
+            """,
+            "tools.yaml",
+            """
+            layout:
+              type: VerticalLayout
+              content:
+                - {type: Button, label: Purge, actionId: purge}
+                - {type: Button, label: Ping, actionId: ping}
+            """,
+            "actions.yaml",
+            """
+            type: Actions
+            actions:
+              - id: purge
+                access: {roles: [admin]}
+                restAction:
+                  source: {url: https://api.invalid/purge, method: POST, proxy: true}
+              - id: ping
+                restAction:
+                  source: {url: https://api.invalid/ping}
+            """));
+  }
+
+  @Test
+  void aCatalogueActionsAccessIsEnforcedLikeAPageActions() {
+    var root = catalogue();
+    var anonymous = load(root, "/tools", ANONYMOUS);
+    assertThat(advertisedActions(anonymous)).contains("ping").doesNotContain("purge");
+    assertThat(button(anonymous, "purge").path("disabled").asBoolean()).isTrue();
+    assertThat(button(anonymous, "ping").path("disabled").asBoolean()).isFalse();
+
+    var admin = load(root, "/tools", as("admin"));
+    assertThat(advertisedActions(admin)).contains("ping", "purge");
+    assertThat(button(admin, "purge").path("disabled").asBoolean()).isFalse();
+
+    var call = RunActionRqDto.builder().route("/tools").actionId("purge").build();
+    assertThat(refusal(root, call, as("staff"))).isInstanceOf(MateuForbiddenException.class);
+    var proxied =
+        RunActionRqDto.builder()
+            .route("/tools")
+            .actionId("__restfetch__")
+            .parameters(Map.of("_sourceKind", "action", "_sourceId", "purge"))
+            .build();
+    assertThat(refusal(root, proxied, as("staff"))).isInstanceOf(MateuForbiddenException.class);
+  }
+
   // ── menu ────────────────────────────────────────────────────────────────────────────────────
 
   @Test

@@ -81,9 +81,13 @@ public static class YamlAccess
     /// <param name="granted">Whether the caller satisfies a restriction (the identity predicate).</param>
     /// <param name="routeReachable">Whether the caller may reach a route — for a RouteLink that
     /// declares no <c>access:</c> of its own (null = no inheritance).</param>
-    public static Applied Apply(object? root, Func<Access?, bool> granted, Func<string, bool>? routeReachable = null)
+    /// <param name="alsoRefused">Ids of actions refused from elsewhere — the action catalogue's
+    /// restricted entries the tree names — treated like the page's own refused actions.</param>
+    public static Applied Apply(object? root, Func<Access?, bool> granted, Func<string, bool>? routeReachable = null,
+        IEnumerable<string>? alsoRefused = null)
     {
         var walker = new Walker(granted, routeReachable);
+        if (alsoRefused is not null) walker.Refused.UnionWith(alsoRefused);
         var copy = DeepCopy(root);
         if (walker.Removes(copy, null)) return new Applied(null, walker.Refused, walker.Locked);
         walker.Walk(copy, null, false);

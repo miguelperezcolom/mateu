@@ -118,7 +118,7 @@ public class ReflectionObjectToComponentMapper {
             "",
             "",
             io.mateu.core.domain.out.fragmentmapper.mappers.TreeActionHarvester.withTreeActions(
-                mapActions(instance, httpRequest), instance, content),
+                mapActions(instance, httpRequest), instance, content, httpRequest),
             mapTriggers(instance, httpRequest),
             mapRules(instance, httpRequest),
             mapValidations(instance, route, httpRequest),

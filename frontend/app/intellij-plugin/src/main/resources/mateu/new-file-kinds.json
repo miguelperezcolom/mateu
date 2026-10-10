@@ -34,6 +34,14 @@
       "schemaType": "Sources"
     },
     {
+      "id": "actions",
+      "label": "Action Catalogue",
+      "description": "Named client-runnable actions (type: Actions) — flows and REST calls — that the shell menu and any page run by id.",
+      "fileName": "actions",
+      "template": "Mateu Actions",
+      "schemaType": "Actions"
+    },
+    {
       "id": "translations",
       "label": "Translations",
       "description": "One language's messages (type: Translations): name the file after the locale (en, es…); labels say ${i18n.key}.",

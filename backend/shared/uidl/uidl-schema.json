@@ -191,6 +191,9 @@
           "items" : {
             "$ref" : "#/$defs/Step"
           }
+        },
+        "description" : {
+          "type" : "string"
         }
       }
     },

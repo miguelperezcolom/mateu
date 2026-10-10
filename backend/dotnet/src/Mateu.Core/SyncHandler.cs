@@ -12,7 +12,8 @@ namespace Mateu.Core;
 public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? translator = null, Func<Identity?>? identity = null,
     Func<string, string?>? secrets = null, HttpClient? http = null,
     RestSourceRegistry? restSources = null, ComponentRegistry? components = null,
-    Func<string?>? locale = null, TranslationRegistry? translations = null, string? specsDir = null)
+    Func<string?>? locale = null, TranslationRegistry? translations = null, string? specsDir = null,
+    ActionRegistry? actionCatalog = null)
 {
     /// <summary>The request's own locale (the adapter reads the first Accept-Language tag) — the
     /// fallback of the UI language when the app's ITranslator does not name one (Java's
@@ -25,6 +26,9 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     /// <summary>The app's translator (if any) backed by the catalogue — what the mapper translates
     /// with and where the UI language of a request comes from.</summary>
     private readonly CatalogueTranslator _i18n = new(translator, translations!, () => RequestLocale.Value);
+
+    /// <summary>The action catalogue (actions.yaml + type: Actions files over IActionCatalogSupplier).</summary>
+    private readonly ActionRegistry _actionCatalog = actionCatalog ?? new ActionRegistry(registry, specsDir);
 
     /// <summary>The REST source catalogue (sources.yaml over [RestSource] + suppliers) and the
     /// business-component catalogue (components.yaml over [BusinessComponent] + suppliers).</summary>
@@ -154,6 +158,9 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         ActionGuard.SetIdentity(identity);
         RequestLocale.Value = locale?.Invoke();
         MateuCatalogs.Set(_restSources.Catalog, _components.Catalog);
+        // the catalogue entries whose access: the caller does not satisfy are never shipped, buttons
+        // naming them are disabled and a call to them answers 403 (like a page's own declared action)
+        MateuCatalogs.SetActions(_actionCatalog.Catalog, _actionCatalog.RefusedFor(ActionGuard.Authorized));
 
         // Audience PROJECTION, not security: the value is client-controlled app state (the
         // [AppContext] selector named audience), so it only filters [Audience]-marked members out of
@@ -372,6 +379,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
                 {
                     RestSources = sources,
                     Components = MateuCatalogs.MapComponents(MateuCatalogs.Components),
+                    ActionCatalogue = ActionRegistry.MapCatalogue(MateuCatalogs.ActionsForCaller),
                     RequiredCapabilities = caps.ToList(),
                 },
             };

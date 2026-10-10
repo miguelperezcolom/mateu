@@ -166,3 +166,73 @@ def _walk(node, pred):
     elif isinstance(node, list):
         for v in node:
             yield from _walk(v, pred)
+
+
+CATALOGUE = """
+type: Actions
+actions:
+  - id: purge
+    access: {roles: [admin]}
+    steps: [{type: Navigate, route: /purged}]
+  - id: refresh
+    steps: [{type: Navigate, route: /people}]
+  - id: own
+    access: {roles: [admin]}
+    steps: [{type: Navigate, route: /x}]
+"""
+
+CATALOGUE_PAGE = """
+actions:
+  - id: own
+    steps: [{type: Navigate, route: /mine}]
+layout:
+  type: VerticalLayout
+  content:
+    - {type: Button, label: Purge, actionId: purge}
+    - {type: Button, label: Refresh, actionId: refresh}
+    - {type: Button, label: Own, actionId: own}
+"""
+
+
+def catalogue_handler(tmp_path: Path, roles) -> SyncHandler:
+    from mateu_core.action_registry import ActionRegistry
+
+    (tmp_path / "routes.yaml").write_text("routes:\n  - route: tools\n    layout: tools.yaml\n")
+    (tmp_path / "tools.yaml").write_text(CATALOGUE_PAGE)
+    (tmp_path / "catalogue.yaml").write_text(CATALOGUE)
+    h = handler(tmp_path, roles=roles)
+    h.action_catalog = ActionRegistry(str(tmp_path))
+    h.mapper.action_catalog = h.action_catalog
+    h.yaml_specs.action_catalog = h.action_catalog
+    return h
+
+
+def test_a_restricted_catalogue_action_is_enforced_like_a_page_action(tmp_path):
+    h = catalogue_handler(tmp_path, roles=("viewer",))
+    # the catalogue shipped on the wire leaves it out for this caller…
+    assert [a.id for a in h.action_catalog.wire(h.mapper.authorized)] == ["refresh"]
+    referenced = h.action_catalog.referenced_by(["purge", "refresh"], set(), h.mapper.authorized)
+    assert [e.id for e in referenced] == ["refresh"]
+    # …buttons naming it are disabled (OWNER FIRST: `own` is the page's, not the catalogue's)…
+    payload = json.loads(wire(h, "/tools"))
+    buttons = {b.get("actionId"): b for b in _walk(payload, lambda n: n.get("type") == "Button")}
+    assert buttons["purge"].get("disabled") is True
+    assert not buttons["refresh"].get("disabled")
+    assert not buttons["own"].get("disabled")
+    # …and a call that reaches the server anyway is refused (dispatched or proxied by source id).
+    with pytest.raises(MateuForbiddenException):
+        h.handle(RunActionRq(route="/tools", action_id="purge"))
+    with pytest.raises(MateuForbiddenException):
+        h.handle(
+            RunActionRq(route="/tools", action_id="__restfetch__", parameters={"_sourceId": "purge"})
+        )
+    h._guard_yaml_access(RunActionRq(route="/tools", action_id="own"))  # the page's own: allowed
+
+
+def test_an_authorized_caller_gets_the_restricted_catalogue_action(tmp_path):
+    h = catalogue_handler(tmp_path, roles=("admin",))
+    assert {a.id for a in h.action_catalog.wire(h.mapper.authorized)} == {"purge", "refresh", "own"}
+    payload = json.loads(wire(h, "/tools"))
+    buttons = {b.get("actionId"): b for b in _walk(payload, lambda n: n.get("type") == "Button")}
+    assert not buttons["purge"].get("disabled")
+    h._guard_yaml_access(RunActionRq(route="/tools", action_id="purge"))

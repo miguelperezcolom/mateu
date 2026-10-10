@@ -17,6 +17,7 @@ import { UIFragmentAction } from '@mateu/shared/apiClients/dtos/UIFragmentAction
 import { expandComponent, type FluentNode } from '@infra/expander/expandComponent'
 import type Component from '@mateu/shared/apiClients/dtos/Component'
 import { ComponentType } from '@mateu/shared/apiClients/dtos/ComponentType'
+import { actionCatalogue, referencedCatalogueActions } from '@infra/ui/actionCatalogue'
 
 /** A parsed definition: either an envelope with a `layout:` (+ optional viewModel/actions/triggers),
  *  or a bare component tree (the whole object IS the layout). Loose by design — the authored surface
@@ -107,6 +108,10 @@ function sourceOf(data: NonNullable<ExpansionContext['data']>): Record<string, u
 /** Wrap a screen that has behaviour in the ServerSide page component that carries it. */
 function withBehaviour(spec: DefinitionSpec, component: Component, ctx: ExpansionContext): Component {
     const actions = ((spec.actions as Record<string, unknown>[] | undefined) ?? []).map(lowerAction)
+    // OWNER FIRST, then the action catalogue: the entries the layout (or its own flows) names but
+    // does not declare travel with the page, as the server's ActionInstanceCreator carries them —
+    // which is also what makes a page with no actions of its own a component that can run one.
+    actions.push(...(referencedCatalogueActions(spec.layout ?? component, actions) as unknown as Record<string, unknown>[]))
     const triggers = [...((spec.triggers as Record<string, unknown>[] | undefined) ?? [])]
     if (ctx.data && (ctx.data.ref || ctx.data.url)) {
         // resultPath "" = merge the whole response into the page state (what the server sends).
@@ -155,8 +160,12 @@ export function lowerStep(step: Record<string, unknown>): Record<string, unknown
  * server lowers it. An action without steps passes through untouched.
  */
 export function lowerAction(action: Record<string, unknown>): Record<string, unknown> {
-    if (!action || !Array.isArray(action.steps)) return action
-    const { steps, ...rest } = action
+    if (!action || typeof action !== 'object') return action
+    if (!('description' in action) && !Array.isArray(action.steps)) return action
+    // `description` documents the action for whoever picks it from a list; it never reaches the wire
+    const { description: _description, ...withoutDescription } = action
+    if (!Array.isArray(withoutDescription.steps)) return withoutDescription
+    const { steps, ...rest } = withoutDescription
     const commands = (steps as Record<string, unknown>[]).map(lowerStep).filter(Boolean)
     return commands.length ? { ...rest, commands } : rest
 }
@@ -305,6 +314,9 @@ export function expandAppShell(shell: FluentNode): UIIncrement {
                     // RuleLink whose RunAction names one runs it in the browser
                     actions: ((shell.actions as Record<string, unknown>[] | undefined) ?? [])
                         .filter((a) => a && typeof a === 'object').map(lowerAction),
+                    // the app's ACTION catalogue (AppMapper.actionCatalogue): whatever the client
+                    // holds — the bundle manifest's, or the visual editor's Play
+                    actionCatalogue: actionCatalogue(),
                 },
                 // the header widgets (AppMapper.mapWidgets): each authored component, in slot "widgets"
                 children: widgets.map((w) => ({ ...expandComponent(w), slot: 'widgets' })),

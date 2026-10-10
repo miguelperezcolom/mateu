@@ -32,6 +32,18 @@ public final class TreeActionHarvester {
 
   public static List<ActionDto> withTreeActions(
       List<ActionDto> declared, Object view, ComponentDto tree) {
+    return withTreeActions(declared, view, tree, null);
+  }
+
+  /**
+   * As {@link #withTreeActions(List, Object, ComponentDto)}, for one caller: a catalogue action
+   * whose {@code access:} the caller does not satisfy is not advertised.
+   */
+  public static List<ActionDto> withTreeActions(
+      List<ActionDto> declared,
+      Object view,
+      ComponentDto tree,
+      io.mateu.uidl.interfaces.HttpRequest httpRequest) {
     var referenced = new LinkedHashSet<String>();
     collect(tree, referenced, new java.util.IdentityHashMap<>());
     if (referenced.isEmpty()) {
@@ -51,6 +63,15 @@ public final class TreeActionHarvester {
         all.add(ActionDto.builder().id(id).build());
       }
     }
+    // OWNER FIRST, then the action catalogue: an id the view neither declares nor has a method for
+    // runs the catalogue entry of that id (a flow or a REST call, lowered like any page action).
+    var unresolved = new LinkedHashSet<String>();
+    for (var id : referenced) {
+      if (!known.contains(id)) {
+        unresolved.add(id);
+      }
+    }
+    all.addAll(ActionCatalogMapper.referenced(unresolved, known, httpRequest));
     return all;
   }
 

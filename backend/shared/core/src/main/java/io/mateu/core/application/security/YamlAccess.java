@@ -138,6 +138,19 @@ public final class YamlAccess {
    */
   public static Applied apply(
       JsonNode root, HttpRequest httpRequest, Predicate<String> routeReachable) {
+    return apply(root, httpRequest, routeReachable, Set.of());
+  }
+
+  /**
+   * As {@link #apply(JsonNode, HttpRequest, Predicate)}, with {@code alsoRefused}: ids of actions
+   * declared ELSEWHERE (the action catalogue) that the caller may not run — buttons naming them are
+   * disabled and they are reported as refused, exactly like a restricted page action.
+   */
+  public static Applied apply(
+      JsonNode root,
+      HttpRequest httpRequest,
+      Predicate<String> routeReachable,
+      Set<String> alsoRefused) {
     if (root == null) {
       return new Applied(null, Set.of(), Set.of());
     }
@@ -147,6 +160,9 @@ public final class YamlAccess {
       return new Applied(null, walker.refused, walker.locked);
     }
     walker.walk(copy, null, false);
+    if (alsoRefused != null) {
+      walker.refused.addAll(alsoRefused);
+    }
     if (!walker.refused.isEmpty()) {
       disableButtonsFor(copy, walker.refused);
     }

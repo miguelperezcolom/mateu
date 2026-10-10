@@ -28,6 +28,7 @@ public class ActionInstanceCreator {
   private final YamlAppLoader yamlAppLoader;
   private final RouteRegistry routeRegistry;
   private final RestSourceRegistry restSourceRegistry;
+  private final ActionRegistry actionRegistry;
   private final io.mateu.core.application.RoutedClassResolver routedClassResolver;
 
   Mono<?> createInstance(RunActionCommand command) {
@@ -178,8 +179,7 @@ public class ActionInstanceCreator {
     if (layout == null) {
       return null;
     }
-    var declaredActions =
-        actions == null ? java.util.List.<io.mateu.uidl.fluent.Action>of() : actions;
+    var declaredActions = withCatalogue(layout, actions, command.httpRequest());
     var declaredTriggers =
         triggers == null ? java.util.List.<io.mateu.uidl.fluent.Trigger>of() : triggers;
     var pathOnly = stripQuery(command.route());
@@ -218,6 +218,28 @@ public class ActionInstanceCreator {
             command.componentState(), pathOnly, resolved, httpRequest);
     return new SeededYamlPage(
         layout, state, declaredActions, declaredTriggers, restSourceRegistry.catalog());
+  }
+
+  /**
+   * The page's own actions plus the catalogue entries its layout (or its own flows) names but does
+   * not declare — OWNER FIRST: a declared id is never replaced. Carrying them on the page is what
+   * makes a button naming a catalogue id work on every renderer with no lookup of its own (a
+   * component only claims the actions it advertises).
+   */
+  private java.util.List<io.mateu.uidl.fluent.Action> withCatalogue(
+      io.mateu.uidl.fluent.Component layout,
+      java.util.List<io.mateu.uidl.fluent.Action> actions,
+      io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    var own = actions == null ? java.util.List.<io.mateu.uidl.fluent.Action>of() : actions;
+    var owned = new java.util.HashSet<String>();
+    own.forEach(a -> owned.add(a.id()));
+    var fromCatalogue = actionRegistry.referencedBy(layout, own, owned, httpRequest);
+    if (fromCatalogue.isEmpty()) {
+      return own;
+    }
+    var all = new java.util.ArrayList<>(own);
+    all.addAll(fromCatalogue);
+    return java.util.List.copyOf(all);
   }
 
   private static String stripQuery(String route) {
