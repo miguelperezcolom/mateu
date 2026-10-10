@@ -182,6 +182,8 @@ def _rest_action(node: Any) -> CatalogRestAction | None:
         return None
     # reuse the source reader of the REST catalogue (an entry nests its request under `source:`)
     entry = entry_of({"name": "_", "source": node.get("source")})
+    if entry is None:
+        return None
     return CatalogRestAction(
         source=entry.source,
         success_message=node.get("successMessage"),

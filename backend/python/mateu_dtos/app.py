@@ -14,6 +14,7 @@ from .base import Wire
 if TYPE_CHECKING:
     from .fields import ComponentEntryRecord, RestDataSource, RestSourceEntryRecord
     from .records import (
+        Action,
         MenuItem,
         Option,
     )

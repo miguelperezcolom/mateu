@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field
 
 from .base import Wire
 from .components import RuleRecord
 from .fields import RestDataSource
+
+if TYPE_CHECKING:
+    from .envelope import UICommand
 
 
 # ── Flat helper records (not part of the polymorphic unions) ────────────────────

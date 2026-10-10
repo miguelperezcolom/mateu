@@ -288,7 +288,7 @@ class ReflectionMapper(
         #: The app's business-component catalogue (a ComponentRegistry); None = none.
         self.components = components
         #: The app's action catalogue (an ActionRegistry); None = none (set by the SyncHandler).
-        self.action_catalog = None
+        self.action_catalog: Any = None
         #: model type → ComponentAdapter (set by the SyncHandler from the registry).
         self.adapters: dict = {}
 
