@@ -50,8 +50,11 @@ public static class MateuExtensions
             var secretsProvider = sp.GetService<ISecretsProvider>();
             Func<string, string?>? secrets = options.Secrets
                 ?? (secretsProvider is null ? null : secretsProvider.Secret);
+            var registry = sp.GetRequiredService<MateuRegistry>();
+            // Component adapters registered as services join the ones found by assembly scan.
+            foreach (var adapter in sp.GetServices<IComponentAdapter>()) registry.RegisterAdapter(adapter);
             return new SyncHandler(
-                sp.GetRequiredService<MateuRegistry>(),
+                registry,
                 sp.GetService<ITranslator>(),
                 // Read per call: the handler is a singleton, the identity is the current request's.
                 identity: () => accessor.HttpContext is { } ctx ? options.Identity(ctx) : null,

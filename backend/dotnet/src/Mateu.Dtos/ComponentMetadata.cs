@@ -76,6 +76,7 @@ namespace Mateu.Dtos;
 [JsonDerivedType(typeof(PopoverMetadataDto), "Popover")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
+[JsonDerivedType(typeof(CustomFieldMetadataDto), "CustomField")]
 public abstract record ComponentMetadataDto;
 
 // ── Dashboards, foldouts, heroes, empty states, skeletons, Gantt ───────────────

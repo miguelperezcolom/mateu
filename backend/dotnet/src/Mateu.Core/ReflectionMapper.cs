@@ -6,7 +6,8 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 /// <summary>Turns an annotated C# view instance into the Mateu component tree (App→Page→Card→…→FormField).</summary>
-public sealed partial class ReflectionMapper(ITranslator? translator = null, Func<Identity?>? identity = null)
+public sealed partial class ReflectionMapper(ITranslator? translator = null, Func<Identity?>? identity = null,
+    MateuRegistry? registry = null)
 {
     /// <summary>Translates a user-facing string when a translator is registered, else returns it unchanged.</summary>
     private string T(string s) => translator?.Translate(s) ?? s;
@@ -99,7 +100,8 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         return (triggers, type.Find<EmitsAttribute>()?.Name);
     }
 
-    public ServerSideComponentDto MapView(Type type, object instance, string route, IComponent? layoutOverride = null)
+    public ServerSideComponentDto MapView(Type type, object instance, string route, IComponent? layoutOverride = null,
+        bool embedded = false, bool inline = false)
     {
         var crudElement = CrudElementType(type);
         if (crudElement is not null) return MapCrud(type, crudElement, route, instance);
@@ -168,6 +170,8 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
             // A [ReadOnly] class renders as a display view (fields read-only, tabs inference may apply).
             content = FormCards(type, instance, type.Find<ReadOnlyAttribute>() != null);
             content = WrapAside(type, instance, content);
+            // [Inline] island: a single-section form drops its card — the host section frames it
+            if (inline) content = UnwrapSingleSectionCard(content);
         }
 
         // A [WelcomeBanner] prepends a centered HeroSection (id "welcome-banner") to the page
@@ -188,12 +192,14 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
             title, T(Naming.Humanize(type.Name)),
             OptT(type.Find<SubtitleAttribute>()?.Value), [], buttons)
         {
+            // an [Inline] island nests under the host section: its title demotes to a sub-heading
+            Level = inline ? 1 : 0,
             Toc = type.Find<TocAttribute>()?.Value,
             PageWidth = PageWidthOf(type, instance),
             PageType = PageTypeOf(type),
             Banners = Banners(type, instance),
-            Badges = Badges(type, instance),
-            Kpis = Kpis(type, instance),
+            Badges = inline ? [] : Badges(type, instance),
+            Kpis = inline ? [] : Kpis(type, instance),
             Fabs = fabs,
             PeerNav = PeerNavOf(instance),
             Timestamp = TimestampOf(type, instance),
@@ -266,6 +272,10 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         // [RestData]: fetch the screen's initial data client-side on load — a synthetic __restdata__
         // action carrying the REST descriptor plus an OnLoad trigger that fires it (reuses the
         // [RestAction] fetch+merge path; silent load, so no success message).
+        // An embedded island keeps its markers in its state, so every later request of the island
+        // still says it runs embedded / [Inline] (Java seeds them into the island initialData).
+        if (embedded) initialData[EmbeddedMarker] = true;
+        if (inline) initialData[InlineMarker] = true;
         if (RestDataOf(type) is { } restData)
         {
             actions.Add(new ActionDto("__restdata__", ValidationRequired: false) { RestAction = restData });

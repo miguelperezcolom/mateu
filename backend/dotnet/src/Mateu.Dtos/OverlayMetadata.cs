@@ -58,3 +58,7 @@ public record DialogMetadataDto(string? Id, string? HeaderTitle, ComponentDto? C
     public bool CloseButtonOnHeader { get; init; } = true;
     public object? InitialData { get; init; }
 }
+
+/// <summary>A form cell holding an arbitrary component (an adapted-type island, an embedded view):
+/// a label over the content, spanning Colspan columns (mirrors io.mateu.dtos.CustomFieldDto).</summary>
+public record CustomFieldMetadataDto(string Label, ComponentDto Content, int Colspan) : ComponentMetadataDto;

@@ -18,7 +18,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     /// or a fake in tests).</summary>
     private readonly HttpClient _http = http ?? DefaultHttp;
 
-    private readonly ReflectionMapper _mapper = new(translator, identity);
+    private readonly ReflectionMapper _mapper = new(translator, identity, registry);
     /// <summary>The mount's authored route registry: specs/ui/routes.yaml merged OVER the routes
     /// contributed in code by IRouteEntrySupplier implementers (discovered by the MateuRegistry).</summary>
     private readonly RouteRegistry _routes = new(supplied: registry.SuppliedRoutes);
@@ -48,6 +48,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null)
     {
         EstablishRequestContext(rq);
+        rq = FoldRouteMarkers(rq);
 
         // 0b. Visual-builder contract: return the ModelView's bindable fields + actions instead of
         // rendering — the tooling POSTs a sync request with the ModelView as serverSideType and this
@@ -185,6 +186,9 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
                 _ => Render(type, view, rq),
             };
         }
+
+        // 2c. A domain type rendered by a registered IComponentAdapter.
+        if (registry.AdapterFor(type) is { } adapter) return HandleAdapted(adapter, rq);
 
         // 3. A wizard.
         if (typeof(Wizard).IsAssignableFrom(type)) return HandleWizard(type, rq);
@@ -365,14 +369,15 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
                      || (instance is not IComponentTreeSupplier
                          && !PageInference.ComposesDashboard(type)
                          && !PageInference.ComposesWelcome(type));
-        var view = _mapper.MapView(type, instance, route, layoutOverride);
+        var (embedded, inline) = IslandFlags(rq);
+        var view = _mapper.MapView(type, instance, route, layoutOverride, embedded, inline);
         // A `layoutDelta:` is re-applied to the FRESHLY inferred page on every render — that is the
         // whole difference from a `layout:` snapshot, which stops the screen from re-deriving. Only
         // for a page, and only when the route's definition is bound to THIS view model (mirrors
         // Java's ReflectionObjectToComponentMapper + YamlUidlLoader.deltaForRoute).
         if (isPage) view = LayoutDeltaApplier.Apply(view, DeltaFor(rq.Route, type));
         return FragmentResponse(Title(type), view, rq,
-            LookupLabels(type, instance, instance), emitWindowTitle: isPage);
+            LookupLabels(type, instance, instance), emitWindowTitle: isPage && !embedded);
     }
 
     /// <summary>The <c>layoutDelta:</c> of the route's definition when it is bound to
@@ -383,12 +388,15 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     /// <summary>Runs a view action. The actionId comes from the wire, so it only reaches a method
     /// DECLARED as an action (see <see cref="ActionGuard.ResolveAction"/>) and only when the caller
     /// passes its access gates; anything else is "Action not found" / 403.</summary>
-    private static UIIncrementDto RunAction(Type type, object instance, RunActionRqDto rq, IComponent? layoutOverride)
+    private UIIncrementDto RunAction(Type type, object instance, RunActionRqDto rq, IComponent? layoutOverride)
     {
         var method = ActionGuard.ResolveAction(type, instance, rq.ActionId!, layoutOverride);
         if (method is null) return Error($"Action not found: {rq.ActionId}");
         ActionGuard.EnsureMayInvoke(type, method, rq.ActionId!);
-        return MapResult(method.Invoke(instance, BuildArguments(method, rq)), rq);
+        var result = method.Invoke(instance, BuildArguments(method, rq));
+        // An action returning a routed view (itself, or the model of the view's next state)
+        // re-renders it in place — how a multi-state island switches between its states.
+        return IsRoutedViewResult(result) ? Render(result!.GetType(), result, rq) : MapResult(result, rq);
     }
 
     /// <summary>Fills a method's parameters from the action request: a row-click's _clickedRow

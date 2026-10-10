@@ -483,6 +483,8 @@ public sealed partial class ReflectionMapper
             if (!Authorized(p.Find<EyesOnlyAttribute>()) || !ForCurrentAudience(p)
                 || p.Find<Mateu.Uidl.AsideAttribute>() != null)
                 continue;
+            // an island (adapted value / embedded view) keeps its own state, not the host's
+            if (IsIslandProperty(p)) continue;
             data[Naming.CamelCase(p.Name)] = GridRowType(p) is { } rowType
                 ? GridRows(p, rowType, instance)
                 : InitialValueOf(p.GetValue(instance));
@@ -546,7 +548,9 @@ public sealed partial class ReflectionMapper
             if (p.Find<SeparatorBeforeAttribute>() != null)
                 fields.Add(Client(new SeparatorMetadataDto(
                     new Dictionary<string, string> { ["data-colspan"] = "2" }), null, []));
-            fields.Add(MapField(p, instance, readOnly));
+            fields.Add(IsIslandProperty(p)
+                ? MapIslandField(p, instance, FormColumns(p.DeclaringType)) ?? MapField(p, instance, readOnly)
+                : MapField(p, instance, readOnly));
         }
         return fields;
     }
@@ -584,7 +588,12 @@ public sealed partial class ReflectionMapper
                 rows.Add(Client(new FormRowMetadataDto(), null, [field]));
                 continue;
             }
-            var span = field.Metadata is FormFieldMetadataDto ff ? Math.Max(1, ff.Colspan) : 1;
+            var span = field.Metadata switch
+            {
+                FormFieldMetadataDto ff => Math.Max(1, ff.Colspan),
+                CustomFieldMetadataDto cf => Math.Max(1, cf.Colspan),
+                _ => 1,
+            };
             // A field that would overflow the row's remaining columns starts a new row (a colspan=2
             // field — e.g. a textarea — thus always lands on its own row). Mirrors Java's
             // FormLayoutBuilder.buildRows.
