@@ -31,6 +31,15 @@ public class OneColumnForm
     [Text(Size = "xl", Container = "h2")] public string? Welcome { get; set; } = "Hi";
 }
 
+[UI("rooms-wizard"), Title("Rooms wizard")]
+public class RoomsWizard : Wizard
+{
+    [Step(1)] public string? Hotel { get; set; }
+    [Step(2)] public List<RoomRow> Rooms { get; set; } = [];
+
+    public override Message Complete() => new($"{Rooms.Count} rooms");
+}
+
 /// <summary>The grid-field crud (Java's FieldCrudActionRunner + crudfieldhandlers): list
 /// properties advertise their row-editing actions and the server answers them on the form state.</summary>
 public class FieldCrudTests
@@ -165,6 +174,29 @@ public class FieldCrudTests
         Assert.Equal(["102", "101"], moved.Select(r => (string?)r!["name"]));
         var down = StateOf(Run("rooms_move-down", state))["rooms"]!.AsArray();
         Assert.Equal(["101", "102"], down.Select(r => (string?)r!["name"]));
+    }
+
+    [Fact]
+    public void A_wizard_step_list_edits_its_rows_and_stays_on_its_step()
+    {
+        Handler().Handle(new RunActionRqDto { Route = "rooms-wizard" });
+        var step2 = Handler().Handle(new RunActionRqDto
+        {
+            Route = "rooms-wizard", ActionId = "next", ServerSideType = typeof(RoomsWizard).FullName,
+            ComponentState = new() { ["__step"] = El("1"), ["hotel"] = El("\"H1\"") },
+        });
+        var json = JsonSerializer.Serialize(step2, Json);
+        Assert.Contains("\"id\":\"rooms_add\"", json); // only the CURRENT step's lists advertise
+
+        var created = Handler().Handle(new RunActionRqDto
+        {
+            Route = "rooms-wizard", ActionId = "rooms_create", ServerSideType = typeof(RoomsWizard).FullName,
+            ComponentState = new() { ["__step"] = El("2"), ["rooms"] = El("[]") },
+            Parameters = new() { ["initiatorState"] = El("{\"name\":\"201\"}") },
+        });
+        var state = StateOf(created);
+        Assert.Equal(2, (int)state["__step"]!);
+        Assert.Equal("201", (string?)Assert.Single(state["rooms"]!.AsArray())!["name"]);
     }
 
     [Fact]

@@ -567,10 +567,13 @@ public sealed partial class ReflectionMapper
 
     /// <summary>The actions a view's PROPERTIES declare, in Java's FieldActionCollector order: list
     /// row editing, [OnRowSelected], [Lookup] search.</summary>
-    internal static List<ActionDto> FieldActions(Type type)
+    internal static List<ActionDto> FieldActions(Type type) => FieldActions(EditableProperties(type));
+
+    /// <summary>The same, over a subset of properties (a wizard's current step).</summary>
+    internal static List<ActionDto> FieldActions(IEnumerable<PropertyInfo> properties)
     {
         var actions = new List<ActionDto>();
-        var props = EditableProperties(type).ToList();
+        var props = properties.ToList();
         foreach (var p in props.Where(p => ListElementType(p.PropertyType) is not null))
         {
             var fieldId = Naming.CamelCase(p.Name);

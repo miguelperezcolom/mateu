@@ -31,7 +31,7 @@ server and diffing its JSON against the Java reference for the same `@UI` class.
 
 ## 2. Stack (decided)
 
-- **.NET 8**, **ASP.NET Core minimal API** for the `sync` endpoint (lightweight, no controller
+- **.NET 8 and .NET 10** (multi-targeted; net8.0 support ends 2026-11-10), **ASP.NET Core minimal API** for the `sync` endpoint (lightweight, no controller
   ceremony for the single route family). Controllers can be added later for app integration.
 - **System.Text.Json** for serialization, using **polymorphic serialization** for the `type`
   discriminators (`ComponentDto`: `ClientSide`/`ServerSide`; `ComponentMetadata`: `App`/`Page`/
@@ -143,7 +143,7 @@ Each milestone ends green and demoable; we don't move on until a renderer shows 
 3. **Attribute parity** — mirror Java attribute names (`[UI]`,`[Section]`,`[Button]`) for a familiar
    API, or lean into C# idioms (DataAnnotations where they exist). Proposed: mirror Mateu names but
    reuse DataAnnotations for validation.
-4. **Packaging** — NuGet packages (`Mateu.AspNetCore` etc.) eventually, or in-repo only for now.
+4. **Packaging** — DECIDED: four NuGet packages (`Mateu.Uidl`, `Mateu.Dtos`, `Mateu.Core`, `Mateu.AspNetCore`), one version in lockstep with the Maven release (`v3.0-alpha.N` → `3.0.0-alpha.N`), published by the `nuget` job of `buid-and-publish.yml`.
 
 ## 9. First concrete step (M1)
 

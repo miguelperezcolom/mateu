@@ -74,7 +74,9 @@ public sealed partial class ReflectionMapper
                 : CellValueOf(p.GetValue(instance));
 
         return new ServerSideComponentDto(
-            Guid.NewGuid().ToString(), type.FullName!, route, [layout], initial, [], [], null, null, null)
+            // the current step's list fields advertise their row-editing actions (Java resolves the
+            // list on the step the user is on: FieldCrudActionRunner.getViewModelClass)
+            Guid.NewGuid().ToString(), type.FullName!, route, [layout], initial, FieldActions(currentProps), [], null, null, null)
         {
             PageType = PageTypeOf(type),
         };

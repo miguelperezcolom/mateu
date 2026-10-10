@@ -15,6 +15,10 @@ public sealed partial class SyncHandler
     {
         var wizard = Activator.CreateInstance(type)!;
         BindState(wizard, rq.ComponentState);
+        // A list field of the current step: its row-editing actions answer on the wizard state
+        // (which carries __step, so the wizard stays on its step).
+        if (FieldCrudTarget(type, rq.ActionId) is { } fieldCrud)
+            return HandleFieldCrud(fieldCrud.Property, fieldCrud.FieldId, fieldCrud.Suffix, rq);
         var step = StepOf(rq);
         var total = ReflectionMapper.EditableProperties(type)
             .Select(p => p.Find<StepAttribute>()?.Step ?? 1).DefaultIfEmpty(1).Max();
