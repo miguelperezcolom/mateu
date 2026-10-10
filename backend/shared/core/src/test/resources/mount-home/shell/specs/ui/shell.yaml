@@ -1,0 +1,9 @@
+type: AppShell
+title: Mount home
+menu:
+  - type: RouteLink
+    label: Orders
+    route: orders
+  - type: RouteLink
+    label: Dashboard
+    route: dashboard

@@ -345,7 +345,8 @@ public final class MateuBundleExporter {
     // that declares no model view renders as a bare layout through the ordinary sync path. So the
     // statically served screen is pre-rendered by the server like any other — unless specsOnly
     // asks for it to be expanded in the browser instead.
-    var authored = new RouteRegistry().authoredFrom(cl);
+    var registry = new RouteRegistry();
+    var authored = registry.authoredFrom(cl);
     authored.routes().stream()
         .map(entry -> "/" + entry.route())
         .filter(r -> !onlyStatic || RouteRegistrations.isStatic(r))
@@ -354,6 +355,7 @@ public final class MateuBundleExporter {
     // rendered (see identityRestriction).
     var classByRoute = classesByRoute(cl, authored);
     var definitions = collectDefinitions(cl, authored);
+    stampMountHomes(registry.mountHomes(), authored, definitions);
     var expandedInBrowser = new java.util.HashSet<String>();
     if (specsOnly) {
       for (var entry : authored.routes()) {
@@ -477,6 +479,29 @@ public final class MateuBundleExporter {
       }
     }
     return out;
+  }
+
+  /**
+   * A mount's {@code home:} travels INTO its shell: an AppShell definition bound to a mount root
+   * that declares no {@code homeRoute:} ships with the mount's home as its {@code homeRoute}, so
+   * the browser's expander lands on the same page the server would (it has no mounts, only the
+   * shipped definitions and route table). The shell's own {@code homeRoute:} wins, as on the
+   * server.
+   */
+  public static void stampMountHomes(
+      Map<String, String> homes, RouteTable authored, Map<String, JsonNode> definitions) {
+    homes.forEach(
+        (basePath, home) -> {
+          for (var entry : authored.routes()) {
+            if (!io.mateu.core.infra.Slashes.trim(entry.route()).equals(basePath)) continue;
+            var node = entry.definition() == null ? null : definitions.get(entry.definition());
+            if (node instanceof com.fasterxml.jackson.databind.node.ObjectNode shell
+                && "AppShell".equals(shell.path("type").asText())
+                && !shell.hasNonNull("homeRoute")) {
+              shell.put("homeRoute", home);
+            }
+          }
+        });
   }
 
   /**
