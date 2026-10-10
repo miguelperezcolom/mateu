@@ -27,6 +27,7 @@ import { announce } from "@infra/a11y/announcer.ts";
 import { fragmentIsCurrent } from "@infra/ui/callbackTokenGuard.ts";
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { ConnectionScope } from '@infra/ui/connectionScope.ts'
+import { FileDownloadData, handleFileDownload, printPage } from '@infra/ui/documents.ts'
 
 export default abstract class ConnectedElement extends LitElement {
 
@@ -320,25 +321,12 @@ export default abstract class ConnectedElement extends LitElement {
 
 
         if ('DownloadFile' == command.type) {
-            const data = command.data as {
-                filename: string
-                mimeType: string
-                base64Content: string
-            }
-            if (data && data.base64Content) {
-                const binaryStr = atob(data.base64Content)
-                const bytes = new Uint8Array(binaryStr.length)
-                for (let i = 0; i < binaryStr.length; i++) {
-                    bytes[i] = binaryStr.charCodeAt(i)
-                }
-                const blob = new Blob([bytes], { type: data.mimeType })
-                const url = URL.createObjectURL(blob)
-                const a = document.createElement('a')
-                a.href = url
-                a.download = data.filename ?? 'export'
-                a.click()
-                URL.revokeObjectURL(url)
-            }
+            // shown in a new tab, downloaded or printed — inline base64 or a single-use URL
+            // (documents.ts)
+            handleFileDownload(command.data as FileDownloadData, undefined, this.baseUrl)
+        }
+        if ('Print' == command.type) {
+            printPage()
         }
         if ('CloseModal' == command.type) {
             this.closeModal()

@@ -155,6 +155,8 @@ define([
       // y rellenada en el mismo tick a menudo no se anuncia.
       bridge.installAnnouncer();
       bridge.mountSkipLink();
+      // Ctrl+P deja fuera el chrome, como UICommand.print
+      bridge.installPrintSupport();
       // El control pulsado se sigue a nivel de documento: los botones de la app pasan por
       // chains distintas y enhebrar el evento por todas ellas se olvidaría en la siguiente.
       bridge.trackPressedControls();

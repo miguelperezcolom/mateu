@@ -19,6 +19,7 @@ import { nextHistoryUrl, isScreenChange } from './navigationUrl'
 import { keyed } from 'lit/directives/keyed.js'
 import { applyUiLanguage } from '@infra/ui/chromeTexts.ts'
 import { installLiveReload } from '@infra/dev/liveReload.ts'
+import { installPrintSupport } from '@infra/ui/documents.ts'
 
 // Install the design-system-neutral toast adapter as the default. A DS app (e.g. Vaadin) may
 // override it with setNotifier after importing mateu-ui.
@@ -32,6 +33,8 @@ installAnnouncer()
 // WCAG 2.4.1: a way past the navigation, which otherwise costs a keyboard user twenty Tabs on
 // every screen. Mounted first in the body so it is the first thing Tab reaches.
 mountSkipLink()
+// The browser's own print (Ctrl+P) leaves the app chrome out, like the Print command does.
+installPrintSupport()
 
 
 @customElement('mateu-ui')

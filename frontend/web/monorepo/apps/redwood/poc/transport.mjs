@@ -11,6 +11,7 @@ import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOpti
 import { currentMount, pathOfRoute } from './mount.mjs'
 import { restAnswerOf, loadRestOptions, adoptAppSources } from './restSources.mjs'
 import { observeWireVersion } from './wireVersion.mjs'
+import { noteDocumentBase } from './files.mjs'
 
 /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction).
  *  Sale ATADA a la pantalla en curso (resilience.currentView): si cuando contesta ya hay otra, la
@@ -20,6 +21,7 @@ export async function callMateu(base, body, options = {}) {
   const view = options.view !== undefined ? options.view
     : (options.quiet || options.isolated) ? null : currentView()
   const bare = (body.route || '').replace(/^\//, '')
+  noteDocumentBase(base) // un Document aparcado se pide a ESTE backend
   const res = await fetchWithPolicy(`${base}/mateu/v3/sync/${bare || '_no_route'}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -272,6 +274,7 @@ export async function runMateuActionSse(base, ctx, route, actionId, componentSta
   base = outbound.baseUrl != null ? outbound.baseUrl : base
   const effectiveRoute = outbound.route || route || ''
   const bare = effectiveRoute.replace(/^\//, '')
+  noteDocumentBase(base)
   // Sin timeout: un LongTask mantiene el stream abierto por diseño, así que un ceiling lo
   // mataría a mitad. Pasa igualmente por la política para que el fallo llegue clasificado.
   const res = await fetchWithPolicy(`${base}/mateu/v3/sse/${bare || '_no_route'}`, {

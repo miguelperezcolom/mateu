@@ -184,6 +184,7 @@ export function reduceContexts(reg, increment, opts = {}) {
     urlPush: null,
     download: null,
     downloads: [], // todos los DownloadFile del increment (download = el último, compat)
+    print: false, // UICommand.print: imprimir la página actual (files.printPage)
     runActions: [],
     docTitle: null,
     // UICommand.announce / announceAssertive: what assistive tech is told (a11y.mjs live regions);
@@ -341,6 +342,9 @@ export function reduceContexts(reg, increment, opts = {}) {
       case 'DownloadFile':
         effects.download = c.data
         effects.downloads.push(c.data)
+        break
+      case 'Print':
+        effects.print = true
         break
       case 'RunAction':
         effects.runActions.push(c.data)
