@@ -399,8 +399,7 @@ MODULE = sys.modules[__name__]
 #: than argued about — a corpus that reports noise gets ignored. ``homeServerSideType`` is
 #: ``serverSideType``'s twin on the app metadata: a server's own type name for the home class
 #: (``io.mateu…WireConformanceTest$AppInCode`` vs ``test_wire_conformance.AppInCode``) — the Java
-#: normaliser does not list it yet, so its goldens carry the Java class name; dropping it here is
-#: the same rule applied to the same kind of value, not a waiver.
+#: normaliser drops it too.
 VOLATILE = {
     "id",
     "structureHash",
@@ -409,16 +408,6 @@ VOLATILE = {
     "homeServerSideType",
     "targetComponentId",
 }
-
-#: The Java harness runs with its test classpath's REST source catalogue
-#: (``backend/shared/core/src/test/resources/specs/ui/sources.yaml``), and every app golden carries
-#: it (``restSources`` + the ``rest-sources`` capability). The Python harness loads THE SAME file —
-#: not a copy — so both servers render the same app under the same catalogue.
-JAVA_HARNESS_SOURCES = (
-    Path(__file__).resolve().parents[3]
-    / "backend" / "shared" / "core" / "src" / "test" / "resources" / "specs" / "ui" / "sources.yaml"
-)
-
 
 def _is_default(value) -> bool:
     """Whether a value carries no information.
@@ -449,7 +438,7 @@ def normalise(node):
 
 def actual(view_cls) -> dict:
     handler = SyncHandler(
-        MateuRegistry(MODULE), rest_sources=RestSourceRegistry(file=JAVA_HARNESS_SOURCES)
+        MateuRegistry(MODULE), rest_sources=RestSourceRegistry(file=None)
     )
     inc = handler.handle(RunActionRq(server_side_type=type_name(view_cls)))
     return normalise(inc.model_dump(by_alias=True, mode="json"))
@@ -482,17 +471,7 @@ def test_python_renders_a_page_for_every_case(case, view):
 #: this list — so the list can only shrink. Any case NOT listed must match, or the suite fails.
 #: Every reason here is a defect of the Java GOLDEN, not of the port (the goldens are regenerated
 #: from Java by another stream; this port does not edit them).
-KNOWN_DIVERGENCES: dict[str, str] = {
-    "dashboard": (
-        "Java golden defect: its component.actions carries 12 entries "
-        "'nested-form-action-notes-variants_{create,create-and-stay,add,select,selected,prev,next,"
-        "save,remove,move-up,move-down,cancel}'. Java's ActionMapper.addNestedFormsActions treats "
-        "the @Panel field `notes` — a fluent io.mateu.uidl.data.Text COMPONENT — as a nested FORM "
-        "and its record component `variants` (a List) as an editable list field, advertising row-"
-        "editing actions for a component that has no rows. The Python port advertises none (the "
-        "field is a component, not a form). Everything else in the case matches."
-    ),
-}
+KNOWN_DIVERGENCES: dict[str, str] = {}
 
 
 def _cases_with_known_divergences():

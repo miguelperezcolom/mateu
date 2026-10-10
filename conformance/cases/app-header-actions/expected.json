@@ -24,7 +24,6 @@
         } ],
         "homeConsumedRoute" : "/conformance/app-header-actions",
         "homeRoute" : "_no_home_route",
-        "homeServerSideType" : "io.mateu.core.application.WireConformanceTest$HeaderActionsApp",
         "layout" : "SINGLE_SLOT",
         "menu" : [ {
           "consumedRoute" : "/conformance/app-header-actions",
@@ -34,43 +33,7 @@
           "uriPrefix" : "/conformance/app-header-actions",
           "visible" : true
         } ],
-        "requiredCapabilities" : [ "header-actions", "rest-sources" ],
-        "restSources" : [ {
-          "description" : "ISO country codes",
-          "name" : "countries",
-          "provenance" : "existing",
-          "source" : {
-            "labelPath" : "name.common",
-            "method" : "GET",
-            "url" : "https://restcountries.com/v3.1/all?fields=cca2,name",
-            "valuePath" : "cca2"
-          }
-        }, {
-          "description" : "The orders a screen lists",
-          "fields" : {
-            "customerName" : "customer.name"
-          },
-          "name" : "orders",
-          "provenance" : "generate",
-          "source" : {
-            "itemsPath" : "data",
-            "labelPath" : "label",
-            "method" : "GET",
-            "url" : "/api/orders?since=${state.since}",
-            "valuePath" : "value"
-          },
-          "totalPath" : "meta.total"
-        }, {
-          "name" : "invoices",
-          "provenance" : "generate",
-          "source" : {
-            "itemsPath" : "items",
-            "labelPath" : "label",
-            "method" : "GET",
-            "url" : "https://api.example.com/invoices",
-            "valuePath" : "value"
-          }
-        } ],
+        "requiredCapabilities" : [ "header-actions" ],
         "rootRoute" : "/conformance/app-header-actions",
         "route" : "/conformance/app-header-actions",
         "title" : "Header actions",

@@ -137,36 +137,9 @@ public class WireConformanceTests
     /// harness leak), never a .NET gap: a .NET gap is fixed, not allow-listed. Each entry is scoped
     /// to the wire paths the reason explains: a difference ANYWHERE else in a listed case still
     /// fails.</summary>
-    private static readonly IReadOnlyDictionary<string, string[]> AllowedPaths = new Dictionary<string, string[]>
-    {
-        ["app-context"] = [AppRestSources, AppCapabilities],
-        ["app-header-actions"] = [AppRestSources, AppCapabilities],
-        ["app-in-code"] = [AppRestSources, AppCapabilities],
-        ["dashboard"] = ["$.fragments[0].component.actions"],
-    };
+    private static readonly IReadOnlyDictionary<string, string[]> AllowedPaths = new Dictionary<string, string[]>();
 
-    private const string AppRestSources = "$.fragments[0].component.metadata.restSources";
-    private const string AppCapabilities = "$.fragments[0].component.metadata.requiredCapabilities";
-
-    private static readonly IReadOnlyDictionary<string, string> KnownDivergences = new Dictionary<string, string>
-    {
-        // The Java core TEST classpath carries a specs/ui/sources.yaml (countries/orders/invoices),
-        // and the Java harness renders the conformance apps inside that environment: every APP
-        // golden therefore carries AppDto.restSources with those three entries plus a "rest-sources"
-        // token in requiredCapabilities, which no fixture declares. The .NET (and Python) apps
-        // correctly emit neither. Fix belongs in the Java harness (render the corpus without the
-        // test catalogue), then regenerate these three goldens.
-        ["app-context"] = "Java harness leak: restSources + 'rest-sources' capability from the core test catalogue",
-        ["app-header-actions"] = "Java harness leak: restSources + 'rest-sources' capability from the core test catalogue",
-        ["app-in-code"] = "Java harness leak: restSources + 'rest-sources' capability from the core test catalogue",
-        // Java's FieldActionCollector walks the `notes` panel field (an io.mateu.uidl.data.Text, a
-        // COMPONENT holder, not a nested form) as if it were a nested form, and advertises twelve
-        // nested-form-action-notes-variants_* list actions for Text's internal `variants` list.
-        // Those actions name no field of the view and nothing can dispatch them; the .NET dashboard
-        // (whose composition otherwise matches member for member) correctly emits none. Fix belongs
-        // in Java (skip component-holder fields when collecting nested-form actions).
-        ["dashboard"] = "Java bug: nested-form list actions advertised for the internals of a Text panel field",
-    };
+    private static readonly IReadOnlyDictionary<string, string> KnownDivergences = new Dictionary<string, string>();
 
     [Theory, MemberData(nameof(Cases))]
     public void Dotnet_matches_the_corpus(string @case, Type view)
