@@ -2,6 +2,31 @@ import { defineConfig } from 'vite'
 import { resolve } from 'path'
 import type { IncomingMessage } from 'node:http'
 import { vendorChunks } from '../../vite.vendorChunks'
+import { createHash } from 'node:crypto'
+import { readdirSync, readFileSync, statSync } from 'node:fs'
+
+// A hash of the sources the bundle is built from, stamped on the entry chunk. A source change that
+// minifies to the same bytes (renaming a local, a comment) would otherwise leave the committed
+// bundle untouched, and scripts/check-bundle-freshness.sh — which compares COMMITS, not bytes —
+// would call it stale forever with nothing to regenerate. Same exclusions as that script.
+const sourcesHash = () => {
+    const files: string[] = []
+    const walk = (dir: string) => {
+        for (const name of readdirSync(dir).sort()) {
+            const path = resolve(dir, name)
+            if (statSync(path).isDirectory()) {
+                if (!path.endsWith('/ui/infra/compiler')) walk(path)
+            } else if (!/\.(test|spec)\.ts$/.test(name)) {
+                files.push(path)
+            }
+        }
+    }
+    walk(resolve(__dirname, './src'))
+    walk(resolve(__dirname, '../../libs/mateu/src'))
+    const hash = createHash('sha256')
+    for (const file of files) hash.update(readFileSync(file))
+    return hash.digest('hex').slice(0, 16)
+}
 
 // Return Vite's own index.html for browser navigation requests so the SPA
 // router handles them, instead of letting the backend serve its static HTML.
@@ -107,6 +132,7 @@ export default defineConfig({
         rollupOptions: {
             output: {
                 entryFileNames: `assets/mateu-vaadin.js`,
+                postBanner: (chunk) => (chunk.isEntry ? `/* mateu sources ${sourcesHash()} */` : ''),
                 chunkFileNames: `assets/[name].js`,
                 assetFileNames: `assets/[name].[ext]`,
                 // Code-splitting: keep heavy vendors in their own chunks so the
