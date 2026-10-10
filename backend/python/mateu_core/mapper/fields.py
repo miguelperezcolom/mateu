@@ -13,7 +13,7 @@ from typing import (
     get_origin,
 )
 
-from mateu_dtos import Action, CustomFieldMetadata, ServerSideComponent, TextMetadata
+from mateu_dtos import Action, AppMetadata, CustomFieldMetadata, ServerSideComponent, TextMetadata
 from mateu_dtos import (
     Button,
     ClientSideComponent,
@@ -28,7 +28,7 @@ from mateu_dtos import (
     RestDataSource,
 )
 from mateu_uidl import components as fluent
-from mateu_uidl import Colspan, DetailForm, Hidden, Max, Min, Pattern, Size
+from mateu_uidl import Colspan, DetailForm, Hidden, Inline, Max, Min, Pattern, Size
 from mateu_uidl.rest_sources import RestSourceSupplier
 from mateu_uidl import Text as TextMarker
 from mateu_uidl import (
@@ -67,7 +67,8 @@ from ..reflection import (
     view_fields,
 )
 from ._base import MixinBase
-from ..registry import type_name
+from ..islands import EMBEDDED_MARKER, INLINE_MARKER, is_routed_view, seed_state
+from ..registry import normalize, type_name
 from ._common import (
     _id,
     _log,
@@ -351,6 +352,8 @@ class FieldMapperMixin(MixinBase):
                 children=[],
                 style="width: 100%;",
             )
+        if is_routed_view(value) and not isinstance(value, type(instance)):
+            return self.map_island(f, value)
         holds_component = isinstance(value, fluent.Component) or (
             isinstance(f.type, type) and issubclass(f.type, fluent.Component)
         )
@@ -367,6 +370,56 @@ class FieldMapperMixin(MixinBase):
             id="fieldId",
             children=[],
             style=getattr(value, "style", None),
+        )
+
+    def map_island(self, f, value) -> ClientSideComponent:
+        """A field holding a routed VIEW: an embedded island — a MEDIATOR app shell bound to the
+        view's own route and type, wrapped in a ServerSide component carrying the view's actions
+        and its seeded state, in a full-row CustomField (Java's EmbeddedOrchestratorFieldBuilder)."""
+        cls = type(value)
+        route = "/" + normalize(getattr(cls, "__mateu_ui__", "") or "")
+        inline = f.has(Inline)
+        marked = f"{route}?{EMBEDDED_MARKER}=1" + (f"&{INLINE_MARKER}=1" if inline else "")
+        ssn = type_name(cls)
+        component_id = f"_{camel_case(f.name)}"
+        app = ClientSideComponent(
+            metadata=AppMetadata(
+                title="",
+                variant="MEDIATOR",
+                route=route,
+                home_route=marked,
+                home_consumed_route=route,
+                home_server_side_type=ssn,
+                server_side_type=ssn,
+            ),
+            id=component_id + "_app",
+            children=[],
+            style="width: 100%;",
+        )
+        initial: dict[str, Any] = {EMBEDDED_MARKER: True}
+        if inline:
+            initial[INLINE_MARKER] = True
+        initial.update(seed_state(value))
+        try:
+            actions = list(self.map_view(cls, value, route).actions or [])
+        except Exception as e:  # noqa: BLE001 - an island that cannot map its actions still mounts
+            _log.warning("Island %s: its actions could not be mapped (%s)", ssn, e)
+            actions = []
+        wrapper = ServerSideComponent(
+            id=component_id,
+            server_side_type=ssn,
+            route=marked,
+            children=[app],
+            initial_data=initial,
+            actions=actions,
+            style="width: 100%;",
+        )
+        return ClientSideComponent(
+            # spans the whole row of the host form (widened in form_rows, Java: maxColumns)
+            metadata=CustomFieldMetadata(label="", content=wrapper, colspan=1),
+            id="fieldId",
+            children=[],
+            style="width: 100%;",
         )
 
     def adapter_of(self, value):

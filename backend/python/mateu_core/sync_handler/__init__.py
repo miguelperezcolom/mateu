@@ -105,7 +105,7 @@ from ._common import (  # noqa: F401 - the public import path of every helper
 )
 from ..component_registry import ComponentRegistry
 from ..rest_source_registry import RestSourceRegistry
-from .. import action_guard
+from .. import action_guard, islands
 from ._base import MixinBase
 from .dispatch import DispatchMixin
 from .wizard import WizardHandlerMixin
@@ -176,6 +176,14 @@ class SyncHandler(
         # component state at resolution (see below), but the other three are applied on the
         # RESPONSE side, so the matched entry is stashed for this request and read back when the
         # increment is built (mirrors Java's HttpRequest.setAttribute("_routeAppState"/…)).
+        # An embedded island's route carries its markers in a query string: strip them before
+        # resolving, and remember them for the request (islands.island_flags).
+        path, markers = islands.split_route(rq.route)
+        state = rq.component_state or {}
+        if state.get(islands.INLINE_MARKER) in (True, "true"):
+            markers = markers | {islands.INLINE_MARKER}
+        if path != rq.route:
+            rq = rq.model_copy(update={"route": path})
         # A class-level @eyes_only view is for the authorized only, whichever way the request names
         # it — its server-side type, its route, or a sub-route of it (a crud's /new, /{id}).
         for named in (
@@ -184,6 +192,13 @@ class SyncHandler(
             (self.registry.resolve_by_prefix(rq.route) or (None,))[0] if rq.route else None,
         ):
             action_guard.ensure_class_access(self.mapper, named)
+        flags_token = islands.set_flags(markers)
+        try:
+            return self._handle_routed(rq, request_base_url)
+        finally:
+            islands.reset_flags(flags_token)
+
+    def _handle_routed(self, rq: RunActionRq, request_base_url: str | None = None) -> UIIncrement:
         token = _route_seed.set(self.routes.match(rq.route))
         try:
             return self._seed_increment(self._handle_inner(rq, request_base_url), rq)

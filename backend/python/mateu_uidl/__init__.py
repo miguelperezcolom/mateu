@@ -37,6 +37,7 @@ from .markers import (  # noqa: F401
     FileUpload,
     GroupBy,
     Hidden,
+    Inline,
     Label,
     Money,
     Multiline,
@@ -248,6 +249,7 @@ from .adapters import (  # noqa: F401
 
 
 __all__ = [
+    "Inline",
     "AdaptedView",
     "ComponentAdapter",
     "ComponentCatalogSupplier",

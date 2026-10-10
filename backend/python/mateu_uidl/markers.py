@@ -76,6 +76,13 @@ class Text:
 
 
 @dataclass(frozen=True)
+class Inline:
+    """On a field holding a routed VIEW (an embedded island): the island renders without its own
+    page chrome — its title drops to a sub-heading, no badges/KPIs — so it blends into the host
+    section or tab (Java's ``@Inline`` on an embedded orchestrator field)."""
+
+
+@dataclass(frozen=True)
 class Colspan:
     """How many form columns the field spans (Java's ``@Colspan``). Without it a field spans one
     column, except the intrinsically wide ones — grids, textareas, rich text, html and markdown —

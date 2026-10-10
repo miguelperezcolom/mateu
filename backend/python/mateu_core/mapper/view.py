@@ -16,6 +16,7 @@ from mateu_uidl import (
 )
 
 from ..action_guard import resolve_action
+from ..islands import is_inline_request
 from ..validation import client_validations
 from ..naming import (
     camel_case,
@@ -138,7 +139,11 @@ class ViewMapperMixin(MixinBase):
 
         compact = bool(class_flag(cls, "__mateu_compact__", False))
         page_type = page_type_of(cls)
+        # An Inline() embedded island blends into its host: a sub-heading title (level 1) and no
+        # header badges/KPIs (Java's EditableView.isInline → PageView.level=1).
+        inline = is_inline_request()
         page_meta = PageMetadata(
+            level=1 if inline else 0,
             title=title,
             # pageTitle is the humanized class name (the derived page identity); title is the
             # declared @title. They coincide when the class name humanizes to the @title (Java parity).
@@ -148,8 +153,8 @@ class ViewMapperMixin(MixinBase):
             buttons=buttons,
             toc=getattr(cls, "__mateu_toc__", None),
             banners=self.banners(cls, instance),
-            badges=self.badges(cls, instance),
-            kpis=self.kpis(cls, instance),
+            badges=[] if inline else self.badges(cls, instance),
+            kpis=[] if inline else self.kpis(cls, instance),
             fabs=fabs,
             page_type=page_type,
             peer_nav=self.peer_nav(instance),

@@ -9,6 +9,7 @@ from datetime import (
 from decimal import Decimal
 from enum import Enum
 
+from mateu_dtos import CustomFieldMetadata, ServerSideComponent
 from mateu_dtos import (
     AccordionLayoutMetadata,
     AccordionPanelMetadata,
@@ -46,6 +47,7 @@ from ..reflection import (
     class_flag,
     view_fields,
 )
+from ..islands import EMBEDDED_MARKER
 from ._base import MixinBase
 from ._common import _row_cell
 
@@ -496,6 +498,15 @@ class LayoutMapperMixin(MixinBase):
 
     def _widened(self, field, max_columns: int):
         meta = field.metadata
+        if (
+            max_columns > 1
+            and isinstance(meta, CustomFieldMetadata)
+            and isinstance(meta.content, ServerSideComponent)
+            and EMBEDDED_MARKER in (meta.content.route or "")
+            and (meta.colspan or 1) <= 1
+        ):
+            # an embedded island is a sub-app: always the whole row
+            return field.model_copy(update={"metadata": meta.model_copy(update={"colspan": max_columns})})
         if (
             max_columns > 1
             and isinstance(meta, FormFieldMetadata)
