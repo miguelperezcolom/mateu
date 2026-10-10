@@ -1733,6 +1733,8 @@ class ReflectionMapper:
                         for m in c.markers
                     ],
                     marker_action_id=c.marker_action_id,
+                    tile_url=c.tile_url,
+                    attribution=c.attribution,
                 ),
                 id=c.id or "map",
                 children=[],

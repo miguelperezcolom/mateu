@@ -1114,13 +1114,16 @@ class MapMarkerRecord(Wire):
 
 class MapMetadata(Wire):
     """Street map: centre (``"lat, lon"``), zoom, markers and the action a marker click runs with
-    ``{"_markerId"}`` (mirrors ``MapDto``)."""
+    ``{"_markerId"}`` and, optionally, the tile provider (``tile_url`` template + ``attribution``;
+    ``None`` = OpenStreetMap) (mirrors ``MapDto``)."""
 
     type: Literal["Map"] = "Map"
     position: str | None = None
     zoom: str | None = None
     markers: list[MapMarkerRecord] = Field(default_factory=list)
     marker_action_id: str | None = None
+    tile_url: str | None = None
+    attribution: str | None = None
 
 
 class DropZoneMetadata(Wire):
