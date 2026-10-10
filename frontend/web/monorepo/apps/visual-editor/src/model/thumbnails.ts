@@ -6,9 +6,9 @@ import type { CanvasRendererId } from '../canvas/canvasRenderer'
  * build time, so a missing file simply means "no thumbnail" — the palette then shows the name only.
  *
  * - `vaadin`: what the canvas paints. Every component has one or a NO_THUMBNAIL reason (tested).
- * - `redwood`: what the Redwood (VB) renderer paints. The canvas cannot run it, so this is the only
- *   preview of a Redwood app inside the editor — and a component with no Redwood thumbnail is one the
- *   Redwood renderer most likely does not paint, which is worth knowing before you drop it.
+ * - `redwood`: what the Redwood (VB) renderer paints, taken from the real VB app (the same one the
+ *   Redwood canvas frames). It paints every wire component type, so a component with no Redwood
+ *   picture is one with nothing visible of its own (a trigger, a menu entry — NO_THUMBNAIL).
  */
 export type ThumbnailLook = 'vaadin' | 'redwood'
 
@@ -36,8 +36,8 @@ export function thumbnailTypes(look: ThumbnailLook): string[] {
 
 /**
  * The look the palette starts with: the canvas's own design system, or none for the DS-neutral
- * canvas (a Lumo picture over a neutral canvas would mislead). Redwood is only ever an explicit pick.
+ * canvas (a Lumo picture over a neutral canvas would mislead).
  */
 export function defaultLook(canvas: CanvasRendererId): ThumbnailLook | 'none' {
-    return canvas === 'vaadin' ? 'vaadin' : 'none'
+    return canvas === 'neutral' ? 'none' : canvas
 }

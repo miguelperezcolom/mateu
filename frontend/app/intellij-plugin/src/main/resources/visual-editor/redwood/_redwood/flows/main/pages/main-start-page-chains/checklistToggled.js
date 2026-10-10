@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context,{actionId,parameters,updatedFrom,variant}){!actionId||updatedFrom&&"internal"!==updatedFrom||(await Actions.callChain(context,{chain:"island"===variant?"dispatchIslandAction":"dispatchHostBlockAction",params:{actionId,parameters}}))}};});
+//# sourceMappingURL=checklistToggled.js.map

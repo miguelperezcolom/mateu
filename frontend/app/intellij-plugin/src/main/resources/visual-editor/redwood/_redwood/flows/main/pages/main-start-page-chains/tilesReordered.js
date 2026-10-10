@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions","resources/js/mateu-bridge"],(ActionChain,Actions,bridge)=>{"use strict";return class extends ActionChain{async run(context){const{$application}=context,next=bridge.reprojectedContentOf($application.variables);next.hostContent&&($application.variables.mateuHostContent=next.hostContent,bridge.mountElementsSoon(bridge.elementAtomsOf(next.hostContent))),next.island&&($application.variables.mateuIsland=next.island)}};});
+//# sourceMappingURL=tilesReordered.js.map

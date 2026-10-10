@@ -1367,6 +1367,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     walk(node, true)
   }
 
+  /** The node id of every metadata object of the tree (metadata → its node's id), for the visual
+   *  editor's canvas: the fields and the buttons are collected as their METADATA, and what the
+   *  editor selects is the node. Only asked for in editor mode (setEditorNodeIds). */
+  function ownerIdsOf(tree) {
+    const ids = new Map()
+    walkWithinSurface(tree, (n) => { if (n.metadata && typeof n.metadata === 'object' && n.id) ids.set(n.metadata, String(n.id)) })
+    return ids
+  }
+
   /** Helper de RENDER: recolecta los FormFields de la superficie (sin cruzar islas). */
   function collectFields(node, out = []) {
     walkWithinSurface(node, (n) => { if (n.fieldId) out.push(n) })
@@ -1445,6 +1454,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function actionsOf(tree) {
     const seen = {}
     const out = []
+    const ids = editorNodeIds ? ownerIdsOf(tree) : null
     for (const a of collectActions(tree)) {
       if (seen[a.actionId]) continue
       seen[a.actionId] = true
@@ -1454,6 +1464,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         style: a.buttonStyle || 'outlined',
         chroming: a.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
         parameters: a.parameters || {},
+        ...(ids && ids.get(a) ? { nodeId: ids.get(a) } : {}),
       })
     }
     return out
@@ -1471,6 +1482,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const s = state || {}
     const seen = {}
     const out = []
+    const ids = editorNodeIds ? ownerIdsOf(tree) : null
     for (const f of collectFields(tree)) {
       if (!f.dataType || seen[f.fieldId]) continue
       seen[f.fieldId] = true
@@ -1485,7 +1497,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (widget.isMultiSelect || widget.isCheckboxSet)
         value = Array.isArray(raw) ? raw.map((v) => plainValueOf(v)) : (raw == null || raw === '' ? [] : String(raw).split(','))
       else if (widget.isMoney) value = raw == null || raw === '' || Number.isNaN(Number(raw)) ? null : Number(raw)
-      out.push({ ...widget, value })
+      out.push({ ...widget, value, ...(ids && ids.get(f) ? { nodeId: ids.get(f) } : {}) })
     }
     return out
   }
@@ -2928,6 +2940,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function setUiValue(key, value) { uiState[key] = value }
   function uiValueOf(key, fallback) { return key in uiState ? uiState[key] : fallback }
 
+  // ── node ids for the visual editor (editor / preview mode ONLY) ──
+  // The IDE's visual editor paints a definition in this app (an iframe) and has to map a click back
+  // to the node of the definition: its preview stamps a synthetic `ve-<path>` id on every node, and
+  // with this flag on, every projected object (an atom, a card, a form field, a button) carries the
+  // id of the wire node it came from as `nodeId` — poc/editorPreview.mjs copies it onto the painted
+  // element as data-node-id. OFF by default: a production page never carries editor ids.
+  let editorNodeIds = false
+  function setEditorNodeIds(on) { editorNodeIds = !!on }
+
   let converterFactory = null
   function setConverterFactory(factory) { converterFactory = factory }
   function converterOf(spec) {
@@ -2968,7 +2989,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const blocks = []
     let plain = null
     let elementOrdinal = 0
+    // the wire node being projected (editor mode only): what an atom or a block made now came from
+    let editorNode = ''
+    const stampNode = (o) => {
+      if (editorNode && o && typeof o === 'object' && o.nodeId === undefined) o.nodeId = editorNode
+    }
+    if (editorNodeIds) {
+      // a card, a column, a panel made while visiting a node is that node's — but not the implicit
+      // run of loose atoms (isPlain), which belongs to nobody
+      const push = blocks.push.bind(blocks)
+      blocks.push = (...made) => {
+        made.forEach((b) => { if (b && !b.isPlain) stampNode(b) })
+        return push(...made)
+      }
+    }
     const atom = (a, container) => {
+      stampNode(a)
       if (container) { container.items.push(a); return }
       if (!plain) { plain = { isPlain: true, items: [] }; blocks.push(plain) }
       plain.items.push(a)
@@ -2983,7 +3019,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     const collectButtons = (node, out) => {
       if (!node || typeof node !== 'object') return out
-      if (node.metadata && node.metadata.type === 'Button') { out.push(buttonOf(node.metadata)); return out }
+      if (node.metadata && node.metadata.type === 'Button') {
+        const button = buttonOf(node.metadata)
+        if (editorNodeIds && node.id) button.nodeId = String(node.id)
+        out.push(button)
+        return out
+      }
       for (const child of kidsOf(node)) collectButtons(child, out)
       return out
     }
@@ -3051,6 +3092,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       plain = null
     }
     const visit = (node, container) => {
+      if (!editorNodeIds || !node || typeof node !== 'object' || !node.id) { visitNode(node, container); return }
+      const outer = editorNode
+      editorNode = String(node.id)
+      try { visitNode(node, container) } finally { editorNode = outer }
+    }
+    const visitNode = (node, container) => {
       if (!node || typeof node !== 'object') return
       // @Subresource: el listado embebido es OTRA superficie (su ServerSide). Deja un hueco que
       // withSubresources rellena con su tabla cuando está cargada — bajar a su App de mediador lo
@@ -3112,6 +3159,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           if (md && md.type === 'FormRow') { kidsOf(n).forEach(walkLayout); return }
           const field = md && md.type === 'FormField' ? layoutFieldOf(md, state, ctx.data, columns) : null
           if (field) {
+            if (editorNodeIds && n.id) field.nodeId = String(n.id)
             if (!layout) {
               layout = { isFormLayout: true, columns, fields: [] }
               layouts.push(layout)
@@ -3905,8 +3953,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'Button') {
         const target = container || plain
         const last = target && target.items.length ? target.items[target.items.length - 1] : null
-        if (last && last.isButtons) last.buttons.push(buttonOf(m))
-        else atom({ isButtons: true, buttons: [buttonOf(m)] }, container)
+        const button = buttonOf(m)
+        if (editorNodeIds && node.id) button.nodeId = String(node.id)
+        if (last && last.isButtons) last.buttons.push(button)
+        else atom({ isButtons: true, buttons: [button] }, container)
         return
       }
       // ── display components with their own projection (core/display.mjs) ──
@@ -4058,7 +4108,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         : block
     ))
     const hasDisplay = hoisted.some((b) => b.items.some((a) => !a.isButtons) || b.isNestedBlock)
-    return hasDisplay ? hoisted : null
+    // Only buttons: the generic form paints them under its fields — but a tree with NO field has no
+    // generic form, and its buttons (a page that is a lone call to action, a tooltip on a button)
+    // were painted by nobody. Then they are the content.
+    const onlyButtons = !hasDisplay && hoisted.some((b) => b.items.some((a) => a.isButtons)) && !hasFormField(ctx.tree)
+    return hasDisplay || onlyButtons ? hoisted : null
+  }
+
+  /** Does the surface hold any FormField (without crossing into an island)? */
+  function hasFormField(node, isRoot = true) {
+    if (!node || typeof node !== 'object') return false
+    if (!isRoot && node.type === 'ServerSide') return false
+    if (node.metadata && node.metadata.type === 'FormField') return true
+    for (const v of Object.values(node)) {
+      if (Array.isArray(v) ? v.some((x) => hasFormField(x, false)) : (v && typeof v === 'object' && hasFormField(v, false))) return true
+    }
+    return false
   }
 
   /** ¿Hace el contenido de la pantalla de cuerpo de la página? (si no, lo pinta el form genérico)
@@ -4392,9 +4457,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  [{actionId, label, chroming}]. El de estilo primary va al primaryAction del header. */
   function pageToolbarOf(ctx) {
     if (!ctx || !ctx.tree) return []
-    const page = findByType(ctx.tree, 'Page')
+    // a fluent/YAML `Form` carries its toolbar exactly like a reflected Page does
+    const page = findByType(ctx.tree, 'Page') || findByType(ctx.tree, 'Form')
     if (!page) return []
     return (page.metadata.toolbar || [])
+      // a ButtonGroup (a toolbar's dropdown: on the wire a Button with `children`, no action of its
+      // own) brings its buttons — the header's actions list them
+      .flatMap((b) => (b && !b.actionId && Array.isArray(b.children || b.buttons) ? (b.children || b.buttons) : [b]))
       .filter((b) => b && b.actionId)
       .map((b) => ({
         actionId: b.actionId,
@@ -14529,6 +14598,313 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return next
   }
 
+
+  // Editor-preview mode: the IDE's visual editor paints the definition being edited with THIS app,
+  // inside an iframe (apps/visual-editor, canvas/redwood-frame.ts). The editor already knows how to
+  // turn the edited YAML into a wire increment — the reserved `__preview__` sync action of any Mateu
+  // backend, or the client-side expander with no backend at all — so the app does not ask a server
+  // for anything: it is HANDED the increment through postMessage and answers its own /mateu calls
+  // with it, exactly as the palette-thumbnail harness does from Playwright:
+  //
+  //   - the shell's bootstrap gets a one-route App (no menu worth showing: the chrome is hidden),
+  //   - the route's load gets the edited tree, wrapped as a server-side component, the way a real
+  //     route's content arrives,
+  //   - any other call (an OnLoad search, a button) gets an empty answer: the canvas is inert, a
+  //     click SELECTS the component under it instead of running it.
+  //
+  // It is the visual editor's canvas, so it is also EDITABLE: with the projection's node ids on
+  // (core/content.mjs setEditorNodeIds), every painted atom carries the id of the definition node it
+  // came from as data-node-id — the editor's synthetic `ve-<path>` — and a click posts that id back.
+  // Production pages never enter this mode: only a page that sets window.__mateuEditorPreview (the
+  // editor's preview page) does, so no production element ever carries an editor id.
+  //
+  // Pure except installEditorPreview (DOM + window), so test.mjs exercises the protocol, the answers
+  // and the stamping with plain objects.
+
+  /** The single route of the preview app. */
+  const PREVIEW_ROUTE = '/preview'
+  const PREVIEW_SST = 'mateu.editor.preview'
+
+  /** The tag every message of the protocol carries: `{ mateuPreview: <kind>, … }`. */
+  const PREVIEW_MESSAGE_KEY = 'mateuPreview'
+
+  /** True on the editor's preview page (it sets the flag before the app boots). */
+  const isEditorPreview = (win) => !!(win && win.__mateuEditorPreview)
+
+  const EMPTY_INCREMENT = () => ({ commands: [], messages: [], fragments: [] })
+
+  /** What the shell's bootstrap gets: a one-route App whose home is the preview route. */
+  function previewAppIncrement(initiator = 'shell') {
+    return {
+      commands: [], messages: [],
+      fragments: [{
+        targetComponentId: initiator, action: 'Replace',
+        component: {
+          type: 'ClientSide', id: 'mateu-editor-app', children: [],
+          metadata: {
+            type: 'App', route: '', variant: 'MENU_ON_TOP', layout: 'SINGLE_SLOT', title: '',
+            homeRoute: PREVIEW_ROUTE,
+            menu: [{ label: ' ', path: PREVIEW_ROUTE, route: PREVIEW_ROUTE, consumedRoute: '', serverSideType: PREVIEW_SST,
+              submenus: [], visible: true }],
+            apps: [], fabs: [], contextSelectors: [], contextActions: [],
+          },
+        },
+      }],
+    }
+  }
+
+  /** What the route's load gets: the edited tree (the first fragment of the editor's increment),
+   *  wrapped as a server-side component — the way a real route's content arrives — and aimed at the
+   *  surface that loads it. */
+  function previewLoadIncrement(fragment, request = {}) {
+    if (!fragment || !fragment.component) return EMPTY_INCREMENT()
+    const state = fragment.state || {}
+    return {
+      commands: [], messages: [],
+      fragments: [{
+        targetComponentId: request.initiatorComponentId || '',
+        action: 'Replace',
+        state,
+        data: fragment.data || {},
+        component: {
+          type: 'ServerSide', id: 'mateu-editor-page', serverSideType: PREVIEW_SST,
+          route: request.route || PREVIEW_ROUTE, actions: [], triggers: [], rules: [],
+          children: [fragment.component], initialData: state,
+        },
+      }],
+    }
+  }
+
+  /** The answer to a request the app sends to its backend, or null when it is not a Mateu call
+   *  (a REST source, a CDN module: those go out for real). */
+  function previewAnswerOf(url, body, fragment) {
+    const u = String(url || '')
+    if (u.indexOf('/mateu/v3/') < 0) return null
+    if (u.indexOf('/mateu/v3/components/') >= 0) return previewAppIncrement((body && body.initiatorComponentId) || 'shell')
+    if (u.indexOf('/mateu/v3/sync/') >= 0) {
+      // a load is actionId '' — anything else (a search, a button) does nothing on a canvas
+      if (body && (body.actionId === '' || body.actionId == null)) return previewLoadIncrement(fragment, body)
+      return EMPTY_INCREMENT()
+    }
+    // client-log, notifications, chat…: nobody is listening
+    return EMPTY_INCREMENT()
+  }
+
+  const parseBody = (init) => {
+    try { return init && typeof init.body === 'string' ? JSON.parse(init.body) : {} } catch (e) { return {} }
+  }
+
+  /** A fetch that answers the Mateu calls locally (awaiting the first fragment the editor hands
+   *  over: the route's load may go out before it arrives) and lets everything else through. */
+  function previewFetch(realFetch, fragmentNow) {
+    return async (input, init) => {
+      const url = typeof input === 'string' ? input : (input && input.url) || ''
+      if (url.indexOf('/mateu/v3/') < 0) return realFetch(input, init)
+      const body = parseBody(init)
+      const isLoad = url.indexOf('/mateu/v3/sync/') >= 0 && (body.actionId === '' || body.actionId == null)
+      const json = previewAnswerOf(url, body, isLoad ? await fragmentNow() : null)
+      return new Response(JSON.stringify(json), { status: 200, headers: { 'Content-Type': 'application/json' } })
+    }
+  }
+
+  /** The editor id under a click: the nearest element of the event path that carries one. */
+  function nodeIdOfPath(path) {
+    for (const el of path || []) {
+      const id = el && typeof el.getAttribute === 'function' ? el.getAttribute('data-node-id') : null
+      if (id) return id
+    }
+    return null
+  }
+
+  /**
+   * Copies the projection's node ids onto the painted DOM: every element whose bound data (its
+   * template's $current.data, read by `dataOf`) carries a `nodeId` different from its parent's gets
+   * data-node-id — so the OUTERMOST element of an atom is the one tagged, and a nested object of the
+   * same atom (a group of a queue) inherits. An element whose data has none and that still carries
+   * a stale id (re-used by the template) loses it. Returns how many elements carry an id.
+   */
+  function stampNodeIds(root, dataOf) {
+    let count = 0
+    const walk = (el, inherited) => {
+      let data
+      try { data = dataOf(el) } catch (e) { data = undefined }
+      const own = data && typeof data === 'object' && data.nodeId ? String(data.nodeId) : ''
+      if (own && own !== inherited) {
+        if (el.getAttribute('data-node-id') !== own) el.setAttribute('data-node-id', own)
+        count++
+      } else if (el.hasAttribute && el.hasAttribute('data-node-id')) {
+        el.removeAttribute('data-node-id')
+      }
+      const next = own || inherited
+      for (const child of Array.from(el.children || [])) walk(child, next)
+    }
+    for (const child of Array.from((root && root.children) || [])) walk(child, '')
+    return count
+  }
+
+  /** The element painted for an editor id (the first: an atom projected twice is selected once). */
+  const elementOfNodeId = (doc, id) =>
+    (id && doc ? doc.querySelector('[data-node-id="' + String(id).replace(/["\\]/g, '\\$&') + '"]') : null)
+
+  // The canvas does not run the app: these never reach it (capture phase, stopped before JET).
+  const INERT_EVENTS = ['pointerdown', 'pointerup', 'mousedown', 'mouseup', 'dblclick', 'contextmenu',
+    'touchstart', 'touchend', 'submit', 'dragstart', 'auxclick']
+  // Keys the editor handles (undo/redo, delete, move): forwarded to it, never typed into a field.
+  const FORWARDED_KEYS = { Delete: 1, Backspace: 1, ArrowUp: 1, ArrowDown: 1, Escape: 1 }
+
+  /** What the shell chrome looks like on a canvas: nothing. The page is what is being designed. */
+  const EDITOR_PREVIEW_CSS = `
+  html.mateu-editor-preview oj-sp-global-header, html.mateu-editor-preview .mateu-subheader,
+  html.mateu-editor-preview oj-sp-simple-ui-shell .oj-sp-rw-chat-icon-cont,
+  html.mateu-editor-preview .mateu-skip-link { display: none !important; }
+  html.mateu-editor-preview [data-node-id] { cursor: default; }
+  .mateu-editor-outline { position: fixed; pointer-events: none; z-index: 2147483000; box-sizing: border-box;
+    border: 2px solid #4f8cff; border-radius: 2px; display: none; }
+  .mateu-editor-outline.hover { border: 1px dashed #4f8cff; }
+  .mateu-editor-outline .tag { position: absolute; top: -18px; left: -2px; font: 600 10px/1.4 system-ui, sans-serif;
+    padding: 1px 5px; color: #fff; background: #4f8cff; border-radius: 3px 3px 0 0; white-space: nowrap; }
+  .mateu-editor-outline.below .tag { top: auto; bottom: -18px; border-radius: 0 0 3px 3px; }
+  `
+
+  /**
+   * Wires the page as the editor's canvas: the fetch that answers from the handed increment, the
+   * message protocol, the inert interactions, the id stamping and the selection outline.
+   *
+   * @param win the window (the iframe's)
+   * @param opts.rerender re-runs the preview route (the shell chain: onMateuNavigate with force)
+   * @param opts.dataOf element → its bound data (knockout's contextFor(el).$current.data)
+   * @returns { booted() } — the shell calls it once its first navigation is done
+   */
+  function installEditorPreview(win, opts = {}) {
+    const doc = win.document
+    const post = (msg) => { try { win.parent.postMessage({ [PREVIEW_MESSAGE_KEY]: msg.kind, ...msg }, '*') } catch (e) { /* no parent */ } }
+    doc.documentElement.classList.add('mateu-editor-preview')
+    const style = doc.createElement('style')
+    style.textContent = EDITOR_PREVIEW_CSS
+    doc.head.appendChild(style)
+
+    let fragment = null
+    let waiters = []
+    const fragmentNow = () => (fragment ? Promise.resolve(fragment) : new Promise((resolve) => waiters.push(resolve)))
+    const realFetch = win.fetch.bind(win)
+    win.fetch = previewFetch(realFetch, fragmentNow)
+
+    let booted = false
+    let rendering = false
+    let again = false
+    const rerender = async () => {
+      if (!booted || !opts.rerender) return
+      if (rendering) { again = true; return }
+      rendering = true
+      try { await opts.rerender() } catch (e) { /* the next edit retries */ } finally {
+        rendering = false
+        if (again) { again = false; rerender() }
+      }
+    }
+
+    // ── selection & hover outlines (inside the frame: the editor cannot see this DOM) ──
+    const outline = (cls) => {
+      const el = doc.createElement('div')
+      el.className = 'mateu-editor-outline ' + cls
+      el.appendChild(doc.createElement('span')).className = 'tag'
+      doc.body.appendChild(el)
+      return el
+    }
+    let selOutline = null
+    let hoverOutline = null
+    let selected = { id: null, label: '' }
+    let hovered = { id: null, label: '' }
+    const place = (box, target) => {
+      const el = target.id ? elementOfNodeId(doc, target.id) : null
+      if (!el) { box.style.display = 'none'; return }
+      const r = el.getBoundingClientRect()
+      box.style.display = 'block'
+      box.style.left = r.left + 'px'
+      box.style.top = r.top + 'px'
+      box.style.width = r.width + 'px'
+      box.style.height = r.height + 'px'
+      box.classList.toggle('below', r.top < 20)
+      box.firstChild.textContent = target.label || ''
+      box.firstChild.style.display = target.label ? '' : 'none'
+    }
+    const reposition = () => {
+      if (!selOutline) { selOutline = outline('sel'); hoverOutline = outline('hover') }
+      place(selOutline, selected)
+      place(hoverOutline, hovered.id && hovered.id !== selected.id ? hovered : { id: null })
+    }
+
+    // ── stamping, after every render ──
+    let stampQueued = false
+    let renderedTimer = 0
+    const stampSoon = () => {
+      if (stampQueued) return
+      stampQueued = true
+      win.requestAnimationFrame(() => {
+        stampQueued = false
+        const root = doc.getElementById('pageContent') || doc.body
+        const count = opts.dataOf ? stampNodeIds(root, opts.dataOf) : 0
+        reposition()
+        win.clearTimeout(renderedTimer)
+        renderedTimer = win.setTimeout(() => post({ kind: 'rendered', count }), 120)
+      })
+    }
+    new win.MutationObserver(stampSoon).observe(doc.body, { childList: true, subtree: true })
+    win.addEventListener('scroll', reposition, true)
+    win.addEventListener('resize', reposition)
+
+    // ── inert canvas: a click selects ──
+    const stop = (e) => { e.preventDefault(); e.stopImmediatePropagation() }
+    for (const name of INERT_EVENTS) win.addEventListener(name, stop, true)
+    win.addEventListener('click', (e) => {
+      stop(e)
+      const path = typeof e.composedPath === 'function' ? e.composedPath() : [e.target]
+      post({ kind: 'click', id: nodeIdOfPath(path) })
+    }, true)
+    win.addEventListener('mousemove', (e) => {
+      const path = typeof e.composedPath === 'function' ? e.composedPath() : [e.target]
+      const id = nodeIdOfPath(path)
+      if (id === hovered.id) return
+      hovered = { id, label: '' }
+      reposition()
+    }, true)
+    doc.documentElement.addEventListener('mouseleave', () => { hovered = { id: null, label: '' }; reposition() })
+    win.addEventListener('keydown', (e) => {
+      const mod = e.metaKey || e.ctrlKey
+      if (FORWARDED_KEYS[e.key] || (mod && /^[zZyY]$/.test(e.key))) {
+        stop(e)
+        post({ kind: 'key', key: e.key, code: e.code, metaKey: e.metaKey, ctrlKey: e.ctrlKey, shiftKey: e.shiftKey, altKey: e.altKey })
+      }
+    }, true)
+
+    // ── the protocol ──
+    win.addEventListener('message', (e) => {
+      if (e.source !== win.parent) return
+      const msg = e.data
+      if (!msg || typeof msg !== 'object') return
+      const kind = msg[PREVIEW_MESSAGE_KEY]
+      if (kind === 'render' && msg.fragment) {
+        fragment = msg.fragment
+        const pending = waiters
+        waiters = []
+        pending.forEach((resolve) => resolve(fragment))
+        rerender()
+      } else if (kind === 'select') {
+        selected = { id: msg.id || null, label: msg.label || '' }
+        reposition()
+        const el = selected.id ? elementOfNodeId(doc, selected.id) : null
+        if (el && msg.reveal && typeof el.scrollIntoView === 'function') el.scrollIntoView({ block: 'nearest' })
+      }
+    })
+    post({ kind: 'hello' })
+
+    return {
+      booted() {
+        booted = true
+        stampSoon()
+      },
+    }
+  }
+
   // el importe de un campo money: IntlNumberConverter con estilo moneda (un objeto JSON ya no vale)
   setConverterFactory((spec) => new NumberConverter.IntlNumberConverter(spec.options));
   // reglas del cliente: cada reducción fija su contexto (las del host, con su estado)
@@ -14573,6 +14949,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       resolve(new JsonMetadataProvider({ data }));
     }, reject);
   }));
+  // the visual editor's canvas (editorPreview.mjs): the data a template bound to an element is
+  // its knockout binding context's $current.data — the atom, the card, the field. Loaded only on
+  // the editor's preview page; null when knockout is not there (no ids, the canvas still paints)
+  const editorDataResolver = () => new Promise((resolve) => {
+    require(['knockout'], (ko) => resolve((el) => {
+      const c = ko.contextFor(el);
+      return c && c.$current ? c.$current.data : undefined;
+    }), () => resolve(null));
+  });
 
   return {
     HOST_ID,
@@ -14827,6 +15212,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     loadBundleManifest,
     hasBundle,
     awaitBundle,
+    // the IDE's visual editor paints with this app in an iframe (editorPreview.mjs): it hands the
+    // increment over, the app answers its own /mateu calls, a click selects instead of acting
+    isEditorPreview,
+    installEditorPreview,
+    setEditorNodeIds,
+    editorDataResolver,
+    PREVIEW_ROUTE,
     // accesibilidad: lo que los componentes oj-* no traen (una SPA no cambia de página, así
     // que no hay nada que un lector de pantalla anuncie por su cuenta)
     installAnnouncer,

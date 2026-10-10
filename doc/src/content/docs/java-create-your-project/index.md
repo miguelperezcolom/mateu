@@ -39,7 +39,7 @@ All integrations support the same set of frontends — change renderer by swappi
 | Artifact | Design system |
 |---|---|
 | `vaadin-lit` | Vaadin (default, recommended) |
-| `redwood` | Oracle Redwood, on Visual Builder |
+| `redwood` | Oracle Redwood, on Visual Builder — loads Oracle's components from its CDN under **your** Oracle terms ([licensing](/design-systems/oracle-redwood/)) |
 
 ## Before you start
 
