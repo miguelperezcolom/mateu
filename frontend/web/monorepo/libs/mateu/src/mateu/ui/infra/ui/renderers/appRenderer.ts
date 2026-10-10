@@ -554,7 +554,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     </nav>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
                         <div class="m-md">
-                            <div class="m-scroll mateu-content-gutter" style="height: 100%;">
+                            <div role="main" class="m-scroll mateu-content-gutter" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
                                             data-content-view
@@ -608,7 +608,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     ${renderSectionsPanel(metadata.menu ?? [], active, container)}
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
                         <div class="m-md">
-                            <div class="m-scroll mateu-content-gutter" style="height: 100%;">
+                            <div role="main" class="m-scroll mateu-content-gutter" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
                                             data-content-view
@@ -650,7 +650,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">
                         ${container.tilesMenuOption ? container.renderTilesHub(container.tilesMenuOption) : html`
                         <div class="m-md">
-                            <div class="m-scroll" style="height: 100%;">
+                            <div role="main" class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
                                             data-content-view
@@ -681,7 +681,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     ${container.railOpenOption ? container.renderRailSubPanel(container.railOpenOption) : nothing}
                     <div style="flex: 1; overflow: hidden; padding: 2rem 2rem 0; height: 100vh; box-sizing: border-box; background-color: var(--lumo-contrast-10pct);">
                         <div class="m-md">
-                            <div class="m-scroll" style="height: 100%;">
+                            <div role="main" class="m-scroll" style="height: 100%;">
                                 <mateu-api-caller>
                                     <mateu-ux
                                             data-content-view

@@ -60,6 +60,7 @@ import {TextField} from "@vaadin/text-field";
 import {announce} from "@infra/a11y/announcer.ts";
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { safeHref } from '@infra/ui/safeNavigate.ts'
+import { displayedValue, formatMoney } from './fieldDisplay'
 
 type ValueChangedDetail = { value: unknown; fieldId: string | undefined }
 
@@ -727,22 +728,9 @@ export class MateuField extends LitElement {
             if ((v === undefined || v === null || v === '') && fromData(this.field.fieldId) !== undefined) v = fromData(this.field.fieldId)
             const lookupLabel = fromData(this.field.fieldId + '-label')
             if (lookupLabel !== undefined && lookupLabel !== '') v = lookupLabel
-            const amountObj = (v && typeof v === 'object' && 'value' in (v as any)) ? (v as any) : null
-            if (v && (v as any).value) v = (v as any).value
-            const isBool = this.field?.dataType == 'bool' || v === true || v === false
-            const isMoney = this.field?.dataType == 'money'
-            const hasValue = v !== null && v !== undefined && v !== ''
-            let display = hasValue ? String(v) : '—'
-            if (isMoney && hasValue) {
-                const num = typeof v === 'number' ? v : parseFloat(String(v))
-                if (!isNaN(num)) {
-                    display = (amountObj && amountObj.locale && amountObj.currency)
-                        ? new Intl.NumberFormat(amountObj.locale, { style: 'currency', currency: amountObj.currency }).format(num)
-                        : new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num)
-                }
-            }
+            const { isBool, checked, isMoney, display } = displayedValue(v, this.field?.dataType)
             const valueBody = isBool
-                ? html`<vaadin-icon icon="${(v === true || v === 'true') ? 'vaadin:check' : 'vaadin:minus'}" style="height: 16px; width: 16px;"></vaadin-icon>`
+                ? html`<vaadin-icon icon="${checked ? 'vaadin:check' : 'vaadin:minus'}" style="height: 16px; width: 16px;"></vaadin-icon>`
                 : html`<span style="font-weight: 500; text-align: right; word-break: break-word; margin-left: auto;${isMoney ? ' font-variant-numeric: tabular-nums;' : ''}">${display}</span>`
             const showLabel = labelText && labelText != 'null'
             return html`<div
@@ -769,22 +757,9 @@ export class MateuField extends LitElement {
     private renderPlainTextField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
         if (!this.field) return html``
             let v = evalIfNecessary(value, this.state, this.data)
-            const amountObj = (v && typeof v === 'object' && 'value' in (v as any)) ? (v as any) : null
-            if (v && (v as any).value) v = (v as any).value
-            const isBool = this.field?.dataType == 'bool' || v === true || v === false
-            const isMoney = this.field?.dataType == 'money'
-            const hasValue = v !== null && v !== undefined && v !== ''
-            let display = hasValue ? String(v) : '—'
-            if (isMoney && hasValue) {
-                const num = typeof v === 'number' ? v : parseFloat(String(v))
-                if (!isNaN(num)) {
-                    display = (amountObj && amountObj.locale && amountObj.currency)
-                        ? new Intl.NumberFormat(amountObj.locale, { style: 'currency', currency: amountObj.currency }).format(num)
-                        : new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(num)
-                }
-            }
+            const { isBool, checked, isMoney, display } = displayedValue(v, this.field?.dataType)
             const body = isBool
-                ? html`<vaadin-icon icon="${(v === true || v === 'true') ? 'vaadin:check' : 'vaadin:minus'}" style="height: 16px; width: 16px;"></vaadin-icon>`
+                ? html`<vaadin-icon icon="${checked ? 'vaadin:check' : 'vaadin:minus'}" style="height: 16px; width: 16px;"></vaadin-icon>`
                 : this.field?.multiline
                     ? html`<span style="font-weight: 500; white-space: pre-wrap; word-break: break-word;">${display}</span>`
                     : html`<span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;${isMoney ? ' font-variant-numeric: tabular-nums;' : ''}">${display}</span>`
@@ -2207,21 +2182,7 @@ export class MateuField extends LitElement {
     private renderMoneyField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
         if (!this.field) return html``
             if (this.field.readOnly) {
-                const amount = value
-                let formatted = amount
-                if (amount && amount.locale && amount.currency) {
-                    formatted = new Intl.NumberFormat(amount.locale, { style: "currency", currency: amount.currency }).format(
-                        amount.value,
-                    )
-                } else {
-                    formatted = new Intl.NumberFormat("de-DE", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-
-                    }).format(
-                        amount,
-                    )
-                }
+                const formatted = formatMoney(value)
                 return html`<vaadin-custom-field
                         id="${this.field.fieldId}"
                         label="${label}"

@@ -101,6 +101,7 @@ const en = {
     loading: 'Loading…',
     loadingMore: 'Loading more…',
     import: 'Import',
+    itemsFound: '{count} items found.',
     // field widgets
     upload: 'Upload',
     replace: 'Replace',
@@ -274,6 +275,7 @@ const es: Catalogue = {
     loading: 'Cargando…',
     loadingMore: 'Cargando más…',
     import: 'Importar',
+    itemsFound: '{count} elementos encontrados.',
     upload: 'Subir',
     replace: 'Reemplazar',
     chooseFile: 'Elegir fichero',

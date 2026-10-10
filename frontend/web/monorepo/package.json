@@ -9,7 +9,7 @@
   ],
   "scripts": {
     "test": "yarn workspace mateu test",
-    "lint": "eslint libs/mateu/src apps/vaadin/src --max-warnings 428"
+    "lint": "eslint libs/mateu/src apps/vaadin/src --max-warnings 420"
   },
   "resolutions": {
     "esbuild": "^0.28.1",

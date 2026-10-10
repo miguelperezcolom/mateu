@@ -36,7 +36,7 @@ import { isBackButton, isNavButton } from '@infra/ui/toolbarButtonKinds.ts';
 import { buttonTheme, neutralButtonClass } from '@infra/ui/mateu-content-header.ts';
 import { IDS_PARAM, SEARCH_ALIAS, SEARCH_PARAM } from '@infra/ui/idSetFilter.ts';
 import { isListingOwnLoad } from '@infra/http/localRequests.ts';
-import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 
 const directions: Record<string, string> = {
     asc: 'ascending',
@@ -1344,7 +1344,7 @@ export class MateuTableCrud extends LitElement {
             </div>
         ` : html`
             ${metadata.infiniteScrolling ? html`
-                <div>${this.data[this.id]?.page?.totalElements} items found.</div>
+                <div>${chromeTextf('itemsFound', { count: this.data[this.id]?.page?.totalElements ?? 0 })}</div>
             ` : nothing}
             ${!rendererOwnsLayouts && gridLayout === 'list' ? renderTwoLineList()
             : !rendererOwnsLayouts && gridLayout === 'cards' ? (metadata.contentHeight ? html`
