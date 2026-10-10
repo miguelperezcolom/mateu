@@ -35,6 +35,17 @@ sirve SIEMPRE desde `build/optimized`: los cambios no llegan hasta re-ejecutar `
 En desarrollo el bridge apunta al backend con la constante `mateuBaseUrl` de
 `webApps/vbredwoodapp/app-flow.json` (punto único de cambio).
 
+## El lienzo Redwood del editor visual (modo editor-preview)
+
+El editor visual del IDE (`apps/visual-editor`) puede pintar su lienzo con esta app. Su página
+`redwood-preview.html` enmarca la app empaquetada y pone `window.__mateuEditorPreview`, y entonces
+`loadMateuShell` instala `poc/editorPreview.mjs` antes del bootstrap. El editor le pasa el
+incremento por `postMessage` y la app contesta con él sus propias llamadas a `/mateu`. Un clic
+selecciona en vez de actuar, y `setEditorNodeIds(true)` hace que cada átomo pintado lleve el id del
+nodo de la definición (`data-node-id`). Una página de producción nunca entra en este modo
+(`test-editor.mjs`). Tras tocarlo, `npm run build && npm run copy`: el editor sirve la app desde los
+recursos del jar.
+
 ## Probar el renderer local contra una UI YA DESPLEGADA
 
 Para no pasar por release → despliegue por cada cambio, `e2e/vb-live-dev.mjs` abre un navegador

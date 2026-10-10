@@ -1,0 +1,29 @@
+type: AppShell
+title: Shell flows
+variant: MENU_ON_TOP
+homeRoute: home
+themeToggle: true
+commandCenter: true
+accessKeys: true
+actions:
+  - id: newOrder
+    steps:
+      - type: MarkClean
+      - type: Navigate
+        route: orders/new
+  - id: announce
+    steps:
+      - type: Emit
+        event: order-started
+menu:
+  - type: RouteLink
+    label: Home
+    route: home
+  - type: RuleLink
+    label: New order
+    rules:
+      - action: RunAction
+        actionId: newOrder
+widgets:
+  - type: Text
+    text: "v1.0"

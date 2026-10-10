@@ -1,0 +1,6 @@
+# The cards of the IDE "General Overview" / "Item Overview" page templates — golden source for the
+# client-side expander: CardMapper expands a component `title` in place, in metadata
+# (TemplateComponentsDefinitionSyncTest).
+type: Card
+title: {type: Text, text: Contact}
+content: {type: Text, text: Contact details}

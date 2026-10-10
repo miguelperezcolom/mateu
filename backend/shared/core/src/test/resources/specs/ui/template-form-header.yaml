@@ -1,0 +1,15 @@
+# The IDE "Wizard" page template — golden source for the client-side expander: FormMapper expands
+# each `header` component in place, in metadata (and the avatar, which it also sizes)
+# (TemplateComponentsDefinitionSyncTest).
+type: Form
+title: Sign up
+avatar: {type: Avatar, name: Ana Garcia}
+header:
+  - {type: Text, text: "Step 1 of 3 — Your details", size: s}
+  - {type: ProgressBar, value: 0.33}
+content:
+  - type: FormLayout
+    content:
+      - {type: FormField, id: fullName, label: Full name, dataType: string, required: true}
+buttons:
+  - {type: Button, label: Next, actionId: next, buttonStyle: primary}

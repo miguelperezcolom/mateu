@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions","resources/js/mateu-bridge"],(ActionChain,Actions,bridge)=>{"use strict";return class extends ActionChain{async run(context,{confirmed,closing}){bridge.answerConfirmation(!!confirmed),closing||(await Actions.callComponentMethod(context,{selector:"#mateuConfirm",method:"close"}))}};});
+//# sourceMappingURL=mateuConfirmAnswered.js.map

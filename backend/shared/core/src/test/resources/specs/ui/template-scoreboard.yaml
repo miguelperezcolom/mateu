@@ -1,0 +1,6 @@
+# The KPI band of the IDE "Dashboard" page template — golden source for the client-side expander:
+# ScoreboardMapper lifts `metrics` to wire children (TemplateComponentsDefinitionSyncTest).
+type: Scoreboard
+metrics:
+  - {type: MetricCard, title: Revenue, value: "1.2M", unit: EUR, trend: up, trendLabel: +8% vs last month}
+  - {type: MetricCard, title: Returns, value: "1.9%", trend: down, trendLabel: -0.4 pts}

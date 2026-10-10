@@ -3,10 +3,11 @@
 type: Form
 title: __TITLE__
 __PAGE_WIDTH__
-header:
+content:
+  # where you are in the process, above the step's fields (a Form's `header:` is the right-hand side
+  # of the title row — the place for actions, not for a full-width progress bar)
   - {type: Text, text: "Step 1 of 3 — Your details", size: s}
   - {type: ProgressBar, value: 0.33}
-content:
   - type: FormLayout
     content:
       - {type: FormField, id: fullName, label: Full name, dataType: string, required: true}

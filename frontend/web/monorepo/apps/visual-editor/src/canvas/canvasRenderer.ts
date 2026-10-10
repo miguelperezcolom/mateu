@@ -7,20 +7,22 @@
  *    default. Loaded lazily, so an editor session that never asks for it never downloads it.
  *  - `neutral` — the DS-neutral BasicComponentRenderer (plain HTML), the shape every other renderer
  *    starts from; handy to see the structure without a design system in the way.
- *
- * Redwood cannot run inside the editor: its runtime (JET / visual-runtime) is loaded from Oracle's
- * CDN by a whole VB app, not by a component renderer — preview Redwood against the running app.
+ *  - `redwood` — the REAL Redwood renderer. Not a component renderer: its runtime (JET, the Spectra
+ *    components, the visual runtime) is a whole Visual Builder app loaded from Oracle's CDN, so the
+ *    canvas frames that app (redwood-frame.ts) and hands it the increment. The component renderer
+ *    stays Vaadin underneath, for what the canvas does not frame (the board's miniatures).
  */
 import { componentRenderer, ComponentRenderer } from '@infra/ui/renderers/ComponentRenderer.ts'
 import { BasicComponentRenderer } from '@infra/ui/renderers/BasicComponentRenderer.ts'
 import { registerNeutralNotifier } from '@infra/notify/neutralNotifier.ts'
 
-export type CanvasRendererId = 'vaadin' | 'neutral'
+export type CanvasRendererId = 'vaadin' | 'neutral' | 'redwood'
 
-export const CANVAS_RENDERERS: CanvasRendererId[] = ['vaadin', 'neutral']
+export const CANVAS_RENDERERS: CanvasRendererId[] = ['vaadin', 'redwood', 'neutral']
 
 export const CANVAS_RENDERER_LABELS: Record<CanvasRendererId, string> = {
     vaadin: 'Vaadin (Lumo)',
+    redwood: 'Redwood (Oracle)',
     neutral: 'DS-neutral',
 }
 
@@ -40,11 +42,11 @@ export function installNeutralRenderer() {
 
 /** Switch the canvas renderer. Resolves once the renderer is installed (the Vaadin one loads lazily). */
 export async function useCanvasRenderer(id: CanvasRendererId): Promise<CanvasRendererId> {
-    if (id === 'vaadin') {
+    if (id === 'vaadin' || id === 'redwood') {
         try {
             if (!vaadin) vaadin = (await import('./vaadinCanvasRenderer')).createVaadinRenderer()
             componentRenderer.set(vaadin)
-            current = 'vaadin'
+            current = id
             return current
         } catch (e) {
             // A host that cannot load the chunk keeps a working (neutral) canvas rather than a dead one.
@@ -62,5 +64,5 @@ export function currentCanvasRenderer(): CanvasRendererId {
 }
 
 export function parseCanvasRenderer(value: string | null | undefined): CanvasRendererId {
-    return value === 'neutral' ? 'neutral' : 'vaadin'
+    return value === 'neutral' || value === 'redwood' ? value : 'vaadin'
 }

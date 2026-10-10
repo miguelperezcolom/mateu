@@ -4787,6 +4787,80 @@ test('chat: el panel VB tiene lo del web — título de marca, agente local, mod
   assert.match(attach, /headers: bridge\.authHeadersOf\(\)/)
 })
 
+// ── the shell's FLOWS: a menu RuleLink running a declared flow client-side ───────────────────────
+import { isMenuRuleId, menuRulesOf, shellFlowOf, menuRulePlanOf } from './shellFlows.mjs'
+import { MENU_RULE_PREFIX } from './reduceContexts.mjs'
+{
+  // the Java golden (AppShellFlowSyncTest): a YAML shell declaring flows + a menu action leaf
+  const shellGolden = JSON.parse(readFileSync(join(here, '..', '..', '..', 'libs', 'mateu', 'src', 'mateu', 'ui', 'infra', 'expander', '__fixtures__', 'app-shell.golden.json'), 'utf8'))
+  const bootReg = reduceContexts({ contexts: {}, stack: [] }, shellGolden)
+
+  test('shell flows: the wire App\'s declared actions (lowered commands) reach the shell', () => {
+    assert.deepEqual(bootReg.shell.actions.map((a) => a.id), ['newOrder', 'announce'])
+    assert.deepEqual(shellFlowOf(bootReg.shell, 'newOrder').map((c) => c.type), ['MarkAsClean', 'NavigateTo'])
+    assert.equal(shellFlowOf(bootReg.shell, 'nope'), null)
+  })
+
+  test('shell flows: a RuleLink leaf gets a marked node id (it does not navigate); a RouteLink keeps its route', () => {
+    const nav = shellNavOf(bootReg)
+    const ids = nav.menuTree.map((n) => n.id)
+    assert.equal(ids[0], '/home')
+    assert.ok(isMenuRuleId(ids[1]), ids[1])
+    assert.ok(ids[1].startsWith(MENU_RULE_PREFIX))
+    assert.equal(isMenuRuleId('/home'), false)
+    assert.deepEqual(menuRulesOf(bootReg.shell.menu, ids[1]).map((r) => r.actionId), ['newOrder'])
+    assert.equal(menuRulesOf(bootReg.shell.menu, '/home'), null)
+  })
+
+  test('shell flows: running the leaf applies the flow with NO server call — clean, then in-app navigation', () => {
+    const id = shellNavOf(bootReg).menuTree[1].id
+    const plan = menuRulePlanOf(bootReg, menuRulesOf(bootReg.shell.menu, id))
+    assert.deepEqual(plan.navigate, { route: '/orders/new' })
+    assert.equal(plan.dirty, false)
+    assert.deepEqual(plan.serverActions, [])
+    assert.deepEqual(plan.events, [])
+  })
+
+  test('shell flows: an Emit step goes on the bus; an undeclared id stays an app-level server action; RunJS is skipped', () => {
+    const plan = menuRulePlanOf(bootReg, [
+      { action: 'RunAction', actionId: 'announce' },
+      { action: 'RunAction', actionId: 'serverSide' },
+      { action: 'RunJS', value: 'alert(1)' },
+    ])
+    assert.deepEqual(plan.events, [{ name: 'order-started', detail: null }])
+    assert.deepEqual(plan.serverActions, ['serverSide'])
+    assert.equal(plan.navigate, null)
+    assert.equal(plan.skipped.length, 1)
+  })
+
+  test('shell flows: a flow\'s RunAction step and an absolute URL, nested in a group', () => {
+    const reg = { contexts: {}, stack: [], shell: {
+      menu: [{ label: 'Tools', submenus: [{ label: 'Docs', path: '/docs', rules: [{ action: 'RunAction', actionId: 'docs' }] }] }],
+      actions: [{ id: 'docs', commands: [
+        { type: 'RunAction', data: { actionId: 'audit' } },
+        { type: 'NavigateTo', data: 'https://example.com/docs' },
+      ] }],
+    } }
+    const leaf = shellNavOf(reg).menuTree[0].children[0]
+    assert.ok(isMenuRuleId(leaf.id))
+    const plan = menuRulePlanOf(reg, menuRulesOf(reg.shell.menu, leaf.id))
+    assert.deepEqual(plan.serverActions, ['audit'])
+    assert.deepEqual(plan.navigate, { url: 'https://example.com/docs' })
+  })
+
+  test('shell flows: onMateuNavigate runs a rule leaf instead of loading it; the bridge exports the pieces', () => {
+    const nav = webApp('pages/shell-page-chains/onMateuNavigate.js')
+    assert.match(nav, /if \(bridge\.isMenuRuleId\(route\)\) \{\s*await Actions\.callChain\(context, \{ chain: 'runMateuMenuRules', params: \{ ruleId: route \} \}\);\s*return;/)
+    const rulesChain = webApp('pages/shell-page-chains/runMateuMenuRules.js')
+    assert.match(rulesChain, /bridge\.menuRulePlanOf\(before, rules\)/)
+    assert.match(rulesChain, /chain: 'runMateuHeaderAction'/)
+    assert.match(rulesChain, /chain: 'onMateuNavigate'/)
+    const amd = readFileSync(join(here, 'make-amd.mjs'), 'utf8')
+    assert.match(amd, /'shellFlows\.mjs'/)
+    assert.match(amd, /menuRulePlanOf,/)
+  })
+}
+
 await queue
 console.log(`\n${pass} tests OK (contrato de wire real)`)
 

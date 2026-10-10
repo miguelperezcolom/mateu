@@ -181,6 +181,15 @@ export const uiState = {}
 export function setUiValue(key, value) { uiState[key] = value }
 export function uiValueOf(key, fallback) { return key in uiState ? uiState[key] : fallback }
 
+// ── node ids for the visual editor (editor / preview mode ONLY) ──
+// The IDE's visual editor paints a definition in this app (an iframe) and has to map a click back
+// to the node of the definition: its preview stamps a synthetic `ve-<path>` id on every node, and
+// with this flag on, every projected object (an atom, a card, a form field, a button) carries the
+// id of the wire node it came from as `nodeId` — poc/editorPreview.mjs copies it onto the painted
+// element as data-node-id. OFF by default: a production page never carries editor ids.
+export let editorNodeIds = false
+export function setEditorNodeIds(on) { editorNodeIds = !!on }
+
 export let converterFactory = null
 export function setConverterFactory(factory) { converterFactory = factory }
 export function converterOf(spec) {
@@ -221,7 +230,22 @@ export function islandContentOf(ctx, opts = {}) {
   const blocks = []
   let plain = null
   let elementOrdinal = 0
+  // the wire node being projected (editor mode only): what an atom or a block made now came from
+  let editorNode = ''
+  const stampNode = (o) => {
+    if (editorNode && o && typeof o === 'object' && o.nodeId === undefined) o.nodeId = editorNode
+  }
+  if (editorNodeIds) {
+    // a card, a column, a panel made while visiting a node is that node's — but not the implicit
+    // run of loose atoms (isPlain), which belongs to nobody
+    const push = blocks.push.bind(blocks)
+    blocks.push = (...made) => {
+      made.forEach((b) => { if (b && !b.isPlain) stampNode(b) })
+      return push(...made)
+    }
+  }
   const atom = (a, container) => {
+    stampNode(a)
     if (container) { container.items.push(a); return }
     if (!plain) { plain = { isPlain: true, items: [] }; blocks.push(plain) }
     plain.items.push(a)
@@ -236,7 +260,12 @@ export function islandContentOf(ctx, opts = {}) {
   }
   const collectButtons = (node, out) => {
     if (!node || typeof node !== 'object') return out
-    if (node.metadata && node.metadata.type === 'Button') { out.push(buttonOf(node.metadata)); return out }
+    if (node.metadata && node.metadata.type === 'Button') {
+      const button = buttonOf(node.metadata)
+      if (editorNodeIds && node.id) button.nodeId = String(node.id)
+      out.push(button)
+      return out
+    }
     for (const child of kidsOf(node)) collectButtons(child, out)
     return out
   }
@@ -304,6 +333,12 @@ export function islandContentOf(ctx, opts = {}) {
     plain = null
   }
   const visit = (node, container) => {
+    if (!editorNodeIds || !node || typeof node !== 'object' || !node.id) { visitNode(node, container); return }
+    const outer = editorNode
+    editorNode = String(node.id)
+    try { visitNode(node, container) } finally { editorNode = outer }
+  }
+  const visitNode = (node, container) => {
     if (!node || typeof node !== 'object') return
     // @Subresource: el listado embebido es OTRA superficie (su ServerSide). Deja un hueco que
     // withSubresources rellena con su tabla cuando está cargada — bajar a su App de mediador lo
@@ -365,6 +400,7 @@ export function islandContentOf(ctx, opts = {}) {
         if (md && md.type === 'FormRow') { kidsOf(n).forEach(walkLayout); return }
         const field = md && md.type === 'FormField' ? layoutFieldOf(md, state, ctx.data, columns) : null
         if (field) {
+          if (editorNodeIds && n.id) field.nodeId = String(n.id)
           if (!layout) {
             layout = { isFormLayout: true, columns, fields: [] }
             layouts.push(layout)
@@ -1158,8 +1194,10 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'Button') {
       const target = container || plain
       const last = target && target.items.length ? target.items[target.items.length - 1] : null
-      if (last && last.isButtons) last.buttons.push(buttonOf(m))
-      else atom({ isButtons: true, buttons: [buttonOf(m)] }, container)
+      const button = buttonOf(m)
+      if (editorNodeIds && node.id) button.nodeId = String(node.id)
+      if (last && last.isButtons) last.buttons.push(button)
+      else atom({ isButtons: true, buttons: [button] }, container)
       return
     }
     // ── display components with their own projection (core/display.mjs) ──
@@ -1311,7 +1349,22 @@ export function islandContentOf(ctx, opts = {}) {
       : block
   ))
   const hasDisplay = hoisted.some((b) => b.items.some((a) => !a.isButtons) || b.isNestedBlock)
-  return hasDisplay ? hoisted : null
+  // Only buttons: the generic form paints them under its fields — but a tree with NO field has no
+  // generic form, and its buttons (a page that is a lone call to action, a tooltip on a button)
+  // were painted by nobody. Then they are the content.
+  const onlyButtons = !hasDisplay && hoisted.some((b) => b.items.some((a) => a.isButtons)) && !hasFormField(ctx.tree)
+  return hasDisplay || onlyButtons ? hoisted : null
+}
+
+/** Does the surface hold any FormField (without crossing into an island)? */
+function hasFormField(node, isRoot = true) {
+  if (!node || typeof node !== 'object') return false
+  if (!isRoot && node.type === 'ServerSide') return false
+  if (node.metadata && node.metadata.type === 'FormField') return true
+  for (const v of Object.values(node)) {
+    if (Array.isArray(v) ? v.some((x) => hasFormField(x, false)) : (v && typeof v === 'object' && hasFormField(v, false))) return true
+  }
+  return false
 }
 
 /** ¿Hace el contenido de la pantalla de cuerpo de la página? (si no, lo pinta el form genérico)

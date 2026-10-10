@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context,{event}){const isEnter=event&&("Enter"===event.key||13===event.keyCode||"Enter"===event.code);if(!(!isEnter||event&&event.shiftKey)){event.preventDefault&&event.preventDefault();const el=document.querySelector("#mateuChatInput input");el&&(context.$application.variables.mateuChatInput=el.value),await Actions.callChain(context,{chain:"chatSend"})}}};});
+//# sourceMappingURL=chatKeydown.js.map

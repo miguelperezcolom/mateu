@@ -58,6 +58,28 @@ describe('client-side expander — listings keep the load-bearing defaults', () 
 })
 
 describe('client-side expander — the app shell', () => {
+    const shell = (extra: Record<string, unknown>, menu: unknown[]) =>
+        (expandAppShell({ type: 'AppShell', title: 'App', ...extra, menu } as unknown as FluentNode).fragments![0].component as any).metadata
+    const leaf = (route: string) => ({ type: 'RouteLink', label: route, route })
+
+    it('resolves AUTO (or no variant) like the server, instead of shipping AUTO the renderers cannot draw', () => {
+        const groups = [leaf('home'), { type: 'Menu', label: 'Sales', submenu: [leaf('orders'), leaf('customers')] }]
+        expect(shell({ variant: 'AUTO' }, groups).variant).toBe('MENU_ON_TOP')
+        expect(shell({}, groups).variant).toBe('MENU_ON_TOP')
+        expect(shell({ variant: 'AUTO' }, [leaf('a'), leaf('b')]).variant).toBe('TABS')
+        expect(shell({ variant: 'AUTO' }, [{ type: 'Menu', label: 'G', submenu: [{ type: 'Menu', label: 'N', submenu: [leaf('x')] }] }]).variant).toBe('TILES')
+        const many = [...Array.from({ length: 7 }, (_, i) => leaf('r' + i)), { type: 'Menu', label: 'G', submenu: [leaf('x')] }]
+        expect(shell({ variant: 'AUTO' }, many).variant).toBe('HAMBURGUER_MENU')
+        expect(shell({ variant: 'AUTO' }, [leaf('a'), { type: 'RemoteMenu', label: 'R' }]).variant).toBe('MENU_ON_TOP')
+        expect(shell({ variant: 'HAMBURGUER_MENU' }, [leaf('a')]).variant).toBe('HAMBURGUER_MENU')
+    })
+
+    it("opens on the shell's own homeRoute, not merely the first menu entry", () => {
+        expect(shell({ homeRoute: 'welcome' }, [leaf('home'), leaf('welcome')]).homeRoute).toBe('welcome')
+        expect(shell({ homeRoute: '/welcome' }, [leaf('home')]).homeRoute).toBe('welcome')
+        expect(shell({}, [leaf('home'), leaf('welcome')]).homeRoute).toBe('home')
+    })
+
     it('turns an AppShell into the wire App with its menu and home', () => {
         const inc = expandAppShell({
             type: 'AppShell', title: 'Networking', subtitle: 'static', variant: 'MENU_ON_TOP',

@@ -32,9 +32,10 @@ export const MODULES = [
   'i18n.mjs', 'prefs.mjs', 'navTree.mjs', 'calendar.mjs', 'richtext.mjs', 'links.mjs',
   ...CORE_PIECES,
   'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'resilience.mjs', 'wireVersion.mjs', 'a11y.mjs', 'elements.mjs',
-  'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'planning.mjs', 'actionPanels.mjs',
+  'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'shellFlows.mjs', 'planning.mjs', 'actionPanels.mjs',
   'keys.mjs', 'hover.mjs', 'dnd.mjs', 'matrix.mjs', 'map.mjs', 'tables.mjs', 'bundle.mjs',
   'mount.mjs', 'transport.mjs', 'widgets.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs', 'pageProjection.mjs', 'actionPlan.mjs', 'globalSearch.mjs', 'theme.mjs',
+  'editorPreview.mjs',
 ]
 const body = MODULES.map(strip).join('\n\n')
 
@@ -108,6 +109,15 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
       resolve(new JsonMetadataProvider({ data }));
     }, reject);
   }));
+  // the visual editor's canvas (editorPreview.mjs): the data a template bound to an element is
+  // its knockout binding context's $current.data — the atom, the card, the field. Loaded only on
+  // the editor's preview page; null when knockout is not there (no ids, the canvas still paints)
+  const editorDataResolver = () => new Promise((resolve) => {
+    require(['knockout'], (ko) => resolve((el) => {
+      const c = ko.contextFor(el);
+      return c && c.$current ? c.$current.data : undefined;
+    }), () => resolve(null));
+  });
 
   return {
     HOST_ID,
@@ -256,6 +266,10 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     ROW_VALIDATING_VERBS,
     overlayOf,
     eventTriggersOf,
+    // the shell's FLOWS: a menu RuleLink running a declared flow client-side (shellFlows.mjs)
+    isMenuRuleId,
+    menuRulesOf,
+    menuRulePlanOf,
     dismissOverlay,
     // @Searchable: el selector en su diálogo, y los chips del campo
     searchPickerOf,
@@ -361,6 +375,13 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     loadBundleManifest,
     hasBundle,
     awaitBundle,
+    // the IDE's visual editor paints with this app in an iframe (editorPreview.mjs): it hands the
+    // increment over, the app answers its own /mateu calls, a click selects instead of acting
+    isEditorPreview,
+    installEditorPreview,
+    setEditorNodeIds,
+    editorDataResolver,
+    PREVIEW_ROUTE,
     // accesibilidad: lo que los componentes oj-* no traen (una SPA no cambia de página, así
     // que no hay nada que un lector de pantalla anuncie por su cuenta)
     installAnnouncer,

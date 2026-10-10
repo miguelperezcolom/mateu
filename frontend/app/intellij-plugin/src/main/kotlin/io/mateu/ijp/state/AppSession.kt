@@ -110,6 +110,50 @@ class AppSession(
      *  when the detail form contains nested grids (which would otherwise look like a Crud listing). */
     var openDetailHandler: ((String, String?, String?, String?, String?) -> Unit)? = null
 
+    /** The shell's declared actions (`App.actions`): a flow carries its steps lowered to `commands`. */
+    var appActions: com.fasterxml.jackson.databind.JsonNode? = null
+
+    /** The app's root route (`App.rootRoute`): shell-flow routes are relative to the mount. */
+    var appRootRoute: String = ""
+
+    /** The app class (`App.serverSideType`), the target of an app-level action. */
+    var appServerSideType: String? = null
+
+    /**
+     * Opens a menu leaf — the one entry point every menu surface (navigator, IDE menu, toolbar
+     * widget) goes through. A leaf with rules RUNS them ([ShellFlows]): a RunAction naming a flow
+     * the shell declares applies its lowered commands here, with no server round-trip; any other
+     * id is dispatched to the server against the app's home route (opening its answer as a view).
+     */
+    fun openMenuEntry(item: com.fasterxml.jackson.databind.JsonNode) {
+        fun t(f: String) = item.path(f).takeIf { it.isTextual }?.asText() ?: ""
+        if (!ShellFlows.isRuleLeaf(item)) {
+            openViewHandler?.invoke(t("label"), t("route"), t("consumedRoute"), t("serverSideType"), t("actionId"))
+            return
+        }
+        for (effect in ShellFlows.effects(item, appActions)) {
+            when (effect) {
+                is ShellFlows.Effect.Navigate -> {
+                    val root = appRootRoute.trimEnd('/')
+                    openViewHandler?.invoke(effect.route, "$root/${effect.route}", appRootRoute, null, null)
+                }
+                is ShellFlows.Effect.Url -> runCatching { java.awt.Desktop.getDesktop().browse(java.net.URI(effect.url)) }
+                is ShellFlows.Effect.RunAction -> openViewHandler?.invoke(
+                    t("label").ifBlank { effect.actionId },
+                    homeRoute ?: appRootRoute,
+                    homeConsumedRoute ?: "",
+                    appServerSideType ?: homeServerSideType,
+                    effect.actionId,
+                )
+                is ShellFlows.Effect.Event -> dispatchEvent(effect.eventName, effect.payload)
+                is ShellFlows.Effect.CloseOverlay -> {
+                    closeTopOverlay()
+                    effect.eventName?.let { dispatchEvent(it, effect.payload) }
+                }
+            }
+        }
+    }
+
     fun setWindowTitle(title: String) {
         SwingUtilities.invokeLater {
             frame?.title = title

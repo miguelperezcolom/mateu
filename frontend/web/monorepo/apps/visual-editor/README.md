@@ -45,9 +45,30 @@ A `remote`/`mock` render that gets no answer from its backend falls back to the 
 (classless pages) and says so in the canvas.
 
 **Canvas renderer.** The canvas paints with the **Vaadin (Lumo)** reference renderer by default
-(lazily loaded from `apps/vaadin`, so the preview matches what ships) or the **DS-neutral** one. Redwood
-is not available inside the editor (its runtime is a whole VB app); preview it against the running app.
-Listings and option fields read the project's `sources.yaml`, so they preview with real rows.
+(lazily loaded from `apps/vaadin`, so the preview matches what ships), the **DS-neutral** one, or
+**Redwood (Oracle)**. Listings and option fields read the project's `sources.yaml`, so they preview
+with real rows.
+
+**The Redwood canvas** (`canvas/redwood-frame.ts`) is not a component renderer: Redwood's runtime is a
+whole Visual Builder app, so the canvas frames it. `redwood-preview.html` (`src/redwood/previewPage.ts`)
+boots the packaged app of `io.mateu:redwood` (its `_index.html` + `_redwood/`, served under `redwood/`)
+in **editor-preview mode** (`apps/redwood/poc/editorPreview.mjs`). It replays the parked boot scripts
+the way the generated controller does. The canvas computes the increment as usual (`__preview__`,
+or the client-side expander with no backend) and posts it to the frame (`canvas/redwoodProtocol.ts`).
+The app answers its own `/mateu` calls with it: a one-route App, then the tree. It stamps
+`data-node-id` (the `ve-<path>` ids) on what it paints, so a click comes back as `click {id}` and
+selects the node. The frame outlines the selection itself, because the editor cannot see a
+cross-origin frame's DOM, and forwards the editor's keys. JET and the VB runtime load from Oracle's
+CDN. When a boot script fails or nothing answers in 45 s, the canvas shows an offline notice.
+
+Where `redwood/` comes from: the dev server (and `vite preview`) serves it from the jar's resources,
+`backend/shared/frontend/redwood/src/main/resources/static`. Override that folder with
+`MATEU_REDWOOD_STATIC`, and after touching `apps/redwood/poc/` regenerate it with
+`npm run build && npm run copy` there. A file missing from the folder is fetched from `MATEU_BACKEND`'s
+own Redwood app. `vite build` copies the folder into `dist/redwood/`, so the IntelliJ loopback server
+and the VS Code one serve the Redwood canvas with the rest of the bundle. VS Code frames it from its
+loopback server (`window.__mateuRedwoodPreview`). Both fall back to the backend's `/_index.html` +
+`/_redwood/` when the bundle has no Redwood app.
 
 ### Mock fixtures — the €0 / offline workflow
 
@@ -152,10 +173,9 @@ exactly what the canvas shows once the component is dropped.
 - `src/thumbnails/<look>/<Type>.png`: the output, `vaadin` and `redwood`. `src/model/thumbnails.ts`
   picks it up with `import.meta.glob`. The palette has a **look** selector (Vaadin / Redwood / Names
   only) that starts from the canvas's design system; the DS-neutral canvas starts with names only.
-- **Redwood** cannot run in the canvas (it is a whole VB app), so the palette is the only Redwood
-  preview in the editor. Its thumbnails come from the VB app itself, and a component it does not
-  paint gets none. The palette then dims it, with a hint that Redwood most likely does not render
-  it.
+- **Redwood** thumbnails come from the same harness with the canvas switched to Redwood: the real VB
+  app in editor-preview mode, framed. It paints every wire component type, so only the
+  `NO_THUMBNAIL` entries go without a picture (the palette would dim any other).
 
 Regenerate when the catalog or a renderer changes, against **any running Mateu app** (they all answer
 `__preview__`), so the thumbnails show what the server renders, i.e. what ships:
@@ -164,13 +184,13 @@ Regenerate when the catalog or a renderer changes, against **any running Mateu a
 node scripts/thumbnails.mjs --backend http://localhost:8080        # vaadin, all
 node scripts/thumbnails.mjs --backend http://localhost:8080 --only Grid,Card
 
-# redwood: serve the VB app first (cd ../redwood && npm run build && npm run serve → :9006)
-node scripts/thumbnails.mjs --renderer redwood --backend http://localhost:8080 --vb http://localhost:9006
+# redwood: the Redwood canvas (needs Oracle's CDN; the VB app comes from the jar's resources)
+node scripts/thumbnails.mjs --renderer redwood --backend http://localhost:8080
 ```
 
-The Redwood run intercepts the VB app's calls to `/mateu`. The shell gets a one-route App, and that
-route answers the sample's `__preview__` wrapped as a server-side component, exactly as a real
-route's content arrives. It crops the content panel, below the page header.
+The Redwood run is the Vaadin one with the canvas switched to Redwood. The framed VB app gets a
+one-route App, and that route answers the sample's `__preview__` wrapped as a server-side component,
+exactly as a real route's content arrives. The run crops the content panel, below the page header.
 
 The run lists what rendered nothing and what the backend could not render. `thumbnails.test.ts`
 fails while a catalog component has neither a thumbnail nor a `NO_THUMBNAIL` entry. Without

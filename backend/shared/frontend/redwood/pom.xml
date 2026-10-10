@@ -11,7 +11,7 @@
     <packaging>jar</packaging>
 
     <name>Mateu Redwood renderer</name>
-    <description>The Mateu web renderer built on Oracle Visual Builder / Redwood, packaged as static assets served by the backend. JET and the visual runtime load from the Oracle CDN.</description>
+    <description>The Mateu web renderer built on Oracle Visual Builder / Redwood, packaged as static assets served by the backend. Vendors nothing from Oracle: JET (UPL), the Spectra components and the Visual Builder runtime (Oracle proprietary, used under the user's own Oracle terms) load from Oracle's CDN at run time. Not affiliated with or endorsed by Oracle. See META-INF/NOTICE.md.</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -26,6 +26,27 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
                 <executions>
+                    <!-- what is Mateu's, what is Oracle's and what a user needs: shipped IN the jar (not
+                         only in the repository), copied at build time from its single source -->
+                    <execution>
+                        <id>redwood-notice</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.outputDirectory}/META-INF</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/../../../../frontend/web/monorepo/apps/redwood</directory>
+                                    <includes>
+                                        <include>NOTICE.md</include>
+                                        <include>NOTICE.es.md</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
                     <execution>
                         <id>redwood-app-for-meta-inf-resources</id>
                         <phase>process-resources</phase>

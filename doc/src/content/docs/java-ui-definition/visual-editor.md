@@ -113,7 +113,18 @@ menu:
 ```
 
 The **app** editor is a form: title/subtitle/logo/home-route text, the `variant`/`layout` dropdowns,
-and a menu tree where you add links, groups and separators.
+the header switches (theme toggle, command center, chromeless, access keys), and a menu tree where
+you add links, groups, separators and **actions**.
+
+- **Actions** — the shell's [flows](/java-ui-definition/yaml-app-shell/#flows-on-the-shell): add an
+  action, give it an id and build its steps (Navigate, Emit, Close overlay, Run action, Mark
+  clean/dirty) with the same flow editor a page's actions use. They are written to the shell's
+  `actions:` and round-trip losslessly.
+- **Action menu items** — a menu entry that runs an action instead of navigating (a `RuleLink` with a
+  `RunAction` rule). Its action id is picked from the actions the shell declares; you can still type
+  any other id, which then runs an `@Action` on the server.
+- **Widgets** — the components drawn in the shell header (`widgets:`): add, remove and reorder them.
+  Widgets the editor does not know how to edit are kept untouched.
 
 Each `RouteLink` names a **route** in the `route` field. *Target:* choose the route from a dropdown of
 the routes declared in this mount. *Today:* type the route name (e.g. `orders`) — it must match a
@@ -209,6 +220,52 @@ view model, the editor saves the smallest thing that expresses your change — a
 your edits are a re-ordering/relabelling of the model's fields, a full **snapshot** only when the tree
 holds something a delta cannot.
 
+## The Redwood canvas
+
+The canvas paints with the **Vaadin** renderer by default. The renderer selector in the toolbar
+switches it to **Redwood (Oracle)**, which paints the page with the real Redwood renderer: the
+Oracle Visual Builder app that the `io.mateu:redwood` jar ships, running inside the canvas. You see
+what a Redwood app shows, at the canvas's width, and the page is still editable:
+
+- **Click** a component in the Redwood canvas to select it. **Layers**, **Properties**, the
+  breadcrumb, `⌘Z`, `Delete` and the arrow keys work as they do on the Vaadin canvas.
+- **Every edit** repaints the page, like the Vaadin canvas does.
+- The canvas is inert. A click selects a button and does not run it, and a field takes no typing.
+- Selection and hover are outlined inside the Redwood canvas.
+
+The page comes from the same place as on the Vaadin canvas: your backend's `__preview__` when you
+have one, otherwise the expansion in the browser. A YAML-only project with no backend running
+therefore previews in Redwood too. The canvas sends the result to the Redwood app, and the app
+renders it without asking a server for anything. Its renderer marks each element it paints with the
+component it came from, and that is how a click selects the right node. The marks exist only in the
+editor; an app in production never carries them.
+
+**Requirements.** Redwood loads Oracle JET, the Spectra components and the Visual Builder runtime from
+**Oracle's CDN** (`static.oracle.com`) every time it starts. They are never bundled, see the
+renderer's `NOTICE.md`. The Redwood canvas therefore needs that CDN. When a script cannot load, because
+you are offline or a proxy or content security policy blocks it, or when the app has not started
+after 45 seconds, the canvas shows a notice explaining the problem. **Try again** retries, and you
+can switch back to Vaadin and keep working offline. The canvas retries by itself when the browser
+comes back online.
+
+**Where it is served from.** The editor's build bundles the Redwood app under `redwood/` next to the
+editor, so every host can serve it without a backend:
+
+| Host | The Redwood canvas |
+|---|---|
+| Browser (`npx vite` in `apps/visual-editor`) | the dev server serves `redwood/` from the `io.mateu:redwood` resources (`MATEU_REDWOOD_STATIC` points it elsewhere) |
+| IntelliJ | the plugin's loopback server serves it from the bundled editor |
+| VS Code | the extension's loopback server serves it from the bundled editor, and the webview frames it from there |
+
+If the build does not include the Redwood app, the hosts ask the configured backend for it instead.
+A backend that depends on `io.mateu:redwood` serves it at its root (`/_index.html`, `/_redwood/`).
+
+**What it does not do yet.** You can drag a component from the palette onto the Redwood canvas, but
+it lands at the end of the page. Use the Vaadin canvas or **Layers** to place it exactly. Layout
+containers that Redwood does not paint as a box of their own, such as a `FormLayout` shown as the
+page's form or the root layout, are selected from **Layers** or with `←` (parent). The board's
+miniatures stay Vaadin.
+
 ## Tidy
 
 While you build a page, its structure drifts. Fields get dropped loose instead of into a form layout,
@@ -289,7 +346,7 @@ its arrows. **Edit** opens that card's file: in place in a browser, or in its ow
 and VS Code.
 
 **▶ Play** runs the mount from the files as you have edited them, so you can click through it like
-the app. The menu, row clicks, buttons and save landings take you where the app would, and a small
+the app. The menu (including menu entries that run a shell flow), row clicks, buttons and save landings take you where the app would, and a small
 address bar with back and forward follows along. A mount that is only YAML needs no backend: play
 expands each screen in the browser, the same way a statically deployed bundle does. A route served
 by a view model goes to the preview backend, if you have one. The width selector shows the app on a
@@ -299,11 +356,10 @@ tablet or a phone, starting at the canvas's width. Play starts on the screen you
 ## Recognising components in the palette
 
 The **Insert** tab shows every component as a card with a picture of it. Hover a card to see it
-larger. A selector next to the title picks the look: **Vaadin** (what the canvas paints),
-**Redwood** or **Names only**. The canvas cannot run the Redwood renderer, so in the Redwood look the
-palette is your preview of a Redwood app. A component shown dimmed there has no Redwood picture,
-which means the Redwood renderer most likely does not paint it. The pictures are real renders of a small sample
-of each component, regenerated from the catalog, so what you pick is what lands on the canvas. A few
+larger. A selector next to the title picks the look: **Vaadin**, **Redwood** or **Names only**. It
+starts with the look of the canvas renderer. The pictures are real renders of a small sample of each
+component, regenerated from the catalog: the Vaadin ones by the Vaadin canvas, the Redwood ones by
+the [Redwood canvas](#the-redwood-canvas). What you pick is what lands on the canvas. A few
 entries have no picture because there is nothing to see on the page: triggers, menu entries, and
 embeds that only exist at runtime.
 

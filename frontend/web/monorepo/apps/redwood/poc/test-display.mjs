@@ -16,7 +16,7 @@ import {
   breadcrumbsAtomOf, workflowAtomOf, workflowOrderOf, formEditorFieldsOf, bpmnDiagramOf, bpmnAtomOf, componentHtmlOf,
   flattenTreeRows, gridPageOf, autoFitColClass, AUTO_FIT_DEFAULT, unsupportedAtomOf, VISITOR_PASS_THROUGH, safeHref, toneOf, cssColorOf,
   setUiValue, setPanelExpanded, carouselPagerAtomOf, microFrontendOf, tagSurfaceActions, heroAtomOf, emptyStateAtomOf, progressBarAtomOf,
-  registerCustomComponent, customComponentRegistered, layoutFieldOf, HOST_ID, taskQueueOf, emptyStateOf, hostContentShown,
+  registerCustomComponent, customComponentRegistered, layoutFieldOf, HOST_ID, taskQueueOf, emptyStateOf, hostContentShown, pageToolbarOf,
 } from './reduceContexts.mjs'
 import { markdownToHtml, deltaOps, deltaToHtml, richTextHtml, richTextValueOf, sanitizeHtml } from './richtext.mjs'
 import { hexColorOf } from './inputs.mjs'
@@ -516,6 +516,23 @@ test('display chrome in the interface language (English by default)', () => {
     assert.equal(gridPageOf([1, 2], 10, 0).rangeText, '1–2 de 2')
   } finally { setChromeLanguage('') }
   for (const k of Object.keys(CHROME_TEXTS.en)) assert.ok(k in CHROME_TEXTS.es, 'es lacks ' + k)
+})
+
+test('a page of only buttons paints them; under fields the generic form does', () => {
+  const button = node({ type: 'Button', label: 'Go', actionId: 'go' })
+  const tooltip = node({ type: 'Tooltip', text: 'Saves', wrapped: node({ type: 'Button', label: 'Save', actionId: 'save' }) })
+  const lone = islandContentOf({ tree: node({ type: 'VerticalLayout' }, [button]), state: {}, data: {} })
+  assert.deepEqual(lone.flatMap((b) => b.items).flatMap((a) => a.buttons || []).map((b) => b.label), ['Go'])
+  assert.ok(islandContentOf({ tree: node({ type: 'VerticalLayout' }, [tooltip]), state: {}, data: {} }))
+  const withField = node({ type: 'VerticalLayout' }, [node({ type: 'FormField', fieldId: 'born', dataType: 'date' }), button])
+  assert.equal(islandContentOf({ tree: withField, state: {}, data: {} }), null)
+})
+
+test('a Form toolbar reaches the header like a Page one, a ButtonGroup with its buttons', () => {
+  const group = { type: 'Button', label: 'Actions', actionId: null,
+    children: [{ type: 'Button', label: 'Print', actionId: 'print' }, { type: 'Button', label: 'Duplicate', actionId: 'dup' }] }
+  const tree = node({ type: 'VerticalLayout' }, [node({ type: 'Form', title: 'Order', toolbar: [group, { type: 'Button', label: 'Save', actionId: 'save' }] })])
+  assert.deepEqual(pageToolbarOf({ tree, state: {} }).map((b) => b.actionId), ['print', 'dup', 'save'])
 })
 
 console.log(`\n${passed} display tests OK`)

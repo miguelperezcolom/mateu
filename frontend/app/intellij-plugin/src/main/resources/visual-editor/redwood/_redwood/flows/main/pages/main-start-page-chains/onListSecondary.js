@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions","resources/js/mateu-bridge"],(ActionChain,Actions,bridge)=>{"use strict";return class extends ActionChain{async run(context,{event}){const{$application}=context,listing=$application.variables.mateuListing;if(listing){const match=bridge.secondaryActionOf(event&&event.detail||{},listing.toolbar);match&&(await Actions.callChain(context,{chain:"runMateuAction",params:{actionId:match.actionId}}))}}};});
+//# sourceMappingURL=onListSecondary.js.map
