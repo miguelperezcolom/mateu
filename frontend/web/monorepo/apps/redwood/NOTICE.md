@@ -1,103 +1,103 @@
-# NOTICE — Renderer de Mateu sobre Oracle Visual Builder / Redwood
+# NOTICE — Mateu renderer on Oracle Visual Builder / Redwood
 
-Este directorio (`frontend/web/monorepo/apps/redwood/`) contiene el renderer de Mateu construido sobre Oracle
-Visual Builder y el Redwood Design System. Este NOTICE aclara qué se publica bajo la
-licencia de Mateu, qué pertenece a Oracle, y qué necesita un usuario para ejecutarlo.
+> Spanish version: [NOTICE.es.md](NOTICE.es.md).
 
-## Qué se publica aquí (licencia de Mateu)
+This directory (`frontend/web/monorepo/apps/redwood/`) holds the Mateu renderer built on Oracle
+Visual Builder and the Redwood Design System. This NOTICE states what is published under Mateu's
+licence, what belongs to Oracle, and what someone running it needs.
 
-Todo el código de autoría propia de este directorio se publica bajo la licencia de
-Mateu (ver `LICENSE.txt` en la raíz del repositorio):
+## What is published here (Mateu's licence)
 
-- `poc/` — el bridge (`reduceContexts.mjs`, `transport.mjs`, `make-amd.mjs`)
-  y sus tests de contrato sobre wire real (`test.mjs`, `fixtures/`).
-- En `webApps/vbredwoodapp/` — las action chains de Mateu
-  (`*-chains/*.js` salvo las señaladas abajo), el markup declarativo de las páginas
-  (`main-start-page.html`, `shell-page.html` en su composición), los descriptores
-  JSON de la aplicación y `resources/css/app.css` (punto de estilos propio,
-  mínimo y documentado) y `resources/js/mateu-bridge.js` (generado desde
-  `poc/` por `make-amd.mjs`).
+All code authored in this directory is published under Mateu's licence (see `LICENSE.txt` at the
+repository root):
 
-### El jar de renderer (`io.mateu:redwood`)
+- `poc/` — the bridge (`reduceContexts.mjs` and `core/`, `transport.mjs`, the generators
+  `make-*.mjs`…) and its tests over the real wire (`test*.mjs`, `fixtures/`).
+- In `webApps/vbredwoodapp/` — Mateu's action chains (`*-chains/*.js`, except those noted below),
+  the declarative markup of the pages (`main-start-page.html`, `shell-page.html` as composed), the
+  application JSON descriptors, `resources/css/app.css` (the app's own, minimal style sheet) and
+  `resources/js/mateu-bridge.js` (generated from `poc/` by `make-amd.mjs`).
 
-El módulo Maven `backend/shared/frontend/redwood` empaqueta como recursos estáticos el
-**build optimizado de la propia app VB** (`build/optimized/webApps/vbredwoodapp`, copiado por
-`scripts/copy.mjs`): el código de autoría propia listado arriba más los pocos ficheros del
-scaffolding del starter (sección 4, que conservan sus cabeceras de copyright de Oracle). El jar
-**no vendoriza ningún artefacto de `static.oracle.com`**: JET, los componentes Spectra
-(`oj-sp-*`) y el visual-runtime se referencian por URL y se cargan del CDN de Oracle en tiempo
-de ejecución, exactamente igual que en una app VB alojada en Oracle.
+### The renderer jar (`io.mateu:redwood`)
 
-## Qué pertenece a Oracle
+The Maven module `backend/shared/frontend/redwood` packages as static resources the **optimised
+build of this VB app** (`build/optimized/webApps/vbredwoodapp`, copied by `scripts/copy.mjs` into
+`static/_redwood/`): the code listed above plus the few starter scaffolding files (section 4, which
+keep their Oracle copyright headers). The jar **vendors no artefact from `static.oracle.com`**:
+JET, the Spectra components (`oj-sp-*`) and the visual runtime are referenced by URL and loaded
+from Oracle's CDN at run time, exactly as in a VB app hosted by Oracle.
 
-### 1. Oracle JET y el tema Redwood — UPL 1.0 (open source)
+## What belongs to Oracle
 
-Oracle JavaScript Extension Toolkit (JET), incluido el tema Redwood (CSS, fuentes e
-imágenes que su tooling distribuye), se licencia bajo la
+### 1. Oracle JET and the Redwood theme — UPL 1.0 (open source)
+
+Oracle JavaScript Extension Toolkit (JET), including the Redwood theme (the CSS, fonts and images
+its tooling distributes), is licensed under the
 [Universal Permissive License v1.0](https://www.oracle.com/downloads/licenses/upl-license1.html),
-compatible con la licencia de Mateu. Este repositorio no vendoriza JET en este
-directorio (se resuelve por npm/CDN); si en el futuro se empaquetara (p. ej. en un
-jar de renderer), deben incluirse su `LICENSE.txt` y `THIRDPARTYLICENSE.txt` tal como
-exige la UPL.
+compatible with Mateu's licence. This repository does not vendor JET (it is resolved from npm/the
+CDN); should it ever be packaged (e.g. in a renderer jar), its `LICENSE.txt` and
+`THIRDPARTYLICENSE.txt` must be included as the UPL requires.
 
 Copyright (c) Oracle and/or its affiliates.
 
-### 2. Spectra UI (`oj-sp-*`), Visual Builder runtime y galería de ilustraciones — NO open source
+### 2. Spectra UI (`oj-sp-*`), the Visual Builder runtime and the illustration gallery — NOT open source
 
-Los componentes Spectra (`oj-sp-*`, servidos desde
-`https://static.oracle.com/cdn/spectra-ui/...`), el runtime de Visual Builder
-(`visual-runtime.js`) y los assets de la galería (`https://static.oracle.com/cdn/fnd/gallery/...`,
-p. ej. las ilustraciones del welcome banner) son propiedad de Oracle y **no** tienen
-licencia pública de redistribución. Este repositorio **no los redistribuye**: la
-aplicación los referencia en tiempo de ejecución desde el CDN de Oracle, y tanto
-`node_modules/` como el resultado de build (`build/`) están excluidos del control de
-versiones.
+The Spectra components (`oj-sp-*`, served from `https://static.oracle.com/cdn/spectra-ui/...`), the
+Visual Builder runtime (`visual-runtime.js`) and the gallery assets
+(`https://static.oracle.com/cdn/fnd/gallery/...`, e.g. the welcome banner illustrations and the
+`oj-ux-ico-*` icon font) are Oracle's property and have **no** public redistribution licence. This
+repository **does not redistribute them**: the application references them at run time from
+Oracle's CDN, and both `node_modules/` and the build output (`build/`) are excluded from version
+control.
 
-**Regla del proyecto: no vendorizar ningún artefacto de `static.oracle.com`.**
-Todo lo de Oracle que no sea UPL se referencia por URL, nunca se copia al repositorio
-ni a artefactos publicados.
+**Project rule: never vendor any artefact from `static.oracle.com`.** Everything from Oracle that
+is not UPL is referenced by URL, never copied into the repository or into published artefacts.
 
-### 3. Tooling de build de Visual Builder
+### 3. Visual Builder build tooling
 
-`@oracle/grunt-vb-build` y `@oracle/grunt-vb-audit` se descargan del CDN de Oracle
-durante `npm install` (ver `package.json`) bajo los términos de Oracle. No se
-redistribuyen con este repositorio.
+`@oracle/grunt-vb-build` and `@oracle/grunt-vb-audit` are downloaded from Oracle's CDN during
+`npm install` (see `package.json`) under Oracle's terms. They are not redistributed with this
+repository.
 
-### 4. Scaffolding del starter de Visual Builder
+### 4. Visual Builder starter scaffolding
 
-Solo `webApps/vbredwoodapp/index.html` procede de la plantilla starter que genera la tooling de
-Visual Builder (el marcado que arranca el runtime de VB). Conserva su cabecera de copyright de
-Oracle. El resto de ficheros que la plantilla aportaba —los módulos vacíos de app, flujo y página,
-las chains de toast y banda de mensajes, el `Gruntfile.js`— se han reescrito desde cero como código
-de Mateu, y `pages/shell-page.js`, que es código de Mateu y llevaba la cabecera de Oracle que VB
-estampa al crear un fichero, lleva ahora la de Mateu.
+Only `webApps/vbredwoodapp/index.html` comes from the starter template the Visual Builder tooling
+generates (the markup that boots the VB runtime); it keeps its Oracle copyright header. Every other
+file the template contributed — the empty app, flow and page modules, the toast and message-band
+chains, `Gruntfile.js` — has been rewritten from scratch as Mateu code, and `pages/shell-page.js`,
+Mateu code that carried the Oracle header VB stamps on new files, now carries Mateu's.
 
-La marca: por defecto el FAB del shell es neutro («Search» con la lupa). El aspecto de «Ask Oracle»
-solo aparece si la app lo pide con `@App(askLabel, askIcon)`.
+Branding: by default the shell's FAB is neutral ("Search" with the magnifier). The "Ask Oracle"
+look only appears if the app asks for it with `@App(askLabel, askIcon)`.
 
-## Terceros que no son de Oracle
+## Non-Oracle third parties
 
-- **Leaflet 1.9.4** (BSD-2-Clause, © Volodymyr Agafonkin y colaboradores): pinta el componente
-  `Map`, porque JET no tiene mapa de calles (`oj-thematic-map` pinta geografía GeoJSON, no
-  teselas). Igual que JET, **no se vendoriza**: `poc/map.mjs` lo carga de cdnjs
-  (`cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/`) la primera vez que una pantalla pinta un mapa.
-- **Teselas de OpenStreetMap** (`tile.openstreetmap.org`, datos © colaboradores de OpenStreetMap,
-  ODbL): las mismas que usa el `<mateu-map>` del renderer web, y solo el VALOR POR DEFECTO. Su
-  política de uso no admite tráfico intensivo de producción; un despliegue con carga real debe
-  apuntar a un proveedor de teselas propio o contratado, y eso se configura por mapa en el wire:
-  `Map.tileUrl` (plantilla de Leaflet) + `Map.attribution` (`tileLayerOf` en `poc/map.mjs`).
+- **Leaflet 1.9.4** (BSD-2-Clause, © Volodymyr Agafonkin and contributors): paints the `Map`
+  component, because JET has no street map (`oj-thematic-map` paints GeoJSON geography, not tiles).
+  Like JET it is **not vendored**: `poc/map.mjs` loads it from cdnjs
+  (`cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/`) the first time a screen paints a map.
+- **OpenStreetMap tiles** (`tile.openstreetmap.org`, data © OpenStreetMap contributors, ODbL): the
+  same the web renderer's `<mateu-map>` uses, and only the DEFAULT. Their usage policy does not
+  allow heavy production traffic; a deployment with real load must point at its own or a
+  contracted tile provider, configured per map on the wire: `Map.tileUrl` (a Leaflet URL template)
+  + `Map.attribution` (`tileLayerOf` in `poc/map.mjs`).
 
-## Qué necesita quien lo ejecute
+Everything else the renderer paints without an Oracle component — the BPMN diagram (an SVG drawn
+from the process' own BPMN-DI), the rich text editor, the board, timeline, heatmap and org
+outline — is Mateu code: no further third-party library is loaded. (bpmn-js, which the web
+renderer uses, is not used here: its licence is not a permissive one.)
 
-Este renderer está diseñado para aplicaciones de Oracle Visual Builder **alojadas en
-Oracle** (VB Studio / Visual Builder / Oracle Integration / extensiones de Fusion
-Apps). En desarrollo local, los componentes y el runtime se cargan del CDN de Oracle;
-en producción, el uso de Visual Builder y de los componentes Spectra está sujeto a
-los términos del servicio de Oracle correspondiente (la entitlement de Visual
-Builder que el usuario ya tiene por su suscripción). Piénsese en este renderer como
-en un conector: el código es libre; el servicio al que se conecta, no.
+## What someone running it needs
 
-## Marcas
+This renderer is designed for Oracle Visual Builder applications **hosted by Oracle** (VB Studio /
+Visual Builder / Oracle Integration / Fusion Apps extensions) and also runs self-hosted as the
+`io.mateu:redwood` jar. Either way the components and the runtime load from Oracle's CDN; in
+production, the use of Visual Builder and of the Spectra components is subject to the terms of
+the corresponding Oracle service (the Visual Builder entitlement the user already has through
+their subscription). Think of this renderer as a connector: the code is free; the service it
+connects to is not.
 
-Oracle, Oracle JET, Redwood y Visual Builder son marcas de Oracle y/o sus filiales.
-Este proyecto no está afiliado a Oracle ni respaldado por Oracle.
+## Trademarks
+
+Oracle, Oracle JET, Redwood and Visual Builder are trademarks of Oracle and/or its affiliates. This
+project is not affiliated with or endorsed by Oracle.
