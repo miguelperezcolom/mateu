@@ -7,6 +7,8 @@ import { mateuApiClient } from '@infra/http/AxiosMateuApiClient.ts'
 import { expandDefinition, isClientExpandable, DefinitionSpec } from '@infra/expander/expandDefinition.ts'
 import { PageDoc, NodePath, PageNode, decorateForPreview, idToPath, pathToId, nodeAt, isContainer, presentSlots, scalarProps } from '../model/pageModel'
 import type { CanvasRendererId } from './canvasRenderer'
+import './redwood-frame'
+import type { RedwoodFrame } from './redwood-frame'
 
 // Mateu custom events the live renderer fires on interaction. In edit mode the canvas must be
 // inert — swallow them so clicking a button selects it instead of running its action / navigating.
@@ -56,6 +58,10 @@ export class EditorCanvas extends LitElement {
         .status { padding: 0.45rem 0.75rem; font: 12px var(--ve-font, system-ui); color: var(--ve-error, #b00); background: var(--ve-error-10, #fff3f3); }
         .status.info { color: var(--ve-warning, #8a5a00); background: var(--ve-warning-10, #fff7e6); }
         mateu-ux { display: block; }
+        /* The Redwood frame brings its own page (and its own gutters): it fills the canvas. */
+        .host.redwood { padding: 0; height: 100%; overflow: hidden; }
+        :host([framed]) .host.redwood { height: calc(100% - 2rem); }
+        .host.redwood redwood-frame { height: 100%; border-radius: inherit; overflow: hidden; }
         .drop-line { position: absolute; background: var(--ve-primary, #4f8cff); border-radius: 2px; pointer-events: none; z-index: 30; box-shadow: 0 0 0 1px rgba(79,140,255,.4); }
         /* Selection & hover overlays — an editor-owned layer drawn OVER the live render (Webflow/Figma
            style), positioned relative to the scrolling .host so it stays glued without per-scroll work. */
@@ -105,6 +111,7 @@ export class EditorCanvas extends LitElement {
     @state() private hoverTag = ''
 
     @query('mateu-ux') private ux?: HTMLElement & { applyFragment: (f: unknown) => void }
+    @query('redwood-frame') private redwood?: RedwoodFrame
 
     @state() private selBelow = false
     @state() private hoverBelow = false
@@ -127,17 +134,22 @@ export class EditorCanvas extends LitElement {
         return html`
             ${this.error ? html`<div class="status">Preview error: ${this.error}</div>` : ''}
             ${this.info && !this.error ? html`<div class="status info">${this.info}</div>` : ''}
-            <div class="host" style=${this.frameWidth ? `width:${this.frameWidth}px` : ''} @click=${this.onClick} @mousedown=${this.onMouseDown}
+            <div class="host ${this.renderer === 'redwood' ? 'redwood' : ''}" style=${this.frameWidth ? `width:${this.frameWidth}px` : ''} @click=${this.onClick} @mousedown=${this.onMouseDown}
                  @mousemove=${this.onHover} @mouseleave=${this.clearHover}>
                 <!-- preventNavigation stops mateu-ux from firing its OWN route-load. That load runs on the
                      first updated() (the reactive route/baseurl/instant defaults count as changes) and, with
                      no backend behind the editor, paints a "Not found" fragment that overwrites our render.
                      The canvas is the sole driver via applyFragment; it passes baseUrl straight to runAction,
                      so the ux never needs a route of its own. -->
-                ${keyed(this.uxKey, html`<mateu-ux .preventNavigation=${true} theme=${this.theme}></mateu-ux>`)}
+                ${this.renderer === 'redwood'
+                    // The real Redwood app, framed: it outlines the selection itself (a cross-origin
+                    // frame's DOM is out of reach) and a click in it comes back as redwood-click.
+                    ? html`<redwood-frame ?dragging=${!!this.drag} .selectedId=${this.selectedPath ? pathToId(this.selectedPath) : null}
+                                          .selectedLabel=${this.selTag} @redwood-click=${this.onRedwoodClick}></redwood-frame>`
+                    : keyed(this.uxKey, html`<mateu-ux .preventNavigation=${true} theme=${this.theme}></mateu-ux>`)}
                 ${this.isEmptyPage() ? html`<div class="empty-hint">This page is empty.<br>Drag a component here, or add one from the Insert panel.</div>` : ''}
-                ${this.hoverBox && !this.drag ? this.renderHoverOverlay() : ''}
-                ${this.selBox ? this.renderSelectionOverlay() : ''}
+                ${this.hoverBox && !this.drag && this.renderer !== 'redwood' ? this.renderHoverOverlay() : ''}
+                ${this.selBox && this.renderer !== 'redwood' ? this.renderSelectionOverlay() : ''}
                 ${this.dropIndicator
                     ? html`<div class="drop-line" style=${styleMap({
                         left: this.dropIndicator.left + 'px', top: this.dropIndicator.top + 'px',
@@ -235,6 +247,11 @@ export class EditorCanvas extends LitElement {
     }
 
     private async paint(fragment: unknown) {
+        if (this.renderer === 'redwood') {
+            await this.updateComplete
+            this.redwood?.show(fragment as never)
+            return
+        }
         const shape = this.doc ? shapeOf(this.doc.layout) + '|' + this.renderer : ''
         if (this.lastShape !== undefined && shape !== this.lastShape) {
             this.uxKey++
@@ -277,6 +294,13 @@ export class EditorCanvas extends LitElement {
             if (!fallback) { this.error = e?.message ?? String(e); this.status('error', this.error!) }
             return false
         }
+    }
+
+    /** A click in the Redwood frame: the node the app painted there (its data-node-id). */
+    private onRedwoodClick = (e: CustomEvent<{ id: string | null }>) => {
+        const path = idToPath(e.detail.id)
+        if (!path) return
+        this.dispatchEvent(new CustomEvent('node-selected', { detail: { path }, bubbles: true, composed: true }))
     }
 
     private onClick(e: MouseEvent) {
