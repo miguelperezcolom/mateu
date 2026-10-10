@@ -100,6 +100,13 @@ public class CommandMapper {
     if (instance instanceof UICommand || instance instanceof Step) {
       return true;
     }
+    // a wire DTO handed back as is — a LongTask progress step is a UIFragmentDto aimed at the
+    // progress dialog — is no page either: its toString() used to become the window title
+    // ("UIFragmentDto[targetComponentId=…"), announced by screen readers on every step
+    if (instance instanceof io.mateu.dtos.UIFragmentDto
+        || instance instanceof io.mateu.dtos.UIIncrementDto) {
+      return true;
+    }
     return instance instanceof Collection<?> collection
         && !collection.isEmpty()
         && collection.stream().allMatch(o -> o instanceof UICommand || o instanceof Step);
