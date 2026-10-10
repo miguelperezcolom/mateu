@@ -24,10 +24,38 @@ export function menuRulesOf(menu, id) {
   return null
 }
 
-/** The lowered commands of the shell action `actionId`, or null when it declares no flow. */
-export function shellFlowOf(shell, actionId) {
-  const action = ((shell && shell.actions) || []).find((a) => a && a.id === actionId)
+/** The lowered commands of an action, or null when it carries no flow. */
+function flowCommandsOf(action) {
   return action && Array.isArray(action.commands) && action.commands.length ? action.commands : null
+}
+
+/** The app's ACTION catalogue entry `actionId` (App.actionCatalogue, kept on reg.shell), or null. */
+export function catalogueActionOf(shell, actionId) {
+  return ((shell && shell.actionCatalogue) || []).find((a) => a && a.id === actionId) || null
+}
+
+/**
+ * The lowered commands of the shell action `actionId`, OWNER FIRST: a flow the shell declares — a
+ * shell action WITHOUT steps is the shell's own server action, so it answers null — and only when
+ * the shell does not declare the id, the app's action catalogue. Null: dispatch it app-level.
+ */
+export function shellFlowOf(shell, actionId) {
+  const own = ((shell && shell.actions) || []).find((a) => a && a.id === actionId)
+  if (own) return flowCommandsOf(own)
+  return flowCommandsOf(catalogueActionOf(shell, actionId))
+}
+
+/**
+ * The flow a PAGE button runs client-side, OWNER FIRST: the host page's own action of that id (its
+ * declared flow, or null — its server action), else the app's action catalogue entry. Null: the
+ * action goes to the server as before.
+ */
+export function pageFlowOf(reg, actionId) {
+  const host = reg && reg.contexts ? reg.contexts[HOST_ID] : null
+  const own = [...((host && host.declaredActions) || []), ...((host && host.tree && host.tree.actions) || [])]
+    .find((a) => a && a.id === actionId)
+  if (own) return flowCommandsOf(own)
+  return flowCommandsOf(catalogueActionOf(reg && reg.shell, actionId))
 }
 
 /**
@@ -38,6 +66,32 @@ export function shellFlowOf(shell, actionId) {
  * screen, null otherwise). RunJS rules are not run (the VB CSP forbids eval) — they are reported
  * in `skipped`.
  */
+function runShellAction(plan, actionId, depth) {
+  const commands = depth < 8 ? shellFlowOf(plan.reg && plan.reg.shell, actionId) : null
+  if (!commands) {
+    plan.serverActions.push(actionId)
+    return
+  }
+  const next = reduceContexts(plan.reg, { commands, fragments: [], messages: [] }, { initiator: HOST_ID })
+  const effects = next.effects || {}
+  plan.reg = next
+  if (effects.navigate) {
+    plan.navigate = effects.navigate.url
+      ? { url: effects.navigate.url }
+      : { route: '/' + String(effects.navigate.route || '').replace(/^\/+/, '') }
+  }
+  plan.events.push(...(effects.events || []))
+  for (const c of commands) {
+    if (c.type === 'MarkAsClean') plan.dirty = false
+    if (c.type === 'MarkAsDirty') plan.dirty = true
+  }
+  // a flow's RunAction step resolves the same way: the shell's flow, then the catalogue's (capped,
+  // so a flow that runs itself cannot loop), else an app-level server action
+  for (const run of effects.runActions || []) {
+    if (run && run.actionId) runShellAction(plan, run.actionId, depth + 1)
+  }
+}
+
 export function menuRulePlanOf(reg, rules) {
   const plan = { reg, navigate: null, events: [], serverActions: [], dirty: null, skipped: [] }
   for (const rule of rules || []) {
@@ -46,27 +100,7 @@ export function menuRulePlanOf(reg, rules) {
       plan.skipped.push(rule)
       continue
     }
-    const commands = shellFlowOf(plan.reg && plan.reg.shell, rule.actionId)
-    if (!commands) {
-      plan.serverActions.push(rule.actionId)
-      continue
-    }
-    const next = reduceContexts(plan.reg, { commands, fragments: [], messages: [] }, { initiator: HOST_ID })
-    const effects = next.effects || {}
-    plan.reg = next
-    if (effects.navigate) {
-      plan.navigate = effects.navigate.url
-        ? { url: effects.navigate.url }
-        : { route: '/' + String(effects.navigate.route || '').replace(/^\/+/, '') }
-    }
-    plan.events.push(...(effects.events || []))
-    for (const run of effects.runActions || []) {
-      if (run && run.actionId) plan.serverActions.push(run.actionId)
-    }
-    for (const c of commands) {
-      if (c.type === 'MarkAsClean') plan.dirty = false
-      if (c.type === 'MarkAsDirty') plan.dirty = true
-    }
+    runShellAction(plan, rule.actionId, 0)
   }
   return plan
 }

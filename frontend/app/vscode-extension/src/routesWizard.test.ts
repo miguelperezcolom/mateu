@@ -46,6 +46,7 @@ describe('classify', () => {
         expect(classify('type: UI\nbasePath: /\n')).toBe('mount')
         expect(classify('type: Routes\nroutes: []\n')).toBe('routes')
         expect(classify('type: Sources\nsources: []\n')).toBe('sources')
+        expect(classify('type: Actions\nactions: []\n')).toBe('actions')
         expect(classify('type: AppShell\ntitle: x\n')).toBe('appShell')
         expect(classify('type: Form\ntitle: x\n')).toBe('page')
         expect(classify('title: no type\n')).toBe('page')

@@ -206,6 +206,9 @@ export function reduceContexts(reg, increment, opts = {}) {
         // the shell's FLOWS (AppShell.actions): a menu RuleLink whose RunAction names one runs
         // its lowered commands client-side (shellFlows.mjs)
         actions: md.actions || [],
+        // the app's ACTION catalogue (App.actionCatalogue): an id the shell or the page does not
+        // declare runs the catalogue's lowered flow client-side, owner first (shellFlows.mjs)
+        actionCatalogue: md.actionCatalogue || [],
         themeToggle: md.themeToggle,
         // @App(accessKeys): mantener Alt enseña las teclas de acceso (keys.mjs)
         accessKeys: !!md.accessKeys,

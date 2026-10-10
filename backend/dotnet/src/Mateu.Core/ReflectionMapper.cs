@@ -159,11 +159,19 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
             // method for — an id it cannot handle may be an ancestor's and must not be captured
             // here (same rule as Java's TreeActionHarvester and Python's mapper). A YAML layout
             // override advertises every id its buttons reference.
+            // OWNER FIRST, then the action catalogue: an id the view neither declares nor has a method
+            // for runs the catalogue entry of that id (Java's TreeActionHarvester → ActionCatalogMapper),
+            // so it is not advertised bare here.
+            var catalogue = MateuCatalogs.Actions;
+            bool FromCatalogue(string a) => catalogue.Get(a) is not null && !ActionGuard.HandlesTreeAction(type, a);
             var referenced = treeSupplierView
                 ? ActionGuard.TreeActionIds(tree).Where(a => ActionGuard.HandlesTreeAction(type, a))
-                : ComponentMapper.CollectActionIds(tree);
+                : ComponentMapper.CollectActionIds(tree).Where(a => !FromCatalogue(a));
             actions.AddRange(referenced
                 .Where(a => actions.All(x => x.Id != a)).Select(a => new ActionDto(a)));
+            var unresolved = ActionGuard.TreeActionIds(tree).Where(a => actions.All(x => x.Id != a));
+            actions.AddRange(ActionRegistry.ReferencedBy(MateuCatalogs.Actions, unresolved, actions.Select(a => a.Id))
+                .Select(ActionRegistry.ToDto));
         }
         else
         {

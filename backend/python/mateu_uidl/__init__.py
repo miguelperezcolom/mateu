@@ -228,6 +228,7 @@ from .constraints import (  # noqa: F401
     ValidationSupplier,
     validation,
 )
+from .action_catalog import ActionCatalogSupplier, CatalogAction, CatalogRestAction  # noqa: F401
 from .rest_sources import (  # noqa: F401
     DeclaredRestSource,
     RestDataSource,
@@ -265,6 +266,9 @@ __all__ = [
     "DeclaredRestSource",
     "RestDataSource",
     "RestSourceCatalogSupplier",
+    "ActionCatalogSupplier",
+    "CatalogAction",
+    "CatalogRestAction",
     "RestSourceEntry",
     "RestSourceKind",
     "RestSourceProvenance",

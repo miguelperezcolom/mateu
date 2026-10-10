@@ -123,7 +123,40 @@ public final class MateuBundleExporter {
        * it is purely additive. Only client-expandable definitions travel; a {@code viewModel} route
        * needs a backend and is omitted.
        */
-      Map<String, JsonNode> definitions) {
+      Map<String, JsonNode> definitions,
+      /**
+       * The ACTION catalogue, shipped ONCE like {@link #sources}: every named client-runnable
+       * action with its flow already lowered to commands. A statically served screen (or shell
+       * menu) naming an id its owner does not declare resolves it here. Not part of {@link
+       * #structureHash()}, for the same reason as the source catalogue.
+       */
+      List<io.mateu.dtos.ActionDto> actions) {
+
+    public BundleManifest {
+      actions = actions == null ? List.of() : List.copyOf(actions);
+    }
+
+    /** Pre-action-catalogue shape: no catalogue shipped. */
+    public BundleManifest(
+        String baseUrl,
+        String generatedAt,
+        boolean staticOnly,
+        List<BundleEntry> entries,
+        RouteTable routes,
+        RestSourceCatalog sources,
+        List<String> requiredCapabilities,
+        Map<String, JsonNode> definitions) {
+      this(
+          baseUrl,
+          generatedAt,
+          staticOnly,
+          entries,
+          routes,
+          sources,
+          requiredCapabilities,
+          definitions,
+          List.of());
+    }
 
     /** Pre-registry shape, kept so existing callers and golden files are unaffected. */
     public BundleManifest(
@@ -177,6 +210,10 @@ public final class MateuBundleExporter {
      * JSON. Walks for the KEY rather than a known DTO shape, so it keeps working if the AppDto
      * moves within the tree — the same channel-independent approach the OpenAPI derivation uses.
      */
+    static List<String> aggregateCapabilitiesOf(List<BundleEntry> entries) {
+      return aggregateCapabilities(entries);
+    }
+
     private static List<String> aggregateCapabilities(List<BundleEntry> entries) {
       var mapper = new ObjectMapper();
       var caps = new java.util.TreeSet<String>();
@@ -391,7 +428,9 @@ public final class MateuBundleExporter {
         entries,
         authored,
         restSourceCatalogue(),
-        definitions);
+        BundleManifest.aggregateCapabilitiesOf(entries),
+        definitions,
+        actionCatalogue());
   }
 
   /**
@@ -520,6 +559,20 @@ public final class MateuBundleExporter {
     } catch (Throwable t) {
       log.warn("Could not read the REST source catalogue for the bundle: {}", t.toString());
       return RestSourceCatalog.empty();
+    }
+  }
+
+  /**
+   * The action catalogue to ship, lowered to wire actions. Built directly for the same reason as
+   * {@link #restSourceCatalogue()}: the build-time goal has no bean context.
+   */
+  private static List<io.mateu.dtos.ActionDto> actionCatalogue() {
+    try {
+      return io.mateu.core.domain.out.fragmentmapper.mappers.ActionCatalogMapper.map(
+          new io.mateu.core.application.runaction.ActionRegistry().catalog());
+    } catch (Throwable t) {
+      log.warn("Could not read the action catalogue for the bundle: {}", t.toString());
+      return List.of();
     }
   }
 

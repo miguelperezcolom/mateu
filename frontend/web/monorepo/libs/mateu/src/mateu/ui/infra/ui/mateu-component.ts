@@ -49,6 +49,9 @@ import {isIdempotentAction} from "@infra/http/retryPolicy.ts";
 import {isLocalRequest} from "@infra/http/localRequests.ts";
 import {clearPending, decorable, markPending, originOf} from "@infra/ui/pendingIndicator.ts";
 import {runDeclaredFlow} from "@infra/ui/flowRunner.ts";
+import {getCatalogueAction} from "@infra/ui/actionCatalogue.ts";
+import {inAppRoute} from "@infra/ui/shellFlows.ts";
+import type UICommand from "@mateu/shared/apiClients/dtos/UICommand.ts";
 import {applySizing, SizableHost} from "@infra/ui/sizing.ts";
 import { confirmationDialogTexts } from '@infra/ui/confirmationTexts.ts'
 import { fabStyles } from '@infra/ui/layout/fabRail.ts'
@@ -400,6 +403,28 @@ export class MateuComponent extends ComponentElement {
         }
     }
 
+    /**
+     * True when a mateu-component ABOVE this one advertises the action (the owner-first rule: the
+     * enclosing page's own action wins over the catalogue). Walks the composed tree, crossing shadow
+     * boundaries through their hosts.
+     */
+    ancestorClaims = (actionId: string): boolean => {
+        let node: Node | null = this.parentNode ?? null
+        while (node) {
+            if (node instanceof ShadowRoot) {
+                node = node.host
+                continue
+            }
+            if ((node as Element).localName === 'mateu-component') {
+                const actions = ((node as unknown as { component?: ServerSideComponent }).component)?.actions
+                if (actions?.some(a => a.id == actionId
+                    || (a.id.endsWith('*') && actionId.startsWith(a.id.slice(0, -1))))) return true
+            }
+            node = node.parentNode
+        }
+        return false
+    }
+
     manageActionRequestedEvent = (e: CustomEvent) => {
         const detail = e.detail as {
             actionId: string,
@@ -411,7 +436,9 @@ export class MateuComponent extends ComponentElement {
             // A trigger (OnLoad/OnSuccess) can force the call to run as a silent background refresh
             // even when the action itself is not declared background — a status poll wants no veil.
             background?: boolean,
-            _originElement?: Element
+            _originElement?: Element,
+            // set by the shell for an id IT declares: the catalogue must not answer it (owner first)
+            skipCatalogue?: boolean
         }
         // The control the user pressed, so the busy state can be shown ON it. An action that
         // bubbles up to an ancestor component carries the original control in the detail —
@@ -437,6 +464,11 @@ export class MateuComponent extends ComponentElement {
             const action = serverSideComponent.actions?.find(action => action.id == detail.actionId)
                 ?? serverSideComponent.actions?.find(action =>
                     action.id.endsWith('*') && detail.actionId.startsWith(action.id.slice(0, -1)))
+                // OWNER FIRST, then the app's ACTION catalogue: an id no component on the way up
+                // declares runs the catalogue's flow / REST call here, as if this page owned it.
+                ?? (detail.skipCatalogue || this.ancestorClaims(detail.actionId)
+                    ? undefined
+                    : getCatalogueAction(detail.actionId))
 
             if (action) {
 
@@ -702,6 +734,23 @@ export class MateuComponent extends ComponentElement {
         document.body.appendChild(backdrop)
     }
 
+    /**
+     * One command of a declared flow (the page's own, or the action catalogue's). A `Navigate` to a
+     * route of the app moves the app there in place — the `route-changed` + `navigate-to-requested`
+     * pair every shell honours (and the editor's Play), exactly what a shell flow's Navigate does —
+     * instead of reloading the whole page; a URL still leaves it. The rest: the common applier.
+     */
+    applyFlowCommand = (command: UICommand) => {
+        if (command.type === 'NavigateTo') {
+            const route = inAppRoute(command.data)
+            if (route !== undefined) {
+                navigateToRoute(this, route)
+                return
+            }
+        }
+        this.applyCommand(command)
+    }
+
     requestActionCallToServerOrBubble = (detail: {
         actionId: string,
         parameters: Record<string, unknown>,
@@ -775,7 +824,7 @@ export class MateuComponent extends ComponentElement {
         // from its fluent steps. Every v0 verb is one existing command, so we run them with the
         // command applier we already have — no server round-trip. Applied on THIS component (the
         // one that fired the action); a null targetComponentId means "the firing component".
-        if (runDeclaredFlow(action, command => this.applyCommand(command))) {
+        if (runDeclaredFlow(action, this.applyFlowCommand)) {
             return
         }
 

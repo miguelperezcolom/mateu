@@ -11,8 +11,12 @@ namespace Mateu.Core;
 /// <summary>Handles a single POST /mateu/v3/sync/{route} call → a UIIncrement.</summary>
 public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? translator = null, Func<Identity?>? identity = null,
     Func<string, string?>? secrets = null, HttpClient? http = null,
-    RestSourceRegistry? restSources = null, ComponentRegistry? components = null)
+    RestSourceRegistry? restSources = null, ComponentRegistry? components = null,
+    ActionRegistry? actionCatalog = null)
 {
+    /// <summary>The action catalogue (actions.yaml + type: Actions files over IActionCatalogSupplier).</summary>
+    private readonly ActionRegistry _actionCatalog = actionCatalog ?? new ActionRegistry(registry);
+
     /// <summary>The REST source catalogue (sources.yaml over [RestSource] + suppliers) and the
     /// business-component catalogue (components.yaml over [BusinessComponent] + suppliers).</summary>
     private readonly RestSourceRegistry _restSources = restSources ?? new RestSourceRegistry(registry);
@@ -137,6 +141,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     {
         ActionGuard.SetIdentity(identity);
         MateuCatalogs.Set(_restSources.Catalog, _components.Catalog);
+        MateuCatalogs.SetActions(_actionCatalog.Catalog);
 
         // Audience PROJECTION, not security: the value is client-controlled app state (the
         // [AppContext] selector named audience), so it only filters [Audience]-marked members out of
@@ -329,6 +334,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
                 {
                     RestSources = sources,
                     Components = MateuCatalogs.MapComponents(MateuCatalogs.Components),
+                    ActionCatalogue = ActionRegistry.MapCatalogue(MateuCatalogs.Actions),
                     RequiredCapabilities = caps.ToList(),
                 },
             };

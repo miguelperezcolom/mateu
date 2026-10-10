@@ -34,7 +34,8 @@ import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
 import { safeLocalStorage } from '@infra/safeStorage.ts'
 import { runJs } from '@infra/ui/runJs.ts'
 import { runDeclaredFlow } from '@infra/ui/flowRunner.ts'
-import { inAppRoute, shellFlowFor } from '@infra/ui/shellFlows.ts'
+import { inAppRoute, shellActionFor } from '@infra/ui/shellFlows.ts'
+import { setActionCatalogue } from '@infra/ui/actionCatalogue.ts'
 import type UICommand from '@mateu/shared/apiClients/dtos/UICommand.ts'
 import { applyUiLanguage, chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 
@@ -278,12 +279,14 @@ export class MateuApp extends ComponentElement {
         }
     }
 
-    runAction = (actionId: string) => {
+    runAction = (actionId: string, ownedByShell = false) => {
         const root = this.renderRoot as Element | ShadowRoot
         const comp = root.querySelector?.('mateu-component') as HTMLElement | null
         if (comp) {
             comp.dispatchEvent(new CustomEvent('action-requested', {
-                detail: { actionId },
+                // an id the SHELL declares (a server action of its own) must not be answered by the
+                // action catalogue on the way: owner first
+                detail: ownedByShell ? { actionId, skipCatalogue: true } : { actionId },
                 bubbles: true,
                 composed: true
             }))
@@ -308,11 +311,26 @@ export class MateuApp extends ComponentElement {
         if (command.type === 'RunAction') {
             const data = command.data as { actionId?: string, targetComponentId?: string } | undefined
             if (data?.actionId && !data.targetComponentId) {
-                this.runAction(data.actionId)
+                this.runShellAction(data.actionId)
                 return
             }
         }
         this.applyCommand(command)
+    }
+
+    /**
+     * Runs an action a menu leaf (or a shell flow's RunAction step) names, OWNER FIRST: a flow the
+     * shell declares — or, failing that, one of the app's ACTION catalogue — runs HERE, in the
+     * browser. Anything else (the shell's own server action, a catalogue REST call, an id nobody
+     * declares) goes to the on-screen component, which runs a catalogue REST call itself and sends
+     * the rest to the server, as before.
+     */
+    runShellAction = (actionId: string) => {
+        const app = (this.component as ClientSideComponent | undefined)?.metadata as App | undefined
+        const resolved = shellActionFor(app, actionId)
+        if (runDeclaredFlow(resolved, this.applyShellCommand)) return
+        const ownedByShell = !!app?.actions?.some((a) => a && a.id === actionId)
+        this.runAction(actionId, ownedByShell)
     }
 
     // A menu leaf is either a route or a rule. When it carries rules, clicking it RUNS them instead
@@ -322,11 +340,7 @@ export class MateuApp extends ComponentElement {
     runMenuRules = (rules: Rule[]) => {
         for (const rule of rules) {
             if (rule.action === RuleAction.RunAction && rule.actionId) {
-                // A flow the shell declares runs HERE, in the browser; anything else is an
-                // app-level action for the server, as before.
-                const app = (this.component as ClientSideComponent | undefined)?.metadata as App | undefined
-                if (runDeclaredFlow({ commands: shellFlowFor(app, rule.actionId) }, this.applyShellCommand)) continue
-                this.runAction(rule.actionId)
+                this.runShellAction(rule.actionId)
             } else if (rule.action === RuleAction.RunJS && rule.value != null) {
                 try {
                     runJs(String(rule.value))
@@ -906,6 +920,9 @@ export class MateuApp extends ComponentElement {
                 // The app's REST source catalogue, published for the fetch layer: a surface carries
                 // only a source's name, so the lookup table has to be in place before it fetches.
                 setRestSourceCatalogue(app.restSources)
+                // The ACTION catalogue: an id a page or the shell names but does not declare runs
+                // the catalogue's flow / REST call before going to the server.
+                setActionCatalogue(app.actionCatalogue)
                 // The business-component catalogue (coherence-plan #13): a ComponentRef carries only
                 // a name, so the compositions have to be in place before anything renders one.
                 setComponentCatalogue(app.components)

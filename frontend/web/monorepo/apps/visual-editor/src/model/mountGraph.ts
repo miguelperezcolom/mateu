@@ -77,7 +77,7 @@ export function buildMountGraph(files: ProjectFile[]): MountGraph {
 
 type RouteRows = ReturnType<typeof flattenRoutes>
 
-/** The mount's route table (flattened) and its other files parsed, by path — sources and the mount descriptor left out. */
+/** The mount's route table (flattened) and its other files parsed, by path — sources, the action catalogue and the mount descriptor left out. */
 function readMount(files: ProjectFile[]): { byPath: Map<string, unknown>; routeRows: RouteRows } {
     const byPath = new Map<string, unknown>()
     const routeRows: RouteRows = []
@@ -86,7 +86,7 @@ function readMount(files: ProjectFile[]): { byPath: Map<string, unknown>; routeR
         if (!path || isMountYaml(f.content)) continue
         if (isRoutesYaml(f.content)) { routeRows.push(...flattenRoutes(parseRoutes(f.content).routes)); continue }
         const parsed = parseObject(f.content)
-        if (parsed && !isSourcesDoc(parsed)) byPath.set(path, parsed)
+        if (parsed && !isSourcesDoc(parsed) && parsed.type !== 'Actions') byPath.set(path, parsed)
     }
     return { byPath, routeRows }
 }

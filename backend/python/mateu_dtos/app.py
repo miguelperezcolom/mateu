@@ -14,6 +14,7 @@ from .base import Wire
 if TYPE_CHECKING:
     from .fields import ComponentEntryRecord, RestDataSource, RestSourceEntryRecord
     from .records import (
+        Action,
         MenuItem,
         Option,
     )
@@ -85,6 +86,10 @@ class AppMetadata(Wire):
     #: resolved by a renderer / the client-side expander with no backend (mirrors
     #: AppDto.components).
     components: list["ComponentEntryRecord"] = Field(default_factory=list)
+    #: The app's ACTION catalogue (actions.yaml + ActionCatalogSupplier): named client-runnable
+    #: actions, each flow lowered to ``commands``. A client resolves an id its owner does not declare
+    #: against this list before a server dispatch (mirrors AppDto.actionCatalogue).
+    action_catalogue: list["Action"] = Field(default_factory=list)
 
 
 class AppContextSelector(Wire):

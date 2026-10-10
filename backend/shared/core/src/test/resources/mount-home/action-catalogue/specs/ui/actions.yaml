@@ -1,0 +1,29 @@
+# The shared action catalogue: named client-runnable actions any page or the shell menu runs by id.
+type: Actions
+actions:
+  - id: newOrder
+    description: Start a new order
+    steps:
+      - type: MarkClean
+      - type: Navigate
+        route: orders/new
+  - id: refreshCustomers
+    description: Re-read the customers
+    restAction:
+      source:
+        url: https://example.test/api/customers
+        method: POST
+      successMessage: Refreshed
+  # The orders page declares its own `refresh` — the owner's wins there.
+  - id: refresh
+    steps:
+      - type: Emit
+        event: catalogue-refresh
+  # A flow that runs another catalogue entry: carried together with it.
+  - id: chained
+    steps:
+      - type: RunAction
+        actionId: newOrder
+  # Server logic does not belong here: neither steps nor a restAction — ignored with a WARN.
+  - id: serverOnly
+    confirmationRequired: true

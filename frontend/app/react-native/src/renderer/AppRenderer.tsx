@@ -12,7 +12,9 @@ import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import { cardsOf, isCardsGroup } from './menuCards';
 import { canSignOut, signOut } from '../core/auth';
-import { isRuleLeaf, menuLeafEffects, type ShellAction } from '../core/shellFlows';
+import { isRuleLeaf, menuLeafEffects, registerActionCatalogue, type ShellAction } from '../core/shellFlows';
+import { fetchExternalJson } from '../core/restFetch';
+import { interpolate } from '../core/expressions';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -59,6 +61,8 @@ interface AppMeta {
   globalSearchEnabled?: boolean;
   /** The shell's declared actions; a flow carries its steps lowered to `commands`. */
   actions?: ShellAction[];
+  /** The app's ACTION catalogue: named client-runnable actions, resolved after the owner's. */
+  actionCatalogue?: ShellAction[];
 }
 
 /** One inbox entry as served by the _notifications-list / _notifications-read actions. */
@@ -656,8 +660,11 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
 
   // A menu leaf with rules RUNS them: a RunAction naming a flow the shell declares applies its
   // lowered commands here (no server round-trip); any other id is an app-level server action.
+  // The catalogue is app-wide: register it so every screen's controller resolves ids against it.
+  React.useEffect(() => registerActionCatalogue(appMeta.actionCatalogue), [appMeta.actionCatalogue]);
+
   const runMenuLeaf = (item: MenuItem) => {
-    for (const effect of menuLeafEffects(item, appMeta.actions)) {
+    for (const effect of menuLeafEffects(item, appMeta.actions, appMeta.actionCatalogue ?? [])) {
       switch (effect.kind) {
         case 'navigate': {
           // mount-relative, like routes.yaml: under the app's root route, like a menu route click
@@ -671,6 +678,24 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
         case 'runAction':
           void runAppAction(effect.actionId);
           break;
+        case 'restAction': {
+          // A catalogue REST call from the menu: there is no screen state, only the app state.
+          const rest = effect.restAction as Record<string, unknown>;
+          const source = (rest['source'] as Record<string, unknown>) ?? {};
+          if (source['proxy']) {
+            void runAppAction(effect.actionId);
+            break;
+          }
+          const ctx = { state: {}, data: {}, appState: session.appState, appData: {} };
+          const resolve = (t: unknown) => interpolate(typeof t === 'string' ? t : '', ctx);
+          fetchExternalJson(source, resolve)
+            .then(() => {
+              const message = resolve(rest['successMessage']);
+              if (message) session.notify(null, message, 'info', { duration: 3000 });
+            })
+            .catch(() => session.notify(null, 'Request failed', 'error'));
+          break;
+        }
         case 'event':
           session.dispatchEvent(effect.eventName, effect.payload);
           break;

@@ -30,12 +30,14 @@ export default defineConfig({
       include: ['src/**/*.ts'],
       exclude: ['src/**/*.test.ts', 'src/**/*.d.ts', 'src/test/**', 'src/mateu/shared/apiClients/dtos/**'],
       reporter: ['text-summary', 'json-summary'],
-      // measured 2026-10-10: 53.6% lines/statements, 54.4% functions, 80.6% branches
+      // re-measured 2026-10-10 under vitest 4 (its v8 provider remaps with the AST, so functions
+      // and branches are counted for real — under vitest 3 the same suite read 54.4% functions /
+      // 80.6% branches): 55.0% statements, 56.1% lines, 41.0% functions, 42.2% branches
       thresholds: {
-        lines: 53,
-        statements: 53,
-        functions: 54,
-        branches: 80,
+        lines: 56,
+        statements: 55,
+        functions: 41,
+        branches: 42,
       },
     },
   },

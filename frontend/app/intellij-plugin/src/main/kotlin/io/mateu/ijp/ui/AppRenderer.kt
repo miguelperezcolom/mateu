@@ -33,6 +33,8 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         session.homeServerSideType = metadata.text("homeServerSideType")
         // The shell's flows (App.actions) + where they navigate from: a menu leaf naming one runs it.
         session.appActions = metadata.path("actions").takeIf { it.isArray }
+        // The app's ACTION catalogue: an id the shell (or a view) does not declare resolves here.
+        session.actionCatalogue = metadata.path("actionCatalogue").takeIf { it.isArray }
         session.appRootRoute = metadata.text("rootRoute")
         session.appServerSideType = metadata.text("serverSideType").ifBlank { null }
         // Keyboard access keys: views assign Alt+letter mnemonics to their buttons and tabs.
