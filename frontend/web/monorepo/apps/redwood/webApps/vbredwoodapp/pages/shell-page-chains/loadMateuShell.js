@@ -102,6 +102,13 @@ define([
       bridge.installKeys();
       // ventanas flotantes al pasar el ratón (celdas con @Tooltip, Popover)
       bridge.installHover();
+      // display components whose view needs the DOM: the BPMN diagram (SVG from its BPMN-DI), the
+      // cookie consent band, a ContextMenu's right click, and the Chat component's conversation
+      bridge.installBpmn();
+      bridge.installCookieConsent();
+      bridge.installContextMenus();
+      bridge.installChatComponents();
+      bridge.installCustomComponents();
       // arrastrar filas (@DragRows) a un DropZone: su acción con origen y destino
       bridge.installDragAndDrop();
       bridge.setDropSink(runPageAction);

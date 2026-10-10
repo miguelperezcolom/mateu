@@ -260,9 +260,10 @@ not the feature rows above — is the authority when a screen looks emptier on R
 
 <!-- redwood-coverage:start -->
 Generated from `frontend/web/monorepo/apps/redwood/poc/coverage.mjs` and checked in CI against the
-wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 53 rendered, 11 layout
-containers, 9 partial, 35 not rendered (they are dropped silently — the
-children of a container still render).
+wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 95 rendered, 11 layout
+containers, 2 partial, 0 not rendered. A type the renderer does not know
+(one added to the wire later) shows a visible "Unsupported component" placeholder, like the web
+renderers, and its children still render.
 
 | Component | Redwood | How |
 |---|---|---|
@@ -274,51 +275,93 @@ children of a container still render).
 | `Avatar` | ✅ | oj-avatar |
 | `AvatarGroup` | ✅ | oj-avatar per person, +N beyond maxItemsVisible |
 | `Badge` | ✅ | oj-badge classes |
+| `Bpmn` | ✅ | an SVG drawn from its BPMN-DI (or laid out by its flows): bpmn-js is not under a permissive licence |
+| `Breadcrumbs` | ✅ | a breadcrumb nav in the content (the shell keeps its own trail) |
 | `BulletedList` | ✅ |  |
 | `Button` | ✅ | oj-button |
 | `Calendar` | ✅ | month, week, day and list views (JET has no calendar: a Redwood-token grid, oj-buttonset-one switcher), per-date cells, clickable dates |
+| `CalloutCard` | ✅ | oj-panel band with its theme, icon and CTA oj-button |
 | `Card` | ✅ | oj-panel |
+| `CarouselLayout` | ✅ | an image gallery is an oj-film-strip; other slides one at a time with a ‹ › pager and dots (client-side) |
 | `Chart` | ✅ | oj-chart: bar, line, pie, doughnut, radar/polar area, scatter; several series |
+| `Chat` | ✅ | an inline conversation streamed from its sseUrl (poc/chat.mjs); the app-level assistant is the shell panel |
+| `Checklist` | ✅ | oj-checkboxset per item (sends {_item, _done}) + oj-progress-bar |
+| `CommentThread` | ✅ | replies indented under their comment, oj-avatar per author |
+| `ComparisonCard` | ✅ | oj-panel: both values and the delta with its trend |
+| `ConfirmDialog` | ✅ | oj-dialog, open while its openedCondition holds; Confirm / Reject / Cancel send their actions |
+| `ContextMenu` | ✅ | its content, then an oj-menu-button with the menu; a right click on the content opens it too |
+| `CookieConsent` | ✅ | a band fixed to the top/bottom; hidden once its cookie exists, dismissing sets it |
 | `Crud` | ✅ | oj-table + smart search; groups, totals, tones, columns, saved views, export |
+| `CustomComponent` | ✅ | a registry the app fills (bridge.registerCustomComponent); without a view, a visible placeholder + its children — same contract as the web |
 | `DashboardLayout` | ✅ | oj-flex columns, each panel its colSpan |
 | `DashboardPanel` | ✅ | oj-panel tile (title, subtitle, content) |
 | `Details` | ✅ | oj-collapsible (client-side state) |
 | `Dialog` | ✅ | oj-dialog (overlay stack) |
+| `Directory` | ✅ | a column per group with its links (in-app routes navigate inside the shell) |
 | `Drawer` | ✅ | oj-drawer-popup (overlay stack), subtitle, footer actions |
 | `DropZone` | ✅ | drop target for @DragRows listing rows (oj-table dnd); its content as text lines |
 | `Element` | ✅ | third-party web component, events wired back |
+| `EmptyState` | ✅ | oj-sp-empty-state: the page-level one, and any other in the content with its call to action |
 | `EntityHeader` | ✅ | projected to the page header (sticky business card) |
+| `Faq` | ✅ | oj-collapsible per question (client-side state), the answer as Markdown |
+| `FeatureGrid` | ✅ | oj-panel / oj-action-card tiles on an oj-flex grid of its columns |
+| `FileList` | ✅ | a row per file: icon by type, download link, size · type, its action |
 | `FoldoutLayout` | ✅ | oj-sp-foldout-layout; inside a tab, collapsible panels |
 | `Form` | ✅ | oj-form-layout |
 | `FormField` | ✅ | oj-input-*, oj-select-*, oj-radioset, oj-checkboxset, oj-input-number, capture fields |
 | `FormLayout` | ✅ | oj-form-layout |
+| `Funnel` | ✅ | oj-chart type funnel |
 | `Gantt` | ✅ | oj-gantt: a row per task, progress fill, task click → onTaskSelectionActionId |
+| `Grid` | ✅ | oj-table (list display): tree rows with disclosure, client-side paging by its size |
+| `Heatmap` | ✅ | JET has none: a calendar heatmap (a column per week), 4 levels + legend, values on hover |
+| `HeroSection` | ✅ | the Welcome archetype: oj-sp-header-welcome-banner; in the content, a hero band (title, subtitle, background image) over its children |
 | `HorizontalLayout` | ✅ | oj-flex row |
+| `Icon` | ✅ | the Redwood icon font (oj-ux-ico-*), an emoji as text |
 | `Image` | ✅ | JET has no image component: an <img>; relative sources are served by the backend |
+| `Kanban` | ✅ | JET has no board: oj-panel columns, cards as oj-action-card when they act (_clickedCard) |
 | `Ledger` | ✅ |  |
 | `Map` | ✅ | Leaflet + OSM tiles (JET has no street map): markers, fit, markerActionId |
+| `Markdown` | ✅ | formatted (headings, lists, quotes, code, tables, bold, italics, links, allowed inline HTML) as allowlist-sanitized HTML |
 | `MasterDetailLayout` | ✅ | list + detail panes |
 | `MatrixGrid` | ✅ | oj-data-grid |
+| `MenuBar` | ✅ | oj-buttons, links and oj-menu-buttons for submenus |
+| `MessageInput` | ✅ | oj-input-text + Send oj-button; Enter or Send sends {message} |
+| `MessageList` | ✅ | oj-avatar + name, time and text per message |
 | `Meter` | ✅ | oj-progress-bar |
 | `MetricCard` | ✅ | KPI tile: value, trend, drill-in action |
+| `MicroFrontend` | ✅ | loaded from its baseUrl into a surface of its own and painted in place; its actions go back to it |
 | `NotFound` | ✅ |  |
 | `Notice` | ✅ | oj-sp-message-banner style band + actions |
+| `Notification` | ✅ | an info band (title — text); action messages show as toasts |
 | `OfferCard` | ✅ |  |
+| `OrgChart` | ✅ | the tree as an indented outline (VB templates cannot recurse) with oj-avatar; nodes with an action are oj-action-cards (_clickedNode) |
 | `Page` | ✅ | oj-sp header (title, subtitle, KPIs, toolbar, banners) |
 | `PaymentPicker` | ✅ |  |
 | `PlanningBoard` | ✅ | oj-gantt (move, resize, double click, range selection) |
+| `Popover` | ✅ | trigger + the content WITH its structure (headings, lists, links, badges, markdown) as sanitised HTML in a shared oj-popup (hover/focus or click) |
+| `PricingTable` | ✅ | oj-panel plans (the featured one highlighted), CTA oj-button |
+| `ProcessMonitor` | ✅ | a row per process: systems, ok/warning/error badges, status, action |
+| `ProgressBar` | ✅ | oj-progress-bar (value or the state at valueKey, indeterminate); a wizard shows its progress as the guided process |
 | `ProgressSteps` | ✅ | oj-train |
 | `ResourceGrid` | ✅ |  |
+| `ResponsiveGrid` | ✅ | fixed tracks → oj-flex columns by their fr weights and spans; auto-fill/auto-fit → as many per row as fit at each breakpoint; reorderable tiles drag (and Alt+←/→) |
+| `Result` | ✅ | oj-panel with the icon of its type, message, links and the what-next action |
 | `Scoreboard` | ✅ | KPI band |
 | `Separator` | ✅ |  |
+| `Skeleton` | ✅ | the shell skeleton bones (JET has no skeleton), text/card/grid/form × count |
 | `SplitLayout` | ✅ | two panes |
 | `Stat` | ✅ |  |
 | `StatusList` | ✅ |  |
+| `Stepper` | ✅ | a numbered step header per child, its content below |
 | `TabLayout` | ✅ | oj-tab-bar (nested strips flattened) |
 | `TaskProgress` | ✅ |  |
 | `TaskQueue` | ✅ |  |
+| `Testimonials` | ✅ | oj-panel quotes, oj-avatar, oj-rating-gauge (read only) |
 | `Text` | ✅ |  |
+| `Timeline` | ✅ | oj-timeline is deprecated: a Redwood list with markers, items with an action as borderless oj-buttons (_clickedItem) |
+| `Tooltip` | ✅ | the wrapped component keeps its view; the text opens in the shared oj-popup on hover/focus (on the button itself, or an info marker) |
 | `TrendChart` | ✅ | oj-chart line/area |
+| `VirtualList` | ✅ | every item through the same projection (no windowing — neither has the neutral web renderer) |
 | `BoardLayout` | ✅ layout | children stacked, not a board |
 | `Container` | ✅ layout |  |
 | `ContentLayout` | ✅ layout |  |
@@ -330,15 +373,8 @@ children of a container still render).
 | `FullWidth` | ✅ layout |  |
 | `Scroller` | ✅ layout |  |
 | `VerticalLayout` | ✅ layout |  |
-| `CarouselLayout` | 🟡 | an image gallery is an oj-film-strip; slides with other content are stacked |
-| `CustomComponent` | 🟡 | visible placeholder + slotted children (no VB registry) |
-| `EmptyState` | 🟡 | page-level empty state only |
-| `Grid` | 🟡 | oj-table (list display) with its columns and rows; no tree, no paging |
-| `HeroSection` | 🟡 | Welcome archetype hero only |
-| `Markdown` | 🟡 | formatted (headings, lists, quotes, code, bold, italics, links) as allowlist-sanitized HTML; no tables, and HTML inside the Markdown shows as text |
-| `Popover` | 🟡 | trigger + the content as text lines in a shared oj-popup (hover/focus or click); the wrapped component shows as its text |
-| `ProgressBar` | 🟡 | wizard progress only |
-| `ResponsiveGrid` | 🟡 | fixed tracks → oj-flex columns sized by their fr weights and spans; auto-fill/auto-fit grids stack; reorderable tiles drag (and Alt+←/→) |
+| `FormEditor` | 🟡 | read only: the defined form previewed with the real field widgets; the web designer edits it |
+| `Workflow` | 🟡 | read only: the definition as a numbered flow of steps; the web designer edits it |
 | `AccordionPanel` | ↳ | of AccordionLayout |
 | `BoardLayoutItem` | ↳ | of BoardLayout |
 | `BoardLayoutRow` | ↳ | of BoardLayout |
@@ -346,41 +382,6 @@ children of a container still render).
 | `FormRow` | ↳ | of FormLayout |
 | `GridColumn` | ↳ | of Grid / Crud |
 | `Tab` | ↳ | of TabLayout |
-| `Bpmn` | — |  |
-| `Breadcrumbs` | — | the shell has its own breadcrumbs |
-| `CalloutCard` | — |  |
-| `Chat` | — | the app-level AI chat panel exists; the component does not |
-| `Checklist` | — |  |
-| `CommentThread` | — |  |
-| `ComparisonCard` | — |  |
-| `ConfirmDialog` | — |  |
-| `ContextMenu` | — | its wrapped content shows, the menu does not |
-| `CookieConsent` | — |  |
-| `Directory` | — |  |
-| `Faq` | — |  |
-| `FeatureGrid` | — |  |
-| `FileList` | — |  |
-| `FormEditor` | — |  |
-| `Funnel` | — |  |
-| `Heatmap` | — |  |
-| `Icon` | — |  |
-| `Kanban` | — |  |
-| `MenuBar` | — |  |
-| `MessageInput` | — |  |
-| `MessageList` | — |  |
-| `MicroFrontend` | — |  |
-| `Notification` | — | action messages do show as toasts; the component does not |
-| `OrgChart` | — |  |
-| `PricingTable` | — |  |
-| `ProcessMonitor` | — |  |
-| `Result` | — |  |
-| `Skeleton` | — | the shell shows its own loading skeleton |
-| `Stepper` | — |  |
-| `Testimonials` | — |  |
-| `Timeline` | — |  |
-| `Tooltip` | — |  |
-| `VirtualList` | — |  |
-| `Workflow` | — |  |
 <!-- redwood-coverage:end -->
 
 Since 2026-07-12 (DS-native rule) the non-Vaadin web renderers render crud layouts

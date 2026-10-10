@@ -589,15 +589,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           attrs = ' href="' + escapeAttr(value) + '"' + (/^https?:/i.test(value) ? ' target="_blank" rel="noopener noreferrer"' : '')
         }
       }
+      if (tag === 'th' || tag === 'td') {
+        const align = /\balign\s*=\s*["']?(left|right|center)\b/i.exec(m[2] || '')
+        if (align) attrs = ' align="' + align[1].toLowerCase() + '"'
+      }
       out.push('<' + tag + attrs + '>')
     }
     return out.join('')
   }
 
+  const tableCells = (line) => {
+    const t = line.trim().replace(/^\|/, '').replace(/\|$/, '')
+    return t.split(/(?<!\\)\|/).map((c) => c.trim().replace(/\\\|/g, '|'))
+  }
+  const isTableSeparator = (line) => /\|/.test(line) && tableCells(line).every((c) => /^:?-{1,}:?$/.test(c))
+
   /** Markdown → HTML (saneado): encabezados, párrafos, listas, citas, código, y en línea negrita,
    *  cursiva, código y enlaces. Lo que no reconoce se queda como texto. */
   function markdownToHtml(md) {
-    const inline = (t) => escapeText(t)
+    // HTML written inside the Markdown (an allowed tag: <b>, <br>, <span>…) is kept — the final
+    // sanitizeHtml pass drops what is not on the list and every attribute but a safe href
+    const escapeKeepingTags = (t) => String(t).split(/(<\/?[a-zA-Z][a-zA-Z0-9]*\b(?:[^>"']|"[^"]*"|'[^']*')*>)/)
+      .map((part, i) => (i % 2 && ALLOWED.has(part.replace(/^<\/?([a-zA-Z0-9]+).*$/s, '$1').toLowerCase()) ? part : escapeText(part)))
+      .join('')
+    const inline = (t) => escapeKeepingTags(t)
       .replace(/`([^`]+)`/g, '<code>$1</code>')
       .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
       .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>')
@@ -623,6 +638,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         continue
       }
       if (!line.trim()) { flushAll(); continue }
+      // GFM table: a header row, a |---|:--:| separator, then body rows
+      if (/\|/.test(line) && i + 1 < lines.length && isTableSeparator(lines[i + 1])) {
+        flushAll()
+        const aligns = tableCells(lines[i + 1]).map((c) => (/^:-+:$/.test(c) ? 'center' : /-+:$/.test(c) ? 'right' : ''))
+        const head = tableCells(line)
+        const body = []
+        i += 2
+        while (i < lines.length && /\|/.test(lines[i]) && lines[i].trim()) body.push(tableCells(lines[i++]))
+        i--
+        const cell = (tag, text, k) => '<' + tag + (aligns[k] ? ' align="' + aligns[k] + '"' : '') + '>' + inline(text) + '</' + tag + '>'
+        html.push('<table><thead><tr>' + head.map((c, k) => cell('th', c, k)).join('') + '</tr></thead><tbody>'
+          + body.map((r) => '<tr>' + head.map((_, k) => cell('td', r[k] || '', k)).join('') + '</tr>').join('') + '</tbody></table>')
+        continue
+      }
       const heading = /^\s*(#{1,6})\s+(.*)$/.exec(line)
       if (heading) { flushAll(); html.push('<h' + heading[1].length + '>' + inline(heading[2].trim()) + '</h' + heading[1].length + '>'); continue }
       if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) { flushAll(); html.push('<hr>'); continue }
@@ -643,6 +672,199 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     flushAll()
     return sanitizeHtml(html.join(''))
+  }
+
+  // ── The stored value of a richText field ─────────────────────────────────────────────────────
+  // (a port of libs/mateu richTextValue.ts — the bridge cannot import libs/mateu.) The value is HTML.
+  // Values written by the old vaadin-rich-text-editor are Quill Delta JSON (`[{"insert":"…"}]` or
+  // `{"ops":[…]}`): they are recognised and turned into the equivalent HTML, so existing data still
+  // opens, and the editor writes HTML from the next edit on.
+
+  const isDeltaOp = (op) => !!op && typeof op === 'object' && 'insert' in op
+
+  /** The ops of a Delta value, or null when the value is not Delta JSON. */
+  function deltaOps(value) {
+    const raw = String(value == null ? '' : value).trim()
+    if (!raw.startsWith('[') && !raw.startsWith('{')) return null
+    try {
+      const parsed = JSON.parse(raw)
+      const ops = Array.isArray(parsed) ? parsed : parsed && Array.isArray(parsed.ops) ? parsed.ops : null
+      return ops && ops.length > 0 && ops.every(isDeltaOp) ? ops : null
+    } catch (e) {
+      // not JSON: plain text or HTML that happens to start with a bracket
+      return null
+    }
+  }
+
+  const deltaEscape = (text) => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  const deltaHref = (href) => {
+    const h = String(href == null ? '' : href).trim()
+    return /^(https?:|mailto:|tel:|\/|#)/i.test(h) || !/^[a-z][a-z0-9+.-]*:/i.test(h) ? h : ''
+  }
+  const deltaInline = (text, a = {}) => {
+    let out = deltaEscape(text)
+    if (a.code) out = '<code>' + out + '</code>'
+    if (a.bold) out = '<strong>' + out + '</strong>'
+    if (a.italic) out = '<em>' + out + '</em>'
+    if (a.underline) out = '<u>' + out + '</u>'
+    if (a.strike) out = '<s>' + out + '</s>'
+    if (a.link && deltaHref(a.link)) out = '<a href="' + deltaEscape(deltaHref(a.link)) + '">' + out + '</a>'
+    return out
+  }
+
+  /** Quill Delta → HTML, for the formats the old editor produced (inline marks, links, headings,
+   *  lists, quotes, code blocks). Line formats live on the newline that ends the line. */
+  function deltaToHtml(ops) {
+    const lines = []
+    let current = ''
+    for (const op of ops) {
+      if (typeof op.insert !== 'string') continue // embeds (images…) are not carried over
+      const parts = op.insert.split('\n')
+      parts.forEach((part, i) => {
+        if (part) current += deltaInline(part, op.attributes)
+        if (i < parts.length - 1) {
+          lines.push({ html: current, attrs: op.attributes || {} })
+          current = ''
+        }
+      })
+    }
+    if (current) lines.push({ html: current, attrs: {} })
+    const out = []
+    let list = null
+    const flush = () => {
+      if (list) out.push('<' + list.tag + '>' + list.items.map((i) => '<li>' + i + '</li>').join('') + '</' + list.tag + '>')
+      list = null
+    }
+    for (const line of lines) {
+      const a = line.attrs
+      const listTag = a.list === 'ordered' ? 'ol' : a.list === 'bullet' ? 'ul' : null
+      if (listTag) {
+        if (!list || list.tag !== listTag) { flush(); list = { tag: listTag, items: [] } }
+        list.items.push(line.html)
+        continue
+      }
+      flush()
+      const level = Number(a.header)
+      if (level >= 1 && level <= 6) out.push('<h' + level + '>' + line.html + '</h' + level + '>')
+      else if (a.blockquote) out.push('<blockquote>' + line.html + '</blockquote>')
+      else if (a['code-block']) out.push('<pre><code>' + line.html + '</code></pre>')
+      else out.push('<p>' + line.html + '</p>')
+    }
+    flush()
+    return out.join('')
+  }
+
+  /** The HTML to open a stored value with: the value itself, or its Delta converted. */
+  function richTextHtml(value) {
+    const ops = deltaOps(value)
+    return ops ? deltaToHtml(ops) : (value == null ? '' : String(value))
+  }
+
+  /** What the editor stores: '' for an editor left empty (only empty paragraphs/breaks), else the
+   *  sanitised HTML. */
+  function richTextValueOf(html) {
+    const clean = sanitizeHtml(html)
+    return clean.replace(/<(p|div)>(\s|&nbsp;|<br>)*<\/\1>/g, '').replace(/<br>/g, '').trim() ? clean : ''
+  }
+
+  /** The toolbar of the editor: each command and its accessible label. */
+  const RICH_TEXT_COMMANDS = [
+    { cmd: 'bold', icon: 'oj-ux-ico-bold', label: 'Bold', key: 'b' },
+    { cmd: 'italic', icon: 'oj-ux-ico-italic', label: 'Italic', key: 'i' },
+    { cmd: 'underline', icon: 'oj-ux-ico-underline', label: 'Underline', key: 'u' },
+    { cmd: 'insertUnorderedList', icon: 'oj-ux-ico-bullet-list', label: 'Bulleted list' },
+    { cmd: 'insertOrderedList', icon: 'oj-ux-ico-numbered-list', label: 'Numbered list' },
+    { cmd: 'createLink', icon: 'oj-ux-ico-link', label: 'Link' },
+    { cmd: 'removeFormat', icon: 'oj-ux-ico-clear', label: 'Clear formatting' },
+  ]
+
+  /**
+   * `<mateu-rich-text-field value="<p>…</p>" readonly>`: the editor of an editable richText field.
+   * JET/Redwood has no rich text editor (oj-text-area is plain text), and the web renderer's editor
+   * (Tiptap) cannot be imported by the bridge — so a small one: a toolbar of oj-buttons over a
+   * contenteditable region. The value is HTML (a legacy Delta opens converted); it leaves as
+   * `valueChanged` {value, updatedFrom:'internal'} — the event shape of a JET component, so the
+   * field chains treat it like any other — on blur, sanitised by the same allowlist as the viewer.
+   */
+  function defineRichTextField(win = typeof window !== 'undefined' ? window : null) {
+    if (!win || !win.customElements || win.customElements.get('mateu-rich-text-field')) return
+    const doc = win.document
+    class MateuRichTextField extends win.HTMLElement {
+      static get observedAttributes() { return ['value', 'readonly', 'aria-label'] }
+      connectedCallback() { this.render() }
+      attributeChangedCallback() { if (this.isConnected && !this.editing) this.render() }
+      get value() { return this.getAttribute('value') || '' }
+      set value(v) { if (v == null || v === '') this.removeAttribute('value'); else this.setAttribute('value', String(v)) }
+      get readonlyNow() { return this.hasAttribute('readonly') && this.getAttribute('readonly') !== 'false' }
+      commit() {
+        if (!this.area) return
+        const value = richTextValueOf(this.area.innerHTML)
+        if (value === richTextValueOf(richTextHtml(this.value))) return
+        this.editing = true
+        this.value = value
+        this.editing = false
+        this.dispatchEvent(new win.CustomEvent('valueChanged', {
+          detail: { value: value || null, previousValue: null, updatedFrom: 'internal' }, bubbles: true }))
+      }
+      render() {
+        this.textContent = ''
+        this.classList.add('mateu-rich-text-field')
+        const html = sanitizeHtml(richTextHtml(this.value))
+        if (this.readonlyNow) {
+          const view = doc.createElement('div')
+          view.className = 'mateu-atom-richtext oj-typography-body-md'
+          view.innerHTML = html
+          this.appendChild(view)
+          this.area = null
+          return
+        }
+        const bar = doc.createElement('div')
+        bar.className = 'mateu-rte-toolbar'
+        bar.setAttribute('role', 'toolbar')
+        bar.setAttribute('aria-label', 'Formatting')
+        const area = doc.createElement('div')
+        area.className = 'mateu-rte-area oj-typography-body-md'
+        area.setAttribute('contenteditable', 'true')
+        area.setAttribute('role', 'textbox')
+        area.setAttribute('aria-multiline', 'true')
+        if (this.getAttribute('aria-label')) area.setAttribute('aria-label', this.getAttribute('aria-label'))
+        area.innerHTML = html
+        for (const c of RICH_TEXT_COMMANDS) {
+          const b = doc.createElement('oj-button')
+          b.setAttribute('data-oj-binding-provider', 'none')
+          b.setAttribute('display', 'icons')
+          b.setAttribute('chroming', 'borderless')
+          b.className = 'oj-button-sm'
+          const icon = doc.createElement('span')
+          icon.setAttribute('slot', 'startIcon')
+          icon.className = c.icon
+          b.appendChild(icon)
+          b.appendChild(doc.createTextNode(c.label))
+          // keep the selection in the editor when the button takes the click
+          b.addEventListener('mousedown', (e) => e.preventDefault())
+          b.addEventListener('ojAction', (e) => {
+            e.stopPropagation()
+            area.focus()
+            if (c.cmd === 'createLink') {
+              const url = win.prompt('Link URL', 'https://')
+              if (url && deltaHref(url)) doc.execCommand('createLink', false, url)
+            } else doc.execCommand(c.cmd, false, null)
+            this.commit()
+          })
+          bar.appendChild(b)
+        }
+        area.addEventListener('blur', () => this.commit())
+        area.addEventListener('keydown', (e) => {
+          const mod = e.ctrlKey || e.metaKey
+          const hit = mod && RICH_TEXT_COMMANDS.find((c) => c.key && c.key === String(e.key).toLowerCase())
+          if (hit) { e.preventDefault(); doc.execCommand(hit.cmd, false, null) }
+        })
+        this.area = area
+        this.appendChild(bar)
+        this.appendChild(area)
+      }
+    }
+    win.customElements.define('mateu-rich-text-field', MateuRichTextField)
   }
 
   /** Vuelca el HTML saneado de cada [data-mateu-html] en su contenedor (y cuando cambia). */
@@ -2248,6 +2470,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   const panelState = {}
   function setPanelExpanded(key, expanded) { panelState[key] = !!expanded }
   function panelExpanded(key, fallback) { return key in panelState ? panelState[key] : !!fallback }
+  // Other CLIENT-side view state of the content (the slide a carousel shows, the page a Grid shows,
+  // the open rows of a tree Grid): a value per key; changing it re-projects (uiValueChanged chain).
+  const uiState = {}
+  function setUiValue(key, value) { uiState[key] = value }
+  function uiValueOf(key, fallback) { return key in uiState ? uiState[key] : fallback }
 
   let converterFactory = null
   function setConverterFactory(factory) { converterFactory = factory }
@@ -2651,7 +2878,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
         const kids = order.map((i) => serverKids[i])
         const spans = order.map((i) => serverSpans[i])
+        // auto-fill / auto-fit tracks (repeat(auto-fit, minmax(16rem, 1fr))): as many tiles per row
+        // as fit at each breakpoint — responsive oj-flex classes instead of stacking them
+        const autoFit = autoFitColClass(m.gridTemplateColumns)
         const classes = gridColClasses(m.gridTemplateColumns, spans, kids.length)
+          || (autoFit ? kids.map(() => autoFit) : null)
         if (classes && projectSized(kids, classes, tags)) return
       }
       if (t === 'DashboardLayout') {
@@ -2702,6 +2933,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
         const toolbar = (m.toolbar || []).filter((b) => b && b.actionId)
         if (toolbar.length) atom({ isButtons: true, fromPageToolbar: true, buttons: toolbar.map(buttonOf) }, container)
+        for (const child of kidsOf(node)) visit(child, container)
+        return
+      }
+      if (t === 'CustomComponent' && customComponentRegistered(m.name)) {
+        // the app registered a view for it (registerCustomComponent): its slot, then its children
+        atom(customComponentAtomOf(m, node.id), container)
         for (const child of kidsOf(node)) visit(child, container)
         return
       }
@@ -2872,8 +3109,29 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           if (cm.type === 'GridColumn' || cm.id) leafColumns.push(cm)
         }
         ;(m.content || []).forEach(walkCols)
-        const rows = ((m.page && m.page.content) || []).map((r, i) => ({ ...r, _rowNumber: r._rowNumber == null ? i : r._rowNumber }))
-        const columns = leafColumns.map((c) => ({ headerText: interp(c.label || c.id), field: c.id }))
+        const gridKey = 'grid:' + (node.id && node.id !== 'fieldId' ? node.id : 'grid')
+        const raw = (m.page && m.page.content) || []
+        // TREE (Grid.tree, rows with a `children` list): flattened with each row's depth; the first
+        // column carries the disclosure (open rows are client state, like a collapsible)
+        const tree = !!m.tree && raw.some((r) => Array.isArray(r && r.children) && r.children.length)
+        const flat = tree
+          ? flattenTreeRows(raw, (key) => !!uiValueOf(gridKey + ':open:' + key, false)).map((r) => ({
+            ...r,
+            __indentStyle: { paddingInlineStart: (r.__depth * 1.5) + 'rem' },
+            __toggleIcon: r.__hasChildren ? (r.__expanded ? 'oj-ux-ico-chevron-down' : 'oj-ux-ico-chevron-right') : '',
+            __toggleLabel: r.__expanded ? 'Collapse' : 'Expand',
+            __uiKey: gridKey + ':open:' + r.__treeKey,
+            __uiValue: !r.__expanded,
+          }))
+          : raw
+        // PAGING: Grid.size rows per page (client side, the rows travel inline)
+        const paging = gridPageOf(flat, tree ? 0 : (m.size || 0), uiValueOf(gridKey + ':page', 0))
+        const rows = paging.rows.map((r, i) => ({ ...r, _rowNumber: r._rowNumber == null ? i : r._rowNumber }))
+        const columns = leafColumns.map((c, i) => {
+          const def = { headerText: interp(c.label || c.id), field: c.id }
+          if (tree && i === 0) def.template = 'cellTreeToggle'
+          return def
+        })
         atom({
           isGrid: true,
           fieldId: node.id || 'grid',
@@ -2885,6 +3143,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           rowEditable: false,
           addActionId: '',
           addLabel: 'Add',
+          paged: paging.paged,
+          pageText: paging.rangeText,
+          pager: pagerButtonsOf(gridKey + ':page', paging.page - 1, paging.page + 1, paging.prevDisabled, paging.nextDisabled),
         }, container)
         return
       }
@@ -2914,12 +3175,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const wrappedTexts = m.wrapped ? collectTexts(m.wrapped).map(interp).filter(Boolean) : []
         const label = wrappedTexts.join(' ') || (m.wrapped && m.wrapped.metadata && m.wrapped.metadata.label) || 'Details'
         const lines = m.content ? collectTexts(m.content).map(interp).filter(Boolean) : []
-        const text = lines.join('\n')
+        // the content WITH its structure (headings, lists, links, badges…) as sanitised HTML: the
+        // popup shows that, the text lines stay as its accessible fallback
+        const html = m.content ? componentHtmlOf(m.content, interp) : ''
+        const text = lines.join('\n') || (html ? ' ' : '')
         atom({
           isPopover: true,
           label: interp(label),
           hoverText: m.trigger === 'hover' ? text : '',
           clickText: m.trigger === 'hover' ? '' : text,
+          html,
         }, container)
         return
       }
@@ -3186,6 +3451,143 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         else atom({ isButtons: true, buttons: [buttonOf(m)] }, container)
         return
       }
+      // ── display components with their own projection (core/display.mjs) ──
+      if (t === 'Kanban') { atom(kanbanAtomOf(m, interp), container); return }
+      if (t === 'Timeline') { atom(timelineAtomOf(m, interp), container); return }
+      if (t === 'PricingTable') { atom(pricingAtomOf(m, interp), container); return }
+      if (t === 'OrgChart') { atom(orgChartAtomOf(m, interp), container); return }
+      if (t === 'Heatmap') { atom(heatmapAtomOf(m), container); return }
+      if (t === 'Funnel') { atom(funnelAtomOf(m, interp), container); return }
+      if (t === 'FeatureGrid') { atom(featureGridAtomOf(m, interp), container); return }
+      if (t === 'Testimonials') { atom(testimonialsAtomOf(m, interp), container); return }
+      if (t === 'CalloutCard') { atom(calloutAtomOf(m, interp), container); return }
+      if (t === 'CommentThread') { atom(commentsAtomOf(m, interp), container); return }
+      if (t === 'FileList') { atom(fileListAtomOf(m, interp), container); return }
+      if (t === 'Checklist') { atom(checklistAtomOf(m, interp), container); return }
+      if (t === 'ComparisonCard') { atom(comparisonAtomOf(m, interp), container); return }
+      if (t === 'ProcessMonitor') { atom(processMonitorAtomOf(m, interp), container); return }
+      if (t === 'Skeleton') { atom(skeletonAtomOf(m), container); return }
+      if (t === 'Icon') { atom(iconAtomOf(m), container); return }
+      if (t === 'MenuBar') { atom(menuBarAtomOf(m, interp), container); return }
+      if (t === 'Directory') { atom(directoryAtomOf(m, interp), container); return }
+      if (t === 'MessageList') { atom(messageListAtomOf(m, interp), container); return }
+      if (t === 'MessageInput') { atom(messageInputAtomOf(m, node.id), container); return }
+      if (t === 'Chat') { atom(chatAtomOf(m, node.id), container); return }
+      if (t === 'Bpmn') { atom(bpmnAtomOf(m, node.id), container); return }
+      if (t === 'Workflow') { atom(workflowAtomOf(m), container); return }
+      if (t === 'Result') { atom(resultAtomOf(m, interp), container); return }
+      if (t === 'CookieConsent') { atom(cookieConsentAtomOf(m, interp), container); return }
+      if (t === 'Breadcrumbs') { atom(breadcrumbsAtomOf(m, interp), container); return }
+      if (t === 'Notification') { atom(notificationAtomOf(m, interp), container); return }
+      if (t === 'MicroFrontend') {
+        // a surface of its own, loaded from its baseUrl like a @Subresource (withSubresources paints it)
+        const sub = microFrontendOf(m)
+        atom({ isSubresource: true, islandId: sub.id, subresource: sub }, container)
+        return
+      }
+      if (t === 'HeroSection') {
+        // a hero in the content (the Welcome archetype paints its own with oj-sp-header-welcome-banner)
+        atom(heroAtomOf(m, interp), container)
+        for (const child of kidsOf(node)) visit(child, container)
+        return
+      }
+      // an EmptyState inside the content (the host's FIRST one is the page-level oj-sp-empty-state
+      // of emptyStateOf — painted there, not twice)
+      if (t === 'EmptyState' && !(ctx.kind === 'host' && findByType(ctx.tree, 'EmptyState') === node)) {
+        atom(emptyStateAtomOf(m, interp), container)
+        return
+      }
+      // a ProgressBar in the content (a wizard's own progress is its guided process, wizardOf)
+      if (t === 'ProgressBar' && !wizardOf(ctx)) {
+        atom(progressBarAtomOf(m, state, interp), container)
+        return
+      }
+      if (t === 'ConfirmDialog') {
+        // its message is its children; only open while openedCondition holds over the state
+        const lines = kidsOf(node).flatMap((k) => collectTexts(k))
+        atom(confirmDialogAtomOf(m, node.id, state, interp, lines), container)
+        return
+      }
+      if (t === 'Faq') {
+        // like an accordion: a collapsible header per question, the answer after it when open
+        ;(m.items || []).forEach((item, i) => {
+          const key = 'faq:' + (node.id && node.id !== 'fieldId' ? node.id : 'faq') + ':' + i
+          const expanded = panelExpanded(key, !!item.open)
+          atom({ isCollapsible: true, collapsibleKey: key, title: interp(item.question || ''), expanded, disabled: false }, container)
+          if (expanded) atom({ isRichText: true, label: '', html: richHtmlOf('markdown', interp(item.answer || '')) }, container)
+        })
+        return
+      }
+      if (t === 'Tooltip') {
+        // the wrapped component keeps its own view; the tooltip text opens in the shared popup
+        // (hover.mjs) on hover/focus — on the button itself, or on an info marker next to it
+        const text = interp(m.text || '')
+        const wrapped = m.wrapped
+        const wm = wrapped && wrapped.metadata
+        if (wm && wm.type === 'Button') {
+          atom({ isButtons: true, buttons: [{ ...buttonOf(wm), tooltip: text }] }, container)
+          return
+        }
+        const inline = wm && (wm.type === 'Text' || wm.type === 'Badge' || wm.type === 'Icon' || wm.type === 'Anchor')
+        if (inline) {
+          const label = collectTexts(wrapped).map(interp).join(' ') || interp(wm.text || wm.icon || '')
+          atom({ isTooltip: true, label, text }, container)
+          return
+        }
+        if (wrapped) visit(wrapped, container)
+        atom({ isTooltip: true, label: '', text, infoOnly: true }, container)
+        return
+      }
+      if (t === 'ContextMenu') {
+        if (m.wrapped) visit(m.wrapped, container)
+        for (const child of kidsOf(node)) visit(child, container)
+        atom(contextMenuAtomOf(m, interp), container)
+        return
+      }
+      if (t === 'VirtualList') {
+        // every item through the same visitor (a component), or as a line of text (plain data)
+        const items = (m.page && m.page.content) || []
+        for (const item of items) {
+          if (item && typeof item === 'object' && (item.metadata || item.type)) visit(item.metadata ? item : { metadata: item }, container)
+          else if (item && typeof item === 'object') {
+            atom({ isPropertyRow: true, label: String(item.title || item.name || item.label || item.id || ''), value: Object.entries(item).filter(([k, v]) => v != null && typeof v !== 'object' && !/^(title|name|label|id)$/.test(k)).map(([k, v]) => k + ': ' + v).join(' · ') }, container)
+          } else if (item != null) atom({ isText: true, text: String(item), cls: 'oj-typography-body-md' }, container)
+        }
+        return
+      }
+      if (t === 'Stepper') {
+        // a numbered step per child (the wire record carries no fields of its own)
+        kidsOf(node).forEach((child, i) => {
+          const label = (child.metadata && (child.metadata.title || child.metadata.label)) || ''
+          atom({ isStepHeader: true, number: String(i + 1), label: interp(label) }, container)
+          visit(child, container)
+        })
+        return
+      }
+      if (t === 'FormEditor') {
+        // the form the definition describes, painted with the form layout's real widgets (a preview)
+        const def = formEditorFieldsOf(m)
+        if (!def) { atom(unsupportedAtomOf('FormEditor', node.id), container); return }
+        atom({ isText: true, isHeading: true, isH2: false, text: def.name, cls: 'oj-typography-subheading-xs' }, container)
+        if (def.description) atom({ isText: true, text: def.description, cls: 'oj-typography-body-sm oj-text-color-secondary' }, container)
+        const fields = def.fields.map((md) => layoutFieldOf(md, state, ctx.data, 2)).filter(Boolean)
+        if (fields.length) atom({ isFormLayout: true, columns: 2, fields, readonly: false }, container)
+        return
+      }
+      if (t === 'CarouselLayout') {
+        // a carousel of arbitrary content (a gallery took the oj-film-strip branch above): one slide
+        // at a time with its pager — the slide shown is client state (uiValueChanged)
+        const slides = kidsOf(node)
+        if (slides.length > 1) {
+          const key = 'carousel:' + (node.id && node.id !== 'fieldId' ? node.id : 'carousel')
+          const current = Math.max(0, Math.min(slides.length - 1, Number(uiValueOf(key, 0)) || 0))
+          atom(carouselPagerAtomOf(key, current, slides.length, !!m.loop), container)
+          visit(slides[current], container)
+          return
+        }
+      }
+      // a type nobody paints: a visible placeholder (like the web renderers), its children still render
+      if (t && !VISITOR_PASS_THROUGH[t]) atom(unsupportedAtomOf(t, node.id), container)
       for (const child of kidsOf(node)) visit(child, container)
     }
     visit(ctx.tree, null)
@@ -3272,7 +3674,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const crud = findByType(ctx.tree, 'Crud')
         if (!crud) {
           const inner = islandContentOf(ctx)
-          return inner ? inner.flatMap((b) => b.items) : []
+          const items = inner ? inner.flatMap((b) => b.items) : []
+          // a MicroFrontend's surface: its actions go back to IT (dispatchHostBlockAction → surface)
+          return a.subresource && a.subresource.surface ? tagSurfaceActions(items, a.islandId) : items
         }
         const md = crud.metadata || {}
         const wire = (md.columns || []).map((col) => col.metadata || col)
@@ -5291,7 +5695,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     let value = raw == null || raw === '' ? null : raw
     if (widget.isBoolean) value = !!raw
     else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
-    else if (widget.isNumber || widget.isMoney) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
+    else if (widget.isNumber || widget.isMoney || widget.isSlider || widget.isStars) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
     else if (widget.isMultiSelect || widget.isCheckboxSet) value = Array.isArray(raw) ? raw.map(plainValueOf) : (raw == null || raw === '' ? [] : String(raw).split(','))
     else if (value != null && typeof value === 'object') value = plainValueOf(value)
     return {
@@ -5537,12 +5941,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }
     if (CAPTURE_MODES[st]) return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || '' }
+    // slider → oj-slider; stars → oj-rating-gauge; color → mateu-color-field (a hex string: JET's
+    // oj-color-spectrum works on oj.Color objects); richText → mateu-rich-text-field (HTML, Delta read)
+    if (st === 'slider') {
+      const min = Number(f.sliderMin) || 0
+      const max = Number(f.sliderMax) > min ? Number(f.sliderMax) : 100
+      return { isSlider: true, min, max, step: Number(f.step) > 0 ? Number(f.step) : 1 }
+    }
+    if (st === 'stars') return { isStars: true, max: Number(f.sliderMax) > 0 ? Number(f.sliderMax) : 5 }
+    if (st === 'color') return { isColor: true }
+    if (st === 'richText' && !f.readOnly) return { isRichEditor: true }
     return null
   }
 
   /** ¿Lo pinta el oj-form-layout? (además de los LAYOUT_TYPES de siempre) */
   function isExtraLayoutField(md) {
     return !!(md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
+      || md.stereotype === 'slider' || md.stereotype === 'stars' || md.stereotype === 'color'
+      || (md.stereotype === 'richText' && !md.readOnly)
       || CAPTURE_MODES[md.stereotype]
       || (md.dataType === 'array' && (md.options || []).length
         && (MULTI_SELECT_STEREOTYPES[md.stereotype] || CHECKBOX_SET_STEREOTYPES[md.stereotype])))
@@ -5563,6 +5979,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         options: (extra.isRadio || extra.isMultiSelect || extra.isCheckboxSet) ? optionsOf(f, data) : [],
         ...flags,
         isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
+        isSlider: false, isStars: false, isColor: false, isRichEditor: false, min: 0, max: 0, step: 1,
         converter: null, captureMode: '', accept: '',
         ...extra,
       }
@@ -5602,6 +6019,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       isTextArea,
       isText: !isSelect && !isBoolean && !isDate && !isDateTime && !isNumber && !isTextArea,
       isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
+      isSlider: false, isStars: false, isColor: false, isRichEditor: false, min: 0, max: 0, step: 1,
       converter: null, captureMode: '', accept: '',
     }
   }
@@ -6097,6 +6515,1087 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       out.push(row)
     })
     return out
+  }
+
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the DISPLAY components that
+  // were not rendered before (Kanban, Timeline, PricingTable, OrgChart, Heatmap, Funnel, FeatureGrid,
+  // Testimonials, CalloutCard, CommentThread, FileList, Checklist, ComparisonCard, ProcessMonitor,
+  // Skeleton, Icon, MenuBar/ContextMenu, MessageList/MessageInput, Chat, Bpmn, Workflow, Result,
+  // Directory, CookieConsent, ConfirmDialog, Breadcrumbs, Notification…).
+  //
+  // Every function here is PURE: wire metadata → an ATOM (a flat object the atoms template paints).
+  // The VB template evaluator cannot compare, branch or compute (CSP), so every class, text and flag
+  // is precomputed. An atom whose element is clickable carries `actionId` + `parameters`, which the
+  // shared block listener ({{blockAction}}) sends exactly like a button. Where Oracle has a component
+  // the template uses it (oj-chart funnel, oj-avatar, oj-action-card, oj-rating-gauge, oj-checkboxset,
+  // oj-menu-button, oj-collapsible, oj-dialog, oj-button…); where it has none the atom is drawn with
+  // Redwood tokens and classes (app.css, .mateu-*) — each projection says which.
+
+  const SAFE_URL = /^(https?:|mailto:|tel:|\/|#|\.{0,2}\/|[^:]*$)/i
+  /** A link target that is safe to put in an href (no javascript:, data:…); '' otherwise. */
+  function safeHref(url) {
+    const u = String(url == null ? '' : url).trim()
+    if (!u) return ''
+    return SAFE_URL.test(u) && !/^\s*(javascript|data|vbscript):/i.test(u) ? u : ''
+  }
+
+  const keyed = (list) => (list || []).map((x, i) => ({ ...x, key: String(i) }))
+  const str = (v) => (v == null ? '' : String(v))
+  /** A clickable element: the action it sends (blockAction) and the flag pair the template needs. */
+  const clickable = (actionId, parameters) => ({
+    clickable: !!actionId,
+    plain: !actionId,
+    actionId: actionId || '',
+    parameters: parameters || {},
+  })
+  /** A Mateu/Vaadin icon name → a Redwood icon class (the generic one when it has no translation). */
+  function iconClassOf(icon) {
+    if (!icon) return ''
+    return ojIconOf(icon) || GENERIC_ICON
+  }
+  /** An emoji or a short text icon (not an icon NAME): shown as text. */
+  const isGlyph = (icon) => !!icon && !/^[a-z0-9-]+:[a-z0-9-]+$/i.test(icon) && icon.indexOf('oj-ux-') !== 0
+  const glyphOf = (icon) => (isGlyph(icon) ? icon : '')
+  const iconOf = (icon) => (isGlyph(icon) ? '' : iconClassOf(icon))
+
+  // A wire colour: one of the theme tones, or a CSS colour.
+  const WIRE_TONES = { success: 1, warning: 1, danger: 1, error: 1, info: 1, neutral: 1, primary: 1, contrast: 1, normal: 1 }
+  const CSS_COLOR = /^(#[0-9a-f]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\)|var\(--[\w-]+\)|[a-z]+)$/i
+  /** A colour from the wire → a tone class suffix ('success'…) or a CSS colour ('' when neither). */
+  function toneOf(color) {
+    const c = str(color).trim().toLowerCase()
+    if (!c) return ''
+    if (c === 'error') return 'danger'
+    if (c === 'primary' || c === 'normal' || c === 'contrast') return 'info'
+    return WIRE_TONES[c] ? c : ''
+  }
+  function cssColorOf(color) {
+    const c = str(color).trim()
+    return c && !toneOf(c) && CSS_COLOR.test(c) ? c : ''
+  }
+  const badgeClassOf = (color) => BADGE_CLASSES[toneOf(color) || 'contrast'] || BADGE_CLASSES.contrast
+
+  // ── Kanban (JET has no board): columns of oj-panel, cards as oj-action-card when they act ───────
+  function kanbanAtomOf(m, interp = (x) => x) {
+    return {
+      isKanban: true,
+      columns: keyed((m.columns || []).map((col) => {
+        const cards = col.cards || []
+        const color = cssColorOf(col.color)
+        const tone = toneOf(col.color)
+        return {
+          title: interp(str(col.title)),
+          countText: String(cards.length),
+          headerClass: 'mateu-kanban-head' + (tone ? ' mateu-tone-' + tone : ''),
+          headerStyle: color ? { borderTopColor: color } : {},
+          cards: keyed(cards.map((card) => ({
+            title: interp(str(card.title)),
+            description: interp(str(card.description)),
+            badge: interp(str(card.badge)),
+            hasBadge: !!card.badge,
+            badgeClass: badgeClassOf(card.color),
+            cardStyle: cssColorOf(card.color) ? { borderInlineStartColor: cssColorOf(card.color) } : {},
+            cardClass: 'mateu-kanban-card' + (toneOf(card.color) ? ' mateu-tone-' + toneOf(card.color) : ''),
+            ...clickable(card.actionId, { _clickedCard: card }),
+          }))),
+          isEmpty: !cards.length,
+        }
+      })),
+    }
+  }
+
+  // ── Timeline (oj-timeline is deprecated in JET): a Redwood vertical list with markers ────────────
+  function timelineAtomOf(m, interp = (x) => x) {
+    return {
+      isTimeline: true,
+      items: keyed((m.items || []).map((it) => ({
+        title: interp(str(it.title)),
+        description: interp(str(it.description)),
+        timestamp: interp(str(it.timestamp)),
+        iconClass: iconOf(it.icon),
+        glyph: glyphOf(it.icon),
+        dotClass: 'mateu-timeline-dot' + (toneOf(it.color) ? ' mateu-tone-' + toneOf(it.color) : ''),
+        dotStyle: cssColorOf(it.color) ? { backgroundColor: cssColorOf(it.color) } : {},
+        ...clickable(it.actionId, { _clickedItem: it }),
+      }))),
+    }
+  }
+
+  // ── PricingTable: plans as oj-panel cards (featured = the highlighted one), CTA as oj-button ─────
+  function pricingAtomOf(m, interp = (x) => x) {
+    const plans = m.plans || []
+    return {
+      isPricing: true,
+      plans: keyed(plans.map((p) => ({
+        name: interp(str(p.name)),
+        price: interp(str(p.price)),
+        period: interp(str(p.period)),
+        features: (p.features || []).map((f) => interp(str(f))),
+        featured: !!p.featured,
+        cardClass: 'oj-panel oj-sm-padding-6x mateu-pricing-plan' + (p.featured ? ' mateu-pricing-featured' : ''),
+        hasCta: !!p.actionId,
+        ctaLabel: interp(str(p.ctaLabel)) || 'Choose',
+        chroming: p.featured ? 'callToAction' : 'outlined',
+        colClass: 'oj-flex-item oj-sm-12 oj-md-' + Math.max(3, Math.floor(12 / Math.max(1, Math.min(4, plans.length)))),
+        actionId: p.actionId || '',
+        parameters: {},
+      }))),
+    }
+  }
+
+  // ── OrgChart: the tree as an indented outline (VB templates cannot recurse), oj-avatar per node ──
+  function orgChartAtomOf(m, interp = (x) => x) {
+    const nodes = []
+    const walk = (node, depth, last) => {
+      if (!node) return
+      const { children, ...self } = node
+      const av = avatarOf({ name: node.title, image: node.avatar })
+      nodes.push({
+        depth,
+        rowStyle: { paddingInlineStart: (depth * 2) + 'rem' },
+        rowClass: 'mateu-org-node' + (depth ? ' mateu-org-child' : '') + (last ? ' mateu-org-last' : ''),
+        title: interp(str(node.title)),
+        subtitle: interp(str(node.subtitle)),
+        initials: av.initials,
+        src: av.src,
+        ariaLabel: [node.title, node.subtitle].filter(Boolean).join(', '),
+        ...clickable(node.actionId, { _clickedNode: self }),
+      })
+      const kids = children || []
+      kids.forEach((k, i) => walk(k, depth + 1, i === kids.length - 1))
+    }
+    walk(m.root, 0, true)
+    return { isOrgChart: true, nodes: keyed(nodes) }
+  }
+
+  // ── Heatmap (JET has none): a calendar heatmap — a column per week, a row per weekday ────────────
+  const ISO_DAY = /^(\d{4})-(\d{2})-(\d{2})/
+  function heatLevelOf(value, max) {
+    if (!(value > 0) || !(max > 0)) return 0
+    return Math.max(1, Math.min(4, Math.ceil((value / max) * 4)))
+  }
+  function heatmapAtomOf(m) {
+    const cells = (m.cells || []).filter((c) => c && c.date != null)
+    const max = cells.reduce((acc, c) => Math.max(acc, Number(c.value) || 0), 0)
+    const cellOf = (c) => {
+      const level = heatLevelOf(Number(c.value) || 0, max)
+      const text = (c.label ? c.label : c.date + ': ' + (c.value == null ? 0 : c.value))
+      return { cls: 'mateu-heat-cell mateu-heat-' + level, title: text, ariaLabel: text }
+    }
+    const legend = [0, 1, 2, 3, 4].map((l) => ({ key: String(l), cls: 'mateu-heat-cell mateu-heat-' + l }))
+    const dated = cells.every((c) => ISO_DAY.test(String(c.date)))
+    if (!cells.length || !dated) {
+      return { isHeatmap: true, dated: false, weeks: [], flat: keyed(cells.map(cellOf)), legend }
+    }
+    const dayMs = 86400000
+    const toTime = (s) => { const x = ISO_DAY.exec(String(s)); return Date.UTC(+x[1], +x[2] - 1, +x[3]) }
+    const byDay = new Map(cells.map((c) => [toTime(c.date), c]))
+    const times = [...byDay.keys()].sort((a, b) => a - b)
+    // weeks start on Monday: back up to the Monday of the first date
+    const dow = (t) => (new Date(t).getUTCDay() + 6) % 7
+    let t = times[0] - dow(times[0]) * dayMs
+    const end = times[times.length - 1]
+    const weeks = []
+    while (t <= end) {
+      const days = []
+      for (let d = 0; d < 7; d++, t += dayMs) {
+        const c = byDay.get(t)
+        days.push(c ? cellOf(c) : { cls: 'mateu-heat-cell mateu-heat-none', title: '', ariaLabel: '' })
+      }
+      weeks.push({ days: keyed(days) })
+    }
+    return { isHeatmap: true, dated: true, weeks: keyed(weeks), flat: [], legend }
+  }
+
+  // ── Funnel → oj-chart type="funnel" (each stage a series, one group) ─────────────────────────────
+  function funnelAtomOf(m, interp = (x) => x) {
+    const items = (m.stages || []).map((s, i) => {
+      const item = { _rowNumber: i, id: String(i), value: Number(s.value) || 0, series: interp(str(s.label)) || 'Stage ' + (i + 1), group: 'Funnel' }
+      const color = cssColorOf(s.color)
+      if (color) item.color = color
+      return item
+    })
+    return {
+      isFunnel: true,
+      items,
+      provider: dataProviderFactory ? dataProviderFactory(items) : null,
+      chartStyle: { width: '100%', height: Math.max(12, Math.min(28, items.length * 4)) + 'rem' },
+    }
+  }
+
+  // ── FeatureGrid: oj-panel tiles (an oj-action-card when the feature acts) on an oj-flex grid ─────
+  function featureGridAtomOf(m, interp = (x) => x) {
+    const columns = m.columns > 0 && m.columns <= 6 ? m.columns : 3
+    const colClass = 'oj-flex-item oj-sm-12 oj-md-' + Math.max(2, Math.floor(12 / columns))
+    return {
+      isFeatureGrid: true,
+      features: keyed((m.features || []).map((f) => ({
+        title: interp(str(f.title)),
+        description: interp(str(f.description)),
+        iconClass: iconOf(f.icon),
+        glyph: glyphOf(f.icon),
+        colClass,
+        ...clickable(f.actionId, {}),
+      }))),
+    }
+  }
+
+  // ── Testimonials: oj-panel quotes, oj-avatar for the author, oj-rating-gauge (read only) ─────────
+  function testimonialsAtomOf(m, interp = (x) => x) {
+    const items = m.items || []
+    return {
+      isTestimonials: true,
+      items: keyed(items.map((t) => {
+        const av = avatarOf({ name: t.author, image: t.avatar })
+        return {
+          quote: interp(str(t.quote)),
+          author: interp(str(t.author)),
+          role: interp(str(t.role)),
+          initials: av.initials,
+          src: av.src,
+          rating: Math.max(0, Math.min(5, Number(t.rating) || 0)),
+          hasRating: Number(t.rating) > 0,
+          ratingLabel: (Number(t.rating) || 0) + ' / 5',
+          colClass: 'oj-flex-item oj-sm-12 oj-md-' + (items.length >= 3 ? 4 : items.length === 2 ? 6 : 12),
+        }
+      })),
+    }
+  }
+
+  // ── CalloutCard: an oj-panel band with icon, text and an oj-button CTA ───────────────────────────
+  const CALLOUT_CLASSES = {
+    info: 'oj-panel oj-sm-padding-6x mateu-callout mateu-tone-info',
+    success: 'oj-panel oj-sm-padding-6x mateu-callout mateu-tone-success',
+    warning: 'oj-panel oj-sm-padding-6x mateu-callout mateu-tone-warning',
+    danger: 'oj-panel oj-sm-padding-6x mateu-callout mateu-tone-danger',
+    neutral: 'oj-panel oj-sm-padding-6x mateu-callout',
+  }
+  function calloutAtomOf(m, interp = (x) => x) {
+    return {
+      isCallout: true,
+      title: interp(str(m.title)),
+      description: interp(str(m.description)),
+      iconClass: iconOf(m.icon),
+      glyph: glyphOf(m.icon),
+      panelClass: CALLOUT_CLASSES[toneOf(m.theme)] || CALLOUT_CLASSES.neutral,
+      hasCta: !!m.actionId,
+      ctaLabel: interp(str(m.ctaLabel)) || 'Learn more',
+      actionId: m.actionId || '',
+      parameters: {},
+    }
+  }
+
+  // ── CommentThread: replies indented under their comment, oj-avatar per author ────────────────────
+  function commentsAtomOf(m, interp = (x) => x) {
+    const out = []
+    const walk = (c, depth) => {
+      const av = avatarOf({ name: c.author, image: c.avatar })
+      out.push({
+        depth,
+        rowStyle: { marginInlineStart: (depth * 2.5) + 'rem' },
+        rowClass: 'mateu-comment' + (depth ? ' mateu-comment-reply' : ''),
+        author: interp(str(c.author)),
+        text: interp(str(c.text)),
+        timestamp: interp(str(c.timestamp)),
+        initials: av.initials,
+        src: av.src,
+      })
+      for (const r of c.replies || []) walk(r, depth + 1)
+    }
+    for (const c of m.comments || []) walk(c, 0)
+    return { isComments: true, comments: keyed(out) }
+  }
+
+  // ── FileList: a row per file — icon by type, name as a download link, size · type ───────────────
+  const FILE_ICONS = [
+    [/pdf/i, 'oj-ux-ico-file-pdf'],
+    [/(xls|sheet|csv)/i, 'oj-ux-ico-file-xls'],
+    [/(doc|word)/i, 'oj-ux-ico-file-doc'],
+    [/(png|jpe?g|gif|svg|image|webp)/i, 'oj-ux-ico-file-image'],
+    [/(zip|tar|gz|rar|7z)/i, 'oj-ux-ico-file-zip'],
+  ]
+  function fileIconOf(type, name) {
+    const probe = str(type) + ' ' + str(name).split('.').pop()
+    for (const [re, cls] of FILE_ICONS) if (re.test(probe)) return cls
+    return 'oj-ux-ico-file'
+  }
+  function fileListAtomOf(m, interp = (x) => x) {
+    return {
+      isFileList: true,
+      files: keyed((m.files || []).map((f) => {
+        const href = safeHref(f.url ? elementModuleUrl(f.url) : '')
+        return {
+          name: interp(str(f.name)),
+          meta: [f.size, f.type].filter(Boolean).map(str).join(' · '),
+          iconClass: fileIconOf(f.type, f.name),
+          href,
+          hasHref: !!href && !f.actionId,
+          noHref: !href || !!f.actionId,
+          ...clickable(f.actionId, { _file: f }),
+        }
+      })),
+    }
+  }
+
+  // ── Checklist: oj-checkboxset per item; toggling sends actionId with {_item, _done} ─────────────
+  function checklistAtomOf(m, interp = (x) => x) {
+    const items = m.items || []
+    const done = items.filter((i) => i.done).length
+    return {
+      isChecklist: true,
+      title: interp(str(m.title)),
+      hasTitle: !!m.title,
+      progressText: done + ' / ' + items.length,
+      progressValue: items.length ? Math.round((done / items.length) * 100) : 0,
+      items: keyed(items.map((it) => ({
+        label: interp(str(it.label)),
+        value: it.done ? ['done'] : [],
+        labelClass: it.done ? 'mateu-checklist-done' : '',
+        readonly: !it.actionId,
+        actionId: it.actionId || '',
+        parameters: { _item: it, _done: !it.done },
+      }))),
+    }
+  }
+
+  // ── ComparisonCard: two values side by side and the delta with its trend ────────────────────────
+  const TREND = { up: ['oj-ux-ico-arrow-up', 'oj-text-color-success'], down: ['oj-ux-ico-arrow-down', 'oj-text-color-danger'] }
+  function comparisonAtomOf(m, interp = (x) => x) {
+    const trend = TREND[str(m.trend).toLowerCase()] || ['', 'oj-text-color-secondary']
+    return {
+      isComparison: true,
+      title: interp(str(m.title)),
+      leftLabel: interp(str(m.leftLabel)),
+      leftValue: interp(str(m.leftValue)),
+      rightLabel: interp(str(m.rightLabel)),
+      rightValue: interp(str(m.rightValue)),
+      delta: interp(str(m.delta)),
+      hasDelta: !!m.delta,
+      trendIcon: trend[0],
+      deltaClass: 'oj-typography-body-sm oj-typography-bold ' + trend[1],
+    }
+  }
+
+  // ── ProcessMonitor: a row per process — systems, ok/warning/error counts, status, its action ────
+  const PROCESS_STATUS = { ok: 'success', success: 'success', running: 'info', warning: 'warning', error: 'danger', failed: 'danger', stopped: 'neutral' }
+  function processMonitorAtomOf(m, interp = (x) => x) {
+    return {
+      isProcessMonitor: true,
+      items: keyed((m.items || []).map((p) => ({
+        name: interp(str(p.name)),
+        systems: (p.systems || []).map(str).join(' · '),
+        okText: String(p.ok || 0),
+        warningsText: String(p.warnings || 0),
+        errorsText: String(p.errors || 0),
+        statusLabel: str(p.status),
+        hasStatus: !!p.status,
+        statusClass: BADGE_CLASSES[PROCESS_STATUS[str(p.status).toLowerCase()] || 'contrast'] || BADGE_CLASSES.contrast,
+        hasAction: !!(p.actionId && p.actionLabel),
+        actionLabel: interp(str(p.actionLabel)),
+        actionId: p.actionId || '',
+        parameters: {},
+      }))),
+    }
+  }
+
+  // ── Skeleton: the shell's own shimmer placeholders (JET has no skeleton component) ───────────────
+  const SKELETON_SHAPES = {
+    text: ['mateu-skel-line', 'mateu-skel-line', 'mateu-skel-line mateu-skel-short'],
+    card: ['mateu-skel-block'],
+    grid: ['mateu-skel-row', 'mateu-skel-row', 'mateu-skel-row', 'mateu-skel-row'],
+    form: ['mateu-skel-label', 'mateu-skel-input', 'mateu-skel-label', 'mateu-skel-input'],
+  }
+  function skeletonAtomOf(m) {
+    const shape = SKELETON_SHAPES[str(m.variant)] || SKELETON_SHAPES.text
+    const count = Math.max(1, Math.min(20, Number(m.count) || 1))
+    const shapes = []
+    for (let i = 0; i < count; i++) shapes.push(...shape)
+    return { isSkeleton: true, shapes: keyed(shapes.map((cls) => ({ cls: 'mateu-skeleton-bone ' + cls }))) }
+  }
+
+  // ── Icon: the Redwood icon font (oj-ux-ico-*); an emoji travels as text ─────────────────────────
+  function iconAtomOf(m) {
+    return { isIcon: true, iconClass: iconOf(m.icon), glyph: glyphOf(m.icon), label: str(m.icon) }
+  }
+
+  // ── Menus (MenuBar, ContextMenu, Directory) ─────────────────────────────────────────────────────
+  /** A MenuOption → what its click does: run an action, or navigate to a route/url. */
+  function menuTargetOf(option) {
+    if (!option) return null
+    if (option.actionId) return { kind: 'action', actionId: option.actionId, parameters: option.params || {} }
+    const route = option.route || option.path || ''
+    if (route) {
+      if (/^https?:/i.test(route)) return { kind: 'url', url: route }
+      if (/^[a-z][a-z0-9+.-]*:/i.test(route)) return null // javascript:, data:… go nowhere
+      return { kind: 'navigate', route: route.startsWith('/') ? route : '/' + route }
+    }
+    return null
+  }
+  /** The items of an oj-menu (flattening one submenu level into separators + items). */
+  function menuItemsOf(options, interp = (x) => x) {
+    const out = []
+    const push = (o, prefix) => {
+      if (!o || o.visible === false) return
+      if (o.separator) { out.push({ value: 'sep' + out.length, label: '', isSeparator: true, isItem: false, disabled: true }); return }
+      if ((o.submenus || []).length) {
+        for (const s of o.submenus) push(s, (prefix ? prefix + ' › ' : '') + interp(str(o.label)))
+        return
+      }
+      const target = menuTargetOf(o)
+      out.push({
+        value: String(out.length),
+        label: (prefix ? prefix + ' › ' : '') + interp(str(o.label)),
+        isSeparator: false,
+        isItem: true,
+        disabled: !!o.disabled || !target,
+        iconClass: iconOf(o.icon),
+        target,
+      })
+    }
+    for (const o of options || []) push(o, '')
+    return out
+  }
+  /** What choosing `value` in a menu atom does (null: nothing). */
+  function menuChoiceOf(items, value) {
+    const item = (items || []).find((i) => i.value === String(value))
+    return item && !item.disabled ? item.target : null
+  }
+  /** How a page chain carries out a target: the action chain to call (the host's or the island's
+   *  dispatcher), the route to navigate to, or the url to open. Pure — the chain only executes it. */
+  function dispatchOf(target, variant) {
+    if (!target) return null
+    if (target.kind === 'action') {
+      return { chain: variant === 'island' ? 'dispatchIslandAction' : 'dispatchHostBlockAction',
+        params: { actionId: target.actionId, parameters: target.parameters || {} } }
+    }
+    if (target.kind === 'navigate') return { route: target.route }
+    if (target.kind === 'url') return { url: target.url }
+    return null
+  }
+  function menuBarAtomOf(m, interp = (x) => x) {
+    return {
+      isMenuBar: true,
+      entries: keyed((m.options || []).filter((o) => o && o.visible !== false && !o.separator).map((o) => {
+        const sub = (o.submenus || []).length
+        const target = sub ? null : menuTargetOf(o)
+        return {
+          label: interp(str(o.label)),
+          iconClass: iconOf(o.icon),
+          isMenu: !!sub,
+          isAction: !sub && !!target && target.kind === 'action',
+          isLink: !sub && !!target && target.kind !== 'action',
+          isInert: !sub && !target,
+          href: target && target.kind === 'navigate' ? target.route : target && target.kind === 'url' ? target.url : '',
+          disabled: !!o.disabled,
+          chroming: o.selected ? 'callToAction' : 'borderless',
+          menuItems: sub ? menuItemsOf(o.submenus, interp) : [],
+          actionId: target && target.kind === 'action' ? target.actionId : '',
+          parameters: target && target.kind === 'action' ? target.parameters : {},
+        }
+      })),
+    }
+  }
+  function contextMenuAtomOf(m, interp = (x) => x) {
+    return { isContextMenu: true, label: 'More actions', menuItems: menuItemsOf(m.menu, interp), rightClick: !m.activateOnLeftClick }
+  }
+  /** Directory: each top-level entry a column with its title and its links (submenus flattened). */
+  function directoryAtomOf(m, interp = (x) => x) {
+    const linksOf = (o, prefix) => {
+      if (!o || o.visible === false) return []
+      if ((o.submenus || []).length) return o.submenus.flatMap((s) => linksOf(s, prefix))
+      const t = menuTargetOf(o)
+      const href = t ? (t.kind === 'navigate' ? t.route : t.kind === 'url' ? t.url : '') : ''
+      return [{ label: interp(str(o.label)), href: safeHref(href), description: interp(str(o.description)) }]
+    }
+    const groups = (m.menu || []).filter((o) => o && o.visible !== false).map((o) => ({
+      title: interp(str(o.label)),
+      links: keyed((o.submenus || []).length ? linksOf(o, '') : linksOf(o, '')),
+    }))
+    const cols = Math.max(1, Math.min(4, groups.length))
+    return { isDirectory: true, groups: keyed(groups.map((g) => ({ ...g, colClass: 'oj-flex-item oj-sm-12 oj-md-' + Math.floor(12 / cols) }))) }
+  }
+
+  // ── MessageList / MessageInput ────────────────────────────────────────────────────────────────
+  function messageListAtomOf(m, interp = (x) => x) {
+    return {
+      isMessages: true,
+      items: keyed((m.items || []).map((it) => {
+        const av = avatarOf({ name: it.userName, abbreviation: it.userAbbr, image: it.userImg })
+        return {
+          userName: interp(str(it.userName)),
+          time: str(it.time),
+          text: interp(str(it.text)),
+          initials: av.initials,
+          src: av.src,
+          avatarClass: 'mateu-avatar-tone-' + ((Number(it.userColorIndex) || 0) % 6),
+        }
+      })),
+    }
+  }
+  function messageInputAtomOf(m, id) {
+    return {
+      isMessageInput: true,
+      inputId: 'mateuMsg-' + str(id || 'input').replace(/[^\w-]/g, '_'),
+      actionId: m.actionId || '',
+      placeholder: 'Message',
+      sendLabel: 'Send',
+    }
+  }
+  /** What sending a message does (null when there is nothing to send or nowhere to send it). */
+  function messageSendOf(value, actionId) {
+    const text = str(value).trim()
+    if (!text || !actionId) return null
+    return { actionId, parameters: { message: text } }
+  }
+
+  // ── Chat (the component — the app's assistant panel is the shell's): installChatComponents mounts
+  //    the conversation in its slot and streams the answers with poc/chat.mjs ────────────────────
+  function chatAtomOf(m, id) {
+    return {
+      isChatComponent: true,
+      chatId: 'mateuChat-' + str(id || 'chat').replace(/[^\w-]/g, '_'),
+      sseUrl: elementModuleUrl(str(m.sseUrl)),
+      uploadUrl: m.uploadUrl ? elementModuleUrl(str(m.uploadUrl)) : '',
+    }
+  }
+
+  // ── Result: the outcome of an operation — icon by type, message, links ─────────────────────────
+  const RESULT_LOOKS = {
+    success: ['oj-ux-ico-check-circle-s', 'mateu-tone-success'],
+    info: ['oj-ux-ico-information-s', 'mateu-tone-info'],
+    warning: ['oj-ux-ico-warning-s', 'mateu-tone-warning'],
+    error: ['oj-ux-ico-error-s', 'mateu-tone-danger'],
+    ignored: ['oj-ux-ico-information', ''],
+  }
+  const destinationOf = (d, interp) => {
+    if (!d) return null
+    const type = str(d.type)
+    const label = interp(str(d.description || d.value || d.id))
+    if (type === 'Url') return { label, href: safeHref(d.value), isLink: !!safeHref(d.value), isAction: false, actionId: '', parameters: {} }
+    if (type === 'ActionId') return { label, href: '', isLink: false, isAction: true, actionId: d.value || d.id || '', parameters: {} }
+    // View / Component / CustomEvent: a route of the app when the value looks like one
+    const route = str(d.value)
+    if (route.startsWith('/')) return { label, href: route, isLink: true, isAction: false, actionId: '', parameters: {} }
+    return { label, href: '', isLink: false, isAction: !!(d.id), actionId: d.id || '', parameters: {} }
+  }
+  function resultAtomOf(m, interp = (x) => x) {
+    const look = RESULT_LOOKS[str(m.resultType).toLowerCase()] || RESULT_LOOKS.info
+    const links = (m.interestingLinks || []).map((d) => destinationOf(d, interp)).filter(Boolean)
+    const next = destinationOf(m.nowTo, interp)
+    return {
+      isResult: true,
+      title: interp(str(m.title)),
+      message: interp(str(m.message)),
+      iconClass: look[0],
+      panelClass: 'oj-panel oj-sm-padding-8x mateu-result ' + look[1],
+      image: m.leftSideImageUrl ? elementModuleUrl(str(m.leftSideImageUrl)) : '',
+      hasImage: !!m.leftSideImageUrl,
+      links: keyed(links),
+      hasNext: !!next,
+      next: next || { label: '', href: '', isLink: false, isAction: false, actionId: '', parameters: {} },
+      // the «what next» button sends the atom's own action (the block listener reads the atom)
+      actionId: next && next.isAction ? next.actionId : '',
+      parameters: {},
+    }
+  }
+
+  // ── CookieConsent: a band fixed to the bottom; installCookieConsent hides it when the cookie
+  //    exists and stores the cookie on «dismiss» ──────────────────────────────────────────────
+  function cookieConsentAtomOf(m, interp = (x) => x) {
+    const position = str(m.position).toLowerCase()
+    return {
+      isCookieConsent: true,
+      cookieName: str(m.cookieName) || 'cookieconsent_status',
+      message: interp(str(m.message)) || 'This website uses cookies to ensure you get the best experience on our website.',
+      dismiss: interp(str(m.dismiss)) || 'Got it',
+      learnMore: interp(str(m.learnMore)) || 'Learn more',
+      learnMoreLink: safeHref(m.learnMoreLink),
+      hasLearnMore: !!safeHref(m.learnMoreLink),
+      bandClass: 'mateu-cookie-consent oj-panel oj-sm-padding-4x' + (position.indexOf('top') >= 0 ? ' mateu-cookie-top' : ' mateu-cookie-bottom'),
+    }
+  }
+  /** Whether the consent cookie is set in a cookie string (document.cookie). */
+  function hasConsentCookie(cookieString, name) {
+    return String(cookieString || '').split(';').some((c) => c.trim().split('=')[0] === name)
+  }
+
+  // ── ConfirmDialog: an oj-dialog opened while its condition holds; Confirm / Reject / Cancel ─────
+  /** Evaluates a ConfirmDialog's openedCondition against the state: the same small vocabulary the
+   *  client rules use — a `${state.x}` path, its negation, or a comparison with a literal. */
+  function confirmOpenOf(condition, state) {
+    const c = str(condition).trim()
+    if (!c) return false
+    if (c === 'true') return true
+    if (c === 'false') return false
+    const path = (p) => p.split('.').reduce((v, k) => (v != null && typeof v === 'object' ? v[k] : undefined), state || {})
+    const unwrap = (s) => s.replace(/^\$\{\s*/, '').replace(/\s*\}$/, '').trim()
+    const expr = unwrap(c)
+    const lit = (s) => {
+      const t = s.trim()
+      if (/^(['"]).*\1$/.test(t)) return t.slice(1, -1)
+      if (t === 'true') return true
+      if (t === 'false') return false
+      if (t === 'null' || t === 'undefined') return null
+      if (!isNaN(Number(t)) && t !== '') return Number(t)
+      return t.startsWith('state.') ? path(t.slice(6)) : undefined
+    }
+    const cmp = /^(.+?)\s*(===|!==|==|!=|>=|<=|>|<)\s*(.+)$/.exec(expr)
+    if (cmp) {
+      const a = lit(cmp[1]); const b = lit(cmp[3])
+      switch (cmp[2]) {
+        case '===': case '==': return a == b // eslint-disable-line eqeqeq
+        case '!==': case '!=': return a != b // eslint-disable-line eqeqeq
+        case '>': return a > b
+        case '<': return a < b
+        case '>=': return a >= b
+        default: return a <= b
+      }
+    }
+    if (expr.startsWith('!')) return !lit(expr.slice(1))
+    return !!lit(expr)
+  }
+  function confirmDialogAtomOf(m, id, state, interp = (x) => x, lines = []) {
+    const buttons = []
+    if (m.canCancel) buttons.push({ key: 'cancel', label: m.rejectText && !m.canReject ? interp(m.rejectText) : 'Cancel', chroming: 'outlined', actionId: m.cancelActionId || '', parameters: {} })
+    if (m.canReject) buttons.push({ key: 'reject', label: interp(str(m.rejectText)) || 'No', chroming: 'outlined', actionId: m.rejectActionId || '', parameters: {} })
+    buttons.push({ key: 'confirm', label: interp(str(m.confirmText)) || 'OK', chroming: 'callToAction', actionId: m.confirmActionId || '', parameters: {} })
+    const opened = confirmOpenOf(m.openedCondition, state)
+    return {
+      // painted only while open: the oj-dialog opens itself (initial-visibility) when it appears
+      isConfirmDialog: opened,
+      dialogId: 'mateuConfirmDialog-' + str(id || 'confirm').replace(/[^\w-]/g, '_'),
+      opened,
+      header: interp(str(m.header)),
+      lines: lines.map(interp).filter(Boolean),
+      buttons,
+    }
+  }
+
+  // ── Breadcrumbs (the component in content; the shell keeps its own trail) ───────────────────────
+  function breadcrumbsAtomOf(m, interp = (x) => x) {
+    const crumbs = (m.breadcrumbs || []).map((b) => ({ text: interp(str(b.text)), href: safeHref(b.link), hasHref: !!safeHref(b.link) }))
+    return {
+      isBreadcrumbs: true,
+      crumbs: keyed(crumbs.map((c) => ({ ...c, noHref: !c.hasHref }))),
+      current: interp(str(m.currentItemText)),
+    }
+  }
+
+  // ── Notification (the component): an info band with its title and text ────────────────────────
+  function notificationAtomOf(m, interp = (x) => x) {
+    return {
+      isNotice: true,
+      text: [m.title, m.text].filter(Boolean).map((t) => interp(str(t))).join(' — '),
+      noticeClass: NOTICE_CLASSES.info,
+      buttons: [],
+    }
+  }
+
+  // ── Workflow: the definition as a flow of steps (the web's designer is an editor; Redwood shows it) ─
+  const STEP_LOOKS = {
+    ACTION: ['oj-ux-ico-play', 'Action'], JOIN: ['oj-ux-ico-merge', 'Join'], FORK: ['oj-ux-ico-split', 'Fork'],
+    END: ['oj-ux-ico-stop', 'End'], USER_TASK: ['oj-ux-ico-user', 'User task'], PROCESS: ['oj-ux-ico-settings', 'Process'],
+  }
+  function workflowOrderOf(steps) {
+    const byId = new Map(steps.map((s) => [s.id, s]))
+    const out = []
+    const seen = new Set()
+    const visit = (s, guard = new Set()) => {
+      if (!s || seen.has(s.id) || guard.has(s.id)) return
+      guard.add(s.id)
+      if (s.preconditionStepId && byId.has(s.preconditionStepId)) visit(byId.get(s.preconditionStepId), guard)
+      seen.add(s.id)
+      out.push(s)
+    }
+    steps.forEach((s) => visit(s))
+    return out
+  }
+  function workflowAtomOf(m) {
+    let wf
+    try { wf = JSON.parse(str(m.value) || '{}') } catch (e) { wf = null }
+    if (!wf || typeof wf !== 'object') return { isNotice: true, text: 'Workflow: the definition is not valid JSON', noticeClass: NOTICE_CLASSES.warning, buttons: [] }
+    const steps = Array.isArray(wf.steps) ? wf.steps.filter((s) => s && s.id) : []
+    const names = new Map(steps.map((s) => [s.id, s.name || s.id]))
+    return {
+      isWorkflow: true,
+      name: str(wf.name) || 'Workflow',
+      description: str(wf.description),
+      status: str(wf.status),
+      hasStatus: !!wf.status,
+      statusClass: BADGE_CLASSES[{ ACTIVE: 'success', DRAFT: 'info', DISABLED: 'warning', ARCHIVED: 'contrast' }[wf.status] || 'contrast'],
+      steps: keyed(workflowOrderOf(steps).map((s, i) => {
+        const look = STEP_LOOKS[s.type] || STEP_LOOKS.ACTION
+        return {
+          number: String(i + 1),
+          name: str(s.name) || s.id,
+          typeLabel: look[1] + (s.parallel ? ' · parallel' : ''),
+          iconClass: look[0],
+          description: str(s.description),
+          after: s.preconditionStepId ? 'After ' + (names.get(s.preconditionStepId) || s.preconditionStepId)
+            + (s.preconditionExpression ? ' when ' + s.preconditionExpression : '') : '',
+        }
+      })),
+      isEmpty: !steps.length,
+    }
+  }
+
+  /** FormEditor: the defined form → FormField metadata the form layout already knows how to paint. */
+  function formEditorFieldsOf(m) {
+    let def
+    try { def = JSON.parse(str(m.value) || '{}') } catch (e) { def = null }
+    if (!def || typeof def !== 'object') return null
+    return {
+      name: str(def.name) || 'Form',
+      description: str(def.description),
+      fields: (Array.isArray(def.fields) ? def.fields : []).filter((f) => f && f.id).map((f) => ({
+        type: 'FormField', fieldId: f.id, label: f.label || f.id, dataType: f.dataType || 'string',
+        stereotype: f.stereotype && f.stereotype !== 'regular' ? f.stereotype : undefined,
+        required: !!f.required, description: f.description || '', readOnly: false,
+      })),
+    }
+  }
+
+  // ── BPMN (bpmn-js is not under a permissive licence): the diagram from its own BPMN-DI ──────────
+  const BPMN_KINDS = {
+    startEvent: 'event', endEvent: 'end', intermediateThrowEvent: 'event', intermediateCatchEvent: 'event', boundaryEvent: 'event',
+    task: 'task', userTask: 'task', serviceTask: 'task', scriptTask: 'task', sendTask: 'task', receiveTask: 'task', manualTask: 'task', businessRuleTask: 'task', callActivity: 'task', subProcess: 'task',
+    exclusiveGateway: 'gateway', parallelGateway: 'gateway', inclusiveGateway: 'gateway', eventBasedGateway: 'gateway', complexGateway: 'gateway',
+    dataObjectReference: 'data', dataStoreReference: 'data', textAnnotation: 'note',
+  }
+  const xmlAttr = (attrs, name) => {
+    const m = new RegExp('(?:^|\\s)' + name + '\\s*=\\s*"([^"]*)"').exec(attrs) || new RegExp('(?:^|\\s)' + name + "\\s*=\\s*'([^']*)'").exec(attrs)
+    return m ? m[1].replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#10;/g, ' ').replace(/&amp;/g, '&') : ''
+  }
+  /** BPMN 2.0 XML → { nodes, flows, width, height }: shapes placed by their BPMNDI bounds; without
+   *  DI, a left-to-right layout by the sequence flows. Pure (no DOMParser: it runs in Node too). */
+  function bpmnDiagramOf(xml) {
+    const src = str(xml)
+    const nodes = []
+    const flows = []
+    const byId = new Map()
+    const tagRe = /<(?:[\w-]+:)?(\w+)\b([^>]*?)(\/?)>/g
+    let t
+    while ((t = tagRe.exec(src))) {
+      const [, tag, attrs] = t
+      if (BPMN_KINDS[tag]) {
+        const n = { id: xmlAttr(attrs, 'id'), tag, kind: BPMN_KINDS[tag], label: xmlAttr(attrs, 'name') }
+        if (n.id) { nodes.push(n); byId.set(n.id, n) }
+      } else if (tag === 'sequenceFlow' || tag === 'messageFlow') {
+        const f = { id: xmlAttr(attrs, 'id'), source: xmlAttr(attrs, 'sourceRef'), target: xmlAttr(attrs, 'targetRef'), label: xmlAttr(attrs, 'name'), points: [] }
+        if (f.id) flows.push(f)
+      }
+    }
+    // text annotations carry their text in a child <text>
+    for (const n of nodes) {
+      if (n.kind === 'note' && !n.label) {
+        const m = new RegExp('<(?:[\\w-]+:)?textAnnotation\\b[^>]*id="' + n.id + '"[^>]*>[\\s\\S]*?<(?:[\\w-]+:)?text>([\\s\\S]*?)</').exec(src)
+        if (m) n.label = m[1].trim()
+      }
+    }
+    // BPMNDI: shapes with Bounds, edges with waypoints
+    const shapeRe = /<(?:[\w-]+:)?BPMNShape\b([^>]*)>([\s\S]*?)<\/(?:[\w-]+:)?BPMNShape>/g
+    let s
+    let placed = 0
+    while ((s = shapeRe.exec(src))) {
+      const n = byId.get(xmlAttr(s[1], 'bpmnElement'))
+      const b = /<(?:[\w-]+:)?Bounds\b([^>]*)\/?>/.exec(s[2])
+      if (n && b) {
+        n.x = +xmlAttr(b[1], 'x'); n.y = +xmlAttr(b[1], 'y'); n.w = +xmlAttr(b[1], 'width'); n.h = +xmlAttr(b[1], 'height')
+        placed++
+      }
+    }
+    const edgeRe = /<(?:[\w-]+:)?BPMNEdge\b([^>]*)>([\s\S]*?)<\/(?:[\w-]+:)?BPMNEdge>/g
+    let e
+    const flowById = new Map(flows.map((f) => [f.id, f]))
+    while ((e = edgeRe.exec(src))) {
+      const f = flowById.get(xmlAttr(e[1], 'bpmnElement'))
+      if (!f) continue
+      const wp = /<(?:[\w-]+:)?waypoint\b([^>]*)\/?>/g
+      let w
+      while ((w = wp.exec(e[2]))) f.points.push([+xmlAttr(w[1], 'x'), +xmlAttr(w[1], 'y')])
+    }
+    const SIZE = { task: [100, 80], gateway: [50, 50], event: [36, 36], end: [36, 36], data: [36, 50], note: [100, 40] }
+    if (placed < nodes.length) {
+      // no (or partial) DI: columns by distance from the start along the flows
+      const rank = new Map()
+      const outgoing = new Map()
+      for (const f of flows) { if (!outgoing.has(f.source)) outgoing.set(f.source, []); outgoing.get(f.source).push(f.target) }
+      const incoming = new Set(flows.map((f) => f.target))
+      const roots = nodes.filter((n) => !incoming.has(n.id))
+      const queue = (roots.length ? roots : nodes.slice(0, 1)).map((n) => [n.id, 0])
+      while (queue.length) {
+        const [id, r] = queue.shift()
+        if (rank.has(id) && rank.get(id) >= r) continue
+        if (r > nodes.length) continue
+        rank.set(id, r)
+        for (const next of outgoing.get(id) || []) queue.push([next, r + 1])
+      }
+      const perRank = new Map()
+      for (const n of nodes) {
+        if (n.x != null) continue
+        const r = rank.has(n.id) ? rank.get(n.id) : 0
+        const row = perRank.get(r) || 0
+        perRank.set(r, row + 1)
+        const [w, h] = SIZE[n.kind] || SIZE.task
+        n.w = w; n.h = h
+        n.x = 40 + r * 160 + (100 - w) / 2
+        n.y = 40 + row * 120 + (80 - h) / 2
+      }
+      for (const f of flows) f.points = []
+    }
+    for (const f of flows) {
+      if (f.points.length >= 2) continue
+      const a = byId.get(f.source); const b = byId.get(f.target)
+      if (a && b && a.x != null && b.x != null) f.points = [[a.x + a.w, a.y + a.h / 2], [b.x, b.y + b.h / 2]]
+    }
+    let maxX = 0; let maxY = 0; let minX = Infinity; let minY = Infinity
+    for (const n of nodes) if (n.x != null) { maxX = Math.max(maxX, n.x + n.w); maxY = Math.max(maxY, n.y + n.h + 20); minX = Math.min(minX, n.x); minY = Math.min(minY, n.y) }
+    for (const f of flows) for (const [x, y] of f.points) { maxX = Math.max(maxX, x); maxY = Math.max(maxY, y); minX = Math.min(minX, x); minY = Math.min(minY, y) }
+    if (!isFinite(minX)) { minX = 0; minY = 0 }
+    return {
+      nodes: nodes.filter((n) => n.x != null),
+      flows: flows.filter((f) => f.points.length >= 2),
+      minX: minX - 20, minY: minY - 20,
+      width: Math.max(100, maxX - minX + 40), height: Math.max(80, maxY - minY + 40),
+    }
+  }
+  function bpmnAtomOf(m, id) {
+    const diagram = bpmnDiagramOf(m.xml)
+    return {
+      isBpmn: true,
+      bpmnId: 'mateuBpmn-' + str(id || 'bpmn').replace(/[^\w-]/g, '_'),
+      spec: JSON.stringify(diagram),
+      isEmpty: !diagram.nodes.length,
+      ariaLabel: 'Process diagram: ' + diagram.nodes.filter((n) => n.label).map((n) => n.label).join(', '),
+    }
+  }
+
+  // ── Rich content as HTML (Popover/Tooltip content): a small, SANITISED serialisation ───────────
+  const escapeHtml = (t) => str(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  /** A component subtree → sanitised HTML (texts with their heading level, links, lists, badges,
+   *  markdown, separators; containers as blocks). What it does not know shows as its texts. */
+  function componentHtmlOf(node, interp = (x) => x) {
+    if (!node || typeof node !== 'object') return ''
+    const m = node.metadata || {}
+    const kids = () => {
+      const out = [...(node.children || [])]
+      const inner = m.content
+      if (Array.isArray(inner)) out.push(...inner)
+      else if (inner && typeof inner === 'object') out.push(inner)
+      return out.map((k) => componentHtmlOf(k, interp)).join('')
+    }
+    let html
+    switch (m.type) {
+      case 'Text': {
+        const tag = /^h[1-6]$/.test(m.container || '') ? 'h4' : 'p'
+        html = '<' + tag + '>' + escapeHtml(interp(m.text)) + '</' + tag + '>'
+        break
+      }
+      case 'Anchor': html = '<p><a href="' + escapeHtml(interp(m.url)) + '">' + escapeHtml(interp(m.text || m.url)) + '</a></p>'; break
+      case 'BulletedList': html = '<ul>' + (m.items || []).map((i) => '<li>' + escapeHtml(interp(i)) + '</li>').join('') + '</ul>'; break
+      case 'Badge': html = '<span>' + escapeHtml(interp(m.text)) + '</span> '; break
+      case 'Markdown': html = markdownToHtml(interp(m.markdown || m.text || '')); break
+      case 'Separator': html = '<hr>'; break
+      case 'Button': html = ''; break
+      default: {
+        const inner = kids()
+        html = inner || (m.type ? collectTexts(node).map((x) => '<p>' + escapeHtml(interp(x)) + '</p>').join('') : '')
+        if (inner && /Layout|Card|Div|Container|Section/.test(m.type || '')) html = '<div>' + inner + '</div>'
+      }
+    }
+    return sanitizeHtml(html)
+  }
+
+  // ── Grid paging & tree (the Grid component) ────────────────────────────────────────────────────
+  /** A tree's rows flattened depth-first with their depth; collapsed nodes hide their children. */
+  function flattenTreeRows(rows, isExpanded = () => true, childrenKey = 'children', depth = 0, path = '') {
+    const out = []
+    ;(rows || []).forEach((row, i) => {
+      const key = path ? path + '.' + i : String(i)
+      const kids = Array.isArray(row && row[childrenKey]) ? row[childrenKey] : []
+      const expanded = kids.length ? isExpanded(key) : false
+      const { [childrenKey]: _ignored, ...flat } = row || {}
+      out.push({ ...flat, __depth: depth, __treeKey: key, __hasChildren: kids.length > 0, __expanded: expanded })
+      if (expanded) out.push(...flattenTreeRows(kids, isExpanded, childrenKey, depth + 1, key))
+    })
+    return out
+  }
+  /** Client-side paging of a Grid: the slice shown and the pager texts. */
+  function gridPageOf(rows, size, page) {
+    const total = rows.length
+    const pageSize = size > 0 ? size : total || 1
+    const pages = Math.max(1, Math.ceil(total / pageSize))
+    const current = Math.max(0, Math.min(pages - 1, Number(page) || 0))
+    const from = current * pageSize
+    const shown = rows.slice(from, from + pageSize)
+    return {
+      rows: shown,
+      paged: total > pageSize,
+      page: current,
+      pages,
+      rangeText: total ? (from + 1) + '–' + (from + shown.length) + ' of ' + total : '0 of 0',
+      hasPrev: current > 0,
+      hasNext: current < pages - 1,
+      prevDisabled: current <= 0,
+      nextDisabled: current >= pages - 1,
+    }
+  }
+
+  // ── ResponsiveGrid auto-fill / auto-fit: the track minimum → oj-flex responsive column classes ──
+  /** `repeat(auto-fit, minmax(16rem, 1fr))` → classes that put as many tiles per row as fit at each
+   *  breakpoint (sm 0, md 768px, lg 1024px, xl 1280px). null when the template is not that shape. */
+  function autoFitColClass(template) {
+    const m = /repeat\(\s*auto-(?:fill|fit)\s*,\s*minmax\(\s*([\d.]+)(px|rem|em)/i.exec(str(template))
+    if (!m) return null
+    const px = parseFloat(m[1]) * (m[2] === 'px' ? 1 : 16)
+    if (!(px > 0)) return null
+    const per = (width) => Math.max(1, Math.min(12, Math.floor(width / px)))
+    const span = (width) => {
+      const n = per(width)
+      // oj-flex columns are twelfths: the largest span that fits n per row
+      return Math.max(1, Math.floor(12 / n))
+    }
+    return 'oj-flex-item oj-sm-' + span(480) + ' oj-md-' + span(768) + ' oj-lg-' + span(1024) + ' oj-xl-' + span(1280) + ' oj-sm-padding-2x-end oj-sm-padding-2x-bottom'
+  }
+
+  // ── HeroSection / EmptyState / ProgressBar in the content ───────────────────────────────────────
+  function heroAtomOf(m, interp = (x) => x) {
+    const image = m.image ? elementModuleUrl(str(m.image)) : ''
+    return {
+      isHero: true,
+      title: interp(str(m.title)),
+      subtitle: interp(str(m.subtitle)),
+      heroClass: 'mateu-hero oj-sm-padding-10x' + (m.centered ? ' mateu-hero-centered' : '') + (image ? ' mateu-hero-image' : ''),
+      heroStyle: image ? { backgroundImage: 'linear-gradient(rgba(0,0,0,.45), rgba(0,0,0,.45)), url("' + image.replace(/"/g, '%22') + '")', minHeight: str(m.height) || '' } : { minHeight: str(m.height) || '' },
+    }
+  }
+  /** EmptyState → oj-sp-empty-state (its call to action as an oj-button below it). */
+  function emptyStateAtomOf(m, interp = (x) => x) {
+    return {
+      isEmptyStateAtom: true,
+      title: [m.icon, interp(str(m.title))].filter(Boolean).join(' '),
+      description: interp(str(m.description)),
+      hasAction: !!(m.actionId && m.actionLabel),
+      actionLabel: interp(str(m.actionLabel)),
+      actionId: m.actionId || '',
+      parameters: {},
+    }
+  }
+  /** ProgressBar → oj-progress-bar: its value (or the state at valueKey) over min…max, or indeterminate. */
+  function progressBarAtomOf(m, state, interp = (x) => x) {
+    const min = Number(m.min) || 0
+    const max = Number(m.max) > min ? Number(m.max) : 1
+    const raw = m.valueKey && state && state[m.valueKey] != null ? Number(state[m.valueKey]) : Number(m.value)
+    const value = Number.isFinite(raw) ? Math.max(min, Math.min(max, raw)) : min
+    return {
+      isProgressBar: true,
+      value: m.indeterminate ? -1 : Math.round(((value - min) / (max - min)) * 100),
+      text: interp(str(m.text)),
+      ariaLabel: interp(str(m.text)) || 'Progress',
+      barClass: 'oj-sm-margin-1x-vertical' + (toneOf(m.theme) ? ' mateu-tone-' + toneOf(m.theme) : ''),
+    }
+  }
+
+  // ── CustomComponent: a registry the app fills (the VB app has no build step of its own) ────────
+  const customComponents = new Map()
+  /** An app registers a view for a custom component type: mount(el, props) paints it into the slot
+   *  (and may return a cleanup). Without one the visible placeholder stays, like the web. */
+  function registerCustomComponent(name, mount) {
+    if (name && typeof mount === 'function') customComponents.set(String(name), mount)
+  }
+  function customComponentRegistered(name) { return customComponents.has(str(name)) }
+  function customComponentMountOf(name) { return customComponents.get(str(name)) || null }
+  function customComponentAtomOf(m, id) {
+    return {
+      isCustomSlot: true,
+      name: str(m.name),
+      slotId: 'mateuCustom-' + str(id || m.name).replace(/[^\w-]/g, '_'),
+      props: JSON.stringify(m.props || {}),
+    }
+  }
+
+  // ── MicroFrontend: another Mateu UI (often another backend) loaded into its own surface ────────
+  /** The surface of a MicroFrontend — loaded like a @Subresource (loadSubresources), but from ITS
+   *  baseUrl, and its actions go back to it (runSurfaceAction). The id is derived from what it
+   *  points at (like the web's microFrontendUxId), so re-projections reuse the loaded surface. */
+  function microFrontendOf(m) {
+    const id = 'mfe_' + [m.baseUrl, m.route, m.consumedRoute, m.serverSideType].map((p) => str(p)).join('|').replace(/[^a-zA-Z0-9]/g, '_')
+    return {
+      id,
+      route: str(m.route),
+      consumedRoute: str(m.consumedRoute),
+      serverSideType: m.serverSideType || undefined,
+      componentState: {},
+      baseUrl: str(m.baseUrl).replace(/\/+$/, ''),
+      appState: m.appState && typeof m.appState === 'object' ? m.appState : null,
+      surface: true,
+      lazy: false,
+    }
+  }
+  /** Tags every object of a surface's atoms that sends an action with the surface it belongs to, so
+   *  the block dispatcher sends it there (deep: the cards of a board, the buttons of a band…). */
+  function tagSurfaceActions(value, surfaceId) {
+    if (Array.isArray(value)) return value.map((v) => tagSurfaceActions(v, surfaceId))
+    // only plain data: a JET data provider or converter is passed through as it is
+    if (!value || typeof value !== 'object' || Object.getPrototypeOf(value) !== Object.prototype) return value
+    const out = {}
+    // (the parameters travel to the server as they are)
+    for (const [k, v] of Object.entries(value)) out[k] = k === 'parameters' ? v : tagSurfaceActions(v, surfaceId)
+    if ('actionId' in out) out.surfaceId = surfaceId
+    return out
+  }
+
+  // ── Unknown / unsupported types: a visible placeholder, like the web renderers ───────────────────
+  function unsupportedAtomOf(type, id) {
+    return {
+      isNotice: true,
+      text: 'Unsupported component "' + str(type) + '"' + (id && id !== 'fieldId' ? ' (' + id + ')' : '') + ' — the Redwood renderer has no view for it',
+      noticeClass: NOTICE_CLASSES.warning,
+      buttons: [],
+      isUnsupported: true,
+    }
+  }
+
+  /** The ‹ › buttons of a client-side pager: each carries the key and the value it sets
+   *  (the uiValueChanged listener reads them from the button's own $current). */
+  function pagerButtonsOf(key, prevValue, nextValue, prevDisabled, nextDisabled, prevLabel = 'Previous page', nextLabel = 'Next page') {
+    return [
+      { key: 'prev', uiKey: key, uiValue: prevValue, label: prevLabel, icon: 'oj-ux-ico-chevron-left', disabled: !!prevDisabled },
+      { key: 'next', uiKey: key, uiValue: nextValue, label: nextLabel, icon: 'oj-ux-ico-chevron-right', disabled: !!nextDisabled },
+    ]
+  }
+
+  // ── CarouselLayout (content slides): the pager above the slide shown ────────────────────────────
+  function carouselPagerAtomOf(key, current, count, loop) {
+    const prev = current > 0 ? current - 1 : (loop ? count - 1 : 0)
+    const next = current < count - 1 ? current + 1 : (loop ? 0 : count - 1)
+    return {
+      isCarouselPager: true,
+      positionText: (current + 1) + ' / ' + count,
+      nav: pagerButtonsOf(key, prev, next, !loop && current === 0, !loop && current === count - 1, 'Previous slide', 'Next slide'),
+      dots: keyed(Array.from({ length: count }, (_, i) => ({
+        uiKey: key,
+        uiValue: i,
+        label: 'Slide ' + (i + 1),
+        current: i === current,
+        chroming: i === current ? 'callToAction' : 'borderless',
+      }))),
+    }
+  }
+
+  /** The types that legitimately reach the visitor's fall-through: containers whose children are
+   *  painted in the page flow, parts painted by their owner, and roots projected elsewhere (the
+   *  shell, the page header, the listing, the wizard, the overlays). Any OTHER type there has no
+   *  view → a visible placeholder. Kept in sync with coverage.mjs by test-display.mjs. */
+  const VISITOR_PASS_THROUGH = {
+    VerticalLayout: 1, HorizontalLayout: 1, FormItem: 1, FormSection: 1, FormSubSection: 1, FormRow: 1,
+    Scroller: 1, FullWidth: 1, Container: 1, Div: 1, ContentLayout: 1, ResponsiveGrid: 1,
+    BoardLayout: 1, BoardLayoutRow: 1, BoardLayoutItem: 1, SplitLayout: 1, MasterDetailLayout: 1,
+    FoldoutLayout: 1, AccordionPanel: 1, Tab: 1, GridColumn: 1, GridGroupColumn: 1, Breadcrumb: 1,
+    CarouselLayout: 1, DashboardLayout: 1, CustomField: 1,
+    App: 1, Page: 1, Form: 1, Crud: 1, HeroSection: 1, EmptyState: 1, NotFound: 1, ProgressBar: 1,
+    Dialog: 1, Drawer: 1,
   }
 
 
@@ -8202,6 +9701,62 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     win.customElements.define('mateu-capture-field', MateuCaptureField)
   }
 
+  /** A colour value as a #rrggbb string (what a native colour input takes), '' when it is not one. */
+  function hexColorOf(value) {
+    const v = String(value == null ? '' : value).trim()
+    if (/^#[0-9a-f]{6}$/i.test(v)) return v.toLowerCase()
+    const short = /^#([0-9a-f])([0-9a-f])([0-9a-f])$/i.exec(v)
+    if (short) return ('#' + short[1] + short[1] + short[2] + short[2] + short[3] + short[3]).toLowerCase()
+    const rgb = /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/i.exec(v)
+    if (rgb) return '#' + [rgb[1], rgb[2], rgb[3]].map((n) => Math.min(255, +n).toString(16).padStart(2, '0')).join('')
+    return ''
+  }
+
+  /**
+   * `<mateu-color-field value="#3a7bd5" readonly>`: a colour FIELD. JET's oj-color-spectrum is an
+   * inline palette over oj.Color objects, not a form field with a string value — the wire carries a
+   * string — so: a swatch (the platform colour picker) beside an oj-input-text with the hex code,
+   * and the same `valueChanged` contract as mateu-capture-field.
+   */
+  function defineColorField(win = typeof window !== 'undefined' ? window : null) {
+    if (!win || !win.customElements || win.customElements.get('mateu-color-field')) return
+    const doc = win.document
+    class MateuColorField extends win.HTMLElement {
+      static get observedAttributes() { return ['value', 'readonly'] }
+      connectedCallback() { this.render() }
+      attributeChangedCallback() { if (this.isConnected && !this.busy) this.render() }
+      get value() { return this.getAttribute('value') || '' }
+      set value(v) { if (v == null || v === '') this.removeAttribute('value'); else this.setAttribute('value', String(v)) }
+      emit(value) {
+        this.busy = true
+        this.value = value
+        this.busy = false
+        this.dispatchEvent(new win.CustomEvent('valueChanged', {
+          detail: { value: value || null, previousValue: null, updatedFrom: 'internal' }, bubbles: true }))
+        this.render()
+      }
+      render() {
+        const readonly = this.hasAttribute('readonly') && this.getAttribute('readonly') !== 'false'
+        const hex = hexColorOf(this.value)
+        this.textContent = ''
+        this.classList.add('mateu-color-field')
+        const swatch = doc.createElement('input')
+        swatch.type = 'color'
+        swatch.className = 'mateu-color-swatch'
+        swatch.value = hex || '#000000'
+        swatch.disabled = readonly
+        swatch.setAttribute('aria-label', (this.getAttribute('aria-label') || 'Colour') + ' — picker')
+        swatch.addEventListener('change', () => this.emit(swatch.value))
+        const code = doc.createElement('span')
+        code.className = 'oj-typography-body-md mateu-color-code'
+        code.textContent = this.value || '—'
+        this.appendChild(swatch)
+        this.appendChild(code)
+      }
+    }
+    win.customElements.define('mateu-color-field', MateuColorField)
+  }
+
 
   // REGLAS DEL CLIENTE (@Hidden(expr), @Disabled(expr), RuleSupplier, @Rule) y campos dependientes
   // en el navegador: sin ida y vuelta al servidor, un campo se oculta, se deshabilita o cambia de
@@ -8918,7 +10473,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const open = (el, text) => {
       const p = ensure()
       body.textContent = ''
-      for (const line of hoverLinesOf(text)) {
+      // rich content (a Popover's components): the sanitised HTML; else the text lines
+      const html = el.getAttribute('data-mateu-pop-html') || ''
+      if (html) body.innerHTML = sanitizeHtml(html)
+      else for (const line of hoverLinesOf(text)) {
         const div = doc.createElement('div')
         div.textContent = line
         body.appendChild(div)
@@ -10030,6 +11588,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * y su búsqueda OnLoad (las filas). Devuelve el registro nuevo.
    */
   async function loadSubresource(base, reg, sub, extra = {}) {
+    // a MicroFrontend lives in ITS backend (its baseUrl), with the app state it was given
+    if (sub.baseUrl) base = sub.baseUrl
+    if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
     const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base }
     let next = reduceContexts(reg, await loadRoute(base, sub.route, sub.id, {
       ...extra,
@@ -10053,6 +11614,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * pestaña activa: lo que está en otra pestaña espera a que se abra). Uno que falla se queda como
    * hueco: no tumba la pantalla.
    */
+  /**
+   * An action of a surface that is neither the host nor the island (a MicroFrontend): posted to that
+   * surface with its own state and outbound (route, consumed route, server-side type, base), and the
+   * increment reduced into the registry. Returns the new registry (the chain re-projects the content).
+   */
+  async function runSurfaceAction(reg, surfaceId, actionId, parameters, extra = {}) {
+    const ctx = reg && reg.contexts && reg.contexts[surfaceId]
+    if (!ctx || !actionId) return reg
+    const outbound = ctx.outbound || {}
+    const increment = await runMateuAction(outbound.baseUrl, ctx, outbound.route || '', actionId, ctx.state || {},
+      { ...extra, parameters: parameters || {} })
+    return increment ? reduceContexts(reg, increment) : reg
+  }
+
   async function loadSubresources(base, reg, blocks, extra = {}) {
     let next = reg
     for (const sub of pendingSubresourcesOf(blocks, next.contexts)) {
@@ -11279,6 +12854,289 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return () => { observer.disconnect(); el.removeEventListener('scroll', onScroll) }
   }
 
+
+
+  // RE-PROJECTION after a change of CLIENT state (a panel folded, a tab, a carousel slide, a Grid
+  // page, tiles reordered): the content is projected again from the registry already in memory —
+  // no round trip to the server. The page chains (panelToggled, tilesReordered, uiValueChanged)
+  // used to repeat this inline, each a slightly different copy; they call this now.
+
+  /**
+   * The content variables to assign after a client-side change: `hostContent` (null when the host
+   * content is not the surface on screen — a wizard step, an empty host — so the chain leaves it
+   * alone) and `island` (the island projection with its content refreshed, or null).
+   *
+   * @param {object} vars  the application variables the chains read (mateuRegistry, mateuHostTitle,
+   *                       mateuActiveTabs, mateuHostContent, mateuIsland, mateuIslandId, mateuNestedId)
+   */
+  function reprojectedContentOf(vars) {
+    const reg = vars && vars.mateuRegistry
+    const contexts = (reg && reg.contexts) || {}
+    const host = contexts[HOST_ID]
+    let hostContent = null
+    const shown = Array.isArray(vars.mateuHostContent) ? vars.mateuHostContent : []
+    if (host && shown.length && !wizardOf(host)) {
+      const projected = hostContentOf(host, null, {
+        title: vars.mateuHostTitle || '',
+        activeTabs: vars.mateuActiveTabs,
+        // the header band already paints the host's EntityHeader: without this it came back in the content
+        dropEntityHeader: !!entityHeaderOf(host),
+      }) || []
+      hostContent = withSubresources(projected, contexts)
+    }
+    let island = null
+    const islandCtx = vars.mateuIslandId ? contexts[vars.mateuIslandId] : null
+    if (islandCtx && vars.mateuIsland) {
+      let content = islandContentOf(islandCtx)
+      const nestedCtx = vars.mateuNestedId ? contexts[vars.mateuNestedId] : null
+      const nested = nestedCtx ? islandContentOf(nestedCtx) : null
+      if (content && nested) content = mergeNestedContent(content, nested)
+      island = { ...vars.mateuIsland, content }
+    }
+    return { hostContent, island }
+  }
+
+
+
+  // The DOM side of the display atoms that VB bindings cannot paint by themselves: the BPMN diagram
+  // (an SVG drawn from its BPMN-DI), the cookie consent band (a cookie decides whether it shows),
+  // the right click of a ContextMenu, and the Chat component (a streamed conversation). Same idiom as
+  // installRichText/installMaps: the atom leaves a slot with data-* attributes, a MutationObserver
+  // fills each slot when it appears. The pure parts (bpmnDiagramOf, hasConsentCookie,
+  // chatTurnsOf…) are tested in Node; this file only touches the DOM.
+
+  const SVG_NS = 'http://www.w3.org/2000/svg'
+
+  /** Observes the document and calls fill(el) for every element matching `selector` that appears
+   *  (and when one of `attributes` changes on it). */
+  function observeSlots(doc, flag, selector, attributes, fill) {
+    if (!doc || doc[flag] || typeof MutationObserver === 'undefined') return
+    doc[flag] = true
+    const scan = (root) => {
+      if (!root || root.nodeType !== 1) return
+      if (root.matches && root.matches(selector)) fill(root)
+      for (const el of root.querySelectorAll(selector)) fill(el)
+    }
+    scan(doc.body || doc.documentElement)
+    new MutationObserver((records) => {
+      for (const r of records) {
+        if (r.type === 'attributes') { if (r.target.matches && r.target.matches(selector)) fill(r.target) } else for (const n of r.addedNodes) scan(n)
+      }
+    }).observe(doc.body || doc.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: attributes })
+  }
+
+  // ── BPMN ────────────────────────────────────────────────────────────────────────────────────
+  /** Draws the diagram spec (bpmnDiagramOf) as SVG: tasks as rounded boxes, events as circles (the
+   *  end one thicker), gateways as diamonds, flows as arrowed polylines, names as text. */
+  function drawBpmn(el, spec, doc = el.ownerDocument) {
+    const svg = doc.createElementNS(SVG_NS, 'svg')
+    svg.setAttribute('viewBox', [spec.minX, spec.minY, spec.width, spec.height].join(' '))
+    svg.setAttribute('width', '100%')
+    svg.setAttribute('class', 'mateu-bpmn-svg')
+    svg.setAttribute('aria-hidden', 'true')
+    const el2 = (tag, attrs, parent = svg) => {
+      const n = doc.createElementNS(SVG_NS, tag)
+      for (const [k, v] of Object.entries(attrs)) n.setAttribute(k, String(v))
+      parent.appendChild(n)
+      return n
+    }
+    const defs = el2('defs', {})
+    const marker = el2('marker', { id: el.id + '-arrow', viewBox: '0 0 10 10', refX: 9, refY: 5, markerWidth: 8, markerHeight: 8, orient: 'auto-start-reverse' }, defs)
+    el2('path', { d: 'M 0 0 L 10 5 L 0 10 z', class: 'mateu-bpmn-arrow' }, marker)
+    for (const f of spec.flows || []) {
+      el2('polyline', { points: f.points.map((p) => p.join(',')).join(' '), class: 'mateu-bpmn-flow', 'marker-end': 'url(#' + el.id + '-arrow)' })
+      if (f.label) {
+        const mid = f.points[Math.floor(f.points.length / 2)]
+        const t = el2('text', { x: mid[0] + 4, y: mid[1] - 4, class: 'mateu-bpmn-flow-label' })
+        t.textContent = f.label
+      }
+    }
+    for (const n of spec.nodes || []) {
+      const cx = n.x + n.w / 2
+      const cy = n.y + n.h / 2
+      if (n.kind === 'event' || n.kind === 'end') {
+        el2('circle', { cx, cy, r: Math.min(n.w, n.h) / 2, class: 'mateu-bpmn-event' + (n.kind === 'end' ? ' mateu-bpmn-end' : '') })
+      } else if (n.kind === 'gateway') {
+        el2('polygon', { points: [[cx, n.y], [n.x + n.w, cy], [cx, n.y + n.h], [n.x, cy]].map((p) => p.join(',')).join(' '), class: 'mateu-bpmn-gateway' })
+      } else if (n.kind === 'note') {
+        el2('path', { d: 'M ' + (n.x + 12) + ' ' + n.y + ' L ' + n.x + ' ' + n.y + ' L ' + n.x + ' ' + (n.y + n.h) + ' L ' + (n.x + 12) + ' ' + (n.y + n.h), class: 'mateu-bpmn-note' })
+      } else {
+        el2('rect', { x: n.x, y: n.y, width: n.w, height: n.h, rx: n.kind === 'data' ? 2 : 10, class: 'mateu-bpmn-task' })
+      }
+      if (n.label) {
+        const inside = n.kind === 'task' || n.kind === 'note'
+        const t = el2('text', {
+          x: inside ? cx : cx, y: inside ? cy : n.y + n.h + 14,
+          'text-anchor': 'middle', 'dominant-baseline': inside ? 'middle' : 'hanging', class: 'mateu-bpmn-label',
+        })
+        // a long name wraps on words over up to three lines inside its box
+        const words = String(n.label).split(/\s+/)
+        const lines = []
+        let line = ''
+        const max = inside ? Math.max(8, Math.floor(n.w / 7)) : 18
+        for (const w of words) {
+          if ((line + ' ' + w).trim().length > max && line) { lines.push(line); line = w } else line = (line + ' ' + w).trim()
+        }
+        if (line) lines.push(line)
+        lines.slice(0, 3).forEach((l, i) => {
+          const span = el2('tspan', { x: cx, dy: i === 0 ? (inside ? -(Math.min(lines.length, 3) - 1) * 7 : 0) : 14 }, t)
+          span.textContent = l
+        })
+      }
+    }
+    el.textContent = ''
+    el.appendChild(svg)
+  }
+
+  function installBpmn(doc = typeof document !== 'undefined' ? document : null) {
+    observeSlots(doc, '__mateuBpmn', '[data-mateu-bpmn]', ['data-mateu-bpmn'], (el) => {
+      const raw = el.getAttribute('data-mateu-bpmn') || ''
+      if (el.__mateuBpmn === raw) return
+      el.__mateuBpmn = raw
+      let spec
+      try { spec = JSON.parse(raw) } catch (e) { return }
+      if (!spec || !(spec.nodes || []).length) { el.textContent = 'Empty process'; return }
+      drawBpmn(el, spec, doc)
+    })
+  }
+
+  // ── Cookie consent ─────────────────────────────────────────────────────────────────────────
+  function installCookieConsent(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc) return
+    observeSlots(doc, '__mateuCookie', '[data-mateu-cookie]', ['data-mateu-cookie'], (el) => {
+      const name = el.getAttribute('data-mateu-cookie')
+      el.hidden = !!name && hasConsentCookie(doc.cookie, name)
+    })
+    if (doc.__mateuCookieClicks) return
+    doc.__mateuCookieClicks = true
+    doc.addEventListener('click', (e) => {
+      const btn = e.target && e.target.closest ? e.target.closest('[data-mateu-cookie-dismiss]') : null
+      const band = btn && btn.closest('[data-mateu-cookie]')
+      if (!band) return
+      const name = band.getAttribute('data-mateu-cookie')
+      if (name) doc.cookie = encodeURIComponent(name) + '=dismiss; max-age=' + (365 * 24 * 3600) + '; path=/; SameSite=Lax'
+      band.hidden = true
+    }, true)
+  }
+
+  // ── ContextMenu: right click on the content before the menu opens that menu ───────────────────
+  function installContextMenus(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuContextMenus) return
+    doc.__mateuContextMenus = true
+    doc.addEventListener('contextmenu', (e) => {
+      // the menu atom follows its content in the same block: look up a few levels for one
+      let node = e.target
+      for (let depth = 0; node && depth < 5; depth++, node = node.parentElement) {
+        const holder = node.querySelector && node.querySelector('.mateu-context-menu[data-mateu-context-menu="true"]')
+        if (!holder) continue
+        const menu = holder.querySelector('oj-menu')
+        if (!menu || typeof menu.open !== 'function') return
+        e.preventDefault()
+        try { menu.open(e) } catch (err) { /* not upgraded yet */ }
+        return
+      }
+    })
+  }
+
+  // ── CustomComponent slots: the view the app registered paints itself into its slot ──────────────
+  function installCustomComponents(doc = typeof document !== 'undefined' ? document : null) {
+    observeSlots(doc, '__mateuCustomSlots', '[data-mateu-custom]', ['data-mateu-custom-props'], (el) => {
+      const props = el.getAttribute('data-mateu-custom-props') || '{}'
+      if (el.__mateuCustomProps === props) return
+      el.__mateuCustomProps = props
+      const mount = customComponentMountOf(el.getAttribute('data-mateu-custom'))
+      if (!mount) return
+      if (typeof el.__mateuCustomCleanup === 'function') { try { el.__mateuCustomCleanup() } catch (e) { /* its own */ } }
+      el.textContent = ''
+      let parsed = {}
+      try { parsed = JSON.parse(props) } catch (e) { parsed = {} }
+      try { el.__mateuCustomCleanup = mount(el, parsed) } catch (e) { el.textContent = 'Custom component failed: ' + (e && e.message) }
+    })
+  }
+
+  // ── The Chat component ─────────────────────────────────────────────────────────────────────
+  /** A conversation's turns → what the panel shows: each with its role class and its HTML (the
+   *  assistant's answer as sanitised Markdown, the user's text escaped). Pure. */
+  function chatTurnsOf(turns) {
+    const escape = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    return (turns || []).map((t) => ({
+      role: t.role,
+      cls: 'mateu-chat-turn mateu-chat-' + (t.role === 'user' ? 'user' : 'assistant'),
+      html: t.role === 'user' ? '<p>' + escape(t.text) + '</p>' : sanitizeHtml(chatMarkdownToHtml(t.text || (t.error ? '' : '…'))),
+    }))
+  }
+
+  const conversations = new Map()
+  const newSessionId = () => 'mateu-' + Math.random().toString(36).slice(2) + Date.now().toString(36)
+
+  function installChatComponents(doc = typeof document !== 'undefined' ? document : null) {
+    observeSlots(doc, '__mateuChatComponents', '[data-mateu-chat-url]', ['data-mateu-chat-url'], (el) => {
+      if (el.__mateuChat) return
+      el.__mateuChat = true
+      const key = el.id || el.getAttribute('data-mateu-chat-url')
+      if (!conversations.has(key)) conversations.set(key, { sessionId: newSessionId(), turns: [], busy: false })
+      const conv = conversations.get(key)
+      el.textContent = ''
+      const log = doc.createElement('div')
+      log.className = 'mateu-chat-log'
+      log.setAttribute('role', 'log')
+      log.setAttribute('aria-live', 'polite')
+      const form = doc.createElement('form')
+      form.className = 'mateu-chat-form'
+      const input = doc.createElement('textarea')
+      input.className = 'mateu-chat-input oj-typography-body-md'
+      input.rows = 2
+      input.setAttribute('aria-label', 'Message')
+      input.placeholder = 'Ask something…'
+      const send = doc.createElement('oj-button')
+      send.setAttribute('data-oj-binding-provider', 'none')
+      send.setAttribute('chroming', 'callToAction')
+      send.textContent = 'Send'
+      form.appendChild(input)
+      form.appendChild(send)
+      el.appendChild(log)
+      el.appendChild(form)
+      const paint = () => {
+        log.textContent = ''
+        for (const turn of chatTurnsOf(conv.turns)) {
+          const div = doc.createElement('div')
+          div.className = turn.cls
+          div.innerHTML = turn.html
+          log.appendChild(div)
+        }
+        log.scrollTop = log.scrollHeight
+      }
+      const submit = async () => {
+        const text = input.value.trim()
+        if (!text || conv.busy) return
+        input.value = ''
+        conv.busy = true
+        conv.turns.push({ role: 'user', text })
+        const answer = { role: 'assistant', text: '' }
+        conv.turns.push(answer)
+        paint()
+        try {
+          await streamChat({
+            url: el.getAttribute('data-mateu-chat-url'),
+            body: buildChatBody({ message: text, sessionId: conv.sessionId, currentRoute: location.pathname }),
+            headers: () => authHeadersOf(),
+            onText: (all) => { answer.text = all; paint() },
+          })
+        } catch (err) {
+          answer.error = true
+          answer.text = 'The assistant could not answer: ' + (err && err.message ? err.message : err)
+        } finally {
+          conv.busy = false
+          paint()
+        }
+      }
+      send.addEventListener('ojAction', (e) => { e.stopPropagation(); submit() })
+      form.addEventListener('submit', (e) => { e.preventDefault(); submit() })
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() } })
+      paint()
+    })
+  }
+
   // el importe de un campo money: IntlNumberConverter con estilo moneda (un objeto JSON ya no vale)
   setConverterFactory((spec) => new NumberConverter.IntlNumberConverter(spec.options));
   // reglas del cliente: cada reducción fija su contexto (las del host, con su estado)
@@ -11311,6 +13169,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   setNotificationsProviderFactory((items) => new ArrayDataProvider(items || [], { keyAttributes: 'id' }));
   // campos de captura (fichero, imagen, firma, cámara): JET no los trae
   defineCaptureField();
+  // an editable richText (HTML; a legacy Delta opens converted) and a colour field: JET has neither
+  defineRichTextField();
+  defineColorField();
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
   setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
   // el editor de cada filtro del buscador (smartFilters.filtersMetadata): oj-dynamic se carga
@@ -11596,5 +13457,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     transcriptOf,
     isChatMicShortcut,
     CHAT_MIC_ARIA_KEYSHORTCUTS,
+    // the display components of core/display.mjs: client view state (carousel slide, Grid page,
+    // tree rows) and its re-projection, content menus, MessageInput, and their DOM installers
+    setUiValue,
+    uiValueOf,
+    reprojectedContentOf,
+    menuChoiceOf,
+    dispatchOf,
+    messageSendOf,
+    installBpmn,
+    installCookieConsent,
+    installContextMenus,
+    installChatComponents,
+    installCustomComponents,
+    // an app registers the view of its own custom components (CustomComponent) here
+    registerCustomComponent,
+    runSurfaceAction,
   };
 });

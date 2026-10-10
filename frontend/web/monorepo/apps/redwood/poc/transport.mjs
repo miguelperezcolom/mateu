@@ -413,6 +413,9 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
  * y su búsqueda OnLoad (las filas). Devuelve el registro nuevo.
  */
 export async function loadSubresource(base, reg, sub, extra = {}) {
+  // a MicroFrontend lives in ITS backend (its baseUrl), with the app state it was given
+  if (sub.baseUrl) base = sub.baseUrl
+  if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
   const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base }
   let next = reduceContexts(reg, await loadRoute(base, sub.route, sub.id, {
     ...extra,
@@ -436,6 +439,20 @@ export async function loadSubresource(base, reg, sub, extra = {}) {
  * pestaña activa: lo que está en otra pestaña espera a que se abra). Uno que falla se queda como
  * hueco: no tumba la pantalla.
  */
+/**
+ * An action of a surface that is neither the host nor the island (a MicroFrontend): posted to that
+ * surface with its own state and outbound (route, consumed route, server-side type, base), and the
+ * increment reduced into the registry. Returns the new registry (the chain re-projects the content).
+ */
+export async function runSurfaceAction(reg, surfaceId, actionId, parameters, extra = {}) {
+  const ctx = reg && reg.contexts && reg.contexts[surfaceId]
+  if (!ctx || !actionId) return reg
+  const outbound = ctx.outbound || {}
+  const increment = await runMateuAction(outbound.baseUrl, ctx, outbound.route || '', actionId, ctx.state || {},
+    { ...extra, parameters: parameters || {} })
+  return increment ? reduceContexts(reg, increment) : reg
+}
+
 export async function loadSubresources(base, reg, blocks, extra = {}) {
   let next = reg
   for (const sub of pendingSubresourcesOf(blocks, next.contexts)) {

@@ -26,18 +26,13 @@ define([
       if (!key || (updatedFrom && updatedFrom !== 'internal')) return;
       if (bridge.panelExpanded(key, !expanded) === !!expanded) return;
       bridge.setPanelExpanded(key, !!expanded);
-      const reg = $application.variables.mateuRegistry;
-      const host = reg && reg.contexts ? reg.contexts[bridge.HOST_ID] : null;
-      if (!host) return;
-      const projected = bridge.hostContentOf(host, null, {
-        title: $application.variables.mateuHostTitle || '',
-        activeTabs: $application.variables.mateuActiveTabs,
-        // la banda del header ya pinta el EntityHeader del host: sin esto reaparecía en el contenido
-        dropEntityHeader: !!bridge.entityHeaderOf(host),
-      }) || [];
-      const blocks = bridge.withSubresources(projected, reg.contexts);
-      $application.variables.mateuHostContent = blocks;
-      bridge.mountElementsSoon(bridge.elementAtomsOf(blocks));
+      // the re-projection is poc/reproject.mjs (tested): the host content and the island
+      const next = bridge.reprojectedContentOf($application.variables);
+      if (next.hostContent) {
+        $application.variables.mateuHostContent = next.hostContent;
+        bridge.mountElementsSoon(bridge.elementAtomsOf(next.hostContent));
+      }
+      if (next.island) $application.variables.mateuIsland = next.island;
     }
   }
 

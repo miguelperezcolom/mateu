@@ -31,7 +31,7 @@ export const MODULES = [
   'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'resilience.mjs', 'a11y.mjs', 'elements.mjs',
   'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'planning.mjs', 'actionPanels.mjs',
   'keys.mjs', 'hover.mjs', 'dnd.mjs', 'matrix.mjs', 'map.mjs', 'tables.mjs', 'bundle.mjs',
-  'transport.mjs', 'widgets.mjs', 'chat.mjs',
+  'transport.mjs', 'widgets.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs',
 ]
 const body = MODULES.map(strip).join('\n\n')
 
@@ -93,6 +93,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
   setNotificationsProviderFactory((items) => new ArrayDataProvider(items || [], { keyAttributes: 'id' }));
   // campos de captura (fichero, imagen, firma, cámara): JET no los trae
   defineCaptureField();
+  // an editable richText (HTML; a legacy Delta opens converted) and a colour field: JET has neither
+  defineRichTextField();
+  defineColorField();
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
   setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
   // el editor de cada filtro del buscador (smartFilters.filtersMetadata): oj-dynamic se carga
@@ -378,6 +381,22 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     transcriptOf,
     isChatMicShortcut,
     CHAT_MIC_ARIA_KEYSHORTCUTS,
+    // the display components of core/display.mjs: client view state (carousel slide, Grid page,
+    // tree rows) and its re-projection, content menus, MessageInput, and their DOM installers
+    setUiValue,
+    uiValueOf,
+    reprojectedContentOf,
+    menuChoiceOf,
+    dispatchOf,
+    messageSendOf,
+    installBpmn,
+    installCookieConsent,
+    installContextMenus,
+    installChatComponents,
+    installCustomComponents,
+    // an app registers the view of its own custom components (CustomComponent) here
+    registerCustomComponent,
+    runSurfaceAction,
   };
 });
 `

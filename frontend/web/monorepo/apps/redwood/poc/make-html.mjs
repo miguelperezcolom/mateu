@@ -25,8 +25,10 @@ const partial = readFileSync(join(here, 'templates', 'atoms.html'), 'utf8').repl
 const fieldsPartial = readFileSync(join(here, 'templates', 'fields-extra.html'), 'utf8').replace(/\n$/, '')
 
 const VARIANTS = {
-  host: { blockAction: 'hostBlockAction', addonToggled: 'hostAddonToggled' },
-  island: { blockAction: 'islandBlockAction', addonToggled: 'addonToggled' },
+  host: { blockAction: 'hostBlockAction', addonToggled: 'hostAddonToggled', menuAction: 'hostMenuAction',
+    checkAction: 'hostChecklistToggled', messageAction: 'hostMessageSend', messageKey: 'hostMessageKey' },
+  island: { blockAction: 'islandBlockAction', addonToggled: 'addonToggled', menuAction: 'islandMenuAction',
+    checkAction: 'islandChecklistToggled', messageAction: 'islandMessageSend', messageKey: 'islandMessageKey' },
 }
 
 const reindent = (text, indent) => text.split('\n').map((l) => (l ? indent + l : l))

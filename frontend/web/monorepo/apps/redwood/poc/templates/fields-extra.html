@@ -65,3 +65,56 @@
     </div>
   </oj-label-value>
 </oj-bind-if>
+<!-- @Slider → oj-slider -->
+<oj-bind-if test="[[ $current.data.isSlider ]]">
+  <oj-slider
+      label-hint="[[ $current.data.label ]]"
+      value="[[ $current.data.value ]]"
+      min="[[ $current.data.min ]]"
+      max="[[ $current.data.max ]]"
+      step="[[ $current.data.step ]]"
+      readonly="[[ $current.data.readonly ]]"
+      :data-field-id="[[ $current.data.fieldId ]]"
+      on-value-changed="[[ $listeners.{{change}} ]]"></oj-slider>
+</oj-bind-if>
+<!-- stars → oj-rating-gauge (editable unless read only) -->
+<oj-bind-if test="[[ $current.data.isStars ]]">
+  <oj-label-value label-edge="top">
+    <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
+    <oj-rating-gauge slot="value"
+        value="[[ $current.data.value ]]"
+        max="[[ $current.data.max ]]"
+        readonly="[[ $current.data.readonly ]]"
+        :aria-label="[[ $current.data.label ]]"
+        :data-field-id="[[ $current.data.fieldId ]]"
+        on-value-changed="[[ $listeners.{{change}} ]]"></oj-rating-gauge>
+  </oj-label-value>
+</oj-bind-if>
+<!-- color → mateu-color-field (poc/inputs.mjs): a hex string; JET's oj-color-spectrum works on oj.Color -->
+<oj-bind-if test="[[ $current.data.isColor ]]">
+  <oj-label-value label-edge="top">
+    <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
+    <div slot="value">
+      <mateu-color-field
+          :value="[[ $current.data.value ]]"
+          :readonly="[[ $current.data.readonly ]]"
+          :aria-label="[[ $current.data.label ]]"
+          :data-field-id="[[ $current.data.fieldId ]]"
+          on-value-changed="[[ $listeners.{{change}} ]]"></mateu-color-field>
+    </div>
+  </oj-label-value>
+</oj-bind-if>
+<!-- an editable richText → mateu-rich-text-field (poc/richtext.mjs): HTML; a legacy Quill Delta opens converted -->
+<oj-bind-if test="[[ $current.data.isRichEditor ]]">
+  <oj-label-value label-edge="top">
+    <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
+    <div slot="value">
+      <mateu-rich-text-field
+          :value="[[ $current.data.value ]]"
+          :readonly="[[ $current.data.readonly ]]"
+          :aria-label="[[ $current.data.label ]]"
+          :data-field-id="[[ $current.data.fieldId ]]"
+          on-value-changed="[[ $listeners.{{change}} ]]"></mateu-rich-text-field>
+    </div>
+  </oj-label-value>
+</oj-bind-if>

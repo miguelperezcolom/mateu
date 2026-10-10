@@ -20,8 +20,14 @@ define([
      * @param {string} params.actionId
      * @param {Object} params.parameters
      * @param {boolean} params.fromNested
+     * @param {string} params.surfaceId  the surface a MicroFrontend atom belongs to
      */
-    async run(context, { actionId, parameters, fromNested }) {
+    async run(context, { actionId, parameters, fromNested, surfaceId }) {
+      // an atom of a surface of its own (a MicroFrontend) goes back to that surface
+      if (surfaceId) {
+        await Actions.callChain(context, { chain: 'runMateuSurfaceAction', params: { surfaceId, actionId, parameters } });
+        return;
+      }
       await Actions.callChain(context, {
         chain: fromNested ? 'runMateuIslandAction' : 'runMateuAction',
         params: { actionId, parameters },

@@ -202,7 +202,7 @@ export function layoutFieldOf(md, state, data, columns = 1) {
   let value = raw == null || raw === '' ? null : raw
   if (widget.isBoolean) value = !!raw
   else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
-  else if (widget.isNumber || widget.isMoney) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
+  else if (widget.isNumber || widget.isMoney || widget.isSlider || widget.isStars) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
   else if (widget.isMultiSelect || widget.isCheckboxSet) value = Array.isArray(raw) ? raw.map(plainValueOf) : (raw == null || raw === '' ? [] : String(raw).split(','))
   else if (value != null && typeof value === 'object') value = plainValueOf(value)
   return {
@@ -448,12 +448,24 @@ export function extraWidgetOf(f, options) {
     }
   }
   if (CAPTURE_MODES[st]) return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || '' }
+  // slider → oj-slider; stars → oj-rating-gauge; color → mateu-color-field (a hex string: JET's
+  // oj-color-spectrum works on oj.Color objects); richText → mateu-rich-text-field (HTML, Delta read)
+  if (st === 'slider') {
+    const min = Number(f.sliderMin) || 0
+    const max = Number(f.sliderMax) > min ? Number(f.sliderMax) : 100
+    return { isSlider: true, min, max, step: Number(f.step) > 0 ? Number(f.step) : 1 }
+  }
+  if (st === 'stars') return { isStars: true, max: Number(f.sliderMax) > 0 ? Number(f.sliderMax) : 5 }
+  if (st === 'color') return { isColor: true }
+  if (st === 'richText' && !f.readOnly) return { isRichEditor: true }
   return null
 }
 
 /** ¿Lo pinta el oj-form-layout? (además de los LAYOUT_TYPES de siempre) */
 export function isExtraLayoutField(md) {
   return !!(md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
+    || md.stereotype === 'slider' || md.stereotype === 'stars' || md.stereotype === 'color'
+    || (md.stereotype === 'richText' && !md.readOnly)
     || CAPTURE_MODES[md.stereotype]
     || (md.dataType === 'array' && (md.options || []).length
       && (MULTI_SELECT_STEREOTYPES[md.stereotype] || CHECKBOX_SET_STEREOTYPES[md.stereotype])))
@@ -474,6 +486,7 @@ export function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
       options: (extra.isRadio || extra.isMultiSelect || extra.isCheckboxSet) ? optionsOf(f, data) : [],
       ...flags,
       isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
+      isSlider: false, isStars: false, isColor: false, isRichEditor: false, min: 0, max: 0, step: 1,
       converter: null, captureMode: '', accept: '',
       ...extra,
     }
@@ -513,6 +526,7 @@ export function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
     isTextArea,
     isText: !isSelect && !isBoolean && !isDate && !isDateTime && !isNumber && !isTextArea,
     isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
+    isSlider: false, isStars: false, isColor: false, isRichEditor: false, min: 0, max: 0, step: 1,
     converter: null, captureMode: '', accept: '',
   }
 }

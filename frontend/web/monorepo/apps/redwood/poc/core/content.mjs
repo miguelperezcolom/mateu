@@ -9,6 +9,8 @@ import { findOutsidePanes } from './pageHeader.mjs'
 import { findByType, statusBadgeRows } from './listing.mjs'
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
+import { wizardOf } from './archetypes.mjs'
+import { VISITOR_PASS_THROUGH, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, resultAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
 
 /** Colores de Chip del wire → clases badge de JET (sistema, Redwood). PRECOMPUTADO (CSP). */
@@ -167,6 +169,11 @@ export function setColumnPrefsReader(fn) { columnPrefsReader = typeof fn === 'fu
 export const panelState = {}
 export function setPanelExpanded(key, expanded) { panelState[key] = !!expanded }
 export function panelExpanded(key, fallback) { return key in panelState ? panelState[key] : !!fallback }
+// Other CLIENT-side view state of the content (the slide a carousel shows, the page a Grid shows,
+// the open rows of a tree Grid): a value per key; changing it re-projects (uiValueChanged chain).
+export const uiState = {}
+export function setUiValue(key, value) { uiState[key] = value }
+export function uiValueOf(key, fallback) { return key in uiState ? uiState[key] : fallback }
 
 export let converterFactory = null
 export function setConverterFactory(factory) { converterFactory = factory }
@@ -570,7 +577,11 @@ export function islandContentOf(ctx, opts = {}) {
       }
       const kids = order.map((i) => serverKids[i])
       const spans = order.map((i) => serverSpans[i])
+      // auto-fill / auto-fit tracks (repeat(auto-fit, minmax(16rem, 1fr))): as many tiles per row
+      // as fit at each breakpoint — responsive oj-flex classes instead of stacking them
+      const autoFit = autoFitColClass(m.gridTemplateColumns)
       const classes = gridColClasses(m.gridTemplateColumns, spans, kids.length)
+        || (autoFit ? kids.map(() => autoFit) : null)
       if (classes && projectSized(kids, classes, tags)) return
     }
     if (t === 'DashboardLayout') {
@@ -621,6 +632,12 @@ export function islandContentOf(ctx, opts = {}) {
       if (pageTitle) atom({ isText: true, text: pageTitle, cls: 'oj-typography-subheading-sm' }, container)
       const toolbar = (m.toolbar || []).filter((b) => b && b.actionId)
       if (toolbar.length) atom({ isButtons: true, fromPageToolbar: true, buttons: toolbar.map(buttonOf) }, container)
+      for (const child of kidsOf(node)) visit(child, container)
+      return
+    }
+    if (t === 'CustomComponent' && customComponentRegistered(m.name)) {
+      // the app registered a view for it (registerCustomComponent): its slot, then its children
+      atom(customComponentAtomOf(m, node.id), container)
       for (const child of kidsOf(node)) visit(child, container)
       return
     }
@@ -791,8 +808,29 @@ export function islandContentOf(ctx, opts = {}) {
         if (cm.type === 'GridColumn' || cm.id) leafColumns.push(cm)
       }
       ;(m.content || []).forEach(walkCols)
-      const rows = ((m.page && m.page.content) || []).map((r, i) => ({ ...r, _rowNumber: r._rowNumber == null ? i : r._rowNumber }))
-      const columns = leafColumns.map((c) => ({ headerText: interp(c.label || c.id), field: c.id }))
+      const gridKey = 'grid:' + (node.id && node.id !== 'fieldId' ? node.id : 'grid')
+      const raw = (m.page && m.page.content) || []
+      // TREE (Grid.tree, rows with a `children` list): flattened with each row's depth; the first
+      // column carries the disclosure (open rows are client state, like a collapsible)
+      const tree = !!m.tree && raw.some((r) => Array.isArray(r && r.children) && r.children.length)
+      const flat = tree
+        ? flattenTreeRows(raw, (key) => !!uiValueOf(gridKey + ':open:' + key, false)).map((r) => ({
+          ...r,
+          __indentStyle: { paddingInlineStart: (r.__depth * 1.5) + 'rem' },
+          __toggleIcon: r.__hasChildren ? (r.__expanded ? 'oj-ux-ico-chevron-down' : 'oj-ux-ico-chevron-right') : '',
+          __toggleLabel: r.__expanded ? 'Collapse' : 'Expand',
+          __uiKey: gridKey + ':open:' + r.__treeKey,
+          __uiValue: !r.__expanded,
+        }))
+        : raw
+      // PAGING: Grid.size rows per page (client side, the rows travel inline)
+      const paging = gridPageOf(flat, tree ? 0 : (m.size || 0), uiValueOf(gridKey + ':page', 0))
+      const rows = paging.rows.map((r, i) => ({ ...r, _rowNumber: r._rowNumber == null ? i : r._rowNumber }))
+      const columns = leafColumns.map((c, i) => {
+        const def = { headerText: interp(c.label || c.id), field: c.id }
+        if (tree && i === 0) def.template = 'cellTreeToggle'
+        return def
+      })
       atom({
         isGrid: true,
         fieldId: node.id || 'grid',
@@ -804,6 +842,9 @@ export function islandContentOf(ctx, opts = {}) {
         rowEditable: false,
         addActionId: '',
         addLabel: 'Add',
+        paged: paging.paged,
+        pageText: paging.rangeText,
+        pager: pagerButtonsOf(gridKey + ':page', paging.page - 1, paging.page + 1, paging.prevDisabled, paging.nextDisabled),
       }, container)
       return
     }
@@ -833,12 +874,16 @@ export function islandContentOf(ctx, opts = {}) {
       const wrappedTexts = m.wrapped ? collectTexts(m.wrapped).map(interp).filter(Boolean) : []
       const label = wrappedTexts.join(' ') || (m.wrapped && m.wrapped.metadata && m.wrapped.metadata.label) || 'Details'
       const lines = m.content ? collectTexts(m.content).map(interp).filter(Boolean) : []
-      const text = lines.join('\n')
+      // the content WITH its structure (headings, lists, links, badges…) as sanitised HTML: the
+      // popup shows that, the text lines stay as its accessible fallback
+      const html = m.content ? componentHtmlOf(m.content, interp) : ''
+      const text = lines.join('\n') || (html ? ' ' : '')
       atom({
         isPopover: true,
         label: interp(label),
         hoverText: m.trigger === 'hover' ? text : '',
         clickText: m.trigger === 'hover' ? '' : text,
+        html,
       }, container)
       return
     }
@@ -1105,6 +1150,143 @@ export function islandContentOf(ctx, opts = {}) {
       else atom({ isButtons: true, buttons: [buttonOf(m)] }, container)
       return
     }
+    // ── display components with their own projection (core/display.mjs) ──
+    if (t === 'Kanban') { atom(kanbanAtomOf(m, interp), container); return }
+    if (t === 'Timeline') { atom(timelineAtomOf(m, interp), container); return }
+    if (t === 'PricingTable') { atom(pricingAtomOf(m, interp), container); return }
+    if (t === 'OrgChart') { atom(orgChartAtomOf(m, interp), container); return }
+    if (t === 'Heatmap') { atom(heatmapAtomOf(m), container); return }
+    if (t === 'Funnel') { atom(funnelAtomOf(m, interp), container); return }
+    if (t === 'FeatureGrid') { atom(featureGridAtomOf(m, interp), container); return }
+    if (t === 'Testimonials') { atom(testimonialsAtomOf(m, interp), container); return }
+    if (t === 'CalloutCard') { atom(calloutAtomOf(m, interp), container); return }
+    if (t === 'CommentThread') { atom(commentsAtomOf(m, interp), container); return }
+    if (t === 'FileList') { atom(fileListAtomOf(m, interp), container); return }
+    if (t === 'Checklist') { atom(checklistAtomOf(m, interp), container); return }
+    if (t === 'ComparisonCard') { atom(comparisonAtomOf(m, interp), container); return }
+    if (t === 'ProcessMonitor') { atom(processMonitorAtomOf(m, interp), container); return }
+    if (t === 'Skeleton') { atom(skeletonAtomOf(m), container); return }
+    if (t === 'Icon') { atom(iconAtomOf(m), container); return }
+    if (t === 'MenuBar') { atom(menuBarAtomOf(m, interp), container); return }
+    if (t === 'Directory') { atom(directoryAtomOf(m, interp), container); return }
+    if (t === 'MessageList') { atom(messageListAtomOf(m, interp), container); return }
+    if (t === 'MessageInput') { atom(messageInputAtomOf(m, node.id), container); return }
+    if (t === 'Chat') { atom(chatAtomOf(m, node.id), container); return }
+    if (t === 'Bpmn') { atom(bpmnAtomOf(m, node.id), container); return }
+    if (t === 'Workflow') { atom(workflowAtomOf(m), container); return }
+    if (t === 'Result') { atom(resultAtomOf(m, interp), container); return }
+    if (t === 'CookieConsent') { atom(cookieConsentAtomOf(m, interp), container); return }
+    if (t === 'Breadcrumbs') { atom(breadcrumbsAtomOf(m, interp), container); return }
+    if (t === 'Notification') { atom(notificationAtomOf(m, interp), container); return }
+    if (t === 'MicroFrontend') {
+      // a surface of its own, loaded from its baseUrl like a @Subresource (withSubresources paints it)
+      const sub = microFrontendOf(m)
+      atom({ isSubresource: true, islandId: sub.id, subresource: sub }, container)
+      return
+    }
+    if (t === 'HeroSection') {
+      // a hero in the content (the Welcome archetype paints its own with oj-sp-header-welcome-banner)
+      atom(heroAtomOf(m, interp), container)
+      for (const child of kidsOf(node)) visit(child, container)
+      return
+    }
+    // an EmptyState inside the content (the host's FIRST one is the page-level oj-sp-empty-state
+    // of emptyStateOf — painted there, not twice)
+    if (t === 'EmptyState' && !(ctx.kind === 'host' && findByType(ctx.tree, 'EmptyState') === node)) {
+      atom(emptyStateAtomOf(m, interp), container)
+      return
+    }
+    // a ProgressBar in the content (a wizard's own progress is its guided process, wizardOf)
+    if (t === 'ProgressBar' && !wizardOf(ctx)) {
+      atom(progressBarAtomOf(m, state, interp), container)
+      return
+    }
+    if (t === 'ConfirmDialog') {
+      // its message is its children; only open while openedCondition holds over the state
+      const lines = kidsOf(node).flatMap((k) => collectTexts(k))
+      atom(confirmDialogAtomOf(m, node.id, state, interp, lines), container)
+      return
+    }
+    if (t === 'Faq') {
+      // like an accordion: a collapsible header per question, the answer after it when open
+      ;(m.items || []).forEach((item, i) => {
+        const key = 'faq:' + (node.id && node.id !== 'fieldId' ? node.id : 'faq') + ':' + i
+        const expanded = panelExpanded(key, !!item.open)
+        atom({ isCollapsible: true, collapsibleKey: key, title: interp(item.question || ''), expanded, disabled: false }, container)
+        if (expanded) atom({ isRichText: true, label: '', html: richHtmlOf('markdown', interp(item.answer || '')) }, container)
+      })
+      return
+    }
+    if (t === 'Tooltip') {
+      // the wrapped component keeps its own view; the tooltip text opens in the shared popup
+      // (hover.mjs) on hover/focus — on the button itself, or on an info marker next to it
+      const text = interp(m.text || '')
+      const wrapped = m.wrapped
+      const wm = wrapped && wrapped.metadata
+      if (wm && wm.type === 'Button') {
+        atom({ isButtons: true, buttons: [{ ...buttonOf(wm), tooltip: text }] }, container)
+        return
+      }
+      const inline = wm && (wm.type === 'Text' || wm.type === 'Badge' || wm.type === 'Icon' || wm.type === 'Anchor')
+      if (inline) {
+        const label = collectTexts(wrapped).map(interp).join(' ') || interp(wm.text || wm.icon || '')
+        atom({ isTooltip: true, label, text }, container)
+        return
+      }
+      if (wrapped) visit(wrapped, container)
+      atom({ isTooltip: true, label: '', text, infoOnly: true }, container)
+      return
+    }
+    if (t === 'ContextMenu') {
+      if (m.wrapped) visit(m.wrapped, container)
+      for (const child of kidsOf(node)) visit(child, container)
+      atom(contextMenuAtomOf(m, interp), container)
+      return
+    }
+    if (t === 'VirtualList') {
+      // every item through the same visitor (a component), or as a line of text (plain data)
+      const items = (m.page && m.page.content) || []
+      for (const item of items) {
+        if (item && typeof item === 'object' && (item.metadata || item.type)) visit(item.metadata ? item : { metadata: item }, container)
+        else if (item && typeof item === 'object') {
+          atom({ isPropertyRow: true, label: String(item.title || item.name || item.label || item.id || ''), value: Object.entries(item).filter(([k, v]) => v != null && typeof v !== 'object' && !/^(title|name|label|id)$/.test(k)).map(([k, v]) => k + ': ' + v).join(' · ') }, container)
+        } else if (item != null) atom({ isText: true, text: String(item), cls: 'oj-typography-body-md' }, container)
+      }
+      return
+    }
+    if (t === 'Stepper') {
+      // a numbered step per child (the wire record carries no fields of its own)
+      kidsOf(node).forEach((child, i) => {
+        const label = (child.metadata && (child.metadata.title || child.metadata.label)) || ''
+        atom({ isStepHeader: true, number: String(i + 1), label: interp(label) }, container)
+        visit(child, container)
+      })
+      return
+    }
+    if (t === 'FormEditor') {
+      // the form the definition describes, painted with the form layout's real widgets (a preview)
+      const def = formEditorFieldsOf(m)
+      if (!def) { atom(unsupportedAtomOf('FormEditor', node.id), container); return }
+      atom({ isText: true, isHeading: true, isH2: false, text: def.name, cls: 'oj-typography-subheading-xs' }, container)
+      if (def.description) atom({ isText: true, text: def.description, cls: 'oj-typography-body-sm oj-text-color-secondary' }, container)
+      const fields = def.fields.map((md) => layoutFieldOf(md, state, ctx.data, 2)).filter(Boolean)
+      if (fields.length) atom({ isFormLayout: true, columns: 2, fields, readonly: false }, container)
+      return
+    }
+    if (t === 'CarouselLayout') {
+      // a carousel of arbitrary content (a gallery took the oj-film-strip branch above): one slide
+      // at a time with its pager — the slide shown is client state (uiValueChanged)
+      const slides = kidsOf(node)
+      if (slides.length > 1) {
+        const key = 'carousel:' + (node.id && node.id !== 'fieldId' ? node.id : 'carousel')
+        const current = Math.max(0, Math.min(slides.length - 1, Number(uiValueOf(key, 0)) || 0))
+        atom(carouselPagerAtomOf(key, current, slides.length, !!m.loop), container)
+        visit(slides[current], container)
+        return
+      }
+    }
+    // a type nobody paints: a visible placeholder (like the web renderers), its children still render
+    if (t && !VISITOR_PASS_THROUGH[t]) atom(unsupportedAtomOf(t, node.id), container)
     for (const child of kidsOf(node)) visit(child, container)
   }
   visit(ctx.tree, null)
@@ -1191,7 +1373,9 @@ export function withSubresources(blocks, contexts) {
       const crud = findByType(ctx.tree, 'Crud')
       if (!crud) {
         const inner = islandContentOf(ctx)
-        return inner ? inner.flatMap((b) => b.items) : []
+        const items = inner ? inner.flatMap((b) => b.items) : []
+        // a MicroFrontend's surface: its actions go back to IT (dispatchHostBlockAction → surface)
+        return a.subresource && a.subresource.surface ? tagSurfaceActions(items, a.islandId) : items
       }
       const md = crud.metadata || {}
       const wire = (md.columns || []).map((col) => col.metadata || col)

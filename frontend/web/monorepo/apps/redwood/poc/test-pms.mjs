@@ -327,7 +327,8 @@ test('el form layout pinta los mismos widgets nuevos; una lista sin estereotipo 
 test('plantilla: los widgets nuevos están en cada superficie de átomos y en las 7 copias de campos', () => {
   const page = webApp('flows/main/pages/main-start-page.html')
   const surfaces = (page.match(/<!-- @atoms /g) || []).length
-  for (const tag of ['<oj-radioset', '<oj-select-many', '<oj-checkboxset', '<mateu-capture-field'])
+  // (a field's oj-checkboxset opens a line of its own; the Checklist atom's one does not)
+  for (const tag of ['<oj-radioset', '<oj-select-many', '<oj-checkboxset\n', '<mateu-capture-field', '<oj-slider', '<mateu-rich-text-field', '<mateu-color-field'])
     assert.equal(page.split(tag).length - 1, surfaces + 7, tag)
   // cada copia conserva SU listener de cambio
   assert.match(page, /<oj-select-many[^>]*\n[^]*?on-value-changed="\[\[ \$listeners\.mateuRowFieldChanged \]\]"/)
@@ -610,9 +611,12 @@ test('FoldoutLayout dentro de una pestaña: overview en su sitio y paneles plega
 })
 
 test('re-proyecciones del host (pestaña, panel) quitan el EntityHeader que ya pinta la banda', () => {
-  for (const chain of ['contentTabSelected.js', 'panelToggled.js']) {
-    assert.match(webApp('flows/main/pages/main-start-page-chains/' + chain), /dropEntityHeader: !!bridge\.entityHeaderOf\(host\)/, chain)
+  assert.match(webApp('flows/main/pages/main-start-page-chains/contentTabSelected.js'), /dropEntityHeader: !!bridge\.entityHeaderOf\(host\)/)
+  // panelToggled / tilesReordered / uiValueChanged share poc/reproject.mjs
+  for (const chain of ['panelToggled.js', 'tilesReordered.js', 'uiValueChanged.js']) {
+    assert.match(webApp('flows/main/pages/main-start-page-chains/' + chain), /bridge\.reprojectedContentOf\(/, chain)
   }
+  assert.match(readFileSync(join(here, 'reproject.mjs'), 'utf8'), /dropEntityHeader: !!entityHeaderOf\(host\)/)
   const page = webApp('flows/main/pages/main-start-page.html')
   assert.match(page, /oj-collapsible/)
   assert.match(page, /mateuPageHeader\.bandClass/)
@@ -1096,7 +1100,7 @@ test('HTML saneado por lista blanca: sin scripts, manejadores, estilos ni enlace
   assert.equal(sanitizeHtml('<a href="&#106;avascript:alert(1)">x</a> 1 < 2'), '<a>x</a> 1 &lt; 2')
 })
 
-test('campos richText / html / markdown: con formato en sólo lectura; editables, un text area', () => {
+test('campos richText / html / markdown: con formato en sólo lectura; un richText editable, su editor', () => {
   const ro = atomsOf(node({ type: 'FormLayout' }, [
     node({ type: 'FormField', fieldId: 'notes', dataType: 'string', stereotype: 'richText', readOnly: true, label: 'Notes' }),
     node({ type: 'FormField', fieldId: 'policy', dataType: 'string', stereotype: 'markdown', readOnly: true, label: 'Policy' }),
@@ -1104,7 +1108,7 @@ test('campos richText / html / markdown: con formato en sólo lectura; editables
   assert.deepEqual(ro.map((a) => [a.label, a.html]), [['Notes', '<p>VIP <b>guest</b></p>'], ['Policy', '<p><strong>No</strong> pets</p>']])
   const [layout] = atomsOf(node({ type: 'FormLayout' }, [node({ type: 'FormField', fieldId: 'notes', dataType: 'string', stereotype: 'richText', label: 'Notes' })]), { notes: '<p>x</p>' })
   assert.ok(layout.isFormLayout)
-  assert.ok(layout.fields[0].isTextArea, 'JET no trae editor de texto enriquecido')
+  assert.ok(layout.fields[0].isRichEditor && !layout.fields[0].isTextArea, 'JET has no rich text editor: mateu-rich-text-field')
   assert.match(webApp('flows/main/pages/main-start-page.html'), /:data-mateu-html="\[\[ \$current\.data\.html \]\]"/)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installRichText\(\)/)
 })
