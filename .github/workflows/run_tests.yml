@@ -278,8 +278,8 @@ jobs:
   # Until now the rest of run_tests.yml built the whole backend with -DskipTests and never invoked
   # pytest or dotnet test, so ~1000 core tests, the .NET/Python golden suites AND the conformance
   # corpus all ran only on whoever remembered — a port could drift from the wire with every check
-  # still green. This job runs them. All three are green as of this change (Java core 1030, Python
-  # 298 + 2 xfailed, .NET 299); each suite includes its wire-conformance runner.
+  # still green. This job runs the Java and .NET ones (the Python suite has its own `python` job
+  # above, on every supported interpreter); each suite includes its wire-conformance runner.
   backend-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 25
