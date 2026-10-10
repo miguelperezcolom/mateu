@@ -31,6 +31,10 @@
       "type" : {
         "const" : "Routes"
       },
+      "basePath" : {
+        "type" : "string",
+        "description" : "The mount this file's routes belong to, for a route file that is not listed by a `type: UI` mount (a class-declared @UI(\"/shop\") mount): its routes are authored relative to it. Optional; default the root mount."
+      },
       "routes" : {
         "type" : "array",
         "items" : {

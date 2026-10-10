@@ -362,6 +362,12 @@ public final class UidlSchemaGenerator {
     // files, so every specs/ui file can be told apart by its `type`. A bare list has no room for
     // it.
     envelopeProps.putObject("type").put("const", "Routes");
+    envelopeProps
+        .putObject("basePath")
+        .put("type", "string")
+        .put(
+            "description",
+            "The mount this file's routes belong to, for a route file that is not listed by a `type: UI` mount (a class-declared @UI(\"/shop\") mount): its routes are authored relative to it. Optional; default the root mount.");
     envelopeProps.set("routes", list);
     envelope.putArray("required").add("routes");
 
@@ -520,6 +526,12 @@ public final class UidlSchemaGenerator {
     var routesEnvelope = MAPPER.createObjectNode().put("type", "object");
     var routesProps = routesEnvelope.putObject("properties");
     routesProps.putObject("type").put("const", "Routes");
+    routesProps
+        .putObject("basePath")
+        .put("type", "string")
+        .put(
+            "description",
+            "The mount this file's routes belong to, for a route file that is not listed by a `type: UI` mount (a class-declared @UI(\"/shop\") mount): its routes are authored relative to it. Optional; default the root mount.");
     routesProps.set("routes", entryList);
     routesEnvelope.putArray("required").add("routes");
 
