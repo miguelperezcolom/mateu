@@ -16,7 +16,10 @@ import io.restassured.http.ContentType;
  */
 public class AdapterParityITFoundation {
 
-  public static final String ALLOWED_ORIGIN = "http://allowed.example";
+  // A localhost origin (the VB dev server's): the tests run against a server on localhost, and
+  // Micronaut refuses any request from a NON-localhost origin to a localhost server (its
+  // drive-by-localhost protection) before the application's filters can allow it.
+  public static final String ALLOWED_ORIGIN = "http://localhost:9006";
   public static final String OTHER_ORIGIN = "http://other.example";
 
   private static final String RQ =

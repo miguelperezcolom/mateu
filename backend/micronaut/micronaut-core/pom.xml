@@ -99,6 +99,32 @@
       <version>4.0.2</version>
     </dependency>
 
+    <!-- adapter parity tests: an embedded Netty server running the controllers generated (by this
+         adapter's own annotation processor) for a test @UI, driven by AdapterParityITFoundation -->
+    <dependency>
+      <groupId>io.micronaut</groupId>
+      <artifactId>micronaut-http-server-netty</artifactId>
+      <version>${micronaut.core.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.micronaut.reactor</groupId>
+      <artifactId>micronaut-reactor</artifactId>
+      <version>3.8.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.mateu</groupId>
+      <artifactId>integration-tests</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.mateu</groupId>
+      <artifactId>annotation-processor-micronaut</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <groupId>io.micronaut.test</groupId>
       <artifactId>micronaut-test-junit5</artifactId>
@@ -137,6 +163,12 @@
               <groupId>io.micronaut.serde</groupId>
               <artifactId>micronaut-serde-processor</artifactId>
               <version>${micronaut.serialization.version}</version>
+            </path>
+            <!-- for the test sources only (main has no @UI): generates the test UI's controllers -->
+            <path>
+              <groupId>io.mateu</groupId>
+              <artifactId>annotation-processor-micronaut</artifactId>
+              <version>${project.version}</version>
             </path>
           </annotationProcessorPaths>
           <compilerArgs>
