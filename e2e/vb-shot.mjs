@@ -13,6 +13,7 @@
  * · {dragBy:["css",dx,dy]} · {wait:ms} · {download:"texto del botón", expect:"trozo del nombre"} · {element:"css"} (la
  * captura se recorta a ese elemento) · {eval:"expresión JS"} (imprime su resultado, para depurar).
  * Opciones: --base (http://localhost:9006) --width 1440 --height 900 --settle 6000 --full
+ * --path-routes (rutas por path: la app servida por el jar io.mateu:redwood del backend, p.ej. --base http://localhost:9005)
  * --no-cors (Chromium sin same-origin: para apuntar el VB de :9006 a un backend SIN CorsConfig, sólo en pruebas)
  * Sale con código ≠ 0 si un paso falla o si una descarga esperada no llega.
  */
@@ -41,7 +42,8 @@ let failed = false
 let clip = null
 try {
   // vb-serve sirve en estático: las rutas de Mateu viven en el hash (#/ruta)
-  await page.goto(`${base}/${route === '/' ? '' : '#' + route}`, { waitUntil: 'networkidle', timeout: 60000 })
+  // vb-serve (y VB alojado) navega por hash; servido por el jar io.mateu:redwood, por PATH (--path-routes)
+  await page.goto(args['path-routes'] ? `${base}${route}` : `${base}/${route === '/' ? '' : '#' + route}`, { waitUntil: 'networkidle', timeout: 60000 })
   await sleep(+(args.settle || 6000))
   for (const s of steps) {
     if (s.click) await page.getByText(s.click, { exact: true }).first().click()
