@@ -544,7 +544,7 @@ class AppContext(val session: AppSession) {
                     val kind = if (actionId == "__restdata__") "data" else "action"
                     fetchViaProxy(kind, actionId.orEmpty())
                 } else {
-                    val url = Expressions.interpolate(source.text("url"), ctx)
+                    val url = Expressions.interpolateUrl(source.text("url"), ctx)
                     val method = source.text("method").ifBlank { "GET" }.uppercase()
                     val headers = LinkedHashMap<String, String>()
                     source.path("headers").properties().forEach { (k, v) ->

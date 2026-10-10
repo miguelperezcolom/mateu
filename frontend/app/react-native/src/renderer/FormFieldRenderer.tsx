@@ -26,7 +26,7 @@ import {
   UploadableImageField,
 } from './FieldWidgets';
 import { LookupField } from './LookupField';
-import { interpolate } from '../core/expressions';
+import { interpolate, interpolateUrl } from '../core/expressions';
 import { fetchExternalJson, mapItemsToOptions, resolveRestSource, type FetchedOption } from '../core/restFetch';
 import { useViewController } from './MateuViewHost';
 import { theme } from '../theme';
@@ -644,7 +644,7 @@ function RestOptionsField({ source, fieldId, state, appState, value, editable, o
     // direct fetch otherwise. Both resolve to the same JSON → mapItemsToOptions.
     const jsonPromise = resolved.proxy
       ? controller.fetchViaProxy('options', fieldId)
-      : fetchExternalJson(source as Record<string, unknown>, resolve);
+      : fetchExternalJson(source as Record<string, unknown>, resolve, (t) => interpolateUrl(String(t ?? ''), { state, appState }));
     jsonPromise
       .then((json) => { if (!cancelled) setOptions(mapItemsToOptions(json, resolved.itemsPath, resolved.valuePath, resolved.labelPath)); })
       .catch((e) => console.warn('mateu: external options fetch failed', e));

@@ -133,9 +133,14 @@ export function resolveRestSource(source: Json): Json {
 
 /** Interpolate url/headers/body of a RestDataSource and fetch it. `resolve` runs `${state.x}`
  *  interpolation. Resolves a `ref` against the catalogue first. Throws on a non-2xx response. */
-export async function fetchExternalJson(declared: Json, resolve: (t: unknown) => string): Promise<unknown> {
+export async function fetchExternalJson(
+  declared: Json,
+  resolve: (t: unknown) => string,
+  resolveUrl: (t: unknown) => string = resolve,
+): Promise<unknown> {
   const source = resolveRestSource(declared);
-  const url = resolve(source['url']);
+  // the url resolves with its values percent-encoded by position (interpolateUrl), like the proxy
+  const url = resolveUrl(source['url']);
   const method = String(source['method'] ?? 'GET').toUpperCase();
   const headers: Record<string, string> = {};
   for (const [k, v] of Object.entries((source['headers'] as Json) ?? {})) headers[k] = resolve(v);
