@@ -37,7 +37,7 @@ import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, r
 import { listingOf, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
 import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, entityHeaderOf, taskQueueOf, formSectionsOf, layoutFieldOf, HOST_ID } from './reduceContexts.mjs'
 import { localMenuOptionOf, isSentinelHome } from './navTree.mjs'
-import { loadMenuRouteInto, terminalMenuRouteOf } from './transport.mjs'
+import { loadMenuRouteInto, terminalMenuRouteOf, bootstrapHasApp } from './transport.mjs'
 import { fileDownloadOf, triggerDownload, applyDomEffects } from './files.mjs'
 import { evaluateExpression, evaluateTemplate, computeRules, fieldFlagsOf, valueChangeActionOf } from './rules.mjs'
 import { describeFileValue, isImageValue, captureTexts } from './inputs.mjs'
@@ -1314,25 +1314,24 @@ test('mount: the packaged app serves an @UI at any path — API base and routes 
   assert.equal(baseUrlOf({ baseUrl: '' }, 'http://localhost:9005'), '')
   assert.equal(baseUrlOf({ baseUrl: '/console' }, 'http://x'), '/console')
   assert.equal(baseUrlOf({ baseurl: '/console/' }, 'http://x'), '/console')
-  // browser path → Mateu route
+  // browser path → Mateu route: absolute, the mount itself is the home
   assert.equal(routeOfPath('/console', '/console'), '')
   assert.equal(routeOfPath('/console/', '/console'), '')
-  assert.equal(routeOfPath('/console/products/3', '/console'), '/products/3')
+  assert.equal(routeOfPath('/console/products/3', '/console'), '/console/products/3')
   assert.equal(routeOfPath('/', ''), '')
   assert.equal(routeOfPath('/products', ''), '/products')
-  // a path that merely starts like the mount is not under it
-  assert.equal(routeOfPath('/consoles/x', '/console'), '/consoles/x')
+  assert.equal(routeOfPath('/', '/console'), '')
   // Mateu route → browser path
   assert.equal(pathOfRoute('', '/console'), '/console')
   assert.equal(pathOfRoute('/', '/console'), '/console')
-  assert.equal(pathOfRoute('/products?status=open', '/console'), '/console/products?status=open')
-  assert.equal(pathOfRoute('products', '/console'), '/console/products')
+  assert.equal(pathOfRoute('/console/products?status=open', '/console'), '/console/products?status=open')
+  assert.equal(pathOfRoute('products', ''), '/products')
   assert.equal(pathOfRoute('', ''), '/')
   assert.equal(pathOfRoute('/products', ''), '/products')
   assert.equal(pathOfRoute('?q=1', '/console'), '/console?q=1')
   assert.equal(pathOfRoute('?q=1', ''), '/?q=1')
   // round trip
-  for (const r of ['', '/a', '/a/b?c=1']) assert.equal(routeOfPath(pathOfRoute(r, '/m').split('?')[0], '/m') + (r.includes('?') ? '?' + r.split('?')[1] : ''), r)
+  for (const r of ['', '/m/a', '/m/a/b']) assert.equal(routeOfPath(pathOfRoute(r, '/m'), '/m'), r)
 })
 
 test('mount: read once at boot — path mode under a mount, hash mode without <mateu-ui>', () => {
@@ -1344,9 +1343,10 @@ test('mount: read once at boot — path mode under a mount, hash mode without <m
   // static things stay at the backend root, as on the Vaadin renderer
   assert.equal(mateuAssetBase('http://localhost:9005'), '')
   assert.equal(urlOfRoute(''), '/console')
-  assert.equal(urlOfRoute('/orders?x=1'), '/console/orders?x=1')
-  assert.equal(currentRouteOf({ pathname: '/console/orders', search: '?x=1', hash: '' }), '/orders?x=1')
-  assert.equal(currentRoutePathOf({ pathname: '/console/orders', search: '?x=1', hash: '' }), '/orders')
+  assert.equal(urlOfRoute('/console/orders?x=1'), '/console/orders?x=1')
+  assert.equal(currentRouteOf({ pathname: '/console/orders', search: '?x=1', hash: '' }), '/console/orders?x=1')
+  assert.equal(currentRoutePathOf({ pathname: '/console/orders', search: '?x=1', hash: '' }), '/console/orders')
+  assert.equal(currentRouteOf({ pathname: '/console', search: '', hash: '' }), '')
   // the root mount: today's behaviour
   assert.equal(initMount(doc({ baseUrl: '' })), '')
   assert.equal(mateuBase('http://localhost:9005'), '')
@@ -1363,11 +1363,11 @@ test('mount: read once at boot — path mode under a mount, hash mode without <m
   setMount(null)
 })
 
-test('mount: an in-content link is a screen of the app only below the mount, and its route drops the mount', () => {
+test('mount: an in-content link is a screen of the app only below the mount', () => {
   const loc = { href: 'https://h/console/a', origin: 'https://h', pathname: '/console/a', search: '' }
   const a = (href) => ({ getAttribute: (n) => (n === 'href' ? href : null) })
   const route = (href) => inAppRouteOfLink(a(href), { button: 0 }, loc, false, '/console')
-  assert.equal(route('/console/orders/3?x=1'), '/orders/3?x=1')
+  assert.equal(route('/console/orders/3?x=1'), '/console/orders/3?x=1')
   assert.equal(route('/console'), '/')
   assert.equal(route('/other/app'), null)
   assert.equal(route('/console/_inbox'), null)
@@ -1381,6 +1381,23 @@ test('mount: an in-content link is a screen of the app only below the mount, and
     assert.doesNotMatch(webApp(chain).replace(/bridge\.mateu(Asset)?Base\(\$application\.constants\.mateuBaseUrl\)/g, ''),
       /\$application\.constants\.mateuBaseUrl/, chain + ' reads the base without the mount')
   }
+})
+
+test('mount: an @UI that is not an App (a page, a crud) boots as a fresh load of the mount', () => {
+  // what demo-vb's @UI("/hello") HelloPage answers to the bootstrap (components/_/action)
+  const page = { fragments: [{ targetComponentId: null, component: { type: 'ServerSide', id: 'x',
+    serverSideType: 'io.mateu.mdd.demovb.infra.in.ui.HelloPage', route: '_empty',
+    children: [{ type: 'ClientSide', metadata: { type: 'Page', title: 'Hola' } }] } }] }
+  assert.equal(bootstrapHasApp(page), false)
+  // and @UI("/products") ProductsCrud: an error, no fragments
+  assert.equal(bootstrapHasApp({ messages: [{ variant: 'error', text: '__load__ not supported by ProductsCrud' }], fragments: [] }), false)
+  // an App (the root of a console) keeps the menu's home
+  assert.equal(bootstrapHasApp({ fragments: [{ component: { type: 'ClientSide', metadata: { type: 'App', menu: [] } } }] }), true)
+  assert.equal(bootstrapHasApp({ fragments: [{ component: { type: 'ServerSide', serverSideType: 'X',
+    children: [{ type: 'ClientSide', metadata: { type: 'App' } }] } }] }), true)
+  assert.equal(bootstrapHasApp(null), false)
+  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.setMountWithoutApp\(withoutApp\)/)
+  assert.match(readFileSync(join(here, 'transport.mjs'), 'utf8'), /consumedRoute: '_empty'/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

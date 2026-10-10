@@ -151,10 +151,12 @@ define([
       bridge.connectivity.subscribe((online) => {
         $application.variables.mateuOffline = !online;
       });
-      const reg = bridge.reduceContexts(
-        { contexts: {}, stack: [], shell: null },
-        await bridge.bootstrapShell(base),
-      );
+      const boot = await bridge.bootstrapShell(base);
+      // un @UI que NO es un App (una página, un crud): sin menú ni ruta propia — su home es la
+      // carga «fresca» del montaje (bridge.bootstrapHasApp / setMountWithoutApp)
+      const withoutApp = !bridge.bootstrapHasApp(boot);
+      bridge.setMountWithoutApp(withoutApp);
+      const reg = bridge.reduceContexts({ contexts: {}, stack: [], shell: null }, boot);
       $application.variables.mateuRegistry = reg;
 
       // Las secciones que sirve otro pod llegan marcadas y sin hijos: hay que ir a
@@ -240,7 +242,7 @@ define([
       const first = firstLeaf || (firstGroup && firstGroup.children[0]);
       // la HOME del app (@HomeRoute, p.ej. la welcome page) manda sobre la primera
       // opción del menú
-      const homeRoute = nav.homeRoute || (first ? first.id : '');
+      const homeRoute = nav.homeRoute || (first ? first.id : '') || (withoutApp ? (bridge.currentMount() || '/') : '');
       $application.variables.mateuHomeRoute = homeRoute;
 
       // 1.5: URL de la shell — modo PATH (/ruta) cuando la app la sirve el backend Mateu

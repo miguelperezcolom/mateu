@@ -3,8 +3,9 @@
 // test.mjs/capture.mjs). El orden importa: transport.mjs usa lo de resilience.mjs, y al
 // concatenar todo cae en un mismo scope sin imports.
 // Uso: node make-amd.mjs   → escribe ../webApps/vbredwoodapp/resources/js/mateu-bridge.js
+//      node make-amd.mjs --check   → falla si el bridge commiteado no es el que genera poc/ (CI)
 
-import { readFileSync, writeFileSync, mkdirSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 
@@ -299,6 +300,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     routeOfPath,
     pathOfRoute,
     bootstrapShell,
+    bootstrapHasApp,
+    setMountWithoutApp,
     loadRoute,
     loadRouteInto,
     loadMenuRouteInto,
@@ -402,6 +405,17 @@ try {
 } catch (e) {
   console.error('mateu-bridge.js no compila: ' + e.message)
   process.exit(1)
+}
+// --check (CI): the committed bridge must be what the sources generate — a poc/ change without
+// `npm run bridge` would otherwise pass the Node tests and ship the old code in the app
+if (process.argv.includes('--check')) {
+  const committed = existsSync(out) ? readFileSync(out, 'utf8') : ''
+  if (committed !== amd) {
+    console.error('mateu-bridge.js no está al día con poc/: ejecuta npm run bridge')
+    process.exit(1)
+  }
+  console.log(`mateu-bridge.js al día (${amd.length} bytes)`)
+  process.exit(0)
 }
 writeFileSync(out, amd)
 console.log(`Escrito ${out} (${amd.length} bytes)`)

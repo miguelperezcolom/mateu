@@ -3,12 +3,17 @@
 // The controller the annotation processor generates for an @UI serves _index.html at the UI's
 // path and injects a hidden <mateu-ui baseUrl="/console" pathPrefix="/console">. That element is
 // two things at once:
-//   - the SIGNAL that the app is served by a Mateu backend → URLs are PATHS (/console/products),
-//     not hashes (#/products, the static serving of vb-serve / VB hosted at Oracle, where the
+//   - the SIGNAL that the app is served by a Mateu backend → URLs are PATHS (/console/orders),
+//     not hashes (#/orders, the static serving of vb-serve / VB hosted at Oracle, where the
 //     server cannot rewrite arbitrary paths to the index);
-//   - the MOUNT: the API lives at <mount>/mateu/v3/... and every screen route is relative to it.
-// Before this module the packaged app assumed the @UI at "" (it called /mateu/v3 on the root and
-// read location.pathname as the route), so an @UI("/console") booted into "Not found.".
+//   - the MOUNT: the API of that UI lives at <mount>/mateu/v3/... (the root /mateu/v3 is ANOTHER
+//     UI's, or nothing at all when no @UI sits at "").
+// Routes stay ABSOLUTE: the server's route space is global and already includes the @UI path (a
+// crud @UI("/products") answers homeRoute '/products', and '/products/new' is its new-record
+// route), so the browser path IS the route — except the mount itself, which is the HOME of the UI
+// (the menu's home for an App; the mount's own route for a page or a crud).
+// Before this module the packaged app called /mateu/v3 on the ROOT whatever the mount: it booted
+// the root app's shell at /products, and with no @UI at "" it did not boot at all.
 //
 // The pure functions are what the tests pin; initMount/mateuBase/urlOfRoute/currentRouteOf keep
 // the mount read once at boot (loadMateuShell) for the chains.
@@ -31,29 +36,24 @@ export function baseUrlOf(attrs, devDefault) {
   return normalizeMount(attrs.baseUrl != null ? attrs.baseUrl : attrs.baseurl)
 }
 
-/** The Mateu route of a browser path under the mount: '/console/products' → '/products',
- *  '/console' or '/console/' → '' (the home). A path outside the mount is returned as is. */
+/** The Mateu route of a browser path: the mount itself ('/console', '/console/', '/' at the root)
+ *  is the home (''); any other path is its own route (routes are absolute). */
 export function routeOfPath(pathname, mount) {
   const m = normalizeMount(mount)
-  let p = pathname || '/'
-  if (m) {
-    if (p === m || p === m + '/') return ''
-    if (p.startsWith(m + '/')) p = p.slice(m.length)
-  }
-  return p === '/' ? '' : p
+  const p = pathname || '/'
+  if (p === '/' || p === m || p === m + '/') return ''
+  return p
 }
 
-/** The browser path of a Mateu route under the mount: '/products' → '/console/products', the home
- *  ('' or '/') → '/console' ('/' at the root). A route may carry its ?query. */
+/** The browser path of a Mateu route: the home ('' or '/') → the mount ('/' at the root); any
+ *  other route is already the path. A route may carry its ?query. */
 export function pathOfRoute(route, mount) {
   const m = normalizeMount(mount)
   let r = route == null ? '' : String(route)
-  if (r === '/' ) r = ''
   if (r.charAt(0) === '?') r = '/' + r
-  if (r && r.charAt(0) !== '/') r = '/' + r
-  if (!r) return m || '/'
+  if (r === '' || r === '/') return m || '/'
   if (r.startsWith('/?')) return (m || '') + r.slice(m ? 1 : 0)
-  return m + r
+  return r.charAt(0) === '/' ? r : '/' + r
 }
 
 // ── the mount read at boot ─────────────────────────────────────────────────────────────────────
