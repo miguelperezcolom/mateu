@@ -49,6 +49,13 @@ class YamlSpecLoader:
         #: of the ``<route>.yaml`` convention, which ties a screen's layout to its URL and so
         #: prevents one definition from serving several routes.
         self._registry = registry if registry is not None else RouteRegistry(str(self._dir))
+        from mateu_core import dev_specs
+
+        dev_specs.register(self)
+
+    def invalidate_specs(self) -> None:
+        """Dev mode: a spec changed — every parsed definition is read again on next use."""
+        self._by_route.clear()
 
     def load_spec(self, route: str | None) -> Spec | None:
         key = _normalize(route)

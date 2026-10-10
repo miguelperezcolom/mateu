@@ -49,6 +49,13 @@ class RestSourceRegistry:
         self._suppliers = list(suppliers or [])
         self._catalog: list[RestSourceEntry] | None = None
         self._lock = threading.Lock()
+        from mateu_core import dev_specs
+
+        dev_specs.register(self)
+
+    def invalidate_specs(self) -> None:
+        """Dev mode: a spec changed — the catalogue is read again on next use."""
+        self._catalog = None
 
     # ── the catalogue ─────────────────────────────────────────────────────────
     def catalog(self) -> list[RestSourceEntry]:
