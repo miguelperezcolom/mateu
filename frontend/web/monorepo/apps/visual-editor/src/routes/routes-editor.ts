@@ -5,6 +5,7 @@ import {
 } from '../model/routesModel'
 import type { ProjectIndex } from '../model/projectIndex'
 import '../widgets/ve-combo'
+import { formatAccessInline, parseAccessInline } from '../model/access'
 
 /**
  * The route-registry editor: a table over `routes.yaml`, binding each URL to a definition, a view
@@ -80,6 +81,7 @@ export class RoutesEditor extends LitElement {
                         <th style="width:13%" title="A named REST source that loads the record on entry (the route's data:)">Data</th>
                         <th style="width:11%">Fixed params</th>
                         <th style="width:11%">Default params</th>
+                        <th style="width:11%" title="access: — who may reach this route (and the routes under it). Anybody else gets 403, decided on the server">Access</th>
                         <th style="width:70px"></th>
                     </tr>
                 </thead>
@@ -152,6 +154,9 @@ export class RoutesEditor extends LitElement {
                     @change=${(e: Event) => this.patchRow(at, { fixedParams: params((e.target as HTMLInputElement).value) })} /></td>
                 <td class="mono"><input .value=${formatParams(row.defaultParams)} placeholder="k=v"
                     @change=${(e: Event) => this.patchRow(at, { defaultParams: params((e.target as HTMLInputElement).value) })} /></td>
+                <td class="mono"><input .value=${formatAccessInline(row.extra?.access)} placeholder="roles (admin, hr)"
+                    title="access: — roles, or roles=…; groups=…; scopes=…; permissions=…. Refused (403) for anybody else, children included; a menu link to it is hidden"
+                    @change=${(e: Event) => this.setAccess(at, row, (e.target as HTMLInputElement).value)} /></td>
                 <td><div class="row-actions">
                     <button class="mini" title="Add a child route (renders in this route's slot — a tab)" @click=${() => this.addChild(at)}>+ child</button>
                     <button class="del" title="Delete route" @click=${() => this.removeRow(at)}>✕</button>
@@ -179,6 +184,14 @@ export class RoutesEditor extends LitElement {
         for (const k of Object.keys(patch) as (keyof RouteRow)[]) if (row[k] === undefined) delete row[k]
         list[index] = row
         this.commit()
+    }
+
+    private setAccess(at: number[], row: RouteRow, text: string) {
+        const extra = { ...(row.extra ?? {}) }
+        const access = parseAccessInline(text)
+        if (access) extra.access = access
+        else delete extra.access
+        this.patchRow(at, { extra: Object.keys(extra).length ? extra : undefined })
     }
 
     private setData(at: number[], row: RouteRow, name: string) {

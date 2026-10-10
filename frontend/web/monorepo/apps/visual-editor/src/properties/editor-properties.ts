@@ -1,5 +1,8 @@
 import { LitElement, html, css } from 'lit'
 import '../widgets/ve-combo'
+import '../widgets/ve-access'
+import { COMPONENT_ACCESS_KEYS, restricts } from '../model/access'
+import { translationKeys } from '../model/translationsModel'
 import type { ComboOption } from '../widgets/comboModel'
 import { customElement, property, state } from 'lit/decorators.js'
 import { PageNode, scalarProps } from '../model/pageModel'
@@ -84,14 +87,14 @@ export class EditorProperties extends LitElement {
         const rich = spec ? spec.props.filter((p) => RICH.has(p.ref ?? '') || (p.kind === 'children' && p.ref === 'Option')) : []
         const slots = slotProps(spec)
         const richNames = new Set([...rich, ...slots].map((p) => p.name))
-        const structural = spec ? spec.props.filter((p) => (p.kind === 'children' || p.kind === 'complex') && !richNames.has(p.name) && p.name !== 'content') : []
+        const structural = spec ? spec.props.filter((p) => (p.kind === 'children' || p.kind === 'complex') && !richNames.has(p.name) && p.name !== 'content' && p.ref !== 'Access') : []
         // The props an author reaches for first stay in view; the long tail (a FormField has ~50) folds
         // under "More properties" — always including anything already set on the node.
         const common = new Set(COMMON[node.type] ?? known.slice(0, 8).map((p) => p.name))
         const isPrimary = (p: PropSpec) => common.has(p.name) || p.required || node[p.name] !== undefined
         const primary = known.filter(isPrimary)
         const more = known.filter((p) => !isPrimary(p))
-        const knownNames = new Set([...known.map((p) => p.name), ...richNames, ...structural.map((p) => p.name)])
+        const knownNames = new Set([...known.map((p) => p.name), ...richNames, ...structural.map((p) => p.name), ...ACCESS_KEYS])
         // Props on the node the schema does not know (hand-authored, or a newer catalog) — keep editable.
         const extra = scalarProps(node).filter((k) => k !== 'note' && !knownNames.has(k) && (node[k] == null || typeof node[k] !== 'object'))
 
@@ -119,6 +122,8 @@ export class EditorProperties extends LitElement {
                     @click=${() => this.fire('slot-add', { key: p.name, ref: p.ref })}>+ ${slotLabel(p.name)}</button>`)}</div>
                 <div class="help">${slots.map((p) => `${p.name}: ${Array.isArray(node[p.name]) ? (node[p.name] as unknown[]).length : 0}`).join(' · ')} — select them in Layers</div>` : ''}
 
+            ${this.accessSection(node)}
+
             ${extra.length ? html`<div class="section">Other</div>` : ''}
             ${extra.map((k) => this.textField(k, node[k]))}
 
@@ -145,6 +150,8 @@ export class EditorProperties extends LitElement {
     private pickerOptionsFor(prop: string): ComboOption[] | null {
         if (this.node?.type === 'Partial' && prop === 'ref') return (this.project?.partials ?? []).map((p) => ({ value: p }))
         if (this.node?.type === 'FormField' && prop === 'id') return (this.contract?.fields ?? []).map((f) => ({ value: f, hint: 'view model' }))
+        const i18n = this.translationOptions(prop)
+        if (i18n) return i18n
         if (prop === 'actionId' || prop.endsWith('ActionId')) {
             return [
                 ...this.pageActionIds.map((a) => ({ value: a, hint: 'this page' })),
@@ -152,6 +159,32 @@ export class EditorProperties extends LitElement {
             ]
         }
         return null
+    }
+
+    /**
+     * Who may see / edit / use this component: `eyesOnly`, `readOnlyUnless`, `disabledUnless` (the
+     * YAML twins of the annotations). Decided on the server per request; cosmetic in Play.
+     */
+    private accessSection(node: PageNode) {
+        const declared = COMPONENT_ACCESS_KEYS.filter((k) => restricts(node[k.key]))
+        return html`
+            <details class="more" ?open=${declared.length > 0}>
+                <summary>Access${declared.length ? ` (${declared.map((k) => k.key).join(', ')})` : ''}</summary>
+                <div class="help">Roles, groups, scopes or permissions from the caller's token — one of each listed dimension. Checked on the server; with no server (Play, a static bundle) it is cosmetic.</div>
+                ${COMPONENT_ACCESS_KEYS.map((k) => html`
+                    <label>${k.label} <span class="muted-inline">— ${k.key}: ${k.help}</span></label>
+                    <ve-access style="margin: 0.1rem 0.75rem 0.4rem" .value=${node[k.key]}
+                        @change=${(e: Event) => this.emit(k.key, (e.target as unknown as { value: unknown }).value)}></ve-access>`)}
+            </details>`
+    }
+
+    /** `${i18n.key}` suggestions for a text prop (label, title…), from the project's catalogues. */
+    private translationOptions(prop: string): ComboOption[] | null {
+        if (!TRANSLATABLE.has(prop)) return null
+        const files = this.project?.translations ?? []
+        if (!files.length) return null
+        const first = files[0]
+        return translationKeys(files).map((k) => ({ value: '${i18n.' + k + '}', label: k, hint: first.messages[k] }))
     }
 
     /** The mount's routes, each with the page it shows. */
@@ -314,6 +347,13 @@ const COMMON: Record<string, string[]> = {
     Tab: ['label', 'routeKey', 'badge', 'active'],
     TabLayout: ['variant', 'orientation'],
 }
+
+/** The access overlay keys every component accepts (edited in the Access section). */
+const ACCESS_KEYS = COMPONENT_ACCESS_KEYS.map((k) => k.key)
+
+/** Text props that may carry a `${i18n.key}` — offered the project's translation keys. */
+const TRANSLATABLE = new Set(['label', 'title', 'subtitle', 'text', 'placeholder', 'description', 'headerTitle',
+    'actionLabel', 'emptyStateMessage', 'overline', 'header', 'footer', 'caption', 'helperText', 'pageTitle'])
 
 /** Complex prop types with a dedicated editor. */
 const RICH = new Set(['RestDataSource', 'Actionable'])

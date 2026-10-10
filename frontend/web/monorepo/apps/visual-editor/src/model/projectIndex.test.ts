@@ -66,3 +66,26 @@ describe('buildIndex — sources and nested routes', () => {
         expect(idx.routes[1].definition).toBe('orders.yaml')
     })
 })
+
+describe('buildIndex: translations and environments', () => {
+    const files: ProjectFile[] = [
+        { path: 'translations/es.yaml', content: 'messages:\n  orders:\n    title: Pedidos\n    new: Nuevo\n' },
+        { path: 'i18n/english.yaml', content: 'type: Translations\nlocale: en\nmessages:\n  orders: {title: Orders}\n  bye: Bye\n' },
+        { path: 'environments/pre.yaml', content: 'sources:\n  orders: {baseUrl: https://pre.acme.com}\n' },
+        { path: 'envs/prod.yaml', content: 'type: Environment\nname: pro\nsources: {}\n' },
+        { path: 'orders.yaml', content: 'type: VerticalLayout\ncontent: []\n' },
+    ]
+
+    it('indexes each catalogue (locale + flattened keys) and keeps them out of the pages', () => {
+        const idx = buildIndex(files)
+        expect(idx.translations?.map((t) => [t.locale, Object.keys(t.messages)])).toEqual([
+            ['es', ['orders.title', 'orders.new']],
+            ['en', ['orders.title', 'bye']],
+        ])
+        expect(idx.pages).toEqual(['orders.yaml'])
+    })
+
+    it('indexes the environments by name (the file name when the file does not say)', () => {
+        expect(buildIndex(files).environments).toEqual(['pre', 'pro'])
+    })
+})

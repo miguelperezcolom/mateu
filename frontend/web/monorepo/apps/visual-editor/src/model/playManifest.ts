@@ -1,6 +1,7 @@
 import { parse } from 'yaml'
 import type { ProjectFile } from './projectIndex'
 import { isRoutesYaml, parseRoutes, flattenRoutes } from './routesModel'
+import { catalogueOf, environmentName, parseTranslationsFile, type TranslationsFile } from './translationsModel'
 
 /**
  * The manifest play mode runs the mount from: the same "specs mode" shape a static bundle ships
@@ -19,6 +20,8 @@ export interface PlayManifest {
     routes: { routes: PlayRoute[] }
     sources?: { sources: unknown[] }
     definitions: Record<string, unknown>
+    /** locale → key → text: the shared runtime resolves `${i18n.…}` with it, as for a static bundle. */
+    translations?: Record<string, Record<string, string>>
 }
 
 export interface PlayRoute {
@@ -34,14 +37,22 @@ export function buildPlayManifest(files: ProjectFile[], generatedAt = new Date()
     const routes: PlayRoute[] = []
     const definitions: Record<string, unknown> = {}
     const sources: unknown[] = []
+    const catalogues: TranslationsFile[] = []
     for (const f of files ?? []) {
         if (isRoutesYaml(f.content)) { routes.push(...flattenRoutes(parseRoutes(f.content).routes).map(toPlayRoute)); continue }
+        // a message catalogue travels as the manifest's `translations`; an environment re-points the
+        // server's sources and means nothing here — neither is a screen
+        const catalogue = parseTranslationsFile(f.path, f.content)
+        if (catalogue) { catalogues.push(catalogue); continue }
+        if (environmentName(f.path, f.content)) continue
         const obj = parseObject(f.content)
         if (!obj || obj.type === 'UI') continue // unreadable, or the mount descriptor
         if (obj.type === 'Sources' || (!obj.type && Array.isArray(obj.sources))) sources.push(...((obj.sources as unknown[]) ?? []))
         else definitions[normalizePath(f.path)] = obj
     }
-    return { staticOnly: true, generatedAt, routes: { routes }, sources: sources.length ? { sources } : undefined, definitions }
+    const manifest: PlayManifest = { staticOnly: true, generatedAt, routes: { routes }, sources: sources.length ? { sources } : undefined, definitions }
+    if (catalogues.length) manifest.translations = catalogueOf(catalogues)
+    return manifest
 }
 
 /** A route row as the runtime reads it: `layout:` as the definition, a bare `data: name` as `{ref}`. */
@@ -75,4 +86,13 @@ export function withEdited(files: ProjectFile[], path: string | undefined, text:
 
 function normalizePath(p: string): string {
     return (p ?? '').replace(/^\/+/, '').replace(/^specs\/ui\//, '')
+}
+
+/**
+ * Whether the mount's files declare access rules (`access:` on a route / menu item / action,
+ * `eyesOnly:` / `readOnlyUnless:` / `disabledUnless:` on a component). Play has no identity to check
+ * them against — they are applied on the server — so it shows everything and says so.
+ */
+export function filesDeclareAccess(files: ProjectFile[]): boolean {
+    return (files ?? []).some((f) => /^\s*(-\s*)?(access|eyesOnly|readOnlyUnless|disabledUnless)\s*:|[{,]\s*(access|eyesOnly|readOnlyUnless|disabledUnless)\s*:/m.test(f.content ?? ''))
 }

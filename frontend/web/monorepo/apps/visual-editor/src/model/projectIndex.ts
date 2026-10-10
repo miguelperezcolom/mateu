@@ -2,6 +2,7 @@ import { isMountYaml } from './mountModel'
 import { isRoutesYaml, parseRoutes, flattenRoutes } from './routesModel'
 import { parse } from 'yaml'
 import { hasAppShell } from './appModel'
+import { environmentName, parseTranslationsFile, type TranslationsFile } from './translationsModel'
 
 /**
  * A file of the mount as the host hands it over: a path relative to `specs/ui/` plus its raw YAML.
@@ -35,6 +36,10 @@ export interface ProjectIndex {
     viewModels: string[]  // distinct view-model FQNs referenced by routes
     /** The REST source catalogue (`sources.yaml`): each named endpoint, as authored. */
     sources: SourceEntry[]
+    /** The message catalogues (`type: Translations` / `translations/<locale>.yaml`), flattened. */
+    translations?: TranslationsFile[]
+    /** The deployment environments (`type: Environment` / `environments/<name>.yaml`), by name. */
+    environments?: string[]
 }
 
 /** One entry of the REST source catalogue — the shape the renderer's catalogue takes. */
@@ -74,6 +79,8 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
     const appShells: string[] = []
     const viewModels = new Set<string>()
     const sources: SourceEntry[] = []
+    const translations: TranslationsFile[] = []
+    const environments: string[] = []
 
     for (const f of files ?? []) {
         const path = normalize(f.path)
@@ -81,6 +88,10 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
         if (!path) continue
         if (isMountYaml(content)) continue // the mount descriptor is not itself a reference target
         if (isSourcesYaml(content)) { sources.push(...parseSources(content)); continue }
+        const catalogue = parseTranslationsFile(path, content)
+        if (catalogue) { translations.push(catalogue); continue }
+        const environment = environmentName(path, content)
+        if (environment) { environments.push(environment); continue }
         if (isRoutesYaml(content)) {
             // Children are flattened to their absolute route, as the loader does.
             for (const r of flattenRoutes(parseRoutes(content).routes)) {
@@ -101,6 +112,9 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
         appShells: dedupe(appShells),
         viewModels: [...viewModels].sort((a, b) => a.localeCompare(b)),
         sources,
+        // only when present, so an index of a mount without them keeps its shape
+        ...(translations.length ? { translations } : {}),
+        ...(environments.length ? { environments: dedupe(environments) } : {}),
     }
 }
 

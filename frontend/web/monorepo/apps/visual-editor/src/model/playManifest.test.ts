@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { buildPlayManifest, withEdited } from './playManifest'
+import { buildPlayManifest, filesDeclareAccess, withEdited } from './playManifest'
 
 describe('buildPlayManifest', () => {
     const files = [
@@ -34,5 +34,26 @@ describe('withEdited', () => {
     it('adds the edited file when the mount does not have it yet, and leaves the files alone with nothing edited', () => {
         expect(withEdited(files, 'c.yaml', 'c')).toHaveLength(3)
         expect(withEdited(files, undefined, 'x')).toBe(files)
+    })
+})
+
+describe('buildPlayManifest: translations, environments, access', () => {
+    const files = [
+        { path: 'translations/es.yaml', content: 'messages:\n  title: Pedidos\n' },
+        { path: 'en.yaml', content: 'type: Translations\nlocale: en\nmessages: {title: Orders}\n' },
+        { path: 'environments/pre.yaml', content: 'sources:\n  orders: {baseUrl: https://pre}\n' },
+        { path: 'orders.yaml', content: 'type: VerticalLayout\ncontent:\n  - {type: Text, text: "${i18n.title}", eyesOnly: {roles: [admin]}}\n' },
+    ]
+
+    it('ships the catalogues as translations and keeps them and the environments out of the definitions', () => {
+        const m = buildPlayManifest(files, 'now')
+        expect(m.translations).toEqual({ es: { title: 'Pedidos' }, en: { title: 'Orders' } })
+        expect(Object.keys(m.definitions)).toEqual(['orders.yaml'])
+    })
+
+    it('notices access rules (cosmetic in Play)', () => {
+        expect(filesDeclareAccess(files)).toBe(true)
+        expect(filesDeclareAccess([files[0]])).toBe(false)
+        expect(filesDeclareAccess([{ path: 'r.yaml', content: 'routes:\n  - route: x\n    access: {roles: [a]}\n' }])).toBe(true)
     })
 })
