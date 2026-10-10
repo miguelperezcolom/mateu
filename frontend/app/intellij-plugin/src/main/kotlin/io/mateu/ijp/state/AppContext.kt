@@ -1018,30 +1018,65 @@ class AppContext(val session: AppSession) {
 
     /** A Dialog/Drawer met inside a component tree (not an Add fragment): open it unless already open. */
     fun openOverlayOnce(component: JsonNode, state: JsonNode, data: JsonNode) {
-        val key = component.text("id").ifBlank { component.path("metadata").text("id") }
+        // The overlay's OWN id first: the wrapping component id is a placeholder the server stamps
+        // on every overlay, so keying by it would let one open drawer block all the others.
+        val key = (io.mateu.ijp.ui.PageSlots.overlayKey(component) ?: component.text("id"))
             .ifBlank { component.path("metadata").text("headerTitle") }
         if (key.isNotBlank() && !inlineOverlaysOpen.add(key)) return
         openOverlay(component, state, data) { if (key.isNotBlank()) inlineOverlaysOpen.remove(key) }
     }
 
-    private fun openOverlay(component: JsonNode, state: JsonNode, data: JsonNode, onClosed: () -> Unit = {}) {
+    /**
+     * Builds an overlay's body in a fresh CHILD context. The overlay's `initialData` (e.g. the crud
+     * edit drawer's field values) seeds the child's state when the fragment brings none.
+     */
+    private fun overlayBody(component: JsonNode, state: JsonNode, data: JsonNode): JComponent {
         val meta = component.path("metadata")
         val child = AppContext(session)
         child.titleConsumer = {}
         val panel = child.newSlot()
         child.contentPane = panel
+        val initialData = meta.path("initialData")
+        val effState = if ((state.isNull || state.isMissingNode || state.isEmpty) && initialData.isObject) initialData else state
+        if (effState.isObject) effState.properties().forEach { (k, v) -> child.currentComponentState[k] = v }
         val renderer = ComponentRenderer(child)
         // Header/content/footer nest inside the Drawer's METADATA record (like Card), not children.
         panel.layout = java.awt.BorderLayout()
-        meta.path("header").takeIf { it.isObject }?.let { panel.add(renderer.render(it, state, data), java.awt.BorderLayout.NORTH) }
-        meta.path("content").takeIf { it.isObject }?.let { panel.add(renderer.render(it, state, data), java.awt.BorderLayout.CENTER) }
-        meta.path("footer").takeIf { it.isObject }?.let { panel.add(renderer.render(it, state, data), java.awt.BorderLayout.SOUTH) }
+        meta.path("header").takeIf { it.isObject }?.let { panel.add(renderer.render(it, effState, data), java.awt.BorderLayout.NORTH) }
+        meta.path("content").takeIf { it.isObject }?.let { panel.add(renderer.render(it, effState, data), java.awt.BorderLayout.CENTER) }
+        meta.path("footer").takeIf { it.isObject }?.let { panel.add(renderer.render(it, effState, data), java.awt.BorderLayout.SOUTH) }
         val children = component.path("children")
-        if (children.isArray) for (c in children) panel.add(renderer.render(c, state, data), java.awt.BorderLayout.CENTER)
+        if (children.isArray) for (c in children) panel.add(renderer.render(c, effState, data), java.awt.BorderLayout.CENTER)
+        return javax.swing.JScrollPane(panel).apply { border = null }
+    }
 
+    private fun openOverlay(component: JsonNode, state: JsonNode, data: JsonNode, onClosed: () -> Unit = {}) {
+        val meta = component.path("metadata")
+        // The same overlay id re-sent while it is open (the crud edit drawer's "Save and next", its
+        // error banner) REFRESHES the open window in place instead of stacking a duplicate. The
+        // registry is session-wide: the re-send usually answers an action run from INSIDE the
+        // overlay, i.e. from its child context, not from the context that opened it.
+        val key = io.mateu.ijp.ui.PageSlots.overlayKey(component)
+        if (key != null) {
+            // false = that window is already gone (disposed, close event still pending): open anew.
+            if (session.openOverlays[key]?.invoke(component, state, data) == true) return
+        }
         val owner = contentPane?.let { javax.swing.SwingUtilities.getWindowAncestor(it) }
         val dialog = javax.swing.JDialog(owner, meta.text("headerTitle"), java.awt.Dialog.ModalityType.MODELESS)
-        dialog.contentPane.add(javax.swing.JScrollPane(panel).apply { border = null })
+        dialog.contentPane.add(overlayBody(component, state, data))
+        val refresh: (JsonNode, JsonNode, JsonNode) -> Boolean = { c, st, d ->
+            if (!dialog.isDisplayable) {
+                false
+            } else {
+                dialog.title = c.path("metadata").text("headerTitle")
+                dialog.contentPane.removeAll()
+                dialog.contentPane.add(overlayBody(c, st, d))
+                dialog.contentPane.revalidate()
+                dialog.contentPane.repaint()
+                true
+            }
+        }
+        if (key != null) session.openOverlays[key] = refresh
         val width = remToPx(meta.text("width"), 448)
         if (owner != null) {
             val h = (owner.height - 80).coerceAtLeast(300)
@@ -1056,6 +1091,8 @@ class AppContext(val session: AppSession) {
         dialog.addWindowListener(object : java.awt.event.WindowAdapter() {
             override fun windowClosed(e: java.awt.event.WindowEvent) {
                 session.removeOverlay(close)
+                // By value: a newer window under the same id may already have taken the slot.
+                if (key != null) session.openOverlays.remove(key, refresh)
                 onClosed()
             }
         })
@@ -1114,6 +1151,13 @@ class AppContext(val session: AppSession) {
             "MarkAsDirty" -> setDirtyState(true)
             "MarkAsClean" -> setDirtyState(false)
             "DispatchEvent" -> dispatchNamedEvent(cmdData)
+            // UICommand.announce(text) / announceAssertive(text): tell assistive tech what happened.
+            // Draws nothing — polite queues, assertive interrupts.
+            "Announce" -> io.mateu.ijp.ui.PageSlots.announcementOf(cmdData)?.let { a ->
+                SwingUtilities.invokeLater {
+                    contentPane?.let { io.mateu.ijp.ui.announce(it, a.text, a.assertive) }
+                }
+            }
             "CloseModal" -> {
                 // closeModal([eventName[, payload]]): close the topmost overlay, then emit the
                 // named event so the host page can react (e.g. reload) — same contract as the web.

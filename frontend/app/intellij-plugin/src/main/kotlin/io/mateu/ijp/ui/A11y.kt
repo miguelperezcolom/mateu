@@ -73,8 +73,12 @@ private fun JComponent.firstFocusableDescendant(): JComponent? {
  * The platform announcer arrived in 2022.3 and is only wired up on some OS/screen-reader
  * combinations, so the call is reflective and failure is silent: an announcement that cannot be
  * made must never take the feature down with it.
+ *
+ * `assertive` interrupts whatever the screen reader is saying (an error); polite (`false`) queues
+ * behind it — the two live regions of the web renderers. Existing callers keep the interrupting
+ * default.
  */
-fun announce(component: JComponent, message: String) {
+fun announce(component: JComponent, message: String, assertive: Boolean = true) {
     if (message.isBlank()) return
     try {
         val clazz = Class.forName("com.intellij.util.ui.accessibility.AccessibleAnnouncerUtil")
@@ -84,7 +88,7 @@ fun announce(component: JComponent, message: String) {
             String::class.java,
             Boolean::class.javaPrimitiveType,
         )
-        method.invoke(null, component, message, true)
+        method.invoke(null, component, message, assertive)
     } catch (_: Throwable) {
         // No announcer on this platform build — the message still reaches the user through the
         // notification/toast path that called us.

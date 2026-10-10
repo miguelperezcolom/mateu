@@ -29,7 +29,9 @@ import javax.swing.SwingConstants
 fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
     val panel = verticalPanel(6)
     panel.border = JBUI.Borders.empty(28, 16)
-    panel.background = Color(0x2B, 0x3A, 0x55)
+    // `tone` (ocean, pine, …): a dark tinted band with light ink; absent/unknown → the default look.
+    val tone = PageSlots.heroToneColor(metadata.text("tone"))
+    panel.background = tone ?: Color(0x2B, 0x3A, 0x55)
     panel.isOpaque = true
     val title = JBLabel(metadata.text("title"), SwingConstants.CENTER)
     title.font = title.font.deriveFont(Font.BOLD, 24f)
@@ -38,7 +40,7 @@ fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonN
     val subtitle = metadata.text("subtitle")
     if (subtitle.isNotBlank()) {
         val l = JBLabel(subtitle, SwingConstants.CENTER)
-        l.foreground = Color(0xD9, 0xE2, 0xF2)
+        l.foreground = if (tone != null) PageSlots.HERO_SUBTITLE_INK else Color(0xD9, 0xE2, 0xF2)
         panel.addStacked(l, 10)
     }
     for (child in component.path("children")) panel.addStacked(r.render(child, state, data), 6)
@@ -1430,11 +1432,11 @@ fun renderFoldout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode,
     val children = component.path("children").toList()
     val panelsInfo = metadata.arr("panels")
 
-    fun column(title: String, subtitle: String, content: JComponent): JComponent {
+    fun column(title: String, subtitle: String, content: JComponent, summary: JComponent? = null): JComponent {
         val col = JPanel(BorderLayout(0, JBUI.scale(8)))
         col.isOpaque = false
         col.border = JBUI.Borders.empty(0, 0, 0, JBUI.scale(16))
-        if (title.isNotBlank() || subtitle.isNotBlank()) {
+        if (title.isNotBlank() || subtitle.isNotBlank() || summary != null) {
             val heading = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0)).apply { isOpaque = false }
             if (title.isNotBlank()) {
                 heading.add(JBLabel(title).apply { font = font.deriveFont(Font.BOLD, font.size2D + 3f) })
@@ -1442,7 +1444,16 @@ fun renderFoldout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode,
             if (subtitle.isNotBlank()) {
                 heading.add(JBLabel("· $subtitle").apply { foreground = uxMuted() })
             }
-            col.add(heading, BorderLayout.NORTH)
+            if (summary == null) {
+                col.add(heading, BorderLayout.NORTH)
+            } else {
+                // The panel's `summary` slot — what a FOLDED panel shows. These columns never fold,
+                // so it reads as a compact digest line under the heading.
+                val top = verticalPanel(2)
+                top.addStacked(heading, 2)
+                top.addStacked(summary, 0)
+                col.add(top, BorderLayout.NORTH)
+            }
         }
         // NO inner scroll pane: nested JScrollPanes collapse to 0 in the stacked form (see the
         // renderProbe gotcha) — the page's own scroller handles overflow.
@@ -1461,7 +1472,8 @@ fun renderFoldout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode,
     constraints.fill = java.awt.GridBagConstraints.BOTH
     constraints.weighty = 1.0
 
-    val overview = children.firstOrNull { it.text("slot") == "overview" } ?: children.firstOrNull()
+    val overview = children.firstOrNull { it.text("slot") == "overview" }
+        ?: children.firstOrNull { !it.text("slot").startsWith("summary-") && !it.text("slot").startsWith("panel-") }
     var gridx = 0
     if (overview != null) {
         constraints.gridx = gridx++
@@ -1472,8 +1484,11 @@ fun renderFoldout(r: ComponentRenderer, component: JsonNode, metadata: JsonNode,
         val content = children.firstOrNull { it.text("slot") == "panel-$i" } ?: continue
         constraints.gridx = gridx++
         constraints.weightx = widthUnits(info.text("width", "22rem"))
+        val summary = PageSlots.foldoutSummary(children, i)?.let { node ->
+            r.render(node, state, data).apply { foreground = uxMuted() }
+        }
         row.add(
-            column(info.text("title", "Panel ${i + 1}"), info.text("subtitle"), r.render(content, state, data)),
+            column(info.text("title", "Panel ${i + 1}"), info.text("subtitle"), r.render(content, state, data), summary),
             constraints,
         )
     }
