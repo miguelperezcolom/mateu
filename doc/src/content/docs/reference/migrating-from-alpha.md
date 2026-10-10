@@ -67,8 +67,9 @@ These compile unchanged and **behave differently**. Check each against your scre
 
 ## Wire and renderers
 
-- Every response now carries `wireVersion` (`3.0`). A custom renderer should check it and ignore
-  unknown fields and component types — see the [wire specification](/reference/wire-specification/).
+- Every response now carries `wireVersion` (`3.0`). The first-party renderers check it and show a
+  clear message when the server speaks another wire major; a custom renderer should do the same and
+  ignore unknown fields and component types — see the [wire specification](/reference/wire-specification/).
 - The Redwood renderer serves Mateu routes **by path** (`/products`), not by hash (`#/products`).
   Bookmarks with a hash keep working in the statically served VB app only.
 

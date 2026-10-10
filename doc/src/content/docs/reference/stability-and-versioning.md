@@ -97,7 +97,8 @@ the archetype packages of `core` (`io.mateu.core.infra.declarative.orchestrators
   leave the promise silently; it is deprecated first like anything else.
 
 Run it locally with `mvn verify -pl shared/uidl` (add `-Dmateu.japicmp.enforce=true` to see what
-would fail).
+would fail; `-Dmateu.japicmp.skip=true` skips it, e.g. offline — the baseline jar comes from Maven
+Central).
 
 ## Wire compatibility
 
@@ -109,6 +110,11 @@ in short:
   types and new commands. It never removes a field, changes its type or changes its meaning.
 - **Consumers must be tolerant**: ignore unknown fields, render unknown component types as a
   placeholder and keep going. Every first-party renderer does; a custom renderer must too.
+- **Consumers check the major.** The web (Vaadin) and Redwood renderers, React Native and the
+  IntelliJ plugin compare the response's `wireVersion` with the major they were built for: the same
+  major is fine whatever the minor; another major shows the user a clear message ("This app's server
+  speaks Mateu wire 4.x; this renderer supports 3.x") once, instead of a broken screen. The wire
+  major only changes with a Mateu major.
 - **Producers must be conservative**: a backend never requires a field a renderer of the same wire
   major might not send.
 - A backend and a renderer of the **same wire major** interoperate. In practice: keep the backend

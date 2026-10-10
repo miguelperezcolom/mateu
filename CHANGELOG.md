@@ -30,6 +30,9 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   change in a minor release. Marked today: the AI assistant (`@AI`, `Chat`, the MCP wiring); the
   Figma contract is documented as experimental.
 
+- **Wire version check** in every first-party renderer (web/Vaadin, Redwood, React Native, IntelliJ):
+  a server speaking another wire major gets one clear message instead of a broken screen.
+
 ### Breaking (read [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/))
 - **No-op annotations removed** from `io.mateu.uidl.annotations` — nothing ever read them:
   `@Accordion`, `@AccordionPanel`, `@BaseRoute`, `@H1`…`@H5`, `@HorizontalLayout`, `@VerticalLayout`,

@@ -28,6 +28,11 @@ class MateuApiClient(
     /** Credentials: a Bearer token is sent on every Mateu call when the provider has one. */
     var tokenProvider: TokenProvider = TokenProvider.NONE,
 ) {
+    /** Host hook: told ONCE when the server's `wireVersion` is another major (see [WireVersion]). */
+    var onWireMismatch: ((String) -> Unit)? = null
+
+    @Volatile private var wireReported = false
+
     private val http: HttpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(30))
         .build()
@@ -96,7 +101,18 @@ class MateuApiClient(
         if (response.statusCode() >= 400) {
             throw RuntimeException("HTTP ${response.statusCode()}: $responseBody")
         }
-        return mapper.readTree(responseBody)
+        val tree = mapper.readTree(responseBody)
+        observeWireVersion(tree)
+        return tree
+    }
+
+    /** The first response of another wire major is reported (once); rendering goes on regardless. */
+    internal fun observeWireVersion(tree: JsonNode?) {
+        if (wireReported || tree == null || !tree.isObject) return
+        val message = WireVersion.mismatch(tree.path("wireVersion").takeIf { it.isTextual }?.asText()) ?: return
+        wireReported = true
+        System.err.println("[Mateu] $message")
+        onWireMismatch?.invoke(message)
     }
 
     /**

@@ -87,6 +87,21 @@ class AppSession(
      *  Notifications system (balloons + event log); unset → dialog fallback. */
     var notifier: ((String?, String, String, Pair<String, () -> Unit>?) -> Unit)? = null
 
+    init {
+        // Another wire MAJOR: an IDE balloon (once) instead of a half-rendered screen; read lazily, so
+        // the host can install the notifier after the session is created.
+        apiClient.onWireMismatch = { message ->
+            SwingUtilities.invokeLater {
+                val host = notifier
+                when {
+                    host != null -> host("Mateu", message, "error", null)
+                    !java.awt.GraphicsEnvironment.isHeadless() ->
+                        javax.swing.JOptionPane.showMessageDialog(frame, message, "Mateu", javax.swing.JOptionPane.ERROR_MESSAGE)
+                }
+            }
+        }
+    }
+
     /** Set by the host so **menu entries** open a view: (label, route, consumedRoute, sst, actionId).
      *  A Crud listing is placed in the bottom tool window; anything else in a central editor tab. */
     var openViewHandler: ((String, String?, String?, String?, String?) -> Unit)? = null
