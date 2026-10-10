@@ -33,8 +33,9 @@ test.describe('renderer-agnostic smoke', () => {
   test('the app menu renders navigable entries', async ({ page }) => {
     await page.goto('/app');
     await expect(page.getByRole('main')).toBeVisible();
-    // The menu items are links/menuitems with accessible names — at least one is present.
-    const entries = page.getByRole('link').or(page.getByRole('menuitem'));
+    // The menu items are links, menu items or (the TABS shell) tabs with accessible names — at least
+    // one is present.
+    const entries = page.getByRole('link').or(page.getByRole('menuitem')).or(page.getByRole('tab'));
     await expect(entries.first()).toBeVisible({ timeout: 15000 });
   });
 

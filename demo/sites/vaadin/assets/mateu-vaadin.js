@@ -1,5 +1,5 @@
 const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/vendor-ol.js","assets/rolldown-runtime.js","assets/vendor.js","assets/vendor-chartjs.js","assets/vendor-diagrams.js","assets/vendor-editor.js"])))=>i.map(i=>d[i]);
-/* mateu sources 09e1f10b314c47a8 */
+/* mateu sources c456414ef8f10f90 */
 import{_ as e,a as t,c as n,d as r,f as i,g as a,h as o,i as s,l as c,m as l,n as u,o as d,p as f,r as p,s as m,t as h,u as g,v as _}from"./vendor-vaadin.js";import{C as v,T as ee,_ as y,a as b,b as x,f as te,g as S,h as C,i as w,l as ne,n as re,o as T,r as E,s as D,t as ie,u as ae,y as O}from"./vendor-lit.js";import{a as oe,c as se,i as ce,l as le,s as ue}from"./vendor.js";(function(){let e=document.createElement(`link`).relList;if(e&&e.supports&&e.supports(`modulepreload`))return;for(let e of document.querySelectorAll(`link[rel="modulepreload"]`))n(e);new MutationObserver(e=>{for(let t of e)if(t.type===`childList`)for(let e of t.addedNodes)e.tagName===`LINK`&&e.rel===`modulepreload`&&n(e)}).observe(document,{childList:!0,subtree:!0});function t(e){let t={};return e.integrity&&(t.integrity=e.integrity),e.referrerPolicy&&(t.referrerPolicy=e.referrerPolicy),e.crossOrigin===`use-credentials`?t.credentials=`include`:e.crossOrigin===`anonymous`?t.credentials=`omit`:t.credentials=`same-origin`,t}function n(e){if(e.ep)return;e.ep=!0;let n=t(e);fetch(e.href,n)}})(),_(`vaadin-card`,v`
       :host(.mateu-section) {
         --vaadin-card-border-width: 0 !important;
@@ -9276,9 +9276,12 @@ ${i}
                             <button type="button" @click="${()=>e.goHome()}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
                             ${wh(t)}
                             </button>
-                            <nav class="mateu-tabs ${e.component?.cssClasses??``}" style="flex-grow: 1; min-width: 0; margin-left: 1.5rem;">
+                            <nav class="mateu-tabs ${e.component?.cssClasses??``}" style="flex-grow: 1; min-width: 0; margin-left: 1.5rem;"
+                                 role="${(t.menu?.length??0)<2?S:`tablist`}">
                                 ${(t.menu?.length??0)<2?S:t.menu.map((n,r)=>O`
-                                <button class="mateu-tab ${r===e.getSelectedIndex(t.menu)?`mateu-tab--active`:``}"
+                                <button type="button" role="tab"
+                                        aria-selected="${r===e.getSelectedIndex(t.menu)?`true`:`false`}"
+                                        class="mateu-tab ${r===e.getSelectedIndex(t.menu)?`mateu-tab--active`:``}"
                                         @click="${()=>e.selectRoute(n.consumedRoute,n.route,n.actionId,n.baseUrl,n.serverSideType,n.uriPrefix,n.rules)}"
                                 >${n.label}</button>`)}
                             </nav>

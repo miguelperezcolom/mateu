@@ -760,9 +760,12 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             <button type="button" @click="${() => container.goHome()}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
                             ${renderBrand(metadata)}
                             </button>
-                            <nav class="mateu-tabs ${container.component?.cssClasses ?? ''}" style="flex-grow: 1; min-width: 0; margin-left: 1.5rem;">
+                            <nav class="mateu-tabs ${container.component?.cssClasses ?? ''}" style="flex-grow: 1; min-width: 0; margin-left: 1.5rem;"
+                                 role="${(metadata.menu?.length ?? 0) < 2 ? nothing : 'tablist'}">
                                 ${(metadata.menu?.length ?? 0) < 2 ? nothing : metadata.menu.map((option, i) => html`
-                                <button class="mateu-tab ${i === container.getSelectedIndex(metadata.menu) ? 'mateu-tab--active' : ''}"
+                                <button type="button" role="tab"
+                                        aria-selected="${i === container.getSelectedIndex(metadata.menu) ? 'true' : 'false'}"
+                                        class="mateu-tab ${i === container.getSelectedIndex(metadata.menu) ? 'mateu-tab--active' : ''}"
                                         @click="${() => container.selectRoute(option.consumedRoute, option.route, option.actionId, option.baseUrl, option.serverSideType, option.uriPrefix, option.rules)}"
                                 >${option.label}</button>`)}
                             </nav>
