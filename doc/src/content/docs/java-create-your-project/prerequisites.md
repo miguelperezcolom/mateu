@@ -26,11 +26,15 @@ Pick one of the supported frameworks:
 
 | Framework | Version |
 |---|---|
-| Spring Boot MVC | 3.x / 4.x |
-| Spring Boot WebFlux | 3.x / 4.x |
+| Spring Boot MVC | 4.x |
+| Spring Boot WebFlux | 4.x |
 | Quarkus | 3.x |
 | Micronaut | 4.x |
 | Helidon MP | 4.x |
+
+**Spring Boot 3 is not supported.** The Spring adapters are built and tested against Spring
+Boot 4 (Spring Framework 7) only; nothing builds or tests on Boot 3, and Boot 4 moved packages
+the adapters depend on. Upgrade the application to Boot 4 (Java 21) to use Mateu.
 
 ## Next
 

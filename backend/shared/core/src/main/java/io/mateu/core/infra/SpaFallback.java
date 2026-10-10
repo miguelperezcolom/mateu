@@ -20,7 +20,10 @@ public final class SpaFallback {
     return path != null
         && !path.equals("/")
         && !path.contains(".")
-        && !path.startsWith("/actuator");
+        && !path.startsWith("/actuator")
+        // a parked document is fetched by navigating to it: it must reach its endpoint, never the
+        // index page
+        && !io.mateu.core.infra.documents.DocumentDownloads.isEndpoint(path);
   }
 
   /**

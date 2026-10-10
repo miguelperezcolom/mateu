@@ -60,7 +60,8 @@ public class DefaultActionRunnerProvider implements ActionRunnerProvider {
         };
       }
     }
-    if ("".equals(actionId)) {
+    // the route LOAD: "" from the web client, "__load__" from a shell's bootstrap — same thing
+    if ("".equals(actionId) || "__load__".equals(actionId)) {
       return new ActionRunner() {
         @Override
         public boolean supports(Object instance, String actionId, HttpRequest httpRequest) {

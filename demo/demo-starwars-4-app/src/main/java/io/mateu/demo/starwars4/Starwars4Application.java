@@ -11,7 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * {@link Planets} CRUD, both behind an {@code @App} shell whose menu, navigation and command-center
  * palette are inferred from the model.
  */
-@SpringBootApplication(scanBasePackages = "io.mateu")
+@SpringBootApplication(scanBasePackages = "io.mateu.demo")
 public class Starwars4Application {
 
   public static void main(String[] args) {

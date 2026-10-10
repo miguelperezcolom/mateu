@@ -6,7 +6,7 @@ import io.mateu.core.infra.MateuController;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIIncrementDto;
 import org.springframework.http.codec.ServerSentEvent;
-import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,11 +39,14 @@ public class ${simpleClassName}MateuController implements MateuController {
     @PostMapping("v3/sse/**")
     public Flux<ServerSentEvent<UIIncrementDto>> runSseAction(
             @RequestBody RunActionRqDto rq,
-            ServerHttpRequest serverHttpRequest) throws Throwable {
-        var httpRequest = new SpringHttpRequest(serverHttpRequest).storeRunActionRqDto(rq);
+            ServerWebExchange exchange) throws Throwable {
+        var springRequest = new SpringHttpRequest(exchange.getRequest());
+        var httpRequest = springRequest.storeRunActionRqDto(rq);
         httpRequest.setAttribute("uiId", uiId);
         httpRequest.setAttribute("baseUrl", baseUrl);
-        return service.runAction(uiId, rq, baseUrl, httpRequest)
+        // the authenticated principal (Spring Security) is resolved reactively before running
+        return SpringHttpRequest.withPrincipalOf(exchange, springRequest,
+                        () -> service.runAction(uiId, rq, baseUrl, httpRequest))
                 .map(increment -> ServerSentEvent.builder(increment).build());
     }
 
@@ -51,11 +54,14 @@ public class ${simpleClassName}MateuController implements MateuController {
     @PostMapping("v3/{operation:(?!sse$).+}/**")
     public Mono<UIIncrementDto> runStep(
             @RequestBody RunActionRqDto rq,
-            ServerHttpRequest serverHttpRequest) throws Throwable {
-        var httpRequest = new SpringHttpRequest(serverHttpRequest).storeRunActionRqDto(rq);
+            ServerWebExchange exchange) throws Throwable {
+        var springRequest = new SpringHttpRequest(exchange.getRequest());
+        var httpRequest = springRequest.storeRunActionRqDto(rq);
         httpRequest.setAttribute("uiId", uiId);
         httpRequest.setAttribute("baseUrl", baseUrl);
-        return service.runAction(uiId, rq, baseUrl, httpRequest).next();
+        return SpringHttpRequest.withPrincipalOf(exchange, springRequest,
+                        () -> service.runAction(uiId, rq, baseUrl, httpRequest))
+                .next();
     }
 
 }

@@ -160,7 +160,9 @@ describe('New Mateu project — helpers', () => {
         expect(validate(manifest, { ...base, runtime: 'dotnet', sample: 'empty' }).join()).toContain('samples')
         expect(validate(manifest, { ...base, authoring: 'static', runtime: undefined, sample: 'listing' })).toEqual([])
         expect(validate(manifest, { ...base, pages: ['form'] }).join()).toContain('page templates')
-        expect(validate(manifest, { ...base, runtime: 'spring-mvc', renderer: 'redwood' }).join()).toContain('AutoCrud')
+        expect(validate(manifest, { ...base, runtime: 'spring-mvc', renderer: 'redwood' })).toEqual([])
+        const withRule = { ...manifest, incompatible: [{ renderer: 'redwood', sample: 'crud', reason: 'not on Redwood yet' }] }
+        expect(validate(withRule as typeof manifest, { ...base, runtime: 'spring-mvc', renderer: 'redwood' }).join()).toContain('not on Redwood yet')
         expect(validate(manifest, { ...base, runtime: 'spring-mvc', renderer: 'redwood', sample: 'empty' })).toEqual([])
         expect(validate(manifest, { ...base, authoring: 'both', runtime: 'micronaut' }).join()).toContain('runs on')
     })

@@ -3388,6 +3388,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             .map((c) => {
               const def = { headerText: c.label || c.id, field: c.id }
               if (c.dataType === 'status') def.template = 'cellStatusBadge'
+              // un enum se lee por su etiqueta («In house»): la celda lee <id>__labelCell
+              if (!def.template && labelColumn(c)) def.field = c.id + LABEL_CELL_SUFFIX
               return def
             })
           if (rowEditable) {
@@ -3402,7 +3404,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             }
             return out
           }
-          const shown = statusBadgeRows(rows, m.columns).map((row, i) => (rowEditable
+          const shown = labelCellRows(statusBadgeRows(rows, m.columns), m.columns).map((row, i) => (rowEditable
             ? {
               ...dashEmpty(row),
               _rowNumber: row._rowNumber == null ? i : row._rowNumber,
@@ -4413,7 +4415,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           // las acciones por fila no tienen sitio en la tabla de solo consulta
           .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
         const page = (((ctx.data || {}).crud || {}).page) || {}
-        const rows = statusBadgeRows(page.content || [], wire)
+        const rows = labelCellRows(statusBadgeRows(page.content || [], wire), wire)
         return [{
           isGrid: true,
           isSubresourceGrid: true,
@@ -4421,7 +4423,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           label: md.title || '',
           columns: wire.map((c) => (c.dataType === 'status'
             ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
-            : { headerText: c.label || c.id, field: c.id })),
+            : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id })),
           rows,
           adp: dataProviderFactory ? dataProviderFactory(rows) : null,
           isEmpty: rows.length === 0,
@@ -5061,6 +5063,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           def.field = c.id + CLIP_CELL_SUFFIX
           def.template = 'cellClip'
         }
+        // un enum se lee por su etiqueta («In house», no IN_HOUSE): la celda lee <id>__labelCell
+        if (!def.template && labelColumn(c)) {
+          def.field = c.id + LABEL_CELL_SUFFIX
+        }
         return def
       }).concat(lines.extra.length ? [ROW_LINES_COLUMN] : []),
       // nº de líneas extra (0 = listado normal) y la clase de la tabla que les hace sitio
@@ -5071,7 +5077,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // se activa cuando el crud es editable inline (@InlineEditing marca las columnas
       // como editable en el wire); un listado de consulta queda en 'list' (aireado).
       // PRECOMPUTADO (CSP de VB).
-      display: (md.columns || []).some((col) => (col.metadata || col).editable) ? 'grid' : 'list',
+      // Y un listado @Compact (CrudlDto.compact) pide la misma densidad de trabajo: filas de
+      // 'grid' en vez de las aireadas de 'list'.
+      display: md.compact === true || (md.columns || []).some((col) => (col.metadata || col).editable) ? 'grid' : 'list',
       // tabla de TRABAJO: el clic de fila NO navega (las celdas se editan in situ)
       editable: (md.columns || []).some((col) => (col.metadata || col).editable),
       // DETALLE de fila (@Details en la fila): el campo que no es columna y se abre al pulsar la
@@ -5090,7 +5098,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         .filter((a) => a.rowsSelectedRequired).map((a) => a.id),
       // @RowStatus: cada fila lleva su tono (_tone) — lo pinta tables.mjs sobre los tr del oj-table;
       // @GroupBy: filas de grupo intercaladas (valor (n) + subtotales), sólo presentación
-      rows: groupedRows(toneRows(rowLinesRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), lines.extra), md.rowStatusField), md, (ctx.data || {}).crud),
+      rows: groupedRows(toneRows(rowLinesRows(labelCellRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), md.columns || []), lines.extra), md.rowStatusField), md, (ctx.data || {}).crud),
       // @Aggregate: los totales del conjunto filtrado, por columna (pie del oj-table)
       totals: aggregateFootersOf(md, (ctx.data || {}).crud),
       hasTotals: !!aggregateFootersOf(md, (ctx.data || {}).crud),
@@ -5203,7 +5211,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    */
   function listingSortOf(detail, sortFields) {
     if (!detail || !detail.header) return []
-    const key = String(detail.header).replace(new RegExp('(' + UUID_CELL_SUFFIX + '|' + PRIMARY_CELL_SUFFIX + '|' + CLIP_CELL_SUFFIX + ')$'), '')
+    const key = String(detail.header).replace(new RegExp('(' + UUID_CELL_SUFFIX + '|' + PRIMARY_CELL_SUFFIX + '|' + CLIP_CELL_SUFFIX + '|' + LABEL_CELL_SUFFIX + ')$'), '')
     const field = (sortFields && sortFields[key]) || key
     const direction = detail.direction === 'descending' ? 'descending' : 'ascending'
     return [{ field, direction }]
@@ -5231,22 +5239,28 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const picked = selection.all
       ? (rows || []).filter((r) => selection.except.indexOf(r._rowNumber) < 0)
       : (rows || []).filter((r) => selection.keys.indexOf(r._rowNumber) >= 0)
-    return picked.map((row) => {
-      const out = {}
-      for (const key of Object.keys(row)) {
-        const value = row[key]
-        if (key.endsWith(UUID_CELL_SUFFIX) || key.endsWith(CLIP_CELL_SUFFIX)) {
-          continue
-        }
-        if (value && typeof value === 'object' && !Array.isArray(value) && 'badgeClass' in value) {
-          const { badgeClass, ...rest } = value
-          out[key] = rest.plain ? rest.message : rest
-        } else {
-          out[key] = value
-        }
+    return picked.map(rowAsArrived)
+  }
+
+  /** A table row as the server sent it: without the cells precomputed for the templates (the
+   *  abbreviated UUID, the clipped text, an enum's label) and with a plain status word back in place
+   *  of its badge — what a row click ("view") and a selection hand back to the server. */
+  function rowAsArrived(row) {
+    if (!row || typeof row !== 'object') return row
+    const out = {}
+    for (const key of Object.keys(row)) {
+      const value = row[key]
+      if (key.endsWith(UUID_CELL_SUFFIX) || key.endsWith(CLIP_CELL_SUFFIX) || key.endsWith(LABEL_CELL_SUFFIX)) {
+        continue
       }
-      return out
-    })
+      if (value && typeof value === 'object' && !Array.isArray(value) && 'badgeClass' in value) {
+        const { badgeClass, ...rest } = value
+        out[key] = rest.plain ? (rest.raw !== undefined ? rest.raw : rest.message) : rest
+      } else {
+        out[key] = value
+      }
+    }
+    return out
   }
 
   /** El componentState de una acción del host de un listado con selección: lleva las filas
@@ -5379,6 +5393,40 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const CLIP_CELL_SUFFIX = '__clipCell'
 
+  /** The cell of a column that declares labels for its values (GridColumn.valueLabels — an enum's:
+   *  IN_HOUSE → "In house", what its form options say). The row keeps the RAW value (sorting,
+   *  filtering, selection and editing work on it); the cell reads <id>__labelCell. */
+  const LABEL_CELL_SUFFIX = '__labelCell'
+
+  /** What a cell shows for a raw value: the column's label for it, or the value itself. */
+  function valueLabelOf(c, value) {
+    const labels = c && c.valueLabels
+    if (!labels || value == null || typeof value === 'object') return value
+    const label = labels[String(value)]
+    return label != null ? label : value
+  }
+
+  /** Whether a (non-status, non-editable) column reads its values through their labels. */
+  function labelColumn(c) {
+    return !!(c && c.valueLabels && Object.keys(c.valueLabels).length) && !c.editable
+      && c.dataType !== 'status' && c.dataType !== 'actionGroup' && c.stereotype !== 'primary'
+  }
+
+  /** A cada columna con etiquetas se le añade <id>__labelCell = el texto que pinta la celda (CSP de
+   *  VB: la plantilla no puede buscar en un mapa). La fila queda intacta. */
+  function labelCellRows(rows, columns) {
+    const cols = (columns || []).map((c) => c.metadata || c).filter(labelColumn)
+    if (!cols.length) return rows
+    return rows.map((row) => {
+      const out = { ...row }
+      for (const c of cols) {
+        const shown = valueLabelOf(c, row[c.id])
+        out[c.id + LABEL_CELL_SUFFIX] = shown == null ? '' : String(shown)
+      }
+      return out
+    })
+  }
+
   /** El ancho que el wire pide para una columna (GridColumn.width / flexGrow), en las claves de
    *  oj-table: width (y, si no crece — flexGrow "0" —, minWidth = maxWidth = width). Sin width, {}. */
   function columnWidthOf(c) {
@@ -5405,7 +5453,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return rows.map((row) => {
       const out = { ...row }
       for (const c of cols) {
-        const shown = text(row[c.id])
+        const shown = text(valueLabelOf(c, row[c.id]))
         // tooltipPath a OTRO campo (@Tooltip): un detalle → la ventana flotante; a sí mismo (un ancho
         // fijo que corta): el texto entero en el title de siempre
         const tip = c.tooltipPath && c.tooltipPath !== c.id ? text(row[c.tooltipPath]) : ''
@@ -5489,8 +5537,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         } else if (value != null && value !== '') {
           // a plain word (a REST row): its badge by the declared tone or the word; `plain` lets
           // selectedRowsOf hand the row back as it arrived
+          // the tone by the RAW value, the badge text by the column's label for it (an enum's);
+          // `raw` is what selectedRowsOf hands back
           const type = statusTypeOfValue(value, c.tones)
-          out[id] = { type, message: String(value), badgeClass: STATUS_BADGE[type] || STATUS_BADGE.NONE, plain: true }
+          out[id] = { type, message: String(valueLabelOf(c, value)), badgeClass: STATUS_BADGE[type] || STATUS_BADGE.NONE, plain: true, raw: value }
         }
       }
       return out
@@ -6161,6 +6211,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { increment: { ...(increment || {}), fragments }, levels }
   }
 
+  /** A mediator App of a crud mounted at the ROOT: what it consumes is "" by both accounts. */
+  const atMountRoot = (md) => md.homeConsumedRoute === '' && md.rootRoute === ''
+
   /** Si el contexto es un MEDIADOR (ServerSide → child App), la info para cargar su contenido. */
   function mediatorOf(ctx) {
     const tree = ctx?.tree
@@ -6174,7 +6227,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // mediador es su propia ruta (`/workflow/processes`). Mandar la entera como consumedRoute
       // hace que el servidor sirva la vista por defecto del crud: se entraba por el enlace de un
       // proceso y aparecía el listado. En una opción de menú (la raíz del crud) valen lo mismo.
-      rootRoute: md.homeConsumedRoute || md.rootRoute || ctx.state?._route || '',
+      // …y cuando los dos dicen "" (un crud montado en la RAÍZ, @UI("")), lo consumido es la raíz:
+      // no el _route del estado, que en un deep-link es el registro (/P-001)
+      rootRoute: md.homeConsumedRoute || md.rootRoute || (atMountRoot(md) ? '' : ctx.state?._route) || '',
+      rootKnown: !!(md.homeConsumedRoute || md.rootRoute) || atMountRoot(md),
       homeRoute: md.homeRoute ?? '',
       serverSideType: md.homeServerSideType ?? md.serverSideType,
       variant: md.variant,
@@ -6250,6 +6306,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       urlPush: null,
       download: null,
       downloads: [], // todos los DownloadFile del increment (download = el último, compat)
+      print: false, // UICommand.print: imprimir la página actual (files.printPage)
       runActions: [],
       docTitle: null,
       // UICommand.announce / announceAssertive: what assistive tech is told (a11y.mjs live regions);
@@ -6407,6 +6464,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         case 'DownloadFile':
           effects.download = c.data
           effects.downloads.push(c.data)
+          break
+        case 'Print':
+          effects.print = true
           break
         case 'RunAction':
           effects.runActions.push(c.data)
@@ -10502,13 +10562,42 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   //
   // `env` (window por defecto) se inyecta para poder probarlo en Node sin DOM.
 
-  /** DownloadFile del wire → { filename, mimeType, base64Content } o null si no hay contenido. */
+  // Documentos (Document en el servidor): el DownloadFile trae los bytes inline (base64Content) o
+  // una URL de un solo uso bajo el baseUrl de la UI (`url`, documentos grandes o perezosos);
+  // `disposition` inline = mostrarlo en una pestaña nueva, attachment = descargarlo; `print` = abrir
+  // el diálogo de impresión (iframe oculto, sin popup). Una pestaña que el bloqueador de popups
+  // rechaza se convierte en descarga: el documento nunca se pierde.
+
+  // el origen del API: en vb-serve la app vive en :9006 y el backend en :9005, así que una ruta
+  // "/mateu/v3/documents/…" se resuelve contra el baseUrl con el que se habló, no contra la página
+  let documentBase = ''
+  /** transport.callMateu la llama con el base de cada request. */
+  function noteDocumentBase(base) { if (typeof base === 'string') documentBase = base }
+
+  /** La URL que seguimos: rutas del mismo sitio y http(s); nada más (un `javascript:` se rechaza). */
+  function documentUrlOf(url, base = documentBase) {
+    if (!url || typeof url !== 'string') return null
+    if (/^https?:\/\//i.test(url)) return url
+    if (!url.startsWith('/') || url.startsWith('//')) return null
+    if (base && /^https?:\/\//i.test(base)) {
+      try { return new URL(url, new URL(base).origin).toString() } catch { return url }
+    }
+    return url
+  }
+
+  /** DownloadFile del wire → { filename, mimeType, base64Content, url, inline, print } o null. */
   function fileDownloadOf(data) {
-    if (!data || typeof data !== 'object' || !data.base64Content) return null
+    if (!data || typeof data !== 'object') return null
+    const url = data.base64Content ? null : documentUrlOf(data.url)
+    if (!data.base64Content && !url) return null
+    const inline = data.disposition === 'inline'
     return {
       filename: data.filename || 'export',
       mimeType: data.mimeType || 'application/octet-stream',
-      base64Content: String(data.base64Content),
+      base64Content: data.base64Content ? String(data.base64Content) : null,
+      url,
+      inline,
+      print: inline && !!data.print,
     }
   }
 
@@ -10519,23 +10608,123 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return bytes
   }
 
-  /** Descarga un DownloadFile: Blob + <a download> anclado al body (Safari/Firefox ignoran el
-   *  click de un enlace suelto) y el object URL se libera DESPUÉS (revocarlo en el mismo tick
-   *  cancela la descarga en Firefox). */
-  function triggerDownload(data, env = globalThis) {
-    const file = fileDownloadOf(data)
-    if (!file || !env.document) return false
-    const blob = new env.Blob([base64ToBytes(file.base64Content, env.atob)], { type: file.mimeType })
-    const url = env.URL.createObjectURL(blob)
+  const OBJECT_URL_TTL_MS = 60000
+
+  function saveAs(href, filename, env) {
     const a = env.document.createElement('a')
-    a.href = url
-    a.download = file.filename
+    a.href = href
+    a.download = filename
     a.rel = 'noopener'
     a.style.display = 'none'
     env.document.body.appendChild(a)
     a.click()
     a.remove()
-    env.setTimeout(() => env.URL.revokeObjectURL(url), 1000)
+  }
+
+  function printInFrame(href, env, onFail) {
+    const frame = env.document.createElement('iframe')
+    frame.setAttribute('aria-hidden', 'true')
+    frame.setAttribute('tabindex', '-1')
+    frame.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden'
+    frame.addEventListener('load', () => {
+      try {
+        frame.contentWindow.focus()
+        frame.contentWindow.print()
+      } catch { onFail() }
+      env.setTimeout(() => frame.remove(), OBJECT_URL_TTL_MS)
+    }, { once: true })
+    frame.src = href
+    env.document.body.appendChild(frame)
+  }
+
+  /** Aplica un DownloadFile: lo descarga, lo abre en otra pestaña o lo imprime. El object URL se
+   *  libera DESPUÉS (revocarlo en el mismo tick cancela la descarga en Firefox; una pestaña o un
+   *  iframe aún tienen que cargarlo). Devuelve 'downloaded' | 'opened' | 'printing' | false. */
+  function triggerDownload(data, env = globalThis) {
+    const file = fileDownloadOf(data)
+    if (!file || !env.document) return false
+    let href = file.url
+    const objectUrl = !!file.base64Content
+    if (objectUrl) {
+      const blob = new env.Blob([base64ToBytes(file.base64Content, env.atob)], { type: file.mimeType })
+      href = env.URL.createObjectURL(blob)
+    }
+    const release = (ms) => { if (objectUrl) env.setTimeout(() => env.URL.revokeObjectURL(href), ms) }
+    if (file.print) {
+      // una URL del servidor es de un solo uso y el iframe ya la gastó: sólo un object URL se
+      // puede volver a enseñar en una pestaña
+      printInFrame(href, env, () => { if (objectUrl && env.open) env.open(href, '_blank') })
+      release(OBJECT_URL_TTL_MS)
+      return 'printing'
+    }
+    if (file.inline && env.open) {
+      const tab = env.open(href, '_blank')
+      if (tab) {
+        try { tab.opener = null } catch { /* otra procedencia */ }
+        release(OBJECT_URL_TTL_MS)
+        return 'opened'
+      }
+    }
+    saveAs(href, file.filename, env)
+    release(1000)
+    return 'downloaded'
+  }
+
+  // ── imprimir la página (UICommand.print) ────────────────────────────────────────────────────────
+  // La hoja de impresión deja fuera el chrome de la app (cabecera global, navegación, botones,
+  // toolbars, mensajes); vale también para el Ctrl+P del navegador. Va al documento Y a cada shadow
+  // root abierto: el CSS del documento no cruza una frontera de shadow DOM.
+  const PRINT_CSS = `
+  @media print {
+    oj-sp-global-header, oj-navigation-list, #mateuNavList, oj-drawer-popup, oj-c-drawer-popup,
+    oj-button:not([data-mateu-print="show"]), oj-c-button:not([data-mateu-print="show"]),
+    oj-c-menu-button, oj-menu-button, oj-buttonset-one, oj-toolbar, oj-c-toolbar, oj-messages,
+    oj-c-message-toast, oj-sp-smart-search, nav, button:not([data-mateu-print="show"]),
+    .mateu-skip-link, .mateu-no-print, [data-mateu-print="hide"] { display: none !important; }
+    oj-vb-content, [role="main"] { overflow: visible !important; height: auto !important; max-height: none !important; }
+    * { box-shadow: none !important; }
+  }`
+
+  const printRoots = new WeakSet()
+  function adoptPrintSheet(root, env) {
+    if (printRoots.has(root)) return
+    printRoots.add(root)
+    const doc = root.ownerDocument || root
+    const container = root.head || root
+    if (!container || !doc.createElement) return
+    const style = doc.createElement('style')
+    style.setAttribute('data-mateu-print', 'styles')
+    style.textContent = PRINT_CSS
+    container.appendChild(style)
+  }
+
+  /** Deja la hoja de impresión en el documento y en cada shadow root abierto. */
+  function preparePrint(doc) {
+    if (!doc) return 0
+    adoptPrintSheet(doc)
+    let n = 1
+    const visit = (root) => {
+      const all = root.querySelectorAll ? root.querySelectorAll('*') : []
+      for (const el of all) if (el.shadowRoot) { adoptPrintSheet(el.shadowRoot); n++; visit(el.shadowRoot) }
+    }
+    visit(doc)
+    return n
+  }
+
+  /** UICommand.print: la página actual, sin chrome. */
+  function printPage(env = globalThis) {
+    if (!env || !env.document || typeof env.print !== 'function') return false
+    preparePrint(env.document)
+    env.print()
+    return true
+  }
+
+  let printSupport = false
+  /** El Ctrl+P del navegador imprime igual que UICommand.print (sin chrome). */
+  function installPrintSupport(win = globalThis.window) {
+    if (!win || printSupport || typeof win.addEventListener !== 'function') return false
+    printSupport = true
+    win.addEventListener('beforeprint', () => preparePrint(win.document))
     return true
   }
 
@@ -10551,6 +10740,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     let n = 0
     for (const d of effects.downloads || (effects.download ? [effects.download] : []))
       if (triggerDownload(d, env)) n++
+    if (effects.print) printPage(env)
     // los toasts con «Undo» salen por el oj-message de JET (notify.mjs), no por el toast normal
     const undo = takeUndoToasts(effects)
     if (undo.length && env && env.document) showUndoToasts(undo, env.document)
@@ -13401,6 +13591,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction).
    *  Sale ATADA a la pantalla en curso (resilience.currentView): si cuando contesta ya hay otra, la
    *  respuesta se descarta en silencio. Las de fondo (quiet/isolated: widgets, menús remotos) no
@@ -13409,6 +13600,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const view = options.view !== undefined ? options.view
       : (options.quiet || options.isolated) ? null : currentView()
     const bare = (body.route || '').replace(/^\//, '')
+    noteDocumentBase(base) // un Document aparcado se pide a ESTE backend
     const res = await fetchWithPolicy(`${base}/mateu/v3/sync/${bare || '_no_route'}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -13477,8 +13669,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function mediatorBaseOf(outbound, fallbackRoute = '') {
     const o = outbound || {}
     const own = o.route && o.route !== 'null' && o.route !== 'undefined' ? o.route : ''
-    const route = own || (fallbackRoute && fallbackRoute !== 'null' ? fallbackRoute : '')
+    const loaded = own || (fallbackRoute && fallbackRoute !== 'null' ? fallbackRoute : '')
+    // the ROOT of the mount is "" (a crud at @UI("")): "/" + "/P-002" composed "//P-002"
+    const route = loaded === '/' ? '' : loaded
     const consumed = o.consumedRoute
+    if (o.mountRoot) {
+      const q = route.indexOf('?')
+      return q >= 0 ? route.slice(q) : ''
+    }
     if (!consumed || consumed === '_empty' || !consumed.startsWith('/')) return route
     const queryIndex = route.indexOf('?')
     const path = queryIndex >= 0 ? route.slice(0, queryIndex) : route
@@ -13519,14 +13717,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // and the home load ('' or '/') goes out that way.
   let mountWithoutApp = false
 
+  /** What a mediator's content load consumes: its root route, else the route it was loaded with —
+   *  where the root of the mount is "" (what the web client sends), never "/": a crud mounted at
+   *  @UI("") read "/" as a record id and answered its own home with "Not found". */
+  function mediatorConsumedRoute(info, effectiveRoute) {
+    if (info && (info.rootRoute || info.rootKnown)) return info.rootRoute
+    return !effectiveRoute || effectiveRoute === '/' ? '' : effectiveRoute
+  }
+
   /** Did the bootstrap answer an App (the root of a console with its menu)? */
   function bootstrapHasApp(increment) {
     const fragments = (increment && increment.fragments) || []
+    // a MEDIATOR-variant App is the chromeless wrapper of a crud mounted as the @UI — not a console
+    // with a menu: the mount has no shell, exactly as when the bootstrap answered a page
+    const isShellApp = (metadata) => !!metadata && metadata.type === 'App' && metadata.variant !== 'MEDIATOR'
     return fragments.some((f) => {
       const c = f && f.component
       if (!c) return false
-      if (c.metadata && c.metadata.type === 'App') return true
-      return (c.children || []).some((child) => child && child.metadata && child.metadata.type === 'App')
+      if (isShellApp(c.metadata)) return true
+      return (c.children || []).some((child) => child && isShellApp(child.metadata))
     })
   }
 
@@ -13544,6 +13753,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // …and below the mount (a deep link to /products/new): with no App to resolve it relative to,
       // the server knows the crud's inner routes by their full path, mount included
       route = pathOfRoute(route, currentMount())
+      // a crud mounted at the ROOT (@UI("")) has no path prefix the server could match /P-001 by:
+      // the deep link goes out as a FRESH load of the mount, as the web client sends it — the
+      // answer is the crud's mediator, whose home is the record (followed in loadRouteInto)
+      if (!currentMount() && !extra.consumedRoute && extra.serverSideType == null) {
+        extra = { ...extra, consumedRoute: '_empty' }
+      }
     }
     await awaitBundle()
     if (hasBundle()) {
@@ -13661,6 +13876,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     base = outbound.baseUrl != null ? outbound.baseUrl : base
     const effectiveRoute = outbound.route || route || ''
     const bare = effectiveRoute.replace(/^\//, '')
+    noteDocumentBase(base)
     // Sin timeout: un LongTask mantiene el stream abierto por diseño, así que un ceiling lo
     // mataría a mitad. Pasa igualmente por la política para que el fallo llegue clasificado.
     const res = await fetchWithPolicy(`${base}/mateu/v3/sse/${bare || '_no_route'}`, {
@@ -13835,9 +14051,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if ((!effectiveRoute || effectiveRoute === '/') && info.homeRoute) effectiveRoute = info.homeRoute
       outbound = {
         route: effectiveRoute,
-        consumedRoute: info.rootRoute || effectiveRoute,
+        consumedRoute: mediatorConsumedRoute(info, effectiveRoute),
         serverSideType: info.serverSideType,
         baseUrl: base,
+        // a crud mounted at the ROOT consumes "": its inner routes (/P-002, /P-002/edit) are
+        // composed against the root, not against the record a deep link loaded (mediatorBaseOf)
+        mountRoot: !!(info.rootKnown && info.rootRoute === ''),
       }
       next = reduceContexts(
         next,
@@ -15790,6 +16009,34 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function pageWidthOf({ host, drawerNav, iopOn = false }) {
     return (drawerNav || iopOn) ? 'edgeToEdge' : ((host && host.pageWidth) || 'fixed')
   }
+  /** The marker the server stamps into a @Compact page's style (StyleConstants.COMPACT). */
+  const COMPACT_STYLE_MARKER = '--mateu-compact:1'
+
+  /**
+   * Whether the page asks for HIGH DENSITY (@Compact): its style carries the compact marker (a
+   * page, a form, a crud's detail), or its listing says so (CrudlDto.compact — a @Compact crud or
+   * listing). Nested islands are their own pages and are not looked into.
+   */
+  function pageDensityOf(host) {
+    let compact = false
+    const isCompactStyle = (style) => typeof style === 'string' && style.replace(/\s+/g, '').indexOf(COMPACT_STYLE_MARKER) >= 0
+    const walk = (node, depth) => {
+      if (compact || !node || typeof node !== 'object' || depth > 6) return
+      const md = node.metadata || {}
+      if (isCompactStyle(node.style) || isCompactStyle(md.style) || (md.type === 'Crud' && md.compact === true)) {
+        compact = true
+        return
+      }
+      for (const child of node.children || []) {
+        if (child && child.type === 'ServerSide') continue
+        walk(child, depth + 1)
+      }
+    }
+    walk(host && host.tree, 0)
+    if (!compact && host && isCompactStyle(host.style)) compact = true
+    return compact ? 'compact' : 'standard'
+  }
+
   function pageLayoutOf({ host, drawerNav, iopOn = false, bleedingHeader, band }) {
     const edge = drawerNav || iopOn
     const pageStyle = edge ? pageStyleOf({ pageWidth: 'edgeToEdge' }) : pageStyleOf(host)
@@ -15800,6 +16047,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       mateuPageMargin: pageStyle.margin,
       mateuPagePadding: bleedingHeader ? '0' : pageStyle.padding,
       mateuBandBoxMargin: '0 auto',
+      // @Compact: the content container takes the Redwood high-density class (app.css maps it onto
+      // Redwood's own tokens — the small control height, the 1x form-layout spacing); PRECOMPUTED,
+      // the VB expression evaluator has no ternaries
+      mateuPageDensityClass: pageDensityOf(host) === 'compact' ? 'mateu-density-compact' : '',
     }
     if (band) {
       out.mateuBandBoxMargin = pageStyle.margin
@@ -16935,6 +17186,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // live reload (dev mode) answers an app-level change by reloading the WINDOW: in a host page that
     // is the host's app, not ours — the embedded component is not live-reloaded (yet)
     installDevLiveReload: 'an app-level reload would reload the host page',
+    // Ctrl+P prints the HOST page: its print stylesheet is the host's to decide (UICommand.print
+    // still works inside the component — applyDomEffects prepares the sheet when it runs)
+    installPrintSupport: 'the host page owns what its own Ctrl+P prints',
   })
 
   /**
@@ -17331,6 +17585,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // selección de filas del listing → crud_selected_items de las acciones del host
     selectionOfKeySet,
     selectedRowsOf,
+    rowAsArrived,
     withListingSelection,
     onLoadTriggers,
     // filtros del listado: descriptores ya resueltos a widget, y la config smartFilters de la
@@ -17500,6 +17755,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // accesibilidad: lo que los componentes oj-* no traen (una SPA no cambia de página, así
     // que no hay nada que un lector de pantalla anuncie por su cuenta)
     installAnnouncer,
+    installPrintSupport,
     announce,
     announceNavigation,
     focusIsInChat,

@@ -11,7 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * Characters} view extending {@code AutoCrud<Character>}, backed by an in-memory {@code CrudStore}.
  * No YAML, no external API, no database — just one annotated class and its store.
  */
-@SpringBootApplication(scanBasePackages = "io.mateu")
+@SpringBootApplication(scanBasePackages = "io.mateu.demo")
 public class Starwars2Application {
 
   public static void main(String[] args) {

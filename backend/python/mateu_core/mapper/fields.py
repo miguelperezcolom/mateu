@@ -73,6 +73,7 @@ from ._common import (
     _id,
     _log,
     enum_label,
+    value_labels_of,
     is_enum,
 )
 
@@ -211,6 +212,7 @@ class FieldMapperMixin(MixinBase):
                 leading_path=self.leading_path_of(c),
                 # no fixed width → the column sizes to its content (Java's GridColumnMapper)
                 auto_width=True,
+                value_labels=value_labels_of(c.type),
             )))
         # The per-row "Edit" button opens the row editor; inline editing replaces it.
         if not read_only and not inline:

@@ -87,6 +87,8 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             tooltipPath = cm.text("tooltipPath"),
             // a field type's `tones` (value → success|warning|danger|info|neutral) for a status cell
             tones = StatusTones.tonesOf(cm),
+            // an enum column's labels (IN_HOUSE → "In house"); the row keeps the raw value
+            valueLabels = StatusTones.valueLabelsOf(cm),
         )
     }
     // The action id used to open a row's detail: the first link column (e.g. the id column's "view").
@@ -207,7 +209,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     for ((i, spec) in specs.withIndex()) {
         val column = table.columnModel.getColumn(i)
         when (spec.kind) {
-            ColKind.STATUS -> column.cellRenderer = StatusCellRenderer(spec.tones)
+            ColKind.STATUS -> column.cellRenderer = StatusCellRenderer(spec.tones, spec.valueLabels)
             ColKind.LINK -> column.cellRenderer = LinkCellRenderer(spec.text)
             else -> {}
         }
@@ -535,6 +537,7 @@ private data class ColSpec(
     val aggregate: String = "",
     val tooltipPath: String = "",
     val tones: Map<String, String> = emptyMap(),
+    val valueLabels: Map<String, String> = emptyMap(),
 )
 
 // ── listing groups + aggregates (replicates the web's listingGroups.ts rules) ────────────
@@ -674,7 +677,10 @@ private class LinkCellRenderer(private val fixedText: String) : DefaultTableCell
 
 /** Status column: renders the `{type,message,value}` object — or a plain word, toned by the
  *  column's declared `tones` first, then by the word's usual meaning — as a coloured badge. */
-private class StatusCellRenderer(private val tones: Map<String, String> = emptyMap()) : TableCellRenderer {
+private class StatusCellRenderer(
+    private val tones: Map<String, String> = emptyMap(),
+    private val valueLabels: Map<String, String> = emptyMap(),
+) : TableCellRenderer {
     override fun getTableCellRendererComponent(
         table: JTable, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int,
     ): Component {
@@ -682,7 +688,8 @@ private class StatusCellRenderer(private val tones: Map<String, String> = emptyM
         wrapper.background = if (isSelected) table.selectionBackground else table.background
         val node = value as? JsonNode
         if (node != null && !node.isNull && !node.isMissingNode) {
-            val text = node.displayString()
+            // the badge reads as the value's label; its tone is picked by the RAW value
+            val text = StatusTones.cellText(node, valueLabels)
             val type = StatusTones.statusType(node, tones)
             if (text.isNotBlank()) wrapper.add(statusBadge(text, type))
         }
@@ -767,7 +774,9 @@ private class CrudTableModel(
         return when {
             spec.kind == ColKind.STATUS || spec.kind == ColKind.LINK -> node
             spec.dataType == "bool" || spec.editorType == "boolean" -> node.asBoolean(false)
-            else -> node.displayString()
+            // an editable cell edits the RAW value; a read-only one shows its label
+            spec.editable -> node.displayString()
+            else -> StatusTones.cellText(node, spec.valueLabels)
         }
     }
 

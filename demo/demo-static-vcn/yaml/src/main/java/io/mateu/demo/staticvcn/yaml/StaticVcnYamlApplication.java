@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * → http://localhost:8794) for comparison. The deliverable of this module is the static site that
  * {@code mvn -Pbundle package} writes to {@code target/mateu-bundle/}, which needs no backend at all.
  */
-@SpringBootApplication(scanBasePackages = "io.mateu")
+@SpringBootApplication(scanBasePackages = "io.mateu.demo")
 public class StaticVcnYamlApplication {
 
   public static void main(String[] args) {

@@ -72,7 +72,7 @@ Add any combination of these class-level annotations to restrict what users can 
 | `@NotCreatable` | Hides the New button in the list |
 | `@NotEditable` | Hides the Edit button in the detail view |
 | `@NotDeletable` | Hides the Delete button in the list |
-| `@NotNavigable` | Hides the View button column — rows are not clickable |
+| `@NotNavigable` | Hides the View button column — rows are not clickable, and the record page (`/{id}`) is not served: a typed or bookmarked URL answers the not-found page |
 
 These combine freely. A few common patterns:
 

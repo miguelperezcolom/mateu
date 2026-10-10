@@ -1,6 +1,7 @@
 package io.mateu.ijp.ui
 
 import com.fasterxml.jackson.databind.JsonNode
+import io.mateu.ijp.api.displayString
 
 /**
  * The badge type of a status cell — the plugin twin of libs/mateu statusColumnRenderer.toStatus.
@@ -40,6 +41,21 @@ object StatusTones {
         val t = columnMetadata?.get("tones") ?: return emptyMap()
         if (!t.isObject) return emptyMap()
         return t.properties().associate { (k, v) -> k to v.asText("") }
+    }
+
+    /** The column's `valueLabels` map (raw value → what it reads as: an enum column's labels,
+     *  IN_HOUSE → "In house"); empty when absent. Display only — the row keeps the raw value. */
+    fun valueLabelsOf(columnMetadata: JsonNode?): Map<String, String> {
+        val t = columnMetadata?.get("valueLabels") ?: return emptyMap()
+        if (!t.isObject) return emptyMap()
+        return t.properties().associate { (k, v) -> k to v.asText("") }
+    }
+
+    /** What a cell shows for a value: its label when the column declares one, else the value. */
+    fun cellText(value: JsonNode?, valueLabels: Map<String, String> = emptyMap()): String {
+        val text = value.displayString()
+        if (value == null || !value.isValueNode) return text
+        return valueLabels[text] ?: text
     }
 
     /** The badge type for a status cell's value. */

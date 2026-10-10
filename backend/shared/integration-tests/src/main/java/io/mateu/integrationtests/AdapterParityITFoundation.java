@@ -75,6 +75,35 @@ public class AdapterParityITFoundation {
         .body(containsString("Plain form"));
   }
 
+  /**
+   * An UNSIGNED Bearer token claiming {@code roles: [admin]} reveals nothing restricted: with no
+   * verifier configured (the test apps configure none) Mateu ignores the token's claims. The
+   * fixture is {@code @UI("/restricted")} with a public {@code visibleField} and an
+   * {@code @EyesOnly(roles = "admin") adminOnlyField}.
+   */
+  public void aForgedBearerTokenRevealsNothing() {
+    var enc = java.util.Base64.getUrlEncoder().withoutPadding();
+    var forged =
+        enc.encodeToString("{\"alg\":\"none\"}".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            + "."
+            + enc.encodeToString(
+                "{\"sub\":\"mallory\",\"roles\":[\"admin\"],\"realm_access\":{\"roles\":[\"admin\"]}}"
+                    .getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            + ".";
+    given()
+        .contentType(ContentType.JSON)
+        .header("Authorization", "Bearer " + forged)
+        .body(
+            "{\"route\": \"\", \"consumedRoute\": \"_empty\", \"actionId\": \"\","
+                + " \"componentState\": {}, \"parameters\": {}, \"appState\": {}}")
+        .when()
+        .post("/restricted/mateu/v3/sync/_no_route")
+        .then()
+        .statusCode(200)
+        .body(containsString("visibleField"))
+        .body(not(containsString("adminOnlyField")));
+  }
+
   /** The plain sync endpoint keeps answering one JSON body. */
   public void answersSyncWithJson() {
     given()
@@ -281,6 +310,32 @@ public class AdapterParityITFoundation {
         .post("/hello/mateu/v3/client-log")
         .then()
         .statusCode(204);
+  }
+
+  /**
+   * A document an action parked is served ONCE under any UI's base URL, with a safe {@code
+   * Content-Disposition}, {@code no-store} and {@code nosniff} — and even for a navigation that
+   * asks for HTML (a new tab), never the index page. {@code token} was parked (in the server's JVM)
+   * as {@code Document.attachment("Factura ñ.pdf", "application/pdf", "%PDF-1.4 parity")}.
+   */
+  public void servesAParkedDocumentOnce(String token) {
+    String path = "/hello/mateu/v3/documents/" + token;
+    given()
+        .accept("text/html")
+        .when()
+        .get(path)
+        .then()
+        .statusCode(200)
+        .header("Content-Type", startsWith("application/pdf"))
+        .header(
+            "Content-Disposition",
+            equalTo(
+                "attachment; filename=\"Factura _.pdf\"; filename*=UTF-8''Factura%20%C3%B1.pdf"))
+        .header("Cache-Control", equalTo("no-store"))
+        .header("X-Content-Type-Options", equalTo("nosniff"))
+        .body(equalTo("%PDF-1.4 parity"));
+    given().when().get(path).then().statusCode(404);
+    given().when().get("/hello/mateu/v3/documents/unknown-token-0123456789").then().statusCode(404);
   }
 
   /** Mateu's fixed-name assets are revalidated ({@code no-cache}). */

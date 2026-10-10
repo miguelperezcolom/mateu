@@ -58,6 +58,10 @@ public class PageListingBuilder {
     var builder =
         Listing.builder()
             .searchable(isSearchable(instance))
+            // @Compact on the listing: dense rows (Vaadin's compact theme, Redwood's grid)
+            .compact(
+                MetaAnnotations.isPresent(
+                    instance.getClass(), io.mateu.uidl.annotations.Compact.class))
             .rowsSelectionEnabled(
                 isRowSelectionEnabled(instance) || isMultiValuedSelector(instance, httpRequest))
             .groupBy(

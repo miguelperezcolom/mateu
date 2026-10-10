@@ -95,7 +95,7 @@
     </div>
   </div>
 </oj-bind-if>
-<div class="oj-sp-public-primary-content-container"
+<div :class="[[ 'oj-sp-public-primary-content-container ' + $application.variables.mateuPageDensityClass ]]"
   :style.max-width="[[ $application.variables.mateuPageMaxWidth ]]"
   :style.margin="[[ $application.variables.mateuPageMargin ]]"
   :style.padding="[[ $application.variables.mateuPagePadding ]]">

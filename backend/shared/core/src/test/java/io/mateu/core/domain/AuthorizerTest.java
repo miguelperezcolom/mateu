@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mateu.uidl.annotations.EyesOnly;
 import io.mateu.uidl.interfaces.HttpRequest;
 import java.lang.annotation.Annotation;
-import java.util.Base64;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 
@@ -18,19 +17,10 @@ class AuthorizerTest {
 
   // ── helpers ────────────────────────────────────────────────────────────────
 
-  private static String jwt(Map<String, Object> claims) {
-    try {
-      String enc =
-          Base64.getUrlEncoder().withoutPadding().encodeToString(MAPPER.writeValueAsBytes(claims));
-      return "header." + enc + ".sig";
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   private static HttpRequest requestWith(Map<String, Object> claims) {
     HttpRequest req = mock(HttpRequest.class);
-    when(req.getHeaderValue("Authorization")).thenReturn("Bearer " + jwt(claims));
+    when(req.getUserPrincipal())
+        .thenReturn(io.mateu.core.testutil.TestIdentities.principal(claims));
     return req;
   }
 

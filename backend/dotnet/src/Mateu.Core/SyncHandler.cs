@@ -84,6 +84,8 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     /// <see cref="HandleAsync"/>.</summary>
     public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null)
     {
+        // a Document parked by this request is fetched from this mount (DocumentCommands)
+        RequestBaseUrl.Value = requestBaseUrl;
         EstablishRequestContext(rq);
         rq = FoldRouteMarkers(rq);
         rq = GuardYamlAccess(rq);
@@ -533,9 +535,17 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         }).ToArray();
     }
 
+    /// <summary>The base URL the current request came in through (scheme://host/prefix), or null.</summary>
+    private static readonly AsyncLocal<string?> RequestBaseUrl = new();
+
     private static UIIncrementDto MapResult(object? result, RunActionRqDto? rq = null) => result switch
     {
         null => UIIncrementDto.Of(),
+        // A Document is shown or downloaded: a DownloadFile command, the bytes inline when small,
+        // a single-use URL when large or lazy (mirrors Java's CommandMapper).
+        Document doc => UIIncrementDto.Of(commands:
+            [new UICommandDto(rq is null ? "ux_main" : Target(rq), "DownloadFile",
+                DocumentCommands.ToFileDownload(doc, RequestBaseUrl.Value))]),
         Message msg => UIIncrementDto.Of(messages:
             [new MessageDto(msg.Variant.ToString().ToLowerInvariant(), "middle", msg.Title, msg.Text, msg.Duration,
                 msg.UndoLabel, msg.UndoActionId, msg.UndoParameters)]),

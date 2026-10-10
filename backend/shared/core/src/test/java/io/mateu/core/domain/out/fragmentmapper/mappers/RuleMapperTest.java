@@ -23,7 +23,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -149,14 +148,9 @@ class RuleMapperTest {
 
   private static HttpRequest requestWithRoles(String... roles) throws Exception {
     var claims = Map.of("realm_access", Map.of("roles", List.of(roles)));
-    String jwt =
-        "h."
-            + Base64.getUrlEncoder()
-                .withoutPadding()
-                .encodeToString(MAPPER.writeValueAsBytes(claims))
-            + ".s";
     HttpRequest req = mock(HttpRequest.class);
-    when(req.getHeaderValue("Authorization")).thenReturn("Bearer " + jwt);
+    when(req.getUserPrincipal())
+        .thenReturn(io.mateu.core.testutil.TestIdentities.principal(claims));
     return req;
   }
 

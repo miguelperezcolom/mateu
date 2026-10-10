@@ -34,7 +34,7 @@ Python attributes can't carry C#-style attributes, so:
 
 ```bash
 pip install "mateu-ui[server]"     # the package + uvicorn
-pip install "mateu-ui[all]"        # + PyJWT (identity)
+pip install "mateu-ui[all]"        # the FastAPI server extras
 ```
 
 The distribution is **`mateu-ui`** (the PyPI name `mateu` belongs to an unrelated project); you
@@ -68,12 +68,9 @@ add_mateu(app, views)
 ### `add_mateu` options
 
 ```python
-from mateu_core.identity import jwt_identity_provider
-
 add_mateu(
     app, views,
     cors_origins=["https://app.example.com"],      # CORS is OFF unless you list origins
-    identity_provider=jwt_identity_provider(key=PUBLIC_KEY, algorithms=["RS256"]),
     secrets_provider=lambda key: vault.read(key),  # ${secret.KEY} in proxied REST sources
     dev=False,                                     # exception detail in error toasts (or MATEU_DEV)
     proxy_timeout_seconds=30,
@@ -81,13 +78,24 @@ add_mateu(
 ```
 
 - **Identity.** `EyesOnly` / `ReadOnlyUnless` / `DisabledUnless` / `@eyes_only` match the caller's
-  `Identity(roles, groups, scopes, permissions)`. The provider is **parameterless**; it reads the
-  request in flight from `mateu_core.request_context` (`current_request()`, `bearer_token()`). The
-  default, `jwt_identity_provider()`, maps the Bearer JWT's claims exactly like Java's `Authorizer`
-  (Keycloak `realm_access`/`resource_access`, `roles`, `groups`, `scope`/`scp`, `permissions`). **With
-  no `key` it reads the claims unverified**, like Java, which assumes a gateway verified the token —
-  pass `key=` to verify here. It needs the `jwt` extra; without PyJWT no identity resolves and every
-  gate denies.
+  `Identity(roles, groups, scopes, permissions)`. **Mateu does not authenticate**: by default it
+  takes the identity your app established — `request.state.mateu_identity` (set by your dependency
+  or middleware), else Starlette's `AuthenticationMiddleware`. Verify tokens in your app and hand
+  Mateu the result:
+
+  ```python
+  from mateu_core.identity import identity_from_claims
+
+  @app.middleware("http")
+  async def authenticate(request, call_next):
+      claims = verify_with_your_idp(request.headers.get("authorization"))  # e.g. PyJWT + JWKS
+      if claims is not None:
+          request.state.mateu_identity = identity_from_claims(claims)
+      return await call_next(request)
+  ```
+
+  No identity → every gate denies. `identity_provider=` replaces the default with your own
+  parameterless provider.
 - **Secrets.** `secrets_provider(key)` resolves `${secret.KEY}`; unset → the env var `MATEU_SECRET_<KEY>` (only that prefix, never an arbitrary variable). Only
   proxied fetches (`__restfetch__`) see them.
 - **CORS (breaking change).** `add_mateu` used to allow every origin. Now CORS is off unless

@@ -14,7 +14,7 @@ import java.math.BigDecimal;
 
 /**
  * Permission-driven field and button state. The same identity dimensions as {@link EyesOnly}
- * (roles/groups/scopes/permissions, read from the JWT Bearer token by {@code Authorizer}) drive
+ * (roles/groups/scopes/permissions, from the principal the framework authenticated) drive
  * three states:
  *
  * <ul>
@@ -25,8 +25,9 @@ import java.math.BigDecimal;
  * </ul>
  *
  * <p>Without a matching Bearer token every restricted element is locked down (hidden / read-only /
- * disabled) — that is the correct default. Send a JWT whose claims include the required
- * roles/scopes to see them unlock. Matching is AND across declared dimensions, OR within each.
+ * disabled) — that is the correct default: Mateu does not authenticate. Add Spring Security (a
+ * resource server for your identity provider) and log in with the required roles/scopes to see
+ * them unlock. Matching is AND across declared dimensions, OR within each.
  */
 @UI("/field-access")
 @Title("Field access by permission")

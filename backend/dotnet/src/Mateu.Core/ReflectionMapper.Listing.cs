@@ -116,6 +116,7 @@ public sealed partial class ReflectionMapper
                 CaptionPath = CaptionPathOf(p),
                 LeadingPath = LeadingPathOf(p),
                 TooltipPath = TooltipPathOf(p),
+                ValueLabels = ValueLabelsOf(p),
             }))
             .Select(c => WithFieldType(c, row))
             .ToList();
@@ -149,6 +150,8 @@ public sealed partial class ReflectionMapper
             GroupActions = groupActions,
             RowStatusField = RowStatusFieldOf(row),
             DragType = DragTypeOf(viewType),
+            // [Compact] on the crud/listing: dense rows (Java: Listing.compact)
+            Compact = viewType.Find<CompactAttribute>() != null,
             // [RestListing]: rows fetched client-side from an arbitrary REST endpoint.
             RowsSource = RestListingOf(viewType),
             // SmartSearchPage.PreSearchContent: shown in place of the results until the first
@@ -162,7 +165,9 @@ public sealed partial class ReflectionMapper
         if (smartSearch?.PageSubtitle() is { } subtitle)
             pageChildren.Add(Client(new TextMetadataDto(subtitle), "page-subtitle", []));
         pageChildren.Add(crud);
-        var page = Client(new PageMetadataDto(null, null, null, [], []), null, pageChildren);
+        // [Compact]: the page carries the high-density preset + --mateu-compact:1, as a [Compact] view
+        var page = Client(new PageMetadataDto(null, null, null, [], []), null, pageChildren)
+            with { Style = viewType.Find<CompactAttribute>() != null ? CompactStyle : null };
         // A smart-search page starts EMPTY (the user searches); plain listings preload their rows.
         var triggers = smartSearch is null ? new List<TriggerDto> { new("OnLoad", "search") } : [];
         return new ServerSideComponentDto(
@@ -250,6 +255,7 @@ public sealed partial class ReflectionMapper
                     CaptionPath = CaptionPathOf(p),
                     LeadingPath = LeadingPathOf(p),
                     TooltipPath = TooltipPathOf(p),
+                    ValueLabels = ValueLabelsOf(p),
                     // The first column is the row-open affordance (mirrors the Java crud wire).
                     ActionId = rowsClickable && index == 0 ? "view" : null,
                 });
@@ -308,6 +314,8 @@ public sealed partial class ReflectionMapper
             GroupBy = GroupByOf(element),
             RowStatusField = RowStatusFieldOf(element),
             DragType = DragTypeOf(viewType),
+            // [Compact] on the crud/listing: dense rows (Java: Listing.compact)
+            Compact = viewType.Find<CompactAttribute>() != null,
             RowsSelectionEnabled = canDelete,
         }, "crud", []) with { Sizing = "fill" };
         var pageChildren = new List<ComponentDto>();
@@ -315,7 +323,9 @@ public sealed partial class ReflectionMapper
             pageChildren.Add(Client(new HeroSectionMetadataDto(
                 hero.HeroTitle(), hero.HeroSubtitle(), hero.HeroImage(), null, true), null, []));
         pageChildren.Add(crudComponent);
-        var page = Client(new PageMetadataDto(null, null, null, [], []), null, pageChildren);
+        // [Compact]: the page carries the high-density preset + --mateu-compact:1, as a [Compact] view
+        var page = Client(new PageMetadataDto(null, null, null, [], []), null, pageChildren)
+            with { Style = viewType.Find<CompactAttribute>() != null ? CompactStyle : null };
         // A hero-search page starts EMPTY (the user searches); plain cruds preload their rows.
         var triggers = hero is null ? new List<TriggerDto> { new("OnLoad", "search") } : [];
         return new ServerSideComponentDto(
@@ -350,6 +360,7 @@ public sealed partial class ReflectionMapper
                 CaptionPath = CaptionPathOf(p),
                 LeadingPath = LeadingPathOf(p),
                 TooltipPath = TooltipPathOf(p),
+                ValueLabels = ValueLabelsOf(p),
                 // Rows open through their first column: the read-only detail when navigable, the
                 // edit drawer when editable-without-navigable (both dispatch "view").
                 ActionId = rowsClickable && index == 0 ? "view" : null,
@@ -400,9 +411,12 @@ public sealed partial class ReflectionMapper
             GroupBy = GroupByOf(profile.RowType),
             RowStatusField = RowStatusFieldOf(profile.RowType),
             DragType = DragTypeOf(viewType),
+            // [Compact] on the crud/listing: dense rows (Java: Listing.compact)
+            Compact = viewType.Find<CompactAttribute>() != null,
             RowsSelectionEnabled = profile.CanDelete,
         }, "crud", []) with { Sizing = "fill" };
-        var page = Client(new PageMetadataDto(null, null, null, [], []), null, [crud]);
+        var page = Client(new PageMetadataDto(null, null, null, [], []), null, [crud])
+            with { Style = viewType.Find<CompactAttribute>() != null ? CompactStyle : null };
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), viewType.FullName!, route, [page],
             new Dictionary<string, object?>(), actions,
@@ -550,6 +564,14 @@ public sealed partial class ReflectionMapper
             ? label
             : Naming.HumanizeConstant(name);
 
+    /// <summary>An enum column's cell labels (member name → EnumLabel), null for any other type —
+    /// display only, the rows keep the raw name (Java: GridColumnBuilder.getValueLabels).</summary>
+    private static Dictionary<string, string>? ValueLabelsOf(PropertyInfo p)
+    {
+        var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+        return t.IsEnum ? Enum.GetNames(t).ToDictionary(n => n, n => EnumLabel(t, n)) : null;
+    }
+
     private static List<OptionDto>? EditorOptionsOf(PropertyInfo p)
     {
         var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
@@ -610,6 +632,7 @@ public sealed partial class ReflectionMapper
                     EditorOptions = editable
                         ? supplied is { Count: > 0 } ? supplied.Select(MapOption).ToList() : EditorOptionsOf(c)
                         : null,
+                    ValueLabels = ValueLabelsOf(c),
                 });
             })
             .Select(c => WithFieldType(c, rowType))

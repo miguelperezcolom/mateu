@@ -32,6 +32,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void aForgedBearerTokenRevealsNothing() {
+    contract.aForgedBearerTokenRevealsNothing();
+  }
+
+  @Test
   void resolvesAPlainUiThroughItsGeneratedRouteResolver() {
     contract.resolvesAPlainUiThroughItsGeneratedRouteResolver();
   }
@@ -59,6 +64,18 @@ class AdapterParityTest {
   @Test
   void acceptsClientLogs() {
     contract.acceptsClientLogs();
+  }
+
+  @Test
+  void servesAParkedDocumentOnce() {
+
+    contract.servesAParkedDocumentOnce(
+        io.mateu.core.infra.documents.DocumentStore.shared()
+            .park(
+                io.mateu.uidl.data.Document.attachment(
+                    "Factura ñ.pdf",
+                    "application/pdf",
+                    "%PDF-1.4 parity".getBytes(java.nio.charset.StandardCharsets.US_ASCII))));
   }
 
   @Test

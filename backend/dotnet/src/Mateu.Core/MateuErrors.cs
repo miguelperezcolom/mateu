@@ -16,7 +16,20 @@ public static class MateuLogging
     public static void UseLoggerFactory(ILoggerFactory? factory) =>
         _factory = factory ?? NullLoggerFactory.Instance;
 
-    internal static ILogger For(string category) => _factory.CreateLogger(category);
+    internal static ILogger For(string category)
+    {
+        try
+        {
+            return _factory.CreateLogger(category);
+        }
+        catch (ObjectDisposedException)
+        {
+            // The host that handed us its factory has shut down (a disposed test host, an app
+            // stopping): fall back to silence rather than failing the request that wanted to log.
+            _factory = NullLoggerFactory.Instance;
+            return NullLogger.Instance;
+        }
+    }
 }
 
 /// <summary>The error boundary of the sync endpoint: turns an exception escaping an action into the

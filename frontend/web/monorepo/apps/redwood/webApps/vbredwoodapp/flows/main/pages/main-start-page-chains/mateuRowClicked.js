@@ -80,7 +80,9 @@ define([
       }
       await Actions.callChain(context, {
         chain: 'runMateuAction',
-        params: { actionId: 'view', parameters: row },
+        // the row as the server sent it: not the cells precomputed for the templates (an enum's
+        // label, a clipped text, a status badge)
+        params: { actionId: 'view', parameters: bridge.rowAsArrived(row) },
       });
     }
   }

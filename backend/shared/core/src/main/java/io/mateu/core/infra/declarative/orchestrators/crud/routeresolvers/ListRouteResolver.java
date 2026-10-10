@@ -158,6 +158,10 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                             : title)
                     .toolbar(toolbar)
                     .searchable(orchestrator.searchable())
+                    // @Compact on the crud: dense rows (Vaadin's compact theme, Redwood's grid)
+                    .compact(
+                        MetaAnnotations.isPresent(
+                            orchestrator.metadataSource(), io.mateu.uidl.annotations.Compact.class))
                     .rowsSelectionEnabled(orchestrator.selectionEnabled())
                     .groupBy(
                         io.mateu.core.infra.declarative.orchestrators.crud.ListingSummarySpec.of(

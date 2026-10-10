@@ -59,6 +59,7 @@ from ..naming import (
 from ..page_type_inference import page_type_of
 from mateu_uidl.field_types import FieldType
 from ..reflection import (
+    class_flag,
     methods_with,
     view_fields,
 )
@@ -69,9 +70,11 @@ from mateu_uidl.export import ExportColumn
 from ..export import FORMATS
 from ._base import MixinBase
 from ._common import (
+    COMPACT_STYLE,
     _id,
     _log,
     enum_label,
+    value_labels_of,
     enum_set_element_type,
     is_enum,
     listing_types,
@@ -143,6 +146,7 @@ class CrudMapperMixin(MixinBase):
                 caption_path=self.caption_path_of(f),
                 leading_path=self.leading_path_of(f),
                 tooltip_path=self.tooltip_path_of(f),
+                value_labels=value_labels_of(f.type),
             ), f)))
         # Crud.display() (CrudDisplay): New / Delete on | off | disabled — a disabled affordance
         # travels as a disabled button, an off one does not travel (Java's ListRouteResolver).
@@ -186,6 +190,8 @@ class CrudMapperMixin(MixinBase):
                 group_actions=self.group_action_buttons(cls),
                 row_status_field=self.row_status_field_of(element),
                 drag_type=self.drag_type_of(cls),
+                # @compact on the crud: dense rows (Java: Listing.compact)
+                compact=bool(class_flag(cls, "__mateu_compact__", False)),
                 # a full Crud has all the capabilities: delete needs row selection
                 rows_selection_enabled=True,
             ),
@@ -205,6 +211,9 @@ class CrudMapperMixin(MixinBase):
             ))
         page_children.append(crud)
         page = self.client(PageMetadata(page_type=page_type_of(cls)), None, page_children)
+        if class_flag(cls, "__mateu_compact__", False):
+            # @compact: the page carries the high-density preset + --mateu-compact:1, as a view
+            page = page.model_copy(update={"style": COMPACT_STYLE})
         actions = [Action(id="search"), Action(id="new"), Action(id="delete")]
         for aid in exports:
             actions.append(Action(id=aid, validation_required=False))
@@ -392,6 +401,7 @@ class CrudMapperMixin(MixinBase):
                 caption_path=self.caption_path_of(f),
                 leading_path=self.leading_path_of(f),
                 tooltip_path=self.tooltip_path_of(f),
+                value_labels=value_labels_of(f.type),
                 # the first column of a Navigable/Editable listing opens the record
                 action_id="view" if rows_clickable and not columns else None,
             ), f)))
@@ -447,7 +457,9 @@ class CrudMapperMixin(MixinBase):
                                            if row_type is not None else None),
                          # @rest_listing: rows fetched client-side from an arbitrary REST endpoint.
                          rows_source=self._rest_listing(cls),
-                         drag_type=self.drag_type_of(cls)),
+                         drag_type=self.drag_type_of(cls),
+                         # @compact on the listing: dense rows (Java: Listing.compact)
+                         compact=bool(class_flag(cls, "__mateu_compact__", False))),
             "crud",
             [],
         )
@@ -470,6 +482,9 @@ class CrudMapperMixin(MixinBase):
                 )})
         page_children.append(crud)
         page = self.client(PageMetadata(page_type=page_type_of(cls)), None, page_children)
+        if class_flag(cls, "__mateu_compact__", False):
+            # @compact: the page carries the high-density preset + --mateu-compact:1, as a view
+            page = page.model_copy(update={"style": COMPACT_STYLE})
         return ServerSideComponent(
             id=_id(), server_side_type=type_name(cls), route=route, children=[page],
             initial_data={}, actions=actions,

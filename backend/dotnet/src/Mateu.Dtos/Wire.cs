@@ -57,6 +57,10 @@ public record UICommandDto(string TargetComponentId, string Type, object? Data)
     public static UICommandDto AnnounceAssertive(string text) =>
         new("ux_main", "Announce", new AnnouncementDto(text, true));
 
+    /// <summary>Prints the current page with the browser's print dialog, leaving the app chrome out.
+    /// EXPERIMENTAL. (Mirrors Java's UICommand.print.)</summary>
+    public static UICommandDto Print() => new("ux_main", "Print", null);
+
     /// <summary>Clears the dirty state (e.g. after a save). (Mirrors Java's UICommand.markAsClean.)</summary>
     public static UICommandDto MarkAsClean() => new("ux_main", "MarkAsClean", null);
 

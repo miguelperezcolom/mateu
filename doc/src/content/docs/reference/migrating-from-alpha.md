@@ -120,6 +120,9 @@ These compile unchanged and **behave differently**. Check each against your scre
 | Listings without interaction capabilities | opened empty | **search on opening** (`Listing.searchesOnOpening()` defaults to `true`) | override `searchesOnOpening()` to return `false` |
 | `@Section(columns = …)` | default `1`, and an explicit `1` was ignored | default `0` = inherit from `@FormLayout`; an explicit `columns = 1` is honoured | remove an explicit `columns = 1` you did not mean |
 | CORS | the generated controllers carried `@CrossOrigin` (any origin; Micronaut also with credentials) | **off**: same-origin only | set `mateu.cors.allowed-origins` (comma-separated; optionally `mateu.cors.allow-credentials=true`, never with `*`) — Python: `add_mateu(app, cors_origins=[...])` |
+| Roles for `@EyesOnly` / `@ReadOnlyUnless` / `@DisabledUnless` / YAML `access:` | read from the Bearer token's payload **without verifying it** — anyone could forge them | **Mateu does not authenticate**: roles come only from the principal your framework authenticated (Spring Security, Quarkus/Micronaut/Helidon security, ASP.NET Core authentication, Python's `request.state.mateu_identity` / `AuthenticationMiddleware`) or a `PrincipalResolver` bean. A token on its own grants nothing; with no security configured, restricted UI is hidden for everyone and a WARN at startup says so | configure your framework's security (see [Security](/java-user-manual/advanced/security/#how-authorization-works)) — there is no opt-out. Python: `jwt_identity_provider` and the `jwt` extra are gone; verify the token in your app and set `request.state.mateu_identity = identity_from_claims(claims)` |
+| `@EyesOnly` fields in the state | hidden in the form but their value travelled in the component state | left out of the state for callers who may not see them | — |
+| Spring component scan | the generated `…Config` scanned **all of `io.mateu`**, sweeping in the beans of any library under `io.mateu.*`; the docs asked for `scanBasePackages = "io.mateu"` | Mateu's beans come from its adapter's auto-configuration (`io.mateu.MateuAutoConfiguration`), which scans only Mateu's own packages | drop `"io.mateu"` from `scanBasePackages`; if your OWN code lives under `io.mateu.*` (outside the main class's package), name that package there |
 | MCP endpoint (`POST /mateu/mcp`) | on | **off** | `mateu.mcp.enabled=true` |
 | `${secret.X}` in proxied REST sources | fell back to ANY environment variable named `X` | a `SecretsProvider` bean first, then only the env var `MATEU_SECRET_X` | rename the variable to `MATEU_SECRET_X` |
 | Unexpected exceptions in actions | the exception class and message in the toast | "Something went wrong — An unexpected error occurred. Reference: …", the details in the server log under that reference | throw `io.mateu.uidl.UserFacingException(title, message)` for messages meant for the user; `MATEU_ERRORS_DETAILED=true` restores the raw text in development |
@@ -144,7 +147,9 @@ These compile unchanged and **behave differently**. Check each against your scre
 3. Click through each listing: search box present where you want it, layout as expected, Delete
    where it should be.
 4. Check forms with enums (labels) and rich text (stored format).
-5. Read the beta release notes for the security defaults (CORS, MCP).
+5. Read the beta release notes for the security defaults (CORS, MCP) — and if any screen uses
+   `@EyesOnly` / `@ReadOnlyUnless` / `@DisabledUnless` / `access:`, configure your framework's
+   security (Mateu reads the principal it authenticates), or that UI is hidden for everyone.
 
 ## Related
 

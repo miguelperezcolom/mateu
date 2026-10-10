@@ -95,6 +95,9 @@ export function splitNestedApps(increment, shellServerSideType, requestedRoute) 
   return { increment: { ...(increment || {}), fragments }, levels }
 }
 
+/** A mediator App of a crud mounted at the ROOT: what it consumes is "" by both accounts. */
+const atMountRoot = (md) => md.homeConsumedRoute === '' && md.rootRoute === ''
+
 /** Si el contexto es un MEDIADOR (ServerSide → child App), la info para cargar su contenido. */
 export function mediatorOf(ctx) {
   const tree = ctx?.tree
@@ -108,7 +111,10 @@ export function mediatorOf(ctx) {
     // mediador es su propia ruta (`/workflow/processes`). Mandar la entera como consumedRoute
     // hace que el servidor sirva la vista por defecto del crud: se entraba por el enlace de un
     // proceso y aparecía el listado. En una opción de menú (la raíz del crud) valen lo mismo.
-    rootRoute: md.homeConsumedRoute || md.rootRoute || ctx.state?._route || '',
+    // …y cuando los dos dicen "" (un crud montado en la RAÍZ, @UI("")), lo consumido es la raíz:
+    // no el _route del estado, que en un deep-link es el registro (/P-001)
+    rootRoute: md.homeConsumedRoute || md.rootRoute || (atMountRoot(md) ? '' : ctx.state?._route) || '',
+    rootKnown: !!(md.homeConsumedRoute || md.rootRoute) || atMountRoot(md),
     homeRoute: md.homeRoute ?? '',
     serverSideType: md.homeServerSideType ?? md.serverSideType,
     variant: md.variant,
@@ -184,6 +190,7 @@ export function reduceContexts(reg, increment, opts = {}) {
     urlPush: null,
     download: null,
     downloads: [], // todos los DownloadFile del increment (download = el último, compat)
+    print: false, // UICommand.print: imprimir la página actual (files.printPage)
     runActions: [],
     docTitle: null,
     // UICommand.announce / announceAssertive: what assistive tech is told (a11y.mjs live regions);
@@ -341,6 +348,9 @@ export function reduceContexts(reg, increment, opts = {}) {
       case 'DownloadFile':
         effects.download = c.data
         effects.downloads.push(c.data)
+        break
+      case 'Print':
+        effects.print = true
         break
       case 'RunAction':
         effects.runActions.push(c.data)

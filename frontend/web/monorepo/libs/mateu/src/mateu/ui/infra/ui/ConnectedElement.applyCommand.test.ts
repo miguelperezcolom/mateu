@@ -123,9 +123,21 @@ describe('ConnectedElement.applyCommand', () => {
         const revokeObjectURL = vi.fn()
         Object.assign(URL, { createObjectURL, revokeObjectURL })
         const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+        vi.useFakeTimers()
         el.applyCommand(cmd('DownloadFile', { filename: 'a.txt', mimeType: 'text/plain', base64Content: btoa('hello') }))
         expect(createObjectURL).toHaveBeenCalledTimes(1)
         expect(click).toHaveBeenCalledTimes(1)
+        // released later: revoking in the same tick cancels the download in Firefox
+        expect(revokeObjectURL).not.toHaveBeenCalled()
+        vi.runAllTimers()
         expect(revokeObjectURL).toHaveBeenCalledWith('blob:x')
+        vi.useRealTimers()
+    })
+
+    it('Print opens the print dialog', () => {
+        const print = vi.spyOn(window, 'print').mockImplementation(() => {})
+        el.applyCommand(cmd('Print', null))
+        expect(print).toHaveBeenCalledTimes(1)
+        print.mockRestore()
     })
 })

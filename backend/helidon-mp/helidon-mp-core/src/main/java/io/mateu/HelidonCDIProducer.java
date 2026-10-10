@@ -33,8 +33,16 @@ public class HelidonCDIProducer {
    * Force the bean to be built when the application scope is initialized — the Helidon MP / CDI
    * equivalent of Quarkus' {@code StartupEvent} observer.
    */
+  @Inject Instance<HelidonMPBeanProvider> beanProvider;
+
   void eagerlyInitStaticFactories(@Observes @Initialized(ApplicationScoped.class) Object event) {
     instanceFactory.get().toString();
+    beanProvider.get().toString();
+    // warns, once, when nothing will authenticate callers (no security module, no resolver)
+    io.mateu.core.infra.security.IdentityResolver.warnOnStartup(
+        io.mateu.core.infra.security.IdentityResolver.present(
+            "org.eclipse.microprofile.jwt.JsonWebToken"),
+        "Add helidon-microprofile-jwt-auth (MicroProfile JWT)");
   }
 
   @Produces

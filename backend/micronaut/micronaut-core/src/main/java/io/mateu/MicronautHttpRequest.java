@@ -32,6 +32,12 @@ public class MicronautHttpRequest implements HttpRequest {
   }
 
   @Override
+  public java.security.Principal getUserPrincipal() {
+    // micronaut-security stores the Authentication it established as the request principal
+    return delegate.getUserPrincipal().orElse(null);
+  }
+
+  @Override
   public String getHeaderValue(String key) {
     return delegate.getHeaders().get(key);
   }

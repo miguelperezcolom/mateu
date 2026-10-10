@@ -126,7 +126,7 @@ Experimental today:
 
 | Surface | Where |
 |---|---|
-| The **AI assistant** chat panel and its MCP wiring | `@AI`, the `Chat` component (`io.mateu.uidl`); the MCP endpoint (`POST /mateu/mcp`, off by default) and the tool projection it serves |
+| The **AI assistant** chat panel and its MCP wiring | `@AI`, the `Chat` component (`io.mateu.uidl`); the MCP endpoint (`POST /mateu/mcp`, off by default) and the tool projection it serves; the `agent-cli` modules (not published) |
 | The **new YAML authoring catalogues** | field types (`types.yaml`: `FieldTypeEntry`, `FieldTypeCatalog`, `FieldTypeCatalogSupplier`, `GridColumn.tones`), translations (`Translations`, `TranslationsSupplier`), environments (`Environment`), YAML access keys (`Access`), the project descriptor (`ProjectSettings`, `ProjectRenderer`) and sample data on REST sources (`RestDataSource.sample`, `RestSourceEntry.sample`) — the YAML shapes and the Java types behind them |
 | **Development tooling** | live reload (dev mode, `/mateu/dev/*`), the Redwood embedded `<mateu-ui>` JET component |
 | The **Figma design-to-code pipeline** | the contract packaged at `META-INF/mateu/contract.json` in the uidl jar, the Figma plugin and the modux importer/codegen |
@@ -170,19 +170,20 @@ Python (`mateu_uidl`) ports follow the same boundary for the same concepts.
 | `mateu-dtos` | `io.mateu.dtos` | 270 | 242 | 0 | 28 | 0 |
 | `mateu-uidl` | `io.mateu.uidl` | 6 | 6 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.annotations` | 169 | 163 | 4 | 2 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.data` | 303 | 263 | 34 | 6 | 0 |
+| `mateu-uidl` | `io.mateu.uidl.data` | 306 | 263 | 37 | 6 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.di` | 2 | 2 | 0 | 0 | 0 |
 | `mateu-uidl` | `io.mateu.uidl.fluent` | 34 | 31 | 0 | 3 | 0 |
-| `mateu-uidl` | `io.mateu.uidl.interfaces` | 104 | 96 | 5 | 1 | 2 |
+| `mateu-uidl` | `io.mateu.uidl.interfaces` | 105 | 96 | 6 | 1 | 2 |
 | `mateu-uidl` | `io.mateu.uidl.layout` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
-| **Total** | | **955** | **837** | **43** | **40** | **35** |
+| `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
+| **Total** | | **961** | **839** | **47** | **40** | **35** |
 
 **Experimental types** (the whole type and its members):
 
 - `io.mateu.uidl.annotations`: `AI`, `DragRows`, `RowStatus`, `Tooltip`
-- `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `Announcement`, `CalendarDay`, `CalendarView`, `Chat`, `CrudDisplay`, `DockedPanel`, `DropZone`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `GeneralOverviewDisplay`, `HeroTone`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `NotFound`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordSwitcher`, `SwitcherType`, `Toggle`, `Translations`, `WizardDisplay`
-- `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `Draftable`, `FieldTypeCatalogSupplier`, `RecordSwitcherSupplier`, `TranslationsSupplier`
+- `io.mateu.uidl.data`: `Access`, `ActionCatalog`, `ActionPanel`, `ActionPanelCategory`, `ActionPanelItem`, `Announcement`, `CalendarDay`, `CalendarView`, `Chat`, `CrudDisplay`, `DockedPanel`, `Document`, `DocumentDisposition`, `DropZone`, `Environment`, `FieldTypeCatalog`, `FieldTypeEntry`, `GeneralOverviewDisplay`, `HeroTone`, `MapMarker`, `MatrixCell`, `MatrixColumn`, `MatrixGrid`, `MatrixRow`, `MatrixSection`, `MenuDisplay`, `MenuPresentation`, `NotFound`, `PageSetup`, `PopoverTrigger`, `ProjectRenderer`, `ProjectSettings`, `RecordSwitcher`, `SwitcherType`, `Toggle`, `Translations`, `WizardDisplay`
+- `io.mateu.uidl.interfaces`: `ActionCatalogSupplier`, `DocumentRenderer`, `Draftable`, `FieldTypeCatalogSupplier`, `RecordSwitcherSupplier`, `TranslationsSupplier`
 
 **Experimental members** of otherwise stable types:
 
@@ -217,7 +218,7 @@ Python (`mateu_uidl`) ports follow the same boundary for the same concepts.
 - `io.mateu.uidl.data.RestSourceEntry`: `sample`
 - `io.mateu.uidl.data.RouteEntry`: `access`
 - `io.mateu.uidl.data.RouteLink`: `presentation`
-- `io.mateu.uidl.data.UICommand`: `announce`, `announceAssertive`
+- `io.mateu.uidl.data.UICommand`: `announce`, `announceAssertive`, `print`
 - `io.mateu.uidl.fluent.AppShell`: `accessKeys`
 - `io.mateu.uidl.fluent.Listing`: `dragType`, `preSearch`, `rowStatusField`
 - `io.mateu.uidl.interfaces.Actionable`: `presentation`

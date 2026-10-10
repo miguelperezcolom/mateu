@@ -15,12 +15,14 @@ from mateu_dtos import (
 )
 from mateu_uidl import (
     components as fluent,
+    Document,
     FlowStep,
     Message,
     PageBanner,
 )
 
-from .. import action_guard
+from .. import action_guard, documents
+from ..request_context import current_request
 from ._base import MixinBase
 from ._common import RunActionRq
 
@@ -76,6 +78,15 @@ class ActionHandlerMixin(MixinBase):
     def map_result(self, result, rq: RunActionRq | None = None) -> UIIncrement:
         if result is None:
             return UIIncrement.of()
+        # A Document is shown or downloaded: a DownloadFile command, the bytes inline when small,
+        # a single-use URL under the mount when large or lazy (mirrors Java's CommandMapper).
+        if isinstance(result, Document):
+            request = current_request()
+            return UIIncrement.of(commands=[UICommand(
+                target_component_id=self.target(rq),
+                type="DownloadFile",
+                data=documents.to_file_download(result, request.base_url if request else None),
+            )])
         # An overlay (drawer/dialog) → an ADD fragment on the initiator, so it stacks on top of
         # the page instead of replacing it (mirrors Java's FragmentDataSerializer.isOverlay).
         if isinstance(result, (fluent.Drawer, fluent.Dialog)):

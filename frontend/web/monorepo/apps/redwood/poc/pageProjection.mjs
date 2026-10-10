@@ -188,6 +188,34 @@ export function formActionsBesideHeader(formActions, header, hostToolbar) {
 export function pageWidthOf({ host, drawerNav, iopOn = false }) {
   return (drawerNav || iopOn) ? 'edgeToEdge' : ((host && host.pageWidth) || 'fixed')
 }
+/** The marker the server stamps into a @Compact page's style (StyleConstants.COMPACT). */
+export const COMPACT_STYLE_MARKER = '--mateu-compact:1'
+
+/**
+ * Whether the page asks for HIGH DENSITY (@Compact): its style carries the compact marker (a
+ * page, a form, a crud's detail), or its listing says so (CrudlDto.compact — a @Compact crud or
+ * listing). Nested islands are their own pages and are not looked into.
+ */
+export function pageDensityOf(host) {
+  let compact = false
+  const isCompactStyle = (style) => typeof style === 'string' && style.replace(/\s+/g, '').indexOf(COMPACT_STYLE_MARKER) >= 0
+  const walk = (node, depth) => {
+    if (compact || !node || typeof node !== 'object' || depth > 6) return
+    const md = node.metadata || {}
+    if (isCompactStyle(node.style) || isCompactStyle(md.style) || (md.type === 'Crud' && md.compact === true)) {
+      compact = true
+      return
+    }
+    for (const child of node.children || []) {
+      if (child && child.type === 'ServerSide') continue
+      walk(child, depth + 1)
+    }
+  }
+  walk(host && host.tree, 0)
+  if (!compact && host && isCompactStyle(host.style)) compact = true
+  return compact ? 'compact' : 'standard'
+}
+
 export function pageLayoutOf({ host, drawerNav, iopOn = false, bleedingHeader, band }) {
   const edge = drawerNav || iopOn
   const pageStyle = edge ? pageStyleOf({ pageWidth: 'edgeToEdge' }) : pageStyleOf(host)
@@ -198,6 +226,10 @@ export function pageLayoutOf({ host, drawerNav, iopOn = false, bleedingHeader, b
     mateuPageMargin: pageStyle.margin,
     mateuPagePadding: bleedingHeader ? '0' : pageStyle.padding,
     mateuBandBoxMargin: '0 auto',
+    // @Compact: the content container takes the Redwood high-density class (app.css maps it onto
+    // Redwood's own tokens — the small control height, the 1x form-layout spacing); PRECOMPUTED,
+    // the VB expression evaluator has no ternaries
+    mateuPageDensityClass: pageDensityOf(host) === 'compact' ? 'mateu-density-compact' : '',
   }
   if (band) {
     out.mateuBandBoxMargin = pageStyle.margin
