@@ -60,6 +60,7 @@ from ..reflection import (
     view_fields,
 )
 from ..registry import type_name
+from ..validation import client_validations
 from ._base import MixinBase
 from ._common import (
     _id,
@@ -476,6 +477,7 @@ class CrudMapperMixin(MixinBase):
             rules=self.map_rules(element, entity),
             page_width=getattr(crud_type, "__mateu_page_width__", None),
             page_type=page_type_of(crud_type),
+            validations=client_validations(self, element, entity, read_only=mode == "view"),
         )
 
     def map_rules(self, cls, instance) -> list[RuleRecord]:

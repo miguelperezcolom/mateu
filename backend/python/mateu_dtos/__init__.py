@@ -148,6 +148,7 @@ from .components import (  # noqa: F401
     ComponentMetadata,
     RuleRecord,
     ServerSideComponent,
+    ValidationRecord,
 )
 from .records import (  # noqa: F401
     Action,

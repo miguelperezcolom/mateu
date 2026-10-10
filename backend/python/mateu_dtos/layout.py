@@ -69,6 +69,9 @@ class DivMetadata(Wire):
 class VerticalLayoutMetadata(Wire):
     type: Literal["VerticalLayout"] = "VerticalLayout"
     spacing: bool = False
+    #: Cross-axis alignment of the children (START/CENTER/END/STRETCH; mirrors
+    #: VerticalLayoutDto.horizontalAlignment). None lets the renderer default.
+    horizontal_alignment: str | None = None
 
 
 class HorizontalLayoutMetadata(Wire):

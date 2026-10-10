@@ -16,6 +16,7 @@ from mateu_uidl import (
 )
 
 from ..action_guard import resolve_action
+from ..validation import client_validations
 from ..naming import (
     camel_case,
     humanize,
@@ -223,4 +224,9 @@ class ViewMapperMixin(MixinBase):
             page_width=getattr(cls, "__mateu_page_width__", None),
             page_type=page_type,
             static_view=bool(class_flag(cls, "__mateu_static_view__", False)),
+            # declared constraints → client-side validations; a tree supplier composes its own
+            # tree, it is not a form (Java's ValidationMapper: page/form/record only)
+            validations=(
+                [] if is_tree_supplier else client_validations(self, cls, instance)
+            ),
         )

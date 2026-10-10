@@ -385,9 +385,9 @@ class LayoutMapperMixin(MixinBase):
         # SectionFormRenderer.asPropertyList).
         if section is not None and section.property_list:
             body = ClientSideComponent(
-                metadata=VerticalLayoutMetadata(),
+                metadata=VerticalLayoutMetadata(horizontal_alignment="STRETCH"),
                 children=[self._as_property_row(f) for f in fields],
-                style="width: 100%; align-items: stretch;",
+                style="width: 100%;",
             )
         else:
             body = self.client(

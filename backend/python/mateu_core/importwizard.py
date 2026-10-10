@@ -269,17 +269,25 @@ def _coerce(t, raw: str):
 
 
 def _validate_required(row_class: type, row, line: int, mappings) -> list[RowIssue]:
-    """``Required()`` fields must end up non-None and non-blank — the Python port's validation
-    surface (it has no Min/Max markers)."""
+    """The row's declared constraints — ``Required()`` (non-None, non-blank) and the
+    ``Min``/``Max``/``Size``/``Pattern`` markers — the port's server-side validation surface, the
+    same one a saved form is checked against (Java runs Bean Validation over each typed row)."""
+    from .validation import field_violations
+
     issues: list[RowIssue] = []
     for f in _assignable_fields(row_class):
-        if not f.has(Required):
-            continue
         value = getattr(row, f.name, None)
-        if value is None or (isinstance(value, str) and not value.strip()):
-            field_id = camel_case(f.name)
-            column = next((m.csv_column for m in mappings if m.target_field == field_id), field_id)
-            issues.append(RowIssue(line, column, "", "Must not be empty"))
+        problems = field_violations(f, value)
+        if not problems:
+            continue
+        field_id = camel_case(f.name)
+        column = next((m.csv_column for m in mappings if m.target_field == field_id), field_id)
+        shown = "" if value is None else str(value)
+        for problem in problems:
+            if problem == "Cannot be empty":
+                issues.append(RowIssue(line, column, "", "Must not be empty"))
+            else:
+                issues.append(RowIssue(line, column, shown, problem))
     return issues
 
 

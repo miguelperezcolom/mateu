@@ -265,6 +265,9 @@ class CrudHandlerMixin(MixinBase):
         missing = self.required_missing(entity, element)
         if missing:
             return self.error("Please fill: " + ", ".join(missing))
+        broken = self.constraint_violations(entity, element)
+        if broken:
+            return self.error("; ".join(broken))
         if version is not None:
             if stored_version is not None and self._force_overwrite(rq):
                 # the user chose to overwrite from the conflict dialog: adopt the STORED version

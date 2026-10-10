@@ -26,6 +26,7 @@ from ..naming import (
 from ..page_type_inference import page_type_of
 from ..reflection import view_fields
 from ..registry import type_name
+from ..validation import client_validations
 from ._base import MixinBase
 from ._common import (
     _id,
@@ -141,4 +142,9 @@ class WizardMapperMixin(MixinBase):
             initial_data=initial, actions=[], triggers=[],
             page_width=getattr(cls, "__mateu_page_width__", None),
             page_type=page_type_of(cls),
+            # only the CURRENT step's constraints: the others are not on screen (Java's
+            # WizardStepInspector)
+            validations=client_validations(
+                self, cls, instance, fields=[f for f, s in step_fields if s == current]
+            ),
         )

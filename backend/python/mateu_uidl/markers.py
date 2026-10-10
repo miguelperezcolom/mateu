@@ -62,6 +62,20 @@ class Money:
 
 
 @dataclass(frozen=True)
+class Text:
+    """Renders the field's VALUE as a sized text instead of an input — a heading-like caption
+    driven by the state (the Python analogue of Java's ``@Text`` field annotation). It travels as a
+    ``Text`` component whose text is ``${state.<field>}``, so it follows the value client-side.
+    ``container`` is the HTML element (``p``, ``h1``…``h6``, ``div``…), ``size`` one of
+    ``xl``/``l``/``m``/``s``/``xs``. Not to be confused with the FLUENT
+    ``mateu_uidl.components.Text``, which is a component you compose, not a field marker."""
+
+    container: str = "p"
+    size: str = "m"
+    no_margins: bool = False
+
+
+@dataclass(frozen=True)
 class SeparatorBefore:
     """Paints a horizontal divider line (``<hr>``) above the field, occupying the full form
     width — for separating groups of contents inside a section or form without starting a new

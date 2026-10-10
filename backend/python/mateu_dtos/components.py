@@ -230,6 +230,18 @@ class ServerSideComponent(Wire):
     #: RunActionRq.known_structure_hash; when it still matches, the server omits the component and
     #: the client reuses its cache (mirrors ServerSideComponentDto.structureHash).
     structure_hash: str | None = None
+    #: Client-side validations derived from the declared constraints (Required/Min/Max/Size/
+    #: Pattern markers, @validation, ValidationSupplier): the renderer refuses to submit while a
+    #: condition is falsy (mirrors ServerSideComponentDto.validations).
+    validations: list["ValidationRecord"] = Field(default_factory=list)
+
+
+class ValidationRecord(Wire):
+    """A client-side validation (mirrors ``io.mateu.dtos.ValidationDto``)."""
+
+    condition: str
+    field_id: str
+    message: str
 
 
 class RuleRecord(Wire):

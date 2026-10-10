@@ -30,6 +30,8 @@ from decimal import Decimal  # noqa: E402
 from mateu_dtos import MenuItem  # noqa: E402
 from mateu_uidl import AppShell, AppSupplier, BannerTheme, Dashboard, Disabled, Hidden, Message, Money, Panel, PlainText, SeparatorBefore, Tab, app, auto_layout, banner, fab, static_view, zones  # noqa: E402
 from mateu_uidl.components import MetricCard, MetricTrend, Text  # noqa: E402
+from mateu_uidl import Text as TextField  # noqa: E402
+from mateu_uidl import Max, Min  # noqa: E402
 
 
 class Colour(str, Enum):
@@ -112,9 +114,7 @@ class SeparatorText:
     nombre: str = "María"
     telefono: Annotated[str, Section("Contacto")] = "+34 600 000 000"
     email: Annotated[str, SeparatorBefore()] = "maria@example.com"
-    # Java renders this as a sized @Text(size=xl) component; Python has no declarative Text
-    # field marker (fluent-only), so it travels as an ordinary form field — a documented gap.
-    titular: str = "Bienvenida"
+    titular: Annotated[str, TextField(size="xl")] = "Bienvenida"
 
 
 @ui("/conformance/client-rules")
@@ -182,13 +182,12 @@ class AppInCode(AppSupplier):
 @ui("/conformance/validation")
 @title("Validated form")
 class ValidatedForm:
-    """Bean-validation constraints: ``Required()`` sets the wire's required flag. Python has no
-    min/max marker and its wire has no component-level ``validations`` member, so the range on
-    ``age`` and the validation entries Java derives from the constraints are a documented gap."""
+    """Bean-validation constraints: ``Required()`` sets the wire's required flag and, like
+    ``Min``/``Max``, a component-level ``validations`` entry."""
 
     name: Annotated[str, Required()] = "Ada"
     email: Annotated[str, Required()] = "ada@example.com"
-    age: int = 36
+    age: Annotated[int, Min(18), Max(99)] = 36
 
 
 @ui("/conformance/stereotypes")

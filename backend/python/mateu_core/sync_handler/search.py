@@ -43,6 +43,7 @@ from ..naming import (
     humanize,
 )
 from ..reflection import view_fields
+from ..validation import violations
 from ._base import MixinBase
 from ._common import (
     _sort_key,
@@ -502,3 +503,13 @@ class SearchHandlerMixin(MixinBase):
                 if v is None or (isinstance(v, str) and v.strip() == ""):
                     out.append(f.marker(Label).value if f.has(Label) else humanize(f.name))
         return out
+
+    @staticmethod
+    def constraint_violations(entity, element) -> list[str]:
+        """``"<label>: <message>"`` for every Min/Max/Size/Pattern constraint the entity breaks —
+        the server-side leg of the client-side validations (Required() is reported separately)."""
+        return [
+            f"{label}: {message}"
+            for label, message in violations(entity, element)
+            if message != "Cannot be empty"
+        ]

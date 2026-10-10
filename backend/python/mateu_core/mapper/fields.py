@@ -12,6 +12,7 @@ from typing import (
     get_origin,
 )
 
+from mateu_dtos import TextMetadata
 from mateu_dtos import (
     Button,
     ClientSideComponent,
@@ -25,6 +26,7 @@ from mateu_dtos import (
     RestAction,
     RestDataSource,
 )
+from mateu_uidl import Text as TextMarker
 from mateu_uidl import (
     BulletedList,
     FileUpload,
@@ -133,6 +135,20 @@ class FieldMapperMixin(MixinBase):
         row_type = self.grid_row_type(f)
         if row_type is not None:
             return self.map_grid_field(f, row_type, instance, read_only)
+        if f.has(TextMarker):
+            # Text(): the VALUE rendered as a sized text, interpolated from the state client-side
+            # (mirrors Java's ReflectionFormFieldMapper @Text branch).
+            marker = f.marker(TextMarker)
+            return self.client(
+                TextMetadata(
+                    text=f"${{state.{field_id}}}",
+                    container=marker.container,
+                    size=marker.size,
+                    no_margins=marker.no_margins,
+                ),
+                field_id,
+                [],
+            )
         label = self.T(f.marker(Label).value if f.has(Label) else humanize(f.name))
         required = f.has(Required)
         t = f.type
