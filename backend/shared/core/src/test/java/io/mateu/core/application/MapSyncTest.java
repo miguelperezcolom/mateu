@@ -61,11 +61,25 @@ class MapSyncTest {
     }
   }
 
+  @UI("/tiles-map")
+  public static class TilesMap implements ComponentTreeSupplier {
+
+    @Override
+    public Component component(HttpRequest httpRequest) {
+      return Map.builder()
+          .position("39.57, 2.65")
+          .zoom("10")
+          .tileUrl("https://tiles.example.com/{z}/{x}/{y}.png")
+          .attribution("© Example Tiles")
+          .build();
+    }
+  }
+
   static TestMateu mateu;
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(HotelsMap.class);
+    mateu = TestMateu.withUis(HotelsMap.class, TilesMap.class);
   }
 
   @AfterAll
@@ -84,6 +98,9 @@ class MapSyncTest {
     assertThat(dto.position()).isNull();
     assertThat(dto.markerActionId()).isEqualTo("openHotel");
     assertThat(dto.markers()).hasSize(2);
+    // no tile provider declared: the renderers fall back to OpenStreetMap
+    assertThat(dto.tileUrl()).isNull();
+    assertThat(dto.attribution()).isNull();
     var palma = dto.markers().get(0);
     assertThat(palma.id()).isEqualTo("palma");
     assertThat(palma.latitude()).isEqualTo(39.5696);
@@ -93,6 +110,15 @@ class MapSyncTest {
     assertThat(palma.color()).isEqualTo("#c74634");
     // the view handles the marker action, so it is advertised and the client sends it
     assertThat(host.actions()).extracting(ActionDto::id).contains("openHotel");
+  }
+
+  @Test
+  void theTileProviderTravelsWhenDeclared() {
+    var host = (ServerSideComponentDto) mateu.sync("/tiles-map").fragments().get(0).component();
+    var dto = (MapDto) ((ClientSideComponentDto) host.children().get(0)).metadata();
+
+    assertThat(dto.tileUrl()).isEqualTo("https://tiles.example.com/{z}/{x}/{y}.png");
+    assertThat(dto.attribution()).isEqualTo("© Example Tiles");
   }
 
   @Test
@@ -115,5 +141,6 @@ class MapSyncTest {
 
     assertThat(map.markers()).isEmpty();
     assertThat(map.markerActionId()).isNull();
+    assertThat(map.tileUrl()).isNull();
   }
 }
