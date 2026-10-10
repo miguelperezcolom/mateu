@@ -1,7 +1,7 @@
 /* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
  * (tests de contrato: cd poc && node test.mjs). */
-define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
+define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (require, ArrayDataProvider, NumberConverter) => {
   'use strict';
   // El árbol de navegación: las reglas de libs/mateu/.../navTree.ts que necesita este renderer,
   // PORTADAS (no compartidas): el bridge se construye concatenando estos .mjs (make-amd.mjs) y no
@@ -357,7 +357,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       if (!f.dataType || metadata[f.fieldId]) continue // duplicados = referencias de FormRow
       // una LISTA (grid de formulario) no es un campo de texto: la pinta el contenido como tabla
       // (un @Searchable de varios ids sí es un campo: sus chips)
-      if ((f.dataType === 'array' && f.stereotype !== 'searchable') || (f.columns || []).length) continue
+      // una lista es una tabla (no un campo) salvo @Searchable y las de elección múltiple
+      if ((f.dataType === 'array' && f.stereotype !== 'searchable' && !isExtraLayoutField(f)) || (f.columns || []).length) continue
       metadata[f.fieldId] = {
         type: NUMERIC.indexOf(f.dataType) >= 0 ? 'number'
           : f.dataType === 'bool' || f.dataType === 'boolean' ? 'boolean' : 'string',
@@ -405,16 +406,18 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     for (const f of collectFields(tree)) {
       if (!f.dataType || seen[f.fieldId]) continue
       seen[f.fieldId] = true
-      if ((f.dataType === 'array' && f.stereotype !== 'searchable') || (f.columns || []).length) continue
+      // una lista es una tabla (no un campo) salvo @Searchable y las de elección múltiple
+      if ((f.dataType === 'array' && f.stereotype !== 'searchable' && !isExtraLayoutField(f)) || (f.columns || []).length) continue
       // la vista de detalle de un @Searchable llega como `<campo>-label`: su texto viaja en data
       const raw = s[f.fieldId] == null && f.stereotype === 'searchable' && data ? data[f.fieldId] : s[f.fieldId]
       // un lookup REMOTO es un desplegable también aquí: sus opciones las carga la chain
       // (bridge.loadLookups) al abrir la pantalla, como las del editor de fila
       const widget = fieldWidgetOf(f, data, { lookups: true, value: raw, textWhenEmpty: true })
-      out.push({
-        ...widget,
-        value: raw == null ? null : (widget.isSelect ? plainValueOf(raw) : raw),
-      })
+      let value = raw == null ? null : (widget.isSelect ? plainValueOf(raw) : raw)
+      if (widget.isMultiSelect || widget.isCheckboxSet)
+        value = Array.isArray(raw) ? raw.map(plainValueOf) : (raw == null || raw === '' ? [] : String(raw).split(','))
+      else if (widget.isMoney) value = raw == null || raw === '' || Number.isNaN(Number(raw)) ? null : Number(raw)
+      out.push({ ...widget, value })
     }
     return out
   }
@@ -1411,6 +1414,15 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    *  viaja con las filas y sin proveedor, que es lo que los tests comprueban). */
   let dataProviderFactory = null
   function setDataProviderFactory(factory) { dataProviderFactory = factory }
+
+  /** Fábrica de conversores de JET (oj-input-number de un importe): JET 18 ya no acepta el
+   *  conversor como JSON, quiere una instancia de IntlNumberConverter. En Node se queda la
+   *  especificación, que es lo que los tests comprueban. */
+  let converterFactory = null
+  function setConverterFactory(factory) { converterFactory = factory }
+  function converterOf(spec) {
+    return converterFactory ? converterFactory(spec) : spec
+  }
 
   function islandContentOf(ctx, opts = {}) {
     if (!ctx || !ctx.tree) return null
@@ -4083,7 +4095,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   function layoutFieldOf(md, state, data, columns = 1) {
     const fieldId = md.fieldId || md.id
     if (!fieldId || (md.columns || []).length || md.propertyRow
-      || !(LAYOUT_TYPES[md.dataType] || md.stereotype === 'searchable')) return null
+      || !(LAYOUT_TYPES[md.dataType] || md.stereotype === 'searchable' || isExtraLayoutField(md))) return null
     const s = state || {}
     const d = data || {}
     const raw = s[fieldId] != null ? s[fieldId] : d[fieldId]
@@ -4091,7 +4103,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     let value = raw == null || raw === '' ? null : raw
     if (widget.isBoolean) value = !!raw
     else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
-    else if (widget.isNumber) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
+    else if (widget.isNumber || widget.isMoney) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
+    else if (widget.isMultiSelect || widget.isCheckboxSet) value = Array.isArray(raw) ? raw.map(plainValueOf) : (raw == null || raw === '' ? [] : String(raw).split(','))
     else if (value != null && typeof value === 'object') value = plainValueOf(value)
     return {
       ...widget,
@@ -4313,8 +4326,59 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    * select si trae opciones (estáticas, o las que trajo su búsqueda) — o, con lookups, si es un
    * lookup remoto —, fecha, fecha-hora, número, booleano, área de texto o texto.
    */
+  // Estereotipos de campo con widget propio más allá del texto/número/fecha/booleano/select (reto
+  // PMS): radio, selección múltiple, importe y los de captura. Cada familia es un flag is* de la
+  // plantilla (ver poc/templates/fields-extra.html).
+  const MULTI_SELECT_STEREOTYPES = { multiSelect: true, combobox: true, listBox: true }
+  const CHECKBOX_SET_STEREOTYPES = { checkbox: true, choice: true }
+  const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', image: 'image', signature: 'signature', camera: 'camera' }
+
+  /** El widget de un estereotipo «extra», o null si el campo es de los de siempre. */
+  function extraWidgetOf(f, options) {
+    const st = f.stereotype
+    if (st === 'radio' && options.length) return { isRadio: true }
+    if (f.dataType === 'array' && options.length && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
+    if (f.dataType === 'array' && options.length && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
+      return { isCheckboxSet: true }
+    if (st === 'money' || f.dataType === 'money') {
+      const currency = (f.attributes || []).find && ((f.attributes || []).find((a) => a && a.key === 'currency') || {}).value
+      return {
+        isMoney: true,
+        // conversor de JET (oj-input-number): número con 2 decimales y su símbolo de moneda
+        converter: converterOf({ type: 'number', options: { style: 'currency', currency: currency || 'EUR', minimumFractionDigits: 2 } }),
+      }
+    }
+    if (CAPTURE_MODES[st]) return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || '' }
+    return null
+  }
+
+  /** ¿Lo pinta el oj-form-layout? (además de los LAYOUT_TYPES de siempre) */
+  function isExtraLayoutField(md) {
+    return !!(md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
+      || CAPTURE_MODES[md.stereotype]
+      || (md.dataType === 'array' && (md.options || []).length
+        && (MULTI_SELECT_STEREOTYPES[md.stereotype] || CHECKBOX_SET_STEREOTYPES[md.stereotype])))
+  }
+
   function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
     if (isSearchableField(f)) return searchableWidgetOf(f, data, value)
+    const extra = extraWidgetOf(f, optionsOf(f, data))
+    if (extra) {
+      const flags = { isSelect: false, isBoolean: false, isDate: false, isDateTime: false, isNumber: false, isTextArea: false, isText: false }
+      return {
+        fieldId: f.fieldId,
+        label: f.label || f.fieldId,
+        required: !!f.required,
+        readonly: !!f.readOnly,
+        isLookup: false,
+        lookupActionId: '',
+        options: (extra.isRadio || extra.isMultiSelect || extra.isCheckboxSet) ? optionsOf(f, data) : [],
+        ...flags,
+        isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
+        converter: null, captureMode: '', accept: '',
+        ...extra,
+      }
+    }
     const lookupActionId = (f.remoteCoordinates && f.remoteCoordinates.action) || ''
     let options = optionsOf(f, data)
     // Un lookup con valor que aún no está entre sus opciones (no han llegado, o sólo llegó la
@@ -4349,6 +4413,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       isNumber,
       isTextArea,
       isText: !isSelect && !isBoolean && !isDate && !isDateTime && !isNumber && !isTextArea,
+      isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
+      converter: null, captureMode: '', accept: '',
     }
   }
 
@@ -6275,6 +6341,228 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   }
 
 
+  // Campos de CAPTURA de un formulario (fichero, imagen, firma, cámara) para los que JET/Redwood no
+  // trae componente: no hay pad de firma ni cámara en oj-*/oj-sp-*, y oj-file-picker sólo entrega
+  // File (el valor de Mateu es un data URI que viaja en el estado, sin endpoint de subida — el mismo
+  // contrato que el renderer web). Así que un elemento PROPIO y mínimo, `<mateu-capture-field>`:
+  // los botones son oj-button de verdad, el lienzo/vídeo/imagen van con los tokens de Redwood, y el
+  // valor sale como `valueChanged` con { value, updatedFrom: 'internal' } — la forma del evento de
+  // un componente JET, así que las chains de cambio de campo (hostInputChanged, mateuFieldEdited…)
+  // lo tratan como uno más.
+  //
+  //   <mateu-capture-field mode="signature|camera|file|image" accept="…" readonly value="data:…">
+  //
+  // Lo puro (cómo se lee un fichero, qué texto enseña) está exportado y probado en Node; lo de DOM
+  // se define una vez por documento (defineCaptureField).
+
+  const CAPTURE_TEXTS = {
+    en: { clear: 'Clear', accept: 'Accept', signAgain: 'Sign again', remove: 'Remove', take: 'Take photo',
+      retake: 'Retake', upload: 'Upload', replace: 'Replace', noCamera: 'Camera unavailable — choose a file',
+      empty: 'No file', start: 'Open camera', signHere: 'Sign here' },
+    es: { clear: 'Borrar', accept: 'Aceptar', signAgain: 'Volver a firmar', remove: 'Quitar', take: 'Hacer foto',
+      retake: 'Repetir', upload: 'Subir', replace: 'Sustituir', noCamera: 'Cámara no disponible — elige un fichero',
+      empty: 'Sin fichero', start: 'Abrir cámara', signHere: 'Firme aquí' },
+  }
+
+  function captureTexts(lang) {
+    return String(lang || '').toLowerCase().startsWith('es') ? CAPTURE_TEXTS.es : CAPTURE_TEXTS.en
+  }
+
+  /** ¿El valor es una imagen que se puede enseñar? (data URI de imagen o URL corriente) */
+  function isImageValue(value) {
+    const v = String(value || '')
+    return /^data:image\//i.test(v) || /^(https?:)?\/\/|^\//.test(v)
+  }
+
+  /** Un nombre legible para un data URI de fichero (no lo lleva: se enseña el tipo y el tamaño). */
+  function describeFileValue(value) {
+    const v = String(value || '')
+    const m = v.match(/^data:([^;,]+)?(;base64)?,(.*)$/i)
+    if (!m) return v ? v.split('/').pop() : ''
+    const bytes = m[2] ? Math.floor((m[3].length * 3) / 4) : decodeURIComponent(m[3]).length
+    const kb = bytes < 1024 ? bytes + ' B' : (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0) + ' KB'
+    return (m[1] || 'file') + ' · ' + kb
+  }
+
+  /** Define `<mateu-capture-field>` en `win` (una vez). */
+  function defineCaptureField(win = typeof window !== 'undefined' ? window : null) {
+    if (!win || !win.customElements || win.customElements.get('mateu-capture-field')) return
+    const doc = win.document
+    const lang = (doc.documentElement.getAttribute('lang') || win.navigator.language || 'en')
+    const t = captureTexts(lang)
+
+    const button = (label, chroming, onAction) => {
+      const b = doc.createElement('oj-button')
+      // un componente JET creado fuera de Knockout espera un «binding provider» que nunca llega y
+      // se queda oculto (visibility:hidden hasta oj-complete): `none` le dice que no lo hay
+      b.setAttribute('data-oj-binding-provider', 'none')
+      b.setAttribute('chroming', chroming || 'outlined')
+      b.className = 'oj-button-sm oj-sm-margin-2x-end'
+      b.textContent = label
+      b.addEventListener('ojAction', (e) => { e.stopPropagation(); onAction() })
+      return b
+    }
+    const readFile = (file) => new Promise((resolve, reject) => {
+      const reader = new win.FileReader()
+      reader.onload = () => resolve(String(reader.result))
+      reader.onerror = () => reject(reader.error)
+      reader.readAsDataURL(file)
+    })
+
+    class MateuCaptureField extends win.HTMLElement {
+      static get observedAttributes() { return ['value', 'readonly', 'mode', 'accept'] }
+      connectedCallback() { this.render() }
+      disconnectedCallback() { this.stopCamera() }
+      attributeChangedCallback() { if (this.isConnected && !this.busy) this.render() }
+      get value() { return this.getAttribute('value') || '' }
+      set value(v) { if (v == null || v === '') this.removeAttribute('value'); else this.setAttribute('value', String(v)) }
+
+      emit(value) {
+        this.busy = true
+        this.value = value
+        this.busy = false
+        this.dispatchEvent(new win.CustomEvent('valueChanged', {
+          detail: { value: value || null, previousValue: null, updatedFrom: 'internal' }, bubbles: true }))
+        this.render()
+      }
+
+      stopCamera() {
+        if (this.stream) { this.stream.getTracks().forEach((track) => track.stop()); this.stream = null }
+      }
+
+      pickFile(capture) {
+        const input = doc.createElement('input')
+        input.type = 'file'
+        const mode = this.getAttribute('mode')
+        input.accept = this.getAttribute('accept') || (mode === 'file' ? '' : 'image/*')
+        if (capture) input.setAttribute('capture', 'environment')
+        input.addEventListener('change', async () => {
+          const file = input.files && input.files[0]
+          if (file) this.emit(await readFile(file))
+        })
+        input.click()
+      }
+
+      render() {
+        const mode = this.getAttribute('mode') || 'file'
+        const readonly = this.hasAttribute('readonly') && this.getAttribute('readonly') !== 'false'
+        const value = this.value
+        this.stopCamera()
+        this.textContent = ''
+        this.classList.add('mateu-capture-field')
+        const box = doc.createElement('div')
+        box.className = 'mateu-capture-box'
+        const actions = doc.createElement('div')
+        actions.className = 'oj-sm-margin-2x-top'
+
+        if (value && (mode !== 'file' || isImageValue(value))) {
+          const img = doc.createElement('img')
+          img.src = value
+          img.alt = ''
+          img.className = 'mateu-capture-preview' + (mode === 'signature' ? ' mateu-capture-signature' : '')
+          box.appendChild(img)
+        } else if (value) {
+          const span = doc.createElement('span')
+          span.className = 'oj-typography-body-md'
+          span.textContent = describeFileValue(value)
+          box.appendChild(span)
+        }
+
+        if (!readonly) {
+          if (mode === 'signature' && !value) {
+            this.renderPad(box, actions)
+          } else if (mode === 'camera' && !value) {
+            actions.appendChild(button(t.start, 'callToAction', () => this.openCamera(box, actions)))
+            actions.appendChild(button(t.upload, 'outlined', () => this.pickFile(true)))
+          } else if (!value) {
+            const empty = doc.createElement('span')
+            empty.className = 'oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end'
+            empty.textContent = t.empty
+            box.appendChild(empty)
+            actions.appendChild(button(t.upload, 'outlined', () => this.pickFile(false)))
+          } else {
+            const again = mode === 'signature' ? t.signAgain : mode === 'camera' ? t.retake : t.replace
+            actions.appendChild(button(again, 'outlined', () => {
+              if (mode === 'signature' || mode === 'camera') this.emit(null)
+              else this.pickFile(false)
+            }))
+            actions.appendChild(button(t.remove, 'borderless', () => this.emit(null)))
+          }
+        } else if (!value) {
+          const dash = doc.createElement('span')
+          dash.textContent = '—'
+          box.appendChild(dash)
+        }
+        this.appendChild(box)
+        if (actions.childNodes.length) this.appendChild(actions)
+      }
+
+      renderPad(box, actions) {
+        const canvas = doc.createElement('canvas')
+        canvas.className = 'mateu-capture-pad'
+        canvas.width = 560
+        canvas.height = 180
+        canvas.setAttribute('aria-label', t.signHere)
+        canvas.setAttribute('role', 'img')
+        const ctx = canvas.getContext('2d')
+        ctx.lineWidth = 2.2
+        ctx.lineCap = 'round'
+        ctx.strokeStyle = '#161513'
+        let drawing = false
+        let inked = false
+        const at = (e) => {
+          const r = canvas.getBoundingClientRect()
+          return [(e.clientX - r.left) * (canvas.width / r.width), (e.clientY - r.top) * (canvas.height / r.height)]
+        }
+        canvas.addEventListener('pointerdown', (e) => {
+          drawing = true; inked = true
+          canvas.setPointerCapture(e.pointerId)
+          const [x, y] = at(e); ctx.beginPath(); ctx.moveTo(x, y)
+        })
+        canvas.addEventListener('pointermove', (e) => {
+          if (!drawing) return
+          const [x, y] = at(e); ctx.lineTo(x, y); ctx.stroke()
+        })
+        const stop = () => { drawing = false }
+        canvas.addEventListener('pointerup', stop)
+        canvas.addEventListener('pointercancel', stop)
+        box.appendChild(canvas)
+        actions.appendChild(button(t.accept, 'callToAction', () => { if (inked) this.emit(canvas.toDataURL('image/png')) }))
+        actions.appendChild(button(t.clear, 'outlined', () => { ctx.clearRect(0, 0, canvas.width, canvas.height); inked = false }))
+      }
+
+      async openCamera(box, actions) {
+        const media = win.navigator.mediaDevices
+        if (!media || !media.getUserMedia) { this.pickFile(true); return }
+        try {
+          this.stream = await media.getUserMedia({ video: { facingMode: 'environment' } })
+        } catch (e) {
+          box.textContent = t.noCamera
+          return
+        }
+        const video = doc.createElement('video')
+        video.className = 'mateu-capture-preview'
+        video.autoplay = true
+        video.playsInline = true
+        video.muted = true
+        video.srcObject = this.stream
+        box.textContent = ''
+        box.appendChild(video)
+        actions.textContent = ''
+        actions.appendChild(button(t.take, 'callToAction', () => {
+          const canvas = doc.createElement('canvas')
+          canvas.width = video.videoWidth || 640
+          canvas.height = video.videoHeight || 480
+          canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height)
+          this.stopCamera()
+          this.emit(canvas.toDataURL('image/jpeg', 0.85))
+        }))
+      }
+    }
+    win.customElements.define('mateu-capture-field', MateuCaptureField)
+  }
+
+
   // Static-bundle "no backend" mode for the VB/Redwood renderer — the same contract as the web
   // renderers' libs/mateu (bundleStore.ts), rewritten for THIS core (which shares nothing with them:
   // here the transport is `fetch` in transport.mjs, not axios). A build-time exporter (Mateu's
@@ -8120,6 +8408,10 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return () => { observer.disconnect(); el.removeEventListener('scroll', onScroll) }
   }
 
+  // el importe de un campo money: IntlNumberConverter con estilo moneda (un objeto JSON ya no vale)
+  setConverterFactory((spec) => new NumberConverter.IntlNumberConverter(spec.options));
+  // campos de captura (fichero, imagen, firma, cámara): JET no los trae
+  defineCaptureField();
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
   setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
   // el editor de cada filtro del buscador (smartFilters.filtersMetadata): oj-dynamic se carga

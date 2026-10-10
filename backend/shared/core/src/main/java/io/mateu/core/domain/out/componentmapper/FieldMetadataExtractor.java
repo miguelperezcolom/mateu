@@ -244,6 +244,9 @@ public class FieldMetadataExtractor {
     if (field.getType().isEnum()) {
       return enumOptions(field.getType());
     }
+    if (ChoiceCollections.isChoiceCollection(field)) {
+      return enumOptions(ChoiceCollections.elementEnum(field));
+    }
     if (MetaAnnotations.isPresent(field, Lookup.class)
         && SHOWS_EVERY_OPTION.contains(
             FieldTypeMapper.getStereotype(field, instance, httpRequest))) {

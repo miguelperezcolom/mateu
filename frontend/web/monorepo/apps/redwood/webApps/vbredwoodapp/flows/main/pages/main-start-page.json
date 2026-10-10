@@ -862,6 +862,18 @@
       "oj-select-one": {
         "path": "ojs/ojselectcombobox"
       },
+      "oj-select-many": {
+        "path": "ojs/ojselectcombobox"
+      },
+      "oj-radioset": {
+        "path": "ojs/ojradioset"
+      },
+      "oj-checkboxset": {
+        "path": "ojs/ojcheckboxset"
+      },
+      "oj-option": {
+        "path": "ojs/ojoption"
+      },
       "oj-input-date": {
         "path": "ojs/ojdatetimepicker"
       },

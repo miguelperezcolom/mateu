@@ -8,10 +8,11 @@ import assert from 'node:assert/strict'
 import { readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, entityHeaderOf, taskQueueOf, HOST_ID } from './reduceContexts.mjs'
+import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, entityHeaderOf, taskQueueOf, formSectionsOf, layoutFieldOf, HOST_ID } from './reduceContexts.mjs'
 import { localMenuOptionOf, isSentinelHome } from './navTree.mjs'
 import { loadMenuRouteInto, terminalMenuRouteOf } from './transport.mjs'
 import { fileDownloadOf, triggerDownload, applyDomEffects } from './files.mjs'
+import { describeFileValue, isImageValue, captureTexts } from './inputs.mjs'
 import { wireElementEvents, serializeElementEvent, setElementEventSink, elementModuleUrl } from './elements.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -263,6 +264,55 @@ test('SplitLayout vertical o anidado: se proyecta en su sitio, sin columnas', ()
     node({ type: 'SplitLayout', orientation: 'vertical' }, [pane('arriba'), pane('abajo')]),
   ]))
   assert.deepEqual(atoms.filter((a) => a.isText).map((a) => a.text), ['arriba', 'abajo'])
+})
+
+// ── P0 #5: tipos de campo ──────────────────────────────────────────────────────────────────────
+
+test('tarjeta de registro real: cada estereotipo con su widget (radio, múltiple, importe, captura)', () => {
+  const reg = reduceContexts(empty(), fixture('registration-card'))
+  const host = reg.contexts[HOST_ID]
+  const fields = formSectionsOf(host.tree, host.state, host.data).flatMap((s) => s.fields)
+  const by = Object.fromEntries(fields.map((f) => [f.fieldId, f]))
+  assert.ok(by.documentType.isRadio)
+  assert.deepEqual(by.documentType.options.map((o) => o.value), ['PASSPORT', 'ID_CARD', 'DRIVING_LICENCE'])
+  // la lista de elección múltiple es UN campo (antes, una tabla o nada) con su valor como lista
+  assert.ok(by.preferences.isMultiSelect)
+  assert.deepEqual(by.preferences.value, ['QUIET_ROOM'])
+  assert.equal(by.preferences.options.length, 6)
+  // importe: número con el conversor de moneda de JET (en Node, su especificación)
+  assert.ok(by.deposit.isMoney && by.deposit.value === 150)
+  assert.equal(by.deposit.converter.options.style, 'currency')
+  assert.deepEqual(['documentScan', 'voucher', 'photo', 'signature'].map((id) => by[id].isCapture && by[id].captureMode),
+    ['camera', 'file', 'image', 'signature'])
+  // ningún widget queda con flags a undefined (la plantilla los evalúa todos)
+  for (const f of fields) for (const flag of ['isRadio', 'isMultiSelect', 'isCheckboxSet', 'isMoney', 'isCapture', 'isText'])
+    assert.equal(typeof f[flag], 'boolean', f.fieldId + '.' + flag)
+})
+
+test('el form layout pinta los mismos widgets nuevos; una lista sin estereotipo sigue sin ser campo', () => {
+  const md = (extra) => ({ type: 'FormField', fieldId: 'x', label: 'X', ...extra })
+  assert.ok(layoutFieldOf(md({ dataType: 'array', stereotype: 'checkbox', options: [{ value: 'A' }] }), { x: 'A,B' }).isCheckboxSet)
+  assert.deepEqual(layoutFieldOf(md({ dataType: 'array', stereotype: 'checkbox', options: [{ value: 'A' }] }), { x: 'A,B' }).value, ['A', 'B'])
+  assert.ok(layoutFieldOf(md({ dataType: 'money', stereotype: 'regular' }), { x: '12.5' }).isMoney)
+  assert.equal(layoutFieldOf(md({ dataType: 'array', stereotype: 'grid' }), {}), null)
+})
+
+test('plantilla: los widgets nuevos están en las 15 superficies de átomos y en las 7 copias de campos', () => {
+  const page = webApp('flows/main/pages/main-start-page.html')
+  for (const tag of ['<oj-radioset', '<oj-select-many', '<oj-checkboxset', '<mateu-capture-field'])
+    assert.equal(page.split(tag).length - 1, 22, tag)
+  // cada copia conserva SU listener de cambio
+  assert.match(page, /<oj-select-many[^>]*\n[^]*?on-value-changed="\[\[ \$listeners\.mateuRowFieldChanged \]\]"/)
+  const imports = JSON.parse(webApp('flows/main/pages/main-start-page.json')).imports.components
+  for (const c of ['oj-radioset', 'oj-checkboxset', 'oj-select-many', 'oj-option']) assert.ok(imports[c], c)
+})
+
+test('campo de captura: lo que enseña de un fichero y cuándo un valor es imagen', () => {
+  assert.equal(describeFileValue('data:application/pdf;base64,JVBERi0xLjQK'), 'application/pdf · 9 B')
+  assert.ok(isImageValue('data:image/png;base64,AAAA') && isImageValue('/files/a.png'))
+  assert.ok(!isImageValue('data:application/pdf;base64,AAAA'))
+  assert.equal(captureTexts('es-ES').signAgain, 'Volver a firmar')
+  assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /defineCaptureField\(\)/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

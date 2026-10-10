@@ -17,10 +17,36 @@ import { dirname, join } from 'node:path'
 const here = dirname(fileURLToPath(import.meta.url))
 const page = join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page.html')
 const partial = readFileSync(join(here, 'templates', 'atoms.html'), 'utf8').replace(/\n$/, '')
+// Los widgets de campo que se añadieron después (radio, selección múltiple, importe, captura) van
+// en un SEGUNDO parcial, insertado tras el oj-select-one de CADA copia de los campos —las de los
+// átomos y las 7 de fuera (drawer, editor de fila, formulario genérico, wizard, isla)—. Lo único
+// que cambia entre copias es el listener de cambio, que lleva el marcador:
+//   <!-- @fields-extra hostInputChanged -->  …  <!-- @end-fields-extra -->
+const fieldsPartial = readFileSync(join(here, 'templates', 'fields-extra.html'), 'utf8').replace(/\n$/, '')
 
 const VARIANTS = {
   host: { blockAction: 'hostBlockAction', addonToggled: 'hostAddonToggled' },
   island: { blockAction: 'islandBlockAction', addonToggled: 'addonToggled' },
+}
+
+const reindent = (text, indent) => text.split('\n').map((l) => (l ? indent + l : l))
+
+/** Expande los marcadores @fields-extra (el parcial va sin sangrar: toma el del marcador). */
+export const expandFields = (html) => {
+  const lines = html.split('\n')
+  const out = []
+  for (let i = 0; i < lines.length; i++) {
+    const m = lines[i].match(/^(\s*)<!-- @fields-extra (\w+) -->/)
+    if (!m) { out.push(lines[i]); continue }
+    out.push(lines[i])
+    let j = i + 1
+    while (j < lines.length && !/<!-- @end-fields-extra -->/.test(lines[j])) j++
+    if (j === lines.length) throw new Error(`@fields-extra sin @end-fields-extra (línea ${i + 1})`)
+    out.push(...reindent(fieldsPartial.replace(/\{\{change\}\}/g, m[2]), m[1]))
+    out.push(lines[j])
+    i = j
+  }
+  return out.join('\n')
 }
 
 export const expand = (html) => {
@@ -47,7 +73,8 @@ export const expand = (html) => {
     i = j
     count++
   }
-  return { html: out.join('\n'), count }
+  // los átomos traen sus propios marcadores de campos: se expanden después
+  return { html: expandFields(out.join('\n')), count }
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

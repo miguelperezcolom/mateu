@@ -3599,7 +3599,8 @@ test('page form: fecha-hora, enum con opciones y lookup remoto sin opciones', ()
     .map((f) => [f.fieldId, f]))
   assert.ok(byId.at.isDateTime && !byId.at.isDate && !byId.at.isText)
   assert.equal(byId.at.value, '2026-09-27T10:30:00')
-  assert.ok(byId.status.isSelect)
+  // stereotype radio → un oj-radioset de verdad (antes se degradaba a desplegable)
+  assert.ok(byId.status.isRadio && !byId.status.isSelect)
   assert.deepEqual(byId.status.options, [{ value: 'OPEN', label: 'Open' }, { value: 'CLOSED', label: 'CLOSED' }])
   // un lookup remoto con valor es un desplegable con ese valor (y su etiqueta) aunque sus
   // opciones no hayan llegado: un select con un valor fuera de sus opciones se pinta vacío

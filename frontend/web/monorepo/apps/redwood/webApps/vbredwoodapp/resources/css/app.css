@@ -1191,3 +1191,21 @@ body:has(.mateu-subheader:not(.mateu-subheader-empty)) .mateu-chat-panel {
   font-size: var(--oj-typography-body-md-font-size, 1rem);
   color: var(--oj-core-text-color-secondary, #6f6c6b);
 }
+
+/* ── campos de captura (fichero, imagen, firma, cámara): mateu-capture-field, poc/inputs.mjs ──
+   JET no trae componente para esto; el marco y la previsualización usan los tokens de Redwood */
+mateu-capture-field { display: block; }
+.mateu-capture-box {
+  display: flex; align-items: center; gap: 0.5rem; min-height: 2.75rem;
+}
+.mateu-capture-preview {
+  max-width: 100%; max-height: 14rem; border-radius: var(--oj-core-border-radius-md, 6px);
+  border: 1px solid var(--oj-core-divider-color, rgba(22,21,19,.12));
+  background: var(--oj-core-bg-color-content, #fff);
+}
+.mateu-capture-signature { max-height: 9rem; background: #fff; }
+.mateu-capture-pad {
+  width: 100%; max-width: 35rem; height: 11.25rem; touch-action: none; cursor: crosshair;
+  background: #fff; border: 1px dashed var(--oj-core-neutral-contrast, #6f6b66);
+  border-radius: var(--oj-core-border-radius-md, 6px);
+}

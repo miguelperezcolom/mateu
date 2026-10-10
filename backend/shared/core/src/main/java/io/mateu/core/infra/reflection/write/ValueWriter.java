@@ -42,6 +42,7 @@ public class ValueWriter {
     if (f == null) {
       return;
     }
+    v = FieldValueConverter.convertEnumCollection(f, v);
     v = convert(v, f.getType());
     try {
       Method setter = o.getClass().getMethod(getSetter(f), f.getType());

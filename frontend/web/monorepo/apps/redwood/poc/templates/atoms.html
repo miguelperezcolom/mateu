@@ -533,6 +533,8 @@
                                   :data-field-id="[[ $current.data.fieldId ]]"
                                   on-value-changed="[[ $listeners.hostInputChanged ]]"></oj-select-one>
                             </oj-bind-if>
+                            <!-- @fields-extra hostInputChanged -->
+                            <!-- @end-fields-extra -->
                             <oj-bind-if test="[[ $current.data.isBoolean ]]">
                               <oj-switch
                                   label-hint="[[ $current.data.label ]]"

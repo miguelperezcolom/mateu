@@ -95,7 +95,8 @@ export function dynFormMetadataOf(tree) {
     if (!f.dataType || metadata[f.fieldId]) continue // duplicados = referencias de FormRow
     // una LISTA (grid de formulario) no es un campo de texto: la pinta el contenido como tabla
     // (un @Searchable de varios ids sí es un campo: sus chips)
-    if ((f.dataType === 'array' && f.stereotype !== 'searchable') || (f.columns || []).length) continue
+    // una lista es una tabla (no un campo) salvo @Searchable y las de elección múltiple
+    if ((f.dataType === 'array' && f.stereotype !== 'searchable' && !isExtraLayoutField(f)) || (f.columns || []).length) continue
     metadata[f.fieldId] = {
       type: NUMERIC.indexOf(f.dataType) >= 0 ? 'number'
         : f.dataType === 'bool' || f.dataType === 'boolean' ? 'boolean' : 'string',
@@ -143,16 +144,18 @@ export function fieldListOf(tree, state, data) {
   for (const f of collectFields(tree)) {
     if (!f.dataType || seen[f.fieldId]) continue
     seen[f.fieldId] = true
-    if ((f.dataType === 'array' && f.stereotype !== 'searchable') || (f.columns || []).length) continue
+    // una lista es una tabla (no un campo) salvo @Searchable y las de elección múltiple
+    if ((f.dataType === 'array' && f.stereotype !== 'searchable' && !isExtraLayoutField(f)) || (f.columns || []).length) continue
     // la vista de detalle de un @Searchable llega como `<campo>-label`: su texto viaja en data
     const raw = s[f.fieldId] == null && f.stereotype === 'searchable' && data ? data[f.fieldId] : s[f.fieldId]
     // un lookup REMOTO es un desplegable también aquí: sus opciones las carga la chain
     // (bridge.loadLookups) al abrir la pantalla, como las del editor de fila
     const widget = fieldWidgetOf(f, data, { lookups: true, value: raw, textWhenEmpty: true })
-    out.push({
-      ...widget,
-      value: raw == null ? null : (widget.isSelect ? plainValueOf(raw) : raw),
-    })
+    let value = raw == null ? null : (widget.isSelect ? plainValueOf(raw) : raw)
+    if (widget.isMultiSelect || widget.isCheckboxSet)
+      value = Array.isArray(raw) ? raw.map(plainValueOf) : (raw == null || raw === '' ? [] : String(raw).split(','))
+    else if (widget.isMoney) value = raw == null || raw === '' || Number.isNaN(Number(raw)) ? null : Number(raw)
+    out.push({ ...widget, value })
   }
   return out
 }
@@ -1149,6 +1152,15 @@ const NOTICE_CLASSES = {
  *  viaja con las filas y sin proveedor, que es lo que los tests comprueban). */
 let dataProviderFactory = null
 export function setDataProviderFactory(factory) { dataProviderFactory = factory }
+
+/** Fábrica de conversores de JET (oj-input-number de un importe): JET 18 ya no acepta el
+ *  conversor como JSON, quiere una instancia de IntlNumberConverter. En Node se queda la
+ *  especificación, que es lo que los tests comprueban. */
+let converterFactory = null
+export function setConverterFactory(factory) { converterFactory = factory }
+function converterOf(spec) {
+  return converterFactory ? converterFactory(spec) : spec
+}
 
 export function islandContentOf(ctx, opts = {}) {
   if (!ctx || !ctx.tree) return null
@@ -3821,7 +3833,7 @@ const LAYOUT_TYPES = { string: true, integer: true, int: true, long: true, numbe
 export function layoutFieldOf(md, state, data, columns = 1) {
   const fieldId = md.fieldId || md.id
   if (!fieldId || (md.columns || []).length || md.propertyRow
-    || !(LAYOUT_TYPES[md.dataType] || md.stereotype === 'searchable')) return null
+    || !(LAYOUT_TYPES[md.dataType] || md.stereotype === 'searchable' || isExtraLayoutField(md))) return null
   const s = state || {}
   const d = data || {}
   const raw = s[fieldId] != null ? s[fieldId] : d[fieldId]
@@ -3829,7 +3841,8 @@ export function layoutFieldOf(md, state, data, columns = 1) {
   let value = raw == null || raw === '' ? null : raw
   if (widget.isBoolean) value = !!raw
   else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
-  else if (widget.isNumber) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
+  else if (widget.isNumber || widget.isMoney) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
+  else if (widget.isMultiSelect || widget.isCheckboxSet) value = Array.isArray(raw) ? raw.map(plainValueOf) : (raw == null || raw === '' ? [] : String(raw).split(','))
   else if (value != null && typeof value === 'object') value = plainValueOf(value)
   return {
     ...widget,
@@ -4051,8 +4064,59 @@ export function withSearchableIds(projection, fieldId, ids) {
  * select si trae opciones (estáticas, o las que trajo su búsqueda) — o, con lookups, si es un
  * lookup remoto —, fecha, fecha-hora, número, booleano, área de texto o texto.
  */
+// Estereotipos de campo con widget propio más allá del texto/número/fecha/booleano/select (reto
+// PMS): radio, selección múltiple, importe y los de captura. Cada familia es un flag is* de la
+// plantilla (ver poc/templates/fields-extra.html).
+const MULTI_SELECT_STEREOTYPES = { multiSelect: true, combobox: true, listBox: true }
+const CHECKBOX_SET_STEREOTYPES = { checkbox: true, choice: true }
+const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', image: 'image', signature: 'signature', camera: 'camera' }
+
+/** El widget de un estereotipo «extra», o null si el campo es de los de siempre. */
+export function extraWidgetOf(f, options) {
+  const st = f.stereotype
+  if (st === 'radio' && options.length) return { isRadio: true }
+  if (f.dataType === 'array' && options.length && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
+  if (f.dataType === 'array' && options.length && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
+    return { isCheckboxSet: true }
+  if (st === 'money' || f.dataType === 'money') {
+    const currency = (f.attributes || []).find && ((f.attributes || []).find((a) => a && a.key === 'currency') || {}).value
+    return {
+      isMoney: true,
+      // conversor de JET (oj-input-number): número con 2 decimales y su símbolo de moneda
+      converter: converterOf({ type: 'number', options: { style: 'currency', currency: currency || 'EUR', minimumFractionDigits: 2 } }),
+    }
+  }
+  if (CAPTURE_MODES[st]) return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || '' }
+  return null
+}
+
+/** ¿Lo pinta el oj-form-layout? (además de los LAYOUT_TYPES de siempre) */
+function isExtraLayoutField(md) {
+  return !!(md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
+    || CAPTURE_MODES[md.stereotype]
+    || (md.dataType === 'array' && (md.options || []).length
+      && (MULTI_SELECT_STEREOTYPES[md.stereotype] || CHECKBOX_SET_STEREOTYPES[md.stereotype])))
+}
+
 function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
   if (isSearchableField(f)) return searchableWidgetOf(f, data, value)
+  const extra = extraWidgetOf(f, optionsOf(f, data))
+  if (extra) {
+    const flags = { isSelect: false, isBoolean: false, isDate: false, isDateTime: false, isNumber: false, isTextArea: false, isText: false }
+    return {
+      fieldId: f.fieldId,
+      label: f.label || f.fieldId,
+      required: !!f.required,
+      readonly: !!f.readOnly,
+      isLookup: false,
+      lookupActionId: '',
+      options: (extra.isRadio || extra.isMultiSelect || extra.isCheckboxSet) ? optionsOf(f, data) : [],
+      ...flags,
+      isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
+      converter: null, captureMode: '', accept: '',
+      ...extra,
+    }
+  }
   const lookupActionId = (f.remoteCoordinates && f.remoteCoordinates.action) || ''
   let options = optionsOf(f, data)
   // Un lookup con valor que aún no está entre sus opciones (no han llegado, o sólo llegó la
@@ -4087,6 +4151,8 @@ function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
     isNumber,
     isTextArea,
     isText: !isSelect && !isBoolean && !isDate && !isDateTime && !isNumber && !isTextArea,
+    isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
+    converter: null, captureMode: '', accept: '',
   }
 }
 
