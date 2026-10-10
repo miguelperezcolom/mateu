@@ -47,6 +47,7 @@ describe('palette thumbnails', () => {
 
     it('start from the canvas design system, and with none on the DS-neutral canvas', () => {
         expect(defaultLook('vaadin')).toBe('vaadin')
+        expect(defaultLook('redwood')).toBe('redwood')
         expect(defaultLook('neutral')).toBe('none')
     })
 })
