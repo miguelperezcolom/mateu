@@ -77,8 +77,18 @@ class Crud(Generic[T]):
         """Override to return True and the listing toolbar offers "Export CSV" (action
         ``export-csv``), which downloads the WHOLE filtered result set (search text + smart
         search bar filters) as a CSV file, one column per visible entity field. The analogue of
-        Java's ``Listing.csvExportable`` on an AutoCrud (Excel/PDF have no exporter in this
-        port)."""
+        Java's ``Listing.csvExportable`` on an AutoCrud."""
+        return False
+
+    def excel_exportable(self) -> bool:
+        """Override to return True to offer "Export Excel" (``export-excel``, an .xlsx of the whole
+        filtered result set). Shown only when openpyxl is installed (``mateu-ui[export]``), as
+        Java shows it only with an ExcelExporter bean."""
+        return False
+
+    def pdf_exportable(self) -> bool:
+        """Override to return True to offer "Export PDF" (``export-pdf``). Shown only when
+        reportlab is installed (``mateu-ui[export]``)."""
         return False
 
     @staticmethod

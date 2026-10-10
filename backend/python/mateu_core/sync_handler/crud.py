@@ -29,6 +29,7 @@ from .. import action_guard
 from ..naming import camel_case
 from ..reflection import view_fields
 from ..registry import normalize
+from ..export import FORMATS
 from ._base import MixinBase
 from ._common import (
     RunActionRq,
@@ -58,9 +59,10 @@ class CrudHandlerMixin(MixinBase):
             return self.update_row(crud, element, rq)
         if aid == "delete":
             return self.navigate(base_route, None if id_ is None else self.delete(crud, id_), rq)
-        # Crud.csv_exportable: only an exportable crud answers export-csv (the id is wire input).
-        if aid == "export-csv" and self.mapper._csv_exportable(crud_type, crud):
-            return self.export_csv(crud, element, rq)
+        # Crud.<format>_exportable: only an exportable crud answers its export (the id is wire
+        # input), and only when the format's library is installed.
+        if aid in FORMATS and self.mapper._exportable(crud_type, crud, aid):
+            return self.export_listing(crud, crud_type, element, aid, rq)
         # edit_in_drawer (the Redwood "Create and Edit - Drawer" template): New and row clicks
         # open the crud form in a Drawer over the listing instead of navigating; cancels just
         # close it. Route-based /new — /{id}/edit deep links keep working unchanged.
@@ -93,33 +95,24 @@ class CrudHandlerMixin(MixinBase):
             return self.action_on_rows(crud, crud_type, element, rq)
         return self.error(f"Action not found: {aid}")
 
-    def export_csv(self, crud, element, rq: RunActionRq) -> UIIncrement:
-        """export-csv on a ``csv_exportable()`` crud: the WHOLE filtered result set (search text +
-        smart search bar filters, the same rows the listing pages through) as a CSV file, one
+    def export_listing(self, crud, crud_type, element, action_id: str, rq: RunActionRq) -> UIIncrement:
+        """export-csv / export-excel / export-pdf on an exportable crud: the WHOLE filtered result
+        set (search text + smart search bar filters, the same rows the listing pages through), one
         column per visible entity field, answered as a DownloadFile command (mirrors Java's
-        ExportActionRunner + DefaultCsvExporter)."""
+        ExportActionRunner + its Csv/Excel/Pdf exporters)."""
+        _, _, filename, mime_type, exporter, _ = FORMATS[action_id]
         rows = self._filtered_rows(crud, view_fields(element), rq)
         columns = self.mapper.export_columns(element)
-
-        def escape(value) -> str:
-            if value is None:
-                return ""
-            if isinstance(value, Enum):
-                value = value.name
-            text = str(value)
-            if any(c in text for c in ',"\n'):
-                return '"' + text.replace('"', '""') + '"'
-            return text
-
-        lines = [",".join(escape(label) for _, label in columns)]
-        for row in rows:
-            lines.append(",".join(escape(getattr(row, name, None)) for name, _ in columns))
-        content = base64.b64encode(("\n".join(lines) + "\n").encode("utf-8")).decode("ascii")
+        content = base64.b64encode(exporter(rows, columns, self.title(crud_type))).decode("ascii")
         return UIIncrement(commands=[UICommand(
             target_component_id=self.target(rq),
             type="DownloadFile",
-            data={"filename": "export.csv", "mimeType": "text/csv", "base64Content": content},
+            data={"filename": filename, "mimeType": mime_type, "base64Content": content},
         )])
+
+    def export_csv(self, crud, element, rq: RunActionRq) -> UIIncrement:
+        """Kept for callers of the former CSV-only entry point."""
+        return self.export_listing(crud, type(crud), element, "export-csv", rq)
 
     def action_on_rows(self, crud, crud_type, element, rq: RunActionRq) -> UIIncrement:
         """A @list_toolbar_button bulk action: runs the named method on the crud with the grid's

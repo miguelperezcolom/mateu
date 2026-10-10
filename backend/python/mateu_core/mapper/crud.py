@@ -61,6 +61,7 @@ from ..reflection import (
 )
 from ..registry import type_name
 from ..validation import client_validations
+from ..export import FORMATS
 from ._base import MixinBase
 from ._common import (
     _id,
@@ -75,16 +76,32 @@ from ._common import (
 class CrudMapperMixin(MixinBase):
     # ── CRUD ───────────────────────────────────────────────────────────────────
     @staticmethod
-    def _csv_exportable(cls, instance=None) -> bool:
-        """Whether a crud answers export-csv (its ``csv_exportable()`` hook, default False)."""
-        hook = getattr(instance if instance is not None else cls, "csv_exportable", None)
+    def _exportable(cls, instance, action_id: str) -> bool:
+        """Whether a crud answers ``action_id`` (export-csv|export-excel|export-pdf): its
+        ``<format>_exportable()`` hook says yes AND the format's library is installed (Java shows
+        the button only when an exporter bean exists)."""
+        fmt = FORMATS.get(action_id)
+        if fmt is None:
+            return False
+        hook_name, _, _, _, _, available = fmt
+        hook = getattr(instance if instance is not None else cls, hook_name, None)
         if hook is None:
             return False
         try:
-            return bool(hook() if instance is not None else hook(cls()))
+            wanted = bool(hook() if instance is not None else hook(cls()))
         except Exception as e:  # noqa: BLE001 - logged, not fatal
-            _log.warning("_csv_exportable: a crud that cannot be built offers no export (%s)", e)
+            _log.warning("A crud that cannot be built offers no %s (%s)", action_id, e)
             return False
+        return wanted and available()
+
+    @staticmethod
+    def _csv_exportable(cls, instance=None) -> bool:
+        """Whether a crud answers export-csv (its ``csv_exportable()`` hook, default False)."""
+        return CrudMapperMixin._exportable(cls, instance, "export-csv")
+
+    def export_action_ids(self, cls, instance=None) -> list[str]:
+        """The export actions a crud offers, in Java's toolbar order (CSV, Excel, PDF)."""
+        return [aid for aid in FORMATS if self._exportable(cls, instance, aid)]
 
     def map_crud(self, cls, element, route: str, instance=None) -> ServerSideComponent:
         title = getattr(cls, "__mateu_title__", humanize(cls.__name__))
@@ -116,12 +133,11 @@ class CrudMapperMixin(MixinBase):
                 tooltip_path=self.tooltip_path_of(f),
             )))
         toolbar = [Button(label="New", action_id="new"), Button(label="Delete", action_id="delete")]
-        # Export the listing (Crud.csv_exportable): the whole filtered set as a CSV download
-        # (mirrors Java's ListRouteResolver export buttons; the port's built-in CSV writer is the
-        # exporter, and Excel/PDF have none here).
-        csv_exportable = self._csv_exportable(cls, instance)
-        if csv_exportable:
-            toolbar.insert(0, Button(label="Export CSV", action_id="export-csv"))
+        # Export the listing (Crud.csv/excel/pdf_exportable): the whole filtered set as a file
+        # download (mirrors Java's ListRouteResolver export buttons).
+        exports = self.export_action_ids(cls, instance)
+        for i, aid in enumerate(exports):
+            toolbar.insert(i, Button(label=FORMATS[aid][1], action_id=aid))
         # @list_toolbar_button methods: BULK list actions — a listing toolbar button dispatching
         # action-on-row-<method> over the grid's selected rows; the action advertises the
         # confirmation/selection-required flags the frontend enforces (mirrors Java's
@@ -168,8 +184,8 @@ class CrudMapperMixin(MixinBase):
         page_children.append(crud)
         page = self.client(PageMetadata(page_type=page_type_of(cls)), None, page_children)
         actions = [Action(id="search"), Action(id="new"), Action(id="delete")]
-        if csv_exportable:
-            actions.append(Action(id="export-csv", validation_required=False))
+        for aid in exports:
+            actions.append(Action(id=aid, validation_required=False))
         if inline:
             actions.append(Action(id="update-row"))
         actions.extend(bulk_actions)
