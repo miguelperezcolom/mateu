@@ -139,7 +139,9 @@ define([
       // del manifest AQUÍ, antes del bootstrap. bootstrapShell/loadRoute esperan al fetch en vuelo
       // (awaitBundle) y responden desde el bundle cuando la ruta está — así las cargas van sin
       // backend y, si el backend no está, hasta la shell cae a la ruta raíz bundleada.
-      const bundleUrl = $application.constants.mateuBundleUrl;
+      // the bundle's index.html names it on <mateu-ui bundleUrl> (a static Redwood bundle); the
+      // app constant stays for a hand-configured VB deployment
+      const bundleUrl = bridge.bundleUrlOf(document) || $application.constants.mateuBundleUrl;
       if (bundleUrl) bridge.loadBundleManifest(bundleUrl);
 
       // Resiliencia del transporte (mismo contrato que los renderers web, ver poc/resilience.mjs).

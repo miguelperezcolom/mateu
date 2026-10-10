@@ -22,6 +22,7 @@ import {
   toSyncPath, loadBundleManifest, hasBundle, getBundledIncrement, matchBundledTemplate,
   bundledIncrementFor, __setBundleForTests, applyRouteParams, getRouteEntry,
 } from './bundle.mjs'
+import { bundleUrlOf } from './mount.mjs'
 import {
   classifyRequestFailure, isIdempotentAction, shouldRetry, retryDelayMs, MAX_RETRIES,
   connectivity, pendingActions, fetchWithPolicy, setTransportHooks,
@@ -2360,6 +2361,34 @@ atest('bundle: loadRoute responde desde el bundle SIN tocar la red', async () =>
     globalThis.fetch = original
     __setBundleForTests(undefined)
   }
+})
+
+atest('bundle: under an app shell a route load INTO the shell takes contentJson, the bootstrap keeps json', async () => {
+  const shell = { fragments: [{ component: { metadata: { type: 'App' } } }] }
+  const screen = { fragments: [{ component: { metadata: { type: 'Page' } } }] }
+  const manifest = { entries: [
+    { syncPath: '_no_route', ok: true, json: JSON.stringify(shell) },
+    { syncPath: 'orders', ok: true, json: JSON.stringify(shell), contentJson: JSON.stringify(screen) },
+  ] }
+  await loadBundleManifest('x', async () => ({ ok: true, json: async () => manifest }))
+  try {
+    // the shell's content slot: the screen, never the shell again (#557, nested shells)
+    assert.equal(bundledIncrementFor('/orders', 'c', { content: true }).fragments[0].component.metadata.type, 'Page')
+    assert.equal((await loadRoute('https://x', '/orders', 'c')).fragments[0].component.metadata.type, 'Page')
+    // a fresh load keeps the exported json (the shell aimed at the route)
+    assert.equal((await loadRoute('https://x', '/orders', 'c', { consumedRoute: '_empty' })).fragments[0].component.metadata.type, 'App')
+    // the bootstrap: the root shell
+    assert.equal(bundledIncrementFor('', 'shell').fragments[0].component.metadata.type, 'App')
+  } finally {
+    __setBundleForTests(undefined)
+  }
+})
+
+test('bundle: the manifest URL comes from <mateu-ui bundleUrl>, as on the web renderers', () => {
+  const doc = (attrs) => ({ querySelector: (sel) => (sel === 'mateu-ui' && attrs ? { getAttribute: (n) => (n in attrs ? attrs[n] : null) } : null) })
+  assert.equal(bundleUrlOf(doc({ bundleUrl: '/manifest.json' })), '/manifest.json')
+  assert.equal(bundleUrlOf(doc({ baseUrl: '' })), '')
+  assert.equal(bundleUrlOf(doc(null)), '')
 })
 
 atest('bundle: bootstrapShell cae a la ruta raíz bundleada si el backend NO está', async () => {

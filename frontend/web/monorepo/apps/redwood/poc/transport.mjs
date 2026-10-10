@@ -152,7 +152,9 @@ export const loadRoute = async (base, route, initiator = '', extra = {}) => {
   }
   await awaitBundle()
   if (hasBundle()) {
-    const bundled = bundledIncrementFor(route, initiator)
+    // a load INTO the shell (any but the fresh '_empty' one) gets the route's content, never the
+    // shell aimed at it
+    const bundled = bundledIncrementFor(route, initiator, { content: extra.consumedRoute !== '_empty' })
     if (bundled) return bundled
   }
   return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
