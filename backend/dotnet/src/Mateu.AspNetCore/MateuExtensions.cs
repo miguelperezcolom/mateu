@@ -55,6 +55,18 @@ public static class MateuExtensions
                 ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
                 increment = UIIncrementDto.Of(messages: [new MessageDto("error", "middle", "", "Forbidden", 5000)]);
             }
+            catch (Exception e)
+            {
+                // The error boundary (mirrors Java's): an exception used to escape as a framework
+                // 500 with no toast. A UserFacingException / ValidationException shows its message;
+                // anything else a generic one with a reference id the full exception is logged under.
+                var (message, reference) = ErrorBoundary.Describe(e);
+                if (reference is not null)
+                    ctx.RequestServices.GetService<ILoggerFactory>()?.CreateLogger("Mateu.Errors")
+                        .LogError(e, "Error handling action {ActionId} on {Route} [ref {Reference}]",
+                            rq.ActionId, rq.Route, reference);
+                increment = UIIncrementDto.Of(messages: [message]);
+            }
             ctx.Response.ContentType = "application/json";
             await JsonSerializer.SerializeAsync(ctx.Response.Body, increment, Json);
         });

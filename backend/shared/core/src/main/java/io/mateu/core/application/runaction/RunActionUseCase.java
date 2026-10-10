@@ -8,8 +8,6 @@ import io.mateu.core.infra.TemplateInterpolator;
 import io.mateu.dtos.ModelViewContractDto;
 import io.mateu.dtos.ServerSideComponentDto;
 import io.mateu.dtos.UIIncrementDto;
-import io.mateu.uidl.data.Message;
-import io.mateu.uidl.data.NotificationVariant;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -18,7 +16,6 @@ import io.mateu.uidl.interfaces.RouteHandler;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
-import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -128,16 +125,13 @@ public class RunActionUseCase {
         .flatMap(result -> mapToUiIncrement(result, command))
         .doOnError(
             e -> {
-              if (io.mateu.core.application.security.MateuForbiddenException.find(e) != null) {
-                return;
-              }
               var notFound = missingOnLoad(e, command);
               if (notFound != null) {
                 // not an application error: the route names something that is not there
-                log.debug("Not found: route {} — {}", command.route(), notFound.getMessage());
-                return;
+                // one INFO line, like an access log 404: no state, no stack trace
+                log.info("Not found: route {} — {}", command.route(), notFound.getMessage());
               }
-              log.error("Error handling action {}", command.actionId(), e);
+              // anything else is logged by the ErrorBoundary, once, with its reference id
             })
         .onErrorResume(
             error -> {
@@ -152,12 +146,10 @@ public class RunActionUseCase {
                 // the page that was asked for does not exist: a not-found page in its place
                 return mapToUiIncrement(NotFoundPage.forMissing(notFound, command), command);
               }
+              // the user sees a UserFacingException's / validation message, or a generic one with
+              // a reference id the full error is logged under (never a raw exception message)
               return mapToUiIncrement(
-                  Message.builder()
-                      .variant(NotificationVariant.error)
-                      .title(extractTitle(error))
-                      .text(extractText(error))
-                      .build(),
+                  ErrorBoundary.toMessage(error, command.actionId(), command.httpRequest()),
                   command);
             })
         .switchIfEmpty(
@@ -481,28 +473,6 @@ public class RunActionUseCase {
       // no provider registered (e.g. tests) — fall through to the environment
     }
     return System.getenv(secretEnvName(key));
-  }
-
-  private String extractTitle(Throwable e) {
-    return getSourceException(e).getClass().getSimpleName();
-  }
-
-  private Throwable getSourceException(Throwable e) {
-    if (e instanceof InvocationTargetException ite) {
-      return ite.getTargetException();
-    }
-    if (e.getCause() != null) {
-      return e.getCause();
-    }
-    return e;
-  }
-
-  private String extractText(Throwable e) {
-    var sourceException = getSourceException(e);
-    if (sourceException.getMessage() != null) {
-      return sourceException.getMessage();
-    }
-    return sourceException.getClass().getSimpleName();
   }
 
   private Mono<UIIncrementDto> mapToUiIncrement(Object result, RunActionCommand command) {

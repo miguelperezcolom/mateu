@@ -6,6 +6,7 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
+import io.mateu.core.application.runaction.ErrorBoundary;
 import io.mateu.core.application.runaction.RunActionUseCase;
 import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.MessageDto;
@@ -111,6 +112,7 @@ class NotFoundPageSyncTest {
   static TestMateu mateu;
   private ListAppender<ILoggingEvent> logs;
   private Logger useCaseLogger;
+  private Logger boundaryLogger;
 
   @BeforeAll
   static void boot() {
@@ -129,11 +131,15 @@ class NotFoundPageSyncTest {
     logs = new ListAppender<>();
     logs.start();
     useCaseLogger.addAppender(logs);
+    // the error boundary is where an unexpected failure is logged (with its reference id)
+    boundaryLogger = (Logger) LoggerFactory.getLogger(ErrorBoundary.class);
+    boundaryLogger.addAppender(logs);
   }
 
   @AfterEach
   void releaseLogs() {
     useCaseLogger.detachAppender(logs);
+    boundaryLogger.detachAppender(logs);
   }
 
   // ── a NoSuchElementException while loading → the not-found page ──────────────
@@ -217,12 +223,33 @@ class NotFoundPageSyncTest {
   // ── everything else keeps today's behaviour ─────────────────────────────────
 
   @Test
-  void otherExceptionsOnLoadKeepTheErrorMessageAndTheErrorLog() {
+  void otherExceptionsOnLoadAreAGenericErrorWithAReferenceTheErrorLogCarries() {
     var increment = mateu.sync("/exploding");
 
     assertThat(found(increment, NotFoundDto.class)).isEmpty();
-    assertThat(increment.messages()).extracting(MessageDto::text).contains("database down");
-    assertThat(logs.list).anyMatch(event -> event.getLevel() == Level.ERROR);
+    // the raw exception message is for the log, not for the user
+    var text = increment.messages().get(0).text();
+    assertThat(text).startsWith(ErrorBoundary.GENERIC_TEXT).doesNotContain("database down");
+    var reference = text.substring(ErrorBoundary.GENERIC_TEXT.length());
+    assertThat(logs.list)
+        .anySatisfy(
+            event -> {
+              assertThat(event.getLevel()).isEqualTo(Level.ERROR);
+              assertThat(event.getFormattedMessage()).contains(reference);
+              assertThat(event.getThrowableProxy().getMessage()).contains("database down");
+            });
+  }
+
+  @Test
+  void theDetailedModeShowsTheRawExceptionForDevelopment() {
+    System.setProperty(ErrorBoundary.DETAILED, "true");
+    try {
+      var increment = mateu.sync("/exploding");
+      assertThat(increment.messages().get(0).title()).isEqualTo("IllegalStateException");
+      assertThat(increment.messages().get(0).text()).contains("database down");
+    } finally {
+      System.clearProperty(ErrorBoundary.DETAILED);
+    }
   }
 
   @Test
@@ -238,7 +265,10 @@ class NotFoundPageSyncTest {
                 .build());
 
     assertThat(found(increment, NotFoundDto.class)).isEmpty();
-    assertThat(increment.messages()).extracting(MessageDto::text).contains("No such voucher");
+    // an error message (generic: a NoSuchElementException is not addressed to the user)
+    assertThat(increment.messages())
+        .extracting(MessageDto::text)
+        .anyMatch(t -> t.startsWith(ErrorBoundary.GENERIC_TEXT));
   }
 
   // ── helpers ─────────────────────────────────────────────────────────────────

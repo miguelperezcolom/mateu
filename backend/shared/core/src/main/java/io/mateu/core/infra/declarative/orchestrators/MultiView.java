@@ -6,8 +6,6 @@ import static io.mateu.core.infra.declarative.orchestrators.crud.DataLayer.addDa
 import io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper;
 import io.mateu.dtos.ComponentDto;
 import io.mateu.dtos.ServerSideComponentDto;
-import io.mateu.uidl.data.Message;
-import io.mateu.uidl.data.NotificationVariant;
 import io.mateu.uidl.data.UICommand;
 import io.mateu.uidl.data.UICommandType;
 import io.mateu.uidl.fluent.*;
@@ -106,12 +104,13 @@ public abstract class MultiView
         // log and toast — RunActionUseCase answers the not-found page in place of the content
         throw missing;
       }
-      log.error("when handling route", e);
-      return Message.builder()
-          .variant(NotificationVariant.error)
-          .title(e.getClass().getSimpleName())
-          .text(e.getMessage())
-          .build();
+      var forbidden = io.mateu.core.application.security.MateuForbiddenException.find(e);
+      if (forbidden != null) {
+        throw forbidden; // a refused request answers 403, it is not an error to toast
+      }
+      // logged at ERROR with a reference id; the user sees a UserFacingException's message or a
+      // generic one — never the raw exception
+      return io.mateu.core.application.runaction.ErrorBoundary.toMessage(e, route, httpRequest);
     }
     return this;
   }

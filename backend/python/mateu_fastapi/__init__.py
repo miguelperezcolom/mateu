@@ -9,6 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from mateu_core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
+from mateu_core import error_boundary
 from mateu_core.mcp import handle_jsonrpc
 
 
@@ -49,6 +50,11 @@ def add_mateu(
                 content={"messages": [{"variant": "error", "position": "middle", "title": "",
                                        "text": "Forbidden", "duration": 5000}]},
             )
+        except Exception as error:  # noqa: BLE001 - this IS the error boundary
+            # Mirrors Java's: an exception used to escape as a framework 500 with no toast. A
+            # UserFacingException / validation error shows its message; anything else a generic
+            # one with a reference id the full exception is logged under (mateu.errors logger).
+            return JSONResponse({"messages": [error_boundary.describe(error, rq.action_id)]})
         return JSONResponse(increment.model_dump(by_alias=True, mode="json"))
 
     app.add_api_route(f"{prefix}/mateu/v3/sync/{{route:path}}", sync, methods=["POST"])
