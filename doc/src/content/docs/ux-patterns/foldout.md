@@ -71,6 +71,36 @@ Two Vaadin-carousel behaviours worth knowing:
   (say a 14rem profile strip) widens to match the first fold, so the page reads as balanced
   columns instead of trailing off into a sliver.
 
+## What a folded panel shows (`summary`)
+
+A folded panel is a narrow strip with its rotated title. Give it a **summary** — a count, a status,
+an amount — so the user can tell whether it is worth opening:
+
+```java
+@Override
+protected Component panelSummary(String panelFieldName) {
+  return switch (panelFieldName) {
+    case "payments" -> new Text("payments-summary", "€240 due");
+    case "requests" -> new Text("requests-summary", "2 open");
+    default -> null;
+  };
+}
+```
+
+Fluent: `FoldoutPanel.builder()....summary(component)`. It travels as the child slotted
+`summary-N` and is drawn in the strip under the title; renderers whose panels never fold (the
+React Native accordion keeps it under a closed panel's title, IntelliJ under the panel heading)
+show it as a one-line digest.
+
+![Folded panels showing their summary](/images/docs/foldout/summary.png)
+
+## Coverage
+
+| | Java | .NET | Python | Vaadin | Redwood | React Native | IntelliJ |
+|---|---|---|---|---|---|---|---|
+| Overview + fold-out panels, orientation, navigation header | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Folded-panel `summary` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
 ## Redwood parameter and slot reference
 
 What the Redwood `foldout-layout` and `foldout-panel` components expose, and what Mateu gives you
@@ -103,7 +133,7 @@ for them. The canonical page-header elements shared by every template are docume
 | `panelTitle` | `@Panel(title)` / `FoldoutPanel.title` (defaults to the field label) | ✅ |
 | — | `subtitle`, `icon`, `width` are Mateu additions with no Redwood equivalent | ✅ |
 | **Slot** default | `@Panel` field value / `FoldoutPanel.content` | ✅ |
-| **Slot** `summary` (what shows on the **collapsed strip**) | — the strip only shows the rotated title | — |
+| **Slot** `summary` (what shows on the **collapsed strip**) | `panelSummary(panelFieldName)` / `FoldoutPanel.summary` | ✅ |
 | **Slot** `recommendation` | — | — |
 | **Slot** `noData` | — compose an `EmptyState` as the panel content | 🟡 |
 | `secondaryActions` + `spAction {actionId}` | — panel-level actions must live inside the panel content | — |

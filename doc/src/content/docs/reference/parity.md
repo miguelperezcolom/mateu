@@ -27,6 +27,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Page decorations (subtitle, banners, badges, KPIs, FABs) | ✅ | ✅ | ✅ |
 | Header overline + title placeholder (`@Overline`/`@TitlePlaceholder`; Java also has `OverlineSupplier`/`TitlePlaceholderSupplier`, the ports carry only the declarative form — same as `@Subtitle`) | ✅ | ✅ | ✅ |
 | Tabs, stereotypes, shortcuts, compact, dirty guard | ✅ | ✅ | ✅ |
+| Redwood pattern gaps (2026-10-10): display records (`Toggle` + `WizardDisplay`/`CrudDisplay`/`GeneralOverviewDisplay`), wizard drafts/skip/early completion/`beforeStepNavigate` (ports: steps by number), edit-drawer save-and-next + error banner, `GeneralOverview` info slot, foldout `summary`, `DataManagement` docked panels, header `RecordSwitcherSupplier`, `@Section` edit/add/view-more, hero tone, `Announce` command, smart-search pre-search content — see [Page templates](/ux-patterns/page-templates/#display-options-one-tri-state-grammar) | ✅ | ✅ | ✅ |
 | Adaptive layout inference (radios, folding, tabs) | ✅ | ✅ | ✅ |
 | Nav links (`@LinkTo` / link supplier) | ✅ | ✅ | ✅ |
 | [Route registry](/java-ui-definition/route-registry/) (`specs/ui/routes.yaml`: definition + view model + fixed/default params per route, merged over the derived table). Both ports mirror the model, the matching, the precedence and the definition lookup; neither has a static-bundle exporter, so nothing ships the table to a browser there | ✅ | ✅ | ✅ |
@@ -213,6 +214,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Feature | Vaadin (web) | Redwood (web) | IntelliJ plugin | React Native |
 |---|---|---|---|---|
 | Forms, CRUD, navigation | ✅ | ✅ | ✅ | ✅ |
+| Redwood pattern gaps (2026-10-10): header record/context switcher, `Announce`, hero tone, foldout `summary-N`, crud `preSearch`, a `Drawer` re-sent with an open drawer's id refreshing in place | ✅ shared DS-neutral elements | ✅ oj-sp header data switcher, `dark-<tone>` banner, `oj-sp-foldout-panel` summary slot | ✅ combo + speed search | ✅ bottom-sheet switcher |
 | Smart-search filter bar (chips, ranges, multi-select) | ✅ | ✅ | ✅ (native panel) | ✅ panel (ranges, multi-select, date pickers) |
 | Sorting, cards/list/tree layouts, empty states | ✅ | ✅ | ✅ (tree = JTree; cards/list adapt to the table) | ✅ |
 | Inline editing (@InlineEditing, update-row) | ✅ | ✅ | ✅ (row form) | ✅ (row form) |

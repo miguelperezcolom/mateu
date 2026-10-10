@@ -37,11 +37,46 @@ canvas the `GanttPage` archetype uses). Pure composition of existing components,
 Vaadin and the native renderers without renderer work — **not yet on Redwood**, which renders
 neither a fluent `Grid` nor a `Gantt` (only the view switcher shows).
 
+## Docked panels
+
+The Redwood data-management page docks panels beside and under the content — a details pane next
+to the grid, a messages or log strip under it. Override `endPanel(rq)` and/or `bottomPanel(rq)`:
+
+```java
+@Override
+protected DockedPanel endPanel(HttpRequest rq) {
+  return DockedPanel.builder().id("details").title("Details")
+      .content(detailsOf(selected)).size("24rem").open(true).build();
+}
+
+@Override
+protected DockedPanel bottomPanel(HttpRequest rq) {
+  return DockedPanel.builder().id("log").title("Log").content(logOf(rq)).build();
+}
+```
+
+Each declared panel gets a toggle in the toolbar (and a ✕ in its own header); whether it is open is
+page state, so toggling re-renders in place. The panels **reflow** the content — the grid or Gantt
+shrinks to make room (the end panel is a fixed track beside it, stacking under it below 48rem; the
+bottom panel caps its height at `size`, default `16rem`, and scrolls) — which is the *inner*,
+modeless variant of the Redwood slots. For an *overlay* panel, return a `Drawer` from an action.
+
+![Docked end and bottom panels](/images/docs/data-management/docked-panels.png)
+
+## Coverage
+
+| | Java | .NET | Python | Vaadin | Redwood | React Native | IntelliJ |
+|---|---|---|---|---|---|---|---|
+| View switcher (grid ⇄ Gantt) | ✅ | ✅ | ✅ | ✅ | 🟡 ¹ | ✅ | ✅ |
+| Docked end / bottom panels | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+¹ See above: Redwood does not draw the fluent grid/Gantt views yet.
+
 ## Redwood parameter and slot reference
 
 The real `data-management-page` API is **considerably richer than "grid ⇄ Gantt"**: it is a
-transactional page with four dockable panels. Mateu covers the view switcher and the full-width
-canvas; the panel system is not built. The canonical page-header elements shared by every template
+transactional page with four dockable panels. Mateu covers the view switcher, the full-width
+canvas and the two reflowing (inner) panels. The canonical page-header elements shared by every template
 are documented once in [Page templates](/ux-patterns/page-templates/).
 
 **Legend:** ✅ supported · 🟡 partial · — not supported · ⚪ deliberately out of scope
@@ -51,14 +86,15 @@ are documented once in [Page templates](/ux-patterns/page-templates/).
 | Full-width canvas | `pageWidth()` → `PageWidthStyle.FULL_WIDTH` | ✅ |
 | View switcher | `gridView`/`ganttView` + `gridLabel()`/`ganttLabel()`; the active view is page state and re-renders in place | ✅ |
 | Page heading | `heading()` (from `@Title`; return blank to omit) | ✅ |
-| **Slots** `innerEnd` / `outerEnd` / `innerBottom` / `outerBottom` | — the four dockable panels are not built. `Drawer` already supports the underlying mechanic (`layout = true` docks and **pushes** the content instead of overlaying, for every `DrawerPosition`), so the missing piece is the page-level slot grammar, not the behaviour | 🟡 |
-| `endOpened` / `bottomOpened: inner \| outer \| none` | — | — |
+| **Slots** `innerEnd` / `innerBottom` | `endPanel(rq)` / `bottomPanel(rq)` → `DockedPanel` (reflow) | ✅ |
+| **Slots** `outerEnd` / `outerBottom` | — the overlay variants: return a `Drawer` (`modeless`, any `DrawerPosition`) from an action | 🟡 |
+| `endOpened` / `bottomOpened: inner \| outer \| none` | `DockedPanel.open` (initial) + the toolbar toggles; open state is page state | ✅ |
 | `endDisplay` / `bottomDisplay: reflowModeless \| overlayModal` | `Drawer.layout` (reflow) vs `Drawer.modeless` (overlay) express both modes at component level | 🟡 |
 | `bottomDrawerState: auto \| closed \| maximized \| minimized` + `displayOptions.bottomDrawerMode/Height` | `DrawerPosition.bottom` + `collapsible` + `maximizable` + `DrawerSize` | 🟡 |
 | Transactional header (`save`/`cancel`) | — this archetype is a viewer; use `AutoCrud` or an advanced create-edit form for the transaction | — |
 | **Slot** `messages` | toasts/alerts ride on the wire's `messages`, not as a page slot | 🟡 |
 | **Slot** `search` | the app-level smart search bar / ⌘K palette, not a page slot | 🟡 |
-| **Slot** `announcement` (aria-live) | live regions are installed client-side for a11y, but the backend cannot declare announcement content | 🟡 |
+| **Slot** `announcement` (aria-live) | `UICommand.announce(text)` from any action | ✅ |
 | `feedback` + `openFeedback` | ⚪ the embedded survey is a Fusion Apps concern, out of scope by decision | ⚪ |
 
 ## Demo

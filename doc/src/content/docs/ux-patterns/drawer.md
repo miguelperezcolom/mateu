@@ -221,6 +221,56 @@ The listing never unmounts (scroll, filters and page survive); **Save** persists
 
 Demo: `demo-admin-panel/.../drawercrud/ContactsDrawerCrud.java` (`/drawer-crud-demo`). Tests: `EditInDrawerSyncTest`.
 
+### Save and next, and the error banner
+
+Two more pieces of the Redwood create-edit drawer, switched through the crud's `display()`
+(`CrudDisplay`, the tri-state `Toggle` grammar — `on` · `off` · `disabled`):
+
+```java
+@Override
+public CrudDisplay display() {
+  return CrudDisplay.defaults().toBuilder()
+      .saveAndNext(Toggle.on)               // default off
+      .create(canCreate ? Toggle.on : Toggle.disabled)
+      .delete(Toggle.off)
+      .build();
+}
+```
+
+- **Save and next** — editing a series row by row: the drawer gets a *Save and next* button; it
+  saves, and the SAME drawer moves on to the next row of the listing (the server re-sends it with
+  the same id, which refreshes the open drawer in place) while the listing refreshes behind it. On
+  the last row it closes like a plain save. The next row comes from `nextIdAfter(currentId, rq)` —
+  by default the row after it in an unfiltered search; override it to follow the user's filters.
+  Label: `saveAndNextLabel()`.
+- **Error banner** (`errorBanner`, default `on`) — when the save throws, the drawer stays open with
+  the exception's message as a danger banner above the form and the values the user typed, and the
+  message is announced to screen readers. `off` brings back the plain error toast.
+- `create` / `delete` — the New and Delete buttons; `disabled` shows them inert (and the server
+  refuses them), on top of the capability gates (`canCreate`, `@NotCreatable`…), which still decide
+  whether the affordance exists at all.
+
+![Save and next: the drawer moved on to the next row](/images/docs/drawer/save-and-next.png)
+
+![A failed save keeps the drawer open with an error banner](/images/docs/drawer/error-banner.png)
+
+Tests: `CrudDisplaySyncTest`.
+
+## Coverage
+
+| | Java | .NET | Python | Vaadin | Redwood | React Native | IntelliJ |
+|---|---|---|---|---|---|---|---|
+| Drawer (sizes, maximize, peer nav, bottom, collapsible) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `editInDrawer()` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Save and next | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Error banner on a failed save | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `CrudDisplay` create / delete toggles | ✅ | ✅ ¹ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+What makes save-and-next and the error banner work on a renderer is one rule: a `Drawer` re-sent
+with the id of an OPEN drawer refreshes it in place (its `initialData` becomes the form's values)
+instead of stacking a second one. ¹ In .NET the toggles apply to `Crud<T>`; capability listings
+(`IListing`) do not have them yet.
+
 ## Redwood parameter and slot reference
 
 Redwood ships **five** drawer templates; one `Drawer` component covers them all in Mateu, so this
@@ -252,8 +302,8 @@ documented once in [Page templates](/ux-patterns/page-templates/).
 | `primaryActionType: auto \| create` | derived from whether the row exists | ✅ |
 | `unsavedChanges` + `spUnsavedChangesDiscard` / `Cancel` | the framework's dirty guard covers it | ✅ |
 | `spPrimaryActionAndClose` | **Save** persists, closes the drawer and re-runs the listing's search | ✅ |
-| `spPrimaryActionAndNext` ("save and next" when editing a series over a listing) | — pairs naturally with the peer nav the drawer already has | — |
-| `displayErrorMessageBanner` + `errorMessage` (inline error banner on a failed save) | errors surface as toasts/alerts, not as a banner embedded in the drawer | 🟡 |
+| `spPrimaryActionAndNext` ("save and next" when editing a series over a listing) | `CrudDisplay.saveAndNext` + `nextIdAfter(id, rq)` | ✅ |
+| `displayErrorMessageBanner` + `errorMessage` (inline error banner on a failed save) | `CrudDisplay.errorBanner` (default on): the drawer is re-sent with a danger banner and the typed values | ✅ |
 
 ### `bottom-drawer-template`
 
