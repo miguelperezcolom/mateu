@@ -18,6 +18,9 @@ type Canvas = HTMLElement & { doc?: unknown; clientRender: boolean; baseUrl: str
 /** How the canvas painted the last sample: 'ok' = the backend, 'client'/'fallback' = in the browser. */
 let lastStatus = ''
 addEventListener('preview-status', (e) => { lastStatus = (e as CustomEvent).detail?.kind ?? '' }, true)
+/** How many renders the Redwood frame has finished (it posts `rendered` after each). */
+let redwoodRenders = 0
+addEventListener('message', (e) => { if (e.data && e.data.mateuPreview === 'rendered') redwoodRenders++ })
 
 declare global {
     interface Window {
@@ -29,6 +32,8 @@ declare global {
             /** The page YAML a sample is rendered from — the Redwood run feeds it to the VB app. */
             sampleYaml(type: string): string
             status(): string
+            /** Redwood: the renders the framed VB app has finished so far. */
+            redwoodRenders(): number
             /** The components that deliberately have no thumbnail. */
             skipped(): Record<string, string>
         }
@@ -44,8 +49,11 @@ window.thumbs = {
         canvas().baseUrl = ''
         canvas().clientRender = !backend
         canvas().renderer = got
+        // the Redwood canvas is an iframe: it needs a height of its own (the Vaadin one grows with its content)
+        canvas().style.height = got === 'redwood' ? '600px' : ''
     },
     status: () => lastStatus,
+    redwoodRenders: () => redwoodRenders,
     skipped: () => ({ ...NO_THUMBNAIL }),
     show(type) {
         lastStatus = ''

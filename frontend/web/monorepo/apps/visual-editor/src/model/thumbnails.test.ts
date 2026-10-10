@@ -37,12 +37,12 @@ describe('palette thumbnails', () => {
         }
     })
 
-    it('picture the Redwood core: forms, tabs and the front-office atoms', () => {
-        // Not every component — the Redwood renderer paints a subset, and a missing picture says so.
-        // These it does paint; losing one of them means the generator (or the renderer) broke.
-        for (const t of ['FormLayout', 'TabLayout', 'Badge', 'Notice', 'StatusList']) {
-            expect(thumbnailUrl('redwood', t), t).toBeTruthy()
-        }
+    it('picture every component in Redwood too: it paints every wire type', () => {
+        // the Redwood canvas (the real VB app) paints the whole catalog, so a missing Redwood picture
+        // means the generator (or the renderer) broke — the palette would dim that component
+        const missing = catalog.filter((t) => !thumbnailUrl('redwood', t) && !(t in NO_THUMBNAIL))
+        expect(missing, 'regenerate with scripts/thumbnails.mjs --renderer redwood').toEqual([])
+        expect(Object.keys(NO_THUMBNAIL).filter((t) => thumbnailUrl('redwood', t))).toEqual([])
     })
 
     it('start from the canvas design system, and with none on the DS-neutral canvas', () => {
