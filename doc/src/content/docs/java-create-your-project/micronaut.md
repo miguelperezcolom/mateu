@@ -29,12 +29,12 @@ Then the runtime dependencies:
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>micronaut-core</artifactId>
+    <artifactId>mateu-micronaut</artifactId>
 </dependency>
-<!-- serves the built-in frontend; choose one: vaadin-lit (Vaadin), redwood (Oracle Redwood / Visual Builder) -->
+<!-- serves the built-in frontend; choose one: mateu-vaadin (Vaadin), mateu-redwood (Oracle Redwood / Visual Builder) -->
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>vaadin-lit</artifactId>
+    <artifactId>mateu-vaadin</artifactId>
 </dependency>
 ```
 
@@ -49,7 +49,7 @@ And the annotation processor, on the processor path (appended to the Micronaut o
             <!-- list Lombok, MapStruct… here too if you use them -->
             <path>
                 <groupId>io.mateu</groupId>
-                <artifactId>annotation-processor-micronaut</artifactId>
+                <artifactId>mateu-annotation-processor-micronaut</artifactId>
                 <version>MATEU_VERSION</version>
             </path>
         </annotationProcessorPaths>
@@ -57,7 +57,7 @@ And the annotation processor, on the processor path (appended to the Micronaut o
 </plugin>
 ```
 
-> The annotation processor (`annotation-processor-micronaut`) goes on the **annotation processor path only** — never as a
+> The annotation processor (`mateu-annotation-processor-micronaut`) goes on the **annotation processor path only** — never as a
 > regular `<dependency>`: it is a compile-time code generator, and as a dependency it would ship its
 > own libraries (FreeMarker, Guava) inside your application. Its jar declares itself to Gradle as an
 > incremental (aggregating) processor.
@@ -67,9 +67,9 @@ Or, with Gradle:
 ```kotlin
 implementation(platform("io.mateu:mateu-bom:MATEU_VERSION"))
 annotationProcessor(platform("io.mateu:mateu-bom:MATEU_VERSION"))
-implementation("io.mateu:micronaut-core")
-implementation("io.mateu:vaadin-lit")
-annotationProcessor("io.mateu:annotation-processor-micronaut")
+implementation("io.mateu:mateu-micronaut")
+implementation("io.mateu:mateu-vaadin")
+annotationProcessor("io.mateu:mateu-annotation-processor-micronaut")
 ```
 
 See [Configuration properties](/java-create-your-project/configuration/) for what you can tune —
@@ -88,7 +88,7 @@ public class Application {
 }
 ```
 
-Mateu's beans, bean introspections and JSON serialization ship inside the `micronaut-core` jar and are
+Mateu's beans, bean introspections and JSON serialization ship inside the `mateu-micronaut` jar and are
 discovered from the classpath, and static content is served by micronaut's default static resources,
 so no annotations nor extra configuration properties are needed.
 

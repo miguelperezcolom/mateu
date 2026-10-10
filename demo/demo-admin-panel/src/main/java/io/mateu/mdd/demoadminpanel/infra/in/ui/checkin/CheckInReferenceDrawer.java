@@ -4,7 +4,6 @@ import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.PlainText;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.Tab;
-import io.mateu.uidl.annotations.Tabs;
 import io.mateu.uidl.annotations.Title;
 
 /**
@@ -20,7 +19,6 @@ import io.mateu.uidl.annotations.Title;
  */
 @PlainText
 @ReadOnly
-@Tabs
 @Title("")
 public class CheckInReferenceDrawer {
 

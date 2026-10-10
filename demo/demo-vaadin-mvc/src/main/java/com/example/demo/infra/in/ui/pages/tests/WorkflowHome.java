@@ -2,7 +2,6 @@ package com.example.demo.infra.in.ui.pages.tests;
 
 import io.mateu.uidl.StyleConstants;
 import io.mateu.uidl.annotations.*;
-import io.mateu.uidl.annotations.HorizontalLayout;
 import io.mateu.uidl.annotations.Menu;
 import io.mateu.uidl.data.*;
 import io.mateu.uidl.data.Text;

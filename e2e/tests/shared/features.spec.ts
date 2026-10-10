@@ -305,7 +305,7 @@ test.describe('SectionsForm — @Section grouping', () => {
 
 const TABS_API = '/tabs/mateu/v3/components/_/action';
 
-test.describe('TabsForm — @Tabs / @Tab layout', () => {
+test.describe('TabsForm — @Tab layout', () => {
 
   test('load returns title "Tabs Form"', async ({ request }) => {
     const body = await callAction(request, TABS_API, { route: '/', actionId: '__load__' });
@@ -356,7 +356,7 @@ test.describe('TabsForm — @Tabs / @Tab layout', () => {
 
 const ACCORDION_API = '/accordion/mateu/v3/components/_/action';
 
-test.describe('AccordionForm — @Accordion layout', () => {
+test.describe('AccordionForm — @FoldedLayout layout', () => {
 
   test('load returns title "Accordion Form"', async ({ request }) => {
     const body = await callAction(request, ACCORDION_API, { route: '/', actionId: '__load__' });

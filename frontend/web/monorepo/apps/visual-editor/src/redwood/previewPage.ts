@@ -1,6 +1,6 @@
 /**
  * The Redwood canvas's page: the REAL Redwood renderer — the Visual Builder app packaged in the
- * `io.mateu:redwood` jar — booted inside an iframe in editor-preview mode.
+ * `io.mateu:mateu-redwood` jar — booted inside an iframe in editor-preview mode.
  *
  * The packaged page (`_index.html`) is a template for the controller a Mateu backend generates: its
  * boot scripts are parked as `type="text/mateu-deferred"` (require.js, the bundles config, the
@@ -145,7 +145,7 @@ export async function bootRedwoodPreview(prefix = new URL('redwood/', location.h
     } catch (e: any) {
         tell({ [PREVIEW_KEY]: 'unavailable', reason: e?.message ?? String(e) })
         showProblem('The Redwood renderer is not available here',
-            `${prefix}_index.html could not be loaded (${e?.message ?? e}). Build the editor with the io.mateu:redwood app bundled, or point it at a backend that serves it.`)
+            `${prefix}_index.html could not be loaded (${e?.message ?? e}). Build the editor with the io.mateu:mateu-redwood app bundled, or point it at a backend that serves it.`)
         return
     }
     const parsed = new DOMParser().parseFromString(adaptIndexHtml(html, prefix), 'text/html')

@@ -31,16 +31,16 @@ Then the runtime dependencies:
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>mvc-core</artifactId>
+    <artifactId>mateu-mvc</artifactId>
 </dependency>
-<!-- serves the built-in frontend; choose one: vaadin-lit (Vaadin), redwood (Oracle Redwood / Visual Builder) -->
+<!-- serves the built-in frontend; choose one: mateu-vaadin (Vaadin), mateu-redwood (Oracle Redwood / Visual Builder) -->
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>vaadin-lit</artifactId>
+    <artifactId>mateu-vaadin</artifactId>
 </dependency>
 ```
 
-> The annotation processor (`annotation-processor-mvc`) goes on the **annotation processor path only** — never as a
+> The annotation processor (`mateu-annotation-processor-mvc`) goes on the **annotation processor path only** — never as a
 > regular `<dependency>`: it is a compile-time code generator, and as a dependency it would ship its
 > own libraries (FreeMarker, Guava) inside your application. Its jar declares itself to Gradle as an
 > incremental (aggregating) processor.
@@ -50,9 +50,9 @@ Or, with Gradle:
 ```kotlin
 implementation(platform("io.mateu:mateu-bom:MATEU_VERSION"))
 annotationProcessor(platform("io.mateu:mateu-bom:MATEU_VERSION"))
-implementation("io.mateu:mvc-core")
-implementation("io.mateu:vaadin-lit")
-annotationProcessor("io.mateu:annotation-processor-mvc")
+implementation("io.mateu:mateu-mvc")
+implementation("io.mateu:mateu-vaadin")
+annotationProcessor("io.mateu:mateu-annotation-processor-mvc")
 ```
 
 See [Configuration properties](/java-create-your-project/configuration/) for what you can tune —
@@ -89,7 +89,7 @@ otherwise whichever is missing will stop working.
                             </path>
                             <path>
                                 <groupId>io.mateu</groupId>
-                                <artifactId>annotation-processor-mvc</artifactId>
+                                <artifactId>mateu-annotation-processor-mvc</artifactId>
                                 <version>MATEU_VERSION</version>
                             </path>
                         </annotationProcessorPaths>
@@ -107,7 +107,7 @@ otherwise whichever is missing will stop working.
                             </path>
                             <path>
                                 <groupId>io.mateu</groupId>
-                                <artifactId>annotation-processor-mvc</artifactId>
+                                <artifactId>mateu-annotation-processor-mvc</artifactId>
                                 <version>MATEU_VERSION</version>
                             </path>
                         </annotationProcessorPaths>
@@ -160,8 +160,8 @@ Spring Boot app), you need a two-part setup so Mateu can discover them across th
 
 ### UI library module
 
-The library module that contains your `@UI` classes must depend on `uidl` and run
-`annotation-processor-indexer` at compile time. This processor writes an index of all `@UI` classes
+The library module that contains your `@UI` classes must depend on `mateu-uidl` and run
+`mateu-annotation-processor-indexer` at compile time. This processor writes an index of all `@UI` classes
 into the JAR so that the app module can find them later.
 
 ```xml
@@ -172,12 +172,12 @@ into the JAR so that the app module can find them later.
 <dependencies>
     <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>uidl</artifactId>
+        <artifactId>mateu-uidl</artifactId>
         <version>${mateu.version}</version>
     </dependency>
     <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>annotation-processor-indexer</artifactId>
+        <artifactId>mateu-annotation-processor-indexer</artifactId>
         <version>${mateu.version}</version>
         <scope>provided</scope>
     </dependency>
@@ -197,7 +197,7 @@ into the JAR so that the app module can find them later.
                     <!-- add Lombok here too if you use it -->
                     <path>
                         <groupId>io.mateu</groupId>
-                        <artifactId>annotation-processor-indexer</artifactId>
+                        <artifactId>mateu-annotation-processor-indexer</artifactId>
                         <version>${mateu.version}</version>
                     </path>
                 </annotationProcessorPaths>
@@ -210,7 +210,7 @@ into the JAR so that the app module can find them later.
 ### Spring Boot app module
 
 The app module must list the UI library JAR **both as a regular dependency and as an annotation
-processor path**. The second entry lets `annotation-processor-mvc` read the index that was baked
+processor path**. The second entry lets `mateu-annotation-processor-mvc` read the index that was baked
 into the JAR and generate the Spring MVC controllers.
 
 ```xml
@@ -224,12 +224,12 @@ into the JAR and generate the Spring MVC controllers.
     <!-- Mateu MVC runtime + frontend -->
     <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>mvc-core</artifactId>
+        <artifactId>mateu-mvc</artifactId>
         <version>${mateu.version}</version>
     </dependency>
     <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>vaadin-lit</artifactId>
+        <artifactId>mateu-vaadin</artifactId>
         <version>${mateu.version}</version>
     </dependency>
     <dependency>
@@ -257,7 +257,7 @@ into the JAR and generate the Spring MVC controllers.
                             <!-- add Lombok here too if you use it -->
                             <path>
                                 <groupId>io.mateu</groupId>
-                                <artifactId>annotation-processor-mvc</artifactId>
+                                <artifactId>mateu-annotation-processor-mvc</artifactId>
                                 <version>${mateu.version}</version>
                             </path>
                             <!-- the UI library JAR must be on the processor path -->
@@ -277,7 +277,7 @@ into the JAR and generate the Spring MVC controllers.
                         <annotationProcessorPaths>
                             <path>
                                 <groupId>io.mateu</groupId>
-                                <artifactId>annotation-processor-mvc</artifactId>
+                                <artifactId>mateu-annotation-processor-mvc</artifactId>
                                 <version>${mateu.version}</version>
                             </path>
                             <path>

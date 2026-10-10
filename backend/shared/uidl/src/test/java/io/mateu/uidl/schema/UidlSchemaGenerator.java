@@ -888,8 +888,8 @@ public final class UidlSchemaGenerator {
     if (props.get("renderer") instanceof ObjectNode renderer) {
       renderer.put(
           "description",
-          "The renderer the project paints with: `vaadin` (io.mateu:vaadin-lit, the default) or"
-              + " `redwood` (io.mateu:redwood). The visual editor's canvas and Play open in it and"
+          "The renderer the project paints with: `vaadin` (io.mateu:mateu-vaadin, the default) or"
+              + " `redwood` (io.mateu:mateu-redwood). The visual editor's canvas and Play open in it and"
               + " the static bundle ships it; a served app's renderer is still its Maven"
               + " dependency, and the server warns at startup when the two disagree.");
     }

@@ -23,9 +23,9 @@ e2e/
 ### `sut/modules/` — UI definition modules
 
 Plain Java modules that contain classes annotated with `@UI`. They have **no dependency on any
-framework** (Spring, Quarkus, etc.) — only on `io.mateu:uidl`.
+framework** (Spring, Quarkus, etc.) — only on `io.mateu:mateu-uidl`.
 
-During build, the `annotation-processor-indexer` runs and writes a manifest file
+During build, the `mateu-annotation-processor-indexer` runs and writes a manifest file
 `META-INF/mateu/ui-registrations` into the jar. This file lists every `@UI` class in the module
 so that downstream apps can generate the necessary controllers without having access to the
 source files.
@@ -45,19 +45,19 @@ This is the key non-obvious part of the setup.
 ### Problem
 
 Java annotation processors only see source files of the module being compiled. If `@UI` classes
-live in a separate module (`sample1`), the framework-specific AP (`annotation-processor-mvc`)
+live in a separate module (`sample1`), the framework-specific AP (`mateu-annotation-processor-mvc`)
 would normally never see them and generate nothing.
 
 ### Solution — two-step indexing
 
 **Step 1 — index module** (`sample1/pom.xml`):
 
-Add `annotation-processor-indexer` to both `<dependencies>` and `<annotationProcessorPaths>`:
+Add `mateu-annotation-processor-indexer` to both `<dependencies>` and `<annotationProcessorPaths>`:
 
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>annotation-processor-indexer</artifactId>
+    <artifactId>mateu-annotation-processor-indexer</artifactId>
     <version>${mateu.version}</version>
     <scope>provided</scope>
 </dependency>
@@ -72,7 +72,7 @@ Add `annotation-processor-indexer` to both `<dependencies>` and `<annotationProc
     </path>
     <path>
         <groupId>io.mateu</groupId>
-        <artifactId>annotation-processor-indexer</artifactId>
+        <artifactId>mateu-annotation-processor-indexer</artifactId>
         <version>${mateu.version}</version>
     </path>
 </annotationProcessorPaths>
@@ -112,7 +112,7 @@ Add `sample1` **both** as a regular dependency AND inside `<annotationProcessorP
     <path>...</path> <!-- lombok -->
     <path>
         <groupId>io.mateu</groupId>
-        <artifactId>annotation-processor-mvc</artifactId>
+        <artifactId>mateu-annotation-processor-mvc</artifactId>
         <version>${mateu.version}</version>
     </path>
     <!-- sample1 must also be on the AP classpath so the processor
@@ -249,7 +249,7 @@ Success response:
 
 ## Adding a new UI module or app
 
-1. Create a new Maven module under `sut/modules/` with the `annotation-processor-indexer` AP.
+1. Create a new Maven module under `sut/modules/` with the `mateu-annotation-processor-indexer` AP.
 2. Define your `@UI` classes there and run `mvn install`.
 3. Create (or update) a `sut/apps/` module that depends on the new module — add it to both
    `<dependencies>` and `<annotationProcessorPaths>`.

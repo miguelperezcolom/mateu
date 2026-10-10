@@ -50,14 +50,14 @@
         <!-- Mateu Quarkus runtime -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>quarkus-core</artifactId>
+            <artifactId>mateu-quarkus</artifactId>
             <version>${mateu.version}</version>
         </dependency>
 
         <!-- Frontend web components -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>vaadin-lit</artifactId>
+            <artifactId>mateu-vaadin</artifactId>
             <version>${mateu.version}</version>
         </dependency>
 
@@ -107,7 +107,7 @@
                         </path>
                         <path>
                             <groupId>io.mateu</groupId>
-                            <artifactId>annotation-processor-quarkus</artifactId>
+                            <artifactId>mateu-annotation-processor-quarkus</artifactId>
                             <version>${mateu.version}</version>
                         </path>
                         <path>

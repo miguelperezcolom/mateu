@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.mateu</groupId>
-        <artifactId>frontend</artifactId>
+        <artifactId>mateu-frontend-parent</artifactId>
         <version>0.0.1-MATEU</version>
     </parent>
 
-    <artifactId>redwood</artifactId>
+    <artifactId>mateu-redwood</artifactId>
     <packaging>jar</packaging>
 
     <name>Mateu Redwood renderer</name>

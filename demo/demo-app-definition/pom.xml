@@ -30,14 +30,14 @@
         <!-- Mateu MVC runtime -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>mvc-core</artifactId>
+            <artifactId>mateu-mvc</artifactId>
             <version>${mateu.version}</version>
         </dependency>
 
         <!-- Frontend web components (Vaadin renderer) -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>vaadin-lit</artifactId>
+            <artifactId>mateu-vaadin</artifactId>
             <version>${mateu.version}</version>
         </dependency>
 

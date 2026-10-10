@@ -105,6 +105,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       errOffline: "You're offline. Your changes were not sent — check the network and try again.",
       errTimeout: 'The server is taking too long to answer. Your changes may not have been saved.',
       errServer: 'The server could not complete the request. Try again.',
+      wireVersionMismatch: "This app's server speaks Mateu wire {server}; this renderer supports {supported}. Some screens may not display correctly — update the renderer or the server so they match.",
       errServerStatus: 'The server could not complete the request (error {status}). Try again.',
       errUnauthorized: 'Your session is no longer valid. Sign in again.',
       errForbidden: "You're not allowed to do this.",
@@ -269,6 +270,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       errOffline: 'Sin conexión. Tus cambios no se han enviado — revisa la red e inténtalo de nuevo.',
       errTimeout: 'El servidor tarda demasiado en responder. Puede que tus cambios no se hayan guardado.',
       errServer: 'El servidor no ha podido completar la petición. Inténtalo de nuevo.',
+      wireVersionMismatch: 'El servidor de esta aplicación habla el protocolo Mateu {server}; este renderizador admite {supported}. Puede que algunas pantallas no se vean bien: actualiza el renderizador o el servidor para que coincidan.',
       errServerStatus: 'El servidor no ha podido completar la petición (error {status}). Inténtalo de nuevo.',
       errUnauthorized: 'Tu sesión ya no es válida. Vuelve a iniciar sesión.',
       errForbidden: 'No tienes permiso para hacer esto.',
@@ -9335,6 +9337,63 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+  // Wire-version check — the same rule as the web renderer (libs/mateu infra/http/wireVersion.ts).
+  //
+  // Every response of a Mateu backend carries `wireVersion` ("3.0" today). The wire is additive within
+  // a MAJOR: a newer minor only adds optional fields, component types and commands, which this renderer
+  // ignores (unknown fields) or draws as the "Unsupported component" placeholder (unknown types). A
+  // different MAJOR may have removed or changed what this renderer relies on, so instead of a
+  // half-broken screen the user is told, once, in plain words, that server and renderer do not match.
+  // A response without the field (a backend older than the field) is accepted silently.
+  //
+  // The transport calls observeWireVersion on every response; the shell (loadMateuShell.js) registers
+  // the listener that shows the message in the error band.
+
+
+  /** The wire major this renderer was built for. */
+  const SUPPORTED_WIRE_MAJOR = 3
+
+  /** Same major → ok; another major → not ok. Unparseable or absent → ok (nothing to judge). */
+  function checkWireVersion(received, supportedMajor = SUPPORTED_WIRE_MAJOR) {
+    if (typeof received !== 'string' || received.trim() === '') return { ok: true }
+    const major = parseInt(received.trim().split('.')[0], 10)
+    if (!Number.isFinite(major)) return { ok: true }
+    return major === supportedMajor ? { ok: true } : { ok: false, serverMajor: major, received: received.trim() }
+  }
+
+  /** The user-facing text for a mismatch, in the interface's language. */
+  function wireMismatchMessage(serverMajor, supportedMajor = SUPPORTED_WIRE_MAJOR, lang) {
+    return chromeText('wireVersionMismatch', { server: `${serverMajor}.x`, supported: `${supportedMajor}.x` }, lang)
+  }
+
+  const wireVersionState = { reported: false, listener: null }
+
+  /** The shell's hook: called ONCE per page with the message of the first mismatch. */
+  function setWireMismatchListener(fn) {
+    wireVersionState.listener = typeof fn === 'function' ? fn : null
+  }
+
+  /** Inspect a response body; report the first mismatch of the page. Rendering goes on regardless. */
+  function observeWireVersion(body) {
+    if (!body || typeof body !== 'object') return { ok: true }
+    const check = checkWireVersion(body.wireVersion)
+    if (!check.ok && !wireVersionState.reported) {
+      wireVersionState.reported = true
+      const message = wireMismatchMessage(check.serverMajor)
+      if (typeof console !== 'undefined') console.error('[mateu] ' + message)
+      if (wireVersionState.listener) {
+        try { wireVersionState.listener(message) } catch (e) { /* the UI must not break the transport */ }
+      }
+    }
+    return check
+  }
+
+  /** Test hook: forget that a mismatch was already reported. */
+  function resetWireVersionCheck() {
+    wireVersionState.reported = false
+  }
+
+
 
   // Accesibilidad del renderer VB — la parte que NO traen los componentes oj-*.
   //
@@ -12856,7 +12915,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // The mount path of the packaged app (the jar io.mateu:redwood served by a Mateu backend).
+  // The mount path of the packaged app (the jar io.mateu:mateu-redwood served by a Mateu backend).
   //
   // The controller the annotation processor generates for an @UI serves _index.html at the UI's
   // path and injects a hidden <mateu-ui baseUrl="/console" pathPrefix="/console">. That element is
@@ -12998,6 +13057,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction).
    *  Sale ATADA a la pantalla en curso (resilience.currentView): si cuando contesta ya hay otra, la
    *  respuesta se descarta en silencio. Las de fondo (quiet/isolated: widgets, menús remotos) no
@@ -13021,6 +13081,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }),
     }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, view })
     const increment = await res.json()
+    observeWireVersion(increment)
     // el cuerpo también tarda: lo que llegue después de cambiar de pantalla tampoco se aplica
     if (isViewStale(view)) throw staleResponseError(body.actionId)
     return increment
@@ -13042,8 +13103,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
       }, fallback ? { actionId: '__load__', quiet: true, isolated: true } : { actionId: '__load__' })
+      const increment = await res.json()
+      observeWireVersion(increment)
       // the App carries the REST source catalogue (restSources) and the sample-mode opt-in
-      return adoptAppSources(await res.json())
+      return adoptAppSources(increment)
     } catch (e) {
       if (fallback) return fallback
       throw e
@@ -13282,6 +13345,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         throw staleResponseError(actionId)
       }
       const inc = JSON.parse(line.slice(5).trim())
+      observeWireVersion(inc)
       const consumed = onIncrement ? await onIncrement(inc) : false
       if (!consumed) increments.push(inc)
     }
@@ -16820,6 +16884,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     chromeLanguage,
     setChromeLanguage,
     chromeTextsOf,
+    // wire-version check (wireVersion.mjs): the shell shows a mismatch in the error band
+    setWireMismatchListener,
+    checkWireVersion,
     mountElements,
     setElementEventSink,
     setElementModuleBase,

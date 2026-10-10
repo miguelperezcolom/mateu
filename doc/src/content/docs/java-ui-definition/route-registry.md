@@ -227,7 +227,7 @@ The pattern of a cloud console's resource page: `/customers/7` is the customer, 
 `/customers/7/orders`, `/customers/7/addresses`… — are pages with a URL of their own. Each one gets
 the customer's id, loads when opened, has its own actions and paging, and survives a reload, a pasted
 link and back/forward. Runnable in `demo/demo-vb` (package `mastertabs`, renderer chosen with
-`-Dmateu.renderer=vaadin-lit|redwood`).
+`-Dmateu.renderer=mateu-vaadin|mateu-redwood`).
 
 **1. The routes** — the master with its tabs as `children`:
 

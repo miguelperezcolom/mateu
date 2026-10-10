@@ -165,7 +165,7 @@ final class BundleWriter {
     }
   }
 
-  /** A renderer's {@code static/} folder inside its jar ({@code io.mateu:vaadin-lit} …). */
+  /** A renderer's {@code static/} folder inside its jar ({@code io.mateu:mateu-vaadin} …). */
   record JarApp(URL indexUrl) implements StaticApp {
     private JarFile jar() throws IOException {
       var connection = (JarURLConnection) indexUrl.openConnection();

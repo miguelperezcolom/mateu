@@ -51,4 +51,34 @@ class ComponentRegistryTest {
     var emptyClassLoader = new ClassLoader(null) {};
     assertThat(registry.authoredFrom(emptyClassLoader).hasNoComponents()).isTrue();
   }
+
+  /** A routed class declaring business components in code (static and instance members). */
+  public static class Declaring {
+    @io.mateu.uidl.annotations.BusinessComponent("StaticOne")
+    static io.mateu.uidl.fluent.Component staticOne = new io.mateu.uidl.data.Text("static");
+
+    @io.mateu.uidl.annotations.BusinessComponent("FieldOne")
+    io.mateu.uidl.fluent.Component fieldOne = new io.mateu.uidl.data.Text("field");
+
+    @io.mateu.uidl.annotations.BusinessComponent("MethodOne")
+    io.mateu.uidl.fluent.Component methodOne() {
+      return new io.mateu.uidl.data.Text("method");
+    }
+
+    @io.mateu.uidl.annotations.BusinessComponent("NotAComponent")
+    String notAComponent = "ignored";
+  }
+
+  @Test
+  void businessComponentMembersBecomeCatalogueEntries() {
+    var entries = ComponentRegistry.annotatedOn(Declaring.class);
+    assertThat(entries)
+        .extracting(ComponentEntry::name)
+        .containsExactlyInAnyOrder("StaticOne", "FieldOne", "MethodOne");
+    assertThat(entries)
+        .filteredOn(e -> e.name().equals("MethodOne"))
+        .first()
+        .extracting(e -> ((io.mateu.uidl.data.Text) e.component()).text())
+        .isEqualTo("method");
+  }
 }

@@ -15,13 +15,13 @@ export type RendererId = 'vaadin' | 'redwood'
 export interface RendererInfo {
     id: RendererId
     label: string
-    /** The Maven artifact that serves it — the ONE place the extension spells it (artifacts are due a rename). */
+    /** The Maven artifact that serves it — the ONE place the extension spells it (the GA mateu-* ids). */
     artifactId: string
 }
 
 export const RENDERERS: readonly RendererInfo[] = [
-    { id: 'vaadin', label: 'Vaadin (Lumo)', artifactId: 'vaadin-lit' },
-    { id: 'redwood', label: 'Redwood (Oracle)', artifactId: 'redwood' },
+    { id: 'vaadin', label: 'Vaadin (Lumo)', artifactId: 'mateu-vaadin' },
+    { id: 'redwood', label: 'Redwood (Oracle)', artifactId: 'mateu-redwood' },
 ]
 
 export const DEFAULT_RENDERER: RendererId = 'vaadin'
@@ -66,8 +66,8 @@ export function rendererOf(text: string | undefined | null): RendererId {
 export function newDescriptor(renderer: RendererId): string {
     return [
         '# The project descriptor: settings true of the whole project, not of one page.',
-        '# renderer — the design system the project paints with: vaadin (io.mateu:vaadin-lit, the',
-        '# default) or redwood (io.mateu:redwood). The visual editor and Play open in it and the static',
+        '# renderer — the design system the project paints with: vaadin (io.mateu:mateu-vaadin, the',
+        '# default) or redwood (io.mateu:mateu-redwood). The visual editor and Play open in it and the static',
         '# bundle ships it; a served app still renders with its Maven dependency (the server warns when',
         '# the two disagree).',
         `type: ${PROJECT_TYPE}`,

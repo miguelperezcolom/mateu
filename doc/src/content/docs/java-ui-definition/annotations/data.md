@@ -250,33 +250,15 @@ Both annotations can be placed on the same field to independently control the ed
 
 ---
 
-## @Option
+## Enum constant labels
 
-Declares a custom display label for an enum constant or a select option value. Can be placed directly on enum constants or inside `@OptionsLayout`.
-
-```java
-public @interface Option {
-    String value();
-    String label() default "";
-}
-```
-
-### Attributes
-
-| Attribute | Type | Default | Description |
-|---|---|---|---|
-| `value` | `String` | — | The option's raw stored value |
-| `label` | `String` | `""` | The display label (defaults to `value` if empty) |
-
-### Example
+Label an enum constant with `@Label` when its name does not say it:
 
 ```java
 public enum InvoiceStatus {
-    @Option(value = "DRAFT", label = "Draft")
     DRAFT,
-    @Option(value = "SENT", label = "Sent to customer")
+    @Label("Sent to customer")
     SENT,
-    @Option(value = "PAID", label = "Paid")
     PAID
 }
 ```
@@ -289,7 +271,7 @@ A constant needs no annotation when its name says it. Mateu calls it, in order:
 2. by its `toString()`, when the enum overrides it;
 3. by its name humanized: `CHECK_OUT` → "Check out", `CheckOut` → "Check out", `ROOM1` → "Room 1".
 
-So in the example above, `@Option` on `DRAFT` and `PAID` changes nothing. The .NET (`[Label]` on the member) and Python (the enum's own `__str__`) backends follow the same rule.
+So in the example above, `DRAFT` and `PAID` need no annotation ("Draft", "Paid"). The .NET (`[Label]` on the member) and Python (the enum's own `__str__`) backends follow the same rule.
 
 ---
 

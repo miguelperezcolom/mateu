@@ -96,8 +96,8 @@ class ProjectRendererCheckTest {
     assertThat(warning).isPresent();
     assertThat(warning.get())
         .contains("renderer: redwood")
-        .contains("io.mateu:vaadin-lit")
-        .contains("io.mateu:redwood")
+        .contains("io.mateu:mateu-vaadin")
+        .contains("io.mateu:mateu-redwood")
         .contains("specs/ui/project.yaml");
   }
 

@@ -18,7 +18,7 @@ Mateu (ver `LICENSE.txt` en la raíz del repositorio):
   mínimo y documentado) y `resources/js/mateu-bridge.js` (generado desde
   `poc/` por `make-amd.mjs`).
 
-### El jar de renderer (`io.mateu:redwood`)
+### El jar de renderer (`io.mateu:mateu-redwood`)
 
 El módulo Maven `backend/shared/frontend/redwood` empaqueta como recursos estáticos el
 **build optimizado de la propia app VB** (`build/optimized/webApps/vbredwoodapp`, copiado por

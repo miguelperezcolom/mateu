@@ -14,7 +14,7 @@ renderer: redwood   # vaadin | redwood
 | Key | Values | Default |
 |---|---|---|
 | `type` | `Project` (required — it is how the file is recognised) | — |
-| `renderer` | `vaadin` (served by `io.mateu:vaadin-lit`) or `redwood` (served by `io.mateu:redwood`) | `vaadin` |
+| `renderer` | `vaadin` (served by `io.mateu:mateu-vaadin`) or `redwood` (served by `io.mateu:mateu-redwood`) | `vaadin` |
 
 There is one per project. It conventionally lives at `specs/ui/project.yaml`, and any file under
 `specs/ui/` with `type: Project` is found too. A project without one uses the defaults, so it
@@ -37,14 +37,14 @@ the static bundle always used Vaadin. They now read the project's choice:
 ## A served app: the dependency decides, the server warns
 
 The renderer a **served** app shows is still decided by the renderer jar on its classpath. With
-`io.mateu:vaadin-lit` it serves Vaadin, and with `io.mateu:redwood` it serves Redwood. `project.yaml`
+`io.mateu:mateu-vaadin` it serves Vaadin, and with `io.mateu:mateu-redwood` it serves Redwood. `project.yaml`
 does not switch it. If the two disagree, the app your users get is not the one you designed in the
 editor. The server therefore logs one warning at startup:
 
 ```text
 WARN  ProjectRendererCheck -- The project descriptor (specs/ui/project.yaml) says renderer: redwood,
-but this server serves vaadin (io.mateu:vaadin-lit is on the classpath). … Depend on
-io.mateu:redwood instead of io.mateu:vaadin-lit, or set renderer: vaadin in the descriptor.
+but this server serves vaadin (io.mateu:mateu-vaadin is on the classpath). … Depend on
+io.mateu:mateu-redwood instead of io.mateu:mateu-vaadin, or set renderer: vaadin in the descriptor.
 ```
 
 The warning is never a failure. A team may serve Vaadin while it tries Redwood out in the editor.
@@ -57,7 +57,7 @@ To switch a served app, change the dependency **and** the descriptor together:
 ```xml
 <dependency>
   <groupId>io.mateu</groupId>
-  <artifactId>redwood</artifactId>   <!-- was: vaadin-lit -->
+  <artifactId>mateu-redwood</artifactId>   <!-- was: mateu-vaadin -->
   <version>${mateu.version}</version>
 </dependency>
 ```

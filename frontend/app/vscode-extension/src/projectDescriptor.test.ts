@@ -35,9 +35,9 @@ describe('project descriptor', () => {
     })
 
     it('keeps the artifact mapping in one place', () => {
-        expect(coordinatesOf('vaadin')).toBe('io.mateu:vaadin-lit')
-        expect(coordinatesOf('redwood')).toBe('io.mateu:redwood')
-        expect(dependencyXml('redwood')).toContain('<artifactId>redwood</artifactId>')
+        expect(coordinatesOf('vaadin')).toBe('io.mateu:mateu-vaadin')
+        expect(coordinatesOf('redwood')).toBe('io.mateu:mateu-redwood')
+        expect(dependencyXml('redwood')).toContain('<artifactId>mateu-redwood</artifactId>')
     })
 
     it('the shared New File skeleton is a singleton project descriptor', () => {

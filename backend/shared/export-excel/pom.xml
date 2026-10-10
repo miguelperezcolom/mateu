@@ -4,10 +4,10 @@
 
   <parent>
     <groupId>io.mateu</groupId>
-    <artifactId>shared</artifactId>
+    <artifactId>mateu-shared-parent</artifactId>
     <version>0.0.1-MATEU</version>
   </parent>
-  <artifactId>export-excel</artifactId>
+  <artifactId>mateu-export-excel</artifactId>
   <packaging>jar</packaging>
 
   <name>Mateu Excel export</name>
@@ -26,7 +26,7 @@
   <dependencies>
     <dependency>
       <groupId>io.mateu</groupId>
-      <artifactId>uidl</artifactId>
+      <artifactId>mateu-uidl</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

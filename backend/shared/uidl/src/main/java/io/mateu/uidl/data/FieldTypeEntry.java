@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import java.util.List;
 import java.util.Map;
 import lombok.Builder;
@@ -44,6 +45,7 @@ import lombok.Builder;
  *     success | warning | danger | info | neutral}, like {@code @RowStatus}. A value not listed
  *     keeps the default reading of the word
  */
+@Experimental("field types (types.yaml)")
 @Builder(toBuilder = true)
 public record FieldTypeEntry(
     String id,

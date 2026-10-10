@@ -1,7 +1,7 @@
 # The project descriptor: settings true of the whole project, not of one page. One per project.
 # renderer — the design system the project paints with:
-#   vaadin  (io.mateu:vaadin-lit, the default)
-#   redwood (io.mateu:redwood — Oracle JET + Spectra, loaded from Oracle's CDN)
+#   vaadin  (io.mateu:mateu-vaadin, the default)
+#   redwood (io.mateu:mateu-redwood — Oracle JET + Spectra, loaded from Oracle's CDN)
 # The visual editor's canvas and Play open in it and the static bundle ships it. A served app
 # renders with its Maven dependency; the server warns at startup when the two disagree.
 type: Project

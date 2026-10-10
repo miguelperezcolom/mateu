@@ -4,10 +4,10 @@
 
   <parent>
     <groupId>io.mateu</groupId>
-    <artifactId>backend</artifactId>
+    <artifactId>mateu-parent</artifactId>
     <version>0.0.1-MATEU</version>
   </parent>
-  <artifactId>mvc</artifactId>
+  <artifactId>mateu-mvc-parent</artifactId>
   <packaging>pom</packaging>
 
   <name>Mateu Spring MVC adapter (parent)</name>

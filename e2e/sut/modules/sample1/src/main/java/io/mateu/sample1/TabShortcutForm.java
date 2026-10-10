@@ -7,7 +7,6 @@ import lombok.Setter;
 
 @UI("/tab-shortcuts")
 @Title("Tab Shortcut Form")
-@Tabs
 @Getter
 @Setter
 public class TabShortcutForm {

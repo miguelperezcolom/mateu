@@ -36,7 +36,7 @@ public class SupportWorkspace {
 }
 ```
 
-Use `@SplitLayout` for two-pane splits, `@HorizontalLayout` / `@VerticalLayout` for arrangement, `@Tabs` or `@Accordion` to hide secondary panels until needed, and `@KPI` in a header row for live metrics.
+Use `@MasterDetail` or a fluent `SplitLayout` for two-pane splits, `@Zones` for side-by-side arrangement, `@Tab` or `@FoldedLayout` to hide secondary panels until needed, and `@KPI` in a header row for live metrics.
 
 ## Structure
 

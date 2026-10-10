@@ -4,10 +4,10 @@
 
   <parent>
     <groupId>io.mateu</groupId>
-    <artifactId>shared</artifactId>
+    <artifactId>mateu-shared-parent</artifactId>
     <version>0.0.1-MATEU</version>
   </parent>
-  <artifactId>agent-cli-companion</artifactId>
+  <artifactId>mateu-agent-cli-companion</artifactId>
   <packaging>jar</packaging>
 
   <name>Mateu agent CLI companion</name>
@@ -25,7 +25,7 @@
   <dependencies>
     <dependency>
       <groupId>io.mateu</groupId>
-      <artifactId>agent-cli</artifactId>
+      <artifactId>mateu-agent-cli</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>

@@ -21,6 +21,10 @@ See also: [Renderer contract](/design-systems/renderer-contract/) (what a render
   may be added without bumping the major; a consumer must **ignore unknown fields and unknown
   component types** gracefully (render a placeholder, keep going). The major version bumps only on a
   breaking change to existing wire shape or semantics.
+- **Every first-party renderer checks it** (web/Vaadin, Redwood, React Native, IntelliJ): the same
+  major is accepted whatever the minor; another major shows the user one plain message — *"This
+  app's server speaks Mateu wire 4.x; this renderer supports 3.x…"* — and rendering goes on
+  (unknown fields and types are still tolerated). A response without `wireVersion` is accepted.
 - **Freeze-and-pin is the supported migration stance:** if you build against the wire (an alternate
   renderer, or an extraction), pin the `wireVersion` you targeted; that snapshot is a stable contract.
 - The published JSON Schemas (below) are the machine-readable half; this page is the normative prose

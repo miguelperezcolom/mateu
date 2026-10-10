@@ -36,8 +36,8 @@ describe('the project descriptor (project.yaml)', () => {
     })
 
     it('names the artifact that serves each renderer', () => {
-        expect(RENDERER_ARTIFACTS.redwood).toBe('io.mateu:redwood')
-        expect(RENDERER_ARTIFACTS.vaadin).toBe('io.mateu:vaadin-lit')
+        expect(RENDERER_ARTIFACTS.redwood).toBe('io.mateu:mateu-redwood')
+        expect(RENDERER_ARTIFACTS.vaadin).toBe('io.mateu:mateu-vaadin')
     })
 
     it('the project index carries it and does not take it for a page', () => {

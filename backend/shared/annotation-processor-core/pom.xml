@@ -3,12 +3,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
-    <artifactId>shared</artifactId>
+    <artifactId>mateu-shared-parent</artifactId>
     <groupId>io.mateu</groupId>
     <version>0.0.1-MATEU</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>annotation-processor-core</artifactId>
+  <artifactId>mateu-annotation-processor-core</artifactId>
 
   <name>Mateu annotation processor core</name>
   <description>Logic shared by the framework annotation processors of Mateu (controller generation, lint).</description>
@@ -92,7 +92,7 @@
 
     <dependency>
       <groupId>io.mateu</groupId>
-      <artifactId>uidl</artifactId>
+      <artifactId>mateu-uidl</artifactId>
       <version>${project.version}</version>
       <exclusions>
         <exclusion>

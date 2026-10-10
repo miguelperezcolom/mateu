@@ -53,17 +53,17 @@
         <!-- here mateu dependencies -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>annotation-processor-mvc</artifactId>
+            <artifactId>mateu-annotation-processor-mvc</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>mvc-core</artifactId>
+            <artifactId>mateu-mvc</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>vaadin-lit</artifactId>
+            <artifactId>mateu-vaadin</artifactId>
             <version>${mateu.version}</version>
         </dependency>
     </dependencies>
@@ -100,7 +100,7 @@
                                 </path>
                                 <path>
                                     <groupId>io.mateu</groupId>
-                                    <artifactId>annotation-processor-mvc</artifactId>
+                                    <artifactId>mateu-annotation-processor-mvc</artifactId>
                                     <version>${mateu.version}</version>
                                 </path>
                             </annotationProcessorPaths>
@@ -120,7 +120,7 @@
                                 </path>
                                 <path>
                                     <groupId>io.mateu</groupId>
-                                    <artifactId>annotation-processor-mvc</artifactId>
+                                    <artifactId>mateu-annotation-processor-mvc</artifactId>
                                     <version>${mateu.version}</version>
                                 </path>
                             </annotationProcessorPaths>

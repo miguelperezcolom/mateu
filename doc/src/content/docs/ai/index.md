@@ -249,12 +249,12 @@ they are talking to. No api key at any point.
 
 ## No API key? Use the CLI pseudo-agent (local development)
 
-If you develop with an LLM CLI already authenticated on your machine (`claude`, `gemini`), you don't need to implement — or configure a key for — an SSE endpoint at all. The `io.mateu:agent-cli` module is a **pseudo-agent for local development** that serves the whole contract above by bridging to that CLI.
+If you develop with an LLM CLI already authenticated on your machine (`claude`, `gemini`), you don't need to implement — or configure a key for — an SSE endpoint at all. The `io.mateu:mateu-agent-cli` module is a **pseudo-agent for local development** that serves the whole contract above by bridging to that CLI.
 
 ```xml
 <dependency>
   <groupId>io.mateu</groupId>
-  <artifactId>agent-cli</artifactId>
+  <artifactId>mateu-agent-cli</artifactId>
 </dependency>
 ```
 
@@ -359,7 +359,7 @@ Only emit one event per response. Never show the raw JSON to the user.
 ## Summary
 
 - Annotate your root UI class with `@AI(sse = "<url>")`.
-- Implement an SSE endpoint at that URL — or, for local development, add `io.mateu:agent-cli` and point at `/mateu/agent/stream` (no API key needed).
+- Implement an SSE endpoint at that URL — or, for local development, add `io.mateu:mateu-agent-cli` and point at `/mateu/agent/stream` (no API key needed).
 - Mateu handles the rest: button, panel, streaming UI.
 - Stream the reply line by line, or token by token with `agent-delta` events (and `agent-status` / `agent-tool` to show progress); replies render as markdown and may embed images (`data:` URIs included) and inline SVG.
 - Emit `{"event": "...", "detail": {...}}` in the stream to trigger UI actions from the LLM; emit token-usage JSON to feed the token bar.

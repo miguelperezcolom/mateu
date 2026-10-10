@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import java.util.Map;
 import lombok.Builder;
 
@@ -48,7 +49,7 @@ public record RestDataSource(
      * editor, in a bundle built with the mock flag, and at runtime only when the app opts in with
      * {@code mateu.sources.mock=true}. Never silently in production. Null = no sample.
      */
-    Object sample) {
+    @Experimental("sample data / sample mode") Object sample) {
 
   public RestDataSource {
     ref = ref == null ? "" : ref.trim();

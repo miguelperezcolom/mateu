@@ -48,7 +48,6 @@ modifier notation as action shortcuts.
 
 ```java
 @UI("/order")
-@Tabs
 public class OrderForm {
 
     @Tab(value = "Customer", shortcut = "alt+1")

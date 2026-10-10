@@ -1,5 +1,7 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
+
 /**
  * The renderer a Mateu PROJECT paints its UI with — chosen once, in {@code specs/ui/project.yaml}
  * ({@link ProjectSettings}), not page by page.
@@ -9,16 +11,17 @@ package io.mateu.uidl.data;
  * {@link #artifactId()} rather than spelling the coordinates themselves, so renaming the artifacts
  * is a one-line change here.
  */
+@Experimental("the project descriptor (project.yaml)")
 public enum ProjectRenderer {
 
-  /** The Vaadin/Lumo web renderer — the default. Served by {@code io.mateu:vaadin-lit}. */
-  vaadin("vaadin-lit"),
+  /** The Vaadin/Lumo web renderer — the default. Served by {@code io.mateu:mateu-vaadin}. */
+  vaadin("mateu-vaadin"),
 
   /**
    * The Redwood renderer: an Oracle Visual Builder app (JET + Spectra, loaded from Oracle's CDN).
-   * Served by {@code io.mateu:redwood}.
+   * Served by {@code io.mateu:mateu-redwood}.
    */
-  redwood("redwood");
+  redwood("mateu-redwood");
 
   /** The group id every renderer artifact is published under. */
   public static final String GROUP_ID = "io.mateu";

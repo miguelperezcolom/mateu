@@ -1,8 +1,11 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
+/** The AI assistant chat panel as a component. Experimental, like {@code @AI}. */
+@Experimental("AI chat panel")
 @Builder
 public record Chat(String sseUrl, String uploadUrl, String style, String cssClasses)
     implements Component {

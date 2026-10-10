@@ -55,7 +55,7 @@ content page and it runs the same action chains, so a screen looks and behaves t
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>redwood</artifactId>
+    <artifactId>mateu-redwood</artifactId>
     <version>MATEU_VERSION</version>
 </dependency>
 ```

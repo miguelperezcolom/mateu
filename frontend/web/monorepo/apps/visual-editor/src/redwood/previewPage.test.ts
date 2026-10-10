@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
 import { adaptIndexHtml, deferredScripts, replayDeferred } from './previewPage'
 
-/** The packaged page of io.mateu:redwood, as committed (what every host serves under redwood/). */
+/** The packaged page of io.mateu:mateu-redwood, as committed (what every host serves under redwood/). */
 function packagedIndex(): string {
     let dir = dirname(fileURLToPath(import.meta.url))
     const rel = 'backend/shared/frontend/redwood/src/main/resources/static/_index.html'

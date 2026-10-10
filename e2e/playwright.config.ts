@@ -112,7 +112,7 @@ export default defineConfig({
     },
     ]),
     // The same renderer-agnostic specs against the VB/Redwood renderer: mvc-app1 built a second
-    // time with -Dmateu.renderer=redwood -Dsut.build.dir=target-vb and served on :8090 (CI job
+    // time with -Dmateu.renderer=mateu-redwood -Dsut.build.dir=target-vb and served on :8090 (CI job
     // `renderer-vb` in run_tests.yml; RENDERER_VB_URL overrides the URL locally). It paints
     // headless: the 2026-09 "0 rendered nodes" finding was the unsecured index never promoting the
     // VB boot scripts (fixed in index.ftl), not headless Chromium. Like the static projects, only

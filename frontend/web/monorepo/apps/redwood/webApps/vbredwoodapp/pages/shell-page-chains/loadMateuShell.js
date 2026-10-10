@@ -173,6 +173,11 @@ define([
       });
       // Perder la conexión es un ESTADO, no un evento: mientras dura se sostiene una banda,
       // en vez de un aviso por clic que el usuario ve pasar cinco segundos cada vez.
+      // Otro MAJOR del wire: un aviso claro (una vez) en la banda de error, no una pantalla rota.
+      bridge.setWireMismatchListener((message) => {
+        $application.variables.mateuLastError = message;
+        bridge.announce(message, { politeness: 'assertive' });
+      });
       bridge.connectivity.subscribe((online) => {
         $application.variables.mateuOffline = !online;
       });

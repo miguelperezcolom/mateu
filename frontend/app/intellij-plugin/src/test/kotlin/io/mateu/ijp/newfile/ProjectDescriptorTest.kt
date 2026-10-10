@@ -38,9 +38,9 @@ class ProjectDescriptorTest : TestCase() {
     }
 
     fun testTheArtifactMappingIsTheOneConstant() {
-        assertEquals("io.mateu:vaadin-lit", Renderer.VAADIN.coordinates)
-        assertEquals("io.mateu:redwood", Renderer.REDWOOD.coordinates)
-        assertTrue(ProjectDescriptor.dependencyXml(Renderer.REDWOOD).contains("<artifactId>redwood</artifactId>"))
+        assertEquals("io.mateu:mateu-vaadin", Renderer.VAADIN.coordinates)
+        assertEquals("io.mateu:mateu-redwood", Renderer.REDWOOD.coordinates)
+        assertTrue(ProjectDescriptor.dependencyXml(Renderer.REDWOOD).contains("<artifactId>mateu-redwood</artifactId>"))
     }
 
     fun testTheBundledSkeletonIsADescriptor() {

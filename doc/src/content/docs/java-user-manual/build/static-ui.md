@@ -65,7 +65,7 @@ routes inside it — to a Java view model (`viewModel:`) or to a definition only
 </plugin>
 ```
 
-If your `@UI` classes live in the app module itself, add `annotation-processor-indexer` next to your
+If your `@UI` classes live in the app module itself, add `mateu-annotation-processor-indexer` next to your
 framework's annotation processor: it writes the class index the build-time catalogue
 (`@RestSource`) and exporter read.
 
@@ -87,11 +87,11 @@ The bundle ships the **project's renderer**, the one `specs/ui/project.yaml` nam
 3. otherwise the renderer jar on the app's classpath; otherwise Vaadin.
 
 The renderer's static app is copied straight out of its jar on the app's classpath
-(`io.mateu:vaadin-lit` or `io.mateu:redwood`; `<assetsFrom>` still overrides it with a folder). When
+(`io.mateu:mateu-vaadin` or `io.mateu:mateu-redwood`; `<assetsFrom>` still overrides it with a folder). When
 both jars are present, the one that matches is used. When the chosen one is missing, the build fails
 and names the artifact to add.
 
-**A Redwood bundle** is the Oracle Visual Builder app of `io.mateu:redwood` (its `_redwood/` folder)
+**A Redwood bundle** is the Oracle Visual Builder app of `io.mateu:mateu-redwood` (its `_redwood/` folder)
 booting from `manifest.json` with no backend. The menu, routes and deep links work through the
 `_redirects` fallback, and a route under an app shell paints its own screen inside the shell. Things to
 know:

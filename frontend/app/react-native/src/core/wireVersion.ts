@@ -23,7 +23,7 @@ export function checkWireVersion(received: unknown, min: string = MIN_WIRE_VERSI
   if (rMaj !== mMaj) {
     return {
       ok: false,
-      message: `This app supports Mateu wire ${mMaj}.x (≥ ${min}); the server speaks ${received}. Some screens may not render correctly — update the app or the server.`,
+      message: `This app's server speaks Mateu wire ${rMaj}.x (${received}); this renderer supports ${mMaj}.x. Some screens may not display correctly — update the app or the server so they match.`,
     };
   }
   if (rMin < mMin) {

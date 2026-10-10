@@ -20,9 +20,9 @@
         <java.version>21</java.version>
         <mateu.version>0.0.1-MATEU</mateu.version>
         <!-- The frontend this SUT serves. CI builds it twice: with vaadin-lit (the default, :8080)
-             and with -Dmateu.renderer=redwood -Dsut.build.dir=target-vb (the renderer-vb
+             and with -Dmateu.renderer=mateu-redwood -Dsut.build.dir=target-vb (the renderer-vb
              Playwright project, :8090) — the same @UI classes behind both renderers. -->
-        <mateu.renderer>vaadin-lit</mateu.renderer>
+        <mateu.renderer>mateu-vaadin</mateu.renderer>
         <sut.build.dir>target</sut.build.dir>
     </properties>
 
@@ -37,7 +37,7 @@
         <!-- Mateu MVC runtime -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>mvc-core</artifactId>
+            <artifactId>mateu-mvc</artifactId>
             <version>${mateu.version}</version>
         </dependency>
 
@@ -99,7 +99,7 @@
                                 </path>
                                 <path>
                                     <groupId>io.mateu</groupId>
-                                    <artifactId>annotation-processor-mvc</artifactId>
+                                    <artifactId>mateu-annotation-processor-mvc</artifactId>
                                     <version>${mateu.version}</version>
                                 </path>
                                 <path>
@@ -124,7 +124,7 @@
                                 </path>
                                 <path>
                                     <groupId>io.mateu</groupId>
-                                    <artifactId>annotation-processor-mvc</artifactId>
+                                    <artifactId>mateu-annotation-processor-mvc</artifactId>
                                     <version>${mateu.version}</version>
                                 </path>
                                 <path>

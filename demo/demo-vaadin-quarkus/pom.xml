@@ -42,7 +42,7 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-rest</artifactId>
         </dependency>
-        <!-- the Mateu wire is Jackson (io.mateu:quarkus-core declares it `provided`) -->
+        <!-- the Mateu wire is Jackson (io.mateu:mateu-quarkus declares it `provided`) -->
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-rest-jackson</artifactId>
@@ -60,17 +60,17 @@
 
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>quarkus-core</artifactId>
+            <artifactId>mateu-quarkus</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>annotation-processor-quarkus</artifactId>
+            <artifactId>mateu-annotation-processor-quarkus</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>vaadin-lit</artifactId>
+            <artifactId>mateu-vaadin</artifactId>
             <version>${mateu.version}</version>
         </dependency>
 

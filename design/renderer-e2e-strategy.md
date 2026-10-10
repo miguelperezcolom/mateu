@@ -9,7 +9,7 @@ honest assessment + the plan. Written 2026-09-13.
 | Renderer | Kind | Functional e2e | What exists |
 |---|---|---|---|
 | **Vaadin** (web) | Lit / web components | **Yes** | 16 shared Playwright specs × 5 Java backends (mvc/webflux/quarkus/micronaut/helidon) + 2 federation specs, in CI |
-| **Redwood/VB** (web) | Oracle JET / VB | **Yes** (2026-10-10) | `renderer-vb` Playwright project (the agnostic specs on mvc-app1 built with `io.mateu:redwood`) + `vb-smoke` / `vb-a11y-probe` / `vb-slow-network-probe` on demo-vb, CI job `renderer-vb` (jar built from source) |
+| **Redwood/VB** (web) | Oracle JET / VB | **Yes** (2026-10-10) | `renderer-vb` Playwright project (the agnostic specs on mvc-app1 built with `io.mateu:mateu-redwood`) + `vb-smoke` / `vb-a11y-probe` / `vb-slow-network-probe` on demo-vb, CI job `renderer-vb` (jar built from source) |
 | **React Native** (native) | RN / Expo | **No** | ad-hoc probes only (`rn-a11y-probe`, `slow-network-probe`) via expo-web |
 | **IntelliJ** (desktop) | Swing | **No** | `renderProbe` (JVM: render a wire increment → assert the Swing tree); not a functional suite; SDK env-dependent |
 
@@ -63,7 +63,7 @@ CollectionDetail detail after a selection — are `test.fixme` with the reason),
 `renderer-vb` also runs `vb-smoke.mjs`, `vb-a11y-probe.mjs` and `vb-slow-network-probe.mjs` against
 demo-vb. Historical note (2026-09-13):
 Recipe that works: `cp e2e/sut/apps/mvc-app1 → mvc-app-vb`, swap the frontend dependency
-`io.mateu:vaadin-lit` → `io.mateu:redwood` in its pom, set a free port. It **builds, boots, and serves
+`io.mateu:mateu-vaadin` → `io.mateu:mateu-redwood` in its pom, set a free port. It **builds, boots, and serves
 the VB shell**, and the browser **reaches Oracle's JET CDN** (`static.oracle.com/cdn/jet/…`, 4
 requests, 0 failed). BUT the VB visual-runtime **does not paint the screen headless**: after 6 s the
 `<mateu-ui>` transport has 0 children, the body is empty, and there are **0 ARIA roles** in the whole

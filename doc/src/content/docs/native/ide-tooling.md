@@ -23,7 +23,7 @@ models through the Java plugin.
 ## The visual editor's canvas: Vaadin or Redwood
 
 Both editors can paint the canvas with the **Vaadin** renderer or with the real **Redwood**
-renderer, which is the Oracle Visual Builder app of `io.mateu:redwood`. The canvas opens in the
+renderer, which is the Oracle Visual Builder app of `io.mateu:mateu-redwood`. The canvas opens in the
 project's renderer (`project.yaml`, below), and the selector in the editor's toolbar previews the
 other renderer for the session. See [the Redwood canvas](/java-ui-definition/visual-editor/#the-redwood-canvas).
 In both IDEs the Redwood app is part of the editor's bundle. The IDE's local server serves it, so
@@ -48,7 +48,7 @@ edit that file, and the file is the source of truth:
 - **New | Mateu → Project Settings** creates the descriptor. It is offered only while the project has
   none, because there is one per project.
 - The **UI Mount** wizard shows the project's renderer and the artifact the app must depend on
-  (`io.mateu:vaadin-lit` or `io.mateu:redwood`).
+  (`io.mateu:mateu-vaadin` or `io.mateu:mateu-redwood`).
 
 The visual editor's canvas, Play and Export use this renderer. The canvas's own toolbar switch is
 only a preview for the session.

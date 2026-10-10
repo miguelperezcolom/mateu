@@ -126,93 +126,9 @@ public class CustomerForm {
 
 ---
 
-## @HorizontalLayout
-
-Renders the page content in a horizontal row.
-
-```java
-public @interface HorizontalLayout {
-    String theme() default "";
-    String style() default "";
-}
-```
-
-### Attributes
-
-| Attribute | Type | Default | Description |
-|---|---|---|---|
-| `theme` | `String` | `""` | Theme variant |
-| `style` | `String` | `""` | Inline CSS |
-
-### Example
-
-```java
-@UI("/summary")
-@HorizontalLayout(style = "gap: 1rem;")
-public class SummaryPage {
-    Component salesChart;
-    Component revenueChart;
-}
-```
-
----
-
-## @VerticalLayout
-
-Renders the page content in a vertical column.
-
-```java
-public @interface VerticalLayout {
-    String theme() default "";
-    String style() default "";
-}
-```
-
-### Attributes
-
-| Attribute | Type | Default | Description |
-|---|---|---|---|
-| `theme` | `String` | `""` | Theme variant |
-| `style` | `String` | `""` | Inline CSS |
-
-### Example
-
-```java
-@UI("/profile")
-@VerticalLayout
-public class ProfilePage {
-    Component avatar;
-    String bio;
-}
-```
-
----
-
-## @Tabs
-
-Places on the class to wrap all fields in a tabbed container. Individual fields are assigned to tabs via `@Tab`.
-
-```java
-public @interface Tabs {
-    String theme() default "";
-    String direction() default "";
-    String style() default "";
-}
-```
-
-### Attributes
-
-| Attribute | Type | Default | Description |
-|---|---|---|---|
-| `theme` | `String` | `""` | Visual theme variant |
-| `direction` | `String` | `""` | Tab strip direction — `"horizontal"` or `"vertical"` |
-| `style` | `String` | `""` | Inline CSS for the tab container |
-
----
-
 ## @Tab
 
-Assigns the annotated field or method to a named tab. Requires `@Tabs` on the enclosing class.
+Assigns the annotated field or method to a named tab. Consecutive fields sharing a tab name form one tab strip; no class-level annotation is needed.
 
 **Target:** `FIELD`, `METHOD`
 
@@ -240,7 +156,6 @@ public @interface Tab {
 
 ```java
 @UI("/account")
-@Tabs
 public class AccountPage {
     @Tab("Profile")
     String firstName;
@@ -320,99 +235,6 @@ TabLayout.builder()
 ```
 
 Each strip keeps its own selection: picking a tab of the inner strip never changes the outer one. The declarative mapper gives each strip a distinct, stable id (`_tabs` at the top level, `details-_tabs` for the strip of the `details` field); in the fluent API, give each `TabLayout` its own id.
-
----
-
-## @Accordion
-
-Places on the class to render all fields inside a collapsible accordion. Individual panels are configured with `@AccordionPanel`.
-
-```java
-public @interface Accordion {
-    String style() default "";
-    int opened() default 0;
-}
-```
-
-### Attributes
-
-| Attribute | Type | Default | Description |
-|---|---|---|---|
-| `style` | `String` | `""` | Inline CSS for the accordion container |
-| `opened` | `int` | `0` | Zero-based index of the initially expanded panel |
-
----
-
-## @AccordionPanel
-
-Assigns the annotated field to a named accordion panel. Requires `@Accordion` on the enclosing class.
-
-```java
-public @interface AccordionPanel {
-    String theme() default "";
-    String style() default "";
-    String summary() default "";
-    boolean disabled() default false;
-}
-```
-
-### Attributes
-
-| Attribute | Type | Default | Description |
-|---|---|---|---|
-| `summary` | `String` | `""` | Panel header text shown in collapsed state |
-| `theme` | `String` | `""` | Visual theme variant |
-| `style` | `String` | `""` | Inline CSS for this panel |
-| `disabled` | `boolean` | `false` | Whether this panel is non-interactive |
-
-### Example
-
-```java
-@UI("/settings")
-@Accordion(opened = 0)
-public class SettingsPage {
-    @AccordionPanel(summary = "General")
-    String language;
-    String timezone;
-
-    @AccordionPanel(summary = "Notifications")
-    boolean emailNotifications;
-    boolean smsNotifications;
-}
-```
-
-![Accordion layout — collapsible panels](/images/docs/annotations/accordion.png)
-
----
-
-## @SplitLayout
-
-Renders the page as a two-panel layout with a resizable divider. The first field becomes the primary panel and the second becomes the secondary panel.
-
-```java
-public @interface SplitLayout {
-    String theme() default "";
-    String style() default "";
-}
-```
-
-### Attributes
-
-| Attribute | Type | Default | Description |
-|---|---|---|---|
-| `theme` | `String` | `""` | Theme variant |
-| `style` | `String` | `""` | Inline CSS |
-
-### Example
-
-```java
-@UI("/orders")
-@SplitLayout
-public class OrdersPage {
-    Component orderList;
-    Component orderDetail;
-}
-```
 
 ---
 
@@ -776,36 +598,6 @@ public class CheckInForm {
 Pairs naturally with [`@Zones`](#zones--zone) and [`@PlainText`](/java-ui-definition/annotations/display/#plaintext) for dense, single-screen desks.
 
 ![Compact — high-density form with 4 columns](/images/docs/ux-patterns/high-density.png)
-
----
-
-## @Scroller
-
-Wraps the page content in a scrollable container.
-
-```java
-public @interface Scroller {
-    String direction() default "";
-    String style() default "";
-}
-```
-
-### Attributes
-
-| Attribute | Type | Default | Description |
-|---|---|---|---|
-| `direction` | `String` | `""` | Scroll direction: `"vertical"`, `"horizontal"`, or `"both"` |
-| `style` | `String` | `""` | Inline CSS for the scroller container |
-
-### Example
-
-```java
-@UI("/feed")
-@Scroller(direction = "vertical")
-public class FeedPage {
-    Component items;
-}
-```
 
 ---
 
