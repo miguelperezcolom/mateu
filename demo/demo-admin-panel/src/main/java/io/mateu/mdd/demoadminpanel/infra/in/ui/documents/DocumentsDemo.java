@@ -16,7 +16,8 @@ import io.mateu.uidl.interfaces.DocumentRenderer;
  * Documents and printing: toolbar actions return a generated PDF {@link Document} — shown in a new
  * tab, downloaded, or handed straight to the print dialog — and {@link UICommand#print()} prints
  * this page without the app chrome. The PDF is rendered from plain HTML by the {@link
- * DocumentRenderer} bean of {@code mateu-documents}.
+ * DocumentRenderer} this demo implements itself ({@link DemoPdfRenderer}, on Apache PDFBox): Mateu
+ * delivers documents, the application produces them.
  */
 @UI("/documents-demo")
 @Title("Folio 2026-0042")
@@ -82,7 +83,7 @@ public class DocumentsDemo {
         <p style="text-align: right">Total: <strong>%s</strong></p>
         """
             .formatted(guest, room, rows, total);
-    // the DocumentRenderer bean of mateu-documents (any other registered renderer would do)
+    // the application's DocumentRenderer bean (DemoPdfRenderer here; any implementation would do)
     return MateuBeanProvider.getBean(DocumentRenderer.class)
         .render(
         html, PageSetup.a4().withTitle("Factura 2026-0042").withHeader("Hotel Demo||{title}"));

@@ -66,11 +66,12 @@
             <artifactId>mateu-vaadin</artifactId>
             <version>${mateu.version}</version>
         </dependency>
-        <!-- optional: HTML to PDF for the documents demo (/documents-demo) -->
+        <!-- the documents demo (/documents-demo) implements Mateu's DocumentRenderer port with
+             Apache PDFBox (Apache-2.0): rendering a document is the application's job -->
         <dependency>
-            <groupId>io.mateu</groupId>
-            <artifactId>mateu-documents</artifactId>
-            <version>${mateu.version}</version>
+            <groupId>org.apache.pdfbox</groupId>
+            <artifactId>pdfbox</artifactId>
+            <version>3.0.8</version>
         </dependency>
     </dependencies>
 

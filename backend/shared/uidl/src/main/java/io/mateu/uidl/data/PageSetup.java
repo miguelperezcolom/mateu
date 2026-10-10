@@ -3,8 +3,8 @@ package io.mateu.uidl.data;
 import io.mateu.uidl.annotations.Experimental;
 
 /**
- * How a {@link io.mateu.uidl.interfaces.DocumentRenderer} lays a document out: paper, orientation,
- * margins and the running header and footer.
+ * How a {@link io.mateu.uidl.interfaces.DocumentRenderer} (implemented by the application — Mateu
+ * ships none) lays a document out: paper, orientation, margins and the running header and footer.
  *
  * <p>The header and footer are plain text repeated on every page; {@code {page}}, {@code {pages}}
  * and {@code {title}} are replaced by the page number, the page count and {@code title}. Each may

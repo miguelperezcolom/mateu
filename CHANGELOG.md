@@ -113,10 +113,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   new tab, downloads it or opens the print dialog for it. Small documents ride the response; large
   and lazy ones are fetched once from a short-lived URL, `<baseUrl>/mateu/v3/documents/<token>`,
   served by all five Java adapters, ASP.NET Core and FastAPI. `UICommand.print()` prints the current
-  page without the app chrome (Ctrl+P too). New optional module `io.mateu:mateu-documents`: a
-  `DocumentRenderer` turning HTML into PDF (A4/Letter, header/footer, page numbers, embedded font)
-  on Apache PDFBox + jsoup. Vaadin, Redwood, React Native (system browser / share sheet) and
-  IntelliJ (save dialog / OS viewer / print). See *Documents and printing* in the UX patterns.
+  page without the app chrome (Ctrl+P too). Mateu delivers documents but does not produce them:
+  `DocumentRenderer` (HTML in, bytes out, laid out by a `PageSetup`) is a port the application
+  implements with the library of its choice — no implementation ships. Vaadin, Redwood, React Native
+  (system browser / share sheet) and IntelliJ (save dialog / OS viewer / print). See *Documents and
+  printing* in the UX patterns.
 - **`io.mateu:mateu-spring-data`** (optional, `@Experimental`): a ready-made `CrudStore` over a
   Spring Data JPA repository — `return CrudStores.of(productRepository);` in `store()` and a JPA
   entity needs no hand-written adapter. Search text, example filters, `between`/`gte`/`lte`/`in`

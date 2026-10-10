@@ -9,11 +9,12 @@ description: Return an invoice, a registration card or a report from an action �
 
 Business apps produce *documents*: the folio a guest signs, an invoice, a registration card, a
 monthly report. Not "export this listing" — a document the screen builds, that the user previews,
-prints or keeps. Mateu gives you three small pieces for it:
+prints or keeps. Mateu **delivers** documents; it does not produce them. You get:
 
 1. an action returns a **`Document`** and the client shows it, downloads it or prints it;
 2. **`UICommand.print()`** prints the current page, without menus, toolbars or buttons;
-3. an optional **`DocumentRenderer`** (module `mateu-documents`) turns HTML into a PDF.
+3. a **`DocumentRenderer`** port (HTML in, PDF bytes out) that *your application implements* with
+   the library of its choice — Mateu ships no implementation.
 
 ## Returning a document from an action
 
@@ -21,7 +22,7 @@ prints or keeps. Mateu gives you three small pieces for it:
 @UI("/folio/:id")
 public class FolioPage {
 
-  // the DocumentRenderer bean (mateu-documents registers one)
+  // YOUR DocumentRenderer bean (see "Producing the bytes"); or build the bytes right here
   DocumentRenderer renderer = MateuBeanProvider.getBean(DocumentRenderer.class);
 
   @Toolbar @Label("View invoice")
@@ -50,8 +51,8 @@ public class FolioPage {
 
 A `Document` can also travel in a list with other results — `List.of(new Message("Invoice ready"), document)`.
 
-`DocumentRenderer`, `Document` and `PageSetup` are in `io.mateu:uidl`, so a framework-agnostic UI
-module can declare them; only the implementation (`mateu-documents`) is optional.
+`Document`, `DocumentRenderer` and `PageSetup` are in `io.mateu:uidl`, so a framework-agnostic UI
+module can use them; the renderer implementation lives in your application.
 
 ## How the bytes travel
 
@@ -103,56 +104,51 @@ stylesheet applies to the browser's own **Ctrl+P**. Long scrolling areas print i
 For a printout with its own layout (letterhead, totals, page numbers), return a `Document.printed()`
 instead — the page and the paper rarely want the same layout.
 
-## Rendering a PDF from HTML (`mateu-documents`)
+## Producing the bytes
 
-```xml
-<dependency>
-  <groupId>io.mateu</groupId>
-  <artifactId>mateu-documents</artifactId>
-</dependency>
-```
-
-It registers a `DocumentRenderer` bean (`PdfBoxDocumentRenderer`). It is **engine-agnostic on the
-way in**: render your template with whatever the app already uses — Thymeleaf, FreeMarker, Mustache,
-a Java text block — and hand over the HTML string.
+Mateu does not render documents. Build the bytes with any library — directly in the action, or
+behind the `DocumentRenderer` port so screens depend on an interface rather than on a library:
 
 ```java
-byte[] pdf = renderer.render(html,
-    PageSetup.a4()                          // or PageSetup.letter()
-        .withLandscape(false)
-        .withMarginMm(18)
-        .withTitle("Invoice 2026-0042")
-        .withHeader("ACME Hotels||{title}")   // left | centre | right
-        .withFooter("||{page} / {pages}"));   // the default footer
+@Component
+public class PdfBoxRenderer implements DocumentRenderer {   // your application's code
+
+  @Override
+  public byte[] render(String html, PageSetup setup) {
+    try (var pdf = new PDDocument(); var out = new ByteArrayOutputStream()) {
+      var page = new PDPage(PDRectangle.A4);
+      pdf.addPage(page);
+      try (var cs = new PDPageContentStream(pdf, page)) {
+        cs.beginText();
+        cs.setFont(new PDType1Font(Standard14Fonts.FontName.HELVETICA), 12);
+        cs.newLineAtOffset(50, 780);
+        cs.showText(Jsoup.parse(html).text());          // lay out what your documents need
+        cs.endText();
+      }
+      pdf.save(out);
+      return out.toByteArray();
+    } catch (IOException e) {
+      throw new UncheckedIOException(e);
+    }
+  }
+}
 ```
 
-It is **not a browser**. It lays out the subset business documents use:
+`PageSetup` carries the usual layout parameters (A4/Letter, landscape, margins, title, a running
+header/footer with `{page}`/`{pages}`/`{title}`) so callers can state them without knowing the
+library; an implementation honours what it can. The demo's `DemoPdfRenderer`
+(`demo/demo-admin-panel`) is a complete small example with page numbers and an embedded font.
 
-- headings `h1`–`h6`, paragraphs, `div`/`section`, `br`, `b`/`strong`, `i`/`em`, `blockquote`, `pre`;
-- `ul`/`ol` lists;
-- tables — column widths in `%` (`width="60%"` or `style="width: 60%"`), `colspan`, header rows
-  (`thead` or rows of `th`) **repeated on every page**, `align`/`text-align` per cell;
-- `hr`, page breaks (`style="page-break-before: always"`);
-- images embedded as `data:` URIs (PNG/JPEG). Remote URLs are **never fetched** (a renderer that
-  fetched them would let a template reach your internal network).
+Choosing a library — check the licence against your product's:
 
-Other CSS is ignored. The font is **embedded**: Liberation Sans (it ships inside PDFBox, SIL OFL),
-with a synthesised bold; pass your own TTFs for a brand font or a real bold face —
-`new PdfBoxDocumentRenderer(() -> open("Brand-Regular.ttf"), () -> open("Brand-Bold.ttf"))`. A
-character the font has no glyph for prints as `?`.
-
-### Plugging in another engine
-
-Register your own `DocumentRenderer` bean and every screen uses it unchanged. Candidates, with
-their licences — Mateu bundles only permissive ones:
-
-| Engine | Licence | Notes |
+| Library | Licence | Notes |
 |---|---|---|
-| Apache PDFBox + jsoup (the built-in) | Apache-2.0 / MIT | The subset above. |
-| A headless Chromium (Playwright for Java, Apache-2.0) | Apache-2.0 (+ the browser) | Full CSS; heavy: a browser per server. |
-| openhtmltopdf | LGPL-2.1 | Good CSS 2.1 + paged media. Not bundled: LGPL. |
-| OpenPDF | LGPL-2.1 / MPL-2.0 | A PDF library, not an HTML engine. Not bundled. |
-| iText 7 | AGPL-3.0 / commercial | Not suitable for an Apache-2.0 app without a commercial licence. |
+| Apache PDFBox | Apache-2.0 | Low-level drawing API; you lay out the page yourself. |
+| JasperReports | LGPL-3.0 | Report designer + templates; strong for tabular reports. |
+| A template engine (Thymeleaf, FreeMarker, Mustache…) + headless Chromium (e.g. Playwright for Java) | Apache-2.0 (+ the browser) | Full HTML/CSS fidelity; heavy: a browser per server. |
+| openhtmltopdf | LGPL-2.1 | HTML/CSS 2.1 + paged media to PDF. |
+| OpenPDF | LGPL-2.1 / MPL-2.0 | A PDF library (iText 4 fork). |
+| iText 7 | AGPL-3.0 / commercial | Needs a commercial licence for a closed-source app. |
 
 ## On every renderer
 
@@ -166,10 +162,10 @@ their licences — Mateu bundles only permissive ones:
 The ports: return a `Document` from an action in **C#** (`Document.Pdf(...)`, `Document.Lazy(...)`,
 `.Printed()`, `UICommandDto.Print()`) and **Python** (`Document.pdf(...)`, `Document.lazy(...)`,
 `.printed()`, `UICommand.print()`). The same wire, the same endpoint (`app.MapMateu(...)` /
-`add_mateu(...)` add it); neither ships an HTML-to-PDF renderer — use any library and return the
-bytes.
+`add_mateu(...)` add it); as in Java, producing the bytes is the application's job.
 
 ## Demo
 
 `demo/demo-admin-panel` → `/documents-demo`: an invoice previewed, downloaded and printed, a large
-report fetched by URL, and the page printed without chrome.
+report fetched by URL, and the page printed without chrome. Its PDFs come from `DemoPdfRenderer`,
+the demo's own `DocumentRenderer` on Apache PDFBox (a demo dependency, not a Mateu one).
