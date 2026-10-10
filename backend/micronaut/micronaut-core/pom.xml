@@ -20,8 +20,8 @@
          consumes them. Bumped from the 4.9.x line as a COORDINATED platform bump (adapter + every
          consumer pom) to clear the micronaut-context / micronaut-http-server advisories
          (dependabot #302, #740) - a lone bump of the adapter broke on NullMarked. -->
-    <micronaut.core.version>4.10.31</micronaut.core.version>
-    <micronaut.serialization.version>2.16.2</micronaut.serialization.version>
+    <micronaut.core.version>5.2.15</micronaut.core.version>
+    <micronaut.serialization.version>3.2.4</micronaut.serialization.version>
   </properties>
 
   <!-- micronaut-serde 2.16 still declares the 4.9.x micronaut-core line, which leaked onto the
@@ -121,7 +121,7 @@
     <dependency>
       <groupId>io.micronaut.reactor</groupId>
       <artifactId>micronaut-reactor</artifactId>
-      <version>3.9.1</version>
+      <version>4.3.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -140,18 +140,18 @@
       <groupId>io.micronaut.test</groupId>
       <artifactId>micronaut-test-junit5</artifactId>
       <scope>test</scope>
-      <version>4.10.3</version>
+      <version>5.2.0</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
       <scope>test</scope>
-      <version>5.11.4</version>
+      <version>6.1.3</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
-      <version>5.11.4</version>
+      <version>6.1.3</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
