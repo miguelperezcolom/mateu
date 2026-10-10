@@ -151,10 +151,18 @@ export function emitEmbedded(name, detail) {
 
 /** The page title: the document's in standalone; in a host page the title is the HOST's, so the
  *  component reports it (mateuTitle) and lets the host decide. */
+// the last title reported: the screen's title arrives twice (its SetWindowTitle and its header)
+let lastTitle = null
+function isNewTitle(title) {
+  if (title == null || title === '' || String(title) === lastTitle) return false
+  lastTitle = String(title)
+  return true
+}
+
 export function setDocTitle(title) {
   if (title == null || title === '') return
   if (isEmbedded()) {
-    emitEmbedded(EMBEDDED_EVENTS.title, { title: String(title) })
+    if (isNewTitle(title)) emitEmbedded(EMBEDDED_EVENTS.title, { title: String(title) })
     return
   }
   if (typeof document !== 'undefined') document.title = title
@@ -356,11 +364,8 @@ export function createVbRuntime(opts) {
 
   // the screen's title is the host's to show (its header, its breadcrumbs, document.title): every
   // new one is reported (mateuTitle)
-  let lastTitle = null
   watch('app.mateuHostTitle', (title) => {
-    if (!opts.emit || !title || title === lastTitle) return
-    lastTitle = title
-    opts.emit(EMBEDDED_EVENTS.title, { title: String(title) })
+    if (opts.emit && isNewTitle(title)) opts.emit(EMBEDDED_EVENTS.title, { title: String(title) })
   })
 
   const runtime = {}
