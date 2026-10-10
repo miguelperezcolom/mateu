@@ -19,5 +19,9 @@ export default interface Map extends ComponentMetadata {
     markers?: MapMarker[]
     /** Run on a marker click with the marker id in parameters._markerId. */
     markerActionId?: string
+    /** Leaflet-style tile url template ("https://{s}.tiles.example.com/{z}/{x}/{y}.png"); unset → OpenStreetMap. */
+    tileUrl?: string
+    /** Tile attribution (text/HTML) shown on the map. */
+    attribution?: string
 
 }

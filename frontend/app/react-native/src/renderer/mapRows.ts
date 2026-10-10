@@ -21,6 +21,9 @@ export interface MapMeta {
   zoom?: string | null;
   markers?: MapMarkerMeta[] | null;
   markerActionId?: string | null;
+  /** The tile provider (Leaflet-style template + attribution). Ignored: the native map is a list. */
+  tileUrl?: string | null;
+  attribution?: string | null;
 }
 
 export interface MapRow {
