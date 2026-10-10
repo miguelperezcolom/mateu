@@ -15,8 +15,8 @@ public sealed partial class ReflectionMapper
         IReadOnlyList<ButtonDto> toolbar = mode switch
         {
             "view" => [new("Back to list", "cancel-view"), new("Edit", "edit"), new("Add another", "new")],
-            "edit" => [new("Cancel", "cancel-edit"), new("Save", "create") { ButtonStyle = "Primary" }],
-            _ /* new */ => [new("Cancel", "cancel-new"), new("Save", "create") { ButtonStyle = "Primary" }],
+            "edit" => [new("Cancel", "cancel-edit"), new("Save", "create") { ButtonStyle = "primary" }],
+            _ /* new */ => [new("Cancel", "cancel-new"), new("Save", "create") { ButtonStyle = "primary" }],
         };
         var page = Client(new PageMetadataDto(title, title, null, toolbar, []), null,
             FormCards(element, entity, readOnly: mode == "view"));

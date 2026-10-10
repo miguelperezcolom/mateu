@@ -42,7 +42,7 @@ public sealed partial class ReflectionMapper
         var back = Client(new ButtonMetadataDto("Back", "back") { Disabled = current == 1 }, null, []);
         var nextLabel = completion is not null && current == total - 1 ? completion
             : current == total ? "Finish" : "Next";
-        var next = Client(new ButtonMetadataDto(nextLabel, "next") { ButtonStyle = "Primary" }, null, []);
+        var next = Client(new ButtonMetadataDto(nextLabel, "next") { ButtonStyle = "primary" }, null, []);
         var bar = Client(new HorizontalLayoutMetadataDto(), null, onResult ? [] : [back, next]);
         ComponentDto layout;
         if (progressStyle == "rail")

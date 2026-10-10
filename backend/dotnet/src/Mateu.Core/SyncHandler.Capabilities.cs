@@ -128,7 +128,7 @@ public sealed partial class SyncHandler
         return
         [
             new("Cancel", mode == "new" ? "cancel-new" : "cancel-edit"),
-            new("Save", mode == "new" ? "create" : "save") { ButtonStyle = "Primary" },
+            new("Save", mode == "new" ? "create" : "save") { ButtonStyle = "primary" },
         ];
     }
 

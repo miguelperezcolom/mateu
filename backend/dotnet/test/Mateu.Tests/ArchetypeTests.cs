@@ -357,7 +357,7 @@ public class ArchetypeTests
         Assert.Contains("\"actionId\":\"goCalendarToday\"", json);
         Assert.Contains("\"actionId\":\"nextCalendarMonth\"", json);
         Assert.Contains("\"actionId\":\"createCalendarEvent\"", json);
-        Assert.Contains("\"buttonStyle\":\"Primary\"", json);
+        Assert.Contains("\"buttonStyle\":\"primary\"", json);
         // every event chip is re-sealed to the uniform click action
         Assert.Contains("\"actionId\":\"openCalendarEvent\"", json);
     }
