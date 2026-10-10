@@ -1,3 +1,5 @@
+/// <reference types="node" />
+// (vitest 4's typings no longer pull the node types in transitively, and this test reads files)
 import { describe, expect, it } from 'vitest'
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join, relative, resolve } from 'node:path'
