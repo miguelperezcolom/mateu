@@ -45,6 +45,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "Button" -> renderButton(ctx, metadata)
             "ActionPanel" -> renderActionPanel(ctx, metadata)
             "MatrixGrid" -> renderMatrixGrid(ctx, metadata)
+            "Map" -> renderMap(ctx, metadata)
             "Text" -> JBLabel(metadata.text("text")).also { label ->
                 // Text size: xl/l/s/xs enlarge or reduce the font; m (or absent) applies nothing.
                 when (metadata.text("size")) {

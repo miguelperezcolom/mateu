@@ -31,6 +31,7 @@ import {
 import { PlanningBoardRenderer } from './PlanningBoardRenderer';
 import { ActionPanelRenderer } from './ActionPanelRenderer';
 import { MatrixGridRenderer } from './MatrixGridRenderer';
+import { MapRenderer } from './MapRenderer';
 import { DropZoneRenderer } from './DropZoneRenderer';
 import { EmptyState, MetricCard, PlanningBoard, Skeleton } from '../api/metadata';
 import { useAppContext } from '../context/AppContext';
@@ -290,6 +291,8 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <ActionPanelRenderer metadata={metadata} state={state} />;
     case 'MatrixGrid':
       return <MatrixGridRenderer metadata={metadata} />;
+    case 'Map':
+      return <MapRenderer metadata={metadata} />;
     case 'DropZone':
       return <DropZoneRenderer component={component} state={state} renderComponent={renderComponent} />;
     case 'PlanningBoard':
