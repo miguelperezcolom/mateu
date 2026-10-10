@@ -24,6 +24,18 @@ npm run web
 Open the URL in Chrome, enable device mode (`F12` → phone icon / `Ctrl+Shift+M`) and pick a device
 preset. Hot reload included.
 
+In the browser the app is a page on ANOTHER origin than the backend (Expo serves it on `:8081` or
+the port you pass), and Mateu answers no cross-origin request unless told to (CORS is off by
+default). Start the backend with the Expo origin allowed, or the app stops at *"Can't reach the
+server"* and the browser console shows a CORS error:
+
+```bash
+java -jar target/my-app.jar --mateu.cors.allowed-origins=http://localhost:8081
+```
+
+(The native builds — Expo Go, simulators, installables — are not browsers and need no CORS.)
+Append `?route=/some-route` to the page URL to open a given screen directly.
+
 ### 2. Real phone with Expo Go
 
 Install **Expo Go** (App Store / Play Store), phone on the same Wi-Fi as your machine, then:

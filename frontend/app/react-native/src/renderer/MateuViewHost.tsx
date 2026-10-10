@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { buttonA11y, headingA11y } from '../a11y/a11y';
+import { loadFailureMessage } from '../core/uxRules';
 import { MateuSession, NavTarget, OverlayOpenerContext } from '../core/MateuSession';
 import { MateuViewController, RenderedView } from '../core/MateuViewController';
 import { ComponentRenderer } from './ComponentRenderer';
@@ -75,7 +77,24 @@ export function MateuViewHost({ session, target, serverSideNode, overlayOpener, 
     );
   }
   if (view.error && !view.component) {
-    return <Text style={styles.error}>{view.error}</Text>;
+    // RN-05: a load that failed before anything was shown used to leave the raw transport text
+    // ("Failed to fetch") on an otherwise blank screen, with no way to try again — the user had to
+    // kill the app. Now: what happened in plain words, and a Retry that repeats the same load.
+    const message = loadFailureMessage(view.error);
+    const retry = () => {
+      if (serverSideNode) controller.mountServerSide(serverSideNode);
+      else if (target) void controller.navigate(target.route, target.consumedRoute, target.serverSideType);
+    };
+    if (silent) return <Text style={styles.error}>{message.title}</Text>;
+    return (
+      <View style={styles.centered} accessibilityRole="alert">
+        <Text style={styles.failureTitle} {...headingA11y(2)}>{message.title}</Text>
+        <Text style={styles.failureDetail}>{message.detail}</Text>
+        <TouchableOpacity {...buttonA11y({ label: 'Try again' })} style={styles.retryButton} onPress={retry}>
+          <Text style={styles.retryText}>Try again</Text>
+        </TouchableOpacity>
+      </View>
+    );
   }
   if (!view.component) return <View style={styles.centered} />;
 
@@ -91,30 +110,50 @@ export function MateuViewHost({ session, target, serverSideNode, overlayOpener, 
     <ComponentRenderer component={view.component} state={view.state} data={view.data} />
   );
 
+  const body = (
+    <View style={styles.host} key={view.version}>
+      {view.loading && (
+        <View style={styles.loadingOverlay} pointerEvents="none">
+          <ActivityIndicator color={theme.primary} accessibilityLabel="Loading" />
+        </View>
+      )}
+      {serverSideNode || selfScrolling ? (
+        content
+      ) : (
+        <ScrollView style={styles.host} contentContainerStyle={styles.scrollBody} keyboardShouldPersistTaps="handled">
+          {content}
+        </ScrollView>
+      )}
+    </View>
+  );
+
   return (
     <ViewControllerContext.Provider value={controller}>
-      <View style={styles.host} key={view.version}>
-        {view.loading && (
-          <View style={styles.loadingOverlay} pointerEvents="none">
-            <ActivityIndicator color={theme.primary} />
-          </View>
-        )}
-        {serverSideNode || selfScrolling ? (
-          content
-        ) : (
-          <ScrollView style={styles.host} contentContainerStyle={styles.scrollBody}>
-            {content}
-          </ScrollView>
-        )}
-      </View>
+      {serverSideNode ? (
+        body
+      ) : (
+        // RN-19: on iOS the software keyboard is laid OVER the screen — without this the bottom
+        // button bar (Save / Next) and the last fields of a form sat hidden behind it. Android
+        // resizes the window itself (adjustResize), so it needs nothing. Islands live inside a host
+        // that already avoids the keyboard.
+        <KeyboardAvoidingView style={styles.host} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          {body}
+        </KeyboardAvoidingView>
+      )}
     </ViewControllerContext.Provider>
   );
 }
 
 const styles = StyleSheet.create({
   host: { flex: 1 },
-  scrollBody: { paddingBottom: 24 },
+  // a bare-layout root (e.g. a wizard) gets the same 16pt gutter as Page/Form roots — it was flush
+  // against the screen edges (RN-17)
+  scrollBody: { padding: 16, paddingBottom: 24 },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   error: { color: theme.danger, padding: 16, fontSize: 14 },
+  failureTitle: { fontSize: 18, fontWeight: '700', color: theme.ink, textAlign: 'center', marginBottom: 8 },
+  failureDetail: { fontSize: 14, color: theme.muted, textAlign: 'center', marginBottom: 20, maxWidth: 320 },
+  retryButton: { backgroundColor: theme.primary, paddingHorizontal: 24, minHeight: theme.minTouch, justifyContent: 'center', borderRadius: theme.radiusSm },
+  retryText: { color: theme.onPrimary, fontWeight: '600', fontSize: 15 },
   loadingOverlay: { position: 'absolute', top: 8, right: 8, zIndex: 10 },
 });

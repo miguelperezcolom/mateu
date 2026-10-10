@@ -2,12 +2,15 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path, Polyline, Rect } from 'react-native-svg';
 import { theme } from '../theme';
+import { chartTextAlternative, formatTick } from '../core/uxRules';
 
 /** ChartDto renderer (bar/line/pie families) on react-native-svg — same palette-by-index
  *  approach as the other native renderers; unknown chart types fall back to bars. */
 
-// categorical series colors drawn from the RIU design-system palette (brand red first)
-const PALETTE = [theme.primary, theme.info, theme.success, theme.warning, '#937100', theme.muted, '#CFC3A3', theme.ink];
+// Categorical series colours: the Okabe-Ito colour-blind-safe set (minus its yellow, unreadable on
+// white). The old palette started with the brand red — the error colour — so every first series
+// read as "bad", and its first two entries were both blues once the accent became blue.
+const PALETTE = ['#0072B2', '#E69F00', '#009E73', '#CC79A7', '#D55E00', '#56B4E9', theme.muted, theme.ink];
 
 interface Dataset {
   label?: string;
@@ -32,9 +35,20 @@ export function ChartRenderer({ metadata }: Props) {
   const isPie = chartType === 'pie' || chartType === 'doughnut' || chartType === 'polarArea';
   const isLine = chartType === 'line' || chartType === 'radar' || chartType === 'scatter';
 
+  const max = Math.max(0, ...datasets.flatMap((d) => d.data ?? []));
   return (
-    <View style={styles.box}>
+    // RN-11: the chart is an image to a screen reader — it gets a text alternative that carries
+    // the data (WCAG 1.1.1), and sighted users get the scale (the top value) the bars are read against.
+    <View style={styles.box} accessible accessibilityRole="image" accessibilityLabel={chartTextAlternative(labels, datasets, isPie)}>
+      {!isPie && <Text style={styles.yMax} importantForAccessibility="no">{formatTick(max)}</Text>}
       {isPie ? <PieChart values={datasets[0].data!} doughnut={chartType === 'doughnut'} /> : isLine ? <LineChart labels={labels} datasets={datasets} /> : <BarChart labels={labels} datasets={datasets} />}
+      {!isPie && (
+        <View style={styles.xLabels}>
+          {labels.map((l, i) => (
+            <Text key={i} style={styles.xLabel} numberOfLines={1}>{l}</Text>
+          ))}
+        </View>
+      )}
       <View style={styles.legend}>
         {(isPie ? labels : datasets.map((d) => d.label ?? '')).map((entry, i) =>
           entry ? (
@@ -45,13 +59,6 @@ export function ChartRenderer({ metadata }: Props) {
           ) : null,
         )}
       </View>
-      {!isPie && (
-        <View style={styles.xLabels}>
-          {labels.map((l, i) => (
-            <Text key={i} style={styles.xLabel} numberOfLines={1}>{l}</Text>
-          ))}
-        </View>
-      )}
     </View>
   );
 }
@@ -130,7 +137,8 @@ const styles = StyleSheet.create({
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 8, justifyContent: 'center' },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   legendSwatch: { width: 10, height: 10, borderRadius: 2 },
-  legendText: { fontSize: 11, color: theme.muted },
+  legendText: { fontSize: 12, color: theme.muted },
   xLabels: { flexDirection: 'row', width: W, paddingLeft: PAD, marginTop: 2 },
-  xLabel: { flex: 1, fontSize: 10, color: theme.faint, textAlign: 'center' },
+  xLabel: { flex: 1, fontSize: 11, color: theme.faint, textAlign: 'center' },
+  yMax: { alignSelf: 'flex-start', fontSize: 11, color: theme.faint, marginBottom: 2 },
 });

@@ -31,6 +31,7 @@ import { fetchExternalJson, mapItemsToOptions, resolveRestSource, viaProxy, type
 import { useViewController } from './MateuViewHost';
 import { theme } from '../theme';
 import { fieldA11y, buttonA11y, modalA11y, headingA11y, announce } from '../a11y/a11y';
+import { fieldPlaceholder } from '../core/uxRules';
 
 interface Option {
   children?: Option[];
@@ -49,6 +50,8 @@ interface GridColumnMeta {
 interface FieldMeta {
   fieldId: string;
   label?: string;
+  /** A placeholder the developer declared (FormFieldDto.placeholder) — the only one shown. */
+  placeholder?: string | null;
   /** @Help — read after the field name as guidance (accessibilityHint). */
   description?: string;
   dataType?: string;
@@ -117,6 +120,8 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
   if (ruleAttrs['hidden']) return null;
 
   const editable = !readOnly && !disabled && !ruleAttrs['disabled'];
+  // RN-10: only a declared placeholder — the label echoed inside the box made empty fields look filled.
+  const placeholder = fieldPlaceholder(metadata);
 
   // A TextInput cannot be associated with the <Text> label above it — React Native has no
   // labelFor and no aria-labelledby — so the name has to be handed to the control itself, or the
@@ -174,7 +179,10 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
     // Boolean (also the toggle/checkbox stereotypes)
     if (dataType === 'bool' || dataType === 'boolean' || dataType === 'Boolean') {
       return (
+        // RN-07: the switch carries the field's name (it was announced as an unnamed "switch").
         <Switch
+          {...a11y}
+          accessibilityRole="switch"
           value={Boolean(rawValue)}
           onValueChange={(v) => commit(fieldId, v)}
           disabled={!editable}
@@ -267,20 +275,22 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
           onChangeText={(v) => commit(fieldId, v)}
           multiline
           numberOfLines={6}
-          placeholder={label}
+          placeholder={placeholder}
+          placeholderTextColor={theme.faint}
         />
       );
     }
 
     // Date / datetime: calendar picker committing the ISO wire format
     if (dataType === 'date' || dataType === 'datetime') {
+      if (!editable) return <ReadOnlyValue label={label || fieldId} text={stringValue.replace('T', ' ')} />;
       return (
         <DateField
           {...a11y}
           value={stringValue}
           editable={editable}
           withTime={dataType === 'datetime'}
-          placeholder={label}
+          placeholder={placeholder}
           onChange={(v) => commit(fieldId, v)}
         />
       );
@@ -340,7 +350,16 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
 
     // Options (enum / static list)
     if (options.length > 0) {
-      return <OptionsField options={options} value={stringValue} editable={editable} onChange={(v) => commit(fieldId, v)} />;
+      if (!editable) return <ReadOnlyValue label={label || fieldId} text={options.find((o) => o.value === stringValue)?.label ?? stringValue} />;
+      return <OptionsField label={label || fieldId} options={options} value={stringValue} editable={editable} onChange={(v) => commit(fieldId, v)} />;
+    }
+
+    // RN-08: a read-only value is TEXT, not an input box. A disabled TextInput looked exactly like
+    // an editable one (same border, same background), so a view page read as a form the user could
+    // not type into — and an empty value was an empty box. Now: the value as text, "—" when empty.
+    if (!editable && !metadata.stepButtonsVisible && isTextLike(dataType, stereotype)) {
+      const shown = stereotype === 'password' && stringValue ? '••••••••' : stringValue;
+      return <ReadOnlyValue label={label || fieldId} text={shown} multiline={stereotype === 'textarea'} />;
     }
 
     // Textarea
@@ -354,7 +373,8 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
           multiline
           numberOfLines={4}
           editable={editable}
-          placeholder={label}
+          placeholder={placeholder}
+          placeholderTextColor={theme.faint}
         />
       );
     }
@@ -369,7 +389,8 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
           onChangeText={(v) => commit(fieldId, v)}
           secureTextEntry
           editable={editable}
-          placeholder={label}
+          placeholder={placeholder}
+          placeholderTextColor={theme.faint}
         />
       );
     }
@@ -409,7 +430,8 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
           onChangeText={(v) => commit(fieldId, v === '' ? null : parseInt(v, 10))}
           keyboardType="number-pad"
           editable={editable}
-          placeholder={label}
+          placeholder={placeholder}
+          placeholderTextColor={theme.faint}
         />
       );
     }
@@ -427,7 +449,8 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
           onChangeText={(v) => commit(fieldId, v === '' ? null : parseFloat(v))}
           keyboardType="decimal-pad"
           editable={editable}
-          placeholder={label}
+          placeholder={placeholder}
+          placeholderTextColor={theme.faint}
         />
       );
     }
@@ -440,7 +463,8 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
         value={stringValue}
         onChangeText={(v) => commit(fieldId, v)}
         editable={editable}
-        placeholder={label}
+        placeholder={placeholder}
+          placeholderTextColor={theme.faint}
         keyboardType={stereotype === 'email' ? 'email-address' : 'default'}
         autoCapitalize="none"
       />
@@ -453,6 +477,30 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       {renderInput()}
       {!!error && <Text style={styles.fieldError}>{error}</Text>}
     </View>
+  );
+}
+
+const TEXT_LIKE_TYPES = ['string', 'integer', 'int', 'long', 'Integer', 'Long', 'number', 'double', 'float', 'decimal', 'BigDecimal', 'time', ''];
+const TEXT_LIKE_STEREOTYPES = ['', 'regular', 'textarea', 'password', 'email', 'combobox', 'select'];
+
+/** Whether a field renders as a plain text input — the branches a read-only value replaces. */
+function isTextLike(dataType: string, stereotype: string): boolean {
+  return TEXT_LIKE_TYPES.includes(dataType) && TEXT_LIKE_STEREOTYPES.includes(stereotype);
+}
+
+/** A read-only field value: text (selectable, wraps), "—" when empty, named for screen readers. */
+function ReadOnlyValue({ label, text, multiline }: { label: string; text: string; multiline?: boolean }) {
+  const empty = !text;
+  return (
+    <Text
+      accessible
+      accessibilityLabel={`${label}, ${empty ? 'empty' : text}`}
+      selectable
+      numberOfLines={multiline ? undefined : 3}
+      style={[styles.readOnlyValue, empty && styles.readOnlyEmpty]}
+    >
+      {empty ? '—' : text}
+    </Text>
   );
 }
 
@@ -655,20 +703,28 @@ function RestOptionsField({ source, fieldId, state, appState, value, editable, o
   return <OptionsField options={options} value={value} editable={editable} onChange={onChange} />;
 }
 
-function OptionsField({ options, value, editable, onChange }: { options: Option[]; value: string; editable: boolean; onChange: (v: string) => void }) {
+function OptionsField({ label, options, value, editable, onChange }: { label?: string; options: Option[]; value: string; editable: boolean; onChange: (v: string) => void }) {
   const [open, setOpen] = useState(false);
   const selected = options.find((o) => o.value === value);
+  const shown = selected?.label ?? (value || 'Select…');
 
   return (
     <View>
-      <TouchableOpacity {...buttonA11y()} style={styles.input} onPress={() => editable && setOpen(!open)} activeOpacity={editable ? 0.7 : 1}>
-        <Text style={!selected ? styles.placeholder : undefined}>{selected?.label ?? (value || 'Select…')}</Text>
+      {/* RN-07: the trigger is named after the FIELD and says its value + whether the list is open
+          (it was announced as just the value — "Available, button" — with no field name). */}
+      <TouchableOpacity
+        {...buttonA11y({ label: label ? `${label}: ${selected?.label ?? (value || 'not selected')}` : undefined, expanded: open, disabled: !editable })}
+        style={styles.input}
+        onPress={() => editable && setOpen(!open)}
+        activeOpacity={editable ? 0.7 : 1}
+      >
+        <Text style={!selected ? styles.placeholder : undefined}>{shown} ▾</Text>
       </TouchableOpacity>
       {open && (
         <View style={styles.dropdown}>
           <ScrollView style={{ maxHeight: 200 }}>
             {options.map((opt) => (
-              <TouchableOpacity {...buttonA11y()}
+              <TouchableOpacity {...buttonA11y({ selected: opt.value === value })}
                 key={opt.value}
                 style={styles.dropdownItem}
                 onPress={() => { onChange(opt.value); setOpen(false); }}
@@ -759,6 +815,8 @@ function TreeSelectField({ options, leavesOnly, value, editable, onChange }: {
 const styles = StyleSheet.create({
   fieldError: { color: theme.danger, fontSize: 12, marginTop: 4 },
   plainText: { fontSize: 14, color: theme.ink, paddingVertical: 6 },
+  readOnlyValue: { fontSize: 15, color: theme.ink, paddingVertical: 6 },
+  readOnlyEmpty: { color: theme.faint },
   // Property-list rows (@Section(propertyList=true))
   propertyRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, paddingVertical: 7, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border },
   propertyRowLabel: { fontSize: 13, color: theme.faint },

@@ -95,6 +95,37 @@ check('every text input is named (RN has no labelFor to fall back on)',
 const buttons = found.filter((c) => c.role === 'button' || c.tag === 'button')
 check('tappables are announced as buttons', buttons.length > 0, `${buttons.length} button(s)`)
 
+// Selection boxes, switches and charts: what they ARE and what STATE they are in has to reach
+// the screen reader, not just a glyph ("☐ button").
+const stateful = await page.evaluate(() => {
+    const name = (el) => el.getAttribute('aria-label') || (el.textContent ?? '').trim()
+    const interactive = '[role="button"], button, [role="link"], [role="checkbox"], [role="switch"], input, textarea, select'
+    return {
+        checkboxes: [...document.querySelectorAll('[role="checkbox"]')].map((el) => ({
+            name: name(el).slice(0, 60),
+            checked: el.getAttribute('aria-checked'),
+        })),
+        // a glyph-only selection box posing as a button (the pre-review crud rows)
+        glyphButtons: [...document.querySelectorAll('[role="button"], button')]
+            .filter((el) => /^[☐☑]$/.test((el.textContent ?? '').trim()) && !el.getAttribute('aria-label')).length,
+        // an interactive element INSIDE another one is unreachable for VoiceOver/TalkBack (the
+        // outer accessible container swallows it) and invalid HTML on the web build
+        nested: [...document.querySelectorAll(interactive)]
+            .filter((el) => el.parentElement?.closest(interactive)).length,
+        unnamedImages: [...document.querySelectorAll('[role="img"]')]
+            .filter((el) => el.querySelector('svg') && !el.getAttribute('aria-label')).length,
+    }
+})
+if (stateful.checkboxes.length || stateful.glyphButtons) {
+    const bad = stateful.checkboxes.filter((c) => !c.name || c.checked == null)
+    check('selection boxes are checkboxes with a name and a checked state',
+        bad.length === 0 && stateful.glyphButtons === 0,
+        `${stateful.checkboxes.length} checkbox(es), ${bad.length} incomplete, ${stateful.glyphButtons} glyph-only button(s)`
+        + (bad.length ? ` e.g. ${JSON.stringify(bad[0])}` : ''))
+}
+check('no control is nested inside another control', stateful.nested === 0, `${stateful.nested} nested`)
+check('every chart has a text alternative', stateful.unnamedImages === 0, `${stateful.unnamedImages} unnamed chart(s)`)
+
 // A refused save must reach the accessible name, or the user is told nothing at all: RN has no
 // aria-describedby, so the message has to travel with the field's own name.
 if (process.env.RN_SUBMIT) {
