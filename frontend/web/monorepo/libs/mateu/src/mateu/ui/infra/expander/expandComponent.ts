@@ -86,6 +86,16 @@ const CONTENT_IN_METADATA_TYPES = new Set([
     'Card',
 ])
 
+// Types whose children the server's mapper lifts from a NAMED record component into the wire
+// children (and drops from metadata): HeroSectionMapper (`content`), DashboardLayoutMapper (`items`),
+// DashboardPanelMapper (its single `content`). Without them a browser-expanded welcome page lost its
+// hero buttons and its tiles — the renderer reads children, and the authored key rode in metadata.
+const CHILDREN_KEY: Record<string, string> = {
+    HeroSection: 'content',
+    DashboardLayout: 'items',
+    DashboardPanel: 'content',
+}
+
 // Authored listing types → the wire `Crud` component. Pinned by the Java golden
 // (ReadListingDefinitionSyncTest): a read-only listing (no proxy/secret actions) renders as a DIRECT
 // ClientSide Crud (the ServerSide SeededYamlPage wrapper only appears with server-side actions).
@@ -138,7 +148,12 @@ export function expandComponent(authored: FluentNode): Component {
     }
 
     let kids: FluentNode[] = []
-    if (CONTAINER_TYPES.has(type)) {
+    if (CHILDREN_KEY[type]) {
+        const key = CHILDREN_KEY[type]
+        const c = key === 'content' ? content : (fields as Record<string, unknown>)[key]
+        delete metadata[key]
+        kids = c == null ? [] : (Array.isArray(c) ? c : [c]) as FluentNode[]
+    } else if (CONTAINER_TYPES.has(type)) {
         // A plain layout container: content/children is an array of children, lifted to the wire.
         // Tolerate a single node authored without brackets.
         const c = content ?? children ?? []

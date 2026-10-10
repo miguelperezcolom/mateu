@@ -163,6 +163,32 @@ function firstRoute(items: FluentNode[]): string | undefined {
     return undefined
 }
 
+const subOf = (item: FluentNode): FluentNode[] | undefined => {
+    const sub = (item.submenu ?? item.submenus ?? item.menu) as FluentNode[] | undefined
+    return Array.isArray(sub) ? sub : undefined
+}
+const isGroup = (item: FluentNode) => item.type === 'Menu' || (!item.type && !!subOf(item))
+const hasRemoteMenu = (items: FluentNode[]): boolean =>
+    items.some((i) => i.type === 'RemoteMenu' || (isGroup(i) && hasRemoteMenu(subOf(i) ?? [])))
+
+/**
+ * The navigation chrome a shell declaring `AUTO` (or nothing) gets — the server resolves it before
+ * the wire (`AppMetadataExtractor.getVariant`), so a browser-expanded shell must resolve it the same
+ * way: the renderers have no `AUTO` layout and drew NOTHING for it (an empty play / static app).
+ * Remote sections → MENU_ON_TOP; with groups: a group nesting a group → TILES, more than 7 top
+ * entries → HAMBURGUER_MENU, else MENU_ON_TOP; a flat menu of leaves → TABS.
+ */
+export function resolveAppVariant(declared: unknown, menu: FluentNode[]): string {
+    if (typeof declared === 'string' && declared.trim() && declared.trim().toUpperCase() !== 'AUTO') return declared.trim()
+    if (hasRemoteMenu(menu)) return 'MENU_ON_TOP'
+    if (menu.some(isGroup)) {
+        if (menu.some((i) => isGroup(i) && (subOf(i) ?? []).some(isGroup))) return 'TILES'
+        if (menu.length > 7) return 'HAMBURGUER_MENU'
+        return 'MENU_ON_TOP'
+    }
+    return 'TABS'
+}
+
 /**
  * `type: AppShell` → the wire App (what the server's YamlAppLoader + AppMapper produce for a
  * definition-only mount root): title, subtitle, variant and the menu, with `homeRoute` the first
@@ -184,7 +210,7 @@ export function expandAppShell(shell: FluentNode): UIIncrement {
                     type: 'App',
                     route: '',
                     rootRoute: '',
-                    variant: shell.variant ?? 'MENU_ON_TOP',
+                    variant: resolveAppVariant(shell.variant, menu),
                     layout: 'SINGLE_SLOT',
                     title: shell.title,
                     subtitle: shell.subtitle,
@@ -195,7 +221,10 @@ export function expandAppShell(shell: FluentNode): UIIncrement {
                     accentColor: typeof shell.accentColor === 'string' && shell.accentColor.trim() ? shell.accentColor.trim() : undefined,
                     menu: menu.map(menuOption),
                     totalMenuOptions: menu.length,
-                    homeRoute: firstRoute(menu) ?? '',
+                    // the shell's own `homeRoute:` wins, as in the server's YamlAppLoader; else the first entry
+                    homeRoute: (typeof shell.homeRoute === 'string' && shell.homeRoute.trim()
+                        ? shell.homeRoute.trim().replace(/^\/+/, '')
+                        : firstRoute(menu)) ?? '',
                     homeConsumedRoute: '',
                     homeBaseUrl: '',
                     apps: [],
