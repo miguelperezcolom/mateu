@@ -14,7 +14,7 @@ namespace Mateu.Core;
 /// <item>PATH: encoded as a segment; a dot segment (<c>.</c>/<c>..</c>) is refused;</item>
 /// <item>after a literal <c>?</c> or <c>#</c>: encoded as a query component.</item>
 /// </list>
-/// The encoding is RFC 3986 strict (<see cref="Uri.EscapeDataString"/>), byte for byte the same as
+/// The encoding is RFC 3986 strict (<see cref="Uri.EscapeDataString(string)"/>), byte for byte the same as
 /// the other backends and renderers.
 /// </summary>
 public static class UrlTemplate

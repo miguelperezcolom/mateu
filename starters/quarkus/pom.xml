@@ -15,7 +15,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-        <quarkus.platform.version>3.17.8</quarkus.platform.version>
+        <quarkus.platform.version>3.38.0</quarkus.platform.version>
         <lombok.version>1.18.40</lombok.version>
         <!-- The latest Mateu release on Maven Central. To build against your local checkout instead,
              install the backend (cd backend && mvn install -DskipTests) and pass
@@ -43,6 +43,11 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-rest</artifactId>
+        </dependency>
+        <!-- the Mateu wire is Jackson (the adapter declares it `provided`) -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest-jackson</artifactId>
         </dependency>
 
         <!-- Mateu runtime for Quarkus -->
