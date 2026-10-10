@@ -371,6 +371,7 @@ export default defineConfig({
 					label: 'Native',
 					items: [
 						{ slug: 'native', label: 'Desktop & Mobile' },
+						{ slug: 'native/ide-tooling', label: 'IDE tooling (IntelliJ & VS Code)' },
 					],
 				},
 				{

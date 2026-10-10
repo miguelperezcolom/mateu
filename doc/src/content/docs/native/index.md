@@ -31,7 +31,7 @@ cd frontend/app/intellij-plugin
 ./gradlew runIde        # launches an IDE with the plugin installed
 ```
 
-Then open a project and reveal the **Mateu** tool window. See `frontend/app/intellij-plugin/README.md` for platform overrides and the `renderProbe` verification harness (render the captured wire JSON to a Swing tree + PNG without booting the IDE).
+Then open a project, point it at your backend in **Settings | Tools | Mateu** (base URL or app registry, plus bearer-token or OpenID Connect sign-in — see [IDE tooling](/native/ide-tooling/)), or pass `-Dmateu.baseUrl=…` to `runIde`, and reveal the **Mateu** tool window. A project with no backend configured is left untouched. See `frontend/app/intellij-plugin/README.md` for platform overrides and the `renderProbe` verification harness (render the captured wire JSON to a Swing tree + PNG without booting the IDE).
 
 **Ship it as an installer** — one Gradle task bundles the plugin *with* the IDE:
 
