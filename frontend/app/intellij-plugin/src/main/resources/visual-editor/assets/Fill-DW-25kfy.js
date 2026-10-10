@@ -1,1 +1,0 @@
-var n=(function(){function r(o){var t=o||{};this.color_=t.color!==void 0?t.color:null}return r.prototype.clone=function(){var o=this.getColor();return new r({color:Array.isArray(o)?o.slice():o||void 0})},r.prototype.getColor=function(){return this.color_},r.prototype.setColor=function(o){this.color_=o},r})();export{n as default};
