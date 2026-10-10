@@ -1,3 +1,4 @@
+import { i18nKeyOf } from './i18nKeys';
 import { interpolateUrlWith } from './urlTemplate';
 
 /**
@@ -217,6 +218,10 @@ export function evaluateExpression(expr: string, ctx: Ctx): unknown {
 export function interpolate(template: string, ctx: Ctx): string {
   if (!template || !template.includes('${')) return template;
   return template.replace(/\$\{([^}]+)\}/g, (_, expr: string) => {
+    // `${i18n.key}` is resolved by the server before the wire leaves it; one that still arrives has
+    // no catalogue behind it here — show the key, never a blank.
+    const key = i18nKeyOf(expr);
+    if (key !== undefined) return key;
     try {
       const v = evaluateExpression(expr.trim(), ctx);
       return v === null || v === undefined ? '' : String(v);
