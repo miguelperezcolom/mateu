@@ -35,6 +35,31 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   and `NameCollisionsTest` fails on a new one. Removing the no-op annotations dropped seven of them
   (`HorizontalLayout`, `VerticalLayout`, `SplitLayout`, `Scroller`, `AccordionPanel`, `Option`,
   `State`); the empty `fluent.ActionType` enum went too.
+- **API freeze review** (before the beta; full report in `design/api-freeze-review.md`):
+  - **Deprecated** (still working; each names its replacement — see
+    [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/#deprecated-in-30-alpha410-still-working)):
+    `AppVariant.HAMBURGUER_MENU` → `HAMBURGER_MENU`; the never-read `@GenericClass`,
+    `annotations.ActionType`, the empty `ActionPosition` / `ActionStereotype` / `ActionThemeVariant`
+    enums, `Binding`/`BindingSource`, `ClientSideEvent`, `Destination`, `ListAdapter` (→ `Listing`),
+    `ColumnLayoutSelector`; 28 wire DTOs that no live DTO reaches. .NET marks `DashboardLayout` /
+    `ContentLayout` `[Obsolete]` and Python warns on them, like Java's `@Deprecated`.
+  - **`@Experimental`** now covers the 3.0-alpha.409 pattern-gap and PMS-parity APIs (display options,
+    wizard drafts/hooks, record switcher, docked panels, `@Section` affordances, hero tones,
+    `UICommand.announce`, pre-search content, action panel, matrix grid, map markers, drag rows /
+    drop zones, access keys, card menus, calendar views, popovers/tooltips, row tones, reorderable
+    dashboards, the action catalogue, the not-found page).
+  - The stability page carries a **generated Stable / Experimental / Deprecated / Internal list** by
+    package (`ApiStabilityListTest` fails when it is stale), and defines what the beta promises.
+  - **japicmp** compares against `3.0-alpha.408` under the `mateu-*` ids; `-Dmateu.api.enforce=true`
+    makes it blocking (it passes today); flip the default at the beta tag.
+  - `DeprecationsNameTheirReplacementTest` (Java), `ApiFreezeTests` (.NET) and `test_api_freeze.py`
+    (Python) fail on a deprecation that does not name its replacement.
+  - Parity: .NET `AppVariant` constants and Python `AppVariant` enum (the right spelling travels under
+    the wire name every renderer reads); Python aliases `BadgeInHeader` (= `HeaderBadge`) and
+    `PageWidthStyle` (= `PageWidth`); 15 public Python names that were missing from
+    `mateu_uidl.__all__` added.
+  - `HeroSection` and `FoldoutPanel` regain their 3.0-alpha.408 constructors (alpha.409 had dropped
+    them when adding `tone` / `summary`).
 - **Wire version check** in every first-party renderer (web/Vaadin, Redwood, React Native, IntelliJ):
   a server speaking another wire major gets one clear message instead of a broken screen.
 

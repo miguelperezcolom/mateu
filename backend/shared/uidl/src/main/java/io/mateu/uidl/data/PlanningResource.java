@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import java.util.List;
 import lombok.Builder;
 
@@ -14,9 +15,9 @@ public record PlanningResource(
     String label,
     String group,
     /** Values of the board's attribute columns, in order (e.g. "SUP", "Clean"). */
-    List<String> attributes,
+    @Experimental("planning board interactions (3.0-alpha.409)") List<String> attributes,
     /** Icon shown before the label (icon name, e.g. "vaadin:star"); null for none. */
-    String icon) {
+    @Experimental("planning board interactions (3.0-alpha.409)") String icon) {
 
   public PlanningResource(String id, String label, String group) {
     this(id, label, group, List.of(), null);

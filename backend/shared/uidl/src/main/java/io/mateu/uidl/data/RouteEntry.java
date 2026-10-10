@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import java.util.List;
 import java.util.Map;
 
@@ -81,7 +82,7 @@ public record RouteEntry(
     RestDataSource appData,
     String defaultChild,
     String show,
-    Access access) {
+    @Experimental("YAML access keys (3.0-alpha.409)") Access access) {
 
   public RouteEntry {
     route = route == null ? "" : route;

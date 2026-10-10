@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import lombok.Builder;
 
 /**
@@ -7,5 +8,6 @@ import lombok.Builder;
  * pin), an optional {@code description} line and pin {@code color} (any CSS colour).
  */
 @Builder
+@Experimental("map markers (3.0-alpha.409)")
 public record MapMarker(
     String id, double latitude, double longitude, String label, String description, String color) {}

@@ -1,6 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.calendar;
 
 import io.mateu.uidl.annotations.Colspan;
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.data.Button;
@@ -80,21 +81,25 @@ public abstract class CalendarPage implements TriggersSupplier {
    * The views the user can switch between; the first one is the initial view. Default: the month
    * view only (no switcher).
    */
+  @Experimental("calendar views (3.0-alpha.409)")
   protected List<CalendarView> views() {
     return List.of(CalendarView.month);
   }
 
   /** A label and a tone for each date's cell, from {@code from} to {@code to} (inclusive). */
+  @Experimental("calendar views (3.0-alpha.409)")
   protected List<CalendarDay> days(LocalDate from, LocalDate to, HttpRequest httpRequest) {
     return List.of();
   }
 
   /** Whether the date cells themselves are clickable ({@link #actionOnDay}). Default: false. */
+  @Experimental("calendar views (3.0-alpha.409)")
   protected boolean daysClickable() {
     return false;
   }
 
   /** What clicking a date's cell does — e.g. open that day's availability. */
+  @Experimental("calendar views (3.0-alpha.409)")
   protected Object actionOnDay(LocalDate date, HttpRequest httpRequest) {
     return null;
   }
@@ -250,6 +255,7 @@ public abstract class CalendarPage implements TriggersSupplier {
   }
 
   @io.mateu.uidl.annotations.Action
+  @Experimental("calendar views (3.0-alpha.409)")
   public Object switchCalendarView(HttpRequest httpRequest) {
     currentRequest = httpRequest;
     var requested = httpRequest.runActionRq().parameters().get("_view");
@@ -275,6 +281,7 @@ public abstract class CalendarPage implements TriggersSupplier {
   }
 
   @io.mateu.uidl.annotations.Action
+  @Experimental("calendar views (3.0-alpha.409)")
   public Object openCalendarDay(HttpRequest httpRequest) {
     currentRequest = httpRequest;
     var date = httpRequest.runActionRq().parameters().get("_date");

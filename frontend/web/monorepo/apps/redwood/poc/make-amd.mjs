@@ -221,6 +221,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     appLevelOf,
     rowRouteOf,
     listingOf,
+    rowClickOpensRecord,
     // paginación y orden del listing (pie de la tabla, cabecera → server)
     listingPagingOf,
     targetPageOf,

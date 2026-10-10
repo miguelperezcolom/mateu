@@ -173,7 +173,7 @@ values resolve their display label (`ILookupLabelSupplier`/`LookupLabelSupplier`
 property, rows binding back into the typed list), permission-driven field states
 (`@EyesOnly`/`@ReadOnlyUnless`/`@DisabledUnless` against an adapter-supplied Identity), and the
 full `@App(AUTO)` variant decision table (explicit wins; menu folders via `Group`/`group` →
-TILES/HAMBURGUER_MENU/MENU_ON_TOP; flat menus → TABS). Nothing on the server surface remains
+TILES/HAMBURGER_MENU/MENU_ON_TOP; flat menus → TABS). Nothing on the server surface remains
 Java-only.
 
 **2026-07-16 parity pass**: the front-office dogfooding wave (OfferCard toggle state, StatusItem

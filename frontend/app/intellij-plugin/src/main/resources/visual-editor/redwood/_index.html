@@ -19,7 +19,7 @@
     <script type="text/mateu-deferred">document.documentElement.lang = (navigator.languages && navigator.languages[0]) || navigator.language || 'en';</script>
     <link rel="stylesheet" href="https://static.oracle.com/cdn/jet/18.1.0-2510.3/default/css/redwood/oj-redwood-min.css" id="css" type="text/css"/>
 <link rel="stylesheet" href="https://static.oracle.com/cdn/jet/18.1.0-2510.3/3rdparty/oraclejet-preact/amd/Theme-redwood/theme.css" id="css-theme" type="text/css"/>
-    <link rel="stylesheet" href="_redwood/resources/css/app.css?v=1a16c39ccb344f99">
+    <link rel="stylesheet" href="_redwood/resources/css/app.css?v=bf03a71f968c9e5a">
       <style>mateu-ui { display: none !important; }</style>
   </head>
   <body class="oj-body">
@@ -72,7 +72,7 @@
 <script type="text/mateu-deferred" data-src="https://static.oracle.com/cdn/vb/2510.1.0/lib/third-party-libs.js" charset="UTF-8"></script>
 
 <script type="text/mateu-deferred" id="vb-require-bundles-config">
-        require.config({ urlArgs: (id, url) => (/^(https?:)?\/\//.test(url) ? '' : (url.indexOf('?') < 0 ? '?' : '&') + 'v=1a16c39ccb344f99') });
+        require.config({ urlArgs: (id, url) => (/^(https?:)?\/\//.test(url) ? '' : (url.indexOf('?') < 0 ? '?' : '&') + 'v=bf03a71f968c9e5a') });
         const getBundlesType = (url) => { const m = /[?&]vb.bundles(=([^&#]*)|&|#|$)/.exec(url); return m ? m[2] : 'default'; }
         const bundlesType = getBundlesType(window.location.href);
         if (bundlesType === 'plain') { require.config({ paths: { bundles: 'bundles/plain'}}); }

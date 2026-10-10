@@ -1,5 +1,6 @@
 package io.mateu.uidl.fluent;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.interfaces.Actionable;
 import java.util.List;
 import lombok.Builder;
@@ -54,7 +55,7 @@ public record AppShell(
     /** No nav chrome (implies the command center) — the twin of {@code @App(chromeless)}. */
     Boolean chromeless,
     /** Access keys mode — the twin of {@code @App(accessKeys)}. Null: the class. */
-    Boolean accessKeys)
+    @Experimental("access keys (3.0-alpha.409)") Boolean accessKeys)
     implements Component, PageMainContent {
 
   public AppShell {

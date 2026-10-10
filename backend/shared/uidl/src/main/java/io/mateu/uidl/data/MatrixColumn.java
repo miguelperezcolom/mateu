@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import lombok.Builder;
 
 /**
@@ -8,6 +9,7 @@ import lombok.Builder;
  * the whole column — weekends, a special event.
  */
 @Builder
+@Experimental("matrix grid (3.0-alpha.409)")
 public record MatrixColumn(String id, String label, String group, String tone) {
 
   public MatrixColumn(String id, String label) {

@@ -119,7 +119,7 @@ public class WireTypePolicy implements io.mateu.core.infra.dev.SpecsCache {
   }
 
   /** A class-level {@code @EyesOnly} the caller does not satisfy refuses the whole type. */
-  static boolean classLevelAccessGranted(Class<?> type, HttpRequest httpRequest) {
+  public static boolean classLevelAccessGranted(Class<?> type, HttpRequest httpRequest) {
     for (Class<?> c = type; c != null && c != Object.class; c = c.getEnclosingClass()) {
       var eyesOnly = io.mateu.core.infra.reflection.MetaAnnotations.find(c, EyesOnly.class);
       if (eyesOnly != null

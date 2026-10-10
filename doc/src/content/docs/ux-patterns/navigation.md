@@ -91,7 +91,7 @@ public class MyAdminApp { ... }
 
 ### Hamburger / Drawer
 
-**Status:** ✅ Implemented — `AppVariant.HAMBURGUER_MENU`
+**Status:** ✅ Implemented — `AppVariant.HAMBURGER_MENU`
 
 Navigation is hidden behind a hamburger icon and slides in as a drawer. Maximises content space. Standard on mobile; acceptable on desktop for infrequently accessed sections.
 

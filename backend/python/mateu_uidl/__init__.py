@@ -108,6 +108,7 @@ from .placement import (  # noqa: F401
     Timestamp,
 )
 from .class_decorators import (  # noqa: F401
+    AppVariant,
     LabelsAsideMode,
     PageBanner,
     PageType,
@@ -275,6 +276,11 @@ from .patterns import (  # noqa: F401
 )
 
 
+# Parity aliases (API freeze, 3.0-alpha.410): the Java / .NET name of the same concept. Both names
+# are supported; neither is deprecated.
+BadgeInHeader = HeaderBadge  # Java @BadgeInHeader
+PageWidthStyle = PageWidth  # Java / .NET PageWidthStyle (Python's @page_width takes it)
+
 __all__ = [
     "Document",
     "DocumentDisposition",
@@ -337,4 +343,10 @@ __all__ = [
     "AppShell", "AppSupplier", "MenuSupplier",
     "Announce", "CrudDisplay", "DockedPanel", "Draftable", "GeneralOverviewDisplay", "HeroTone",
     "RecordSwitcher", "RecordSwitcherSupplier", "SwitcherType", "Toggle", "WizardDisplay",
+    # API freeze (3.0-alpha.410): names that were importable but missing from __all__
+    "app_context", "edit_in_drawer", "overline", "title_placeholder", "auto_page", "action_options",
+    "PrimaryColumn", "Aside", "LinkTo", "NavLink", "CollectionDetail", "GeneralOverview",
+    "GlobalSearchResult", "GlobalSearchSupplier", "LinkSupplier",
+    # parity with the Java / .NET names
+    "AppVariant", "BadgeInHeader", "PageWidthStyle",
 ]

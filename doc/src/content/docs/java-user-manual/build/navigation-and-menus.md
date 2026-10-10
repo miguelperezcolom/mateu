@@ -374,7 +374,7 @@ public class BackOffice implements AppSupplier {
   @Override public AppShell getApp(HttpRequest request) {
     return AppShell.builder()
         .title("Back office")
-        .variant(AppVariant.HAMBURGUER_MENU)
+        .variant(AppVariant.HAMBURGER_MENU)
         .homeRoute("/back-office/home")
         .menu(List.of(
             new RouteLink("/back-office/home", "Home"),

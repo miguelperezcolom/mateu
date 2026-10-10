@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.fluent.CustomEvent;
 import java.util.Map;
 import lombok.Builder;
@@ -78,11 +79,13 @@ public record UICommand(UICommandType type, Object data) {
    * tell a non-sighted user what just happened when nothing on screen takes focus ("3 rows
    * imported", "Saved"). Nothing is drawn.
    */
+  @Experimental("screen-reader announcements (3.0-alpha.409)")
   public static UICommand announce(String text) {
     return new UICommand(UICommandType.Announce, new Announcement(text, false));
   }
 
   /** Like {@link #announce(String)}, through the ASSERTIVE region (interrupts — errors only). */
+  @Experimental("screen-reader announcements (3.0-alpha.409)")
   public static UICommand announceAssertive(String text) {
     return new UICommand(UICommandType.Announce, new Announcement(text, true));
   }

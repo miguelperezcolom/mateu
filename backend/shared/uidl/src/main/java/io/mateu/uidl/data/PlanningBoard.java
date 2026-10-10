@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.fluent.Component;
 import java.time.LocalDate;
 import java.util.List;
@@ -30,19 +31,19 @@ public record PlanningBoard(
      * Headers of the attribute columns shown next to each resource's label (e.g. "Type", "Status");
      * each resource carries its values in {@link PlanningResource#attributes()}.
      */
-    List<String> attributeColumns,
+    @Experimental("planning board interactions (3.0-alpha.409)") List<String> attributeColumns,
     /**
      * Action run when a block's start or end edge is dragged: parameters {@code _blockId,
      * _resourceId, _start, _end} (ISO dates, end inclusive like the block). Null = not resizable.
      */
-    String resizeActionId,
+    @Experimental("planning board interactions (3.0-alpha.409)") String resizeActionId,
     /** Action run on double click on a block: parameter {@code _blockId}. */
-    String openActionId,
+    @Experimental("planning board interactions (3.0-alpha.409)") String openActionId,
     /**
      * Action run when the user drags across EMPTY cells of a resource: parameters {@code
      * _resourceId, _start, _end} (the selected days, end inclusive). Null = no range selection.
      */
-    String rangeSelectActionId)
+    @Experimental("planning board interactions (3.0-alpha.409)") String rangeSelectActionId)
     implements Component {
 
   public PlanningBoard(

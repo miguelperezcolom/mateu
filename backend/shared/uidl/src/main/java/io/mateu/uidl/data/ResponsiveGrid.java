@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.fluent.Component;
 import java.util.List;
 
@@ -52,7 +53,7 @@ public record ResponsiveGrid(
      * chooser), keyed by each child's id (its index when it has none); the server's order stays the
      * default. False = fixed order.
      */
-    boolean reorderable,
+    @Experimental("reorderable dashboards (3.0-alpha.409)") boolean reorderable,
     String style)
     implements Component {
 
@@ -80,6 +81,7 @@ public record ResponsiveGrid(
   }
 
   /** This grid with its tiles reorderable by the viewer. */
+  @Experimental("reorderable dashboards (3.0-alpha.409)")
   public ResponsiveGrid asReorderable() {
     return new ResponsiveGrid(
         id,

@@ -8,7 +8,10 @@ package io.mateu.dtos;
  * @param main Main items
  * @param right Right aside items
  * @param footer Footer items
+ * @deprecated nothing produces or reads it: a leftover of the pre-3.0 wire, reachable from no live
+ *     DTO. No replacement; it will be removed.
  */
+@Deprecated(since = "3.0-alpha.410", forRemoval = true)
 public record ViewDto(
     ViewPartDto header,
     ViewPartDto left,

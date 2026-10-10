@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import java.util.Map;
 import lombok.Builder;
 
@@ -9,6 +10,7 @@ import lombok.Builder;
  * the label ("Traces (3)").
  */
 @Builder
+@Experimental("action panel (3.0-alpha.409)")
 public record ActionPanelItem(
     String label,
     String actionId,

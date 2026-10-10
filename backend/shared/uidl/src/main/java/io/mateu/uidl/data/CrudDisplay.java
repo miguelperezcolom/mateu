@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import lombok.Builder;
 
 /**
@@ -18,6 +19,7 @@ import lombok.Builder;
  * </ul>
  */
 @Builder(toBuilder = true)
+@Experimental("archetype display options (3.0-alpha.409)")
 public record CrudDisplay(Toggle create, Toggle delete, Toggle saveAndNext, Toggle errorBanner) {
 
   public static CrudDisplay defaults() {

@@ -1,5 +1,6 @@
 package io.mateu.uidl.interfaces;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.data.RecordSwitcher;
 
 /**
@@ -12,6 +13,7 @@ import io.mateu.uidl.data.RecordSwitcher;
  * {@link #switchTo} — return {@code this} to re-render in place (after pointing the page at the new
  * record), or a {@code URI} to navigate to the record's own route.
  */
+@Experimental("record switcher (3.0-alpha.409)")
 public interface RecordSwitcherSupplier {
 
   /** The action a pick dispatches. */
