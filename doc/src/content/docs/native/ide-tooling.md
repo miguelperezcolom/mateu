@@ -116,3 +116,16 @@ the wire traffic.
 The standalone desktop distribution (the IDE rebranded as your app, see
 [Desktop & Mobile](/native/)) is the only place the plugin takes over the frame title, hides foreign
 tool windows and lands on the home route.
+
+## Live development: Run Mateu App (Live)
+
+**Run | Run Mateu App (Live)** (also under **Tools**) starts the project's app in development mode
+(`mateu.dev=true`, every `src/main/resources/specs/ui` of the project watched) with the debug agent
+listening, attaches a *Remote JVM Debug* session once it answers, points **Settings | Tools | Mateu** at
+it when nothing else is configured — so this tool window and the **visual editor's Play** use the
+running app — and opens it in the browser. From then on a YAML edit (in the text editor or the visual
+editor's canvas) re-renders the open screen in place, and every **HotSwap** fires
+`POST /mateu/dev/reload` so the screen shows the new code. **Run | Reload Mateu Screen** fires it by
+hand. Spring Boot, Quarkus, Micronaut and Helidon apps (Maven or Gradle) are detected. VS Code has the
+same pair: **Mateu: Run App (Live)** and **Mateu: Reload Screen** (also fired on a Java hot code
+replace). Details, adapters and limits: [Live reload](/java-user-manual/build/live-reload/).

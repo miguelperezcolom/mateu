@@ -281,6 +281,7 @@ export default defineConfig({
 								{ slug: 'java-user-manual/build/static-bundle' },
 								{ slug: 'java-user-manual/build/deploy-to-production', label: 'Deploy to production' },
 								{ slug: 'java-user-manual/build/static-ui' },
+								{ slug: 'java-user-manual/build/live-reload', label: 'Live reload (development mode)' },
 							],
 						},
 						{
