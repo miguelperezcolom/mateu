@@ -50,6 +50,23 @@ public class AdapterParityITFoundation {
         .body(containsString("\"fragments\""));
   }
 
+  /**
+   * A plain {@code @UI("/plain") @Title("Plain form")} class (no handler interfaces) is found
+   * through the generated route resolver — a bean the adapter's container must actually register.
+   */
+  public void resolvesAPlainUiThroughItsGeneratedRouteResolver() {
+    given()
+        .contentType(ContentType.JSON)
+        .body(
+            "{\"route\": \"\", \"consumedRoute\": \"_empty\", \"actionId\": \"\","
+                + " \"componentState\": {}, \"parameters\": {}, \"appState\": {}}")
+        .when()
+        .post("/plain/mateu/v3/sync/_no_route")
+        .then()
+        .statusCode(200)
+        .body(containsString("Plain form"));
+  }
+
   /** The plain sync endpoint keeps answering one JSON body. */
   public void answersSyncWithJson() {
     given()

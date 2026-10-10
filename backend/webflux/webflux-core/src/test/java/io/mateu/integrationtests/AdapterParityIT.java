@@ -37,6 +37,11 @@ class AdapterParityIT {
     }
 
     @Test
+    void resolvesAPlainUiThroughItsGeneratedRouteResolver() {
+      contract.resolvesAPlainUiThroughItsGeneratedRouteResolver();
+    }
+
+    @Test
     void grantsNoCrossOriginAccessByDefault() {
       contract.grantsNoCrossOriginAccessByDefault();
     }
