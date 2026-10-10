@@ -37,7 +37,7 @@ export function buildPlayManifest(files: ProjectFile[], generatedAt = new Date()
     for (const f of files ?? []) {
         if (isRoutesYaml(f.content)) { routes.push(...flattenRoutes(parseRoutes(f.content).routes).map(toPlayRoute)); continue }
         const obj = parseObject(f.content)
-        if (!obj || obj.type === 'UI') continue // unreadable, or the mount descriptor
+        if (!obj || obj.type === 'UI' || obj.type === 'Project') continue // unreadable, the mount or the project descriptor
         if (obj.type === 'Sources' || (!obj.type && Array.isArray(obj.sources))) sources.push(...((obj.sources as unknown[]) ?? []))
         else definitions[normalizePath(f.path)] = obj
     }

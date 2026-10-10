@@ -2,6 +2,7 @@ import { isMountYaml } from './mountModel'
 import { isRoutesYaml, parseRoutes, flattenRoutes } from './routesModel'
 import { parse } from 'yaml'
 import { hasAppShell } from './appModel'
+import { isProjectYaml, parseProjectSettings, DEFAULT_PROJECT_SETTINGS, type ProjectSettings } from './projectSettings'
 
 /**
  * A file of the mount as the host hands it over: a path relative to `specs/ui/` plus its raw YAML.
@@ -35,6 +36,8 @@ export interface ProjectIndex {
     viewModels: string[]  // distinct view-model FQNs referenced by routes
     /** The REST source catalogue (`sources.yaml`): each named endpoint, as authored. */
     sources: SourceEntry[]
+    /** The project descriptor (`project.yaml`, `type: Project`): the renderer, chosen once. */
+    project: ProjectSettings
 }
 
 /** One entry of the REST source catalogue — the shape the renderer's catalogue takes. */
@@ -74,12 +77,15 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
     const appShells: string[] = []
     const viewModels = new Set<string>()
     const sources: SourceEntry[] = []
+    let project: ProjectSettings | undefined
 
     for (const f of files ?? []) {
         const path = normalize(f.path)
         const content = f.content ?? ''
         if (!path) continue
         if (isMountYaml(content)) continue // the mount descriptor is not itself a reference target
+        // the project descriptor: settings, not a reference target (the first one wins)
+        if (isProjectYaml(content)) { project ??= { ...parseProjectSettings(content), path }; continue }
         if (isSourcesYaml(content)) { sources.push(...parseSources(content)); continue }
         if (isRoutesYaml(content)) {
             // Children are flattened to their absolute route, as the loader does.
@@ -101,6 +107,7 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
         appShells: dedupe(appShells),
         viewModels: [...viewModels].sort((a, b) => a.localeCompare(b)),
         sources,
+        project: project ?? { ...DEFAULT_PROJECT_SETTINGS },
     }
 }
 
