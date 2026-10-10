@@ -277,11 +277,19 @@ jobs:
           pip install -r requirements.txt pyyaml
           python -m pytest tests/ -q
 
+      # The .NET port multi-targets both supported LTS runtimes (net8.0 until its 2026-11-10 end of
+      # support, and net10.0): the 10 SDK builds both, the 8 runtime runs the net8.0 leg. `dotnet test`
+      # runs the suite once per target framework, so both legs (and the conformance gate) are tested.
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: |
+            8.0.x
+            10.0.x
 
-      - name: .NET tests
+      - name: .NET tests (net8.0 + net10.0)
         run: cd backend/dotnet && dotnet test
+
+      - name: .NET packages build
+        run: cd backend/dotnet && for p in src/*/*.csproj; do dotnet pack "$p" -c Release -o /tmp/nupkgs; done
 
