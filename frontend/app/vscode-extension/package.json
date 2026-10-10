@@ -45,8 +45,8 @@
       "properties": {
         "mateu.baseUrl": {
           "type": "string",
-          "default": "http://localhost:8594",
-          "description": "Mateu backend base URL, serving the reserved __preview__ / __contract__ sync actions. Point it at a running Mateu app — e.g. the repo's demo-starwars on http://localhost:8600 (it has authored specs/ui pages)."
+          "default": "http://localhost:8080",
+          "description": "Mateu backend base URL, serving the reserved __preview__ / __contract__ sync actions. Point it at a running Mateu app (the starters and Spring Boot default to 8080; the repo's demo-starwars, with authored specs/ui pages, runs on http://localhost:8600)."
         }
       }
     },

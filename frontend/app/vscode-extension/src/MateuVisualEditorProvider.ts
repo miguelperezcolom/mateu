@@ -29,7 +29,7 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
         panel: vscode.WebviewPanel,
         _token: vscode.CancellationToken,
     ): Promise<void> {
-        const backend = vscode.workspace.getConfiguration().get<string>('mateu.baseUrl', 'http://localhost:8594')
+        const backend = vscode.workspace.getConfiguration().get<string>('mateu.baseUrl', 'http://localhost:8080')
         const port = await this.proxy.ensureStarted(backend)
         const webview = panel.webview
         const mediaRoot = vscode.Uri.joinPath(this.context.extensionUri, 'media')

@@ -36,7 +36,7 @@ Then in the Extension Development Host: open a `specs/ui/*.yaml` file, and use *
 With… → Mateu Visual Editor"** (the custom editor is registered with `priority: option`, so the YAML
 text editor stays the default).
 
-Configure the backend via the `mateu.baseUrl` setting (default `http://localhost:8594`). Any running
+Configure the backend via the `mateu.baseUrl` setting (default `http://localhost:8080`, the Spring Boot and starter default — the same as the IntelliJ plugin). Any running
 Mateu backend works — it exposes the reserved `__preview__` / `__contract__` actions.
 
 ## Schema validation
