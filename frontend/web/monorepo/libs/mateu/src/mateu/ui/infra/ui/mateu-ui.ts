@@ -18,6 +18,7 @@ import {nanoid} from "nanoid";
 import { nextHistoryUrl, isScreenChange } from './navigationUrl'
 import { keyed } from 'lit/directives/keyed.js'
 import { applyUiLanguage } from '@infra/ui/chromeTexts.ts'
+import { installLiveReload } from '@infra/dev/liveReload.ts'
 
 // Install the design-system-neutral toast adapter as the default. A DS app (e.g. Vaadin) may
 // override it with setNotifier after importing mateu-ui.
@@ -189,6 +190,9 @@ export class MateuUi extends LitElement {
                 loadBundleManifest(this.bundleUrl)
             }
             this.loadUrl(window)
+            // Development mode only (the page carries <meta name="mateu-dev">): re-render on
+            // spec edits, IDE reload requests and server restarts. A no-op otherwise.
+            installLiveReload(this)
         } else {
             if (this.route) {
                 this.consumedRoute = ''
@@ -214,6 +218,12 @@ export class MateuUi extends LitElement {
         this.upstreamSubscription?.unsubscribe()
         this.removeEventListener('url-update-requested', this.routeChangedListener)
         this.removeEventListener('navigate-to-requested', this.navigateToRequestedListener)
+    }
+
+    /** Rebuilds the whole tree on the current URL (live reload of an app-level change). */
+    remount() {
+        this.navigationKey = nanoid()
+        this.loadUrl(window)
     }
 
     loadUrl(w: Window) {

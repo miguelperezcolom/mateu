@@ -516,7 +516,32 @@ export class MateuUx extends ConnectedElement {
     }
 
     // write state to reactive properties
+    /**
+     * Dev live reload ({@link ../dev/liveReload.ts}): state to lay over the NEXT route answer, so
+     * what the user typed survives the re-render even when the server does not echo it.
+     */
+    private liveReloadState: Record<string, unknown> | undefined
+
+    /**
+     * Dev live reload: re-requests the route on screen, in place, carrying {@code state} (the
+     * content's live componentState) so a view model is hydrated from it, and re-applying it over
+     * the answer. Not a navigation: same route, same element, no history entry.
+     */
+    liveReload(state: Record<string, unknown> | undefined) {
+        this.liveReloadState = state && Object.keys(state).length > 0 ? state : undefined
+        const previous = this.initialState
+        this.initialState = { ...(previous ?? {}), ...(state ?? {}) }
+        this.instant = nanoid()
+        // The load is dispatched from updated(); afterwards the seed goes back to what it was, so
+        // a later navigation of this ux does not carry this screen's state to another one.
+        this.updateComplete.then(() => { this.initialState = previous })
+    }
+
     applyFragment(fragment: UIFragment) {
+        if (this.liveReloadState && fragment.action !== UIFragmentAction.Add) {
+            fragment = { ...fragment, state: { ...(fragment.state ?? {}), ...this.liveReloadState } }
+            this.liveReloadState = undefined
+        }
         // Every fragment reaching here answers a request this ux sent under its current id
         // (ConnectedElement routes them by targetComponentId), so what it shows is this identity's.
         this.contentIdentity = uxIdentity(this.id, this.baseUrl)
