@@ -159,12 +159,18 @@ public abstract class DataManagement implements ComponentTreeSupplier, PageWidth
                   + (bottom.size() != null ? bottom.size() : "16rem")
                   + "; overflow: auto;"));
     }
-    return VerticalLayout.builder()
-        .id("data-management")
-        .fullWidth(true)
-        .spacing(true)
-        .content(content)
-        .build();
+    var page =
+        VerticalLayout.builder()
+            .id("data-management")
+            .fullWidth(true)
+            .spacing(true)
+            .content(content);
+    if (end != null || bottom != null) {
+      // docked panels share the page width with the view: stretch so the reflowing grid (a
+      // container-query wrapper, which has no intrinsic width) spans the page
+      page.horizontalAlignment(io.mateu.uidl.data.HorizontalAlignment.STRETCH);
+    }
+    return page.build();
   }
 
   private Component panelToggle(DockedPanel panel, String actionId, boolean open) {
@@ -172,7 +178,8 @@ public abstract class DataManagement implements ComponentTreeSupplier, PageWidth
         .id(panel.id() != null ? panel.id() + "-toggle" : actionId)
         .actionId(actionId)
         .label(panel.title())
-        .buttonStyle(open ? ButtonStyle.primary : ButtonStyle.tertiary)
+        // a panel toggle is a switch, not the active view: secondary while open, tertiary closed
+        .buttonStyle(open ? ButtonStyle.secondary : ButtonStyle.tertiary)
         .build();
   }
 

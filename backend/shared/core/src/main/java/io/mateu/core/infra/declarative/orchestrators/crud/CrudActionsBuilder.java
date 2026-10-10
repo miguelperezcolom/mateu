@@ -21,6 +21,10 @@ final class CrudActionsBuilder {
       actions.add(Action.builder().id("delete").build());
       actions.add(Action.builder().id("save").build());
       actions.add(Action.builder().id("create").build());
+      if (orchestrator.editInDrawer() && orchestrator.display().saveAndNext().shown()) {
+        // the edit drawer's "Save and next" bubbles to the mediator like save does
+        actions.add(Action.builder().id("save-and-next").build());
+      }
       actions.add(Action.builder().id("new").build());
       actions.add(Action.builder().id("view").build());
       actions.add(Action.builder().id("edit").build());
