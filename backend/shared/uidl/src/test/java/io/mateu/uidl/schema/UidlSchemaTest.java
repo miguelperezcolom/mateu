@@ -69,10 +69,12 @@ class UidlSchemaTest {
     }
 
     // The unified schema must offer every branch (mount, routes envelope, bare route list, source
-    // catalogue, component) and carry the defs they reference (RouteEntry, RestSourceEntry and the
+    // catalogue, project descriptor, component) and carry the defs they reference (RouteEntry,
+    // RestSourceEntry and the
     // component catalog) — a specs/ui file kind missing from here is one the editor cannot
     // validate.
-    assertThat(generated.get("oneOf")).hasSize(5);
+    assertThat(generated.get("oneOf")).hasSize(6);
+    assertThat(generated.get("$defs").has("ProjectRenderer")).isTrue();
     assertThat(generated.get("$defs").has("RouteEntry")).isTrue();
     assertThat(generated.get("$defs").has("RestSourceEntry")).isTrue();
     assertThat(generated.get("$defs").has("Component")).isTrue();
