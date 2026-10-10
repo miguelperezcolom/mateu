@@ -55,7 +55,9 @@ function redwoodAppPlugin(): Plugin {
     const serve: Connect.NextHandleFunction = async (req, res, next) => {
         const [path, query] = (req.url ?? '').split('?')
         if (!path.startsWith('/redwood/')) return next()
-        const rel = decodeURIComponent(path.slice('/redwood/'.length))
+        let rel: string
+        // a malformed escape (the VB page asks for its own `%{env.…}%` placeholders) is no file of ours
+        try { rel = decodeURIComponent(path.slice('/redwood/'.length)) } catch { res.statusCode = 404; res.end(); return }
         const file = resolve(redwoodStatic, rel)
         if (file.startsWith(redwoodStatic + sep) && existsSync(file) && statSync(file).isFile()) {
             res.setHeader('Content-Type', contentTypeOf(file))

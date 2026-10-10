@@ -32,5 +32,7 @@ describe('the Redwood canvas, served by the loopback server', () => {
         expect(staticAnswerOf(media, '/assets/../../etc/passwd')).toEqual({ kind: 'none' })
         expect(staticAnswerOf(media, '/redwood/%2e%2e/secret')).toEqual({ kind: 'none' })
         expect(staticAnswerOf(media, '/assets/missing.js')).toEqual({ kind: 'none' })
+        // the VB page asks for its own unresolved placeholders: a malformed URI must not crash the server
+        expect(staticAnswerOf(media, '/redwood/%%7Benv.userProfileUrl%7D%')).toEqual({ kind: 'none' })
     })
 })

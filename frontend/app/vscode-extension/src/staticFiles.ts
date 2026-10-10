@@ -24,7 +24,9 @@ const TYPES: Record<string, string> = {
 }
 
 export function staticAnswerOf(mediaDir: string | undefined, urlPath: string): StaticAnswer {
-    const p = decodeURIComponent(urlPath.split('?')[0])
+    let p: string
+    // a malformed escape (the VB page asks for its own `%{env.…}%` placeholders) is no file of ours
+    try { p = decodeURIComponent(urlPath.split('?')[0]) } catch { return { kind: 'none' } }
     const servable = p === '/redwood-preview.html' || p.startsWith('/assets/') || p.startsWith('/redwood/')
     if (!servable || p.split('/').includes('..')) return { kind: 'none' }
     if (mediaDir) {
