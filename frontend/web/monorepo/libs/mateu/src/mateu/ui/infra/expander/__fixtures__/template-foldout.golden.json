@@ -1,0 +1,137 @@
+{
+  "commands" : [ ],
+  "messages" : [ ],
+  "fragments" : [ {
+    "targetComponentId" : null,
+    "component" : {
+      "type" : "ClientSide",
+      "metadata" : {
+        "type" : "FoldoutLayout",
+        "panels" : [ {
+          "title" : "Operations",
+          "subtitle" : null,
+          "icon" : null,
+          "open" : true,
+          "width" : "30rem"
+        }, {
+          "title" : "Notes",
+          "subtitle" : null,
+          "icon" : null,
+          "open" : false,
+          "width" : null
+        }, {
+          "title" : "Profile",
+          "subtitle" : null,
+          "icon" : null,
+          "open" : false,
+          "width" : null
+        } ],
+        "headerTitle" : "Booking 1234",
+        "badges" : [ "Confirmed" ],
+        "orientation" : "vertical",
+        "navigation" : null,
+        "overviewEditActionId" : null
+      },
+      "id" : null,
+      "children" : [ {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "VerticalLayout",
+          "spacing" : false,
+          "padding" : false,
+          "margin" : false,
+          "spacingVariant" : null,
+          "horizontalAlignment" : null,
+          "justification" : null,
+          "wrap" : false,
+          "flexGrows" : null,
+          "fullWidth" : false,
+          "style" : null
+        },
+        "id" : null,
+        "children" : [ {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Text",
+            "container" : "h3",
+            "attributes" : { },
+            "text" : "Overview",
+            "size" : null,
+            "noMargins" : false
+          },
+          "id" : "a70e887d-a64b-4a9e-856d-7fb1794d25da",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        }, {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Text",
+            "container" : "div",
+            "attributes" : { },
+            "text" : "The always-visible summary of the record.",
+            "size" : null,
+            "noMargins" : false
+          },
+          "id" : "289cbe72-ad8c-49e7-b365-c9075911f5a6",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        } ],
+        "style" : null,
+        "cssClasses" : null,
+        "slot" : "overview",
+        "sizing" : null
+      }, {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "Text",
+          "container" : "div",
+          "attributes" : { },
+          "text" : "Operations go here",
+          "size" : null,
+          "noMargins" : false
+        },
+        "id" : "f8c0f6fe-49e9-41fb-a34a-3d2f6bf4040c",
+        "children" : [ ],
+        "style" : null,
+        "cssClasses" : null,
+        "slot" : "panel-0",
+        "sizing" : null
+      }, {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "Text",
+          "container" : "div",
+          "attributes" : { },
+          "text" : "Profile goes here",
+          "size" : null,
+          "noMargins" : false
+        },
+        "id" : "6e6d3592-1182-40eb-984e-137c8fddd79d",
+        "children" : [ ],
+        "style" : null,
+        "cssClasses" : null,
+        "slot" : "panel-2",
+        "sizing" : null
+      } ],
+      "style" : null,
+      "cssClasses" : null,
+      "slot" : null,
+      "sizing" : null
+    },
+    "state" : null,
+    "data" : null,
+    "action" : "Replace",
+    "containerId" : null
+  } ],
+  "banners" : [ ],
+  "appendBanners" : false,
+  "appData" : null,
+  "appState" : null,
+  "wireVersion" : "3.0"
+}

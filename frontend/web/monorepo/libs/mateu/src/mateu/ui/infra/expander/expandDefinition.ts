@@ -167,7 +167,7 @@ const subOf = (item: FluentNode): FluentNode[] | undefined => {
     const sub = (item.submenu ?? item.submenus ?? item.menu) as FluentNode[] | undefined
     return Array.isArray(sub) ? sub : undefined
 }
-const isGroup = (item: FluentNode) => item.type === 'Menu' || (!item.type && !!subOf(item))
+const isGroup = (item: FluentNode) => item.type === 'Menu' || (!item.type && !!subOf(item)) // i18n-ok: a type discriminator, not chrome text
 const hasRemoteMenu = (items: FluentNode[]): boolean =>
     items.some((i) => i.type === 'RemoteMenu' || (isGroup(i) && hasRemoteMenu(subOf(i) ?? [])))
 

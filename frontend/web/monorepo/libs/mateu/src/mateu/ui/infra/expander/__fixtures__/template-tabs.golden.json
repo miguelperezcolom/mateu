@@ -1,0 +1,98 @@
+{
+  "commands" : [ ],
+  "messages" : [ ],
+  "fragments" : [ {
+    "targetComponentId" : null,
+    "component" : {
+      "type" : "ClientSide",
+      "metadata" : {
+        "type" : "TabLayout",
+        "orientation" : null,
+        "variant" : null,
+        "groupRelationship" : null,
+        "adaptable" : false
+      },
+      "id" : null,
+      "children" : [ {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "Tab",
+          "id" : null,
+          "active" : true,
+          "label" : "Details",
+          "shortcut" : null,
+          "routeKey" : null,
+          "badge" : null
+        },
+        "id" : null,
+        "children" : [ {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Text",
+            "container" : "div",
+            "attributes" : { },
+            "text" : "Details go here",
+            "size" : null,
+            "noMargins" : false
+          },
+          "id" : "cebcf1dc-111c-4932-bc5c-83f83d0792f2",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        } ],
+        "style" : null,
+        "cssClasses" : null,
+        "slot" : null,
+        "sizing" : null
+      }, {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "Tab",
+          "id" : null,
+          "active" : false,
+          "label" : "History",
+          "shortcut" : null,
+          "routeKey" : null,
+          "badge" : null
+        },
+        "id" : null,
+        "children" : [ {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Text",
+            "container" : "div",
+            "attributes" : { },
+            "text" : "History goes here",
+            "size" : null,
+            "noMargins" : false
+          },
+          "id" : "e1d308fe-0fb5-40ff-97f7-74d5c01bbfe5",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        } ],
+        "style" : null,
+        "cssClasses" : null,
+        "slot" : null,
+        "sizing" : null
+      } ],
+      "style" : null,
+      "cssClasses" : null,
+      "slot" : null,
+      "sizing" : null
+    },
+    "state" : null,
+    "data" : null,
+    "action" : "Replace",
+    "containerId" : null
+  } ],
+  "banners" : [ ],
+  "appendBanners" : false,
+  "appData" : null,
+  "appState" : null,
+  "wireVersion" : "3.0"
+}
