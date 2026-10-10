@@ -11,6 +11,7 @@ import { MateuViewHost } from './MateuViewHost';
 import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import { cardsOf, isCardsGroup } from './menuCards';
+import { canSignOut, signOut } from '../core/auth';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -219,6 +220,7 @@ function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppCon
               <TextInput
                 style={styles.contextSearch}
                 placeholder="Search…"
+                accessibilityLabel="Search"
                 placeholderTextColor={theme.faint}
                 value={searchText}
                 onChangeText={(value) => onSearchInput(selector.fieldName, value)}
@@ -437,6 +439,7 @@ function GlobalSearchBox({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigate
       <TextInput
         style={styles.globalSearchInput}
         placeholder="Search…"
+        accessibilityLabel="Search"
         placeholderTextColor={theme.faint}
         value={query}
         onChangeText={onInput}
@@ -564,6 +567,11 @@ function SidebarContent({ appMeta, onNavigate, onContextChanged }: { appMeta: Ap
       {appMeta.notificationsEnabled === true && <NotificationBell appMeta={appMeta} onNavigate={onNavigate} />}
       <ContextSelectors selectors={appMeta.contextSelectors ?? []} appMeta={appMeta} onChanged={onContextChanged} />
       {renderItems(appMeta.menu ?? [])}
+      {canSignOut() && (
+        <TouchableOpacity {...buttonA11y({ label: 'Sign out' })} style={[styles.menuItem, { paddingLeft: 20 }]} onPress={() => void signOut()}>
+          <Text style={styles.menuItemText}>Sign out</Text>
+        </TouchableOpacity>
+      )}
     </DrawerContentScrollView>
   );
 }

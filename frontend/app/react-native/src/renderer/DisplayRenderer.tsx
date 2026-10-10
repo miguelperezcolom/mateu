@@ -1239,7 +1239,7 @@ const styles = StyleSheet.create({
   hero: { borderRadius: 12, overflow: 'hidden', justifyContent: 'center' },
   heroPlain: { backgroundColor: theme.background },
   heroImage: { borderRadius: 12 },
-  heroOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.35)' },
+  heroOverlay: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(0,0,0,0.35)' },
   heroContent: { padding: 24, gap: 8 },
   heroTitle: { fontSize: 28, fontWeight: '700', lineHeight: 34, color: theme.ink },
   heroSubtitle: { fontSize: 16, color: theme.muted },

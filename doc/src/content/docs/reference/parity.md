@@ -383,6 +383,139 @@ children of a container still render).
 | `Workflow` | — |  |
 <!-- redwood-coverage:end -->
 
+### React Native component coverage
+
+What the React Native renderer (iOS / Android, `frontend/app/react-native`) does with each
+component type of the wire. Since 2026-10-10 **every** type has a native renderer — CI fails the
+build if a new wire type is added without one (`scripts/parity-check.mjs`), so a screen never shows
+"Unsupported component" on a phone. 🟡 marks a deliberate mobile adaptation (no hover or
+right-click on touch → press / long-press; diagram editors shown read-only).
+
+<!-- rn-coverage:start -->
+Generated from `frontend/app/react-native/scripts/coverage.mjs` and checked in CI against the
+wire catalogue and the renderer's switch (`node scripts/parity-check.mjs`): every wire type has a
+native renderer — 88 rendered, 11 layout containers, 6 parts of another component,
+10 with a documented mobile adaptation. None is dropped.
+
+| Component | React Native | How |
+|---|---|---|
+| `AccordionLayout` | ✅ |  |
+| `ActionPanel` | ✅ | modal; no keyboard shortcut |
+| `AddOnPicker` | ✅ |  |
+| `Anchor` | ✅ | in-app route or OS browser |
+| `App` | ✅ | drawer / tabs shell (AppRenderer); nested App = own island at its home route |
+| `Avatar` | ✅ | image or initials |
+| `AvatarGroup` | ✅ | overlapping, +N overflow |
+| `Badge` | ✅ |  |
+| `Breadcrumbs` | ✅ |  |
+| `BulletedList` | ✅ |  |
+| `Button` | ✅ |  |
+| `Calendar` | ✅ | month / week / day / list |
+| `CalloutCard` | ✅ |  |
+| `Card` | ✅ |  |
+| `CarouselLayout` | ✅ | paging swipe, dots, prev/next, auto-advance, loop |
+| `Chart` | ✅ |  |
+| `Chat` | ✅ | opens the assistant panel (same contract as the app chat FAB) |
+| `Checklist` | ✅ |  |
+| `CommentThread` | ✅ |  |
+| `ComparisonCard` | ✅ |  |
+| `ConfirmDialog` | ✅ |  |
+| `ContentLayout` | ✅ | main / aside / footer; aside beside main ≥ 768 px, stacked on a phone |
+| `CookieConsent` | ✅ | dismissible banner, dismissal persisted on the device |
+| `Crud` | ✅ | table / list / cards / tree, smart-search panel, selection, totals, groups, inline edit, saved views |
+| `DashboardLayout` | ✅ |  |
+| `DashboardPanel` | ✅ |  |
+| `Details` | ✅ | collapsible panel |
+| `Dialog` | ✅ | overlay fragments open as a modal sheet |
+| `Directory` | ✅ |  |
+| `Drawer` | ✅ | overlay fragments open as a modal sheet; a Drawer in the tree is drawn in place |
+| `EmptyState` | ✅ |  |
+| `EntityHeader` | ✅ |  |
+| `Faq` | ✅ |  |
+| `FeatureGrid` | ✅ |  |
+| `FileList` | ✅ |  |
+| `FoldoutLayout` | ✅ | overview card + accordion of panels |
+| `Form` | ✅ |  |
+| `FormField` | ✅ | every stereotype, date picker, lookups, capture fields |
+| `FormSection` | ✅ |  |
+| `FormSubSection` | ✅ |  |
+| `Funnel` | ✅ |  |
+| `Gantt` | ✅ |  |
+| `Grid` | ✅ | horizontal-scroll table, tree rows indented, action cells |
+| `Heatmap` | ✅ |  |
+| `HeroSection` | ✅ |  |
+| `Image` | ✅ |  |
+| `Kanban` | ✅ |  |
+| `Ledger` | ✅ |  |
+| `Map` | ✅ |  |
+| `Markdown` | ✅ |  |
+| `MasterDetailLayout` | ✅ | side by side ≥ 768 px, stacked on a phone |
+| `MatrixGrid` | ✅ |  |
+| `MenuBar` | ✅ | horizontal strip; submenus as an action sheet |
+| `MessageInput` | ✅ |  |
+| `MessageList` | ✅ |  |
+| `Meter` | ✅ |  |
+| `MetricCard` | ✅ |  |
+| `MicroFrontend` | ✅ | own island (own session when it has its own baseUrl) |
+| `NotFound` | ✅ |  |
+| `Notice` | ✅ |  |
+| `Notification` | ✅ | inline status strip |
+| `OfferCard` | ✅ |  |
+| `OrgChart` | ✅ |  |
+| `Page` | ✅ | header (title, subtitle, badges, KPIs, toolbar, banners), FABs |
+| `PaymentPicker` | ✅ |  |
+| `PlanningBoard` | ✅ | drag + select (PanResponder) |
+| `PricingTable` | ✅ |  |
+| `ProcessMonitor` | ✅ |  |
+| `ProgressBar` | ✅ |  |
+| `ProgressSteps` | ✅ | vertical by design |
+| `ResourceGrid` | ✅ |  |
+| `ResponsiveGrid` | ✅ | declared tracks + col spans; stacks below stackBelow (600 px default) |
+| `Result` | ✅ | icon by result type, links, next step |
+| `Scoreboard` | ✅ |  |
+| `Separator` | ✅ |  |
+| `Skeleton` | ✅ |  |
+| `SplitLayout` | ✅ |  |
+| `Stat` | ✅ |  |
+| `StatusList` | ✅ |  |
+| `Stepper` | ✅ | children as numbered steps |
+| `TabLayout` | ✅ |  |
+| `TaskProgress` | ✅ |  |
+| `TaskQueue` | ✅ |  |
+| `Testimonials` | ✅ |  |
+| `Text` | ✅ |  |
+| `Timeline` | ✅ |  |
+| `TrendChart` | ✅ |  |
+| `VirtualList` | ✅ |  |
+| `BoardLayout` | ✅ container |  |
+| `Container` | ✅ container |  |
+| `CustomField` | ✅ container | its component in place |
+| `Div` | ✅ container |  |
+| `FormItem` | ✅ container |  |
+| `FormLayout` | ✅ container |  |
+| `FormRow` | ✅ container |  |
+| `FullWidth` | ✅ container |  |
+| `HorizontalLayout` | ✅ container |  |
+| `Scroller` | ✅ container |  |
+| `VerticalLayout` | ✅ container |  |
+| `Bpmn` | 🟡 | read-only diagram (react-native-svg, from the BPMN DI section); edit on the web |
+| `ContextMenu` | 🟡 | long-press (no right-click on touch) opens an action sheet |
+| `CustomComponent` | 🟡 | registry (registerCustomComponent) + visible placeholder |
+| `DropZone` | 🟡 | "Move to…" picker (no drag on touch) |
+| `Element` | 🟡 | HTML tags map to native text / image / rule, on.click runs its action; custom elements (web components) show their text content |
+| `FormEditor` | 🟡 | read-only definition preview; edit on the web |
+| `Icon` | 🟡 | emoji / glyphs and common icon names; other design-system icons show a dot |
+| `Popover` | 🟡 | opens on press (no hover on touch) |
+| `Tooltip` | 🟡 | long-press shows it (no hover on touch); also the accessibility hint |
+| `Workflow` | 🟡 | read-only layered diagram; edit on the web |
+| `AccordionPanel` | ✅ part | of AccordionLayout |
+| `BoardLayoutItem` | ✅ part | of BoardLayout |
+| `BoardLayoutRow` | ✅ part | of BoardLayout (items side by side ≥ 768 px) |
+| `Breadcrumb` | ✅ part | of Breadcrumbs |
+| `GridColumn` | ✅ part | of Grid / Crud |
+| `Tab` | ✅ part | of TabLayout |
+<!-- rn-coverage:end -->
+
 Since 2026-07-12 (DS-native rule) the non-Vaadin web renderers render crud layouts
 (table/list/cards/masterDetail/tree), toolbar buttons and grid-stereotype form fields with their
 OWN design-system components, and since 2026-07-16 the shells render the app header actions

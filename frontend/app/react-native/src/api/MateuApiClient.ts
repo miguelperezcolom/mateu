@@ -1,4 +1,6 @@
-import { handleSessionExpired } from '../core/sessionGuard';
+import { authHeaders } from '../core/auth.ts';
+import { handleSessionExpired } from '../core/sessionGuard.ts';
+import { checkWireVersion } from '../core/wireVersion.ts';
 
 export interface RunActionParams {
   route: string;
@@ -11,13 +13,37 @@ export interface RunActionParams {
   parameters: Record<string, unknown>;
 }
 
+declare const __DEV__: boolean | undefined;
+
+/** Request/response bodies go to the console ONLY in development builds: a release build must not
+ *  write the user's form contents (and the server's answers) to the device log. */
+export const isDev = (): boolean => typeof __DEV__ !== 'undefined' && !!__DEV__;
+const devLog = (...args: unknown[]): void => {
+  if (isDev()) console.log(...args);
+};
+
 export class MateuApiClient {
   readonly baseUrl: string;
-  private readonly sessionId: string;
+  readonly sessionId: string;
+  /** Host hook: told ONCE when the server's wireVersion is outside what this build supports. */
+  onWireMismatch: (message: string) => void = () => {};
+  private wireChecked = false;
 
   constructor(baseUrl: string, sessionId: string) {
     this.baseUrl = baseUrl;
     this.sessionId = sessionId;
+  }
+
+  /** The headers every Mateu request carries: the per-install session id and, when a token
+   *  provider is registered, the Bearer token the backend resolves identity from. */
+  async headers(extra: Record<string, string> = {}): Promise<Record<string, string>> {
+    return {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      'X-Session-Id': this.sessionId,
+      ...(await authHeaders()),
+      ...extra,
+    };
   }
 
   async runAction(params: RunActionParams): Promise<unknown> {
@@ -44,19 +70,12 @@ export class MateuApiClient {
     }
 
     const url = `${this.baseUrl}/mateu/v3/sync/${urlSegment}`;
-    console.log('[Mateu] --> POST', url);
-    console.log('[Mateu]     body:', JSON.stringify(body).slice(0, 500));
+    const payload = JSON.stringify(body);
+    devLog('[Mateu] --> POST', url);
+    devLog('[Mateu]     body:', payload.slice(0, 500));
 
-    const doFetch = () =>
-      fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-          'X-Session-Id': this.sessionId,
-        },
-        body: JSON.stringify(body),
-      });
+    // headers are rebuilt per attempt: the retry after a re-auth must carry the NEW token
+    const doFetch = async () => fetch(url, { method: 'POST', headers: await this.headers(), body: payload });
 
     let response = await doFetch();
     // Session expiry: a 401 gives the app one chance to re-authenticate, then we retry once.
@@ -64,13 +83,30 @@ export class MateuApiClient {
       response = await doFetch();
     }
     const text = await response.text();
-    console.log('[Mateu] <--', response.status, text.slice(0, 500));
+    devLog('[Mateu] <--', response.status, text.slice(0, 500));
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${text}`);
     }
 
-    return JSON.parse(text);
+    const json = JSON.parse(text);
+    this.checkWire(json);
+    return json;
+  }
+
+  /** The first response that carries `wireVersion` decides; a mismatch is reported once. */
+  private checkWire(json: unknown): void {
+    if (this.wireChecked || !json || typeof json !== 'object') return;
+    const received = (json as Record<string, unknown>)['wireVersion'];
+    if (received === undefined) return;
+    this.wireChecked = true;
+    const check = checkWireVersion(received);
+    if (!check.ok) {
+      console.warn('[Mateu]', check.message);
+      this.onWireMismatch(check.message);
+    } else if (check.note) {
+      devLog('[Mateu]', check.note);
+    }
   }
 
   async initialLoad(route: string, appState: Record<string, unknown>): Promise<unknown> {

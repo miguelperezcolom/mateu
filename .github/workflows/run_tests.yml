@@ -123,6 +123,12 @@ jobs:
       - name: React Native renderer unit tests
         run: cd frontend/app/react-native && node --test 'src/**/*.test.ts'
 
+      - name: React Native renderer wire coverage (every wire type rendered, parity.md in sync)
+        run: cd frontend/app/react-native && node scripts/parity-check.mjs
+
+      - name: React Native renderer type check
+        run: cd frontend/app/react-native && npm ci --ignore-scripts && npx tsc --noEmit
+
       - name: VS Code extension tests
         run: cd frontend/app/vscode-extension && npm ci --ignore-scripts && npx vitest run
 
