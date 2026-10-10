@@ -8,6 +8,7 @@ import { LitElement } from "lit";
 import { ComponentState } from "@infra/ui/renderers/types.ts";
 import { RunActionOptions } from "@domain/MateuApiClient";
 import { isStaleResponse, StaleResponse } from "@infra/ui/staleViewGuard.ts";
+import { authHeaders, sessionId } from '@infra/http/authToken.ts'
 
 export class SSEService implements Service {
 
@@ -69,10 +70,9 @@ export class SSEService implements Service {
                 'Accept': 'text/event-stream',
                 'Content-Type': 'application/json'
             }
-            const token = localStorage.getItem('__mateu_auth_token')
-            if (token) headers['Authorization'] = 'Bearer ' + token
-            const sessionId = sessionStorage.getItem('__mateu_sesion_id')
-            if (sessionId) headers['X-Session-Id'] = sessionId
+            Object.assign(headers, authHeaders())
+            const sid = sessionId(false)
+            if (sid) headers['X-Session-Id'] = sid
 
             fetch(baseUrl + '/mateu/v3/sse/' +
                 route, {

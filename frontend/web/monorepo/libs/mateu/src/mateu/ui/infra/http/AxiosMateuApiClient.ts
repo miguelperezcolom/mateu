@@ -2,7 +2,6 @@ import axios, {AxiosResponse, InternalAxiosRequestConfig} from "axios"
 import { readAppContext } from '@infra/appContextStore.ts';
 import { handleSessionExpired } from '@infra/http/sessionGuard.ts';
 import { loginRedirectTarget } from '@infra/http/redirectGuard.ts';
-import {nanoid} from "nanoid"
 import {MateuApiClient, RunActionOptions} from "@domain/MateuApiClient";
 import UIIncrement from "@mateu/shared/apiClients/dtos/UIIncrement";
 import {ComponentState} from "@infra/ui/renderers/types.ts";
@@ -13,6 +12,7 @@ import {isIdempotentAction, retryDelayMs, shouldRetry} from "@infra/http/retryPo
 import {connectivity} from "@infra/http/connectivity.ts";
 import {reportClientError} from "@infra/http/clientErrorReporter.ts";
 import {StaleResponse} from "@infra/ui/staleViewGuard.ts";
+import { getAuthToken, sessionId } from '@infra/http/authToken.ts'
 
 let abortControllers: AbortController[] = []
 
@@ -68,16 +68,14 @@ export class AxiosMateuApiClient implements MateuApiClient {
     }
 
     private addSessionId(config: InternalAxiosRequestConfig) {
-        let sessionId = sessionStorage.getItem('__mateu_sesion_id');
-        if (!sessionId) {
-            sessionId = nanoid()
-            sessionStorage.setItem('__mateu_sesion_id', sessionId)
-        }
-        config.headers['X-Session-Id'] =  sessionId;
+        // never throws: blocked storage keeps the id in memory (authToken.ts)
+        const id = sessionId()
+        if (id) config.headers['X-Session-Id'] = id
     }
 
     private addAuthToken(config: InternalAxiosRequestConfig) {
-        const token = localStorage.getItem('__mateu_auth_token');
+        // runs on EVERY request — a blocked localStorage must not fail them all (authToken.ts)
+        const token = getAuthToken()
         if (token) {
             config.headers.Authorization =  'Bearer ' + token;
         }

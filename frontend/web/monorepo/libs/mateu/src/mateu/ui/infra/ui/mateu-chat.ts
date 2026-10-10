@@ -14,6 +14,7 @@ import {icon} from "@infra/ui/renderers/neutralIcon.ts";
 import {chatText} from "./chatTexts";
 import {CHAT_MIC_ARIA_KEYSHORTCUTS, chatMicTitle, isChatMicShortcut} from "./chatShortcut";
 import {CHAT_WIDE_VW, CHAT_WIDTH, CHAT_WIDTH_STEP, clampChatWidth, dragChatWidth, loadChatWidth, saveChatWidth} from "./chatPanel";
+import { authHeaders, sessionId } from '@infra/http/authToken.ts'
 
 /**
  * An icon-only button of the panel's header: the active renderer's own (the Vaadin adapter: a
@@ -428,10 +429,9 @@ export class MateuChat extends LitElement {
             form.append('sessionId', this.chatSessionId);
             for (const f of files) form.append('files', f, f.name);
             const headers: Record<string, string> = {};
-            const token = localStorage.getItem('__mateu_auth_token');
-            if (token) headers['Authorization'] = 'Bearer ' + token;
-            const sessionId = sessionStorage.getItem('__mateu_sesion_id');
-            if (sessionId) headers['X-Session-Id'] = sessionId;
+            Object.assign(headers, authHeaders());
+            const sid = sessionId(false);
+            if (sid) headers['X-Session-Id'] = sid;
             const response = await fetch(this.uploadUrl, { method: 'POST', headers, body: form });
             if (!response.ok) throw new Error(`Upload failed: ${response.status}`);
             const result = await response.json() as { files?: { name: string; path: string }[] };
@@ -475,10 +475,9 @@ export class MateuChat extends LitElement {
                     'Accept': 'text/event-stream',
                     'Content-Type': 'application/json',
                 };
-                const token = localStorage.getItem('__mateu_auth_token');
-                if (token) h['Authorization'] = 'Bearer ' + token;
-                const sessionId = sessionStorage.getItem('__mateu_sesion_id');
-                if (sessionId) h['X-Session-Id'] = sessionId;
+                Object.assign(h, authHeaders());
+                const sid = sessionId(false);
+                if (sid) h['X-Session-Id'] = sid;
                 return h;
             };
 

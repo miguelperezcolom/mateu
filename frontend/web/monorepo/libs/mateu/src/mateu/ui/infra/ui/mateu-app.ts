@@ -32,6 +32,7 @@ type AppLayout = HTMLElement & { drawerOpened?: boolean }
 import {MateuChat} from "@infra/ui/mateu-chat.ts";
 import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
 import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
+import { safeLocalStorage } from '@infra/safeStorage.ts'
 
 // one hit of the app's GlobalSearchSupplier, shown by the command palette under the menu results
 interface GlobalSearchHit { label: string, description?: string, route: string, category?: string }
@@ -263,7 +264,7 @@ export class MateuApp extends ComponentElement {
         this.isDark = !this.isDark
         const theme = this.isDark ? 'dark' : 'light'
         document.documentElement.setAttribute('theme', theme)
-        localStorage.setItem('mateu-theme', theme)
+        safeLocalStorage.set('mateu-theme', theme)
     }
 
     showHideIa = () => {
