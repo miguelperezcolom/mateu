@@ -4,6 +4,9 @@ All notable changes to the Mateu Visual Editor extension.
 
 ## 0.1.0
 
+- **Mateu: New File…** (Explorer folder context menu + command palette): create a UI mount, routes
+  file, app shell, REST source catalogue or a page from 18 page templates with a chosen page width —
+  the same catalogue and skeletons as the IntelliJ plugin's New › Mateu.
 - Marketplace-ready packaging: icon, bundled LICENSE, `.vscodeignore`, repository/homepage/bugs
   metadata; `npm run package` (`vsce package`) runs non-interactively from a clean checkout.
 - Activates only in workspaces that contain Mateu pages (`specs/ui/**/*.yaml|yml`) or when the

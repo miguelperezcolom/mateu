@@ -5,3 +5,4 @@ media/
 # staged by scripts/prepackage.mjs at packaging time (sources of truth live elsewhere in the repo)
 LICENSE
 schema/
+templates/

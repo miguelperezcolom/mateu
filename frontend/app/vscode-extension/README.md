@@ -52,6 +52,22 @@ the packaged copy (e.g. running from source before `npm run stage`), point a `$s
 The extension activates only in workspaces containing `specs/ui/**/*.yaml|yml` files, or when the
 Mateu visual editor is opened.
 
+## New file (Mateu: New File…)
+
+Right-click a folder in the Explorer (or run **Mateu: New File…** from the command palette) to create
+a `specs/ui` file: a **UI mount** (`type: UI`), a **routes file** (`type: Routes`), an **app shell**
+(`type: AppShell`), a **REST source catalogue** (`type: Sources`) or a **page** — for a page, pick
+its template (form, listing/CRUD, wizard step, dashboard, smart search, to-do list, calendar, welcome,
+hero search, collection detail, general overview, item overview, foldout, Gantt page, data
+management, matrix grid, planning board, blank) and its page width. The file goes into the clicked
+folder when it is inside `specs/ui`, else into the nearest `specs/ui` (or a new
+`src/main/resources/specs/ui`).
+
+The catalogue and skeletons are the IntelliJ plugin's (`intellij-plugin/src/main/resources/mateu/
+new-file-kinds.json` + `fileTemplates/internal/*.yaml.ft`), staged into `templates/` at packaging;
+running from source reads them from the plugin directly. The IntelliJ test validates every skeleton
+against the specs schema; `src/newFiles.test.ts` pins the shared rendering rules here.
+
 ## Packaging & tests
 
 ```bash

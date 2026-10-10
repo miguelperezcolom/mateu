@@ -59,7 +59,23 @@
         "fileMatch": "**/specs/ui/**/*.yml",
         "url": "./schema/specs-schema.json"
       }
-    ]
+    ],
+    "commands": [
+      {
+        "command": "mateu.newFile",
+        "title": "New File…",
+        "category": "Mateu"
+      }
+    ],
+    "menus": {
+      "explorer/context": [
+        {
+          "command": "mateu.newFile",
+          "when": "explorerResourceIsFolder",
+          "group": "navigation@10"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run stage && npm run compile",
@@ -83,7 +99,8 @@
   "activationEvents": [
     "workspaceContains:**/specs/ui/**/*.yaml",
     "workspaceContains:**/specs/ui/**/*.yml",
-    "onCustomEditor:mateu.visualEditor"
+    "onCustomEditor:mateu.visualEditor",
+    "onCommand:mateu.newFile"
   ],
   "keywords": [
     "mateu",

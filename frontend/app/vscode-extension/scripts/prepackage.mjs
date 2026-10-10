@@ -3,11 +3,12 @@
 //   - LICENSE           ← repo-root LICENSE.txt (vsce warns/prompts without one)
 //   - schema/specs-schema.json ← backend/shared/uidl/specs-schema.json (the generated authoring
 //                         schema, contributed through `yamlValidation` for specs/ui/**)
+//   - templates/        ← the New › Mateu catalogue + skeletons (intellij-plugin resources)
 //   - media/            ← the shared visual-editor web bundle. Built fresh from
 //                         frontend/web/monorepo/apps/visual-editor when that workspace is installed,
 //                         otherwise copied from the bundle committed in the IntelliJ plugin
 //                         (src/main/resources/visual-editor — the exact same `dist/`).
-// All three outputs are gitignored: the sources of truth live elsewhere in the repo.
+// All of them are gitignored: the sources of truth live elsewhere in the repo.
 import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs'
 import { execSync } from 'node:child_process'
 import { dirname, join, resolve } from 'node:path'
@@ -25,6 +26,13 @@ function copy(from, to) {
 
 copy(join(repo, 'LICENSE.txt'), join(here, 'LICENSE'))
 copy(join(repo, 'backend/shared/uidl/specs-schema.json'), join(here, 'schema/specs-schema.json'))
+
+// New › Mateu: the file-kind catalogue and the skeletons, shared with the IntelliJ plugin (its
+// resources are the single source of truth; see src/newFiles.ts).
+const ijResources = join(repo, 'frontend/app/intellij-plugin/src/main/resources')
+rmSync(join(here, 'templates'), { recursive: true, force: true })
+copy(join(ijResources, 'mateu/new-file-kinds.json'), join(here, 'templates/new-file-kinds.json'))
+copy(join(ijResources, 'fileTemplates/internal'), join(here, 'templates/internal'))
 
 const webApp = join(repo, 'frontend/web/monorepo/apps/visual-editor')
 const committedBundle = join(repo, 'frontend/app/intellij-plugin/src/main/resources/visual-editor')
