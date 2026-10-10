@@ -12,7 +12,7 @@
     {
       "id": "routes",
       "label": "Routes File",
-      "description": "The route registry of a mount (type: Routes): routes bound to layouts, view models and pinned/default parameters, with nested children.",
+      "description": "The route registry of a mount (type: Routes), created EMPTY and registered in the mount's routes list. Add its entries one at a time with Add Route…",
       "fileName": "routes",
       "template": "Mateu Routes",
       "schemaType": "Routes"

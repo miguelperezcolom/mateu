@@ -2,6 +2,15 @@
 
 All notable changes to the Mateu Visual Editor extension.
 
+## Unreleased
+
+- **Routes File** is now created EMPTY (`routes: []`, no sample routes pointing at files that do not
+  exist), registered in the chosen `type: UI` mount's `routes:` list, with an optional `basePath`.
+- **Mateu: Add Route…** (Explorer/editor context menu on a routes file + command palette): append one
+  entry — layout (a discovered page or app shell), route, view model, parent — with a minimal text
+  edit, and optionally make it the mount's `home:` page.
+- New page → optionally adds its route to an existing routes file; new UI mount → optional home route.
+
 ## 0.1.0
 
 - **Mateu: New File…** (Explorer folder context menu + command palette): create a UI mount, routes

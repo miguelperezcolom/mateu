@@ -98,5 +98,11 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
         <group id="io.mateu.NewGroup" class="io.mateu.ijp.newfile.MateuNewFileGroup">
             <add-to-group group-id="NewGroup" anchor="last"/>
         </group>
+        <!-- Add Route…: append one entry to a type: Routes file (shown only on such a file). -->
+        <action id="io.mateu.AddRoute" class="io.mateu.ijp.newfile.AddMateuRouteAction"
+                text="Add Mateu Route…" description="Append a route to this Mateu route registry (type: Routes)">
+            <add-to-group group-id="ProjectViewPopupMenu" anchor="after" relative-to-action="NewGroup"/>
+            <add-to-group group-id="EditorPopupMenu" anchor="first"/>
+        </action>
     </actions>
 </idea-plugin>

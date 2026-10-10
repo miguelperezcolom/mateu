@@ -1,40 +1,6 @@
-# Route registry of a mount. Each entry binds a route (RELATIVE to the mount) to a layout under
-# specs/ui, an optional view model and pinned/default parameters — independently, so one layout can
-# answer several routes and a route can exist with no view model at all (statically served).
-# Precedence of parameters: fixed > client state > path > query > defaults.
-#
-# Optional header for a class-declared @UI("/shop") mount: author the routes relative to it.
-# basePath: /shop
+# Route registry of a mount. Each entry binds a route (relative to the mount; "" is its root)
+# to a layout under specs/ui, an optional viewModel, and parameters it pins (fixedParams) or
+# seeds (defaultParams); `children` nest sub-routes in a parent's slot. Add entries with
+# Add Route…, see https://mateu.io/java-ui-definition/route-registry/
 type: Routes
-routes:
-  # The mount root binds the app shell (a `type: AppShell` definition, e.g. app.yaml).
-  - route: ""
-    layout: app.yaml
-
-  # A screen with a view model behind it and seeded (overridable) parameters.
-  - route: orders
-    layout: orders.yaml
-    viewModel: com.example.ui.Orders
-    defaultParams:
-      status: open
-
-  # The same layout over another route, with a parameter PINNED (re-applied on the server).
-  - route: orders/archived
-    layout: orders.yaml
-    viewModel: com.example.ui.Orders
-    fixedParams:
-      status: archived
-
-  # A record master whose sub-routes render inside its slot (children are relative to it).
-  - route: customers/:id
-    layout: customer.yaml
-    children:
-      - route: profile
-        layout: customer-profile.yaml
-      - route: invoices
-        layout: customer-invoices.yaml
-    defaultChild: profile
-
-  # No view model: a layout plus client-side data — valid and complete.
-  - route: about
-    layout: about.yaml
+routes: []
