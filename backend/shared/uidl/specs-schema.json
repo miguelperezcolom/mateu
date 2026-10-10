@@ -155,6 +155,84 @@
         }
       }
     },
+    "ActionPanel" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "ActionPanel"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "shortcut" : {
+          "type" : "string"
+        },
+        "categories" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ActionPanelCategory"
+          }
+        },
+        "maxPerCategory" : {
+          "type" : "integer"
+        },
+        "hideUnpopulatedToggle" : {
+          "type" : "boolean"
+        },
+        "style" : {
+          "type" : "string"
+        },
+        "cssClasses" : {
+          "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        }
+      }
+    },
+    "ActionPanelCategory" : {
+      "type" : "object",
+      "properties" : {
+        "title" : {
+          "type" : "string"
+        },
+        "actions" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ActionPanelItem"
+          }
+        }
+      }
+    },
+    "ActionPanelItem" : {
+      "type" : "object",
+      "properties" : {
+        "label" : {
+          "type" : "string"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "parameters" : {
+          "type" : "object"
+        },
+        "count" : {
+          "type" : "integer"
+        },
+        "populated" : {
+          "type" : "boolean"
+        },
+        "disabled" : {
+          "type" : "boolean"
+        }
+      }
+    },
     "Actionable" : {
       "description" : "One of the Actionable implementations.",
       "oneOf" : [ {
@@ -1324,6 +1402,8 @@
         "$ref" : "#/$defs/AccordionLayout"
       }, {
         "$ref" : "#/$defs/AccordionPanel"
+      }, {
+        "$ref" : "#/$defs/ActionPanel"
       }, {
         "$ref" : "#/$defs/AddOnPicker"
       }, {

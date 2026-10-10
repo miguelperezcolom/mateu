@@ -717,6 +717,36 @@ public sealed record BulletedList : ComponentBase
     public IReadOnlyList<string> Items { get; init; } = [];
 }
 
+/// <summary>An action of an <see cref="ActionPanel"/>. Populated marks an action with data behind
+/// it (listed first and emphasised); a Count greater than zero implies it and is shown next to the
+/// label ("Traces (3)").</summary>
+public sealed record ActionPanelItem(string Label, string ActionId)
+{
+    public IReadOnlyDictionary<string, object?>? Parameters { get; init; }
+    public int? Count { get; init; }
+    public bool Populated { get; init; }
+    public bool Disabled { get; init; }
+}
+
+/// <summary>A column of an <see cref="ActionPanel"/>: a title and its actions.</summary>
+public sealed record ActionPanelCategory(string Title)
+{
+    public IReadOnlyList<ActionPanelItem> Actions { get; init; } = [];
+}
+
+/// <summary>A categorised ACTION PANEL: a trigger button opening a layer with the record's actions
+/// grouped in columns, one per category — the "I want to…" menu of back-office suites. Each column
+/// shows up to MaxPerCategory actions (0 = 10) and a "Show more"; HideUnpopulatedToggle offers to
+/// hide the actions without data. Shortcut (e.g. "ctrl+i") opens it from the keyboard.</summary>
+public sealed record ActionPanel : ComponentBase
+{
+    public string? Label { get; init; }
+    public string? Shortcut { get; init; }
+    public IReadOnlyList<ActionPanelCategory> Categories { get; init; } = [];
+    public int MaxPerCategory { get; init; }
+    public bool HideUnpopulatedToggle { get; init; }
+}
+
 /// <summary>A compact inline banner: a theme-tinted strip with a severity icon and one line of
 /// text (e.g. "2 quejas pendientes"), plus an optional right-aligned action. Theme: "info" |
 /// "success" | "warning" | "danger" (default info).</summary>

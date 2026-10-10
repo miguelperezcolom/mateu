@@ -996,6 +996,35 @@ class BulletedListMetadata(Wire):
     items: list[str] = Field(default_factory=list)
 
 
+class ActionPanelItemRecord(Wire):
+    """One action of an action panel (mirrors ``ActionPanelItemDto``)."""
+
+    label: str | None = None
+    action_id: str | None = None
+    parameters: dict[str, object] | None = None
+    count: int | None = None
+    populated: bool = False
+    disabled: bool = False
+
+
+class ActionPanelCategoryRecord(Wire):
+    """A column of an action panel (mirrors ``ActionPanelCategoryDto``)."""
+
+    title: str | None = None
+    actions: list[ActionPanelItemRecord] = Field(default_factory=list)
+
+
+class ActionPanelMetadata(Wire):
+    """Categorised action panel ("I want to…") (mirrors ``ActionPanelDto``)."""
+
+    type: Literal["ActionPanel"] = "ActionPanel"
+    label: str = "I want to…"
+    shortcut: str | None = None
+    categories: list[ActionPanelCategoryRecord] = Field(default_factory=list)
+    max_per_category: int = 10
+    hide_unpopulated_toggle: bool = False
+
+
 class QueueItemRecord(Wire):
     """One task-queue card (mirrors ``QueueItemDto``)."""
 
@@ -1267,6 +1296,7 @@ ComponentMetadata = Annotated[
         TaskProgressMetadata,
         StatusListMetadata,
         BulletedListMetadata,
+        ActionPanelMetadata,
         SeparatorMetadata,
         CustomComponentMetadata,
         AnchorMetadata,

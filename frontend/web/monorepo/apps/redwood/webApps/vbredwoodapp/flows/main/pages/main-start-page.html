@@ -683,6 +683,45 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isActionPanel ]]">
+                      <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
+                           abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
+                      <div class="mateu-action-panel oj-sm-margin-2x-bottom">
+                        <oj-button chroming="outlined" :data-ap-open="[[ $current.data.panelId ]]"
+                          :data-ap-shortcut="[[ $current.data.shortcut ]]" :title="[[ $current.data.title ]]">
+                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                        <oj-dialog :id="[[ $current.data.panelId ]]" class="mateu-ap-dialog"
+                          dialog-title="[[ $current.data.label ]]" cancel-behavior="icon">
+                          <div slot="body">
+                            <oj-bind-if test="[[ $current.data.hideToggle ]]">
+                              <div class="oj-sm-margin-4x-bottom">
+                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                              </div>
+                            </oj-bind-if>
+                            <div class="mateu-ap-columns">
+                              <oj-bind-for-each data="[[ $current.data.categories ]]">
+                                <template data-oj-as="cat">
+                                  <div :class="[[ cat.data.columnClass ]]">
+                                    <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ cat.data.title ]]"></oj-bind-text></h3>
+                                    <oj-bind-for-each data="[[ cat.data.actions ]]">
+                                      <template>
+                                        <oj-button chroming="borderless" :class="[[ $current.data.itemClass ]]"
+                                          disabled="[[ $current.data.disabled ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                    <oj-bind-if test="[[ cat.data.hasMore ]]">
+                                      <oj-button chroming="borderless" :class="[[ cat.data.moreClass ]]" data-ap-more="true"><oj-bind-text value="[[ cat.data.moreLabel ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </div>
+                        </oj-dialog>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCollapsible ]]">
                       <!-- cabecera de un panel plegable (AccordionPanel / Details): su contenido va detrás,
                            como átomos, si está abierto; plegar re-proyecta (panelToggled) -->
@@ -1342,6 +1381,45 @@
                           <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
                         </template>
                       </oj-gantt>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isActionPanel ]]">
+                      <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
+                           abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
+                      <div class="mateu-action-panel oj-sm-margin-2x-bottom">
+                        <oj-button chroming="outlined" :data-ap-open="[[ $current.data.panelId ]]"
+                          :data-ap-shortcut="[[ $current.data.shortcut ]]" :title="[[ $current.data.title ]]">
+                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                        <oj-dialog :id="[[ $current.data.panelId ]]" class="mateu-ap-dialog"
+                          dialog-title="[[ $current.data.label ]]" cancel-behavior="icon">
+                          <div slot="body">
+                            <oj-bind-if test="[[ $current.data.hideToggle ]]">
+                              <div class="oj-sm-margin-4x-bottom">
+                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                              </div>
+                            </oj-bind-if>
+                            <div class="mateu-ap-columns">
+                              <oj-bind-for-each data="[[ $current.data.categories ]]">
+                                <template data-oj-as="cat">
+                                  <div :class="[[ cat.data.columnClass ]]">
+                                    <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ cat.data.title ]]"></oj-bind-text></h3>
+                                    <oj-bind-for-each data="[[ cat.data.actions ]]">
+                                      <template>
+                                        <oj-button chroming="borderless" :class="[[ $current.data.itemClass ]]"
+                                          disabled="[[ $current.data.disabled ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                    <oj-bind-if test="[[ cat.data.hasMore ]]">
+                                      <oj-button chroming="borderless" :class="[[ cat.data.moreClass ]]" data-ap-more="true"><oj-bind-text value="[[ cat.data.moreLabel ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </div>
+                        </oj-dialog>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCollapsible ]]">
                       <!-- cabecera de un panel plegable (AccordionPanel / Details): su contenido va detrás,
@@ -2024,6 +2102,45 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isActionPanel ]]">
+                      <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
+                           abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
+                      <div class="mateu-action-panel oj-sm-margin-2x-bottom">
+                        <oj-button chroming="outlined" :data-ap-open="[[ $current.data.panelId ]]"
+                          :data-ap-shortcut="[[ $current.data.shortcut ]]" :title="[[ $current.data.title ]]">
+                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                        <oj-dialog :id="[[ $current.data.panelId ]]" class="mateu-ap-dialog"
+                          dialog-title="[[ $current.data.label ]]" cancel-behavior="icon">
+                          <div slot="body">
+                            <oj-bind-if test="[[ $current.data.hideToggle ]]">
+                              <div class="oj-sm-margin-4x-bottom">
+                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                              </div>
+                            </oj-bind-if>
+                            <div class="mateu-ap-columns">
+                              <oj-bind-for-each data="[[ $current.data.categories ]]">
+                                <template data-oj-as="cat">
+                                  <div :class="[[ cat.data.columnClass ]]">
+                                    <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ cat.data.title ]]"></oj-bind-text></h3>
+                                    <oj-bind-for-each data="[[ cat.data.actions ]]">
+                                      <template>
+                                        <oj-button chroming="borderless" :class="[[ $current.data.itemClass ]]"
+                                          disabled="[[ $current.data.disabled ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                    <oj-bind-if test="[[ cat.data.hasMore ]]">
+                                      <oj-button chroming="borderless" :class="[[ cat.data.moreClass ]]" data-ap-more="true"><oj-bind-text value="[[ cat.data.moreLabel ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </div>
+                        </oj-dialog>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCollapsible ]]">
                       <!-- cabecera de un panel plegable (AccordionPanel / Details): su contenido va detrás,
                            como átomos, si está abierto; plegar re-proyecta (panelToggled) -->
@@ -2683,6 +2800,45 @@
                           <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
                         </template>
                       </oj-gantt>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isActionPanel ]]">
+                      <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
+                           abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
+                      <div class="mateu-action-panel oj-sm-margin-2x-bottom">
+                        <oj-button chroming="outlined" :data-ap-open="[[ $current.data.panelId ]]"
+                          :data-ap-shortcut="[[ $current.data.shortcut ]]" :title="[[ $current.data.title ]]">
+                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                        <oj-dialog :id="[[ $current.data.panelId ]]" class="mateu-ap-dialog"
+                          dialog-title="[[ $current.data.label ]]" cancel-behavior="icon">
+                          <div slot="body">
+                            <oj-bind-if test="[[ $current.data.hideToggle ]]">
+                              <div class="oj-sm-margin-4x-bottom">
+                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                              </div>
+                            </oj-bind-if>
+                            <div class="mateu-ap-columns">
+                              <oj-bind-for-each data="[[ $current.data.categories ]]">
+                                <template data-oj-as="cat">
+                                  <div :class="[[ cat.data.columnClass ]]">
+                                    <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ cat.data.title ]]"></oj-bind-text></h3>
+                                    <oj-bind-for-each data="[[ cat.data.actions ]]">
+                                      <template>
+                                        <oj-button chroming="borderless" :class="[[ $current.data.itemClass ]]"
+                                          disabled="[[ $current.data.disabled ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                    <oj-bind-if test="[[ cat.data.hasMore ]]">
+                                      <oj-button chroming="borderless" :class="[[ cat.data.moreClass ]]" data-ap-more="true"><oj-bind-text value="[[ cat.data.moreLabel ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </div>
+                        </oj-dialog>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCollapsible ]]">
                       <!-- cabecera de un panel plegable (AccordionPanel / Details): su contenido va detrás,
@@ -3679,6 +3835,45 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isActionPanel ]]">
+                      <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
+                           abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
+                      <div class="mateu-action-panel oj-sm-margin-2x-bottom">
+                        <oj-button chroming="outlined" :data-ap-open="[[ $current.data.panelId ]]"
+                          :data-ap-shortcut="[[ $current.data.shortcut ]]" :title="[[ $current.data.title ]]">
+                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                        <oj-dialog :id="[[ $current.data.panelId ]]" class="mateu-ap-dialog"
+                          dialog-title="[[ $current.data.label ]]" cancel-behavior="icon">
+                          <div slot="body">
+                            <oj-bind-if test="[[ $current.data.hideToggle ]]">
+                              <div class="oj-sm-margin-4x-bottom">
+                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                              </div>
+                            </oj-bind-if>
+                            <div class="mateu-ap-columns">
+                              <oj-bind-for-each data="[[ $current.data.categories ]]">
+                                <template data-oj-as="cat">
+                                  <div :class="[[ cat.data.columnClass ]]">
+                                    <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ cat.data.title ]]"></oj-bind-text></h3>
+                                    <oj-bind-for-each data="[[ cat.data.actions ]]">
+                                      <template>
+                                        <oj-button chroming="borderless" :class="[[ $current.data.itemClass ]]"
+                                          disabled="[[ $current.data.disabled ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                    <oj-bind-if test="[[ cat.data.hasMore ]]">
+                                      <oj-button chroming="borderless" :class="[[ cat.data.moreClass ]]" data-ap-more="true"><oj-bind-text value="[[ cat.data.moreLabel ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </div>
+                        </oj-dialog>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCollapsible ]]">
                       <!-- cabecera de un panel plegable (AccordionPanel / Details): su contenido va detrás,
                            como átomos, si está abierto; plegar re-proyecta (panelToggled) -->
@@ -4542,6 +4737,45 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isActionPanel ]]">
+                      <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
+                           abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
+                      <div class="mateu-action-panel oj-sm-margin-2x-bottom">
+                        <oj-button chroming="outlined" :data-ap-open="[[ $current.data.panelId ]]"
+                          :data-ap-shortcut="[[ $current.data.shortcut ]]" :title="[[ $current.data.title ]]">
+                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                        <oj-dialog :id="[[ $current.data.panelId ]]" class="mateu-ap-dialog"
+                          dialog-title="[[ $current.data.label ]]" cancel-behavior="icon">
+                          <div slot="body">
+                            <oj-bind-if test="[[ $current.data.hideToggle ]]">
+                              <div class="oj-sm-margin-4x-bottom">
+                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                              </div>
+                            </oj-bind-if>
+                            <div class="mateu-ap-columns">
+                              <oj-bind-for-each data="[[ $current.data.categories ]]">
+                                <template data-oj-as="cat">
+                                  <div :class="[[ cat.data.columnClass ]]">
+                                    <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ cat.data.title ]]"></oj-bind-text></h3>
+                                    <oj-bind-for-each data="[[ cat.data.actions ]]">
+                                      <template>
+                                        <oj-button chroming="borderless" :class="[[ $current.data.itemClass ]]"
+                                          disabled="[[ $current.data.disabled ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                    <oj-bind-if test="[[ cat.data.hasMore ]]">
+                                      <oj-button chroming="borderless" :class="[[ cat.data.moreClass ]]" data-ap-more="true"><oj-bind-text value="[[ cat.data.moreLabel ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </div>
+                        </oj-dialog>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCollapsible ]]">
                       <!-- cabecera de un panel plegable (AccordionPanel / Details): su contenido va detrás,
                            como átomos, si está abierto; plegar re-proyecta (panelToggled) -->
@@ -5199,6 +5433,45 @@
                           <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
                         </template>
                       </oj-gantt>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isActionPanel ]]">
+                      <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
+                           abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
+                      <div class="mateu-action-panel oj-sm-margin-2x-bottom">
+                        <oj-button chroming="outlined" :data-ap-open="[[ $current.data.panelId ]]"
+                          :data-ap-shortcut="[[ $current.data.shortcut ]]" :title="[[ $current.data.title ]]">
+                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                        <oj-dialog :id="[[ $current.data.panelId ]]" class="mateu-ap-dialog"
+                          dialog-title="[[ $current.data.label ]]" cancel-behavior="icon">
+                          <div slot="body">
+                            <oj-bind-if test="[[ $current.data.hideToggle ]]">
+                              <div class="oj-sm-margin-4x-bottom">
+                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                              </div>
+                            </oj-bind-if>
+                            <div class="mateu-ap-columns">
+                              <oj-bind-for-each data="[[ $current.data.categories ]]">
+                                <template data-oj-as="cat">
+                                  <div :class="[[ cat.data.columnClass ]]">
+                                    <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ cat.data.title ]]"></oj-bind-text></h3>
+                                    <oj-bind-for-each data="[[ cat.data.actions ]]">
+                                      <template>
+                                        <oj-button chroming="borderless" :class="[[ $current.data.itemClass ]]"
+                                          disabled="[[ $current.data.disabled ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                    <oj-bind-if test="[[ cat.data.hasMore ]]">
+                                      <oj-button chroming="borderless" :class="[[ cat.data.moreClass ]]" data-ap-more="true"><oj-bind-text value="[[ cat.data.moreLabel ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </div>
+                        </oj-dialog>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCollapsible ]]">
                       <!-- cabecera de un panel plegable (AccordionPanel / Details): su contenido va detrás,
@@ -6305,6 +6578,45 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isActionPanel ]]">
+                      <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
+                           abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
+                      <div class="mateu-action-panel oj-sm-margin-2x-bottom">
+                        <oj-button chroming="outlined" :data-ap-open="[[ $current.data.panelId ]]"
+                          :data-ap-shortcut="[[ $current.data.shortcut ]]" :title="[[ $current.data.title ]]">
+                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                        <oj-dialog :id="[[ $current.data.panelId ]]" class="mateu-ap-dialog"
+                          dialog-title="[[ $current.data.label ]]" cancel-behavior="icon">
+                          <div slot="body">
+                            <oj-bind-if test="[[ $current.data.hideToggle ]]">
+                              <div class="oj-sm-margin-4x-bottom">
+                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                              </div>
+                            </oj-bind-if>
+                            <div class="mateu-ap-columns">
+                              <oj-bind-for-each data="[[ $current.data.categories ]]">
+                                <template data-oj-as="cat">
+                                  <div :class="[[ cat.data.columnClass ]]">
+                                    <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ cat.data.title ]]"></oj-bind-text></h3>
+                                    <oj-bind-for-each data="[[ cat.data.actions ]]">
+                                      <template>
+                                        <oj-button chroming="borderless" :class="[[ $current.data.itemClass ]]"
+                                          disabled="[[ $current.data.disabled ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                    <oj-bind-if test="[[ cat.data.hasMore ]]">
+                                      <oj-button chroming="borderless" :class="[[ cat.data.moreClass ]]" data-ap-more="true"><oj-bind-text value="[[ cat.data.moreLabel ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </div>
+                        </oj-dialog>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCollapsible ]]">
                       <!-- cabecera de un panel plegable (AccordionPanel / Details): su contenido va detrás,
                            como átomos, si está abierto; plegar re-proyecta (panelToggled) -->
@@ -6962,6 +7274,45 @@
                           <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
                         </template>
                       </oj-gantt>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isActionPanel ]]">
+                      <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
+                           abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
+                      <div class="mateu-action-panel oj-sm-margin-2x-bottom">
+                        <oj-button chroming="outlined" :data-ap-open="[[ $current.data.panelId ]]"
+                          :data-ap-shortcut="[[ $current.data.shortcut ]]" :title="[[ $current.data.title ]]">
+                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                        <oj-dialog :id="[[ $current.data.panelId ]]" class="mateu-ap-dialog"
+                          dialog-title="[[ $current.data.label ]]" cancel-behavior="icon">
+                          <div slot="body">
+                            <oj-bind-if test="[[ $current.data.hideToggle ]]">
+                              <div class="oj-sm-margin-4x-bottom">
+                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                              </div>
+                            </oj-bind-if>
+                            <div class="mateu-ap-columns">
+                              <oj-bind-for-each data="[[ $current.data.categories ]]">
+                                <template data-oj-as="cat">
+                                  <div :class="[[ cat.data.columnClass ]]">
+                                    <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ cat.data.title ]]"></oj-bind-text></h3>
+                                    <oj-bind-for-each data="[[ cat.data.actions ]]">
+                                      <template>
+                                        <oj-button chroming="borderless" :class="[[ $current.data.itemClass ]]"
+                                          disabled="[[ $current.data.disabled ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                    <oj-bind-if test="[[ cat.data.hasMore ]]">
+                                      <oj-button chroming="borderless" :class="[[ cat.data.moreClass ]]" data-ap-more="true"><oj-bind-text value="[[ cat.data.moreLabel ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </div>
+                        </oj-dialog>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCollapsible ]]">
                       <!-- cabecera de un panel plegable (AccordionPanel / Details): su contenido va detrás,
@@ -7687,6 +8038,45 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isActionPanel ]]">
+                      <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
+                           abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
+                      <div class="mateu-action-panel oj-sm-margin-2x-bottom">
+                        <oj-button chroming="outlined" :data-ap-open="[[ $current.data.panelId ]]"
+                          :data-ap-shortcut="[[ $current.data.shortcut ]]" :title="[[ $current.data.title ]]">
+                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                        <oj-dialog :id="[[ $current.data.panelId ]]" class="mateu-ap-dialog"
+                          dialog-title="[[ $current.data.label ]]" cancel-behavior="icon">
+                          <div slot="body">
+                            <oj-bind-if test="[[ $current.data.hideToggle ]]">
+                              <div class="oj-sm-margin-4x-bottom">
+                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                              </div>
+                            </oj-bind-if>
+                            <div class="mateu-ap-columns">
+                              <oj-bind-for-each data="[[ $current.data.categories ]]">
+                                <template data-oj-as="cat">
+                                  <div :class="[[ cat.data.columnClass ]]">
+                                    <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ cat.data.title ]]"></oj-bind-text></h3>
+                                    <oj-bind-for-each data="[[ cat.data.actions ]]">
+                                      <template>
+                                        <oj-button chroming="borderless" :class="[[ $current.data.itemClass ]]"
+                                          disabled="[[ $current.data.disabled ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                    <oj-bind-if test="[[ cat.data.hasMore ]]">
+                                      <oj-button chroming="borderless" :class="[[ cat.data.moreClass ]]" data-ap-more="true"><oj-bind-text value="[[ cat.data.moreLabel ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </div>
+                        </oj-dialog>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCollapsible ]]">
                       <!-- cabecera de un panel plegable (AccordionPanel / Details): su contenido va detrás,
                            como átomos, si está abierto; plegar re-proyecta (panelToggled) -->
@@ -8346,6 +8736,45 @@
                           <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
                         </template>
                       </oj-gantt>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isActionPanel ]]">
+                      <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
+                           abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
+                      <div class="mateu-action-panel oj-sm-margin-2x-bottom">
+                        <oj-button chroming="outlined" :data-ap-open="[[ $current.data.panelId ]]"
+                          :data-ap-shortcut="[[ $current.data.shortcut ]]" :title="[[ $current.data.title ]]">
+                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                        <oj-dialog :id="[[ $current.data.panelId ]]" class="mateu-ap-dialog"
+                          dialog-title="[[ $current.data.label ]]" cancel-behavior="icon">
+                          <div slot="body">
+                            <oj-bind-if test="[[ $current.data.hideToggle ]]">
+                              <div class="oj-sm-margin-4x-bottom">
+                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                              </div>
+                            </oj-bind-if>
+                            <div class="mateu-ap-columns">
+                              <oj-bind-for-each data="[[ $current.data.categories ]]">
+                                <template data-oj-as="cat">
+                                  <div :class="[[ cat.data.columnClass ]]">
+                                    <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ cat.data.title ]]"></oj-bind-text></h3>
+                                    <oj-bind-for-each data="[[ cat.data.actions ]]">
+                                      <template>
+                                        <oj-button chroming="borderless" :class="[[ $current.data.itemClass ]]"
+                                          disabled="[[ $current.data.disabled ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                    <oj-bind-if test="[[ cat.data.hasMore ]]">
+                                      <oj-button chroming="borderless" :class="[[ cat.data.moreClass ]]" data-ap-more="true"><oj-bind-text value="[[ cat.data.moreLabel ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </div>
+                        </oj-dialog>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCollapsible ]]">
                       <!-- cabecera de un panel plegable (AccordionPanel / Details): su contenido va detrás,
@@ -9021,6 +9450,45 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isActionPanel ]]">
+                      <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
+                           abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
+                      <div class="mateu-action-panel oj-sm-margin-2x-bottom">
+                        <oj-button chroming="outlined" :data-ap-open="[[ $current.data.panelId ]]"
+                          :data-ap-shortcut="[[ $current.data.shortcut ]]" :title="[[ $current.data.title ]]">
+                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                        <oj-dialog :id="[[ $current.data.panelId ]]" class="mateu-ap-dialog"
+                          dialog-title="[[ $current.data.label ]]" cancel-behavior="icon">
+                          <div slot="body">
+                            <oj-bind-if test="[[ $current.data.hideToggle ]]">
+                              <div class="oj-sm-margin-4x-bottom">
+                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                              </div>
+                            </oj-bind-if>
+                            <div class="mateu-ap-columns">
+                              <oj-bind-for-each data="[[ $current.data.categories ]]">
+                                <template data-oj-as="cat">
+                                  <div :class="[[ cat.data.columnClass ]]">
+                                    <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ cat.data.title ]]"></oj-bind-text></h3>
+                                    <oj-bind-for-each data="[[ cat.data.actions ]]">
+                                      <template>
+                                        <oj-button chroming="borderless" :class="[[ $current.data.itemClass ]]"
+                                          disabled="[[ $current.data.disabled ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                    <oj-bind-if test="[[ cat.data.hasMore ]]">
+                                      <oj-button chroming="borderless" :class="[[ cat.data.moreClass ]]" data-ap-more="true"><oj-bind-text value="[[ cat.data.moreLabel ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </div>
+                        </oj-dialog>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCollapsible ]]">
                       <!-- cabecera de un panel plegable (AccordionPanel / Details): su contenido va detrás,
                            como átomos, si está abierto; plegar re-proyecta (panelToggled) -->
@@ -9680,6 +10148,45 @@
                           <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
                         </template>
                       </oj-gantt>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isActionPanel ]]">
+                      <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
+                           abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
+                      <div class="mateu-action-panel oj-sm-margin-2x-bottom">
+                        <oj-button chroming="outlined" :data-ap-open="[[ $current.data.panelId ]]"
+                          :data-ap-shortcut="[[ $current.data.shortcut ]]" :title="[[ $current.data.title ]]">
+                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                        <oj-dialog :id="[[ $current.data.panelId ]]" class="mateu-ap-dialog"
+                          dialog-title="[[ $current.data.label ]]" cancel-behavior="icon">
+                          <div slot="body">
+                            <oj-bind-if test="[[ $current.data.hideToggle ]]">
+                              <div class="oj-sm-margin-4x-bottom">
+                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                              </div>
+                            </oj-bind-if>
+                            <div class="mateu-ap-columns">
+                              <oj-bind-for-each data="[[ $current.data.categories ]]">
+                                <template data-oj-as="cat">
+                                  <div :class="[[ cat.data.columnClass ]]">
+                                    <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ cat.data.title ]]"></oj-bind-text></h3>
+                                    <oj-bind-for-each data="[[ cat.data.actions ]]">
+                                      <template>
+                                        <oj-button chroming="borderless" :class="[[ $current.data.itemClass ]]"
+                                          disabled="[[ $current.data.disabled ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                    <oj-bind-if test="[[ cat.data.hasMore ]]">
+                                      <oj-button chroming="borderless" :class="[[ cat.data.moreClass ]]" data-ap-more="true"><oj-bind-text value="[[ cat.data.moreLabel ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </div>
+                        </oj-dialog>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCollapsible ]]">
                       <!-- cabecera de un panel plegable (AccordionPanel / Details): su contenido va detrás,
@@ -10384,6 +10891,45 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isActionPanel ]]">
+                      <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
+                           abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
+                      <div class="mateu-action-panel oj-sm-margin-2x-bottom">
+                        <oj-button chroming="outlined" :data-ap-open="[[ $current.data.panelId ]]"
+                          :data-ap-shortcut="[[ $current.data.shortcut ]]" :title="[[ $current.data.title ]]">
+                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                        <oj-dialog :id="[[ $current.data.panelId ]]" class="mateu-ap-dialog"
+                          dialog-title="[[ $current.data.label ]]" cancel-behavior="icon">
+                          <div slot="body">
+                            <oj-bind-if test="[[ $current.data.hideToggle ]]">
+                              <div class="oj-sm-margin-4x-bottom">
+                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                              </div>
+                            </oj-bind-if>
+                            <div class="mateu-ap-columns">
+                              <oj-bind-for-each data="[[ $current.data.categories ]]">
+                                <template data-oj-as="cat">
+                                  <div :class="[[ cat.data.columnClass ]]">
+                                    <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ cat.data.title ]]"></oj-bind-text></h3>
+                                    <oj-bind-for-each data="[[ cat.data.actions ]]">
+                                      <template>
+                                        <oj-button chroming="borderless" :class="[[ $current.data.itemClass ]]"
+                                          disabled="[[ $current.data.disabled ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                    <oj-bind-if test="[[ cat.data.hasMore ]]">
+                                      <oj-button chroming="borderless" :class="[[ cat.data.moreClass ]]" data-ap-more="true"><oj-bind-text value="[[ cat.data.moreLabel ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </div>
+                        </oj-dialog>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCollapsible ]]">
                       <!-- cabecera de un panel plegable (AccordionPanel / Details): su contenido va detrás,
                            como átomos, si está abierto; plegar re-proyecta (panelToggled) -->
@@ -11043,6 +11589,45 @@
                           <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
                         </template>
                       </oj-gantt>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isActionPanel ]]">
+                      <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
+                           abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
+                      <div class="mateu-action-panel oj-sm-margin-2x-bottom">
+                        <oj-button chroming="outlined" :data-ap-open="[[ $current.data.panelId ]]"
+                          :data-ap-shortcut="[[ $current.data.shortcut ]]" :title="[[ $current.data.title ]]">
+                          <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                        <oj-dialog :id="[[ $current.data.panelId ]]" class="mateu-ap-dialog"
+                          dialog-title="[[ $current.data.label ]]" cancel-behavior="icon">
+                          <div slot="body">
+                            <oj-bind-if test="[[ $current.data.hideToggle ]]">
+                              <div class="oj-sm-margin-4x-bottom">
+                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                              </div>
+                            </oj-bind-if>
+                            <div class="mateu-ap-columns">
+                              <oj-bind-for-each data="[[ $current.data.categories ]]">
+                                <template data-oj-as="cat">
+                                  <div :class="[[ cat.data.columnClass ]]">
+                                    <h3 class="oj-typography-subheading-xs oj-sm-margin-2x-bottom"><oj-bind-text value="[[ cat.data.title ]]"></oj-bind-text></h3>
+                                    <oj-bind-for-each data="[[ cat.data.actions ]]">
+                                      <template>
+                                        <oj-button chroming="borderless" :class="[[ $current.data.itemClass ]]"
+                                          disabled="[[ $current.data.disabled ]]"
+                                          :data-action-id="[[ $current.data.actionId ]]"
+                                          on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                      </template>
+                                    </oj-bind-for-each>
+                                    <oj-bind-if test="[[ cat.data.hasMore ]]">
+                                      <oj-button chroming="borderless" :class="[[ cat.data.moreClass ]]" data-ap-more="true"><oj-bind-text value="[[ cat.data.moreLabel ]]"></oj-bind-text></oj-button>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </div>
+                          </div>
+                        </oj-dialog>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCollapsible ]]">
                       <!-- cabecera de un panel plegable (AccordionPanel / Details): su contenido va detrás,

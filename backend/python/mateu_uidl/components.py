@@ -1086,6 +1086,52 @@ class BulletedList(Component):
 
 
 @dataclass(frozen=True)
+class ActionPanelItem:
+    """An action of an :class:`ActionPanel`. ``populated`` marks an action with data behind it
+    (listed first and emphasised); a ``count`` greater than zero implies it and is shown next to the
+    label ("Traces (3)")."""
+
+    label: str | None = None
+    action_id: str | None = None
+    parameters: dict[str, object] | None = None
+    count: int | None = None
+    populated: bool = False
+    disabled: bool = False
+
+
+@dataclass(frozen=True)
+class ActionPanelCategory:
+    """A column of an :class:`ActionPanel`: a title and its actions."""
+
+    title: str | None = None
+    actions: tuple[ActionPanelItem, ...] = ()
+
+    def __post_init__(self):
+        object.__setattr__(self, "actions", tuple(self.actions))
+
+
+@dataclass(frozen=True)
+class ActionPanel(Component):
+    """A categorised ACTION PANEL: a trigger button opening a layer with the record's actions
+    grouped in columns, one per category — the "I want to…" menu of back-office suites. Each column
+    shows up to ``max_per_category`` actions (0 = 10) and a "Show more"; ``hide_unpopulated_toggle``
+    offers to hide the actions without data. ``shortcut`` (e.g. ``"ctrl+i"``) opens it from the
+    keyboard; each action dispatches its ``action_id`` with its ``parameters``."""
+
+    label: str | None = None
+    shortcut: str | None = None
+    categories: tuple[ActionPanelCategory, ...] = ()
+    max_per_category: int = 0
+    hide_unpopulated_toggle: bool = False
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "categories", tuple(self.categories))
+
+
+@dataclass(frozen=True)
 class QueueItem:
     """One card of a :class:`TaskQueue` group."""
 
@@ -1469,6 +1515,9 @@ __all__ = [
     "TaskProgress",
     "StatusItem",
     "StatusList",
+    "ActionPanelItem",
+    "ActionPanelCategory",
+    "ActionPanel",
     "QueueItem",
     "QueueGroup",
     "TaskQueue",

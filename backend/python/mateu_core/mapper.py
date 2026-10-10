@@ -89,6 +89,9 @@ from mateu_dtos import (
     StatusItemRecord,
     StatusListMetadata,
     BulletedListMetadata,
+    ActionPanelMetadata,
+    ActionPanelCategoryRecord,
+    ActionPanelItemRecord,
     SeparatorMetadata,
     CustomComponentMetadata,
     NoticeMetadata,
@@ -1634,6 +1637,33 @@ class ReflectionMapper:
             )
         if isinstance(c, fluent.BulletedList):
             return self._fluent_client(BulletedListMetadata(items=list(c.items)), c)
+        if isinstance(c, fluent.ActionPanel):
+            return self._fluent_client(
+                ActionPanelMetadata(
+                    label=c.label if c.label and c.label.strip() else "I want to…",
+                    shortcut=c.shortcut,
+                    categories=[
+                        ActionPanelCategoryRecord(
+                            title=cat.title,
+                            actions=[
+                                ActionPanelItemRecord(
+                                    label=it.label,
+                                    action_id=it.action_id,
+                                    parameters=it.parameters,
+                                    count=it.count,
+                                    populated=it.populated or (it.count is not None and it.count > 0),
+                                    disabled=it.disabled,
+                                )
+                                for it in cat.actions
+                            ],
+                        )
+                        for cat in c.categories
+                    ],
+                    max_per_category=c.max_per_category if c.max_per_category > 0 else 10,
+                    hide_unpopulated_toggle=c.hide_unpopulated_toggle,
+                ),
+                c,
+            )
         if isinstance(c, fluent.Notice):
             return self._fluent_client(
                 NoticeMetadata(

@@ -130,6 +130,15 @@ public static class ComponentMapper
 
         BulletedList bl => Dto(bl, new BulletedListMetadataDto(bl.Items.ToList())),
 
+        ActionPanel ap => Dto(ap, new ActionPanelMetadataDto(
+            string.IsNullOrWhiteSpace(ap.Label) ? "I want to…" : ap.Label,
+            ap.Shortcut,
+            ap.Categories.Select(c => new ActionPanelCategoryDto(c.Title, c.Actions.Select(i =>
+                new ActionPanelItemDto(i.Label, i.ActionId, i.Parameters, i.Count,
+                    i.Populated || i.Count is > 0, i.Disabled)).ToList())).ToList(),
+            ap.MaxPerCategory > 0 ? ap.MaxPerCategory : 10,
+            ap.HideUnpopulatedToggle)),
+
         Notice n => Dto(n, new NoticeMetadataDto(n.Text, n.Theme, n.Icon, n.ActionLabel, n.ActionId, n.Slim, n.FullWidth, n.NoIcon, n.Status, n.InlineContent), n.Content.Select(Map)),
         CustomComponent cc => Dto(cc, new CustomComponentMetadataDto(cc.Name, cc.Props), cc.Content.Select(Map)),
 

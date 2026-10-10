@@ -100,6 +100,7 @@ export enum ComponentMetadataType {
     TaskProgress = "TaskProgress",
     StatusList = "StatusList",
     BulletedList = "BulletedList",
+    ActionPanel = "ActionPanel",
     Separator = "Separator",
     CustomComponent = "CustomComponent",
     Notice = "Notice",

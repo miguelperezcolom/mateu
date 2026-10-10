@@ -1261,3 +1261,15 @@ body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-title { 
    una página con cabecera fija */
 .oj-drawer-layout-main-content:has(.mateu-sticky-header),
 .oj-drawer-layout-middle-section:has(.mateu-sticky-header) { overflow: clip; }
+
+/* ── ActionPanel («I want to…»): columnas por categoría dentro de un oj-dialog ── */
+.mateu-ap-dialog { width: min(64rem, calc(100vw - 2rem)); max-width: none; }
+.mateu-ap-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.5rem 1.5rem; }
+.mateu-ap-column { display: flex; flex-direction: column; align-items: flex-start; }
+.mateu-ap-column oj-button { --oj-button-height: 2rem; }
+.mateu-action-panel { display: flex; justify-content: flex-end; }
+.mateu-ap-populated, .mateu-ap-populated .oj-button-text { font-weight: 700; }
+.mateu-ap-column:not(.mateu-ap-showall) .mateu-ap-extra { display: none; }
+.mateu-ap-column.mateu-ap-showall .mateu-ap-more { display: none; }
+.mateu-ap-hide-unpopulated .mateu-ap-unpopulated,
+.mateu-ap-hide-unpopulated .mateu-ap-column-unpopulated { display: none; }

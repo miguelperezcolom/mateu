@@ -247,6 +247,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(TaskProgressMetadataDto), "TaskProgress")]
 [JsonDerivedType(typeof(StatusListMetadataDto), "StatusList")]
 [JsonDerivedType(typeof(BulletedListMetadataDto), "BulletedList")]
+[JsonDerivedType(typeof(ActionPanelMetadataDto), "ActionPanel")]
 [JsonDerivedType(typeof(SeparatorMetadataDto), "Separator")]
 [JsonDerivedType(typeof(CustomComponentMetadataDto), "CustomComponent")]
 [JsonDerivedType(typeof(AnchorMetadataDto), "Anchor")]
@@ -524,6 +525,24 @@ public record StatusListMetadataDto(
     : ComponentMetadataDto;
 
 public record BulletedListMetadataDto(IReadOnlyList<string> Items) : ComponentMetadataDto;
+
+/// <summary>Categorised action panel ("I want to…"): categories in order, each with its actions.</summary>
+public record ActionPanelMetadataDto(
+    string Label,
+    string? Shortcut,
+    IReadOnlyList<ActionPanelCategoryDto> Categories,
+    int MaxPerCategory,
+    bool HideUnpopulatedToggle) : ComponentMetadataDto;
+
+public record ActionPanelCategoryDto(string? Title, IReadOnlyList<ActionPanelItemDto> Actions);
+
+public record ActionPanelItemDto(
+    string? Label,
+    string? ActionId,
+    IReadOnlyDictionary<string, object?>? Parameters,
+    int? Count,
+    bool Populated,
+    bool Disabled);
 
 /// <summary>One status-list row; the action dispatches ActionId with { _item: Id }.</summary>
 public record StatusItemDto(

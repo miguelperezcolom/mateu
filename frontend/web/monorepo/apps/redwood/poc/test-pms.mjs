@@ -10,6 +10,8 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { planningAtomOf, planningActionOf, overlayOf, panelExpanded, setPanelExpanded } from './reduceContexts.mjs'
 import { installStickyHeader } from './tables.mjs'
+import { actionPanelAtomOf, shortcutHintOf } from './reduceContexts.mjs'
+import { shortcutMatches, parseShortcut } from './actionPanels.mjs'
 import { dayIndexAtX } from './planning.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
 import { listingOf, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
@@ -611,6 +613,58 @@ test('cabecera fija: body.mateu-scrolled al dejar atrás la cabecera, y sólo cu
   assert.equal(toggles, 1)
   win.scrollY = 0; listeners.scroll()
   assert.ok(!classes.has('mateu-scrolled'))
+})
+
+// ── #8 «I want to…» (ActionPanel) ────────────────────────────────────────────────────────────
+const apItem = (label, extra = {}) => ({ label, actionId: 'iWantTo', parameters: { what: label }, populated: false, disabled: false, ...extra })
+const apWire = {
+  type: 'ActionPanel', label: 'I want to…', shortcut: 'ctrl+i', maxPerCategory: 3, hideUnpopulatedToggle: true,
+  categories: [
+    { title: 'Modify', actions: [apItem('Check out'), apItem('Routing'), apItem('Traces', { count: 2, populated: true }), apItem('Packages'), apItem('Alerts', { count: 30, populated: true })] },
+    { title: 'Create', actions: [apItem('Copy')] },
+    { title: 'Empty', actions: [] },
+  ],
+}
+test('ActionPanel: poblados primero, corte en maxPerCategory con «Show more», 25+ y columnas vacías fuera', () => {
+  const a = actionPanelAtomOf(apWire, 'iWantTo')
+  assert.equal(a.isActionPanel, true)
+  assert.equal(a.panelId, 'mateuActionPanel-iWantTo')
+  assert.equal(a.shortcut, 'ctrl+i')
+  assert.equal(a.title, 'I want to…  (Ctrl+I)')
+  assert.equal(a.hideToggle, true)
+  assert.deepEqual(a.categories.map((c) => c.title), ['Modify', 'Create'])
+  const modify = a.categories[0]
+  assert.deepEqual(modify.actions.map((x) => x.label), ['Traces (2)', 'Alerts (25+)', 'Check out', 'Routing', 'Packages'])
+  assert.deepEqual(modify.actions.map((x) => x.itemClass.includes('mateu-ap-extra')), [false, false, false, true, true])
+  assert.ok(modify.actions[0].itemClass.includes('mateu-ap-populated'))
+  assert.ok(modify.actions[2].itemClass.includes('mateu-ap-unpopulated'))
+  assert.equal(modify.hasMore, true)
+  assert.equal(modify.moreLabel, 'Show more (2)')
+  // lo que esconde «Show more» son sólo vacías → con «ocultar vacías» también se va
+  assert.ok(modify.moreClass.includes('mateu-ap-unpopulated'))
+  assert.ok(a.categories[1].columnClass.includes('mateu-ap-column-unpopulated'))
+  assert.deepEqual(modify.actions[0].parameters, { what: 'Traces' })
+  assert.equal(actionPanelAtomOf({ categories: [] }, '').label, 'I want to…')
+})
+
+test('ActionPanel: atajo por e.key o e.code (independiente del teclado) y sin modificadores de más', () => {
+  assert.deepEqual(parseShortcut('Ctrl+Shift+I'), { ctrl: true, alt: false, shift: true, meta: false, key: 'i' })
+  assert.equal(shortcutMatches('ctrl+i', { ctrlKey: true, key: 'i', code: 'KeyI' }), true)
+  assert.equal(shortcutMatches('ctrl+i', { ctrlKey: true, key: '¡', code: 'KeyI' }), true)
+  assert.equal(shortcutMatches('ctrl+i', { ctrlKey: true, shiftKey: true, key: 'I', code: 'KeyI' }), false)
+  assert.equal(shortcutMatches('ctrl+i', { key: 'i', code: 'KeyI' }), false)
+  assert.equal(shortcutMatches('alt+1', { altKey: true, key: '¡', code: 'Digit1' }), true)
+  assert.equal(shortcutHintOf('ctrl+shift+i'), 'Ctrl+Shift+I')
+})
+
+test('ActionPanel: la plantilla usa oj-dialog + oj-switch de JET y el atajo se instala desde la shell', () => {
+  const page = webApp('flows/main/pages/main-start-page.html')
+  assert.match(page, /isActionPanel/)
+  assert.match(page, /<oj-dialog :id="\[\[ \$current\.data\.panelId \]\]"/)
+  assert.match(page, /oj-switch data-ap-hide="true"[^>]*label-edge="inside"/)
+  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installActionPanels\(\)/)
+  const css = webApp('resources/css/app.css')
+  assert.match(css, /\.mateu-ap-column:not\(\.mateu-ap-showall\) \.mateu-ap-extra \{ display: none; \}/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

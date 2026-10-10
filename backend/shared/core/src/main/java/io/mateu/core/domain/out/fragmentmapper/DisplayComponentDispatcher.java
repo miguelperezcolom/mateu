@@ -175,6 +175,10 @@ final class DisplayComponentDispatcher {
     if (component instanceof StatusList statusList) {
       return mapStatusListToDto(statusList);
     }
+    if (component instanceof io.mateu.uidl.data.ActionPanel actionPanel) {
+      return io.mateu.core.domain.out.fragmentmapper.mappers.ActionPanelMapper.mapActionPanelToDto(
+          actionPanel);
+    }
     if (component instanceof BulletedList bulletedList) {
       return mapBulletedListToDto(bulletedList);
     }

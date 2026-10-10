@@ -71,6 +71,7 @@ and edit in a drawer…)? They have their own map: [Page templates](./page-templ
 | [Payment picker](./payment-picker) | ✅ Implemented | `PaymentPicker` + `PaymentMethod` |
 | [Process monitor](./process-monitor) | ✅ Implemented | `ProcessMonitor` + `ProcessItem` (health + fix) |
 | [Notice](./notice) | ✅ Implemented | `Notice` / `@Notice` (inline banner, status, action) |
+| [Action panel](./action-panel) | ✅ Implemented | `ActionPanel` (categorised "I want to…" overlay, shortcut, show more, hide unpopulated) |
 | [Kanban](./kanban) | ✅ Implemented | `Kanban` + `KanbanColumn`/`KanbanCard` |
 | [Timeline](./timeline) | ✅ Implemented | `Timeline` + `TimelineItem` (activity feed) |
 | [Progress steps](./progress-steps) | ✅ Implemented | `ProgressSteps` (also `@WizardProgress(STEPS)`) |

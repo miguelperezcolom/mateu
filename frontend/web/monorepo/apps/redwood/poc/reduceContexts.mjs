@@ -515,6 +515,54 @@ export function wizardOf(ctx) {
   }
 }
 
+/** «ctrl+i» → «Ctrl+I», para el rótulo del disparador. */
+export function shortcutHintOf(shortcut) {
+  if (!shortcut) return ''
+  return String(shortcut).split('+').map((k) => k.trim()).filter(Boolean)
+    .map((k) => (k.length === 1 ? k.toUpperCase() : k.charAt(0).toUpperCase() + k.slice(1))).join('+')
+}
+
+/** PANEL DE ACCIONES por categorías («I want to…»): columnas por categoría, las acciones CON
+ *  datos primero (y en negrita), hasta maxPerCategory visibles y el resto tras «Show more».
+ *  Mostrar más / ocultar las vacías / abrir y cerrar es estado del DOM (installActionPanels):
+ *  sin ida y vuelta al servidor y sin re-proyectar. */
+export function actionPanelAtomOf(m, id, interp = (x) => x) {
+  const max = m.maxPerCategory > 0 ? m.maxPerCategory : 10
+  const panelId = 'mateuActionPanel-' + String(id || m.label || 'actions').replace(/[^A-Za-z0-9_-]/g, '_')
+  const categories = (m.categories || []).map((c, ci) => {
+    const actions = (c.actions || [])
+      .map((a, i) => ({ a, i }))
+      .sort((x, y) => (Number(!!y.a.populated) - Number(!!x.a.populated)) || (x.i - y.i))
+      .map(({ a }, i) => ({
+        label: interp(a.label || '') + (a.count > 0 ? ' (' + (a.count > 25 ? '25+' : a.count) + ')' : ''),
+        actionId: a.actionId || '',
+        parameters: a.parameters || {},
+        disabled: !!a.disabled,
+        itemClass: 'mateu-ap-item' + (a.populated ? ' mateu-ap-populated' : ' mateu-ap-unpopulated') + (i >= max ? ' mateu-ap-extra' : ''),
+      }))
+    const extra = Math.max(0, actions.length - max)
+    // con «ocultar vacías» una columna sin acciones con datos sobra entera, y el «mostrar más»
+    // también cuando lo que esconde son sólo vacías (los poblados van primero: si alguno queda
+    // fuera del corte, todo lo que hay antes también es poblado)
+    const populated = (c.actions || []).filter((a) => a.populated).length
+    return {
+      key: panelId + ':' + ci, title: interp(c.title || ''), actions, hasMore: extra > 0,
+      moreLabel: 'Show more (' + extra + ')',
+      columnClass: 'mateu-ap-column' + (populated ? '' : ' mateu-ap-column-unpopulated'),
+      moreClass: 'mateu-ap-more' + (populated > max ? '' : ' mateu-ap-unpopulated'),
+    }
+  }).filter((c) => c.actions.length)
+  return {
+    isActionPanel: true,
+    panelId,
+    label: interp(m.label || 'I want to…'),
+    shortcut: String(m.shortcut || '').toLowerCase(),
+    title: interp(m.label || 'I want to…') + (m.shortcut ? '  (' + shortcutHintOf(m.shortcut) + ')' : ''),
+    hideToggle: !!m.hideUnpopulatedToggle,
+    categories,
+  }
+}
+
 /** ¿Es un átomo RICO (display de verdad, no un campo suelto)? Cuando el contenido de una pantalla
  *  los trae, el formulario genérico sobra: sus campos ya se ven en ellos. */
 export const RICH_ATOM_FLAGS = [
@@ -522,7 +570,7 @@ export const RICH_ATOM_FLAGS = [
   'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
   // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
   // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
-  'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible',
+  'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel',
 ]
 export function isRichAtom(a) {
   return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -1694,6 +1742,10 @@ export function islandContentOf(ctx, opts = {}) {
         noticeClass: NOTICE_CLASSES[m.theme] || NOTICE_CLASSES.info,
         buttons: collectButtons({ children: kidsOf(node) }, []),
       }, container)
+      return
+    }
+    if (t === 'ActionPanel') {
+      atom(actionPanelAtomOf(m, node.id, interp), container)
       return
     }
     if (t === 'BulletedList') {
