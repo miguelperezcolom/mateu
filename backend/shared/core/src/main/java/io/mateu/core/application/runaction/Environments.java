@@ -228,7 +228,7 @@ public final class Environments {
    * origin (a base url with a path of its own prefixes it); a relative url gets the base url
    * prepended. Placeholders ({@code ${state.id}}) survive untouched.
    */
-  static String rebase(String url, String baseUrl) {
+  public static String rebase(String url, String baseUrl) {
     var base = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
     if (url == null || url.isBlank()) {
       return base;
