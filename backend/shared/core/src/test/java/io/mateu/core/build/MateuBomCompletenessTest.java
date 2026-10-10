@@ -73,6 +73,11 @@ class MateuBomCompletenessTest {
         if (current.contains(oldId)) {
           broken.add(oldId + ": is a current module id again");
         }
+        // a library built on an older Mateu still names the old id at ITS version: managed here,
+        // it resolves to this version's relocation pom, so io.mateu.* is on the classpath once
+        if (!bom.contains("<artifactId>" + oldId + "</artifactId>")) {
+          broken.add(oldId + ": the old id is not managed by the BOM");
+        }
       }
     }
     assertThat(relocations).as("relocation poms found").isPositive();
