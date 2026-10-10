@@ -41,9 +41,29 @@ You can build on these; they follow the deprecation policy.
   **generated** controllers and resolvers;
 - the renderers' JavaScript/TypeScript internals (`libs/mateu`, `apps/*`) — the contract with a
   renderer is the wire, not the code;
-- anything marked `@Deprecated(forRemoval = true)`, `@Beta`, "experimental" or "internal" in its
-  Javadoc or in these docs;
+- anything marked `@Deprecated(forRemoval = true)` or `@Experimental` (see below), or
+  "experimental" or "internal" in its Javadoc or in these docs;
 - log messages and the text of framework-generated error messages.
+
+## Experimental API
+
+Some public surfaces are still being shaped. They are marked with
+**`@io.mateu.uidl.annotations.Experimental`** (on a type — which covers all its members — or on a
+single member), and the rule for them is:
+
+> **`@Experimental` API may change or be removed in a minor release**, without the one-minor
+> deprecation period below. Everything else in the public API follows the deprecation policy.
+
+The API compatibility check (see [Enforcement](#enforcement)) skips anything carrying the annotation.
+When an experimental API is promoted, the annotation is removed in a minor release and the CHANGELOG
+says so; from then on it is stable.
+
+Experimental today:
+
+| Surface | Where |
+|---|---|
+| The **AI assistant** chat panel and its MCP wiring | `@AI`, the `Chat` component (`io.mateu.uidl`); the MCP endpoint (`POST /mateu/mcp`, off by default) and the tool projection it serves; the `agent-cli` modules (not published) |
+| The **Figma design-to-code pipeline** | the contract packaged at `META-INF/mateu/contract.json` in the uidl jar, the Figma plugin and the modux importer/codegen |
 
 ## Deprecation policy
 

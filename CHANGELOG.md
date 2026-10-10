@@ -25,6 +25,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - `CONTRIBUTING.md`, `SECURITY.md` (private reporting through GitHub Security Advisories), a pull
   request template and `CODEOWNERS`.
 
+### Public API
+- **`@Experimental`** (`io.mateu.uidl.annotations`) marks API outside the stability promise — it may
+  change in a minor release. Marked today: the AI assistant (`@AI`, `Chat`, the MCP wiring); the
+  Figma contract is documented as experimental.
+
 ### Breaking (read [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/))
 - **No-op annotations removed** from `io.mateu.uidl.annotations` — nothing ever read them:
   `@Accordion`, `@AccordionPanel`, `@BaseRoute`, `@H1`…`@H5`, `@HorizontalLayout`, `@VerticalLayout`,
