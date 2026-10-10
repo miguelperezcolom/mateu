@@ -6,4 +6,6 @@ import io.mateu.uidl.annotations.Menu;
 public class FinancialsMenu {
 
   @Menu Billing billing;
+
+  @Menu FolioCharges folio;
 }

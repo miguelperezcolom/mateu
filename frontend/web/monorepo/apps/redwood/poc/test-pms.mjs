@@ -10,6 +10,8 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import { planningAtomOf, planningActionOf, overlayOf } from './reduceContexts.mjs'
 import { dayIndexAtX } from './planning.mjs'
+import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
+import { listingOf, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
 import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, entityHeaderOf, taskQueueOf, formSectionsOf, layoutFieldOf, HOST_ID } from './reduceContexts.mjs'
 import { localMenuOptionOf, isSentinelHome } from './navTree.mjs'
 import { loadMenuRouteInto, terminalMenuRouteOf } from './transport.mjs'
@@ -362,7 +364,7 @@ test('reglas: SetStateValue, RunAction y Stop', () => {
 })
 
 test('reglas: cableado — contexto tras cada reducción y tras navegar, OnValueChange en las chains', () => {
-  assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /setAfterReduceHook\(\(reg\) => setRulesContext/)
+  assert.ok(/setAfterReduceHook\(\(reg\) => \{\s*setRulesContext/.test(readFileSync(join(here, 'make-amd.mjs'), 'utf8')), 'el hook de reducción fija el contexto de las reglas')
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installRules\(\)/)
   assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /bridge\.applyDomEffects\(null, reg\)/)
   for (const rel of ['hostInputChanged.js', 'mateuFieldEdited.js'])
@@ -466,6 +468,79 @@ test('Drawer: el subtítulo del wire llega a la proyección del overlay', () => 
   const o = overlayOf(reg)
   assert.equal(o.title, 'New reservation')
   assert.equal(o.subtitle, 'Room 102 · 12 oct → 14 oct')
+})
+
+// ── P0 #7: listados (grupos y totales, tonos, columnas, vistas, exportación) ─────────────────
+
+const memoryStorage = () => { const m = {}; return { getItem: (k) => (k in m ? m[k] : null), setItem: (k, v) => { m[k] = String(v) } } }
+
+test('folio real agrupado por código: filas de grupo con subtotales y el total al pie', () => {
+  let reg = empty()
+  for (const inc of fixture('folio-seq')) reg = reduceContexts(reg, inc)
+  const l = listingOf(reg.contexts[HOST_ID])
+  const groups = l.rows.filter((r) => r._group)
+  assert.equal(groups.length, 4)
+  assert.match(groups[0].code, /^1000 · Accommodation \(\d+\)$/)
+  assert.ok(groups[0].amount, 'el grupo lleva el subtotal de amount')
+  assert.equal(groups[0]._tone, 'group')
+  assert.ok(l.hasTotals && l.totals.amount && l.totals.tax)
+  assert.ok(l.columns.some((c) => c.footerTemplate === 'footerTotal'))
+  // la fila de grupo va ANTES de las suyas
+  assert.ok(!l.rows[1]._group && l.rows[1].code === groups[0].code.replace(/ \(\d+\)$/, ''))
+})
+
+test('tonos de fila (@RowStatus): nombre, constante de enum o Status; y la plantilla los pinta', () => {
+  assert.equal(rowToneOf({ t: 'warning' }, 't'), 'warning')
+  assert.equal(rowToneOf({ t: 'ERROR' }, 't'), 'danger')
+  assert.equal(rowToneOf({ t: { type: 'SUCCESS' } }, 't'), 'success')
+  assert.equal(rowToneOf({ t: 'purple' }, 't'), null)
+  assert.equal(rowToneOf({ t: 'warning' }, ''), null)
+  const md = { rowStatusField: 'tone', columns: [{ metadata: { id: 'guest' } }] }
+  const reg = reduceContexts(empty(), { fragments: [{ targetComponentId: '', action: 'Replace', state: {},
+    data: { crud: { page: { content: [{ guest: 'A', tone: 'warning' }, { guest: 'B', tone: null }], totalElements: 2 } } },
+    component: { type: 'ServerSide', id: 'x', children: [{ type: 'ClientSide', metadata: { type: 'Crud', ...md } }] } }] })
+  const rows = listingOf(reg.contexts[HOST_ID]).rows
+  assert.deepEqual(rows.map((r) => r._tone || null), ['warning', null])
+  const css = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'resources', 'css', 'app.css'), 'utf8')
+  assert.match(css, /#mateuTable tr\.mateu-row-tone-warning > td/)
+  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installRowTones\(\)/)
+})
+
+test('selector de columnas: ocultar y reordenar, mismas claves que el renderer web, técnicas intactas', () => {
+  const cols = [{ field: '_select' }, { field: 'id', headerText: 'Id' }, { field: 'guest', headerText: 'Guest' }, { field: 'room', headerText: 'Room' }, { field: 'act', template: 'cellRowActions' }]
+  const store = memoryStorage()
+  let items = columnChooserOf(cols, null)
+  assert.deepEqual(items.map((x) => x.id), ['id', 'guest', 'room'])
+  items = moveChooserItem(moveChooserItem(items, 'guest', -1), 'room', -1)
+  items = items.map((x) => (x.id === 'id' ? { ...x, visible: false } : x))
+  writeColumnPrefs('/r', prefsFromChooser(items), store)
+  assert.deepEqual(JSON.parse(store.getItem('mateu-column-prefs'))['/r'], { hidden: ['id'], order: ['guest', 'room', 'id'] })
+  assert.deepEqual(applyColumnPrefs(cols, readColumnPrefs('/r', store)).map((c) => c.field), ['_select', 'guest', 'room', 'act'])
+  writeColumnPrefs('/r', null, store)
+  assert.equal(readColumnPrefs('/r', store), null)
+})
+
+test('vistas guardadas: mismo formato que el web, una por defecto, se aplican por la query', () => {
+  const store = memoryStorage()
+  saveView('/r', { name: 'Smiths', values: currentViewValues({ status: 'IN_HOUSE' }, 'Smith') }, store)
+  saveView('/r', { name: 'VIP', values: { vip: true }, isDefault: true }, store)
+  assert.deepEqual(listSavedViews('/r', store).map((v) => v.name), ['Smiths', 'VIP'])
+  assert.equal(defaultView('/r', store).name, 'VIP')
+  assert.equal(viewRouteOf('/r?x=1', { status: 'IN_HOUSE', searchText: 'Smith', empty: '' }), '/r?status=IN_HOUSE&searchText=Smith')
+  assert.deepEqual(viewsMenuOf('/r', store).map((o) => o.label), ['Smiths', '★ VIP', 'Save current view…', 'Clear filters'])
+  deleteView('/r', 'VIP', store)
+  assert.equal(defaultView('/r', store), null)
+  assert.equal(listingScope({ hash: '#/bookings/reservations?a=1', pathname: '/' }), '/bookings/reservations')
+  assert.equal(listingScope({ hash: '', pathname: '/bookings/reservations' }), '/bookings/reservations')
+})
+
+test('listado: menú de vistas con refresh, diálogos de columnas/vista y vista por defecto al abrir', () => {
+  const page = webApp('flows/main/pages/main-start-page.html')
+  assert.match(page, /id="mateuColumnsDialog"/)
+  assert.match(page, /id="mateuSaveViewDialog"/)
+  assert.match(webApp('flows/main/pages/main-start-page-chains/listingViews.js'), /menu\.refresh\(\)/)
+  assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /bridge\.defaultView\(bridge\.listingScope\(\)\)/)
+  assert.match(webApp('flows/main/pages/main-start-page-chains/mateuRowClicked.js'), /row\._group/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

@@ -1,5 +1,6 @@
 import { autoTrail } from './breadcrumbs.mjs'
 import { sectionHomeOf, sectionRoutes, isSentinelHome } from './navTree.mjs'
+import { applyColumnPrefs } from './prefs.mjs'
 // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
 // En la app VB estas funciones serían métodos de app-flow.js; aquí son funciones
 // libres para testearlas en Node.
@@ -1189,6 +1190,11 @@ export function setDataProviderFactory(factory) { dataProviderFactory = factory 
 /** Fábrica de conversores de JET (oj-input-number de un importe): JET 18 ya no acepta el
  *  conversor como JSON, quiere una instancia de IntlNumberConverter. En Node se queda la
  *  especificación, que es lo que los tests comprueban. */
+/** Quién lee las preferencias de columnas del listado en pantalla (la app: localStorage por
+ *  ruta). En Node, nadie: las columnas salen tal cual. */
+let columnPrefsReader = null
+export function setColumnPrefsReader(fn) { columnPrefsReader = typeof fn === 'function' ? fn : null }
+
 let converterFactory = null
 export function setConverterFactory(factory) { converterFactory = factory }
 function converterOf(spec) {
@@ -2364,7 +2370,19 @@ function findFirst(tree, test) {
 /** Proyección del LISTING (componente Crud): columnas + filas (del eje data) + búsqueda.
  *  null si el contexto no contiene un Crud. Las filas llegan por la acción 'search'
  *  (trigger OnLoad) como fragmento data-only: data.crud.page.content. */
+/**
+ * El listado del host listo para pintar. `allColumns` son todas las del wire (de ahí parte el
+ * diálogo de columnas) y `columns` las que se pintan, con las preferencias del usuario aplicadas
+ * (prefs.mjs: ocultas fuera, en su orden) — leídas por columnPrefsReader (localStorage por ruta).
+ */
 export function listingOf(ctx, opts = {}) {
+  const listing = listingBaseOf(ctx, opts)
+  if (!listing) return listing
+  const prefs = columnPrefsReader ? columnPrefsReader() : null
+  return { ...listing, allColumns: listing.columns, columns: applyColumnPrefs(listing.columns, prefs) }
+}
+
+function listingBaseOf(ctx, opts = {}) {
   const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
   if (!crudNode) return null
   const md = crudNode.metadata
@@ -2405,6 +2423,8 @@ export function listingOf(ctx, opts = {}) {
       // la clave de la columna = el id del wire: el ojSort la devuelve y es lo que el server
       // ordena (la celda puede leer otro campo, p.ej. el UUID abreviado)
       def.id = c.id
+      // pie de totales (@Aggregate): la plantilla footerTotal lee totals[columnKey]
+      if (aggregateFootersOf(md, (ctx.data || {}).crud)) def.footerTemplate = 'footerTotal'
       // ESTADO como badge (@Status): el valor de la celda es {type, message} — la clase
       // JET del badge se precomputa en las filas (statusBadgeRows, CSP sin ternarios)
       if (c.dataType === 'status') {
@@ -2460,7 +2480,13 @@ export function listingOf(ctx, opts = {}) {
     // (las acciones declaradas del ServerSide host, no los botones)
     selectionRequired: ((ctx.tree && ctx.tree.actions) || [])
       .filter((a) => a.rowsSelectedRequired).map((a) => a.id),
-    rows: rowLinesRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), lines.extra),
+    // @RowStatus: cada fila lleva su tono (_tone) — lo pinta tables.mjs sobre los tr del oj-table;
+    // @GroupBy: filas de grupo intercaladas (valor (n) + subtotales), sólo presentación
+    rows: groupedRows(toneRows(rowLinesRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), lines.extra), md.rowStatusField), md, (ctx.data || {}).crud),
+    // @Aggregate: los totales del conjunto filtrado, por columna (pie del oj-table)
+    totals: aggregateFootersOf(md, (ctx.data || {}).crud),
+    hasTotals: !!aggregateFootersOf(md, (ctx.data || {}).crud),
+    rowStatusField: md.rowStatusField || '',
     // la propiedad por la que ordena el server cada columna (GridColumn.sortingProperty o su id)
     sortFields: Object.fromEntries((md.columns || []).map((col) => col.metadata || col)
       .map((c) => [c.id, c.sortingProperty || c.id])),
@@ -4580,4 +4606,81 @@ export function planningActionOf(atom, kind, detail) {
     return { actionId: atom.rangeSelectActionId, parameters: { _resourceId: detail.rowId, _start: a, _end: b } }
   }
   return null
+}
+
+
+// ── listados: tonos de fila (@RowStatus) y grupos/totales (@GroupBy/@Aggregate) ───────────────
+// Mismo contrato que libs/mateu listingGroups.ts / rowTone.ts (el renderer web): el crud trae
+// groupBy y rowStatusField; las columnas, `aggregate`; la búsqueda (data.crud), `aggregates` (del
+// conjunto filtrado) y `groups` (por grupo, en orden).
+
+const ROW_TONES = { success: 'success', warning: 'warning', danger: 'danger', error: 'danger', info: 'info', neutral: 'neutral', none: 'neutral' }
+
+export function rowToneOf(row, field) {
+  if (!row || !field) return null
+  let v = row[field]
+  if (v && typeof v === 'object') v = v.type != null ? v.type : v.value
+  return v == null ? null : (ROW_TONES[String(v).toLowerCase()] || null)
+}
+
+function toneRows(rows, field) {
+  if (!field) return rows
+  return rows.map((r) => {
+    const tone = rowToneOf(r, field)
+    return tone ? { ...r, _tone: tone } : r
+  })
+}
+
+function formatAggregate(value, col) {
+  if (value == null) return ''
+  if (col.dataType === 'money' || col.stereotype === 'money')
+    return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)
+  if (col.aggregate === 'count') return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(Math.round(value))
+  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value)
+}
+
+function aggregatableColumns(md) {
+  return (md.columns || []).map((c) => c.metadata || c).filter((c) => c && c.id)
+}
+
+/** Los totales por columna (texto) o null si no hay nada que totalizar. */
+export function aggregateFootersOf(md, listing) {
+  const aggregates = listing && listing.aggregates
+  const cols = aggregatableColumns(md)
+  if (!aggregates || !cols.some((c) => c.aggregate)) return null
+  const out = {}
+  for (const c of cols) if (c.aggregate && aggregates[c.id] != null) out[c.id] = formatAggregate(aggregates[c.id], c)
+  const first = cols[0]
+  if (first && out[first.id] == null) {
+    const total = listing.page && listing.page.totalElements
+    out[first.id] = md.groupBy && first.id === md.groupBy && total != null ? 'Total (' + total + ')' : 'Total'
+  }
+  return out
+}
+
+/** Filas de GRUPO intercaladas donde cambia el valor de groupBy (las filas llegan ordenadas). */
+export function groupedRows(rows, md, listing) {
+  const groupBy = md.groupBy
+  const groups = (listing && listing.groups) || []
+  if (!groupBy || !groups.length) return rows
+  const cols = aggregatableColumns(md)
+  const labelCol = cols.some((c) => c.id === groupBy) ? groupBy : (cols[0] && cols[0].id)
+  const out = []
+  let last
+  rows.forEach((row, i) => {
+    const key = String(row[groupBy] == null ? '' : row[groupBy])
+    if (i === 0 || key !== last) {
+      const g = groups.find((x) => String(x.value) === key)
+        || { value: key, count: rows.filter((r) => String(r[groupBy]) === key).length, aggregates: {} }
+      const groupRow = { _rowNumber: '__mateuGroup:' + i + ':' + key, _group: true, _tone: 'group' }
+      for (const c of cols) {
+        groupRow[c.id] = c.id === labelCol ? g.value + ' (' + g.count + ')'
+          : c.aggregate ? formatAggregate((g.aggregates || {})[c.id], c) : ''
+      }
+      out.push(groupRow)
+      last = key
+    }
+    out.push(row)
+  })
+  return out
 }

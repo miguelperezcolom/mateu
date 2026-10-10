@@ -20,7 +20,7 @@ const strip = (file) =>
 
 // bundle.mjs antes de transport.mjs: transport.loadRoute consulta el manifest cargado.
 // chat.mjs es autónomo (solo transporte SSE del chat de IA); va al final del scope compartido.
-const body = `${strip('navTree.mjs')}\n\n${strip('links.mjs')}\n\n${strip('reduceContexts.mjs')}\n\n${strip('breadcrumbs.mjs')}\n\n${strip('clientLog.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('a11y.mjs')}\n\n${strip('elements.mjs')}\n\n${strip('files.mjs')}\n\n${strip('inputs.mjs')}\n\n${strip('rules.mjs')}\n\n${strip('planning.mjs')}\n\n${strip('bundle.mjs')}\n\n${strip('transport.mjs')}\n\n${strip('widgets.mjs')}\n\n${strip('chat.mjs')}`
+const body = `${strip('prefs.mjs')}\n\n${strip('navTree.mjs')}\n\n${strip('links.mjs')}\n\n${strip('reduceContexts.mjs')}\n\n${strip('breadcrumbs.mjs')}\n\n${strip('clientLog.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('a11y.mjs')}\n\n${strip('elements.mjs')}\n\n${strip('files.mjs')}\n\n${strip('inputs.mjs')}\n\n${strip('rules.mjs')}\n\n${strip('planning.mjs')}\n\n${strip('tables.mjs')}\n\n${strip('bundle.mjs')}\n\n${strip('transport.mjs')}\n\n${strip('widgets.mjs')}\n\n${strip('chat.mjs')}`
 
 const amd = `/* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
@@ -31,7 +31,14 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
   // el importe de un campo money: IntlNumberConverter con estilo moneda (un objeto JSON ya no vale)
   setConverterFactory((spec) => new NumberConverter.IntlNumberConverter(spec.options));
   // reglas del cliente: cada reducción fija su contexto (las del host, con su estado)
-  setAfterReduceHook((reg) => setRulesContext(reg.contexts[HOST_ID]));
+  // el selector de columnas: listingOf aplica las preferencias de la ruta en pantalla
+  setColumnPrefsReader(() => readColumnPrefs(listingScope()));
+  setAfterReduceHook((reg) => {
+    setRulesContext(reg.contexts[HOST_ID]);
+    // los tonos de fila (@RowStatus) y las filas de grupo del listado del host
+    const listing = listingOf(reg.contexts[HOST_ID]);
+    setListingTones(listing ? listing.rows : []);
+  });
   // campos de captura (fichero, imagen, firma, cámara): JET no los trae
   defineCaptureField();
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
@@ -56,6 +63,21 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     planningActionOf,
     applyDomEffects,
     installRules,
+    setColumnPrefsReader,
+    readColumnPrefs,
+    writeColumnPrefs,
+    columnChooserOf,
+    prefsFromChooser,
+    moveChooserItem,
+    listSavedViews,
+    saveView,
+    deleteView,
+    defaultView,
+    viewRouteOf,
+    currentViewValues,
+    viewsMenuOf,
+    listingScope,
+    installRowTones,
     installPlanningRange,
     setPlanningRangeSink,
     rulesDebug,

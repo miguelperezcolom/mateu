@@ -1228,3 +1228,19 @@ oj-gantt.mateu-planning { width: 100%; height: 34rem; }
   position: absolute; display: none; pointer-events: none; z-index: 10; box-sizing: border-box;
   background: rgba(34, 126, 158, .14); border: 1px solid rgba(34, 126, 158, .6); border-radius: 4px;
 }
+
+/* ── tonos de fila (@RowStatus) y filas de grupo (@GroupBy) del oj-table: poc/tables.mjs ── */
+#mateuTable tr.mateu-row-tone-success > td { background: rgba(80, 130, 50, .09); }
+#mateuTable tr.mateu-row-tone-warning > td { background: rgba(250, 195, 70, .18); }
+#mateuTable tr.mateu-row-tone-danger > td { background: rgba(200, 60, 40, .10); }
+#mateuTable tr.mateu-row-tone-info > td { background: rgba(34, 126, 158, .10); }
+#mateuTable tr.mateu-row-tone-neutral > td { background: rgba(22, 21, 19, .04); }
+#mateuTable tr.mateu-row-tone-success > td:first-child { box-shadow: inset 3px 0 0 #508232; }
+#mateuTable tr.mateu-row-tone-warning > td:first-child { box-shadow: inset 3px 0 0 #ac630c; }
+#mateuTable tr.mateu-row-tone-danger > td:first-child { box-shadow: inset 3px 0 0 #c74634; }
+#mateuTable tr.mateu-row-tone-info > td:first-child { box-shadow: inset 3px 0 0 #227e9e; }
+#mateuTable tr.mateu-row-tone-group > td {
+  background: var(--oj-core-bg-color-hover, rgba(22, 21, 19, .05)); font-weight: 600; cursor: default;
+}
+/* una fila de grupo es sólo presentación: sin casilla de selección */
+#mateuTable tr.mateu-row-tone-group oj-selector, #mateuTable tr.mateu-row-tone-group .oj-selectorbox { visibility: hidden; }

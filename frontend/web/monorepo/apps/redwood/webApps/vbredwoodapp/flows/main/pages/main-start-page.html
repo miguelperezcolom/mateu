@@ -3386,6 +3386,26 @@
     <div class="oj-flex-item oj-sm-12 oj-md-12">
       <!-- ojRowAction (clic en fila) en vez de selección: la selección deja estado que la
            tabla RE-EMITE al refrescar tras guardar, reabriendo el drawer -->
+      <!-- personalización del listado (prefs.mjs, localStorage por ruta): columnas y vistas guardadas -->
+      <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-align-items-center oj-sm-margin-2x-bottom mateu-listing-tools">
+        <oj-menu-button chroming="borderless" class="oj-button-sm" id="mateuViewsButton">
+          <span slot="startIcon" class="oj-ux-ico-bookmark"></span>
+          Views
+          <oj-menu slot="menu" id="mateuViewsMenu"
+            on-oj-before-open="[[ $listeners.viewsBeforeOpen ]]"
+            on-oj-menu-action="[[ $listeners.viewsAction ]]">
+            <oj-bind-for-each data="[[ $page.variables.mateuViewsMenu ]]">
+              <template>
+                <oj-option :value="[[ $current.data.value ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+              </template>
+            </oj-bind-for-each>
+          </oj-menu>
+        </oj-menu-button>
+        <oj-button chroming="borderless" class="oj-button-sm" on-oj-action="[[ $listeners.columnsOpen ]]">
+          <span slot="startIcon" class="oj-ux-ico-column-layout"></span>
+          Columns
+        </oj-button>
+      </div>
       <oj-table id="mateuTable" :class="[[ $application.variables.mateuListing.tableClass || 'oj-sm-12' ]]"
         display="[[ $application.variables.mateuListing.display ]]"
         data="[[ $variables.listingADP ]]"
@@ -3402,6 +3422,10 @@
         <!-- Edición inline (@InlineEditing): celdas con editor SIEMPRE visible; el commit
              por celda dispara update-row con parameters._editedRow (contrato capturado:
              responde solo un toast success — el valor editado ya está en el cliente) -->
+        <!-- TOTALES (@Aggregate): el pie de cada columna agregada; totals precomputado en listingOf -->
+        <template slot="footerTotal">
+          <span class="oj-typography-bold"><oj-bind-text value="[[ ($application.variables.mateuListing.totals || {})[$current.columnKey] || '' ]]"></oj-bind-text></span>
+        </template>
         <template slot="cellEditText">
           <oj-input-text class="oj-form-control-full-width"
             value="[[ $current.data ]]"
@@ -11833,3 +11857,42 @@
   </div>
 </oj-bind-if>
 </div>
+
+<!-- SELECTOR DE COLUMNAS del listado: cuáles se ven y en qué orden (prefs.mjs) -->
+<oj-dialog id="mateuColumnsDialog" dialog-title="Columns" cancel-behavior="icon" on-oj-close="[[ $listeners.columnsCancel ]]">
+  <div slot="body">
+    <oj-bind-for-each data="[[ $page.variables.mateuColumnsModel ]]">
+      <template>
+        <div class="oj-flex oj-sm-align-items-center mateu-column-row">
+          <oj-switch class="oj-sm-margin-2x-end" :data-column-id="[[ $current.data.id ]]" value="[[ $current.data.visible ]]"
+            :aria-label="[[ $current.data.label ]]" on-value-changed="[[ $listeners.columnsToggle ]]"></oj-switch>
+          <span class="oj-flex-item oj-typography-body-md"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+          <oj-button chroming="borderless" display="icons" class="oj-button-sm" :data-column-id="[[ $current.data.id ]]" on-oj-action="[[ $listeners.columnsUp ]]">
+            <span slot="startIcon" class="oj-ux-ico-arrow-up"></span>Up
+          </oj-button>
+          <oj-button chroming="borderless" display="icons" class="oj-button-sm" :data-column-id="[[ $current.data.id ]]" on-oj-action="[[ $listeners.columnsDown ]]">
+            <span slot="startIcon" class="oj-ux-ico-arrow-down"></span>Down
+          </oj-button>
+        </div>
+      </template>
+    </oj-bind-for-each>
+  </div>
+  <div slot="footer">
+    <oj-button chroming="borderless" on-oj-action="[[ $listeners.columnsReset ]]">Reset</oj-button>
+    <oj-button chroming="callToAction" on-oj-action="[[ $listeners.columnsApply ]]">Apply</oj-button>
+  </div>
+</oj-dialog>
+
+<!-- GUARDAR VISTA: nombre + por defecto (la búsqueda y los filtros aplicados ahora) -->
+<oj-dialog id="mateuSaveViewDialog" dialog-title="Save view" cancel-behavior="icon">
+  <div slot="body">
+    <oj-form-layout max-columns="1">
+      <oj-input-text label-hint="Name" value="{{ $page.variables.mateuViewName }}"></oj-input-text>
+      <oj-switch label-hint="Open with this view" value="{{ $page.variables.mateuViewDefault }}"></oj-switch>
+    </oj-form-layout>
+  </div>
+  <div slot="footer">
+    <oj-button chroming="borderless" on-oj-action="[[ $listeners.viewSaveCancel ]]">Cancel</oj-button>
+    <oj-button chroming="callToAction" on-oj-action="[[ $listeners.viewSaveConfirm ]]">Save</oj-button>
+  </div>
+</oj-dialog>

@@ -3,6 +3,145 @@
  * (tests de contrato: cd poc && node test.mjs). */
 define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (require, ArrayDataProvider, NumberConverter) => {
   'use strict';
+  // PERSONALIZACIÓN DE LISTADOS en el navegador: el SELECTOR DE COLUMNAS (cuáles se ven y en qué
+  // orden) y las VISTAS GUARDADAS (una combinación con nombre de búsqueda + filtros, con una por
+  // defecto). Mismo formato y mismas claves de localStorage que el renderer web (libs/mateu
+  // columnPrefsStore.ts / savedViewsStore.ts), así que un usuario que cambie de renderer conserva
+  // lo suyo. El ámbito es la ruta del listado. Sin cambios de wire: el servidor sigue mandando todas
+  // las columnas y aquí se filtran antes de pintar.
+
+  const COLUMNS_KEY = 'mateu-column-prefs'
+  const VIEWS_KEY = 'mateu-saved-views'
+
+  const storageOf = (storage) => storage || (typeof localStorage !== 'undefined' ? localStorage : null)
+  const readAll = (key, storage) => {
+    try {
+      const s = storageOf(storage)
+      return s ? JSON.parse(s.getItem(key) || '{}') || {} : {}
+    } catch (e) { return {} }
+  }
+  const writeAll = (key, value, storage) => {
+    try { const s = storageOf(storage); if (s) s.setItem(key, JSON.stringify(value)) } catch (e) { /* lleno o bloqueado */ }
+  }
+
+  // columnas que no se ocultan ni se reordenan: las técnicas (selección, acciones, líneas)
+  const PROTECTED = (c) => !c || !c.field || c.field === '_select' || c.template === 'cellRowActions'
+    || c.field === '__rowLines' || c.id === '__rowLines'
+
+  /** Las preferencias de columnas de un ámbito: { hidden: [], order: [] } o null. */
+  function readColumnPrefs(scope, storage) {
+    const p = readAll(COLUMNS_KEY, storage)[scope]
+    if (!p || typeof p !== 'object') return null
+    return { hidden: Array.isArray(p.hidden) ? p.hidden : [], order: Array.isArray(p.order) ? p.order : [] }
+  }
+
+  function writeColumnPrefs(scope, prefs, storage) {
+    const all = readAll(COLUMNS_KEY, storage)
+    if (!prefs || (!(prefs.hidden || []).length && !(prefs.order || []).length)) delete all[scope]
+    else all[scope] = { hidden: prefs.hidden || [], order: prefs.order || [] }
+    writeAll(COLUMNS_KEY, all, storage)
+  }
+
+  /** Las columnas del oj-table con las preferencias aplicadas: sin las ocultas, en el orden pedido
+   *  (las no mencionadas, detrás, en su orden). Las técnicas no se tocan. */
+  function applyColumnPrefs(columns, prefs) {
+    if (!prefs) return columns
+    const hidden = new Set(prefs.hidden || [])
+    const order = prefs.order || []
+    const rank = (c) => { const i = order.indexOf(c.field || c.id); return i < 0 ? order.length : i }
+    const movable = columns.filter((c) => !PROTECTED(c) && !hidden.has(c.field || c.id))
+    const sorted = movable.map((c, i) => ({ c, i })).sort((a, b) => (rank(a.c) - rank(b.c)) || (a.i - b.i)).map((x) => x.c)
+    // las técnicas conservan su sitio relativo: delante las de selección, detrás acciones/líneas
+    const lead = columns.filter((c) => PROTECTED(c) && c.field === '_select')
+    const tail = columns.filter((c) => PROTECTED(c) && c.field !== '_select')
+    return lead.concat(sorted, tail)
+  }
+
+  /** El modelo del diálogo de columnas: [{ id, label, visible }] en el orden actual. */
+  function columnChooserOf(columns, prefs) {
+    const hidden = new Set((prefs && prefs.hidden) || [])
+    const order = (prefs && prefs.order) || []
+    const items = columns.filter((c) => !PROTECTED(c)).map((c, i) => ({ id: c.field || c.id, label: c.headerText || c.field, visible: !hidden.has(c.field || c.id), i }))
+    const rank = (x) => { const k = order.indexOf(x.id); return k < 0 ? order.length : k }
+    return items.sort((a, b) => (rank(a) - rank(b)) || (a.i - b.i)).map(({ id, label, visible }) => ({ id, label, visible }))
+  }
+
+  /** Del modelo del diálogo a preferencias. */
+  function prefsFromChooser(items) {
+    return { hidden: items.filter((x) => !x.visible).map((x) => x.id), order: items.map((x) => x.id) }
+  }
+
+  /** Mover un elemento del diálogo arriba (-1) o abajo (+1). */
+  function moveChooserItem(items, id, delta) {
+    const i = items.findIndex((x) => x.id === id)
+    const j = i + delta
+    if (i < 0 || j < 0 || j >= items.length) return items
+    const out = [...items]
+    ;[out[i], out[j]] = [out[j], out[i]]
+    return out
+  }
+
+  // ── vistas guardadas ──────────────────────────────────────────────────────────────────────────
+
+  function listSavedViews(scope, storage) {
+    const v = readAll(VIEWS_KEY, storage)[scope]
+    return Array.isArray(v) ? v : []
+  }
+
+  function saveView(scope, view, storage) {
+    const all = readAll(VIEWS_KEY, storage)
+    const views = (all[scope] || []).filter((x) => x.name !== view.name)
+      .map((x) => (view.isDefault ? { ...x, isDefault: false } : x))
+    views.push({ name: view.name, values: view.values || {}, isDefault: !!view.isDefault })
+    all[scope] = views
+    writeAll(VIEWS_KEY, all, storage)
+  }
+
+  function deleteView(scope, name, storage) {
+    const all = readAll(VIEWS_KEY, storage)
+    const views = (all[scope] || []).filter((x) => x.name !== name)
+    if (views.length) all[scope] = views
+    else delete all[scope]
+    writeAll(VIEWS_KEY, all, storage)
+  }
+
+  function defaultView(scope, storage) {
+    return listSavedViews(scope, storage).find((v) => v.isDefault) || null
+  }
+
+  /** La ruta que aplica una vista: el listado con sus filtros en la query (el camino de los
+   *  filtros por URL, que ya pone los chips y relanza la búsqueda). */
+  function viewRouteOf(route, values) {
+    const path = String(route || '').split('?')[0]
+    const q = Object.keys(values || {})
+      .filter((k) => values[k] != null && values[k] !== '' && !(Array.isArray(values[k]) && !values[k].length))
+      .map((k) => encodeURIComponent(k) + '=' + encodeURIComponent(Array.isArray(values[k]) ? values[k].join(',') : String(values[k])))
+    return q.length ? path + '?' + q.join('&') : path
+  }
+
+  /** Lo que se guarda de la búsqueda actual: el texto libre y los filtros aplicados. */
+  function currentViewValues(filterValues, searchText) {
+    const values = { ...(filterValues || {}) }
+    if (searchText) values.searchText = searchText
+    return values
+  }
+
+  /** Las opciones del menú de vistas (oj-menu): las guardadas (★ la de por defecto) + acciones. */
+  function viewsMenuOf(scope, storage) {
+    const views = listSavedViews(scope, storage).map((v) => ({ value: 'view:' + v.name, label: (v.isDefault ? '★ ' : '') + v.name }))
+    return views.concat([{ value: 'save', label: 'Save current view…' }])
+      .concat(views.length ? [{ value: 'clear', label: 'Clear filters' }] : [])
+  }
+
+  /** El ámbito de las preferencias: la ruta del listado en pantalla, sin query (en modo hash, lo
+   *  que va detrás de #). */
+  function listingScope(loc = typeof window !== 'undefined' ? window.location : null) {
+    if (!loc) return ''
+    const raw = loc.hash && loc.hash.startsWith('#/') ? loc.hash.slice(1) : loc.pathname
+    return String(raw || '').split('?')[0]
+  }
+
+
   // El árbol de navegación: las reglas de libs/mateu/.../navTree.ts que necesita este renderer,
   // PORTADAS (no compartidas): el bridge se construye concatenando estos .mjs (make-amd.mjs) y no
   // puede importar TypeScript. Mismas reglas, mismos casos en test.mjs; si cambia una, cambian las dos.
@@ -1451,6 +1590,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
   /** Fábrica de conversores de JET (oj-input-number de un importe): JET 18 ya no acepta el
    *  conversor como JSON, quiere una instancia de IntlNumberConverter. En Node se queda la
    *  especificación, que es lo que los tests comprueban. */
+  /** Quién lee las preferencias de columnas del listado en pantalla (la app: localStorage por
+   *  ruta). En Node, nadie: las columnas salen tal cual. */
+  let columnPrefsReader = null
+  function setColumnPrefsReader(fn) { columnPrefsReader = typeof fn === 'function' ? fn : null }
+
   let converterFactory = null
   function setConverterFactory(factory) { converterFactory = factory }
   function converterOf(spec) {
@@ -2626,7 +2770,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
   /** Proyección del LISTING (componente Crud): columnas + filas (del eje data) + búsqueda.
    *  null si el contexto no contiene un Crud. Las filas llegan por la acción 'search'
    *  (trigger OnLoad) como fragmento data-only: data.crud.page.content. */
+  /**
+   * El listado del host listo para pintar. `allColumns` son todas las del wire (de ahí parte el
+   * diálogo de columnas) y `columns` las que se pintan, con las preferencias del usuario aplicadas
+   * (prefs.mjs: ocultas fuera, en su orden) — leídas por columnPrefsReader (localStorage por ruta).
+   */
   function listingOf(ctx, opts = {}) {
+    const listing = listingBaseOf(ctx, opts)
+    if (!listing) return listing
+    const prefs = columnPrefsReader ? columnPrefsReader() : null
+    return { ...listing, allColumns: listing.columns, columns: applyColumnPrefs(listing.columns, prefs) }
+  }
+
+  function listingBaseOf(ctx, opts = {}) {
     const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
     if (!crudNode) return null
     const md = crudNode.metadata
@@ -2667,6 +2823,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
         // la clave de la columna = el id del wire: el ojSort la devuelve y es lo que el server
         // ordena (la celda puede leer otro campo, p.ej. el UUID abreviado)
         def.id = c.id
+        // pie de totales (@Aggregate): la plantilla footerTotal lee totals[columnKey]
+        if (aggregateFootersOf(md, (ctx.data || {}).crud)) def.footerTemplate = 'footerTotal'
         // ESTADO como badge (@Status): el valor de la celda es {type, message} — la clase
         // JET del badge se precomputa en las filas (statusBadgeRows, CSP sin ternarios)
         if (c.dataType === 'status') {
@@ -2722,7 +2880,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
       // (las acciones declaradas del ServerSide host, no los botones)
       selectionRequired: ((ctx.tree && ctx.tree.actions) || [])
         .filter((a) => a.rowsSelectedRequired).map((a) => a.id),
-      rows: rowLinesRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), lines.extra),
+      // @RowStatus: cada fila lleva su tono (_tone) — lo pinta tables.mjs sobre los tr del oj-table;
+      // @GroupBy: filas de grupo intercaladas (valor (n) + subtotales), sólo presentación
+      rows: groupedRows(toneRows(rowLinesRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), lines.extra), md.rowStatusField), md, (ctx.data || {}).crud),
+      // @Aggregate: los totales del conjunto filtrado, por columna (pie del oj-table)
+      totals: aggregateFootersOf(md, (ctx.data || {}).crud),
+      hasTotals: !!aggregateFootersOf(md, (ctx.data || {}).crud),
+      rowStatusField: md.rowStatusField || '',
       // la propiedad por la que ordena el server cada columna (GridColumn.sortingProperty o su id)
       sortFields: Object.fromEntries((md.columns || []).map((col) => col.metadata || col)
         .map((c) => [c.id, c.sortingProperty || c.id])),
@@ -4842,6 +5006,83 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
       return { actionId: atom.rangeSelectActionId, parameters: { _resourceId: detail.rowId, _start: a, _end: b } }
     }
     return null
+  }
+
+
+  // ── listados: tonos de fila (@RowStatus) y grupos/totales (@GroupBy/@Aggregate) ───────────────
+  // Mismo contrato que libs/mateu listingGroups.ts / rowTone.ts (el renderer web): el crud trae
+  // groupBy y rowStatusField; las columnas, `aggregate`; la búsqueda (data.crud), `aggregates` (del
+  // conjunto filtrado) y `groups` (por grupo, en orden).
+
+  const ROW_TONES = { success: 'success', warning: 'warning', danger: 'danger', error: 'danger', info: 'info', neutral: 'neutral', none: 'neutral' }
+
+  function rowToneOf(row, field) {
+    if (!row || !field) return null
+    let v = row[field]
+    if (v && typeof v === 'object') v = v.type != null ? v.type : v.value
+    return v == null ? null : (ROW_TONES[String(v).toLowerCase()] || null)
+  }
+
+  function toneRows(rows, field) {
+    if (!field) return rows
+    return rows.map((r) => {
+      const tone = rowToneOf(r, field)
+      return tone ? { ...r, _tone: tone } : r
+    })
+  }
+
+  function formatAggregate(value, col) {
+    if (value == null) return ''
+    if (col.dataType === 'money' || col.stereotype === 'money')
+      return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)
+    if (col.aggregate === 'count') return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(Math.round(value))
+    return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value)
+  }
+
+  function aggregatableColumns(md) {
+    return (md.columns || []).map((c) => c.metadata || c).filter((c) => c && c.id)
+  }
+
+  /** Los totales por columna (texto) o null si no hay nada que totalizar. */
+  function aggregateFootersOf(md, listing) {
+    const aggregates = listing && listing.aggregates
+    const cols = aggregatableColumns(md)
+    if (!aggregates || !cols.some((c) => c.aggregate)) return null
+    const out = {}
+    for (const c of cols) if (c.aggregate && aggregates[c.id] != null) out[c.id] = formatAggregate(aggregates[c.id], c)
+    const first = cols[0]
+    if (first && out[first.id] == null) {
+      const total = listing.page && listing.page.totalElements
+      out[first.id] = md.groupBy && first.id === md.groupBy && total != null ? 'Total (' + total + ')' : 'Total'
+    }
+    return out
+  }
+
+  /** Filas de GRUPO intercaladas donde cambia el valor de groupBy (las filas llegan ordenadas). */
+  function groupedRows(rows, md, listing) {
+    const groupBy = md.groupBy
+    const groups = (listing && listing.groups) || []
+    if (!groupBy || !groups.length) return rows
+    const cols = aggregatableColumns(md)
+    const labelCol = cols.some((c) => c.id === groupBy) ? groupBy : (cols[0] && cols[0].id)
+    const out = []
+    let last
+    rows.forEach((row, i) => {
+      const key = String(row[groupBy] == null ? '' : row[groupBy])
+      if (i === 0 || key !== last) {
+        const g = groups.find((x) => String(x.value) === key)
+          || { value: key, count: rows.filter((r) => String(r[groupBy]) === key).length, aggregates: {} }
+        const groupRow = { _rowNumber: '__mateuGroup:' + i + ':' + key, _group: true, _tone: 'group' }
+        for (const c of cols) {
+          groupRow[c.id] = c.id === labelCol ? g.value + ' (' + g.count + ')'
+            : c.aggregate ? formatAggregate((g.aggregates || {})[c.id], c) : ''
+        }
+        out.push(groupRow)
+        last = key
+      }
+      out.push(row)
+    })
+    return out
   }
 
 
@@ -7145,6 +7386,55 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
   }
 
 
+  // TONOS DE FILA del listado (@RowStatus) y filas de GRUPO (@GroupBy) sobre el oj-table de JET.
+  // oj-table no tiene clase por fila (sólo plantillas de celda o una plantilla de fila entera que
+  // obligaría a repintar todas las columnas a mano), así que una pasada mínima por el DOM: cada `tr`
+  // del cuerpo de #mateuTable recibe la clase de su fila (misma posición: la página se pinta entera,
+  // sin virtualizar). Un MutationObserver la repite cuando JET repinta (orden, página, refresco).
+
+  let tones = []
+
+  /** Los tonos de las filas en pantalla, en orden (de listingOf(...).rows: _tone de cada una). */
+  function setListingTones(rows) {
+    tones = (rows || []).map((r) => (r && r._tone) || '')
+    applyRowTonesSoon()
+  }
+
+  const toneClassOf = (tone) => (tone ? 'mateu-row-tone-' + tone : '')
+
+  function applyRowTones(doc) {
+    const table = doc.getElementById('mateuTable')
+    if (!table) return 0
+    const trs = table.querySelectorAll('tbody tr')
+    let n = 0
+    trs.forEach((tr, i) => {
+      const want = toneClassOf(tones[i])
+      for (const c of [...tr.classList]) if (c.startsWith('mateu-row-tone-') && c !== want) tr.classList.remove(c)
+      if (want && !tr.classList.contains(want)) { tr.classList.add(want); n++ }
+    })
+    return n
+  }
+
+  function applyRowTonesSoon(frames = 10) {
+    if (typeof requestAnimationFrame === 'undefined' || typeof document === 'undefined') return
+    let left = frames
+    const tick = () => { applyRowTones(document); if (--left > 0) requestAnimationFrame(tick) }
+    requestAnimationFrame(tick)
+  }
+
+  /** Vigila (una vez) los repintados del oj-table para volver a poner los tonos. */
+  function installRowTones(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuRowTones || typeof MutationObserver === 'undefined') return
+    doc.__mateuRowTones = true
+    let pending = false
+    new MutationObserver(() => {
+      if (pending || !tones.some(Boolean)) return
+      pending = true
+      requestAnimationFrame(() => { pending = false; applyRowTones(doc) })
+    }).observe(doc.body, { childList: true, subtree: true })
+  }
+
+
   // Static-bundle "no backend" mode for the VB/Redwood renderer — the same contract as the web
   // renderers' libs/mateu (bundleStore.ts), rewritten for THIS core (which shares nothing with them:
   // here the transport is `fetch` in transport.mjs, not axios). A build-time exporter (Mateu's
@@ -8993,7 +9283,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
   // el importe de un campo money: IntlNumberConverter con estilo moneda (un objeto JSON ya no vale)
   setConverterFactory((spec) => new NumberConverter.IntlNumberConverter(spec.options));
   // reglas del cliente: cada reducción fija su contexto (las del host, con su estado)
-  setAfterReduceHook((reg) => setRulesContext(reg.contexts[HOST_ID]));
+  // el selector de columnas: listingOf aplica las preferencias de la ruta en pantalla
+  setColumnPrefsReader(() => readColumnPrefs(listingScope()));
+  setAfterReduceHook((reg) => {
+    setRulesContext(reg.contexts[HOST_ID]);
+    // los tonos de fila (@RowStatus) y las filas de grupo del listado del host
+    const listing = listingOf(reg.contexts[HOST_ID]);
+    setListingTones(listing ? listing.rows : []);
+  });
   // campos de captura (fichero, imagen, firma, cámara): JET no los trae
   defineCaptureField();
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
@@ -9018,6 +9315,21 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
     planningActionOf,
     applyDomEffects,
     installRules,
+    setColumnPrefsReader,
+    readColumnPrefs,
+    writeColumnPrefs,
+    columnChooserOf,
+    prefsFromChooser,
+    moveChooserItem,
+    listSavedViews,
+    saveView,
+    deleteView,
+    defaultView,
+    viewRouteOf,
+    currentViewValues,
+    viewsMenuOf,
+    listingScope,
+    installRowTones,
     installPlanningRange,
     setPlanningRangeSink,
     rulesDebug,

@@ -255,6 +255,18 @@ define([
       const listingSummary = bridge.listingOf(host);
       $application.variables.mateuListing = listingSummary;
       $application.variables.mateuListingRows = listingSummary ? listingSummary.rows : [];
+      // VISTA POR DEFECTO (★ en el menú de vistas): un listado que se abre sin filtros en la URL
+      // se abre con ella — vía la misma ruta con su query, el camino de los filtros por URL
+      if (listingSummary && String(route).indexOf('?') < 0) {
+        const preferred = bridge.defaultView(bridge.listingScope());
+        if (preferred) {
+          await Actions.fireEvent(context, {
+            name: 'application:mateuNavigate',
+            payload: { route: bridge.viewRouteOf(bridge.listingScope(), preferred.values), force: true },
+          });
+          return;
+        }
+      }
       // otra pantalla, otra tabla: la selección de la anterior no se hereda
       $application.variables.mateuListingSelection = { all: false, keys: [], except: [] };
       // ni el orden que se pidió en su cabecera (la carga ya llegó sin él, en la primera página)

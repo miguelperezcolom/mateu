@@ -69,6 +69,8 @@ define([
       bridge.setRuleActionSink(runPageAction);
       // tape chart: arrastrar por celdas vacías → rangeSelectActionId (oj-gantt no lo trae)
       bridge.installPlanningRange();
+      // tonos de fila (@RowStatus) y filas de grupo (@GroupBy) del oj-table del listado
+      bridge.installRowTones();
       bridge.setPlanningRangeSink(runPageAction);
 
       // Static-bundle (modo sin backend): si hay un mateuBundleUrl configurado, se arranca la carga
