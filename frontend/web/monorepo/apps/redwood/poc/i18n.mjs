@@ -142,6 +142,7 @@ export const CHROME_TEXTS = {
     chatLocalAgentHint: 'Talking to your local CLI (the companion agent) — no API key',
     chatExpand: 'Widen the assistant',
     chatRestore: 'Restore the width',
+    selectRowsFirst: 'You first need to select some rows',
     // ── display components (core/display.mjs) ──
     recommended: 'Recommended',
     choose: 'Choose',
@@ -302,6 +303,7 @@ export const CHROME_TEXTS = {
     chatLocalAgentHint: 'Hablando con tu CLI local (el agente companion) — sin API key',
     chatExpand: 'Ampliar el asistente',
     chatRestore: 'Ancho normal',
+    selectRowsFirst: 'Primero tienes que seleccionar alguna fila',
     // ── componentes display (core/display.mjs) ──
     recommended: 'Recomendado',
     choose: 'Elegir',

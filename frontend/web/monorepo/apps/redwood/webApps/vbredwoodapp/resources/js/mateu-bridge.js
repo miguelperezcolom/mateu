@@ -147,6 +147,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatLocalAgentHint: 'Talking to your local CLI (the companion agent) — no API key',
       chatExpand: 'Widen the assistant',
       chatRestore: 'Restore the width',
+      selectRowsFirst: 'You first need to select some rows',
       // ── display components (core/display.mjs) ──
       recommended: 'Recommended',
       choose: 'Choose',
@@ -307,6 +308,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatLocalAgentHint: 'Hablando con tu CLI local (el agente companion) — sin API key',
       chatExpand: 'Ampliar el asistente',
       chatRestore: 'Ancho normal',
+      selectRowsFirst: 'Primero tienes que seleccionar alguna fila',
       // ── componentes display (core/display.mjs) ──
       recommended: 'Recomendado',
       choose: 'Elegir',
@@ -383,6 +385,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function chromeTextsOf(lang) {
     return { ...CHROME_TEXTS.en, ...(CHROME_TEXTS[chromeLanguage(lang)] || {}) }
   }
+
 
 
   // PERSONALIZACIÓN DE LISTADOS en el navegador: el SELECTOR DE COLUMNAS (cuáles se ven y en qué
@@ -569,6 +572,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const tileScopeOf = (gridId, loc = typeof window !== 'undefined' ? window.location : null) =>
     ((loc && loc.pathname) || '') + '#' + (gridId || 'grid')
+
 
 
   // El árbol de navegación: las reglas de libs/mateu/.../navTree.ts que necesita este renderer,
@@ -916,6 +920,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.closest && e.target.closest('.mateu-cal') && run(e.target)) e.preventDefault()
     }, true)
   }
+
 
 
   // TEXTO ENRIQUECIDO (P2 #23): un campo richText/html/markdown de sólo lectura y el componente
@@ -1326,6 +1331,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the component tree: walks, fields, actions, islands, overlays, texts.
 
   const HOST_ID = '__root__'
@@ -1683,6 +1690,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
+
+
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): page archetypes projected from the tree: foldout, wizard.
 
   /** Proyección del FOLDOUT (Fase 7): overview + paneles con sus cabeceras (metadata.panels)
@@ -1836,6 +1847,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }),
     }
   }
+
+
+
+
+
 
 
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): single-component atom projections: matrix, map, action panel, grid tracks, avatar, metric, chart; the wizard step view.
@@ -2228,6 +2244,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
+
+
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): welcome, general/item overview, content tab strips, banners, page style.
 
   /** Helper de RENDER: todos los nodos de un tipo (sin cruzar fronteras de isla). */
@@ -2481,6 +2501,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the shell: icons and the navigation menu.
 
   /** Proyección de NAVEGACIÓN de la shell: items de primer nivel + grupos con sus hijos.
@@ -2690,6 +2711,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         : shell.homeRoute,
     }
   }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
@@ -3260,7 +3295,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const spans = order.map((i) => serverSpans[i])
         // auto-fill / auto-fit tracks (repeat(auto-fit, minmax(16rem, 1fr))): as many tiles per row
         // as fit at each breakpoint — responsive oj-flex classes instead of stacking them
-        const autoFit = autoFitColClass(m.gridTemplateColumns)
+        // (no columns and no areas: the web's default, a responsive auto-fit of 16rem tiles)
+        const autoFit = autoFitColClass(m.gridTemplateColumns
+          || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() ? '' : AUTO_FIT_DEFAULT))
         const classes = gridColClasses(m.gridTemplateColumns, spans, kids.length)
           || (autoFit ? kids.map(() => autoFit) : null)
         if (classes && projectSized(kids, classes, tags)) return
@@ -4197,6 +4234,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
+
+
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the page header: entity header, KPIs, subtitle, toolbar, back/primary buttons, triggers.
 
   /** El EntityHeader del host (p.ej. el huésped de la Reserva 360) proyectado al HEADER de
@@ -4463,6 +4504,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       actions: host.tree ? actionsOf(host.tree) : [],
     }
   }
+
+
+
+
+
+
+
 
 
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): listings: the table, paging, sort, selection, filters and the smart search bar.
@@ -5545,6 +5593,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
+
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the reducer: increments → contexts/stack/shell, mediators, overlays.
 
   /** Triggers OnLoad del contexto (p.ej. el listing dispara 'search' al cargar). */
@@ -5866,6 +5917,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (reg.loadedRoute) kept.loadedRoute = reg.loadedRoute
     return { ...kept, contexts, stack, shell, effects }
   }
+
+
+
+
+
 
 
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): forms: list actions, the modal row editor, field widgets, validation, confirmation, lookups.
@@ -6663,6 +6719,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
+
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): planning board, gantt, row tones and listing aggregates/groups.
 
   // ── PlanningBoard (Room Diary) sobre oj-gantt ─────────────────────────────────────────────────
@@ -6877,6 +6935,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })
     return out
   }
+
+
+
+
+
+
+
 
 
   // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the DISPLAY components that
@@ -7804,10 +7869,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   // ── ResponsiveGrid auto-fill / auto-fit: the track minimum → oj-flex responsive column classes ──
+  /** The web renderers' default for a ResponsiveGrid that declares no columns (nor areas). */
+  const AUTO_FIT_DEFAULT = 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))'
   /** `repeat(auto-fit, minmax(16rem, 1fr))` → classes that put as many tiles per row as fit at each
    *  breakpoint (sm 0, md 768px, lg 1024px, xl 1280px). null when the template is not that shape. */
   function autoFitColClass(template) {
-    const m = /repeat\(\s*auto-(?:fill|fit)\s*,\s*minmax\(\s*([\d.]+)(px|rem|em)/i.exec(str(template))
+    const m = /repeat\(\s*auto-(?:fill|fit)\s*,\s*minmax\(\s*(?:min\(\s*100%\s*,\s*)?([\d.]+)(px|rem|em)/i.exec(str(template))
     if (!m) return null
     const px = parseFloat(m[1]) * (m[2] === 'px' ? 1 : 16)
     if (!(px > 0)) return null
@@ -7958,6 +8025,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     App: 1, Page: 1, Form: 1, Crud: 1, HeroSection: 1, EmptyState: 1, NotFound: 1, ProgressBar: 1,
     Dialog: 1, Drawer: 1,
   }
+
+
 
 
   // El rastro automático de una pantalla — la MISMA regla que el renderer web
@@ -8506,6 +8575,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // Node sin navegador ni backend.
 
 
+
   // ── clasificación ────────────────────────────────────────────────────────────────────────
 
   /** Ceiling por defecto de una petición, en ms. Lo pisa `@Action(timeoutMillis = …)`. */
@@ -8997,6 +9067,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }
   }
+
 
 
   // Accesibilidad del renderer VB — la parte que NO traen los componentes oj-*.
@@ -9631,6 +9702,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
+
   // BANDEJA DE NOTIFICACIONES y TOASTS CON DESHACER en la shell VB.
   //
   // Bandeja (NotificationsSupplier del App): la campana de la cabecera con el número de no leídas
@@ -9762,6 +9835,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
   // Efectos de DOM que el reducer (puro) solo DESCRIBE: descargar un fichero y abrir una URL en
   // otra pestaña. Antes `effects.download` se calculaba y nadie lo leía — el CSV de un listado o
   // el PDF de un folio llegaban al navegador y se perdían. Cada chain que reduce un increment
@@ -9824,6 +9898,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (undo.length && env && env.document) showUndoToasts(undo, env.document)
     return n
   }
+
 
 
   // Campos de CAPTURA de un formulario (fichero, imagen, firma, cámara) para los que JET/Redwood no
@@ -10786,6 +10861,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
   // VENTANAS FLOTANTES al pasar el ratón (y al enfocar con el teclado): el resumen de una tarifa, el
   // detalle de una celda. UNA oj-popup de JET compartida, creada fuera de Knockout, a la que se
   // le cambia el contenido: cualquier elemento con data-mateu-hover (texto, líneas con \n) la abre
@@ -10899,6 +10975,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     }, true)
   }
+
 
 
   // ARRASTRAR FILAS A UN DESTINO: las filas de un listado @DragRows(tipo) se arrastran con el dnd
@@ -11114,6 +11191,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   void panelExpanded
+
 
 
   // Map sobre Leaflet: JET no tiene mapa de calles (oj-thematic-map pinta geografía GeoJSON, no
@@ -11538,6 +11616,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // "Transporte"): bootstrap de la shell por components/_/action; todo lo demás por
   // sync/{route|_no_route} con actionId '' en las cargas. Fuente ÚNICA: este fichero se
   // testea en Node (capture.mjs) y se empaqueta en AMD para VB (make-amd.mjs).
+
+
+
+
 
 
   /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction).
@@ -12236,6 +12318,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // El HTML se pinta como HTML (lo es en el wire: un <a> con su onclick que emite
   // navigation-requested), con una sola traducción: <vaadin-icon> no existe en Redwood y se cambia
   // por el icono de fuente oj-ux-ico equivalente. La navegación que emite la escucha la shell.
+
+
 
 
   const CONTAINERS = new Set([
@@ -13440,6 +13524,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
+
+
+
   // The DOM side of the display atoms that VB bindings cannot paint by themselves: the BPMN diagram
   // (an SVG drawn from its BPMN-DI), the cookie consent band (a cookie decides whether it shows),
   // the right click of a ContextMenu, and the Chat component (a streamed conversation). Same idiom as
@@ -13677,6 +13765,297 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() } })
       paint()
     })
+  }
+
+
+
+
+  // THE PAGE PROJECTION — what the two big page chains (shell onMateuNavigate: a navigation;
+  // content runMateuAction: an action's answer) assign to the VB variables once the registry is
+  // reduced. Both chains used to carry their own inline copy of it (~300 lines each, already
+  // drifting apart); the pure parts live here now, tested in Node, and the chains are thin adapters
+  // that do the I/O (loads, component refreshes, toasts) and assign what these return. Every function
+  // takes plain values and returns the values to assign — no VB, no DOM.
+
+  /** The generic form steps aside (an archetype, rich content or the not-found page paints the body). */
+  const noGenericFormVars = () => ({ mateuFormMetadata: null, mateuFormFieldsList: [], mateuFormSections: [], mateuFormActions: [] })
+
+  /** The collection header of a listing: its toolbar's first button is the primary action, the
+   *  rest its secondary actions. */
+  function listHeaderVarsOf(listingSummary) {
+    const toolbar = listingSummary ? listingSummary.toolbar : []
+    const primaryToolbar = toolbar.length ? toolbar[0] : null
+    return {
+      mateuListPrimary: primaryToolbar ? { label: primaryToolbar.label } : { label: '', display: 'off' },
+      mateuListPrimaryId: primaryToolbar ? primaryToolbar.actionId : '',
+      mateuListSecondary: toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
+    }
+  }
+
+  /**
+   * The guided process' footer: the forward button (the wizard's own, else the first action that is
+   * not "back"), its primary label, and the step shown. A wizard's form actions are none (back = a
+   * click on the rail, forward = Continue). `shownStep`: the navigation enters through the overview
+   * (''), an action answer keeps the wizard's current step.
+   */
+  function wizardVarsOf(host, wizardProjection, summaryActions, { keepStep = false } = {}) {
+    if (!wizardProjection) {
+      return { mateuWizardForwardId: '', mateuWizardPrimary: { label: '', disabled: true }, mateuWizardShownStep: '' }
+    }
+    const forward = wizardForwardOf(host) || (summaryActions || []).find((a) => a.actionId !== 'back')
+    return {
+      mateuWizardForwardId: forward ? forward.actionId : '',
+      mateuFormActions: [],
+      // never null: the component reads primaryAction.label unconditionally
+      mateuWizardPrimary: forward ? { label: forward.label, disabled: false } : { label: 'Done', disabled: true },
+      mateuWizardShownStep: keepStep ? (wizardProjection.currentStep || '') : '',
+    }
+  }
+
+  /**
+   * The composed archetypes (welcome / general overview / item overview). The welcome hero's look
+   * rotates when the welcome is ENTERED and is kept while one stays on it (`previousLook`: the look
+   * on screen, or null when no welcome was shown).
+   */
+  function archetypeVarsOf(host, previousLook) {
+    const welcome = welcomeOf(host)
+    const overview = generalOverviewOf(host)
+    const item = itemOverviewOf(host)
+    const vars = {
+      mateuWelcomeTrendItems: welcome && welcome.trend ? welcome.trend.items : [],
+      mateuWelcome: welcome,
+      mateuOverview: overview,
+      mateuOverviewOptions: overview ? overview.switcherOptions : [],
+      mateuItemOv: item,
+      // the ATOMS of the first tab (not only its texts)
+      mateuItemTabTexts: item && item.tabs.length ? item.tabs[0].items : [],
+    }
+    if (welcome) {
+      const look = welcomeLookOf(welcomeKeyOf(host), previousLook)
+      vars.mateuWelcomeKey = look.key
+      vars.mateuWelcomeTheme = look.theme
+      vars.mateuWelcomeIlluBg = look.illuBg
+      vars.mateuWelcomeIllu = look.illu
+    }
+    return { vars, welcome, overview, item }
+  }
+
+  /** The island (an embedded mediator) projected: its fields, sections, actions and content; null
+   *  without one. The nested island's atoms are MERGED into its content (they flow through
+   *  $current — reading application variables in deep templates does not re-bind). */
+  function islandVarsOf(islandCtx, nestedBlocks) {
+    if (!islandCtx) return null
+    const island = {
+      fields: fieldListOf(islandCtx.tree, islandCtx.state, islandCtx.data),
+      sections: formSectionsOf(islandCtx.tree, islandCtx.state, islandCtx.data),
+      actions: actionsOf(islandCtx.tree),
+      content: islandContentOf(islandCtx),
+    }
+    return nestedBlocks ? { ...island, content: mergeNestedContent(island.content, nestedBlocks) } : island
+  }
+  /** The nested island's own variable: its atoms flattened, or null. */
+  function nestedVarOf(nestedBlocks) {
+    return nestedBlocks ? { atoms: nestedBlocks.reduce((out, b) => out.concat(b.items), []) } : null
+  }
+
+  /**
+   * Which branch paints the host's body: `hostBlocks` (the generic content, null when another
+   * branch — a listing, an archetype, the queue, a foldout, a wizard — owns the page) and the
+   * EntityHeader the screen header takes (kept on a foldout: the 360 keeps its guest in the band).
+   */
+  function hostContentPlanOf(host, { islandRawBlocks, title, activeTabs, wizard, listing, welcome, overview, item, queue, foldout }) {
+    const noOtherBranch = !listing && !welcome && !overview && !item && !queue && !foldout
+    const hostEntity = (!wizard && (noOtherBranch || foldout)) ? entityHeaderOf(host) : null
+    const opts = { title, dropEntityHeader: !!hostEntity }
+    if (activeTabs !== undefined) opts.activeTabs = activeTabs
+    const hostBlocks = (!wizard && noOtherBranch) ? hostContentOf(host, islandRawBlocks, opts) : null
+    return { hostBlocks, hostEntity, noOtherBranch }
+  }
+
+  /** The native GENERAL OVERVIEW page: an entity page with TWO column blocks (the wide one first)
+   *  → oj-sp-general-overview-page (main/info slots, integrated header). */
+  function generalOverviewPageOf(hostEntity, hostBlocks, { itemOverviewOn = false } = {}) {
+    const zoned = (hostBlocks || []).filter((b) => /oj-md-/.test(b.blockClass || ''))
+    const on = !itemOverviewOn && !!(hostEntity && (hostBlocks || []).length === 2 && zoned.length === 2)
+    const fold = (block) => {
+      const items = block.items || []
+      const titled = items.length && items[0].isHeading && items[0].isH2
+      return {
+        title: titled ? items[0].text : '',
+        blocks: [{ ...block, blockClass: 'oj-flex-item oj-sm-12', items: titled ? items.slice(1) : items }],
+      }
+    }
+    return on
+      ? { on: true, main: fold(zoned[0]), info: fold(zoned[1]) }
+      : { on: false, main: { title: '', blocks: [] }, info: { title: '', blocks: [] } }
+  }
+
+  /**
+   * The page HEADER (Redwood rule: a VB header always paints it, except the templates that bring
+   * their own) and its toolbar: the primary action, the back affordance (goToParent — Redwood has no
+   * breadcrumbs: a back button, else the automatic trail's parent), the secondary actions.
+   */
+  function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeader, pageWidth, gopOn, iopOn = false, listing }) {
+    const showBand = showHeader && pageWidth !== 'edgeToEdge'
+    const showListBand = !!listing && pageWidth !== 'edgeToEdge'
+    const primaryBtn = primaryToolbarButton(hostToolbar)
+    const backBtn = backToolbarButton(hostToolbar)
+    const parentCrumbNav = backBtn ? undefined : parentCrumb(summary.trail)
+    const header = {
+      // with an EntityHeader (a record's card) the band stays FIXED on scroll and compacts
+      bandClass: hostEntity ? 'oj-bg-neutral-30 oj-sm-padding-10x-bottom mateu-sticky-header' : 'oj-bg-neutral-30 oj-sm-padding-10x-bottom',
+      title: hostEntity ? hostEntity.title : (summary.title || ''),
+      subtitle: hostEntity ? hostEntity.subtitle : pageSubtitleOf(host),
+      // without an EntityHeader, the Page's @KPIs are its facts
+      facts: hostEntity ? hostEntity.facts : pageKpisOf(host),
+      showBand: showBand && !gopOn && !iopOn,
+      showInline: showHeader && !showBand && !gopOn && !iopOn,
+      showListBand,
+      showListInline: !!listing && !showListBand,
+      primary: primaryBtn ? { label: primaryBtn.label, display: primaryBtn.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },
+      primaryId: primaryBtn ? primaryBtn.actionId : '',
+      secondary: hostToolbar.filter((b) => b !== primaryBtn && b !== backBtn)
+        .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
+      goToParent: !!backBtn || !!parentCrumbNav,
+      backId: backBtn ? backBtn.actionId : (parentCrumbNav ? '__goToParent' : ''),
+      parentRoute: !backBtn && parentCrumbNav ? parentCrumbNav.route : '',
+      backLabel: backBtn ? backBtn.label : (parentCrumbNav ? parentCrumbNav.text : ''),
+      toolbar: hostToolbar,
+    }
+    // the goToParent's label is "Parent page" by default; the back button names it
+    const translations = backBtn ? { goToParent: backBtn.label } : (parentCrumbNav ? { goToParent: parentCrumbNav.text } : {})
+    return { header, translations, showBand, showListBand }
+  }
+
+  /** The page toolbar is painted ONCE: when the header paints it, the form's button row drops the
+   *  same actions (both projections come from the same metadata.toolbar). */
+  function formActionsBesideHeader(formActions, header, hostToolbar) {
+    if (!((header.showBand || header.showInline) && hostToolbar.length)) return formActions
+    const inHeader = {}
+    for (const b of hostToolbar) inHeader[b.actionId] = true
+    return (formActions || []).filter((a) => !inHeader[a.actionId])
+  }
+
+  /**
+   * The page's width anatomy (RDS 1.6): the shell layout, the content box (max width, margins,
+   * padding) and the header band's box. With the persistent navigator drawer (or the item overview
+   * template) the page goes edge to edge. Pages whose header bleeds (welcome, overview, wizard,
+   * listing, any VB header) have no padding: each branch brings its gutter. With a header BAND the
+   * content overlaps it by 40px (the band peeks out from behind its start).
+   */
+  function pageWidthOf({ host, drawerNav, iopOn = false }) {
+    return (drawerNav || iopOn) ? 'edgeToEdge' : ((host && host.pageWidth) || 'fixed')
+  }
+  function pageLayoutOf({ host, drawerNav, iopOn = false, bleedingHeader, band }) {
+    const edge = drawerNav || iopOn
+    const pageStyle = edge ? pageStyleOf({ pageWidth: 'edgeToEdge' }) : pageStyleOf(host)
+    const pw = pageWidthOf({ host, drawerNav, iopOn })
+    const out = {
+      mateuShellPageLayout: pw === 'fixed' ? 'fixedWidth' : pw,
+      mateuPageMaxWidth: pageStyle.maxWidth,
+      mateuPageMargin: pageStyle.margin,
+      mateuPagePadding: bleedingHeader ? '0' : pageStyle.padding,
+      mateuBandBoxMargin: '0 auto',
+    }
+    if (band) {
+      out.mateuBandBoxMargin = pageStyle.margin
+      const parts = (pageStyle.margin || '0').split(' ')
+      parts[0] = '-40px'
+      if (parts.length === 1) parts.push('auto')
+      out.mateuPageMargin = parts.join(' ')
+    }
+    return { vars: out, pageWidth: pw }
+  }
+
+
+
+  // WHAT AN ACTION SENDS, decided before anything leaves (runMateuAction used to decide it inline):
+  // the state it carries (the drawer's with its draft, or the host's with the form draft and the
+  // listing's selection), whether it may leave at all (rows required, required fields empty, a row
+  // editor with empty required fields), and to which ServerSide it goes (the list container, a form
+  // embedded in the overlay, the component that declares it, or the mediator). Pure — tested in Node.
+
+  /**
+   * @param {object} reg     the registry before the action
+   * @param {string} id      the action id
+   * @param {object} inputs  { draft, drawerDraft, rowDraft, parameters, listing, listingRows,
+   *                           listingSelection, formSections }
+   * @returns {object} either a stop — { stop: 'selectionRequired' } | { stop: 'fieldErrors', missing }
+   *   | { stop: 'rowErrors', rowErrors, rowEditor } — or what to send: { componentState, parameters,
+   *   transportCtx, transportExtra, listReq, overlay, host }
+   */
+  function outboundActionOf(reg, id, inputs = {}) {
+    const { draft = {}, drawerDraft = {}, rowDraft = {}, listing, listingRows, listingSelection, formSections } = inputs
+    let parameters = inputs.parameters
+    const host = reg.contexts[HOST_ID]
+    const overlay = overlayOf(reg)
+    let componentState = overlay
+      ? Object.assign({}, overlay.state, drawerDraft)
+      : Object.assign({}, host && host.state, draft)
+
+    // a host action on a listing with selection carries the marked rows (crud_selected_items), as
+    // in Vaadin; the drawer's do not (they act on ITS record)
+    if (!overlay && listing && listing.rowsSelectionEnabled) {
+      componentState = withListingSelection(componentState, listing, listingRows, listingSelection)
+      if ((listing.selectionRequired || []).indexOf(id) >= 0 && !componentState.crud_selected_items.length) {
+        return { stop: 'selectionRequired' }
+      }
+    }
+    // validationRequired (a wizard's next, a form's save): empty required fields are marked on their
+    // field and the action does not leave — what Vaadin does in the browser; the server checks again
+    const validation = !overlay && validationOf(host, id)
+    if (validation) {
+      const missing = formErrorsOf(formSections, draft, validation.fields)
+      if (missing.length) return { stop: 'fieldErrors', missing }
+    }
+    // LIST ACTIONS (the "+" / Edit / Remove of a form's list and its modal editor's buttons) go to
+    // the CONTAINER's ServerSide with ITS state, the dialog's row in parameters.initiatorState
+    const listReq = !overlay && listActionRequestOf(reg, id, { hostDraft: draft, rowDraft, parameters: parameters || {} })
+    let transportCtx = host
+    if (listReq) {
+      // Save / Create validate the row IN the dialog
+      if (ROW_VALIDATING_VERBS[listReq.verb]) {
+        const rowCtx = reg.contexts[listReq.fieldId + '-container']
+        const rowErrors = validateRow(rowCtx, rowDraft)
+        if (Object.keys(rowErrors).length) {
+          return { stop: 'rowErrors', rowErrors, rowEditor: rowEditorOf(reg, { rowDraft, errors: rowErrors }) }
+        }
+      }
+      componentState = listReq.componentState
+      parameters = listReq.parameters
+      transportCtx = listReq.ctx
+    }
+    // TO WHICH ServerSide: a form embedded in the overlay (an EmbeddedView) gets it with its state
+    // and no route; the component of the host that declares it gets it; the rest go to the mediator
+    let transportExtra = {}
+    const overlayTransport = overlay && !listReq ? overlayTransportOf(reg, id) : null
+    if (overlayTransport) {
+      transportCtx = overlayTransport
+      transportExtra = { route: '', consumedRoute: '' }
+    } else if (!listReq && !overlay) {
+      transportCtx = actionTransportOf(host, id)
+    }
+    return { componentState, parameters, transportCtx, transportExtra, listReq, overlay, host }
+  }
+
+  /**
+   * Did the action's answer RE-RENDER the host (a new component with another id)? Then, as the web
+   * does (applyFragment → triggerOnLoad), what just arrived asks for its OnLoad load — without it a
+   * listing repainted by an action came back empty.
+   */
+  function hostReRendered(lastIncrement, hostBefore, hostNow) {
+    return !!(lastIncrement && (lastIncrement.fragments || []).some((f) => f.component && f.action !== 'Add'))
+      && !!(hostNow && hostNow.tree && hostBefore && hostBefore.tree && hostNow.tree.id !== hostBefore.tree.id)
+  }
+
+  /** Did an increment touch the host (any fragment that is not an overlay Add)? */
+  const touchesHost = (inc) => ((inc && inc.fragments) || []).some((f) => f.action !== 'Add')
+
+  /** An answer that ONLY brings messages (a wizard refusing to leave its step) does not change the
+   *  screen: re-projecting it would repaint the form with the server's state and lose what was typed. */
+  function onlyMessagesAnswer({ hostRepainted, flipRoute, events, overlayBefore, overlayNow, lastIncrement }) {
+    return !hostRepainted && !flipRoute && !(events || []).length && !overlayBefore && !overlayNow
+      && !!lastIncrement && !(lastIncrement.fragments || []).length && !(lastIncrement.commands || []).length
   }
 
   // el importe de un campo money: IntlNumberConverter con estilo moneda (un objeto JSON ya no vale)
@@ -14030,5 +14409,23 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // an app registers the view of its own custom components (CustomComponent) here
     registerCustomComponent,
     runSurfaceAction,
+    // the page projection and the outbound action plan the two big page chains share
+    // (poc/pageProjection.mjs, poc/actionPlan.mjs)
+    listHeaderVarsOf,
+    wizardVarsOf,
+    archetypeVarsOf,
+    islandVarsOf,
+    nestedVarOf,
+    noGenericFormVars,
+    hostContentPlanOf,
+    generalOverviewPageOf,
+    pageHeaderOf,
+    formActionsBesideHeader,
+    pageWidthOf,
+    pageLayoutOf,
+    outboundActionOf,
+    hostReRendered,
+    touchesHost,
+    onlyMessagesAnswer,
   };
 });

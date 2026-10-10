@@ -118,6 +118,7 @@
   "chatLocalAgentHint": "Hablando con tu CLI local (el agente companion) — sin API key",
   "chatExpand": "Ampliar el asistente",
   "chatRestore": "Ancho normal",
+  "selectRowsFirst": "Primero tienes que seleccionar alguna fila",
   "recommended": "Recomendado",
   "choose": "Elegir",
   "learnMore": "Más información",

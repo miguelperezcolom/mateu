@@ -5314,6 +5314,6 @@ test('navegar: lo que la chain asigna (foldout, wizard, cola) se lee de constant
     assert.doesNotMatch(src, /!\s*\$application\.variables\.mateu(Foldout|Queue|Wizard)\b/, rel)
     assert.doesNotMatch(src, /integratedHeader = !!\(\$application\.variables\.mateuWizard/, rel)
     assert.doesNotMatch(src, /if \(\$application\.variables\.mateuWizard\)/, rel)
-    assert.match(src, /&& !queueNow && !foldoutNow;/, rel)
+    assert.match(src, /queue: queueNow, foldout: foldoutNow/, rel)
   }
 })

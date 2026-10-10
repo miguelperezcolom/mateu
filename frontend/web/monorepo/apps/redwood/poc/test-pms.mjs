@@ -620,7 +620,9 @@ test('re-proyecciones del host (pestaña, panel) quitan el EntityHeader que ya p
   const page = webApp('flows/main/pages/main-start-page.html')
   assert.match(page, /oj-collapsible/)
   assert.match(page, /mateuPageHeader\.bandClass/)
-  assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /mateu-sticky-header/)
+  // the header projection (sticky business card with an EntityHeader) is poc/pageProjection.mjs
+  assert.match(readFileSync(join(here, 'pageProjection.mjs'), 'utf8'), /mateu-sticky-header/)
+  assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /bridge\.pageHeaderOf\(/)
 })
 
 test('cabecera fija: body.mateu-scrolled al dejar atrás la cabecera, y sólo cuando cambia', () => {
@@ -1075,7 +1077,7 @@ test('arrastre: el listado @DragRows da su tipo al oj-table; el DropZone es un �
   assert.match(page, /mateuListing\.headerBlocks/)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installDragAndDrop\(\)/)
   // una acción que repinta el host vuelve a pedir su carga OnLoad (el listado no queda vacío)
-  assert.match(webApp('flows/main/pages/main-start-page-chains/runMateuAction.js'), /hostNow\.tree\.id !== host\.tree\.id/)
+  assert.match(webApp('flows/main/pages/main-start-page-chains/runMateuAction.js'), /bridge\.hostReRendered\(lastIncrement, host, hostNow\)/)
 })
 
 import { ganttAtomOf, itemOverviewOf, generalOverviewOf, isRichAtom } from './reduceContexts.mjs'

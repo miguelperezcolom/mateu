@@ -13,6 +13,8 @@ const out = join(here, '..', 'webApps', 'vbredwoodapp', 'resources', 'js', 'mate
 
 const strip = (file) =>
   readFileSync(join(here, file), 'utf8')
+    // an import may span several lines (import {\n a,\n b,\n} from '…'): the whole statement goes
+    .replace(/^import\s+\{[^}]*\}\s+from\s+'[^']+'\s*$/gm, '')
     .split('\n')
     .filter((l) => !l.startsWith('import ') && !/^export \* from /.test(l))
     .map((l) => l.replace(/^export (async |const |let |function |class )/, '$1').replace(/^export /, ''))
@@ -31,7 +33,7 @@ export const MODULES = [
   'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'resilience.mjs', 'a11y.mjs', 'elements.mjs',
   'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'planning.mjs', 'actionPanels.mjs',
   'keys.mjs', 'hover.mjs', 'dnd.mjs', 'matrix.mjs', 'map.mjs', 'tables.mjs', 'bundle.mjs',
-  'transport.mjs', 'widgets.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs',
+  'transport.mjs', 'widgets.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs', 'pageProjection.mjs', 'actionPlan.mjs',
 ]
 const body = MODULES.map(strip).join('\n\n')
 
@@ -412,6 +414,24 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // an app registers the view of its own custom components (CustomComponent) here
     registerCustomComponent,
     runSurfaceAction,
+    // the page projection and the outbound action plan the two big page chains share
+    // (poc/pageProjection.mjs, poc/actionPlan.mjs)
+    listHeaderVarsOf,
+    wizardVarsOf,
+    archetypeVarsOf,
+    islandVarsOf,
+    nestedVarOf,
+    noGenericFormVars,
+    hostContentPlanOf,
+    generalOverviewPageOf,
+    pageHeaderOf,
+    formActionsBesideHeader,
+    pageWidthOf,
+    pageLayoutOf,
+    outboundActionOf,
+    hostReRendered,
+    touchesHost,
+    onlyMessagesAnswer,
   };
 });
 `

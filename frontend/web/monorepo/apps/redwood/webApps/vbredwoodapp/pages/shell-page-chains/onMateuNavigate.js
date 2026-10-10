@@ -306,13 +306,10 @@ define([
       $application.variables.mateuWizard = wizardProjection;
       // el guided process no avanza por su cuenta: el paso lo decide Mateu (ver el bridge)
       if (wizardProjection) bridge.guardGuidedProcess();
+      // the page projection (poc/pageProjection.mjs, tested): what to assign from the registry
+      const vars = $application.variables;
+      const assign = (values) => { for (const key of Object.keys(values)) vars[key] = values[key]; };
       const islandContext = firstIsland ? reg.contexts[firstIsland.id] : null;
-      $application.variables.mateuIsland = islandContext
-        ? { fields: bridge.fieldListOf(islandContext.tree, islandContext.state, islandContext.data),
-            sections: bridge.formSectionsOf(islandContext.tree, islandContext.state, islandContext.data),
-            actions: bridge.actionsOf(islandContext.tree),
-            content: bridge.islandContentOf(islandContext) }
-        : null;
       // isla ANIDADA dentro de la isla (App con initialData sembrado, p.ej. el documento):
       // cargar con el initialData como componentState; RECARGAR si el seed cambió (selectPax)
       const nestedList = islandContext ? bridge.collectIslands(islandContext.tree) : [];
@@ -332,26 +329,15 @@ define([
       $application.variables.mateuNestedSeed = nestedSeed;
       const nestedCtx = nestedInfo ? reg.contexts[nestedInfo.id] : null;
       const nestedBlocks = nestedCtx ? bridge.islandContentOf(nestedCtx) : null;
-      $application.variables.mateuNested = nestedBlocks
-        ? { atoms: nestedBlocks.reduce((out, b) => out.concat(b.items), []) }
-        : null;
+      vars.mateuNested = bridge.nestedVarOf(nestedBlocks);
       // los átomos de la anidada se FUSIONAN en el contenido de la isla (fluyen por
       // $current — leer $application.variables en templates profundos no re-liga)
-      if ($application.variables.mateuIsland && nestedBlocks) {
-        $application.variables.mateuIsland = Object.assign({}, $application.variables.mateuIsland, {
-          content: bridge.mergeNestedContent($application.variables.mateuIsland.content, nestedBlocks),
-        });
-      }
+      vars.mateuIsland = bridge.islandVarsOf(islandContext, nestedBlocks);
 
 
 
       // header de colección: toolbar del crud → primaryAction/secondaryActions
-      const toolbar = listingSummary ? listingSummary.toolbar : [];
-      const primaryToolbar = toolbar.length ? toolbar[0] : null;
-      $application.variables.mateuListPrimary = primaryToolbar
-        ? { label: primaryToolbar.label } : { label: '', display: 'off' };
-      $application.variables.mateuListPrimaryId = primaryToolbar ? primaryToolbar.actionId : '';
-      $application.variables.mateuListSecondary = toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label }));
+      assign(bridge.listHeaderVarsOf(listingSummary));
       // Si la carga falló, el reintento vuelve a entrar en ESTA chain con la misma ruta.
       bridge.setLastRetry(null);
       const summary = bridge.summarizeHost(reg, route);
@@ -374,26 +360,9 @@ define([
       $application.variables.mateuFormSections = summary.sections;
       $application.variables.mateuFormValue = summary.formValue;
       $application.variables.mateuFormActions = summary.actions;
-      const wizardNow = wizardProjection;
-      if (wizardNow) {
-        const forwardBtn = bridge.wizardForwardOf(host);
-        const forward = forwardBtn
-          || summary.actions.find((a) => a.actionId !== 'back');
-        $application.variables.mateuWizardForwardId = forward ? forward.actionId : '';
-        $application.variables.mateuFormActions = []; // atrás = clic en el rail; adelante = Continue
-        // sin availableFromStep: el primary solo aparece en el ÚLTIMO paso del tren
-        // (y nunca null: el componente lee primaryAction.label incondicionalmente)
-        $application.variables.mateuWizardPrimary = forward
-          ? { label: forward.label, disabled: false }
-          : { label: 'Done', disabled: true };
-        // entrada fresca al wizard: arrancar por el OVERVIEW del guided-process
-        // (el Start del componente pasa a paso 1 por writeback interno, sin evento)
-        $application.variables.mateuWizardShownStep = '';
-      } else {
-        $application.variables.mateuWizardForwardId = '';
-        $application.variables.mateuWizardPrimary = { label: '', disabled: true };
-        $application.variables.mateuWizardShownStep = '';
-      }
+      // el wizard: botón adelante y su rótulo; entrada fresca → arranca por el OVERVIEW del
+      // guided-process (el Start del componente pasa a paso 1 por writeback interno)
+      assign(bridge.wizardVarsOf(host, wizardProjection, summary.actions, { keepStep: false }));
 
 
       // cola de trabajo del front-office (TaskQueue) + placeholder del detalle
@@ -405,33 +374,19 @@ define([
       const notFoundNow = bridge.notFoundOf(host.tree, document.documentElement.lang || navigator.language);
       $application.variables.mateuNotFound = notFoundNow;
       // arquetipos compuestos (welcome / general overview / item overview)
-      const welcome = bridge.welcomeOf(host);
-      $application.variables.mateuWelcomeTrendItems =
-        welcome && welcome.trend ? welcome.trend.items : [];
-      const overviewProjection = bridge.generalOverviewOf(host);
-      const itemProjection = bridge.itemOverviewOf(host);
-      // el aspecto del hero rota al ENTRAR en una welcome y se conserva mientras se siga en ella:
-      // la respuesta de una acción lanzada desde ella (un CTA que navega) la reproyecta, y un
-      // tono nuevo en ese instante era el hero cambiando de color antes de irse (welcomeLookOf)
-      const previousLook = $application.variables.mateuWelcome ? {
-        key: $application.variables.mateuWelcomeKey,
-        theme: $application.variables.mateuWelcomeTheme,
-        illuBg: $application.variables.mateuWelcomeIlluBg,
-        illu: $application.variables.mateuWelcomeIllu,
-      } : null;
-      $application.variables.mateuWelcome = welcome;
-      if (welcome) {
-        const look = bridge.welcomeLookOf(bridge.welcomeKeyOf(host), previousLook);
-        $application.variables.mateuWelcomeKey = look.key;
-        $application.variables.mateuWelcomeTheme = look.theme;
-        $application.variables.mateuWelcomeIlluBg = look.illuBg;
-        $application.variables.mateuWelcomeIllu = look.illu;
-      }
-      $application.variables.mateuOverview = overviewProjection;
-      $application.variables.mateuOverviewOptions = overviewProjection ? overviewProjection.switcherOptions : [];
-      $application.variables.mateuItemOv = itemProjection;
-      $application.variables.mateuItemTabTexts = itemProjection && itemProjection.tabs.length
-        ? itemProjection.tabs[0].items : []; // los ÁTOMOS de la pestaña (no sólo sus textos)
+      // el aspecto del hero rota al ENTRAR en una welcome y se conserva mientras se siga en ella
+      // (una acción lanzada desde ella la reproyecta: un tono nuevo sería el hero cambiando de
+      // color antes de irse — welcomeLookOf)
+      const archetypes = bridge.archetypeVarsOf(host, vars.mateuWelcome ? {
+        key: vars.mateuWelcomeKey,
+        theme: vars.mateuWelcomeTheme,
+        illuBg: vars.mateuWelcomeIlluBg,
+        illu: vars.mateuWelcomeIllu,
+      } : null);
+      assign(archetypes.vars);
+      const welcome = archetypes.welcome;
+      const overviewProjection = archetypes.overview;
+      const itemProjection = archetypes.item;
       if (itemProjection) {
         try {
           await Actions.callComponentMethod(context, { selector: '#mateuItemTabs', method: 'refresh' });
@@ -440,27 +395,23 @@ define([
       if (welcome || overviewProjection || itemProjection || foldoutNow) {
         // sus campos/botones los pintan las ramas del arquetipo (o los paneles del foldout:
         // la vista @FoldoutDetail de un crud), no el form genérico
-        $application.variables.mateuFormMetadata = null;
-        $application.variables.mateuFormFieldsList = [];
-        $application.variables.mateuFormSections = [];
-        $application.variables.mateuFormActions = [];
+        assign(bridge.noGenericFormVars());
       }
       // contenido display del HOST (detalle standalone) / de los pasos del wizard:
       // los bloques de islandContentOf con la isla del host (documento) fusionada
       const islandRawBlocks = islandContext ? bridge.islandContentOf(islandContext) : null;
       const esWizard = !!wizardProjection;
-      const sinOtrasRamas = !listingSummary && !welcome && !overviewProjection && !itemProjection
-        && !queueNow && !foldoutNow;
       // un foldout con EntityHeader (p.ej. la Reserva 360) CONSERVA el header de pantalla:
       // el huésped + el CTA van en la banda, el foldout es solo el cuerpo
-      const hostEntity = (!esWizard && (sinOtrasRamas || foldoutNow))
-        ? bridge.entityHeaderOf(host) : null;
+      const contentPlan = bridge.hostContentPlanOf(host, {
+        islandRawBlocks, title: summary.title, wizard: esWizard, listing: listingSummary,
+        welcome, overview: overviewProjection, item: itemProjection, queue: queueNow, foldout: foldoutNow,
+      });
+      const hostEntity = contentPlan.hostEntity;
       // pantalla nueva, pestaña nueva: la activa es estado de CLIENTE y no sobrevive a una
       // navegación (la pestaña 3 de la pantalla anterior no significa nada en ésta)
-      $application.variables.mateuActiveTabs = {};
-      let hostBlocks = (!esWizard && sinOtrasRamas)
-        ? bridge.hostContentOf(host, islandRawBlocks,
-            { title: summary.title, dropEntityHeader: !!hostEntity }) : null;
+      vars.mateuActiveTabs = {};
+      let hostBlocks = contentPlan.hostBlocks;
       // los @Subresource a la vista (los de la pestaña activa) se cargan y pasan a ser su tabla
       if (hostBlocks) {
         reg = await bridge.loadSubresources(callBase, reg, hostBlocks, { appState });
@@ -487,22 +438,9 @@ define([
       };
       // GENERAL OVERVIEW nativo: página de entidad con DOS bloques-columna (la ancha
       // primero) → el template oj-sp-general-overview-page (slots main/info, header integrado)
-      const zonedGop = (hostBlocks || []).filter((b) => /oj-md-/.test(b.blockClass || ''));
-      const gopOn = !iopOn && !!(hostEntity && (hostBlocks || []).length === 2 && zonedGop.length === 2);
-      const gopFold = (block) => {
-        const items = (block.items || []);
-        const conTitulo = items.length && items[0].isHeading && items[0].isH2;
-        return {
-          title: conTitulo ? items[0].text : '',
-          blocks: [Object.assign({}, block, {
-            blockClass: 'oj-flex-item oj-sm-12',
-            items: conTitulo ? items.slice(1) : items,
-          })],
-        };
-      };
-      $application.variables.mateuGop = gopOn
-        ? { on: true, main: gopFold(zonedGop[0]), info: gopFold(zonedGop[1]) }
-        : { on: false, main: { title: '', blocks: [] }, info: { title: '', blocks: [] } };
+      const gop = bridge.generalOverviewPageOf(hostEntity, hostBlocks, { itemOverviewOn: iopOn });
+      vars.mateuGop = gop;
+      const gopOn = gop.on;
       $application.variables.mateuHostContent = (!gopOn && !iopOn && hostBlocksRicos ? hostBlocks : null) || [];
       // los componentes web del contenido (el grafo de un proceso) los crea el bridge en su
       // hueco: VB no puede escribir una etiqueta cuyo nombre llega en los datos
@@ -521,11 +459,8 @@ define([
         $application.variables.mateuHostText = '';
       }
       if (hostBlocksRicos || notFoundNow) {
-        $application.variables.mateuFormMetadata = null;
-        $application.variables.mateuFormFieldsList = [];
-        $application.variables.mateuFormSections = [];
-        $application.variables.mateuFormActions = [];
-        $application.variables.mateuHostText = '';
+        assign(bridge.noGenericFormVars());
+        vars.mateuHostText = '';
       }
       // el PASO del wizard: contenido display + campos (cada uno UNA vez: los que pinta el
       // form salen del contenido) + el pie Back/Next. Con el rail (@WizardProgress RAIL) va al
@@ -595,90 +530,35 @@ define([
       // con navigator persistente a la izquierda, el formato pasa a edge-to-edge
       // automáticamente: centrar un fixed en el área restante queda raro (el drawer ya
       // consume el lateral); el gutter del contenido lo ponen las ramas (12x/6x)
-      const drawerNav = $application.variables.mateuMenuDrawerMode;
+      const drawerNav = vars.mateuMenuDrawerMode;
       // con el template iop activo el FORMATO lo pone el template (ni fixed ni fullWidth:
-      // sus zonas van directamente sobre el fondo de página) → wrapper a sangre
-      const pageStyle = (drawerNav || iopOn)
-        ? bridge.pageStyleOf({ pageWidth: 'edgeToEdge' })
-        : bridge.pageStyleOf(host);
-      // el shell adapta su chrome (p.ej. el chat FAB) al formato de página
-      const pw = (drawerNav || iopOn) ? 'edgeToEdge' : ((host && host.pageWidth) || 'fixed');
-      $application.variables.mateuShellPageLayout = pw === 'fixed' ? 'fixedWidth' : pw;
-      $application.variables.mateuPageMaxWidth = pageStyle.maxWidth;
-      $application.variables.mateuPageMargin = pageStyle.margin;
-      $application.variables.mateuPagePadding = pageStyle.padding;
-      if (welcome || overviewProjection
-          || wizardProjection || listingSummary
-          || $application.variables.mateuPageHeader) {
-        // header Redwood a sangre: el gutter lo recupera cada rama de contenido
-        $application.variables.mateuPagePadding = '0';
-      }
+      // sus zonas van directamente sobre el fondo de página) → wrapper a sangre; el shell adapta
+      // su chrome (p.ej. el chat FAB) al formato de página
+      const pw = bridge.pageWidthOf({ host, drawerNav, iopOn });
+      // header Redwood a sangre: el gutter lo recupera cada rama de contenido
+      const bleedingHeader = !!(welcome || overviewProjection || wizardProjection || listingSummary
+        || vars.mateuPageHeader);
       // anatomía RDS del header (feedback 2026-07-26): en fixed/fullWidth el header va
       // sobre una BANDA a sangre (fondo blanco de viewport a viewport) con su contenido
       // capado a la caja; la tarjeta de contenido SOLAPA la banda (margen -40px) para que
       // la banda asome por detrás de su arranque — como el fondo general del lienzo
-      const showBand = showHeader && pw !== 'edgeToEdge';
-      const showListBand = !!listingSummary && pw !== 'edgeToEdge';
-      // las acciones del toolbar de la Page van al HEADER (primary/secondary de la banda)
-      // la cabecera Spectra solo enseña la primaria y la PRIMERA secundaria; el resto va al
-      // desbordamiento, así que quién es la primaria decide qué se ve
-      const primaryBtn = bridge.primaryToolbarButton(hostToolbar);
-      // volver NO es una acción más: es la afordancia goToParent de la cabecera RDS
-      const backBtn = bridge.backToolbarButton(hostToolbar);
-      const parentCrumbNav = backBtn ? undefined : bridge.parentCrumb(summary.trail);
-      $application.variables.mateuPageHeader = {
-        // con EntityHeader (la ficha de un registro) la banda queda FIJA al hacer scroll y se
-        // compacta (la «business card» de OPERA): ver bridge.installStickyHeader + app.css
-        bandClass: hostEntity ? 'oj-bg-neutral-30 oj-sm-padding-10x-bottom mateu-sticky-header' : 'oj-bg-neutral-30 oj-sm-padding-10x-bottom',
-        // con EntityHeader en el host (la 360), el header de PANTALLA muestra al huésped
-        title: hostEntity ? hostEntity.title : (summary.title || ''),
-        subtitle: hostEntity ? hostEntity.subtitle : bridge.pageSubtitleOf(host),
-        // sin EntityHeader, los @KPI de la Page (los totales de la reserva) son sus facts
-        facts: hostEntity ? hostEntity.facts : bridge.pageKpisOf(host),
-        showBand: showBand && !gopOn && !iopOn,
-        showInline: showHeader && !showBand && !gopOn && !iopOn,
-        showListBand: showListBand,
-        showListInline: !!listingSummary && !showListBand,
-        primary: primaryBtn ? { label: primaryBtn.label, display: primaryBtn.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },
-        primaryId: primaryBtn ? primaryBtn.actionId : '',
-        secondary: hostToolbar.filter((b) => b !== primaryBtn && b !== backBtn)
-          .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
-        // sin botón de vuelta, el «ir al padre» sale del rastro automático (breadcrumbs.mjs):
-        // Redwood no tiene migas, y ésta es la afordancia que su cabecera ofrece en su lugar
-        goToParent: !!backBtn || !!parentCrumbNav,
-        backId: backBtn ? backBtn.actionId : (parentCrumbNav ? '__goToParent' : ''),
-        parentRoute: !backBtn && parentCrumbNav ? parentCrumbNav.route : '',
-        backLabel: backBtn ? backBtn.label : (parentCrumbNav ? parentCrumbNav.text : ''),
-        toolbar: hostToolbar,
-      };
-      // el rótulo del goToParent es "Parent page" por defecto; lo pone el botón de vuelta
-      $application.variables.mateuPageHeaderTranslations = backBtn
-        ? { goToParent: backBtn.label } : (parentCrumbNav ? { goToParent: parentCrumbNav.text } : {});
-
-      // El toolbar de la Page se pinta UNA sola vez. Las dos proyecciones —la cabecera
-      // (pageToolbarOf) y la fila de botones bajo el formulario (actionsOf)— salen del MISMO
-      // `metadata.toolbar`, así que al entrar en un detalle salían Back to list / Add another /
-      // Edit arriba y otra vez abajo. Manda la cabecera cuando se pinta; si no hay cabecera, la
-      // fila de abajo es la única y se queda entera.
-      if (($application.variables.mateuPageHeader.showBand || $application.variables.mateuPageHeader.showInline) && hostToolbar.length) {
-        const enCabecera = {};
-        for (const boton of hostToolbar) enCabecera[boton.actionId] = true;
-        $application.variables.mateuFormActions =
-          ($application.variables.mateuFormActions || []).filter((a) => !enCabecera[a.actionId]);
-      }
-      // el solape -40px de la banda NO aplica con el template iop (sus sticky internos
-      // calculan contra el flujo y el solape los descuadra)
-      if ((showBand && !iopOn) || showListBand) {
-        // la caja de la banda usa la MISMA fórmula horizontal que el contenido…
-        $application.variables.mateuBandBoxMargin = $application.variables.mateuPageMargin;
-        // …y el contenido gana el solape vertical (-40px) sobre la banda
-        const marginParts = ($application.variables.mateuPageMargin || '0').split(' ');
-        marginParts[0] = '-40px';
-        if (marginParts.length === 1) marginParts.push('auto');
-        $application.variables.mateuPageMargin = marginParts.join(' ');
-      } else {
-        $application.variables.mateuBandBoxMargin = '0 auto';
-      }
+      // las acciones del toolbar de la Page van al HEADER (primary/secondary de la banda); volver
+      // NO es una acción más: es la afordancia goToParent de la cabecera RDS (Redwood no tiene
+      // migas: sin botón de vuelta, el padre del rastro automático)
+      const pageHeader = bridge.pageHeaderOf({
+        host, hostEntity, summary, hostToolbar, showHeader, pageWidth: pw, gopOn, iopOn, listing: listingSummary,
+      });
+      vars.mateuPageHeader = pageHeader.header;
+      vars.mateuPageHeaderTranslations = pageHeader.translations;
+      // El toolbar de la Page se pinta UNA sola vez: manda la cabecera cuando se pinta
+      vars.mateuFormActions = bridge.formActionsBesideHeader(vars.mateuFormActions, pageHeader.header, hostToolbar);
+      // anatomía RDS (feedback 2026-07-26): en fixed/fullWidth el header va sobre una BANDA a
+      // sangre y la tarjeta de contenido la SOLAPA (-40px); el solape no aplica con el template
+      // iop (sus sticky internos calculan contra el flujo)
+      assign(bridge.pageLayoutOf({
+        host, drawerNav, iopOn, bleedingHeader,
+        band: (pageHeader.showBand && !iopOn) || pageHeader.showListBand,
+      }).vars);
       // 1.5: la URL refleja la ruta — path (/ruta) servida por el backend Mateu, hash
       // (#/ruta) en serving estático (el modo lo fija loadMateuShell en el bootstrap)
       if (!fromUrl) {
