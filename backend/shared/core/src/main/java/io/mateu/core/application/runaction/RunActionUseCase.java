@@ -275,7 +275,13 @@ public class RunActionUseCase {
                 io.mateu.core.infra.declarative.orchestrators.crud.CapabilityCrud.bridgeIfNeeded(
                     instance))
         .flatMap(instance -> routeIfNeeded(command, instance))
-        .map(instance -> toRestFetchResponse(instance, command))
+        // The upstream call is a BLOCKING java.net.http send (once per selected row on the bulk
+        // path): it must not run on the reactive event-loop thread that serves every other request,
+        // so the whole fetch moves to the bounded elastic pool, made for exactly this.
+        .flatMap(
+            instance ->
+                Mono.fromCallable(() -> toRestFetchResponse(instance, command))
+                    .subscribeOn(reactor.core.scheduler.Schedulers.boundedElastic()))
         .flux();
   }
 
@@ -373,15 +379,19 @@ public class RunActionUseCase {
   private Object performRestCall(
       io.mateu.uidl.data.RestDataSource source, java.util.Map<String, Object> state) {
     java.util.function.Function<String, String> secrets = this::resolveSecret;
-    var url = TemplateInterpolator.interpolate(source.url(), state, secrets);
     var method =
         source.method() == null || source.method().isBlank()
             ? "GET"
             : source.method().toUpperCase();
+    // Logged by its TEMPLATE, never the resolved url: that may carry a ${secret.X} in its query.
+    var url = source.url();
     try {
+      // Values are percent-encoded by position (TemplateInterpolator.interpolateUrl), so a value
+      // from the client state cannot add path segments, a query or another host to the request.
+      var resolvedUrl = TemplateInterpolator.interpolateUrl(source.url(), state, secrets);
       var builder =
           java.net.http.HttpRequest.newBuilder()
-              .uri(java.net.URI.create(url))
+              .uri(java.net.URI.create(resolvedUrl))
               .timeout(java.time.Duration.ofSeconds(60))
               .header("Accept", "application/json");
       if (source.headers() != null) {
