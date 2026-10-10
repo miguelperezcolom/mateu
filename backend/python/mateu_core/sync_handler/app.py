@@ -45,7 +45,7 @@ class AppHandlerMixin(MixinBase):
             home_type = self.registry.resolve(None, home_route)
             if home_type is not None:
                 home_name = type_name(home_type)
-                if home_name and home_name != type_name(app_type):
+                if home_name and home_name != type_name(app_type) and meta is not None:
                     meta.home_server_side_type = home_name
         return UIIncrement.of(
             commands=commands,

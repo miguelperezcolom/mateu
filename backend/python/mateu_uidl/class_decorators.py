@@ -44,7 +44,7 @@ class _ListToolbarButton:
 # ── Class-level decorators ─────────────────────────────────────────────────────
 def ui(route: str = "") -> Callable[[type], type]:
     def deco(cls: type) -> type:
-        cls.__mateu_ui__ = route
+        setattr(cls, "__mateu_ui__", route)
         return cls
 
     return deco
@@ -52,7 +52,7 @@ def ui(route: str = "") -> Callable[[type], type]:
 
 def title(value: str) -> Callable[[type], type]:
     def deco(cls: type) -> type:
-        cls.__mateu_title__ = value
+        setattr(cls, "__mateu_title__", value)
         return cls
 
     return deco
@@ -63,7 +63,7 @@ def wizard_progress(style: str) -> Callable[[type], type]:
     step bullets (the ProgressSteps component). (Python analogue of Java's @WizardProgress.)"""
 
     def deco(cls: type) -> type:
-        cls.__mateu_wizard_progress__ = style
+        setattr(cls, "__mateu_wizard_progress__", style)
         return cls
 
     return deco
@@ -99,7 +99,7 @@ def size(mode: SizeMode, length: str = "") -> Callable[[type], type]:
     wire = "fixed:" + length if mode == SizeMode.FIXED else mode.value
 
     def deco(cls: type) -> type:
-        cls.__mateu_size__ = wire
+        setattr(cls, "__mateu_size__", wire)
         return cls
 
     return deco
@@ -112,7 +112,7 @@ def page_width(width: PageWidth) -> Callable[[type], type]:
     datagrids → full width, anything else → fixed). The Python analogue of Java's @PageWidth."""
 
     def deco(cls: type) -> type:
-        cls.__mateu_page_width__ = width.value if isinstance(width, PageWidth) else width
+        setattr(cls, "__mateu_page_width__", width.value if isinstance(width, PageWidth) else width)
         return cls
 
     return deco
@@ -140,8 +140,10 @@ def page_template(page_type: PageType) -> Callable[[type], type]:
     always wins over the inference. The Python analogue of Java's @PageTemplate."""
 
     def deco(cls: type) -> type:
-        cls.__mateu_page_type__ = (
-            page_type.value if isinstance(page_type, PageType) else page_type
+        setattr(
+            cls,
+            "__mateu_page_type__",
+            page_type.value if isinstance(page_type, PageType) else page_type,
         )
         return cls
 
@@ -166,7 +168,7 @@ def rest_listing(
     of an inline url (the values declared here still win). Python analogue of Java's @RestListing."""
 
     def deco(cls: type) -> type:
-        cls.__mateu_rest_listing__ = (url, method, headers, body, items_path, proxy, source)
+        setattr(cls, "__mateu_rest_listing__", (url, method, headers, body, items_path, proxy, source))
         return cls
 
     return deco
@@ -191,8 +193,10 @@ def rest_action(
     @RestAction."""
 
     def deco(fn: Callable) -> Callable:
-        fn.__mateu_rest_action__ = (
-            url, method, headers, body, success_message, result_path, proxy, source
+        setattr(
+            fn,
+            "__mateu_rest_action__",
+            (url, method, headers, body, success_message, result_path, proxy, source),
         )
         return fn
 
@@ -216,7 +220,7 @@ def rest_data(
     analogue of Java's @RestData."""
 
     def deco(cls: type) -> type:
-        cls.__mateu_rest_data__ = (url, method, headers, body, result_path, proxy, source)
+        setattr(cls, "__mateu_rest_data__", (url, method, headers, body, result_path, proxy, source))
         return cls
 
     return deco
@@ -228,7 +232,7 @@ def welcome_banner(title: str = "", subtitle: str = "", image: str = "") -> Call
     subtitle and background image. The Python analogue of Java's ``@WelcomeBanner``."""
 
     def deco(cls: type) -> type:
-        cls.__mateu_welcome_banner__ = (title, subtitle, image)
+        setattr(cls, "__mateu_welcome_banner__", (title, subtitle, image))
         return cls
 
     return deco
@@ -236,7 +240,7 @@ def welcome_banner(title: str = "", subtitle: str = "", image: str = "") -> Call
 
 def subtitle(value: str) -> Callable[[type], type]:
     def deco(cls: type) -> type:
-        cls.__mateu_subtitle__ = value
+        setattr(cls, "__mateu_subtitle__", value)
         return cls
 
     return deco
@@ -248,7 +252,7 @@ def overline(value: str) -> Callable[[type], type]:
     """
 
     def deco(cls: type) -> type:
-        cls.__mateu_overline__ = value
+        setattr(cls, "__mateu_overline__", value)
         return cls
 
     return deco
@@ -261,7 +265,7 @@ def title_placeholder(value: str) -> Callable[[type], type]:
     """
 
     def deco(cls: type) -> type:
-        cls.__mateu_title_placeholder__ = value
+        setattr(cls, "__mateu_title_placeholder__", value)
         return cls
 
     return deco
@@ -297,17 +301,17 @@ def app(
     Python mirror of Java's ``@App(requires = {...})``."""
 
     def deco(cls: type) -> type:
-        cls.__mateu_app__ = title_
-        cls.__mateu_app_variant__ = variant
-        cls.__mateu_app_command_center__ = command_center
-        cls.__mateu_app_chromeless__ = chromeless
-        cls.__mateu_app_access_keys__ = access_keys
-        cls.__mateu_app_requires__ = list(requires) if requires else []
+        setattr(cls, "__mateu_app__", title_)
+        setattr(cls, "__mateu_app_variant__", variant)
+        setattr(cls, "__mateu_app_command_center__", command_center)
+        setattr(cls, "__mateu_app_chromeless__", chromeless)
+        setattr(cls, "__mateu_app_access_keys__", access_keys)
+        setattr(cls, "__mateu_app_requires__", list(requires) if requires else [])
         # coherence-plan #5: @app(route="/x") declares BOTH that the class is an app AND its route —
         # the single decorator, equivalent to @ui("/x") @app(...). Blank = the route comes from a
         # separate @ui on the same class; when both are set, @app(route) wins (see MateuRegistry).
         if route:
-            cls.__mateu_app_route__ = route
+            setattr(cls, "__mateu_app_route__", route)
         return cls
 
     return deco
@@ -323,7 +327,7 @@ def remote_menu(label: str, base_url: str, route: str = "", explode: bool = Fals
     def deco(cls: type) -> type:
         entries = list(getattr(cls, "__mateu_remote_menus__", []))
         entries.append((label, base_url, route, explode))
-        cls.__mateu_remote_menus__ = entries
+        setattr(cls, "__mateu_remote_menus__", entries)
         return cls
 
     return deco
@@ -336,7 +340,7 @@ def ai(sse: str) -> Callable[[type], type]:
     ``data:`` chunks as the streamed reply. The Python analogue of Java's ``@AI``."""
 
     def deco(cls: type) -> type:
-        cls.__mateu_ai_sse__ = sse
+        setattr(cls, "__mateu_ai_sse__", sse)
         return cls
 
     return deco
@@ -351,14 +355,14 @@ def app_context(label: str = "") -> Callable:
     state of every request under the method's name."""
 
     def deco(fn):
-        fn.__mateu_app_context__ = label
+        setattr(fn, "__mateu_app_context__", label)
         return fn
 
     return deco
 
 
 def compact(cls: type) -> type:
-    cls.__mateu_compact__ = True
+    setattr(cls, "__mateu_compact__", True)
     return cls
 
 
@@ -368,7 +372,7 @@ def static_view(cls: type) -> type:
     on return visits (the last step of the client structure cache). A developer promise, like
     ``@action_options(idempotent=…)``; do NOT use it where content depends on data, the user,
     permissions, time or live-state interpolation. Mirrors io.mateu's ``@StaticView``."""
-    cls.__mateu_static_view__ = True
+    setattr(cls, "__mateu_static_view__", True)
     return cls
 
 
@@ -378,11 +382,11 @@ def auto_layout(arg=True):
     inference only fills the gaps the developer left open. ``@auto_layout(False)`` opts out.
     The Python analogue of Java's ``@AutoLayout``."""
     if isinstance(arg, type):  # used bare: @auto_layout
-        arg.__mateu_auto_layout__ = True
+        setattr(arg, "__mateu_auto_layout__", True)
         return arg
 
     def deco(cls: type) -> type:
-        cls.__mateu_auto_layout__ = bool(arg)
+        setattr(cls, "__mateu_auto_layout__", bool(arg))
         return cls
 
     return deco
@@ -395,11 +399,11 @@ def auto_page(arg=True):
     declaring only Button fields and panel components composes the Welcome landing. Explicit
     always wins (archetype subclasses are never rewritten); ``@auto_page(False)`` opts out."""
     if isinstance(arg, type):  # used bare: @auto_page
-        arg.__mateu_auto_page__ = True
+        setattr(arg, "__mateu_auto_page__", True)
         return arg
 
     def deco(cls: type) -> type:
-        cls.__mateu_auto_page__ = bool(arg)
+        setattr(cls, "__mateu_auto_page__", bool(arg))
         return cls
 
     return deco
@@ -408,12 +412,12 @@ def auto_page(arg=True):
 def read_only(cls: type) -> type:
     """Class-level: render every field of the view as read-only (the analogue of Java's
     ``@ReadOnly``). Also enables the read-only-only layout inference (sections as tabs)."""
-    cls.__mateu_read_only__ = True
+    setattr(cls, "__mateu_read_only__", True)
     return cls
 
 
 def confirm_on_navigation_if_dirty(cls: type) -> type:
-    cls.__mateu_confirm_dirty__ = True
+    setattr(cls, "__mateu_confirm_dirty__", True)
     return cls
 
 
@@ -422,7 +426,7 @@ def edit_in_drawer(cls: type) -> type:
     sliding over the listing (the Redwood "Create and Edit - Drawer" template) instead of
     navigating to the /new — /{id}/edit routes; saving persists, closes the drawer and re-runs
     the listing's search in place. The analogue of Java's ``Crud.editInDrawer()``."""
-    cls.__mateu_edit_in_drawer__ = True
+    setattr(cls, "__mateu_edit_in_drawer__", True)
     return cls
 
 
@@ -430,7 +434,7 @@ def inline_editing(cls: type) -> type:
     """Class-level, on a Crud view: every data column of the table listing becomes an in-place
     editor (``ReadOnly()`` fields stay display-only); each committed cell persists its row
     immediately through the crud's update-row action. The analogue of Java's ``@InlineEditing``."""
-    cls.__mateu_inline_editing__ = True
+    setattr(cls, "__mateu_inline_editing__", True)
     return cls
 
 
@@ -444,7 +448,7 @@ def zones(*zone_list: tuple[str, str] | str):
     normalized = [(z, "") if isinstance(z, str) else (z[0], z[1]) for z in zone_list]
 
     def deco(cls: type) -> type:
-        cls.__mateu_zones__ = normalized
+        setattr(cls, "__mateu_zones__", normalized)
         return cls
 
     return deco
@@ -454,7 +458,7 @@ def folded_layout(cls: type) -> type:
     """Class-level: lays the form's section cards out side by side in one horizontal row (equal
     shares) instead of stacking them. ``@zones`` columns take precedence when both are declared.
     The Python analogue of Java's ``@FoldedLayout``."""
-    cls.__mateu_folded_layout__ = True
+    setattr(cls, "__mateu_folded_layout__", True)
     return cls
 
 
@@ -475,8 +479,8 @@ def form_layout(columns: int = 2, labels_aside: LabelsAsideMode = LabelsAsideMod
     ``@FormLayout``."""
 
     def deco(cls: type) -> type:
-        cls.__mateu_form_layout_columns__ = columns
-        cls.__mateu_labels_aside__ = labels_aside
+        setattr(cls, "__mateu_form_layout_columns__", columns)
+        setattr(cls, "__mateu_labels_aside__", labels_aside)
         return cls
 
     return deco
@@ -488,11 +492,11 @@ def toc(arg=True):
     ``@Toc``: absent → the renderer decides (auto), ``@toc`` / ``@toc(True)`` → force on,
     ``@toc(False)`` → suppress."""
     if isinstance(arg, type):  # bare @toc
-        arg.__mateu_toc__ = True
+        setattr(arg, "__mateu_toc__", True)
         return arg
 
     def deco(cls: type) -> type:
-        cls.__mateu_toc__ = bool(arg)
+        setattr(cls, "__mateu_toc__", bool(arg))
         return cls
 
     return deco
@@ -500,13 +504,13 @@ def toc(arg=True):
 
 def plain_text(cls: type) -> type:
     """Class-level: render every field as read-only plain text."""
-    cls.__mateu_plain_text__ = True
+    setattr(cls, "__mateu_plain_text__", True)
     return cls
 
 
 def emits(name: str) -> Callable[[type], type]:
     def deco(cls: type) -> type:
-        cls.__mateu_emits__ = name
+        setattr(cls, "__mateu_emits__", name)
         return cls
 
     return deco
@@ -516,7 +520,7 @@ def subscribe_to(event: str, action: str) -> Callable[[type], type]:
     def deco(cls: type) -> type:
         subs = list(getattr(cls, "__mateu_subscriptions__", ()))
         subs.append((event, action))
-        cls.__mateu_subscriptions__ = subs
+        setattr(cls, "__mateu_subscriptions__", subs)
         return cls
 
     return deco
@@ -524,7 +528,7 @@ def subscribe_to(event: str, action: str) -> Callable[[type], type]:
 
 def secured(permission: str) -> Callable[[type], type]:
     def deco(cls: type) -> type:
-        cls.__mateu_secured__ = permission
+        setattr(cls, "__mateu_secured__", permission)
         return cls
 
     return deco

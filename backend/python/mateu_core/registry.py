@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import logging
 import inspect
+from typing import Any
 from types import ModuleType
 
 _log = logging.getLogger("mateu.registry")
@@ -135,7 +136,7 @@ class MateuRegistry:
         try:
             import importlib
 
-            obj = importlib.import_module(module_name)
+            obj: Any = importlib.import_module(module_name)
         except ImportError:
             return None
         for part in qual.split("."):

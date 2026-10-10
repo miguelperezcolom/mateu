@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import inspect
 
 from mateu_dtos import (
@@ -55,7 +57,7 @@ class ActionHandlerMixin(MixinBase):
         if not params:
             return []
         clicked = (rq.parameters or {}).get("_clickedRow")
-        args = []
+        args: list[Any] = []
         for p in params:
             ann = p.annotation
             # The action request itself can be injected (the port's analogue of Java's

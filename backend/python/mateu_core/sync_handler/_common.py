@@ -100,6 +100,15 @@ from ..route_registry import RouteRegistry
 from ..yaml_spec_loader import YamlSpecLoader
 
 
+def _by_attr(name: str):
+    """A sort key reading attribute ``name`` of each item (None-safe, mixed-type-safe)."""
+
+    def key(item):
+        return _sort_key(getattr(item, name, None))
+
+    return key
+
+
 def _sort_key(value):
     """None-safe, type-stable sort key: (is_none, coerced) so None sorts first and mixed
     numeric/string columns never raise a TypeError."""

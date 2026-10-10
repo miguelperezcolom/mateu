@@ -59,9 +59,9 @@ def menu_item(
         label = arg if isinstance(arg, str) else None
 
         def deco(fn):
-            fn.__mateu_menu_item__ = label or True
-            fn.__mateu_menu_group__ = group
-            fn.__mateu_menu_look__ = MenuLook(description=description, icon=icon, image=image)
+            setattr(fn, "__mateu_menu_item__", label or True)
+            setattr(fn, "__mateu_menu_group__", group)
+            setattr(fn, "__mateu_menu_look__", MenuLook(description=description, icon=icon, image=image))
             return fn
 
         return deco
@@ -105,7 +105,7 @@ def menu_group(
             group.strip("/"),
             MenuLook(display=display, description=description, icon=icon, image=image),
         )
-        cls.__mateu_menu_groups__ = looks
+        setattr(cls, "__mateu_menu_groups__", looks)
         return cls
 
     return deco
@@ -121,13 +121,13 @@ class kpi:
         self.title = title_
 
     def __call__(self, fn):
-        fn.__mateu_kpi__ = self.title
+        setattr(fn, "__mateu_kpi__", self.title)
         return fn
 
 
 def fab(icon: str, label: str | None = None, order: int = 0):
     def deco(fn):
-        fn.__mateu_fab__ = _Fab(icon, label, order)
+        setattr(fn, "__mateu_fab__", _Fab(icon, label, order))
         return fn
 
     return deco
@@ -148,7 +148,7 @@ def action_options(timeout_millis: int = 0, idempotent: bool = False):
     """
 
     def deco(fn):
-        fn.__mateu_action_options__ = (timeout_millis, idempotent)
+        setattr(fn, "__mateu_action_options__", (timeout_millis, idempotent))
         return fn
 
     return deco
@@ -156,7 +156,7 @@ def action_options(timeout_millis: int = 0, idempotent: bool = False):
 
 def banner(theme: BannerTheme = BannerTheme.INFO, title_: str | None = None):
     def deco(fn):
-        fn.__mateu_banner__ = _Banner(theme, title_)
+        setattr(fn, "__mateu_banner__", _Banner(theme, title_))
         return fn
 
     return deco
@@ -164,7 +164,7 @@ def banner(theme: BannerTheme = BannerTheme.INFO, title_: str | None = None):
 
 def shortcut(keys: str):
     def deco(fn):
-        fn.__mateu_shortcut__ = keys
+        setattr(fn, "__mateu_shortcut__", keys)
         return fn
 
     return deco
@@ -177,7 +177,7 @@ def drag_rows(drag_type: str) -> Callable[[type], type]:
     ``_dragType``. Python analogue of Java's @DragRows."""
 
     def deco(cls: type) -> type:
-        cls.__mateu_drag_rows__ = drag_type
+        setattr(cls, "__mateu_drag_rows__", drag_type)
         return cls
 
     return deco
@@ -207,7 +207,7 @@ def wizard_completion_action(label: str = "Finish"):
     ``complete()``."""
 
     def deco(fn):
-        fn.__mateu_wizard_completion__ = label
+        setattr(fn, "__mateu_wizard_completion__", label)
         return fn
 
     return deco
@@ -220,7 +220,7 @@ def group_action(label: str):
     ``group_value`` receives it."""
 
     def deco(fn):
-        fn.__mateu_group_action__ = label
+        setattr(fn, "__mateu_group_action__", label)
         return fn
 
     return deco

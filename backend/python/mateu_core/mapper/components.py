@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import dataclasses
 
 from mateu_dtos import (
@@ -116,6 +118,10 @@ class ComponentMapperMixin(MixinBase):
     def map_component(self, c) -> ClientSideComponent:
         """A fluent component (``mateu_uidl.components``) -> its wire ClientSide component.
         The Python port of the Java Metric/Scoreboard/Dashboard/Foldout/Hero/… mappers."""
+        # one dispatch over every component type: these locals take a different type per branch
+        meta: Any
+        items: Any
+        i: Any
         if isinstance(c, ClientSideComponent):  # pre-composed (archetype wrappers)
             return c
         if isinstance(c, fluent.ComponentRef):

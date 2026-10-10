@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import inspect
 
 from mateu_dtos import (
@@ -99,7 +101,7 @@ class ListingHandlerMixin(MixinBase):
 
     def handle_listing(self, cls, base_route, rq: RunActionRq) -> UIIncrement:
         view = cls()
-        filters_type, row_type = listing_types(cls)
+        filters_type, row_type = listing_types(cls) or (None, None)
         aid = rq.action_id
         navigable = issubclass(cls, Navigable)
         editable = issubclass(cls, Editable)
@@ -108,8 +110,8 @@ class ListingHandlerMixin(MixinBase):
         # Editable without Navigable = the "editable listing": rows open the editor in a
         # drawer over the listing (mirrors Java's CapabilityCrud.editInDrawer).
         drawer_editor = editable and not navigable
-        editor_type = capability_class(cls, Editable) or row_type
-        form_type = capability_class(cls, Creatable) or row_type
+        editor_type: Any = capability_class(cls, Editable) or row_type
+        form_type: Any = capability_class(cls, Creatable) or row_type
 
         if aid and aid.startswith("search-"):
             return self.field_search(view, rq)
@@ -227,7 +229,7 @@ class ListingHandlerMixin(MixinBase):
         with the grid's selected rows rebuilt as typed Row objects; a None result re-runs the
         search so the listing reflects the changes."""
         # Only a @list_toolbar_button method is a bulk row action (security: the id is wire input).
-        fn = action_guard.resolve_row_action(cls, rq.action_id[len("action-on-row-"):])
+        fn = action_guard.resolve_row_action(cls, (rq.action_id or "")[len("action-on-row-"):])
         if fn is None:
             return self.error(f"Action not found: {rq.action_id}")
         action_guard.ensure_may_invoke(self.mapper, cls, fn, rq.action_id)

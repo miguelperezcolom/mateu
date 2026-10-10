@@ -10,7 +10,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
+from datetime import date as _date
+from typing import TYPE_CHECKING
 from enum import Enum
+
+
+if TYPE_CHECKING:
+    from .suppliers import PeerNav
 
 
 class Component:
@@ -604,10 +610,10 @@ class CalendarEvent:
 
     id: str | None = None
     title: str | None = None
-    date: date | None = None
+    date: _date | None = None
     color: str | None = None
     action_id: str | None = None
-    end_date: date | None = None
+    end_date: _date | None = None
     start_time: str | None = None
     end_time: str | None = None
 

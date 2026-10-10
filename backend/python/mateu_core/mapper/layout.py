@@ -517,8 +517,8 @@ class LayoutMapperMixin(MixinBase):
         return field
 
     def form_rows(self, fields, max_columns: int = 2) -> list:
-        rows = []
-        pending = []
+        rows: list = []
+        pending: list = []
         used = 0  # columns consumed by the pending row (fields carry a colspan)
         for field in fields:
             field = self._widened(field, max_columns)

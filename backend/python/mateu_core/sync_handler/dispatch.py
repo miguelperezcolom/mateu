@@ -246,7 +246,7 @@ class DispatchMixin(MixinBase):
         if isinstance(instance, (TodoList, CalendarPage)):
             # The archetype's data (and its click's action_on) may depend on the inbound
             # request — the port's analogue of Java's HttpRequest injection.
-            instance.http_request = rq
+            instance.http_request = rq  # type: ignore[assignment]
         # 4a. A list (grid) field's row editing: add / select / create / save / move / remove
         # edit the rows held in the form state (Java's FieldCrudActionRunner).
         list_action = self.list_field_action(type_, rq.action_id)
@@ -264,7 +264,7 @@ class DispatchMixin(MixinBase):
         if isinstance(instance, ComponentTreeSupplier):
             if rq.action_id == "selectCollectionItem":
                 raw = rq.parameters.get("_item") if rq.parameters else None
-                instance.selected_id = None if raw is None else str(raw)
+                instance.selected_id = None if raw is None else str(raw)  # type: ignore[attr-defined]
                 return self.render(type_, instance, rq)
             if rq.action_id in ("filterCollection", "switchRecord"):
                 return self.render(type_, instance, rq)

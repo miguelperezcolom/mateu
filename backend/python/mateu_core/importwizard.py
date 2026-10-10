@@ -91,10 +91,10 @@ class ImportWizard(Wizard, Generic[Row]):
     pasted: Annotated[str | None, Step(1), Stereotype("textarea"),
                       Label("...or paste the CSV")] = None
     mappings: Annotated[list[ColumnMapping], Step(2), InlineEditing(),
-                        Label("Column mapping")] = ()
+                        Label("Column mapping")] = ()  # type: ignore[assignment]
     valid_rows: Annotated[int, Step(3), PlainText(), Label("Valid rows")] = 0
     invalid_rows: Annotated[int, Step(3), PlainText(), Label("Rows with problems")] = 0
-    issues: Annotated[list[RowIssue], Step(3), ReadOnly(), Label("Issues")] = ()
+    issues: Annotated[list[RowIssue], Step(3), ReadOnly(), Label("Issues")] = ()  # type: ignore[assignment]
     imported: Annotated[int, Step(4), PlainText(), Label("Imported")] = 0
     skipped: Annotated[int, Step(4), PlainText(), Label("Skipped")] = 0
 

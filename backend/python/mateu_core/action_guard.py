@@ -122,7 +122,7 @@ def resolve_row_action(type_, name: str | None):
     return None
 
 
-def ensure_may_invoke(mapper, type_, fn, action_id: str) -> None:
+def ensure_may_invoke(mapper, type_, fn, action_id: str | None) -> None:
     """Enforces the access decorators of a resolved action at invocation: the render path only
     disables/hides the button, the wire can still name the action."""
     from .mapper import for_current_audience
@@ -235,6 +235,7 @@ def _walk(node, ids: set[str], seen: set[int], depth: int) -> None:
         return
     if not _is_walkable(node):
         return
+    items: Any
     if dataclasses.is_dataclass(node):
         items = ((f.name, getattr(node, f.name, None)) for f in dataclasses.fields(node))
     elif hasattr(type(node), "model_fields"):

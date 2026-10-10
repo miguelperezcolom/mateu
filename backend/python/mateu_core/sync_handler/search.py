@@ -48,6 +48,7 @@ from ..reflection import methods_with, view_fields
 from ..validation import violations
 from ._base import MixinBase
 from ._common import (
+    _by_attr,
     _sort_key,
     RunActionRq,
 )
@@ -59,7 +60,7 @@ class SearchHandlerMixin(MixinBase):
         column, own actions and OnLoad search) rides as the content of a Dialog emitted as an Add
         fragment; the host field id travels in the selector's initial data so the row pick can
         address it back (mirrors Java's CodeSearchFieldActionRunner)."""
-        field_id = rq.action_id[len("codesearch-"):]
+        field_id = (rq.action_id or "")[len("codesearch-"):]
         selector_type = None
         for f in view_fields(host_type):
             if camel_case(f.name) == field_id and f.has(Searchable):
@@ -155,7 +156,8 @@ class SearchHandlerMixin(MixinBase):
         increment = self._page_rows(items, props, rq)
         groups = supplied_groups if supplied_groups is not None else self._synthesized_groups(items, props)
         if groups is not None:
-            increment.fragments[0].data["crud"]["groups"] = self._apply_group_visibility(view, groups)
+            data: Any = increment.fragments[0].data
+            data["crud"]["groups"] = self._apply_group_visibility(view, groups)
         return increment
 
     def assemble_filters(self, filters_type, state: dict):
@@ -181,7 +183,7 @@ class SearchHandlerMixin(MixinBase):
             elif enum_set_element_type(t) is not None:
                 if key not in state:
                     continue
-                el = enum_set_element_type(t)
+                el: Any = enum_set_element_type(t)
                 values = set()
                 for v in self._multi_values(state[key]):
                     try:
@@ -224,7 +226,7 @@ class SearchHandlerMixin(MixinBase):
             if not field:
                 continue
             reverse = spec.get("direction", "ascending") == "descending"
-            items.sort(key=lambda it, f=field: _sort_key(getattr(it, f, None)), reverse=reverse)
+            items.sort(key=_by_attr(field), reverse=reverse)
         total = len(items)
         page = int(state.get("page", 0) or 0)
         size = int(state.get("size", 10) or 10)
@@ -275,7 +277,7 @@ class SearchHandlerMixin(MixinBase):
         found = crud.find(self.search_text(rq), state, pageable)
         if found is not None:
             rows = [self._row_dict(item, props) for item in found.content]
-            crud_data = {"page": {
+            crud_data: dict[str, Any] = {"page": {
                 "content": rows, "pageSize": pageable.size, "pageNumber": pageable.page,
                 "totalElements": found.total_elements,
             }}
@@ -296,7 +298,7 @@ class SearchHandlerMixin(MixinBase):
             if not field:
                 continue
             reverse = sort_spec.get("direction", "ascending") == "descending"
-            items.sort(key=lambda it, f=field: _sort_key(getattr(it, f, None)), reverse=reverse)
+            items.sort(key=_by_attr(field), reverse=reverse)
         total = len(items)
         # paginate in memory
         page = int(state.get("page", 0) or 0)
@@ -397,7 +399,7 @@ class SearchHandlerMixin(MixinBase):
         out = []
         for group in groups:
             hidden = [
-                camel_case(m) for m in methods if not view.group_action_visible(m, group.get("value"))
+                camel_case(m) for m in methods if not view.group_action_visible(m, str(group.get("value")))
             ]
             out.append({**group, "hiddenActions": hidden} if hidden else group)
         return out

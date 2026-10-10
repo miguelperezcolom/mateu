@@ -115,7 +115,7 @@ class ResponseHelpersMixin(MixinBase):
         :class:`LookupLabelSupplier` (falling back to a match among its ``options(field_name)``).
         They ride as ``<fieldId>-label`` entries in the fragment data — where the renderer's
         combo looks before showing the raw id (mirrors Java's LookupLabelSupplier)."""
-        data = None
+        data: dict[str, Any] | None = None
         for f in view_fields(cls):
             value = getattr(instance, f.name, None)
             if value is None or str(value) == "":

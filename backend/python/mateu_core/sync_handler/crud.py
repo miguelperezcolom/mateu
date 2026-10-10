@@ -122,7 +122,7 @@ class CrudHandlerMixin(MixinBase):
         Java's ActionOnRowActionHandler)."""
         # Only a @list_toolbar_button method is a bulk row action — never save/delete/any other
         # method of the crud (security: the id is wire input).
-        fn = action_guard.resolve_row_action(crud_type, rq.action_id[len("action-on-row-"):])
+        fn = action_guard.resolve_row_action(crud_type, (rq.action_id or "")[len("action-on-row-"):])
         if fn is None:
             return self.error(f"Action not found: {rq.action_id}")
         action_guard.ensure_may_invoke(self.mapper, crud_type, fn, rq.action_id)
@@ -294,7 +294,7 @@ class CrudHandlerMixin(MixinBase):
         options for that field, filtered by the typed text (case-insensitive containment on the
         label) and paged, returned as a data-only fragment keyed by the field (mirrors Java's
         SearchFieldActionRunner)."""
-        field_id = rq.action_id[len("search-"):]
+        field_id = (rq.action_id or "")[len("search-"):]
         options = self.mapper._supplied_options(instance, field_id)
         if not options:
             return self.error(f"no lookup options supplier found for field {field_id}")

@@ -110,8 +110,8 @@ def _with_base_path(entry: "RouteEntry", base_path: str) -> "RouteEntry":
 
     return replace(
         entry,
-        route=_prefix(base_path, entry.route),
-        parent=_prefix(base_path, entry.parent) if entry.has_parent() else entry.parent,
+        route=_prefix(base_path, entry.route or ""),
+        parent=_prefix(base_path, entry.parent or "") if entry.has_parent() else entry.parent,
     )
 
 

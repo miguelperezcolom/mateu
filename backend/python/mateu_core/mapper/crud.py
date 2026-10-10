@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from datetime import (
     date,
     datetime,
@@ -313,7 +315,7 @@ class CrudMapperMixin(MixinBase):
         rows_clickable = navigable or editable
         # A self-referential children list makes rows hierarchical (grid_layout "tree"); it rides
         # inside the row dicts, never as a column.
-        columns = []
+        columns: list = []
         for f in view_fields(row_type) if row_type is not None else []:
             if self.grid_row_type(f) is not None or not self.visible(f):
                 continue
@@ -417,7 +419,7 @@ class CrudMapperMixin(MixinBase):
             elif t is NumberRange:
                 out.append(FormFieldMetadata(field_id=fid, data_type="number", label=label, stereotype="numberRange"))
             elif enum_set_element_type(t) is not None:
-                el = enum_set_element_type(t)
+                el: Any = enum_set_element_type(t)
                 out.append(FormFieldMetadata(
                     field_id=fid, data_type="string", label=label, stereotype="multiSelect",
                     options=[Option(value=m.name, label=enum_label(m)) for m in el],
