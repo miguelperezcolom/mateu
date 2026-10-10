@@ -579,6 +579,28 @@ export function matrixSpecOf(m, id) {
     rowHeaderLabel: m.rowHeaderLabel || '' }
 }
 
+/** La altura que el wire pide para el mapa (su `style`), o 25rem como el <mateu-map> del web. */
+export function mapHeightOf(style) {
+  const m = /(?:^|;)\s*height\s*:\s*([^;]+)/i.exec(style || '')
+  return m ? m[1].trim() : '25rem'
+}
+
+/** Map: JET no tiene mapa de calles (oj-thematic-map pide geografía GeoJSON), así que el átomo
+ *  es un contenedor que installMaps (poc/map.mjs) llena con Leaflet y teselas de OpenStreetMap.
+ *  La especificación viaja serializada en un data-attribute, como el HTML del texto enriquecido. */
+export function mapAtomOf(m, id, style) {
+  const markers = (m.markers || []).map((k) => ({
+    id: k.id, latitude: k.latitude, longitude: k.longitude,
+    label: k.label || '', description: k.description || '', color: k.color || '',
+  }))
+  return {
+    isMap: true,
+    mapId: 'mateuMap-' + (id || 'map'),
+    mapSpec: JSON.stringify({ position: m.position || '', zoom: m.zoom || '', markers, markerActionId: m.markerActionId || '' }),
+    mapStyle: { width: '100%', height: mapHeightOf(style) },
+  }
+}
+
 export function matrixAtomOf(m, id, interp = (x) => x) {
   const spec = matrixSpecOf({ ...m, rowHeaderLabel: interp(m.rowHeaderLabel || '') }, id)
   const rows = spec.data.reduce((n, r) => n + 1 + (r.children && spec.expanded.includes(r.id) ? r.children.length : 0), 0)
@@ -800,7 +822,7 @@ export const RICH_ATOM_FLAGS = [
   'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
   // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
   // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
-  'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt', 'isImage', 'isAvatar', 'isGallery', 'isRichText',
+  'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt', 'isImage', 'isAvatar', 'isGallery', 'isRichText', 'isMap',
 ]
 export function isRichAtom(a) {
   return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -2174,6 +2196,10 @@ export function islandContentOf(ctx, opts = {}) {
     }
     if (t === 'MatrixGrid') {
       atom(matrixAtomOf(m, node.id, interp), container)
+      return
+    }
+    if (t === 'Map') {
+      atom(mapAtomOf(m, node.id, node.style), container)
       return
     }
     if (t === 'ActionPanel') {

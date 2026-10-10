@@ -20,7 +20,7 @@ const strip = (file) =>
 
 // bundle.mjs antes de transport.mjs: transport.loadRoute consulta el manifest cargado.
 // chat.mjs es autónomo (solo transporte SSE del chat de IA); va al final del scope compartido.
-const body = `${strip('prefs.mjs')}\n\n${strip('navTree.mjs')}\n\n${strip('calendar.mjs')}\n\n${strip('richtext.mjs')}\n\n${strip('links.mjs')}\n\n${strip('reduceContexts.mjs')}\n\n${strip('breadcrumbs.mjs')}\n\n${strip('clientLog.mjs')}\n\n${strip('polling.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('a11y.mjs')}\n\n${strip('elements.mjs')}\n\n${strip('notify.mjs')}\n\n${strip('files.mjs')}\n\n${strip('inputs.mjs')}\n\n${strip('rules.mjs')}\n\n${strip('planning.mjs')}\n\n${strip('actionPanels.mjs')}\n\n${strip('keys.mjs')}\n\n${strip('hover.mjs')}\n\n${strip('dnd.mjs')}\n\n${strip('matrix.mjs')}\n\n${strip('tables.mjs')}\n\n${strip('bundle.mjs')}\n\n${strip('transport.mjs')}\n\n${strip('widgets.mjs')}\n\n${strip('chat.mjs')}`
+const body = `${strip('prefs.mjs')}\n\n${strip('navTree.mjs')}\n\n${strip('calendar.mjs')}\n\n${strip('richtext.mjs')}\n\n${strip('links.mjs')}\n\n${strip('reduceContexts.mjs')}\n\n${strip('breadcrumbs.mjs')}\n\n${strip('clientLog.mjs')}\n\n${strip('polling.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('a11y.mjs')}\n\n${strip('elements.mjs')}\n\n${strip('notify.mjs')}\n\n${strip('files.mjs')}\n\n${strip('inputs.mjs')}\n\n${strip('rules.mjs')}\n\n${strip('planning.mjs')}\n\n${strip('actionPanels.mjs')}\n\n${strip('keys.mjs')}\n\n${strip('hover.mjs')}\n\n${strip('dnd.mjs')}\n\n${strip('matrix.mjs')}\n\n${strip('map.mjs')}\n\n${strip('tables.mjs')}\n\n${strip('bundle.mjs')}\n\n${strip('transport.mjs')}\n\n${strip('widgets.mjs')}\n\n${strip('chat.mjs')}`
 
 const amd = `/* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
@@ -103,6 +103,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     installPlanningRange,
     installActionPanels,
     installMatrixGrids,
+    installMaps,
+    mapViewPlanOf,
     installCalendars,
     installKeys,
     installHover,
@@ -121,6 +123,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     setUndoSink,
     setCalendarActionSink,
     setMatrixActionSink,
+    setMapActionSink,
     actionPanelAtomOf,
     shortcutMatches,
     setPlanningRangeSink,

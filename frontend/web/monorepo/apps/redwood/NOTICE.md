@@ -71,6 +71,17 @@ starter que genera la tooling de Visual Builder para las aplicaciones de sus usu
 `showMessageToast.js` / `closeMessageBanner.js`). Conservan sus cabeceras de
 copyright de Oracle y no deben desprenderse de ellas.
 
+## Terceros que no son de Oracle
+
+- **Leaflet 1.9.4** (BSD-2-Clause, © Volodymyr Agafonkin y colaboradores): pinta el componente
+  `Map`, porque JET no tiene mapa de calles (`oj-thematic-map` pinta geografía GeoJSON, no
+  teselas). Igual que JET, **no se vendoriza**: `poc/map.mjs` lo carga de cdnjs
+  (`cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/`) la primera vez que una pantalla pinta un mapa.
+- **Teselas de OpenStreetMap** (`tile.openstreetmap.org`, datos © colaboradores de OpenStreetMap,
+  ODbL): las mismas que usa el `<mateu-map>` del renderer web. Su política de uso no admite tráfico
+  intensivo de producción; un despliegue con carga real debe apuntar a un proveedor de teselas
+  propio o contratado.
+
 ## Qué necesita quien lo ejecute
 
 Este renderer está diseñado para aplicaciones de Oracle Visual Builder **alojadas en

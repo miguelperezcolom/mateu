@@ -13,6 +13,8 @@ public class BookingsMenu {
 
   @Menu NewReservation newReservation;
 
+  @Menu SalesMap salesMap;
+
   @Menu ReservationDetail reservation;
 
   @Menu(display = io.mateu.uidl.data.MenuDisplay.cards)

@@ -112,7 +112,7 @@ export const REDWOOD_COVERAGE = {
   Icon: { status: 'none' },
   Image: { status: 'full', note: 'JET has no image component: an <img>; relative sources are served by the backend' },
   Markdown: { status: 'partial', note: 'formatted (headings, lists, quotes, code, bold, italics, links) as allowlist-sanitized HTML; no tables, and HTML inside the Markdown shows as text' },
-  Map: { status: 'none' },
+  Map: { status: 'full', note: 'Leaflet + OSM tiles (JET has no street map): markers, fit, markerActionId' },
   Breadcrumbs: { status: 'none', note: 'the shell has its own breadcrumbs' },
   Breadcrumb: { status: 'part', note: 'of Breadcrumbs' },
   Grid: { status: 'partial', note: 'oj-table (list display) with its columns and rows; no tree, no paging' },

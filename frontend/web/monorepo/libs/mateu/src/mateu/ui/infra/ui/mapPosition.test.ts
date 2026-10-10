@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_ZOOM, parsePosition, parseZoom } from './mapPosition'
+import { DEFAULT_CENTER, DEFAULT_ZOOM, parsePosition, parseZoom, planMapView, SINGLE_MARKER_ZOOM } from './mapPosition'
 
 describe('parsePosition', () => {
     it('parses "lat, lon"', () => {
@@ -33,5 +33,34 @@ describe('parseZoom', () => {
         expect(parseZoom(null)).toBe(DEFAULT_ZOOM)
         expect(parseZoom('')).toBe(DEFAULT_ZOOM)
         expect(parseZoom('x')).toBe(DEFAULT_ZOOM)
+    })
+})
+
+describe('planMapView', () => {
+    const palma = { latitude: 39.5696, longitude: 2.6502 }
+    const port = { latitude: 39.5546, longitude: 2.6236 }
+
+    it('an explicit position wins over the markers', () => {
+        expect(planMapView('40.4, -3.7', '9', [palma, port]))
+            .toEqual({ kind: 'center', center: { lat: 40.4, lon: -3.7 }, zoom: 9 })
+    })
+
+    it('one marker is centred, closer than the world view when no zoom is given', () => {
+        expect(planMapView(undefined, undefined, [palma]))
+            .toEqual({ kind: 'center', center: { lat: 39.5696, lon: 2.6502 }, zoom: SINGLE_MARKER_ZOOM })
+        expect(planMapView(undefined, '11', [palma]))
+            .toEqual({ kind: 'center', center: { lat: 39.5696, lon: 2.6502 }, zoom: 11 })
+    })
+
+    it('several markers are fitted', () => {
+        expect(planMapView(undefined, '12', [palma, port])).toEqual({
+            kind: 'fit',
+            min: { lat: 39.5546, lon: 2.6236 },
+            max: { lat: 39.5696, lon: 2.6502 },
+        })
+    })
+
+    it('no position and no markers is the world view', () => {
+        expect(planMapView(undefined, undefined, [])).toEqual({ kind: 'center', center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM })
     })
 })

@@ -16,6 +16,8 @@ import { matrixSpecOf, matrixAtomOf, matrixSectionKey } from './reduceContexts.m
 import { matrixCellParams, matrixEditChanged } from './matrix.mjs'
 import { coverageProblems } from './parity-check.mjs'
 import { coverageTable } from './coverage.mjs'
+import { mapAtomOf, mapHeightOf } from './reduceContexts.mjs'
+import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM } from './map.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays } from './calendar.mjs'
 import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf } from './notify.mjs'
@@ -1239,6 +1241,34 @@ test('P2 #22 tiles reordenables: el orden guardado del usuario manda; cada bloqu
   const page = webApp('flows/main/pages/main-start-page.html')
   assert.match(page, /:data-mateu-tile="\[\[ \$current\.data\.tileKey \]\]"/)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installTileReorder\(\)/)
+})
+
+test('P2 #21 mapa: Leaflet con marcadores, encuadre y la acción de un marcador', () => {
+  const palma = { id: 'PMI01', latitude: 39.5715, longitude: 2.649, label: 'Palma Centre', description: '22 free', color: '#508223' }
+  const port = { id: 'PMI03', latitude: 39.558, longitude: 2.6735, label: 'Portixol' }
+  const tree = { type: 'ClientSide', id: 'properties', style: 'height: 34rem;', metadata: { type: 'Map', zoom: '', markers: [palma, port], markerActionId: 'openProperty' }, children: [] }
+  const blocks = hostContentOf({ tree, state: {}, data: {} }, []) || []
+  const map = blocks.flatMap((b) => (b.items ? b.items : [b])).find((a) => a && a.isMap) || blocks.find((b) => b.isMap)
+  assert.ok(map, 'the Map becomes an isMap atom')
+  assert.equal(map.mapId, 'mateuMap-properties')
+  assert.deepEqual(map.mapStyle, { width: '100%', height: '34rem' })
+  const spec = JSON.parse(map.mapSpec)
+  assert.equal(spec.markerActionId, 'openProperty')
+  assert.deepEqual(spec.markers.map((m) => m.id), ['PMI01', 'PMI03'])
+  assert.equal(spec.markers[1].color, '')
+  // altura por defecto, como el <mateu-map> del web
+  assert.equal(mapHeightOf(''), '25rem')
+  assert.equal(mapAtomOf({ markers: [] }, 'm', 'width: 100%').mapStyle.height, '25rem')
+  // la vista: posición explícita > marcadores (uno centrado, varios encuadrados) > mundo
+  assert.deepEqual(mapViewPlanOf({ position: '40.4, -3.7', zoom: '9', markers: [palma, port] }), { kind: 'center', center: { lat: 40.4, lon: -3.7 }, zoom: 9 })
+  assert.deepEqual(mapViewPlanOf({ markers: [palma] }), { kind: 'center', center: { lat: 39.5715, lon: 2.649 }, zoom: SINGLE_MARKER_ZOOM })
+  assert.deepEqual(mapViewPlanOf(spec), { kind: 'fit', min: { lat: 39.558, lon: 2.649 }, max: { lat: 39.5715, lon: 2.6735 } })
+  assert.deepEqual(mapViewPlanOf({ markers: [] }), { kind: 'center', center: { lat: 0, lon: 0 }, zoom: 3 })
+  assert.deepEqual(mapMarkerParams('PMI03'), { _markerId: 'PMI03' })
+  // cableado: plantilla con el contenedor, shell que lo instala
+  const page = webApp('flows/main/pages/main-start-page.html')
+  assert.match(page, /:data-map-spec="\[\[ \$current\.data\.mapSpec \]\]"/)
+  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installMaps\(\)/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

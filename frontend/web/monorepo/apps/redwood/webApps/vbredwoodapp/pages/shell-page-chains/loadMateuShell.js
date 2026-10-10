@@ -86,6 +86,9 @@ define([
       bridge.installCalendars();
       bridge.setCalendarActionSink(runPageAction);
       bridge.setMatrixActionSink(runPageAction);
+      // Map: JET no trae mapa de calles → Leaflet (cdnjs) + teselas OSM; un marcador lanza su acción
+      bridge.installMaps();
+      bridge.setMapActionSink(runPageAction);
       // tonos de fila (@RowStatus) y filas de grupo (@GroupBy) del oj-table del listado
       bridge.installRowTones();
       // la ficha de un registro: su cabecera queda fija y se compacta al hacer scroll

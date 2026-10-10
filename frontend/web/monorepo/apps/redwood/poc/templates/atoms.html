@@ -232,6 +232,14 @@
                         </oj-chart>
                       </div>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isMap ]]">
+                      <!-- Map: JET no trae mapa de calles; installMaps (poc/map.mjs) monta Leaflet con
+                           teselas de OpenStreetMap sobre este contenedor y lanza markerActionId al
+                           pulsar un marcador -->
+                      <div class="mateu-map oj-sm-margin-2x-bottom" :id="[[ $current.data.mapId ]]"
+                        role="region" aria-label="Map"
+                        :data-map-spec="[[ $current.data.mapSpec ]]" :style="[[ $current.data.mapStyle ]]"></div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isMatrix ]]">
                       <!-- MatrixGrid: oj-data-grid de JET (secciones plegables, cabeceras de fecha, edición en
                            celda); plegar/editar/enlazar lo atiende installMatrixGrids -->

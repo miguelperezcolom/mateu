@@ -259,8 +259,8 @@ not the feature rows above — is the authority when a screen looks emptier on R
 
 <!-- redwood-coverage:start -->
 Generated from `frontend/web/monorepo/apps/redwood/poc/coverage.mjs` and checked in CI against the
-wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 52 rendered, 11 layout
-containers, 9 partial, 36 not rendered (they are dropped silently — the
+wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 53 rendered, 11 layout
+containers, 9 partial, 35 not rendered (they are dropped silently — the
 children of a container still render).
 
 | Component | Redwood | How |
@@ -295,6 +295,7 @@ children of a container still render).
 | `HorizontalLayout` | ✅ | oj-flex row |
 | `Image` | ✅ | JET has no image component: an <img>; relative sources are served by the backend |
 | `Ledger` | ✅ |  |
+| `Map` | ✅ | Leaflet + OSM tiles (JET has no street map): markers, fit, markerActionId |
 | `MasterDetailLayout` | ✅ | list + detail panes |
 | `MatrixGrid` | ✅ | oj-data-grid |
 | `Meter` | ✅ | oj-progress-bar |
@@ -363,7 +364,6 @@ children of a container still render).
 | `Heatmap` | — |  |
 | `Icon` | — |  |
 | `Kanban` | — |  |
-| `Map` | — |  |
 | `MenuBar` | — |  |
 | `MessageInput` | — |  |
 | `MessageList` | — |  |
