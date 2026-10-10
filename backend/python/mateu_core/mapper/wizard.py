@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from mateu_dtos import (
+    Action,
     ButtonMetadata,
     CardMetadata,
     ClientSideComponent,
@@ -24,6 +25,7 @@ from ..naming import (
     humanize,
 )
 from ..page_type_inference import page_type_of
+from ..reflection import methods_with
 from ..reflection import view_fields
 from ..registry import type_name
 from ..validation import client_validations
@@ -34,6 +36,14 @@ from ._common import (
 )
 
 
+
+def completion_method(cls) -> "tuple[str, str] | None":
+    """``(method name, button label)`` of the wizard's ``@wizard_completion_action``, or None."""
+    for name, fn in methods_with(cls, "__mateu_wizard_completion__"):
+        return name, getattr(fn, "__mateu_wizard_completion__")
+    return None
+
+
 class WizardMapperMixin(MixinBase):
     # ── Wizard ─────────────────────────────────────────────────────────────────
     def map_wizard(self, cls, instance, route: str, step: int) -> ServerSideComponent:
@@ -41,7 +51,13 @@ class WizardMapperMixin(MixinBase):
         total = max((s for _, s in step_fields), default=1)
         total = max(total, 1)
         current = min(max(step, 1), total)
-        fields = [self.map_field(f, instance) for f, s in step_fields if s == current]
+        # A @wizard_completion_action wizard: the last step is the read-only RESULT screen, the
+        # penultimate one runs the completion (Java's WizardButtonBuilder / result step).
+        completion = completion_method(cls)
+        result_step = completion is not None and current == total and total > 1
+        fields = [
+            self.map_field(f, instance, read_only=result_step) for f, s in step_fields if s == current
+        ]
 
         title = getattr(cls, "__mateu_title__", humanize(cls.__name__))
         title_text = self.client(TextMetadata(text=title), None, [])
@@ -70,14 +86,23 @@ class WizardMapperMixin(MixinBase):
             [],
         )
         back = self.client(ButtonMetadata(label="Back", action_id="back", disabled=current == 1), None, [])
-        nxt = self.client(
-            ButtonMetadata(
-                label="Finish" if current == total else "Next", action_id="next", button_style="primary"
-            ),
-            None,
-            [],
-        )
-        bar = self.client(HorizontalLayoutMetadata(), None, [back, nxt])
+        if completion is not None and current == total - 1:
+            name, label = completion
+            nxt = self.client(
+                ButtonMetadata(label=self.T(label), action_id=camel_case(name), button_style="primary"),
+                None,
+                [],
+            )
+        else:
+            nxt = self.client(
+                ButtonMetadata(
+                    label="Finish" if current == total else "Next", action_id="next", button_style="primary"
+                ),
+                None,
+                [],
+            )
+        # the result step has no navigation at all
+        bar = self.client(HorizontalLayoutMetadata(), None, [] if result_step else [back, nxt])
         if getattr(cls, "__mateu_wizard_progress__", "bar") == "rail":
             # wizard_progress("rail"): the Redwood Guided Process rail — the step form on the
             # left, a sticky right band with a big current|total counter over the vertical step
@@ -142,7 +167,16 @@ class WizardMapperMixin(MixinBase):
             initial_data=initial,
             # the current step's field actions (a grid's row editing, lookups…): the renderer only
             # sends what the component advertises
-            actions=self.field_actions(cls, [f for f, s in step_fields if s == current]),
+            actions=[
+                # Next validates the step on the client first (Java's Wizard.actions)
+                *([] if result_step else [Action(id="next", validation_required=True)]),
+                *(
+                    [Action(id=camel_case(completion[0]), validation_required=True)]
+                    if completion is not None and current == total - 1
+                    else []
+                ),
+                *self.field_actions(cls, [f for f, s in step_fields if s == current]),
+            ],
             triggers=[],
             page_width=getattr(cls, "__mateu_page_width__", None),
             page_type=page_type_of(cls),

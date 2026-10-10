@@ -5,9 +5,9 @@ supplier), review a per-line validation report (conversion failures + ``Required
 then import exactly the valid rows. Driven through the same wire the browser uses (the fragment's
 initialData is echoed back as the componentState).
 
-Port deltas vs Java: the import runs on the validation step's Next (the port's wizards have no
-@WizardCompletionAction button), and the validation surface is ``Required()`` only (the Python
-port has no Min/Max markers)."""
+The import is the wizard's completion action (``@wizard_completion_action("Import")`` on the
+validation step, Java's doImport) and the validation report checks the row class's declared
+constraints (Required / Min / Max / Size / Pattern)."""
 
 import base64
 import sys
@@ -65,9 +65,9 @@ def sync():
     return handler().handle(RunActionRq(server_side_type=type_name(ProductImport)))
 
 
-def next_step(state: dict):
+def next_step(state: dict, action: str = "next"):
     return handler().handle(
-        RunActionRq(action_id="next", server_side_type=type_name(ProductImport),
+        RunActionRq(action_id=action, server_side_type=type_name(ProductImport),
                     component_state=state)
     )
 
@@ -106,9 +106,17 @@ def test_the_wizard_parses_maps_validates_and_imports_only_the_valid_rows():
     assert any("Must not be empty" in p for p in problems)
     assert any("Cannot convert" in p for p in problems)
 
-    # validation → result: Next imports exactly the 3 valid rows, typed; the result step shows
-    # the counts (the port equivalent of Java's doImport completion action)
-    done_state = state_of(next_step(third_state))
+    # the validation step offers the Import completion action instead of Next
+    third = next_step(second_state).model_dump(by_alias=True, mode="json")
+    assert "Import" in str(third) and "doImport" in str(third)
+    # Next cannot skip the import: it stays on the validation step
+    assert state_of(next_step(third_state))["__step"] == 3
+    assert imported is None
+
+    # validation → result: Import imports exactly the 3 valid rows, typed; the read-only result
+    # step shows the counts and the summary message, with no navigation left
+    done = next_step(third_state, "doImport")
+    done_state = state_of(done)
     assert imported is not None
     assert [p.name for p in imported] == ["Keyboard", "Mouse", "Cable"]
     assert imported[0].units == 10
@@ -116,10 +124,9 @@ def test_the_wizard_parses_maps_validates_and_imports_only_the_valid_rows():
     assert done_state["__step"] == 4
     assert done_state["imported"] == 3
     assert done_state["skipped"] == 2
-
-    # Finish on the result step completes with the summary message
-    finished = next_step(done_state)
-    assert [m.text for m in finished.messages] == ["Imported 3 rows (2 skipped)"]
+    assert [m.text for m in done.messages] == ["Imported 3 rows (2 skipped)"]
+    done_json = str(done.model_dump(by_alias=True, mode="json"))
+    assert "'actionId': 'back'" not in done_json and "'actionId': 'next'" not in done_json
 
 
 def test_the_target_field_cell_is_an_inline_select_fed_by_the_row_class_field_names():
@@ -172,7 +179,7 @@ def test_edited_mappings_and_semicolon_separated_uploads_are_honoured():
     assert third_state["validRows"] == 2
     assert third_state["invalidRows"] == 0
 
-    next_step(third_state)
+    next_step(third_state, "doImport")
     assert [p.name for p in imported] == ["Teclado", "Raton"]
     assert [p.units for p in imported] == [4, 7]
 
@@ -191,3 +198,29 @@ def test_csv_parser_detects_the_semicolon_separator_on_the_first_line_outside_qu
         ["Producto", "Cantidad"],
         ["Teclado", "4"],
     ]
+
+
+def test_the_validation_report_checks_min_and_max_too():
+    from mateu_uidl import Max, Min
+
+    class Stock:
+        name: Annotated[str | None, Required()] = None
+        units: Annotated[int, Min(1), Max(100)] = 1
+
+    @ui("stock-import")
+    class StockImport(ImportWizard[Stock]):
+        def import_rows(self, rows):
+            pass
+
+    h = SyncHandler(MateuRegistry(StockImport))
+
+    def go(state, action="next"):
+        return h.handle(RunActionRq(action_id=action, server_side_type=type_name(StockImport),
+                                    component_state=state))
+
+    s1 = state_of(h.handle(RunActionRq(server_side_type=type_name(StockImport))))
+    s2 = state_of(go({**s1, "pasted": "Name,Units\nA,0\nB,50\nC,500\n"}))
+    s3 = state_of(go(s2))
+    assert (s3["validRows"], s3["invalidRows"]) == (1, 2)
+    problems = sorted(i["problem"] for i in s3["issues"])
+    assert problems == ["Must be at least 1", "Must be at most 100"]

@@ -2,13 +2,15 @@
 
 Upload (or paste) a CSV, map its columns onto the row class's fields (auto-mapped by name
 similarity, adjustable in an inline-editable grid whose target-field cell is a select fed by the
-wizard's ``options()`` supplier), review a validation report (conversion failures + ``Required()``
-violations per line), then import the valid rows through :meth:`ImportWizard.import_rows`. The
-result step shows imported/skipped counts.
+wizard's ``options()`` supplier), review a validation report (conversion failures and the row
+class's declared constraints — ``Required()``, ``Min``/``Max``/``Size``/``Pattern`` — per line),
+then import the valid rows through :meth:`ImportWizard.import_rows`. The result step shows
+imported/skipped counts.
 
 Steps: 1 upload → 2 mapping → 3 validation → 4 result. Moving forward computes the next step's
-content (:meth:`ImportWizard.on_next`); the import itself runs on the validation step's Next —
-the port's wizards have no completion-action button, Next/Finish is the driver.
+content (:meth:`ImportWizard.on_next`); the import itself is the wizard's completion action
+(``@wizard_completion_action("Import")`` on the validation step, as Java's ``doImport``), after
+which the read-only result step shows the counts.
 """
 
 from __future__ import annotations
@@ -32,6 +34,7 @@ from mateu_uidl import (
     Step,
     Stereotype,
     Wizard,
+    wizard_completion_action,
 )
 
 from .naming import camel_case
@@ -97,8 +100,8 @@ class ImportWizard(Wizard, Generic[Row]):
 
     # ── the developer's surface ─────────────────────────────────────────────────
     def import_rows(self, rows: list[Row]) -> None:
-        """Receives the valid typed rows when the user confirms the import (Next on the
-        validation step)."""
+        """Receives the valid typed rows when the user confirms the import (the Import button on
+        the validation step)."""
         raise NotImplementedError
 
     def row_class(self) -> type:
@@ -116,6 +119,16 @@ class ImportWizard(Wizard, Generic[Row]):
     def complete(self) -> Message:
         return Message(f"Imported {self.imported} rows ({self.skipped} skipped)")
 
+    @wizard_completion_action("Import")
+    def do_import(self) -> Message:
+        """The completion action: imports exactly the valid rows, then the result step shows the
+        counts (Java's ``ImportWizard.doImport``)."""
+        valid, _, invalid_count = self._assemble()
+        self.import_rows(valid)
+        self.imported = len(valid)
+        self.skipped = invalid_count
+        return self.complete()
+
     def on_next(self, from_step: int, to_step: int) -> None:
         if from_step == 1 and to_step == 2:
             self._populate_mappings()
@@ -124,11 +137,6 @@ class ImportWizard(Wizard, Generic[Row]):
             self.valid_rows = len(valid)
             self.invalid_rows = invalid_count
             self.issues = issues
-        if from_step == 3 and to_step == 4:
-            valid, _, invalid_count = self._assemble()
-            self.import_rows(valid)
-            self.imported = len(valid)
-            self.skipped = invalid_count
 
     def options(self, field_name: str):
         """The mapping grid's target-field select options: "— skip —" plus the row class's

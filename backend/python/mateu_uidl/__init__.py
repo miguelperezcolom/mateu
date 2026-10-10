@@ -143,8 +143,6 @@ from .class_decorators import (  # noqa: F401
     zones,
 )
 from .method_decorators import (  # noqa: F401
-    MenuDisplay,
-    MenuLook,
     _maybe_bare,
     action,
     action_options,
@@ -156,7 +154,10 @@ from .method_decorators import (  # noqa: F401
     list_toolbar_button,
     menu_group,
     menu_item,
+    MenuDisplay,
+    MenuLook,
     shortcut,
+    wizard_completion_action,
 )
 from .listing import (  # noqa: F401
     C,
@@ -235,6 +236,7 @@ from .rest_sources import (  # noqa: F401
 
 
 __all__ = [
+    "wizard_completion_action",
     "eyes_only",
     "DeclaredRestSource",
     "RestDataSource",

@@ -7,6 +7,9 @@ from mateu_uidl import Step
 
 from ..reflection import view_fields
 from ..registry import normalize
+from .. import action_guard
+from ..mapper.wizard import completion_method
+from ..naming import camel_case
 from ._base import MixinBase
 from ._common import RunActionRq
 
@@ -25,6 +28,30 @@ class WizardHandlerMixin(MixinBase):
         if list_action is not None:
             # a grid field of the step: its row editing never leaves the step
             return self.handle_list_field_action(type_, *list_action, rq)
+        completion = completion_method(type_)
+        if completion is not None and rq.action_id == camel_case(completion[0]):
+            # The completion action (only from the penultimate step): run it over the bound state
+            # of every step, then show the read-only result step (Java's WizardActionDispatcher).
+            if step != total - 1:
+                return self.error("The wizard cannot complete from this step")
+            fn = getattr(wizard, completion[0])
+            action_guard.ensure_may_invoke(self.mapper, type_, fn, rq.action_id)
+            outcome = fn()
+            response = self.fragment_response(
+                self.title(type_), self.mapper.map_wizard(type_, wizard, route, total), rq
+            )
+            if outcome is not None:
+                extra = self.map_result(outcome, rq)
+                response = response.model_copy(
+                    update={
+                        "messages": list(response.messages) + list(extra.messages),
+                        "commands": list(response.commands) + list(extra.commands),
+                    }
+                )
+            return response
+        if completion is not None and rq.action_id == "next" and step >= total - 1:
+            # a completion wizard never reaches its result step by Next: only the action leads there
+            return self.fragment_response(self.title(type_), self.mapper.map_wizard(type_, wizard, route, step), rq)
         if rq.action_id == "back":
             step = max(1, step - 1)
         elif rq.action_id == "next" and step >= total:

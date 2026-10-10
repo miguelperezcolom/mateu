@@ -196,3 +196,18 @@ def list_toolbar_button(arg=None, confirmation_required: bool = False, rows_sele
         "__mateu_list_toolbar_button__",
         lambda label: _ListToolbarButton(label, confirmation_required, rows_selected_required),
     )
+
+
+def wizard_completion_action(label: str = "Finish"):
+    """Marks the wizard method that COMPLETES it (Java's ``@WizardCompletionAction``): the
+    penultimate step shows a primary ``label`` button running it (instead of Next), and the LAST
+    step becomes the read-only result screen shown after it ran — progress at 100%, no navigation
+    buttons. The method reads the bound state of every step and may set the result step's fields;
+    a returned ``Message`` is shown as well. Without it, the last step's Finish runs
+    ``complete()``."""
+
+    def deco(fn):
+        fn.__mateu_wizard_completion__ = label
+        return fn
+
+    return deco
