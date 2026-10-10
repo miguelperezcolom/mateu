@@ -24,7 +24,15 @@ Checks before you ship:
 
 - **Pin `mateu.version`** to a release and keep every `io.mateu` artifact on that same version.
 - The Mateu **annotation processor ran**: the jar contains one generated controller per `@UI` class
-  (`*MateuController`). An app whose processor did not run boots fine and answers 404 everywhere.
+  (`*MateuController`). An app whose processor did not run boots and answers 404 everywhere; Spring
+  MVC/WebFlux apps log *"Mateu found no UI to serve"* at startup.
+- **Sample mode is off.** A generated YAML-only app turns `mateu.sources.mock` on in its main class
+  until your API exists, and a generated static project ships `-Dmateu.bundle.mock=true` in
+  `.mvn/maven.config`: both answer every REST source with its `sample:` data. Delete that line of
+  the main class (or run with `MATEU_SOURCES_MOCK=false`) and that line of `.mvn/maven.config`
+  before building for production.
+- **Development mode is off**: no `mateu.dev` / `MATEU_DEV` in the production configuration (see
+  [Live reload](/java-user-manual/build/live-reload/)).
 - For a multi-module app, the UI modules were compiled with `mateu-annotation-processor-indexer` and are on
   the app's `annotationProcessorPaths` (see [service-owned UI modules](/java-user-manual/real-world/service-owned-ui-modules/)).
 - Helidon MP: the app has a `META-INF/beans.xml` and `jersey-media-json-jackson` on the runtime
@@ -78,8 +86,9 @@ Mateu does not authenticate users itself; it reads an identity the platform esta
 - **Login**: put your identity provider in front of the app — an OIDC-aware gateway, Spring Security,
   Quarkus OIDC… — or use `@KeycloakSecured` on the `@UI` class to have the browser log in against
   Keycloak and send a Bearer token with every request.
-- **Authorization**: `@EyesOnly`, `@ReadOnlyUnless` and `@DisabledUnless` read roles, groups, scopes
-  and permissions from the JWT in the `Authorization` header (see [Security](/java-user-manual/advanced/security/)).
+- **Authorization**: `@EyesOnly`, `@ReadOnlyUnless` and `@DisabledUnless` check roles, groups,
+  scopes and permissions of the caller your framework authenticated (see
+  [Security](/java-user-manual/advanced/security/)) — never a token Mateu decodes itself.
 - **Authenticate in your framework.** Mateu does not authenticate: it takes roles only from the
   principal your framework authenticated (Spring Security resource server, Quarkus OIDC, Micronaut
   Security, MicroProfile JWT) or a `PrincipalResolver` you register. Without one, restricted UI is
@@ -91,8 +100,9 @@ Mateu does not authenticate users itself; it reads an identity the platform esta
 
 ## 5. A static bundle on a CDN
 
-Screens that need no server logic can ship as a **static bundle** — `mvn -Pbundle package` with the
-`mateu-bundle` plugin — and be served by any CDN or object store with no Mateu backend at runtime. See
+Screens that need no server logic can ship as a **static bundle** — `mvn package` with the
+`mateu-bundle-maven-plugin`'s `bundle` goal bound (a generated static project has it; the demos put
+it behind a `bundle` profile, hence `mvn -Pbundle package` there) — and be served by any CDN or object store with no Mateu backend at runtime. See
 [Static bundle](/java-user-manual/build/static-bundle/) and [100% static UI](/java-user-manual/build/static-ui/).
 
 For production:
@@ -169,3 +179,4 @@ only where an agent should operate the app, behind the same authentication as th
 - [ ] Your framework authenticates requests (resource server / OIDC / JWT module); services check permissions
 - [ ] CSP set (report-only first), CORS limited to the origins you need
 - [ ] Static bundle: SPA fallback, cache headers, `staticOnly` on, no secrets in direct sources
+- [ ] Sample mode off (`mateu.sources.mock`, `-Dmateu.bundle.mock`) and development mode off (`mateu.dev`)

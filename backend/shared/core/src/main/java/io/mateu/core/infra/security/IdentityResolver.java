@@ -93,11 +93,13 @@ public final class IdentityResolver {
       return;
     }
     if (WARNED.compareAndSet(false, true)) {
-      log.warn(
-          "Mateu does not authenticate: roles for @EyesOnly / @ReadOnlyUnless / @DisabledUnless /"
-              + " access: come only from the principal your framework authenticated, and no"
-              + " security module was found — restricted UI stays hidden for everyone. {} (or"
-              + " register an io.mateu.uidl.security.PrincipalResolver bean).",
+      // INFO, not WARN: it is printed by every fresh app, including the starters, which restrict
+      // nothing — a warning there teaches people to ignore Mateu's warnings.
+      log.info(
+          "No security module found. That only matters if your UI restricts something"
+              + " (@EyesOnly / @ReadOnlyUnless / @DisabledUnless / YAML access:): Mateu does not"
+              + " authenticate, so restricted UI then stays hidden for everyone. To secure it: {}"
+              + " (or register an io.mateu.uidl.security.PrincipalResolver bean).",
           howToSecure);
     }
   }

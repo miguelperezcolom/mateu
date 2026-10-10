@@ -5,6 +5,7 @@ import { announce, announceLive } from '../a11y/a11y';
 import { presentDocument } from './documentEffects';
 import type { FileDownloadData } from './documents';
 import { isTimedOnLoad, PollingScheduler } from './polling';
+import { serverSideState } from './uxRules';
 import { isDev } from '../api/MateuApiClient';
 import { getActionCatalogue, isClientRunnable, registerActionCatalogue, resolveAction, type ShellAction } from './shellFlows';
 
@@ -771,8 +772,9 @@ export class MateuViewController {
         if (id) this.currentComponentId = id;
         if (sst) this.currentServerSideType = sst;
         this.captureComponentContext(component);
-        const initialData = (component['initialData'] as Json) ?? {};
-        this.currentComponentState = { ...initialData };
+        // initialData overlaid with the FRAGMENT state — a reflected view's field values travel in
+        // UIFragmentDto.state, and reading initialData alone rendered those fields empty (RN-02).
+        this.currentComponentState = serverSideState(component, state);
         this.fieldErrors = {};
         this.view = { ...this.view, component: children.length === 1 ? children[0] : { children }, data };
         this.applyRules(); // initial pass: conditional visibility/disabling on first render

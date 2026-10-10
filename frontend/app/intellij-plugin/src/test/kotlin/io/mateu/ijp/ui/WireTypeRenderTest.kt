@@ -58,7 +58,10 @@ class WireTypeRenderTest : BasePlatformTestCase() {
         assertTrue(all(r.getValue("Bpmn")).filterIsInstance<JLabel>().map { it.text }.toList().containsAll(listOf("○ Start", "↓ ▭ Approve", "↓ ◉ Done")))
         assertEquals("Helpful tip", all(r.getValue("Tooltip")).filterIsInstance<AbstractButton>().single().toolTipText)
         assertNotNull(r.getValue("ContextMenu").componentPopupMenu)
-        assertEquals(3, (r.getValue("ResponsiveGrid").layout as java.awt.GridLayout).columns)
+        // a span-aware GridBag grid since the native UX review (IJ-06): 3 columns = cells up to gridx 2
+        val grid = r.getValue("ResponsiveGrid")
+        val gb = grid.layout as java.awt.GridBagLayout
+        assertEquals(3, grid.components.maxOf { gb.getConstraints(it).let { c -> c.gridx + c.gridwidth } })
         // Details starts collapsed; its toggle expands it.
         val details = r.getValue("Details")
         val hidden = all(details).filterIsInstance<JLabel>().first { it.text == "Hidden details" }

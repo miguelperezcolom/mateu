@@ -152,11 +152,9 @@ fun renderContentLayout(r: ComponentRenderer, component: JsonNode, metadata: Jso
 fun renderResponsiveGrid(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, state: JsonNode, data: JsonNode): JComponent {
     val children = kids(component)
     val cols = gridColumnCount(metadata.text("gridTemplateColumns")).coerceIn(1, children.size.coerceAtLeast(1))
-    // rows = 0: GridLayout honours the column count only when rows is zero.
-    return JPanel(GridLayout(0, cols, JBUI.scale(JBGap), JBUI.scale(JBGap))).apply {
-        isOpaque = false
-        children.forEach { add(r.render(it, state, data)) }
-    }
+    // Spans honoured and rows sized to their own content (IJ-06): a GridLayout made every cell the
+    // size of the biggest one.
+    return renderSpanGrid(r, children.toList(), cols, state, data)
 }
 
 /** Columns in a CSS grid-template-columns value: `repeat(3, 1fr)` → 3, `2fr 1fr` → 2, blank → 2. */

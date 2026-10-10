@@ -1009,7 +1009,8 @@ class AppContext(val session: AppSession) {
         // Already on the EDT (applyIncrement is invoked from a background() onOk hop), so render
         // synchronously — this lets navigate() detect afterwards whether the slot was replaced.
         val renderer = ComponentRenderer(this)
-        val rendered = renderer.render(component, state, data)
+        // A ServerSide component's values may travel in the FRAGMENT state (IJ-05) — fold them in.
+        val rendered = renderer.render(withFragmentState(component, state), state, data)
         fill(target, rendered, add = action.equals("Add", ignoreCase = true))
 
         // First time this view's real content lands in its root slot — anything that isn't a bare

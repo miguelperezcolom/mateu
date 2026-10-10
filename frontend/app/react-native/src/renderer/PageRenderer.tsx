@@ -70,7 +70,7 @@ function Banners({ metadata, state }: { metadata: Record<string, unknown>; state
               {!!banner.description && <Text style={styles.bannerText}>{interpolate(banner.description, { state })}</Text>}
             </View>
             {banner.hasCloseButton && (
-              <TouchableOpacity {...buttonA11y({ label: 'Dismiss notice' })} onPress={() => setDismissed((d) => [...d, i])}>
+              <TouchableOpacity {...buttonA11y({ label: 'Dismiss notice' })} hitSlop={theme.hitSlop} onPress={() => setDismissed((d) => [...d, i])}>
                 <Text style={styles.bannerClose}>✕</Text>
               </TouchableOpacity>
             )}
@@ -149,7 +149,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
 
       <Banners metadata={metadata} state={state} />
 
-      <ScrollView contentContainerStyle={styles.body}>
+      <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
         {children.map((child, i) => (
           <ComponentRenderer key={i} component={child} state={state} data={data} />
         ))}
@@ -158,7 +158,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
       {fabs.length > 0 && (
         <View style={styles.fabStack} pointerEvents="box-none">
           {fabs.map((fab, i) => (
-            <TouchableOpacity {...buttonA11y()} key={i} style={styles.fab} onPress={() => handleAction(fab.actionId ?? fab.id ?? '')}>
+            <TouchableOpacity {...buttonA11y({ label: fab.label ? interpolate(fab.label, ctx) : fab.actionId || fab.id || 'Action' })} key={i} style={styles.fab} onPress={() => handleAction(fab.actionId ?? fab.id ?? '')}>
               <Text style={styles.fabText}>{fab.label ? interpolate(fab.label, ctx) : '+'}</Text>
             </TouchableOpacity>
           ))}
@@ -214,9 +214,9 @@ const styles = StyleSheet.create({
     gap: 8,
     justifyContent: 'flex-end',
   },
-  btnPrimary: { backgroundColor: theme.primary, paddingHorizontal: 20, paddingVertical: 10, borderRadius: theme.radiusSm },
+  btnPrimary: { backgroundColor: theme.primary, paddingHorizontal: 20, paddingVertical: 10, minHeight: theme.minTouch, justifyContent: 'center', borderRadius: theme.radiusSm },
   btnPrimaryText: { color: theme.white, fontWeight: '600', fontSize: 14 },
-  btnDefault: { backgroundColor: theme.background, paddingHorizontal: 20, paddingVertical: 10, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border },
+  btnDefault: { backgroundColor: theme.background, paddingHorizontal: 20, paddingVertical: 10, minHeight: theme.minTouch, justifyContent: 'center', borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border },
   btnDefaultText: { color: theme.ink, fontSize: 14 },
   btnDisabled: { opacity: 0.45 },
 });

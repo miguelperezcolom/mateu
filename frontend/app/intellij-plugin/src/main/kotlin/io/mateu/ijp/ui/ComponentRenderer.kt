@@ -5,6 +5,7 @@ import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.panels.VerticalLayout
 import io.mateu.ijp.api.text
 import io.mateu.ijp.state.AppContext
+import java.awt.Font
 import javax.swing.JComponent
 import javax.swing.JPanel
 
@@ -47,6 +48,11 @@ class ComponentRenderer(val ctx: AppContext) {
             "MatrixGrid" -> renderMatrixGrid(ctx, metadata)
             "Map" -> renderMap(ctx, metadata)
             "Text" -> JBLabel(metadata.text("text")).also { label ->
+                // IJ-11: a Text in an h1–h6 container is a HEADING (a wizard's title arrives as an
+                // h2) — it rendered as body text. Bold and sized on the platform's title scale.
+                headingScale(metadata.text("container"))?.let { scale ->
+                    label.font = label.font.deriveFont(Font.BOLD, label.font.size2D * scale)
+                }
                 // Text size: xl/l/s/xs enlarge or reduce the font; m (or absent) applies nothing.
                 when (metadata.text("size")) {
                     "xl" -> label.font = label.font.deriveFont(label.font.size2D * 1.5f)
@@ -186,4 +192,15 @@ class ComponentRenderer(val ctx: AppContext) {
         if (children.isArray) for (child in children) panel.add(render(child, state, data))
         return panel
     }
+}
+
+/** Font scale of a heading container (h1 → 1.6 … h6 → 1.0), or null when it is not a heading. */
+internal fun headingScale(container: String): Float? = when (container.trim().lowercase()) {
+    "h1" -> 1.6f
+    "h2" -> 1.4f
+    "h3" -> 1.25f
+    "h4" -> 1.15f
+    "h5" -> 1.05f
+    "h6" -> 1.0f
+    else -> null
 }

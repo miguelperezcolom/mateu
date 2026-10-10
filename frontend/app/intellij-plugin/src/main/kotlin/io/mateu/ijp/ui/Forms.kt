@@ -30,7 +30,7 @@ fun renderForm(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val subtitle = metadata.text("subtitle")
     if (subtitle.isNotBlank()) {
         val l = JBLabel(subtitle)
-        l.foreground = JBUI.CurrentTheme.Label.disabledForeground()
+        l.foreground = ToneColors.secondaryText()
         panel.addStacked(l, 8)
     }
 

@@ -17,7 +17,7 @@ Runtime: **Spring Boot 4 (MVC), Java 21, Maven.**
 ```
 pom.xml                                   Mateu deps + the annotation processor (see below)
 src/main/java/com/example/app/
-  Application.java                        Spring Boot main; scans io.mateu + this package
+  Application.java                        Spring Boot main; scans this package only (Mateu is an auto-configuration)
   *.java                                  view models (@UI classes), records, CrudStores
 src/main/resources/
   application.properties                  server.port, mateu.* settings
@@ -54,7 +54,8 @@ mvn package                  # target/*.jar
 - **The annotation processor is mandatory.** `mateu-annotation-processor-mvc` must stay in
   `maven-compiler-plugin` → `annotationProcessorPaths` (next to Lombok). Without it no controller
   is generated and every route answers 404.
-- Keep `scanBasePackages` including `io.mateu`.
+- Do not add `io.mateu` to `scanBasePackages`: Mateu's beans come with its adapter jar as an
+  auto-configuration. Keep your `@UI` classes inside the package `Application` scans.
 - Do not hand-write controllers, REST endpoints for the UI, or frontend code — declare the model.
 - Prefer annotations and capability interfaces over custom components; check the docs before
   inventing an API.

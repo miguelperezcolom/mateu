@@ -8,8 +8,10 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
+  useWindowDimensions,
   View,
 } from 'react-native';
+import { buttonActionId, effectiveListingLayout, rowCheckboxLabel } from '../core/uxRules';
 import { canMove, dropOn, moveToLabel, subscribeDropZones, zoneLabel, zonesAccepting, type MountedDropZone } from './dragDrop';
 import { useViewController } from './MateuViewHost';
 import { getHiddenColumns, setHiddenColumns } from './columnPrefs';
@@ -54,8 +56,11 @@ interface ColumnMeta {
 
 interface ButtonDto {
   id?: string;
+  actionId?: string;
   label?: string;
   buttonStyle?: string;
+  color?: string | null;
+  disabled?: boolean;
 }
 
 interface Props {
@@ -98,6 +103,32 @@ function extractRows(data: unknown): Record<string, unknown>[] {
   const content = d['content'] ?? data;
   if (Array.isArray(content)) return content as Record<string, unknown>[];
   return [];
+}
+
+/**
+ * A selection checkbox. RN-04: it was a plain `button` reading "☐", with no checked state, and it
+ * was NESTED inside the row's own touchable — an accessible container swallows its children for
+ * VoiceOver/TalkBack, so a screen-reader user could not select a row at all (and the web build
+ * nested a <button> in a <button>). It is now a sibling of the row, announced as a checkbox with
+ * its state and the row it selects, with a 44pt touch area.
+ */
+function SelectBox({ checked, label, onToggle, style }: { checked: boolean; label: string; onToggle: () => void; style?: object }) {
+  return (
+    <TouchableOpacity
+      accessible
+      accessibilityRole="checkbox"
+      accessibilityLabel={label}
+      accessibilityState={{ checked }}
+      // the ARIA alias too: React Native maps it natively (0.71+) and react-native-web only
+      // emits aria-checked from it
+      aria-checked={checked}
+      hitSlop={theme.hitSlop}
+      style={style}
+      onPress={onToggle}
+    >
+      <Text style={styles.checkboxText}>{checked ? '☑' : '☐'}</Text>
+    </TouchableOpacity>
+  );
 }
 
 function extractRowId(row: Record<string, unknown>): string {
@@ -321,7 +352,10 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     if (fallback) void controller.runAction(fallback, { _clickedRow: row });
   };
 
-  const gridLayout = String(metadata['gridLayout'] ?? 'auto');
+  // RN-14: an undeclared (`auto`) listing is a list on a phone — a sideways-scrolling table cuts
+  // the columns at the screen edge. A declared layout is always honoured.
+  const { width: windowWidth } = useWindowDimensions();
+  const gridLayout = effectiveListingLayout(metadata['gridLayout'] as string | undefined, windowWidth);
 
   const allColDefs = columns
     .map((col) => {
@@ -441,11 +475,22 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                 </TouchableOpacity>
               )}
               {toolbar.map((btn, i) => {
-                const id = btn.id ?? '';
+                // RN-01: the wire carries the action in `actionId` — reading `id` alone made every
+                // crud toolbar button (New, Delete, bulk actions) dispatch nothing.
+                const id = buttonActionId(btn);
                 const isPrimary = btn.buttonStyle?.toLowerCase() === 'primary';
+                // A destructive action (color "error", e.g. Delete) is marked as such, not styled
+                // like its harmless neighbours (HIG/Material: destructive actions are distinguishable).
+                const isDestructive = (btn.color ?? '').toLowerCase() === 'error';
                 return (
-                  <TouchableOpacity {...buttonA11y()} key={i} style={isPrimary ? styles.btnPrimary : styles.btnDefault} onPress={() => void controller.runAction(id)}>
-                    <Text style={isPrimary ? styles.btnPrimaryText : styles.btnDefaultText}>{btn.label ?? id}</Text>
+                  <TouchableOpacity
+                    {...buttonA11y({ disabled: !!btn.disabled })}
+                    key={i}
+                    disabled={!!btn.disabled}
+                    style={[isPrimary ? styles.btnPrimary : styles.btnDefault, isDestructive && !isPrimary && styles.btnDestructive, btn.disabled && styles.btnDisabled]}
+                    onPress={() => void controller.runAction(id)}
+                  >
+                    <Text style={[isPrimary ? styles.btnPrimaryText : styles.btnDefaultText, isDestructive && !isPrimary && styles.btnDestructiveText]}>{btn.label ?? id}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -477,6 +522,10 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
             style={styles.searchInput}
             value={searchText}
             onChangeText={setSearchText}
+            // RN-06: a placeholder is not a name — VoiceOver/TalkBack announced a bare "text field".
+            accessibilityLabel={title ? `Search ${title}` : 'Search'}
+            accessibilityRole="search"
+            placeholderTextColor={theme.faint}
             placeholder="Search..."
             onSubmitEditing={() => doSearch()}
             returnKeyType="search"
@@ -527,17 +576,8 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                   <Text style={styles.groupBandText}>{groupBandText(item)}</Text>
                 </View>
               ) : (
+                <View style={styles.cardWrap}>
                 <TouchableOpacity {...buttonA11y()} style={styles.cardRow} onPress={() => handleRowPress(item)}>
-                  {rowsSelectionEnabled && (
-                    <TouchableOpacity {...buttonA11y()} style={styles.checkboxCard} onPress={() => toggleRow(item)}>
-                      <Text style={styles.checkboxText}>{isSelected(item) ? '☑' : '☐'}</Text>
-                    </TouchableOpacity>
-                  )}
-                  {editableCols.length > 0 && (
-                    <TouchableOpacity {...buttonA11y({ label: 'Edit row' })} style={styles.editPencilCard} onPress={() => setEditingRow(item)}>
-                      <Text style={styles.editPencilText}>✎</Text>
-                    </TouchableOpacity>
-                  )}
                   {colDefs.map((col, i) => {
                     const tip = cellTooltipText(item, col.tooltipPath);
                     const lineStyle = [styles.cardLine, rowsSelectionEnabled && i === 0 && styles.cardLineSelectable];
@@ -564,6 +604,21 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                     );
                   })}
                 </TouchableOpacity>
+                {/* Siblings of the card's touchable (not children): each is reachable on its own. */}
+                {rowsSelectionEnabled && (
+                  <SelectBox
+                    checked={isSelected(item)}
+                    label={rowCheckboxLabel(item[colDefs[0]?.fieldId ?? ''])}
+                    onToggle={() => toggleRow(item)}
+                    style={styles.checkboxCard}
+                  />
+                )}
+                {editableCols.length > 0 && (
+                  <TouchableOpacity {...buttonA11y({ label: 'Edit row' })} hitSlop={theme.hitSlop} style={styles.editPencilCard} onPress={() => setEditingRow(item)}>
+                    <Text style={styles.editPencilText}>✎</Text>
+                  </TouchableOpacity>
+                )}
+                </View>
               )
             }
           />
@@ -587,9 +642,12 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
               ) : (
                 <View style={styles.listRowWrap}>
                   {rowsSelectionEnabled && (
-                    <TouchableOpacity {...buttonA11y()} style={styles.checkboxList} onPress={() => toggleRow(item)}>
-                      <Text style={styles.checkboxText}>{isSelected(item) ? '☑' : '☐'}</Text>
-                    </TouchableOpacity>
+                    <SelectBox
+                      checked={isSelected(item)}
+                      label={rowCheckboxLabel(item[colDefs[0]?.fieldId ?? ''])}
+                      onToggle={() => toggleRow(item)}
+                      style={styles.checkboxList}
+                    />
                   )}
                   <TouchableOpacity {...buttonA11y()} style={[styles.listRow, { flex: 1 }]} onPress={() => handleRowPress(item)}>
                     <Text style={styles.cardPrimary} numberOfLines={1}>{cellText(item[colDefs[0]?.fieldId ?? ''], colDefs[0]?.valueLabels)}</Text>
@@ -618,12 +676,11 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
             {/* Table header — tapping a sortable column cycles the sort */}
             <View style={styles.tableHeader}>
               {rowsSelectionEnabled && (
-                <TouchableOpacity {...buttonA11y()} style={styles.checkboxCell} onPress={toggleAll}>
-                  <Text style={styles.checkboxText}>{allSelected ? '☑' : '☐'}</Text>
-                </TouchableOpacity>
+                <SelectBox checked={allSelected} label="Select all rows" onToggle={toggleAll} style={styles.checkboxCell} />
               )}
               {colDefs.map((col) => (
-                <TouchableOpacity {...buttonA11y()}
+                <TouchableOpacity
+                  {...buttonA11y({ disabled: !col.sortable, hint: col.sortable ? 'Sorts by this column' : undefined })}
                   key={col.fieldId}
                   style={styles.headerCell}
                   disabled={!col.sortable}
@@ -657,12 +714,16 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                     {editableCols.length > 0 && <View style={styles.editHeaderCell} />}
                   </View>
                 ) : (
-                  <TouchableOpacity {...buttonA11y()} style={styles.tableRow} onPress={() => handleRowPress(item)}>
+                  <View style={styles.tableRow}>
                     {rowsSelectionEnabled && (
-                      <TouchableOpacity {...buttonA11y()} style={styles.checkboxCell} onPress={() => toggleRow(item)}>
-                        <Text style={styles.checkboxText}>{isSelected(item) ? '☑' : '☐'}</Text>
-                      </TouchableOpacity>
+                      <SelectBox
+                        checked={isSelected(item)}
+                        label={rowCheckboxLabel(item[colDefs[0]?.fieldId ?? ''])}
+                        onToggle={() => toggleRow(item)}
+                        style={styles.checkboxCell}
+                      />
                     )}
+                    <TouchableOpacity {...buttonA11y()} style={styles.tableRowCells} onPress={() => handleRowPress(item)}>
                     {colDefs.map((col) => {
                       const tip = cellTooltipText(item, col.tooltipPath);
                       const content = <Text style={styles.cellText} numberOfLines={2}>{cellText(item[col.fieldId], col.valueLabels)}</Text>;
@@ -680,12 +741,13 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                         <View key={col.fieldId} style={styles.cell}>{content}</View>
                       );
                     })}
+                    </TouchableOpacity>
                     {editableCols.length > 0 && (
                       <TouchableOpacity {...buttonA11y({ label: 'Edit row' })} style={styles.editPencilCell} onPress={() => setEditingRow(item)}>
                         <Text style={styles.editPencilText}>✎</Text>
                       </TouchableOpacity>
                     )}
-                  </TouchableOpacity>
+                  </View>
                 )
               }
             />
@@ -1003,8 +1065,8 @@ const styles = StyleSheet.create({
   tableHeader: { flexDirection: 'row', backgroundColor: theme.background, borderBottomWidth: 1, borderBottomColor: theme.border },
   headerCell: { width: CELL_WIDTH, padding: 10 },
   columnsBar: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 12, paddingVertical: 4 },
-  columnsBtn: { paddingHorizontal: 10, paddingVertical: 4 },
-  columnsBtnText: { color: theme.faint, fontSize: 12 },
+  columnsBtn: { paddingHorizontal: 10, paddingVertical: 4, minHeight: 36, justifyContent: 'center' },
+  columnsBtnText: { color: theme.info, fontSize: 13, fontWeight: '600' },
   columnsBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.3)', justifyContent: 'center', padding: 24 },
   columnsSheet: { backgroundColor: theme.white, borderRadius: theme.radiusSm, padding: 16, maxHeight: '80%' },
   columnsTitle: { fontSize: 16, fontWeight: '600', color: theme.ink, marginBottom: 8 },
@@ -1017,15 +1079,19 @@ const styles = StyleSheet.create({
   viewNameInput: { flex: 1, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, paddingHorizontal: 10, paddingVertical: 6, fontSize: 14 },
   headerText: { fontWeight: '600', fontSize: 13, color: theme.ink },
   tableRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: theme.divider },
+  tableRowCells: { flexDirection: 'row' },
+  cardWrap: {},
+  btnDestructive: { borderColor: theme.danger, backgroundColor: theme.white },
+  btnDestructiveText: { color: theme.danger, fontWeight: '600' },
   cell: { width: CELL_WIDTH, padding: 10, justifyContent: 'center' },
   cellText: { fontSize: 13, color: theme.ink },
   actionCell: { width: 80 },
   paginationBar: { flexDirection: 'row', alignItems: 'center', padding: 12, borderTopWidth: 1, borderTopColor: theme.divider, gap: 12 },
   paginationInfo: { flex: 1, textAlign: 'center', fontSize: 12, color: theme.muted },
-  btnPrimary: { backgroundColor: theme.primary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: theme.radiusSm },
-  btnPrimaryText: { color: theme.white, fontWeight: '600', fontSize: 13 },
-  btnDefault: { backgroundColor: theme.background, paddingHorizontal: 16, paddingVertical: 8, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border },
-  btnDefaultText: { color: theme.ink, fontSize: 13 },
+  btnPrimary: { backgroundColor: theme.primary, paddingHorizontal: 16, paddingVertical: 8, minHeight: theme.minTouch, justifyContent: 'center', borderRadius: theme.radiusSm },
+  btnPrimaryText: { color: theme.white, fontWeight: '600', fontSize: 14 },
+  btnDefault: { backgroundColor: theme.background, paddingHorizontal: 16, paddingVertical: 8, minHeight: theme.minTouch, justifyContent: 'center', borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border },
+  btnDefaultText: { color: theme.ink, fontSize: 14 },
   btnDisabled: { opacity: 0.4 },
   filterPanel: { padding: 12, borderBottomWidth: 1, borderBottomColor: theme.divider, backgroundColor: theme.background },
   filterItem: { marginBottom: 12 },
@@ -1051,12 +1117,12 @@ const styles = StyleSheet.create({
   treeCaret: { width: 24, alignItems: 'center' },
   editHeaderCell: { width: 44 },
   editPencilCell: { width: 44, alignItems: 'center', justifyContent: 'center' },
-  editPencilCard: { position: 'absolute', top: 8, right: 8, zIndex: 2, padding: 4 },
+  editPencilCard: { position: 'absolute', top: 14, right: 14, zIndex: 2, padding: 4 },
   editPencilText: { fontSize: 16, color: theme.primary },
   // bulk row selection
   checkboxCell: { width: 40, alignItems: 'center', justifyContent: 'center' },
-  checkboxCard: { position: 'absolute', top: 8, left: 8, zIndex: 2, padding: 4 },
-  checkboxList: { paddingLeft: 12, justifyContent: 'center' },
+  checkboxCard: { position: 'absolute', top: 14, left: 14, zIndex: 2, padding: 4 },
+  checkboxList: { paddingLeft: 12, paddingRight: 4, minWidth: theme.minTouch, justifyContent: 'center' },
   checkboxText: { fontSize: 18, color: theme.primary },
   cardLineSelectable: { paddingLeft: 28 },
   listRowWrap: { flexDirection: 'row', alignItems: 'stretch' },

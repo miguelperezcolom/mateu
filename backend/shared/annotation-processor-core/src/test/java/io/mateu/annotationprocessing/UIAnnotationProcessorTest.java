@@ -228,6 +228,51 @@ public class UIAnnotationProcessorTest {
     assertThat(controllerCount).isEqualTo(1);
   }
 
+  /**
+   * Two routed classes on one path used to compile and then fail at startup with Spring's
+   * "Ambiguous mapping" — which names a generated controller, not the {@code @UI} to change.
+   */
+  @Test
+  public void twoUIsOnTheSamePathFailTheCompilationNamingBothClasses() throws IOException {
+    var ctx = buildContext("com.example.Products", "Products", "");
+    var messager = mock(javax.annotation.processing.Messager.class);
+    var env = mock(ProcessingEnvironment.class);
+    when(env.getFiler()).thenReturn(ctx.filer);
+    when(env.getMessager()).thenReturn(messager);
+    var processor = new MateuUIAnnotationProcessor();
+    processor.init(env);
+
+    var second = mock(TypeElement.class);
+    var qn = mock(Name.class);
+    when(qn.toString()).thenReturn("com.example.Home");
+    when(second.getQualifiedName()).thenReturn(qn);
+    var sn = mock(Name.class);
+    when(sn.toString()).thenReturn("Home");
+    when(second.getSimpleName()).thenReturn(sn);
+    var ui = mock(UI.class);
+    when(ui.value()).thenReturn("/");
+    when(second.getAnnotation(any())).thenReturn(null);
+    when(second.getAnnotation(UI.class)).thenReturn(ui);
+    when(ctx.roundEnv.getElementsAnnotatedWith(any(TypeElement.class)))
+        .thenAnswer(inv -> new java.util.LinkedHashSet<>(List.of(ctx.element, second)));
+
+    processor.process(ctx.annotations, ctx.roundEnv);
+
+    var message = ArgumentCaptor.forClass(CharSequence.class);
+    verify(messager)
+        .printMessage(
+            org.mockito.ArgumentMatchers.eq(javax.tools.Diagnostic.Kind.ERROR),
+            message.capture(),
+            org.mockito.ArgumentMatchers.eq(second));
+    assertThat(message.getValue().toString())
+        .contains("com.example.Home")
+        .contains("com.example.Products")
+        .contains("routes.yaml");
+    var created = ArgumentCaptor.forClass(String.class);
+    verify(ctx.filer, atLeast(4)).createSourceFile(created.capture());
+    assertThat(created.getAllValues()).doesNotContain("com.example.HomeController");
+  }
+
   // ---------------------------------------------------------------------------
   // Helper record
   // ---------------------------------------------------------------------------

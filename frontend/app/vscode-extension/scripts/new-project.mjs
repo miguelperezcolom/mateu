@@ -15,8 +15,27 @@ const here = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const require = createRequire(import.meta.url)
 const np = require(resolve(here, 'out/newProject.js'))
 
-const { values: a } = parseArgs({
+const USAGE = `Usage: node scripts/new-project.mjs --out <dir> [options]
+
+  --authoring  code | yaml | static | both          (default: code)
+  --runtime    spring-mvc | spring-webflux | quarkus | micronaut | helidon-mp | dotnet | python
+                                                   (default: spring-mvc; ignored by static)
+  --renderer   vaadin | redwood                    (default: vaadin)
+  --sample     crud | empty | listing              (default: the flavour's first sample)
+  --pages      comma-separated page templates, e.g. form,dashboard (YAML flavours)
+  --group      Maven groupId                       (default: com.example)
+  --artifact   Maven artifactId                    (default: my-app)
+  --package    Java package                        (default: <group>.<artifact>)
+  --version    Mateu version                       (default: latest on Maven Central)
+  --build-tool maven                               (default: maven)
+
+Build the extension first: npm ci && npm run compile.`
+
+let parsed
+try {
+  parsed = parseArgs({
     options: {
+        help: { type: 'boolean', short: 'h' },
         authoring: { type: 'string', default: 'code' },
         runtime: { type: 'string', default: 'spring-mvc' },
         sample: { type: 'string' },
@@ -29,9 +48,18 @@ const { values: a } = parseArgs({
         version: { type: 'string' },
         out: { type: 'string' },
     },
-})
+  })
+} catch (e) {
+  console.error(`${e.message}\n\n${USAGE}`)
+  process.exit(2)
+}
+const a = parsed.values
+if (a.help) {
+    console.log(USAGE)
+    process.exit(0)
+}
 if (!a.out) {
-    console.error('--out <dir> is required')
+    console.error(`--out <dir> is required\n\n${USAGE}`)
     process.exit(2)
 }
 const sources = np.sourcesFor(here)

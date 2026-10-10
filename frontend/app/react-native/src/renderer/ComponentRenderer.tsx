@@ -37,7 +37,11 @@ import { EmptyState, MetricCard, PlanningBoard, Skeleton } from '../api/metadata
 import { useAppContext } from '../context/AppContext';
 import { MateuViewHost, useViewController } from './MateuViewHost';
 import { theme } from '../theme';
-import { buttonA11y } from '../a11y/a11y';
+import { buttonA11y, headingA11y } from '../a11y/a11y';
+import { headingLevel } from '../core/uxRules';
+
+// h1–h6 sizes on the renderer's type scale (22 = page title, then 20/18/16/15/14)
+const HEADING_SIZES = [22, 20, 18, 16, 15, 14];
 import { resolveCustomComponent } from './customComponents';
 import {
   AvatarGroupRenderer, AvatarRenderer, BoardLayoutRenderer, BoardLayoutRowRenderer, BpmnRenderer, BreadcrumbRenderer,
@@ -184,6 +188,17 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       // Text size: xl/l/s/xs enlarge or reduce the font; m (or absent) applies nothing.
       const TEXT_SIZES: Record<string, number> = { xl: 22, l: 18, s: 12.5, xs: 11 };
       const size = TEXT_SIZES[(metadata['size'] as string) ?? ''];
+      // RN-17: a Text in an h1–h6 container IS a heading (a wizard's title arrives as an h2): it
+      // gets a heading's size and weight and is exposed as a header to the screen reader's
+      // heading navigation — it used to render as body text, flush against the screen edge.
+      const level = headingLevel(metadata['container'] as string | undefined);
+      if (level > 0) {
+        return (
+          <Text style={[styles.heading, { fontSize: HEADING_SIZES[level - 1] }, size ? { fontSize: size } : null]} {...headingA11y(level)}>
+            {text}
+          </Text>
+        );
+      }
       return <Text style={[styles.text, size ? { fontSize: size } : null]}>{text}</Text>;
     }
 
@@ -442,6 +457,7 @@ const styles = StyleSheet.create({
   centered: { alignSelf: 'center', margin: 20 },
   error: { color: theme.danger, padding: 8, fontSize: 13 },
   text: { fontSize: 14, color: theme.ink, flexShrink: 1 },
+  heading: { fontWeight: '700', color: theme.ink, paddingTop: 8, paddingBottom: 8 },
   separator: { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border, width: '100%', marginVertical: 8 },
   unknown: { fontSize: 12, color: theme.faint, fontStyle: 'italic' },
   image: { width: '100%', height: 200, borderRadius: theme.radiusSm, backgroundColor: theme.background },

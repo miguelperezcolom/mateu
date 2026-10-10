@@ -77,7 +77,7 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         row.border = javax.swing.BorderFactory.createCompoundBorder(
             JBUI.Borders.customLineBottom(JBColor.border()), JBUI.Borders.empty(6, 0))
         if (label.isNotBlank()) row.add(
-            JBLabel(label).apply { foreground = JBUI.CurrentTheme.Label.disabledForeground() },
+            JBLabel(label).apply { foreground = ToneColors.secondaryText() },
             BorderLayout.WEST)
         val display = when {
             dataType in BOOL_TYPES -> if (rawValue.asBoolean(false)) "✓" else "—"
@@ -158,8 +158,8 @@ fun renderFormField(ctx: AppContext, metadata: JsonNode, state: JsonNode, data: 
         stereotype == "slider" -> sliderField(ctx, fieldId, metadata, value, enabled)
         stereotype == "stars" -> starsField(ctx, fieldId, value, enabled)
         stereotype == "color" -> colorField(ctx, fieldId, value, enabled)
-        stereotype == "uploadableImage" || stereotype == "camera" -> uploadableImageField(ctx, fieldId, value, enabled)
-        stereotype == "signature" -> signatureField(ctx, fieldId, value, enabled)
+        stereotype == "uploadableImage" || stereotype == "camera" -> uploadableImageField(ctx, fieldId, value, enabled, label)
+        stereotype == "signature" -> signatureField(ctx, fieldId, value, enabled, label)
         stereotype == "image" -> imagePreviewField(value)
         stereotype == "link" && !enabled -> linkField(value)
         stereotype in setOf("markdown", "html", "richText") && !enabled -> richTextField(value, stereotype)

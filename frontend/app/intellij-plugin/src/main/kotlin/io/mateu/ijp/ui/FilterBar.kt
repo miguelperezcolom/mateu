@@ -51,18 +51,21 @@ class FilterBar(ctx: AppContext, filters: List<JsonNode>, onApply: () -> Unit) {
             val cell = verticalPanel(2)
             cell.isOpaque = false
             val caption = JBLabel(label)
-            caption.foreground = JBUI.CurrentTheme.Label.disabledForeground()
+            caption.foreground = ToneColors.secondaryText()
             caption.alignmentX = Component.LEFT_ALIGNMENT
             cell.add(caption)
 
             val widget: JComponent = when {
-                stereotype == "dateRange" -> dateRange(fieldId, actives)
-                stereotype == "numberRange" -> numberRange(fieldId, actives)
+                stereotype == "dateRange" -> dateRange(fieldId, label, actives)
+                stereotype == "numberRange" -> numberRange(fieldId, label, actives)
                 stereotype == "multiSelect" -> multiSelect(fieldId, f.arr("options"), actives)
                 stereotype == "select" || f.arr("options").isNotEmpty() -> select(fieldId, f.arr("options"), actives)
                 dataType == "bool" -> yesNo(fieldId, actives)
                 else -> textFilter(fieldId, onApply, actives)
             }
+            // IJ-03: the caption NAMES its filter (setLabelFor + accessible name) — the filter inputs
+            // were unnamed edit boxes to a screen reader. A range names its two ends itself.
+            if (stereotype != "dateRange" && stereotype != "numberRange") caption.labelling(widget)
             widget.alignmentX = Component.LEFT_ALIGNMENT
             cell.add(widget)
             panel.add(cell)
@@ -192,10 +195,10 @@ class FilterBar(ctx: AppContext, filters: List<JsonNode>, onApply: () -> Unit) {
         return button
     }
 
-    private fun numberRange(fieldId: String, actives: MutableList<() -> Boolean>): JComponent {
+    private fun numberRange(fieldId: String, label: String, actives: MutableList<() -> Boolean>): JComponent {
         val from = JBTextField(5)
         val to = JBTextField(5)
-        val row = rangeRow(from, to)
+        val row = rangeRow(from, to, label)
         collectors.add { st ->
             from.text.trim().replace(',', '.').toDoubleOrNull()?.let { st["${fieldId}_from"] = it }
             to.text.trim().replace(',', '.').toDoubleOrNull()?.let { st["${fieldId}_to"] = it }
@@ -209,10 +212,10 @@ class FilterBar(ctx: AppContext, filters: List<JsonNode>, onApply: () -> Unit) {
         return row
     }
 
-    private fun dateRange(fieldId: String, actives: MutableList<() -> Boolean>): JComponent {
+    private fun dateRange(fieldId: String, label: String, actives: MutableList<() -> Boolean>): JComponent {
         val from = DateField()
         val to = DateField()
-        val row = rangeRow(from, to)
+        val row = rangeRow(from, to, label)
         collectors.add { st ->
             from.isoValue.takeIf { it.isNotEmpty() }?.let { st["${fieldId}_from"] = it }
             to.isoValue.takeIf { it.isNotEmpty() }?.let { st["${fieldId}_to"] = it }
@@ -226,12 +229,15 @@ class FilterBar(ctx: AppContext, filters: List<JsonNode>, onApply: () -> Unit) {
         return row
     }
 
-    private fun rangeRow(from: JComponent, to: JComponent): JComponent {
+    private fun rangeRow(from: JComponent, to: JComponent, label: String): JComponent {
         val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(4), 0))
         row.isOpaque = false
         row.add(from)
         row.add(JBLabel("–"))
         row.add(to)
+        // each end of a range is its own input: "Added from" / "Added to" (IJ-03)
+        JBLabel("$label from").labelling(from)
+        JBLabel("$label to").labelling(to)
         return row
     }
 }

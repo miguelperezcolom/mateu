@@ -20,6 +20,12 @@ public class Home {
 
 This defines a screen at the root path (`/`) with a title and a container-style layout.
 
+:::note[In a generated project]
+The generated project already has a screen at the root (`Products`, `@UI("")`), and two `@UI`
+classes cannot share a path — the build fails saying so. Give this one its own path,
+`@UI("/hello")`, and open http://localhost:8080/hello.
+:::
+
 ---
 
 ## 2. Add state
@@ -63,6 +69,36 @@ This creates a button that:
 - reads the current state (`name`)
 - executes the method
 - shows the returned message
+
+---
+
+## The whole class
+
+With its imports (`@Button` is the annotation in `io.mateu.uidl.annotations`, not the
+`io.mateu.uidl.data.Button` record your IDE may offer first):
+
+```java
+import io.mateu.uidl.StyleConstants;
+import io.mateu.uidl.annotations.Button;
+import io.mateu.uidl.annotations.Style;
+import io.mateu.uidl.annotations.Title;
+import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.data.Message;
+import jakarta.validation.constraints.NotEmpty;
+
+@UI("")
+@Title("My first Mateu app")
+@Style(StyleConstants.CONTAINER)
+public class Home {
+
+  @NotEmpty String name;
+
+  @Button
+  public Message greet() {
+    return new Message("Hello " + name);
+  }
+}
+```
 
 ---
 

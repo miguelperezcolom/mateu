@@ -44,9 +44,12 @@ export function FormRenderer({ component, metadata, state }: Props) {
             <View style={styles.actionBar}>
               {actions.map((a, i) => {
                 const id = a.actionId ?? a.id ?? '';
+                // Only a button the server marks primary looks primary: a row of equally loud
+                // buttons has no hierarchy (Refactoring UI, "not every button is primary").
+                const isPrimary = a.buttonStyle?.toLowerCase() === 'primary';
                 return (
-                  <TouchableOpacity {...buttonA11y()} key={i} style={styles.btnPrimary} onPress={() => handleAction(id)}>
-                    <Text style={styles.btnPrimaryText}>{a.label ?? id}</Text>
+                  <TouchableOpacity {...buttonA11y()} key={i} style={isPrimary ? styles.btnPrimary : styles.btnDefault} onPress={() => handleAction(id)}>
+                    <Text style={isPrimary ? styles.btnPrimaryText : styles.btnDefaultText}>{a.label ?? id}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -55,7 +58,7 @@ export function FormRenderer({ component, metadata, state }: Props) {
         </View>
       )}
 
-      <ScrollView contentContainerStyle={styles.fields}>
+      <ScrollView contentContainerStyle={styles.fields} keyboardShouldPersistTaps="handled">
         {children.map((child, i) => (
           <View key={i}>{renderChild(child)}</View>
         ))}
@@ -93,8 +96,8 @@ const styles = StyleSheet.create({
     gap: 8,
     justifyContent: 'flex-end',
   },
-  btnPrimary: { backgroundColor: theme.primary, paddingHorizontal: 20, paddingVertical: 10, borderRadius: theme.radiusSm },
+  btnPrimary: { backgroundColor: theme.primary, paddingHorizontal: 20, paddingVertical: 10, minHeight: theme.minTouch, justifyContent: 'center', borderRadius: theme.radiusSm },
   btnPrimaryText: { color: theme.white, fontWeight: '600', fontSize: 14 },
-  btnDefault: { backgroundColor: theme.background, paddingHorizontal: 20, paddingVertical: 10, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border },
+  btnDefault: { backgroundColor: theme.background, paddingHorizontal: 20, paddingVertical: 10, minHeight: theme.minTouch, justifyContent: 'center', borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border },
   btnDefaultText: { color: theme.ink, fontSize: 14 },
 });
