@@ -18,6 +18,13 @@ import java.util.concurrent.Executors
  * the same design the Vite dev server uses. It also injects a small bootstrap into `index.html` so
  * the web app detects the IDE host (see [MateuVisualEditor]).
  *
+ * The Redwood canvas is served the same way: the bundle carries the Redwood/VB app of
+ * io.mateu:redwood under `redwood/` (the editor's build copies it there) and its page
+ * `redwood-preview.html` frames it, so a YAML-only project previews in Redwood with NO backend. A
+ * bundle built without it falls back to the backend's own Redwood app (`/redwood/x` → `<backend>/x`,
+ * what a backend that depends on io.mateu:redwood serves at its root). JET and the VB runtime always
+ * load from Oracle's CDN.
+ *
  * One server per backend URL, started lazily and shared by every open editor tab.
  */
 object MateuVisualEditorServer {
@@ -40,7 +47,7 @@ object MateuVisualEditorServer {
         val s = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
         s.createContext("/mateu") { proxy(it, backendBaseUrl) }
         s.createContext("/sse") { proxy(it, backendBaseUrl) }
-        s.createContext("/") { serveStatic(it) }
+        s.createContext("/") { serveStatic(it, backendBaseUrl) }
         s.executor = Executors.newCachedThreadPool()
         s.start()
         server = s
@@ -49,12 +56,18 @@ object MateuVisualEditorServer {
         return port
     }
 
-    private fun serveStatic(ex: HttpExchange) = ex.use {
+    private fun serveStatic(ex: HttpExchange, backendBaseUrl: String) = ex.use {
         val path = ex.requestURI.path.let { if (it == "/" || it.isBlank()) "/index.html" else it }
+        if (path.split('/').contains("..")) {
+            ex.sendResponseHeaders(404, -1)
+            return@use
+        }
         val resource = "/visual-editor$path"
         val bytes = javaClass.getResourceAsStream(resource)?.readBytes()
         if (bytes == null) {
-            ex.sendResponseHeaders(404, -1)
+            // the Redwood canvas, when this bundle does not carry the Redwood app: the backend's own
+            val redwood = redwoodFallbackPath(path)
+            if (redwood != null) proxy(ex, backendBaseUrl, redwood) else ex.sendResponseHeaders(404, -1)
             return@use
         }
         val body = if (path == "/index.html") injectHostBootstrap(bytes) else bytes
@@ -85,9 +98,13 @@ object MateuVisualEditorServer {
         return patched.toByteArray(Charsets.UTF_8)
     }
 
-    private fun proxy(ex: HttpExchange, backendBaseUrl: String) = ex.use {
+    /** `/redwood/_redwood/app-flow.json` → `/_redwood/app-flow.json`; null for any other path. */
+    internal fun redwoodFallbackPath(path: String): String? =
+        if (path.startsWith("/redwood/") && path.length > "/redwood/".length) path.removePrefix("/redwood") else null
+
+    private fun proxy(ex: HttpExchange, backendBaseUrl: String, rawPath: String = ex.requestURI.rawPath) = ex.use {
         try {
-            val target = backendBaseUrl.trimEnd('/') + ex.requestURI.rawPath +
+            val target = backendBaseUrl.trimEnd('/') + rawPath +
                 (ex.requestURI.rawQuery?.let { "?$it" } ?: "")
             val bodyBytes = ex.requestBody.readBytes()
             val builder = HttpRequest.newBuilder(URI.create(target))
