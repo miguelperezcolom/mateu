@@ -162,10 +162,23 @@ class YamlSpecLoader:
         declared = (entry.definition if entry is not None else None) or None
         path = self._dir / (declared if declared else f"{normalized_route}.yaml")
         if not path.is_file():
+            if declared:
+                # routes.yaml names a layout file that is not there: say so, or the route answers
+                # "not found" with nothing to tell a typo in the file name from a missing route
+                _log.warning(
+                    'routes.yaml: route "%s" names layout "%s", but %s does not exist. Check the'
+                    " file name (it is relative to specs/ui/) or create the file.",
+                    normalized_route,
+                    declared,
+                    path,
+                )
             return None
         try:
             data = yaml.safe_load(path.read_text())
-        except (OSError, yaml.YAMLError):
+        except yaml.YAMLError as e:
+            _log.warning("Could not read the definition %s", describe_yaml_error(path, e))
+            return None
+        except OSError:
             return None
         model_view, layout, delta = parse_spec_tree(data, self.partials, self.field_types)
         # A spec that depends on who asks or in which language keeps its source tree, so it can be
@@ -189,6 +202,18 @@ class YamlSpecLoader:
         if layout is None and not model_view:
             return None  # a delta with no view model to infer from: nothing to render
         return Spec(model_view, layout, delta, source)
+
+
+def describe_yaml_error(path, error: Exception) -> str:
+    """``specs/ui/form.yaml, line 11: <what the parser says>`` — the line a developer has to fix,
+    and what happens until they do (Java's ``YamlSpecProblems.describe``)."""
+    mark = getattr(error, "problem_mark", None)
+    where = f"{path}, line {mark.line + 1}" if mark is not None else f"{path}"
+    problem = getattr(error, "problem", None) or str(error)
+    return (
+        f"{where}: {problem}. The definition is ignored until this is fixed, so its route answers"
+        ' "Page not found".'
+    )
 
 
 def _normalize(route: str | None) -> str:

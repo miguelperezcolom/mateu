@@ -82,13 +82,13 @@ fun notificationBell(ctx: AppContext, metadata: JsonNode): JComponent {
         body.addStacked(title, 0)
         val text = n.text("text")
         if (text.isNotBlank()) {
-            body.addStacked(JBLabel(text).apply { foreground = JBUI.CurrentTheme.Label.disabledForeground() }, 0)
+            body.addStacked(JBLabel(text).apply { foreground = ToneColors.secondaryText() }, 0)
         }
         row.add(body, BorderLayout.CENTER)
         val whenText = n.text("when")
         if (whenText.isNotBlank()) {
             row.add(
-                JBLabel(whenText).apply { foreground = JBUI.CurrentTheme.Label.disabledForeground() },
+                JBLabel(whenText).apply { foreground = ToneColors.secondaryText() },
                 BorderLayout.EAST,
             )
         }
@@ -127,7 +127,7 @@ fun notificationBell(ctx: AppContext, metadata: JsonNode): JComponent {
             if (notifications.isEmpty()) {
                 entries.addStacked(
                     JBLabel("No notifications").apply {
-                        foreground = JBUI.CurrentTheme.Label.disabledForeground()
+                        foreground = ToneColors.secondaryText()
                         border = JBUI.Borders.empty(12)
                     },
                     0,

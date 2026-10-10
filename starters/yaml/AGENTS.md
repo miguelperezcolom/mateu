@@ -43,9 +43,11 @@ exists); run with `-Dmateu.sources.mock=false` to call the real endpoints.
   code or code + YAML flavour, not something to slip in.
 - Data comes from **named sources** in `sources.yaml`, referenced by `ref:` (`rowsSource: {ref:
   products}`) — never repeat a URL in a page. Writes are `actions:` with a `restAction` on the page.
-- Every file carries a `$schema` line; keep it. Validate against it: an unparseable definition does
-  not report itself, the route just answers "Not found". `dataType` values: integer, string, number,
-  date, time, dateTime, bool, array, file, status, money… (there is no `decimal`).
+- Every file carries a `$schema` line; keep it. Validate against it: a definition that cannot be
+  read is ignored and its route answers "Page not found" — the log names the file, the line and the
+  key (`Could not read the definition specs/ui/…, line N …`), and with `mateu.dev=true` the
+  not-found page shows it too. `dataType` values: integer, string, number, date, time, dateTime,
+  bool, array, file, status, money… (there is no `decimal`).
 - Routes are relative to the mount; a literal route (`products/new`) goes before a parameterised
   sibling (`products/:id`).
 - Open the files in the Mateu visual editor (IntelliJ or VS Code plugin) to edit them on a canvas.

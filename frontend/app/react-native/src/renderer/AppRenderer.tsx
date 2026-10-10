@@ -3,7 +3,8 @@ import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigatio
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useCallback, useState } from 'react';
-import { Image, Linking, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { BackHandler, Image, Linking, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FAB_MARGIN, fabInset, isCurrentDestination } from '../core/uxRules';
 import { useAppContext } from '../context/AppContext';
 import { NavTarget } from '../core/MateuSession';
 import { ChatPanel } from './ChatPanel';
@@ -87,7 +88,7 @@ interface GlobalSearchHit {
  * A navigation stack of Mateu views: the base screen (menu target) plus pushed details
  * (row → detail/new/edit, NavigateTo). The top view shows a back header when stacked.
  */
-function ContentScreen({ route: routeArg, consumedRoute, serverSideType }: { route: string; consumedRoute: string; serverSideType: string }) {
+function ContentScreen({ route: routeArg, consumedRoute, serverSideType, bottomInset = 0 }: { route: string; consumedRoute: string; serverSideType: string; bottomInset?: number }) {
   const { session } = useAppContext();
   const [stack, setStack] = useState<NavTarget[]>([]);
   // live controller of the TOP view, for the dirty check on back navigation
@@ -109,11 +110,24 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType }: { rou
   const base: NavTarget = { label: '', route: routeArg, consumedRoute, serverSideType };
   const top = stack.length > 0 ? stack[stack.length - 1] : base;
 
+  // Android's system Back must step back INSIDE the app (Material navigation principles): with a
+  // detail pushed it pops it — through the same unsaved-changes guard as the on-screen "Back" — and
+  // only on the base screen does it fall through to the navigator / leave the app. Without this the
+  // hardware Back skipped the whole detail stack (RN-09).
+  React.useEffect(() => {
+    if (stack.length === 0) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      void pop();
+      return true;
+    });
+    return () => sub.remove();
+  }, [stack.length, pop]);
+
   return (
-    <View style={styles.stackHost}>
+    <View style={[styles.stackHost, { paddingBottom: bottomInset }]}>
       {stack.length > 0 && (
         <View style={styles.backBar}>
-          <TouchableOpacity {...buttonA11y()} onPress={pop} style={styles.backButton}>
+          <TouchableOpacity {...buttonA11y({ label: 'Back' })} onPress={pop} style={styles.backButton} hitSlop={theme.hitSlop}>
             <Text style={styles.backText}>‹ Back</Text>
           </TouchableOpacity>
           {!!top.label && <Text style={styles.backTitle}>{top.label}</Text>}
@@ -217,7 +231,8 @@ function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppCon
           : base;
         return (
           <View key={selector.fieldName}>
-            <TouchableOpacity {...buttonA11y()}
+            <TouchableOpacity
+              {...buttonA11y({ label: `${selector.label ?? selector.fieldName}: ${current ? currentLabel : 'not set'}`, expanded: open })}
               style={styles.contextRow}
               onPress={() => {
                 setSearchText('');
@@ -226,7 +241,7 @@ function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppCon
               }}
             >
               <Text style={styles.contextLabel}>{selector.label ?? selector.fieldName}</Text>
-              <Text style={styles.contextValue}>{currentLabel} {open ? '▾' : '▸'}</Text>
+              <Text style={[styles.contextValue, !current && styles.contextValueUnset]}>{current ? currentLabel : 'Not set'} {open ? '▾' : '▸'}</Text>
             </TouchableOpacity>
             {open && searchable && (
               <TextInput
@@ -239,8 +254,8 @@ function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppCon
               />
             )}
             {open &&
-              [{ value: '', label: '—' }, ...visible].map((option, i) => (
-                <TouchableOpacity {...buttonA11y()}
+              [{ value: '', label: 'None' }, ...visible].map((option, i) => (
+                <TouchableOpacity {...buttonA11y({ selected: String(option.value ?? '') === current })}
                   key={i}
                   style={styles.contextOption}
                   onPress={() => {
@@ -350,7 +365,8 @@ function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigat
 
   return (
     <View>
-      <TouchableOpacity {...buttonA11y()}
+      <TouchableOpacity
+        {...buttonA11y({ label: unread > 0 ? `Notifications, ${unread} unread` : 'Notifications', expanded: open })}
         style={styles.contextRow}
         onPress={() => {
           const next = !open;
@@ -359,7 +375,7 @@ function NotificationBell({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigat
           if (next) void refresh();
         }}
       >
-        <Text style={styles.contextLabel}>🔔 NOTIFICATIONS</Text>
+        <Text style={styles.contextLabel}>Notifications</Text>
         <View style={styles.bellRight}>
           {unread > 0 && (
             <View style={styles.bellBadge}>
@@ -546,7 +562,7 @@ function MenuCards({ group, onNavigate }: { group: MenuItem; onNavigate: (item: 
   );
 }
 
-function SidebarContent({ appMeta, onNavigate, onContextChanged }: { appMeta: AppMeta; onNavigate: (item: MenuItem) => void; onContextChanged: () => void }) {
+function SidebarContent({ appMeta, currentRoute, onNavigate, onContextChanged }: { appMeta: AppMeta; currentRoute: string; onNavigate: (item: MenuItem) => void; onContextChanged: () => void }) {
   const renderItems = (items: MenuItem[], depth = 0): React.ReactNode[] => {
     return items.map((item, i) => {
       if (item.separator) {
@@ -564,9 +580,12 @@ function SidebarContent({ appMeta, onNavigate, onContextChanged }: { appMeta: Ap
           </View>
         );
       }
+      // "You are here": the current destination carries the active indicator (Nielsen #1,
+      // visibility of system status; the Material navigation drawer's selected item).
+      const selected = isCurrentDestination(item, currentRoute);
       return (
-        <TouchableOpacity {...buttonA11y()} key={i} style={[styles.menuItem, { paddingLeft: 20 + depth * 12 }]} onPress={() => onNavigate(item)}>
-          <Text style={styles.menuItemText}>{item.label}</Text>
+        <TouchableOpacity {...buttonA11y({ selected })} key={i} style={[styles.menuItem, selected && styles.menuItemSelected, { paddingLeft: 12 + depth * 12 }]} onPress={() => onNavigate(item)}>
+          <Text style={[styles.menuItemText, selected && styles.menuItemTextSelected]}>{item.label}</Text>
         </TouchableOpacity>
       );
     });
@@ -580,7 +599,7 @@ function SidebarContent({ appMeta, onNavigate, onContextChanged }: { appMeta: Ap
       <ContextSelectors selectors={appMeta.contextSelectors ?? []} appMeta={appMeta} onChanged={onContextChanged} />
       {renderItems(appMeta.menu ?? [])}
       {canSignOut() && (
-        <TouchableOpacity {...buttonA11y({ label: 'Sign out' })} style={[styles.menuItem, { paddingLeft: 20 }]} onPress={() => void signOut()}>
+        <TouchableOpacity {...buttonA11y({ label: 'Sign out' })} style={[styles.menuItem, { paddingLeft: 12 }]} onPress={() => void signOut()}>
           <Text style={styles.menuItemText}>Sign out</Text>
         </TouchableOpacity>
       )}
@@ -624,7 +643,7 @@ function AppOverlays({ appMeta }: { appMeta: AppMeta }) {
     <>
       <View style={styles.appFabStack} pointerEvents="box-none">
         {fabs.map((fab, i) => (
-          <TouchableOpacity {...buttonA11y()} key={i} style={styles.appFab} onPress={() => void runAppAction(fab.actionId ?? fab.id ?? '')}>
+          <TouchableOpacity {...buttonA11y({ label: fab.label || fab.actionId || fab.id || 'Action' })} key={i} style={styles.appFab} onPress={() => void runAppAction(fab.actionId ?? fab.id ?? '')}>
             <Text style={styles.appFabText}>{fab.label || '+'}</Text>
           </TouchableOpacity>
         ))}
@@ -719,31 +738,45 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
     });
   };
 
-  const mainScreen = (
+  // The app FABs live INSIDE the screen (so the drawer and the tab bar cover them, instead of a FAB
+  // floating over an open drawer), and the screen keeps a band free at its bottom for them so they
+  // never cover the content's last controls (RN-13).
+  const bottomInset = fabInset((appMeta.fabs?.length ?? 0) + (appMeta.sseUrl ? 1 : 0));
+  const withOverlays = (screen: React.ReactNode) => (
+    <View style={styles.stackHost}>
+      {screen}
+      <AppOverlays appMeta={appMeta} />
+    </View>
+  );
+
+  const mainScreen = withOverlays(
     <ContentScreen
       key={`${currentNav.route}-${currentNav.consumedRoute}-${contextVersion}`}
       route={currentNav.route}
       consumedRoute={currentNav.consumedRoute}
       serverSideType={currentNav.serverSideType}
-    />
+      bottomInset={bottomInset}
+    />,
   );
 
   if (variant === 'TABS' && menuItems.length > 0) {
     return (
       <NavigationContainer theme={navTheme}>
-        <AppOverlays appMeta={appMeta} />
         <Tab.Navigator screenOptions={{ headerShown: false }}>
           {menuItems.map((item, i) => (
             <Tab.Screen
               key={i}
               name={item.label ?? `Tab${i}`}
-              children={() => (
-                <ContentScreen
-                  route={item.route ?? ''}
-                  consumedRoute={item.consumedRoute ?? ''}
-                  serverSideType={item.serverSideType ?? ''}
-                />
-              )}
+              children={() =>
+                withOverlays(
+                  <ContentScreen
+                    route={item.route ?? ''}
+                    consumedRoute={item.consumedRoute ?? ''}
+                    serverSideType={item.serverSideType ?? ''}
+                    bottomInset={bottomInset}
+                  />,
+                )
+              }
             />
           ))}
         </Tab.Navigator>
@@ -760,6 +793,7 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
           drawerContent={(props) => (
             <SidebarContent
               appMeta={appMeta}
+              currentRoute={currentNav.route}
               onNavigate={(item) => {
                 handleMenuNav(item);
                 props.navigation.closeDrawer();
@@ -772,7 +806,12 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
             title: appMeta.title ?? 'Mateu',
             headerRight: appMeta.themeToggle
               ? () => (
-                  <TouchableOpacity {...buttonA11y()} style={styles.themeToggle} onPress={() => setDark(!dark)}>
+                  <TouchableOpacity
+                    {...buttonA11y({ label: dark ? 'Switch to light theme' : 'Switch to dark theme' })}
+                    style={styles.themeToggle}
+                    hitSlop={theme.hitSlop}
+                    onPress={() => setDark(!dark)}
+                  >
                     <Text style={styles.themeToggleText}>{dark ? '☀️' : '🌙'}</Text>
                   </TouchableOpacity>
                 )
@@ -781,7 +820,6 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
         >
           <Drawer.Screen name="Main" children={() => mainScreen} />
         </Drawer.Navigator>
-        <AppOverlays appMeta={appMeta} />
       </NavigationContainer>
     );
   }
@@ -792,7 +830,6 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Main" children={() => mainScreen} />
       </Stack.Navigator>
-      <AppOverlays appMeta={appMeta} />
     </NavigationContainer>
   );
 }
@@ -800,64 +837,70 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
 const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center' },
   error: { color: theme.danger, padding: 16, fontSize: 14 },
-  stackHost: { flex: 1 },
-  appFabStack: { position: 'absolute', right: 16, bottom: 90, gap: 10, alignItems: 'flex-end', zIndex: 50 },
+  stackHost: { flex: 1, backgroundColor: theme.white },
+  appFabStack: { position: 'absolute', right: FAB_MARGIN, bottom: FAB_MARGIN, gap: 10, alignItems: 'flex-end', zIndex: 50 },
   appFab: { minWidth: 52, height: 52, borderRadius: 26, backgroundColor: theme.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, elevation: 6, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 6, shadowOffset: { width: 0, height: 3 } },
-  chatFab: { backgroundColor: '#1a1a2e' },
+  chatFab: { backgroundColor: theme.ink },
   appFabText: { color: theme.white, fontWeight: '600', fontSize: 16 },
-  themeToggle: { paddingHorizontal: 14 },
+  themeToggle: { paddingHorizontal: 14, minHeight: theme.minTouch, justifyContent: 'center' },
   themeToggleText: { fontSize: 18 },
-  backBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: theme.divider, backgroundColor: theme.background },
-  backButton: { paddingVertical: 4, paddingRight: 12 },
+  backBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 4, minHeight: theme.minTouch, borderBottomWidth: 1, borderBottomColor: theme.divider, backgroundColor: theme.background },
+  backButton: { paddingVertical: 8, paddingRight: 12 },
   backText: { color: theme.primary, fontSize: 15, fontWeight: '600' },
   backTitle: { fontSize: 15, fontWeight: '600', color: theme.ink },
-  sidebar: { flex: 1, backgroundColor: '#354a5e' },
-  sidebarTitle: { color: theme.white, fontSize: 18, fontWeight: '700', padding: 20, paddingTop: 16 },
-  menuGroupLabel: { color: '#aac0d0', fontSize: 11, fontWeight: '600', paddingHorizontal: 20, paddingVertical: 8, letterSpacing: 1 },
-  menuItem: { paddingVertical: 12, paddingRight: 20 },
-  menuItemText: { color: theme.white, fontSize: 14 },
-  separator: { height: 1, backgroundColor: '#4a6070', marginVertical: 4 },
+  // A light navigation drawer with an active indicator on the current destination — the Material 3
+  // navigation drawer / iOS sidebar idiom (the former dark custom sidebar read as another product's
+  // chrome and its grey labels fell under AA contrast).
+  sidebar: { flex: 1, backgroundColor: theme.white },
+  sidebarTitle: { color: theme.ink, fontSize: 18, fontWeight: '700', padding: 20, paddingTop: 16 },
+  menuGroupLabel: { color: theme.muted, fontSize: 12, fontWeight: '600', paddingHorizontal: 20, paddingTop: 12, paddingBottom: 4, letterSpacing: 0.5 },
+  menuItem: { minHeight: theme.minTouch, justifyContent: 'center', paddingVertical: 10, paddingRight: 20, marginHorizontal: 8, borderRadius: theme.radiusPill },
+  menuItemSelected: { backgroundColor: theme.infoBg },
+  menuItemText: { color: theme.ink, fontSize: 15 },
+  menuItemTextSelected: { color: theme.info, fontWeight: '700' },
+  separator: { height: 1, backgroundColor: theme.divider, marginVertical: 4 },
   // card menus (display: "cards" groups)
-  menuCard: { marginHorizontal: 12, marginVertical: 4, borderWidth: 1, borderColor: '#4a6070', borderRadius: theme.radiusMd, backgroundColor: 'rgba(255,255,255,0.05)', overflow: 'hidden' },
+  menuCard: { marginHorizontal: 12, marginVertical: 4, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusMd, backgroundColor: theme.white, overflow: 'hidden' },
   menuCardHeader: { flexDirection: 'row', alignItems: 'center', padding: 12 },
   menuCardImage: { width: 40, height: 40, borderRadius: theme.radiusSm, marginRight: 12 },
   menuCardGlyph: { fontSize: 24, width: 40, textAlign: 'center', marginRight: 12 },
   menuCardBody: { flex: 1 },
-  menuCardTitle: { color: theme.white, fontSize: 14, fontWeight: '700' },
-  menuCardDescription: { color: '#aac0d0', fontSize: 12, marginTop: 2 },
+  menuCardTitle: { color: theme.ink, fontSize: 14, fontWeight: '700' },
+  menuCardDescription: { color: theme.muted, fontSize: 12, marginTop: 2 },
   menuCardActions: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 12, paddingBottom: 10, gap: 6 },
-  menuCardAction: { borderWidth: 1, borderColor: '#6a8296', borderRadius: theme.radiusPill, paddingHorizontal: 10, paddingVertical: 4 },
-  menuCardActionText: { color: '#d5e2ec', fontSize: 12 },
-  contextRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 10 },
-  contextLabel: { color: '#aac0d0', fontSize: 12, fontWeight: '600', letterSpacing: 1 },
-  contextValue: { color: theme.white, fontSize: 14, fontWeight: '700' },
-  contextOption: { paddingVertical: 8, paddingLeft: 32, paddingRight: 20 },
-  contextSearch: { marginHorizontal: 20, marginBottom: 4, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#4a5a6a', borderRadius: theme.radiusSm, color: theme.white, fontSize: 13 },
-  contextOptionText: { color: '#d5e2ec', fontSize: 14 },
-  contextOptionSelected: { fontWeight: '700', color: theme.white },
+  menuCardAction: { borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusPill, paddingHorizontal: 12, paddingVertical: 8, minHeight: 36, justifyContent: 'center' },
+  menuCardActionText: { color: theme.info, fontSize: 13, fontWeight: '600' },
+  contextRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 10, minHeight: theme.minTouch },
+  contextLabel: { color: theme.muted, fontSize: 13, fontWeight: '600' },
+  contextValue: { color: theme.ink, fontSize: 14, fontWeight: '700' },
+  contextValueUnset: { color: theme.muted, fontWeight: '400' },
+  contextOption: { paddingVertical: 10, paddingLeft: 32, paddingRight: 20, minHeight: theme.minTouch, justifyContent: 'center' },
+  contextSearch: { marginHorizontal: 20, marginBottom: 4, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, color: theme.ink, fontSize: 14 },
+  contextOptionText: { color: theme.ink, fontSize: 14 },
+  contextOptionSelected: { fontWeight: '700', color: theme.info },
   // notification bell (drawer inbox)
   bellRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   bellBadge: { minWidth: 18, height: 18, borderRadius: 9, backgroundColor: theme.danger, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4 },
-  bellBadgeText: { color: theme.white, fontSize: 10, fontWeight: '700' },
-  bellEmpty: { color: theme.faint, fontSize: 13, paddingLeft: 32, paddingVertical: 8 },
-  bellEntry: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingVertical: 8, paddingLeft: 20, paddingRight: 20 },
+  bellBadgeText: { color: theme.white, fontSize: 11, fontWeight: '700' },
+  bellEmpty: { color: theme.muted, fontSize: 13, paddingLeft: 32, paddingVertical: 8 },
+  bellEntry: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, paddingVertical: 10, paddingLeft: 20, paddingRight: 20, minHeight: theme.minTouch },
   bellDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'transparent', marginTop: 5 },
-  bellDotUnread: { backgroundColor: '#4da3ff' },
+  bellDotUnread: { backgroundColor: theme.primary },
   bellEntryBody: { flex: 1, minWidth: 0 },
   bellEntryTop: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
-  bellEntryTitle: { flex: 1, color: '#d5e2ec', fontSize: 13 },
-  bellEntryTitleUnread: { fontWeight: '700', color: theme.white },
-  bellEntryWhen: { color: theme.faint, fontSize: 11 },
-  bellEntryText: { color: '#aac0d0', fontSize: 12, marginTop: 1 },
-  bellMarkAll: { paddingVertical: 8, paddingLeft: 32 },
-  bellMarkAllText: { color: '#4da3ff', fontSize: 13, fontWeight: '600' },
-  bellMarkAllDisabled: { color: '#5a6e80' },
+  bellEntryTitle: { flex: 1, color: theme.muted, fontSize: 14 },
+  bellEntryTitleUnread: { fontWeight: '700', color: theme.ink },
+  bellEntryWhen: { color: theme.faint, fontSize: 12 },
+  bellEntryText: { color: theme.muted, fontSize: 12, marginTop: 1 },
+  bellMarkAll: { paddingVertical: 10, paddingLeft: 32, minHeight: theme.minTouch, justifyContent: 'center' },
+  bellMarkAllText: { color: theme.info, fontSize: 13, fontWeight: '600' },
+  bellMarkAllDisabled: { color: theme.disabled },
   // global search (drawer command palette)
-  globalSearchInput: { marginHorizontal: 20, marginBottom: 8, paddingHorizontal: 10, paddingVertical: 6, borderWidth: 1, borderColor: '#4a5a6a', borderRadius: theme.radiusSm, color: theme.white, fontSize: 13 },
+  globalSearchInput: { marginHorizontal: 20, marginBottom: 8, paddingHorizontal: 10, paddingVertical: 8, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radiusSm, color: theme.ink, fontSize: 14 },
   globalSearchResults: { marginBottom: 4 },
-  globalSearchHit: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8, paddingHorizontal: 20 },
+  globalSearchHit: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 10, paddingHorizontal: 20, minHeight: theme.minTouch },
   globalSearchHitBody: { flex: 1, minWidth: 0 },
-  globalSearchHitLabel: { color: theme.white, fontSize: 13, fontWeight: '600' },
-  globalSearchHitDescription: { color: '#aac0d0', fontSize: 11, marginTop: 1 },
-  globalSearchHitCategory: { color: theme.faint, fontSize: 10, fontWeight: '600', textTransform: 'uppercase' },
+  globalSearchHitLabel: { color: theme.ink, fontSize: 14, fontWeight: '600' },
+  globalSearchHitDescription: { color: theme.muted, fontSize: 12, marginTop: 1 },
+  globalSearchHitCategory: { color: theme.faint, fontSize: 11, fontWeight: '600', textTransform: 'uppercase' },
 });

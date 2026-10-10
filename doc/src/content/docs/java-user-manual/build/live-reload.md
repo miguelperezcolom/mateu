@@ -28,6 +28,20 @@ mateu.dev=true
 mateu.dev.specs-dir=ui-module/src/main/resources/specs/ui
 ```
 
+:::caution[`mvn spring-boot:run -Dmateu.dev=true` does not turn it on]
+`spring-boot:run` starts the app in a **separate JVM**, so a `-D` on the Maven command line stays in
+Maven's. Pass it to the app instead — any of:
+
+```bash
+MATEU_DEV=true mvn spring-boot:run
+mvn spring-boot:run -Dspring-boot.run.arguments=--mateu.dev=true
+mvn spring-boot:run -Dspring-boot.run.jvmArguments=-Dmateu.dev=true
+```
+
+The same applies to `mateu.dev.specs-dir`. `java -Dmateu.dev=true -jar target/app.jar` works as
+written. If the banner below is not in the log, development mode is off.
+:::
+
 The IDE actions below set both for you. At startup the backend logs a loud warning:
 
 ```

@@ -253,7 +253,14 @@ private fun imageLabel(value: String): JBLabel {
 fun imagePreviewField(value: String): JComponent = imageLabel(value)
 
 /** @UploadableImage / @PhotoCapture on the desktop: pick a file → data URI (no camera API on the JVM). */
-fun uploadableImageField(ctx: AppContext, fieldId: String, value: String, enabled: Boolean): JComponent {
+/**
+ * IJ-09: the buttons say WHICH field they act on ("Upload Avatar", "Delete Foto") — a form with two
+ * image fields had two "Upload" and two "Delete" buttons, indistinguishable to a screen reader that
+ * lists buttons out of their visual context (WCAG 2.4.6 / 4.1.2). Delete is disabled while there is
+ * nothing to delete.
+ */
+fun uploadableImageField(ctx: AppContext, fieldId: String, value: String, enabled: Boolean, label: String = ""): JComponent {
+    val what = label.ifBlank { "image" }
     val panel = JPanel()
     panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
     panel.isOpaque = false
@@ -265,6 +272,13 @@ fun uploadableImageField(ctx: AppContext, fieldId: String, value: String, enable
         buttons.isOpaque = false
         buttons.alignmentX = Component.LEFT_ALIGNMENT
         val upload = JButton(if (value.isBlank()) "Upload" else "Replace")
+        val delete = JButton("Delete")
+        fun nameButtons(hasImage: Boolean) {
+            upload.accessibleContext.accessibleName = "${if (hasImage) "Replace" else "Upload"} $what"
+            delete.accessibleContext.accessibleName = "Delete $what"
+            delete.isEnabled = hasImage
+        }
+        nameButtons(value.isNotBlank())
         upload.addActionListener {
             val chooser = JFileChooser()
             chooser.fileFilter = javax.swing.filechooser.FileNameExtensionFilter("Images", "png", "jpg", "jpeg", "gif")
@@ -279,8 +293,8 @@ fun uploadableImageField(ctx: AppContext, fieldId: String, value: String, enable
             panel.add(preview, 0)
             panel.revalidate(); panel.repaint()
             upload.text = "Replace"
+            nameButtons(true)
         }
-        val delete = JButton("Delete")
         delete.addActionListener {
             ctx.putState(fieldId, "")
             panel.remove(preview)
@@ -289,6 +303,7 @@ fun uploadableImageField(ctx: AppContext, fieldId: String, value: String, enable
             panel.add(preview, 0)
             panel.revalidate(); panel.repaint()
             upload.text = "Upload"
+            nameButtons(false)
         }
         buttons.add(upload)
         buttons.add(delete)
@@ -298,7 +313,8 @@ fun uploadableImageField(ctx: AppContext, fieldId: String, value: String, enable
 }
 
 /** @Signature: draw with the mouse on a canvas; Accept commits a PNG data URI. */
-fun signatureField(ctx: AppContext, fieldId: String, value: String, enabled: Boolean): JComponent {
+fun signatureField(ctx: AppContext, fieldId: String, value: String, enabled: Boolean, label: String = ""): JComponent {
+    val what = label.ifBlank { "signature" }
     if (!enabled || value.isNotBlank()) {
         val panel = JPanel()
         panel.layout = BoxLayout(panel, BoxLayout.Y_AXIS)
@@ -308,6 +324,7 @@ fun signatureField(ctx: AppContext, fieldId: String, value: String, enabled: Boo
         panel.add(preview)
         if (enabled) {
             val again = JButton("Sign again")
+            again.accessibleContext.accessibleName = "Sign $what again"
             again.alignmentX = Component.LEFT_ALIGNMENT
             again.addActionListener {
                 ctx.putState(fieldId, "")
@@ -349,8 +366,13 @@ fun signatureField(ctx: AppContext, fieldId: String, value: String, enabled: Boo
     val buttons = JPanel(FlowLayout(FlowLayout.LEFT, 6, 4))
     buttons.isOpaque = false
     buttons.alignmentX = Component.LEFT_ALIGNMENT
-    buttons.add(JButton("Clear").apply { addActionListener { strokes.clear(); canvas.repaint() } })
+    canvas.accessibleContext.accessibleName = "$what drawing area"
+    buttons.add(JButton("Clear").apply {
+        accessibleContext.accessibleName = "Clear $what"
+        addActionListener { strokes.clear(); canvas.repaint() }
+    })
     buttons.add(JButton("Accept").apply {
+        accessibleContext.accessibleName = "Accept $what"
         addActionListener {
             val img = BufferedImage(canvas.width.coerceAtLeast(1), canvas.height.coerceAtLeast(1), BufferedImage.TYPE_INT_RGB)
             val g = img.createGraphics()

@@ -31,7 +31,9 @@ Then, where they apply: the **runtime**, the **renderer** (Vaadin, or Oracle Red
 Boot), the sample to start from, **sample pages from the page templates** (for the YAML flavours, in
 the IDEs) and the Maven coordinates. The archetype takes `-Dauthoring=code|yaml|static`,
 `-Drenderer=vaadin|redwood` and `-Dsample=crud|empty`, on Spring Boot (MVC); run it with a JDK 21–25
-(the archetype plugin's Groovy cannot read newer class files yet). The build tool is Maven.
+(the archetype plugin's Groovy cannot read newer class files yet: on JDK 26+ it stops with
+*"Unsupported class file major version 70"* and leaves a half-generated folder — delete it and rerun
+with `JAVA_HOME` on a JDK 21–25). The build tool is Maven.
 
 Every generated project carries an **`AGENTS.md`** — what the project is, its layout, how to run it,
 where the UI is declared and the rules an AI assistant must respect (view models are per request,

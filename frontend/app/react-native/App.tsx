@@ -16,6 +16,8 @@ import { OidcTokenProvider } from './src/core/oidc';
 import { oidcConfigFrom, oidcConfigFromEnv, type OidcConfig } from './src/core/oidcConfig';
 import { platformStore } from './src/core/secureStore';
 import { installSessionId } from './src/core/sessionId';
+import { loadFailureMessage } from './src/core/uxRules';
+import { theme } from './src/theme';
 import { AppRenderer } from './src/renderer/AppRenderer';
 import { MateuViewHost } from './src/renderer/MateuViewHost';
 import { overlayContentWithData, overlayIdOf, upsertOverlay } from './src/renderer/patternGaps';
@@ -31,8 +33,18 @@ import { overlayContentWithData, overlayIdOf, upsertOverlay } from './src/render
 // this file — e.g. EXPO_PUBLIC_MATEU_BACKEND_PORT=8080 for the e2e SUT.
 const MATEU_BACKEND_PORT = Number(process.env.EXPO_PUBLIC_MATEU_BACKEND_PORT) || 8594;
 // Boot directly at a specific route instead of the backend's home — a probe/test affordance
-// (e.g. EXPO_PUBLIC_MATEU_ROUTE=/rest-data). Empty = the home route.
-const MATEU_ROUTE = process.env.EXPO_PUBLIC_MATEU_ROUTE || '';
+// (e.g. EXPO_PUBLIC_MATEU_ROUTE=/rest-data). Empty = the home route. On the web build a
+// `?route=/rest-data` query parameter does the same without rebuilding the bundle, so one dev
+// server can be pointed at any screen (deep link) — what the screenshot/a11y probes use.
+const webRoute = (): string => {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') return '';
+  try {
+    return new URLSearchParams(window.location.search).get('route') ?? '';
+  } catch {
+    return '';
+  }
+};
+const MATEU_ROUTE = webRoute() || process.env.EXPO_PUBLIC_MATEU_ROUTE || '';
 const devHost = Constants.expoConfig?.hostUri?.split(':')[0];
 interface BootConfig {
   baseUrl: string;
@@ -189,9 +201,14 @@ function MateuRoot() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // bumped by "Try again" on the connection-failure screen to repeat the boot load
+  const [attempt, setAttempt] = useState(0);
+
   useEffect(() => {
     // A server speaking another wire major: say so once, visibly, instead of rendering oddly.
     api.onWireMismatch = (message) => session.notify('Version mismatch', message, 'warning', { duration: 12000 });
+    setLoading(true);
+    setError(null);
     api
       .initialLoad(MATEU_ROUTE, appState)
       .then((result) => {
@@ -209,22 +226,37 @@ function MateuRoot() {
       })
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [attempt]);
 
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#0070f3" />
+        <ActivityIndicator size="large" color={theme.primary} />
         <Text style={styles.loadingText}>Loading…</Text>
       </View>
     );
   }
 
   if (error) {
+    // RN-05: the first screen of the app must not be a dead end. It used to show "Could not
+    // connect to Mateu backend" + the raw transport text and nothing to press — the user's only
+    // way out was killing the app. Plain words, the technical detail kept small for support, and
+    // a Try again that repeats the boot load (Nielsen #9; NN/g error-message guidelines).
+    const message = loadFailureMessage(error);
     return (
-      <View style={styles.centered}>
-        <Text style={styles.errorTitle}>Could not connect to Mateu backend</Text>
-        <Text style={styles.errorDetail}>{error}</Text>
+      <View style={styles.centered} accessibilityRole="alert">
+        <Text style={styles.errorTitle} accessibilityRole="header">{message.title}</Text>
+        <Text style={styles.errorDetail}>{message.detail}</Text>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel="Try again"
+          style={styles.retryButton}
+          onPress={() => setAttempt((a) => a + 1)}
+        >
+          <Text style={styles.retryText}>Try again</Text>
+        </TouchableOpacity>
+        {message.detail !== error && <Text style={styles.errorTechnical}>{error}</Text>}
       </View>
     );
   }
@@ -277,7 +309,7 @@ function UpdateRequiredScreen({ entry, onRecheck }: { entry: RegistryEntry; onRe
         This app needs renderer version {entry.requiredRendererVersion} — you have {installedRendererVersion()}.
       </Text>
       {updating ? (
-        <ActivityIndicator size="large" color="#0070f3" style={styles.updateSpinner} />
+        <ActivityIndicator size="large" color={theme.primary} style={styles.updateSpinner} />
       ) : (
         <TouchableOpacity style={styles.updateButton} onPress={update}>
           <Text style={styles.updateButtonText}>Update now</Text>
@@ -330,7 +362,7 @@ function RegistryBoot() {
   if (phase === 'loading') {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#0070f3" />
+        <ActivityIndicator size="large" color={theme.primary} />
         <Text style={styles.loadingText}>Contacting app registry…</Text>
       </View>
     );
@@ -396,7 +428,7 @@ function AuthGate({ config }: { config: BootConfig }) {
   if (phase === 'checking' || !sessionId) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#0070f3" />
+        <ActivityIndicator size="large" color={theme.primary} />
       </View>
     );
   }
@@ -436,8 +468,11 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#fff' },
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', padding: 24 },
   loadingText: { marginTop: 12, fontSize: 14, color: '#666' },
-  errorTitle: { fontSize: 16, fontWeight: '600', color: '#cc0000', textAlign: 'center', marginBottom: 8 },
-  errorDetail: { fontSize: 13, color: '#666', textAlign: 'center' },
+  errorTitle: { fontSize: 18, fontWeight: '700', color: theme.ink, textAlign: 'center', marginBottom: 8 },
+  errorDetail: { fontSize: 14, color: theme.muted, textAlign: 'center', marginBottom: 20, maxWidth: 320 },
+  errorTechnical: { fontSize: 12, color: theme.faint, textAlign: 'center', marginTop: 16 },
+  retryButton: { backgroundColor: theme.primary, paddingHorizontal: 24, minHeight: theme.minTouch, justifyContent: 'center', borderRadius: theme.radiusSm },
+  retryText: { color: theme.onPrimary, fontWeight: '600', fontSize: 15 },
   toastHost: { position: 'absolute', top: 40, left: 16, right: 16, gap: 8 },
   toast: { borderRadius: 8, padding: 12, shadowColor: '#000', shadowOpacity: 0.15, shadowRadius: 8, elevation: 4 },
   toast_info: { backgroundColor: '#e8f0fe' },
@@ -457,10 +492,10 @@ const styles = StyleSheet.create({
   updateTitle: { fontSize: 18, fontWeight: '700', color: '#1a1a1a', marginBottom: 8 },
   updateDetail: { fontSize: 14, color: '#666', textAlign: 'center', marginBottom: 12 },
   updateSpinner: { marginVertical: 8 },
-  updateButton: { backgroundColor: '#0070f3', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8, marginTop: 4 },
+  updateButton: { backgroundColor: theme.primary, paddingHorizontal: 20, paddingVertical: 12, borderRadius: 8, marginTop: 4 },
   updateButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
   updateFallback: { marginTop: 16, alignItems: 'center' },
   updateRecheck: { marginTop: 20, padding: 8 },
   signInError: { marginTop: 12 },
-  updateRecheckText: { color: '#0070f3', fontSize: 13, fontWeight: '600' },
+  updateRecheckText: { color: theme.primary, fontSize: 13, fontWeight: '600' },
 });

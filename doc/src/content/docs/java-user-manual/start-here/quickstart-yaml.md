@@ -22,6 +22,13 @@ Pick one front door ([all of them](/java-create-your-project/) generate the same
       -DarchetypeVersion=<release> -DgroupId=com.acme -DartifactId=my-app -Dauthoring=yaml
   ```
 
+:::caution[The archetype needs a JDK 21–25]
+Maven's archetype plugin runs a Groovy script that cannot read newer class files: on JDK 26+ it
+fails with *"BUG! exception in phase 'semantic analysis' … Unsupported class file major version
+70"* and leaves a half-generated folder (`variants/`, `generator/`). Delete that folder and rerun
+with `JAVA_HOME` pointing at a JDK 21–25. The IDE wizards have no such limit.
+:::
+
 It is the [`starters/yaml`](https://github.com/miguelperezcolom/mateu/tree/master/starters/yaml)
 project of the repository, which CI builds and boots on every change.
 

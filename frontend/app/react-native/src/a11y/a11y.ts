@@ -81,6 +81,12 @@ export const buttonA11y = (options: ButtonA11yOptions = {}) => {
         ...(options.label ? { accessibilityLabel: options.label } : {}),
         ...(options.hint ? { accessibilityHint: options.hint } : {}),
         ...(Object.keys(state).length ? { accessibilityState: state } : {}),
+        // The ARIA aliases of the same state: React Native maps them natively (0.71+), and
+        // react-native-web derives aria-selected/aria-expanded from THEM, not reliably from
+        // accessibilityState — without them the drawer's current entry was not announced as such.
+        ...(options.selected !== undefined ? { 'aria-selected': options.selected } : {}),
+        ...(options.expanded !== undefined ? { 'aria-expanded': options.expanded } : {}),
+        ...(options.disabled !== undefined ? { 'aria-disabled': options.disabled } : {}),
     }
 }
 

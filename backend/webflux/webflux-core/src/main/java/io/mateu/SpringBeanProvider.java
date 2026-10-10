@@ -29,6 +29,12 @@ public class SpringBeanProvider implements BeanProvider {
             + " spring.security.oauth2.resourceserver.jwt.issuer-uri)");
   }
 
+  /** Warns, once, when the app serves no UI at all (typically: the processor did not run). */
+  @EventListener(ApplicationReadyEvent.class)
+  public void warnIfNothingToServe() {
+    io.mateu.core.infra.NothingToServeCheck.warnOnStartup("mateu-annotation-processor-webflux");
+  }
+
   @Override
   public <T> T getBean(Class<T> clazz) {
     // Try by exact bean name first to avoid NoUniqueBeanDefinitionException

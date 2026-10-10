@@ -94,7 +94,7 @@ fun globalSearch(ctx: AppContext, metadata: JsonNode): JComponent {
                 results.addStacked(
                     JBLabel(category.uppercase()).apply {
                         font = font.deriveFont(Font.BOLD, font.size2D * 0.85f)
-                        foreground = JBUI.CurrentTheme.Label.disabledForeground()
+                        foreground = ToneColors.secondaryText()
                     },
                     2,
                 )
@@ -111,7 +111,7 @@ fun globalSearch(ctx: AppContext, metadata: JsonNode): JComponent {
         }
         if (matches.isEmpty() && dataHits.isEmpty()) {
             results.addStacked(
-                JBLabel("No matches").apply { foreground = JBUI.CurrentTheme.Label.disabledForeground() },
+                JBLabel("No matches").apply { foreground = ToneColors.secondaryText() },
                 2,
             )
         }

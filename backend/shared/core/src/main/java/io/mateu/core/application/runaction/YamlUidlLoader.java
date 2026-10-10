@@ -108,6 +108,14 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
   private final ObjectMapper mapper;
   private final ConcurrentHashMap<String, YamlPageSpec> byRoute = new ConcurrentHashMap<>();
 
+  /** What could not be read, for the log and a development-mode not-found page. */
+  private final YamlSpecProblems specProblems = new YamlSpecProblems();
+
+  /** The definitions this loader could not read (see {@link YamlSpecProblems}). */
+  public YamlSpecProblems specProblems() {
+    return specProblems;
+  }
+
   /**
    * The mount's route registry. When a route's entry names a {@code definition}, THAT file is the
    * layout — instead of the {@code specs/ui/<route>.yaml} convention, which ties a screen's layout
@@ -161,6 +169,7 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
   public void invalidateSpecs() {
     byRoute.clear();
     bySpecPath.clear();
+    specProblems.reset();
   }
 
   /** Without a registry: the convention alone, as before it existed. */
@@ -204,10 +213,16 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
       log.warn("No YAML spec found at classpath:{}", specPath);
       return null;
     }
+    String text = null;
     try (var is = resource) {
-      return layoutOf(mapper.readTree(is));
+      text = new String(is.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+      var layout = layoutOf(mapper.readTree(text));
+      specProblems.clear(specPath);
+      return layout;
     } catch (Exception e) {
-      log.warn("Failed to parse YAML spec {}: {}", specPath, e.getMessage());
+      var problem = YamlSpecProblems.describe(specPath, text, e);
+      log.warn("Could not read the definition {}", problem);
+      specProblems.record(specPath, problem);
       return null;
     }
   }
@@ -450,13 +465,32 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
         declaredDefinition != null
             ? definitionPath(declaredDefinition)
             : "specs/ui/" + normalizedRoute + ".yaml";
+    specProblems.routeUses(normalizedRoute, yamlPath);
     var resource = resolve(yamlPath);
     if (resource == null) {
-      log.debug("No YAML spec found at {}", yamlPath);
+      if (declaredDefinition != null) {
+        // routes.yaml names a layout file that is not there: say so, or the route answers "Page
+        // not found" with nothing anywhere to tell a typo in the file name from a missing route
+        var problem =
+            "routes.yaml: route \""
+                + normalizedRoute
+                + "\" names layout \""
+                + declaredDefinition
+                + "\", but "
+                + yamlPath
+                + " does not exist. Check the file name (it is relative to specs/ui/) or create"
+                + " the file.";
+        log.warn(problem);
+        specProblems.record(yamlPath, problem);
+      } else {
+        log.debug("No YAML spec found at {}", yamlPath);
+      }
       return NONE;
     }
+    String text = null;
     try (var is = resource) {
-      var root = mapper.readTree(is);
+      text = new String(is.readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+      var root = mapper.readTree(text);
       if (root == null) {
         return NONE;
       }
@@ -497,10 +531,13 @@ public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
           io.mateu.core.application.security.YamlAccess.declaresAccess(root)
               || io.mateu.core.application.i18n.TranslationRegistry.mentionsI18n(root)
               || referencesRestrictedCatalogueAction(root);
+      specProblems.clear(yamlPath);
       return new YamlPageSpec(
           modelView, layout, delta, actions, triggers, dependsOnRequest ? root : null, null, null);
     } catch (Exception e) {
-      log.warn("Failed to parse YAML spec {}: {}", yamlPath, e.getMessage());
+      var problem = YamlSpecProblems.describe(yamlPath, text, e);
+      log.warn("Could not read the definition {}", problem);
+      specProblems.record(yamlPath, problem);
       return NONE;
     }
   }

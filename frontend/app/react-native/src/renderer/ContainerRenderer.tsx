@@ -141,9 +141,21 @@ export function ProgressBarRenderer({ metadata, state }: { metadata: Dict; state
   const key = (metadata['valueKey'] as string) ?? '';
   const raw = key && state[key] != null ? Number(state[key]) : Number(metadata['value'] ?? 0);
   const frac = max - min === 0 ? 0 : Math.max(0, Math.min(1, (raw - min) / (max - min)));
+  // RN-18: the bar's own text (a wizard sends "Step 2") was dropped, so the bar alone had to say
+  // where the user was; and it was invisible to screen readers. Now the text shows above the bar,
+  // and the bar is a progressbar with its value.
+  const text = (metadata['text'] as string) ?? '';
   return (
-    <View style={styles.progressTrack}>
-      <View style={[styles.progressFill, { width: `${frac * 100}%` }]} />
+    <View
+      accessible
+      accessibilityRole="progressbar"
+      accessibilityLabel={text || undefined}
+      accessibilityValue={{ min: 0, max: 100, now: Math.round(frac * 100) }}
+    >
+      {!!text && <Text style={styles.progressText}>{text}</Text>}
+      <View style={styles.progressTrack}>
+        <View style={[styles.progressFill, { width: `${frac * 100}%` }]} />
+      </View>
     </View>
   );
 }
@@ -234,7 +246,8 @@ const styles = StyleSheet.create({
   panelBody: { padding: 12 },
   badge: { color: theme.white, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, overflow: 'hidden', alignSelf: 'flex-start', fontSize: 12 },
   link: { color: theme.primary, textDecorationLine: 'underline' },
-  progressTrack: { height: 8, backgroundColor: theme.border, borderRadius: 4, overflow: 'hidden' },
+  progressText: { fontSize: 13, color: theme.muted, marginBottom: 4 },
+  progressTrack: { height: 8, backgroundColor: theme.divider, borderRadius: 4, overflow: 'hidden', marginBottom: 8 },
   progressFill: { height: 8, backgroundColor: theme.primary },
   dialog: { backgroundColor: theme.white, borderColor: theme.faint, borderWidth: 1, borderRadius: 8, padding: 20, gap: 12, marginVertical: 12 },
   dialogTitle: { fontSize: 18, fontWeight: '700' },

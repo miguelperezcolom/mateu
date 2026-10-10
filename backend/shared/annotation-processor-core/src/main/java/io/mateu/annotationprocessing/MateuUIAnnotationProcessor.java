@@ -21,6 +21,14 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
   private boolean indexedUIsProcessed = false;
 
   /**
+   * The mount path each routed class of this compilation claimed, normalised (no trailing slash, so
+   * {@code "/"} and {@code ""} are the same root). Two classes on one path used to compile fine and
+   * then fail at startup with the web framework's "Ambiguous mapping" deep in a stack trace that
+   * never says which {@code @UI} to change.
+   */
+  private final Map<String, String> claimedPaths = new HashMap<>();
+
+  /**
    * The route a class declares (coherence-plan #5): {@code @App(route = "/x")} wins over
    * {@code @UI("/x")} when both are non-blank; a value-less {@code @App} (chrome only) carries no
    * route. Returns {@code null} when the class declares no route.
@@ -55,6 +63,14 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
         compiledClassNames.add(className);
         String simpleClassName = e.getSimpleName().toString();
         String path = routeOf(e);
+
+        String claimedBy = claimedPaths.putIfAbsent(removeTrailingSlash(path), className);
+        if (claimedBy != null && !claimedBy.equals(className)) {
+          processingEnv
+              .getMessager()
+              .printMessage(Kind.ERROR, duplicatePathMessage(path, claimedBy, className), e);
+          continue;
+        }
 
         System.out.println("MateuUIAnnotationProcessor running on " + simpleClassName);
 
@@ -136,6 +152,19 @@ public class MateuUIAnnotationProcessor extends AbstractProcessor {
     }
 
     return true;
+  }
+
+  /** The compile error for two routed classes declaring the same mount path. */
+  static String duplicatePathMessage(String path, String firstClass, String secondClass) {
+    return "[Mateu] @UI(\""
+        + path
+        + "\") on "
+        + secondClass
+        + " uses the same path as "
+        + firstClass
+        + ": each @UI mount needs its own path. Give one of them another path (e.g."
+        + " @UI(\"/home\")), or keep a single @UI class at this path and declare the other"
+        + " screen as an inner route in src/main/resources/specs/ui/routes.yaml.";
   }
 
   protected void processIndexedUIs(Set<String> compiledClassNames) {

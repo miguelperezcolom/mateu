@@ -30,7 +30,18 @@ EXPO_PUBLIC_MATEU_BACKEND_PORT=8595 npm run web     # demo-admin-panel on :8595,
 npm start                                           # QR code for Expo Go on a real phone
 ```
 
-`EXPO_PUBLIC_MATEU_ROUTE=/some/route` boots straight into a route instead of the home screen.
+`EXPO_PUBLIC_MATEU_ROUTE=/some/route` boots straight into a route instead of the home screen; in
+the browser build, `?route=/some/route` on the page URL does the same without a rebuild.
+
+**In a browser (`npm run web`) the backend must allow the Expo origin.** The page is served from
+another origin than the backend, and Mateu's CORS is off by default — without this the app stops
+at *"Can't reach the server"* and the browser console shows a CORS error:
+
+```bash
+java -jar target/demo-admin-panel-0.0.1-SNAPSHOT.jar --mateu.cors.allowed-origins=http://localhost:8081
+```
+
+Expo Go, simulators and installables are not browsers: they need no CORS setting.
 
 ## 2. The app registry
 

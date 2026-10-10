@@ -87,7 +87,7 @@ private fun box(
 }
 
 private fun muted(text: String, size: Float? = null) = JBLabel(text).apply {
-    foreground = JBUI.CurrentTheme.Label.disabledForeground()
+    foreground = ToneColors.secondaryText()
     if (size != null) font = font.deriveFont(JBUI.scaleFontSize(size).toFloat())
 }
 
@@ -125,7 +125,7 @@ fun renderCalendar(ctx: AppContext, metadata: JsonNode): JComponent {
         val info = Calendars.dayInfo(model, date)
         if (info.label.isBlank()) return null
         return JBLabel(info.label).apply {
-            foreground = toneInk(info.tone) ?: JBUI.CurrentTheme.Label.disabledForeground()
+            foreground = toneInk(info.tone) ?: ToneColors.secondaryText()
             font = font.deriveFont(Font.BOLD, JBUI.scaleFontSize(11f).toFloat())
         }
     }
