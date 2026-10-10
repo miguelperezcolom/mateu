@@ -1,1 +1,0 @@
-function e(e){return e[0]>0&&e[1]>0}function t(e,t,n){return n===void 0&&(n=[0,0]),n[0]=e[0]*t+.5|0,n[1]=e[1]*t+.5|0,n}function n(e,t){return Array.isArray(e)?e:(t===void 0?t=[e,e]:(t[0]=e,t[1]=e),t)}export{t as n,n as r,e as t};

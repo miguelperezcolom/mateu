@@ -1,1 +1,0 @@
-var e={POINT:`point`,LINE:`line`};export{e as t};

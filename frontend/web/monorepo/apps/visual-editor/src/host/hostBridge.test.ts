@@ -45,3 +45,44 @@ describe('isTrustedHostMessage', () => {
         expect(isTrustedHostMessage({ source: parent, origin: 'https://other.example' }, win)).toBe(false)
     })
 })
+
+describe('MessageHost project files', () => {
+    // node env: just enough of `window` for the constructor
+    const setup = () => {
+        const g = globalThis as unknown as { window?: unknown }
+        const previous = g.window
+        g.window = { addEventListener: () => {}, location: { origin: ORIGIN } }
+        let deliver: (e: { data: unknown }) => void = () => {}
+        const posted: unknown[] = []
+        const channel = {
+            postMessage: (m: unknown) => posted.push(m),
+            addEventListener: (_t: string, cb: (e: { data: unknown }) => void) => { deliver = cb },
+        }
+        // imported lazily so `window` exists when the module's class is constructed
+        return { channel, posted, deliver: (d: unknown) => deliver({ data: d }), restore: () => { g.window = previous } }
+    }
+
+    it('answers listFiles with the host\'s reply', async () => {
+        const { MessageHost } = await import('./hostBridge')
+        const t = setup()
+        try {
+            const host = new MessageHost(t.channel as never)
+            const files = host.listFiles()
+            t.deliver({ type: 'files', files: [{ path: 'welcome.yaml', content: 'type: VerticalLayout' }] })
+            expect(await files).toEqual([{ path: 'welcome.yaml', content: 'type: VerticalLayout' }])
+        } finally { t.restore() }
+    })
+
+    it('hands files pushed later (a page created while open, a late reply) to onFilesChanged', async () => {
+        const { MessageHost } = await import('./hostBridge')
+        const t = setup()
+        try {
+            const host = new MessageHost(t.channel as never)
+            const seen: string[][] = []
+            host.onFilesChanged((files) => seen.push(files.map((f) => f.path)))
+            t.deliver({ type: 'files', files: [{ path: 'welcome.yaml', content: '' }] })
+            t.deliver({ type: 'files', files: [{ path: 'welcome.yaml', content: '' }, { path: 'about.yaml', content: '' }] })
+            expect(seen).toEqual([['welcome.yaml'], ['welcome.yaml', 'about.yaml']])
+        } finally { t.restore() }
+    })
+})

@@ -27,6 +27,12 @@ export interface HostBridge {
      */
     listFiles?(): Promise<ProjectFile[]>
     /**
+     * The host pushes the mount's files again whenever one under `specs/ui` is created, changed or
+     * deleted (and answers to `listFiles` that arrive late land here too), so a page created while
+     * this editor is open shows up in its pickers without reopening it.
+     */
+    onFilesChanged?(cb: (files: ProjectFile[]) => void): void
+    /**
      * A local edit happened (the content changed but is NOT yet saved). An IDE host uses it to mark
      * its document dirty so the IDE's OWN save (Ctrl+S / save-all / close-prompt) writes the file —
      * there is no save button and this never writes the file itself. A standalone browser keeps it
@@ -119,12 +125,13 @@ export function resolveHost(): HostBridge {
 }
 
 /** IDE host over postMessage. init → {yaml, baseUrl}; the editor posts {type:'contentChanged', yaml}. */
-class MessageHost implements HostBridge {
+export class MessageHost implements HostBridge {
     private _baseUrl = window.__mateuBaseUrl ?? ''
     private _resolveInit!: (yaml: string) => void
     private _init = new Promise<string>((r) => (this._resolveInit = r))
     private _external?: (yaml: string) => void
     private _resolveFiles?: (files: ProjectFile[]) => void
+    private _filesListeners: ((files: ProjectFile[]) => void)[] = []
     private _path?: string
 
     constructor(private channel: HostChannel) {
@@ -147,8 +154,12 @@ class MessageHost implements HostBridge {
         } else if (msg.type === 'externalChange') {
             this._external?.(msg.yaml ?? '')
         } else if (msg.type === 'files') {
-            this._resolveFiles?.(Array.isArray(msg.files) ? msg.files : [])
+            const files: ProjectFile[] = Array.isArray(msg.files) ? msg.files : []
+            const pending = this._resolveFiles
             this._resolveFiles = undefined
+            if (pending) pending(files)
+            // an unsolicited push (a file changed) or an answer that arrived after the timeout
+            else this._filesListeners.forEach((cb) => cb(files))
         }
     }
 
@@ -163,7 +174,10 @@ class MessageHost implements HostBridge {
         return Promise.resolve(undefined)
     }
 
-    /** Ask the IDE host for the project's files; resolve empty if it does not answer (not yet wired). */
+    onFilesChanged(cb: (files: ProjectFile[]) => void) { this._filesListeners.push(cb) }
+
+    /** Ask the IDE host for the project's files; resolve empty if it does not answer in time (a late
+     *  answer still reaches {@link onFilesChanged}). */
     listFiles(): Promise<ProjectFile[]> {
         this.channel.postMessage({ type: 'listFiles' })
         return new Promise((resolve) => {

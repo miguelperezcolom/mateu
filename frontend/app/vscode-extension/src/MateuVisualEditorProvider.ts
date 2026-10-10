@@ -42,8 +42,13 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
         const refreshOrigins = () => {
             clearTimeout(rebuildTimer)
             rebuildTimer = setTimeout(async () => {
-                const next = sourceOrigins((await collectSpecsUiFiles(document.uri)).map((f) => f.content))
-                if (next.join(' ') === origins.join(' ')) return
+                const files = await collectSpecsUiFiles(document.uri)
+                const next = sourceOrigins(files.map((f) => f.content))
+                // a page created/changed/deleted while the editor is open reaches its pickers
+                if (next.join(' ') === origins.join(' ')) {
+                    webview.postMessage({ type: 'files', files })
+                    return
+                }
                 origins = next
                 webview.html = this.buildHtml(webview, mediaRoot, port, backend, origins)
             }, 500)

@@ -330,16 +330,19 @@ export class MateuVisualEditor extends LitElement {
     }
 
     private loadProject() {
-        this.host.listFiles?.().then((files) => {
-            if (files?.length) {
-                this.projectFiles = files
-                this.project = buildIndex(files)
-                // The canvas resolves `rowsSource: {ref}` / `optionsSource: {ref}` against the app's
-                // catalogue, exactly as the running app does — so a listing shows its rows here too.
-                setRestSourceCatalogue(this.project.sources as never)
-                this.refreshContract()
-            }
-        })
+        // the host re-sends the files when one changes (a page created while this editor is open)
+        this.host.onFilesChanged?.((files) => this.applyProjectFiles(files))
+        this.host.listFiles?.().then((files) => this.applyProjectFiles(files))
+    }
+
+    private applyProjectFiles(files: ProjectFile[] | undefined) {
+        if (!files?.length) return
+        this.projectFiles = files
+        this.project = buildIndex(files)
+        // The canvas resolves `rowsSource: {ref}` / `optionsSource: {ref}` against the app's
+        // catalogue, exactly as the running app does — so a listing shows its rows here too.
+        setRestSourceCatalogue(this.project.sources as never)
+        this.refreshContract()
     }
 
     disconnectedCallback() {
