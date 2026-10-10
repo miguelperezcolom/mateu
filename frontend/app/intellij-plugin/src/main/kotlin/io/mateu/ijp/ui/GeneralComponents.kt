@@ -347,7 +347,7 @@ fun renderVirtualList(component: JsonNode, metadata: JsonNode, state: JsonNode, 
         when {
             row.isValueNode -> row.asText()
             row.has("text") || row.has("label") -> cellText(row)
-            else -> row.fields().asSequence().take(3).map { cellText(it.value) }.filter { it.isNotBlank() }.joinToString(" · ")
+            else -> row.properties().asSequence().take(3).map { cellText(it.value) }.filter { it.isNotBlank() }.joinToString(" · ")
         }
     }
     val list = JBList(rows).apply { emptyText.text = "No items."; accessibleName("List") }

@@ -28,6 +28,15 @@ class MateuConfigurable(private val project: Project) :
     private val auth get() = MateuAuthService.getInstance(project)
     private val tokenField = JBPasswordField()
     private var tokenDirty = false
+    private var resetting = false
+
+    init {
+        tokenField.document.addDocumentListener(object : com.intellij.ui.DocumentAdapter() {
+            override fun textChanged(e: javax.swing.event.DocumentEvent) {
+                if (!resetting) tokenDirty = true
+            }
+        })
+    }
     private lateinit var authCombo: JComboBox<AuthMode>
 
     override fun createPanel(): DialogPanel = panel {
@@ -89,11 +98,10 @@ class MateuConfigurable(private val project: Project) :
 
     override fun reset() {
         super.reset()
+        resetting = true
         tokenField.text = if (auth.isSignedIn() && settings.authMode == AuthMode.TOKEN) TOKEN_MASK else ""
+        resetting = false
         tokenDirty = false
-        tokenField.document.addDocumentListener(object : com.intellij.ui.DocumentAdapter() {
-            override fun textChanged(e: javax.swing.event.DocumentEvent) { tokenDirty = true }
-        })
     }
 
     override fun isModified(): Boolean = super.isModified() || tokenDirty
