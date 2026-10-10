@@ -203,6 +203,10 @@ public class RemoteMenuHandler {
    */
   private Mono<AppDto> fetchRemoteAppDto(
       RemoteMenu remoteMenu, HttpRequest httpRequest, RunActionCommand command) {
+    if (isStaticBundle(remoteMenu)) {
+      // nothing to ask: a static remote claims only what its menu path covers (resolveRemoteMenu)
+      return Mono.empty();
+    }
     var authorization = httpRequest.getHeaderValue("authorization");
     var baseUrl = absoluteBaseUrl(remoteMenu, httpRequest);
     if (baseUrl == null) {
@@ -244,8 +248,42 @@ public class RemoteMenuHandler {
             appDto -> descriptorCache.put(baseUrl, remoteMenu.route(), authorization, appDto));
   }
 
+  /**
+   * True when the remote is a STATIC bundle: its {@code baseUrl} names the bundle's manifest
+   * ({@code https://cdn.example.com/catalog/manifest.json}) instead of a Mateu server. There is
+   * nothing to POST to — the browser reads that manifest and answers the remote's loads from it —
+   * so the server never asks it anything and mounts it for the client to load.
+   */
+  static boolean isStaticBundle(RemoteMenu remoteMenu) {
+    var baseUrl = remoteMenu == null ? null : remoteMenu.baseUrl();
+    if (baseUrl == null) {
+      return false;
+    }
+    var path = baseUrl.split("[?#]", 2)[0];
+    return path.toLowerCase(java.util.Locale.ROOT).endsWith(".json");
+  }
+
+  /**
+   * A deep link into a static remote, mounted for the browser: the route within the remote ("" is
+   * its home) loaded as CONTENT from the remote's manifest. Asking it over HTTP answered the
+   * manifest's host page, which failed to parse — every deep link into a static remote was a 500.
+   */
+  private static MicroFrontend staticMount(RemoteMenu remoteMenu, String route) {
+    var routeWithinApp = routeWithinApp(remoteMenu, route);
+    return MicroFrontend.builder()
+        .route(routeWithinApp == null ? "" : routeWithinApp)
+        .consumedRoute("")
+        .actionId("")
+        .baseUrl(remoteMenu.baseUrl())
+        .serverSideType("")
+        .build();
+  }
+
   private Mono<?> resolveRemoteMenu(
       RemoteMenu remoteMenu, HttpRequest httpRequest, RunActionCommand command) {
+    if (isStaticBundle(remoteMenu)) {
+      return Mono.just(staticMount(remoteMenu, command.route()));
+    }
     return fetchRemoteAppDto(remoteMenu, httpRequest, command)
         .map(
             app -> {

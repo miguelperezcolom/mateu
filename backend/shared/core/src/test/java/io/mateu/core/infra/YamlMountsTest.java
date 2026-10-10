@@ -27,4 +27,50 @@ class YamlMountsTest {
     assertThat(YamlMounts.mountForApiPath(mounts, "/mateu/v3/sync/x")).isSameAs(root);
     assertThat(YamlMounts.mountForApiPath(mounts, "/api/x")).isNull();
   }
+
+  @Test
+  void aNestedMountsUiIsAimedAtItsAbsolutePath() {
+    // a bare "back-office" resolved against /back-office/x posted to /back-office/back-office/mateu
+    assertThat(YamlMounts.uiPath("back-office")).isEqualTo("/back-office");
+    assertThat(YamlMounts.uiPath("")).isEmpty();
+    assertThat(YamlMounts.uiPath(null)).isEmpty();
+  }
+
+  @Test
+  void aNestedMountResolvesTheRouteTheClientSendsRelativeToIt() {
+    // the client strips the baseUrl (/orders) from the browser path; the registry keys the mount's
+    // routes with the mount on them
+    assertThat(YamlMounts.mountRequest("orders", rq("/list")).route()).isEqualTo("/orders/list");
+    assertThat(YamlMounts.mountRequest("orders", rq("list/7")).route()).isEqualTo("/orders/list/7");
+    assertThat(YamlMounts.mountRequest("orders", rq("")).route()).isEqualTo("/orders");
+    assertThat(YamlMounts.mountRequest("orders", rq(null)).route()).isEqualTo("/orders");
+    // a route the server sent back already names the mount
+    assertThat(YamlMounts.mountRequest("orders", rq("/orders/list")).route())
+        .isEqualTo("/orders/list");
+    assertThat(YamlMounts.mountRequest("orders", rq("/orders")).route()).isEqualTo("/orders");
+    // …but a sibling that only shares the prefix does not
+    assertThat(YamlMounts.mountRequest("orders", rq("/orders-archive")).route())
+        .isEqualTo("/orders/orders-archive");
+    // the root mount is untouched, and so is everything but the route
+    var root = rq("/list");
+    assertThat(YamlMounts.mountRequest("", root)).isSameAs(root);
+    var moved = YamlMounts.mountRequest("orders", rq("/list"));
+    assertThat(moved.actionId()).isEqualTo("search");
+    assertThat(moved.consumedRoute()).isEqualTo("_empty");
+    assertThat(moved.componentState()).containsEntry("q", "x");
+  }
+
+  private static io.mateu.dtos.RunActionRqDto rq(String route) {
+    return new io.mateu.dtos.RunActionRqDto(
+        java.util.Map.of("q", "x"),
+        java.util.Map.of(),
+        java.util.Map.of(),
+        "c1",
+        "_empty",
+        "search",
+        route,
+        null,
+        null,
+        null);
+  }
 }
