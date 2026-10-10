@@ -43,6 +43,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "FormRow" -> renderFormRow(this, component, metadata, state, data)
             "HorizontalLayout" -> renderHBox(this, component, metadata, state, data)
             "Button" -> renderButton(ctx, metadata)
+            "ActionPanel" -> renderActionPanel(ctx, metadata)
             "Text" -> JBLabel(metadata.text("text")).also { label ->
                 // Text size: xl/l/s/xs enlarge or reduce the font; m (or absent) applies nothing.
                 when (metadata.text("size")) {

@@ -28,6 +28,7 @@ import {
   ProcessMonitorRenderer,
 } from './DisplayRenderer';
 import { PlanningBoardRenderer } from './PlanningBoardRenderer';
+import { ActionPanelRenderer } from './ActionPanelRenderer';
 import { EmptyState, MetricCard, PlanningBoard, Skeleton } from '../api/metadata';
 import { useAppContext } from '../context/AppContext';
 import { MateuViewHost, useViewController } from './MateuViewHost';
@@ -279,6 +280,8 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <PaymentPickerRenderer component={component} />;
     case 'ProcessMonitor':
       return <ProcessMonitorRenderer component={component} />;
+    case 'ActionPanel':
+      return <ActionPanelRenderer metadata={metadata} state={state} />;
     case 'PlanningBoard':
       return <PlanningBoardRenderer metadata={metadata as unknown as PlanningBoard} />;
 
