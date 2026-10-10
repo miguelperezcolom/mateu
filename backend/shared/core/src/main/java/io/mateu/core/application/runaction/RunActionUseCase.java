@@ -163,7 +163,11 @@ public class RunActionUseCase {
                 () ->
                     NotFoundPage.isLoad(command.actionId())
                         // a route that resolves to nothing: the same not-found page
-                        ? mapToUiIncrement(NotFoundPage.forUnknownRoute(command), command)
+                        ? mapToUiIncrement(
+                            NotFoundPage.forUnknownRoute(
+                                command,
+                                yamlUidlLoader != null ? yamlUidlLoader.specProblems() : null),
+                            command)
                         : mapToUiIncrement(
                             Text.builder().text("Not found.").style("color: red;").build(),
                             command)));

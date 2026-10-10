@@ -127,7 +127,16 @@ public sealed class YamlSpecLoader : ISpecsCache
         var entry = _registry.Match(normalizedRoute)?.Entry;
         var declared = string.IsNullOrWhiteSpace(entry?.Definition) ? null : entry!.Definition;
         var path = Path.Combine(_dir, declared ?? normalizedRoute + ".yaml");
-        if (!File.Exists(path)) return None;
+        if (!File.Exists(path))
+        {
+            // routes.yaml names a layout file that is not there: say so, or the route answers "not
+            // found" with nothing to tell a typo in the file name from a route nobody declared.
+            if (declared is not null)
+                MateuLogging.For("Mateu.Yaml").LogWarning(
+                    "routes.yaml: route \"{Route}\" names layout \"{Layout}\", but {Path} does not exist. Check the file name (it is relative to specs/ui/) or create the file.",
+                    normalizedRoute, declared, path);
+            return None;
+        }
         try
         {
             var root = YamlComponentBuilder.Deserialize(File.ReadAllText(path));

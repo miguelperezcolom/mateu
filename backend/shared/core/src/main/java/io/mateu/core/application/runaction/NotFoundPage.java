@@ -75,10 +75,39 @@ public final class NotFoundPage {
   }
 
   /** The page for a route that resolves to nothing at all. */
-  static NotFound forUnknownRoute(RunActionCommand command) {
+  static NotFound forUnknownRoute(RunActionCommand command, YamlSpecProblems problems) {
     var spanish = spanish(command.httpRequest());
-    return page(
-        spanish ? "Página no encontrada" : "Page not found", spanish, pathOf(command.route()));
+    var page =
+        page(spanish ? "Página no encontrada" : "Page not found", spanish, pathOf(command.route()));
+    return io.mateu.core.infra.dev.DevMode.enabled() && problems != null
+        ? withSpecProblems(page, problems.forRoute(pathOf(command.route()).substring(1)))
+        : page;
+  }
+
+  /**
+   * In development mode, a not-found page also says which definitions could not be read — the usual
+   * reason a route that IS in routes.yaml answers "not found" (a typo in a key, an unknown {@code
+   * dataType}, a layout file that does not exist). Never outside development mode: a production
+   * page must not describe the server's files.
+   */
+  static NotFound withSpecProblems(NotFound page, java.util.List<String> problems) {
+    if (problems.isEmpty()) {
+      return page;
+    }
+    return NotFound.builder()
+        .id(page.id())
+        .title(page.title())
+        .backRoute(page.backRoute())
+        .backLabel(page.backLabel())
+        .style(page.style())
+        .cssClasses(page.cssClasses())
+        .message(
+            "Development mode — "
+                + (problems.size() == 1
+                    ? "a definition could not be read: "
+                    : problems.size() + " definitions could not be read: ")
+                + String.join(" · ", problems))
+        .build();
   }
 
   private static NotFound page(String title, boolean spanish, String path) {
