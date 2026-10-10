@@ -58,9 +58,9 @@ for the sibling implementation.
 
 | Package | Role |
 |---|---|
-| `mateu_uidl` | Public API — decorators (`@ui`, `@app`, `@button`, …) + field markers + `Message`, `Crud`, `Wizard`, `Translator` |
-| `mateu_dtos` | The wire model in Pydantic — `UIIncrement`, `Component` + metadata (polymorphism on `type`) |
-| `mateu_core` | The engine — `MateuRegistry`, `ReflectionMapper`, `SyncHandler` |
+| `mateu_uidl` | Public API — decorators (`@ui`, `@app`, `@button`, …) + field markers + `Message`, `Crud`, `Wizard`, `Translator`. One module per concern (`markers`, `security`, `suppliers`, `class_decorators`, `method_decorators`, `listing`, `views`, `archetypes`, …), all re-exported from `mateu_uidl` |
+| `mateu_dtos` | The wire model in Pydantic — `UIIncrement`, `Component` + metadata (polymorphism on `type`); split by concern (`app`, `layout`, `fields`, `components`, `envelope`, …), re-exported from `mateu_dtos` |
+| `mateu_core` | The engine — `MateuRegistry`, `ReflectionMapper` (package `mapper/`: one mixin per concern — app, view, archetypes, components, crud, layout, fields…), `SyncHandler` (package `sync_handler/`: dispatch, wizard, listing, crud, search, proxy…) |
 | `mateu_fastapi` | `add_mateu(app, …)` — the `POST /mateu/v3/sync/{route}` endpoint |
 | `samples/demo` | A runnable FastAPI app |
 | `tests` | Golden-JSON tests asserting wire compatibility with the Java/C# backends |
