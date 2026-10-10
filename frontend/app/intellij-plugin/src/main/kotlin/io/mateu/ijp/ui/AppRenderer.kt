@@ -31,6 +31,10 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         session.homeRoute = metadata.text("homeRoute").ifBlank { null }
         session.homeConsumedRoute = metadata.text("homeConsumedRoute")
         session.homeServerSideType = metadata.text("homeServerSideType")
+        // The shell's flows (App.actions) + where they navigate from: a menu leaf naming one runs it.
+        session.appActions = metadata.path("actions").takeIf { it.isArray }
+        session.appRootRoute = metadata.text("rootRoute")
+        session.appServerSideType = metadata.text("serverSideType").ifBlank { null }
         // Keyboard access keys: views assign Alt+letter mnemonics to their buttons and tabs.
         session.accessKeys = metadata.bool("accessKeys")
         session.onAppMenuChanged?.invoke()
@@ -127,16 +131,8 @@ private fun addMenuItems(session: AppSession, panel: javax.swing.JPanel, menu: J
     }
 }
 
-/** Opens a menu leaf exactly like a click on its navigator link. */
-private fun openMenuEntry(session: AppSession, item: JsonNode) {
-    session.openViewHandler?.invoke(
-        item.text("label"),
-        item.text("route"),
-        item.text("consumedRoute"),
-        item.text("serverSideType"),
-        item.text("actionId"),
-    )
-}
+/** Opens a menu leaf exactly like a click on its navigator link (a rule leaf RUNS its flow). */
+private fun openMenuEntry(session: AppSession, item: JsonNode) = session.openMenuEntry(item)
 
 /** Side of the square reserved for a card's icon/image, so a late image load never resizes the row. */
 private const val CARD_ICON_SIZE = 32
