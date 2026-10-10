@@ -50,6 +50,8 @@ import {isLocalRequest} from "@infra/http/localRequests.ts";
 import {clearPending, decorable, markPending, originOf} from "@infra/ui/pendingIndicator.ts";
 import {runDeclaredFlow} from "@infra/ui/flowRunner.ts";
 import {getCatalogueAction} from "@infra/ui/actionCatalogue.ts";
+import {inAppRoute} from "@infra/ui/shellFlows.ts";
+import type UICommand from "@mateu/shared/apiClients/dtos/UICommand.ts";
 import {applySizing, SizableHost} from "@infra/ui/sizing.ts";
 import { confirmationDialogTexts } from '@infra/ui/confirmationTexts.ts'
 import { fabStyles } from '@infra/ui/layout/fabRail.ts'
@@ -732,6 +734,23 @@ export class MateuComponent extends ComponentElement {
         document.body.appendChild(backdrop)
     }
 
+    /**
+     * One command of a declared flow (the page's own, or the action catalogue's). A `Navigate` to a
+     * route of the app moves the app there in place — the `route-changed` + `navigate-to-requested`
+     * pair every shell honours (and the editor's Play), exactly what a shell flow's Navigate does —
+     * instead of reloading the whole page; a URL still leaves it. The rest: the common applier.
+     */
+    applyFlowCommand = (command: UICommand) => {
+        if (command.type === 'NavigateTo') {
+            const route = inAppRoute(command.data)
+            if (route !== undefined) {
+                navigateToRoute(this, route)
+                return
+            }
+        }
+        this.applyCommand(command)
+    }
+
     requestActionCallToServerOrBubble = (detail: {
         actionId: string,
         parameters: Record<string, unknown>,
@@ -805,7 +824,7 @@ export class MateuComponent extends ComponentElement {
         // from its fluent steps. Every v0 verb is one existing command, so we run them with the
         // command applier we already have — no server round-trip. Applied on THIS component (the
         // one that fired the action); a null targetComponentId means "the firing component".
-        if (runDeclaredFlow(action, command => this.applyCommand(command))) {
+        if (runDeclaredFlow(action, this.applyFlowCommand)) {
             return
         }
 
