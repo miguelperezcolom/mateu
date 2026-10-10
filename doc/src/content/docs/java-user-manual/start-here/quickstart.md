@@ -17,27 +17,53 @@ No frontend required.
 ## 1. Add Mateu to your project
 
 ```xml
-<!-- Core framework -->
-<dependency>
-  <groupId>io.mateu</groupId>
-  <artifactId>mvc-core</artifactId>
-  <version>MATEU_VERSION</version>
-</dependency>
+<!-- Mateu's BOM: every Mateu artifact at one version -->
+<dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>io.mateu</groupId>
+      <artifactId>mateu-bom</artifactId>
+      <version>MATEU_VERSION</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+  </dependencies>
+</dependencyManagement>
 
-<!-- Annotation processor (generates wiring at compile time) -->
-<dependency>
-  <groupId>io.mateu</groupId>
-  <artifactId>annotation-processor-mvc</artifactId>
-  <version>MATEU_VERSION</version>
-</dependency>
-
-<!-- Frontend web component (Vaadin + Lit) -->
-<dependency>
-  <groupId>io.mateu</groupId>
-  <artifactId>vaadin-lit</artifactId>
-  <version>MATEU_VERSION</version>
-</dependency>
+<dependencies>
+  <!-- Core framework -->
+  <dependency>
+    <groupId>io.mateu</groupId>
+    <artifactId>mvc-core</artifactId>
+  </dependency>
+  <!-- Frontend web component (Vaadin + Lit) -->
+  <dependency>
+    <groupId>io.mateu</groupId>
+    <artifactId>vaadin-lit</artifactId>
+  </dependency>
+</dependencies>
 ```
+
+The annotation processor generates the wiring at compile time. It goes on the compiler's
+**processor path** — not among the dependencies, where it would ship a code generator inside your app:
+
+```xml
+<plugin>
+  <groupId>org.apache.maven.plugins</groupId>
+  <artifactId>maven-compiler-plugin</artifactId>
+  <configuration>
+    <annotationProcessorPaths>
+      <path>
+        <groupId>io.mateu</groupId>
+        <artifactId>annotation-processor-mvc</artifactId>
+        <version>MATEU_VERSION</version>
+      </path>
+    </annotationProcessorPaths>
+  </configuration>
+</plugin>
+```
+
+See [Create your project](/java-create-your-project/) for the other frameworks and for Gradle.
 
 ## 2. Define your model
 

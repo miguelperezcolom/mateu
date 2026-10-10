@@ -316,6 +316,7 @@ export default defineConfig({
 						{ slug: 'java-create-your-project/quarkus' },
 						{ slug: 'java-create-your-project/micronaut' },
 						{ slug: 'java-create-your-project/helidon' },
+						{ slug: 'java-create-your-project/configuration' },
 					],
 				},
 				{

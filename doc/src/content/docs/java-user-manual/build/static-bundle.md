@@ -126,10 +126,9 @@ in **every server adapter** — Spring MVC, Spring WebFlux, Micronaut, Quarkus a
 discovers routes from the live `RouteResolver` beans, so it works whether your `@UI` classes live in
 the app module or in a separate UI module.
 
-**Cross-origin note:** the Spring adapters (MVC/WebFlux) send `Access-Control-Allow-Origin` via
-`@CrossOrigin`. On the other adapters the endpoint relies on the app's own CORS configuration
-(`micronaut.server.cors`, `quarkus.http.cors`, Helidon's CORS feature) — the same requirement as the
-main `/mateu/v3/sync` endpoint. Same-origin serving needs no CORS at all.
+**Cross-origin note:** same-origin serving needs no CORS at all. To read the endpoint from another
+origin, list that origin in `mateu.cors.allowed-origins` — the same opt-in allow-list, and the same
+behaviour, on every adapter (see [Configuration properties](/java-create-your-project/configuration/#cross-origin-access-cors)).
 
 ## `:param` route templates
 
