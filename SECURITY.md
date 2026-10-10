@@ -8,7 +8,7 @@ Report it privately through GitHub's private vulnerability reporting:
 
 1. Go to the repository's **Security** tab → **Advisories** →
    [**Report a vulnerability**](https://github.com/miguelperezcolom/mateu/security/advisories/new).
-2. Describe the issue, the affected version(s) and module(s) (`mvc-core`, `vaadin-lit`, the .NET or
+2. Describe the issue, the affected version(s) and module(s) (`mateu-mvc`, `mateu-vaadin`, the .NET or
    Python backend…), and how to reproduce it — a minimal `@UI` class or request is ideal.
 3. Say whether you want to be credited, and how.
 

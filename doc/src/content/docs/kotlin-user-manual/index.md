@@ -42,7 +42,7 @@ if you enable extensions for the plugin -->
                         <!-- Specify your annotation processors here -->
                         <annotationProcessorPath>
                             <groupId>io.mateu</groupId>
-                            <artifactId>annotation-processor-mvc</artifactId>
+                            <artifactId>mateu-annotation-processor-mvc</artifactId>
                             <version>MATEU_VERSION</version>
                         </annotationProcessorPath>
                     </annotationProcessorPaths>

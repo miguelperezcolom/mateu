@@ -11,17 +11,17 @@ Mateu is a model-driven UI system for business apps. You declare the model — h
 
 <dependency>
   <groupId>io.mateu</groupId>
-  <artifactId>mvc-core</artifactId>
+  <artifactId>mateu-mvc</artifactId>
   <version>${mateu.version}</version>
 </dependency>
 <dependency>
   <groupId>io.mateu</groupId>
-  <artifactId>vaadin-lit</artifactId>
+  <artifactId>mateu-vaadin</artifactId>
   <version>${mateu.version}</version>
 </dependency>
 
 <!-- REQUIRED: maven-compiler-plugin → annotationProcessorPaths must list
-     io.mateu:annotation-processor-mvc:${mateu.version} (and Lombok). Without it no
+     io.mateu:mateu-annotation-processor-mvc:${mateu.version} (and Lombok). Without it no
      controller is generated and every route 404s. Full pom: starters/spring-mvc/pom.xml -->
 ```
 

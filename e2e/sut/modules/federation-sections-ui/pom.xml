@@ -22,13 +22,13 @@
     <dependencies>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>uidl</artifactId>
+            <artifactId>mateu-uidl</artifactId>
             <version>${mateu.version}</version>
         </dependency>
 
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>annotation-processor-indexer</artifactId>
+            <artifactId>mateu-annotation-processor-indexer</artifactId>
             <version>${mateu.version}</version>
             <scope>provided</scope>
         </dependency>
@@ -65,7 +65,7 @@
                         </path>
                         <path>
                             <groupId>io.mateu</groupId>
-                            <artifactId>annotation-processor-indexer</artifactId>
+                            <artifactId>mateu-annotation-processor-indexer</artifactId>
                             <version>${mateu.version}</version>
                         </path>
                     </annotationProcessorPaths>

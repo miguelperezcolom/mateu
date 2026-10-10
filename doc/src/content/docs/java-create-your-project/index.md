@@ -9,11 +9,11 @@ Add Mateu to an existing Java project or start a new one. The setup is a Maven d
 
 | Framework | Module |
 |---|---|
-| [Spring Boot MVC](/java-create-your-project/springboot-mvc/) | `mvc-core` |
-| [Spring Boot WebFlux](/java-create-your-project/springboot-webflux/) | `webflux-core` |
-| [Quarkus](/java-create-your-project/quarkus/) | `quarkus-core` |
-| [Micronaut](/java-create-your-project/micronaut/) | `micronaut-core` |
-| [Helidon MP](/java-create-your-project/helidon/) | `helidon-mp-core` |
+| [Spring Boot MVC](/java-create-your-project/springboot-mvc/) | `mateu-mvc` |
+| [Spring Boot WebFlux](/java-create-your-project/springboot-webflux/) | `mateu-webflux` |
+| [Quarkus](/java-create-your-project/quarkus/) | `mateu-quarkus` |
+| [Micronaut](/java-create-your-project/micronaut/) | `mateu-micronaut` |
+| [Helidon MP](/java-create-your-project/helidon/) | `mateu-helidon-mp` |
 
 ## Common setup pattern
 
@@ -38,8 +38,8 @@ All integrations support the same set of frontends — change renderer by swappi
 
 | Artifact | Design system |
 |---|---|
-| `vaadin-lit` | Vaadin (default, recommended) |
-| `redwood` | Oracle Redwood, on Visual Builder |
+| `mateu-vaadin` | Vaadin (default, recommended) |
+| `mateu-redwood` | Oracle Redwood, on Visual Builder |
 
 ## Before you start
 

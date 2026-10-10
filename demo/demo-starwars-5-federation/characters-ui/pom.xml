@@ -13,7 +13,7 @@
     <artifactId>characters-ui</artifactId>
     <packaging>jar</packaging>
     <name>characters-ui</name>
-    <description>A framework-agnostic @UI module (only io.mateu:uidl + mvc-core for AutoCrud). The
+    <description>A framework-agnostic @UI module (only io.mateu:mateu-uidl + mvc-core for AutoCrud). The
         indexer AP writes META-INF/mateu/ui-registrations so a downstream app can generate its
         controllers without the sources.</description>
 
@@ -28,16 +28,16 @@
     </properties>
 
     <dependencies>
-        <!-- mvc-core brings AutoCrud + the uidl API; a pure-form module needs only io.mateu:uidl. -->
+        <!-- mvc-core brings AutoCrud + the uidl API; a pure-form module needs only io.mateu:mateu-uidl. -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>mvc-core</artifactId>
+            <artifactId>mateu-mvc</artifactId>
             <version>${mateu.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>annotation-processor-indexer</artifactId>
+            <artifactId>mateu-annotation-processor-indexer</artifactId>
             <version>${mateu.version}</version>
             <scope>provided</scope>
         </dependency>
@@ -60,7 +60,7 @@
                     <annotationProcessorPaths>
                         <path>
                             <groupId>io.mateu</groupId>
-                            <artifactId>annotation-processor-indexer</artifactId>
+                            <artifactId>mateu-annotation-processor-indexer</artifactId>
                             <version>${mateu.version}</version>
                         </path>
                     </annotationProcessorPaths>

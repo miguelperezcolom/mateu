@@ -14,7 +14,7 @@ The Vaadin renderer is Mateu's default frontend. It uses Vaadin Lumo web compone
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>vaadin-lit</artifactId>
+    <artifactId>mateu-vaadin</artifactId>
     <version>MATEU_VERSION</version>
 </dependency>
 ```

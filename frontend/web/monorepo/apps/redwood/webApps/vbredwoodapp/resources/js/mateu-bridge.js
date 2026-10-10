@@ -11763,7 +11763,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // The mount path of the packaged app (the jar io.mateu:redwood served by a Mateu backend).
+  // The mount path of the packaged app (the jar io.mateu:mateu-redwood served by a Mateu backend).
   //
   // The controller the annotation processor generates for an @UI serves _index.html at the UI's
   // path and injects a hidden <mateu-ui baseUrl="/console" pathPrefix="/console">. That element is

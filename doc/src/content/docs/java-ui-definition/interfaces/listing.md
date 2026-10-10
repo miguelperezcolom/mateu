@@ -114,14 +114,14 @@ Add the modules you need to `pom.xml`:
 <!-- Excel export via Apache POI -->
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>export-excel</artifactId>
+    <artifactId>mateu-export-excel</artifactId>
     <version>${mateu.version}</version>
 </dependency>
 
 <!-- PDF export via Apache PDFBox -->
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>export-pdf</artifactId>
+    <artifactId>mateu-export-pdf</artifactId>
     <version>${mateu.version}</version>
 </dependency>
 ```

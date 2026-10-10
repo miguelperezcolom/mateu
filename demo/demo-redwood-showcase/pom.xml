@@ -43,18 +43,18 @@
         <!-- mateu framework (Spring MVC adapter) -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>annotation-processor-mvc</artifactId>
+            <artifactId>mateu-annotation-processor-mvc</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>mvc-core</artifactId>
+            <artifactId>mateu-mvc</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <!-- the Redwood renderer (Oracle Visual Builder); the OJET redwood-oj-lit bundle was retired -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>redwood</artifactId>
+            <artifactId>mateu-redwood</artifactId>
             <version>${mateu.version}</version>
         </dependency>
     </dependencies>
@@ -91,7 +91,7 @@
                                 </path>
                                 <path>
                                     <groupId>io.mateu</groupId>
-                                    <artifactId>annotation-processor-mvc</artifactId>
+                                    <artifactId>mateu-annotation-processor-mvc</artifactId>
                                     <version>${mateu.version}</version>
                                 </path>
                             </annotationProcessorPaths>
@@ -111,7 +111,7 @@
                                 </path>
                                 <path>
                                     <groupId>io.mateu</groupId>
-                                    <artifactId>annotation-processor-mvc</artifactId>
+                                    <artifactId>mateu-annotation-processor-mvc</artifactId>
                                     <version>${mateu.version}</version>
                                 </path>
                             </annotationProcessorPaths>

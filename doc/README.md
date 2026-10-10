@@ -27,7 +27,7 @@ doc/
 ## Conventions
 
 - **The version in snippets**: write `MATEU_VERSION`, never a literal version. The plugin resolves it
-  from `$MATEU_VERSION`, else Maven Central's latest release of `io.mateu:mvc-core`, else the newest
+  from `$MATEU_VERSION`, else Maven Central's latest release of `io.mateu:mateu-mvc`, else the newest
   `v*` git tag — and fails the build if none answers.
 - **Links between pages** are absolute slugs with a trailing slash: `[forms](/java-ui-definition/forms/)`.
   A relative `./sibling` from a non-index page resolves *under* the current page and 404s.

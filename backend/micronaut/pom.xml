@@ -4,10 +4,10 @@
 
   <parent>
     <groupId>io.mateu</groupId>
-    <artifactId>backend</artifactId>
+    <artifactId>mateu-parent</artifactId>
     <version>0.0.1-MATEU</version>
   </parent>
-  <artifactId>micronaut</artifactId>
+  <artifactId>mateu-micronaut-parent</artifactId>
   <packaging>pom</packaging>
 
   <name>Mateu Micronaut adapter (parent)</name>

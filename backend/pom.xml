@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>io.mateu</groupId>
-  <artifactId>backend</artifactId>
+  <artifactId>mateu-parent</artifactId>
   <version>0.0.1-MATEU</version>
   <packaging>pom</packaging>
 
@@ -80,6 +80,8 @@
     <!-- not a child of this pom (see its header): only aggregated, so it is built and released
          with the rest -->
     <module>mateu-bom</module>
+    <!-- pom-only artifacts at the pre-rename ids (io.mateu:mvc-core…) relocating to mateu-* -->
+    <module>relocations</module>
   </modules>
 
   <dependencyManagement>

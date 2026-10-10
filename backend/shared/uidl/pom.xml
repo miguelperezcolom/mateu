@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.mateu</groupId>
-        <artifactId>shared</artifactId>
+        <artifactId>mateu-shared-parent</artifactId>
         <version>0.0.1-MATEU</version>
     </parent>
 
-    <artifactId>uidl</artifactId>
+    <artifactId>mateu-uidl</artifactId>
     <packaging>jar</packaging>
 
     <name>Mateu UIDL</name>
@@ -62,6 +62,8 @@
                 <groupId>com.github.siom79.japicmp</groupId>
                 <artifactId>japicmp-maven-plugin</artifactId>
                 <configuration>
+                    <!-- the baseline (3.0-alpha.407) predates the mateu-* rename, hence the old artifactId;
+                         switch it to the mateu-* id once the baseline is a release that has it -->
                     <oldVersion>
                         <dependency>
                             <groupId>io.mateu</groupId>
@@ -110,7 +112,7 @@
 
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>dtos</artifactId>
+            <artifactId>mateu-dtos</artifactId>
             <version>${project.version}</version>
         </dependency>
 

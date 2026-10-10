@@ -396,7 +396,7 @@ jobs:
         run: |
           mvn -B package -DskipTests --file demo/demo-vb/pom.xml
           mvn -B install -Dmaven.test.skip=true -Dgpg.skip=true --file e2e/sut/pom.xml -pl modules/sample1
-          mvn -B package -Dmaven.test.skip=true -Dgpg.skip=true --file e2e/sut/pom.xml -pl apps/mvc-app1 -Dmateu.renderer=redwood -Dsut.build.dir=target-vb
+          mvn -B package -Dmaven.test.skip=true -Dgpg.skip=true --file e2e/sut/pom.xml -pl apps/mvc-app1 -Dmateu.renderer=mateu-redwood -Dsut.build.dir=target-vb
 
       - name: Start demo-vb (:9005) and the renderer-vb SUT (:8090)
         run: |

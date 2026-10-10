@@ -77,17 +77,17 @@
 
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>annotation-processor-helidon-mp</artifactId>
+            <artifactId>mateu-annotation-processor-helidon-mp</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>helidon-mp-core</artifactId>
+            <artifactId>mateu-helidon-mp</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>vaadin-lit</artifactId>
+            <artifactId>mateu-vaadin</artifactId>
             <version>${mateu.version}</version>
         </dependency>
     </dependencies>

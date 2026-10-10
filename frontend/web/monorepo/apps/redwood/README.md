@@ -73,7 +73,7 @@ npm run build && npm run copy   # → backend/shared/frontend/redwood/src/main/r
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>redwood</artifactId>
+    <artifactId>mateu-redwood</artifactId>
     <version>${mateu.version}</version>
 </dependency>
 ```

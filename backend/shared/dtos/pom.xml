@@ -3,13 +3,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>shared</artifactId>
+        <artifactId>mateu-shared-parent</artifactId>
         <groupId>io.mateu</groupId>
         <version>0.0.1-MATEU</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>dtos</artifactId>
+    <artifactId>mateu-dtos</artifactId>
 
     <name>Mateu wire DTOs</name>
     <description>The DTOs Mateu backends and renderers exchange (the /mateu/v3 wire model).</description>
@@ -33,6 +33,8 @@
                 <groupId>com.github.siom79.japicmp</groupId>
                 <artifactId>japicmp-maven-plugin</artifactId>
                 <configuration>
+                    <!-- the baseline (3.0-alpha.407) predates the mateu-* rename, hence the old artifactId;
+                         switch it to the mateu-* id once the baseline is a release that has it -->
                     <oldVersion>
                         <dependency>
                             <groupId>io.mateu</groupId>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.mateu</groupId>
+    <artifactId>mateu-relocations</artifactId>
+    <version>0.0.1-MATEU</version>
+  </parent>
+
+  <artifactId>annotation-processor-helidon-mp</artifactId>
+  <packaging>pom</packaging>
+
+  <name>Mateu annotation-processor-helidon-mp (relocated to mateu-annotation-processor-helidon-mp)</name>
+  <description>Relocated: io.mateu:annotation-processor-helidon-mp is now io.mateu:mateu-annotation-processor-helidon-mp.</description>
+
+  <distributionManagement>
+    <relocation>
+      <groupId>io.mateu</groupId>
+      <artifactId>mateu-annotation-processor-helidon-mp</artifactId>
+      <message>io.mateu:annotation-processor-helidon-mp was renamed to io.mateu:mateu-annotation-processor-helidon-mp — update the dependency (see https://mateu.io/reference/migrating-from-alpha/).</message>
+    </relocation>
+  </distributionManagement>
+</project>

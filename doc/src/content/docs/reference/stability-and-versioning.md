@@ -9,7 +9,9 @@ did.
 
 ## Version numbers
 
-- Releases are tagged `vMAJOR.MINOR[-qualifier.N]` and published to Maven Central under `io.mateu`
+- Releases are tagged `vMAJOR.MINOR[-qualifier.N]` and published to Maven Central under `io.mateu`,
+  every artifact named `mateu-*` (`mateu-uidl`, `mateu-mvc`, `mateu-vaadin`…; the pre-beta ids are
+  relocation poms — see [Migrating from alpha](/reference/migrating-from-alpha/#maven-artifacts)),
   with the tag's version (`3.0-alpha.406`, `3.0-beta.1`, `3.0.0`, `3.1.0`…). Every module of one
   release shares that version — never mix versions of `io.mateu` artifacts in one app.
 - **Major** (`3` → `4`): may break the public API or the wire. Announced in advance, with a migration
@@ -26,9 +28,9 @@ You can build on these; they follow the deprecation policy.
 
 | Surface | Where it lives |
 |---|---|
-| **The authoring API** — annotations (`@UI`, `@Action`, `@Section`…), interfaces (`CrudStore`, `Listing` and its capability interfaces, suppliers…), the fluent component records and data types | the `io.mateu:uidl` artifact (`io.mateu.uidl.*`) |
-| **The archetypes and orchestrators** you extend — `AutoCrud`, `FilteredAutoCrud`, `Crud`, `Wizard`, `Dashboard`, `Foldout`, `HeroSearch`, `CollectionDetail`, … | their `public`/`protected` members in `io.mateu:core` (`io.mateu.core.infra.declarative.orchestrators.*`) |
-| **The wire** — the JSON exchanged between backend and renderer | the DTOs of `io.mateu:dtos` and the [wire specification](/reference/wire-specification/); compatibility rules below |
+| **The authoring API** — annotations (`@UI`, `@Action`, `@Section`…), interfaces (`CrudStore`, `Listing` and its capability interfaces, suppliers…), the fluent component records and data types | the `io.mateu:mateu-uidl` artifact (`io.mateu.uidl.*`) |
+| **The archetypes and orchestrators** you extend — `AutoCrud`, `FilteredAutoCrud`, `Crud`, `Wizard`, `Dashboard`, `Foldout`, `HeroSearch`, `CollectionDetail`, … | their `public`/`protected` members in `io.mateu:mateu-core` (`io.mateu.core.infra.declarative.orchestrators.*`) |
+| **The wire** — the JSON exchanged between backend and renderer | the DTOs of `io.mateu:mateu-dtos` and the [wire specification](/reference/wire-specification/); compatibility rules below |
 | **The authoring schemas** — `uidl-schema.json`, `routes-schema.json`, `sources-schema.json`, `specs-schema.json` (YAML `specs/ui/**`) | `backend/shared/uidl/*.json`, generated from the records |
 | **The HTTP contract** — `POST {baseUrl}/mateu/v3/…` | the [wire specification](/reference/wire-specification/) |
 | **Build integration** — annotation processor coordinates and options, `mateu-bundle-maven-plugin` goals and parameters | their Maven coordinates |
@@ -37,7 +39,7 @@ You can build on these; they follow the deprecation policy.
 **Not public** — may change in any release, without deprecation:
 
 - anything under `io.mateu.core` other than the archetypes above (mappers, use cases, resolvers,
-  `infra.*` internals), the adapters' internals (`mvc-core`, `webflux-core`, …) and the
+  `infra.*` internals), the adapters' internals (`mateu-mvc`, `mateu-webflux`, …) and the
   **generated** controllers and resolvers;
 - the renderers' JavaScript/TypeScript internals (`libs/mateu`, `apps/*`) — the contract with a
   renderer is the wire, not the code;
@@ -80,7 +82,7 @@ Experimental today:
 ## Enforcement
 
 Every build checks the Java public API against the **last released version** with
-[japicmp](https://siom79.github.io/japicmp/): `mvn verify` compares the `uidl` and `dtos` jars, and
+[japicmp](https://siom79.github.io/japicmp/): `mvn verify` compares the `mateu-uidl` and `mateu-dtos` jars, and
 the archetype packages of `core` (`io.mateu.core.infra.declarative.orchestrators.*`), against
 `<mateu.japicmp.baseline>` (in `backend/pom.xml`) and writes a report to
 `target/japicmp/api-compatibility.{md,html,diff}` of each module; CI publishes it in the job summary.

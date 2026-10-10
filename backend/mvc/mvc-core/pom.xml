@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.mateu</groupId>
-        <artifactId>mvc</artifactId>
+        <artifactId>mateu-mvc-parent</artifactId>
         <version>0.0.1-MATEU</version>
     </parent>
 
-    <artifactId>mvc-core</artifactId>
+    <artifactId>mateu-mvc</artifactId>
     <packaging>jar</packaging>
 
     <name>Mateu Spring MVC adapter</name>
@@ -21,7 +21,7 @@
 
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>mateu-core</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>
@@ -57,13 +57,13 @@
              it runs against: the test sources are compiled with this adapter's annotation processor. -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>integration-tests</artifactId>
+            <artifactId>mateu-integration-tests</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>annotation-processor-mvc</artifactId>
+            <artifactId>mateu-annotation-processor-mvc</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
@@ -88,12 +88,12 @@
                     <annotationProcessorPaths>
                         <path>
                             <groupId>io.mateu</groupId>
-                            <artifactId>annotation-processor-mvc</artifactId>
+                            <artifactId>mateu-annotation-processor-mvc</artifactId>
                             <version>${project.version}</version>
                         </path>
                         <path>
                             <groupId>io.mateu</groupId>
-                            <artifactId>annotation-processor-core</artifactId>
+                            <artifactId>mateu-annotation-processor-core</artifactId>
                             <version>${project.version}</version>
                         </path>
                         <path>

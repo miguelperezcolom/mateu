@@ -22,18 +22,18 @@ public class Shell {
 
 Package several `@UI` modules into a single app via the classpath.
 
-1. The module with `@UI` classes depends on `io.mateu:uidl` and runs the
+1. The module with `@UI` classes depends on `io.mateu:mateu-uidl` and runs the
    **indexer** annotation processor, which writes `META-INF/mateu/ui-registrations`
    into its jar (one entry per `@UI` class).
 2. The app module depends on that module **and** lists it in `annotationProcessorPaths`
-   alongside the framework processor (`annotation-processor-mvc`, …). The framework
+   alongside the framework processor (`mateu-annotation-processor-mvc`, …). The framework
    processor reads the index from the classpath and generates the controllers — no
    sources needed.
 
 ```xml
 <!-- module that owns @UI classes -->
-<dependency><groupId>io.mateu</groupId><artifactId>uidl</artifactId><version>${mateu.version}</version></dependency>
-<path><groupId>io.mateu</groupId><artifactId>annotation-processor-indexer</artifactId><version>${mateu.version}</version></path>
+<dependency><groupId>io.mateu</groupId><artifactId>mateu-uidl</artifactId><version>${mateu.version}</version></dependency>
+<path><groupId>io.mateu</groupId><artifactId>mateu-annotation-processor-indexer</artifactId><version>${mateu.version}</version></path>
 ```
 
 Use when the modules live in the same team / deployable.

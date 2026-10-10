@@ -34,6 +34,10 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   a server speaking another wire major gets one clear message instead of a broken screen.
 
 ### Breaking (read [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/))
+- **Maven artifacts renamed to `mateu-*`**: `io.mateu:mvc-core` → `io.mateu:mateu-mvc`, `uidl` →
+  `mateu-uidl`, `vaadin-lit` → `mateu-vaadin`, `annotation-processor-mvc` →
+  `mateu-annotation-processor-mvc`… (full table in the migration guide). The old coordinates are
+  published as relocation poms, so existing builds keep resolving with a warning.
 - **No-op annotations removed** from `io.mateu.uidl.annotations` — nothing ever read them:
   `@Accordion`, `@AccordionPanel`, `@BaseRoute`, `@H1`…`@H5`, `@HorizontalLayout`, `@VerticalLayout`,
   `@SplitLayout`, `@Scroller`, `@Option`, `@RowAction`, `@State`, `@Tabs`. Each has a one-line

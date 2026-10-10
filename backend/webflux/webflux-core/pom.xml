@@ -2,13 +2,13 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>webflux</artifactId>
+        <artifactId>mateu-webflux-parent</artifactId>
         <groupId>io.mateu</groupId>
         <version>0.0.1-MATEU</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>webflux-core</artifactId>
+    <artifactId>mateu-webflux</artifactId>
 
     <name>Mateu Spring WebFlux adapter</name>
     <description>Runtime of the Mateu adapter for Spring Boot (Spring WebFlux).</description>
@@ -24,7 +24,7 @@
 
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>mateu-core</artifactId>
             <version>${project.version}</version>
         </dependency>
 
@@ -63,14 +63,14 @@
 
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>integration-tests</artifactId>
+            <artifactId>mateu-integration-tests</artifactId>
             <version>0.0.1-MATEU</version>
             <scope>test</scope>
         </dependency>
 
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>annotation-processor-webflux</artifactId>
+            <artifactId>mateu-annotation-processor-webflux</artifactId>
             <version>0.0.1-MATEU</version>
             <scope>test</scope>
         </dependency>
@@ -95,12 +95,12 @@
                     <annotationProcessorPaths>
                         <path>
                             <groupId>io.mateu</groupId>
-                            <artifactId>annotation-processor-webflux</artifactId>
+                            <artifactId>mateu-annotation-processor-webflux</artifactId>
                             <version>${project.version}</version>
                         </path>
                         <path>
                             <groupId>io.mateu</groupId>
-                            <artifactId>annotation-processor-core</artifactId>
+                            <artifactId>mateu-annotation-processor-core</artifactId>
                             <version>${project.version}</version>
                         </path>
                         <path>

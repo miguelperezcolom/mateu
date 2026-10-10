@@ -62,13 +62,13 @@
         <!-- Mateu runtime for Micronaut -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>micronaut-core</artifactId>
+            <artifactId>mateu-micronaut</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <!-- The web renderer (served as static assets by the app) -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>vaadin-lit</artifactId>
+            <artifactId>mateu-vaadin</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <!-- The generated controllers use Lombok -->
@@ -112,7 +112,7 @@
                         </path>
                         <path>
                             <groupId>io.mateu</groupId>
-                            <artifactId>annotation-processor-micronaut</artifactId>
+                            <artifactId>mateu-annotation-processor-micronaut</artifactId>
                             <version>${mateu.version}</version>
                         </path>
                     </annotationProcessorPaths>

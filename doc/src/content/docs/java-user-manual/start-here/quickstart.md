@@ -32,7 +32,7 @@ my-app/
 ## 1. `pom.xml`
 
 The part people get wrong is the **annotation processor**: Mateu generates one Spring MVC controller
-per `@UI` class at compile time, so `annotation-processor-mvc` must be in
+per `@UI` class at compile time, so `mateu-annotation-processor-mvc` must be in
 `maven-compiler-plugin`'s `annotationProcessorPaths` — next to Lombok, because once that list is
 set nothing else on the classpath runs as a processor.
 
@@ -70,13 +70,13 @@ set nothing else on the classpath runs as a processor.
         <!-- Mateu runtime for Spring MVC -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>mvc-core</artifactId>
+            <artifactId>mateu-mvc</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <!-- The web renderer (served as static assets by the app) -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>vaadin-lit</artifactId>
+            <artifactId>mateu-vaadin</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <!-- The generated controllers use Lombok -->
@@ -104,7 +104,7 @@ set nothing else on the classpath runs as a processor.
                         </path>
                         <path>
                             <groupId>io.mateu</groupId>
-                            <artifactId>annotation-processor-mvc</artifactId>
+                            <artifactId>mateu-annotation-processor-mvc</artifactId>
                             <version>${mateu.version}</version>
                         </path>
                     </annotationProcessorPaths>
@@ -297,7 +297,7 @@ view, **Edit** for the form, **New** to create — the id is editable only when 
 | Symptom | Cause |
 |---|---|
 | Every URL answers 404 / "Not found" | the annotation processor did not run: check `annotationProcessorPaths` (and that no other processor list replaced it) |
-| Blank page, no errors | the renderer dependency (`vaadin-lit`) is missing |
+| Blank page, no errors | the renderer dependency (`mateu-vaadin`) is missing |
 | Compiles, but your class is not used | the `@UI` class is outside the packages `@SpringBootApplication` scans |
 
 ## Other runtimes
@@ -311,7 +311,7 @@ a [C#](https://github.com/miguelperezcolom/mateu/tree/master/starters/dotnet) an
 ## Multi-module setup
 
 If your `@UI` classes live in a separate library module (not in the Spring Boot app's module), that
-library also needs `annotation-processor-indexer`, and the app lists the library in its
+library also needs `mateu-annotation-processor-indexer`, and the app lists the library in its
 `annotationProcessorPaths` — see [Service-owned UI modules](/java-user-manual/real-world/service-owned-ui-modules/).
 
 ## Next

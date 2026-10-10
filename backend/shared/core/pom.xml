@@ -4,11 +4,11 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>shared</artifactId>
+        <artifactId>mateu-shared-parent</artifactId>
         <groupId>io.mateu</groupId>
         <version>0.0.1-MATEU</version>
     </parent>
-    <artifactId>core</artifactId>
+    <artifactId>mateu-core</artifactId>
     <name>Mateu core</name>
     <description>Framework kernel of Mateu: route resolution, reflective mapping of view models to the wire model, actions, CRUD, wizards and app shells.</description>
 
@@ -26,7 +26,7 @@
     <dependencies>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>uidl</artifactId>
+            <artifactId>mateu-uidl</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>
@@ -168,6 +168,8 @@
                 <groupId>com.github.siom79.japicmp</groupId>
                 <artifactId>japicmp-maven-plugin</artifactId>
                 <configuration>
+                    <!-- the baseline (3.0-alpha.407) predates the mateu-* rename, hence the old artifactId;
+                         switch it to the mateu-* id once the baseline is a release that has it -->
                     <oldVersion>
                         <dependency>
                             <groupId>io.mateu</groupId>

@@ -65,7 +65,7 @@ B against another, while the shell runs a third.
 differences are fine; minor differences are not supported, and nothing checks it for you today.
 
 That is not caution for its own sake — it follows from where the coupling actually is. A domain jar
-carries `@UI` classes compiled against `io.mateu:uidl` and an index written by that version's
+carries `@UI` classes compiled against `io.mateu:mateu-uidl` and an index written by that version's
 annotation processor; the shell's core reads both. Anything that changes the wire DTOs or the index
 format therefore has to be uniform, and Mateu is still `3.0-alpha`, where the wire is explicitly
 allowed to move.

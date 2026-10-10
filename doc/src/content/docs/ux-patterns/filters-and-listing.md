@@ -195,7 +195,7 @@ CSV export works out of the box. Excel and PDF require adding the corresponding 
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>export-excel</artifactId>
+    <artifactId>mateu-export-excel</artifactId>
     <version>${mateu.version}</version>
 </dependency>
 ```
@@ -205,7 +205,7 @@ CSV export works out of the box. Excel and PDF require adding the corresponding 
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>export-pdf</artifactId>
+    <artifactId>mateu-export-pdf</artifactId>
     <version>${mateu.version}</version>
 </dependency>
 ```

@@ -9,7 +9,7 @@ Add one renderer dependency; Spring Boot serves it from the classpath — no con
 frontend calls back to the same origin (`baseUrl=""`), zero CORS. One deployment.
 
 ```xml
-<dependency><groupId>io.mateu</groupId><artifactId>vaadin-lit</artifactId><version>${mateu.version}</version></dependency>
+<dependency><groupId>io.mateu</groupId><artifactId>mateu-vaadin</artifactId><version>${mateu.version}</version></dependency>
 ```
 
 ## 2. Split — CDN + API

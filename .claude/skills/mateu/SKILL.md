@@ -118,15 +118,15 @@ For a single Spring Boot **MVC** app: the runtime + a renderer jar, and the MVC 
 processor in `<annotationProcessorPaths>` (see the **mateu-scaffold** skill for the full pom):
 
 ```xml
-<dependency><groupId>io.mateu</groupId><artifactId>mvc-core</artifactId><version>${mateu.version}</version></dependency>
-<dependency><groupId>io.mateu</groupId><artifactId>vaadin-lit</artifactId><version>${mateu.version}</version></dependency>
-<!-- annotationProcessorPaths: io.mateu:annotation-processor-mvc -->
+<dependency><groupId>io.mateu</groupId><artifactId>mateu-mvc</artifactId><version>${mateu.version}</version></dependency>
+<dependency><groupId>io.mateu</groupId><artifactId>mateu-vaadin</artifactId><version>${mateu.version}</version></dependency>
+<!-- annotationProcessorPaths: io.mateu:mateu-annotation-processor-mvc -->
 ```
 
-Other stacks swap the pair: `webflux-core`/`annotation-processor-webflux`,
-`quarkus-core`/`annotation-processor-quarkus`, `micronaut-core`/`annotation-processor-micronaut`,
-`helidon-mp-core`/`annotation-processor-helidon-mp`. To keep `@UI` classes in a **framework-agnostic** module,
-depend only on `io.mateu:uidl` and run the indexer AP — see
+Other stacks swap the pair: `mateu-webflux`/`mateu-annotation-processor-webflux`,
+`mateu-quarkus`/`mateu-annotation-processor-quarkus`, `mateu-micronaut`/`mateu-annotation-processor-micronaut`,
+`mateu-helidon-mp`/`mateu-annotation-processor-helidon-mp`. To keep `@UI` classes in a **framework-agnostic** module,
+depend only on `io.mateu:mateu-uidl` and run the indexer AP — see
 [federation.md](reference/federation.md).
 
 ## Canonical references

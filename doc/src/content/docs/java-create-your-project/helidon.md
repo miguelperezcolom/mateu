@@ -29,12 +29,12 @@ Then the runtime dependencies:
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>helidon-mp-core</artifactId>
+    <artifactId>mateu-helidon-mp</artifactId>
 </dependency>
-<!-- serves the built-in frontend; choose one: vaadin-lit (Vaadin), redwood (Oracle Redwood / Visual Builder) -->
+<!-- serves the built-in frontend; choose one: mateu-vaadin (Vaadin), mateu-redwood (Oracle Redwood / Visual Builder) -->
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>vaadin-lit</artifactId>
+    <artifactId>mateu-vaadin</artifactId>
 </dependency>
 <!-- REQUIRED: use Jackson (not JSON-B) for JAX-RS bodies. Mateu's wire model relies on
      Jackson @JsonTypeInfo "type" discriminators; Helidon's default JSON-B (Yasson) drops
@@ -46,9 +46,9 @@ Then the runtime dependencies:
 </dependency>
 ```
 
-`helidon-mp-core` already contributes the `MateuService` CDI bean, a Jackson `ContextResolver<ObjectMapper>`, the request/bean-provider glue and the routes for CORS, asset caching, the client error log and MCP, so your application needs no Mateu wiring code. Its Helidon dependencies are `provided`: the Helidon version is the one of your application (it is built and tested against Helidon 4.5).
+`mateu-helidon-mp` already contributes the `MateuService` CDI bean, a Jackson `ContextResolver<ObjectMapper>`, the request/bean-provider glue and the routes for CORS, asset caching, the client error log and MCP, so your application needs no Mateu wiring code. Its Helidon dependencies are `provided`: the Helidon version is the one of your application (it is built and tested against Helidon 4.5).
 
-> The annotation processor (`annotation-processor-helidon-mp`) goes on the **annotation processor path only** — never as a
+> The annotation processor (`mateu-annotation-processor-helidon-mp`) goes on the **annotation processor path only** — never as a
 > regular `<dependency>`: it is a compile-time code generator, and as a dependency it would ship its
 > own libraries (FreeMarker, Guava) inside your application. Its jar declares itself to Gradle as an
 > incremental (aggregating) processor.
@@ -69,7 +69,7 @@ notably cross-origin access (off unless you list the origins) and the MCP endpoi
                 <annotationProcessorPaths>
                     <path>
                         <groupId>io.mateu</groupId>
-                        <artifactId>annotation-processor-helidon-mp</artifactId>
+                        <artifactId>mateu-annotation-processor-helidon-mp</artifactId>
                         <version>MATEU_VERSION</version>
                     </path>
                     <!-- If your @UI classes live in a SEPARATE module, add that module here too

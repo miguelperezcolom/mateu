@@ -12,6 +12,44 @@ never removed silently.
 Work through the sections that apply; the compiler finds most of them for you (the Java renames
 and removals are compile errors), the [default changes](#defaults-that-changed) are the ones to read.
 
+## Maven artifacts
+
+Every published artifact now carries the `mateu-` prefix (the group stays `io.mateu`). The old
+coordinates still resolve — each one is published as a **relocation pom** pointing at the new id, so
+an old build keeps working and Maven prints a warning naming the replacement — but they are
+deprecated: update your poms (or import `io.mateu:mateu-bom` and drop the versions altogether).
+
+| Before (`io.mateu:…`) | Now (`io.mateu:…`) |
+|---|---|
+| `uidl` | `mateu-uidl` |
+| `dtos` | `mateu-dtos` |
+| `core` | `mateu-core` |
+| `mvc-core` | `mateu-mvc` |
+| `webflux-core` | `mateu-webflux` |
+| `micronaut-core` | `mateu-micronaut` |
+| `quarkus-core` | `mateu-quarkus` |
+| `helidon-mp-core` | `mateu-helidon-mp` |
+| `vaadin-lit` | `mateu-vaadin` |
+| `redwood` | `mateu-redwood` |
+| `annotation-processor-indexer` | `mateu-annotation-processor-indexer` |
+| `annotation-processor-core` | `mateu-annotation-processor-core` |
+| `annotation-processor-mvc` | `mateu-annotation-processor-mvc` |
+| `annotation-processor-webflux` | `mateu-annotation-processor-webflux` |
+| `annotation-processor-micronaut` | `mateu-annotation-processor-micronaut` |
+| `annotation-processor-quarkus` | `mateu-annotation-processor-quarkus` |
+| `annotation-processor-helidon-mp` | `mateu-annotation-processor-helidon-mp` |
+| `export-excel` | `mateu-export-excel` |
+| `export-pdf` | `mateu-export-pdf` |
+| `mateu-bom`, `mateu-bundle-maven-plugin` | unchanged |
+
+An old id in `<annotationProcessorPaths>` is followed too, but **silently** (Maven only warns for
+dependencies) — so search your poms for the old processor ids rather than waiting for a warning. The
+renderer switch of the demos follows suit: `-Dmateu.renderer=mateu-vaadin|mateu-redwood`.
+
+The parent poms (`backend`, `shared`, `mvc`, `webflux`… → `mateu-parent`, `mateu-shared-parent`,
+`mateu-mvc-parent`…) were renamed too; nothing outside Mateu should reference them, so they have no
+relocation.
+
 ## Renames
 
 | Before | Now | What to do |
@@ -40,7 +78,7 @@ and removals are compile errors), the [default changes](#defaults-that-changed) 
 | `@State` | Nothing — every field already travels in the component state; rules read it as `state.<field>`. |
 | `@RowAction` | A `ColumnActionGroup` field on the row (`new ColumnAction("approve", "Approve")`) runs the listing method `approve(Row row)`. |
 | `@BaseRoute` | `basePath:` in the route file (`type: Routes`). |
-| Renderers: SAP UI5, Oracle JET (`redwood-oj`), PatternFly (`redhat`), Salesforce Lightning (`slds`); the JavaFX and Compose native renderers | Web: `vaadin-lit` or `redwood` (Oracle Visual Builder). Native: React Native and the IntelliJ plugin. Your UI code does not change — swap the renderer dependency. |
+| Renderers: SAP UI5, Oracle JET (`redwood-oj`), PatternFly (`redhat`), Salesforce Lightning (`slds`); the JavaFX and Compose native renderers | Web: `mateu-vaadin` or `mateu-redwood` (Oracle Visual Builder). Native: React Native and the IntelliJ plugin. Your UI code does not change — swap the renderer dependency. |
 
 All the annotations in the rows above had **no effect** in any alpha — nothing read them — so
 removing one changes no screen; it only makes the compiler point at it.
@@ -75,8 +113,9 @@ These compile unchanged and **behave differently**. Check each against your scre
 
 ## A quick upgrade checklist
 
-1. Bump `mateu.version` to the latest release and rebuild — fix the compile errors with the tables
-   above (most are a rename).
+1. Rename the Mateu artifacts in your poms (`mvc-core` → `mateu-mvc`…, table above), bump
+   `mateu.version` to the latest release and rebuild — fix the compile errors with the tables above
+   (most are a rename).
 2. Move any `@Route`-annotated inner screen into `routes.yaml` (or a `RouteEntrySupplier`).
 3. Click through each listing: search box present where you want it, layout as expected, Delete
    where it should be.

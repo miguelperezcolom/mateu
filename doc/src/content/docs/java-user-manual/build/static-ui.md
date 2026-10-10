@@ -65,7 +65,7 @@ routes inside it — to a Java view model (`viewModel:`) or to a definition only
 </plugin>
 ```
 
-If your `@UI` classes live in the app module itself, add `annotation-processor-indexer` next to your
+If your `@UI` classes live in the app module itself, add `mateu-annotation-processor-indexer` next to your
 framework's annotation processor: it writes the class index the build-time catalogue
 (`@RestSource`) and exporter read.
 

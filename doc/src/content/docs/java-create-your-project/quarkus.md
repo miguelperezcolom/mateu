@@ -29,14 +29,14 @@ Then the runtime dependencies:
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>quarkus-core</artifactId>
+    <artifactId>mateu-quarkus</artifactId>
 </dependency>
-<!-- serves the built-in frontend; choose one: vaadin-lit (Vaadin), redwood (Oracle Redwood / Visual Builder) -->
+<!-- serves the built-in frontend; choose one: mateu-vaadin (Vaadin), mateu-redwood (Oracle Redwood / Visual Builder) -->
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>vaadin-lit</artifactId>
+    <artifactId>mateu-vaadin</artifactId>
 </dependency>
-<!-- the Mateu wire is Jackson: quarkus-core uses Quarkus REST with Jackson, and declares both
+<!-- the Mateu wire is Jackson: mateu-quarkus uses Quarkus REST with Jackson, and declares both
      `provided` so the versions are the ones of YOUR Quarkus platform -->
 <dependency>
     <groupId>io.quarkus</groupId>
@@ -55,7 +55,7 @@ And the annotation processor, on the processor path:
             <!-- list Lombok, MapStruct… here too if you use them -->
             <path>
                 <groupId>io.mateu</groupId>
-                <artifactId>annotation-processor-quarkus</artifactId>
+                <artifactId>mateu-annotation-processor-quarkus</artifactId>
                 <version>MATEU_VERSION</version>
             </path>
         </annotationProcessorPaths>
@@ -63,7 +63,7 @@ And the annotation processor, on the processor path:
 </plugin>
 ```
 
-> The annotation processor (`annotation-processor-quarkus`) goes on the **annotation processor path only** — never as a
+> The annotation processor (`mateu-annotation-processor-quarkus`) goes on the **annotation processor path only** — never as a
 > regular `<dependency>`: it is a compile-time code generator, and as a dependency it would ship its
 > own libraries (FreeMarker, Guava) inside your application. Its jar declares itself to Gradle as an
 > incremental (aggregating) processor.
@@ -73,13 +73,13 @@ Or, with Gradle:
 ```kotlin
 implementation(platform("io.mateu:mateu-bom:MATEU_VERSION"))
 annotationProcessor(platform("io.mateu:mateu-bom:MATEU_VERSION"))
-implementation("io.mateu:quarkus-core")
-implementation("io.mateu:vaadin-lit")
-annotationProcessor("io.mateu:annotation-processor-quarkus")
+implementation("io.mateu:mateu-quarkus")
+implementation("io.mateu:mateu-vaadin")
+annotationProcessor("io.mateu:mateu-annotation-processor-quarkus")
 implementation("io.quarkus:quarkus-rest-jackson")
 ```
 
-> **Upgrading from `v3.0-alpha.406` or older:** `quarkus-core` no longer brings
+> **Upgrading from `v3.0-alpha.406` or older:** `mateu-quarkus` no longer brings
 > `quarkus-resteasy-reactive-jackson` and `quarkus-spring-di` along (they came in at fixed, mismatched
 > versions). Declare `quarkus-rest-jackson` as above. Mateu itself no longer needs Spring-DI support;
 > add `quarkus-spring-di` yourself only if YOUR beans use Spring annotations or are `@Named` without a
@@ -134,7 +134,7 @@ In case you are using a maven project and you are setting custom annotation proc
                         </path>
                         <path>
                             <groupId>io.mateu</groupId>
-                            <artifactId>annotation-processor-quarkus</artifactId>
+                            <artifactId>mateu-annotation-processor-quarkus</artifactId>
                             <version>MATEU_VERSION</version>
                         </path>
                         <!-- other annotation processors -->

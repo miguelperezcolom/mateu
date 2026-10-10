@@ -7,12 +7,12 @@ Two flavors. The **single-module** flavor has the `@UI` classes in the app itsel
 
 - Parent: `spring-boot-starter-parent` 4.0.x, Java 21.
 - Web starter `spring-boot-starter-webmvc`, Lombok (the generated controllers use it).
-- Mateu runtime + renderer: `io.mateu:mvc-core` + `io.mateu:vaadin-lit`.
+- Mateu runtime + renderer: `io.mateu:mateu-mvc` + `io.mateu:mateu-vaadin`.
 - `spring-boot-maven-plugin` with Lombok excluded.
 
 ## Flavor A — single-module app (`@UI` in the app)
 
-Annotation processor path needs **lombok + `annotation-processor-mvc`** only (the `@UI`
+Annotation processor path needs **lombok + `mateu-annotation-processor-mvc`** only (the `@UI`
 classes are local sources). Model on `starters/spring-mvc/pom.xml` (compiled and booted by CI).
 
 ```xml
@@ -24,8 +24,8 @@ classes are local sources). Model on `starters/spring-mvc/pom.xml` (compiled and
 <dependencies>
   <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-webmvc</artifactId></dependency>
 
-  <dependency><groupId>io.mateu</groupId><artifactId>mvc-core</artifactId><version>${mateu.version}</version></dependency>
-  <dependency><groupId>io.mateu</groupId><artifactId>vaadin-lit</artifactId><version>${mateu.version}</version></dependency>
+  <dependency><groupId>io.mateu</groupId><artifactId>mateu-mvc</artifactId><version>${mateu.version}</version></dependency>
+  <dependency><groupId>io.mateu</groupId><artifactId>mateu-vaadin</artifactId><version>${mateu.version}</version></dependency>
 
   <dependency><groupId>org.projectlombok</groupId><artifactId>lombok</artifactId><optional>true</optional></dependency>
 </dependencies>
@@ -38,7 +38,7 @@ classes are local sources). Model on `starters/spring-mvc/pom.xml` (compiled and
       <configuration>
         <annotationProcessorPaths>
           <path><groupId>org.projectlombok</groupId><artifactId>lombok</artifactId></path>
-          <path><groupId>io.mateu</groupId><artifactId>annotation-processor-mvc</artifactId><version>${mateu.version}</version></path>
+          <path><groupId>io.mateu</groupId><artifactId>mateu-annotation-processor-mvc</artifactId><version>${mateu.version}</version></path>
         </annotationProcessorPaths>
       </configuration>
     </plugin>
@@ -63,8 +63,8 @@ rule). Model on `e2e/sut/apps/mvc-app1/pom.xml`.
   <!-- the framework-agnostic UI module -->
   <dependency><groupId>com.yourco</groupId><artifactId>myapp-ui</artifactId><version>1.0.0-SNAPSHOT</version></dependency>
 
-  <dependency><groupId>io.mateu</groupId><artifactId>mvc-core</artifactId><version>${mateu.version}</version></dependency>
-  <dependency><groupId>io.mateu</groupId><artifactId>vaadin-lit</artifactId><version>${mateu.version}</version></dependency>
+  <dependency><groupId>io.mateu</groupId><artifactId>mateu-mvc</artifactId><version>${mateu.version}</version></dependency>
+  <dependency><groupId>io.mateu</groupId><artifactId>mateu-vaadin</artifactId><version>${mateu.version}</version></dependency>
 
   <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-webmvc</artifactId></dependency>
   <dependency><groupId>org.projectlombok</groupId><artifactId>lombok</artifactId><optional>true</optional></dependency>
@@ -85,7 +85,7 @@ rule). Model on `e2e/sut/apps/mvc-app1/pom.xml`.
       <configuration>
         <annotationProcessorPaths>
           <path><groupId>org.projectlombok</groupId><artifactId>lombok</artifactId></path>
-          <path><groupId>io.mateu</groupId><artifactId>annotation-processor-mvc</artifactId><version>${mateu.version}</version></path>
+          <path><groupId>io.mateu</groupId><artifactId>mateu-annotation-processor-mvc</artifactId><version>${mateu.version}</version></path>
           <!-- REQUIRED: the UI module on the AP classpath so its index is read -->
           <path><groupId>com.yourco</groupId><artifactId>myapp-ui</artifactId><version>1.0.0-SNAPSHOT</version></path>
         </annotationProcessorPaths>

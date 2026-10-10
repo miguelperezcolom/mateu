@@ -128,7 +128,7 @@ conventional single mount is used: `specs/ui/routes.yaml` loaded at base path `"
 
 ## Serving it
 
-For **Spring MVC**, `mvc-core` auto-configures the HTTP surface (the SPA at the mount's base path and
+For **Spring MVC**, `mateu-mvc` auto-configures the HTTP surface (the SPA at the mount's base path and
 sync under it) when the classpath declares at least one `type: UI` mount — the work the annotation
 processor normally does per `@UI` class, which cannot happen when there is no class. It stands down as
 soon as a generated controller exists, so adding an `@UI` class later changes nothing.

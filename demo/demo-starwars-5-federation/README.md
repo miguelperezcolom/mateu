@@ -34,9 +34,9 @@ public class Shell implements HomeRouteSupplier {
 
 That is the mechanism the whole example turns on (`e2e/README.md` is the canonical reference):
 
-1. **Index** — each UI module lists `annotation-processor-indexer` in `annotationProcessorPaths`; it
+1. **Index** — each UI module lists `mateu-annotation-processor-indexer` in `annotationProcessorPaths`; it
    writes the `ui-registrations` index into the jar.
-2. **Generate** — the app lists `annotation-processor-mvc` **and each UI module** in
+2. **Generate** — the app lists `mateu-annotation-processor-mvc` **and each UI module** in
    `annotationProcessorPaths`; it reads the indexes and generates the controllers.
 
 Both the module and the AP must appear on the processor path — see `shell-app/pom.xml`.

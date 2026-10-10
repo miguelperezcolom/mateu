@@ -6,7 +6,7 @@ import { execFileSync } from 'node:child_process';
  * download. Resolution order:
  *
  *   1. the MATEU_VERSION environment variable (the docs workflow sets it from the release tag);
- *   2. the <release> of io.mateu:mvc-core in Maven Central's metadata — what a pom can resolve
+ *   2. the <release> of io.mateu:mateu-mvc in Maven Central's metadata — what a pom can resolve
  *      today (a GitHub release can exist minutes or hours before its artifacts reach Central);
  *   3. the newest `vX.Y…` git tag of this repository.
  *
@@ -22,19 +22,25 @@ function fromEnv() {
 	return v ? v.replace(/^v/, '') : null;
 }
 
+// mateu-mvc is the artifact's name from the mateu-* rename on; mvc-core (its relocation pom, still
+// published with every release) answers for the releases before it.
+const METADATA = ['mateu-mvc', 'mvc-core'].map(
+	(id) => `https://repo1.maven.org/maven2/io/mateu/${id}/maven-metadata.xml`
+);
+
 async function fromMavenCentral() {
-	try {
-		const res = await fetch(
-			'https://repo1.maven.org/maven2/io/mateu/mvc-core/maven-metadata.xml',
-			{ signal: AbortSignal.timeout(15000) }
-		);
-		if (!res.ok) return null;
-		const xml = await res.text();
-		return xml.match(/<release>([^<]+)<\/release>/)?.[1] ?? null;
-	} catch (e) {
-		console.warn('[mateu-version] Maven Central lookup failed:', e.message);
-		return null;
+	for (const url of METADATA) {
+		try {
+			const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+			if (!res.ok) continue;
+			const xml = await res.text();
+			const release = xml.match(/<release>([^<]+)<\/release>/)?.[1];
+			if (release) return release;
+		} catch (e) {
+			console.warn('[mateu-version] Maven Central lookup failed:', e.message);
+		}
 	}
+	return null;
 }
 
 function fromGitTags() {

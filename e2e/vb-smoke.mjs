@@ -1,6 +1,6 @@
 /**
  * Smoke pass of the VB/Redwood renderer over demo-vb's key screens: each route loads in a real
- * (headless) browser through the PACKAGED app (the io.mateu:redwood jar a Mateu backend serves) and
+ * (headless) browser through the PACKAGED app (the io.mateu:mateu-redwood jar a Mateu backend serves) and
  * paints its content. demo-vb mounts a root App (@UI("") with a menu) AND several standalone UIs at
  * their own paths — pages, a crud, archetypes — so this also covers the packaged app at a non-root
  * mount (the API under the mount, deep links below it).
