@@ -64,12 +64,13 @@ from .markers import (  # noqa: F401
 )
 from .security import (  # noqa: F401
     Audience,
+    audience,
+    disabled_unless,
     DisabledUnless,
+    eyes_only,
     EyesOnly,
     Identity,
     ReadOnlyUnless,
-    audience,
-    disabled_unless,
 )
 from .suppliers import (  # noqa: F401
     AppActionsSupplier,
@@ -234,6 +235,7 @@ from .rest_sources import (  # noqa: F401
 
 
 __all__ = [
+    "eyes_only",
     "DeclaredRestSource",
     "RestDataSource",
     "RestSourceCatalogSupplier",

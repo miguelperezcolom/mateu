@@ -53,6 +53,7 @@ class ViewMapperMixin(MixinBase):
             (n, f)
             for n, f in methods_with(cls, "__mateu_button__")
             if for_current_audience(getattr(f, "__mateu_audience__", None))
+            and self.authorized(getattr(f, "__mateu_eyes_only__", None))
         ]
         buttons = [self.map_button(n, f) for n, f in button_methods]
         fabs = self.fabs(cls)

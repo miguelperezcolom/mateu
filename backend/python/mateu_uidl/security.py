@@ -51,6 +51,26 @@ class DisabledUnless:
     permissions: tuple[str, ...] = ()
 
 
+def eyes_only(roles=(), groups=(), scopes=(), permissions=()):
+    """Class- or method-level ``EyesOnly`` (Java's ``@EyesOnly`` on a type or a method).
+
+    On a CLASS the whole view is for the authorized only: a request naming it (by route or by
+    server-side type) is refused with 403, and menu entries leading to it are hidden. On a METHOD
+    (a ``@button``, ``@action``, ``@menu_item``…) the button / menu entry is hidden and invoking it
+    is refused. Same matching as the field marker: AND across declared dimensions, OR within each;
+    no identity → unauthorized."""
+
+    gate = EyesOnly(
+        roles=tuple(roles), groups=tuple(groups), scopes=tuple(scopes), permissions=tuple(permissions)
+    )
+
+    def deco(target):
+        target.__mateu_eyes_only__ = gate
+        return target
+
+    return deco
+
+
 def disabled_unless(roles=(), groups=(), scopes=(), permissions=()):
     """Method decorator: the button is disabled unless the caller is authorized."""
 

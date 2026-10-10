@@ -16,10 +16,10 @@ An ``actionId`` arrives from the wire, so it must only ever reach a method DECLA
 
 Bulk row actions (``action-on-row-*``) only reach ``@list_toolbar_button`` methods
 (:func:`resolve_row_action`). Once resolved, :func:`ensure_may_invoke` enforces the access
-decorators at invocation (``disabled_unless``, ``audience``); a denied invocation raises
-:class:`MateuForbiddenException` (HTTP 403 at the FastAPI edge) and the method never runs. (The
-port has no method- or class-level ``EyesOnly``: ``EyesOnly`` is a field marker, enforced on
-render and — see :func:`may_write` — on binding.)
+decorators at invocation (``eyes_only``, ``disabled_unless``, ``audience``); a denied invocation
+raises :class:`MateuForbiddenException` (HTTP 403 at the FastAPI edge) and the method never runs.
+A class-level ``@eyes_only`` refuses the whole type (:func:`ensure_class_access`). The field marker
+``EyesOnly`` is enforced on render and — see :func:`may_write` — on binding.
 """
 
 from __future__ import annotations
@@ -120,12 +120,34 @@ def ensure_may_invoke(mapper, type_, fn, action_id: str) -> None:
     from .mapper import for_current_audience
 
     reason = None
-    if not mapper.authorized(getattr(fn, "__mateu_disabled_unless__", None)):
+    if not mapper.authorized(getattr(fn, "__mateu_eyes_only__", None)):
+        reason = "eyes_only"
+    elif not class_access_granted(mapper, type_):
+        reason = "class-level eyes_only"
+    elif not mapper.authorized(getattr(fn, "__mateu_disabled_unless__", None)):
         reason = "disabled_unless"
     elif not for_current_audience(getattr(fn, "__mateu_audience__", None)):
         reason = "audience"
     if reason is not None:
         deny(f"action '{action_id}' on {type_.__module__}.{type_.__qualname__} denied by {reason}")
+
+
+def class_access_granted(mapper, type_) -> bool:
+    """Whether the caller passes every class-level ``@eyes_only`` of ``type_`` and of its bases
+    (Java's ``WireTypePolicy.classLevelAccessGranted``)."""
+    if not isinstance(type_, type):
+        return True
+    for klass in type_.__mro__:
+        gate = klass.__dict__.get("__mateu_eyes_only__")
+        if gate is not None and not mapper.authorized(gate):
+            return False
+    return True
+
+
+def ensure_class_access(mapper, type_, what: str = "request") -> None:
+    """Refuses (403) a request that names a type the caller may not see."""
+    if type_ is not None and not class_access_granted(mapper, type_):
+        deny(f"{what} for {type_.__module__}.{type_.__qualname__}: class-level eyes_only not satisfied")
 
 
 def deny(what: str) -> None:

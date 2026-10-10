@@ -104,6 +104,7 @@ from ._common import (  # noqa: F401 - the public import path of every helper
     view_fields,
 )
 from ..rest_source_registry import RestSourceRegistry
+from .. import action_guard
 from ._base import MixinBase
 from .dispatch import DispatchMixin
 from .wizard import WizardHandlerMixin
@@ -166,6 +167,14 @@ class SyncHandler(
         # component state at resolution (see below), but the other three are applied on the
         # RESPONSE side, so the matched entry is stashed for this request and read back when the
         # increment is built (mirrors Java's HttpRequest.setAttribute("_routeAppState"/…)).
+        # A class-level @eyes_only view is for the authorized only, whichever way the request names
+        # it — its server-side type, its route, or a sub-route of it (a crud's /new, /{id}).
+        for named in (
+            self.registry.resolve(rq.server_side_type, None) if rq.server_side_type else None,
+            self.registry.resolve(None, rq.route) if rq.route is not None else None,
+            (self.registry.resolve_by_prefix(rq.route) or (None,))[0] if rq.route else None,
+        ):
+            action_guard.ensure_class_access(self.mapper, named)
         token = _route_seed.set(self.routes.match(rq.route))
         try:
             return self._seed_increment(self._handle_inner(rq, request_base_url), rq)

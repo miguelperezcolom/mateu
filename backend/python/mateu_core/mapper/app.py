@@ -78,6 +78,12 @@ class AppMapperMixin(MixinBase):
             for n, f in methods_with(cls, "__mateu_menu_item__"):
                 if not for_current_audience(getattr(f, "__mateu_audience__", None)):
                     continue
+                # @eyes_only on the entry, or on the view it leads to: hidden from the caller
+                # who cannot open it (Java's AppMenuBuilder EyesOnly filter).
+                if not self.authorized(getattr(f, "__mateu_eyes_only__", None)):
+                    continue
+                if not self._target_visible(f):
+                    continue
                 entry = self._presented(
                     self.map_menu_item(n, f), getattr(f, "__mateu_menu_look__", None)
                 )
@@ -318,6 +324,20 @@ class AppMapperMixin(MixinBase):
                 AppContextSelector(field_name=name, label=label, options=options)
             )
         return selectors
+
+    def _target_visible(self, fn) -> bool:
+        """Whether the caller may open the view a menu method leads to (its return annotation)."""
+        try:
+            target = get_type_hints(fn).get("return")
+        except Exception:  # noqa: BLE001 - an unresolvable annotation hides nothing
+            return True
+        if not isinstance(target, type):
+            return True
+        for klass in target.__mro__:
+            gate = klass.__dict__.get("__mateu_eyes_only__")
+            if gate is not None and not self.authorized(gate):
+                return False
+        return True
 
     @staticmethod
     def variant_of(cls, items) -> str:
