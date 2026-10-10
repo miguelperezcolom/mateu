@@ -6,7 +6,6 @@ import {badge} from '@infra/ui/badgeStyles.ts';
 import { linkStyles } from "@infra/ui/linkStyles.ts";
 import './mateu-map'
 import './mateu-markdown'
-import "@fabricelements/skeleton-carousel"
 import './mateu-form'
 import './mateu-table-crud'
 import './mateu-app'
@@ -53,6 +52,9 @@ import {runDeclaredFlow} from "@infra/ui/flowRunner.ts";
 import {applySizing, SizableHost} from "@infra/ui/sizing.ts";
 import { confirmationDialogTexts } from '@infra/ui/confirmationTexts.ts'
 import { fabStyles } from '@infra/ui/layout/fabRail.ts'
+import { safeNavigate } from '@infra/ui/safeNavigate.ts'
+import { runJs } from '@infra/ui/runJs.ts'
+import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 
 let _pendingInitiatorComponent: MateuComponent | null = null
 
@@ -86,17 +88,15 @@ export class MateuComponent extends ComponentElement {
             const appState = this.appState
             const appData = this.appData
             const component = this.component
-            // Rule expressions see state/data/appState/appData/component by name; the shared
-            // interpolation helpers use new Function (not eval) so minifiers cannot rename them.
-            // Both preserve the typed (non-string) result of the expression (e.g. booleans).
+            // Rule expressions see state/data/appState/appData/component by name, evaluated by the
+            // sandboxed expression evaluator (no eval: CSP-safe). Both preserve the typed
+            // (non-string) result of the expression (e.g. booleans).
             const evalExpr = (expr: string): any =>
                 evaluateExpression(expr, state, data, { appState, appData, component })
             const evalTemplate = (tmpl: string): any =>
                 interpolateAndEvaluate(tmpl, state, data, appState, appData, { component })
-            // RunJS rules evaluate a statement body (not an expression), so they keep a raw
-            // new Function with the same named context.
-            const ctxArgs: [string, string, string, string, string] = ['state', 'data', 'appState', 'appData', 'component']
-            const ctxVals = [state, data, appState, appData, component]
+            // RunJS rules evaluate a statement body (not an expression): opt-in only (runJs.ts).
+            const runJsContext = { state, data, appState, appData, component }
             const newState = {...this.state}
             const newData = {...this.data}
             let stateUpdated = false;
@@ -135,7 +135,7 @@ export class MateuComponent extends ComponentElement {
                             }))
                         }
                         if (RuleAction.RunJS == rule.action) {
-                            new Function(...ctxArgs, rule.value as string)(...ctxVals)
+                            runJs(rule.value as string, runJsContext)
                         }
                         if (RuleAction.SetAttributeValue == rule.action) {
                             const value = rule.expression?evalExpr(rule.expression):rule.value
@@ -344,7 +344,6 @@ export class MateuComponent extends ComponentElement {
                 // ComponentElement._keepEditedFieldValues.
                 this.adoptEditedState(detail.fieldId, newState)
 
-                //console.log('value changed?', this.state[detail.fieldId], this.formerState[detail.fieldId])
                 if ((this.state[detail.fieldId] || this.formerState[detail.fieldId])  && this.state[detail.fieldId] != this.formerState[detail.fieldId]) {
                     if (this.component?.confirmOnNavigationIfDirty) {
                         this.dispatchEvent(new CustomEvent('dirty', {
@@ -443,7 +442,7 @@ export class MateuComponent extends ComponentElement {
 
                 if (action && action.rowsSelectedRequired) {
                     if (!this.state['crud_selected_items'] || this.state['crud_selected_items'].length == 0) {
-                        this.notify('You first need to select some rows')
+                        this.notify(chromeText('selectRowsFirst'))
                         return
                     }
                 }
@@ -521,10 +520,10 @@ export class MateuComponent extends ComponentElement {
             })
         })
         if (lines.length === 0) {
-            this.notify('There are validation errors')
+            this.notify(chromeText('validationErrors'))
             return
         }
-        const text = 'There are validation errors\n'
+        const text = chromeText('validationErrors') + '\n'
             + lines.map(({ label, msg }) => label ? `• ${label}: ${msg}` : `• ${msg}`).join('\n')
         showToast({ text, variant: 'error', position: 'bottomEnd', duration: Math.max(3000, 1500 + lines.length * 1000) }, this)
         this.focusFirstInvalidField()
@@ -579,7 +578,7 @@ export class MateuComponent extends ComponentElement {
             const err = uiIncrement?.appData?.['_restfetchError']
             if (err) {
                 const status = typeof err?.status === 'number' && err.status > 0 ? ` (HTTP ${err.status})` : ''
-                showToast({ text: `Request failed${status}`, variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
+                showToast({ text: chromeTextf('requestFailed', { status }), variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
                 return
             }
             onOk(uiIncrement?.appData?.['_restfetch'])
@@ -599,7 +598,7 @@ export class MateuComponent extends ComponentElement {
         // not pass through that guard, so the calls can run concurrently. Either way, announce once.
         if (rest.forEachSelectedRow) {
             const rows = (this.state['crud_selected_items'] as Record<string, unknown>[] | undefined) ?? []
-            if (!rows.length) { this.notify('You first need to select some rows'); return }
+            if (!rows.length) { this.notify(chromeText('selectRowsFirst')); return }
             if (isProxy) {
                 this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                     detail: {
@@ -678,7 +677,14 @@ export class MateuComponent extends ComponentElement {
         card.style.cssText = 'background:var(--lumo-base-color,#fff);color:var(--lumo-body-text-color,#1a1a1a);'
             + 'border-radius:var(--lumo-border-radius-l,12px);box-shadow:var(--lumo-box-shadow-xl,0 12px 40px rgba(0,0,0,.3));'
             + 'padding:1.2rem;max-width:min(90vw,26rem);'
-        const close = () => { if (backdrop.parentElement) document.body.removeChild(backdrop) }
+        // The modal lives in <body>: it goes away with this component (a navigation while it is
+        // open), and so do its listeners.
+        const modal = new AbortController()
+        const close = () => {
+            modal.abort()
+            if (backdrop.parentElement) backdrop.parentElement.removeChild(backdrop)
+        }
+        this.connection.signal.addEventListener('abort', close, { signal: modal.signal })
         const btn = 'font:inherit;font-weight:600;padding:.45rem 1rem;border-radius:var(--lumo-border-radius-m,6px);cursor:pointer;'
         render(html`
             <h3 style="margin:0 0 .5rem;">${header}</h3>
@@ -691,7 +697,8 @@ export class MateuComponent extends ComponentElement {
             </div>
         `, card)
         backdrop.appendChild(card)
-        backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close() })
+        backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close() }, { signal: modal.signal })
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close() }, { signal: modal.signal })
         document.body.appendChild(backdrop)
     }
 
@@ -733,17 +740,18 @@ export class MateuComponent extends ComponentElement {
     }, serverSideComponent: ServerSideComponent, action: Action | undefined, origin?: Element) => {
 
         if (action && action.href) {
-            window.location.href = action.href
+            safeNavigate(action.href)
             return
         }
 
         if (action && action.js) {
             try {
-                new Function('state', 'data', 'appState', 'appData', 'component',
-                    action.js).call(this,
-                        this.state ?? {}, this.data ?? {},
-                        this.appState ?? {}, this.appData ?? {},
-                        this.component)
+                // statements: RunJS opt-in only (runJs.ts)
+                runJs(action.js, {
+                    state: this.state ?? {}, data: this.data ?? {},
+                    appState: this.appState ?? {}, appData: this.appData ?? {},
+                    component: this.component,
+                }, this)
                 this.state = { ...this.state}
                 this.data = { ...this.data}
             } catch (e) {
@@ -1043,22 +1051,18 @@ export class MateuComponent extends ComponentElement {
 
     connectedCallback() {
         super.connectedCallback();
-        this.addEventListener('backend-call-succeeded', this.handleBackendSucceeded)
-        this.addEventListener('backend-call-failed', this.handleBackendFailed)
-        this.addEventListener('backend-succeeded-event', this._backendSettledListener)
-        this.addEventListener('backend-failed-event', this._backendSettledListener)
-        this.addEventListener('backend-cancelled-event', this._backendSettledListener)
-        document.addEventListener('keydown', this._keydownListener)
+        const signal = this.connection.signal
+        this.addEventListener('backend-call-succeeded', this.handleBackendSucceeded, { signal })
+        this.addEventListener('backend-call-failed', this.handleBackendFailed, { signal })
+        this.addEventListener('backend-succeeded-event', this._backendSettledListener, { signal })
+        this.addEventListener('backend-failed-event', this._backendSettledListener, { signal })
+        this.addEventListener('backend-cancelled-event', this._backendSettledListener, { signal })
+        document.addEventListener('keydown', this._keydownListener, { signal })
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        this.removeEventListener('backend-call-succeeded', this.handleBackendSucceeded)
-        this.removeEventListener('backend-call-failed', this.handleBackendFailed)
-        this.removeEventListener('backend-succeeded-event', this._backendSettledListener)
-        this.removeEventListener('backend-failed-event', this._backendSettledListener)
-        this.removeEventListener('backend-cancelled-event', this._backendSettledListener)
-        document.removeEventListener('keydown', this._keydownListener)
+        // the listeners registered in connectedCallback go with this.connection (ConnectedElement)
         // A component torn down mid-request will never see its outcome event: release its slots
         // now, or the same action would stay blocked if the component is mounted again.
         this._releasePending()

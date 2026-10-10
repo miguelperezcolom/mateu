@@ -3,6 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js'
 import type ActionPanel from '@mateu/shared/apiClients/dtos/componentmetadata/ActionPanel'
 import type { ActionPanelItem } from '@mateu/shared/apiClients/dtos/componentmetadata/ActionPanel'
 import { FocusTrap, trapFocus } from '@infra/a11y/focusTrap.ts'
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * The categorised ACTION PANEL ("I want to…", `ActionPanel` on the wire): a trigger button that
@@ -126,7 +127,7 @@ export class MateuActionPanel extends LitElement {
                 <div class="dialog" role="dialog" aria-modal="true" aria-label="${label}">
                     <div class="head">
                         <h2>${label}</h2>
-                        <button class="close" type="button" aria-label="Close" @click="${() => this.close()}">✕</button>
+                        <button class="close" type="button" aria-label="${chromeText('close')}" @click="${() => this.close()}">✕</button>
                     </div>
                     ${panel.hideUnpopulatedToggle ? html`
                         <label class="toggle">
@@ -144,7 +145,7 @@ export class MateuActionPanel extends LitElement {
                                             @click="${() => this.pick(action)}">${action.label}</button>`)}
                                 ${column.hiddenCount > 0 ? html`
                                     <button class="action more" type="button"
-                                            @click="${() => { this.showAll = new Set([...this.showAll, column.index]) }}">Show more (${column.hiddenCount})</button>` : nothing}
+                                            @click="${() => { this.showAll = new Set([...this.showAll, column.index]) }}">${chromeText('showMore')} (${column.hiddenCount})</button>` : nothing}
                             </section>`)}
                     </div>
                 </div>` : nothing}

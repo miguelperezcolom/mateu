@@ -36,6 +36,7 @@ import { isBackButton, isNavButton } from '@infra/ui/toolbarButtonKinds.ts';
 import { buttonTheme, neutralButtonClass } from '@infra/ui/mateu-content-header.ts';
 import { IDS_PARAM, SEARCH_ALIAS, SEARCH_PARAM } from '@infra/ui/idSetFilter.ts';
 import { isListingOwnLoad } from '@infra/http/localRequests.ts';
+import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 
 const directions: Record<string, string> = {
     asc: 'ascending',
@@ -950,7 +951,7 @@ export class MateuTableCrud extends LitElement {
     render(): TemplateResult {
 
 
-        // One crud header toolbar button. Renderers with their own design system (Redwood, SLDS…)
+        // One crud header toolbar button. Renderers with their own design system
         // provide it through the renderToolbarButton hook; the Vaadin default stays here.
         const renderToolbarButton = (button: Button): TemplateResult => {
             const custom = componentRenderer.get()?.renderToolbarButton?.(
@@ -1242,7 +1243,7 @@ export class MateuTableCrud extends LitElement {
                                 `)}
                             </div>
                         ` : html`
-                            <p style="color: var(--lumo-secondary-text-color);">Select a row to view details.</p>
+                            <p style="color: var(--lumo-secondary-text-color);">${chromeText('selectRowForDetails')}</p>
                         `}
                     </div>
                 </div>`
@@ -1289,9 +1290,9 @@ export class MateuTableCrud extends LitElement {
                     style="cursor: pointer;" @click="${(e: Event) => openRow(e, item, 'view')}">
                     ${treeCol ? html`<td style="padding-left: ${depth * 1.2 + 0.6}rem;">${item[treeCol.id] ?? ''}</td>` : nothing}
                     ${restCols.map((c: any) => c.id === 'select'
-                        ? html`<td><button class="crud-btn small" @click="${(e: Event) => { e.stopPropagation(); this.dispatchEvent(new CustomEvent('action-requested', { detail: { actionId: 'action-on-row-select', parameters: { _clickedRow: item } }, bubbles: true, composed: true })) }}">Select</button></td>`
+                        ? html`<td><button class="crud-btn small" @click="${(e: Event) => { e.stopPropagation(); this.dispatchEvent(new CustomEvent('action-requested', { detail: { actionId: 'action-on-row-select', parameters: { _clickedRow: item } }, bubbles: true, composed: true })) }}">${chromeText('select')}</button></td>`
                         : html`<td>${item[c.id] ?? ''}</td>`)}
-                    ${navigable ? html`<td style="text-align: end;">${item?.viewable === false ? nothing : html`<button class="crud-btn small" @click="${(e: Event) => openRow(e, item, 'view')}">View</button>`}</td>` : nothing}
+                    ${navigable ? html`<td style="text-align: end;">${item?.viewable === false ? nothing : html`<button class="crud-btn small" @click="${(e: Event) => openRow(e, item, 'view')}">${chromeText('view')}</button>`}</td>` : nothing}
                 </tr>
                 ${(item.children ?? []).map((ch: any) => renderTreeRow(ch, depth + 1))}
             `
@@ -1338,12 +1339,12 @@ export class MateuTableCrud extends LitElement {
                  style="padding: var(--lumo-space-m, 1rem); width: 100%; box-sizing: border-box;">
                 <span style="position: absolute; width: 1px; height: 1px; overflow: hidden;
                              clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;"
-                >Loading…</span>
+                >${chromeText('loading')}</span>
                 <mateu-skeleton variant="grid" count="6"></mateu-skeleton>
             </div>
         ` : html`
             ${metadata.infiniteScrolling ? html`
-                <div>${this.data[this.id]?.page?.totalElements} items found.</div>
+                <div>${chromeTextf('itemsFound', { count: this.data[this.id]?.page?.totalElements ?? 0 })}</div>
             ` : nothing}
             ${!rendererOwnsLayouts && gridLayout === 'list' ? renderTwoLineList()
             : !rendererOwnsLayouts && gridLayout === 'cards' ? (metadata.contentHeight ? html`
@@ -1366,7 +1367,7 @@ export class MateuTableCrud extends LitElement {
         const importDialog = this.showImportDialog ? html`
             <div role="button" tabindex="0" class="crud-modal-backdrop" @click="${(e: Event) => { if (e.target === e.currentTarget) this.showImportDialog = false }}" @keydown="${onActivate((e: Event) => { if (e.target === e.currentTarget) this.showImportDialog = false })}">
                 <div class="crud-modal">
-                    <h3 style="margin: 0 0 .75rem;">Import</h3>
+                    <h3 style="margin: 0 0 .75rem;">${chromeText('import')}</h3>
                     <input type="file" @change="${(e: Event) => {
                         const file = (e.target as HTMLInputElement).files?.[0]
                         if (file) {
@@ -1378,7 +1379,7 @@ export class MateuTableCrud extends LitElement {
                         }
                     }}">
                     <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
-                        <button class="crud-btn" @click="${() => { this.showImportDialog = false }}">Cancel</button>
+                        <button class="crud-btn" @click="${() => { this.showImportDialog = false }}">${chromeText('cancel')}</button>
                     </div>
                 </div>
             </div>
@@ -1391,7 +1392,7 @@ export class MateuTableCrud extends LitElement {
                     /* Scoped to the listing area: a grid field inside a FORM must keep sizing
                        itself, so the fill is expressed here and never on the table component. */
                     [data-crud-area] > * { flex: 1 1 auto; min-height: 0; }
-                    [data-crud-area] mateu-table, [data-crud-area] mateu-redwood-table { display: flex; flex-direction: column; }
+                    [data-crud-area] mateu-table { display: flex; flex-direction: column; }
                     [data-crud-area] vaadin-grid { height: 100%; min-height: 0; }
                 </style>
                 <div data-crud-box style="${this.boxStyle()} width: 100%; box-sizing: border-box;">
@@ -1448,7 +1449,7 @@ export class MateuTableCrud extends LitElement {
                     /* Scoped to the listing area: a grid field inside a FORM must keep sizing
                        itself, so the fill is expressed here and never on the table component. */
                     [data-crud-area] > * { flex: 1 1 auto; min-height: 0; }
-                    [data-crud-area] mateu-table, [data-crud-area] mateu-redwood-table { display: flex; flex-direction: column; }
+                    [data-crud-area] mateu-table { display: flex; flex-direction: column; }
                     [data-crud-area] vaadin-grid { height: 100%; min-height: 0; }
                 </style>
             <div data-crud-box style="${this.boxStyle()}">

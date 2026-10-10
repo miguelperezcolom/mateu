@@ -8,7 +8,8 @@
     "libs/*"
   ],
   "scripts": {
-    "test": "yarn workspace mateu test"
+    "test": "yarn workspace mateu test",
+    "lint": "eslint libs/mateu/src apps/vaadin/src --max-warnings 420"
   },
   "resolutions": {
     "esbuild": "^0.28.1",
@@ -17,5 +18,11 @@
   "overrides": {
     "esbuild": "^0.28.1",
     "@vaadin/*": "~25.2.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "globals": "^17.13.0",
+    "typescript-eslint": "^8.71.1"
   }
 }

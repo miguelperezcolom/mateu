@@ -61,7 +61,7 @@ describe('tabbablesWithin', () => {
     })
 
     it('recognises design-system controls that match no native selector', () => {
-        const host = mount('<vaadin-button>go</vaadin-button><ui5-button>go</ui5-button>')
+        const host = mount('<vaadin-button>go</vaadin-button><oj-c-button>go</oj-c-button>')
         expect(tabbablesWithin(host).length).toBe(2)
     })
 })

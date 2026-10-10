@@ -1,6 +1,7 @@
 import { css, html, LitElement } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import HeatCell from "@mateu/shared/apiClients/dtos/componentmetadata/HeatCell";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -80,13 +81,13 @@ export class MateuHeatmap extends LitElement {
             <div class="wrap">
                 <div class="grid">${squares}</div>
                 <div class="legend">
-                    <span>Less</span>
+                    <span>${chromeText('less')}</span>
                     <span class="cell" style="--cell: var(--lumo-contrast-10pct, #ebedf0);"></span>
                     <span class="cell" style="--cell: ${this.color(1, 4)};"></span>
                     <span class="cell" style="--cell: ${this.color(2, 4)};"></span>
                     <span class="cell" style="--cell: ${this.color(3, 4)};"></span>
                     <span class="cell" style="--cell: ${this.color(4, 4)};"></span>
-                    <span>More</span>
+                    <span>${chromeText('more')}</span>
                 </div>
             </div>
         `

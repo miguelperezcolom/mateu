@@ -4,7 +4,7 @@ import { sseService } from "@application/SSEService.ts";
 
 /**
  * Dispatch logic for app-header actions (App.contextActions), shared by ALL the app shells
- * (Vaadin appRenderer + the DS-native sapui5/redhat/redwood/slds shells) so the wire contract
+ * (the Vaadin appRenderer and any DS-native shell) so the wire contract
  * stays identical: a header action always dispatches against the APP class (same rail as the
  * @AppContext pickers' remote search) — never against the on-screen component.
  *

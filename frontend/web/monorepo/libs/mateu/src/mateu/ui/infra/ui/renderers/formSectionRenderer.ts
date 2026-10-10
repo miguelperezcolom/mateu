@@ -7,7 +7,7 @@ export const renderFormSection = (container: LitElement, component: ClientSideCo
     const metadata = component.metadata as FormSection
     const title = metadata.title?.includes('${') ? (container as any)._evalTemplate(metadata.title) : metadata.title
     // Sections are plain divs in this renderer (no card chrome at all) — the DS renderers style
-    // sections their own way (redwood-oj borders them, per the RDS section convention).
+    // sections their own way (e.g. bordered, per the RDS section convention).
     return html`<div
                 id="${component.id ?? nothing}"
                 slot="${component.slot??nothing}"

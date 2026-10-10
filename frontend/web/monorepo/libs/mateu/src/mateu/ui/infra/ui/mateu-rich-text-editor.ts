@@ -2,19 +2,20 @@ import { css, html, LitElement, nothing, PropertyValues } from "lit";
 import { customElement, property, query, state } from 'lit/decorators.js';
 import type { Editor } from "@tiptap/core";
 import { richTextHtml } from "./richTextValue";
+import { chromeText, type ChromeTextKey } from '@infra/ui/chromeTexts.ts'
 
-type Mark = { id: string, label: string, glyph: string, active: (e: Editor) => boolean, run: (e: Editor) => void }
+type Mark = { id: string, label: ChromeTextKey, glyph: string, active: (e: Editor) => boolean, run: (e: Editor) => void }
 
 const MARKS: Mark[] = [
-    { id: 'bold', label: 'Bold', glyph: 'B', active: (e) => e.isActive('bold'), run: (e) => e.chain().focus().toggleBold().run() },
-    { id: 'italic', label: 'Italic', glyph: 'I', active: (e) => e.isActive('italic'), run: (e) => e.chain().focus().toggleItalic().run() },
-    { id: 'underline', label: 'Underline', glyph: 'U', active: (e) => e.isActive('underline'), run: (e) => e.chain().focus().toggleUnderline().run() },
-    { id: 'strike', label: 'Strikethrough', glyph: 'S', active: (e) => e.isActive('strike'), run: (e) => e.chain().focus().toggleStrike().run() },
-    { id: 'h2', label: 'Heading', glyph: 'H', active: (e) => e.isActive('heading', { level: 2 }), run: (e) => e.chain().focus().toggleHeading({ level: 2 }).run() },
-    { id: 'bullet', label: 'Bulleted list', glyph: '•', active: (e) => e.isActive('bulletList'), run: (e) => e.chain().focus().toggleBulletList().run() },
-    { id: 'ordered', label: 'Numbered list', glyph: '1.', active: (e) => e.isActive('orderedList'), run: (e) => e.chain().focus().toggleOrderedList().run() },
-    { id: 'quote', label: 'Quote', glyph: '❝', active: (e) => e.isActive('blockquote'), run: (e) => e.chain().focus().toggleBlockquote().run() },
-    { id: 'code', label: 'Code block', glyph: '</>', active: (e) => e.isActive('codeBlock'), run: (e) => e.chain().focus().toggleCodeBlock().run() },
+    { id: 'bold', label: 'bold', glyph: 'B', active: (e) => e.isActive('bold'), run: (e) => e.chain().focus().toggleBold().run() },
+    { id: 'italic', label: 'italic', glyph: 'I', active: (e) => e.isActive('italic'), run: (e) => e.chain().focus().toggleItalic().run() },
+    { id: 'underline', label: 'underline', glyph: 'U', active: (e) => e.isActive('underline'), run: (e) => e.chain().focus().toggleUnderline().run() },
+    { id: 'strike', label: 'strikethrough', glyph: 'S', active: (e) => e.isActive('strike'), run: (e) => e.chain().focus().toggleStrike().run() },
+    { id: 'h2', label: 'heading', glyph: 'H', active: (e) => e.isActive('heading', { level: 2 }), run: (e) => e.chain().focus().toggleHeading({ level: 2 }).run() },
+    { id: 'bullet', label: 'bulletedList', glyph: '•', active: (e) => e.isActive('bulletList'), run: (e) => e.chain().focus().toggleBulletList().run() },
+    { id: 'ordered', label: 'numberedList', glyph: '1.', active: (e) => e.isActive('orderedList'), run: (e) => e.chain().focus().toggleOrderedList().run() },
+    { id: 'quote', label: 'quote', glyph: '❝', active: (e) => e.isActive('blockquote'), run: (e) => e.chain().focus().toggleBlockquote().run() },
+    { id: 'code', label: 'codeBlock', glyph: '</>', active: (e) => e.isActive('codeBlock'), run: (e) => e.chain().focus().toggleCodeBlock().run() },
 ]
 
 /**
@@ -106,7 +107,7 @@ export class MateuRichTextEditor extends LitElement {
     private link() {
         if (!this.editor) return
         const current = this.editor.getAttributes('link').href as string | undefined
-        const href = window.prompt('Link address', current ?? 'https://')
+        const href = window.prompt(chromeText('linkAddress'), current ?? 'https://')
         if (href === null) return
         if (!href.trim()) this.editor.chain().focus().unsetLink().run()
         else if (/^(https?:|mailto:|\/)/i.test(href.trim())) this.editor.chain().focus().setLink({ href: href.trim() }).run()
@@ -118,13 +119,13 @@ export class MateuRichTextEditor extends LitElement {
         return html`
             <div class="frame">
                 ${this.readonly ? nothing : html`
-                    <div class="toolbar" role="toolbar" aria-label="Formatting">
+                    <div class="toolbar" role="toolbar" aria-label="${chromeText('formatting')}">
                         ${MARKS.map((m) => html`
-                            <button type="button" class="tool tool-${m.id}" title="${m.label}" aria-label="${m.label}"
+                            <button type="button" class="tool tool-${m.id}" title="${chromeText(m.label)}" aria-label="${chromeText(m.label)}"
                                     aria-pressed="${e ? String(m.active(e)) : 'false'}" ?disabled=${!e}
                                     @mousedown=${(ev: Event) => ev.preventDefault()}
                                     @click=${() => e && m.run(e)}>${m.glyph}</button>`)}
-                        <button type="button" class="tool" title="Link" aria-label="Link" ?disabled=${!e}
+                        <button type="button" class="tool" title="${chromeText('link')}" aria-label="${chromeText('link')}" ?disabled=${!e}
                                 aria-pressed="${e ? String(e.isActive('link')) : 'false'}"
                                 @mousedown=${(ev: Event) => ev.preventDefault()} @click=${() => this.link()}>🔗</button>
                     </div>`}

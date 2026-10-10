@@ -257,6 +257,83 @@ public Object handleAction(String actionId, HttpRequest httpRequest) {
 
 ---
 
+## Where the browser keeps the Bearer token
+
+Every request the web client sends carries `Authorization: Bearer <token>` when a token is
+available. The bootstrap (the Keycloak adapter `@KeycloakSecured` injects, your own login page, an
+`onSessionExpired` handler) leaves it and Mateu reads it on each request. Where it lives is a
+security trade-off, so it is configurable:
+
+| Storage | Survives a reload | Shared by tabs | Readable by a script injected into the page |
+|---|---|---|---|
+| `localStorage` (default) | yes | yes | yes |
+| `sessionStorage` | yes (same tab) | no | yes |
+| `memory` | no — set it again after every load | no | only while the page is open |
+| a `provider` function | whatever the provider does | — | the token stays inside your OIDC library |
+
+Declare it in the page that hosts `<mateu-ui>`:
+
+```html
+<meta name="mateu-auth-token-storage" content="sessionStorage">
+```
+
+or programmatically, before the UI boots:
+
+```ts
+import { configureAuthToken, setAuthToken } from 'mateu'
+
+configureAuthToken({ storage: 'memory' })
+setAuthToken(keycloak.token)               // after login and after each refresh
+// or: configureAuthToken({ provider: () => keycloak.token })
+```
+
+The storage key is `__mateu_auth_token`. When your backend can use them, **HttpOnly session
+cookies are safer than any of these**: no token is visible to scripts at all. Storage access never
+throws — a browser that blocks storage (sandboxed iframe, privacy mode) just sends no token.
+
+---
+
+## Content Security Policy
+
+The web renderer runs under a strict Content Security Policy — no `'unsafe-eval'`. Rules, `${…}`
+expressions and conditions are evaluated by Mateu's own expression evaluator, not by `eval` or
+`new Function`. A policy like this one works:
+
+```
+Content-Security-Policy:
+  default-src 'self';
+  script-src 'self';
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' data: blob: https:;
+  font-src 'self' data:;
+  connect-src 'self';
+  frame-ancestors 'self';
+  base-uri 'self';
+  object-src 'none'
+```
+
+- `style-src 'unsafe-inline'` is needed: the web components and the per-component `style`
+  attributes Mateu renders are inline styles.
+- `img-src data: blob:` covers uploaded/captured images and signatures, which travel as data URIs.
+- Add the origins of any REST source, SSE endpoint, remote menu or federated backend to
+  `connect-src`, and your identity provider to `connect-src`/`frame-src` when it uses an iframe.
+- The inline theme script in the default `index.html` needs either a hash in `script-src` or
+  moving to a file; the shipped bundle's own scripts are external.
+
+**`RunJS`** — the one feature that executes arbitrary JavaScript sent by the server (a
+`RunJS` rule action or an action's `js`) — is **off by default**. Enable it explicitly, and then
+the page needs `'unsafe-eval'`:
+
+```html
+<meta name="mateu-allow-run-js" content="true">
+```
+
+Server-sent URLs (`NavigateTo`, action `href`s, breadcrumbs, links) are only followed when they
+are `http(s)` or relative: same-origin ones in the current tab, cross-origin ones in a new tab
+without an opener. `javascript:` URLs are never followed.
+
+---
+
 ## Service-owned authorization
 
 In a microservices deployment, each service enforces `@EyesOnly` independently. The shell forwards the JWT to the service backend, which applies its own rules. A user who lacks a role sees the menu entry removed in the service's response — not just hidden in the shell.

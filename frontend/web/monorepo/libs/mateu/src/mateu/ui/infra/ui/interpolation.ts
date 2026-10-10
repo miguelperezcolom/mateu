@@ -1,4 +1,5 @@
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import { evaluate } from "@infra/ui/expression.ts";
 
 /**
  * Extra named variables made available to an interpolated expression, besides
@@ -97,30 +98,12 @@ const parseTemplate = (text: string): Segment[] => {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Expression compilation: only metadata-provided expression bodies ever reach `new Function`.
-// `new Function` (not `eval`) so minifiers cannot rename the context variables.
+// Expression evaluation: only metadata-provided expression bodies are ever evaluated, and by
+// Mateu's own sandboxed evaluator (expression.ts) — never `new Function`/`eval`, so the client
+// runs under a Content Security Policy without 'unsafe-eval'.
 // ---------------------------------------------------------------------------------------------
 
-type Compiled = (...args: unknown[]) => unknown
-const MAX_COMPILED = 500
-const compiled = new Map<string, Compiled>()
-
-const compile = (keys: string[], expr: string): Compiled => {
-    const cacheKey = keys.join(',') + '\u0000' + expr
-    let fn = compiled.get(cacheKey)
-    if (!fn) {
-        // the newline keeps a trailing line comment from swallowing the closing parenthesis
-        fn = new Function(...keys, 'return (' + expr + '\n)') as Compiled
-        if (compiled.size >= MAX_COMPILED) {
-            compiled.delete(compiled.keys().next().value!)
-        }
-        compiled.set(cacheKey, fn)
-    }
-    return fn
-}
-
-const evalExpr = (expr: string, ctx: InterpolationContext): unknown =>
-    compile(Object.keys(ctx), expr)(...Object.values(ctx))
+const evalExpr = (expr: string, ctx: InterpolationContext): unknown => evaluate(expr, ctx)
 
 /**
  * Evaluates the `${…}` expressions of a text that is SHOWN and concatenates them with its
@@ -310,7 +293,7 @@ export const interpolateAndEvaluate = (
         }
     }
     // not cached: the source carries data values
-    return new Function(...Object.keys(ctx), 'return (' + source + '\n)')(...Object.values(ctx))
+    return evaluate(source, ctx, { cache: false })
 }
 
 /**
@@ -325,8 +308,7 @@ export const evaluateExpression = (
     data?: ComponentData,
     extra?: InterpolationContext
 ): unknown => {
-    const ctx = buildContext(state, data, extra)
-    return new Function(...Object.keys(ctx), `return (${expr})`)(...Object.values(ctx))
+    return evaluate(expr, buildContext(state, data, extra))
 }
 
 /**

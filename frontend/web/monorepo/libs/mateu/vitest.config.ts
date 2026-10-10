@@ -1,11 +1,14 @@
 import { defineConfig } from 'vitest/config'
 import { resolve } from 'path'
 
-// Unit tests for the pure logic of the shared lib (no DOM, no Lit components).
-// The default environment stays `node` so the bulk of the suite runs fast; the few files whose
-// SUBJECT is the DOM (a11y live regions, focus trapping across shadow roots) opt into jsdom with
-// a `// @vitest-environment jsdom` docblock of their own.
+// Unit tests for the shared lib.
+// The default environment stays `node` so the bulk of the suite runs fast; the files whose
+// SUBJECT is the DOM (components, a11y live regions, focus trapping across shadow roots) opt into
+// jsdom with a `// @vitest-environment jsdom` docblock of their own.
 // Aliases mirror vite.config.ts so tests import modules exactly like production code.
+//
+// Coverage (`npm run test:coverage`, run in CI): v8, over the lib's sources. The thresholds are
+// the MEASURED values rounded down — a ratchet: raise them when suites grow, never lower them.
 export default defineConfig({
   resolve: {
     alias: {
@@ -21,5 +24,19 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts'],
+    setupFiles: ['src/test/setup.ts'],
+    coverage: {
+      provider: 'v8',
+      include: ['src/**/*.ts'],
+      exclude: ['src/**/*.test.ts', 'src/**/*.d.ts', 'src/test/**', 'src/mateu/shared/apiClients/dtos/**'],
+      reporter: ['text-summary', 'json-summary'],
+      // measured 2026-10-10: 53.6% lines/statements, 54.4% functions, 80.6% branches
+      thresholds: {
+        lines: 53,
+        statements: 53,
+        functions: 54,
+        branches: 80,
+      },
+    },
   },
 })

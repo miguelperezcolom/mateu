@@ -1,6 +1,7 @@
 import { LitElement, css, html, nothing } from 'lit'
 import { customElement, state } from 'lit/decorators.js'
 import { connectivity } from '@infra/http/connectivity.ts'
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * Offline banner — a persistent, page-level statement that the app cannot reach the backend.
@@ -78,8 +79,8 @@ export class MateuConnectivityBanner extends LitElement {
         return html`<div class="bar ${offline ? 'offline' : 'back'}" role="status" aria-live="polite">
             <span class="dot"></span>
             <span>${offline
-                ? 'No connection — changes you make now will not be saved.'
-                : 'Connection restored.'}</span>
+                ? chromeText('offlineBanner')
+                : chromeText('connectionRestored')}</span>
         </div>`
     }
 

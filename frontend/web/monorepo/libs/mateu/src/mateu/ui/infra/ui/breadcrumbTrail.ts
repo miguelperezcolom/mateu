@@ -1,5 +1,6 @@
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import { menuEntryFor, menuTrail, normRoute, plainText, TrailCrumb } from "./navTree";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * The automatic breadcrumb trail: where a page sits, worked out from what the shell already has —
@@ -65,14 +66,14 @@ export function autoTrail(menu: MenuOption[] | undefined, path: string, page: Pa
     if (rest.length > 0) {
         const id = decodeURIComponent(rest[0])
         if (id === 'new' || id === 'create') {
-            trail.push({ text: es ? 'Nuevo' : 'New' })
+            trail.push({ text: chromeText('newRecord', es ? 'es' : 'en') })
         } else {
             const recordRoute = matched + '/' + rest[0]
             const title = plain(page.title)
             if (rest.length === 1 && title) recordTitles.set(recordRoute, title)
             trail.push({ text: recordTitles.get(recordRoute) || id, route: recordRoute })
             if (rest[1] === 'edit') {
-                trail.push({ text: es ? 'Editar' : 'Edit' })
+                trail.push({ text: chromeText('edit', es ? 'es' : 'en') })
             } else if (rest.length > 1) {
                 trail.push({ text: title || decodeURIComponent(rest[rest.length - 1]) })
             }

@@ -5,7 +5,6 @@ import Bpmn from "@mateu/shared/apiClients/dtos/componentmetadata/Bpmn.ts";
 export const renderBpmn = (component: ClientSideComponent) => {
     const metadata = component.metadata as Bpmn
 
-    //console.log('metadata', metadata)
 
     return html`
         <mateu-bpmn

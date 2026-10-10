@@ -16,11 +16,12 @@ import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMe
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { gridCell } from "@infra/ui/renderers/gridPrimitive.ts";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /*
  * Design-system-neutral layout renderers — flex / CSS grid / native <details>, no `@vaadin`.
  * The Vaadin adapter (apps/vaadin/renderers/renderLayouts) overrides every layout type with the
- * pixel-perfect vaadin-* components; sapui5 has its own. These are the safe defaults any other
+ * pixel-perfect vaadin-* components. These are the safe defaults any other
  * renderer inherits.
  */
 
@@ -136,7 +137,7 @@ export const renderMasterDetailLayout = (container: LitElement, component: Compo
             <div style="flex: 1; min-width: 0;">${renderComponent(container, component.children![0], baseUrl, state, data, appState, appData)}</div>
             ${hasDetail && detailContent
                 ? html`<div style="flex: 1; min-width: 0;">${renderComponent(container, detailContent, baseUrl, state, data, appState, appData)}</div>`
-                : html`<div style="flex: 1; display: flex; align-items: center; justify-content: center; color: var(--lumo-secondary-text-color, #888); font-size: var(--lumo-font-size-s, .875rem);">Select an item to view details</div>`}
+                : html`<div style="flex: 1; display: flex; align-items: center; justify-content: center; color: var(--lumo-secondary-text-color, #888); font-size: var(--lumo-font-size-s, .875rem);">${chromeText('selectItemForDetails')}</div>`}
         </div>
     `
 }

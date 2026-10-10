@@ -74,6 +74,11 @@ public record AppMetadataDto(
     /// io.mateu.dtos.AppDto.requiredCapabilities.)</summary>
     public IReadOnlyList<string> RequiredCapabilities { get; init; } = [];
 
+    /// <summary>The UI language, a BCP 47 tag (ITranslator.Locale); null = let the browser decide.
+    /// The web client sets it on &lt;html lang&gt; and draws its chrome in it. (Mirrors
+    /// io.mateu.dtos.AppDto.locale.)</summary>
+    public string? Locale { get; init; }
+
     /// <summary>The app's REST source catalogue: a surface referencing a source carries only its name
     /// (RestDataSourceDto.Ref), the endpoint travels once, here. Empty when the app declares no named
     /// source. (Mirrors io.mateu.dtos.AppDto.restSources.)</summary>

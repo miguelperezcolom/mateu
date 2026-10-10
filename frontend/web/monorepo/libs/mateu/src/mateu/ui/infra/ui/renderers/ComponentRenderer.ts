@@ -11,7 +11,7 @@ export interface ComponentRenderer {
     renderPagination(container: MateuTableCrud, component: ClientSideComponent | undefined): TemplateResult
     renderAppComponent(container: MateuApp, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData): TemplateResult
     renderClientSideComponent(container: LitElement, component: ClientSideComponent | undefined, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData, labelAlreadyRendered: boolean | undefined): TemplateResult
-    /** Short renderer name used in diagnostics and by the conformance suite (e.g. 'vaadin', 'sapui5'). */
+    /** Short renderer name used in diagnostics and by the conformance suite (e.g. 'vaadin'). */
     rendererName?(): string
     /**
      * The ComponentMetadataType set this renderer declares it supports. `undefined` means
@@ -25,7 +25,7 @@ export interface ComponentRenderer {
      * When true, mateu-table-crud delegates ALL crud grid layouts (table, list, cards,
      * masterDetail, tree) to this renderer's renderTableComponent, instead of rendering the
      * non-table layouts itself with the shared Vaadin-flavoured templates. Lets a renderer
-     * (e.g. sapui5) present every crud layout with its own design system. Default (absent /
+     * present every crud layout with its own design system. Default (absent /
      * false) keeps today's behavior, so the Vaadin reference renderer is unaffected.
      */
     rendersCrudLayouts?(): boolean

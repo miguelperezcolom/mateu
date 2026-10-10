@@ -77,11 +77,28 @@ jobs:
       - name: Bundled frontend dependencies are under approved licences
         run: node scripts/check-frontend-licenses.mjs
 
+      # no-eval/no-new-func are ERRORS (the client runs under a CSP without 'unsafe-eval');
+      # no-console/no-explicit-any warnings are capped by --max-warnings (ratchet it down).
+      - name: Lint (ESLint)
+        run: cd frontend/web/monorepo && npm run lint
+
       - name: Typecheck and build the library
         run: cd frontend/web/monorepo/libs/mateu && npm run build
 
-      - name: Unit tests
-        run: cd frontend/web/monorepo/libs/mateu && npm test
+      # Coverage is a ratchet: the thresholds in vitest.config.ts are the measured values, so a PR
+      # can only keep or raise them.
+      - name: Unit tests (with coverage thresholds)
+        run: cd frontend/web/monorepo/libs/mateu && npm run test:coverage
+
+      # The JavaScript every page loads eagerly has a recorded ceiling (scripts/bundle-budget.json):
+      # @ui5 once sat in a preloaded chunk (≈640 KB on every page) for one optional field.
+      - name: Vaadin renderer — typecheck, tests (with coverage thresholds), build and eager bundle budget
+        run: |
+          cd frontend/web/monorepo/apps/vaadin
+          npx tsc --noEmit -p .
+          npm run test:coverage
+          npx vite build
+          node scripts/check-bundle-budget.mjs
 
       # The visual editor (embedded in both IDE plugins) has its own vitest suite (~120 tests, <1s)
       # that only ran by hand. Same order as above: typecheck before the tests.

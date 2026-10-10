@@ -4,6 +4,11 @@ namespace Mateu.Uidl;
 public interface ITranslator
 {
     string Translate(string key);
+
+    /// <summary>The UI language as a BCP 47 tag ("es", "en-GB"), or null to let the browser decide.
+    /// Travels as AppMetadataDto.Locale: the web client sets &lt;html lang&gt; from it and draws its own
+    /// chrome (buttons, empty states…) in that language.</summary>
+    string? Locale => null;
 }
 
 /// <summary>Declares the event name this component emits (via UICommand.DispatchEvent on the wire).</summary>

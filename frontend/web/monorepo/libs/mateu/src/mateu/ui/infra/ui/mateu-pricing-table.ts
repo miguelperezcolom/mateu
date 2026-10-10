@@ -1,6 +1,7 @@
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import PricingPlan from "@mateu/shared/apiClients/dtos/componentmetadata/PricingPlan";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * Dependency-free pricing / plan-comparison table: plan cards side by side, the featured one lifted
@@ -124,7 +125,7 @@ export class MateuPricingTable extends LitElement {
             <div class="plans">
                 ${this.plans.map(plan => html`
                     <div class="plan ${plan.featured ? 'featured' : ''}">
-                        ${plan.featured ? html`<span class="badge">Recommended</span>` : nothing}
+                        ${plan.featured ? html`<span class="badge">${chromeText('recommended')}</span>` : nothing}
                         <span class="name">${plan.name}</span>
                         <div>
                             <span class="price">${plan.price}</span>

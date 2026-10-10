@@ -135,6 +135,8 @@ public sealed partial class ReflectionMapper
             Chromeless = app.Chromeless,
             // Keyboard access keys (hold Alt to see them): opt-in, mirrors AppDto.accessKeys.
             AccessKeys = app.AccessKeys,
+            // The UI language: what the translator says (mirrors AppDto.locale).
+            Locale = translator?.Locale,
         };
         return new ClientSideComponentDto(meta with { RequiredCapabilities = RequiredCapabilities(app, meta) }, "ux_main_app", [], null, null, null);
     }

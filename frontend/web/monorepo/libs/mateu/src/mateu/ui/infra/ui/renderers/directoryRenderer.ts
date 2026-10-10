@@ -3,6 +3,8 @@ import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideCompone
 import { html, nothing, TemplateResult } from "lit";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import Directory from "@mateu/shared/apiClients/dtos/componentmetadata/Directory";
+import { safeHref } from '@infra/ui/safeNavigate.ts'
+import { ifDefined } from 'lit/directives/if-defined.js'
 
 export const renderDirectory = (component: ClientSideComponent, _baseUrl: string | undefined, _state: ComponentState, _data: ComponentData) => {
     const metadata = component.metadata as Directory
@@ -27,7 +29,7 @@ const renderItem = (item: MenuOption):TemplateResult => {
                     </div>
                 </details>
             `:html`
-                <a href="${item.path}">${item.label}</a>
+                <a href="${ifDefined(safeHref(item.path))}">${item.label}</a>
         `}
         `
 }

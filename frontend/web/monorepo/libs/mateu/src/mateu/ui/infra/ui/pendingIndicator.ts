@@ -19,7 +19,7 @@
  *
  * The busy state is drawn by animating the HOST's own properties, not by a `::after` spinner.
  * That is not a stylistic choice: a `::before`/`::after` on a shadow host is not painted, and the
- * controls that matter — `vaadin-button`, `ui5-button`, `oj-c-button` — are all shadow hosts, so
+ * controls that matter — `vaadin-button`, `oj-c-button` — are all shadow hosts, so
  * a pseudo-element spinner renders on a plain `<button>` and silently vanishes everywhere else.
  * (Verified against a live Vaadin app: an `inset: 0; background: red` `::after` on a
  * `vaadin-button` paints nothing at all.) Opacity animates on the host, so it always shows.
@@ -146,7 +146,6 @@ const INTERACTIVE = [
     'input[type="submit"]',
     'vaadin-button',
     'vaadin-menu-bar-button',
-    'ui5-button',
     'oj-c-button',
     'oj-button',
 ].join(', ')

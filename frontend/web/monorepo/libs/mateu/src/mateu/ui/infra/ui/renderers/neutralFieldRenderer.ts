@@ -7,7 +7,7 @@ import { ComponentState } from "@infra/ui/renderers/types.ts";
 /*
  * Design-system-neutral FormField renderer — native form controls (<input>/<select>/<textarea>)
  * chosen by the field's dataType/stereotype, no `@vaadin`. The Vaadin adapter overrides FormField
- * with the full-featured <mateu-field> element; sapui5 has its own renderField. This is the safe
+ * with the full-featured <mateu-field> element. This is the safe
  * default any other renderer inherits: functional binding via the shared value-changed event.
  */
 

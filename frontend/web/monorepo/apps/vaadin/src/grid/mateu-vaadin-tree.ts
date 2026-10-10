@@ -5,6 +5,7 @@ import '@vaadin/grid';
 import '@vaadin/grid/vaadin-grid-column.js';
 import '@vaadin/grid/vaadin-grid-tree-column.js';
 import { columnBodyRenderer } from "@vaadin/grid/lit";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 type Row = Record<string, unknown> & { children?: Row[] }
 
@@ -127,7 +128,7 @@ export class MateuVaadinTree extends LitElement {
                     ? html`<vaadin-grid-column header="${c.label ?? ''}" auto-width flex-grow="0" text-align="end"
                               ${columnBodyRenderer(
                                   (item: Row) => html`<vaadin-button theme="tertiary small"
-                                          @click="${() => this.dispatch('action-on-row-select', { _clickedRow: item })}">Select</vaadin-button>`,
+                                          @click="${() => this.dispatch('action-on-row-select', { _clickedRow: item })}">${chromeText('select')}</vaadin-button>`,
                                   [])}></vaadin-grid-column>`
                     : html`<vaadin-grid-column path="${c.id}" header="${c.label ?? ''}"></vaadin-grid-column>`)}
                 ${this.navigable ? html`
@@ -136,7 +137,7 @@ export class MateuVaadinTree extends LitElement {
                               (item: Row) => item?.viewable === false
                                   ? html``
                                   : html`<vaadin-button theme="tertiary small"
-                                          @click="${() => this.dispatch('view', item)}">View</vaadin-button>`,
+                                          @click="${() => this.dispatch('view', item)}">${chromeText('view')}</vaadin-button>`,
                               [])}></vaadin-grid-column>
                 ` : nothing}
             </vaadin-grid>

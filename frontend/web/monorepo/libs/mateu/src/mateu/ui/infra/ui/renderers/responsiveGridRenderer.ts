@@ -5,6 +5,7 @@ import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { gridCell } from "@infra/ui/renderers/gridPrimitive.ts";
 import { moveTile, moveTileBy, orderedTileIndices, readTileOrder, tileGridStyle, tileKeyOf, writeTileOrder } from "@infra/tileOrderStore.ts";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 const TILE_MIME = 'application/x-mateu-tile'
 
@@ -35,7 +36,7 @@ const reorderableChildren = (
         const metadata = (children[i] as ClientSideComponent).metadata as { type?: string, colSpan?: number, rowSpan?: number }
         return html`<div class="mateu-tile" draggable="true" tabindex="0" data-tile-key="${key}"
                          aria-roledescription="draggable tile"
-                         title="Drag to rearrange (Alt+← / Alt+→)"
+                         title="${chromeText('dragToRearrange')}"
                          style="min-width: 0; cursor: grab; ${tileGridStyle(metadata, spans[i])}"
                          @dragstart=${(e: DragEvent) => {
                              e.dataTransfer?.setData(TILE_MIME, scope + '\n' + key)

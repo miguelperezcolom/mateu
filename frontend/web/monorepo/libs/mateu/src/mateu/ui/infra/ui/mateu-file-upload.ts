@@ -1,5 +1,8 @@
 import {customElement, property} from "lit/decorators.js";
 import {css, html, LitElement, nothing, TemplateResult} from "lit";
+import { safeHref } from '@infra/ui/safeNavigate.ts'
+import { ifDefined } from 'lit/directives/if-defined.js'
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * Generic file upload for a @FileUpload String field — the generic sibling of @UploadableImage
@@ -95,8 +98,8 @@ export class MateuFileUpload extends LitElement {
         const isDataUri = hasValue && this.value!.startsWith('data:')
         const nameBlock = hasValue
             ? html`<span class="file" title="${name}">📄 ${isDataUri
-                ? html`<a href="${this.value}" download="${name}">${name}</a>`
-                : html`<a href="${this.value}" target="_blank">${name}</a>`}</span>`
+                ? html`<a href="${ifDefined(safeHref(this.value, { allowData: true }))}" download="${name}">${name}</a>`
+                : html`<a href="${ifDefined(safeHref(this.value))}" target="_blank" rel="noopener noreferrer">${name}</a>`}</span>`
             : nothing
         if (!this.editable) {
             return html`${hasValue ? nameBlock : html`<span class="empty">—</span>`}`
@@ -107,10 +110,10 @@ export class MateuFileUpload extends LitElement {
             <div class="row">
                 ${nameBlock}
                 <button class="button" @click="${this.triggerPick}">
-                    ${hasValue ? 'Replace' : 'Choose file'}
+                    ${hasValue ? chromeText('replace') : chromeText('chooseFile')}
                 </button>
                 ${hasValue ? html`
-                    <button class="button button--danger" @click="${() => this.emit('')}">Remove</button>` : nothing}
+                    <button class="button button--danger" @click="${() => this.emit('')}">${chromeText('remove')}</button>` : nothing}
             </div>`
     }
 

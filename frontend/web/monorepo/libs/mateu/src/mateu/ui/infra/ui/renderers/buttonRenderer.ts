@@ -38,7 +38,7 @@ export const resolvedRoute = (metadata: Button, state?: ComponentState, data?: C
 /*
  * Design-system-neutral Button — a native <button> themed with Lumo custom-property fallbacks (no
  * `@vaadin`). The Vaadin adapter overrides Button with vaadin-button (Lumo theme attribute); the
- * SapUi5/Redwood renderers override it with their own button component. Icons go through the icon port.
+ * Design-system renderers override it with their own button component. Icons go through the icon port.
  */
 const BASE = 'display:inline-flex; align-items:center; justify-content:center; gap:.4em; box-sizing:border-box; font:inherit; font-weight:500; cursor:pointer; border-radius:var(--lumo-border-radius-m,6px); border:1px solid transparent; line-height:1; white-space:nowrap;'
 

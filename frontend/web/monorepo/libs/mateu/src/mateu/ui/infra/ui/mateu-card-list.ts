@@ -6,6 +6,7 @@ import { renderClientSideComponent } from "@infra/ui/renderers/renderClientSideC
 import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
 import { onActivate } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 
 @customElement('mateu-card-list')
@@ -138,7 +139,7 @@ export class MateuCardList extends LitElement {
         return html`
             <div class="card-container">
                 ${page?.content?.map((item:any) => html`<div role="button" tabindex="0" @click="${() => this.clickedOnCard(item)}" @keydown="${onActivate(() => this.clickedOnCard(item))}" class="car-container">${this.renderItem(item)}</div>`)}
-                <div id="ask-for-more" style="display: ${this.hasMore?'flex':'none'}; width: 100%; justify-content: center; padding: var(--lumo-space-m); color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s);">Loading more…</div>
+                <div id="ask-for-more" style="display: ${this.hasMore?'flex':'none'}; width: 100%; justify-content: center; padding: var(--lumo-space-m); color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s);">${chromeText('loadingMore')}</div>
             </div>
 
             <slot></slot>

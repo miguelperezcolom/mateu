@@ -50,6 +50,8 @@ export default interface App extends ComponentMetadata {
     chromeless?: boolean
     /** @App(accessKeys): holding Alt shows a key next to every visible button and tab */
     accessKeys?: boolean
+    /** The UI language (BCP 47) the server's Translator chose; absent = the browser's. Set on <html lang>. */
+    locale?: string
     /** `@NoBreadcrumbs` on the shell: no automatic breadcrumb trail on its pages. */
     noBreadcrumbs?: boolean
     /** @App(askLabel): the brand of the shell's "ask" entry; absent = the renderer's own */

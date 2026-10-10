@@ -32,7 +32,6 @@ const FOCUSABLE = [
     'vaadin-select',
     'vaadin-checkbox',
     'vaadin-date-picker',
-    'ui5-button',
     'oj-c-button',
 ].join(',')
 

@@ -1,5 +1,6 @@
 import {customElement, property, state} from "lit/decorators.js";
 import {css, html, LitElement, nothing, TemplateResult} from "lit";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * Photo capture for a @PhotoCapture String field: opens the camera (getUserMedia) with a live
@@ -105,8 +106,8 @@ export class MateuCameraCapture extends LitElement {
             ${this.cameraOpen ? html`
                 <video class="viewfinder" playsinline muted></video>
                 <div class="actions">
-                    <button class="button button--primary" @click="${this.shoot}">Capture</button>
-                    <button class="button" @click="${this.closeCamera}">Cancel</button>
+                    <button class="button button--primary" @click="${this.shoot}">${chromeText('capture')}</button>
+                    <button class="button" @click="${this.closeCamera}">${chromeText('cancel')}</button>
                 </div>
             ` : html`
                 ${hasValue
@@ -119,7 +120,7 @@ export class MateuCameraCapture extends LitElement {
                     ${this.cameraError ? html`
                         <button class="button" @click="${this.triggerFallback}">Use file / native camera</button>` : nothing}
                     ${hasValue ? html`
-                        <button class="button button--danger" @click="${() => this.emit('')}">Delete</button>` : nothing}
+                        <button class="button button--danger" @click="${() => this.emit('')}">${chromeText('delete')}</button>` : nothing}
                 </div>
                 ${this.cameraError ? html`
                     <div class="error-hint">Camera unavailable — the file picker opens the device camera on phones.</div>` : nothing}
