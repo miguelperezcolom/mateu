@@ -289,6 +289,8 @@ class ReflectionMapper(
         self.components = components
         #: model type → ComponentAdapter (set by the SyncHandler from the registry).
         self.adapters: dict = {}
+        #: The translation catalogue (a TranslationRegistry, set by the SyncHandler); None = none.
+        self.translations = None
 
     def _locale(self) -> str | None:
         """The UI language the translator declares, or None (the browser decides)."""
@@ -336,7 +338,23 @@ class ReflectionMapper(
         return self.authorized(f.marker(EyesOnly)) and for_current_audience(f.marker(Audience))
 
     def T(self, s: str) -> str:
-        return self.translator.translate(s) if self.translator else s
+        # ${i18n.key} expressions resolve against the translation catalogue first (Java's
+        # DefaultTranslator), then the app's translator sees the result.
+        if self.translations is not None and isinstance(s, str) and "i18n." in s:
+            from ..translations import locale_of
+
+            s = self.translations.interpolate(s, locale_of(self))
+        if self.translator:
+            return self.translator.translate(s)
+        # No app translator: the catalogue acts as the default one — a text that IS a key there
+        # takes its message (Java's DefaultTranslator).
+        if self.translations is not None and isinstance(s, str) and self.translations.has_translations():
+            from ..translations import locale_of
+
+            as_key = self.translations.message(s, locale_of(self))
+            if as_key is not None:
+                return as_key
+        return s
 
     def _opt_t(self, s: str | None) -> str | None:
         return None if s is None else self.T(s)

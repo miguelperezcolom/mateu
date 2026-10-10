@@ -59,11 +59,19 @@ def parse_spec_with_delta(text: str, partials: PartialRegistry | None = None):
     layout and the parsed :class:`~mateu_core.layout_delta.LayoutDelta`."""
     from .layout_delta import LayoutDelta
 
-    registry = partials or _DEFAULT_PARTIALS
     try:
         data = yaml.safe_load(text)
     except yaml.YAMLError:
         return None, None, None
+    return parse_spec_tree(data, partials)
+
+
+def parse_spec_tree(data: Any, partials: PartialRegistry | None = None):
+    """:func:`parse_spec_with_delta` over an already-parsed YAML tree — what a spec re-derived per
+    request (access keys / ``${i18n.…}`` applied to its source tree) is built from."""
+    from .layout_delta import LayoutDelta
+
+    registry = partials or _DEFAULT_PARTIALS
     if not isinstance(data, dict):
         return None, _single(data, registry, []), None
     model_view = data.get("viewModel") or data.get("modelView")
@@ -131,6 +139,7 @@ def _build(node: Any, partials: PartialRegistry, chain: list[str]) -> fluent.Com
             label=node.get("label", ""),
             action_id=node.get("actionId", ""),
             button_style="primary" if node.get("buttonStyle") == "primary" else None,
+            disabled=bool(node.get("disabled", False)),
         )
     if kind == "Text":
         return fluent.Text(text=node.get("text", ""))

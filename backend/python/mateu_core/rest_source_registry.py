@@ -42,8 +42,12 @@ class RestSourceRegistry:
         classes: list[type] | None = None,
         suppliers: list[type] | None = None,
         file: str | Path | None = None,
+        environment: str | None = None,
     ) -> None:
         self._dir = Path(directory or os.environ.get("MATEU_SPECS_DIR") or Path("specs") / "ui")
+        #: The deployment environment to overlay (``environments/<name>.yaml``); None → the
+        #: ``MATEU_ENVIRONMENT`` variable; neither → the catalogue as authored.
+        self._environment = environment
         self._file = Path(file) if file is not None else None
         self._classes = list(classes or [])
         self._suppliers = list(suppliers or [])
@@ -56,7 +60,14 @@ class RestSourceRegistry:
         if self._catalog is None:
             with self._lock:
                 if self._catalog is None:
-                    self._catalog = merged_over(self.authored(), self.derived())
+                    # The active deployment environment re-points named sources on top of
+                    # everything — so the wire and the proxy both see it (Java's Environments).
+                    from .environments import active, overlay
+
+                    self._catalog = overlay(
+                        merged_over(self.authored(), self.derived()),
+                        active(self._dir, self._environment),
+                    )
         return self._catalog
 
     def get(self, name: str | None) -> RestSourceEntry | None:

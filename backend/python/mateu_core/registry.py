@@ -40,6 +40,9 @@ class MateuRegistry:
         self.component_suppliers: list[type] = []
         #: model type → its ComponentAdapter instance (the ComponentAdapter SPI).
         self.adapters: dict[type, object] = {}
+        #: TranslationsSupplier subclasses (the code half of the translation catalogue; the
+        #: `type: Translations` files win over them key by key).
+        self.translations_suppliers: list[type] = []
         for src in sources:
             if isinstance(src, ModuleType):
                 for _, cls in inspect.getmembers(src, inspect.isclass):
@@ -96,6 +99,15 @@ class MateuRegistry:
                     # the island / routed model is addressed by its type name on the wire
                     self._by_name[type_name(model)] = model
 
+        from mateu_uidl.i18n import TranslationsSupplier
+
+        if (
+            isinstance(cls, type)
+            and issubclass(cls, TranslationsSupplier)
+            and cls is not TranslationsSupplier
+            and cls not in self.translations_suppliers
+        ):
+            self.translations_suppliers.append(cls)
         if is_catalog_supplier(cls) and cls not in self.component_suppliers:
             self.component_suppliers.append(cls)
         if (
