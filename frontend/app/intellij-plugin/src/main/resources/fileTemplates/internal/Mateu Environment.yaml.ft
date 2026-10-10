@@ -1,0 +1,9 @@
+# A deployment environment: re-points named REST sources of sources.yaml without editing it.
+# Active with MATEU_ENVIRONMENT=__NAME__ (or -Dmateu.environment), or the bundle goal's `environment`.
+# Per source: baseUrl (new origin, path kept), url (whole url), headers (merged), proxy.
+#   sources:
+#     orders: {baseUrl: https://pre.api.acme.com}
+# Never put a secret here: write ${secret.X} and set MATEU_SECRET_X on the server.
+type: Environment
+name: __NAME__
+sources: {}

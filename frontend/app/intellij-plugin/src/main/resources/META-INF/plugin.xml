@@ -79,6 +79,8 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
         <internalFileTemplate name="Mateu Page Wizard"/>
         <internalFileTemplate name="Mateu Routes"/>
         <internalFileTemplate name="Mateu Sources"/>
+        <internalFileTemplate name="Mateu Translations"/>
+        <internalFileTemplate name="Mateu Environment"/>
         <internalFileTemplate name="Mateu UI Mount"/>
     </extensions>
 
