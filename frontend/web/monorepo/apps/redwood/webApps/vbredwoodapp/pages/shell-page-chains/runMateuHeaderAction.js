@@ -35,7 +35,7 @@ define([
         appState: $application.variables.mateuAppState || {},
       });
       const reg = bridge.reduceContexts($application.variables.mateuRegistry, increment);
-      bridge.applyDomEffects(reg.effects);
+      bridge.applyDomEffects(reg.effects, reg);
       $application.variables.mateuRegistry = reg;
 
       for (const toast of reg.effects.toasts) {

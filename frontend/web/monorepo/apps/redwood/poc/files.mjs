@@ -43,8 +43,14 @@ export function triggerDownload(data, env = globalThis) {
   return true
 }
 
-/** Aplica los efectos de DOM de una reducción. Devuelve cuántos ha aplicado. */
-export function applyDomEffects(effects, env = globalThis) {
+// lo que la app quiere hacer con el registro recién reducido (las reglas del cliente toman de ahí
+// su contexto: reglas + estado del host)
+let afterReduce = null
+export function setAfterReduceHook(fn) { afterReduce = typeof fn === 'function' ? fn : null }
+
+/** Aplica los efectos de DOM de una reducción. Devuelve cuántas descargas ha lanzado. */
+export function applyDomEffects(effects, reg, env = globalThis) {
+  if (reg && reg.contexts && afterReduce) afterReduce(reg)
   if (!effects) return 0
   let n = 0
   for (const d of effects.downloads || (effects.download ? [effects.download] : []))

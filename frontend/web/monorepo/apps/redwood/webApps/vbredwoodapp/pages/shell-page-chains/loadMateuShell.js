@@ -56,12 +56,17 @@ define([
       // contenido, así que viajan como evento de aplicación (el camino del Reintentar). Antes de
       // la primera navegación: el contenido inicial ya puede traer Elements.
       bridge.setElementModuleBase(base);
-      bridge.setElementEventSink((actionId, parameters, atom) => {
+      const runPageAction = (actionId, parameters, atom) => {
         Actions.fireEvent(window.__mateuShellContext || context, {
           name: 'application:mateuElementEvent',
           payload: { actionId, parameters, fromNested: !!(atom && atom.fromNested) },
         });
-      });
+      };
+      bridge.setElementEventSink(runPageAction);
+      // reglas del cliente (@Hidden/@Disabled con expresión, RuleSupplier): escuchan los cambios de
+      // campo de todo el documento; una RunAction de regla sale por el mismo camino
+      bridge.installRules();
+      bridge.setRuleActionSink(runPageAction);
 
       // Static-bundle (modo sin backend): si hay un mateuBundleUrl configurado, se arranca la carga
       // del manifest AQUÍ, antes del bootstrap. bootstrapShell/loadRoute esperan al fetch en vuelo

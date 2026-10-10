@@ -157,6 +157,9 @@ define([
         reg = remote
           ? await bridge.loadRouteInto(callBase, $application.variables.mateuRegistry, route, '', extra)
           : await bridge.loadMenuRouteInto(callBase, $application.variables.mateuRegistry, route, '', extra);
+        // la carga reduce dentro del transporte: aquí se aplican sus efectos de DOM y se fija el
+        // contexto de las reglas del cliente (sin esto, una pantalla recién abierta no las tenía)
+        bridge.applyDomEffects(null, reg);
       } catch (e) {
         // superada por otra navegación mientras cargaba: nada que reintentar ni que pintar
         if (bridge.isStaleResponse(e)) return;
@@ -183,7 +186,7 @@ define([
         const increment = await bridge.runMateuAction(
           callBase, loaded, route, triggerActionId, componentState, { appState });
         reg = bridge.reduceContexts(reg, increment);
-        bridge.applyDomEffects(reg.effects);
+        bridge.applyDomEffects(reg.effects, reg);
       }
 
       // El chat de IA autoró una pantalla: se corre renderScreen con el YAML sobre el host recién
@@ -195,7 +198,7 @@ define([
           callBase, rh, route, 'renderScreen', (rh && rh.state) || {},
           { parameters: { yaml: detail.renderYaml }, appState });
         reg = bridge.reduceContexts(reg, inc);
-        bridge.applyDomEffects(reg.effects);
+        bridge.applyDomEffects(reg.effects, reg);
       }
 
       // islas embebidas: cada frontera ServerSide del host se carga como superficie

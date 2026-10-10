@@ -192,7 +192,7 @@ define([
       const applyInc = (inc) => {
         lastIncrement = inc;
         reg = bridge.reduceContexts(reg, inc);
-        bridge.applyDomEffects(reg.effects);
+        bridge.applyDomEffects(reg.effects, reg);
         if (touchesHost(inc)) hostRepainted = true;
         allEvents.push.apply(allEvents, reg.effects.events || []);
         allToasts.push.apply(allToasts, reg.effects.toasts || []);
@@ -300,7 +300,7 @@ define([
             { appState, parameters: busEvent.detail || {} },
           );
           reg = bridge.reduceContexts(reg, refresh);
-          bridge.applyDomEffects(reg.effects);
+          bridge.applyDomEffects(reg.effects, reg);
           if (touchesHost(refresh)) hostRepainted = true;
           allToasts.push.apply(allToasts, reg.effects.toasts || []);
         }
@@ -728,7 +728,7 @@ define([
               : null;
           }));
           for (const inc of found) {
-            if (inc) { reg = bridge.reduceContexts(reg, inc); bridge.applyDomEffects(reg.effects); }
+            if (inc) { reg = bridge.reduceContexts(reg, inc); bridge.applyDomEffects(reg.effects, reg); }
           }
           $application.variables.mateuRegistry = reg;
           rowEditorNow = bridge.rowEditorOf(reg);

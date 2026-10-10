@@ -12,6 +12,7 @@ import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summa
 import { localMenuOptionOf, isSentinelHome } from './navTree.mjs'
 import { loadMenuRouteInto, terminalMenuRouteOf } from './transport.mjs'
 import { fileDownloadOf, triggerDownload, applyDomEffects } from './files.mjs'
+import { evaluateExpression, evaluateTemplate, computeRules, fieldFlagsOf, valueChangeActionOf } from './rules.mjs'
 import { describeFileValue, isImageValue, captureTexts } from './inputs.mjs'
 import { wireElementEvents, serializeElementEvent, setElementEventSink, elementModuleUrl } from './elements.mjs'
 
@@ -64,7 +65,7 @@ test('DownloadFile: se descarga como Blob con su nombre y tipo; sin contenido no
   assert.deepEqual(log, [['url', 'application/pdf'], ['append', 'folio.pdf'], ['click', 'folio.pdf', 'blob:x'], ['remove'], ['revoke', 'blob:x']])
   assert.equal(fileDownloadOf({ filename: 'x' }), null)
   assert.equal(fileDownloadOf({ base64Content: 'eA==' }).filename, 'export')
-  assert.equal(applyDomEffects({ downloads: [{ base64Content: 'eA==' }, {}] }, fakeEnv().env), 1)
+  assert.equal(applyDomEffects({ downloads: [{ base64Content: 'eA==' }, {}] }, null, fakeEnv().env), 1)
 })
 
 test('DownloadFile: TODAS las chains que reducen un increment aplican sus efectos de DOM', () => {
@@ -78,7 +79,7 @@ test('DownloadFile: TODAS las chains que reducen un increment aplican sus efecto
   ]) {
     const src = webApp(rel)
     const reduces = (src.match(/reg = bridge\.reduceContexts\(/g) || []).length
-    const applies = (src.match(/bridge\.applyDomEffects\(reg\.effects\)/g) || []).length
+    const applies = (src.match(/bridge\.applyDomEffects\(reg\.effects, reg\)/g) || []).length
     assert.ok(reduces > 0, rel)
     assert.equal(applies, reduces, `${rel}: ${reduces} reducciones, ${applies} applyDomEffects`)
   }
@@ -313,6 +314,57 @@ test('campo de captura: lo que enseña de un fichero y cuándo un valor es image
   assert.ok(!isImageValue('data:application/pdf;base64,AAAA'))
   assert.equal(captureTexts('es-ES').signAgain, 'Volver a firmar')
   assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /defineCaptureField\(\)/)
+})
+
+// ── P0 #4: reglas y campos dependientes en el navegador ─────────────────────────────────────
+
+test('evaluador de reglas sin eval (CSP de VB): lo que escriben las expresiones de Mateu', () => {
+  const scope = { state: { guarantee: 'COMPANY', vip: false, nights: 3, tags: ['a', 'b'], name: 'Ana' }, data: {} }
+  const ev = (e) => evaluateExpression(e, scope)
+  assert.equal(ev("state.guarantee != 'CREDIT_CARD'"), true)
+  assert.equal(ev("state.guarantee == 'COMPANY' && !state.vip"), true)
+  assert.equal(ev('state.nights > 2 ? "long" : "short"'), 'long')
+  assert.equal(ev('state.nights * 2 + 1'), 7)
+  assert.equal(ev("state.tags.includes('b')"), true)
+  assert.equal(ev('state.name.length'), 3)
+  assert.equal(ev("state['name'].toUpperCase()"), 'ANA')
+  assert.equal(ev('state.missing.deep'), undefined) // sin romper
+  assert.equal(ev('alert(1)'), undefined) // ni funciones globales…
+  assert.equal(ev('state.constructor.constructor("x")()'), undefined) // …ni escapar por el prototipo
+  assert.equal(evaluateTemplate('${state.nights}', scope), 3)
+  assert.equal(evaluateTemplate('${state.nights} nights', scope), '3 nights')
+})
+
+test('reglas de la nueva reserva real: @Hidden/@Disabled con expresión y un RuleSupplier', () => {
+  const reg = reduceContexts(empty(), fixture('new-reservation'))
+  const ctx = reg.contexts[HOST_ID]
+  const flagsFor = (state) => fieldFlagsOf(computeRules(ctx.tree.rules, { state: { ...ctx.state, ...state }, data: ctx.data }).data)
+  assert.deepEqual(flagsFor({ guarantee: 'NONE', vip: false }),
+    { company: { disabled: true }, cardNumber: { hidden: true }, vipNotes: { hidden: true } })
+  assert.deepEqual(flagsFor({ guarantee: 'CREDIT_CARD', vip: true }),
+    { company: { disabled: true }, cardNumber: { hidden: false }, vipNotes: { hidden: false } })
+  assert.equal(flagsFor({ guarantee: 'COMPANY' }).company.disabled, false)
+  // llegada/noches disparan su acción del servidor (@Trigger OnValueChange); otro campo no
+  assert.equal(valueChangeActionOf(ctx, 'nights', ctx.state), 'recalculate')
+  assert.equal(valueChangeActionOf(ctx, 'arrival', ctx.state), 'recalculate')
+  assert.equal(valueChangeActionOf(ctx, 'guest', ctx.state), null)
+})
+
+test('reglas: SetStateValue, RunAction y Stop', () => {
+  const r = computeRules([
+    { filter: 'state.qty > 10', action: 'SetStateValue', fieldName: 'discount', fieldAttribute: 'none', expression: '${state.qty * 2}' },
+    { filter: 'true', action: 'RunAction', actionId: 'refresh', result: 'Stop' },
+    { filter: 'true', action: 'SetDataValue', fieldName: 'never', fieldAttribute: 'hidden', value: true },
+  ], { state: { qty: 12 } })
+  assert.deepEqual(r, { state: { discount: 24 }, data: {}, actions: ['refresh'] })
+})
+
+test('reglas: cableado — contexto tras cada reducción y tras navegar, OnValueChange en las chains', () => {
+  assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /setAfterReduceHook\(\(reg\) => setRulesContext/)
+  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installRules\(\)/)
+  assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /bridge\.applyDomEffects\(null, reg\)/)
+  for (const rel of ['hostInputChanged.js', 'mateuFieldEdited.js'])
+    assert.match(webApp('flows/main/pages/main-start-page-chains/' + rel), /bridge\.valueChangeActionOf\(/, rel)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

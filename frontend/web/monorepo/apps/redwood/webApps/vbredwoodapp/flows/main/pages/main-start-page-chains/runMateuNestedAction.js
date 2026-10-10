@@ -49,7 +49,7 @@ define([
       const allToasts = [];
       const apply = (increment) => {
         reg = bridge.reduceContexts(reg, increment);
-        bridge.applyDomEffects(reg.effects);
+        bridge.applyDomEffects(reg.effects, reg);
         allEvents.push.apply(allEvents, reg.effects.events || []);
         allToasts.push.apply(allToasts, reg.effects.toasts || []);
       };
