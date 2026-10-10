@@ -53,6 +53,7 @@ import {applySizing, SizableHost} from "@infra/ui/sizing.ts";
 import { confirmationDialogTexts } from '@infra/ui/confirmationTexts.ts'
 import { fabStyles } from '@infra/ui/layout/fabRail.ts'
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
+import { runJs } from '@infra/ui/runJs.ts'
 
 let _pendingInitiatorComponent: MateuComponent | null = null
 
@@ -86,17 +87,15 @@ export class MateuComponent extends ComponentElement {
             const appState = this.appState
             const appData = this.appData
             const component = this.component
-            // Rule expressions see state/data/appState/appData/component by name; the shared
-            // interpolation helpers use new Function (not eval) so minifiers cannot rename them.
-            // Both preserve the typed (non-string) result of the expression (e.g. booleans).
+            // Rule expressions see state/data/appState/appData/component by name, evaluated by the
+            // sandboxed expression evaluator (no eval: CSP-safe). Both preserve the typed
+            // (non-string) result of the expression (e.g. booleans).
             const evalExpr = (expr: string): any =>
                 evaluateExpression(expr, state, data, { appState, appData, component })
             const evalTemplate = (tmpl: string): any =>
                 interpolateAndEvaluate(tmpl, state, data, appState, appData, { component })
-            // RunJS rules evaluate a statement body (not an expression), so they keep a raw
-            // new Function with the same named context.
-            const ctxArgs: [string, string, string, string, string] = ['state', 'data', 'appState', 'appData', 'component']
-            const ctxVals = [state, data, appState, appData, component]
+            // RunJS rules evaluate a statement body (not an expression): opt-in only (runJs.ts).
+            const runJsContext = { state, data, appState, appData, component }
             const newState = {...this.state}
             const newData = {...this.data}
             let stateUpdated = false;
@@ -135,7 +134,7 @@ export class MateuComponent extends ComponentElement {
                             }))
                         }
                         if (RuleAction.RunJS == rule.action) {
-                            new Function(...ctxArgs, rule.value as string)(...ctxVals)
+                            runJs(rule.value as string, runJsContext)
                         }
                         if (RuleAction.SetAttributeValue == rule.action) {
                             const value = rule.expression?evalExpr(rule.expression):rule.value
@@ -746,11 +745,12 @@ export class MateuComponent extends ComponentElement {
 
         if (action && action.js) {
             try {
-                new Function('state', 'data', 'appState', 'appData', 'component',
-                    action.js).call(this,
-                        this.state ?? {}, this.data ?? {},
-                        this.appState ?? {}, this.appData ?? {},
-                        this.component)
+                // statements: RunJS opt-in only (runJs.ts)
+                runJs(action.js, {
+                    state: this.state ?? {}, data: this.data ?? {},
+                    appState: this.appState ?? {}, appData: this.appData ?? {},
+                    component: this.component,
+                }, this)
                 this.state = { ...this.state}
                 this.data = { ...this.data}
             } catch (e) {

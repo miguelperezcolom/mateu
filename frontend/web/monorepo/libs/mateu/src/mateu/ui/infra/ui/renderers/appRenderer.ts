@@ -342,8 +342,8 @@ const renderSectionBand = (active: MenuOption | undefined, container: MateuApp) 
     const onSelect = fireSelect(container, container.itemSelected)
     const items = isMount(active) ? [] : container.mapItems(active.submenus ?? [], '')
     return html`
-        <a href="javascript: void(0);" class="mateu-app-band-title mateu-section-title"
-           @click="${() => container.selectSection(active)}">${active.label}</a>
+        <button type="button" class="mateu-app-band-title mateu-section-title"
+           @click="${() => container.selectSection(active)}">${active.label}</button>
         ${items.length > 0
             ? renderTopBar(items, onSelect, 'menu-on-top sections-band')
             : nothing}`
@@ -531,9 +531,9 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             style="width: 100%; height: 3.5rem; flex-shrink: 0; align-items: center; background-color: var(--lumo-base-color);"
                             @navigation-requested="${container.updateRoute}">
                     <div class="${HEADER_ROW_CLASS}" style="${HEADER_ROW}" theme="spacing">
-                        <a href="javascript: void(0);" @click="${() => container.goHome()}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
+                        <button type="button" @click="${() => container.goHome()}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
                         ${renderBrand({ ...metadata, title: '' }, false)}
-                        </a>
+                        </button>
                         <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
                             ${renderHeaderWidgets(metadata, container)}
                         </div>
@@ -544,7 +544,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         <div class="mateu-app-menu-button">
                             ${renderMenuButton(items, fireSelect(container, container.itemSelected))}
                         </div>
-                        ${metadata.title ? html`<a href="javascript: void(0);" @click="${() => container.goHome()}" class="mateu-app-band-title">${metadata.title}</a>` : nothing}
+                        ${metadata.title ? html`<button type="button" @click="${() => container.goHome()}" class="mateu-app-band-title">${metadata.title}</button>` : nothing}
                         ${(() => {
                             const onSelect = fireSelect(container, container.itemSelected)
                             // The active renderer may supply its own chrome menu (the Vaadin adapter
@@ -592,9 +592,9 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             @navigation-requested="${container.updateRoute}">
                     <div class="${HEADER_ROW_CLASS}" style="${HEADER_ROW}" theme="spacing">
                         ${renderSectionsToggle(container)}
-                        <a href="javascript: void(0);" @click="${() => { container.sectionsOpen = false; container.goHome() }}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
+                        <button type="button" @click="${() => { container.sectionsOpen = false; container.goHome() }}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
                         ${renderBrand(metadata, false)}
-                        </a>
+                        </button>
                         <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
                             ${renderHeaderWidgets(metadata, container)}
                         </div>
@@ -638,9 +638,9 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             style="width: 100%; height: 4rem; flex-shrink: 0; align-items: center; border-bottom: 1px solid var(--lumo-disabled-text-color); background-color: var(--lumo-base-color);"
                             @navigation-requested="${container.updateRoute}">
                     <div class="${HEADER_ROW_CLASS}" style="${HEADER_ROW}" theme="spacing">
-                        <a href="javascript: void(0);" @click="${() => { container.goHome(); container.tilesMenuOption = null; }}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
+                        <button type="button" @click="${() => { container.goHome(); container.tilesMenuOption = null; }}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
                         ${renderBrand(metadata)}
-                        </a>
+                        </button>
                         ${renderNeutralNav(container.mapItemsForTiles(metadata.menu), fireSelect(container, container.itemSelectedTiles), 'menu-on-top')}
                         <div class="m-hl mateu-app-widgets" style="margin-left: auto; align-items: center;">
                             ${renderHeaderWidgets(metadata, container)}
@@ -757,9 +757,9 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                                 theme="spacing"
                                 @navigation-requested="${container.updateRoute}">
                             ${renderBackLink(metadata, container)}
-                            <a href="javascript: void(0);" @click="${() => container.goHome()}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
+                            <button type="button" @click="${() => container.goHome()}" class="mateu-app-brand" style="text-decoration: none; color: inherit;">
                             ${renderBrand(metadata)}
-                            </a>
+                            </button>
                             <nav class="mateu-tabs ${container.component?.cssClasses ?? ''}" style="flex-grow: 1; min-width: 0; margin-left: 1.5rem;">
                                 ${(metadata.menu?.length ?? 0) < 2 ? nothing : metadata.menu.map((option, i) => html`
                                 <button class="mateu-tab ${i === container.getSelectedIndex(metadata.menu) ? 'mateu-tab--active' : ''}"

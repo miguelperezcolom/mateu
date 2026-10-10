@@ -50,6 +50,8 @@ export default defineConfig({
         ],
         // 2. ALIAS: Mapeo de rutas absolutas para que el monorepo no se pierda.
         alias: {
+            // No usage statistics (and no Function(...) eval under a strict CSP): see the stub.
+            '@vaadin/vaadin-usage-statistics/vaadin-usage-statistics.js': resolve(__dirname, './src/stubs/vaadin-usage-statistics.ts'),
             // Corrección para componentes antiguos (VCF) que buscan carpetas /src/
             '@vaadin/component-base/src/styles/style-props.js': resolve(__dirname, '../../node_modules/@vaadin/component-base/src/styles/style-props.js'),
             '@vaadin/component-base/src/warnings.js': resolve(__dirname, '../../node_modules/@vaadin/component-base/src/warnings.js'),

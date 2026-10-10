@@ -32,6 +32,7 @@ import {MateuChat} from "@infra/ui/mateu-chat.ts";
 import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
 import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
 import { safeLocalStorage } from '@infra/safeStorage.ts'
+import { runJs } from '@infra/ui/runJs.ts'
 
 // one hit of the app's GlobalSearchSupplier, shown by the command palette under the menu results
 interface GlobalSearchHit { label: string, description?: string, route: string, category?: string }
@@ -295,7 +296,7 @@ export class MateuApp extends ComponentElement {
                 this.runAction(rule.actionId)
             } else if (rule.action === RuleAction.RunJS && rule.value != null) {
                 try {
-                    new Function(String(rule.value))()
+                    runJs(String(rule.value))
                 } catch (e) {
                     console.error('menu RunJS rule failed', e)
                 }
@@ -1019,6 +1020,12 @@ export class MateuApp extends ComponentElement {
             border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
             /* (no accent line here: the app's accent is a strip drawn where Redwood draws its
                colour strip — under the page header, on top of a listing — see applyAccent) */
+        }
+        /* home / section links are buttons (no href="javascript:…", which a strict CSP blocks):
+           reset to look like the links they replace */
+        :where(button.mateu-app-brand, button.mateu-app-band-title) {
+            background: none; border: none; padding: 0; margin: 0; font: inherit; color: inherit;
+            cursor: pointer; text-align: inherit;
         }
         .mateu-app-band-title {
             flex: 0 0 auto;

@@ -77,6 +77,11 @@ jobs:
       - name: Bundled frontend dependencies are under approved licences
         run: node scripts/check-frontend-licenses.mjs
 
+      # no-eval/no-new-func are ERRORS (the client runs under a CSP without 'unsafe-eval');
+      # no-console/no-explicit-any warnings are capped by --max-warnings (ratchet it down).
+      - name: Lint (ESLint)
+        run: cd frontend/web/monorepo && npm run lint
+
       - name: Typecheck and build the library
         run: cd frontend/web/monorepo/libs/mateu && npm run build
 
