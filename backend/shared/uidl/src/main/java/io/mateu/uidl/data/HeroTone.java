@@ -1,11 +1,14 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
+
 /**
  * The tone of a hero band (the Redwood welcome-page {@code backgroundColor} palette, expressed
  * design-system-neutrally): {@code auto} keeps the renderer's default hero (an image overlay or the
  * theme's base); the others paint a DARK tinted band with light ink. The names are hues, not brand
  * colors — each renderer maps them onto its own palette.
  */
+@Experimental("hero tone (3.0-alpha.409)")
 public enum HeroTone {
   auto,
   ocean,

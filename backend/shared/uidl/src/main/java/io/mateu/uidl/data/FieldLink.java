@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.Actionable;
 import lombok.Builder;
@@ -20,7 +21,7 @@ public record FieldLink(
     Object itemData,
     String description,
     boolean hidden,
-    MenuPresentation presentation)
+    @Experimental("card menus (3.0-alpha.409)") MenuPresentation presentation)
     implements Actionable {
   /** The entry without presentation (a plain list entry). */
   public FieldLink(

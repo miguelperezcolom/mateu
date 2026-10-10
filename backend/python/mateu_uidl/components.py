@@ -8,6 +8,8 @@ Java backend emits.
 
 from __future__ import annotations
 
+import warnings
+
 from dataclasses import dataclass, field
 from datetime import date
 from datetime import date as _date
@@ -152,6 +154,12 @@ class DashboardLayout(Component):
     css_classes: str | None = None
 
     def __post_init__(self):
+        warnings.warn(
+            "DashboardLayout is deprecated (coherence-plan #9): use ResponsiveGrid instead — N columns "
+            "become N fill tracks (0 = auto-fit) and the tiles carry their own spans.",
+            DeprecationWarning,
+            stacklevel=3,
+        )
         object.__setattr__(self, "items", tuple(self.items))
 
 
@@ -305,6 +313,12 @@ class ContentLayout(Component):
     css_classes: str | None = None
 
     def __post_init__(self):
+        warnings.warn(
+            "ContentLayout is deprecated (coherence-plan #7/#9): use a ResponsiveGrid named-slot "
+            "template (sticky_areas for a pinned region) instead.",
+            DeprecationWarning,
+            stacklevel=3,
+        )
         object.__setattr__(self, "main", tuple(self.main))
         object.__setattr__(self, "aside", tuple(self.aside))
         object.__setattr__(self, "footer", tuple(self.footer))

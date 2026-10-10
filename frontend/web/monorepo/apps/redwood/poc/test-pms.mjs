@@ -28,13 +28,13 @@ import { calendarAtomOf, calPeriod, calEventsOn, calAddDays } from './calendar.m
 import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf } from './notify.mjs'
 import { startPolling, actionSucceeded, setPollingRunner, timedOnLoadTriggers } from './polling.mjs'
 import { onLoadTriggers } from './reduceContexts.mjs'
-import { assignAccessKeys, keyHint, setShortcutContext, currentShortcutActions } from './keys.mjs'
+import { assignAccessKeys, keyHint, setShortcutContext, currentShortcutActions, isFunctionKeyShortcut } from './keys.mjs'
 import { hoverLinesOf } from './hover.mjs'
 import { draggedIdsOf, dragTypeOfMime } from './dnd.mjs'
 import { dragMimeOf, listingHeaderBlocksOf } from './reduceContexts.mjs'
 import { dayIndexAtX } from './planning.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
-import { listingOf, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
+import { listingOf, rowClickOpensRecord, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
 import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, entityHeaderOf, taskQueueOf, formSectionsOf, layoutFieldOf, HOST_ID } from './reduceContexts.mjs'
 import { localMenuOptionOf, isSentinelHome } from './navTree.mjs'
 import { loadMenuRouteInto, terminalMenuRouteOf, bootstrapHasApp } from './transport.mjs'
@@ -998,6 +998,21 @@ test('teclas de acceso: iniciales primero, sin repetir, saltando las reservadas;
   assert.equal(keyHint('ctrl+alt+7'), 'Ctrl+Alt+7')
 })
 
+test('atajos: una tecla de función (F1–F12) vale sola, como en un back-office (F2, F9…)', () => {
+  assert.equal(isFunctionKeyShortcut('f2'), true)
+  assert.equal(isFunctionKeyShortcut('Shift+F9'), true)
+  assert.equal(isFunctionKeyShortcut('f13'), false)
+  assert.equal(isFunctionKeyShortcut('f'), false)
+  setShortcutContext({ tree: { actions: [
+    { id: 'quickLaunch', shortcut: 'F2' }, { id: 'lov', shortcut: 'shift+f9' }, { id: 'search', shortcut: 'enter' }, { id: 'typed', shortcut: 'x' },
+  ] } })
+  assert.deepEqual(currentShortcutActions(), [{ id: 'quickLaunch', shortcut: 'f2' }, { id: 'lov', shortcut: 'shift+f9' }])
+  assert.equal(shortcutMatches('f2', { key: 'F2', code: 'F2' }), true)
+  assert.equal(shortcutMatches('f2', { shiftKey: true, key: 'F2', code: 'F2' }), false)
+  assert.equal(shortcutMatches('shift+f9', { shiftKey: true, key: 'F9', code: 'F9' }), true)
+  setShortcutContext(null)
+})
+
 test('atajos: sólo las acciones de la pantalla con modificador; las pestañas llevan el suyo al DOM', () => {
   setShortcutContext({ tree: { actions: [
     { id: 'days7', shortcut: 'ctrl+alt+7' }, { id: 'search', shortcut: 'enter' }, { id: 'save', shortcut: 'Ctrl+S' }, { id: 'x' },
@@ -1046,6 +1061,20 @@ test('@Tooltip: la celda de la tarifa lleva el desglose para la ventana flotante
   const page = webApp('flows/main/pages/main-start-page.html')
   assert.equal((page.match(/:data-mateu-hover="\[\[ \(\$current\.data && \$current\.data\.hover\) \|\| '' \]\]"/g) || []).length, 2, 'las dos plantillas cellClip')
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installHover\(\)/)
+})
+
+test('clic de fila: sólo abre el registro si el listado lo ofrece (@NotNavigable no lo ofrece)', () => {
+  const crud = (firstColumn) => ({ tree: { type: 'ServerSide', id: 's', serverSideType: 'X', children: [node({ type: 'Crud',
+    columns: [node({ type: 'GridColumn', id: 'room', label: 'Room', dataType: 'string', ...firstColumn })] })] },
+  data: { crud: { page: { content: [{ id: '101', room: '101' }], totalElements: 1 } } }, state: {} })
+  const navigable = listingOf(crud({ actionId: 'view' }))
+  const board = listingOf(crud({}))
+  assert.equal(navigable.navigable, true)
+  assert.equal(board.navigable, false)
+  assert.equal(rowClickOpensRecord(navigable), true)
+  assert.equal(rowClickOpensRecord(board), false)
+  assert.equal(rowClickOpensRecord(null), true, 'sin listado conocido, como antes')
+  assert.match(webApp('flows/main/pages/main-start-page-chains/mateuRowClicked.js'), /bridge\.rowClickOpensRecord\(listing\)/)
 })
 
 // ── P1 #14 arrastrar filas a un destino (@DragRows + DropZone) ───────────────────────────────

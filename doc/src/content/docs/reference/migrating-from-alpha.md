@@ -84,6 +84,26 @@ relocation.
 All the annotations in the rows above had **no effect** in any alpha — nothing read them — so
 removing one changes no screen; it only makes the compiler point at it.
 
+## Deprecated in 3.0-alpha.410 (still working)
+
+The pre-beta API freeze review deprecated these instead of removing them: they keep compiling and
+working, the compiler warns, and they will be removed after the deprecation period. Each Javadoc
+names its replacement.
+
+| Deprecated | Use instead |
+|---|---|
+| `AppVariant.HAMBURGUER_MENU` (misspelled; also in YAML `variant:`) | `AppVariant.HAMBURGER_MENU` — renders the same. .NET: `AppVariant.HamburgerMenu`; Python: `AppVariant.HAMBURGER_MENU` (the old string warns) |
+| `@GenericClass` | nothing — it was never read; declare the field with its type argument (`List<MyDto>`) |
+| `io.mateu.uidl.annotations.ActionType` | `@Toolbar` / `@Button` / `@Hidden` on the method |
+| `ActionPosition`, `ActionStereotype`, `ActionThemeVariant` (empty enums in `io.mateu.uidl.fluent`) | nothing — they had no constants; style buttons with `ButtonStyle` / `ButtonColor` / `ButtonVariant` |
+| `Binding`, `BindingSource` | nothing — components bind by convention (`FormField` id ↔ property, `Button` actionId ↔ method); expressions read `state.*` / `appState.*` |
+| `ClientSideEvent` | `UICommand.dispatchEvent(name, payload)` + `@SubscribeTo` |
+| `Destination` | `UICommand.navigateTo(route)`, or return a `URI` from the action |
+| `ListAdapter<Filters, Row>` | `Listing<Row>` (`search(SearchRequest, HttpRequest)`) |
+| `io.mateu.uidl.layout.ColumnLayoutSelector` | declare `gridLayout()` — `GridLayout.auto` is a table |
+| 28 unreachable wire DTOs in `io.mateu.dtos` (`JourneyDto`, `ViewDto`, `BadgeColorDto`, `SortCriteriaDto`, …) | nothing — no live DTO references them; the wire is unchanged |
+| .NET `DashboardLayout` / `ContentLayout` (now `[Obsolete]`, like Java's `@Deprecated`); Python ones warn | `ResponsiveGrid` |
+
 ## Defaults that changed
 
 These compile unchanged and **behave differently**. Check each against your screens.

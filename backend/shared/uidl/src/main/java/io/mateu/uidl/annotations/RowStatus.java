@@ -15,4 +15,5 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.ANNOTATION_TYPE})
+@Experimental("row tones (3.0-alpha.409)")
 public @interface RowStatus {}

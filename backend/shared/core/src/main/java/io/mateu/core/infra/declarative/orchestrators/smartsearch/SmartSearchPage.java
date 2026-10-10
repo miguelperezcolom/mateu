@@ -1,6 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.smartsearch;
 
 import io.mateu.core.domain.out.componentmapper.PageListingBuilder;
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.data.HorizontalAlignment;
 import io.mateu.uidl.data.Text;
 import io.mateu.uidl.data.VerticalLayout;
@@ -40,6 +41,7 @@ public abstract class SmartSearchPage<Filters, Row>
    * the user searches. Null (the default) = the usual empty listing. Pointless when the page
    * preloads its results.
    */
+  @Experimental("pre-search content (3.0-alpha.409)")
   protected Component preSearchContent(HttpRequest httpRequest) {
     return null;
   }

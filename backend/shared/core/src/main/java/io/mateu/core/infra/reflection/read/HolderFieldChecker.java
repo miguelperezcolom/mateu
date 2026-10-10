@@ -11,11 +11,17 @@ import java.util.function.Supplier;
  * as an empty object and cannot be rebuilt), so the state serializers skip them and hydration
  * leaves them untouched — otherwise rehydration would null out their initializers, which is why
  * they used to require @JsonIgnore.
+ *
+ * <p>A field the container fills ({@code @Inject}, {@code @Autowired}, {@code @Resource}…) is the
+ * same kind of thing: a dependency, not view data. Serialized, a service would travel to the
+ * browser as state (an empty husk at best, its getters at worst) and be poured back on the next
+ * request; skipped, it is injected again on every request instead.
  */
 public final class HolderFieldChecker {
 
   public static boolean isNonDataHolder(Field field) {
-    return isNonDataHolderType(field.getType());
+    return isNonDataHolderType(field.getType())
+        || io.mateu.core.application.security.WireTypes.isInjected(field);
   }
 
   public static boolean isNonDataHolderType(Class<?> type) {

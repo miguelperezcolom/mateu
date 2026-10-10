@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.fluent.Component;
 import java.time.LocalDate;
 import java.util.List;
@@ -22,10 +23,10 @@ public record Calendar(
     String id,
     LocalDate month,
     List<CalendarEvent> events,
-    CalendarView view,
-    List<CalendarView> views,
-    List<CalendarDay> days,
-    String dayActionId,
+    @Experimental("calendar views (3.0-alpha.409)") CalendarView view,
+    @Experimental("calendar views (3.0-alpha.409)") List<CalendarView> views,
+    @Experimental("calendar views (3.0-alpha.409)") List<CalendarDay> days,
+    @Experimental("calendar views (3.0-alpha.409)") String dayActionId,
     String style,
     String cssClasses)
     implements Component {

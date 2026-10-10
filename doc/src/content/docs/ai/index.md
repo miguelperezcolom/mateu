@@ -181,7 +181,7 @@ The AI chat panel is available in all application shell variants:
 | Variant            | IA button location               |
 |--------------------|----------------------------------|
 | `MENU_ON_TOP`      | Top navigation bar, right side   |
-| `HAMBURGUER_MENU`  | Top navbar slot                  |
+| `HAMBURGER_MENU`  | Top navbar slot                  |
 | `MENU_ON_LEFT`     | Bottom of the left sidebar       |
 | `TABS`             | Tab bar, right side              |
 

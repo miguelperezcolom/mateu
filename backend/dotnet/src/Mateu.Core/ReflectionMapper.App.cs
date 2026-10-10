@@ -11,15 +11,15 @@ public sealed partial class ReflectionMapper
     /// <summary>Builds the App shell (header + menu) from an [App] class's [MenuItem] methods.</summary>
     /// <summary>The navigation chrome (mirrors Java's AppMetadataExtractor.getVariant): an
     /// explicit [App(Variant = …)] always wins; a menu with folders → TILES when a folder nests
-    /// another folder, HAMBURGUER_MENU past 7 top-level entries, else MENU_ON_TOP; a flat menu of
-    /// leaf entries → TABS.</summary>
+    /// another folder, HAMBURGER_MENU past 7 top-level entries, else MENU_ON_TOP; a flat menu of
+    /// leaf entries → TABS. The result is the WIRE value (AppVariant.ToWire).</summary>
     private static string VariantOf(AppAttribute app, List<MenuItemDto> items)
     {
-        if (app.Variant.Length > 0) return app.Variant;
+        if (app.Variant.Length > 0) return AppVariant.ToWire(app.Variant);
         if (items.Any(i => i.Submenus.Count > 0))
         {
             if (items.Any(i => i.Submenus.Any(s => s.Submenus.Count > 0))) return "TILES";
-            return items.Count > 7 ? "HAMBURGUER_MENU" : "MENU_ON_TOP";
+            return AppVariant.ToWire(items.Count > 7 ? AppVariant.HamburgerMenu : AppVariant.MenuOnTop);
         }
         return "TABS";
     }
@@ -88,7 +88,9 @@ public sealed partial class ReflectionMapper
                     ConsumedRoute = "_empty",
                 }));
         }
-        var variant = !string.IsNullOrWhiteSpace(shell?.Variant) ? shell!.Variant! : VariantOf(app, items);
+        var variant = !string.IsNullOrWhiteSpace(shell?.Variant)
+            ? AppVariant.ToWire(shell!.Variant!)
+            : VariantOf(app, items);
 
         // The mount base path — the app class's [UI] route. Java's route registry prefixes every
         // menu leaf with the mount (a leaf "/a" under mount "/conformance/app-in-code" resolves to

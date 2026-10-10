@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 from enum import Enum
 from typing import Callable
@@ -275,9 +276,36 @@ def title_placeholder(value: str) -> Callable[[type], type]:
     return deco
 
 
+class AppVariant(str, Enum):
+    """The navigation chrome of an ``@app`` — the Python mirror of Java's ``AppVariant`` enum. A
+    ``str`` enum, so a plain string still works wherever a variant is expected. ``AUTO`` ("") lets
+    Mateu pick from the menu shape."""
+
+    AUTO = ""
+    HAMBURGER_MENU = "HAMBURGER_MENU"
+    HAMBURGER_SECTIONS = "HAMBURGER_SECTIONS"
+    MENU_ON_LEFT = "MENU_ON_LEFT"
+    MENU_ON_TOP = "MENU_ON_TOP"
+    TABS = "TABS"
+    TILES = "TILES"
+    RAIL = "RAIL"
+
+    @staticmethod
+    def to_wire(variant: str) -> str:
+        """The value a variant travels under on the wire: ``HAMBURGER_MENU`` goes as the historical
+        ``HAMBURGUER_MENU`` — the name every renderer reads (they accept both), as Java's AppMapper
+        does; anything else travels unchanged."""
+        value = variant.value if isinstance(variant, AppVariant) else variant
+        return "HAMBURGUER_MENU" if value == AppVariant.HAMBURGER_MENU.value else value
+
+
+#: The misspelled variant still accepted by ``@app(variant=...)`` (with a DeprecationWarning).
+_DEPRECATED_VARIANTS = {"HAMBURGUER_MENU": AppVariant.HAMBURGER_MENU}
+
+
 def app(
     title_: str,
-    variant: str = "",
+    variant: str | AppVariant = "",
     command_center: bool = False,
     chromeless: bool = False,
     access_keys: bool = False,
@@ -285,9 +313,10 @@ def app(
     route: str = "",
 ) -> Callable[[type], type]:
     """Application shell. ``variant`` = "" for auto (Java's @App(AUTO) decision table: grouped
-    menu → MENU_ON_TOP, more than 7 top-level entries → HAMBURGUER_MENU, flat leaf menu → TABS),
-    or an explicit TABS | MENU_ON_TOP | MENU_ON_LEFT | HAMBURGUER_MENU | TILES, which always
-    wins.
+    menu → MENU_ON_TOP, more than 7 top-level entries → HAMBURGER_MENU, flat leaf menu → TABS),
+    or an explicit :class:`AppVariant` (TABS | MENU_ON_TOP | MENU_ON_LEFT | HAMBURGER_MENU |
+    HAMBURGER_SECTIONS | TILES | RAIL), which always wins. The old misspelling
+    ``"HAMBURGUER_MENU"`` still works but is deprecated (it warns).
 
     ``command_center=True`` shows the always-present command-center FAB (the Ask-Oracle pattern):
     a floating button opening a full-screen palette that unifies navigation, global entity search
@@ -304,9 +333,19 @@ def app(
     ride, sorted+deduped with the derived ones, on ``AppMetadata.requiredCapabilities`` — the
     Python mirror of Java's ``@App(requires = {...})``."""
 
+    raw = variant.value if isinstance(variant, AppVariant) else variant
+    if raw in _DEPRECATED_VARIANTS:
+        warnings.warn(
+            f'@app(variant="{raw}") is deprecated: use AppVariant.{_DEPRECATED_VARIANTS[raw].name} '
+            "instead (the old misspelling still renders the same).",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        raw = _DEPRECATED_VARIANTS[raw].value
+
     def deco(cls: type) -> type:
         setattr(cls, "__mateu_app__", title_)
-        setattr(cls, "__mateu_app_variant__", variant)
+        setattr(cls, "__mateu_app_variant__", raw)
         setattr(cls, "__mateu_app_command_center__", command_center)
         setattr(cls, "__mateu_app_chromeless__", chromeless)
         setattr(cls, "__mateu_app_access_keys__", access_keys)

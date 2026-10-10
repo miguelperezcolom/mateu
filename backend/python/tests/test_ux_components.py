@@ -8,6 +8,8 @@ from datetime import date
 from pathlib import Path
 from typing import Annotated
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
@@ -1013,6 +1015,7 @@ def test_aside_field_wraps_the_form_in_a_content_layout():
     assert any(s and s.startswith("aside-") for s in slots)
 
 
+@pytest.mark.filterwarnings("ignore:ContentLayout is deprecated:DeprecationWarning")
 def test_component_tree_supplier_emits_content_layout():
     doc = render(ProductContent)
     (content,) = page_children(doc)

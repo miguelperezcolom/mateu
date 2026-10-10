@@ -47,7 +47,7 @@ class AppMetadataExtractor {
     boolean hasMenuItems = menu.stream().anyMatch(a -> a instanceof Menu);
     if (hasMenuItems) {
       if (hasDeepMenu(menu)) return AppVariant.TILES;
-      if (menu.size() > 7) return AppVariant.HAMBURGUER_MENU;
+      if (menu.size() > 7) return AppVariant.HAMBURGER_MENU;
       return AppVariant.MENU_ON_TOP;
     }
     return AppVariant.TABS;

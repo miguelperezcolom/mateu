@@ -51,8 +51,9 @@ public record AppShell(
 
 ## AppVariant values
 
-`HAMBURGUER_MENU`, `MENU_ON_LEFT`, `MENU_ON_TOP`, `TABS`, `TILES`, `RAIL`, `AUTO`, `MEDIATOR` — see
-[`@App`](/java-ui-definition/annotations/app/) for what each one draws.
+`HAMBURGER_MENU`, `MENU_ON_LEFT`, `MENU_ON_TOP`, `TABS`, `TILES`, `RAIL`, `AUTO`, `MEDIATOR` — see
+[`@App`](/java-ui-definition/annotations/app/) for what each one draws. `HAMBURGUER_MENU` (the
+old misspelling of `HAMBURGER_MENU`) is deprecated but still accepted, in Java and in YAML.
 
 ## Basic usage
 

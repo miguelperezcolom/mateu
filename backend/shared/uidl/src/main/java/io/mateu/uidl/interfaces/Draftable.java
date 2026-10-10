@@ -1,5 +1,7 @@
 package io.mateu.uidl.interfaces;
 
+import io.mateu.uidl.annotations.Experimental;
+
 /**
  * A wizard that can be saved half-way and resumed later (the Redwood guided-process {@code
  * saveDraft}/{@code saveAndClose}/{@code resumeStepId} trio). Implementing it adds a "Save" and a
@@ -15,6 +17,7 @@ package io.mateu.uidl.interfaces;
  *       the user left — or null to start at the beginning.
  * </ul>
  */
+@Experimental("wizard drafts (3.0-alpha.409)")
 public interface Draftable {
 
   Object saveDraft(HttpRequest httpRequest);
