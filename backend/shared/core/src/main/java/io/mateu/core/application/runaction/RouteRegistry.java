@@ -39,7 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Named
 @Singleton
-public class RouteRegistry {
+public class RouteRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
   /**
    * The conventional route file of the implicit root mount, used when no {@code type: UI} exists.
@@ -53,6 +53,19 @@ public class RouteRegistry {
   private volatile RouteTable authored;
   private volatile List<Mount> mounts;
   private volatile Map<String, String> homes;
+
+  public RouteRegistry() {
+    io.mateu.core.infra.dev.DevSpecs.register(this);
+  }
+
+  /** Dev mode: a spec changed — the tables are read again on next use. */
+  @Override
+  public synchronized void invalidateSpecs() {
+    table = null;
+    authored = null;
+    mounts = null;
+    homes = null;
+  }
 
   /** Mount homes already warned about (descriptor#home), so a bad home is logged once per JVM. */
   private static final Set<String> WARNED_HOMES =
@@ -658,7 +671,9 @@ public class RouteRegistry {
 
   /** Reads a route file (a {@code routes:} envelope or a bare list) into relative-route entries. */
   private List<RouteEntry> readRouteEntries(ClassLoader classLoader, String resourcePath) {
-    try (InputStream is = classLoader.getResourceAsStream(resourcePath)) {
+    try (InputStream is =
+        io.mateu.core.infra.dev.DevSpecs.classLoader(classLoader)
+            .getResourceAsStream(resourcePath)) {
       if (is == null) {
         return List.of();
       }

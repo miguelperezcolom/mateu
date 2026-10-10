@@ -52,6 +52,14 @@ public class MateuQuarkusRoutes {
   @ConfigProperty(name = McpEndpoint.ENABLED_PROPERTY, defaultValue = "false")
   boolean mcpEnabled;
 
+  @ConfigProperty(
+      name = io.mateu.core.infra.dev.DevEndpoint.ENABLED_PROPERTY,
+      defaultValue = "false")
+  boolean devEnabled;
+
+  @ConfigProperty(name = io.mateu.core.infra.dev.DevEndpoint.SPECS_DIR_PROPERTY)
+  Optional<String> devSpecsDir;
+
   @ConfigProperty(name = ClientErrorLog.ENABLED_PROPERTY, defaultValue = "true")
   boolean clientLogEnabled;
 
@@ -66,6 +74,9 @@ public class MateuQuarkusRoutes {
     clientLog(router);
     if (mcpEnabled) {
       mcp(router);
+    }
+    if (devEnabled) {
+      dev(router);
     }
     yamlMounts(router);
   }
@@ -166,6 +177,43 @@ public class MateuQuarkusRoutes {
                 rc.fail(e);
               }
             });
+  }
+
+  /** Live reload ({@code mateu.dev=true} only): the dev event stream and the reload trigger. */
+  private void dev(Router router) {
+    io.mateu.core.infra.dev.DevEndpoint.enable(devSpecsDir.orElse(null));
+    router
+        .get(io.mateu.core.infra.dev.DevEndpoint.EVENTS_PATH)
+        .order(EARLY + 3)
+        .handler(
+            rc -> {
+              var response = rc.response();
+              response
+                  .setChunked(true)
+                  .putHeader("Content-Type", "text/event-stream")
+                  .putHeader("Cache-Control", "no-cache");
+              var context = rc.vertx().getOrCreateContext();
+              var subscription =
+                  io.mateu.core.infra.dev.DevEndpoint.events()
+                      .subscribe(
+                          json ->
+                              context.runOnContext(
+                                  v -> {
+                                    if (!response.closed()) {
+                                      response.write(io.mateu.core.infra.dev.DevEndpoint.sse(json));
+                                    }
+                                  }));
+              response.closeHandler(v -> subscription.dispose());
+            });
+    router
+        .post(io.mateu.core.infra.dev.DevEndpoint.RELOAD_PATH)
+        .order(EARLY + 3)
+        .handler(
+            rc ->
+                rc.response()
+                    .setStatusCode(
+                        io.mateu.core.infra.dev.DevEndpoint.reload(rc.request().getParam("scope")))
+                    .end());
   }
 
   private void yamlMounts(Router router) {

@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Named
 @Singleton
-public class YamlAppLoader {
+public class YamlAppLoader implements io.mateu.core.infra.dev.SpecsCache {
 
   private final ObjectMapper mapper = YamlUidlMapperFactory.create();
 
@@ -52,6 +52,17 @@ public class YamlAppLoader {
   private final ConcurrentHashMap<String, AppShell> byPath = new ConcurrentHashMap<>();
   // Definitions that declare their own `homeRoute:` — a mount's `home:` never overrides those.
   private final java.util.Set<String> declaresHomeRoute = ConcurrentHashMap.newKeySet();
+
+  public YamlAppLoader() {
+    io.mateu.core.infra.dev.DevSpecs.register(this);
+  }
+
+  /** Dev mode: a spec changed — every app shell is read again on next use. */
+  @Override
+  public void invalidateSpecs() {
+    byPath.clear();
+    declaresHomeRoute.clear();
+  }
 
   /**
    * The {@link AppShell} declared by the definition file at {@code definitionPath}, or {@code null}
@@ -233,10 +244,15 @@ public class YamlAppLoader {
   }
 
   private InputStream resolve(String path) {
-    var cl = Thread.currentThread().getContextClassLoader();
-    var resource = cl != null ? cl.getResourceAsStream(path) : null;
+    var context = Thread.currentThread().getContextClassLoader();
+    var resource =
+        context != null
+            ? io.mateu.core.infra.dev.DevSpecs.classLoader(context).getResourceAsStream(path)
+            : null;
     if (resource == null) {
-      resource = YamlAppLoader.class.getClassLoader().getResourceAsStream(path);
+      resource =
+          io.mateu.core.infra.dev.DevSpecs.classLoader(YamlAppLoader.class.getClassLoader())
+              .getResourceAsStream(path);
     }
     return resource;
   }

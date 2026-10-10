@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Named
 @Singleton
-public class WireTypePolicy {
+public class WireTypePolicy implements io.mateu.core.infra.dev.SpecsCache {
 
   private final BeanProvider beanProvider;
   private final RouteRegistry routeRegistry;
@@ -58,6 +58,14 @@ public class WireTypePolicy {
     this.beanProvider = beanProvider;
     this.routeRegistry = routeRegistry;
     this.yamlUidlLoader = yamlUidlLoader;
+    io.mateu.core.infra.dev.DevSpecs.register(this);
+  }
+
+  /** Dev mode: a spec changed — the authored view models may be different ones now. */
+  @Override
+  public void invalidateSpecs() {
+    registered = null;
+    reachable = null;
   }
 
   /**
