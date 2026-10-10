@@ -24,10 +24,17 @@ object MateuVisualEditorServer {
     private var server: HttpServer? = null
     private var startedFor: String? = null
     private var port: Int = -1
+
+    /** Credentials the proxy adds to every backend call (the web app never sees the token). */
+    @Volatile private var tokens: io.mateu.ijp.api.TokenProvider = io.mateu.ijp.api.TokenProvider.NONE
     private val http: HttpClient = HttpClient.newBuilder().build()
 
     @Synchronized
-    fun ensureStarted(backendBaseUrl: String): Int {
+    fun ensureStarted(
+        backendBaseUrl: String,
+        tokens: io.mateu.ijp.api.TokenProvider = io.mateu.ijp.api.TokenProvider.NONE,
+    ): Int {
+        this.tokens = tokens
         if (server != null && startedFor == backendBaseUrl) return port
         server?.stop(0)
         val s = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
@@ -89,6 +96,7 @@ object MateuVisualEditorServer {
             builder.method(ex.requestMethod, publisher)
             ex.requestHeaders["Content-Type"]?.firstOrNull()?.let { builder.header("Content-Type", it) }
             ex.requestHeaders["Accept"]?.firstOrNull()?.let { builder.header("Accept", it) }
+            io.mateu.ijp.api.bearer(tokens.accessToken())?.let { builder.header("Authorization", it) }
             val resp = http.send(builder.build(), HttpResponse.BodyHandlers.ofByteArray())
             resp.headers().firstValue("content-type").ifPresent { ex.responseHeaders.add("Content-Type", it) }
             val out = resp.body()

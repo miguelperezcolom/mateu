@@ -39,6 +39,48 @@ text editor stays the default).
 Configure the backend via the `mateu.baseUrl` setting (default `http://localhost:8594`). Any running
 Mateu backend works — it exposes the reserved `__preview__` / `__contract__` actions.
 
+## Schema validation
+
+The extension contributes the Mateu `specs/ui` authoring schema through `yamlValidation`
+(`**/specs/ui/**/*.yaml|yml`), so with the [Red Hat YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)
+extension installed every page, `routes.yaml` and `sources.yaml` gets completion and validation. The
+schema is bundled at packaging time from the generated `backend/shared/uidl/specs-schema.json`. Without
+the packaged copy (e.g. running from source before `npm run stage`), point a `$schema:` line or the
+`yaml.schemas` setting at
+`https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json`.
+
+The extension activates only in workspaces containing `specs/ui/**/*.yaml|yml` files, or when the
+Mateu visual editor is opened.
+
+## New file (Mateu: New File…)
+
+Right-click a folder in the Explorer (or run **Mateu: New File…** from the command palette) to create
+a `specs/ui` file: a **UI mount** (`type: UI`), a **routes file** (`type: Routes`), an **app shell**
+(`type: AppShell`), a **REST source catalogue** (`type: Sources`) or a **page** — for a page, pick
+its template (form, listing/CRUD, wizard step, dashboard, smart search, to-do list, calendar, welcome,
+hero search, collection detail, general overview, item overview, foldout, Gantt page, data
+management, matrix grid, planning board, blank) and its page width. The file goes into the clicked
+folder when it is inside `specs/ui`, else into the nearest `specs/ui` (or a new
+`src/main/resources/specs/ui`).
+
+The catalogue and skeletons are the IntelliJ plugin's (`intellij-plugin/src/main/resources/mateu/
+new-file-kinds.json` + `fileTemplates/internal/*.yaml.ft`), staged into `templates/` at packaging;
+running from source reads them from the plugin directly. The IntelliJ test validates every skeleton
+against the specs schema; `src/newFiles.test.ts` pins the shared rendering rules here.
+
+## Packaging & tests
+
+```bash
+npm ci
+npm run compile
+npm test            # vitest, headless — no VS Code instance needed
+npm run package     # = vsce package; stages LICENSE, schema/ and media/ via scripts/prepackage.mjs
+```
+
+`media/` is built from the web workspace when it is installed; otherwise the bundle committed in the
+IntelliJ plugin (`src/main/resources/visual-editor`, the same `dist/`) is used, so packaging works from
+a clean checkout with no prompts.
+
 ## Status
 
 First cut: renders + selects + edits + palette drag (pointer-based, shared with the JCEF host) + saves

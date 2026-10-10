@@ -372,6 +372,7 @@ export default defineConfig({
 					items: [
 						{ slug: 'native', label: 'Desktop & Mobile' },
 						{ slug: 'native/react-native', label: 'React Native (iOS & Android)' },
+						{ slug: 'native/ide-tooling', label: 'IDE tooling (IntelliJ & VS Code)' },
 					],
 				},
 				{

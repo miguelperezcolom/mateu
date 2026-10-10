@@ -1,0 +1,22 @@
+# REST source catalogue: each endpoint named ONCE and referenced by name from the pages
+# (`rowsSource: {ref: orders}`, `optionsSource: {ref: countries}`, …). Names are global.
+# `provenance`: generate (we serve it), existing (somebody else's API) or auto (inferred).
+type: Sources
+sources:
+  - name: orders
+    description: The orders a listing shows
+    provenance: generate
+    source:
+      url: /api/orders
+      itemsPath: content
+    totalPath: totalElements
+    fields:
+      customerName: customer.name
+
+  - name: countries
+    description: ISO country codes, for select options
+    provenance: existing
+    source:
+      url: https://restcountries.com/v3.1/all?fields=cca2,name
+      valuePath: cca2
+      labelPath: name.common

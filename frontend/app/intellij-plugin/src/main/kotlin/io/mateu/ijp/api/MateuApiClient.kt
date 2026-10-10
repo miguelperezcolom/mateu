@@ -15,12 +15,18 @@ import java.time.Duration
  *
  * Wire contract: `POST {baseUrl}/mateu/v3/sync/{route|_no_route}` with a JSON body of
  * `{route, consumedRoute, actionId, serverSideType, initiatorComponentId, componentState, appState,
- * parameters}` and header `X-Session-Id`.
+ * parameters}` and header `X-Session-Id` (+ `Authorization: Bearer …` when [tokenProvider] has a token).
+ *
+ * A 401 is answered ONCE: first the [tokenProvider] (refresh / sign in), then the legacy
+ * [SessionGuard] hook; when either produces new credentials the request is REBUILT (so it carries the
+ * new token) and retried a single time.
  */
 class MateuApiClient(
     private val baseUrl: String,
     private val sessionId: String,
     private val mapper: ObjectMapper = ObjectMapper(),
+    /** Credentials: a Bearer token is sent on every Mateu call when the provider has one. */
+    var tokenProvider: TokenProvider = TokenProvider.NONE,
 ) {
     private val http: HttpClient = HttpClient.newBuilder()
         .connectTimeout(Duration.ofSeconds(30))
@@ -58,26 +64,32 @@ class MateuApiClient(
 
         val json = mapper.writeValueAsString(body)
         val url = "$baseUrl/mateu/v3/sync/$urlSegment"
-        println("[Mateu] --> POST $url")
-        println("[Mateu]     body: $json")
+        log("[Mateu] --> POST $url")
+        log("[Mateu]     body: $json")
 
-        val request = HttpRequest.newBuilder()
-            .uri(URI.create(url))
-            .timeout(Duration.ofSeconds(60))
-            .header("Content-Type", "application/json")
-            .header("Accept", "application/json")
-            .header("X-Session-Id", sessionId)
-            .POST(HttpRequest.BodyPublishers.ofString(json))
-            .build()
-
-        var response = http.send(request, HttpResponse.BodyHandlers.ofString())
-        // Session expiry: a 401 gives the plugin one chance to re-authenticate, then we retry once.
-        if (response.statusCode() == 401 && SessionGuard.handleSessionExpired()) {
-            response = http.send(request, HttpResponse.BodyHandlers.ofString())
+        fun request(token: String?): HttpRequest {
+            val b = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .timeout(Duration.ofSeconds(60))
+                .header("Content-Type", "application/json")
+                .header("Accept", "application/json")
+                .header("X-Session-Id", sessionId)
+            bearer(token)?.let { b.header("Authorization", it) }
+            return b.POST(HttpRequest.BodyPublishers.ofString(json)).build()
         }
+
+        val token = tokenProvider.accessToken()
+        var response = http.send(request(token), HttpResponse.BodyHandlers.ofString())
+        // Session expiry / missing credentials: one chance to re-authenticate, then retry once.
+        if (response.statusCode() == 401 &&
+            (tokenProvider.onUnauthorized(token) || SessionGuard.handleSessionExpired())
+        ) {
+            response = http.send(request(tokenProvider.accessToken()), HttpResponse.BodyHandlers.ofString())
+        }
+        if (response.statusCode() == 401) throw UnauthorizedException(url)
         val responseBody = response.body()
-        println("[Mateu] <-- ${response.statusCode()}")
-        println(
+        log("[Mateu] <-- ${response.statusCode()}")
+        log(
             "[Mateu]     response (first 3000 chars): " +
                 if (responseBody.length > 3000) responseBody.substring(0, 3000) + "..." else responseBody,
         )
@@ -107,9 +119,23 @@ class MateuApiClient(
         return mapper.readTree(response.body())
     }
 
+    private fun log(line: String) {
+        if (VERBOSE) println(line)
+    }
+
     fun initialLoad(route: String?, appState: Map<String, Any?>): JsonNode =
         runAction(route, "_empty", "", null, "ux_main", emptyMap(), appState, emptyMap())
 
     fun navigate(route: String?, consumedRoute: String?, serverSideType: String?, appState: Map<String, Any?>): JsonNode =
         runAction(route, consumedRoute ?: "_empty", "", serverSideType, "ux_main", emptyMap(), appState, emptyMap())
+
+    companion object {
+        /** Wire logging to stdout (the bodies can carry personal data and tokens' effects): opt-in
+         *  with `-Dmateu.debug=true`. */
+        val VERBOSE: Boolean = System.getProperty("mateu.debug").toBoolean()
+    }
 }
+
+/** The backend kept answering 401 after the one re-authentication attempt. */
+class UnauthorizedException(url: String) :
+    RuntimeException("Not authorized by the Mateu backend ($url). Sign in from Settings | Tools | Mateu.")

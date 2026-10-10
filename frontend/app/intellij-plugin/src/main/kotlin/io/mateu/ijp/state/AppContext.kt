@@ -1013,7 +1013,18 @@ class AppContext(val session: AppSession) {
      * side of the IDE window (the desktop stand-in for the web's slide-in panel). Esc or the window
      * close button dismiss without saving; the server closes it with `UICommand.closeModal(...)`.
      */
-    private fun openOverlay(component: JsonNode, state: JsonNode, data: JsonNode) {
+    /** Overlays opened from an inline Dialog/Drawer node, by id, so a re-render doesn't stack copies. */
+    private val inlineOverlaysOpen = HashSet<String>()
+
+    /** A Dialog/Drawer met inside a component tree (not an Add fragment): open it unless already open. */
+    fun openOverlayOnce(component: JsonNode, state: JsonNode, data: JsonNode) {
+        val key = component.text("id").ifBlank { component.path("metadata").text("id") }
+            .ifBlank { component.path("metadata").text("headerTitle") }
+        if (key.isNotBlank() && !inlineOverlaysOpen.add(key)) return
+        openOverlay(component, state, data) { if (key.isNotBlank()) inlineOverlaysOpen.remove(key) }
+    }
+
+    private fun openOverlay(component: JsonNode, state: JsonNode, data: JsonNode, onClosed: () -> Unit = {}) {
         val meta = component.path("metadata")
         val child = AppContext(session)
         child.titleConsumer = {}
@@ -1045,6 +1056,7 @@ class AppContext(val session: AppSession) {
         dialog.addWindowListener(object : java.awt.event.WindowAdapter() {
             override fun windowClosed(e: java.awt.event.WindowEvent) {
                 session.removeOverlay(close)
+                onClosed()
             }
         })
         dialog.rootPane.registerKeyboardAction(

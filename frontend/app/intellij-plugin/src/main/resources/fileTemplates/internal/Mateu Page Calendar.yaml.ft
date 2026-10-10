@@ -1,0 +1,18 @@
+# Calendar: toolbar over a month grid. Events with an actionId are clickable.
+type: VerticalLayout
+__PAGE_WIDTH__
+content:
+  - {type: Text, text: __TITLE__, container: h2}
+  - type: HorizontalLayout
+    content:
+      - {type: Button, label: "‹", actionId: previousMonth, buttonStyle: tertiary}
+      - {type: Button, label: Today, actionId: today, buttonStyle: secondary}
+      - {type: Button, label: "›", actionId: nextMonth, buttonStyle: tertiary}
+      - {type: Button, label: + Create, actionId: create, buttonStyle: primary}
+  - type: Calendar
+    month: "2026-01-01"
+    view: month
+    views: [month, week, day, list]
+    events:
+      - {id: e1, title: Team meeting, date: "2026-01-12", startTime: "10:00", endTime: "11:00", actionId: openCalendarEvent}
+      - {id: e2, title: Release, date: "2026-01-20", color: "#2e7d32", actionId: openCalendarEvent}

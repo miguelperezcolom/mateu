@@ -1,0 +1,25 @@
+# General overview: a record switcher on top and the selected record's overview below.
+type: VerticalLayout
+__PAGE_WIDTH__
+content:
+  - type: FormField
+    id: record
+    label: Record
+    dataType: string
+    stereotype: select
+    options:
+      - {value: "1", label: ACME Corp}
+      - {value: "2", label: Globex}
+  - type: EntityHeader
+    title: __TITLE__
+    subtitle: Customer since 2019
+    badges: [{label: Active, color: success}]
+    facts:
+      - {label: Owner, value: Ana García}
+      - {label: Segment, value: Enterprise}
+    metricLabel: Lifetime value
+    metricValue: "€ 1.2M"
+  - type: HorizontalLayout
+    content:
+      - {type: Card, title: {type: Text, text: Contact}, content: {type: Text, text: Contact details}}
+      - {type: Card, title: {type: Text, text: Billing}, content: {type: Text, text: Billing details}}

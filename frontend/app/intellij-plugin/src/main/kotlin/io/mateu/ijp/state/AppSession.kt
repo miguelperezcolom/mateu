@@ -16,10 +16,11 @@ import javax.swing.SwingUtilities
 class AppSession(
     val baseUrl: String,
     config: Map<String, Any?> = emptyMap(),
+    tokenProvider: io.mateu.ijp.api.TokenProvider = io.mateu.ijp.api.TokenProvider.NONE,
 ) {
     val mapper: ObjectMapper = ObjectMapper()
     val sessionId: String = UUID.randomUUID().toString().replace("-", "")
-    val apiClient: MateuApiClient = MateuApiClient(baseUrl, sessionId, mapper)
+    val apiClient: MateuApiClient = MateuApiClient(baseUrl, sessionId, mapper, tokenProvider)
 
     /** Control/context data echoed back on every request; seeded from the launch config. */
     val appState: MutableMap<String, Any?> = HashMap(config)

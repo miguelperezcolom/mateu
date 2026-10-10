@@ -1,0 +1,11 @@
+# Only ship what the extension runs: out/ (compiled JS), media/ (web bundle), schema/, images/,
+# LICENSE, README, CHANGELOG and the production node_modules vsce adds itself.
+src/**
+scripts/**
+**/*.ts
+**/*.map
+**/*.test.*
+tsconfig.json
+vitest.config.*
+.gitignore
+*.vsix

@@ -27,7 +27,7 @@ fun main() {
     val jsonPath = System.getProperty("probe.json") ?: error("-Dprobe.json=<increment.json> required")
     val pngPath = System.getProperty("probe.png") ?: "$jsonPath.png"
 
-    val session = AppSession(System.getProperty("probe.baseUrl") ?: "http://localhost:8592")
+    val session = AppSession(System.getProperty("probe.baseUrl") ?: io.mateu.ijp.plugin.DEFAULT_BASE_URL)
     val ctx = AppContext(session)
     val panel = ctx.newSlot()
     ctx.contentPane = panel

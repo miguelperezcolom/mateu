@@ -516,6 +516,43 @@ native renderer — 88 rendered, 11 layout containers, 6 parts of another compon
 | `Tab` | ✅ part | of TabLayout |
 <!-- rn-coverage:end -->
 
+### IntelliJ plugin component coverage
+
+The IntelliJ plugin has a case for **every** wire component type in `ComponentMetadataDto` (115 as
+of 2026-10-10). This is enforced, not just claimed: `WireTypeParityTest` reads the backend's
+`@JsonSubTypes` list and fails the plugin build when a type has no branch in
+`ui/ComponentRenderer.kt`, and `WireTypeRenderTest` renders each of them headlessly and checks for
+exceptions, the "Unsupported component" fallback and accessible names on every control. The types
+below were the last to arrive, so this is how each one maps to Swing:
+
+| Wire type | IntelliJ rendering |
+|---|---|
+| `Grid` / `GridColumn` | `JBTable` over the page rows (read-only); a stray column shows its header |
+| `VirtualList` | `JBList`, one line per row |
+| `MasterDetailLayout` | `Splitter` (master / detail) |
+| `CarouselLayout` | one slide at a time, ‹ › buttons and `n / total` |
+| `BoardLayout` / `BoardLayoutRow` / `BoardLayoutItem` | rows stacked, equal-width columns |
+| `ContentLayout` | `main-*` centre, `aside-*` start/end column (`asideWidth`), `footer-*` below |
+| `ResponsiveGrid` | grid with the column count of `gridTemplateColumns` |
+| `FormItem`, `Tab`, `AccordionPanel`, `Stepper` met outside their container | a row / titled group / stack of their children |
+| `Breadcrumbs` / `Breadcrumb` | link trail, current item in bold |
+| `MenuBar` | row of buttons; groups open a popup menu (submenus nest) |
+| `ContextMenu` | the wrapped component with a popup (right click, or left click when asked) |
+| `Directory` | sitemap of links under group headings |
+| `Avatar` / `AvatarGroup` | round initials badge (name as tooltip and accessible name); `+N` overflow |
+| `Icon` | the platform icon for known names, else the name |
+| `Details` | disclosure toggle (▸/▾) over its content |
+| `Tooltip` | tooltip + accessible description on the wrapped component |
+| `Notification`, `Result`, `NotFound` | inline strip / outcome page with links / not-found page with a way back |
+| `CookieConsent` | dismissible strip (the IDE has no cookies; dismissal lasts the session) |
+| `Element` | the element as HTML text; an `on.click` runs its action |
+| `Bpmn` | the process as an ordered list of its named flow nodes (start → tasks → end) |
+| `Workflow`, `FormEditor` | their value, read-only and monospaced |
+| `Chat`, `MessageList`, `MessageInput` | inline assistant (mateu-chat SSE, with the project's token), message list, input + Send (`{message}`) |
+| `Dialog`, `Drawer` met inline | opened as the usual overlay window, once per id |
+| `ConfirmDialog` | modal confirm / reject / cancel when `openedCondition` holds |
+| `MicroFrontend` | an embedded island with its own context; another origin gets its own session **without** the project's token |
+
 Since 2026-07-12 (DS-native rule) the non-Vaadin web renderers render crud layouts
 (table/list/cards/masterDetail/tree), toolbar buttons and grid-stereotype form fields with their
 OWN design-system components, and since 2026-07-16 the shells render the app header actions
@@ -535,10 +572,11 @@ Redwood/VB line.**
 `frontend/app/vscode-extension` is **not** a renderer: it hosts the visual editor (the same web
 bundle the IntelliJ JCEF host runs), so it belongs with the tooling, not in this table.
 
-**Tooling (preview, not part of the supported matrix).** The visual editor (`apps/visual-editor`)
-and its VS Code host (`frontend/app/vscode-extension`) are authoring tooling shipped as *preview* —
-they consume the wire like any renderer but are not covered by the GA support promise above. The
-Figma design-to-code pipeline is preview for the same reason.
+**Authoring tooling.** The IntelliJ plugin (renderer, visual editor, specs/ui schema validation,
+binding checks, **New | Mateu** file templates, per-project settings with bearer/OIDC
+authentication) and the VS Code extension (the same visual editor bundle, `yamlValidation` for
+`specs/ui/**`, **Mateu: New File…** with the same skeletons) are supported tooling. The Figma
+design-to-code pipeline remains *preview*: it is not covered by the support promise above.
 
 **Fetch-plan edges (known renderer gaps).** The client-side fetch plan (`optionsSource`,
 `rowsSource`, `restAction`, `restData` — see [the renderer contract](/design-systems/renderer-contract/))

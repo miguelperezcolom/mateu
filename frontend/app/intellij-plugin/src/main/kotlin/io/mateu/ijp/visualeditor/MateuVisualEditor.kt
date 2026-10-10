@@ -57,7 +57,10 @@ class MateuVisualEditor(
         val q = query
         if (b != null && q != null) {
             q.addHandler { request -> onWebMessage(request); null }
-            val port = MateuVisualEditorServer.ensureStarted(loadMateuConfig().baseUrl)
+            val port = MateuVisualEditorServer.ensureStarted(
+                loadMateuConfig(project).baseUrl,
+                io.mateu.ijp.auth.MateuAuthService.getInstance(project),
+            )
             b.jbCefClient.addLoadHandler(object : CefLoadHandlerAdapter() {
                 override fun onLoadEnd(cef: CefBrowser?, frame: CefFrame?, httpStatusCode: Int) {
                     if (frame?.isMain == true) installBridge()

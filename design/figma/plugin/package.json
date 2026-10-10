@@ -5,7 +5,8 @@
   "description": "Figma plugin that generates the Mateu component library (vaadin/Lumo flavor) from ../contract.json — the design-to-code contract consumed by modux's Figma importer.",
   "scripts": {
     "build": "esbuild src/code.ts --bundle --target=es2017 --outfile=dist/code.js",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/sketch-kinds.test.mjs"
   },
   "devDependencies": {
     "@figma/plugin-typings": "^1.100.0",
