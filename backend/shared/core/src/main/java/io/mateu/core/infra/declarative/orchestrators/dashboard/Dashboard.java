@@ -1,5 +1,6 @@
 package io.mateu.core.infra.declarative.orchestrators.dashboard;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.annotations.Panel;
 import io.mateu.uidl.data.DashboardPanel;
 import io.mateu.uidl.data.MetricCard;
@@ -34,6 +35,7 @@ public abstract class Dashboard implements ComponentTreeSupplier {
    * Whether the viewer may drag the tiles into their own order (OPERA's dashboard). The order is
    * kept per viewer by the renderer; the field order stays the default. Default: false.
    */
+  @Experimental("reorderable dashboards (3.0-alpha.409)")
   protected boolean reorderable() {
     return false;
   }

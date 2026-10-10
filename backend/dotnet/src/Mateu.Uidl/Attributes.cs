@@ -274,8 +274,10 @@ public sealed class AppAttribute(string title) : Attribute
     public string Route { get; set; } = "";
 
     /// <summary>Navigation chrome: "" = auto (Java's @App(AUTO) decision table: grouped menu →
-    /// MENU_ON_TOP, more than 7 top-level entries → HAMBURGUER_MENU, flat leaf menu → TABS), or an
-    /// explicit TABS | MENU_ON_TOP | MENU_ON_LEFT | HAMBURGUER_MENU | TILES, which always wins.</summary>
+    /// MENU_ON_TOP, more than 7 top-level entries → HAMBURGER_MENU, flat leaf menu → TABS), or an
+    /// explicit value, which always wins — use the <see cref="AppVariant"/> constants
+    /// (TABS | MENU_ON_TOP | MENU_ON_LEFT | HAMBURGER_MENU | HAMBURGER_SECTIONS | TILES | RAIL).
+    /// The old misspelling "HAMBURGUER_MENU" is still accepted.</summary>
     public string Variant { get; set; } = "";
 
     /// <summary>Show the always-present "command center" FAB (the Ask-Oracle pattern): a floating

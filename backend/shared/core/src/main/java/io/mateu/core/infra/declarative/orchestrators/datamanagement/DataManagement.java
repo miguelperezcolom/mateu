@@ -2,6 +2,7 @@ package io.mateu.core.infra.declarative.orchestrators.datamanagement;
 
 import io.mateu.core.domain.out.componentmapper.ReflectionPageMapper;
 import io.mateu.uidl.annotations.Action;
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.annotations.PageWidthStyle;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.data.ButtonStyle;
@@ -46,6 +47,7 @@ public abstract class DataManagement implements ComponentTreeSupplier, PageWidth
    * details or properties pane beside the grid/gantt, which shrinks to make room (it reflows, it
    * does not overlay). The page adds a toggle for it to its toolbar. Null (the default) = none.
    */
+  @Experimental("docked panels (3.0-alpha.409)")
   protected DockedPanel endPanel(HttpRequest httpRequest) {
     return null;
   }
@@ -55,6 +57,7 @@ public abstract class DataManagement implements ComponentTreeSupplier, PageWidth
    * messages, log or totals strip. Toggled from the toolbar like {@link #endPanel}. Null (the
    * default) = none.
    */
+  @Experimental("docked panels (3.0-alpha.409)")
   protected DockedPanel bottomPanel(HttpRequest httpRequest) {
     return null;
   }
@@ -216,6 +219,7 @@ public abstract class DataManagement implements ComponentTreeSupplier, PageWidth
   }
 
   @Action
+  @Experimental("docked panels (3.0-alpha.409)")
   public Object toggleEndPanel(HttpRequest httpRequest) {
     var end = endPanel(httpRequest);
     boolean open = end != null && (_endOpen != null ? _endOpen : end.open());
@@ -224,6 +228,7 @@ public abstract class DataManagement implements ComponentTreeSupplier, PageWidth
   }
 
   @Action
+  @Experimental("docked panels (3.0-alpha.409)")
   public Object toggleBottomPanel(HttpRequest httpRequest) {
     var bottom = bottomPanel(httpRequest);
     boolean open = bottom != null && (_bottomOpen != null ? _bottomOpen : bottom.open());

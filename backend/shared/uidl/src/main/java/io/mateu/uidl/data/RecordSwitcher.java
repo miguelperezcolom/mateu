@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import java.util.List;
 import lombok.Builder;
 
@@ -18,6 +19,7 @@ import lombok.Builder;
  * @param disabled shown, but read-only
  */
 @Builder
+@Experimental("record switcher (3.0-alpha.409)")
 public record RecordSwitcher(
     List<Option> options,
     String value,

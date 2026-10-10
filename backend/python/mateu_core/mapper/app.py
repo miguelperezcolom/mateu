@@ -21,6 +21,7 @@ from mateu_dtos import (
 )
 from mateu_uidl import (
     AppActionsSupplier,
+    AppVariant,
     AppSupplier,
     GlobalSearchSupplier,
     MenuSupplier,
@@ -100,7 +101,11 @@ class AppMapperMixin(MixinBase):
                     label=self.T(label), route=route, server_side_type="",
                     consumed_route="_empty", remote=True, base_url=base_url, explode=explode,
                 ))
-        variant = shell.variant if (shell and shell.variant) else self.variant_of(cls, items)
+        variant = (
+            AppVariant.to_wire(shell.variant)
+            if (shell and shell.variant)
+            else self.variant_of(cls, items)
+        )
         # Routes are RELATIVE to the mount: prefix every menu route with the app's mount base path,
         # and stamp each option with its bare path, its consumedRoute and its uriPrefix (all the
         # mount). Mirrors Java's AppMenuDtoBuilder.buildMenu — a submenu nests under its parent's
@@ -363,15 +368,17 @@ class AppMapperMixin(MixinBase):
     def variant_of(cls, items) -> str:
         """The navigation chrome (mirrors Java's AppMetadataExtractor.getVariant): an explicit
         @app(variant=...) always wins; a menu with folders → TILES when a folder nests another
-        folder, HAMBURGUER_MENU past 7 top-level entries, else MENU_ON_TOP; a flat menu of leaf
-        entries → TABS."""
+        folder, HAMBURGER_MENU past 7 top-level entries, else MENU_ON_TOP; a flat menu of leaf
+        entries → TABS. The result is the WIRE value (``AppVariant.to_wire``)."""
         explicit = getattr(cls, "__mateu_app_variant__", "")
         if explicit:
-            return explicit
+            return AppVariant.to_wire(explicit)
         if any(i.submenus for i in items):
             if any(s.submenus for i in items for s in i.submenus):
                 return "TILES"
-            return "HAMBURGUER_MENU" if len(items) > 7 else "MENU_ON_TOP"
+            return AppVariant.to_wire(
+                AppVariant.HAMBURGER_MENU if len(items) > 7 else AppVariant.MENU_ON_TOP
+            )
         return "TABS"
 
     def _presented(self, entry: MenuItem, look) -> MenuItem:
