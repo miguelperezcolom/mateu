@@ -5,7 +5,7 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 /// <summary>Thrown when a request asks for something the caller may not do: an action gated by
-/// [DisabledUnless]/[Audience]/[EyesOnly] the caller does not satisfy, or a view hidden by a
+/// [DisabledUnless]/[EyesOnly] the caller does not satisfy, or a view hidden by a
 /// class-level [EyesOnly]. The ASP.NET Core endpoint answers it with HTTP 403.</summary>
 public sealed class MateuForbiddenException(string message) : Exception(message);
 
@@ -29,7 +29,7 @@ public sealed class MateuForbiddenException(string message) : Exception(message)
 /// (<see cref="ResolveRowAction"/>).</para>
 ///
 /// <para>Once resolved, <see cref="EnsureMayInvoke"/> enforces the access attributes at
-/// invocation — [DisabledUnless], [Audience] and [EyesOnly] — and <see cref="EnsureViewVisible"/>
+/// invocation — [DisabledUnless] and [EyesOnly] ([Audience] is a projection, not a gate) — and <see cref="EnsureViewVisible"/>
 /// enforces a class-level [EyesOnly] on a view resolved from the wire.</para></summary>
 internal static class ActionGuard
 {
@@ -117,13 +117,17 @@ internal static class ActionGuard
         Candidates(type, name).FirstOrDefault(m => m.Find<ListToolbarButtonAttribute>() != null);
 
     /// <summary>Enforces the access attributes of a resolved action at invocation: the render
-    /// path only disables/hides the button, the wire can still name the action.</summary>
+    /// path only disables/hides the button, the wire can still name the action.
+    ///
+    /// <para>[Audience] is deliberately NOT enforced here: the audience is client-controlled app
+    /// state, so a check on it would only stop a client that chose to be stopped. It is a
+    /// projection of what is rendered (mirrors Java's AudienceGate); access control is
+    /// [EyesOnly]/[DisabledUnless], matched against the server-resolved identity.</para></summary>
     internal static void EnsureMayInvoke(Type type, MethodInfo method, string actionId)
     {
         string? reason = null;
         if (!Authorized(method.Find<DisabledUnlessAttribute>())) reason = "[DisabledUnless]";
         else if (!Authorized(method.Find<EyesOnlyAttribute>())) reason = "[EyesOnly]";
-        else if (!ReflectionMapper.ForCurrentAudience(method)) reason = "[Audience]";
         if (reason is not null) Deny($"action '{actionId}' on {type.FullName} denied by {reason}");
     }
 

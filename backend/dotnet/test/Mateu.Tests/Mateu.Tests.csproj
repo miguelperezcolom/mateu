@@ -9,6 +9,8 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../../src/Mateu.Core/Mateu.Core.csproj" />
+    <ProjectReference Include="../../src/Mateu.AspNetCore/Mateu.AspNetCore.csproj" />
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
     <!-- The route registry and the definitions it routes to: read from disk at runtime, so they

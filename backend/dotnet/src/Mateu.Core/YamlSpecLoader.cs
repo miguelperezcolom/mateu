@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 using Mateu.Uidl;
 
@@ -70,7 +71,13 @@ public sealed class YamlSpecLoader
                 modelView = entry!.ViewModel;
             return new Spec(modelView, layout);
         }
-        catch { return None; }
+        catch (Exception e)
+        {
+            // An unparseable definition used to answer a silent "Not found." — indistinguishable
+            // from a route nobody declared. Say which file and why.
+            MateuLogging.For("Mateu.Yaml").LogWarning(e, "YAML definition {Path} could not be loaded: {Error}", path, e.Message);
+            return None;
+        }
     }
 
     private static string Normalize(string? route)

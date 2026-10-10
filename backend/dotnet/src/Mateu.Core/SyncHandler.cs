@@ -10,9 +10,13 @@ namespace Mateu.Core;
 
 /// <summary>Handles a single POST /mateu/v3/sync/{route} call → a UIIncrement.</summary>
 public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? translator = null, Func<Identity?>? identity = null,
-    Func<string, string?>? secrets = null)
+    Func<string, string?>? secrets = null, HttpClient? http = null)
 {
-    private static readonly HttpClient RestHttp = new() { Timeout = TimeSpan.FromSeconds(60) };
+    private static readonly HttpClient DefaultHttp = new() { Timeout = TimeSpan.FromSeconds(60) };
+
+    /// <summary>The client proxied REST fetches go through (injectable: a host-configured client,
+    /// or a fake in tests).</summary>
+    private readonly HttpClient _http = http ?? DefaultHttp;
 
     private readonly ReflectionMapper _mapper = new(translator, identity);
     /// <summary>The mount's authored route registry: specs/ui/routes.yaml merged OVER the routes
@@ -24,16 +28,26 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     /// the instance is not worth a constructor just for it.</summary>
     private readonly YamlSpecLoader _yaml = new();
 
+    /// <summary>Handles a sync call asynchronously — the entry point of the HTTP endpoint. The only
+    /// step that does I/O of its own, the proxied REST fetch (<c>__restfetch__</c>), is awaited end
+    /// to end instead of blocking a request thread on the remote API.</summary>
+    public async Task<UIIncrementDto> HandleAsync(
+        RunActionRqDto rq, string? requestBaseUrl = null, CancellationToken cancellationToken = default)
+    {
+        if (rq.ActionId == "__restfetch__")
+        {
+            EstablishRequestContext(rq);
+            return await RestFetchResponseAsync(rq, cancellationToken).ConfigureAwait(false);
+        }
+        return Handle(rq, requestBaseUrl);
+    }
+
+    /// <summary>Handles a sync call synchronously. In-process callers (tests, the MCP projection)
+    /// use it; a proxied REST fetch on this path blocks — the HTTP endpoint goes through
+    /// <see cref="HandleAsync"/>.</summary>
     public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null)
     {
-        // Security context of this request: the identity the gates ([EyesOnly]/[ReadOnlyUnless]/
-        // [DisabledUnless]) are matched against at INVOCATION and when binding wire state.
-        ActionGuard.SetIdentity(identity);
-
-        // 0. Audience projection: the appState value under "audience" (the [AppContext] selector
-        // named audience) filters [Audience]-marked members for the whole request.
-        ReflectionMapper.SetCurrentAudience(
-            rq.AppState.TryGetValue("audience", out var audience) ? StateString(audience) : null);
+        EstablishRequestContext(rq);
 
         // 0b. Visual-builder contract: return the ModelView's bindable fields + actions instead of
         // rendering — the tooling POSTs a sync request with the ModelView as serverSideType and this
@@ -60,7 +74,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         // inject ${secret.X} and fetch server-side, returning the raw JSON on appData._restfetch
         // (mirrors Java's __restfetch__ reserved action).
         if (rq.ActionId == "__restfetch__")
-            return RestFetchResponse(rq);
+            return RestFetchResponseAsync(rq, CancellationToken.None).GetAwaiter().GetResult();
 
         // 1. App shell at the root route.
         if (string.IsNullOrEmpty(rq.ActionId)
@@ -107,6 +121,20 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
                 type = registry.TypeByName(routeMatch.Entry.ViewModel);
         }
         return SeedRouteScopes(ResolveRoute(rq, type, routeEntry), rq, routeEntry);
+    }
+
+    /// <summary>The per-request context every step reads: the caller's identity (the gates
+    /// [EyesOnly]/[ReadOnlyUnless]/[DisabledUnless] are matched against it at INVOCATION and when
+    /// binding wire state) and the [Audience] projection.</summary>
+    private void EstablishRequestContext(RunActionRqDto rq)
+    {
+        ActionGuard.SetIdentity(identity);
+
+        // Audience PROJECTION, not security: the value is client-controlled app state (the
+        // [AppContext] selector named audience), so it only filters [Audience]-marked members out of
+        // what is rendered. Access control is [EyesOnly]/[DisabledUnless] against the identity.
+        ReflectionMapper.SetCurrentAudience(
+            rq.AppState.TryGetValue("audience", out var audience) ? StateString(audience) : null);
     }
 
     /// <summary>The route-resolution tail of <see cref="Handle"/>: a view/listing/wizard resolved

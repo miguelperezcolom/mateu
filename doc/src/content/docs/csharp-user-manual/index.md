@@ -22,10 +22,27 @@ the `type` discriminators the renderers expect.
 The implementation lives at [`backend/dotnet`](https://github.com/miguelperezcolom/mateu/tree/master/backend/dotnet)
 (`DESIGN.md` for the plan, `README.md` for status).
 
-## Run it
+## Install
+
+Mateu.NET ships as four NuGet packages, versioned in lockstep with the Java artifacts (the release
+`v3.0-alpha.N` is `3.0.0-alpha.N` on NuGet). They target **net8.0 and net10.0**. An ASP.NET Core app
+needs only the adapter — it brings the other three:
 
 ```bash
-# .NET 8 SDK required (e.g. via https://dot.net/v1/dotnet-install.sh --channel 8.0)
+dotnet add package Mateu.AspNetCore --prerelease
+```
+
+| Package | When you reference it directly |
+|---|---|
+| `Mateu.AspNetCore` | The web app: `AddMateu()` / `MapMateu()` |
+| `Mateu.Uidl` | A class library holding only your views (the attributes and fluent components) |
+| `Mateu.Core` | Hosting the engine without ASP.NET Core (tests, another web stack) |
+| `Mateu.Dtos` | Reading or producing the wire model |
+
+## Run it from the repository
+
+```bash
+# .NET 10 SDK required (it builds both targets; the net8.0 tests also need the 8.0 runtime)
 cd backend/dotnet
 dotnet run --project samples/Mateu.Demo   # serves on http://0.0.0.0:8593
 dotnet test                               # golden-JSON tests
@@ -317,7 +334,8 @@ public class SalesDashboard : Dashboard   // or Foldout, Welcome, ItemOverview
 - **Events** — `[Emits("event-name")]` advertises an event a view emits; `[SubscribeTo("event",
   "action")]` runs `action` when that event fires (an `OnCustomEvent` trigger).
 - **Security** — `[Secured("permission")]` marks a view as requiring a permission; the `[App]` shell
-  can carry login/logout URLs.
+  can carry login/logout URLs. Field and action access is covered in
+  [Identity, permissions and secrets](#identity-permissions-and-secrets) below.
 
 ```csharp
 public class UpperTranslator : ITranslator
@@ -328,6 +346,57 @@ public class UpperTranslator : ITranslator
 [UI("orders"), Emits("order-created"), SubscribeTo("inventory-changed", "refresh")]
 public class Orders { /* … */ }
 ```
+
+## Identity, permissions and secrets
+
+`[EyesOnly]` (hide), `[ReadOnlyUnless]` (lock) and `[DisabledUnless]` (disable, and refuse the
+action with HTTP 403 when invoked anyway) match the caller's `Identity` — roles, groups, scopes,
+permissions: AND across the declared dimensions, OR within each, and no identity means
+unauthorized. `AddMateu` takes the identity from **`HttpContext.User`**, so whatever authentication
+the host configures (JWT bearer, cookies, Windows) applies as is:
+
+| Dimension | Claims read |
+|---|---|
+| roles | the identity's role claim type (what `IsInRole` reads), `role`, `roles` |
+| groups | `groups`, `group` |
+| scopes | `scope`, `scp` (space-separated) |
+| permissions | `permissions`, `permission` |
+
+A claim holding a JSON array is split. When your claims are shaped differently, map them yourself:
+
+```csharp
+builder.Services.AddAuthentication().AddJwtBearer();
+builder.Services.AddMateu(o =>
+{
+    o.Identity = ctx => ctx.User.Identity?.IsAuthenticated == true
+        ? new Identity(Roles: ctx.User.FindAll("app_roles").Select(c => c.Value).ToList())
+        : null;
+    // ${secret.KEY} in a PROXIED REST source (the only channel that injects secrets, so the key
+    // never reaches the browser). Without it: an ISecretsProvider service, else the env var KEY.
+    o.Secrets = key => builder.Configuration[$"Mateu:Secrets:{key}"];
+}, typeof(Program).Assembly);
+```
+
+`[Audience("staff")]` is **not** one of these gates. The audience is the value of the `[AppContext]`
+selector named `audience` — app state the client sends — so it only *projects* what is rendered
+(fields, buttons, menu entries for that persona). It never refuses an invocation: anything a client
+could get by clearing a selector is not protected. Put `[EyesOnly]`/`[DisabledUnless]` on whatever
+must really be restricted.
+
+## Errors
+
+An exception escaping an action does not reach the browser as a raw HTTP 500 (which no renderer can
+show). The endpoint answers an error toast instead:
+
+- throw a **`UserFacingException`** (`Mateu.Uidl`) for a business refusal — its message (and
+  optional title) is shown as is: `throw new UserFacingException("The booking is already checked in");`
+- any other exception is a failure: the user sees a generic message with a **correlation id** (the
+  trace id), and the exception is logged with the same id. In the Development environment the
+  message is shown too; `o.DetailedErrors = true/false` overrides that.
+
+Mateu's own diagnostics (an unparseable YAML definition, a broken `routes.yaml`, a proxied endpoint
+that failed, a wire value that could not be converted) are logged as warnings through the app's
+`ILoggerFactory` under `Mateu.*` categories.
 
 ## Navigation links, radio groups & adaptive layout
 

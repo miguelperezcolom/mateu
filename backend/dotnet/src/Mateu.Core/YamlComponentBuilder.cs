@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Mateu.Uidl;
 using YamlDotNet.Serialization;
 
@@ -25,7 +26,11 @@ public static class YamlComponentBuilder
     internal static object? Deserialize(string yaml)
     {
         try { return Yaml.Deserialize<object>(yaml); }
-        catch { return null; }
+        catch (Exception e)
+        {
+            MateuLogging.For("Mateu.Yaml").LogWarning("Invalid YAML ignored: {Error}", e.Message);
+            return null;
+        }
     }
 
     public static IComponent? Parse(string yaml, PartialRegistry? partials = null)

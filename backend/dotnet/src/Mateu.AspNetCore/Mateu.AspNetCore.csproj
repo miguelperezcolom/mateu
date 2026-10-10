@@ -11,6 +11,7 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="../Mateu.Core/Mateu.Core.csproj" />
+    <InternalsVisibleTo Include="Mateu.Tests" />
   </ItemGroup>
   <ItemGroup>
     <None Include="../../PACKAGE.md" Pack="true" PackagePath="README.md" Visible="false" />

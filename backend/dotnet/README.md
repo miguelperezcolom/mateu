@@ -54,10 +54,35 @@ C# backend with **zero client changes**. See [`DESIGN.md`](DESIGN.md) for the fu
 | `samples/Mateu.Demo` | A runnable ASP.NET app (`SimpleForm`, `Person`) |
 | `test/Mateu.Tests` | Golden-JSON tests asserting wire compatibility with the Java backend |
 
+## Install (NuGet)
+
+```bash
+dotnet add package Mateu.AspNetCore --prerelease   # brings Mateu.Core, Mateu.Uidl, Mateu.Dtos
+```
+
+```csharp
+builder.Services.AddMateu(o =>
+{
+    // defaults shown: identity from HttpContext.User claims (roles/groups/scope/permissions),
+    // secrets from an ISecretsProvider service or env vars, error detail only in Development
+    // o.Identity = ctx => …;  o.Secrets = key => …;  o.DetailedErrors = …;
+}, typeof(Program).Assembly);
+app.MapMateu();
+```
+
+Packages: `Mateu.Uidl`, `Mateu.Dtos`, `Mateu.Core`, `Mateu.AspNetCore` — one version for all four,
+in lockstep with the Maven artifacts (`v3.0-alpha.N` → `3.0.0-alpha.N`), multi-targeting
+**net8.0 and net10.0**. Released by the `nuget` job of `.github/workflows/buid-and-publish.yml`
+(needs the `NUGET_API_KEY` secret). Local packages: `dotnet pack src/Mateu.AspNetCore -c Release
+-p:MateuVersion=3.0.0-local`.
+
+An exception escaping an action becomes an error toast: a `UserFacingException` shows its message,
+anything else a generic message + correlation id (details in the log; on screen only in Development).
+
 ## Run
 
 ```bash
-# .NET 8 SDK required (e.g. ~/.dotnet/dotnet via https://dot.net/v1/dotnet-install.sh --channel 8.0)
+# .NET 10 SDK required (builds net8.0 + net10.0; running the net8.0 tests needs the 8.0 runtime)
 dotnet build
 dotnet run --project samples/Mateu.Demo        # serves on http://0.0.0.0:8593
 dotnet test                                     # golden tests

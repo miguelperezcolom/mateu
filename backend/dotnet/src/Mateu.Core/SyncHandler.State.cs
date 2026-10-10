@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -76,6 +77,11 @@ public sealed partial class SyncHandler
     {
         target = Nullable.GetUnderlyingType(target) ?? target;
         if (raw is not JsonElement el) return raw;
+        // A cleared non-text field (null / "") is not a conversion failure: nothing to bind.
+        if (target != typeof(string)
+            && (el.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined
+                || (el.ValueKind == JsonValueKind.String && string.IsNullOrEmpty(el.GetString()))))
+            return null;
         try
         {
             if (el.ValueKind is JsonValueKind.Null) return null;
@@ -91,8 +97,12 @@ public sealed partial class SyncHandler
             // Complex values (grid row lists…) arrive with camelCase keys — bind them as the web wire.
             return el.Deserialize(target, WebJson);
         }
-        catch
+        catch (Exception e)
         {
+            // An unconvertible wire value leaves the property at its server-side value; logged so a
+            // field that "never saves" can be traced to the value the client actually sent.
+            MateuLogging.For("Mateu.State").LogWarning("Wire value {Value} could not be converted to {Type}: {Error}",
+                raw, target.Name, e.Message);
             return null;
         }
     }

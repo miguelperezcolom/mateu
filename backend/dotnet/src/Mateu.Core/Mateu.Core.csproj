@@ -14,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="YamlDotNet" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
   </ItemGroup>
   <ItemGroup>
     <None Include="../../PACKAGE.md" Pack="true" PackagePath="README.md" Visible="false" />
