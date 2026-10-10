@@ -28,7 +28,7 @@ public class ProductForm {
 ```
 
 `TextContainer` offers `h1` … `h6`, `p` (the default), `div` and `span`; `@Text(size = …)` and
-`@Text(noMargins = true)` tune the size and spacing. See [`@Text`](../metadata/#text).
+`@Text(noMargins = true)` tune the size and spacing. See [`@Text`](/java-ui-definition/annotations/metadata/#text).
 
 :::note
 The 3.0 alphas had `@H1` … `@H5` annotations for this. Nothing ever read them, so they were
