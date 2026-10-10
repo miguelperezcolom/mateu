@@ -1,0 +1,78 @@
+# Builds the documentation site (doc/, Astro + Starlight) and publishes it to mateu.io.
+#
+# - On every PR that touches doc/: build it and fail on build errors or on any internal link or
+#   image that does not resolve in the built site (scripts/check-links.mjs).
+# - On master and on every framework release: build and deploy to Netlify (production).
+#
+# Why this exists: mateu.io is hosted on Netlify, but production deploys stopped tracking master
+# around 2026-08-14 (the PR deploy previews show "Deploy Preview canceled", and master commits get no
+# production deploy), so the site fell two months behind. Deploying from here makes the published
+# site a function of master again, independent of the Netlify UI build settings.
+#
+# Required repository secrets for the deploy step (PR builds need none):
+#   NETLIFY_AUTH_TOKEN  personal access token of the Netlify account that owns the site
+#   NETLIFY_SITE_ID     the site's API id (Site configuration → General → Site details)
+# Without them the deploy step is skipped with a notice, never failed.
+name: Docs
+
+on:
+  pull_request:
+    paths:
+      - 'doc/**'
+      - '.github/workflows/docs.yml'
+  push:
+    branches: [master]
+    paths:
+      - 'doc/**'
+      - '.github/workflows/docs.yml'
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    # Framework releases only (tag vX.Y…); the desktop installer releases don't touch the docs.
+    if: github.event_name != 'release' || startsWith(github.event.release.tag_name, 'v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The version plugin falls back to the newest release tag when Maven Central can't answer.
+          fetch-depth: 0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: doc/package-lock.json
+      - name: Install
+        run: npm ci
+        working-directory: doc
+      - name: Pin the version shown in the snippets to the release being published
+        if: github.event_name == 'release'
+        run: echo "MATEU_VERSION=${GITHUB_REF_NAME#v}" >> "$GITHUB_ENV"
+      - name: Build
+        run: npm run build
+        working-directory: doc
+      - name: Check internal links and images
+        run: npm run check-links
+        working-directory: doc
+      - name: Deploy to Netlify (production)
+        if: github.event_name != 'pull_request'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: |
+          if [ -z "$NETLIFY_AUTH_TOKEN" ] || [ -z "$NETLIFY_SITE_ID" ]; then
+            echo "::notice::NETLIFY_AUTH_TOKEN / NETLIFY_SITE_ID not configured — skipping the deploy."
+            exit 0
+          fi
+          npx --yes netlify-cli@latest deploy --dir=doc/dist --prod --no-build \
+            --site "$NETLIFY_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" \
+            --message "${GITHUB_SHA::9} ${GITHUB_EVENT_NAME}"

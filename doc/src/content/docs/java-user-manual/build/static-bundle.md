@@ -8,7 +8,7 @@ description: Export your declared screens to a static site the renderer boots fr
 Mateu can export your declared screens to a **static bundle** — a folder of pre-rendered JSON plus
 the renderer assets — that any static host (Netlify, S3, GitHub Pages, a CDN) serves with **no Mateu
 backend running**. The renderer boots, reads the bundle, and paints each screen from it; live data
-still flows from [external endpoints](../../java-ui-definition/annotations/rest-options), and screens
+still flows from [external endpoints](/java-ui-definition/annotations/rest-options/), and screens
 that need server logic keep working when a backend is present.
 
 ## Runnable demo
@@ -31,7 +31,7 @@ Two halves, both shipped:
    renderer assets, and stamps a static `index.html`.
 2. **Client bundle mode** — `<mateu-ui bundleUrl="…">` fetches that `manifest.json` once at boot and
    answers route loads from it instead of calling the backend. It reuses the same render pipeline and
-   [client structure cache](../../ux-patterns/client-side-caching), so the screen looks identical to a
+   [client structure cache](/ux-patterns/client-side-caching/), so the screen looks identical to a
    server-rendered one.
 
 ## Exporting
@@ -83,8 +83,8 @@ not render (see the boundaries below) is logged and skipped — it stays backend
 | `pageTitle` | `Mateu` | `<title>` of the static page |
 | `failOnEmpty` | `false` | fail the build if zero routes rendered |
 | `failOnSkipped` | `false` | fail the build if **any** route could not be bundled — turn it on once your bundled set is stable, so a route dropping out stops being a silent regression |
-| `static` (config `<staticOnly>`) | `false` | declare the bundle **100 % static**: runs the [static-safety report](./static-ui#the-static-safety-report) and **fails the build** if any route still needs a server |
-| `specsOnly` | `false` | ship each definition-only route the browser can expand as its **raw definition** instead of pre-rendering it ([specs mode](./static-ui#two-ways-to-build-it)) |
+| `static` (config `<staticOnly>`) | `false` | declare the bundle **100 % static**: runs the [static-safety report](/java-user-manual/build/static-ui/#the-static-safety-report) and **fails the build** if any route still needs a server |
+| `specsOnly` | `false` | ship each definition-only route the browser can expand as its **raw definition** instead of pre-rendering it ([specs mode](/java-user-manual/build/static-ui/#two-ways-to-build-it)) |
 
 ### Knowing which bundle you are looking at
 
@@ -173,7 +173,7 @@ skipped, exactly like a static view that needs a live backend. See `demo/demo-st
   `restAction`) posts to the server. Without one it degrades with a clear "request failed" message.
   A **`@RestAction`** (or a YAML `restAction`) is different: the browser makes the call itself, so a
   confirmed delete or a save against your API works with no backend — see the
-  [100 % static UI guide](./static-ui). `staticOnly` turns any leftover server action into a build
+  [100 % static UI guide](/java-user-manual/build/static-ui/). `staticOnly` turns any leftover server action into a build
   error.
 - **Parameterised routes** (`/orders/:id`) — skipped by default; can be bundled as
   [templates](#param-route-templates) when the structure is param-independent (data fetched
