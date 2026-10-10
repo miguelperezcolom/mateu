@@ -54,6 +54,19 @@ for the sibling implementation.
   open)` in `Annotated[...]` marks titled panels/tabs/tiles (the analogue of Java's `@Panel`).
   Or subclass `ComponentTreeSupplier` and return any fluent component tree from `component()`.
 
+- **Validation** — `Required()`, `Min`/`Max`/`Size`/`Pattern`, `@validation`, `ValidationSupplier`
+  → the component's client-side `validations` (Java's conditions and messages), re-checked on save.
+- **Grid fields** — a `list[Row]` field is a grid with a row editor (add / edit / save / prev /
+  next / remove / move), `InlineEditing()` for in-place cells; wide fields span the row.
+- **Catalogues** — named REST sources (`@rest_source`, `sources.yaml`, `source=` on every surface;
+  `RestSourceSupplier` for runtime proxy views) and business components (`@business_component`,
+  `components.yaml`, `ComponentRef`).
+- **Component adapters** (`ComponentAdapter` + `AdaptedView`), **embedded islands** (a field holding
+  a routed view), **`layoutDelta:`** pages, **group actions** (`@group_action`), **wizard
+  completion actions**, **Excel/PDF exports**, class/method-level **`@eyes_only`**.
+
+The shared wire-conformance corpus is a hard gate here: see `tests/test_wire_conformance.py`.
+
 ## Projects
 
 | Package | Role |
