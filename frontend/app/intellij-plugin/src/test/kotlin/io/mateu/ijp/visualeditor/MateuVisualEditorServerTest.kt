@@ -46,6 +46,24 @@ class MateuVisualEditorServerTest {
     }
 
     @Test
+    fun theRedwoodCanvasFallsBackToTheBackendsOwnRedwoodApp() {
+        // bundled: served from the plugin; not bundled: /redwood/x is the backend's /x
+        assertEquals("/_index.html", MateuVisualEditorServer.redwoodFallbackPath("/redwood/_index.html"))
+        assertEquals("/_redwood/app-flow.json", MateuVisualEditorServer.redwoodFallbackPath("/redwood/_redwood/app-flow.json"))
+        assertEquals(null, MateuVisualEditorServer.redwoodFallbackPath("/redwood/"))
+        assertEquals(null, MateuVisualEditorServer.redwoodFallbackPath("/assets/index.js"))
+    }
+
+    @Test
+    fun servesTheRedwoodCanvasPageWhenTheBundleHasIt() {
+        assumeTrue("bundle built before the Redwood canvas", javaClass.getResource("/visual-editor/redwood-preview.html") != null)
+        val port = MateuVisualEditorServer.ensureStarted(backend)
+        val page = get("http://127.0.0.1:$port/redwood-preview.html")
+        assertEquals(200, page.statusCode())
+        assertTrue(page.body().contains("<script type=\"module\""))
+    }
+
+    @Test
     fun proxiesThePreviewActionToTheBackend() {
         val port = MateuVisualEditorServer.ensureStarted(backend)
         val reachable = runCatching { get("$backend/").statusCode() }.isSuccess

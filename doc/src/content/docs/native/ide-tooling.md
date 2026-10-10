@@ -10,6 +10,7 @@ can mix editors freely.
 |---|---|---|
 | Schema validation + completion for `specs/ui/**` YAML | ✅ bundled specs schema | ✅ `yamlValidation` (needs the Red Hat YAML extension) |
 | Visual editor (palette, canvas, properties) | ✅ JCEF editor tab | ✅ custom editor |
+| Redwood canvas (the real Oracle VB renderer, editable) | ✅ served by the plugin | ✅ served by the extension |
 | New file from a template (mount, routes, app shell, sources, pages) | ✅ **New \| Mateu** | ✅ **Mateu: New File…** |
 | Add a route to a routes file (and set the mount's home) | ✅ **Add Mateu Route…** | ✅ **Mateu: Add Route…** |
 | Binding checks against the Java view model (+ quick fixes) | ✅ | — |
@@ -18,6 +19,18 @@ can mix editors freely.
 
 IntelliJ needs a **Java IDE** (IntelliJ IDEA Community or Ultimate): the binding checks resolve view
 models through the Java plugin.
+
+## The visual editor's canvas: Vaadin or Redwood
+
+Both editors can paint the canvas with the **Vaadin** renderer or with the real **Redwood**
+renderer, which is the Oracle Visual Builder app of `io.mateu:redwood`. Pick one with the renderer
+selector in the editor's toolbar. See [the Redwood canvas](/java-ui-definition/visual-editor/#the-redwood-canvas).
+In both IDEs the Redwood app is part of the editor's bundle. The IDE's local server serves it, so
+it works with no backend running. VS Code frames it from the extension's loopback server, because a
+webview cannot host the app itself. A bundle built without the Redwood app falls back to the
+configured backend's own (`/_index.html`, `/_redwood/`). In every case Redwood loads Oracle JET and
+the Visual Builder runtime from **Oracle's CDN**, so the IDE needs to reach `static.oracle.com`.
+Without it the canvas shows a notice instead of the page, and the Vaadin canvas keeps working offline.
 
 ## Creating files: New | Mateu
 

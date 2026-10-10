@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context,{methodName,rowId,rowKey}){if(!methodName)return;const rows=context.$application.variables.mateuListingRows||[],row=rows.find(r=>r._rowNumber+""===rowKey+"")||rows.find(r=>null!=r.id&&r.id+""===rowId+""),parameters={id:rowId};row&&(parameters._clickedRow=row),await Actions.callChain(context,{chain:"runMateuAction",params:{actionId:"action-on-row-"+methodName,parameters}})}};});
+//# sourceMappingURL=listingRowAction.js.map

@@ -4,7 +4,7 @@
  * renderer and screenshots what it paints.
  *
  *   node scripts/thumbnails.mjs --backend http://localhost:8080 [--only Grid,Card]
- *   node scripts/thumbnails.mjs --renderer redwood --backend http://localhost:8080 --vb http://localhost:9006
+ *   node scripts/thumbnails.mjs --renderer redwood --backend http://localhost:8080
  *
  * `--backend` is any running Mateu app (they all answer the reserved `__preview__` action), so the
  * thumbnails show what the SERVER renders, i.e. what ships.
@@ -12,10 +12,11 @@
  *  - vaadin: the harness (thumbs.html, built apart from the editor) is the editor's own canvas with
  *    the Vaadin renderer. Without `--backend` it falls back to the in-browser expander, which is
  *    close but not identical — the run says which ones fell back.
- *  - redwood: the VB app itself (`npm run serve` in apps/redwood, `--vb`), its calls to /mateu
- *    intercepted: the shell gets a one-route App and the route answers the sample's `__preview__`,
- *    so the components come out as the Redwood renderer really paints them — and a component the
- *    renderer does not paint comes out as nothing, i.e. gets no thumbnail.
+ *  - redwood: the same harness with the canvas switched to Redwood — the editor's Redwood canvas,
+ *    i.e. the REAL VB app of io.mateu:redwood framed in editor-preview mode and handed the sample's
+ *    `__preview__` (apps/redwood/poc/editorPreview.mjs). No VB dev server to run: the app is served
+ *    from the jar's resources (MATEU_REDWOOD_STATIC overrides — rebuild them with `npm run build &&
+ *    npm run copy` in apps/redwood after touching its poc/). Needs Oracle's CDN.
  *
  * Writes src/thumbnails/<renderer>/<Type>.png. A component that renders nothing visible gets no file
  * (and is listed at the end) — the palette then shows its name only.
@@ -31,12 +32,10 @@ const opt = (name, dflt) => { const i = args.indexOf('--' + name); return i >= 0
 const renderer = opt('renderer', 'vaadin')
 const only = opt('only')?.split(',')
 const backend = opt('backend')
-const vb = opt('vb', 'http://localhost:9006')
 const pwPath = opt('playwright', resolve(here, '../../../../../e2e/node_modules/playwright/index.mjs'))
 const port = 5299
 const outDir = join(here, 'src/thumbnails', renderer)
 const dist = join(tmpdir(), 'mateu-thumbs-dist')
-if (renderer === 'redwood' && !backend) throw new Error('--renderer redwood needs --backend (the VB app has no in-browser render)')
 
 execFileSync('npx', ['vite', 'build', '--config', 'vite.thumbs.config.ts', '--outDir', dist, '--emptyOutDir', '--logLevel', 'warn'], { cwd: here, stdio: 'inherit' })
 const server = spawn('npx', ['vite', 'preview', '--config', 'vite.thumbs.config.ts', '--outDir', dist, '--port', String(port), '--strictPort'], { cwd: here, stdio: 'ignore', detached: true, env: { ...process.env, ...(backend ? { MATEU_BACKEND: backend } : {}) } })
@@ -89,7 +88,7 @@ const openHarness = async () => {
         }
     }
     await harness.waitForFunction(() => !!window.thumbs)
-    if (renderer === 'vaadin') await harness.evaluate((b) => window.thumbs.use('vaadin', b), !!backend)
+    await harness.evaluate(([r, b]) => window.thumbs.use(r, b), [renderer, !!backend])
 }
 
 // A fresh page per component in both modes: an overlay (a cookie bar, a dialog) or a renderer's
@@ -115,53 +114,27 @@ const vaadin = {
     },
 }
 
-const redwood = (() => {
-    const page = newPage()
-    let yaml = ''
-    // A one-route app: the shell's load gets it, the route's load gets the sample.
-    const app = {
-        commands: [], messages: [],
-        fragments: [{ targetComponentId: 'shell', action: 'Replace', component: { type: 'ClientSide', id: 'app', children: [], metadata: {
-            type: 'App', route: '', variant: 'MENU_ON_TOP', layout: 'SINGLE_SLOT', title: 'Mateu', homeRoute: '/thumb',
-            menu: [{ label: ' ', path: '/thumb', route: '/thumb', consumedRoute: '', serverSideType: 'thumb', submenus: [], visible: true }],
-            apps: [], fabs: [], contextSelectors: [], contextActions: [],
-        } } }],
-    }
-    const ready = page.then(async (p) => {
-        await p.route('**/mateu/v3/**', async (route) => {
-            const rq = JSON.parse(route.request().postData() || '{}')
-            if (rq.initiatorComponentId === 'shell' && !rq.route) {
-                return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(app) })
-            }
-            const res = await fetch(backend.replace(/\/$/, '') + '/mateu/v3/sync/_no_route', {
-                method: 'POST', headers: { 'content-type': 'application/json' },
-                body: JSON.stringify({ actionId: '__preview__', componentState: {}, initiatorComponentId: rq.initiatorComponentId || '', parameters: { _yaml: yaml } }),
-            })
-            const increment = await res.json()
-            // A route's content arrives as a server-side component wrapping the tree, as a real one does.
-            for (const f of increment.fragments ?? []) {
-                f.component = { type: 'ServerSide', id: 'thumb', serverSideType: 'thumb', route: rq.route, actions: [], triggers: [], rules: [], children: [f.component], initialData: {} }
-            }
-            await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(increment) })
-        })
-        return p
-    })
-    return {
-        async render(type, file) {
-            const p = await ready
-            yaml = await harness.evaluate((t) => window.thumbs.sampleYaml(t), type)
-            await p.goto(vb)
-            await p.waitForSelector('.oj-sp-public-primary-content-container', { timeout: 8000 }).catch(() => {})
-            await p.waitForLoadState('networkidle', { timeout: 8000 }).catch(() => {})
-            await p.waitForTimeout(1500)
-            // The content panel, not the page header above it (the route's title, the same for all).
-            const box = await p.evaluate(`(${MEASURE})(() => [...document.querySelectorAll('.oj-sp-public-primary-content-container > * > *')])`)
-            if (!box) return 'blank'
-            await shoot(p, box, file, VIEWPORT.width, VIEWPORT.height)
-            return 'ok'
-        },
-    }
-})()
+const redwood = {
+    async render(type, file) {
+        await openHarness()
+        await harness.evaluate((t) => window.thumbs.show(t), type)
+        // the canvas frames the VB app: it boots (Oracle's CDN), is handed the sample, paints it
+        await harness.waitForFunction(() => window.thumbs.redwoodRenders() > 0, null, { timeout: 90000 })
+        await harness.waitForTimeout(2000)
+        const iframe = await harness.waitForSelector('#canvas >> redwood-frame >> iframe')
+        const frame = await iframe.contentFrame()
+        const at = await iframe.boundingBox()
+        // The content panel, not the (empty) page header band above it.
+        // A component Redwood paints INTO the page header (an EntityHeader, a form's toolbar) leaves
+        // the panel empty: then the header is its picture.
+        const box = await frame.evaluate(`(${MEASURE})(() => [...document.querySelectorAll('.oj-sp-public-primary-content-container > * > *')])`)
+            ?? await frame.evaluate(`(${MEASURE})(() => [...document.querySelectorAll('oj-sp-header-general-overview')])`)
+        if (!box) return 'blank'
+        await shoot(harness, { ...box, x: box.x + at.x, y: box.y + at.y }, file, Math.min(VIEWPORT.width, at.x + at.width), Math.min(VIEWPORT.height, at.y + at.height))
+        if (backend && (await harness.evaluate(() => window.thumbs.status())) !== 'ok') return 'in-browser'
+        return 'ok'
+    },
+}
 
 try {
     await openHarness()

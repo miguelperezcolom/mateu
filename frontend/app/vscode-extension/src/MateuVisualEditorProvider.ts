@@ -20,9 +20,12 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
         )
     }
 
-    private readonly proxy = new BackendProxy()
+    private readonly proxy: BackendProxy
 
-    constructor(private readonly context: vscode.ExtensionContext) {}
+    constructor(private readonly context: vscode.ExtensionContext) {
+        // it also serves the Redwood canvas from the bundle (media/redwood, media/redwood-preview.html)
+        this.proxy = new BackendProxy(vscode.Uri.joinPath(context.extensionUri, 'media').fsPath)
+    }
 
     async resolveCustomTextEditor(
         document: vscode.TextDocument,
@@ -132,11 +135,14 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
             // declares (the canvas fetches rows/options straight from the browser, as the app does).
             // Not "any https host" — see csp.ts.
             `connect-src ${connectSrc(origin, backend, origins)}`,
+            // The Redwood canvas: the real Redwood/VB app, framed from the loopback server (it loads
+            // JET and the VB runtime from Oracle's CDN inside its own document, not this one).
+            `frame-src ${origin}`,
         ].join('; ')
 
         const head = `
     <meta http-equiv="Content-Security-Policy" content="${csp}">
-    <script nonce="${nonce}">window.__mateuBaseUrl = '${origin}';</script>`
+    <script nonce="${nonce}">window.__mateuBaseUrl = '${origin}'; window.__mateuRedwoodPreview = '${origin}/redwood-preview.html';</script>`
 
         // Inject the CSP + baseUrl bootstrap before the module entry (which VSCode injects
         // acquireVsCodeApi() ahead of, so the web app already sees the IDE host on first render).
