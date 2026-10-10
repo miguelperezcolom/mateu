@@ -110,7 +110,13 @@ public record AppDto(
      * The UI language for this request, a BCP 47 tag ({@code Translator.locale}); null = let the
      * browser decide. The web client sets it on {@code <html lang>} and draws its chrome in it.
      */
-    String locale)
+    String locale,
+    /**
+     * The shell's declared actions ({@code AppShell.actions}): a flow travels with its steps
+     * lowered to {@code commands}, which the client applies when a menu leaf's {@code RunAction}
+     * rule names it — no server round-trip. Empty for a shell that declares none.
+     */
+    List<ActionDto> actions)
     implements ComponentMetadataDto {
 
   public AppDto {
@@ -127,6 +133,7 @@ public record AppDto(
         Collections.unmodifiableList(
             requiredCapabilities != null ? requiredCapabilities : List.of());
     components = Collections.unmodifiableList(components != null ? components : List.of());
+    actions = Collections.unmodifiableList(actions != null ? actions : List.of());
   }
 
   @Override

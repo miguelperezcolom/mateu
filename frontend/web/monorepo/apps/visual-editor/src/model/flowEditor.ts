@@ -34,7 +34,7 @@ export function stepParam(type: string): { key: 'route' | 'event' | 'actionId'; 
 
 const STEP_KNOWN = ['type', 'route', 'event', 'actionId']
 
-interface RawAction {
+export interface RawAction {
     id?: string
     steps?: unknown
     [k: string]: unknown
@@ -42,32 +42,60 @@ interface RawAction {
 
 /** The page's declared action ids (from the preserved `actions:` envelope). */
 export function pageActionIds(doc: PageDoc): string[] {
-    return rawActions(doc).map((a) => a.id).filter((id): id is string => !!id)
+    return actionIdsIn(rawActions(doc))
 }
 
 export function actionSteps(doc: PageDoc, actionId: string): FlowStep[] {
-    const a = rawActions(doc).find((x) => x.id === actionId)
-    return Array.isArray(a?.steps) ? (a!.steps as unknown[]).map(toStep) : []
+    return stepsIn(rawActions(doc), actionId)
 }
 
 /** Set (replacing) the steps of an action, creating the action if it isn't declared yet. Switches to a flow. */
 export function setActionSteps(doc: PageDoc, actionId: string, steps: FlowStep[]): PageDoc {
-    const raw = steps.map(stepToRaw)
-    const actions = rawActions(doc)
-    const next = actions.some((a) => a.id === actionId)
-        ? actions.map((a) => (a.id === actionId ? withSteps(a, raw) : a))
-        : [...actions, { id: actionId, steps: raw }]
-    return withActions(doc, next)
+    return withActions(doc, withStepsIn(rawActions(doc), actionId, steps))
 }
 
 /** Ensure an action with the given id exists (empty flow); no-op if already present. */
 export function addFlowAction(doc: PageDoc, actionId: string): PageDoc {
-    if (rawActions(doc).some((a) => a.id === actionId)) return doc
-    return withActions(doc, [...rawActions(doc), { id: actionId, steps: [] }])
+    const actions = rawActions(doc)
+    const next = withFlowActionIn(actions, actionId)
+    return next === actions ? doc : withActions(doc, next)
 }
 
 export function removeAction(doc: PageDoc, actionId: string): PageDoc {
-    return withActions(doc, rawActions(doc).filter((a) => a.id !== actionId))
+    return withActions(doc, withoutActionIn(rawActions(doc), actionId))
+}
+
+// --- the same flow edits over any raw `actions:` list: a page's envelope, or an app shell's own
+// `actions:` (appModel) - one model, so a shell flow is authored exactly like a page flow ---
+
+/** The declared action ids of a raw `actions:` list. */
+export function actionIdsIn(actions: RawAction[]): string[] {
+    return actions.map((a) => a.id).filter((id): id is string => !!id)
+}
+
+/** The steps of one action of a raw list (none when it is not a flow). */
+export function stepsIn(actions: RawAction[], actionId: string): FlowStep[] {
+    const a = actions.find((x) => x.id === actionId)
+    return Array.isArray(a?.steps) ? (a!.steps as unknown[]).map(toStep) : []
+}
+
+/** The list with that action's steps replaced (the action is appended when it is not declared). */
+export function withStepsIn(actions: RawAction[], actionId: string, steps: FlowStep[]): RawAction[] {
+    const raw = steps.map(stepToRaw)
+    return actions.some((a) => a.id === actionId)
+        ? actions.map((a) => (a.id === actionId ? withSteps(a, raw) : a))
+        : [...actions, { id: actionId, steps: raw }]
+}
+
+/** The list with an (empty) flow action of that id - the SAME list when it is already declared. */
+export function withFlowActionIn(actions: RawAction[], actionId: string): RawAction[] {
+    if (actions.some((a) => a.id === actionId)) return actions
+    return [...actions, { id: actionId, steps: [] }]
+}
+
+/** The list without that action. */
+export function withoutActionIn(actions: RawAction[], actionId: string): RawAction[] {
+    return actions.filter((a) => a.id !== actionId)
 }
 
 // --- helpers ---

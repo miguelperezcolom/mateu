@@ -1,0 +1,66 @@
+{
+  "commands" : [ ],
+  "messages" : [ ],
+  "fragments" : [ {
+    "targetComponentId" : null,
+    "component" : {
+      "type" : "ClientSide",
+      "metadata" : {
+        "type" : "Scoreboard"
+      },
+      "id" : null,
+      "children" : [ {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "MetricCard",
+          "title" : "Revenue",
+          "value" : "1.2M",
+          "unit" : "EUR",
+          "trend" : "up",
+          "trendLabel" : "+8% vs last month",
+          "icon" : null,
+          "description" : null,
+          "actionId" : null
+        },
+        "id" : null,
+        "children" : [ ],
+        "style" : null,
+        "cssClasses" : null,
+        "slot" : null,
+        "sizing" : null
+      }, {
+        "type" : "ClientSide",
+        "metadata" : {
+          "type" : "MetricCard",
+          "title" : "Returns",
+          "value" : "1.9%",
+          "unit" : null,
+          "trend" : "down",
+          "trendLabel" : "-0.4 pts",
+          "icon" : null,
+          "description" : null,
+          "actionId" : null
+        },
+        "id" : null,
+        "children" : [ ],
+        "style" : null,
+        "cssClasses" : null,
+        "slot" : null,
+        "sizing" : null
+      } ],
+      "style" : null,
+      "cssClasses" : null,
+      "slot" : null,
+      "sizing" : null
+    },
+    "state" : null,
+    "data" : null,
+    "action" : "Replace",
+    "containerId" : null
+  } ],
+  "banners" : [ ],
+  "appendBanners" : false,
+  "appData" : null,
+  "appState" : null,
+  "wireVersion" : "3.0"
+}

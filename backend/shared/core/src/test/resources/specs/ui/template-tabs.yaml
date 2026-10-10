@@ -1,0 +1,7 @@
+# The tabs of the IDE "Item Overview" / "Data Management" page templates — golden source for the
+# client-side expander: TabLayoutMapper lifts `tabs` to children, TabMapper lifts each tab's single
+# `content` to ITS children (TemplateComponentsDefinitionSyncTest).
+type: TabLayout
+tabs:
+  - {type: Tab, label: Details, active: true, content: {type: Text, text: Details go here}}
+  - {type: Tab, label: History, content: {type: Text, text: History goes here}}

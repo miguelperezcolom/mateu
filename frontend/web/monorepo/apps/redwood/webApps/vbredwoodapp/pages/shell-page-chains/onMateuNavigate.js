@@ -80,6 +80,12 @@ define([
       if (route == null || route === '') {
         return;
       }
+      // A menu leaf that RUNS rules (RuleLink) instead of naming a route: every menu surface
+      // (subheader, drawer, topbar, cards) lands here, so this is the one place it is handled.
+      if (bridge.isMenuRuleId(route)) {
+        await Actions.callChain(context, { chain: 'runMateuMenuRules', params: { ruleId: route } });
+        return;
+      }
       // Cualquier fallo de transporte durante esta navegación deja registrado un reintento
       // que la repite entera (la banda de error lo ofrece).
       const registerRetry = () => bridge.setLastRetry({ kind: 'navigate', route });

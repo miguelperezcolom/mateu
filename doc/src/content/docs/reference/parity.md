@@ -19,6 +19,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | CRUD (list / detail / edit / new / save / delete) | ✅ | ✅ | ✅ |
 | App shell + menus + navigation | ✅ | ✅ | ✅ |
 | App shell + menus authored IN CODE (Java `AppSupplier`/`MenuSupplier` returning a fluent `AppShell`; .NET `IAppSupplier`/`IMenuSupplier` + `AppShell`; Python `AppSupplier`/`MenuSupplier` + `AppShell`) — the whole shell (or just the menu) computed at request time, overriding the static `@App`/`@Menu` declarations | ✅ | ✅ | ✅ |
+| [App shell as data](/java-ui-definition/yaml-app-shell/) (`type: AppShell` definition bound to a mount route) with its FLOWS — `actions:` with `steps:` that a menu `RuleLink` (`RunAction` rule) runs client-side, no round-trip — plus `widgets:` and the header switches `themeToggle`/`commandCenter`/`chromeless`/`accessKeys`. Code-built shells carry the same (`AppShell.builder().action(...)`). The ports have no `type: AppShell` definitions: N/A there | ✅ | N/A | N/A |
 | Wizards (incl. branching, cross-step state, `@WizardProgress` BAR/STEPS/RAIL) | ✅ | ✅ | ✅ |
 | CRUD create/edit in a drawer (`editInDrawer` — save closes + refreshes the listing in place) | ✅ | ✅ | ✅ |
 | Collection-detail / general-overview archetypes (`CollectionDetail<Row>`, `GeneralOverview<Row>`) + fluent `FormField` | ✅ | ✅ | ✅ |

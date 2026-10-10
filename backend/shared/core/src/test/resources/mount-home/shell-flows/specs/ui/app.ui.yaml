@@ -1,0 +1,5 @@
+# Fixture for AppShellFlowSyncTest: a shell that declares a FLOW its menu runs, plus header widgets.
+type: UI
+basePath: /
+routes:
+  - routes.yaml
