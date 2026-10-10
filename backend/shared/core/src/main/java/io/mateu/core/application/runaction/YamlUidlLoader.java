@@ -240,7 +240,7 @@ public class YamlUidlLoader {
       if (layout == null && delta.isEmpty()) {
         return NONE; // neither a layout nor a delta: nothing this file can contribute
       }
-      var actions = actionsOf(root);
+      var actions = actionsOf(mapper, root);
       var triggers = triggersOf(root);
       log.debug(
           "Loaded YAML spec {} (modelView={}, {})",
@@ -263,8 +263,11 @@ public class YamlUidlLoader {
    * since every other producer of actions reads them off a Java class. This is that place, and it
    * sits beside {@code layout:} because an action belongs to the screen, not to the route that
    * reaches it: two routes on the same definition should not have to repeat it.
+   *
+   * <p>Package-visible and static because an app shell definition ({@code type: AppShell}, read by
+   * {@link YamlAppLoader}) declares its flows with exactly the same shape.
    */
-  private java.util.List<io.mateu.uidl.fluent.Action> actionsOf(JsonNode root) {
+  static java.util.List<io.mateu.uidl.fluent.Action> actionsOf(ObjectMapper mapper, JsonNode root) {
     var node = root == null ? null : root.get("actions");
     if (node == null || !node.isArray()) {
       return java.util.List.of();

@@ -202,6 +202,32 @@ Rule refresh =
 So the whole menu-leaf surface reduces to two things: a **route** (with the parameters, state and
 data it carries — see [the route registry](/java-ui-definition/route-registry/)) or a **rule**.
 
+### A leaf that runs a flow
+
+When the `RunAction` rule names an action the **app shell declares with steps** — a flow — the leaf
+runs that flow **client-side**, with no server round-trip, so it works in a static bundle and in the
+visual editor's Play too. In YAML:
+
+```yaml
+type: AppShell
+actions:
+  - id: newOrder
+    steps:
+      - type: Navigate
+        route: orders/new
+menu:
+  - type: RuleLink
+    label: New order
+    rules:
+      - action: RunAction
+        actionId: newOrder
+```
+
+In code, `AppShell.builder().action(Action.builder().id("newOrder").steps(List.of(new
+Step.Navigate("orders/new"))).build())` plus the same `RuleLink`. A `Navigate` to a route of the app
+stays inside the shell; an id the shell does not declare with steps is dispatched to the server as
+before. See [App shell as data → Flows on the shell](/java-ui-definition/yaml-app-shell/#flows-on-the-shell).
+
 ---
 
 ## Full example

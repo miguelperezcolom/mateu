@@ -3,7 +3,7 @@ import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigatio
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useCallback, useState } from 'react';
-import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, Linking, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import { NavTarget } from '../core/MateuSession';
 import { ChatPanel } from './ChatPanel';
@@ -12,6 +12,7 @@ import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import { cardsOf, isCardsGroup } from './menuCards';
 import { canSignOut, signOut } from '../core/auth';
+import { isRuleLeaf, menuLeafEffects, type ShellAction } from '../core/shellFlows';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -31,6 +32,8 @@ interface MenuItem {
   display?: string | null;
   /** Image of an entry shown as a card: URL relative to the backend base, absolute, or data URI. */
   image?: string | null;
+  /** A leaf that RUNS rules instead of navigating (RuleLink: a RunAction naming a shell flow). */
+  rules?: { action?: string; actionId?: string | null }[] | null;
 }
 
 interface AppContextSelector {
@@ -54,6 +57,8 @@ interface AppMeta {
   contextSelectors?: AppContextSelector[];
   notificationsEnabled?: boolean;
   globalSearchEnabled?: boolean;
+  /** The shell's declared actions; a flow carries its steps lowered to `commands`. */
+  actions?: ShellAction[];
 }
 
 /** One inbox entry as served by the _notifications-list / _notifications-read actions. */
@@ -127,6 +132,9 @@ function flattenMenuItems(items: MenuItem[]): MenuItem[] {
     if (item.separator) continue;
     if (item.submenus && item.submenus.length > 0) {
       result.push(...flattenMenuItems(item.submenus));
+    } else if (isRuleLeaf(item)) {
+      // a leaf that RUNS a flow has no screen of its own: it is drawn in the drawer, never a tab
+      continue;
     } else if (item.route || item.serverSideType) {
       result.push(item);
     }
@@ -578,12 +586,9 @@ function SidebarContent({ appMeta, onNavigate, onContextChanged }: { appMeta: Ap
 
 /** App-level floating layer: @Fab buttons of the @UI app class + the AI chat FAB (sseUrl).
  *  App fab actions run against the app's home route (the class that declared them). */
-function AppOverlays({ appMeta }: { appMeta: AppMeta }) {
+function useRunAppAction(appMeta: AppMeta) {
   const { session } = useAppContext();
-  const [chatOpen, setChatOpen] = useState(false);
-  const fabs = appMeta.fabs ?? [];
-
-  const runAppAction = async (actionId: string) => {
+  return async (actionId: string) => {
     if (!actionId) return;
     try {
       const inc = (await session.api.runFormAction(
@@ -602,6 +607,13 @@ function AppOverlays({ appMeta }: { appMeta: AppMeta }) {
       session.notify(null, e instanceof Error ? e.message : String(e), 'error');
     }
   };
+}
+
+function AppOverlays({ appMeta }: { appMeta: AppMeta }) {
+  const { session } = useAppContext();
+  const [chatOpen, setChatOpen] = useState(false);
+  const fabs = appMeta.fabs ?? [];
+  const runAppAction = useRunAppAction(appMeta);
 
   if (fabs.length === 0 && !appMeta.sseUrl) return null;
   return (
@@ -639,7 +651,42 @@ export function AppRenderer({ component, appMeta }: { component: Record<string, 
   const [dark, setDark] = useState(false);
   const navTheme = dark ? DarkTheme : DefaultTheme;
 
+  const { session } = useAppContext();
+  const runAppAction = useRunAppAction(appMeta);
+
+  // A menu leaf with rules RUNS them: a RunAction naming a flow the shell declares applies its
+  // lowered commands here (no server round-trip); any other id is an app-level server action.
+  const runMenuLeaf = (item: MenuItem) => {
+    for (const effect of menuLeafEffects(item, appMeta.actions)) {
+      switch (effect.kind) {
+        case 'navigate': {
+          // mount-relative, like routes.yaml: under the app's root route, like a menu route click
+          const root = (appMeta.rootRoute ?? '').replace(/\/+$/, '');
+          setCurrentNav({ route: `${root}/${effect.route}`, consumedRoute: appMeta.rootRoute ?? '', serverSideType: '' });
+          break;
+        }
+        case 'url':
+          void Linking.openURL(effect.url);
+          break;
+        case 'runAction':
+          void runAppAction(effect.actionId);
+          break;
+        case 'event':
+          session.dispatchEvent(effect.eventName, effect.payload);
+          break;
+        case 'closeOverlay':
+          session.closeTopOverlay();
+          if (effect.eventName) session.dispatchEvent(effect.eventName, effect.payload ?? null);
+          break;
+      }
+    }
+  };
+
   const handleMenuNav = (item: MenuItem) => {
+    if (isRuleLeaf(item)) {
+      runMenuLeaf(item);
+      return;
+    }
     setCurrentNav({
       route: item.route ?? '',
       consumedRoute: item.consumedRoute ?? '',

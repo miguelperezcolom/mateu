@@ -76,6 +76,71 @@
         }
       }
     },
+    "Action" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "background" : {
+          "type" : "boolean"
+        },
+        "validationRequired" : {
+          "type" : "boolean"
+        },
+        "confirmationRequired" : {
+          "type" : "boolean"
+        },
+        "rowsSelectedRequired" : {
+          "type" : "boolean"
+        },
+        "confirmationTexts" : {
+          "$ref" : "#/$defs/ConfirmationTexts"
+        },
+        "modalStyle" : {
+          "type" : "string"
+        },
+        "modalTitle" : {
+          "type" : "string"
+        },
+        "customEvent" : {
+          "$ref" : "#/$defs/CustomEvent"
+        },
+        "href" : {
+          "type" : "string"
+        },
+        "js" : {
+          "type" : "string"
+        },
+        "sse" : {
+          "type" : "boolean"
+        },
+        "fieldsToValidate" : {
+          "type" : "string"
+        },
+        "bubble" : {
+          "type" : "boolean"
+        },
+        "shortcut" : {
+          "type" : "string"
+        },
+        "timeoutMillis" : {
+          "type" : "integer"
+        },
+        "idempotent" : {
+          "type" : "boolean"
+        },
+        "restAction" : {
+          "$ref" : "#/$defs/RestAction"
+        },
+        "steps" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Step"
+          }
+        }
+      }
+    },
     "ActionPanel" : {
       "type" : "object",
       "required" : [ "type" ],
@@ -374,6 +439,24 @@
         },
         "backLink" : {
           "$ref" : "#/$defs/BackLink"
+        },
+        "actions" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Action"
+          }
+        },
+        "themeToggle" : {
+          "type" : "boolean"
+        },
+        "commandCenter" : {
+          "type" : "boolean"
+        },
+        "chromeless" : {
+          "type" : "boolean"
+        },
+        "accessKeys" : {
+          "type" : "boolean"
         },
         "note" : {
           "type" : "string",
@@ -1255,6 +1338,19 @@
         }
       }
     },
+    "CloseOverlay" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "CloseOverlay"
+        },
+        "event" : {
+          "type" : "string"
+        }
+      }
+    },
     "ColumnAlignment" : {
       "type" : "string",
       "enum" : [ "start", "center", "end" ]
@@ -1677,6 +1773,23 @@
         }
       }
     },
+    "ConfirmationTexts" : {
+      "type" : "object",
+      "properties" : {
+        "title" : {
+          "type" : "string"
+        },
+        "message" : {
+          "type" : "string"
+        },
+        "confirmationText" : {
+          "type" : "string"
+        },
+        "denialText" : {
+          "type" : "string"
+        }
+      }
+    },
     "Container" : {
       "type" : "object",
       "required" : [ "type" ],
@@ -1896,6 +2009,15 @@
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
+      }
+    },
+    "CustomEvent" : {
+      "type" : "object",
+      "properties" : {
+        "eventName" : {
+          "type" : "string"
+        },
+        "detail" : { }
       }
     },
     "CustomField" : {
@@ -2332,6 +2454,20 @@
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
+      }
+    },
+    "Emit" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "Emit"
+        },
+        "event" : {
+          "type" : "string"
+        },
+        "payload" : { }
       }
     },
     "EmptyState" : {
@@ -4111,6 +4247,26 @@
         }
       }
     },
+    "MarkClean" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "MarkClean"
+        }
+      }
+    },
+    "MarkDirty" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "MarkDirty"
+        }
+      }
+    },
     "Markdown" : {
       "type" : "object",
       "required" : [ "type" ],
@@ -4651,6 +4807,19 @@
           "type" : "string"
         },
         "target" : {
+          "type" : "string"
+        }
+      }
+    },
+    "Navigate" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "Navigate"
+        },
+        "route" : {
           "type" : "string"
         }
       }
@@ -5721,6 +5890,26 @@
         }
       }
     },
+    "RestAction" : {
+      "type" : "object",
+      "properties" : {
+        "source" : {
+          "$ref" : "#/$defs/RestDataSource"
+        },
+        "successMessage" : {
+          "type" : "string"
+        },
+        "resultPath" : {
+          "type" : "string"
+        },
+        "successRoute" : {
+          "type" : "string"
+        },
+        "forEachSelectedRow" : {
+          "type" : "boolean"
+        }
+      }
+    },
     "RestDataSource" : {
       "type" : "object",
       "properties" : {
@@ -5895,6 +6084,19 @@
     "RuleResult" : {
       "type" : "string",
       "enum" : [ "Continue", "Stop" ]
+    },
+    "RunAction" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "RunAction"
+        },
+        "actionId" : {
+          "type" : "string"
+        }
+      }
     },
     "Scoreboard" : {
       "type" : "object",
@@ -6249,21 +6451,20 @@
       }
     },
     "Step" : {
-      "type" : "object",
-      "properties" : {
-        "id" : {
-          "type" : "string"
-        },
-        "title" : {
-          "type" : "string"
-        },
-        "description" : {
-          "type" : "string"
-        },
-        "status" : {
-          "type" : "string"
-        }
-      }
+      "description" : "One of the Step implementations.",
+      "oneOf" : [ {
+        "$ref" : "#/$defs/CloseOverlay"
+      }, {
+        "$ref" : "#/$defs/Emit"
+      }, {
+        "$ref" : "#/$defs/MarkClean"
+      }, {
+        "$ref" : "#/$defs/MarkDirty"
+      }, {
+        "$ref" : "#/$defs/Navigate"
+      }, {
+        "$ref" : "#/$defs/RunAction"
+      } ]
     },
     "SubscriptionSource" : {
       "type" : "string",

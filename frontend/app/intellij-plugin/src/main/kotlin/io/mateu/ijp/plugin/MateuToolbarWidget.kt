@@ -83,12 +83,6 @@ internal class MenuEntryAction(
     icon: javax.swing.Icon? = null,
 ) : AnAction(label, description, icon), DumbAware {
     override fun actionPerformed(e: AnActionEvent) {
-        session.openViewHandler?.invoke(
-            item.text("label"),
-            item.text("route"),
-            item.text("consumedRoute"),
-            item.text("serverSideType"),
-            item.text("actionId"),
-        )
+        session.openMenuEntry(item)
     }
 }

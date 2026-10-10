@@ -171,13 +171,7 @@ class MateuProjectService(private val project: Project) {
         }
         val menu = s.appMenu ?: return
         val leaf = firstLeaf(menu) ?: return
-        s.openViewHandler?.invoke(
-            leaf.text("label"),
-            leaf.text("route"),
-            leaf.text("consumedRoute"),
-            leaf.text("serverSideType"),
-            leaf.text("actionId"),
-        )
+        s.openMenuEntry(leaf)
     }
 
     private fun firstLeaf(items: JsonNode): JsonNode? {
@@ -187,7 +181,8 @@ class MateuProjectService(private val project: Project) {
             val submenus = item.path("submenus")
             if (submenus.isArray && !submenus.isEmpty) {
                 firstLeaf(submenus)?.let { return it }
-            } else {
+            } else if (!io.mateu.ijp.state.ShellFlows.isRuleLeaf(item)) {
+                // a leaf that RUNS a flow is not a landing page
                 return item
             }
         }

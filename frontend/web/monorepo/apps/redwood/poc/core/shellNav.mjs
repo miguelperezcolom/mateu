@@ -81,6 +81,15 @@ export function ojIconOrGenericOf(icon) {
  * para una traída de otro pod (la marca es el baseUrl que le dejó expandRemoteMenus): allí es
  * justo al revés — es la que ese pod sirve, y recortarla la deja sin dueño.
  */
+/** The id prefix of a menu leaf that runs rules instead of navigating (RuleLink). */
+export const MENU_RULE_PREFIX = '__menuRule:'
+
+/** A menu option's node id: its route, or — for a leaf carrying rules — a marked id. */
+export function menuNodeIdOf(option, raw) {
+  const r = raw != null ? raw : (option.route || option.path || '')
+  return (option.rules || []).length ? MENU_RULE_PREFIX + (r || option.label || '') : r
+}
+
 export function navNodeOf(option, parentRoute) {
   const raw = option.route || option.path || ''
   // la ruta COMPUESTA (/gestion/person), como en Vaadin: es un camino de menú que el backend
@@ -88,7 +97,9 @@ export function navNodeOf(option, parentRoute) {
   // Recortarla a la terminal (/person) sólo funcionaba si el campo @Menu se llamaba como la ruta
   // @UI de su clase; con `@Menu FloorPlan floorPlan` + @UI("/floor-plan") quedaba sin dueño.
   void parentRoute
-  const id = raw
+  // a leaf that RUNS rules (RuleLink — e.g. a RunAction naming one of the shell's flows) does not
+  // navigate: its id is marked so onMateuNavigate runs its rules instead (shellFlows.mjs)
+  const id = menuNodeIdOf(option, raw)
   // una entrada OCULTA (@Menu @Hidden, visible:false) no se dibuja a ninguna profundidad: su ruta
   // sigue resolviendo (la registra el transporte), pero el menú no la enseña
   const children = (option.submenus || option.submenu || []).filter((child) => child.visible !== false)

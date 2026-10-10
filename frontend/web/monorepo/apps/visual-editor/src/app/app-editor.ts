@@ -1,6 +1,11 @@
 import { LitElement, html, css, PropertyValues, TemplateResult } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
-import { AppDoc, AppFields, AppMenuItem, parseApp, serializeApp } from '../model/appModel'
+import {
+    AppDoc, AppFields, AppMenuItem, parseApp, serializeApp,
+    appActionIds, appActionSteps, setAppActionSteps, addAppFlowAction, removeAppAction,
+    WIDGET_KINDS, widgetProp, addWidget, setWidgetProp, moveWidget, removeWidget,
+} from '../model/appModel'
+import { STEP_TYPES, stepParam, type FlowStep } from '../model/flowEditor'
 import { enumValues } from '../model/schemaCatalog'
 import type { ProjectIndex } from '../model/projectIndex'
 
@@ -38,11 +43,17 @@ export class AppEditor extends LitElement {
         .accent { display: flex; gap: 0.35rem; align-items: center; }
         .accent input[type=color] { width: 2.4rem; padding: 0.1rem; height: 2rem; flex: none; }
         .note { color: var(--ve-tertiary, #9ca3af); font-size: 12px; margin-top: 0.4rem; }
+        .checks { display: flex; flex-wrap: wrap; gap: 0 1.2rem; }
+        .steps { display: flex; flex-direction: column; gap: 0.25rem; padding-left: 0.5rem; border-left: 2px solid var(--ve-border, #e9ebef); margin-top: 0.35rem; }
+        .step select { width: 9rem; flex: none; }
+        .mini { height: 30px; min-width: 30px; border: 1px solid var(--ve-input-border, #d7dade); background: var(--ve-base, #fff); color: inherit; border-radius: 6px; cursor: pointer; }
+        .mini:disabled { opacity: .4; cursor: default; }
     `
 
     @property() yaml = ''
     @property({ attribute: false }) project?: ProjectIndex
-    @state() private doc: AppDoc = { fields: {}, menu: [], widgets: [], appRest: {} }
+    @state() private doc: AppDoc = { fields: {}, actions: [], menu: [], widgets: [], appRest: {} }
+    @state() private newActionId = ''
     private lastEmitted?: string
 
     /** The routes this mount declares, for the menu-link and home-route pickers (empty without a project). */
@@ -94,6 +105,25 @@ export class AppEditor extends LitElement {
                     Drawer closed
                 </div>
 
+                <div class="section">Header</div>
+                <div class="checks">
+                    ${this.check('Theme toggle', 'themeToggle', f, 'A moon/sun button that switches light/dark mode')}
+                    ${this.check('Command center', 'commandCenter', f, 'A FAB opening a full-screen palette: menu, search, recents')}
+                    ${this.check('Chromeless', 'chromeless', f, 'No navigation chrome (implies the command center)')}
+                    ${this.check('Access keys', 'accessKeys', f, 'Holding Alt shows a key next to every button and tab')}
+                </div>
+                <div class="note">Unticked: the @App class (if any) decides.</div>
+
+                <div class="section">Actions</div>
+                <div class="note">Flows the shell declares — a bounded list of steps run in the browser, no backend. A menu “Action” item runs one.</div>
+                <datalist id="ve-app-actions">${appActionIds(this.doc).map((id) => html`<option value=${id}></option>`)}</datalist>
+                ${appActionIds(this.doc).map((id) => this.renderFlow(id))}
+                <div class="adds">
+                    <input style="width:12rem" placeholder="new action id" .value=${this.newActionId}
+                        @input=${(e: Event) => (this.newActionId = (e.target as HTMLInputElement).value)} />
+                    <button ?disabled=${!this.newActionId.trim()} @click=${() => this.addFlow()}>+ Flow</button>
+                </div>
+
                 <div class="section">Menu</div>
                 ${this.doc.menu.map((item, i) => this.menuItem(item, [i]))}
                 <div class="adds">
@@ -103,11 +133,97 @@ export class AppEditor extends LitElement {
                     <button @click=${() => this.addItem([], 'separator')}>+ Separator</button>
                 </div>
 
-                ${this.doc.widgets.length ? html`
-                    <div class="section">Widgets</div>
-                    <div class="note">${this.doc.widgets.length} widget${this.doc.widgets.length === 1 ? '' : 's'} — preserved; edit in YAML for now.</div>` : ''}
+                <div class="section">Widgets</div>
+                <div class="note">Components in the shell header (on MENU_ON_TOP, the top band).</div>
+                ${this.doc.widgets.map((w, i) => this.renderWidget(w, i))}
+                <div class="adds">
+                    ${WIDGET_KINDS.map((k) => html`<button @click=${() => this.update_(addWidget(this.doc, k.type))}>+ ${k.type}</button>`)}
+                </div>
             </div>
         `
+    }
+
+    // --- header switches ---
+
+    private check(label: string, key: 'themeToggle' | 'commandCenter' | 'chromeless' | 'accessKeys', f: AppFields, title: string) {
+        return html`<label class="check" title=${title}>
+            <input type="checkbox" .checked=${f[key] === true}
+                @change=${(e: Event) => this.setField(key, (e.target as HTMLInputElement).checked)} />
+            ${label}
+        </label>`
+    }
+
+    // --- actions: the shell's flows, with the page flow model ---
+
+    private renderFlow(id: string): TemplateResult {
+        const steps = appActionSteps(this.doc, id)
+        return html`<div class="menu-item">
+            <div class="menu-row"><span class="kind">Flow</span><strong>${id}</strong><span class="sep"></span>
+                <button class="del" title="Remove action" @click=${() => this.update_(removeAppAction(this.doc, id))}>✕</button></div>
+            <div class="steps">
+                ${steps.map((s, i) => this.renderStep(id, steps, s, i))}
+                <div class="adds"><button @click=${() => this.setSteps(id, [...steps, { type: 'Navigate', extra: {} }])}>+ Step</button></div>
+            </div>
+        </div>`
+    }
+
+    private renderStep(id: string, steps: FlowStep[], s: FlowStep, i: number): TemplateResult {
+        const p = stepParam(s.type)
+        return html`<div class="menu-row step">
+            <select @change=${(e: Event) => this.setStep(id, steps, i, 'type', (e.target as HTMLSelectElement).value)}>
+                ${STEP_TYPES.map((t) => html`<option value=${t} ?selected=${t === s.type}>${t}</option>`)}
+            </select>
+            ${p ? html`<input placeholder=${p.label} list=${p.key === 'route' ? 've-routes' : ''} .value=${(s[p.key] as string) ?? ''}
+                        @change=${(e: Event) => this.setStep(id, steps, i, p.key, (e.target as HTMLInputElement).value)} />`
+                : html`<span class="sep"></span>`}
+            <button class="mini" @click=${() => this.moveStep(id, steps, i, -1)} ?disabled=${i === 0}>↑</button>
+            <button class="mini" @click=${() => this.moveStep(id, steps, i, 1)} ?disabled=${i === steps.length - 1}>↓</button>
+            <button class="del" @click=${() => this.setSteps(id, steps.filter((_, j) => j !== i))}>✕</button>
+        </div>`
+    }
+
+    private setStep(id: string, steps: FlowStep[], i: number, key: 'type' | 'route' | 'event' | 'actionId', value: string) {
+        this.setSteps(id, steps.map((s, j) => (j === i ? { ...s, [key]: value } : s)))
+    }
+
+    private moveStep(id: string, steps: FlowStep[], i: number, delta: number) {
+        const j = i + delta
+        if (j < 0 || j >= steps.length) return
+        const next = [...steps]
+        ;[next[i], next[j]] = [next[j], next[i]]
+        this.setSteps(id, next)
+    }
+
+    private setSteps(id: string, steps: FlowStep[]) {
+        this.update_(setAppActionSteps(this.doc, id, steps))
+    }
+
+    private addFlow() {
+        const id = this.newActionId.trim()
+        if (!id) return
+        this.newActionId = ''
+        this.update_(addAppFlowAction(this.doc, id))
+    }
+
+    // --- widgets: components in the header, kept raw; the common ones edit their text inline ---
+
+    private renderWidget(w: unknown, i: number): TemplateResult {
+        const prop = widgetProp(w)
+        const type = String((w as { type?: unknown } | null)?.type ?? '?')
+        return html`<div class="menu-item"><div class="menu-row">
+            <span class="kind" style="min-width:4rem">${type}</span>
+            ${prop ? html`<input .value=${String((w as Record<string, unknown>)[prop] ?? '')} placeholder=${prop}
+                        @change=${(e: Event) => this.update_(setWidgetProp(this.doc, i, (e.target as HTMLInputElement).value))} />`
+                : html`<span class="raw">preserved — edit in YAML</span><span class="sep"></span>`}
+            <button class="mini" title="Move up" @click=${() => this.update_(moveWidget(this.doc, i, -1))} ?disabled=${i === 0}>↑</button>
+            <button class="mini" title="Move down" @click=${() => this.update_(moveWidget(this.doc, i, 1))} ?disabled=${i === this.doc.widgets.length - 1}>↓</button>
+            <button class="del" title="Remove" @click=${() => this.update_(removeWidget(this.doc, i))}>✕</button>
+        </div></div>`
+    }
+
+    private update_(doc: AppDoc) {
+        this.doc = doc
+        this.commit()
     }
 
     // --- fields ---
@@ -148,7 +264,8 @@ export class AppEditor extends LitElement {
                 <span class="kind">Action</span>
                 <div class="menu-row">
                     <input placeholder="Label" .value=${item.label ?? ''} @change=${(e: Event) => this.setItem(path, 'label', (e.target as HTMLInputElement).value)} />
-                    <input placeholder="actionId" .value=${item.actionId ?? ''} @change=${(e: Event) => this.setItem(path, 'actionId', (e.target as HTMLInputElement).value)} />
+                    <input placeholder="actionId" list="ve-app-actions" title="One of the shell's flows (Actions above), or a server @Action id"
+                        .value=${item.actionId ?? ''} @change=${(e: Event) => this.setItem(path, 'actionId', (e.target as HTMLInputElement).value)} />
                     ${this.delBtn(path)}
                 </div>
             </div>`

@@ -30,9 +30,13 @@ import lombok.extern.slf4j.Slf4j;
  * homeRoute}…) are read off the node. {@code homeRoute} defaults to the mount's {@code home:} (see
  * {@link #load(String, String)}), else to the first navigable menu item.
  *
+ * <p>{@code actions:} declares the shell's flows (same shape as a page definition's), which a menu
+ * {@code RuleLink} with a {@code RunAction} rule runs client-side. The header switches {@code
+ * themeToggle}, {@code commandCenter}, {@code chromeless} and {@code accessKeys} are read too.
+ *
  * <p><b>Not carried yet</b>: the flags {@code AppMapper} re-reads reflectively from the app class
- * (theme toggle, command center, chromeless, SSE/MCP/upload URLs, {@code @AppContext} selectors,
- * notifications, global search, FABs). They need a class and are a follow-up.
+ * (SSE/MCP/upload URLs, {@code @AppContext} selectors, notifications, global search, FABs). They
+ * need a class and are a follow-up.
  */
 @Slf4j
 @Named
@@ -138,6 +142,10 @@ public class YamlAppLoader {
       builder.layout(
           enumValue(AppLayout.class, root.get("layout").asText(), AppLayout.SINGLE_SLOT));
     }
+    bool(root, "themeToggle", builder::themeToggle);
+    bool(root, "commandCenter", builder::commandCenter);
+    bool(root, "chromeless", builder::chromeless);
+    bool(root, "accessKeys", builder::accessKeys);
     if (root.hasNonNull("drawerClosed")) {
       builder.drawerClosed(root.get("drawerClosed").asBoolean());
     }
@@ -159,6 +167,10 @@ public class YamlAppLoader {
       firstNavigableRoute(menuItems).ifPresent(builder::homeRoute);
     }
 
+    // The shell's FLOWS: `actions:` with `steps:`, the very shape a page definition declares. A
+    // menu leaf (`RuleLink` with a `RunAction` rule) naming one runs it in the browser.
+    YamlUidlLoader.actionsOf(mapper, root).forEach(builder::action);
+
     if (root.has("widgets") && root.get("widgets").isArray()) {
       for (var node : root.get("widgets")) {
         builder.widget(mapper.treeToValue(node, Component.class));
@@ -167,9 +179,10 @@ public class YamlAppLoader {
 
     var shell = builder.build();
     log.info(
-        "Loaded AppShell definition (title='{}', {} menu items, {} widgets)",
+        "Loaded AppShell definition (title='{}', {} menu items, {} actions, {} widgets)",
         shell.title(),
         shell.menu().size(),
+        shell.actions().size(),
         shell.widgets().size());
     return shell;
   }
@@ -200,6 +213,13 @@ public class YamlAppLoader {
       JsonNode node, String field, java.util.function.Consumer<String> setter) {
     if (node.hasNonNull(field)) {
       setter.accept(node.get(field).asText());
+    }
+  }
+
+  private static void bool(
+      JsonNode node, String field, java.util.function.Consumer<Boolean> setter) {
+    if (node.hasNonNull(field)) {
+      setter.accept(node.get(field).asBoolean());
     }
   }
 
