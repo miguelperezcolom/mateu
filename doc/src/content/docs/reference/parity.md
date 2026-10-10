@@ -40,6 +40,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Card menus (`@Menu(display = cards)` / `MenuGroup` / `menu_group`) | ✅ | ✅ | ✅ |
 | `ActionPanel` (categorised "I want to…" actions) | ✅ | ✅ | ✅ |
 | `MatrixGrid` (rows × dates, collapsible sections, link/editable cells) | ✅ | ✅ | ✅ |
+| `Map` with markers (`MapMarker`, `markerActionId` → `_markerId`; fits the markers when no position) | ✅ | ✅ | ✅ |
 | Calendar views (`Calendar.view`/`views`: month, week, day, list), per-date cells (`days`), clickable dates (`dayActionId`); `CalendarPage` `views()`/`days()`/`actionOnDay()` | ✅ | ✅ | ✅ |
 | Access keys mode (`@App(accessKeys)` → `AppDto.accessKeys`) | ✅ | ✅ | ✅ |
 | `Popover.trigger` (click/hover) + `@Tooltip("field")` → `GridColumn.tooltipPath` | ✅ | ✅ | ✅ |

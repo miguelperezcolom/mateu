@@ -1,0 +1,1 @@
+import"./vaadinCanvasRenderer-DWSBfLsd.js";
