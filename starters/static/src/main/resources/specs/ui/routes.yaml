@@ -1,0 +1,11 @@
+# The route registry of the mount. Each entry binds a route (relative to the mount; "" is its root)
+# to a `layout:` — a definition file next to this one. See
+# https://mateu.io/java-ui-definition/route-registry/
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/routes-schema.json
+type: Routes
+routes:
+  - route: ""
+    layout: app.yaml
+  - route: products
+    layout: products.yaml
+  # __ROUTES__

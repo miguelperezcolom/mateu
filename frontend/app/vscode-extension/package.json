@@ -76,6 +76,11 @@
     ],
     "commands": [
       {
+        "command": "mateu.newProject",
+        "title": "New Project…",
+        "category": "Mateu"
+      },
+      {
         "command": "mateu.newFile",
         "title": "New File…",
         "category": "Mateu"
@@ -146,6 +151,7 @@
     "workspaceContains:**/specs/ui/**/*.yaml",
     "workspaceContains:**/specs/ui/**/*.yml",
     "onCustomEditor:mateu.visualEditor",
+    "onCommand:mateu.newProject",
     "onCommand:mateu.newFile",
     "onCommand:mateu.addRoute",
     "onCommand:mateu.projectSettings",
