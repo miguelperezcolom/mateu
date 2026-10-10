@@ -160,6 +160,14 @@ public static class ComponentMapper
             mg.CellActionId,
             mg.EditActionId)),
 
+        // the ClientSide id defaults to "map" (mirrors Java's MapComponentMapper)
+        Mateu.Uidl.Map m => Dto(m with { Id = m.Id ?? "map" }, new MapMetadataDto(
+            m.Position,
+            m.Zoom,
+            (m.Markers ?? []).Select(k => new MapMarkerDto(
+                k.Id, k.Latitude, k.Longitude, k.Label, k.Description, k.Color)).ToList(),
+            m.MarkerActionId)),
+
         DropZone dz => Dto(dz, new DropZoneMetadataDto(dz.Accept, dz.ActionId, dz.Parameters, dz.Title, dz.Subtitle),
             dz.Content.Select(Map)),
         Notice n => Dto(n, new NoticeMetadataDto(n.Text, n.Theme, n.Icon, n.ActionLabel, n.ActionId, n.Slim, n.FullWidth, n.NoIcon, n.Status, n.InlineContent), n.Content.Select(Map)),
@@ -343,6 +351,7 @@ public static class ComponentMapper
                 if (!string.IsNullOrEmpty(pb.OpenActionId)) ids.Add(pb.OpenActionId);
                 if (!string.IsNullOrEmpty(pb.RangeSelectActionId)) ids.Add(pb.RangeSelectActionId);
                 break;
+            case Mateu.Uidl.Map mp when !string.IsNullOrEmpty(mp.MarkerActionId): ids.Add(mp.MarkerActionId); break;
             case Button b when !string.IsNullOrEmpty(b.ActionId): ids.Add(b.ActionId); break;
             case Scoreboard s: foreach (var m in s.Metrics) Collect(m, ids); break;
             case DashboardPanel p when p.Content is not null: Collect(p.Content, ids); break;

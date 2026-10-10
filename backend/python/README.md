@@ -47,7 +47,8 @@ for the sibling implementation.
   rows × days, `PlanningBlock`s) also carries the OPERA Room Diary extras — `attribute_columns`
   + per-resource `attributes`/`icon`, block `icon`/`summary` (hover text), and
   `resize_action_id` / `open_action_id` (double click) / `range_select_action_id` (drag across
-  empty cells) next to `move_action_id`/`select_action_id`.
+  empty cells) next to `move_action_id`/`select_action_id`. `Map` / `MapMarker` (street map: `position`
+  "lat, lon", `zoom`, `markers`; a marker click runs `marker_action_id` with `_markerId`).
 - **Declarative archetypes** — subclass `Dashboard` / `Foldout` / `ItemOverview` / `Welcome` and
   declare type-hinted fields holding components; `Panel(title, subtitle, col_span, row_span, icon,
   open)` in `Annotated[...]` marks titled panels/tabs/tiles (the analogue of Java's `@Panel`).

@@ -1271,6 +1271,38 @@ class MatrixGrid(Component):
 
 
 @dataclass(frozen=True)
+class MapMarker:
+    """One point on a :class:`Map` (mirrors Java's ``MapMarker``): a pin at ``latitude`` /
+    ``longitude`` with an optional ``label``, ``description`` and ``color``."""
+
+    id: str | None = None
+    latitude: float = 0.0
+    longitude: float = 0.0
+    label: str | None = None
+    description: str | None = None
+    color: str | None = None
+
+
+@dataclass(frozen=True)
+class Map(Component):
+    """A street map (mirrors Java's ``io.mateu.uidl.data.Map``): ``position`` is the centre as
+    ``"lat, lon"`` (free string), ``zoom`` the zoom level as a string. When ``marker_action_id``
+    is set, clicking a marker runs that action with ``{"_markerId": <marker id>}``. A missing
+    ``id`` travels as ``"map"``."""
+
+    position: str | None = None
+    zoom: str | None = None
+    markers: tuple[MapMarker, ...] = ()
+    marker_action_id: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "markers", tuple(self.markers or ()))
+
+
+@dataclass(frozen=True)
 class QueueItem:
     """One card of a :class:`TaskQueue` group."""
 
@@ -1688,6 +1720,8 @@ __all__ = [
     "MatrixRow",
     "MatrixSection",
     "MatrixGrid",
+    "MapMarker",
+    "Map",
     "DropZone",
     "QueueItem",
     "QueueGroup",

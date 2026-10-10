@@ -108,6 +108,20 @@ public class MatrixGridTests
     }
 
     [Fact]
+    public void The_grids_action_ids_with_a_handler_are_advertised()
+    {
+        var root = JsonSerializer.SerializeToElement(
+            Handler().Handle(new RunActionRqDto { ServerSideType = typeof(MatrixGridView).FullName }), Json);
+        var ids = root.GetProperty("fragments")[0].GetProperty("component").GetProperty("actions")
+            .EnumerateArray().Select(a => a.GetProperty("id").GetString()).ToList();
+
+        // the web client only sends advertised actions; the view handles openCell…
+        Assert.Contains("openCell", ids);
+        // …but has no SetOverbooking, which may be an enclosing component's
+        Assert.DoesNotContain("setOverbooking", ids);
+    }
+
+    [Fact]
     public void A_cell_action_receives_the_cell_it_came_from()
     {
         var inc = Handler().Handle(new RunActionRqDto

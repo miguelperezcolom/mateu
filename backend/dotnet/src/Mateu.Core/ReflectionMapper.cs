@@ -463,8 +463,10 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             // method for — an id it cannot handle may be an ancestor's and must not be captured
             // here (same rule as Java's TreeActionHarvester and Python's mapper). A YAML layout
             // override advertises every id its buttons reference.
-            actions.AddRange(ComponentMapper.CollectActionIds(tree)
-                .Where(a => !treeSupplierView || ActionGuard.HandlesTreeAction(type, a))
+            var referenced = treeSupplierView
+                ? ActionGuard.TreeActionIds(tree).Where(a => ActionGuard.HandlesTreeAction(type, a))
+                : ComponentMapper.CollectActionIds(tree);
+            actions.AddRange(referenced
                 .Where(a => actions.All(x => x.Id != a)).Select(a => new ActionDto(a)));
         }
         else

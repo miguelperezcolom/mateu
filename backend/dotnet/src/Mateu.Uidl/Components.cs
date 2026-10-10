@@ -831,6 +831,29 @@ public sealed record MatrixGrid : ComponentBase
     public string? EditActionId { get; init; }
 }
 
+/// <summary>One point on a <see cref="Map"/> (mirrors Java's MapMarker): a pin at Latitude/Longitude
+/// with an optional label (shown on hover/popup), description and color.</summary>
+public sealed record MapMarker
+{
+    public string? Id { get; init; }
+    public double Latitude { get; init; }
+    public double Longitude { get; init; }
+    public string? Label { get; init; }
+    public string? Description { get; init; }
+    public string? Color { get; init; }
+}
+
+/// <summary>A street map (mirrors Java's io.mateu.uidl.data.Map): Position is the centre as
+/// "lat, lon" (free string), Zoom the zoom level as a string. When MarkerActionId is set, clicking
+/// a marker runs that action with the marker's id in parameters._markerId.</summary>
+public sealed record Map : ComponentBase
+{
+    public string? Position { get; init; }
+    public string? Zoom { get; init; }
+    public IReadOnlyList<MapMarker> Markers { get; init; } = [];
+    public string? MarkerActionId { get; init; }
+}
+
 /// <summary>A place to DROP dragged listing rows (a listing decorated [DragRows(type)]): a titled
 /// area wrapping any <see cref="Content"/>. When rows of the <see cref="Accept"/>ed type are dropped
 /// on it, it runs <see cref="ActionId"/> with its <see cref="Parameters"/> plus _draggedIds (the

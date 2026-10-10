@@ -3,6 +3,8 @@ The Python port of C#'s ReflectionMapper."""
 
 from __future__ import annotations
 
+import dataclasses
+
 import uuid
 from contextvars import ContextVar
 from datetime import date, datetime
@@ -95,6 +97,8 @@ from mateu_dtos import (
     ActionPanelCategoryRecord,
     ActionPanelItemRecord,
     MatrixGridMetadata,
+    MapMetadata,
+    MapMarkerRecord,
     DropZoneMetadata,
     MatrixColumnRecord,
     MatrixSectionRecord,
@@ -1701,6 +1705,30 @@ class ReflectionMapper:
                 ),
                 c,
             )
+        if isinstance(c, fluent.Map):
+            # the ClientSide id defaults to "map" (mirrors Java's MapComponentMapper)
+            return ClientSideComponent(
+                metadata=MapMetadata(
+                    position=c.position,
+                    zoom=c.zoom,
+                    markers=[
+                        MapMarkerRecord(
+                            id=m.id,
+                            latitude=m.latitude,
+                            longitude=m.longitude,
+                            label=m.label,
+                            description=m.description,
+                            color=m.color,
+                        )
+                        for m in c.markers
+                    ],
+                    marker_action_id=c.marker_action_id,
+                ),
+                id=c.id or "map",
+                children=[],
+                style=c.style,
+                css_classes=c.css_classes,
+            )
         if isinstance(c, fluent.MatrixGrid):
             n_cols = len(c.columns)
 
@@ -2027,59 +2055,47 @@ class ReflectionMapper:
         )
 
     def collect_action_ids(self, c) -> list[str]:
-        """Action ids referenced anywhere in a fluent tree (for the component's actions list)."""
+        """Action ids referenced anywhere in a fluent tree (for the component's actions list):
+        every ``action_id`` / ``*_action_id`` string, in tree order — generic, like Java's
+        TreeActionHarvester, so a new component that names an action needs no case here. Nested
+        server-side islands advertise their own actions and are not walked."""
         out: list[str] = []
+        seen: set[int] = set()
 
-        def walk(node):
-            if node is None:
+        def names_of(node):
+            if dataclasses.is_dataclass(node):
+                return [f.name for f in dataclasses.fields(node)]
+            model_fields = getattr(type(node), "model_fields", None)
+            if isinstance(model_fields, dict):
+                return list(model_fields)
+            return []
+
+        def walk(node, depth=0):
+            if node is None or depth > 64 or isinstance(node, (str, bytes, int, float, bool)):
                 return
-            if isinstance(node, ClientSideComponent):
-                aid = getattr(node.metadata, "action_id", None)
-                if aid:
-                    out.append(aid)
-                walk(getattr(node.metadata, "content", None))
-                for child in node.children:
-                    walk(child)
+            if id(node) in seen:
                 return
-            if not isinstance(node, fluent.Component):
+            seen.add(id(node))
+            if isinstance(node, (list, tuple)):
+                for item in node:
+                    walk(item, depth + 1)
                 return
-            aid = getattr(node, "action_id", None)
-            if aid:
-                out.append(aid)
-            # Planning boards reference their actions as move/select/resize/open/range ids.
-            for attr in (
-                "move_action_id",
-                "select_action_id",
-                "resize_action_id",
-                "open_action_id",
-                "range_select_action_id",
-            ):
-                v = getattr(node, attr, None)
-                if v:
-                    out.append(v)
-            # A Calendar's events (not fluent Components themselves) carry the click action id.
-            for ev in getattr(node, "events", None) or ():
-                aid = getattr(ev, "action_id", None)
-                if aid:
-                    out.append(aid)
-            # Foldout Navigation Header references parent/prev/next action ids.
-            nav = getattr(node, "navigation", None)
-            if nav is not None:
-                for attr in ("parent_action_id", "previous_action_id", "next_action_id"):
-                    v = getattr(nav, attr, None)
-                    if v:
+            if isinstance(node, dict):
+                for v in node.values():
+                    walk(v, depth + 1)
+                return
+            if type(node).__name__ == "ServerSideComponent":
+                return
+            module = (getattr(type(node), "__module__", "") or "").split(".")[0]
+            if module not in {"mateu_uidl", "mateu_dtos", "mateu_core"}:
+                return
+            for name in names_of(node):
+                v = getattr(node, name, None)
+                if isinstance(v, str):
+                    if v and (name == "action_id" or name.endswith("_action_id")):
                         out.append(v)
-            # Foldout overview Edit affordance references an action id.
-            edit = getattr(node, "overview_edit_action_id", None)
-            if edit:
-                out.append(edit)
-            for attr in ("content", "overview", "items", "metrics", "panels"):
-                v = getattr(node, attr, None)
-                if isinstance(v, (fluent.Component, ClientSideComponent)):
-                    walk(v)
-                elif isinstance(v, (list, tuple)):
-                    for i in v:
-                        walk(i)
+                else:
+                    walk(v, depth + 1)
 
         walk(c)
         return list(dict.fromkeys(out))

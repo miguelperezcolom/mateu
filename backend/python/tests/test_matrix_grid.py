@@ -113,6 +113,16 @@ def test_grid_travels_with_sections_and_one_cell_per_column():
     assert [c["value"] for c in overbooking["cells"]] == ["2", "", ""]
 
 
+def test_the_grids_action_ids_with_a_handler_are_advertised():
+    inc = handler().handle(RunActionRq(server_side_type=type_name(AvailabilityPage)))
+    actions = inc.model_dump(by_alias=True, mode="json")["fragments"][0]["component"]["actions"] or []
+    ids = [a["id"] for a in actions]
+    # the web client only sends advertised actions; the view handles openCell…
+    assert "openCell" in ids
+    # …but has no set_overbooking, which may be an enclosing component's
+    assert "setOverbooking" not in ids
+
+
 def test_a_cell_action_receives_the_cell_it_came_from():
     inc = handler().handle(
         RunActionRq(

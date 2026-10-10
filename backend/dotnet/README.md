@@ -143,7 +143,9 @@ component tree (`Mateu.Uidl` records). Supported types: `MetricCard`, `Scoreboar
 `Skeleton`, `Gantt`/`GanttTask`, `PlanningBoard`/`PlanningResource`/`PlanningBlock` (tape chart;
 with the OPERA Room Diary extras — `AttributeColumns` + per-resource `Attributes`/`Icon`, block
 `Icon`/`Summary` hover text, and `ResizeActionId` / `OpenActionId` (double click) /
-`RangeSelectActionId` (drag across empty cells) next to `MoveActionId`/`SelectActionId`), plus the
+`RangeSelectActionId` (drag across empty cells) next to `MoveActionId`/`SelectActionId`), `Map`/`MapMarker`
+(street map: `Position` "lat, lon", `Zoom`, `Markers`; a marker click runs `MarkerActionId` with
+`_markerId`), plus the
 generic `Text`, `Button`, `Card`, `HorizontalLayout`, `VerticalLayout` and `TabLayout`/`TabPanel`. They serialize to the exact wire shape of the Java
 DTOs (same `type` discriminators, field names and `slot`s), so every renderer that supports them
 renders the C# output unchanged. `MetricCard.ActionId` / `EmptyState.ActionId` / `Button.ActionId`

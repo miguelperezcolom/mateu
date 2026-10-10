@@ -1101,6 +1101,28 @@ class MatrixGridMetadata(Wire):
     edit_action_id: str | None = None
 
 
+class MapMarkerRecord(Wire):
+    """One point on a map (mirrors ``MapMarkerDto``)."""
+
+    id: str | None = None
+    latitude: float = 0.0
+    longitude: float = 0.0
+    label: str | None = None
+    description: str | None = None
+    color: str | None = None
+
+
+class MapMetadata(Wire):
+    """Street map: centre (``"lat, lon"``), zoom, markers and the action a marker click runs with
+    ``{"_markerId"}`` (mirrors ``MapDto``)."""
+
+    type: Literal["Map"] = "Map"
+    position: str | None = None
+    zoom: str | None = None
+    markers: list[MapMarkerRecord] = Field(default_factory=list)
+    marker_action_id: str | None = None
+
+
 class DropZoneMetadata(Wire):
     """A drop target for dragged listing rows; its content travels as the component's children
     (mirrors ``DropZoneDto``)."""
@@ -1396,6 +1418,7 @@ ComponentMetadata = Annotated[
         BulletedListMetadata,
         ActionPanelMetadata,
         MatrixGridMetadata,
+        MapMetadata,
         DropZoneMetadata,
         SeparatorMetadata,
         CustomComponentMetadata,

@@ -249,6 +249,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(BulletedListMetadataDto), "BulletedList")]
 [JsonDerivedType(typeof(ActionPanelMetadataDto), "ActionPanel")]
 [JsonDerivedType(typeof(MatrixGridMetadataDto), "MatrixGrid")]
+[JsonDerivedType(typeof(MapMetadataDto), "Map")]
 [JsonDerivedType(typeof(DropZoneMetadataDto), "DropZone")]
 [JsonDerivedType(typeof(SeparatorMetadataDto), "Separator")]
 [JsonDerivedType(typeof(CustomComponentMetadataDto), "CustomComponent")]
@@ -581,6 +582,18 @@ public record MatrixSectionDto(string Id, string? Title, bool Collapsed, IReadOn
 public record MatrixRowDto(string? Id, string? Label, IReadOnlyList<MatrixCellDto> Cells, bool Editable, bool Emphasis);
 
 public record MatrixCellDto(string Value, string? Tone, bool Link);
+
+/// <summary>Street map: centre ("lat, lon"), zoom, markers and the action a marker click runs
+/// (with { _markerId }) — mirrors Java's MapDto.</summary>
+public record MapMetadataDto(
+    string? Position,
+    string? Zoom,
+    IReadOnlyList<MapMarkerDto> Markers,
+    string? MarkerActionId) : ComponentMetadataDto;
+
+/// <summary>One point on a map (mirrors Java's MapMarkerDto).</summary>
+public record MapMarkerDto(
+    string? Id, double Latitude, double Longitude, string? Label, string? Description, string? Color);
 
 /// <summary>One status-list row; the action dispatches ActionId with { _item: Id }.</summary>
 public record StatusItemDto(
