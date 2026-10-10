@@ -20,12 +20,13 @@ from typing import Any
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response, StreamingResponse
 from starlette.concurrency import run_in_threadpool
 
 from mateu_core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_core.errors import dev_mode_from_env, error_increment, new_correlation_id
 from mateu_core.identity import jwt_identity_provider
+from mateu_core import dev_specs
 from mateu_core.mcp import handle_jsonrpc
 from mateu_core.request_context import MateuRequest, bound_request, normalise_headers
 from mateu_uidl import Identity
@@ -54,6 +55,7 @@ def add_mateu(
     dev: bool | None = None,
     proxy_timeout_seconds: float = 30.0,
     environment: str | None = None,
+    live_reload: bool | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -72,6 +74,10 @@ def add_mateu(
       the REST sources (default: the ``MATEU_ENVIRONMENT`` variable; neither → as authored).
     - ``dev`` — show exception details in error toasts (default: ``MATEU_DEV`` env var). Off in
       production: users then see a generic text with a correlation id, the detail goes to the log.
+    - ``live_reload`` — development mode (default: ``MATEU_DEV`` env var): the specs directory is
+      watched, every cache is dropped on change, and ``GET /mateu/dev/events`` (SSE) +
+      ``POST /mateu/dev/reload`` are served. Never in a production profile. Pair it with
+      ``uvicorn --reload`` for Python changes.
 
     Returns the ``SyncHandler`` (useful in tests).
     """
@@ -178,7 +184,48 @@ def add_mateu(
         return JSONResponse(response)
 
     app.add_api_route(f"{prefix}/mateu/mcp", mcp, methods=["POST"])
+
+    if dev_specs.enabled() if live_reload is None else live_reload:
+        dev_specs.enable(True)
+        _add_dev_endpoints(app)
     return handler
+
+
+def _add_dev_endpoints(app: FastAPI) -> None:
+    """``GET /mateu/dev/events`` (SSE: hello with the boot id, then every change, a ping every 15 s)
+    and ``POST /mateu/dev/reload[?scope=app]`` (204), at the server root like Java's."""
+    import asyncio
+
+    async def events(request: Request) -> StreamingResponse:
+        loop = asyncio.get_running_loop()
+        queue: asyncio.Queue[str] = asyncio.Queue()
+        queue.put_nowait(dev_specs.hello())
+        def push(json: str) -> None:
+            loop.call_soon_threadsafe(queue.put_nowait, json)
+
+        unsubscribe = dev_specs.subscribe(push)
+
+        async def stream():
+            try:
+                while True:
+                    try:
+                        json = await asyncio.wait_for(queue.get(), timeout=15)
+                    except asyncio.TimeoutError:
+                        json = '{"type":"ping"}'
+                    if await request.is_disconnected():
+                        break
+                    yield f"data: {json}\n\n"
+            finally:
+                unsubscribe()
+
+        return StreamingResponse(stream(), media_type="text/event-stream", headers={"Cache-Control": "no-cache"})
+
+    async def reload(request: Request) -> Response:
+        dev_specs.reload(request.query_params.get("scope"))
+        return Response(status_code=204)
+
+    app.add_api_route(dev_specs.EVENTS_PATH, events, methods=["GET"])
+    app.add_api_route(dev_specs.RELOAD_PATH, reload, methods=["POST"])
 
 
 __all__ = ["CORRELATION_HEADER", "add_mateu"]

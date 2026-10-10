@@ -89,6 +89,16 @@
         "command": "mateu.projectSettings",
         "title": "Project Settings…",
         "category": "Mateu"
+      },
+      {
+        "command": "mateu.runLive",
+        "title": "Run App (Live)",
+        "category": "Mateu"
+      },
+      {
+        "command": "mateu.reloadScreen",
+        "title": "Reload Screen",
+        "category": "Mateu"
       }
     ],
     "menus": {
@@ -138,7 +148,9 @@
     "onCustomEditor:mateu.visualEditor",
     "onCommand:mateu.newFile",
     "onCommand:mateu.addRoute",
-    "onCommand:mateu.projectSettings"
+    "onCommand:mateu.projectSettings",
+    "onCommand:mateu.runLive",
+    "onCommand:mateu.reloadScreen"
   ],
   "keywords": [
     "mateu",

@@ -19,7 +19,7 @@ namespace Mateu.Core;
 /// <para>Never fails: a broken file or entry logs and yields fewer types. A field naming a type the
 /// catalogue does not carry is WARNed about (once per id) and rendered as declared.</para>
 /// </summary>
-public sealed class FieldTypeRegistry
+public sealed class FieldTypeRegistry : ISpecsCache
 {
     public const string FileName = "types.yaml";
 
@@ -41,16 +41,24 @@ public sealed class FieldTypeRegistry
     {
         var specs = dir ?? Environment.GetEnvironmentVariable("MATEU_SPECS_DIR") ?? Path.Combine("specs", "ui");
         _load = () => AuthoredFrom(specs).MergedOver(DerivedFrom(registry.ScannedTypes));
+        DevSpecs.Register(this);
     }
 
     /// <summary>A registry over the authored file alone (no code suppliers).</summary>
-    public FieldTypeRegistry(string dir) => _load = () => AuthoredFrom(dir);
+    public FieldTypeRegistry(string dir)
+    {
+        _load = () => AuthoredFrom(dir);
+        DevSpecs.Register(this);
+    }
 
     /// <summary>A registry over a fixed catalogue (tests, hosts that build it themselves).</summary>
     public FieldTypeRegistry(FieldTypeCatalog catalog) => _load = () => catalog;
 
     /// <summary>The merged catalogue (authored over code), loaded once.</summary>
     public FieldTypeCatalog Catalog => _catalog ??= _load();
+
+    /// <summary>Dev mode: a spec changed — the catalogue is read again on next use.</summary>
+    public void InvalidateSpecs() => _catalog = null;
 
     /// <summary><paramref name="node"/> (a parsed YAML object) with its <c>fieldType</c> reference
     /// resolved against this catalogue — a NEW map when it carries one, the same map otherwise.</summary>

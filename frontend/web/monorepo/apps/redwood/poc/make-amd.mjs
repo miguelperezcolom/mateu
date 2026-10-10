@@ -37,6 +37,7 @@ export const MODULES = [
   'keys.mjs', 'hover.mjs', 'dnd.mjs', 'matrix.mjs', 'map.mjs', 'tables.mjs', 'fieldTypes.mjs', 'restSources.mjs', 'bundle.mjs',
   'mount.mjs', 'transport.mjs', 'widgets.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs', 'pageProjection.mjs', 'actionPlan.mjs', 'globalSearch.mjs', 'theme.mjs',
   'editorPreview.mjs',
+  'liveReload.mjs',
 ]
 const body = MODULES.map(strip).join('\n\n')
 
@@ -122,6 +123,11 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
 
   return {
     HOST_ID,
+    // live reload contra un backend en modo dev (poc/liveReload.mjs)
+    installDevLiveReload,
+    devEventsUrlOf,
+    noteLiveDraft,
+    liveDraftFor,
     // the renderer's own words (i18n.mjs): chains say them in the interface's language
     chromeText,
     chromeLanguage,

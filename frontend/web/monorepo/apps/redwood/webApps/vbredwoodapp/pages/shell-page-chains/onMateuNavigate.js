@@ -67,10 +67,12 @@ define([
      * @param {Object} params
      * @param {Object} params.event  spSelectionChanged ({currentId}) o mateuNavigate ({route})
      * @param {boolean} params.force recargar aunque sea la misma ruta (cambio de contexto)
+     * @param {Object} params.liveState live reload (modo dev): el estado de la pantalla en curso,
+     *     que viaja con la carga y se repone sobre la respuesta (poc/liveReload.mjs)
      * @param {Function} startsLoading se llama cuando de verdad va a cargarse otra pantalla —
      *     pasados el eco del writeback y la confirmación de cambios sin guardar
      */
-    async navigate(context, { event, force, fromUrl }, startsLoading) {
+    async navigate(context, { event, force, fromUrl, liveState }, startsLoading) {
       const { $application, $page } = context;
 
       const detail = (event && (event.detail || event)) || {};
@@ -156,6 +158,7 @@ define([
       const extra = remote
         ? { appState, consumedRoute: remote.consumedRoute, serverSideType: remote.serverSideType }
         : { appState };
+      if (liveState) extra.liveState = liveState;
       let reg;
       try {
         // una ruta del MENÚ local es del app que lo declara: se carga con su serverSideType (sin

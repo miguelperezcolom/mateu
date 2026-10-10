@@ -323,6 +323,13 @@ class RouteRegistry:
         # Code-authored routes join the authored side UNDER the YAML (routes.yaml wins on collision).
         self._supplied = RouteTable(tuple(flatten(supplied or [])))
         self._authored: RouteTable | None = None
+        from mateu_core import dev_specs
+
+        dev_specs.register(self)
+
+    def invalidate_specs(self) -> None:
+        """Dev mode: a spec changed — the authored table is read again on next use."""
+        self._authored = None
 
     def authored(self) -> RouteTable:
         """routes.yaml merged OVER the code-supplied routes, so YAML wins the last-mile override and

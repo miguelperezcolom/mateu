@@ -42,7 +42,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Named
 @Singleton
-public class ActionRegistry {
+public class ActionRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
   /** The conventional authored catalogue. */
   static final String CONVENTIONAL_ACTIONS = "specs/ui/actions.yaml";
@@ -53,6 +53,17 @@ public class ActionRegistry {
   private final ObjectMapper yaml = YamlUidlMapperFactory.create();
 
   private volatile ActionCatalog catalog;
+
+  public ActionRegistry() {
+    io.mateu.core.infra.dev.DevSpecs.register(this);
+  }
+
+  /** Dev mode: a spec changed — the catalogue (and the access it declares) is read again. */
+  @Override
+  public void invalidateSpecs() {
+    catalog = null;
+    accessById.clear();
+  }
 
   /** The {@code access:} of the authored entries that declare one, by id. */
   private final java.util.Map<String, io.mateu.uidl.data.Access> accessById =
@@ -192,7 +203,9 @@ public class ActionRegistry {
    * {@code actions:}.
    */
   public ActionCatalog authoredFrom(ClassLoader classLoader) {
-    var cl = classLoader == null ? ActionRegistry.class.getClassLoader() : classLoader;
+    var cl =
+        io.mateu.core.infra.dev.DevSpecs.classLoader(
+            classLoader == null ? ActionRegistry.class.getClassLoader() : classLoader);
     var files = new LinkedHashSet<String>();
     if (cl.getResource(CONVENTIONAL_ACTIONS) != null) {
       files.add(CONVENTIONAL_ACTIONS);

@@ -19,7 +19,7 @@ namespace Mateu.Core;
 ///
 /// <para>Never fails: a broken file or supplier logs a warning and yields fewer entries.</para>
 /// </summary>
-public sealed class RestSourceRegistry
+public sealed class RestSourceRegistry : ISpecsCache
 {
     public const string FileName = "sources.yaml";
 
@@ -38,7 +38,11 @@ public sealed class RestSourceRegistry
         _load = () => Environments.OverlayActive(
             AuthoredFrom(specs).MergedOver(DerivedFrom(registry.RegisteredTypes, registry.ScannedTypes)),
             specs, environment);
+        DevSpecs.Register(this);
     }
+
+    /// <summary>Dev mode: a spec changed — the catalogue is read again on next use.</summary>
+    public void InvalidateSpecs() => _catalog = null;
 
     /// <summary>A registry over a fixed catalogue (tests, hosts that build it themselves).</summary>
     public RestSourceRegistry(RestSourceCatalog catalog) => _load = () => catalog;
@@ -251,7 +255,7 @@ public sealed class RestSourceRegistry
 /// (<c>components:</c> envelope or bare list of <c>{name, component}</c>), merged on top — authored
 /// wins.
 /// </summary>
-public sealed class ComponentRegistry
+public sealed class ComponentRegistry : ISpecsCache
 {
     public const string FileName = "components.yaml";
 
@@ -264,7 +268,11 @@ public sealed class ComponentRegistry
     {
         var specs = dir ?? Environment.GetEnvironmentVariable("MATEU_SPECS_DIR") ?? Path.Combine("specs", "ui");
         _load = () => AuthoredFrom(specs, new FieldTypeRegistry(registry, specs)).MergedOver(DerivedFrom(registry.ScannedTypes));
+        DevSpecs.Register(this);
     }
+
+    /// <summary>Dev mode: a spec changed — the catalogue is read again on next use.</summary>
+    public void InvalidateSpecs() => _catalog = null;
 
     /// <summary>A registry over a fixed catalogue.</summary>
     public ComponentRegistry(ComponentCatalog catalog) => _load = () => catalog;

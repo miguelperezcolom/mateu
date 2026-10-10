@@ -32,7 +32,7 @@ import lombok.extern.slf4j.Slf4j;
  * reached from several entry points. Nothing about it is per-request: definitions are files.
  */
 @Slf4j
-public final class PartialRegistry {
+public final class PartialRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
   private static final PartialRegistry INSTANCE = new PartialRegistry();
 
@@ -50,7 +50,15 @@ public final class PartialRegistry {
   private final ConcurrentHashMap<String, List<Component>> byRef = new ConcurrentHashMap<>();
   private final ConcurrentHashMap<String, List<Component>> registered = new ConcurrentHashMap<>();
 
-  private PartialRegistry() {}
+  private PartialRegistry() {
+    // Dev mode: a spec changed — the YAML partials are read again (code registrations stay).
+    io.mateu.core.infra.dev.DevSpecs.register(this);
+  }
+
+  @Override
+  public void invalidateSpecs() {
+    byRef.clear();
+  }
 
   /**
    * Contribute a partial programmatically. For tests, and for apps that build their shared pieces
@@ -90,7 +98,8 @@ public final class PartialRegistry {
     var path =
         ref.endsWith(".yaml") || ref.endsWith(".yml") ? ref : "specs/ui/partials/" + ref + ".yaml";
     try (InputStream in =
-        Thread.currentThread().getContextClassLoader().getResourceAsStream(path)) {
+        io.mateu.core.infra.dev.DevSpecs.classLoader(Thread.currentThread().getContextClassLoader())
+            .getResourceAsStream(path)) {
       if (in == null) {
         log.warn("No partial definition for ref '{}' (looked for classpath:{})", ref, path);
         return NONE;

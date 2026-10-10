@@ -37,6 +37,16 @@ public final class ProjectRendererCheck {
   private static final AtomicBoolean CHECKED = new AtomicBoolean();
   private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
 
+  /**
+   * Dev mode: an edited descriptor is checked again (the check is once per JVM otherwise). Held
+   * strongly here because {@link io.mateu.core.infra.dev.DevSpecs} registers caches weakly.
+   */
+  private static final io.mateu.core.infra.dev.SpecsCache RECHECK = () -> CHECKED.set(false);
+
+  static {
+    io.mateu.core.infra.dev.DevSpecs.register(RECHECK);
+  }
+
   private ProjectRendererCheck() {}
 
   /**
@@ -45,7 +55,9 @@ public final class ProjectRendererCheck {
    * defaults ({@link ProjectSettings#defaults()}), but also that nothing was DECLARED.
    */
   public static Optional<ProjectSettings> read(ClassLoader classLoader) {
-    var cl = classLoader != null ? classLoader : ProjectRendererCheck.class.getClassLoader();
+    var cl =
+        io.mateu.core.infra.dev.DevSpecs.classLoader(
+            classLoader != null ? classLoader : ProjectRendererCheck.class.getClassLoader());
     var conventional = parse(cl, ProjectSettings.CONVENTIONAL_PATH);
     if (conventional.isPresent()) {
       return conventional;

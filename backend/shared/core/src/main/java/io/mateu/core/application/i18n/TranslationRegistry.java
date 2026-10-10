@@ -51,7 +51,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Named
 @Singleton
-public class TranslationRegistry {
+public class TranslationRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
   /** The {@code ${i18n.key}} expression, anywhere inside a text. */
   public static final Pattern EXPRESSION =
@@ -69,6 +69,16 @@ public class TranslationRegistry {
   private final ObjectMapper yaml = new ObjectMapper(new YAMLFactory());
   private final Set<String> warned = ConcurrentHashMap.newKeySet();
   private volatile Map<String, Map<String, String>> catalogue;
+
+  public TranslationRegistry() {
+    io.mateu.core.infra.dev.DevSpecs.register(this);
+  }
+
+  /** Dev mode: a spec changed — the catalogue is read again on next use. */
+  @Override
+  public void invalidateSpecs() {
+    reset();
+  }
 
   /** locale (lower-case BCP 47) → key → text, loaded once. */
   public Map<String, Map<String, String>> catalogue() {
@@ -145,7 +155,9 @@ public class TranslationRegistry {
    * not say).
    */
   public List<Translations> authoredFrom(ClassLoader classLoader) {
-    var cl = classLoader == null ? TranslationRegistry.class.getClassLoader() : classLoader;
+    var cl =
+        io.mateu.core.infra.dev.DevSpecs.classLoader(
+            classLoader == null ? TranslationRegistry.class.getClassLoader() : classLoader);
     var found = new ArrayList<Translations>();
     for (var path : MountRegistry.yamlResourcePaths(cl)) {
       try (InputStream is = cl.getResourceAsStream(path)) {

@@ -95,7 +95,25 @@ public final class IndexPage {
     if (!spec.extraHead().isEmpty()) {
       html = html.replace("</head>", spec.extraHead() + "</head>");
     }
-    return html;
+    return devHead(html);
+  }
+
+  /** The meta tag a dev-mode page carries: where the live-reload events are. */
+  public static final String DEV_META =
+      "<meta name=\"mateu-dev\" content=\""
+          + io.mateu.core.infra.dev.DevEndpoint.EVENTS_PATH
+          + "\">";
+
+  /**
+   * In development mode ({@link io.mateu.core.infra.dev.DevMode}) the page announces the
+   * live-reload event stream with a {@code <meta name="mateu-dev">}, so every renderer subscribes
+   * to it; outside dev mode the page is untouched.
+   */
+  public static String devHead(String html) {
+    if (!io.mateu.core.infra.dev.DevMode.enabled() || html.contains("name=\"mateu-dev\"")) {
+      return html;
+    }
+    return html.replace("</head>", DEV_META + "</head>");
   }
 
   /**

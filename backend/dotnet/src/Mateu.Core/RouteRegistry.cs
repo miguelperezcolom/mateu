@@ -152,7 +152,7 @@ public sealed record RouteTable(IReadOnlyList<RouteEntry> Routes)
 /// the same screen can answer several routes with different parameters pinned, and a route can exist
 /// with no server class behind it at all.</para>
 /// </summary>
-public sealed class RouteRegistry
+public sealed class RouteRegistry : ISpecsCache
 {
     public const string FileName = "routes.yaml";
 
@@ -167,7 +167,11 @@ public sealed class RouteRegistry
                    ?? Path.Combine("specs", "ui");
         // Code-authored routes join the authored side UNDER the YAML (routes.yaml wins on collision).
         _supplied = new RouteTable(Flatten(supplied ?? []));
+        DevSpecs.Register(this);
     }
+
+    /// <summary>Dev mode: a spec changed — the authored table is read again on next use.</summary>
+    public void InvalidateSpecs() => _authored = null;
 
     /// <summary>The authored half: routes.yaml merged OVER the code-supplied routes, so YAML wins the
     /// last-mile override and the code supplier still wins over the attribute-derived views.</summary>

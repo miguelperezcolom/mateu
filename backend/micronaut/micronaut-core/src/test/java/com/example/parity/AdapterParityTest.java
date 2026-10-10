@@ -47,6 +47,11 @@ class AdapterParityTest {
   }
 
   @Test
+  void servesNoDevEndpointsByDefault() {
+    contract.servesNoDevEndpointsByDefault();
+  }
+
+  @Test
   void answersDeepLinksWithTheIndex() {
     contract.answersDeepLinksWithTheIndex();
   }

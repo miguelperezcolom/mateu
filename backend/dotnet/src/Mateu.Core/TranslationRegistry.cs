@@ -17,7 +17,7 @@ namespace Mateu.Core;
 /// for the request's locale: exact (<c>es-ES</c>) → language (<c>es</c>) → fallback
 /// (MATEU_I18N_FALLBACK, default <c>en</c>) → the key itself, with ONE warning per (locale, key).</para>
 /// </summary>
-public sealed class TranslationRegistry
+public sealed class TranslationRegistry : ISpecsCache
 {
     /// <summary>The <c>${i18n.key}</c> expression, anywhere inside a text.</summary>
     public static readonly Regex Expression = new(@"\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.\-]*)\s*\}", RegexOptions.Compiled);
@@ -34,6 +34,7 @@ public sealed class TranslationRegistry
     {
         var specs = dir ?? Environment.GetEnvironmentVariable("MATEU_SPECS_DIR") ?? Path.Combine("specs", "ui");
         _load = () => Merge(FromSuppliers(registry?.ScannedTypes ?? []), AuthoredFrom(specs));
+        DevSpecs.Register(this);
     }
 
     /// <summary>A registry over fixed catalogues (tests, hosts that build them themselves).</summary>
@@ -42,6 +43,13 @@ public sealed class TranslationRegistry
 
     /// <summary>locale (lower-case BCP 47) → key → text, loaded once.</summary>
     public IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> Catalogue => _catalogue ??= _load();
+
+    /// <summary>Dev mode: a spec changed — the catalogue is read again on next use.</summary>
+    public void InvalidateSpecs()
+    {
+        _catalogue = null;
+        _warned.Clear();
+    }
 
     public bool HasTranslations => Catalogue.Count > 0;
 

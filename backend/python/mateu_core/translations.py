@@ -120,6 +120,13 @@ class TranslationRegistry:
         self._catalogue: dict[str, dict[str, str]] | None = None
         self._warned: set[str] = set()
         self._lock = threading.Lock()
+        from mateu_core import dev_specs
+
+        dev_specs.register(self)
+
+    def invalidate_specs(self) -> None:
+        """Dev mode: a spec changed — the catalogue is read again on next use."""
+        self.reset()
 
     def catalogue(self) -> dict[str, dict[str, str]]:
         """locale (lower-case BCP 47) → key → text, loaded once."""

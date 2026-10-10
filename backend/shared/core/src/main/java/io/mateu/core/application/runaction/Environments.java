@@ -55,7 +55,10 @@ public final class Environments {
 
   /** Every environment declared on the classpath, by name. */
   public static Map<String, Environment> all(ClassLoader classLoader) {
-    var cl = classLoader == null ? Environments.class.getClassLoader() : classLoader;
+    // dev mode: read from the sources (the RestSourceRegistry that overlays them is a SpecsCache)
+    var cl =
+        io.mateu.core.infra.dev.DevSpecs.classLoader(
+            classLoader == null ? Environments.class.getClassLoader() : classLoader);
     var byName = new LinkedHashMap<String, Environment>();
     for (var path : MountRegistry.yamlResourcePaths(cl)) {
       try (InputStream is = cl.getResourceAsStream(path)) {

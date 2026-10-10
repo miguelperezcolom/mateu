@@ -18,7 +18,7 @@ namespace Mateu.Core;
 /// time). Editing a spec during development needs a restart to be picked up. Override the specs
 /// directory with the MATEU_SPECS_DIR environment variable (default: <c>specs/ui</c> under the cwd).
 /// </remarks>
-public sealed class YamlSpecLoader
+public sealed class YamlSpecLoader : ISpecsCache
 {
     /// <summary>A parsed page spec: the layout, plus the ModelView class name when the YAML declares
     /// one, plus its <c>layoutDelta:</c> (empty when none; a delta-only page has no Layout).</summary>
@@ -68,6 +68,7 @@ public sealed class YamlSpecLoader
         _partials = partials ?? new PartialRegistry(_dir);
         _translations = translations ?? new TranslationRegistry(dir: _dir);
         _fieldTypes = fieldTypes ?? new FieldTypeRegistry(_dir);
+        DevSpecs.Register(this);
     }
 
     /// <summary>The route registry this loader resolves definitions through.</summary>
@@ -107,6 +108,9 @@ public sealed class YamlSpecLoader
             return spec;
         }
     }
+
+    /// <summary>Dev mode: a spec changed — every parsed definition is read again on next use.</summary>
+    public void InvalidateSpecs() => _byRoute.Clear();
 
     /// <summary>The partial registry this loader resolves refs against. Tests register in code.</summary>
     public PartialRegistry Partials => _partials;

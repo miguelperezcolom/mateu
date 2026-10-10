@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Named
 @Singleton
-public class RestSourceRegistry {
+public class RestSourceRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
   /** The conventional authored catalogue. */
   static final String CONVENTIONAL_SOURCES = "specs/ui/sources.yaml";
@@ -51,6 +51,16 @@ public class RestSourceRegistry {
   private final ObjectMapper yaml = new ObjectMapper(new YAMLFactory());
 
   private volatile RestSourceCatalog catalog;
+
+  public RestSourceRegistry() {
+    io.mateu.core.infra.dev.DevSpecs.register(this);
+  }
+
+  /** Dev mode: a spec changed — the catalogue is read again on next use. */
+  @Override
+  public void invalidateSpecs() {
+    catalog = null;
+  }
 
   /** The merged catalogue (authored over derived), loaded once. */
   public RestSourceCatalog catalog() {
@@ -198,7 +208,9 @@ public class RestSourceRegistry {
    * list.
    */
   public RestSourceCatalog authoredFrom(ClassLoader classLoader) {
-    var cl = classLoader == null ? RestSourceRegistry.class.getClassLoader() : classLoader;
+    var cl =
+        io.mateu.core.infra.dev.DevSpecs.classLoader(
+            classLoader == null ? RestSourceRegistry.class.getClassLoader() : classLoader);
     try (InputStream is = cl.getResourceAsStream(CONVENTIONAL_SOURCES)) {
       if (is == null) {
         return RestSourceCatalog.empty();
@@ -262,7 +274,9 @@ public class RestSourceRegistry {
       return null;
     }
     var path = "specs/ui/" + sampleFile.replaceFirst("^/+", "").replaceFirst("^specs/ui/", "");
-    try (InputStream is = classLoader().getResourceAsStream(path)) {
+    // dev mode: the sample file is read from the sources, so editing it reloads like sources.yaml
+    try (InputStream is =
+        io.mateu.core.infra.dev.DevSpecs.classLoader(classLoader()).getResourceAsStream(path)) {
       if (is == null) {
         log.warn("REST source '{}': sampleFile {} not found", sourceName, path);
         return null;

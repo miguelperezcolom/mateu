@@ -85,6 +85,14 @@ class YamlSpecLoader:
         #: ``access:`` that a definition names is enforced like the definition's own actions.
         self.action_catalog: Any = None
 
+        from mateu_core import dev_specs
+
+        dev_specs.register(self)
+
+    def invalidate_specs(self) -> None:
+        """Dev mode: a spec changed — every parsed definition is read again on next use."""
+        self._by_route.clear()
+
     def _names_restricted_catalogue_action(self, tree: Any) -> bool:
         catalog = self.action_catalog
         if catalog is None or not catalog.restricts_any():

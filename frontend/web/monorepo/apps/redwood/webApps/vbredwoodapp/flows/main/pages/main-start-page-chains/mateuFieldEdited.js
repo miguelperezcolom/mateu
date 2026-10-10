@@ -46,6 +46,8 @@ define([
         const draft = Object.assign({}, $page.variables.mateuDraft);
         draft[fieldId] = detail.value;
         $page.variables.mateuDraft = draft;
+        // live reload (modo dev): la shell repone lo tecleado al repintar esta pantalla
+        bridge.noteLiveDraft(window.__mateuLoadedFull, draft);
         // @Trigger(OnValueChange): el campo cambiado dispara su acción (el borrador ya lleva el valor
         // nuevo, así que el servidor recalcula con él —llegada + noches → salida— sin guardar)
         const vcHost = ($application.variables.mateuRegistry.contexts || {})[bridge.HOST_ID];

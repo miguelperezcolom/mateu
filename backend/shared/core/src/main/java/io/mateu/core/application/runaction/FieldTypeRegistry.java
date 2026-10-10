@@ -31,7 +31,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Named
 @Singleton
-public class FieldTypeRegistry {
+public class FieldTypeRegistry implements io.mateu.core.infra.dev.SpecsCache {
 
   /** The conventional authored catalogue. */
   static final String CONVENTIONAL_TYPES = "specs/ui/types.yaml";
@@ -41,6 +41,16 @@ public class FieldTypeRegistry {
           .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
   private volatile FieldTypeCatalog catalog;
+
+  public FieldTypeRegistry() {
+    io.mateu.core.infra.dev.DevSpecs.register(this);
+  }
+
+  /** Dev mode: a spec changed — the catalogue is read again on next use. */
+  @Override
+  public void invalidateSpecs() {
+    catalog = null;
+  }
 
   /** The merged catalogue (authored over code), loaded once. */
   public FieldTypeCatalog catalog() {
@@ -126,7 +136,9 @@ public class FieldTypeRegistry {
    * what keeps the GENERATED {@code types-schema.json} an honest description of the file.
    */
   public FieldTypeCatalog authoredFrom(ClassLoader classLoader) {
-    var cl = classLoader == null ? FieldTypeRegistry.class.getClassLoader() : classLoader;
+    var cl =
+        io.mateu.core.infra.dev.DevSpecs.classLoader(
+            classLoader == null ? FieldTypeRegistry.class.getClassLoader() : classLoader);
     try (InputStream is = cl.getResourceAsStream(CONVENTIONAL_TYPES)) {
       if (is == null) {
         return FieldTypeCatalog.empty();

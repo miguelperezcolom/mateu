@@ -77,7 +77,9 @@ public final class MountRegistry {
 
   /** All mounts declared as {@code type: UI} files on the classpath, in discovery order. */
   public List<Mount> mounts(ClassLoader classLoader) {
-    var cl = classLoader == null ? MountRegistry.class.getClassLoader() : classLoader;
+    var cl =
+        io.mateu.core.infra.dev.DevSpecs.classLoader(
+            classLoader == null ? MountRegistry.class.getClassLoader() : classLoader);
     var mounts = new ArrayList<Mount>();
     for (var resourcePath : scanYamlResourcePaths(cl)) {
       var mount = readMount(cl, resourcePath);
@@ -100,7 +102,9 @@ public final class MountRegistry {
    * rather than being listed by a {@code type: UI} descriptor.
    */
   public List<RouteFileMount> routeFileMounts(ClassLoader classLoader) {
-    var cl = classLoader == null ? MountRegistry.class.getClassLoader() : classLoader;
+    var cl =
+        io.mateu.core.infra.dev.DevSpecs.classLoader(
+            classLoader == null ? MountRegistry.class.getClassLoader() : classLoader);
     var found = new ArrayList<RouteFileMount>();
     for (var resourcePath : scanYamlResourcePaths(cl)) {
       try (InputStream is = cl.getResourceAsStream(resourcePath)) {

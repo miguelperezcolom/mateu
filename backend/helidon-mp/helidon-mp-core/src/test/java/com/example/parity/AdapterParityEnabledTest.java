@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 @HelidonTest
 @AddConfig(key = "mateu.cors.allowed-origins", value = AdapterParityITFoundation.ALLOWED_ORIGIN)
 @AddConfig(key = "mateu.mcp.enabled", value = "true")
+@AddConfig(key = "mateu.dev", value = "true")
 class AdapterParityEnabledTest {
 
   final AdapterParityITFoundation contract = new AdapterParityITFoundation();
@@ -30,5 +31,10 @@ class AdapterParityEnabledTest {
   @Test
   void servesMcpWhenEnabled() {
     contract.servesMcpWhenEnabled();
+  }
+
+  @Test
+  void servesDevEndpointsWhenEnabled() throws Exception {
+    contract.servesDevEndpointsWhenEnabled();
   }
 }

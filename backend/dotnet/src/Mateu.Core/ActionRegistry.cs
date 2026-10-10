@@ -19,7 +19,7 @@ namespace Mateu.Core;
 /// a warning — server logic stays a view method. Never fails: a broken file logs and yields fewer
 /// entries.</para>
 /// </summary>
-public sealed class ActionRegistry
+public sealed class ActionRegistry : ISpecsCache
 {
     public const string FileName = "actions.yaml";
     public const string Type = "Actions";
@@ -33,6 +33,7 @@ public sealed class ActionRegistry
     {
         var specs = dir ?? Environment.GetEnvironmentVariable("MATEU_SPECS_DIR") ?? Path.Combine("specs", "ui");
         _load = () => AuthoredFrom(specs).MergedOver(DerivedFrom(registry.ScannedTypes));
+        DevSpecs.Register(this);
     }
 
     /// <summary>A registry over a fixed catalogue (tests, hosts that build it themselves).</summary>
@@ -40,6 +41,9 @@ public sealed class ActionRegistry
 
     /// <summary>The merged catalogue (authored over derived), loaded once.</summary>
     public ActionCatalog Catalog => _catalog ??= _load();
+
+    /// <summary>Dev mode: a spec changed — the catalogue is read again on next use.</summary>
+    public void InvalidateSpecs() => _catalog = null;
 
     /// <summary>The ids of every catalogue entry that declares <c>access:</c>.</summary>
     public IReadOnlySet<string> RestrictedIds() => RestrictedIn(Catalog);

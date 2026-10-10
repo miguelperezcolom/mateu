@@ -45,6 +45,14 @@ class ActionRegistry:
         #: that reaches the server anyway refused with 403.
         self._access_by_id: dict[str, Any] = {}
         self._lock = threading.Lock()
+        from mateu_core import dev_specs
+
+        dev_specs.register(self)
+
+    def invalidate_specs(self) -> None:
+        """Dev mode: a spec changed — the catalogue is read again on next use."""
+        self._catalog = None
+        self._access_by_id.clear()
 
     def catalog(self) -> list[CatalogAction]:
         """The merged catalogue (authored over derived), loaded once."""

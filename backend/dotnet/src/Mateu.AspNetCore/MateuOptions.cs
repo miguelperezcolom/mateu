@@ -26,6 +26,11 @@ public sealed class MateuOptions
     /// shows its message.</summary>
     public bool? DetailedErrors { get; set; }
 
+    /// <summary>Development mode (live reload): specs watched, every cache dropped on change and
+    /// <c>GET /mateu/dev/events</c> + <c>POST /mateu/dev/reload</c> served. Null (the default) means
+    /// "only when the MATEU_DEV environment variable is true" — never set it in a production profile.</summary>
+    public bool? Dev { get; set; }
+
     /// <summary>The client proxied REST fetches use (null → a shared client with a 60 s timeout).</summary>
     public HttpClient? HttpClient { get; set; }
 

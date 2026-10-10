@@ -34,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Named
 @Singleton
-public class YamlUidlLoader {
+public class YamlUidlLoader implements io.mateu.core.infra.dev.SpecsCache {
 
   /** A parsed page spec: the layout, plus the ModelView class name when the YAML declares one. */
   /**
@@ -136,6 +136,7 @@ public class YamlUidlLoader {
             ? new io.mateu.core.application.i18n.TranslationRegistry()
             : translations;
     this.fieldTypes = fieldTypes == null ? new FieldTypeRegistry() : fieldTypes;
+    io.mateu.core.infra.dev.DevSpecs.register(this);
   }
 
   public YamlUidlLoader(
@@ -153,6 +154,13 @@ public class YamlUidlLoader {
         routeRegistry,
         new io.mateu.core.application.i18n.TranslationRegistry(),
         new FieldTypeRegistry());
+  }
+
+  /** Dev mode: a spec changed — every parsed definition is read again on next use. */
+  @Override
+  public void invalidateSpecs() {
+    byRoute.clear();
+    bySpecPath.clear();
   }
 
   /** Without a registry: the convention alone, as before it existed. */
@@ -627,10 +635,15 @@ public class YamlUidlLoader {
   }
 
   private InputStream resolve(String path) {
-    var cl = Thread.currentThread().getContextClassLoader();
-    var resource = cl != null ? cl.getResourceAsStream(path) : null;
+    var context = Thread.currentThread().getContextClassLoader();
+    var resource =
+        context != null
+            ? io.mateu.core.infra.dev.DevSpecs.classLoader(context).getResourceAsStream(path)
+            : null;
     if (resource == null) {
-      resource = YamlUidlLoader.class.getClassLoader().getResourceAsStream(path);
+      resource =
+          io.mateu.core.infra.dev.DevSpecs.classLoader(YamlUidlLoader.class.getClassLoader())
+              .getResourceAsStream(path);
     }
     return resource;
   }
