@@ -36,14 +36,11 @@ public class EndOfDay extends Wizard {
   public enum ArrivalsResolution {
     @Label("Mark as no-show")
     MARK_AS_NO_SHOW,
-    @Label("Cancel")
     CANCEL
   }
 
   public enum DeparturesResolution {
-    @Label("Extend one night")
     EXTEND_ONE_NIGHT,
-    @Label("Check out")
     CHECK_OUT
   }
 

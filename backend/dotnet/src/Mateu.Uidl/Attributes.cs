@@ -215,8 +215,8 @@ public sealed class RestDataAttribute(string url) : Attribute
     public bool Proxy { get; init; }
 }
 
-/// <summary>An overridden display label for a field or method.</summary>
-[AttributeUsage(AttributeTargets.Property | AttributeTargets.Method | AttributeTargets.Class)]
+/// <summary>An overridden display label for a field, method or enum member.</summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Method | AttributeTargets.Class | AttributeTargets.Field)]
 public sealed class LabelAttribute(string value) : Attribute
 {
     public string Value { get; } = value;

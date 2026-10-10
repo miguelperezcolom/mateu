@@ -89,7 +89,8 @@ public class AppContextSearchActionRunner implements ActionRunner {
                   constant ->
                       new Option(
                           ((Enum<?>) constant).name(),
-                          io.mateu.uidl.Humanizer.toUpperCaseFirst(((Enum<?>) constant).name())))
+                          io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.enumLabel(
+                              constant)))
               .filter(option -> option.label().toLowerCase().contains(searchText))
               .toList();
       return io.mateu.uidl.data.ListingData.of(options.toArray(Option[]::new)).page();

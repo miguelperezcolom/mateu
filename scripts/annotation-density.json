@@ -1,7 +1,7 @@
 {
   "ceiling": 5.3,
-  "_baseline": "5.25 over the corpus (305 screens), measured 2026-10-10 after the OPERA PMS demo (demo-vb-pms) joined it; was 5.13 on 2026-09-12 and 4.38 / 444 screens on 2026-08-12",
-  "_raised_2026_10_10": "demo-vb-pms imitates OPERA Cloud screens one to one: its annotations are mostly information only the developer has (the guide's screen and step titles, labels that are not the field name, enum constant labels — Java shows a raw constant otherwise). The redundant ones (labels equal to the humanized name) were removed first. Inferring enum constant labels would remove more, but it changes every enum on three backends and is left for its own change.",
+  "_baseline": "5.24 over the corpus (305 screens), measured 2026-10-10 after the OPERA PMS demo (demo-vb-pms) joined it; was 5.13 on 2026-09-12 and 4.38 / 444 screens on 2026-08-12",
+  "_raised_2026_10_10": "demo-vb-pms imitates OPERA Cloud screens one to one: its annotations are mostly information only the developer has (the guide's screen and step titles, labels that are not the field name). Labels equal to the humanized name were removed, and enum constants are now humanized by all three backends (they used to show raw, which forced a @Label on every constant), so those @Labels went too.",
   "_why_headroom": "A ceiling pinned to the exact current value fails on the very next annotation added anywhere, and a check that fires on ordinary work gets raised by reflex until it means nothing. A little headroom means normal work passes and a TREND trips it.",
   "_when_it_fires": "Either infer it instead (doc/.../authoring-rule.md), or raise this deliberately and say why in the commit. Raising it is allowed; raising it silently is the thing to avoid."
 }

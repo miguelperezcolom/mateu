@@ -241,7 +241,8 @@ public final class AppMapper {
               constant ->
                   new OptionDto(
                       ((Enum<?>) constant).name(),
-                      io.mateu.uidl.Humanizer.toUpperCaseFirst(((Enum<?>) constant).name()),
+                      io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.enumLabel(
+                          constant),
                       null,
                       null,
                       null,

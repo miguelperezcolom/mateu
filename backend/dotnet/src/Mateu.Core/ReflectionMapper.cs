@@ -320,7 +320,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             var attribute = property.Find<AppContextAttribute>();
             if (attribute is null || !property.PropertyType.IsEnum) continue;
             var options = Enum.GetNames(property.PropertyType)
-                .Select(name => new OptionDto(name, Naming.Humanize(name)))
+                .Select(name => new OptionDto(name, EnumLabel(property.PropertyType, name)))
                 .ToList();
             selectors.Add(new AppContextSelectorDto(
                 Naming.CamelCase(property.Name),
@@ -1206,13 +1206,13 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                     return new FormFieldMetadataDto(id, "string", label)
                     {
                         Stereotype = "multiSelect",
-                        Options = Enum.GetNames(el).Select(n => new OptionDto(n, Naming.Humanize(n))).ToList(),
+                        Options = Enum.GetNames(el).Select(n => new OptionDto(n, EnumLabel(el, n))).ToList(),
                     };
                 if (t.IsEnum)
                     return new FormFieldMetadataDto(id, "string", label)
                     {
                         Stereotype = "select",
-                        Options = Enum.GetNames(t).Select(n => new OptionDto(n, Naming.Humanize(n))).ToList(),
+                        Options = Enum.GetNames(t).Select(n => new OptionDto(n, EnumLabel(t, n))).ToList(),
                     };
                 return new FormFieldMetadataDto(id, InferDataType(t, p), label);
             })
@@ -1611,7 +1611,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                     : IsNumeric(x.Type) && x.Property.Find<RangeFilterAttribute>() != null ? "numberRange"
                     : "regular";
                 var options = x.Type.IsEnum
-                    ? Enum.GetNames(x.Type).Select(n => new OptionDto(n, Naming.Humanize(n))).ToList()
+                    ? Enum.GetNames(x.Type).Select(n => new OptionDto(n, EnumLabel(x.Type, n))).ToList()
                     : new List<OptionDto>();
                 return new FormFieldMetadataDto(
                     Naming.CamelCase(x.Property.Name), InferDataType(x.Type, x.Property), label)
@@ -1639,11 +1639,18 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         return "text";
     }
 
+    /// <summary>What an enum member is called on screen: its [Label], else its name humanized
+    /// (CHECK_OUT / CheckOut → "Check out"). Same rule as Java's FieldMetadataExtractor.enumLabel.</summary>
+    internal static string EnumLabel(Type enumType, string name) =>
+        enumType.GetField(name)?.GetCustomAttribute<LabelAttribute>()?.Value is { Length: > 0 } label
+            ? label
+            : Naming.HumanizeConstant(name);
+
     private static List<OptionDto>? EditorOptionsOf(PropertyInfo p)
     {
         var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
         return t.IsEnum
-            ? Enum.GetNames(t).Select(n => new OptionDto(n, n)).ToList()
+            ? Enum.GetNames(t).Select(n => new OptionDto(n, EnumLabel(t, n))).ToList()
             : null;
     }
 
@@ -1752,9 +1759,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                       && supplier.Options(fieldId) is { Count: > 0 } supplied
             ? supplied.Select(MapOption).ToList()
             : t.IsEnum
-                // value AND label are the constant name (Java's OptionsBuilder uses the enum
-                // constant name for both, not a humanized label).
-                ? Enum.GetNames(t).Select(n => new OptionDto(n, n)).ToList()
+                // value = the constant name; label = its [Label], else the name humanized
+                // (Java: FieldMetadataExtractor.enumLabel)
+                ? Enum.GetNames(t).Select(n => new OptionDto(n, EnumLabel(t, n))).ToList()
                 : new List<OptionDto>();
         // A [PlainText] field — or any field of a [PlainText] class — renders as read-only text.
         var plainText = p.Find<PlainTextAttribute>() != null

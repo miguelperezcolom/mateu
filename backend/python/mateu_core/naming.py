@@ -31,3 +31,18 @@ def humanize(s: str) -> str:
         prev_word_char = c.isalnum()
     text = "".join(out).strip()
     return text[0].upper() + text[1:] if text else text
+
+
+def humanize_constant(s: str) -> str:
+    """An identifier as Java's ``Humanizer.toUpperCaseFirst`` shows it — used for enum members so
+    every backend calls them the same: '.', '_' and '-' are spaces, words split at case and
+    letter/non-letter boundaries, then lower case with the first letter upper (``CHECK_OUT`` →
+    "Check out", ``CheckOut`` → "Check out", ``ROOM1`` → "Room 1")."""
+    import re
+
+    if not s:
+        return s
+    s = s.replace(".", " ").replace("_", " ").replace("-", " ")
+    s = re.sub(r"(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])", " ", s).lower()
+    s = re.sub(r" +", " ", s)
+    return s[:1].upper() + s[1:] if len(s) > 1 else s

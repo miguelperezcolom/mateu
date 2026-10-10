@@ -223,7 +223,7 @@ from mateu_uidl import components as fluent
 
 from . import capabilities, labels_aside_inference, layout_inference
 from .action_guard import resolve_action
-from .naming import camel_case, humanize
+from .naming import camel_case, humanize, humanize_constant
 from .page_type_inference import page_type_of
 from . import page_inference
 from .reflection import class_flag, methods_with, view_fields
@@ -269,6 +269,16 @@ def for_current_audience(gate: Audience | None) -> bool:
 
 def _id() -> str:
     return str(uuid.uuid4())
+
+
+def enum_label(member) -> str:
+    """What an enum member is called on screen: its own ``__str__`` when the enum class defines one
+    (a display name the developer already wrote), else its name humanized (``CHECK_OUT`` → "Check
+    out"). Same rule as Java's ``FieldMetadataExtractor.enumLabel`` and .NET's ``EnumLabel``."""
+    own = type(member).__dict__.get("__str__")
+    if own is not None and getattr(own, "__qualname__", "").split(".")[0] == type(member).__name__:
+        return str(member)
+    return humanize_constant(member.name)
 
 
 def is_enum(t) -> bool:
@@ -710,7 +720,7 @@ class ReflectionMapper:
                 return_type = None
             if isinstance(return_type, type) and issubclass(return_type, Enum):
                 options = [
-                    Option(value=member.name, label=humanize(member.name))
+                    Option(value=member.name, label=enum_label(member))
                     for member in return_type
                 ]
             else:
@@ -2326,7 +2336,7 @@ class ReflectionMapper:
                 editable=editable,
                 editor_type=self.editor_type_of(f) if editable else None,
                 editor_options=(
-                    [Option(value=m.name, label=str(m.name)) for m in f.type]
+                    [Option(value=m.name, label=enum_label(m)) for m in f.type]
                     if editable and is_enum(f.type) else None
                 ),
                 aggregate=self.aggregate_of(f),
@@ -2615,12 +2625,12 @@ class ReflectionMapper:
                 el = enum_set_element_type(t)
                 out.append(FormFieldMetadata(
                     field_id=fid, data_type="string", label=label, stereotype="multiSelect",
-                    options=[Option(value=m.name, label=humanize(m.name)) for m in el],
+                    options=[Option(value=m.name, label=enum_label(m)) for m in el],
                 ))
             elif is_enum(t):
                 out.append(FormFieldMetadata(
                     field_id=fid, data_type="string", label=label, stereotype="select",
-                    options=[Option(value=m.name, label=humanize(m.name)) for m in t],
+                    options=[Option(value=m.name, label=enum_label(m)) for m in t],
                 ))
             else:
                 out.append(FormFieldMetadata(field_id=fid, data_type=self.infer_data_type(t, f), label=label))
@@ -2640,7 +2650,7 @@ class ReflectionMapper:
             options: list[Option] = []
             if is_enum(t):
                 stereotype = "multiSelect"
-                options = [Option(value=m.name, label=humanize(m.name)) for m in t]
+                options = [Option(value=m.name, label=enum_label(m)) for m in t]
             elif t in (date, datetime):
                 stereotype = "dateRange"
             elif t in (int, float, Decimal) and f.has(RangeFilter):
@@ -3222,7 +3232,7 @@ class ReflectionMapper:
                     if editable else None
                 ),
                 editor_options=(
-                    (supplied or ([Option(value=m.name, label=str(m.name)) for m in c.type]
+                    (supplied or ([Option(value=m.name, label=enum_label(m)) for m in c.type]
                                   if is_enum(c.type) else None))
                     if editable else None
                 ),
@@ -3257,10 +3267,9 @@ class ReflectionMapper:
         # selects); enums keep contributing their constants
         options = self._supplied_options(instance, field_id)
         if not options:
-            # Enum options: value AND label are the member name (Java's OptionsBuilder uses the
-            # constant name for both, not a humanized label).
+            # Enum options: value = the member name, label = enum_label (Java's enumLabel rule).
             options = (
-                [Option(value=m.name, label=m.name) for m in t] if is_enum(t) else []
+                [Option(value=m.name, label=enum_label(m)) for m in t] if is_enum(t) else []
             )
         value = getattr(instance, f.name, None)
 

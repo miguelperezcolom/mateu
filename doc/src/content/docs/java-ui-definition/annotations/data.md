@@ -281,6 +281,16 @@ public enum InvoiceStatus {
 }
 ```
 
+### What an enum constant is called without a label
+
+A constant needs no annotation when its name says it. Mateu calls it, in order:
+
+1. by its `@Label` (`@Label("Mark as no-show") NO_SHOW`);
+2. by its `toString()`, when the enum overrides it;
+3. by its name humanized: `CHECK_OUT` → "Check out", `CheckOut` → "Check out", `ROOM1` → "Room 1".
+
+So in the example above, `@Option` on `DRAFT` and `PAID` changes nothing. The .NET (`[Label]` on the member) and Python (the enum's own `__str__`) backends follow the same rule.
+
 ---
 
 ## @OptionsLayout

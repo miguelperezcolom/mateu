@@ -38,11 +38,8 @@ public class ReservasListing
   /** Selector rápido del listado (chips junto al smart search): un filtro de ENUM —
    *  cada valor es una vista operativa del día. */
   public enum Vista {
-    @Label("Llegadas hoy")
     LLEGADAS_HOY,
-    @Label("Salidas hoy")
     SALIDAS_HOY,
-    @Label("In house")
     IN_HOUSE
   }
 
