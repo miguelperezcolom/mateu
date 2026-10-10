@@ -80,8 +80,6 @@ export class MateuDrawer extends ComponentElement {
 
     firstUpdated() {
         requestAnimationFrame(() => this.opened = true)
-        // The embedded guided process (a wizard) bubbles its step position up to us (composed event).
-        this.addEventListener('mateu-guided-progress', this.onGuidedProgress)
         const metadata = (this.component as ClientSideComponent)?.metadata as Drawer | undefined
         if (metadata) requestAnimationFrame(() => this.applyLayoutInset(metadata))
     }
@@ -166,11 +164,14 @@ export class MateuDrawer extends ComponentElement {
 
     connectedCallback() {
         super.connectedCallback()
-        document.addEventListener('keydown', this._escListener)
+        const signal = this.connection.signal
+        document.addEventListener('keydown', this._escListener, { signal })
+        // The embedded guided process (a wizard) bubbles its step position up to us (composed event).
+        this.addEventListener('mateu-guided-progress', this.onGuidedProgress, { signal })
     }
 
     disconnectedCallback() {
-        document.removeEventListener('keydown', this._escListener)
+        // the listeners above go with this.connection (ConnectedElement.disconnectedCallback)
         this.releaseLayoutInset()
         // A drawer torn down without close() (an owner re-render, a navigation) must not leave
         // the trap installed.

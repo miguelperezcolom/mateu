@@ -679,7 +679,14 @@ export class MateuComponent extends ComponentElement {
         card.style.cssText = 'background:var(--lumo-base-color,#fff);color:var(--lumo-body-text-color,#1a1a1a);'
             + 'border-radius:var(--lumo-border-radius-l,12px);box-shadow:var(--lumo-box-shadow-xl,0 12px 40px rgba(0,0,0,.3));'
             + 'padding:1.2rem;max-width:min(90vw,26rem);'
-        const close = () => { if (backdrop.parentElement) document.body.removeChild(backdrop) }
+        // The modal lives in <body>: it goes away with this component (a navigation while it is
+        // open), and so do its listeners.
+        const modal = new AbortController()
+        const close = () => {
+            modal.abort()
+            if (backdrop.parentElement) backdrop.parentElement.removeChild(backdrop)
+        }
+        this.connection.signal.addEventListener('abort', close, { signal: modal.signal })
         const btn = 'font:inherit;font-weight:600;padding:.45rem 1rem;border-radius:var(--lumo-border-radius-m,6px);cursor:pointer;'
         render(html`
             <h3 style="margin:0 0 .5rem;">${header}</h3>
@@ -692,7 +699,8 @@ export class MateuComponent extends ComponentElement {
             </div>
         `, card)
         backdrop.appendChild(card)
-        backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close() })
+        backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close() }, { signal: modal.signal })
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close() }, { signal: modal.signal })
         document.body.appendChild(backdrop)
     }
 
@@ -1044,22 +1052,18 @@ export class MateuComponent extends ComponentElement {
 
     connectedCallback() {
         super.connectedCallback();
-        this.addEventListener('backend-call-succeeded', this.handleBackendSucceeded)
-        this.addEventListener('backend-call-failed', this.handleBackendFailed)
-        this.addEventListener('backend-succeeded-event', this._backendSettledListener)
-        this.addEventListener('backend-failed-event', this._backendSettledListener)
-        this.addEventListener('backend-cancelled-event', this._backendSettledListener)
-        document.addEventListener('keydown', this._keydownListener)
+        const signal = this.connection.signal
+        this.addEventListener('backend-call-succeeded', this.handleBackendSucceeded, { signal })
+        this.addEventListener('backend-call-failed', this.handleBackendFailed, { signal })
+        this.addEventListener('backend-succeeded-event', this._backendSettledListener, { signal })
+        this.addEventListener('backend-failed-event', this._backendSettledListener, { signal })
+        this.addEventListener('backend-cancelled-event', this._backendSettledListener, { signal })
+        document.addEventListener('keydown', this._keydownListener, { signal })
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        this.removeEventListener('backend-call-succeeded', this.handleBackendSucceeded)
-        this.removeEventListener('backend-call-failed', this.handleBackendFailed)
-        this.removeEventListener('backend-succeeded-event', this._backendSettledListener)
-        this.removeEventListener('backend-failed-event', this._backendSettledListener)
-        this.removeEventListener('backend-cancelled-event', this._backendSettledListener)
-        document.removeEventListener('keydown', this._keydownListener)
+        // the listeners registered in connectedCallback go with this.connection (ConnectedElement)
         // A component torn down mid-request will never see its outcome event: release its slots
         // now, or the same action would stay blocked if the component is mounted again.
         this._releasePending()

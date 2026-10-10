@@ -26,6 +26,7 @@ import { registerRemoteMenuRetry } from "@infra/ui/remoteMenuRetry.ts";
 import { announce } from "@infra/a11y/announcer.ts";
 import { fragmentIsCurrent } from "@infra/ui/callbackTokenGuard.ts";
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
+import { ConnectionScope } from '@infra/ui/connectionScope.ts'
 
 export default abstract class ConnectedElement extends LitElement {
 
@@ -38,6 +39,12 @@ export default abstract class ConnectedElement extends LitElement {
     callbackToken = ''
 
     private upstreamSubscription: Subscription | undefined;
+
+    /**
+     * Listeners that must die with this component (document-level ones, and those on elements it
+     * appends to <head>/<body>, which outlive it): register them with `{ signal: this.connection.signal }`.
+     */
+    protected connection = new ConnectionScope()
 
     connectedCallback() {
         super.connectedCallback()
@@ -211,6 +218,7 @@ export default abstract class ConnectedElement extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         this.upstreamSubscription?.unsubscribe();
+        this.connection.abort()
     }
 
     abstract applyFragment(fragment: UIFragment):void
@@ -363,6 +371,8 @@ export default abstract class ConnectedElement extends LitElement {
                 element.setAttribute(k, data.attributes[k])
             }
             for (let k in data.on) {
+                // the element outlives this component (it is appended to <head>/<body>): the
+                // listener must not keep calling back into a disconnected component
                 element.addEventListener(k, (e: Event) => {
                     this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                         detail: {
@@ -374,7 +384,7 @@ export default abstract class ConnectedElement extends LitElement {
                         bubbles: true,
                         composed: true
                     }))
-                })
+                }, { signal: this.connection.signal })
         }
             return element
     }

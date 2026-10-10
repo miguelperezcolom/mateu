@@ -15,6 +15,7 @@ import {
     saveView,
     setDefaultView,
 } from "../savedViewsStore.ts";
+import { ListenerSlot } from '@infra/ui/connectionScope.ts'
 
 /**
  * Smart-search filter bar, after the Redwood Smart Search pattern: ONE search field hosting both
@@ -68,7 +69,9 @@ export class MateuFilterBar extends LitElement {
     @state()
     private draftText = ''
 
-    private outsideClick: ((e: Event) => void) | undefined
+    // The document-level outside-click listener of whichever panel is open (filters or saved views):
+    // one slot, so opening one panel replaces the other's listener instead of leaking it.
+    private outsideClick = new ListenerSlot()
 
     disconnectedCallback() {
         super.disconnectedCallback();
@@ -88,19 +91,19 @@ export class MateuFilterBar extends LitElement {
     // ── panel open/close ─────────────────────────────────────────────────────
 
     private detachOutsideClick() {
-        if (this.outsideClick) {
-            document.removeEventListener('mousedown', this.outsideClick)
-            this.outsideClick = undefined
-        }
+        this.outsideClick.clear()
+    }
+
+    private attachOutsideClick(handler: (e: Event) => void) {
+        document.addEventListener('mousedown', handler, { signal: this.outsideClick.replace() })
     }
 
     private openPanel = () => {
         if (this.panelOpened || this.filters.length === 0) return
         this.panelOpened = true
-        this.outsideClick = (e: Event) => {
+        this.attachOutsideClick((e: Event) => {
             if (!e.composedPath().includes(this)) this.closePanel()
-        }
-        document.addEventListener('mousedown', this.outsideClick)
+        })
     }
 
     private closePanel = () => {
@@ -552,13 +555,12 @@ export class MateuFilterBar extends LitElement {
                                 this.closePanel()
                                 this.viewsOpened = !this.viewsOpened
                                 if (this.viewsOpened) {
-                                    this.outsideClick = (event: Event) => {
+                                    this.attachOutsideClick((event: Event) => {
                                         if (!event.composedPath().includes(this)) {
                                             this.viewsOpened = false
                                             this.detachOutsideClick()
                                         }
-                                    }
-                                    document.addEventListener('mousedown', this.outsideClick)
+                                    })
                                 }
                             }}">
                         <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24">
