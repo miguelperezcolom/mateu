@@ -36,7 +36,7 @@ export const REDWOOD_COVERAGE = {
   Container: { status: 'layout' },
   Div: { status: 'layout' },
   ContentLayout: { status: 'layout' },
-  ResponsiveGrid: { status: 'partial', note: 'fixed tracks → oj-flex columns sized by their fr weights and spans; auto-fill/auto-fit grids stack' },
+  ResponsiveGrid: { status: 'partial', note: 'fixed tracks → oj-flex columns sized by their fr weights and spans; auto-fill/auto-fit grids stack; reorderable tiles drag (and Alt+←/→)' },
   BoardLayout: { status: 'layout', note: 'children stacked, not a board' },
   BoardLayoutRow: { status: 'part', note: 'of BoardLayout' },
   BoardLayoutItem: { status: 'part', note: 'of BoardLayout' },

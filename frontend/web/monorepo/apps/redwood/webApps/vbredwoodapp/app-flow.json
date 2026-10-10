@@ -843,6 +843,12 @@
         "parameters": "any"
       }
     },
+    "mateuTilesReordered": {
+      "description": "el usuario reordeno los tiles de una rejilla reordenable (orden ya guardado): la pagina de contenido re-proyecta el host",
+      "payloadType": {
+        "scope": "string"
+      }
+    },
     "mateuElementEvent": {
       "description": "evento de un Element (componente web) con accion en Element.on: la shell lo reenvia a la pagina de contenido, que sabe en que superficie ejecutarla",
       "payloadType": {

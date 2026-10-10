@@ -71,6 +71,12 @@ define([
       bridge.installPlanningRange();
       // «I want to…» (ActionPanel): abrir con su atajo, mostrar más, ocultar vacías, cerrar al elegir
       bridge.installActionPanels();
+      // dashboard con tiles reordenables (ResponsiveGrid.reorderable): arrastrar o Alt+←/→; el
+      // orden se guarda y la página de contenido re-proyecta el host
+      bridge.setTileReorderSink((scope) => Actions.fireEvent(window.__mateuShellContext || context, {
+        name: 'application:mateuTilesReordered', payload: { scope: scope || '' },
+      }));
+      bridge.installTileReorder();
       // MatrixGrid (oj-data-grid): plegar secciones, editar filas editables, celdas que enlazan
       bridge.installMatrixGrids();
       // Calendar: cambiar de vista en el DOM, eventos y fechas que lanzan su acción

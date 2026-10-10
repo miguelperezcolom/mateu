@@ -644,6 +644,13 @@
         }
       ]
     },
+    "application:mateuTilesReordered": {
+      "chains": [
+        {
+          "chain": "tilesReordered"
+        }
+      ]
+    },
     "application:mateuRetryAction": {
       "chains": [
         {

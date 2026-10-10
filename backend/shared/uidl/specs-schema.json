@@ -5747,6 +5747,9 @@
             "type" : "string"
           }
         },
+        "reorderable" : {
+          "type" : "boolean"
+        },
         "style" : {
           "type" : "string"
         },

@@ -30,6 +30,14 @@ public abstract class Dashboard implements ComponentTreeSupplier {
     return 0;
   }
 
+  /**
+   * Whether the viewer may drag the tiles into their own order (OPERA's dashboard). The order is
+   * kept per viewer by the renderer; the field order stays the default. Default: false.
+   */
+  protected boolean reorderable() {
+    return false;
+  }
+
   @Override
   public String style() {
     return null;
@@ -37,6 +45,6 @@ public abstract class Dashboard implements ComponentTreeSupplier {
 
   @Override
   public Component component(HttpRequest httpRequest) {
-    return DashboardComposer.compose(this, id(), columns());
+    return DashboardComposer.compose(this, id(), columns(), reorderable());
   }
 }

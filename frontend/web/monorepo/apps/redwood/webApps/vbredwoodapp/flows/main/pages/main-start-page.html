@@ -611,7 +611,7 @@
           <oj-bind-for-each data="[[ $application.variables.mateuFoldoutContent.overview.blocks ]]">
       <template>
         <oj-bind-if test="[[ $current.data.isCard ]]">
-          <div :class="[[ $current.data.blockClass ]]">
+          <div :class="[[ $current.data.blockClass ]]" :data-mateu-tile="[[ $current.data.tileKey ]]" :data-mateu-tile-scope="[[ $current.data.tileScope ]]" :tabindex="[[ $current.data.tileKey ? 0 : null ]]" :aria-roledescription="[[ $current.data.tileKey ? 'draggable tile' : null ]]" :title="[[ $current.data.tileKey ? 'Drag to rearrange (Alt+← / Alt+→)' : null ]]">
           <div class="oj-panel oj-sm-margin-3x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
@@ -1529,7 +1529,7 @@
           </div>
         </oj-bind-if>
         <oj-bind-if test="[[ $current.data.isPlain ]]">
-          <div :class="[[ $current.data.blockClass ]]">
+          <div :class="[[ $current.data.blockClass ]]" :data-mateu-tile="[[ $current.data.tileKey ]]" :data-mateu-tile-scope="[[ $current.data.tileScope ]]" :tabindex="[[ $current.data.tileKey ? 0 : null ]]" :aria-roledescription="[[ $current.data.tileKey ? 'draggable tile' : null ]]" :title="[[ $current.data.tileKey ? 'Drag to rearrange (Alt+← / Alt+→)' : null ]]">
           <div class="oj-sm-margin-2x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
@@ -2468,7 +2468,7 @@
               <oj-bind-for-each data="[[ ($application.variables.mateuFoldoutContent.panels[$current.index] || $current.data).blocks ]]">
       <template>
         <oj-bind-if test="[[ $current.data.isCard ]]">
-          <div :class="[[ $current.data.blockClass ]]">
+          <div :class="[[ $current.data.blockClass ]]" :data-mateu-tile="[[ $current.data.tileKey ]]" :data-mateu-tile-scope="[[ $current.data.tileScope ]]" :tabindex="[[ $current.data.tileKey ? 0 : null ]]" :aria-roledescription="[[ $current.data.tileKey ? 'draggable tile' : null ]]" :title="[[ $current.data.tileKey ? 'Drag to rearrange (Alt+← / Alt+→)' : null ]]">
           <div class="oj-panel oj-sm-margin-3x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
@@ -3386,7 +3386,7 @@
           </div>
         </oj-bind-if>
         <oj-bind-if test="[[ $current.data.isPlain ]]">
-          <div :class="[[ $current.data.blockClass ]]">
+          <div :class="[[ $current.data.blockClass ]]" :data-mateu-tile="[[ $current.data.tileKey ]]" :data-mateu-tile-scope="[[ $current.data.tileScope ]]" :tabindex="[[ $current.data.tileKey ? 0 : null ]]" :aria-roledescription="[[ $current.data.tileKey ? 'draggable tile' : null ]]" :title="[[ $current.data.tileKey ? 'Drag to rearrange (Alt+← / Alt+→)' : null ]]">
           <div class="oj-sm-margin-2x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
@@ -7190,7 +7190,7 @@
         <div class="oj-flex oj-sm-margin-4x-bottom mateu-listing-header">
           <oj-bind-for-each data="[[ $application.variables.mateuListing.headerBlocks ]]">
             <template>
-              <div :class="[[ $current.data.blockClass ]]">
+              <div :class="[[ $current.data.blockClass ]]" :data-mateu-tile="[[ $current.data.tileKey ]]" :data-mateu-tile-scope="[[ $current.data.tileScope ]]" :tabindex="[[ $current.data.tileKey ? 0 : null ]]" :aria-roledescription="[[ $current.data.tileKey ? 'draggable tile' : null ]]" :title="[[ $current.data.tileKey ? 'Drag to rearrange (Alt+← / Alt+→)' : null ]]">
                 <oj-bind-for-each data="[[ $current.data.items ]]">
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
                   <template>
@@ -13588,7 +13588,7 @@
         <oj-bind-for-each data="[[ $application.variables.mateuGop.main.blocks ]]">
           <template>
         <oj-bind-if test="[[ $current.data.isCard ]]">
-          <div :class="[[ $current.data.blockClass ]]">
+          <div :class="[[ $current.data.blockClass ]]" :data-mateu-tile="[[ $current.data.tileKey ]]" :data-mateu-tile-scope="[[ $current.data.tileScope ]]" :tabindex="[[ $current.data.tileKey ? 0 : null ]]" :aria-roledescription="[[ $current.data.tileKey ? 'draggable tile' : null ]]" :title="[[ $current.data.tileKey ? 'Drag to rearrange (Alt+← / Alt+→)' : null ]]">
           <div class="oj-panel oj-sm-margin-3x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
@@ -14506,7 +14506,7 @@
           </div>
         </oj-bind-if>
         <oj-bind-if test="[[ $current.data.isPlain ]]">
-          <div :class="[[ $current.data.blockClass ]]">
+          <div :class="[[ $current.data.blockClass ]]" :data-mateu-tile="[[ $current.data.tileKey ]]" :data-mateu-tile-scope="[[ $current.data.tileScope ]]" :tabindex="[[ $current.data.tileKey ? 0 : null ]]" :aria-roledescription="[[ $current.data.tileKey ? 'draggable tile' : null ]]" :title="[[ $current.data.tileKey ? 'Drag to rearrange (Alt+← / Alt+→)' : null ]]">
           <div class="oj-sm-margin-2x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
@@ -15438,7 +15438,7 @@
         <oj-bind-for-each data="[[ $application.variables.mateuGop.info.blocks ]]">
           <template>
         <oj-bind-if test="[[ $current.data.isCard ]]">
-          <div :class="[[ $current.data.blockClass ]]">
+          <div :class="[[ $current.data.blockClass ]]" :data-mateu-tile="[[ $current.data.tileKey ]]" :data-mateu-tile-scope="[[ $current.data.tileScope ]]" :tabindex="[[ $current.data.tileKey ? 0 : null ]]" :aria-roledescription="[[ $current.data.tileKey ? 'draggable tile' : null ]]" :title="[[ $current.data.tileKey ? 'Drag to rearrange (Alt+← / Alt+→)' : null ]]">
           <div class="oj-panel oj-sm-margin-3x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
@@ -16356,7 +16356,7 @@
           </div>
         </oj-bind-if>
         <oj-bind-if test="[[ $current.data.isPlain ]]">
-          <div :class="[[ $current.data.blockClass ]]">
+          <div :class="[[ $current.data.blockClass ]]" :data-mateu-tile="[[ $current.data.tileKey ]]" :data-mateu-tile-scope="[[ $current.data.tileScope ]]" :tabindex="[[ $current.data.tileKey ? 0 : null ]]" :aria-roledescription="[[ $current.data.tileKey ? 'draggable tile' : null ]]" :title="[[ $current.data.tileKey ? 'Drag to rearrange (Alt+← / Alt+→)' : null ]]">
           <div class="oj-sm-margin-2x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
@@ -17317,7 +17317,7 @@
     <oj-bind-for-each data="[[ $application.variables.mateuHostContent ]]">
       <template>
         <oj-bind-if test="[[ $current.data.isCard ]]">
-          <div :class="[[ $current.data.blockClass ]]">
+          <div :class="[[ $current.data.blockClass ]]" :data-mateu-tile="[[ $current.data.tileKey ]]" :data-mateu-tile-scope="[[ $current.data.tileScope ]]" :tabindex="[[ $current.data.tileKey ? 0 : null ]]" :aria-roledescription="[[ $current.data.tileKey ? 'draggable tile' : null ]]" :title="[[ $current.data.tileKey ? 'Drag to rearrange (Alt+← / Alt+→)' : null ]]">
           <div class="oj-panel oj-sm-margin-3x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
@@ -18235,7 +18235,7 @@
           </div>
         </oj-bind-if>
         <oj-bind-if test="[[ $current.data.isPlain ]]">
-          <div :class="[[ $current.data.blockClass ]]">
+          <div :class="[[ $current.data.blockClass ]]" :data-mateu-tile="[[ $current.data.tileKey ]]" :data-mateu-tile-scope="[[ $current.data.tileScope ]]" :tabindex="[[ $current.data.tileKey ? 0 : null ]]" :aria-roledescription="[[ $current.data.tileKey ? 'draggable tile' : null ]]" :title="[[ $current.data.tileKey ? 'Drag to rearrange (Alt+← / Alt+→)' : null ]]">
           <div class="oj-sm-margin-2x-bottom">
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->

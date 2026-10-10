@@ -1373,3 +1373,10 @@ body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-title { 
   object-fit: cover;
   border-radius: var(--oj-core-border-radius-lg, 6px);
 }
+
+/* Tiles reordenables (P2 #22, ResponsiveGrid.reorderable): se arrastran por su bloque; el destino
+   se marca mientras pasa uno por encima. */
+[data-mateu-tile] { cursor: grab; }
+[data-mateu-tile]:focus-visible { outline: 2px solid var(--oj-core-focus-border-color, #0572ce); outline-offset: 2px; }
+.mateu-tile-dragging { opacity: .5; }
+.mateu-tile-over > * { outline: 2px dashed var(--oj-core-border-color-brand, #227e9e); outline-offset: 2px; }

@@ -69,6 +69,12 @@ public class PmsDashboard extends Dashboard {
           .build();
 
   @Override
+  protected boolean reorderable() {
+    // OPERA's dashboard: the tiles can be dragged into each user's own order
+    return true;
+  }
+
+  @Override
   protected int columns() {
     return 3;
   }

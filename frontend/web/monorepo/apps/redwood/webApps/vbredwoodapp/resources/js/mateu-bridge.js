@@ -12,6 +12,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const COLUMNS_KEY = 'mateu-column-prefs'
   const VIEWS_KEY = 'mateu-saved-views'
+  const TILES_KEY = 'mateu-tile-order'
 
   const storageOf = (storage) => storage || (typeof localStorage !== 'undefined' ? localStorage : null)
   const readAll = (key, storage) => {
@@ -140,6 +141,52 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const raw = loc.hash && loc.hash.startsWith('#/') ? loc.hash.slice(1) : loc.pathname
     return String(raw || '').split('?')[0]
   }
+
+  // ── ORDEN DE LOS TILES de una rejilla reordenable (ResponsiveGrid.reorderable: el dashboard de
+  // OPERA, cuyos tiles se arrastran). Misma clave y forma que el web (tileOrderStore.ts): {ámbito:
+  // [claves]}, ámbito = ruta + '#' + id de la rejilla, clave = id del hijo (o '#índice').
+
+  const tileKeyOf = (child, index) => (child && child.id ? String(child.id) : '#' + index)
+
+  function readTileOrder(scope, storage) {
+    const saved = readAll(TILES_KEY, storage)[scope]
+    return Array.isArray(saved) ? saved.filter((k) => typeof k === 'string') : null
+  }
+
+  function writeTileOrder(scope, keys, storage) {
+    const all = readAll(TILES_KEY, storage)
+    all[scope] = keys
+    writeAll(TILES_KEY, all, storage)
+  }
+
+  /** Las posiciones en las que pintar: primero las guardadas en su orden, luego las nunca colocadas. */
+  function orderedTileIndices(keys, saved) {
+    if (!saved || !saved.length) return keys.map((_, i) => i)
+    const placed = saved.map((k) => keys.indexOf(k)).filter((i) => i >= 0)
+    const seen = new Set(placed)
+    return [...placed, ...keys.map((_, i) => i).filter((i) => !seen.has(i))]
+  }
+
+  /** El orden tras soltar `moved` donde está `target`. */
+  function moveTile(order, moved, target) {
+    const from = order.indexOf(moved)
+    const to = order.indexOf(target)
+    if (from < 0 || to < 0 || from === to) return order
+    const next = order.filter((k) => k !== moved)
+    next.splice(to, 0, moved)
+    return next
+  }
+
+  /** El orden tras mover `moved` un puesto atrás (-1) o adelante (+1): arrastrar con el teclado. */
+  function moveTileBy(order, moved, delta) {
+    const from = order.indexOf(moved)
+    const to = from + delta
+    if (from < 0 || to < 0 || to >= order.length) return order
+    return moveTile(order, moved, order[to])
+  }
+
+  const tileScopeOf = (gridId, loc = typeof window !== 'undefined' ? window.location : null) =>
+    ((loc && loc.pathname) || '') + '#' + (gridId || 'grid')
 
 
   // El árbol de navegación: las reglas de libs/mateu/.../navTree.ts que necesita este renderer,
@@ -2145,7 +2192,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // Devuelve false (y no deja nada) si alguna columna genera bloques que no se pueden fusionar en
     // una celda: una isla anidada (el hoisting convierte su bloque entero en la isla) o un bloque
     // especial sin átomos — entonces el llamante apila los hijos como antes.
-    const projectSized = (children, colClasses) => {
+    const projectSized = (children, colClasses, tags = null) => {
       const start = blocks.length
       const out = []
       for (let i = 0; i < children.length; i++) {
@@ -2156,13 +2203,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         else visit(child, null)
         plain = null
         const created = blocks.splice(before)
-        if (created.length === 1) out.push({ ...created[0], colClass: colClasses[i] })
+        const tag = tags ? tags[i] : null
+        if (created.length === 1) out.push({ ...created[0], colClass: colClasses[i], ...tag })
         else if (created.length > 1) {
           if (created.some((b) => !Array.isArray(b.items) || b.items.some((a) => a && a.isNested))) {
             blocks.splice(start)
             return false
           }
-          out.push({ isPlain: true, colClass: colClasses[i], items: created.flatMap((b) => b.items) })
+          out.push({ isPlain: true, colClass: colClasses[i], items: created.flatMap((b) => b.items), ...tag })
         }
       }
       blocks.push(...out)
@@ -2436,12 +2484,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'ResponsiveGrid' && !container) {
         // el span de cada hijo: el del wire (colSpans) o el que el hijo lleva consigo — un
         // DashboardPanel su colSpan, la banda de KPIs (Scoreboard) la fila entera
-        const kids = kidsOf(node)
-        const spans = kids.map((k, i) => (m.colSpans && m.colSpans[i])
+        const serverKids = kidsOf(node)
+        const serverSpans = serverKids.map((k, i) => (m.colSpans && m.colSpans[i])
           || (k && k.metadata && k.metadata.type === 'DashboardPanel' ? k.metadata.colSpan
             : k && k.metadata && k.metadata.type === 'Scoreboard' ? 999 : 1))
+        // REORDENABLE (ResponsiveGrid.reorderable): los tiles en el orden guardado del usuario, cada
+        // bloque marcado con su clave y su ámbito — installTileReorder los arrastra y re-proyecta
+        let order = serverKids.map((_, i) => i)
+        let tags = null
+        if (m.reorderable) {
+          const scope = tileScopeOf(node.id)
+          const keys = serverKids.map((k, i) => tileKeyOf(k, i))
+          order = orderedTileIndices(keys, readTileOrder(scope))
+          tags = order.map((i) => ({ tileKey: keys[i], tileScope: scope }))
+        }
+        const kids = order.map((i) => serverKids[i])
+        const spans = order.map((i) => serverSpans[i])
         const classes = gridColClasses(m.gridTemplateColumns, spans, kids.length)
-        if (classes && projectSized(kids, classes)) return
+        if (classes && projectSized(kids, classes, tags)) return
       }
       if (t === 'DashboardLayout') {
         const columns = m.columns > 0 ? m.columns : 3
@@ -8763,6 +8823,88 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   let dropSink = null
   function setDropSink(fn) { dropSink = typeof fn === 'function' ? fn : null }
 
+  // ── TILES REORDENABLES (ResponsiveGrid.reorderable): el bloque de cada tile lleva data-mateu-tile
+  // (su clave) y data-mateu-tile-scope; arrastrar uno sobre otro lo coloca ahí, y Alt+←/→ con el
+  // tile enfocado lo mueve un puesto. El orden se guarda (prefs: el mismo almacén que el web) y la
+  // página re-proyecta el host sin ir al servidor (tileSink).
+  const TILE_MIME = 'application/x-mateu-tile'
+  let tileSink = null
+  function setTileReorderSink(fn) { tileSink = typeof fn === 'function' ? fn : null }
+
+  /** Las claves de los tiles de un ámbito, en el orden en que están pintados. */
+  function paintedTileOrder(doc, scope) {
+    return Array.from(doc.querySelectorAll('[data-mateu-tile]'))
+      .filter((el) => el.getAttribute('data-mateu-tile-scope') === scope)
+      .map((el) => el.getAttribute('data-mateu-tile'))
+  }
+
+  function installTileReorder(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuTiles) return
+    doc.__mateuTiles = true
+    const tileOf = (t) => (t && t.closest ? t.closest('[data-mateu-tile]') : null)
+    const commit = (scope, next, focusKey) => {
+      writeTileOrder(scope, next)
+      if (tileSink) tileSink(scope)
+      if (focusKey) {
+        // tras re-proyectar, el foco vuelve al tile movido (VB repinta de forma asíncrona)
+        let tries = 0
+        const refocus = () => {
+          const el = Array.from(doc.querySelectorAll('[data-mateu-tile]'))
+            .find((n) => n.getAttribute('data-mateu-tile') === focusKey && n.getAttribute('data-mateu-tile-scope') === scope)
+          const painted = paintedTileOrder(doc, scope)
+          if (el && painted.join('|') === next.join('|')) { el.focus(); return }
+          if (++tries < 20) setTimeout(refocus, 50)
+        }
+        setTimeout(refocus, 0)
+      }
+    }
+    // el atributo draggable se pone al empezar el gesto (el bloque lo pinta la plantilla sin él)
+    doc.addEventListener('mousedown', (e) => { const tile = tileOf(e.target); if (tile) tile.draggable = true }, true)
+    doc.addEventListener('dragstart', (e) => {
+      const tile = tileOf(e.target)
+      if (!tile || !e.dataTransfer) return
+      e.dataTransfer.setData(TILE_MIME, tile.getAttribute('data-mateu-tile-scope') + '\n' + tile.getAttribute('data-mateu-tile'))
+      e.dataTransfer.effectAllowed = 'move'
+      tile.classList.add('mateu-tile-dragging')
+    }, true)
+    doc.addEventListener('dragend', () => {
+      for (const t of doc.querySelectorAll('.mateu-tile-dragging, .mateu-tile-over')) t.classList.remove('mateu-tile-dragging', 'mateu-tile-over')
+    }, true)
+    doc.addEventListener('dragover', (e) => {
+      const tile = tileOf(e.target)
+      const types = (e.dataTransfer && e.dataTransfer.types) ? Array.from(e.dataTransfer.types) : []
+      if (!tile || !types.includes(TILE_MIME)) return
+      e.preventDefault()
+      tile.classList.add('mateu-tile-over')
+    }, true)
+    doc.addEventListener('dragleave', (e) => {
+      const tile = tileOf(e.target)
+      if (tile && !(e.relatedTarget && tile.contains(e.relatedTarget))) tile.classList.remove('mateu-tile-over')
+    }, true)
+    doc.addEventListener('drop', (e) => {
+      const tile = tileOf(e.target)
+      const raw = tile && e.dataTransfer ? e.dataTransfer.getData(TILE_MIME) : ''
+      if (!raw) return
+      const [scope, moved] = raw.split('\n')
+      if (scope !== tile.getAttribute('data-mateu-tile-scope')) return
+      e.preventDefault()
+      const order = paintedTileOrder(doc, scope)
+      const next = moveTile(order, moved, tile.getAttribute('data-mateu-tile'))
+      if (next !== order) commit(scope, next, null)
+    }, true)
+    doc.addEventListener('keydown', (e) => {
+      if (!e.altKey || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return
+      const tile = e.target && e.target.hasAttribute && e.target.hasAttribute('data-mateu-tile') ? e.target : null
+      if (!tile) return
+      e.preventDefault()
+      const scope = tile.getAttribute('data-mateu-tile-scope')
+      const key = tile.getAttribute('data-mateu-tile')
+      const order = paintedTileOrder(doc, scope)
+      const next = moveTileBy(order, key, e.key === 'ArrowLeft' ? -1 : 1)
+      if (next !== order) commit(scope, next, key)
+    }, true)
+  }
+
   function installDragAndDrop(doc = typeof document !== 'undefined' ? document : null) {
     if (!doc || doc.__mateuDnd) return
     doc.__mateuDnd = true
@@ -10869,6 +11011,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     startPolling,
     setPollingRunner,
     fetchNotifications,
+    installTileReorder,
+    setTileReorderSink,
     bannerNotificationOf,
     notificationsOf,
     setUndoSink,

@@ -46,7 +46,13 @@ class ResponsiveGridSyncTest {
 
   @BeforeAll
   static void boot() {
-    mateu = TestMateu.withUis(GridView.class, SpanGridView.class, TemplateView.class);
+    mateu =
+        TestMateu.withUis(
+            GridView.class,
+            SpanGridView.class,
+            TemplateView.class,
+            ReorderableDashboard.class,
+            FixedDashboard.class);
   }
 
   @AfterAll
@@ -84,6 +90,42 @@ class ResponsiveGridSyncTest {
               new io.mateu.uidl.data.Slotted("sidebar", new Text("s", "Sidebar")),
               new io.mateu.uidl.data.Slotted("main", new Text("m", "Main"))));
     }
+  }
+
+  @SuppressWarnings("unused")
+  @UI("/reorderable-dashboard")
+  public static class ReorderableDashboard
+      extends io.mateu.core.infra.declarative.orchestrators.dashboard.Dashboard {
+    @io.mateu.uidl.annotations.Panel(title = "Arrivals")
+    Component arrivals = new Text("arr", "12");
+
+    @io.mateu.uidl.annotations.Panel(title = "Departures")
+    Component departures = new Text("dep", "9");
+
+    @Override
+    protected boolean reorderable() {
+      return true;
+    }
+  }
+
+  @SuppressWarnings("unused")
+  @UI("/fixed-dashboard")
+  public static class FixedDashboard
+      extends io.mateu.core.infra.declarative.orchestrators.dashboard.Dashboard {
+    @io.mateu.uidl.annotations.Panel(title = "Arrivals")
+    Component arrivals = new Text("arr", "12");
+  }
+
+  @Test
+  void aDashboardCanLetTheViewerReorderItsTilesKeyedByTheirIds() {
+    var grid = findGrid(mateu.sync("/reorderable-dashboard"));
+    assertThat(((ResponsiveGridDto) grid.metadata()).reorderable()).isTrue();
+    // the tiles carry their field names as ids: the key the viewer's order is kept by
+    assertThat(grid.children().stream().map(c -> ((ClientSideComponentDto) c).id()))
+        .containsExactly("arrivals", "departures");
+    assertThat(
+            ((ResponsiveGridDto) findGrid(mateu.sync("/fixed-dashboard")).metadata()).reorderable())
+        .isFalse();
   }
 
   @Test

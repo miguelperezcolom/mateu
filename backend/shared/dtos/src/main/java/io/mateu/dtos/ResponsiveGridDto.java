@@ -26,5 +26,10 @@ public record ResponsiveGridDto(
      * (coherence -plan #7). A child whose {@code slot} is listed here gets a sticky wrapper.
      * Null/empty = none.
      */
-    List<String> stickyAreas)
+    List<String> stickyAreas,
+    /**
+     * The viewer may drag the tiles into their own order (kept per viewer by the renderer, keyed by
+     * each child's id). False = fixed order.
+     */
+    boolean reorderable)
     implements ComponentMetadataDto {}

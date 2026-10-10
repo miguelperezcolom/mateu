@@ -7,6 +7,7 @@
 
 const COLUMNS_KEY = 'mateu-column-prefs'
 const VIEWS_KEY = 'mateu-saved-views'
+const TILES_KEY = 'mateu-tile-order'
 
 const storageOf = (storage) => storage || (typeof localStorage !== 'undefined' ? localStorage : null)
 const readAll = (key, storage) => {
@@ -135,3 +136,49 @@ export function listingScope(loc = typeof window !== 'undefined' ? window.locati
   const raw = loc.hash && loc.hash.startsWith('#/') ? loc.hash.slice(1) : loc.pathname
   return String(raw || '').split('?')[0]
 }
+
+// ── ORDEN DE LOS TILES de una rejilla reordenable (ResponsiveGrid.reorderable: el dashboard de
+// OPERA, cuyos tiles se arrastran). Misma clave y forma que el web (tileOrderStore.ts): {ámbito:
+// [claves]}, ámbito = ruta + '#' + id de la rejilla, clave = id del hijo (o '#índice').
+
+export const tileKeyOf = (child, index) => (child && child.id ? String(child.id) : '#' + index)
+
+export function readTileOrder(scope, storage) {
+  const saved = readAll(TILES_KEY, storage)[scope]
+  return Array.isArray(saved) ? saved.filter((k) => typeof k === 'string') : null
+}
+
+export function writeTileOrder(scope, keys, storage) {
+  const all = readAll(TILES_KEY, storage)
+  all[scope] = keys
+  writeAll(TILES_KEY, all, storage)
+}
+
+/** Las posiciones en las que pintar: primero las guardadas en su orden, luego las nunca colocadas. */
+export function orderedTileIndices(keys, saved) {
+  if (!saved || !saved.length) return keys.map((_, i) => i)
+  const placed = saved.map((k) => keys.indexOf(k)).filter((i) => i >= 0)
+  const seen = new Set(placed)
+  return [...placed, ...keys.map((_, i) => i).filter((i) => !seen.has(i))]
+}
+
+/** El orden tras soltar `moved` donde está `target`. */
+export function moveTile(order, moved, target) {
+  const from = order.indexOf(moved)
+  const to = order.indexOf(target)
+  if (from < 0 || to < 0 || from === to) return order
+  const next = order.filter((k) => k !== moved)
+  next.splice(to, 0, moved)
+  return next
+}
+
+/** El orden tras mover `moved` un puesto atrás (-1) o adelante (+1): arrastrar con el teclado. */
+export function moveTileBy(order, moved, delta) {
+  const from = order.indexOf(moved)
+  const to = from + delta
+  if (from < 0 || to < 0 || to >= order.length) return order
+  return moveTile(order, moved, order[to])
+}
+
+export const tileScopeOf = (gridId, loc = typeof window !== 'undefined' ? window.location : null) =>
+  ((loc && loc.pathname) || '') + '#' + (gridId || 'grid')

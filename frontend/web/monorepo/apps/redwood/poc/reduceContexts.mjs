@@ -1,7 +1,7 @@
 import { calendarAtomOf } from './calendar.mjs'
 import { autoTrail } from './breadcrumbs.mjs'
 import { sectionHomeOf, sectionRoutes, isSentinelHome } from './navTree.mjs'
-import { applyColumnPrefs } from './prefs.mjs'
+import { applyColumnPrefs, readTileOrder, orderedTileIndices, tileKeyOf, tileScopeOf } from './prefs.mjs'
 import { elementModuleUrl } from './elements.mjs'
 // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
 // En la app VB estas funciones serían métodos de app-flow.js; aquí son funciones
@@ -1604,7 +1604,7 @@ export function islandContentOf(ctx, opts = {}) {
   // Devuelve false (y no deja nada) si alguna columna genera bloques que no se pueden fusionar en
   // una celda: una isla anidada (el hoisting convierte su bloque entero en la isla) o un bloque
   // especial sin átomos — entonces el llamante apila los hijos como antes.
-  const projectSized = (children, colClasses) => {
+  const projectSized = (children, colClasses, tags = null) => {
     const start = blocks.length
     const out = []
     for (let i = 0; i < children.length; i++) {
@@ -1615,13 +1615,14 @@ export function islandContentOf(ctx, opts = {}) {
       else visit(child, null)
       plain = null
       const created = blocks.splice(before)
-      if (created.length === 1) out.push({ ...created[0], colClass: colClasses[i] })
+      const tag = tags ? tags[i] : null
+      if (created.length === 1) out.push({ ...created[0], colClass: colClasses[i], ...tag })
       else if (created.length > 1) {
         if (created.some((b) => !Array.isArray(b.items) || b.items.some((a) => a && a.isNested))) {
           blocks.splice(start)
           return false
         }
-        out.push({ isPlain: true, colClass: colClasses[i], items: created.flatMap((b) => b.items) })
+        out.push({ isPlain: true, colClass: colClasses[i], items: created.flatMap((b) => b.items), ...tag })
       }
     }
     blocks.push(...out)
@@ -1895,12 +1896,24 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'ResponsiveGrid' && !container) {
       // el span de cada hijo: el del wire (colSpans) o el que el hijo lleva consigo — un
       // DashboardPanel su colSpan, la banda de KPIs (Scoreboard) la fila entera
-      const kids = kidsOf(node)
-      const spans = kids.map((k, i) => (m.colSpans && m.colSpans[i])
+      const serverKids = kidsOf(node)
+      const serverSpans = serverKids.map((k, i) => (m.colSpans && m.colSpans[i])
         || (k && k.metadata && k.metadata.type === 'DashboardPanel' ? k.metadata.colSpan
           : k && k.metadata && k.metadata.type === 'Scoreboard' ? 999 : 1))
+      // REORDENABLE (ResponsiveGrid.reorderable): los tiles en el orden guardado del usuario, cada
+      // bloque marcado con su clave y su ámbito — installTileReorder los arrastra y re-proyecta
+      let order = serverKids.map((_, i) => i)
+      let tags = null
+      if (m.reorderable) {
+        const scope = tileScopeOf(node.id)
+        const keys = serverKids.map((k, i) => tileKeyOf(k, i))
+        order = orderedTileIndices(keys, readTileOrder(scope))
+        tags = order.map((i) => ({ tileKey: keys[i], tileScope: scope }))
+      }
+      const kids = order.map((i) => serverKids[i])
+      const spans = order.map((i) => serverSpans[i])
       const classes = gridColClasses(m.gridTemplateColumns, spans, kids.length)
-      if (classes && projectSized(kids, classes)) return
+      if (classes && projectSized(kids, classes, tags)) return
     }
     if (t === 'DashboardLayout') {
       const columns = m.columns > 0 ? m.columns : 3

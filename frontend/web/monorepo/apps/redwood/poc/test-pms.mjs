@@ -1198,6 +1198,30 @@ test('P2 #20 imagen, avatares y galería: <img> del backend, oj-avatar con +N, o
   setElementModuleBase('')
 })
 
+import { orderedTileIndices, moveTile, moveTileBy, writeTileOrder, tileScopeOf } from './prefs.mjs'
+
+test('P2 #22 tiles reordenables: el orden guardado del usuario manda; cada bloque lleva su clave y su ámbito', () => {
+  assert.deepEqual(orderedTileIndices(['a', 'b', 'c'], ['c', 'gone']), [2, 0, 1])
+  assert.deepEqual(moveTile(['a', 'b', 'c', 'd'], 'd', 'b'), ['a', 'd', 'b', 'c'])
+  assert.deepEqual(moveTileBy(['a', 'b', 'c'], 'a', -1), ['a', 'b', 'c'])
+  const store = {}
+  globalThis.localStorage = { getItem: (k) => store[k] ?? null, setItem: (k, v) => { store[k] = v } }
+  const grid = (reorderable) => ({ type: 'ClientSide', id: 'dash', metadata: { type: 'ResponsiveGrid', gridTemplateColumns: '1fr 1fr 1fr', reorderable }, children: [
+    node({ type: 'DashboardPanel', id: 'arrivals', title: 'Arrivals' }, [node({ type: 'Text', text: '12' })]),
+    node({ type: 'DashboardPanel', id: 'departures', title: 'Departures' }, [node({ type: 'Text', text: '9' })]),
+  ] })
+  writeTileOrder(tileScopeOf('dash'), ['departures', 'arrivals'])
+  const blocks = hostContentOf({ tree: grid(true), state: {}, data: {} }, []) || []
+  assert.deepEqual(blocks.map((b) => b.tileKey), ['departures', 'arrivals'])
+  assert.ok(blocks.every((b) => b.tileScope === tileScopeOf('dash')))
+  // sin reorderable: el orden del servidor y sin marcas
+  assert.ok((hostContentOf({ tree: grid(false), state: {}, data: {} }, []) || []).every((b) => !b.tileKey))
+  delete globalThis.localStorage
+  const page = webApp('flows/main/pages/main-start-page.html')
+  assert.match(page, /:data-mateu-tile="\[\[ \$current\.data\.tileKey \]\]"/)
+  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installTileReorder\(\)/)
+})
+
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }
 console.log(`\n${pass} tests PMS OK`)
 void HOST_ID

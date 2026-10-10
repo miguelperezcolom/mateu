@@ -113,6 +113,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     startPolling,
     setPollingRunner,
     fetchNotifications,
+    installTileReorder,
+    setTileReorderSink,
     bannerNotificationOf,
     notificationsOf,
     setUndoSink,
