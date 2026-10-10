@@ -1,4 +1,9 @@
 import { css, html, LitElement, PropertyValues } from "lit";
+import { safeHref } from "@infra/ui/safeNavigate.ts";
+
+const escapeHtml = (text: unknown): string => String(text ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 import { customElement, property, query, state } from 'lit/decorators.js';
 import 'cookieconsent/build/cookieconsent.min.js';
 
@@ -108,8 +113,9 @@ export class MateuCookieConsent extends LitElement {
             },
             position: this.position,
             elements: {
-                messagelink: `<span id="cookieconsent:desc" class="cc-message">${this.message} <a tabindex="0" class="cc-link" href="${this.learnMoreLink}" target="_blank" rel="noopener noreferrer nofollow">${this.learnMore}</a></span>`,
-                dismiss: `<a tabindex="0" class="cc-btn cc-dismiss">${this.dismiss}</a>`,
+                // the library injects these strings as HTML: the texts are data, so escape them
+                messagelink: `<span id="cookieconsent:desc" class="cc-message">${escapeHtml(this.message)} <a tabindex="0" class="cc-link" href="${escapeHtml(safeHref(this.learnMoreLink) ?? '#')}" target="_blank" rel="noopener noreferrer nofollow">${escapeHtml(this.learnMore)}</a></span>`,
+                dismiss: `<a tabindex="0" class="cc-btn cc-dismiss">${escapeHtml(this.dismiss)}</a>`,
             },
         });
 

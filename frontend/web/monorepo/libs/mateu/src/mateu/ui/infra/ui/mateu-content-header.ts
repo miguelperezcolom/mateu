@@ -18,6 +18,7 @@ import { shellTrail, pathOfPage, Crumb, navigateLikeMenu, onShellMenuChange } fr
 import { dirtyGuard } from '@infra/ui/dirtyGuard.ts'
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
+import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 
 export { possiblyHtml } from './interpolation'
 
@@ -295,11 +296,11 @@ export class MateuContentHeader extends LitElement {
                 <button class="mtb tertiary peer-nav-prev"
                         title="${peerNav.prevLabel ?? 'Previous'}"
                         ?disabled="${!peerNav.prevRoute}"
-                        @click="${() => { if (peerNav.prevRoute) window.location.href = peerNav.prevRoute }}">‹</button>
+                        @click="${() => { if (peerNav.prevRoute) safeNavigate(peerNav.prevRoute) }}">‹</button>
                 <button class="mtb tertiary peer-nav-next"
                         title="${peerNav.nextLabel ?? 'Next'}"
                         ?disabled="${!peerNav.nextRoute}"
-                        @click="${() => { if (peerNav.nextRoute) window.location.href = peerNav.nextRoute }}">›</button>
+                        @click="${() => { if (peerNav.nextRoute) safeNavigate(peerNav.nextRoute) }}">›</button>
             </div>
         `
     }
@@ -319,8 +320,9 @@ export class MateuContentHeader extends LitElement {
 
     /** Inside the app for a path (the menu's own navigation), a full load for anything else. */
     private goToCrumb(route: string) {
-        if (/^[a-z]+:\/\//i.test(route)) {
-            window.location.href = route
+        if (/^[a-z][a-z0-9+.-]*:/i.test(route)) {
+            // an absolute URL (any scheme): followed only when it is http(s) — never javascript:
+            safeNavigate(route)
             return
         }
         if (!dirtyGuard.confirmLeave()) return

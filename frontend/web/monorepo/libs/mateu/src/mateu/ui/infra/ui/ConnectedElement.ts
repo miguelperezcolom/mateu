@@ -25,6 +25,7 @@ import {
 import { registerRemoteMenuRetry } from "@infra/ui/remoteMenuRetry.ts";
 import { announce } from "@infra/a11y/announcer.ts";
 import { fragmentIsCurrent } from "@infra/ui/callbackTokenGuard.ts";
+import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 
 export default abstract class ConnectedElement extends LitElement {
 
@@ -238,23 +239,8 @@ export default abstract class ConnectedElement extends LitElement {
         }
         if ('NavigateTo' == command.type) {
             const destination = command.data as string
-            if (destination) {
-                if (true) {
-                    if (destination.startsWith('http:') || destination.startsWith('https:')) {
-                        window.open(command.data as string, '_blank');
-                    } else {
-                        window.location.href = command.data as string
-                    }
-                } else {
-                    this.dispatchEvent(new CustomEvent('navigate-to-requested', {
-                        detail: {
-                            route: destination
-                        },
-                        bubbles: true,
-                        composed: true
-                    }))
-                }
-            }
+            // server-sent: only http(s)/relative, same-origin here, cross-origin in a new tab
+            if (destination) safeNavigate(destination)
         }
         if ('PushStateToHistory' == command.type) {
             const destination = command.data as string

@@ -59,6 +59,8 @@ import {evalIfNecessary} from "@infra/ui/renderers/avatarRenderer.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import {TextField} from "@vaadin/text-field";
 import {announce} from "@infra/a11y/announcer.ts";
+import { safeNavigate } from '@infra/ui/safeNavigate.ts'
+import { safeHref } from '@infra/ui/safeNavigate.ts'
 
 type ValueChangedDetail = { value: unknown; fieldId: string | undefined }
 
@@ -391,7 +393,7 @@ export class MateuField extends LitElement {
             ?? 'calc(var(--lumo-font-size-s) * 1.6 + (var(--lumo-size-m) - var(--lumo-icon-size-s)) / 2)'
         return html`<a
                 data-navlink
-                href="${href}"
+                href="${ifDefined(safeHref(href))}"
                 title="${title}"
                 target="${ifDefined(link.target || undefined)}"
                 style="display: flex; align-items: center; color: var(--lumo-secondary-text-color); align-self: flex-start; margin-top: ${marginTop};"
@@ -1549,7 +1551,7 @@ export class MateuField extends LitElement {
                             label="${label}"
                             .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
-                    ><a href="${value}">${value}</a></vaadin-custom-field>`
+                    ><a href="${ifDefined(safeHref(value))}">${value}</a></vaadin-custom-field>`
                 }
                 return html`
                             <vaadin-text-field
@@ -1564,7 +1566,7 @@ export class MateuField extends LitElement {
                                 <vaadin-icon slot="suffix"
                                              icon="vaadin:external-link"
                                              style="cursor: pointer;"
-                                             @click="${() => window.open(value, '_blank')?.focus()}"
+                                             @click="${() => safeNavigate(value, { newTab: true })}"
                                 ></vaadin-icon>
                             </vaadin-text-field>
                 `

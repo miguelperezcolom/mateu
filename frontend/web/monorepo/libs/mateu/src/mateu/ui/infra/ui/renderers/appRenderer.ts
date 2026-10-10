@@ -18,6 +18,8 @@ import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOpti
 import { isMount } from "@infra/ui/navTree.ts";
 import "@infra/ui/mateu-card-menu.ts";
 import { isCardsGroup } from "@infra/ui/mateu-card-menu.ts";
+import { safeHref } from '@infra/ui/safeNavigate.ts'
+import { ifDefined } from 'lit/directives/if-defined.js'
 
 /**
  * A sub-resource island loaded when shown (`@Subresource(load = ON_OPEN)` → `_lazy=1` on its home
@@ -149,7 +151,7 @@ const fireSelect = (container: MateuApp, handler: (e: CustomEvent) => void) => (
  */
 export const renderBackLink = (metadata: App, container: MateuApp) =>
     metadata.backRoute ? html`
-        <a href="${metadata.backRoute}" class="mateu-back-link"
+        <a href="${ifDefined(safeHref(metadata.backRoute))}" class="mateu-back-link"
            style="align-self: center; margin-left: 10px; white-space: nowrap; font-size: var(--lumo-font-size-s, .875rem);"
            @click="${(e: Event) => {
                e.preventDefault()

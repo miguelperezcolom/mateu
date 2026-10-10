@@ -53,6 +53,7 @@ import {runDeclaredFlow} from "@infra/ui/flowRunner.ts";
 import {applySizing, SizableHost} from "@infra/ui/sizing.ts";
 import { confirmationDialogTexts } from '@infra/ui/confirmationTexts.ts'
 import { fabStyles } from '@infra/ui/layout/fabRail.ts'
+import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 
 let _pendingInitiatorComponent: MateuComponent | null = null
 
@@ -733,7 +734,7 @@ export class MateuComponent extends ComponentElement {
     }, serverSideComponent: ServerSideComponent, action: Action | undefined, origin?: Element) => {
 
         if (action && action.href) {
-            window.location.href = action.href
+            safeNavigate(action.href)
             return
         }
 

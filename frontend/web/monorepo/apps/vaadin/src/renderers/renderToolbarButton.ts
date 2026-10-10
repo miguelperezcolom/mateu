@@ -4,6 +4,7 @@ import "@vaadin/icons"
 import { html, nothing, TemplateResult } from "lit"
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button"
 import { buttonTheme } from "@infra/ui/mateu-content-header"
+import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 
 interface VButton { id?: string; iconOnLeft?: string; iconOnRight?: string; disabled?: boolean }
 
@@ -25,12 +26,12 @@ export const renderVaadinPeerNav = (peerNav: { prevLabel?: string, prevRoute?: s
     <div style="display: flex; gap: var(--lumo-space-xs, .25rem); align-items: center;" class="peer-nav">
         <vaadin-button theme="tertiary icon" class="peer-nav-prev" title="${peerNav.prevLabel ?? 'Previous'}"
                 ?disabled="${!peerNav.prevRoute}"
-                @click="${() => { if (peerNav.prevRoute) window.location.href = peerNav.prevRoute }}">
+                @click="${() => { if (peerNav.prevRoute) safeNavigate(peerNav.prevRoute) }}">
             <vaadin-icon icon="vaadin:angle-left"></vaadin-icon>
         </vaadin-button>
         <vaadin-button theme="tertiary icon" class="peer-nav-next" title="${peerNav.nextLabel ?? 'Next'}"
                 ?disabled="${!peerNav.nextRoute}"
-                @click="${() => { if (peerNav.nextRoute) window.location.href = peerNav.nextRoute }}">
+                @click="${() => { if (peerNav.nextRoute) safeNavigate(peerNav.nextRoute) }}">
             <vaadin-icon icon="vaadin:angle-right"></vaadin-icon>
         </vaadin-button>
     </div>`

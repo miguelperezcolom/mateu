@@ -5,6 +5,8 @@ import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColu
 import { uuidAwareText } from "@infra/ui/uuidCell.ts";
 import '@vaadin/icon';
 import '@vaadin/icons';
+import { safeHref } from '@infra/ui/safeNavigate.ts'
+import { ifDefined } from 'lit/directives/if-defined.js'
 
 type XColumn = VaadinGridColumn & { xcolumn?: GridColumn }
 type RowTarget = EventTarget & { row: unknown }
@@ -171,5 +173,5 @@ export const renderButtonCell = (item: any,
         `
     }
     const href = item[vaadinColumn.path!]
-    return html`<a href="${href}">${column.text || href}</a>`;
+    return html`<a href="${ifDefined(safeHref(href))}">${column.text || href}</a>`;
 }

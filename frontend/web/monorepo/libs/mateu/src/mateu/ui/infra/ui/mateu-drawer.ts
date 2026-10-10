@@ -8,6 +8,7 @@ import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import { interpolateNested } from "@infra/ui/interpolation.ts";
 import { FocusTrap, trapFocus } from "@infra/a11y/focusTrap.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
+import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 
 @customElement('mateu-drawer')
 export class MateuDrawer extends ComponentElement {
@@ -239,9 +240,9 @@ export class MateuDrawer extends ComponentElement {
                 ` : nothing}
                 ${peerNav ? html`
                     <button class="drawer-icon" aria-label="${peerNav.prevLabel ?? 'Previous'}" title="${peerNav.prevLabel ?? 'Previous'}"
-                            ?disabled="${!peerNav.prevRoute}" @click="${() => { if (peerNav.prevRoute) window.location.href = peerNav.prevRoute! }}">‹</button>
+                            ?disabled="${!peerNav.prevRoute}" @click="${() => { if (peerNav.prevRoute) safeNavigate(peerNav.prevRoute) }}">‹</button>
                     <button class="drawer-icon" aria-label="${peerNav.nextLabel ?? 'Next'}" title="${peerNav.nextLabel ?? 'Next'}"
-                            ?disabled="${!peerNav.nextRoute}" @click="${() => { if (peerNav.nextRoute) window.location.href = peerNav.nextRoute! }}">›</button>
+                            ?disabled="${!peerNav.nextRoute}" @click="${() => { if (peerNav.nextRoute) safeNavigate(peerNav.nextRoute) }}">›</button>
                 ` : nothing}
                 ${metadata.collapsible ? html`
                     <button class="drawer-icon" aria-label="${this.collapsed ? 'Expand' : 'Collapse'}" title="${this.collapsed ? 'Expand' : 'Collapse'}"
