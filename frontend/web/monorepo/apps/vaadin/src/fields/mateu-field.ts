@@ -28,7 +28,7 @@ import "@vaadin/password-field"
 import "@vaadin/date-picker"
 import "@vaadin/date-time-picker"
 import "@vaadin/time-picker"
-import "@vaadin/rich-text-editor"
+import "@infra/ui/mateu-rich-text-editor"
 import "@vaadin/email-field"
 import "@vaadin/upload"
 import "@vaadin/list-box"
@@ -1559,12 +1559,13 @@ export class MateuField extends LitElement {
                             .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
                     >
-                    <vaadin-rich-text-editor
+                    <mateu-rich-text-editor
                             .maxlength="${this.field.charLimit}"
                             .value="${value}"
+                            .label="${label}"
                             @value-changed="${this.valueChanged}"
                             ?autofocus="${this.field.wantsFocus}"
-                    ></vaadin-rich-text-editor>
+                    ></mateu-rich-text-editor>
                     </vaadin-custom-field>`
             }
             if (this.field?.stereotype == 'textarea') {

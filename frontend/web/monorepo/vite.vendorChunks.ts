@@ -37,6 +37,10 @@ export const vendorChunks = (id: string): string | undefined => {
     if (pkg === 'chart.js' || pkg === 'chartjs-adapter-date-fns'
         || pkg === 'date-fns' || pkg.startsWith('@kurkle/')
         || pkg === '@ngyewch/chartjs-v4-webcomponent') return 'vendor-chartjs'
+    // The rich text editor (Tiptap / ProseMirror): only reached through the dynamic import in
+    // mateu-rich-text-editor.ts, so it comes out as an async chunk
+    if (pkg.startsWith('@tiptap/') || pkg.startsWith('prosemirror-') || pkg === 'orderedmap'
+        || pkg === 'rope-sequence' || pkg === 'w3c-keyname' || pkg === 'linkifyjs') return 'vendor-editor'
     if (pkg.startsWith('@ui5/')) return 'vendor-ui5'
     if (pkg === 'lit' || pkg === 'lit-html' || pkg === 'lit-element'
         || pkg.startsWith('@lit/') || pkg.startsWith('@lit-labs/')) return 'vendor-lit'

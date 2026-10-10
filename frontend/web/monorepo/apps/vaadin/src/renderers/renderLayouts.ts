@@ -10,7 +10,6 @@ import VerticalLayout from "@mateu/shared/apiClients/dtos/componentmetadata/Vert
 import SplitLayout from "@mateu/shared/apiClients/dtos/componentmetadata/SplitLayout";
 import AccordionLayout, {AccordionLayoutVariant} from "@mateu/shared/apiClients/dtos/componentmetadata/AccordionLayout";
 import TabLayout from "@mateu/shared/apiClients/dtos/componentmetadata/TabLayout";
-import BoardLayoutItem from "@mateu/shared/apiClients/dtos/componentmetadata/BoardLayout";
 import {ComponentType} from "@mateu/shared/apiClients/dtos/ComponentType.ts";
 import {ComponentMetadataType} from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
@@ -24,7 +23,6 @@ import "@vaadin/master-detail-layout";
 import "@vaadin/tabsheet";
 import "@vaadin/tabs";
 import "@vaadin/accordion";
-import "@vaadin/board";
 import "@vaadin/scroller";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import "@infra/ui/mateu-adaptive-tabs.ts";
@@ -446,32 +444,3 @@ export const renderContainer = (container: LitElement, component: Component, bas
             `
 }
 
-export const renderBoardLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
-    return html`
-        <vaadin-board style="${component.style}" 
-                      class="${component.cssClasses}"
-                      slot="${component.slot??nothing}">
-            ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
-        </vaadin-board>
-            `
-}
-
-export const renderBoardLayoutRow = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
-    return html`
-        <vaadin-board-row style="${component.style}" class="${component.cssClasses}">
-                   ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
-               </vaadin-board-row>
-            `
-}
-
-export const renderBoardLayoutItem = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
-    const metadata = component.metadata as BoardLayoutItem
-    return html`
-        <div style="${component.style}" 
-             class="${component.cssClasses}"
-             board-cols="${metadata.boardCols??nothing}"
-        >
-                   ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
-               </div>
-            `
-}

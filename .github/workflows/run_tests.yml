@@ -70,7 +70,12 @@ jobs:
       # platform binaries this build needs (esbuild's) arrive as optional dependencies rather than
       # from a postinstall, so the build and the suite were verified to pass without them.
       - name: Install the library's dependencies
-        run: cd frontend/web/monorepo && npm ci --workspace mateu --workspace mateu-visual-editor --include-workspace-root --ignore-scripts
+        run: cd frontend/web/monorepo && npm ci --workspace mateu --workspace mateu-visual-editor --workspace mateu-vaadin --include-workspace-root --ignore-scripts
+
+      # The vaadin-lit jar is Apache-2.0: nothing bundled into it may be under a commercial licence
+      # (it once shipped @vaadin/board, @vaadin/rich-text-editor and a Highcharts chunk).
+      - name: Bundled frontend dependencies are under approved licences
+        run: node scripts/check-frontend-licenses.mjs
 
       - name: Typecheck and build the library
         run: cd frontend/web/monorepo/libs/mateu && npm run build

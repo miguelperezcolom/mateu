@@ -1,0 +1,1 @@
+{"version":3,"names":["define"],"sources":["main-flow.js"],"sourcesContent":["/* Mateu — Apache License 2.0 (LICENSE.txt en la raíz del repositorio) */\n\n// Módulo del flujo principal: sin funciones propias.\ndefine([], () => {\n  'use strict';\n  return class MateuMainFlowModule {};\n});\n"],"mappings":"aAGAA,MAAM,CAAC,EAAE,CAAE,IAEF,KAA0B,EAClC,CAAC","ignoreList":[]}

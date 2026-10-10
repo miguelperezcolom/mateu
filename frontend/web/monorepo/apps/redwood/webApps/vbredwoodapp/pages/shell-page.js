@@ -1,4 +1,4 @@
-/* Copyright (c) 2026, Oracle and/or its affiliates */
+/* Mateu — Apache License 2.0 (LICENSE.txt en la raíz del repositorio) */
 
 define(['resources/js/mateu-bridge'], (bridge) => {
   'use strict';

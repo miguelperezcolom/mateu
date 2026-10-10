@@ -4255,7 +4255,7 @@ export function reduceContexts(reg, increment, opts = {}) {
         homeRoute: md.homeRoute || '',
         // chat de IA (@AI → App.sseUrl): si viene, la shell pinta el botón del chat del agente en la cabecera
         sseUrl: md.sseUrl || '',
-        // el FAB de "ask" del shell (@App(askLabel, askIcon)): vacíos = la marca de Ask Oracle
+        // el FAB de "ask" del shell (@App(askLabel, askIcon)): vacíos = el FAB neutro (Search)
         askLabel: md.askLabel || '',
         askIcon: md.askIcon || '',
         // los widgets de CABECERA (WidgetSupplier / @Widget): viajan como hijos del App con

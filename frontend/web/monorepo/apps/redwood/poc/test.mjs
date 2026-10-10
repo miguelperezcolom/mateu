@@ -3426,7 +3426,7 @@ test('rowedit (edición): los otros editores — New guest (select de opciones, 
   assert.ok(p.paymentId.readonly)
 })
 
-// ── FAB de "ask" del shell: Ask Oracle con su glifo, o la marca del @App(askLabel, askIcon) ──
+// ── FAB de "ask" del shell: neutro (Search con la lupa), o la marca del @App(askLabel, askIcon) ──
 const brandedApp = (askLabel, askIcon) => {
   const increment = fx('app')
   for (const fr of increment.fragments) {
@@ -3435,22 +3435,22 @@ const brandedApp = (askLabel, askIcon) => {
   return reduceContexts(empty(), increment).shell
 }
 
-test('ask FAB: sin @App(askLabel/askIcon) es Ask Oracle con el glifo de Ask Oracle, no el bocadillo', () => {
+test('ask FAB: sin @App(askLabel/askIcon) es neutro — Search con la lupa —, ni la marca de Oracle ni el bocadillo', () => {
   const shell = reduceContexts(empty(), fx('app')).shell
   assert.equal(shell.askLabel, '')
   assert.equal(shell.askIcon, '')
-  assert.deepEqual(askFabOf(shell, 'http://b'), { label: 'Ask Oracle', kind: 'glyph', glyph: 'oj-ux-ico-oracle-o' })
-  assert.equal(ASK_FAB_GLYPH, 'oj-ux-ico-oracle-o')
+  assert.deepEqual(askFabOf(shell, 'http://b'), { label: 'Search', kind: 'glyph', glyph: 'oj-ux-ico-search' })
+  assert.equal(ASK_FAB_GLYPH, 'oj-ux-ico-search')
   assert.notEqual(ASK_FAB_GLYPH, SHELL_CHAT_GLYPH)
   // ni el App del shell: un registro sin shell tampoco rompe
-  assert.equal(askFabOf(null).label, 'Ask Oracle')
+  assert.equal(askFabOf(null).label, 'Search')
 })
 
 test('ask FAB: @App(askLabel="Ask RIU", askIcon="R") → la inicial, con el rótulo del App', () => {
   const shell = brandedApp('Ask RIU', 'R')
   assert.equal(shell.askLabel, 'Ask RIU')
   assert.deepEqual(askFabOf(shell, 'http://b'), { label: 'Ask RIU', kind: 'initial', text: 'R' })
-  assert.deepEqual(askFabOf({ askIcon: 'ri' }), { label: 'Ask Oracle', kind: 'initial', text: 'RI' })
+  assert.deepEqual(askFabOf({ askIcon: 'ri' }), { label: 'Search', kind: 'initial', text: 'RI' })
 })
 
 test('ask FAB: askIcon imagen (relativa al backend como el logo, o absoluta) e iconos', () => {
@@ -3458,9 +3458,9 @@ test('ask FAB: askIcon imagen (relativa al backend como el logo, o absoluta) e i
     { label: 'Ask RIU', kind: 'image', src: 'http://b/images/riu.svg' })
   assert.equal(askFabOf({ askIcon: 'https://cdn.x/riu.png' }, 'http://b').src, 'https://cdn.x/riu.png')
   assert.equal(askFabOf({ askIcon: 'data:image/svg+xml;base64,AAA' }, 'http://b').src, 'data:image/svg+xml;base64,AAA')
-  assert.deepEqual(askFabOf({ askIcon: 'oj-ux-ico-search' }), { label: 'Ask Oracle', kind: 'glyph', glyph: 'oj-ux-ico-search' })
+  assert.deepEqual(askFabOf({ askIcon: 'oj-ux-ico-oracle-o' }), { label: 'Search', kind: 'glyph', glyph: 'oj-ux-ico-oracle-o' })
   assert.equal(askFabOf({ askIcon: 'vaadin:cog' }).glyph, 'oj-ux-ico-settings')
-  // lo que no es nada de eso no deja el FAB vacío: vuelve al glifo de Ask Oracle
+  // lo que no es nada de eso no deja el FAB vacío: vuelve a la lupa
   assert.equal(askFabOf({ askIcon: 'vaadin:no-existe' }).glyph, ASK_FAB_GLYPH)
   assert.equal(askFabOf({ askIcon: 'RIU Hotels' }).glyph, ASK_FAB_GLYPH)
 })
@@ -3498,16 +3498,16 @@ const shellFab = () => {
   return { fab, icon }
 }
 
-test('ask FAB: brandAskFab cambia el bocadillo por el glifo de Ask Oracle y le da nombre y teclado', () => {
+test('ask FAB: brandAskFab cambia el bocadillo por la lupa y le da nombre y teclado', () => {
   const { fab, icon } = shellFab()
   assert.equal(brandAskFab(fab, askFabOf(null)), true)
-  assert.ok(icon.classList.contains('oj-ux-ico-oracle-o'))
+  assert.ok(icon.classList.contains('oj-ux-ico-search'))
   assert.ok(!icon.classList.contains(SHELL_CHAT_GLYPH))
   assert.ok(icon.classList.contains('oj-sp-ux-icon-size-11x')) // el tamaño lo sigue poniendo el shell
   assert.equal(fab.attrs.role, 'button')
   assert.equal(fab.attrs.tabindex, '0')
-  assert.equal(fab.attrs['aria-label'], 'Ask Oracle')
-  assert.equal(fab.attrs.title, 'Ask Oracle')
+  assert.equal(fab.attrs['aria-label'], 'Search')
+  assert.equal(fab.attrs.title, 'Search')
   let prevented = false
   fab.listeners.keydown[0]({ key: 'Enter', preventDefault: () => { prevented = true } })
   assert.ok(prevented && fab.clicked === 1)

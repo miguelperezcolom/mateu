@@ -40,7 +40,7 @@ public @interface Stereotype {
 | `select` | Dropdown select |
 | `email` | Email input |
 | `password` | Password input (masked) |
-| `richText` | Rich text / WYSIWYG editor |
+| `richText` | Rich text / WYSIWYG editor. The value is HTML. A value stored by the editor of earlier versions (Quill Delta JSON) still opens, and is saved as HTML on the next edit |
 | `listBox` | List box (scrollable options) |
 | `html` | Raw HTML display |
 | `markdown` | Markdown editor / renderer |

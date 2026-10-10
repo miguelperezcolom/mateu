@@ -1,10 +1,7 @@
-/* Copyright (c) 2026, Oracle and/or its affiliates */
+/* Mateu — Apache License 2.0 (LICENSE.txt en la raíz del repositorio) */
 
-define([], function() {
+// Módulo de la página de contenido: sin funciones propias (las chains están en *-chains/).
+define([], () => {
   'use strict';
-
-  class PageModule {
-  }
-
-  return PageModule;
+  return class MateuContentPageModule {};
 });

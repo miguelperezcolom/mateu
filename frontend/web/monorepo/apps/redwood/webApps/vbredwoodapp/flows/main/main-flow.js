@@ -1,10 +1,7 @@
-/* Copyright (c) 2026, Oracle and/or its affiliates */
+/* Mateu — Apache License 2.0 (LICENSE.txt en la raíz del repositorio) */
 
-define([], function() {
+// Módulo del flujo principal: sin funciones propias.
+define([], () => {
   'use strict';
-
-  class FlowModule {
-  }
-
-  return FlowModule;
+  return class MateuMainFlowModule {};
 });
