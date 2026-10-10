@@ -26,7 +26,7 @@ palette). Every kind of file under `specs/ui` is offered:
 
 | Entry | Creates | Notes |
 |---|---|---|
-| **UI Mount** | `type: UI` | An app served at a base path — the data-driven `@UI`. Lists its route files. |
+| **UI Mount** | `type: UI` | An app served at a base path — the data-driven `@UI`. Lists its route files and, optionally, its `home` route (the page the mount opens on — see [the mount's home](/java-ui-definition/route-registry/#the-mounts-home)). |
 | **Routes File** | `type: Routes` | Routes bound to layouts, view models, pinned (`fixedParams`) and seeded (`defaultParams`) parameters, nested `children`, and a commented `basePath` header. See [the route registry](/java-ui-definition/route-registry/). |
 | **App Shell** | `type: AppShell` | Title, variant, home route and a menu with a group. Bind it to the mount root (`""`). |
 | **REST Source Catalogue** | `type: Sources` | Two example sources (`source:` nested, `provenance`, `fields`, `totalPath`). See [the REST source catalogue](/java-ui-definition/rest-source-catalogue/). |
