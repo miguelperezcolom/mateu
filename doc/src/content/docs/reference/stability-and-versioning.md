@@ -36,6 +36,24 @@ You can build on these; they follow the deprecation policy.
 | **Build integration** — annotation processor coordinates and options, `mateu-bundle-maven-plugin` goals and parameters | their Maven coordinates |
 | **The .NET and Python authoring APIs** — `Mateu.Uidl` attributes/types, `mateu_uidl` decorators/markers | follow the same policy once published as packages (see the release notes) |
 
+### Module layering
+
+The three public modules depend on each other in one direction only, and a test
+(`LayeringTest` in `mateu-uidl`) keeps it that way:
+
+- **`mateu-dtos`** — the wire — depends on nothing Mateu. A renderer or a non-Java producer can
+  read it without the authoring API.
+- **`mateu-uidl`** — the authoring API — depends on `mateu-dtos` only through a closed set of
+  *wire-boundary* types: the escape hatches that hand Mateu a ready-made wire object
+  (`DtoSupplier`, `MapsToDto`, `CardRow`), the request as received (`HttpRequest.runActionRq()` /
+  `getUiRq()`, used by `SearchableSelection`) and the long-task stream (`LongTask`,
+  `ProgressReporter`). Everything else in `mateu-uidl` is wire-agnostic; a new import of
+  `io.mateu.dtos` outside that list fails the build. It never depends on `mateu-core`.
+- **`mateu-core`** depends on both, and maps the one onto the other.
+
+An app module that only declares UIs needs `mateu-uidl` (which brings `mateu-dtos` along for those
+boundary types); it never needs `mateu-core` at compile time.
+
 **Not public** — may change in any release, without deprecation:
 
 - anything under `io.mateu.core` other than the archetypes above (mappers, use cases, resolvers,
