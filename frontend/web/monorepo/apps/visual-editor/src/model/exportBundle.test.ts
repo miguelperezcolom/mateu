@@ -29,6 +29,15 @@ describe('exportBundle', () => {
         expect(clientRenderableRouteCount(m)).toBe(1)
     })
 
+    it('ships the action catalogue once, lowered, and never as a definition', () => {
+        const m = buildBundleManifest([
+            { path: 'specs/ui/actions.yaml', content: 'type: Actions\nactions:\n  - id: go\n    steps: [{type: Navigate, route: home}]\n' },
+        ], 't')
+        expect(m.definitions).toEqual({})
+        expect(m.actions).toEqual([{ id: 'go', commands: [{ targetComponentId: null, type: 'NavigateTo', data: 'home' }] }])
+        expect(buildBundleManifest([], 't').actions).toBeUndefined()
+    })
+
     it('tolerates an unparseable file and an empty project', () => {
         const m = buildBundleManifest([{ path: 'broken.yaml', content: ': : [' }], 't')
         expect(m.definitions).toEqual({})
