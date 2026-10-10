@@ -29,14 +29,34 @@ final class CrudOrchestratorMetadata {
 
   static String getStyleForList(Crud<?, ?, ?, ?, ?, ?> orchestrator, List<GridContent> columns) {
     if (MetaAnnotations.isPresent(orchestrator.metadataSource(), Style.class)) {
-      return MetaAnnotations.find(orchestrator.metadataSource(), Style.class).value();
+      return withCompact(
+          MetaAnnotations.find(orchestrator.metadataSource(), Style.class).value(),
+          orchestrator.metadataSource());
     }
     // the collection spans the whole content column (RDS) — no inner cap
-    return "width: 100%;";
+    return withCompact("width: 100%;", orchestrator.metadataSource());
   }
 
   static String getStyleForView(Crud<?, ?, ?, ?, ?, ?> orchestrator) {
-    return styleForView(orchestrator.viewClass(), orchestrator.metadataSource());
+    var style = styleForView(orchestrator.viewClass(), orchestrator.metadataSource());
+    return MetaAnnotations.isPresent(
+            orchestrator.viewClass(), io.mateu.uidl.annotations.Compact.class)
+        ? withCompact(style, orchestrator.viewClass())
+        : withCompact(style, orchestrator.metadataSource());
+  }
+
+  /**
+   * A {@code @Compact} crud is a dense page like any {@code @Compact} page: its list and detail
+   * carry the high-density preset ({@link io.mateu.uidl.StyleConstants#COMPACT}, with the {@code
+   * --mateu-compact:1} marker every renderer keys on).
+   */
+  private static String withCompact(String style, Class<?> source) {
+    if (!MetaAnnotations.isPresent(source, io.mateu.uidl.annotations.Compact.class)) {
+      return style;
+    }
+    var base = style == null ? "" : style.trim();
+    return (base.isEmpty() || base.endsWith(";") ? base : base + ";")
+        + io.mateu.uidl.StyleConstants.COMPACT;
   }
 
   /** The detail's container style: an explicit {@code @Style} first, then the page it asks for. */

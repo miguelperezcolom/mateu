@@ -547,6 +547,11 @@
       "type": "string",
       "defaultValue": "1408px"
     },
+    "mateuPageDensityClass": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "'mateu-density-compact' on a @Compact page (pageProjection.pageDensityOf), else empty"
+    },
     "mateuPageMargin": {
       "type": "string",
       "defaultValue": "0 auto"

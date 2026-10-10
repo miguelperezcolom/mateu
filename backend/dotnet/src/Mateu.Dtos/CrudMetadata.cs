@@ -13,6 +13,11 @@ public record CrudMetadataDto(
     public string? DetailPath { get; init; }
     public string CrudlType { get; init; } = "table";
 
+    /// <summary>Dense rows ([Compact] on the crud/listing): Vaadin's compact grid theme, Redwood's
+    /// display="grid". Omitted when false (mirrors CrudlDto.compact).</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Compact { get; init; }
+
     /// <summary>The renderer's grid layout: auto (renderer decides) | table | list | cards |
     /// masterDetail | tree (hierarchical rows carrying a self-referential children list —
     /// never auto-selected).</summary>
@@ -119,12 +124,12 @@ public record GridColumnMetaDto(string Id, string Label)
     /// from the column's field type; omitted when it declares none. (Mirrors GridColumnDto.tones.)</summary>
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyDictionary<string, string>? Tones { get; init; }
-}
-
-public record TriggerDto(string Type, string ActionId);
 
     /// <summary>What each raw value of the column reads as — an enum column's labels ([Label], else
     /// the humanized name), the same as its options. Display only: rows keep the raw value. Omitted
     /// for any other column. (Mirrors GridColumnDto.valueLabels.)</summary>
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyDictionary<string, string>? ValueLabels { get; init; }
+}
+
+public record TriggerDto(string Type, string ActionId);

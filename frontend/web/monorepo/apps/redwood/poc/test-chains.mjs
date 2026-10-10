@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import {
   listHeaderVarsOf, wizardVarsOf, archetypeVarsOf, islandVarsOf, nestedVarOf, noGenericFormVars, hostContentPlanOf,
-  generalOverviewPageOf, pageHeaderOf, formActionsBesideHeader, pageWidthOf, pageLayoutOf,
+  generalOverviewPageOf, pageHeaderOf, formActionsBesideHeader, pageWidthOf, pageLayoutOf, pageDensityOf,
 } from './pageProjection.mjs'
 import { outboundActionOf, hostReRendered, touchesHost, onlyMessagesAnswer } from './actionPlan.mjs'
 import { HOST_ID } from './reduceContexts.mjs'
@@ -105,6 +105,23 @@ test('page layout: width anatomy, bleeding header and the band overlap', () => {
   assert.equal(fixed.mateuBandBoxMargin, '0 auto')
   const banded = pageLayoutOf({ host: { pageWidth: 'fullWidth' }, bleedingHeader: true, band: true }).vars
   assert.deepEqual([banded.mateuPagePadding, banded.mateuPageMargin, banded.mateuBandBoxMargin], ['0', '-40px auto', '0'])
+})
+
+test('@Compact: a compact page or listing takes the Redwood high-density class', () => {
+  // a @Compact page: the server stamps the marker into its style
+  const form = { tree: { type: 'ServerSide', children: [{ type: 'ClientSide', metadata: { type: 'Page',
+    style: 'max-width:900px;--lumo-size-m:1.35rem;--mateu-compact:1' } }] } }
+  assert.equal(pageDensityOf(form), 'compact')
+  assert.equal(pageLayoutOf({ host: form, bleedingHeader: false, band: false }).vars.mateuPageDensityClass, 'mateu-density-compact')
+  // a @Compact crud: its listing says so
+  const crud = { tree: { children: [{ metadata: { type: 'Page' }, children: [{ metadata: { type: 'Crud', compact: true } }] }] } }
+  assert.equal(pageDensityOf(crud), 'compact')
+  // anything else keeps the standard density
+  assert.equal(pageDensityOf({ tree: { children: [{ metadata: { type: 'Page', style: 'width: 100%;' } }] } }), 'standard')
+  assert.equal(pageLayoutOf({ host: {}, bleedingHeader: false, band: false }).vars.mateuPageDensityClass, '')
+  // a nested island is its own page: its density does not leak to the host
+  const island = { tree: { children: [{ type: 'ServerSide', style: '--mateu-compact:1', children: [] }] } }
+  assert.equal(pageDensityOf(island), 'standard')
 })
 
 test('outbound action: the state it carries, the rows it needs, the required fields, where it goes', () => {

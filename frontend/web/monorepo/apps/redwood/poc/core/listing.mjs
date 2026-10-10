@@ -181,7 +181,9 @@ export function listingBaseOf(ctx, opts = {}) {
     // se activa cuando el crud es editable inline (@InlineEditing marca las columnas
     // como editable en el wire); un listado de consulta queda en 'list' (aireado).
     // PRECOMPUTADO (CSP de VB).
-    display: (md.columns || []).some((col) => (col.metadata || col).editable) ? 'grid' : 'list',
+    // Y un listado @Compact (CrudlDto.compact) pide la misma densidad de trabajo: filas de
+    // 'grid' en vez de las aireadas de 'list'.
+    display: md.compact === true || (md.columns || []).some((col) => (col.metadata || col).editable) ? 'grid' : 'list',
     // tabla de TRABAJO: el clic de fila NO navega (las celdas se editan in situ)
     editable: (md.columns || []).some((col) => (col.metadata || col).editable),
     // DETALLE de fila (@Details en la fila): el campo que no es columna y se abre al pulsar la
@@ -495,8 +497,6 @@ export function rowLinesRows(rows, extra) {
 
 export const CLIP_CELL_SUFFIX = '__clipCell'
 
-/** El ancho que el wire pide para una columna (GridColumn.width / flexGrow), en las claves de
- *  oj-table: width (y, si no crece — flexGrow "0" —, minWidth = maxWidth = width). Sin width, {}. */
 /** The cell of a column that declares labels for its values (GridColumn.valueLabels — an enum's:
  *  IN_HOUSE → "In house", what its form options say). The row keeps the RAW value (sorting,
  *  filtering, selection and editing work on it); the cell reads <id>__labelCell. */
@@ -531,6 +531,8 @@ export function labelCellRows(rows, columns) {
   })
 }
 
+/** El ancho que el wire pide para una columna (GridColumn.width / flexGrow), en las claves de
+ *  oj-table: width (y, si no crece — flexGrow "0" —, minWidth = maxWidth = width). Sin width, {}. */
 export function columnWidthOf(c) {
   const width = c && typeof c.width === 'string' ? c.width.trim() : (c && typeof c.width === 'number' ? c.width + 'px' : '')
   if (!width || width === 'auto') return {}
@@ -639,10 +641,10 @@ export function statusBadgeRows(rows, columns) {
       } else if (value != null && value !== '') {
         // a plain word (a REST row): its badge by the declared tone or the word; `plain` lets
         // selectedRowsOf hand the row back as it arrived
-        const type = statusTypeOfValue(value, c.tones)
-        out[id] = { type, message: String(valueLabelOf(c, value)), badgeClass: STATUS_BADGE[type] || STATUS_BADGE.NONE, plain: true, raw: value }
         // the tone by the RAW value, the badge text by the column's label for it (an enum's);
         // `raw` is what selectedRowsOf hands back
+        const type = statusTypeOfValue(value, c.tones)
+        out[id] = { type, message: String(valueLabelOf(c, value)), badgeClass: STATUS_BADGE[type] || STATUS_BADGE.NONE, plain: true, raw: value }
       }
     }
     return out
