@@ -1,7 +1,7 @@
 {
-  "rawBytes": 3017285,
-  "gzipBytes": 724619,
-  "measuredRawBytes": 2873604,
-  "measuredGzipBytes": 690113,
+  "rawBytes": 2902399,
+  "gzipBytes": 692929,
+  "measuredRawBytes": 2764189,
+  "measuredGzipBytes": 659932,
   "note": "Ceiling = measured + 5%. Raise it only as a reviewed change, saying why."
 }
