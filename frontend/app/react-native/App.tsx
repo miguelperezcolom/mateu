@@ -1,7 +1,8 @@
 import Constants from 'expo-constants';
 import * as Updates from 'expo-updates';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Modal, Platform, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Modal, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { MateuAppProvider, useAppContext } from './src/context/AppContext';
 import {
   fetchRegistryEntry,
@@ -332,9 +333,11 @@ function RegistryBoot() {
 
 export default function App() {
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <RegistryBoot />
-    </SafeAreaView>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.safeArea}>
+        <RegistryBoot />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 
