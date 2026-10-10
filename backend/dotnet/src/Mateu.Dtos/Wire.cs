@@ -261,6 +261,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(PaymentPickerMetadataDto), "PaymentPicker")]
 [JsonDerivedType(typeof(ProcessMonitorMetadataDto), "ProcessMonitor")]
 [JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
+[JsonDerivedType(typeof(PopoverMetadataDto), "Popover")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
 public abstract record ComponentMetadataDto;
@@ -864,6 +865,10 @@ public record GridColumnMetaDto(string Id, string Label)
     /// "view" when rows are clickable (navigable/editable listings); null on plain columns
     /// (mirrors GridColumnDto.actionId).</summary>
     public string? ActionId { get; init; }
+
+    /// <summary>The row field whose text the cell shows on hover ([Tooltip("otherField")] on the
+    /// row property); null when the column declares none (mirrors GridColumnDto.tooltipPath).</summary>
+    public string? TooltipPath { get; init; }
 }
 
 public record TriggerDto(string Type, string ActionId);
@@ -1197,6 +1202,10 @@ public record RestDataSourceDto(string Url)
     /// shorthand (empty Url, Ref set).</summary>
     public static RestDataSourceDto FromRef(string name) => new("") { Ref = name };
 }
+
+/// <summary>A popover (mirrors io.mateu.dtos.PopoverDto): the wrapped component and the content of
+/// its floating panel, opened on <c>click</c> (default) or <c>hover</c>.</summary>
+public record PopoverMetadataDto(ComponentDto? Content, ComponentDto? Wrapped, string Trigger = "click") : ComponentMetadataDto;
 
 /// <summary>A drawer overlay (mirrors io.mateu.dtos.DrawerDto): a panel sliding in from a
 /// viewport edge whose content travels in the Content field. Emitted as an Add fragment so it

@@ -780,7 +780,7 @@ export const RICH_ATOM_FLAGS = [
   'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
   // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
   // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
-  'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar',
+  'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover',
 ]
 export function isRichAtom(a) {
   return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -2036,6 +2036,21 @@ export function islandContentOf(ctx, opts = {}) {
       }, container)
       return
     }
+    if (t === 'Popover') {
+      // lo envuelto se pinta como un disparador con su texto; el contenido, como líneas en la
+      // ventana flotante compartida (hover.mjs) — al pasar/enfocar (hover) o al pulsar (click)
+      const wrappedTexts = m.wrapped ? collectTexts(m.wrapped).map(interp).filter(Boolean) : []
+      const label = wrappedTexts.join(' ') || (m.wrapped && m.wrapped.metadata && m.wrapped.metadata.label) || 'Details'
+      const lines = m.content ? collectTexts(m.content).map(interp).filter(Boolean) : []
+      const text = lines.join('\n')
+      atom({
+        isPopover: true,
+        label: interp(label),
+        hoverText: m.trigger === 'hover' ? text : '',
+        clickText: m.trigger === 'hover' ? '' : text,
+      }, container)
+      return
+    }
     if (t === 'Calendar') {
       atom(calendarAtomOf(m, node.id), container)
       return
@@ -3201,9 +3216,13 @@ function clipCellRows(rows, columns) {
     const out = { ...row }
     for (const c of cols) {
       const shown = text(row[c.id])
-      const tip = c.tooltipPath ? text(row[c.tooltipPath]) : ''
+      // tooltipPath a OTRO campo (@Tooltip): un detalle → la ventana flotante; a sí mismo (un ancho
+      // fijo que corta): el texto entero en el title de siempre
+      const tip = c.tooltipPath && c.tooltipPath !== c.id ? text(row[c.tooltipPath]) : ''
       // solo la columna de ancho fijo se corta; con tooltipPath y sin ancho, el texto sigue entero
-      out[c.id + CLIP_CELL_SUFFIX] = { text: shown, title: tip || shown, cls: columnWidthOf(c).maxWidth ? 'mateu-cell-clip' : '' }
+      // con @Tooltip(otro campo) el detalle sale en la ventana flotante (hover.mjs), no en el title
+      // del navegador: varias líneas y estilo Redwood; sin él, el title enseña lo que se corta
+      out[c.id + CLIP_CELL_SUFFIX] = { text: shown, title: tip ? '' : shown, hover: tip, cls: columnWidthOf(c).maxWidth ? 'mateu-cell-clip' : '' }
     }
     return out
   })

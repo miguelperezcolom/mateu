@@ -83,6 +83,8 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         ColSpec(
             id, label, kind, dataType, actionId, text, cm.bool("editable"), cm.text("editorType"),
             cm.text("stereotype"), cm.text("aggregate"),
+            // @Tooltip("otherField") / a fixed width: the row field the cell shows on hover.
+            tooltipPath = cm.text("tooltipPath"),
         )
     }
     // The action id used to open a row's detail: the first link column (e.g. the id column's "view").
@@ -104,6 +106,21 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             val m = getModel() as? CrudTableModel
             return if (m != null && m.isSynthetic(convertRowIndexToModel(row))) syntheticRenderer
             else super.getCellRenderer(row, column)
+        }
+
+        // A column with a tooltipPath shows that field of the row on hover (multi-line as HTML);
+        // the rest keep the default (the renderer's own tooltip, if any).
+        override fun getToolTipText(e: MouseEvent): String? {
+            val viewRow = rowAtPoint(e.point)
+            val viewCol = columnAtPoint(e.point)
+            if (viewRow >= 0 && viewCol >= 0) {
+                val spec = specs.getOrNull(convertColumnIndexToModel(viewCol))
+                if (spec != null && spec.tooltipPath.isNotBlank()) {
+                    val row = (getModel() as? CrudTableModel)?.rowAt(convertRowIndexToModel(viewRow))
+                    return Popovers.tooltipHtml(Popovers.cellTooltipText(row, spec.tooltipPath))
+                }
+            }
+            return super.getToolTipText(e)
         }
     }
     table.setShowGrid(true)
@@ -454,6 +471,7 @@ private data class ColSpec(
     val editorType: String = "",
     val stereotype: String = "",
     val aggregate: String = "",
+    val tooltipPath: String = "",
 )
 
 // ── listing groups + aggregates (replicates the web's listingGroups.ts rules) ────────────

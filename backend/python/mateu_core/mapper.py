@@ -33,6 +33,7 @@ from mateu_dtos import (
     DialogMetadata,
     DivMetadata,
     DrawerMetadata,
+    PopoverMetadata,
     EmptyStateMetadata,
     Fab,
     FoldoutLayoutMetadata,
@@ -146,6 +147,7 @@ from mateu_dtos import (
 from mateu_uidl import (
     Aggregate,
     PrimaryColumn,
+    Tooltip,
     AppActionsSupplier,
     AppSupplier,
     Aside,
@@ -1928,6 +1930,19 @@ class ReflectionMapper:
                 modeless=c.modeless,
             )
             return self._fluent_client(meta, c)
+        # Popover: both halves travel in the metadata; the id falls back to Java's "fieldId".
+        if isinstance(c, fluent.Popover):
+            meta = PopoverMetadata(
+                content=self.map_component(c.content) if c.content is not None else None,
+                wrapped=self.map_component(c.wrapped) if c.wrapped is not None else None,
+                trigger=c.trigger.value,
+            )
+            return ClientSideComponent(
+                metadata=meta,
+                id=c.id if c.id and c.id.strip() else "fieldId",
+                style=c.style,
+                css_classes=c.css_classes,
+            )
         if isinstance(c, fluent.Dialog):
             meta = DialogMetadata(
                 id=c.id,
@@ -2272,6 +2287,7 @@ class ReflectionMapper:
                 stereotype=self.column_stereotype_of(f),
                 caption_path=self.caption_path_of(f),
                 leading_path=self.leading_path_of(f),
+                tooltip_path=self.tooltip_path_of(f),
             )))
         toolbar = [Button(label="New", action_id="new"), Button(label="Delete", action_id="delete")]
         # @list_toolbar_button methods: BULK list actions — a listing toolbar button dispatching
@@ -2349,6 +2365,14 @@ class ReflectionMapper:
         return marker.caption if marker is not None and marker.caption else None
 
     @staticmethod
+    def tooltip_path_of(f) -> str | None:
+        """Tooltip("other_field"): hovering the cell shows another field of the row (mirrors
+        Java's ListingColumnBuilder.tooltipPathOf; the ports have no fixed column widths, so
+        there is no own-name fallback). Camel-cased like the column ids it points at."""
+        marker = f.marker(Tooltip)
+        return camel_case(marker.value) if marker is not None and marker.value.strip() else None
+
+    @staticmethod
     def leading_path_of(f) -> str | None:
         marker = f.marker(PrimaryColumn)
         return marker.leading if marker is not None and marker.leading else None
@@ -2416,6 +2440,7 @@ class ReflectionMapper:
                 stereotype=self.column_stereotype_of(f),
                 caption_path=self.caption_path_of(f),
                 leading_path=self.leading_path_of(f),
+                tooltip_path=self.tooltip_path_of(f),
                 # the first column of a Navigable/Editable listing opens the record
                 action_id="view" if rows_clickable and not columns else None,
             )))

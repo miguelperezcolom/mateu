@@ -5255,11 +5255,17 @@
           "type" : "string",
           "const" : "Popover"
         },
+        "id" : {
+          "type" : "string"
+        },
         "content" : {
           "$ref" : "#/$defs/Component"
         },
         "wrapped" : {
           "$ref" : "#/$defs/Component"
+        },
+        "trigger" : {
+          "$ref" : "#/$defs/PopoverTrigger"
         },
         "style" : {
           "type" : "string"
@@ -5272,6 +5278,10 @@
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
+    },
+    "PopoverTrigger" : {
+      "type" : "string",
+      "enum" : [ "click", "hover" ]
     },
     "PricingPlan" : {
       "type" : "object",

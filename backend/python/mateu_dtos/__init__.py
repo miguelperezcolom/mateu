@@ -1245,6 +1245,16 @@ class ProcessMonitorMetadata(Wire):
     items: list[ProcessItemRecord] = Field(default_factory=list)
 
 
+class PopoverMetadata(Wire):
+    """A popover (mirrors ``io.mateu.dtos.PopoverDto``): the wrapped component and the content of
+    its floating panel, opened on ``click`` (default) or ``hover``."""
+
+    type: Literal["Popover"] = "Popover"
+    content: "Component | None" = None
+    wrapped: "Component | None" = None
+    trigger: str = "click"
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -1378,6 +1388,7 @@ ComponentMetadata = Annotated[
         PaymentPickerMetadata,
         ProcessMonitorMetadata,
         DrawerMetadata,
+        PopoverMetadata,
         DialogMetadata,
         MicroFrontendMetadata,
     ],
@@ -1496,6 +1507,9 @@ class GridColumnMeta(Wire):
     #: Action dispatched when the cell is clicked — "view" on the first column of a
     #: Navigable/Editable listing makes its rows clickable (mirrors GridColumnDto.actionId).
     action_id: str | None = None
+    #: The row field whose text the cell shows on hover (Tooltip("other_field") on the row field);
+    #: None when the column declares none (mirrors GridColumnDto.tooltipPath).
+    tooltip_path: str | None = None
 
 
 class GridColumn(Wire):

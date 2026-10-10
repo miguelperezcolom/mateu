@@ -216,6 +216,14 @@ public static class ComponentMapper
             AppState = mf.AppState,
         }),
 
+        // Popover: both halves travel in the metadata; the id falls back to Java's "fieldId".
+        Popover po => new ClientSideComponentDto(
+            new PopoverMetadataDto(
+                po.Content is null ? null : MapContent(po.Content),
+                po.Wrapped is null ? null : MapContent(po.Wrapped),
+                LowerName(po.Trigger)),
+            string.IsNullOrWhiteSpace(po.Id) ? "fieldId" : po.Id, [], po.Style, po.CssClasses, null),
+
         // Overlays — returned from actions; SyncHandler emits them as Add fragments.
         Drawer dr => Dto(dr, new DrawerMetadataDto(dr.Id, dr.HeaderTitle, dr.Content is null ? null : MapContent(dr.Content))
         {

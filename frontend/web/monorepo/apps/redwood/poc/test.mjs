@@ -5026,7 +5026,7 @@ test('listing: una columna con ancho fijo se corta con elipsis y tooltip; las de
   assert.equal(name.maxWidth, '420px')
   assert.equal(name.field, 'name__clipCell')
   assert.equal(name.template, 'cellClip')
-  assert.deepEqual(listing.rows[0].name__clipCell, { text: rows[0].name, title: rows[0].name, cls: 'mateu-cell-clip' })
+  assert.deepEqual(listing.rows[0].name__clipCell, { text: rows[0].name, title: rows[0].name, hover: '', cls: 'mateu-cell-clip' })
   assert.equal(listing.rows[0].name, rows[0].name) // la fila, intacta
   // el resto de columnas, como antes: sin ancho ni plantilla de recorte
   for (const c of listing.columns.filter((c) => c.id !== 'name')) {
@@ -5042,7 +5042,7 @@ test('listing: una columna con ancho fijo se corta con elipsis y tooltip; las de
   assert.match(webApp('resources/css/app.css'), /\.mateu-cell-clip \{[\s\S]*text-overflow: ellipsis;[\s\S]*white-space: nowrap;/)
 })
 
-test('listing: tooltipPath sin ancho pone el title de otro campo sin cortar el texto', () => {
+test('listing: tooltipPath a otro campo lo pone en la ventana flotante (no en el title), sin cortar el texto', () => {
   const content = fx('load-listing-content')
   content.fragments[0].targetComponentId = ''
   const crud = findByType(content.fragments[0].component, 'Crud')
@@ -5057,7 +5057,7 @@ test('listing: tooltipPath sin ancho pone el title de otro campo sin cortar el t
   assert.equal(name.width, undefined)
   assert.equal(name.template, 'cellClip')
   const r = listing.rows[0]
-  assert.deepEqual(r.name__clipCell, { text: String(r.name), title: String(r.id), cls: '' })
+  assert.deepEqual(r.name__clipCell, { text: String(r.name), title: '', hover: String(r.id), cls: '' })
 })
 
 test('chat: la lista sigue el último mensaje mientras crece; si el lector subió, no lo arrastra', () => {

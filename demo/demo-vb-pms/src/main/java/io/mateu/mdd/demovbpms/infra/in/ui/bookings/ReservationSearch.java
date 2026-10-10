@@ -5,6 +5,7 @@ import io.mateu.uidl.annotations.HiddenInList;
 import io.mateu.uidl.annotations.ReadOnly;
 import io.mateu.uidl.annotations.RowStatus;
 import io.mateu.uidl.annotations.Title;
+import io.mateu.uidl.annotations.Tooltip;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.fluent.GridLayout;
 import io.mateu.uidl.interfaces.CrudStore;
@@ -42,10 +43,12 @@ public class ReservationSearch extends AutoCrud<ReservationSearch.ReservationRec
       LocalDate departure,
       int nights,
       String rateCode,
-      BigDecimal rate,
+      // OPERA's rate information: hovering the rate shows the amount night by night
+      @Tooltip("rateBreakdown") BigDecimal rate,
       Hotel.ReservationStatus status,
       String company,
-      @HiddenInList @RowStatus Tone tone)
+      @HiddenInList @RowStatus Tone tone,
+      @HiddenInList @ReadOnly String rateBreakdown)
       implements Identifiable {}
 
   static ReservationRecord recordOf(Hotel.Reservation r) {
@@ -67,7 +70,27 @@ public class ReservationSearch extends AutoCrud<ReservationSearch.ReservationRec
         r.rate,
         r.status,
         r.company,
-        tone);
+        tone,
+        rateBreakdownOf(r));
+  }
+
+  /** "Sat 10 Oct · 134 €" per night, then the total — the rate information popup. */
+  static String rateBreakdownOf(Hotel.Reservation r) {
+    var lines = new StringBuilder(r.rateCode + " · " + r.nights() + " nights\n");
+    for (var d = r.arrival; d.isBefore(r.departure); d = d.plusDays(1)) {
+      boolean weekend = d.getDayOfWeek().getValue() >= 6;
+      var amount = weekend ? r.rate.add(BigDecimal.valueOf(15)) : r.rate;
+      lines
+          .append(d.getDayOfWeek().getDisplayName(java.time.format.TextStyle.SHORT, java.util.Locale.ENGLISH))
+          .append(' ')
+          .append(d.getDayOfMonth())
+          .append(" · ")
+          .append(amount)
+          .append(" €")
+          .append(weekend ? " (weekend)" : "")
+          .append('\n');
+    }
+    return lines.toString().trim();
   }
 
   @Override

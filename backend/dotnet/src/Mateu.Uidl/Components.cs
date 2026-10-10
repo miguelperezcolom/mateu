@@ -1119,6 +1119,24 @@ public sealed record MicroFrontend(string BaseUrl, string Route = "") : Componen
     public object? AppState { get; init; }
 }
 
+// ── Popover ────────────────────────────────────────────────────────────────────
+
+/// <summary>What opens a <see cref="Popover"/>: a click on the wrapped component (the default), or
+/// hover — pointing at it, or focusing it from the keyboard — for read-only details.
+/// (C# analogue of io.mateu.uidl.data.PopoverTrigger.)</summary>
+public enum PopoverTrigger { Click, Hover }
+
+/// <summary>A popover: the <see cref="Wrapped"/> component, and the <see cref="Content"/> shown in
+/// a small floating panel next to it — on click by default, or on hover/focus with
+/// <c>Trigger = PopoverTrigger.Hover</c> (a rate breakdown, a reservation summary). The wire
+/// component id is <see cref="ComponentBase.Id"/> when set. (C# analogue of io.mateu.uidl.data.Popover.)</summary>
+public sealed record Popover : ComponentBase
+{
+    public IComponent? Content { get; init; }
+    public IComponent? Wrapped { get; init; }
+    public PopoverTrigger Trigger { get; init; } = PopoverTrigger.Click;
+}
+
 // ── Overlays ───────────────────────────────────────────────────────────────────
 
 public enum DrawerPosition { Start, End, Bottom }

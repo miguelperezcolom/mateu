@@ -1341,3 +1341,9 @@ body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-title { 
 .mateu-access-keys { position: fixed; inset: 0; pointer-events: none; z-index: 10000; }
 .mateu-access-key { position: absolute; padding: 0 0.3rem; border-radius: 3px; font: 600 0.7rem/1.2rem var(--oj-typography-font-family, sans-serif);
   background: #fcd34d; color: #161513; box-shadow: 0 1px 3px rgba(0,0,0,.35); text-transform: none; }
+
+/* ── Ventana flotante (hover.mjs) y disparador de Popover ── */
+.mateu-hover-content { padding: 0.5rem 0.75rem; max-width: 22rem; font-size: 0.875rem; line-height: 1.4; }
+.mateu-pop-trigger { display: inline-block; cursor: help; border-bottom: 1px dotted currentColor; }
+.mateu-pop-trigger[data-mateu-pop-click]:not([data-mateu-pop-click=""]) { cursor: pointer; color: var(--oj-core-link-text-color, #227e9e); }
+[data-mateu-hover]:not([data-mateu-hover=""]) { cursor: help; text-decoration: underline dotted; text-underline-offset: 3px; }

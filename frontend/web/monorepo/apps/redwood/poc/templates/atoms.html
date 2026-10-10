@@ -66,6 +66,12 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPopover ]]">
+                      <!-- Popover: el disparador; el contenido sale en el oj-popup compartido (hover.mjs) -->
+                      <span class="mateu-pop-trigger oj-sm-margin-2x-bottom" tabindex="0" role="button"
+                        :data-mateu-hover="[[ $current.data.hoverText ]]"
+                        :data-mateu-pop-click="[[ $current.data.clickText ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCalendar ]]">
                       <!-- Calendar: JET no trae calendario — rejilla con tokens de Redwood, selector de vista
                            oj-buttonset-one, eventos como enlaces; las cuatro vistas van pintadas y se muestra

@@ -88,6 +88,8 @@ define([
       bridge.setPollingRunner(runPageAction);
       // atajos de teclado (@Action/@Tab shortcut) y teclas de acceso (@App(accessKeys))
       bridge.installKeys();
+      // ventanas flotantes al pasar el ratón (celdas con @Tooltip, Popover)
+      bridge.installHover();
       bridge.setKeysActionSink(runPageAction);
 
       // Static-bundle (modo sin backend): si hay un mateuBundleUrl configurado, se arranca la carga

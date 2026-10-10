@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
+  Alert,
   FlatList,
   Modal,
   ScrollView,
@@ -29,6 +30,7 @@ import {
   ListingData,
 } from '../core/listingGroups';
 import { buttonA11y } from '../a11y/a11y';
+import { cellTooltipText } from './hoverDetails';
 
 interface FilterFieldMeta {
   fieldId: string;
@@ -306,6 +308,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         aggregate: (cm['aggregate'] as string) ?? '',
         sortable: cm['sortable'] === true,
         sortingProperty: (cm['sortingProperty'] as string) ?? '',
+        // @Tooltip("otherField") / a fixed width: the field the cell shows on hover — on touch,
+        // on LONG-PRESS (a short press keeps opening the row).
+        tooltipPath: (cm['tooltipPath'] as string) ?? '',
       };
     })
     .filter((c) => c.dataType !== 'actionGroup' && c.dataType !== 'menu' && c.dataType !== 'action');
@@ -487,14 +492,31 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                       <Text style={styles.editPencilText}>✎</Text>
                     </TouchableOpacity>
                   )}
-                  {colDefs.map((col, i) => (
-                    <View key={col.fieldId} style={[styles.cardLine, rowsSelectionEnabled && i === 0 && styles.cardLineSelectable]}>
-                      {i > 0 && <Text style={styles.cardLabel}>{col.label}</Text>}
-                      <Text style={i === 0 ? styles.cardPrimary : styles.cardValue} numberOfLines={2}>
-                        {cellText(item[col.fieldId])}
-                      </Text>
-                    </View>
-                  ))}
+                  {colDefs.map((col, i) => {
+                    const tip = cellTooltipText(item, col.tooltipPath);
+                    const lineStyle = [styles.cardLine, rowsSelectionEnabled && i === 0 && styles.cardLineSelectable];
+                    const content = (
+                      <>
+                        {i > 0 && <Text style={styles.cardLabel}>{col.label}</Text>}
+                        <Text style={i === 0 ? styles.cardPrimary : styles.cardValue} numberOfLines={2}>
+                          {cellText(item[col.fieldId])}
+                        </Text>
+                      </>
+                    );
+                    return tip ? (
+                      <TouchableOpacity
+                        {...buttonA11y({ hint: 'Long-press for details' })}
+                        key={col.fieldId}
+                        style={lineStyle}
+                        onPress={() => handleRowPress(item)}
+                        onLongPress={() => Alert.alert(col.label, tip)}
+                      >
+                        {content}
+                      </TouchableOpacity>
+                    ) : (
+                      <View key={col.fieldId} style={lineStyle}>{content}</View>
+                    );
+                  })}
                 </TouchableOpacity>
               )
             }
@@ -595,11 +617,23 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                         <Text style={styles.checkboxText}>{isSelected(item) ? '☑' : '☐'}</Text>
                       </TouchableOpacity>
                     )}
-                    {colDefs.map((col) => (
-                      <View key={col.fieldId} style={styles.cell}>
-                        <Text style={styles.cellText} numberOfLines={2}>{cellText(item[col.fieldId])}</Text>
-                      </View>
-                    ))}
+                    {colDefs.map((col) => {
+                      const tip = cellTooltipText(item, col.tooltipPath);
+                      const content = <Text style={styles.cellText} numberOfLines={2}>{cellText(item[col.fieldId])}</Text>;
+                      return tip ? (
+                        <TouchableOpacity
+                          {...buttonA11y({ hint: 'Long-press for details' })}
+                          key={col.fieldId}
+                          style={styles.cell}
+                          onPress={() => handleRowPress(item)}
+                          onLongPress={() => Alert.alert(col.label, tip)}
+                        >
+                          {content}
+                        </TouchableOpacity>
+                      ) : (
+                        <View key={col.fieldId} style={styles.cell}>{content}</View>
+                      );
+                    })}
                     {editableCols.length > 0 && (
                       <TouchableOpacity {...buttonA11y({ label: 'Edit row' })} style={styles.editPencilCell} onPress={() => setEditingRow(item)}>
                         <Text style={styles.editPencilText}>✎</Text>

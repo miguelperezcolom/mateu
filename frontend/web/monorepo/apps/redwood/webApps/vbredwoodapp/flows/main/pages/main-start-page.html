@@ -301,7 +301,7 @@
         <oj-sp-empty-state primary-text="[[ $variables.mateuPicker.emptyText ]]" secondary-text=""></oj-sp-empty-state>
       </template>
       <template slot="cellClip">
-        <span :class="[[ ($current.data && $current.data.cls) || '' ]]" :title="[[ ($current.data && $current.data.title) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.text) || '' ]]"></oj-bind-text></span>
+        <span :class="[[ ($current.data && $current.data.cls) || '' ]]" :title="[[ ($current.data && $current.data.title) || '' ]]" :data-mateu-hover="[[ ($current.data && $current.data.hover) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.text) || '' ]]"></oj-bind-text></span>
       </template>
     </oj-table>
     <oj-bind-if test="[[ $variables.mateuPicker.paging.visible ]]">
@@ -682,6 +682,12 @@
                           <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
                         </template>
                       </oj-gantt>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPopover ]]">
+                      <!-- Popover: el disparador; el contenido sale en el oj-popup compartido (hover.mjs) -->
+                      <span class="mateu-pop-trigger oj-sm-margin-2x-bottom" tabindex="0" role="button"
+                        :data-mateu-hover="[[ $current.data.hoverText ]]"
+                        :data-mateu-pop-click="[[ $current.data.clickText ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCalendar ]]">
                       <!-- Calendar: JET no trae calendario — rejilla con tokens de Redwood, selector de vista
@@ -1555,6 +1561,12 @@
                           <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
                         </template>
                       </oj-gantt>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPopover ]]">
+                      <!-- Popover: el disparador; el contenido sale en el oj-popup compartido (hover.mjs) -->
+                      <span class="mateu-pop-trigger oj-sm-margin-2x-bottom" tabindex="0" role="button"
+                        :data-mateu-hover="[[ $current.data.hoverText ]]"
+                        :data-mateu-pop-click="[[ $current.data.clickText ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCalendar ]]">
                       <!-- Calendar: JET no trae calendario — rejilla con tokens de Redwood, selector de vista
@@ -2450,6 +2462,12 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPopover ]]">
+                      <!-- Popover: el disparador; el contenido sale en el oj-popup compartido (hover.mjs) -->
+                      <span class="mateu-pop-trigger oj-sm-margin-2x-bottom" tabindex="0" role="button"
+                        :data-mateu-hover="[[ $current.data.hoverText ]]"
+                        :data-mateu-pop-click="[[ $current.data.clickText ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCalendar ]]">
                       <!-- Calendar: JET no trae calendario — rejilla con tokens de Redwood, selector de vista
                            oj-buttonset-one, eventos como enlaces; las cuatro vistas van pintadas y se muestra
@@ -3322,6 +3340,12 @@
                           <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
                         </template>
                       </oj-gantt>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPopover ]]">
+                      <!-- Popover: el disparador; el contenido sale en el oj-popup compartido (hover.mjs) -->
+                      <span class="mateu-pop-trigger oj-sm-margin-2x-bottom" tabindex="0" role="button"
+                        :data-mateu-hover="[[ $current.data.hoverText ]]"
+                        :data-mateu-pop-click="[[ $current.data.clickText ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCalendar ]]">
                       <!-- Calendar: JET no trae calendario — rejilla con tokens de Redwood, selector de vista
@@ -4361,7 +4385,7 @@
         <!-- ANCHO fijo (@ColumnWidth, flexGrow 0) / tooltipPath: el texto se corta con elipsis
              al ancho de la columna y entero en el title; {text, title} precomputado en listingOf -->
         <template slot="cellClip">
-          <span :class="[[ ($current.data && $current.data.cls) || '' ]]" :title="[[ ($current.data && $current.data.title) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.text) || '' ]]"></oj-bind-text></span>
+          <span :class="[[ ($current.data && $current.data.cls) || '' ]]" :title="[[ ($current.data && $current.data.title) || '' ]]" :data-mateu-hover="[[ ($current.data && $current.data.hover) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.text) || '' ]]"></oj-bind-text></span>
         </template>
         <!-- FILAS DE VARIAS LÍNEAS (@Line): la columna técnica __rowLines (1px) pinta las líneas
              extra de la fila — pares «Etiqueta: valor» secundarios — en un bloque absoluto que
@@ -4530,6 +4554,12 @@
                           <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
                         </template>
                       </oj-gantt>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPopover ]]">
+                      <!-- Popover: el disparador; el contenido sale en el oj-popup compartido (hover.mjs) -->
+                      <span class="mateu-pop-trigger oj-sm-margin-2x-bottom" tabindex="0" role="button"
+                        :data-mateu-hover="[[ $current.data.hoverText ]]"
+                        :data-mateu-pop-click="[[ $current.data.clickText ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCalendar ]]">
                       <!-- Calendar: JET no trae calendario — rejilla con tokens de Redwood, selector de vista
@@ -5607,6 +5637,12 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPopover ]]">
+                      <!-- Popover: el disparador; el contenido sale en el oj-popup compartido (hover.mjs) -->
+                      <span class="mateu-pop-trigger oj-sm-margin-2x-bottom" tabindex="0" role="button"
+                        :data-mateu-hover="[[ $current.data.hoverText ]]"
+                        :data-mateu-pop-click="[[ $current.data.clickText ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCalendar ]]">
                       <!-- Calendar: JET no trae calendario — rejilla con tokens de Redwood, selector de vista
                            oj-buttonset-one, eventos como enlaces; las cuatro vistas van pintadas y se muestra
@@ -6477,6 +6513,12 @@
                           <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
                         </template>
                       </oj-gantt>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPopover ]]">
+                      <!-- Popover: el disparador; el contenido sale en el oj-popup compartido (hover.mjs) -->
+                      <span class="mateu-pop-trigger oj-sm-margin-2x-bottom" tabindex="0" role="button"
+                        :data-mateu-hover="[[ $current.data.hoverText ]]"
+                        :data-mateu-pop-click="[[ $current.data.clickText ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCalendar ]]">
                       <!-- Calendar: JET no trae calendario — rejilla con tokens de Redwood, selector de vista
@@ -7796,6 +7838,12 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPopover ]]">
+                      <!-- Popover: el disparador; el contenido sale en el oj-popup compartido (hover.mjs) -->
+                      <span class="mateu-pop-trigger oj-sm-margin-2x-bottom" tabindex="0" role="button"
+                        :data-mateu-hover="[[ $current.data.hoverText ]]"
+                        :data-mateu-pop-click="[[ $current.data.clickText ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCalendar ]]">
                       <!-- Calendar: JET no trae calendario — rejilla con tokens de Redwood, selector de vista
                            oj-buttonset-one, eventos como enlaces; las cuatro vistas van pintadas y se muestra
@@ -8666,6 +8714,12 @@
                           <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
                         </template>
                       </oj-gantt>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPopover ]]">
+                      <!-- Popover: el disparador; el contenido sale en el oj-popup compartido (hover.mjs) -->
+                      <span class="mateu-pop-trigger oj-sm-margin-2x-bottom" tabindex="0" role="button"
+                        :data-mateu-hover="[[ $current.data.hoverText ]]"
+                        :data-mateu-pop-click="[[ $current.data.clickText ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCalendar ]]">
                       <!-- Calendar: JET no trae calendario — rejilla con tokens de Redwood, selector de vista
@@ -9604,6 +9658,12 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPopover ]]">
+                      <!-- Popover: el disparador; el contenido sale en el oj-popup compartido (hover.mjs) -->
+                      <span class="mateu-pop-trigger oj-sm-margin-2x-bottom" tabindex="0" role="button"
+                        :data-mateu-hover="[[ $current.data.hoverText ]]"
+                        :data-mateu-pop-click="[[ $current.data.clickText ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCalendar ]]">
                       <!-- Calendar: JET no trae calendario — rejilla con tokens de Redwood, selector de vista
                            oj-buttonset-one, eventos como enlaces; las cuatro vistas van pintadas y se muestra
@@ -10476,6 +10536,12 @@
                           <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
                         </template>
                       </oj-gantt>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPopover ]]">
+                      <!-- Popover: el disparador; el contenido sale en el oj-popup compartido (hover.mjs) -->
+                      <span class="mateu-pop-trigger oj-sm-margin-2x-bottom" tabindex="0" role="button"
+                        :data-mateu-hover="[[ $current.data.hoverText ]]"
+                        :data-mateu-pop-click="[[ $current.data.clickText ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCalendar ]]">
                       <!-- Calendar: JET no trae calendario — rejilla con tokens de Redwood, selector de vista
@@ -11364,6 +11430,12 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPopover ]]">
+                      <!-- Popover: el disparador; el contenido sale en el oj-popup compartido (hover.mjs) -->
+                      <span class="mateu-pop-trigger oj-sm-margin-2x-bottom" tabindex="0" role="button"
+                        :data-mateu-hover="[[ $current.data.hoverText ]]"
+                        :data-mateu-pop-click="[[ $current.data.clickText ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCalendar ]]">
                       <!-- Calendar: JET no trae calendario — rejilla con tokens de Redwood, selector de vista
                            oj-buttonset-one, eventos como enlaces; las cuatro vistas van pintadas y se muestra
@@ -12236,6 +12308,12 @@
                           <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
                         </template>
                       </oj-gantt>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPopover ]]">
+                      <!-- Popover: el disparador; el contenido sale en el oj-popup compartido (hover.mjs) -->
+                      <span class="mateu-pop-trigger oj-sm-margin-2x-bottom" tabindex="0" role="button"
+                        :data-mateu-hover="[[ $current.data.hoverText ]]"
+                        :data-mateu-pop-click="[[ $current.data.clickText ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCalendar ]]">
                       <!-- Calendar: JET no trae calendario — rejilla con tokens de Redwood, selector de vista
@@ -13153,6 +13231,12 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPopover ]]">
+                      <!-- Popover: el disparador; el contenido sale en el oj-popup compartido (hover.mjs) -->
+                      <span class="mateu-pop-trigger oj-sm-margin-2x-bottom" tabindex="0" role="button"
+                        :data-mateu-hover="[[ $current.data.hoverText ]]"
+                        :data-mateu-pop-click="[[ $current.data.clickText ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCalendar ]]">
                       <!-- Calendar: JET no trae calendario — rejilla con tokens de Redwood, selector de vista
                            oj-buttonset-one, eventos como enlaces; las cuatro vistas van pintadas y se muestra
@@ -14025,6 +14109,12 @@
                           <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
                         </template>
                       </oj-gantt>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPopover ]]">
+                      <!-- Popover: el disparador; el contenido sale en el oj-popup compartido (hover.mjs) -->
+                      <span class="mateu-pop-trigger oj-sm-margin-2x-bottom" tabindex="0" role="button"
+                        :data-mateu-hover="[[ $current.data.hoverText ]]"
+                        :data-mateu-pop-click="[[ $current.data.clickText ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCalendar ]]">
                       <!-- Calendar: JET no trae calendario — rejilla con tokens de Redwood, selector de vista

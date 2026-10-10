@@ -1128,6 +1128,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                 Stereotype = ColumnStereotypeOf(p),
                 CaptionPath = CaptionPathOf(p),
                 LeadingPath = LeadingPathOf(p),
+                TooltipPath = TooltipPathOf(p),
             }))
             .ToList();
         var actions = new List<ActionDto> { new("search") };
@@ -1241,6 +1242,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                     Stereotype = ColumnStereotypeOf(p),
                     CaptionPath = CaptionPathOf(p),
                     LeadingPath = LeadingPathOf(p),
+                    TooltipPath = TooltipPathOf(p),
                     // The first column is the row-open affordance (mirrors the Java crud wire).
                     ActionId = rowsClickable && index == 0 ? "view" : null,
                 });
@@ -1321,6 +1323,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                 Stereotype = ColumnStereotypeOf(p),
                 CaptionPath = CaptionPathOf(p),
                 LeadingPath = LeadingPathOf(p),
+                TooltipPath = TooltipPathOf(p),
                 // Rows open through their first column: the read-only detail when navigable, the
                 // edit drawer when editable-without-navigable (both dispatch "view").
                 ActionId = rowsClickable && index == 0 ? "view" : null,
@@ -1417,6 +1420,12 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
 
     internal static string? CaptionPathOf(PropertyInfo p) =>
         p.Find<PrimaryColumnAttribute>()?.Caption is { Length: > 0 } c ? c : null;
+
+    /// <summary>[Tooltip("otherField")]: hovering the cell shows another field of the row (mirrors
+    /// Java's ListingColumnBuilder.tooltipPathOf; the ports have no fixed column widths, so there
+    /// is no own-name fallback).</summary>
+    internal static string? TooltipPathOf(PropertyInfo p) =>
+        p.Find<TooltipAttribute>()?.Value is { Length: > 0 } t && !string.IsNullOrWhiteSpace(t) ? t : null;
 
     internal static string? LeadingPathOf(PropertyInfo p) =>
         p.Find<PrimaryColumnAttribute>()?.Leading is { Length: > 0 } l ? l : null;

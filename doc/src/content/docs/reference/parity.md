@@ -42,6 +42,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | `MatrixGrid` (rows × dates, collapsible sections, link/editable cells) | ✅ | ✅ | ✅ |
 | Calendar views (`Calendar.view`/`views`: month, week, day, list), per-date cells (`days`), clickable dates (`dayActionId`); `CalendarPage` `views()`/`days()`/`actionOnDay()` | ✅ | ✅ | ✅ |
 | Access keys mode (`@App(accessKeys)` → `AppDto.accessKeys`) | ✅ | ✅ | ✅ |
+| `Popover.trigger` (click/hover) + `@Tooltip("field")` → `GridColumn.tooltipPath` | ✅ | ✅ | ✅ |
 | Row tones (`@RowStatus` → `CrudlDto.rowStatusField`) and listing export buttons on `AutoCrud` | ✅ | — | — |
 | i18n, events (emit/subscribe), security scaffolding | ✅ | ✅ | ✅ |
 | Application context selector (`@AppContext`) | ✅ | ✅ | ✅ |
@@ -220,6 +221,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | ✅ | ✅ | ✅ |
 | Periodic refresh (`OnLoad` with `timeoutMillis` + `OnSuccess` loop, `background`) | ✅ | ✅ (stops when the screen changes) | ✅ (stops when the view changes or its tab closes) | ✅ (stops when the screen changes or unmounts) |
 | Keyboard shortcuts (`@Action(shortcut)`, `@Tab(shortcut)`) + access keys mode (`@App(accessKeys)`: hold Alt, Alt+letter) | ✅ | ✅ | ✅ (Swing mnemonics) | — (no hardware-key model) |
+| Hover details (`Popover` with `trigger = hover`, `@Tooltip("otherField")` on listing cells) | ✅ | ✅ (shared `oj-popup`) | ✅ | 🟡 press / long-press (no hover on touch) |
 | AI chat (sseUrl) / theme toggle | ✅ | 🟡 AI chat (the shell chat FAB's Ask Oracle palette has a 💬 Chat mode — a streaming panel wired to the shared transport core); the `themeToggle` flag is read but **no toggle is drawn** | ✅ chat (theme = the IDE's own) | ✅ |
 | App context selector | ✅ | ✅ | ✅ (navigator combos) | ✅ |
 | — searchable picker w/ remote search | ✅ | ✅ | 🟡 loaded options only | ✅ |
@@ -256,7 +258,7 @@ not the feature rows above — is the authority when a screen looks emptier on R
 <!-- redwood-coverage:start -->
 Generated from `frontend/web/monorepo/apps/redwood/poc/coverage.mjs` and checked in CI against the
 wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 47 rendered, 12 layout
-containers, 5 partial, 43 not rendered (they are dropped silently — the
+containers, 6 partial, 42 not rendered (they are dropped silently — the
 children of a container still render).
 
 | Component | Redwood | How |
@@ -323,6 +325,7 @@ children of a container still render).
 | `CustomComponent` | 🟡 | visible placeholder + slotted children (no VB registry) |
 | `EmptyState` | 🟡 | page-level empty state only |
 | `HeroSection` | 🟡 | Welcome archetype hero only |
+| `Popover` | 🟡 | trigger + the content as text lines in a shared oj-popup (hover/focus or click); the wrapped component shows as its text |
 | `ProgressBar` | 🟡 | wizard progress only |
 | `ResponsiveGrid` | 🟡 | fixed tracks → oj-flex columns sized by their fr weights and spans; auto-fill/auto-fit grids stack |
 | `AccordionPanel` | ↳ | of AccordionLayout |
@@ -364,7 +367,6 @@ children of a container still render).
 | `MicroFrontend` | — |  |
 | `Notification` | — | action messages do show as toasts; the component does not |
 | `OrgChart` | — |  |
-| `Popover` | — |  |
 | `PricingTable` | — |  |
 | `ProcessMonitor` | — |  |
 | `Result` | — |  |

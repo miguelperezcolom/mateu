@@ -1479,6 +1479,30 @@ class MicroFrontend(Component):
     css_classes: str | None = None
 
 
+class PopoverTrigger(Enum):
+    """What opens a :class:`Popover`: a ``click`` on the wrapped component (the default), or
+    ``hover`` — pointing at it, or focusing it from the keyboard — for read-only details. The
+    Python analogue of ``io.mateu.uidl.data.PopoverTrigger``."""
+
+    click = "click"
+    hover = "hover"
+
+
+@dataclass(frozen=True)
+class Popover(Component):
+    """A popover: the ``wrapped`` component, and the ``content`` shown in a small floating panel
+    next to it — on click by default, or on hover/focus with ``trigger=PopoverTrigger.hover`` (a
+    rate breakdown, a reservation summary). The wire component id is ``id`` when set. The Python
+    analogue of ``io.mateu.uidl.data.Popover``."""
+
+    content: Component | None = None
+    wrapped: Component | None = None
+    trigger: PopoverTrigger = PopoverTrigger.click
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
 class DrawerPosition(Enum):
     start = "start"
     end = "end"

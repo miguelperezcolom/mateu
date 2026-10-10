@@ -22,6 +22,7 @@ import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf } fr
 import { startPolling, actionSucceeded, setPollingRunner, timedOnLoadTriggers } from './polling.mjs'
 import { onLoadTriggers } from './reduceContexts.mjs'
 import { assignAccessKeys, keyHint, setShortcutContext, currentShortcutActions } from './keys.mjs'
+import { hoverLinesOf } from './hover.mjs'
 import { dayIndexAtX } from './planning.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
 import { listingOf, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
@@ -983,6 +984,35 @@ test('atajos: sólo las acciones de la pantalla con modificador; las pestañas l
   assert.match(shell, /bridge\.installKeys\(\)/)
   assert.match(shell, /bridge\.setAccessKeysEnabled\(/)
   assert.match(webApp('resources/js/mateu-bridge.js'), /setShortcutContext\(reg\.contexts\[HOST_ID\]\)/)
+})
+
+// ── P1 #18 ventanas flotantes al pasar el ratón ──────────────────────────────────────────────
+test('popover: hover → texto para la ventana flotante; click → al pulsar; lo envuelto, como disparador', () => {
+  const pop = (trigger) => node({ type: 'Popover', trigger,
+    wrapped: node({ type: 'Text', text: 'Rate information' }),
+    content: node({ type: 'VerticalLayout' }, [node({ type: 'Text', text: 'BAR · 2 nights' }), node({ type: 'Text', text: 'Sat 10 · 149 €' })]) })
+  const hover = atomsOf(pop('hover')).find((a) => a.isPopover)
+  assert.equal(hover.label, 'Rate information')
+  assert.equal(hover.hoverText, 'BAR · 2 nights\nSat 10 · 149 €')
+  assert.equal(hover.clickText, '')
+  const click = atomsOf(pop('click')).find((a) => a.isPopover)
+  assert.equal(click.hoverText, '')
+  assert.equal(click.clickText, 'BAR · 2 nights\nSat 10 · 149 €')
+  assert.deepEqual(hoverLinesOf('a\n\n b \n'), ['a', 'b'])
+})
+
+test('@Tooltip: la celda de la tarifa lleva el desglose para la ventana flotante (no el title)', () => {
+  const l = listingOf({ tree: { type: 'ServerSide', id: 's', serverSideType: 'X', children: [node({ type: 'Crud',
+    columns: [node({ type: 'GridColumn', id: 'rate', label: 'Rate', dataType: 'number', tooltipPath: 'rateBreakdown' })] })] },
+  data: { crud: { page: { content: [{ id: '1', rate: 123, rateBreakdown: 'CORP · 2 nights\nWed 7 · 123 €' }], totalElements: 1 } } }, state: {} })
+  if (l) {
+    const cell = l.rows[0]['rate__clipCell']
+    assert.equal(cell.hover, 'CORP · 2 nights\nWed 7 · 123 €')
+    assert.equal(cell.title, '')
+  }
+  const page = webApp('flows/main/pages/main-start-page.html')
+  assert.equal((page.match(/:data-mateu-hover="\[\[ \(\$current\.data && \$current\.data\.hover\) \|\| '' \]\]"/g) || []).length, 2, 'las dos plantillas cellClip')
+  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installHover\(\)/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

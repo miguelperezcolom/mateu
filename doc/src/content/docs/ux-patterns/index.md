@@ -73,6 +73,7 @@ and edit in a drawer…)? They have their own map: [Page templates](./page-templ
 | [Notice](./notice) | ✅ Implemented | `Notice` / `@Notice` (inline banner, status, action) |
 | [Action panel](./action-panel) | ✅ Implemented | `ActionPanel` (categorised "I want to…" overlay, shortcut, show more, hide unpopulated) |
 | [Matrix grid](./matrix-grid) | ✅ Implemented | `MatrixGrid` (rows × dates, collapsible sections, link cells, in-place editing) |
+| [Hover details](./hover-details) | ✅ Implemented | `Popover(trigger = hover)`, `@Tooltip("otherField")` on listing cells |
 | [Kanban](./kanban) | ✅ Implemented | `Kanban` + `KanbanColumn`/`KanbanCard` |
 | [Timeline](./timeline) | ✅ Implemented | `Timeline` + `TimelineItem` (activity feed) |
 | [Progress steps](./progress-steps) | ✅ Implemented | `ProgressSteps` (also `@WizardProgress(STEPS)`) |

@@ -12,6 +12,7 @@ import { PageRenderer } from './PageRenderer';
 import {
   SectionRenderer, SubSectionRenderer, CardRenderer, TabsRenderer, AccordionRenderer,
   SplitRenderer, BadgeRenderer, AnchorRenderer, ProgressBarRenderer, DialogRenderer, ConfirmDialogRenderer,
+  PopoverRenderer,
 } from './ContainerRenderer';
 import {
   MetricCardRenderer, ScoreboardRenderer, DashboardPanelRenderer, DashboardLayoutRenderer,
@@ -198,6 +199,9 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <DialogRenderer component={component} state={state} />;
     case 'ConfirmDialog':
       return <ConfirmDialogRenderer metadata={metadata} state={state} />;
+    // Popover: on touch both triggers open on press (no hover) — see PopoverRenderer.
+    case 'Popover':
+      return <PopoverRenderer component={component} state={state} />;
 
     case 'MetricCard':
       return <MetricCardRenderer metadata={metadata as unknown as MetricCard} />;

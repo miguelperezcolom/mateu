@@ -57,7 +57,7 @@ export const REDWOOD_COVERAGE = {
   Drawer: { status: 'full', via: 'export function overlayOf', note: 'oj-drawer-popup (overlay stack), subtitle, footer actions' },
   ConfirmDialog: { status: 'none' },
   ContextMenu: { status: 'none', note: 'its wrapped content shows, the menu does not' },
-  Popover: { status: 'none' },
+  Popover: { status: 'partial', note: 'trigger + the content as text lines in a shared oj-popup (hover/focus or click); the wrapped component shows as its text' },
   Tooltip: { status: 'none' },
   Notification: { status: 'none', note: 'action messages do show as toasts; the component does not' },
   CookieConsent: { status: 'none' },

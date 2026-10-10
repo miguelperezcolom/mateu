@@ -145,7 +145,9 @@ final class ListingColumnBuilder {
         // right off the screen. What the width cuts is read on hover.
         .width(columnWidth)
         .flexGrow(columnWidth != null ? "0" : null)
-        .tooltipPath(columnWidth != null ? field.getName() : null)
+        // @Tooltip("otherField"): hovering the cell shows another field of the row (a breakdown);
+        // without it, a fixed-width column shows its own text, which the width may cut
+        .tooltipPath(tooltipPathOf(field, columnWidth))
         .editable(editable)
         .editorType(editable ? GridColumnBuilder.getEditorType(field) : null)
         .editorOptions(editable ? GridColumnBuilder.getEditorOptions(field) : null)
@@ -170,4 +172,12 @@ final class ListingColumnBuilder {
   }
 
   private ListingColumnBuilder() {}
+
+  private static String tooltipPathOf(java.lang.reflect.Field field, String columnWidth) {
+    var tooltip =
+        io.mateu.core.infra.reflection.MetaAnnotations.find(
+            field, io.mateu.uidl.annotations.Tooltip.class);
+    if (tooltip != null && !tooltip.value().isBlank()) return tooltip.value();
+    return columnWidth != null ? field.getName() : null;
+  }
 }

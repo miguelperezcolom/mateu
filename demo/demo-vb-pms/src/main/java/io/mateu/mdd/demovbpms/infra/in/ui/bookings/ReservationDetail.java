@@ -71,16 +71,36 @@ public class ReservationDetail implements ComponentTreeSupplier {
                 List.of(
                     new AccordionPanel(
                         "Stay details",
-                        text(
-                            "Room type "
-                                + r.roomType
-                                + " · rate "
-                                + r.rateCode
-                                + " "
-                                + r.rate
-                                + " € per night · "
-                                + r.nights()
-                                + " nights"),
+                        VerticalLayout.builder()
+                            .content(
+                                List.of(
+                                    text(
+                                        "Room type "
+                                            + r.roomType
+                                            + " · rate "
+                                            + r.rateCode
+                                            + " "
+                                            + r.rate
+                                            + " € per night · "
+                                            + r.nights()
+                                            + " nights"),
+                                    // OPERA's rate information popup: hover (or focus) the link
+                                    io.mateu.uidl.data.Popover.builder()
+                                        .id("rateInfo")
+                                        .trigger(io.mateu.uidl.data.PopoverTrigger.hover)
+                                        .wrapped(new Text("rateInfoLink", "Rate information"))
+                                        .content(
+                                            VerticalLayout.builder()
+                                                .content(
+                                                    java.util.Arrays.stream(
+                                                            ReservationSearch.rateBreakdownOf(r)
+                                                                .split("\n"))
+                                                        .map(ReservationDetail::text)
+                                                        .map(t -> (Component) t)
+                                                        .toList())
+                                                .build())
+                                        .build()))
+                            .build(),
                         true,
                         false,
                         "",
