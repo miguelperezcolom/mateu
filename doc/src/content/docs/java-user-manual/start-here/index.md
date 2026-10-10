@@ -6,11 +6,12 @@ This is the shortest path to becoming productive with Mateu.
 
 ## Recommended order
 
-1. [Quickstart](/java-user-manual/start-here/quickstart/)
+1. [Quickstart](/java-user-manual/start-here/quickstart/) — or [Quickstart: YAML only](/java-user-manual/start-here/quickstart-yaml/) for an app with no UI code
 2. [First app](/java-user-manual/start-here/first-app/)
 3. [Admin panel](/java-user-manual/use-cases/admin-panel/)
 
-For most developers, the quickstart is the best first stop.
+For most developers, the quickstart is the best first stop. To skip the copying, generate the
+project from your IDE or Maven: see [Create your project](/java-create-your-project/).
 
 ## A worked example to follow
 

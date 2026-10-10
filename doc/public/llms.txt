@@ -15,6 +15,8 @@ For AI-assisted development, use these context documents with your AI tool (Clau
 ## Documentation
 
 - [Quickstart](https://mateu.io/java-user-manual/start-here/quickstart/): A complete Spring Boot CRUD app in six files (the `starters/spring-mvc` project; `starters/` has one per runtime, incl. C# and Python)
+- [Quickstart: YAML only](https://mateu.io/java-user-manual/start-here/quickstart-yaml/): An app with no UI code — specs/ui served by Spring Boot, or a static bundle with no backend
+- [Create your project](https://mateu.io/java-create-your-project/): New project from IntelliJ (File › New › Project › Mateu), VS Code (Mateu: New Project) or Maven (io.mateu:mateu-archetype); generated projects carry AGENTS.md + CLAUDE.md
 - [First app](https://mateu.io/java-user-manual/start-here/first-app/): Build your first form and CRUD
 - [Annotations reference](https://mateu.io/java-ui-definition/annotations/): Every annotation with attributes and examples
 - [Interfaces reference](https://mateu.io/java-ui-definition/interfaces/): Listing, CrudStore, BannerSupplier, BadgeSupplier, etc.

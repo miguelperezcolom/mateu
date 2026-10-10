@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Every flavour travels unfiltered (Velocity would eat the `##` of a Markdown heading and the `$` of
+     a YAML `$schema`); archetype-post-generate.groovy keeps the chosen one and applies the shared
+     replacements of generator/new-project.json. -->
+<archetype-descriptor xmlns="https://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.1.0"
+                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                      xsi:schemaLocation="https://maven.apache.org/plugins/maven-archetype-plugin/archetype-descriptor/1.1.0 https://maven.apache.org/xsd/archetype-descriptor-1.1.0.xsd"
+                      name="mateu-archetype">
+  <requiredProperties>
+    <!-- code: @UI classes on Spring Boot (MVC) · yaml: no UI code, specs/ui served by Spring Boot ·
+         static: specs/ui bundled into static files, no backend -->
+    <requiredProperty key="authoring">
+      <defaultValue>code</defaultValue>
+      <validationRegex>^(code|yaml|static)$</validationRegex>
+    </requiredProperty>
+    <!-- vaadin | redwood (the static flavour is Vaadin only) -->
+    <requiredProperty key="renderer">
+      <defaultValue>vaadin</defaultValue>
+      <validationRegex>^(vaadin|redwood)$</validationRegex>
+    </requiredProperty>
+    <!-- crud (a Product CRUD) | empty (one home screen); the YAML flavours ship their listing -->
+    <requiredProperty key="sample">
+      <defaultValue>crud</defaultValue>
+      <validationRegex>^(crud|empty)$</validationRegex>
+    </requiredProperty>
+  </requiredProperties>
+  <fileSets>
+    <fileSet filtered="false" encoding="UTF-8">
+      <directory></directory>
+      <includes>
+        <include>**/*</include>
+        <include>**/.mvn/**</include>
+      </includes>
+    </fileSet>
+  </fileSets>
+</archetype-descriptor>

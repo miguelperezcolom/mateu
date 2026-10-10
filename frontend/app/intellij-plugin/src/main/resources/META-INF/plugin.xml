@@ -26,6 +26,9 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
       backend; the standalone desktop distribution keeps its app-shell behaviour.</li>
   <li>Renders every Mateu wire component type (grids, details, breadcrumbs, avatars, menus,
       carousels, chat, results, BPMN/workflow, cookie consent and more).</li>
+  <li>File | New | Project | Mateu: a new Mateu project from the official starters — code, YAML
+      served by a backend, static YAML (no backend) or code + YAML; any runtime; Vaadin or Redwood;
+      sample pages from the page templates; with AGENTS.md / CLAUDE.md for AI assistants.</li>
   <li>New | Mateu file templates for UI mounts, routes, app shells, REST sources, field types and pages.</li>
 </ul>
 ]]></change-notes>
@@ -56,6 +59,9 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
         <projectConfigurable parentId="tools" id="io.mateu.settings" displayName="Mateu"
                              instance="io.mateu.ijp.plugin.MateuConfigurable"/>
         <notificationGroup id="Mateu" displayType="BALLOON"/>
+        <!-- File | New | Project… › Mateu: the shared project generator over the bundled starters
+             (io.mateu.ijp.newproject; same data as the VS Code "Mateu: New Project" command). -->
+        <newProjectWizard.generator implementation="io.mateu.ijp.newproject.MateuNewProjectWizard"/>
         <!-- New | Mateu skeletons (customisable in Settings | Editor | File and Code Templates). Listed in
              /mateu/new-file-kinds.json; NewMateuFileSkeletonsTest keeps the three in sync. -->
         <internalFileTemplate name="Mateu App Shell"/>

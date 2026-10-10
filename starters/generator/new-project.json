@@ -1,0 +1,89 @@
+{
+  "$comment": [
+    "New Mateu project — the SINGLE description of what every front door generates (IntelliJ New Project wizard, VS Code 'Mateu: New Project', the scripts/new-project.mjs CLI; the Maven archetype is built from the same starters). The templates ARE the starters (starters/<dir>), compiled and booted by CI on every change; this file only says how to turn one into a project of your own. Two engines apply it and are kept identical by the shared cases in cases.json: io.mateu.ijp.newproject.MateuProjectGenerator (Kotlin, IntelliJ) and src/newProject.ts (TypeScript, VS Code).",
+    "The first choice is the AUTHORING flavour; it names the starter directory (`starter`, where ${runtime} is the chosen runtime) and the runtimes it is offered on (none = no runtime question).",
+    "Steps, in order: (1) copy starters/<starter> minus `exclude`; (2) drop the language's `sampleFiles` unless the flavour keeps the sample (keepsSample && sample != 'empty'); (3) apply `unmount` to the kept sample when unmountsSample (the class stops being an @UI mount: routes.yaml binds it instead); (4) copy the overlays (starters/generator/overlays/common — its `gitignore` is renamed to .gitignore, so packaging never treats it as an ignore file —, then overlays/<language>/<overlay>): the language's `overlays`, the flavour's (`overlays[sample]`, else `overlays['*']`) and the renderer's (`rendererOverlays[renderer]`) — an overlay file replaces the starter file at the same path; (5) for a flavour with `pages`, render the chosen page templates (new-file-kinds.json pageTemplates) into specsDir, add the sample's route when the flavour unmounts it, and expand the marker lines `# __ROUTES__` of routes.yaml and `# __MENU__` of app.yaml into their entries (removed when there are none); (6) apply `replacements` (in order, variables expanded in `from` and `to`) to every text file, then `renames` to paths, and move packageDir to sourceRoot/<package path>.",
+    "Variables: ${groupId} ${artifactId} ${package} ${packagePath} ${namespace} ${appTitle} ${version} ${nugetVersion} ${pypiVersion} ${renderer} ${rendererArtifactId} ${runtime} ${starter}. `version` is the latest io.mateu:mateu-bom release on Maven Central (versionMetadataUrl), falling back to the <mateu.version> pinned in the starters."
+  ],
+  "versionMetadataUrl": "https://repo1.maven.org/maven2/io/mateu/mateu-bom/maven-metadata.xml",
+  "exclude": ["target/", "bin/", "obj/", "__pycache__/", ".pytest_cache/", ".venv/", "node_modules/", ".idea/", ".DS_Store"],
+  "binaryExtensions": [".png", ".jpg", ".jpeg", ".gif", ".ico", ".jar", ".zip"],
+  "authoring": [
+    {"id": "code", "label": "Code", "description": "Screens are classes: @UI (Java), [UI] (C#) or @ui (Python). The starter of each runtime.", "starter": "${runtime}", "runtimes": ["spring-mvc", "spring-webflux", "quarkus", "micronaut", "helidon-mp", "dotnet", "python"], "samples": ["crud", "empty"], "keepsSample": true, "unmountsSample": false, "overlays": {"empty": "empty"}},
+    {"id": "yaml", "label": "YAML only, served by a backend", "description": "No UI code at all: mount, app shell, routes, pages and REST sources are data under src/main/resources/specs/ui, served by Spring Boot.", "starter": "yaml", "language": "java", "runtimes": ["spring-mvc"], "samples": ["listing"], "keepsSample": true, "unmountsSample": false, "overlays": {}, "pages": true, "run": "mvn spring-boot:run"},
+    {"id": "static", "label": "YAML only, static (no backend)", "description": "No server: the YAML specs are bundled into a folder of static files for any CDN; data comes straight from REST APIs (sample data until they exist).", "starter": "static", "language": "java", "runtimes": [], "renderers": ["vaadin"], "samples": ["listing"], "keepsSample": true, "unmountsSample": false, "overlays": {}, "run": "mvn package && npx serve -s target/mateu-bundle"},
+    {"id": "both", "label": "Code + YAML", "description": "Shell, routes and pages as data under specs/ui; the Product CRUD stays a Java view model, bound in routes.yaml. (Not on Micronaut or Helidon yet: they do not resolve a view model bound only in routes.yaml.)", "starter": "${runtime}", "runtimes": ["spring-mvc", "spring-webflux", "quarkus"], "samples": ["crud"], "keepsSample": true, "unmountsSample": true, "overlays": {"*": "yaml"}, "pages": true}
+  ],
+  "runtimes": [
+    {"id": "spring-mvc", "label": "Spring Boot (MVC)", "language": "java", "renderers": ["vaadin", "redwood"], "samples": ["crud", "empty", "listing"], "run": "mvn spring-boot:run", "url": "http://localhost:8080"},
+    {"id": "spring-webflux", "label": "Spring Boot (WebFlux)", "language": "java", "renderers": ["vaadin", "redwood"], "samples": ["crud", "empty"], "run": "mvn spring-boot:run", "url": "http://localhost:8080"},
+    {"id": "quarkus", "label": "Quarkus", "language": "java", "renderers": ["vaadin"], "samples": ["crud", "empty"], "run": "mvn quarkus:dev", "url": "http://localhost:8080"},
+    {"id": "micronaut", "label": "Micronaut", "language": "java", "renderers": ["vaadin"], "samples": ["crud", "empty"], "run": "mvn mn:run", "url": "http://localhost:8080"},
+    {"id": "helidon-mp", "label": "Helidon MP", "language": "java", "renderers": ["vaadin"], "samples": ["crud", "empty"], "run": "mvn package && java -jar target/${artifactId}.jar", "url": "http://localhost:8080"},
+    {"id": "dotnet", "label": ".NET (ASP.NET Core, C#)", "language": "csharp", "renderers": [], "samples": ["crud"], "run": "dotnet run", "url": "http://localhost:8080"},
+    {"id": "python", "label": "Python (FastAPI)", "language": "python", "renderers": [], "samples": ["crud"], "run": "pip install -r requirements.txt && uvicorn main:app --port 8080", "url": "http://localhost:8080"}
+  ],
+  "$incompatible": "Combinations the generator refuses, with the reason shown to the user. Each is verified to fail at runtime; remove an entry once the framework supports it.",
+  "incompatible": [
+    {"renderer": "redwood", "sample": "crud", "reason": "The Redwood renderer does not render an AutoCrud mounted at the app root yet: pick the Vaadin renderer, or the Empty sample."}
+  ],
+  "buildTools": [
+    {"id": "maven", "label": "Maven", "languages": ["java"]}
+  ],
+  "renderers": [
+    {"id": "vaadin", "label": "Vaadin", "artifactId": "mateu-vaadin"},
+    {"id": "redwood", "label": "Oracle Redwood (Visual Builder)", "artifactId": "mateu-redwood"}
+  ],
+  "samples": [
+    {"id": "crud", "label": "Product CRUD", "description": "A listing, create, detail, edit and delete over a Product record."},
+    {"id": "empty", "label": "Empty", "description": "A single home screen to start from."},
+    {"id": "listing", "label": "Product listing", "description": "A searchable, filterable listing over a REST source, with sample data until the API exists."}
+  ],
+  "languages": {
+    "java": {
+      "sampleFiles": [
+        "src/main/java/com/example/app/Product.java",
+        "src/main/java/com/example/app/ProductStatus.java",
+        "src/main/java/com/example/app/ProductStore.java",
+        "src/main/java/com/example/app/Products.java"
+      ],
+      "unmount": {"file": "src/main/java/com/example/app/Products.java", "removeLines": ["@UI(\"\")", "import io.mateu.uidl.annotations.UI;"]},
+      "sampleRoute": {"route": "products", "label": "Products", "viewModel": "com.example.app.Products"},
+      "specsDir": "src/main/resources/specs/ui",
+      "sourceRoot": "src/main/java",
+      "packageDir": "src/main/java/com/example/app",
+      "rendererOverlays": {"redwood": "redwood"},
+      "replacements": [
+        {"from": "src/main/java/com/example/app", "to": "src/main/java/${packagePath}"},
+        {"from": "com.example.app", "to": "${package}"},
+        {"from": "<groupId>com.example</groupId>", "to": "<groupId>${groupId}</groupId>"},
+        {"from": "processing.group=com.example", "to": "processing.group=${groupId}"},
+        {"from": "mateu-starter-${starter}", "to": "${artifactId}"},
+        {"regex": "<mateu\\.version>[^<]*</mateu\\.version>", "to": "<mateu.version>${version}</mateu.version>"},
+        {"from": "<artifactId>mateu-vaadin</artifactId>", "to": "<artifactId>${rendererArtifactId}</artifactId>"},
+        {"from": "renderer: vaadin", "to": "renderer: ${renderer}"},
+        {"from": "title: My app", "to": "title: ${appTitle}"},
+        {"from": "<pageTitle>My app</pageTitle>", "to": "<pageTitle>${appTitle}</pageTitle>"},
+        {"from": "__APP_TITLE__", "to": "${appTitle}"}
+      ],
+      "renames": [{"from": "gitignore", "to": ".gitignore"}]
+    },
+    "csharp": {
+      "sampleFiles": [],
+      "replacements": [
+        {"from": "MateuStarter", "to": "${namespace}"},
+        {"from": "__NUGET_VERSION__", "to": "${nugetVersion}"}
+      ],
+      "renames": [{"from": "gitignore", "to": ".gitignore"}, {"from": "MateuStarter.csproj", "to": "${namespace}.csproj"}],
+      "overlays": ["standalone"]
+    },
+    "python": {
+      "sampleFiles": [],
+      "replacements": [
+        {"from": "__PYPI_VERSION__", "to": "${pypiVersion}"}
+      ],
+      "renames": [{"from": "gitignore", "to": ".gitignore"}],
+      "overlays": ["standalone"]
+    }
+  }
+}

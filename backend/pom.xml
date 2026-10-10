@@ -88,6 +88,9 @@
     <module>mateu-bom</module>
     <!-- pom-only artifacts at the pre-rename ids (io.mateu:mvc-core…) relocating to mateu-* -->
     <module>relocations</module>
+    <!-- New project from the command line, assembled from ../starters (see its pom). Last: its
+         integration test packages generated projects against the artifacts installed above. -->
+    <module>mateu-archetype</module>
   </modules>
 
   <dependencyManagement>

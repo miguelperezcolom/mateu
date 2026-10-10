@@ -7,6 +7,7 @@ import static io.mateu.core.domain.out.fragmentmapper.mappers.AppHomeRouteResolv
 import static io.mateu.core.domain.out.fragmentmapper.mappers.AppMenuDtoBuilder.buildMenu;
 import static io.mateu.core.infra.reflection.ClassLoaders.forName;
 
+import io.mateu.core.domain.out.componentmapper.AppVariants;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.*;
 import io.mateu.uidl.Capabilities;
@@ -55,7 +56,7 @@ public final class AppMapper {
             .logo(app.logo())
             .route(app.route())
             .rootRoute(appRoute)
-            .variant(toDto(app.variant()))
+            .variant(toDto(AppVariants.resolve(app.variant(), app.menu())))
             .homeRoute(getHomeRoute(app, route, appRouteForMenu, httpRequest, selectedOption))
             .homeConsumedRoute(
                 getHomeConsumedRoute(app, route, appRouteForMenu, httpRequest, selectedOption))

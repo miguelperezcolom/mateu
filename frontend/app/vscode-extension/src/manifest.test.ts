@@ -32,4 +32,12 @@ describe('extension manifest', () => {
         expect(existsSync(join(root, 'CHANGELOG.md'))).toBe(true)
         expect(existsSync(join(root, '../../../LICENSE.txt'))).toBe(true)
     })
+
+    it('contributes Mateu: New Project and activates on it', () => {
+        const commands: { command: string }[] = pkg.contributes.commands
+        expect(commands.map((c) => c.command)).toContain('mateu.newProject')
+        expect(pkg.activationEvents).toContain('onCommand:mateu.newProject')
+        // The generator's data is staged from the repository's starters at packaging time.
+        expect(existsSync(join(root, '../../../starters/generator/new-project.json'))).toBe(true)
+    })
 })
