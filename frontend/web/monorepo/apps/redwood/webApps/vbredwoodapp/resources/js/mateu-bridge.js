@@ -2605,6 +2605,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * para una traída de otro pod (la marca es el baseUrl que le dejó expandRemoteMenus): allí es
    * justo al revés — es la que ese pod sirve, y recortarla la deja sin dueño.
    */
+  /** The id prefix of a menu leaf that runs rules instead of navigating (RuleLink). */
+  const MENU_RULE_PREFIX = '__menuRule:'
+
+  /** A menu option's node id: its route, or — for a leaf carrying rules — a marked id. */
+  function menuNodeIdOf(option, raw) {
+    const r = raw != null ? raw : (option.route || option.path || '')
+    return (option.rules || []).length ? MENU_RULE_PREFIX + (r || option.label || '') : r
+  }
+
   function navNodeOf(option, parentRoute) {
     const raw = option.route || option.path || ''
     // la ruta COMPUESTA (/gestion/person), como en Vaadin: es un camino de menú que el backend
@@ -2612,7 +2621,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // Recortarla a la terminal (/person) sólo funcionaba si el campo @Menu se llamaba como la ruta
     // @UI de su clase; con `@Menu FloorPlan floorPlan` + @UI("/floor-plan") quedaba sin dueño.
     void parentRoute
-    const id = raw
+    // a leaf that RUNS rules (RuleLink — e.g. a RunAction naming one of the shell's flows) does not
+    // navigate: its id is marked so onMateuNavigate runs its rules instead (shellFlows.mjs)
+    const id = menuNodeIdOf(option, raw)
     // una entrada OCULTA (@Menu @Hidden, visible:false) no se dibuja a ninguna profundidad: su ruta
     // sigue resolviendo (la registra el transporte), pero el menú no la enseña
     const children = (option.submenus || option.submenu || []).filter((child) => child.visible !== false)
@@ -5830,6 +5841,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           serverSideType: md.serverSideType, // para las acciones de cabecera (app-level)
           appContext: md.contextSelectors || [],
           headerActions: md.contextActions || [],
+          // the shell's FLOWS (AppShell.actions): a menu RuleLink whose RunAction names one runs
+          // its lowered commands client-side (shellFlows.mjs)
+          actions: md.actions || [],
           themeToggle: md.themeToggle,
           // @App(accessKeys): mantener Alt enseña las teclas de acceso (keys.mjs)
           accessKeys: !!md.accessKeys,
@@ -10596,6 +10610,79 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+
+  // The FLOWS of an app shell (`actions:` with `steps:` on a `type: AppShell`, AppShell.actions in
+  // code) travel on the wire App as `actions`, each with its steps LOWERED to `commands`. A menu leaf
+  // (RuleLink) whose RunAction rule names one runs those commands in the browser — no server
+  // round-trip, so the menu also works on a static bundle. The commands go through the SAME reducer a
+  // server increment goes through (reduceContexts), so a flow's NavigateTo/DispatchEvent/CloseModal/
+  // MarkAsClean mean here exactly what they mean coming from the server. An id the shell does not
+  // declare (or declares without steps) keeps the app-level dispatch (runMateuHeaderAction).
+
+  /** Is this menu node id a leaf that runs rules (not a route)? */
+  function isMenuRuleId(id) {
+    return typeof id === 'string' && id.indexOf(MENU_RULE_PREFIX) === 0
+  }
+
+  /** The rules of the menu leaf with node id `id`, at any depth of the wire menu; null if none. */
+  function menuRulesOf(menu, id) {
+    for (const option of menu || []) {
+      const raw = option.route || option.path || ''
+      if ((option.rules || []).length && menuNodeIdOf(option, raw) === id) return option.rules
+      const found = menuRulesOf(option.submenus || option.submenu || [], id)
+      if (found) return found
+    }
+    return null
+  }
+
+  /** The lowered commands of the shell action `actionId`, or null when it declares no flow. */
+  function shellFlowOf(shell, actionId) {
+    const action = ((shell && shell.actions) || []).find((a) => a && a.id === actionId)
+    return action && Array.isArray(action.commands) && action.commands.length ? action.commands : null
+  }
+
+  /**
+   * What clicking a rule leaf does, as data the shell chain applies: `reg` (the registry after the
+   * flows' commands — a CloseOverlay closes the top overlay), `navigate` ({route} in-app, or {url}),
+   * the bus `events` ({name, detail}), the `serverActions` to dispatch app-level (a RunAction rule
+   * with no declared flow, or a flow's RunAction step) and `dirty` (true/false when a flow marked the
+   * screen, null otherwise). RunJS rules are not run (the VB CSP forbids eval) — they are reported
+   * in `skipped`.
+   */
+  function menuRulePlanOf(reg, rules) {
+    const plan = { reg, navigate: null, events: [], serverActions: [], dirty: null, skipped: [] }
+    for (const rule of rules || []) {
+      if (!rule) continue
+      if (rule.action !== 'RunAction' || !rule.actionId) {
+        plan.skipped.push(rule)
+        continue
+      }
+      const commands = shellFlowOf(plan.reg && plan.reg.shell, rule.actionId)
+      if (!commands) {
+        plan.serverActions.push(rule.actionId)
+        continue
+      }
+      const next = reduceContexts(plan.reg, { commands, fragments: [], messages: [] }, { initiator: HOST_ID })
+      const effects = next.effects || {}
+      plan.reg = next
+      if (effects.navigate) {
+        plan.navigate = effects.navigate.url
+          ? { url: effects.navigate.url }
+          : { route: '/' + String(effects.navigate.route || '').replace(/^\/+/, '') }
+      }
+      plan.events.push(...(effects.events || []))
+      for (const run of effects.runActions || []) {
+        if (run && run.actionId) plan.serverActions.push(run.actionId)
+      }
+      for (const c of commands) {
+        if (c.type === 'MarkAsClean') plan.dirty = false
+        if (c.type === 'MarkAsDirty') plan.dirty = true
+      }
+    }
+    return plan
+  }
+
+
   // Selección de RANGO en el tape chart (PlanningBoard → oj-gantt): arrastrar por celdas VACÍAS de
   // una fila lanza rangeSelectActionId con { _resourceId, _start, _end } (el «clic en la celda de
   // inicio y en la de fin» del Room Diary de OPERA → I Want To: reserva, walk-in, fuera de servicio).
@@ -14631,6 +14718,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     ROW_VALIDATING_VERBS,
     overlayOf,
     eventTriggersOf,
+    // the shell's FLOWS: a menu RuleLink running a declared flow client-side (shellFlows.mjs)
+    isMenuRuleId,
+    menuRulesOf,
+    menuRulePlanOf,
     dismissOverlay,
     // @Searchable: el selector en su diálogo, y los chips del campo
     searchPickerOf,

@@ -203,6 +203,9 @@ export function reduceContexts(reg, increment, opts = {}) {
         serverSideType: md.serverSideType, // para las acciones de cabecera (app-level)
         appContext: md.contextSelectors || [],
         headerActions: md.contextActions || [],
+        // the shell's FLOWS (AppShell.actions): a menu RuleLink whose RunAction names one runs
+        // its lowered commands client-side (shellFlows.mjs)
+        actions: md.actions || [],
         themeToggle: md.themeToggle,
         // @App(accessKeys): mantener Alt enseña las teclas de acceso (keys.mjs)
         accessKeys: !!md.accessKeys,

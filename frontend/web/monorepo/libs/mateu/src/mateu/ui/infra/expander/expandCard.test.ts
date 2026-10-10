@@ -52,3 +52,27 @@ describe('client-side expander — Card (Phase 6, display components)', () => {
         expect(row.children.every((c: any) => c.metadata.type === 'Text')).toBe(true)
     })
 })
+
+describe('client-side expander — components whose children live under a named key', () => {
+    it('lifts a HeroSection\'s content, a DashboardLayout\'s items and a DashboardPanel\'s content to children', () => {
+        const wire = expandComponent({
+            type: 'VerticalLayout',
+            content: [
+                { type: 'HeroSection', title: 'Welcome', centered: true, content: [
+                    { type: 'Button', label: 'Get started', actionId: 'getStarted' },
+                ] },
+                { type: 'DashboardLayout', columns: 3, items: [
+                    { type: 'DashboardPanel', title: 'Orders', content: { type: 'Text', text: 'Track orders.' } },
+                ] },
+            ],
+        } as FluentNode) as any
+        const [hero, dashboard] = wire.children
+        expect(hero.metadata).toMatchObject({ type: 'HeroSection', title: 'Welcome', centered: true })
+        expect(hero.metadata.content).toBeUndefined()
+        expect(hero.children.map((c: any) => c.metadata.type)).toEqual(['Button'])
+        expect(dashboard.metadata).toEqual({ type: 'DashboardLayout', columns: 3 })
+        const panel = dashboard.children[0]
+        expect(panel.metadata).toEqual({ type: 'DashboardPanel', title: 'Orders' })
+        expect(panel.children[0].metadata).toMatchObject({ type: 'Text', text: 'Track orders.' })
+    })
+})

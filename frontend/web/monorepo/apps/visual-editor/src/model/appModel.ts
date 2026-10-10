@@ -1,4 +1,7 @@
 import { parse, stringify } from 'yaml'
+import {
+    type FlowStep, type RawAction, actionIdsIn, stepsIn, withStepsIn, withFlowActionIn, withoutActionIn,
+} from './flowEditor'
 
 /**
  * The editor's model of an app-shell DEFINITION file — a standalone `type: AppShell` view (title,
@@ -27,6 +30,11 @@ export interface AppFields {
     accentColor?: string
     /** `PARENT`: a single "← Parent" link instead of breadcrumbs (`@App(backLink)`, a record master). */
     backLink?: string
+    /** The header switches - twins of `@App(themeToggle/commandCenter/chromeless/accessKeys)`. */
+    themeToggle?: boolean
+    commandCenter?: boolean
+    chromeless?: boolean
+    accessKeys?: boolean
 }
 
 export type AppMenuItem =
@@ -40,6 +48,9 @@ export type AppMenuItem =
 
 export interface AppDoc {
     fields: AppFields
+    /** The shell's FLOWS (`actions:` with `steps:`, the page-definition shape), kept raw so unmodelled
+     *  keys round-trip; a menu `action` leaf runs one. Edited with the page flow model (flowEditor). */
+    actions?: RawAction[]
     menu: AppMenuItem[]
     widgets: unknown[]
     /** Top-level keys other than the known fields / menu / widgets / type — kept verbatim. */
@@ -49,6 +60,7 @@ export interface AppDoc {
 const SCALARS: (keyof AppFields)[] = [
     'title', 'subtitle', 'pageTitle', 'logo', 'favicon', 'homeRoute',
     'variant', 'layout', 'drawerClosed', 'style', 'cssClasses', 'route', 'accentColor', 'backLink',
+    'themeToggle', 'commandCenter', 'chromeless', 'accessKeys',
 ]
 
 /** Whether this YAML is an app-shell definition (`type: AppShell`). */
@@ -68,13 +80,15 @@ export function parseApp(yaml: string): AppDoc {
 
     const menu: AppMenuItem[] = Array.isArray(root.menu) ? root.menu.map(toMenuItem) : []
     const widgets: unknown[] = Array.isArray(root.widgets) ? root.widgets : []
+    const actions: RawAction[] = Array.isArray(root.actions) ? root.actions : []
 
     const appRest: Record<string, unknown> = {}
     for (const key of Object.keys(root)) {
         if (key === 'type' || key === 'menu' || key === 'widgets' || (SCALARS as string[]).includes(key)) continue
+        if (key === 'actions' && Array.isArray(root.actions)) continue
         appRest[key] = root[key]
     }
-    return { fields, menu, widgets, appRest }
+    return { fields, actions, menu, widgets, appRest }
 }
 
 export function serializeApp(doc: AppDoc): string {
@@ -83,6 +97,7 @@ export function serializeApp(doc: AppDoc): string {
         const v = doc.fields[key]
         if (v !== undefined && v !== '' && v !== false) out[key] = v
     }
+    if (doc.actions?.length) out.actions = doc.actions
     if (doc.menu.length) out.menu = doc.menu.map(menuItemToRaw)
     if (doc.widgets.length) out.widgets = doc.widgets
     Object.assign(out, doc.appRest)
@@ -136,4 +151,68 @@ function rest(obj: Record<string, unknown>, omit: string[]): Record<string, unkn
     const out: Record<string, unknown> = {}
     for (const k of Object.keys(obj)) if (!omit.includes(k)) out[k] = obj[k]
     return out
+}
+
+// --- the shell's flows: the page flow model (flowEditor) over the shell's own `actions:` ---
+
+/** The ids of the actions the shell declares - what a menu `action` leaf can run. */
+export function appActionIds(doc: AppDoc): string[] {
+    return actionIdsIn(doc.actions ?? [])
+}
+
+export function appActionSteps(doc: AppDoc, actionId: string): FlowStep[] {
+    return stepsIn(doc.actions ?? [], actionId)
+}
+
+export function setAppActionSteps(doc: AppDoc, actionId: string, steps: FlowStep[]): AppDoc {
+    return { ...doc, actions: withStepsIn(doc.actions ?? [], actionId, steps) }
+}
+
+export function addAppFlowAction(doc: AppDoc, actionId: string): AppDoc {
+    return { ...doc, actions: withFlowActionIn(doc.actions ?? [], actionId) }
+}
+
+export function removeAppAction(doc: AppDoc, actionId: string): AppDoc {
+    return { ...doc, actions: withoutActionIn(doc.actions ?? [], actionId) }
+}
+
+// --- the shell's header widgets: components, kept raw (an unknown one round-trips untouched) ---
+
+/** The widgets the editor offers to add, each with the one prop it edits inline. */
+export const WIDGET_KINDS: { type: string; prop: string; seed: Record<string, unknown> }[] = [
+    { type: 'Button', prop: 'label', seed: { type: 'Button', label: 'Button' } },
+    { type: 'Text', prop: 'text', seed: { type: 'Text', text: 'Text' } },
+    { type: 'Badge', prop: 'text', seed: { type: 'Badge', text: 'Badge' } },
+    { type: 'Notice', prop: 'text', seed: { type: 'Notice', text: 'Notice' } },
+]
+
+/** The inline-editable prop of a widget, or undefined for one the editor only preserves. */
+export function widgetProp(widget: unknown): string | undefined {
+    const type = (widget as { type?: unknown } | null)?.type
+    return WIDGET_KINDS.find((k) => k.type === type)?.prop
+}
+
+export function addWidget(doc: AppDoc, type: string): AppDoc {
+    const kind = WIDGET_KINDS.find((k) => k.type === type)
+    if (!kind) return doc
+    return { ...doc, widgets: [...doc.widgets, { ...kind.seed }] }
+}
+
+export function setWidgetProp(doc: AppDoc, index: number, value: string): AppDoc {
+    const prop = widgetProp(doc.widgets[index])
+    if (!prop) return doc
+    const widgets = doc.widgets.map((w, i) => (i === index ? { ...(w as object), [prop]: value } : w))
+    return { ...doc, widgets }
+}
+
+export function moveWidget(doc: AppDoc, index: number, delta: number): AppDoc {
+    const j = index + delta
+    if (j < 0 || j >= doc.widgets.length) return doc
+    const widgets = [...doc.widgets]
+    ;[widgets[index], widgets[j]] = [widgets[j], widgets[index]]
+    return { ...doc, widgets }
+}
+
+export function removeWidget(doc: AppDoc, index: number): AppDoc {
+    return { ...doc, widgets: doc.widgets.filter((_, i) => i !== index) }
 }

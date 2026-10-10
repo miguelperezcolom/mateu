@@ -7,6 +7,7 @@ import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppV
 import Fab from "@mateu/shared/apiClients/dtos/componentmetadata/Fab";
 import AppContextSelector from "./AppContextSelector.ts"
 import AppHeaderAction from "@mateu/shared/apiClients/dtos/componentmetadata/AppHeaderAction.ts";
+import type Action from "@mateu/shared/apiClients/dtos/componentmetadata/Action.ts";
 
 export default interface App extends ComponentMetadata {
 
@@ -87,5 +88,10 @@ export default interface App extends ComponentMetadata {
      * infra/capabilities). The shell compares them against what this build PROVIDES and reports what
      * is missing instead of rendering a broken screen — compatibility by capability, not by version. */
     requiredCapabilities?: string[] | undefined
+
+    /** The shell's declared FLOWS (`actions:` on a `type: AppShell`, `AppShell.actions` in code),
+     * each with its steps lowered to `commands`. A menu leaf whose RunAction rule names one runs
+     * those commands in the browser — no server round-trip (see infra/ui/shellFlows.ts). */
+    actions?: Action[] | undefined
 
 }

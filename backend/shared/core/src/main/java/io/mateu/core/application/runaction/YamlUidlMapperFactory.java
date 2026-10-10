@@ -194,6 +194,9 @@ final class YamlUidlMapperFactory {
         new NamedType(MethodLink.class, "MethodLink"),
         new NamedType(RemoteMenu.class, "RemoteMenu"),
         new NamedType(RouteLink.class, "RouteLink"),
+        // A menu leaf that RUNS rules (a RunAction naming a shell flow) instead of navigating: the
+        // schema always advertised it, but without the subtype a shell authoring one did not parse.
+        new NamedType(io.mateu.uidl.data.RuleLink.class, "RuleLink"),
         new NamedType(JsValidation.class, "JsValidation"),
         new NamedType(MinValidation.class, "MinValidation"),
         new NamedType(MaxValidation.class, "MaxValidation"),

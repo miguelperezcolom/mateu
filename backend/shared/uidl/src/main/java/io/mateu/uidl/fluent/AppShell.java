@@ -39,11 +39,27 @@ public record AppShell(
      * single "← Parent" link instead of breadcrumbs (a record master whose tabs are pages). Null:
      * the {@code @App} value, else breadcrumbs.
      */
-    io.mateu.uidl.annotations.BackLink backLink)
+    io.mateu.uidl.annotations.BackLink backLink,
+    /**
+     * The shell's FLOWS: actions declared with {@code steps} (the same shape a page definition's
+     * {@code actions:} has). A menu leaf whose single rule is {@code RunAction} naming one of them
+     * runs its lowered commands in the browser — no server round-trip, so it also works in a static
+     * bundle. An action without steps is an ordinary app-level action dispatched to the server.
+     */
+    @Singular List<Action> actions,
+    /** The theme toggle — the data-authored twin of {@code @App(themeToggle)}. Null: the class. */
+    Boolean themeToggle,
+    /** The command center — the twin of {@code @App(commandCenter)}. Null: the class. */
+    Boolean commandCenter,
+    /** No nav chrome (implies the command center) — the twin of {@code @App(chromeless)}. */
+    Boolean chromeless,
+    /** Access keys mode — the twin of {@code @App(accessKeys)}. Null: the class. */
+    Boolean accessKeys)
     implements Component, PageMainContent {
 
   public AppShell {
     menu = menu != null ? menu : List.of();
+    actions = actions != null ? actions : List.of();
     // A shell federating remote sections that names no variant is drawn MENU_ON_TOP, as it always
     // was: the browser used to force that variant on any shell with remotes, and now respects the
     // one the app declares instead.

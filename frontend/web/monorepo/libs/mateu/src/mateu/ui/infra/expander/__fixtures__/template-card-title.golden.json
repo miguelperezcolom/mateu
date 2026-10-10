@@ -1,0 +1,69 @@
+{
+  "commands" : [ ],
+  "messages" : [ ],
+  "fragments" : [ {
+    "targetComponentId" : null,
+    "component" : {
+      "type" : "ClientSide",
+      "metadata" : {
+        "type" : "Card",
+        "media" : null,
+        "headerPrefix" : null,
+        "header" : null,
+        "title" : {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Text",
+            "container" : "div",
+            "attributes" : { },
+            "text" : "Contact",
+            "size" : null,
+            "noMargins" : false
+          },
+          "id" : "2247fef2-3d2e-437b-adb7-967e367cd687",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        },
+        "subtitle" : null,
+        "headerSuffix" : null,
+        "content" : {
+          "type" : "ClientSide",
+          "metadata" : {
+            "type" : "Text",
+            "container" : "div",
+            "attributes" : { },
+            "text" : "Contact details",
+            "size" : null,
+            "noMargins" : false
+          },
+          "id" : "b492c634-7118-4eac-aed0-e916e602a53e",
+          "children" : [ ],
+          "style" : null,
+          "cssClasses" : null,
+          "slot" : null,
+          "sizing" : null
+        },
+        "footer" : null,
+        "variants" : null
+      },
+      "id" : "fieldId",
+      "children" : [ ],
+      "style" : null,
+      "cssClasses" : null,
+      "slot" : null,
+      "sizing" : null
+    },
+    "state" : null,
+    "data" : null,
+    "action" : "Replace",
+    "containerId" : null
+  } ],
+  "banners" : [ ],
+  "appendBanners" : false,
+  "appData" : null,
+  "appState" : null,
+  "wireVersion" : "3.0"
+}
