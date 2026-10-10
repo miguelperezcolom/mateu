@@ -107,6 +107,8 @@ public class RoomDiary implements ComponentTreeSupplier {
 
 An id the screen has no method for is left alone, because it may belong to an enclosing component. The same rule holds on the .NET and Python backends.
 
+The one exception is an id of the [action catalogue](/java-ui-definition/action-catalogue/): a named, client-runnable flow or REST call declared once in `specs/ui/actions.yaml`. When the screen neither declares the id nor has a method for it, the catalogue's entry travels with the screen and runs in the browser. The screen's own method always wins.
+
 ## @Button
 
 Marks a field or method as a button rendered at the bottom of the form body.
