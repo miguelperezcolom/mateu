@@ -158,9 +158,17 @@ public class ReservationDetail implements ComponentTreeSupplier {
                         false,
                         null,
                         null),
+                    // NESTED tabs: the changes log split by what changed (OPERA's tabs of panels)
                     new Tab(
                         "Changes log",
-                        text("Created by WEB · Room assigned by FRONTDESK"),
+                        TabLayout.builder()
+                            .id("logTabs")
+                            .tabs(
+                                List.of(
+                                    new Tab("Reservation", text("Created by WEB · 2026-10-01 10:12 · Rate BAR")),
+                                    new Tab("Room", text("Room 106 assigned by FRONTDESK · 2026-10-08 14:03")),
+                                    new Tab("Billing", text("Window 2 opened by NIGHTAUDIT · 2026-10-09 03:00"))))
+                            .build(),
                         "",
                         "",
                         "alt+3",
