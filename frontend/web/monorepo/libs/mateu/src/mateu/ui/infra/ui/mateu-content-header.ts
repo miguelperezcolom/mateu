@@ -1,4 +1,5 @@
 import { customElement, property, state } from "lit/decorators.js";
+import { stampButton } from "@infra/ui/renderers/nodeIdStamp.ts";
 import { css, html, LitElement, nothing, TemplateResult } from "lit";
 import { safeHtml } from "./safeHtml";
 import { renderBadgeMetadata } from "@infra/ui/renderers/badgeRenderer.ts";
@@ -240,17 +241,17 @@ export class MateuContentHeader extends LitElement {
         const custom = componentRenderer.get()?.renderToolbarButton?.(
             button, label, () => this.handleButtonClick(button))
         if (custom) {
-            return custom
+            return stampButton(button, custom)
         }
         // DS-neutral default button (the Vaadin adapter provides a vaadin-button via the
         // renderToolbarButton hook; icons are the adapter's job).
-        return html`
+        return stampButton(button, html`
         <button class="mtb ${neutralButtonClass(button)}"
                 data-action-id="${button.id}"
                 @click="${() => this.handleButtonClick(button)}"
                 ?disabled="${button.disabled}"
         >${label}</button>
-    `
+    `)
     }
 
     // Action cluster with the "…" overflow: primaries always inline; secondaries stay inline while

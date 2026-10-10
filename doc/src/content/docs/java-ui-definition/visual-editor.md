@@ -193,6 +193,56 @@ Two references start on a page:
   for a `Button`'s `actionId`, both fetched from the model's `__contract__` — so you pick a member
   instead of matching names by hand.
 
+#### Selecting components
+
+The canvas, **Layers** and **Properties** always show the same selection.
+
+- **Click anything painted on the canvas** and the innermost component under the pointer is
+  selected: a hero, a button inside the hero, a dashboard panel, the text inside that panel, a
+  metric card, a card's title, a tab, a foldout panel. **Layers** opens the groups above it,
+  highlights its row and scrolls it into view. **Properties** shows it.
+- **The canvas is a design surface.** A click on a button, a link, a checkbox or an input selects
+  it. It does not run the action, follow the link, toggle the box or focus the field. One control
+  still works: a tab header shows its tab, so the other tab's contents can be seen and selected.
+- **Click a row in Layers** to outline the component on the canvas and scroll it into view. A
+  component inside a tab that is not showing brings its tab forward. A component inside a folded
+  foldout panel unfolds it.
+- **`Esc`** selects the parent. On the page root, `Esc` clears the selection. A click on the canvas
+  around the page selects the page root.
+- **The outline stays on its component.** It moves with the component after you edit a property,
+  undo, change the canvas width, scroll, switch between the Vaadin and Redwood canvases, or when the
+  file changes on disk. If the component no longer exists, the selection is cleared.
+
+Grid columns and listing filters are selected from **Layers**. Their `id` is the field they bind,
+so the canvas cannot mark them. A layout whose children fill it completely, such as a dashboard
+grid, has no spot of its own to click. Click one of its children, then press `Esc`.
+
+#### Images
+
+A property that holds an image has an image picker in **Properties**: a hero's `image`, an
+`Image`'s `src`, an avatar, an offer card's picture, the app shell's `logo` and `favicon`. The rule
+is the property name (`image`, `src`, `avatar`, `logo`, `favicon`, or any name ending in `Image` or
+`ImageUrl`) or an image media type in the schema. Only text properties count, so a form's `avatar`
+component is not one.
+
+- **Type anything.** A URL, a path or a data URI is kept as you write it.
+- **▦ opens the project's images** as a grid of thumbnails, with a filter when there are many. Click
+  one to set the property to the URL the app serves it at: `src/main/resources/static/img/hero.jpg`
+  becomes `/img/hero.jpg`.
+- **Add image to project…** opens a file chooser, copies the file into the project and selects it.
+  The file goes to `images/` under the project's existing web folder. With none, it goes to
+  `src/main/resources/static/images/` (Java), `wwwroot/images/` (.NET) or `static/images/`
+  (Python). The folder is created if needed, and an existing file is never overwritten.
+
+The images come from the folders the app serves: `src/main/resources/static`, `public` and
+`META-INF/resources`, a `public/` folder, `wwwroot` and `static`, in the module of the file you are
+editing. Build output (`target`, `build`, `node_modules`, `dist`…) is skipped. The list follows the
+project: an image added, changed or deleted shows up in the picker without reopening the editor.
+
+The canvas, the Redwood canvas and **Play** show a project image even when no backend serves it.
+The IDE serves the file to the editor, and the page keeps the URL you picked. In a browser with no
+IDE, the field is plain text.
+
 ### 5. A partial — `specs/ui/partials/address-block.yaml`
 
 A partial is a reusable fragment: a rootless `content:` list, inlined wherever a page's `Partial ref`
@@ -276,7 +326,9 @@ A backend that depends on `io.mateu:mateu-redwood` serves it at its root (`/_ind
 **What it does not do yet.** You can drag a component from the palette onto the Redwood canvas, but
 it lands at the end of the page. Use the Vaadin canvas or **Layers** to place it exactly. Layout
 containers that Redwood does not paint as a box of their own, such as a `FormLayout` shown as the
-page's form or the root layout, are selected from **Layers** or with `←` (parent). The board's
+page's form or the dashboard grid of a dashboard page, are selected from **Layers** or with `Esc`
+(parent). A click on the page's empty background selects the page root. Tabs are not switched
+inside the Redwood canvas, so a component in another tab is selected from **Layers**. The board's
 miniatures stay Vaadin.
 
 ## Tidy
@@ -357,6 +409,37 @@ Drag the background to pan and scroll to zoom. Drag a card by its header to move
 remembers the arrangement for each mount, and **Auto layout** starts it again. Click a card to label
 its arrows. **Edit** opens that card's file: in place in a browser, or in its own tab in IntelliJ
 and VS Code.
+
+#### Editing the navigation on the board
+
+The board also edits the mount's navigation. Each action changes the YAML that declares it, and only
+the lines involved: comments, quoting and flow `{…}` entries stay as you wrote them. The board then
+redraws itself from the files.
+
+- **Create a missing screen.** A link to a route the mount does not have shows as a red dashed card.
+  **Create screen…** asks for the route, the page file and a template. It writes the page and adds
+  the route to `routes.yaml` in one step. A route whose page file is missing gets the same button,
+  and only the file is created. A parameterised link such as `orders/${row.id}` becomes the route
+  `orders/:id`.
+- **Give a page a route.** A page no route serves has a dashed card with **Add route…**, which adds
+  the entry to `routes.yaml`.
+- **Link two screens.** Hover a card and drag the dot on its right edge onto another card, then
+  choose what the link is. The board only offers what fits the source screen: a **menu entry** from
+  the app shell, in the group you pick (nested groups included); a **button** on a page, in its
+  toolbar, its form buttons or its content; a listing's **row click** (`rowRoute`); or where a REST
+  action lands **after save** (`successRoute`).
+- **Delete or re-point an arrow.** Click an arrow to select it. **Delete** (or the `Delete` key)
+  removes what declares it: the menu entry, the button, the flow step, the `rowRoute` or the
+  `successRoute`. Drag the circle at its end onto another card to point it there; only the target
+  text changes. Arrows between nested routes are edited in the routes file.
+- **New screen.** Double-click the board's background to create a screen at that spot, from a
+  template, with its route.
+- **Undo.** **Undo** and **Redo** in the toolbar, or `⌘Z` / `⇧⌘Z`, revert the board's last edit in
+  every file it touched. Undoing a new screen deletes its file again.
+
+When there is no `routes.yaml`, the board creates one and lists it in the mount (`type: UI`). In
+IntelliJ and VS Code the edits are ordinary editor edits, undoable in the IDE as well, and saved. In
+a browser with no IDE they change the in-browser project.
 
 **▶ Play** runs the mount from the files as you have edited them, so you can click through it like
 the app. The menu (including menu entries that run a shell flow), row clicks, buttons and save landings take you where the app would, and a small

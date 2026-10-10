@@ -9,6 +9,8 @@ import { STEP_TYPES, stepParam, type FlowStep } from '../model/flowEditor'
 import { enumValues } from '../model/schemaCatalog'
 import { catalogueActionOptions, type ProjectIndex } from '../model/projectIndex'
 import '../widgets/ve-combo'
+import '../widgets/ve-image-picker'
+import type { ProjectImage } from '../model/projectImages'
 import { formatAccessInline, parseAccessInline } from '../model/access'
 import type { ComboOption } from '../widgets/comboModel'
 
@@ -56,6 +58,9 @@ export class AppEditor extends LitElement {
 
     @property() yaml = ''
     @property({ attribute: false }) project?: ProjectIndex
+    /** The project's images (from the host), for the logo / favicon pickers. */
+    @property({ attribute: false }) images: readonly ProjectImage[] = []
+    @property({ type: Boolean }) canAddImage = false
     @state() private doc: AppDoc = { fields: {}, actions: [], menu: [], widgets: [], appRest: {} }
     @state() private newActionId = ''
     private lastEmitted?: string
@@ -92,8 +97,8 @@ export class AppEditor extends LitElement {
                     <div>${this.select('Layout', 'layout', f, ['', ...enumValues('AppLayout')])}</div>
                 </div>
                 <div class="grid2">
-                    <div>${this.text('Logo', 'logo', f)}</div>
-                    <div>${this.text('Favicon', 'favicon', f)}</div>
+                    <div>${this.image('Logo', 'logo', f)}</div>
+                    <div>${this.image('Favicon', 'favicon', f)}</div>
                 </div>
                 <div class="grid2">
                     <div>
@@ -243,6 +248,14 @@ export class AppEditor extends LitElement {
     }
 
     // --- fields ---
+
+    /** An image field (logo, favicon): free text plus the project's images. */
+    private image(label: string, key: keyof AppFields, f: AppFields) {
+        return html`
+            <label>${label}</label>
+            <ve-image-picker .images=${this.images} ?can-add=${this.canAddImage} .value=${(f[key] as string) ?? ''}
+                @change=${(e: Event) => this.setField(key, (e.target as HTMLInputElement).value)}></ve-image-picker>`
+    }
 
     private text(label: string, key: keyof AppFields, f: AppFields) {
         return html`

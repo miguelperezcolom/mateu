@@ -538,7 +538,7 @@ export class MateuFoldout extends LitElement {
                 </div>
                 <div class="rail" part="rail">
                     ${this.panels.map((panel, index) => this.openPanels.has(index) ? html`
-                        <div class="panel" part="panel" data-anchor="${this.panelAnchor(panel, index)}"
+                        <div class="panel" part="panel" data-anchor="${this.panelAnchor(panel, index)}" data-node-id="${panel.id ?? nothing}"
                              style="${panel.width ? `flex-basis: ${panel.width}; min-width: min(${panel.width}, 100%);` : nothing}"
                              @click="${() => this.bookmarkPanel(index)}">
                             <div class="panel-header">
@@ -557,7 +557,7 @@ export class MateuFoldout extends LitElement {
                             </div>
                         </div>
                     ` : html`
-                        <div class="strip" role="button" title="${panel.title}"
+                        <div class="strip" role="button" title="${panel.title}" data-node-id="${panel.id ?? nothing}"
                              data-anchor="${this.panelAnchor(panel, index)}" @click="${() => this.toggle(index)}">
                             <button class="fold" tabindex="-1">⟩</button>
                             <span>${panel.title}</span>

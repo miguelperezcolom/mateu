@@ -1,6 +1,8 @@
 import { LitElement, html, css } from 'lit'
 import '../widgets/ve-combo'
 import '../widgets/ve-access'
+import '../widgets/ve-image-picker'
+import { isImageProp, type ProjectImage } from '../model/projectImages'
 import { COMPONENT_ACCESS_KEYS, restricts } from '../model/access'
 import { translationKeys } from '../model/translationsModel'
 import type { ComboOption } from '../widgets/comboModel'
@@ -73,6 +75,10 @@ export class EditorProperties extends LitElement {
     @property({ attribute: false }) contract?: ContractMembers
     /** The ids of the actions this page declares (its `actions:` — REST calls and flows). */
     @property({ attribute: false }) pageActionIds: string[] = []
+    /** The project's images (from the host), for the image properties' picker. */
+    @property({ attribute: false }) images: readonly ProjectImage[] = []
+    /** Whether the host can copy a new image into the project ("Add image to project…"). */
+    @property({ type: Boolean }) canAddImage = false
     @state() private moreOpen = false
 
     render() {
@@ -205,6 +211,7 @@ export class EditorProperties extends LitElement {
     /** A typed editor for a schema-declared prop. */
     private field(p: PropSpec, value: unknown) {
         const req = p.required ? html`<span class="req"> *</span>` : ''
+        if (isImageProp(p.name, p)) return this.imageField(p.name, value, req)
         // References that pick from another file / the data source: partial ref, field id, action id.
         const options = this.pickerOptionsFor(p.name)
         if (options) {
@@ -301,7 +308,16 @@ export class EditorProperties extends LitElement {
         this.dispatchEvent(new CustomEvent(name, { detail, bubbles: true, composed: true }))
     }
 
+    /** An image property: free text plus the project's images (see ve-image-picker). */
+    private imageField(key: string, value: unknown, req: unknown = '') {
+        return html`
+            <label>${key}${req}</label>
+            <ve-image-picker .images=${this.images} ?can-add=${this.canAddImage} .value=${value == null ? '' : String(value)}
+                @change=${(e: Event) => this.emit(key, (e.target as HTMLInputElement).value)}></ve-image-picker>`
+    }
+
     private textField(key: string, value: unknown) {
+        if (isImageProp(key) && (value == null || typeof value === 'string')) return this.imageField(key, value)
         const options = this.pickerOptionsFor(key)
         return html`
             <label>${key}</label>

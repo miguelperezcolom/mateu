@@ -50,6 +50,9 @@ import { withEdited } from './model/playManifest'
 import { buildMountGraph } from './model/mountGraph'
 import { VIEWPORTS, ViewportId, parseViewport, viewportWidth } from './model/viewport'
 import { collectNotes, buildViewModelPrompt } from './model/notes'
+import { parentSelection, surviving } from './canvas/canvasSelection'
+import type { ProjectImage } from './model/projectImages'
+import { applyWrites, type FileWrite } from './model/boardEdits'
 import { tidyFindings, applyTidy, TIDY_RULES, TidyRule } from './model/tidy'
 import { resolveHost, HostBridge } from './host/hostBridge'
 import { watchHostTheme, Theme } from './host/theme'
@@ -311,6 +314,8 @@ export class MateuVisualEditor extends LitElement {
     @state() private project?: ProjectIndex
     /** The mount's files as the host handed them over (the board and play mode read them whole). */
     @state() private projectFiles: ProjectFile[] = []
+    /** The project's images, as the host lists them (none in the standalone browser). */
+    @state() private images: ProjectImage[] = []
     /**
      * What fills the work area: the editor for the open file, the board (every screen of the mount and
      * the arrows between them) or play mode (the mount running, from the files as edited).
@@ -354,8 +359,8 @@ export class MateuVisualEditor extends LitElement {
             if (yaml === this.lastText) return // our own write echoed back
             this.history.push(yaml)
             this.historyTick++
+            // the selection survives the reload when its node is still there (see willUpdate)
             this.load(yaml)
-            this.selectedPath = null
         })
         // Load the whole mount (if the host exposes it) to power the reference pickers and the canvas's
         // REST source catalogue — the editor stays fully usable without it.
@@ -374,6 +379,21 @@ export class MateuVisualEditor extends LitElement {
         // the host re-sends the files when one changes (a page created while this editor is open)
         this.host.onFilesChanged?.((files) => this.applyProjectFiles(files))
         this.host.listFiles?.().then((files) => this.applyProjectFiles(files)).catch(() => undefined)
+        // …and the project's images, for the image pickers and the canvas
+        this.host.onImagesChanged?.((images) => (this.images = images))
+        this.host.listImages?.().then((images) => { if (images.length || !this.images.length) this.images = images }).catch(() => undefined)
+    }
+
+    /**
+     * "Add image to project…" in a picker: the host copies the chosen file into the project, and the
+     * picker that asked gets its URL (the image list follows by the host's own push).
+     */
+    private onAddImage = async (e: Event) => {
+        const picker = (e as CustomEvent<{ picker?: { commit(value: string): void } }>).detail?.picker
+        const added = await this.host.addImage?.()
+        if (!added) return
+        if (!this.images.some((i) => i.url === added.url)) this.images = [...this.images, added]
+        picker?.commit(added.url)
     }
 
     private applyProjectFiles(files: ProjectFile[] | undefined) {
@@ -419,7 +439,7 @@ export class MateuVisualEditor extends LitElement {
 
     /**
      * Editor keyboard shortcuts, active only on the page canvas and never while typing in a field:
-     * Delete/Backspace removes, Cmd/Ctrl+D duplicates, Escape deselects, and the arrows walk the tree
+     * Delete/Backspace removes, Cmd/Ctrl+D duplicates, Escape selects the parent (on the root it deselects), and the arrows walk the tree
      * (←parent, →first child, ↑/↓ previous/next sibling) — the tree navigation every pro editor has.
      */
     private onKeydown = (e: KeyboardEvent) => {
@@ -427,6 +447,14 @@ export class MateuVisualEditor extends LitElement {
         // Typing in a field keeps the field's own undo; everywhere else the editor's history answers.
         if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return
         const mod = e.metaKey || e.ctrlKey
+        if (this.view === 'board' && mod && /^[zZyY]$/.test(e.key)) {
+            // on the board, undo/redo are the board's (its edits span several files)
+            e.preventDefault()
+            const board = this.renderRoot.querySelector('mount-board') as (HTMLElement & { undo(): void; redo(): void }) | null
+            if (e.key === 'y' || e.key === 'Y' || e.shiftKey) board?.redo()
+            else board?.undo()
+            return
+        }
         if (mod && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); e.shiftKey ? this.redo() : this.undo(); return }
         if (mod && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); this.redo(); return }
         if (this.view === 'play' && e.key === 'Escape') { this.view = 'edit'; return }
@@ -435,7 +463,7 @@ export class MateuVisualEditor extends LitElement {
         const sel = this.selectedPath
         if ((e.key === 'Delete' || e.key === 'Backspace') && sel) { e.preventDefault(); this.onDelete() }
         else if ((e.metaKey || e.ctrlKey) && (e.key === 'd' || e.key === 'D') && sel) { e.preventDefault(); this.onDuplicate() }
-        else if (e.key === 'Escape') { this.selectedPath = null }
+        else if (e.key === 'Escape') { e.preventDefault(); this.selectedPath = parentSelection(sel) }
         else if (e.key === 'ArrowLeft' && sel && sel.length) { e.preventDefault(); this.selectedPath = sel.slice(0, -1) }
         else if (e.key === 'ArrowRight' && sel) { e.preventDefault(); this.selectRelative('child') }
         else if (e.key === 'ArrowUp' && sel && sel.length) { e.preventDefault(); this.selectRelative('prev') }
@@ -484,6 +512,19 @@ export class MateuVisualEditor extends LitElement {
         this.host.onContentChanged?.(text)
     }
 
+    /**
+     * The selection is a path into the CURRENT document. Whatever replaced the document — an edit, an
+     * undo, the file changing on disk — the selection stays on the same node while it still exists
+     * there and is cleared when it does not, so the Properties panel and the canvas outline never point
+     * at a node that is gone.
+     */
+    willUpdate(changed: Map<string, unknown>) {
+        if ((changed.has('doc') || changed.has('selectedPath')) && this.selectedPath && this.doc) {
+            const kept = surviving(this.doc, this.selectedPath)
+            if (kept !== this.selectedPath) this.selectedPath = kept
+        }
+    }
+
     render() {
         const selected = this.doc && this.selectedPath ? nodeAt(this.doc, this.selectedPath) ?? null : null
         return html`
@@ -496,6 +537,7 @@ export class MateuVisualEditor extends LitElement {
                  @slot-add=${(e: CustomEvent) => this.onSlotAdd(e.detail.key, e.detail.ref)}
                  @binding-rename=${(e: CustomEvent) => this.onRename(e.detail.from)}
                  @preview-status=${(e: CustomEvent) => (this.previewStatus = e.detail)}
+                 @add-image=${this.onAddImage}
                  @node-delete=${this.onDelete}
                  @node-duplicate=${this.onDuplicate}
                  @node-move=${(e: CustomEvent) => this.onMove(e.detail.delta)}
@@ -507,6 +549,7 @@ export class MateuVisualEditor extends LitElement {
                  @types-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
                  @project-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
                  @board-open=${(e: CustomEvent) => this.openFile(e.detail.path)}
+                 @board-write=${this.onBoardWrite}
                  @board-play=${(e: CustomEvent) => this.play(e.detail.route)}
                  @play-close=${() => (this.view = this.playReturn)}>
                 ${this.renderToolbar()}
@@ -515,15 +558,15 @@ export class MateuVisualEditor extends LitElement {
                 ${this.view === 'board'
                     ? html`<mount-board .files=${this.mountFiles()} .currentPath=${this.currentPath} .baseUrl=${renderBaseUrl(this.previewSource)}
                                         .clientRender=${rendersClientSide(this.previewSource)} .theme=${this.theme} .renderer=${this.renderer}
-                                        ?canOpen=${!!this.host.openFile}></mount-board>`
+                                        ?canOpen=${!!this.host.openFile} ?canEdit=${!!this.host.writeFile}></mount-board>`
                     : this.view === 'play'
                     ? html`<mount-play .files=${this.mountFiles()} .start=${this.playStart} .baseUrl=${renderBaseUrl(this.previewSource)}
                                        .theme=${this.theme} .viewport=${this.viewport} .renderer=${this.projectRenderer}
-                                       .editorSources=${this.project?.sources ?? []}></mount-play>`
+                                       .editorSources=${this.project?.sources ?? []} .images=${this.images}></mount-play>`
                     : this.mode === 'mount'
                     ? html`<mount-editor .yaml=${this.structuredYaml}></mount-editor>`
                     : this.mode === 'app'
-                    ? html`<app-editor .yaml=${this.structuredYaml} .project=${this.project}></app-editor>`
+                    ? html`<app-editor .yaml=${this.structuredYaml} .project=${this.project} .images=${this.images} ?canAddImage=${!!this.host.addImage}></app-editor>`
                     : this.mode === 'routes'
                     ? html`<routes-editor .yaml=${this.structuredYaml} .project=${this.project}></routes-editor>`
                     : this.mode === 'sources'
@@ -554,8 +597,9 @@ export class MateuVisualEditor extends LitElement {
                             </div>
                             <editor-canvas .doc=${this.doc} .baseUrl=${renderBaseUrl(this.previewSource)}
                                            .clientRender=${rendersClientSide(this.previewSource)} .renderer=${this.renderer} .theme=${this.theme}
-                                           .selectedPath=${this.selectedPath} .frameWidth=${viewportWidth(this.viewport)}></editor-canvas>
+                                           .selectedPath=${this.selectedPath} .frameWidth=${viewportWidth(this.viewport)} .images=${this.images}></editor-canvas>
                             <editor-properties .node=${selected} .project=${this.project} .contract=${this.contract}
+                                .images=${this.images} ?canAddImage=${!!this.host.addImage}
                                 .pageActionIds=${this.doc ? pageActions(this.doc).map((a) => a.id) : []}></editor-properties>
                         </div>
                     </div>
@@ -1050,7 +1094,7 @@ export class MateuVisualEditor extends LitElement {
     /** Clickable path from the root to the selected node — jump to any ancestor (pairs with the layers panel). */
     private renderBreadcrumb() {
         if (!this.doc || !this.selectedPath) {
-            return html`<div class="breadcrumb"><span class="empty">Click a component on the canvas or in Layers to select it · ⌘Z undo · Delete removes · arrows walk the tree</span></div>`
+            return html`<div class="breadcrumb"><span class="empty">Click a component on the canvas or in Layers to select it · Esc selects the parent · ⌘Z undo · Delete removes · arrows walk the tree</span></div>`
         }
         const segs: { path: NodePath; label: string; slot?: string }[] = [{ path: [], label: this.doc.layout.type }]
         let node: PageNode | undefined = this.doc.layout
@@ -1408,6 +1452,36 @@ export class MateuVisualEditor extends LitElement {
     }
 
     /** Open another file of the mount (the board's Edit): in place in the browser, in a tab in an IDE. */
+    /**
+     * The board's edits (a route, a menu entry, a new screen, an arrow deleted). The open file goes
+     * through the edit history like any edit; the others through the host (the IDE's documents, the
+     * browser's project). The board re-derives from the files — this list, until the host pushes its
+     * own.
+     */
+    private onBoardWrite = (e: CustomEvent<{ writes: FileWrite[] }>) => {
+        const writes = e.detail.writes
+        const norm = (p: string) => p.replace(/^\/+/, '').replace(/^specs\/ui\//, '')
+        const current = norm(this.currentPath ?? 'page.yaml')
+        if (!this.projectFiles.length) {
+            // a standalone draft with no project yet: the mount the board showed becomes the project
+            const seed = this.mountFiles()
+            for (const f of seed) if (norm(f.path) !== current) this.host.writeFile?.(f.path, f.content)
+            this.projectFiles = seed
+        }
+        for (const w of writes) {
+            if (norm(w.path) === current && w.content !== null) {
+                this.history.push(w.content)
+                this.historyTick++
+                this.load(w.content)
+                this.lastText = w.content
+                this.host.onContentChanged?.(w.content)
+            } else {
+                this.host.writeFile?.(w.path, w.content)
+            }
+        }
+        this.projectFiles = applyWrites(withEdited(this.projectFiles, this.currentPath, this.lastText), writes)
+    }
+
     private async openFile(path: string) {
         const yaml = await this.host.openFile?.(path)
         if (yaml === undefined) return

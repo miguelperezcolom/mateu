@@ -1,6 +1,7 @@
 import Component from "@mateu/shared/apiClients/dtos/Component";
 import FormLayout from "@mateu/shared/apiClients/dtos/componentmetadata/FormLayout";
 import { html, LitElement, nothing, TemplateResult } from "lit";
+import { nodeIdAttr } from "@infra/ui/renderers/nodeIdStamp.ts";
 import Tab from "@mateu/shared/apiClients/dtos/componentmetadata/Tab";
 import AccordionPanel from "@mateu/shared/apiClients/dtos/componentmetadata/AccordionPanel";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
@@ -154,7 +155,7 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
                 const rawLabel = (cs.metadata as Tab).label
                 const label = rawLabel?.includes('${') ? (container as any)._evalTemplate(rawLabel) : rawLabel
                 return html`
-                    <details ?open="${index === activeIndex}" style="border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));">
+                    <details data-node-id="${nodeIdAttr(cs)}" ?open="${index === activeIndex}" style="border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));">
                         <summary style="cursor: pointer; padding: var(--lumo-space-s, .5rem) 0; font-weight: 600;">${label}</summary>
                         <div style="padding: var(--lumo-space-m, 1rem) 0;">
                             ${cs.children?.map(grandChild => renderComponent(container, grandChild, baseUrl, state, data, appState, appData))}
@@ -170,7 +171,7 @@ export const renderTab = (container: LitElement, tab: ClientSideComponent, baseU
     const rawLabel = (tab.metadata as Tab).label
     const label = rawLabel?.includes('${') ? (container as any)._evalTemplate(rawLabel) : rawLabel
     return html`
-        <div tab="${label}" style="padding: var(--lumo-space-m, 1rem) 0;">
+        <div tab="${label}" data-node-id="${nodeIdAttr(tab)}" style="padding: var(--lumo-space-m, 1rem) 0;">
             ${tab.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
         </div>
     `
@@ -191,7 +192,7 @@ export const renderAccordionPanel = (container: LitElement, panel: ClientSideCom
     const metadata = panel.metadata as AccordionPanel
     const label = metadata.label?.includes('${') ? (container as any)._evalTemplate(metadata.label) : metadata.label
     return html`
-        <details ?open="${metadata.active}" style="border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); ${panel.style ?? ''}" class="${panel.cssClasses}">
+        <details data-node-id="${nodeIdAttr(panel)}" ?open="${metadata.active}" style="border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1)); ${panel.style ?? ''}" class="${panel.cssClasses}">
             <summary style="cursor: pointer; padding: var(--lumo-space-s, .5rem) 0; font-weight: 600; ${metadata.disabled ? 'pointer-events: none; opacity: .5;' : ''}">${label}</summary>
             <div style="padding: var(--lumo-space-s, .5rem) 0;">
                 ${panel.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
