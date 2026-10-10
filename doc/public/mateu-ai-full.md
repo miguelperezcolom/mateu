@@ -36,7 +36,7 @@ Mateu is a model-driven UI system for business apps. You declare the model — h
 | `List<SomeRecord>` field | Grid / table |
 | Nested class/record field | Subform (card inside form) |
 | Method annotated with `@Button` or `@Toolbar` | Button |
-| Method annotated with `@RowAction` | Per-row action in a grid |
+| `ColumnActionGroup` field on a row | Per-row actions in a grid |
 
 **Key rules:**
 - `@UI("/path")` → page mounted at that URL. `@UI("")` → root page.
@@ -169,21 +169,11 @@ GuestSection guests = new GuestSection();
 ### `@FoldedLayout`
 Each `@Section` becomes a collapsible panel.
 
-### `@Tabs` / `@Tab`
+### `@Tab`
 ```java
-@Tabs
 public class SettingsPage {
     @Tab("General") String language;
     @Tab("Security") String password;
-}
-```
-
-### `@Accordion` / `@AccordionPanel`
-```java
-@Accordion(opened = 0)
-public class SettingsPage {
-    @AccordionPanel(summary = "General") String language;
-    @AccordionPanel(summary = "Notifications") boolean email;
 }
 ```
 
@@ -191,17 +181,6 @@ public class SettingsPage {
 Multi-column form.
 ```java
 @FormLayout(columns = 3)
-```
-
-### `@SplitLayout`
-Two-panel resizable split.
-
-### `@HorizontalLayout` / `@VerticalLayout`
-Arrange content in a row or column.
-
-### `@Scroller`
-```java
-@Scroller(direction = "vertical")
 ```
 
 ### `@Colspan`
@@ -268,10 +247,10 @@ Attaches configurable behaviour to a method.
 )
 ```
 
-### `@RowAction`
-Per-row action in a listing.
+### Per-row actions
+A `ColumnActionGroup` field on the row renders per-row action buttons; each `ColumnAction("approve")`
+runs the listing method of that name, which receives the clicked row.
 ```java
-@RowAction
 void approve(OrderRow row) { service.approve(row.id()); }
 ```
 
@@ -381,8 +360,8 @@ Wraps a field in a collapsible details/summary component.
 String notes;
 ```
 
-### `@H1` – `@H5`
-Renders a `String` field as a heading.
+### Headings
+`@Text(container = TextContainer.h2)` renders a `String` field as a heading.
 
 ### `@Text`
 Renders a `String` field as static text.
@@ -1100,7 +1079,6 @@ For a full dashboard landing page (KPI scoreboard + titled chart panels on a gri
 ### Detail form with tabs
 ```java
 @UI("/product/:id")
-@Tabs
 @Trigger(type=TriggerType.OnLoad, actionId="load")
 public class ProductDetail {
     @Tab("General") @NotEmpty String name;

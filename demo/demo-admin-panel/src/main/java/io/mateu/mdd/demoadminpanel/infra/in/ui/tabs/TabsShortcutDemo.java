@@ -1,7 +1,6 @@
 package io.mateu.mdd.demoadminpanel.infra.in.ui.tabs;
 
 import io.mateu.uidl.annotations.Tab;
-import io.mateu.uidl.annotations.Tabs;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
 
@@ -12,7 +11,6 @@ import io.mateu.uidl.annotations.UI;
  */
 @UI("/tabs-shortcuts")
 @Title("Tabs with keyboard shortcuts")
-@Tabs
 public class TabsShortcutDemo {
 
   @Tab(value = "Personal (alt+1)", shortcut = "alt+1")

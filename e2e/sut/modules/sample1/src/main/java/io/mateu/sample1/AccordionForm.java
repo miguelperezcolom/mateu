@@ -7,24 +7,16 @@ import lombok.Setter;
 
 @UI("/accordion")
 @Title("Accordion Form")
-@Accordion
+@FoldedLayout
 @Getter
 @Setter
 public class AccordionForm {
-
-    @AccordionPanel(summary = "Basic Info")
     @Section("Basic Info")
     String name;
-
-    @AccordionPanel(summary = "Basic Info")
     @Section("Basic Info")
     String email;
-
-    @AccordionPanel(summary = "Details")
     @Section("Details")
     String description;
-
-    @AccordionPanel(summary = "Details")
     @Section("Details")
     int priority;
 

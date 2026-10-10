@@ -8,7 +8,7 @@ All in `io.mateu.uidl.annotations` unless noted. Bean Validation annotations
 |---|---|
 | `@UI("/path")` | register a class as a routed screen |
 | `routes.yaml` entry (`route: p/:id`, `viewModel: <FQCN>`) | extra / parameterised / nested inner routes — `@Route`/`@Routes` were **removed** (see doc `java-ui-definition/route-registry.md`) |
-| `HomeRouteSupplier` (interface on the app class) | home route — `@HomeRoute` was **removed**; default home = first menu item. (`@BaseRoute` exists but nothing reads it) |
+| `HomeRouteSupplier` (interface on the app class) | home route — `@HomeRoute` was **removed**; default home = first menu item. |
 | `@App(...)` | app-level layout/variant/theme toggle |
 | `@Title`, `@Subtitle`, `@PageTitle` | titles |
 | `@Logo`, `@FavIcon` | branding |
@@ -45,7 +45,7 @@ All in `io.mateu.uidl.annotations` unless noted. Bean Validation annotations
 |---|---|
 | `@Button`, `@Toolbar`, `@Action` | a method becomes a button/action (styles, confirm, background, sse, shortcut) |
 | `@WizardCompletionAction` | wizard completion button |
-| `@RowAction`, `@OnRowSelected` | per-row action / selection handler |
+| `ColumnActionGroup` row column, `@OnRowSelected` | per-row action / selection handler |
 | `@AutoSave(debounceMillis=…)` | auto-save on change |
 | `@Fab` | floating action button |
 
@@ -53,10 +53,9 @@ All in `io.mateu.uidl.annotations` unless noted. Bean Validation annotations
 | Annotation | Use |
 |---|---|
 | `@Section("…", columns=…)` | titled group |
-| `@Tabs` + `@Tab("…")` | tabbed sections |
+| `@Tab("…")` | tabbed sections |
 | `@Zones` + `@Zone(name,width)` | side-by-side columns |
-| `@Accordion`, `@AccordionPanel` | collapsible sections |
-| `@SplitLayout`, `@MasterDetail`, `@FoldedLayout` | split / master-detail |
+| `@MasterDetail`, `@FoldedLayout` | split / master-detail |
 - `@FoldoutDetail(overview={...}, folded={...}, orientation=vertical)` (class) — the read-only view of a record as overview (property list) + one foldout panel per remaining `@Section`; empty fields and sections are hidden; the editor keeps the regular form.
 | `@Compact` | high-density mode |
 | `@Inline` | expand a nested object into the parent section |

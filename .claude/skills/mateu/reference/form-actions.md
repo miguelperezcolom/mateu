@@ -89,6 +89,6 @@ control instead of the `LongTask` dialog.
 
 ## Layout
 
-Group fields with `@Section("Datos")`, `@Tabs` + `@Tab("…")`, `@Zones` (side-by-side
-columns), `@SplitLayout`. Use `@Compact` (or `@Style(StyleConstants.COMPACT)`) for
+Group fields with `@Section("Datos")`, `@Tab("…")`, `@Zones` (side-by-side
+columns), `@FoldedLayout`. Use `@Compact` (or `@Style(StyleConstants.COMPACT)`) for
 dense backoffice forms. `@Colspan(n)` / `@Weight(n)` tune field width.

@@ -110,4 +110,4 @@ for them. The canonical page-header elements shared by every template are docume
 
 ## When to use it
 
-Use a foldout for **record workspaces** where the user works one object at a time and hops between its associated categories — reservations, contracts, patient records. Prefer `@Tabs` when categories are mutually exclusive and context loss is acceptable, or `MasterDetailView` when the "categories" are really alternative detail parts of a master form.
+Use a foldout for **record workspaces** where the user works one object at a time and hops between its associated categories — reservations, contracts, patient records. Prefer `@Tab` when categories are mutually exclusive and context loss is acceptable, or `MasterDetailView` when the "categories" are really alternative detail parts of a master form.

@@ -14,23 +14,22 @@ Apply a layout annotation to a class or a nested section. Available options:
 
 | Annotation | Effect |
 |---|---|
-| `@VerticalLayout` | Stack sections top to bottom (default) |
-| `@HorizontalLayout` | Arrange sections side by side |
-| `@FormLayout` | Responsive two-column form grid |
-| `@SplitLayout` | Master/detail split pane |
-| `@Accordion` | Collapsible sections |
-| `@Tabs` | Tabbed sections |
+| `@Section` | Stack sections top to bottom (default) |
+| `@Zones` / `@Zone` | Arrange sections side by side, in columns |
+| `@FormLayout` | Responsive multi-column form grid |
+| `@MasterDetail` | Master/detail panel |
+| `@FoldedLayout` | Collapsible sections |
+| `@Tab` | Tabbed sections |
 
 ```java
-@Tabs
 public class UserEditorPage {
-    PersonalInfo personalInfo;
-    ContactDetails contact;
-    RolesSection roles;
+    @Tab("Personal") PersonalInfo personalInfo;
+    @Tab("Contact") ContactDetails contact;
+    @Tab("Roles") RolesSection roles;
 }
 ```
 
-Each nested class becomes a tab (or accordion panel). Mateu renders the container and wires navigation between sections.
+Consecutive fields sharing a `@Tab` name become one tab. Mateu renders the container and wires navigation between sections.
 
 ---
 

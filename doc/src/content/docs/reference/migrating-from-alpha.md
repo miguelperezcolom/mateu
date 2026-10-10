@@ -32,7 +32,18 @@ and removals are compile errors), the [default changes](#defaults-that-changed) 
 | The `Deleteable` view-class marker | Custom `Crud`s show **Delete** by default; subtract it with `@NotDeletable`. |
 | The `AutoCrud.store()` fallback | `store()` is **abstract**: every `AutoCrud` / `FilteredAutoCrud` subclass must override it. |
 | The `route-registrations` index file | Nothing to do — the annotation processors write `ui-registrations` only. Rebuild modules compiled by an old processor. |
+| `@Tabs` (class) | Nothing — consecutive fields sharing a `@Tab` name already form one tab strip. Delete the annotation. |
+| `@Accordion`, `@AccordionPanel` | `@FoldedLayout` on the class: each `@Section` becomes a collapsible panel. (`@Accordion` never had runtime retention.) |
+| `@HorizontalLayout`, `@VerticalLayout`, `@SplitLayout`, `@Scroller` (annotations) | `@Zones`/`@Zone` for side-by-side sections, `@MasterDetail`, or the fluent `HorizontalLayout`/`VerticalLayout`/`SplitLayout`/`Scroller` records (unchanged) in a `ComponentTreeSupplier`. |
+| `@H1` … `@H5` | `@Text(container = TextContainer.h1)` … `h6`. |
+| `@Option` (on enum constants) | `@Label` on the constant — or nothing: an unlabelled constant is humanized (`OUT_OF_STOCK` → "Out of stock"). |
+| `@State` | Nothing — every field already travels in the component state; rules read it as `state.<field>`. |
+| `@RowAction` | A `ColumnActionGroup` field on the row (`new ColumnAction("approve", "Approve")`) runs the listing method `approve(Row row)`. |
+| `@BaseRoute` | `basePath:` in the route file (`type: Routes`). |
 | Renderers: SAP UI5, Oracle JET (`redwood-oj`), PatternFly (`redhat`), Salesforce Lightning (`slds`); the JavaFX and Compose native renderers | Web: `vaadin-lit` or `redwood` (Oracle Visual Builder). Native: React Native and the IntelliJ plugin. Your UI code does not change — swap the renderer dependency. |
+
+All the annotations in the rows above had **no effect** in any alpha — nothing read them — so
+removing one changes no screen; it only makes the compiler point at it.
 
 ## Defaults that changed
 

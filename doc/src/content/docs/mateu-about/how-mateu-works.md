@@ -123,7 +123,7 @@ A few annotations control how fields are arranged:
 - `@Section("Shipping")` — groups fields under a heading
 - `@Colspan(2)` — makes a field span two columns
 - `@Zones` / `@Zone` — side-by-side column layout
-- `@Tabs` / `@Accordion` — tabbed or collapsible groupings
+- `@Tab` / `@FoldedLayout` — tabbed or collapsible groupings
 
 ### Navigation
 
@@ -192,7 +192,7 @@ ViewModels are plain Java classes with no server-side lifecycle. They are create
 | State | fields |
 | Actions | methods annotated `@Button` or `@Toolbar` |
 | Validation | Bean Validation (`@NotEmpty`, `@NotNull`, `@Size`, …) |
-| Layout | `@Colspan`, `@Section`, `@Zones`, `@Tabs`, `@Accordion` |
+| Layout | `@Colspan`, `@Section`, `@Zones`, `@Tab`, `@FoldedLayout` |
 | Routing | `@UI` (mounts), `routes.yaml` (inner routes) |
 | Navigation | `@Menu` |
 | Rendering intent | `@Stereotype` |

@@ -15,7 +15,7 @@ A listing without live filters, row actions, and bulk actions forces users to na
 
 ## Solution
 
-Use `@List` for the collection class, `@Filterable` on filter fields, `@RowAction` for per-row actions, and `@ListToolbarButton` for bulk actions. Column display is controlled with `@ColumnWidth` and `@HiddenInList`.
+Use `@List` for the collection class, `@Filterable` on filter fields, a `ColumnActionGroup` column on the row for per-row actions, and `@ListToolbarButton` for bulk actions. Column display is controlled with `@ColumnWidth` and `@HiddenInList`.
 
 ```java
 @UI("/products")

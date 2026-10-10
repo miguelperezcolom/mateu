@@ -686,7 +686,6 @@ These are also part of the public DSL and are worth knowing:
 - `@Signature` — signature capture on a String field (drawing canvas → PNG data URI in the value)
 - `@PhotoCapture` — photo capture on a String field (device camera → JPEG data URI; file-input fallback opens the native camera on phones)
 - `@TreeSelect` — the field's dropdown unfolds a TREE of options (children come from the view's `OptionsSupplier`); `leavesOnly = true` restricts selection to leaves
-- `@RowAction` — per-row contextual actions in listings
 - `@MainFilter` / `@Filterable` — mark filter fields for CRUD listings
 - `@RangeFilter` — render a numeric field's listing filter as a min–max range (temporal fields are ranges by default); the bounds travel as `<field>_from`/`<field>_to` and reach the store (`CrudStore`) as a `FilterCriterion`
 - Home route — `@HomeRoute` was removed: the home is the app's first menu item, or what the app class returns from `HomeRouteSupplier.homeRoute()`
@@ -722,11 +721,6 @@ These are also part of the public DSL and are worth knowing:
 - `@Status`
 - `@Representation`
 - `@Details`
-- `@VerticalLayout`
-- `@HorizontalLayout`
-- `@SplitLayout`
-- `@Accordion`
-- `@Tabs`
 - `@Tab` — group fields into a tab (`value` = label; `shortcut` = keyboard shortcut to select it; `open = true` makes it the tab selected on first render instead of the first-declared one); see [Keyboard shortcuts](/ux-patterns/keyboard-shortcuts/)
 
 ## Mental model

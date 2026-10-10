@@ -85,37 +85,6 @@ public class CustomerForm {
 
 ---
 
-## @H1, @H2, @H3, @H4, @H5
-
-Applied to a `String` field, these annotations render its value as an HTML heading of the corresponding level. Useful for adding section titles or dynamic headings inside a form.
-
-```java
-public @interface H1 { String style() default ""; }
-public @interface H2 { String style() default ""; }
-public @interface H3 { String style() default ""; }
-public @interface H4 { String style() default ""; }
-public @interface H5 { String style() default ""; }
-```
-
-| Attribute | Type | Default | Description |
-|---|---|---|---|
-| `style` | `String` | `""` | Optional inline CSS applied to the heading element |
-
-```java
-public class ReportPage {
-    @H1
-    String title = "Annual Report";
-
-    @H2
-    String section = "Financial Summary";
-
-    @H3(style = "color: gray;")
-    String subsection = "Revenue";
-}
-```
-
----
-
 ## @Text
 
 **Target:** `FIELD`

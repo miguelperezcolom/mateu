@@ -102,7 +102,7 @@ is no `Navigation` type — navigate with a `URI` or by returning the object.
 - Override the inferred control with `@Stereotype(FieldStereotype.textarea|email|password|…)`.
 - `@Status`/`@StatusMapping` for colored state badges, `@Filterable` for list filters,
   `@Lookup` for relations.
-- Layout with `@Section`, `@Tabs`, `@Zones`, `@SplitLayout`; high density with `@Compact`.
+- Layout with `@Section`, `@Tab`, `@Zones`, `@FoldedLayout`; high density with `@Compact`.
 - Keep business logic **out** of the view-model: call use cases / repositories. The
   class orchestrates UI; the domain stays clean (DDD/hexagonal friendly).
 

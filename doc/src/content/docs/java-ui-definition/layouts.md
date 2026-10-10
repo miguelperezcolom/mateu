@@ -6,19 +6,22 @@ Layouts define how components are arranged.
 
 ## Common layouts
 
-- vertical
-- horizontal
-- split
+- vertical (`VerticalLayout`)
+- horizontal (`HorizontalLayout`)
+- split (`SplitLayout`)
 
 ## Example
 
 ```java
-@SplitLayout
-List panels = List.of(
-    new Text("Left"),
-    new Text("Right")
-);
+public class Panels implements ComponentTreeSupplier {
+    @Override
+    public Component component(HttpRequest httpRequest) {
+        return new SplitLayout(new Text("Left"), new Text("Right"));
+    }
+}
 ```
+
+In a reflected form, arrange sections with `@Section`, `@Zones` and `@Tab` instead.
 
 ## When to use
 

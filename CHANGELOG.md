@@ -26,6 +26,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   request template and `CODEOWNERS`.
 
 ### Breaking (read [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/))
+- **No-op annotations removed** from `io.mateu.uidl.annotations` — nothing ever read them:
+  `@Accordion`, `@AccordionPanel`, `@BaseRoute`, `@H1`…`@H5`, `@HorizontalLayout`, `@VerticalLayout`,
+  `@SplitLayout`, `@Scroller`, `@Option`, `@RowAction`, `@State`, `@Tabs`. Each has a one-line
+  replacement in the migration guide. `@BusinessComponent` now works (it was also unread): a
+  field / no-arg method of a registered class holding a `Component` joins the business-component
+  catalogue.
 - **CORS is off by default** on every adapter; allow origins with `mateu.cors.allowed-origins`.
 - **The MCP endpoint is off by default**; `mateu.mcp.enabled=true`.
 - **`${secret.X}`** falls back only to the env var `MATEU_SECRET_X` (Java, .NET, Python).

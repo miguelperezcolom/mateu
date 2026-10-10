@@ -185,32 +185,6 @@ Unlike `@Toolbar`, `@Button` places the button at the bottom of the form rather 
 
 ---
 
-## @RowAction
-
-Marks a method to appear as a row-level action in a listing. The method receives the selected row as its parameter.
-
-```java
-public @interface RowAction {}
-```
-
-No attributes. The action ID is derived from the method name.
-
-### Example
-
-```java
-public class InvoiceListing implements Listing<InvoiceRow> {
-
-    @RowAction
-    void approve(InvoiceRow row) {
-        invoiceService.approve(row.id());
-    }
-}
-```
-
-Row actions are displayed inside each row (for example as a dropdown or icon button) rather than in the page toolbar.
-
----
-
 ## @ListToolbarButton
 
 Marks a method as a toolbar button in a listing view. The method receives the list of currently selected rows. `rowsSelectedRequired` defaults to `true`, so the button stays disabled until the user selects at least one row; set `confirmationRequired = true` to ask for confirmation before destructive operations.
