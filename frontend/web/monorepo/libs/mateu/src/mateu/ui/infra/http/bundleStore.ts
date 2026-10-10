@@ -8,6 +8,9 @@ import { setRestSourceCatalogue } from './restSourceCatalogue.ts'
 import type RestSourceEntry from '@mateu/shared/apiClients/dtos/componentmetadata/RestSourceEntry.ts'
 import type UIIncrement from '@mateu/shared/apiClients/dtos/UIIncrement'
 import { expandDefinition, isClientExpandable, type DefinitionSpec } from '@infra/expander/expandDefinition.ts'
+import {
+    browserLocales, pickLocale, translateDeep, mentionsI18n, type TranslationCatalogue,
+} from '@infra/i18n/translations.ts'
 
 interface BundleEntry {
     route: string
@@ -56,6 +59,13 @@ interface BundleManifest {
     // being pre-rendered at build time — so editing a definition and refreshing shows it, with no
     // backend and no export step. A `viewModel` route cannot be expanded client-side and is skipped.
     definitions?: Record<string, DefinitionSpec>
+    // The translation catalogue (locale → key → text). Pre-rendered entries keep their `${i18n.…}`
+    // expressions on purpose (the exporter renders RAW): with no server, the browser resolves them
+    // for the visitor's locale — see localize().
+    translations?: TranslationCatalogue
+    // The deployment environment the `sources` were resolved for (mateu-bundle -Dmateu.bundle.environment),
+    // or null/absent when they are as authored. Informative: the catalogue shipped IS the resolved one.
+    environment?: string | null
 }
 
 // syncPath → parsed increment, for the routes that exported OK. undefined = no bundle loaded.
@@ -75,6 +85,42 @@ let routeEntries: RouteEntry[] = []
 let catalogueSources: RestSourceEntry[] = []
 // Specs mode: raw authored definitions keyed by file name (see BundleManifest.definitions).
 let definitions: Record<string, DefinitionSpec> = {}
+// The manifest's translations, the environment it was built for, and a host-chosen locale (Play).
+let translations: TranslationCatalogue = {}
+let environment: string | undefined
+let localeOverride: string | undefined
+
+/**
+ * Chooses the locale `${i18n.…}` resolves to in bundle mode, over the app's own (`AppDto.locale`)
+ * and the browser's. undefined goes back to those. Takes effect on the next load — a host (the
+ * visual editor's Play) re-mounts after calling it.
+ */
+export const setBundleLocale = (locale: string | undefined): void => { localeOverride = locale || undefined }
+
+/** The locales the loaded bundle has translations for. */
+export const getBundleLocales = (): string[] => Object.keys(translations)
+
+/** The environment the loaded bundle's REST sources were resolved for (informative), if any. */
+export const getBundleEnvironment = (): string | undefined => environment
+
+/** The `locale` the bundle's app shell declares (`AppDto.locale`), when it declares one. */
+const appLocale = (): string | undefined => {
+    const shell = appShellOf(increments?.get('_no_route'))
+    return typeof shell?.locale === 'string' && shell.locale ? shell.locale : undefined
+}
+
+/** The catalogue locale in effect: the host's choice → the app's → the browser's → fallback. */
+export const getBundleLocale = (): string | undefined =>
+    pickLocale(translations, [localeOverride, appLocale(), ...browserLocales()])
+
+/** `${i18n.…}` resolved in a bundled answer (a copy), for the locale in effect. */
+const localize = <T,>(value: T): T => {
+    if (value === undefined || !Object.keys(translations).length || !mentionsI18n(value)) return value
+    const locale = getBundleLocale()
+    const fallback = pickLocale(translations, [])
+    return translateDeep(value, locale ? translations[locale] : undefined,
+        fallback && fallback !== locale ? translations[fallback] : undefined)
+}
 
 /** The `:name` segments of a route pattern, in order. */
 const paramNamesOf = (route: string): string[] =>
@@ -184,6 +230,8 @@ export function loadBundleManifest(url: string, fetchImpl: typeof fetch = fetch)
             routeEntries = manifest.routes?.routes ?? []
             definitions = manifest.definitions ?? {}
             catalogueSources = manifest.sources?.sources ?? []
+            translations = manifest.translations ?? {}
+            environment = manifest.environment ?? undefined
             setRestSourceCatalogue(manifest.sources?.sources)
         } catch (e) {
             console.warn('mateu: bundle manifest load failed', e)
@@ -262,8 +310,9 @@ export const getExpandedIncrement = (syncPath: string): UIIncrement | undefined 
     const match = matchRouteEntry(syncPath)
     const name = match?.entry.definition
     if (!name) return undefined
-    const spec = definitions[name]
-    if (!spec || !isClientExpandable(spec)) return undefined
+    const raw = definitions[name]
+    if (!raw || !isClientExpandable(raw)) return undefined
+    const spec = localize(raw)
     const expanded = expandDefinition(spec, match!.entry.route, undefined, {
         data: match!.entry.data ?? undefined,
         path: syncPath === '_no_route' ? '' : syncPath,
@@ -320,7 +369,10 @@ const aimedAt = (shell: UIIncrement, syncPath: string): UIIncrement => {
  *    screen — its exported content, a :param template's content, or its definition expanded here.
  * A content load is never answered with a shell: that is what nested shells until the tab died.
  */
-export const resolveBundledLoad = (syncPath: string, consumedRoute?: string): UIIncrement | undefined => {
+export const resolveBundledLoad = (syncPath: string, consumedRoute?: string): UIIncrement | undefined =>
+    localize(resolveBundledLoadRaw(syncPath, consumedRoute))
+
+const resolveBundledLoadRaw = (syncPath: string, consumedRoute?: string): UIIncrement | undefined => {
     const fresh = consumedRoute === undefined || consumedRoute === '_empty'
     const own = (): UIIncrement | undefined =>
         getBundledIncrement(syncPath) ?? matchBundledTemplate(syncPath) ?? getExpandedIncrement(syncPath)
@@ -351,7 +403,10 @@ export const __setBundleForTests = (
     r: RouteEntry[] = [],
     d: Record<string, DefinitionSpec> = {},
     c: Map<string, UIIncrement> = new Map(),
+    tr: TranslationCatalogue = {},
 ): void => {
+    translations = tr
+    localeOverride = undefined
     increments = m
     contents = c
     templates = t
