@@ -94,12 +94,12 @@ for (const entry of ENTRIES) visit(join(root, entry, 'package.json'), entry)
 
 if (unresolved.length) {
   console.error(`✗ ${unresolved.length} dependency(ies) not installed — run \`npm ci\` for the ${ENTRIES.join(', ')} workspaces first:\n`)
-  for (const u of [...new Set(unresolved)].sort()) console.error('  ' + u)
+  for (const u of [...new Set(unresolved)].sort((a, b) => a.localeCompare(b))) console.error('  ' + u)
   process.exit(2)
 }
 if (problems.length) {
   console.error(`✗ ${problems.length} bundled package(s) with a licence not approved for an Apache-2.0 artifact:\n`)
-  for (const p of problems.sort()) console.error('  ' + p)
+  for (const p of problems.sort((a, b) => a.localeCompare(b))) console.error('  ' + p)
   console.error('\nReplace the package, or — if its licence is in fact compatible — add the SPDX id to ALLOWED in this script, in a reviewed change.')
   process.exit(1)
 }
