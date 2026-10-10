@@ -30,6 +30,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   change in a minor release. Marked today: the AI assistant (`@AI`, `Chat`, the MCP wiring); the
   Figma contract is documented as experimental.
 
+- **Name collisions pinned**: the simple names shared by two uidl packages (annotation ⇄ record
+  pairs such as `@Badge`/`Badge`) are listed on the stability page with the explicit-import rule,
+  and `NameCollisionsTest` fails on a new one. Removing the no-op annotations dropped seven of them
+  (`HorizontalLayout`, `VerticalLayout`, `SplitLayout`, `Scroller`, `AccordionPanel`, `Option`,
+  `State`); the empty `fluent.ActionType` enum went too.
 - **Wire version check** in every first-party renderer (web/Vaadin, Redwood, React Native, IntelliJ):
   a server speaking another wire major gets one clear message instead of a broken screen.
 

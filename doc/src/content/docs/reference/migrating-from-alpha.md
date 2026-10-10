@@ -78,6 +78,7 @@ relocation.
 | `@State` | Nothing — every field already travels in the component state; rules read it as `state.<field>`. |
 | `@RowAction` | A `ColumnActionGroup` field on the row (`new ColumnAction("approve", "Approve")`) runs the listing method `approve(Row row)`. |
 | `@BaseRoute` | `basePath:` in the route file (`type: Routes`). |
+| `io.mateu.uidl.fluent.ActionType` (an empty enum) | Nothing — it had no constants and nothing used it. |
 | Renderers: SAP UI5, Oracle JET (`redwood-oj`), PatternFly (`redhat`), Salesforce Lightning (`slds`); the JavaFX and Compose native renderers | Web: `mateu-vaadin` or `mateu-redwood` (Oracle Visual Builder). Native: React Native and the IntelliJ plugin. Your UI code does not change — swap the renderer dependency. |
 
 All the annotations in the rows above had **no effect** in any alpha — nothing read them — so

@@ -54,6 +54,34 @@ The three public modules depend on each other in one direction only, and a test
 An app module that only declares UIs needs `mateu-uidl` (which brings `mateu-dtos` along for those
 boundary types); it never needs `mateu-core` at compile time.
 
+### Imports: names shared by two packages
+
+Several concepts exist both as an **annotation** and as a **fluent record** — `@Badge` on a field
+and `new Badge(…)` in a component tree — so the same simple name lives in two packages. With two
+star imports the bare name is ambiguous and does not compile. Java's rule settles it: **a
+single-type import always wins over a star import.** Star-import the package you use most and
+import the other type explicitly:
+
+```java
+import io.mateu.uidl.annotations.*;   // @Section, @Toolbar, @Badge…
+import io.mateu.uidl.data.*;
+import io.mateu.uidl.data.Badge;      // the record wins for the bare name `Badge`…
+// …and the annotation is then written qualified: @io.mateu.uidl.annotations.Badge
+```
+
+The shared names (pinned by `NameCollisionsTest` in `mateu-uidl`, so a new one is a reviewed
+decision):
+
+| Packages | Names |
+|---|---|
+| `annotations` / `data` | `Avatar`, `Badge`, `Breadcrumb`, `Breadcrumbs`, `BulletedList`, `Button`, `Details`, `FormLayout`, `Icon`, `KPI`, `Menu`, `Notice`, `RestAction`, `Rule`, `Status`, `Tab`, `Text`, `Tooltip`, `Validation` |
+| `annotations` / `fluent` | `Action`, `Trigger`, `UI` |
+| `annotations` / `interfaces` | `App`, `Filterable`, `Searchable` |
+| `fluent` / `interfaces` | `Listing` (the fluent listing component / the listing contract) |
+| `data` / `interfaces` | `Page` (a page of rows / the routed-page marker) |
+| `data` / `fluent` | `Step` |
+| with `java.util` | `List` (`@List`), `Map`, `Calendar` — with `import java.util.*` also star-imported, import `java.util.List`/`Map` explicitly |
+
 **Not public** — may change in any release, without deprecation:
 
 - anything under `io.mateu.core` other than the archetypes above (mappers, use cases, resolvers,
