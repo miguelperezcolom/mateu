@@ -2,9 +2,7 @@ package io.mateu.core.application.export;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import io.mateu.core.application.MateuService;
 import io.mateu.core.application.runaction.RestSourceRegistry;
 import io.mateu.core.application.runaction.RouteRegistry;
@@ -784,14 +782,10 @@ public final class MateuBundleExporter {
   }
 
   /**
-   * The wire ObjectMapper. MUST stay in sync with {@code io.mateu.SerializationConfiguration}
-   * (mvc-core) — core cannot depend on mvc-core, so this is a deliberate duplicate, pinned by
-   * MateuBundleExporterTest's byte-compat test.
+   * The wire ObjectMapper — {@link io.mateu.core.infra.WireMapper}, the one every adapter uses
+   * (pinned by MateuBundleExporterTest's byte-compat test).
    */
   public static ObjectMapper defaultWireMapper() {
-    return new ObjectMapper()
-        .registerModule(new JavaTimeModule())
-        .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-        .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+    return io.mateu.core.infra.WireMapper.create();
   }
 }

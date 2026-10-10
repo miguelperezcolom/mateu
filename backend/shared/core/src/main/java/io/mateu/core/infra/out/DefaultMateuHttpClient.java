@@ -2,6 +2,7 @@ package io.mateu.core.infra.out;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mateu.core.application.out.MateuHttpClient;
+import io.mateu.core.infra.WireMapper;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIIncrementDto;
 import jakarta.inject.Inject;
@@ -27,9 +28,15 @@ public class DefaultMateuHttpClient implements MateuHttpClient {
           .connectTimeout(Duration.ofSeconds(5))
           .version(HttpClient.Version.HTTP_2)
           .build();
+  // Mateu's own wire mapper, never the application's ObjectMapper bean: the app owns that one and
+  // configures it for its own purposes (and on Boot 4 there may be none on Jackson 2 at all).
   private final ObjectMapper objectMapper;
 
   @Inject
+  public DefaultMateuHttpClient() {
+    this(WireMapper.shared());
+  }
+
   public DefaultMateuHttpClient(ObjectMapper objectMapper) {
     this.objectMapper = objectMapper;
   }
