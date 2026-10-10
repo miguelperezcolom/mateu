@@ -12,7 +12,7 @@ from pydantic import Field
 from .base import Wire
 
 if TYPE_CHECKING:
-    from .fields import RestDataSource
+    from .fields import RestDataSource, RestSourceEntryRecord
     from .records import (
         MenuItem,
         Option,
@@ -75,6 +75,9 @@ class AppMetadata(Wire):
     #: compares them against what it PROVIDES and reports the difference: compatibility by
     #: capability, not by version. Sorted + deduped (mirrors AppDto.requiredCapabilities).
     required_capabilities: list[str] = Field(default_factory=list)
+    #: The app's REST source catalogue (named endpoints surfaces reference by ``ref``), shipped
+    #: once on the app metadata rather than on every response (mirrors AppDto.restSources).
+    rest_sources: list["RestSourceEntryRecord"] = Field(default_factory=list)
 
 
 class AppContextSelector(Wire):

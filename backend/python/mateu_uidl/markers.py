@@ -151,6 +151,9 @@ class RestOptions:
     value_path: str = "value"
     label_path: str = "label"
     proxy: bool = False  #: fetch through the Mateu server (no CORS, ${secret.X} injected server-side)
+    #: the name of a catalogue entry (@rest_source / sources.yaml) to take the endpoint from; the
+    #: values declared here still win over the entry's (Java's @RestOptions(source=…))
+    source: str = ""
 
 
 @dataclass(frozen=True)

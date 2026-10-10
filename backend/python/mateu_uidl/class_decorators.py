@@ -149,35 +149,38 @@ def page_template(page_type: PageType) -> Callable[[type], type]:
 
 
 def rest_listing(
-    url: str,
+    url: str = "",
     method: str = "GET",
     headers: tuple[str, ...] = (),
     body: str = "",
     items_path: str = "",
     proxy: bool = False,
+    source: str = "",
 ) -> Callable[[type], type]:
     """Class-level: fills a listing's ROWS from an arbitrary (non-Mateu) REST endpoint, fetched
     CLIENT-SIDE. The renderer calls ``url`` directly, navigates ``items_path`` to the array in the
     JSON response and maps each item into a row by reading each COLUMN by its field name. Put it on
     a class implementing ``Listing[Row]``; its columns come from the Row type as usual and its
     ``search`` is never called. ``url``/``headers``/``body`` support ``${state.x}`` interpolation
-    (including ``${searchText}``/``${page}``/``${size}``). Python analogue of Java's @RestListing."""
+    (including ``${searchText}``/``${page}``/``${size}``). ``source`` names a catalogue entry instead
+    of an inline url (the values declared here still win). Python analogue of Java's @RestListing."""
 
     def deco(cls: type) -> type:
-        cls.__mateu_rest_listing__ = (url, method, headers, body, items_path, proxy)
+        cls.__mateu_rest_listing__ = (url, method, headers, body, items_path, proxy, source)
         return cls
 
     return deco
 
 
 def rest_action(
-    url: str,
+    url: str = "",
     method: str = "POST",
     headers: tuple[str, ...] = (),
     body: str = "",
     success_message: str = "",
     result_path: str = "",
     proxy: bool = False,
+    source: str = "",
 ) -> Callable[[Callable], Callable]:
     """Method-level: makes a button call an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE instead
     of dispatching to the Mateu server. On click the renderer calls ``url`` directly with the
@@ -188,19 +191,22 @@ def rest_action(
     @RestAction."""
 
     def deco(fn: Callable) -> Callable:
-        fn.__mateu_rest_action__ = (url, method, headers, body, success_message, result_path, proxy)
+        fn.__mateu_rest_action__ = (
+            url, method, headers, body, success_message, result_path, proxy, source
+        )
         return fn
 
     return deco
 
 
 def rest_data(
-    url: str,
+    url: str = "",
     method: str = "GET",
     headers: tuple[str, ...] = (),
     body: str = "",
     result_path: str = "",
     proxy: bool = False,
+    source: str = "",
 ) -> Callable[[type], type]:
     """Class-level: loads a screen's initial data from an arbitrary (non-Mateu) REST endpoint,
     fetched CLIENT-SIDE on entry. When the view mounts the renderer calls ``url`` directly and
@@ -210,7 +216,7 @@ def rest_data(
     analogue of Java's @RestData."""
 
     def deco(cls: type) -> type:
-        cls.__mateu_rest_data__ = (url, method, headers, body, result_path, proxy)
+        cls.__mateu_rest_data__ = (url, method, headers, body, result_path, proxy, source)
         return cls
 
     return deco

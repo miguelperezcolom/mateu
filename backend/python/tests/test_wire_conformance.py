@@ -19,6 +19,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 CORPUS = Path(__file__).resolve().parents[3] / "conformance" / "cases"
 
 from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noqa: E402
+from mateu_core.rest_source_registry import RestSourceRegistry  # noqa: E402
 from mateu_uidl import Section, Timestamp, kpi, overline, subtitle, title, ui  # noqa: E402
 from typing import Annotated  # noqa: E402
 from datetime import date  # noqa: E402
@@ -395,8 +396,28 @@ class CompactPage:
 MODULE = sys.modules[__name__]
 
 #: Values that legitimately differ between servers or between runs. Dropped on both sides rather
-#: than argued about — a corpus that reports noise gets ignored.
-VOLATILE = {"id", "structureHash", "generatedAt", "serverSideType", "targetComponentId"}
+#: than argued about — a corpus that reports noise gets ignored. ``homeServerSideType`` is
+#: ``serverSideType``'s twin on the app metadata: a server's own type name for the home class
+#: (``io.mateu…WireConformanceTest$AppInCode`` vs ``test_wire_conformance.AppInCode``) — the Java
+#: normaliser does not list it yet, so its goldens carry the Java class name; dropping it here is
+#: the same rule applied to the same kind of value, not a waiver.
+VOLATILE = {
+    "id",
+    "structureHash",
+    "generatedAt",
+    "serverSideType",
+    "homeServerSideType",
+    "targetComponentId",
+}
+
+#: The Java harness runs with its test classpath's REST source catalogue
+#: (``backend/shared/core/src/test/resources/specs/ui/sources.yaml``), and every app golden carries
+#: it (``restSources`` + the ``rest-sources`` capability). The Python harness loads THE SAME file —
+#: not a copy — so both servers render the same app under the same catalogue.
+JAVA_HARNESS_SOURCES = (
+    Path(__file__).resolve().parents[3]
+    / "backend" / "shared" / "core" / "src" / "test" / "resources" / "specs" / "ui" / "sources.yaml"
+)
 
 
 def _is_default(value) -> bool:
@@ -427,7 +448,9 @@ def normalise(node):
 
 
 def actual(view_cls) -> dict:
-    handler = SyncHandler(MateuRegistry(MODULE))
+    handler = SyncHandler(
+        MateuRegistry(MODULE), rest_sources=RestSourceRegistry(file=JAVA_HARNESS_SOURCES)
+    )
     inc = handler.handle(RunActionRq(server_side_type=type_name(view_cls)))
     return normalise(inc.model_dump(by_alias=True, mode="json"))
 
@@ -454,12 +477,42 @@ def test_python_renders_a_page_for_every_case(case, view):
     assert rendered.get("fragments"), f"'{case}' produced no fragments"
 
 
-@pytest.mark.parametrize("case,view", CASES)
+#: The ONLY cases allowed to differ from the corpus, each with the precise reason. A case listed
+#: here is xfail(strict=True): the day it starts matching, the suite fails until it is removed from
+#: this list — so the list can only shrink. Any case NOT listed must match, or the suite fails.
+#: Every reason here is a defect of the Java GOLDEN, not of the port (the goldens are regenerated
+#: from Java by another stream; this port does not edit them).
+KNOWN_DIVERGENCES: dict[str, str] = {
+    "dashboard": (
+        "Java golden defect: its component.actions carries 12 entries "
+        "'nested-form-action-notes-variants_{create,create-and-stay,add,select,selected,prev,next,"
+        "save,remove,move-up,move-down,cancel}'. Java's ActionMapper.addNestedFormsActions treats "
+        "the @Panel field `notes` — a fluent io.mateu.uidl.data.Text COMPONENT — as a nested FORM "
+        "and its record component `variants` (a List) as an editable list field, advertising row-"
+        "editing actions for a component that has no rows. The Python port advertises none (the "
+        "field is a component, not a form). Everything else in the case matches."
+    ),
+}
+
+
+def _cases_with_known_divergences():
+    out = []
+    for case, view in CASES:
+        reason = KNOWN_DIVERGENCES.get(case)
+        marks = [pytest.mark.xfail(strict=True, reason=reason)] if reason else []
+        out.append(pytest.param(case, view, marks=marks, id=case))
+    return out
+
+
+def test_the_allow_list_names_only_real_cases():
+    assert set(KNOWN_DIVERGENCES) <= {case for case, _ in CASES}
+
+
+@pytest.mark.parametrize("case,view", _cases_with_known_divergences())
 def test_python_matches_the_corpus(case, view):
     mine, theirs = actual(view), expected(case)
-    if mine != theirs:
-        pytest.xfail(
-            f"'{case}': the Python wire differs from the corpus. That is the corpus doing its job — "
-            f"the divergence is now visible instead of hidden in three separate suites. See "
-            f"conformance/cases/{case}/case.md for what is known."
-        )
+    assert mine == theirs, (
+        f"'{case}': the Python wire differs from the corpus (conformance/cases/{case}). Close the "
+        f"divergence in the port — or, if the Java golden itself is wrong, add the case to "
+        f"KNOWN_DIVERGENCES with the precise reason. Never regenerate a golden to match a port."
+    )

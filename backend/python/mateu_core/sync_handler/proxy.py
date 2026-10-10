@@ -28,7 +28,15 @@ class ProxyHandlerMixin(MixinBase):
         if cls is not None:
             kind = rq.parameters.get("_sourceKind")
             source_id = rq.parameters.get("_sourceId")
-            source = self.mapper.resolve_rest_source(cls, kind, source_id)
+            instance = None
+            if isinstance(cls, type):
+                try:
+                    instance = cls()
+                    self.bind_state(instance, rq.component_state or {})
+                except Exception as e:  # noqa: BLE001 - the annotations still answer
+                    log.warning("__restfetch__: %s could not be instantiated (%s)", cls, e)
+                    instance = None
+            source = self.mapper.resolve_rest_source(cls, kind, source_id, instance)
             if source is not None:
                 json_obj = self._fetch_proxy(source, rq.component_state)
         return UIIncrement(app_data={"_restfetch": json_obj})

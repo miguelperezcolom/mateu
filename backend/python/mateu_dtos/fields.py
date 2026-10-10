@@ -124,6 +124,18 @@ class RestDataSource(Wire):
     proxy: bool = False
 
 
+class RestSourceEntryRecord(Wire):
+    """One named entry of the REST source catalogue on the wire (mirrors
+    ``io.mateu.dtos.RestSourceEntryDto``); ``provenance`` is the EFFECTIVE one (never "auto")."""
+
+    name: str
+    source: RestDataSource
+    fields: dict[str, str] = Field(default_factory=dict)
+    total_path: str | None = None
+    provenance: str | None = None
+    description: str | None = None
+
+
 class NavLinkRecord(Wire):
     """Navigation link on a form field (mirrors ``io.mateu.dtos.NavLinkDto``; "Record" suffix to
     avoid clashing with ``mateu_uidl.NavLink``, like ``GanttTaskRecord``). ``href``/``title``

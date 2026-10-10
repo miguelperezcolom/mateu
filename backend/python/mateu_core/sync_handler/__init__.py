@@ -103,6 +103,7 @@ from ._common import (  # noqa: F401 - the public import path of every helper
     version_field,
     view_fields,
 )
+from ..rest_source_registry import RestSourceRegistry
 from ._base import MixinBase
 from .dispatch import DispatchMixin
 from .wizard import WizardHandlerMixin
@@ -140,11 +141,18 @@ class SyncHandler(
         identity_provider=None,
         secrets_provider=None,
         proxy_timeout_seconds: float = 30.0,
+        rest_sources: RestSourceRegistry | None = None,
     ):
         self.registry = registry
         #: Upper bound for a proxied (__restfetch__) upstream call.
         self.proxy_timeout_seconds = proxy_timeout_seconds
-        self.mapper = ReflectionMapper(translator, identity_provider)
+        #: The REST source catalogue: @rest_source on the registered classes + the
+        #: RestSourceCatalogSupplier classes (derived), specs/ui/sources.yaml on top (authored).
+        self.rest_sources = rest_sources or RestSourceRegistry(
+            classes=getattr(registry, "classes", []),
+            suppliers=getattr(registry, "catalog_suppliers", []),
+        )
+        self.mapper = ReflectionMapper(translator, identity_provider, self.rest_sources)
         #: resolves ${secret.X} for proxy mode; None → same-named env var fallback.
         self._secrets = secrets_provider
         #: The mount's authored route registry: specs/ui/routes.yaml merged OVER the routes

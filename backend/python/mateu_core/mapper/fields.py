@@ -27,6 +27,7 @@ from mateu_dtos import (
     RestDataSource,
 )
 from mateu_uidl import Colspan, DetailForm, Hidden, Max, Min, Pattern, Size
+from mateu_uidl.rest_sources import RestSourceSupplier
 from mateu_uidl import Text as TextMarker
 from mateu_uidl import (
     BulletedList,
@@ -54,6 +55,7 @@ from mateu_uidl import (
 )
 
 from .. import layout_inference
+from ..rest_source_registry import source_dto
 from ..naming import (
     camel_case,
     humanize,
@@ -321,21 +323,27 @@ class FieldMapperMixin(MixinBase):
         return self.client(meta, field_id, [])
 
     @staticmethod
-    def _rest_options(f) -> "RestDataSource | None":
-        """The client-side external options descriptor when the field carries ``RestOptions()``
-        (headers parsed from "Name: Value" strings); None otherwise."""
-        if not f.has(RestOptions):
-            return None
-        a = f.marker(RestOptions)
+    def _headers_of(header_strings) -> dict[str, str]:
         headers: dict[str, str] = {}
-        for h in a.headers:
+        for h in header_strings or ():
             name, sep, value = h.partition(":")
             if sep:
                 headers[name.strip()] = value.strip()
+        return headers
+
+    @staticmethod
+    def _rest_options(f) -> "RestDataSource | None":
+        """The client-side external options descriptor when the field carries ``RestOptions()``
+        (headers parsed from "Name: Value" strings); None otherwise. ``source=`` travels as the
+        ``ref`` the renderer resolves against the catalogue."""
+        if not f.has(RestOptions):
+            return None
+        a = f.marker(RestOptions)
         return RestDataSource(
+            ref=a.source or None,
             url=a.url,
             method=a.method,
-            headers=headers,
+            headers=FieldMapperMixin._headers_of(a.headers),
             body=a.body,
             items_path=a.items_path,
             value_path=a.value_path,
@@ -351,14 +359,15 @@ class FieldMapperMixin(MixinBase):
         spec = getattr(cls, "__mateu_rest_listing__", None)
         if spec is None:
             return None
-        url, method, header_strings, body, items_path, proxy = spec
-        headers: dict[str, str] = {}
-        for h in header_strings:
-            name, sep, value = h.partition(":")
-            if sep:
-                headers[name.strip()] = value.strip()
+        url, method, header_strings, body, items_path, proxy, *rest = spec
         return RestDataSource(
-            url=url, method=method, headers=headers, body=body, items_path=items_path, proxy=proxy
+            ref=(rest[0] if rest else "") or None,
+            url=url or None,
+            method=method,
+            headers=FieldMapperMixin._headers_of(header_strings),
+            body=body,
+            items_path=items_path,
+            proxy=proxy,
         )
 
     @staticmethod
@@ -369,14 +378,16 @@ class FieldMapperMixin(MixinBase):
         spec = getattr(fn, "__mateu_rest_action__", None)
         if spec is None:
             return None
-        url, method, header_strings, body, success_message, result_path, proxy = spec
-        headers: dict[str, str] = {}
-        for h in header_strings:
-            name, sep, value = h.partition(":")
-            if sep:
-                headers[name.strip()] = value.strip()
+        url, method, header_strings, body, success_message, result_path, proxy, *rest = spec
         return RestAction(
-            source=RestDataSource(url=url, method=method, headers=headers, body=body, proxy=proxy),
+            source=RestDataSource(
+                ref=(rest[0] if rest else "") or None,
+                url=url or None,
+                method=method,
+                headers=FieldMapperMixin._headers_of(header_strings),
+                body=body,
+                proxy=proxy,
+            ),
             success_message=success_message or None,
             result_path=result_path or None,
         )
@@ -389,63 +400,71 @@ class FieldMapperMixin(MixinBase):
         spec = getattr(cls, "__mateu_rest_data__", None)
         if spec is None:
             return None
-        url, method, header_strings, body, result_path, proxy = spec
-        headers: dict[str, str] = {}
-        for h in header_strings:
-            name, sep, value = h.partition(":")
-            if sep:
-                headers[name.strip()] = value.strip()
+        url, method, header_strings, body, result_path, proxy, *rest = spec
         return RestAction(
-            source=RestDataSource(url=url, method=method, headers=headers, body=body, proxy=proxy),
+            source=RestDataSource(
+                ref=(rest[0] if rest else "") or None,
+                url=url or None,
+                method=method,
+                headers=FieldMapperMixin._headers_of(header_strings),
+                body=body,
+                proxy=proxy,
+            ),
             success_message=None,
             result_path=result_path,
         )
 
-    @staticmethod
-    def _has_proxy_source(cls) -> bool:
-        """True when the view declares at least one proxy-mode REST source (proxy=True on a field
-        ``RestOptions()``, a method ``@rest_action``, or the class ``@rest_listing``/``@rest_data``).
-        Gates advertising the ``__restfetch__`` action so only proxy views carry it."""
-        listing = getattr(cls, "__mateu_rest_listing__", None)
-        if listing is not None and listing[5]:
-            return True
-        data = getattr(cls, "__mateu_rest_data__", None)
-        if data is not None and data[5]:
-            return True
+    def _declared_sources(self, cls, instance=None) -> list[tuple[str, str, "RestDataSource"]]:
+        """``(kind, id, descriptor)`` for every REST source the view declares: what a
+        ``RestSourceSupplier`` instance says first, then the annotations."""
+        out: list[tuple[str, str, RestDataSource]] = []
+        if isinstance(instance, RestSourceSupplier):
+            for d in instance.declared_rest_sources() or []:
+                if d is not None and d.source is not None:
+                    out.append((d.kind.value, d.id or "", source_dto(d.source)))
+        listing = self._rest_listing(cls)
+        if listing is not None:
+            out.append(("rows", "", listing))
+        data = self._rest_data(cls)
+        if data is not None:
+            out.append(("data", "", data.source))
         for f in view_fields(cls):
-            if f.has(RestOptions) and f.marker(RestOptions).proxy:
-                return True
+            options = self._rest_options(f)
+            if options is not None:
+                out.append(("options", camel_case(f.name), options))
         for klass in cls.__mro__:
-            for m in vars(klass).values():
-                spec = getattr(m, "__mateu_rest_action__", None)
-                if spec is not None and spec[6]:
-                    return True
-        return False
+            for name, m in vars(klass).items():
+                action = self._rest_action(m) if callable(m) else None
+                if action is not None:
+                    out.append(("action", name, action.source))
+        return out
 
-    def resolve_rest_source(self, cls, kind, id) -> "RestDataSource | None":
-        """Resolve the DECLARED source of a view for a proxy fetch — from the field
-        (``RestOptions``), the class (``@rest_listing``/``@rest_data``) or the method
-        (``@rest_action``), never from a client-supplied url (so the proxy can't be turned into an
-        open relay). Used by the ``__restfetch__`` reserved action."""
-        if kind == "options":
-            for f in view_fields(cls):
-                if camel_case(f.name) == id and f.has(RestOptions):
-                    return self._rest_options(f)
-            return None
-        if kind == "rows":
-            return self._rest_listing(cls)
-        if kind == "action":
-            for klass in cls.__mro__:
-                for name, m in vars(klass).items():
-                    if (name == id or camel_case(name) == id) and getattr(
-                        m, "__mateu_rest_action__", None
-                    ) is not None:
-                        r = self._rest_action(m)
-                        return r.source if r else None
-            return None
-        if kind == "data":
-            r = self._rest_data(cls)
-            return r.source if r is not None else None
+    def _resolved(self, source: "RestDataSource | None") -> "RestDataSource | None":
+        """A by-reference descriptor filled in from the catalogue (the surface's values win)."""
+        if source is None or self.rest_sources is None:
+            return source
+        return self.rest_sources.resolve(source)
+
+    def _has_proxy_source(self, cls, instance=None) -> bool:
+        """True when the view declares at least one proxy-mode REST source — read off the RESOLVED
+        source, so a surface naming a proxied catalogue entry by ``ref`` counts too (Java's
+        ``RestDataSupport.hasProxySource``). Gates advertising the ``__restfetch__`` action."""
+        return any(
+            (resolved := self._resolved(src)) is not None and resolved.proxy
+            for _, _, src in self._declared_sources(cls, instance)
+        )
+
+    def resolve_rest_source(self, cls, kind, id, instance=None) -> "RestDataSource | None":
+        """Resolve the DECLARED source of a view for a proxy fetch — what a ``RestSourceSupplier``
+        view declares, else the field (``RestOptions``), the class (``@rest_listing``/
+        ``@rest_data``) or the method (``@rest_action``) — with a catalogue reference resolved on
+        the SERVER, never from a client-supplied url (so the proxy can't be turned into an open
+        relay). Used by the ``__restfetch__`` reserved action."""
+        for k, i, src in self._declared_sources(cls, instance):
+            if k != kind:
+                continue
+            if kind in ("rows", "data") or i == id or camel_case(i) == id:
+                return self._resolved(src)
         return None
 
     def link_of(self, f, instance) -> NavLinkRecord | None:

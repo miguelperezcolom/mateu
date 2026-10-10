@@ -33,6 +33,7 @@ from .fields import (  # noqa: F401
     PairRecord,
     RemoteCoordinates,
     RestDataSource,
+    RestSourceEntryRecord,
 )
 from .basic import (  # noqa: F401
     AccordionLayoutMetadata,

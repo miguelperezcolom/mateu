@@ -221,9 +221,27 @@ from .constraints import (  # noqa: F401
     ValidationSupplier,
     validation,
 )
+from .rest_sources import (  # noqa: F401
+    DeclaredRestSource,
+    RestDataSource,
+    RestSourceCatalogSupplier,
+    RestSourceEntry,
+    RestSourceKind,
+    RestSourceProvenance,
+    RestSourceSupplier,
+    rest_source,
+)
 
 
 __all__ = [
+    "DeclaredRestSource",
+    "RestDataSource",
+    "RestSourceCatalogSupplier",
+    "RestSourceEntry",
+    "RestSourceKind",
+    "RestSourceProvenance",
+    "RestSourceSupplier",
+    "rest_source",
     "Colspan",
     "DetailForm",
     "Max",

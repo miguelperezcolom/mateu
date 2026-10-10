@@ -29,6 +29,12 @@ class MateuRegistry:
         # already flattened to absolute entries. Fed to the RouteRegistry as the code-authored half
         # (routes.yaml wins over them). Mirrors .NET's MateuRegistry.SuppliedRoutes.
         self.supplied_routes: list = []
+        #: Every class found among the sources (they may carry @rest_source / @business_component
+        #: declarations, which belong to the app whatever class they sit on).
+        self.classes: list[type] = []
+        #: RestSourceCatalogSupplier subclasses found among the sources (the code-authored half of
+        #: the REST source catalogue; instantiated with no arguments, the port's idiom).
+        self.catalog_suppliers: list[type] = []
         for src in sources:
             if isinstance(src, ModuleType):
                 for _, cls in inspect.getmembers(src, inspect.isclass):
@@ -37,6 +43,9 @@ class MateuRegistry:
                 self._register(src)
 
     def _register(self, cls: type) -> None:
+        if cls not in self.classes:
+            self.classes.append(cls)
+        self._register_catalog_supplier(cls)
         if "__mateu_app__" in cls.__dict__:
             self.app_type = cls
             self._by_name[type_name(cls)] = cls
@@ -62,6 +71,17 @@ class MateuRegistry:
                 self.supplied_routes.extend(flatten(entries))
         except Exception as e:  # noqa: BLE001 - logged, not fatal
             _log.warning("_register_route_supplier failed, falling back (%s)", e)
+
+    def _register_catalog_supplier(self, cls: type) -> None:
+        from mateu_uidl.rest_sources import RestSourceCatalogSupplier
+
+        if (
+            isinstance(cls, type)
+            and issubclass(cls, RestSourceCatalogSupplier)
+            and cls is not RestSourceCatalogSupplier
+            and cls not in self.catalog_suppliers
+        ):
+            self.catalog_suppliers.append(cls)
 
     def resolve(self, server_side_type: str | None, route: str | None) -> type | None:
         if server_side_type and server_side_type in self._by_name:

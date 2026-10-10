@@ -156,6 +156,8 @@ class AppMapperMixin(MixinBase):
             # rest-sources are not carried by this port at build time (app_data_source is applied
             # post-hoc by the sync handler; there is no rest-source catalogue here), matching the
             # 🟡 matrix. Sorted + deduped so the wire is stable (mirrors AppMapper).
+            # the catalogue rides the app metadata once (surfaces carry only the names)
+            rest_sources=self.rest_sources.wire() if self.rest_sources is not None else [],
             required_capabilities=self._required_capabilities(
                 cls,
                 sse_url=sse_url,
@@ -250,6 +252,8 @@ class AppMapperMixin(MixinBase):
             caps.add(capabilities.GLOBAL_SEARCH)
         if notifications_enabled:
             caps.add(capabilities.NOTIFICATIONS)
+        if self.rest_sources is not None and self.rest_sources.catalog():
+            caps.add(capabilities.REST_SOURCES)
         if context_selectors:
             caps.add(capabilities.CONTEXT_SELECTORS)
         if context_actions:

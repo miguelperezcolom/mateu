@@ -207,7 +207,7 @@ class ViewMapperMixin(MixinBase):
         # Proxy mode (RestOptions/rest_listing/rest_action/rest_data with proxy=True): advertise the
         # reserved __restfetch__ action so the renderer can route the fetch through the server (which
         # resolves the DECLARED source, injects ${secret.X} and fetches server-side).
-        if self._has_proxy_source(cls):
+        if self._has_proxy_source(cls, instance):
             actions = list(actions) + [Action(id="__restfetch__")]
         return ServerSideComponent(
             id=_id(),
