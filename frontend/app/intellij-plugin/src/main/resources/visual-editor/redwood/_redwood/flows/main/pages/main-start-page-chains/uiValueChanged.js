@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","resources/js/mateu-bridge"],(ActionChain,bridge)=>{"use strict";return class extends ActionChain{async run(context,{key,value}){const{$application}=context;if(key){bridge.setUiValue(key,value);const next=bridge.reprojectedContentOf($application.variables);next.hostContent&&($application.variables.mateuHostContent=next.hostContent,bridge.mountElementsSoon(bridge.elementAtomsOf(next.hostContent))),next.island&&($application.variables.mateuIsland=next.island)}}};});
+//# sourceMappingURL=uiValueChanged.js.map
