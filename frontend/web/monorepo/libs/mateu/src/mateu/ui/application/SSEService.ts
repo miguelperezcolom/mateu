@@ -21,9 +21,9 @@ export class SSEService implements Service {
         //throw new Error('oops')
         //console.log(actionId)
 
-        if (!route) {
-            return
-        }
+        // An empty route is the root view of a mount: it streams to /mateu/v3/sse/_no_route, the
+        // same placeholder the sync path uses. It used to return here, so a LongTask on the root
+        // view of a mount silently did nothing.
         if (true || 'server-action' == actionId) {
             // const evtSource = new EventSource("/sse");
             // evtSource.onmessage = (event) => {
