@@ -279,6 +279,7 @@ export default defineConfig({
 								{ slug: 'java-user-manual/build/orders-customers-order-lines' },
 								{ slug: 'java-user-manual/build/derived-openapi' },
 								{ slug: 'java-user-manual/build/static-bundle' },
+								{ slug: 'java-user-manual/build/deploy-to-production', label: 'Deploy to production' },
 								{ slug: 'java-user-manual/build/static-ui' },
 							],
 						},
@@ -391,6 +392,8 @@ export default defineConfig({
 						{ slug: 'reference/useful-types' },
 						{ slug: 'reference/language-rosetta', label: 'Language Rosetta (Java/C#/Python)' },
 						{ slug: 'reference/parity', label: 'Feature parity matrix' },
+						{ slug: 'reference/stability-and-versioning', label: 'Stability & versioning' },
+						{ slug: 'reference/migrating-from-alpha', label: 'Migrating from alpha' },
 					],
 				},
 				{
