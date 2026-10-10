@@ -1,1 +1,0 @@
-import{n as e}from"./vaadinCanvasRenderer-CDfTpkOB.js";export{e as renderMarkdownToElement};
