@@ -12,7 +12,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * normally (and exposes the same manifest at {@code GET /mateu/v3/bundle}); the static bundle needs
  * no server at all.
  */
-@SpringBootApplication(scanBasePackages = "io.mateu")
+@SpringBootApplication(scanBasePackages = "io.mateu.demo")
 public class Starwars6Application {
 
   public static void main(String[] args) {

@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * /mateu/v3/bundle} (the runtime endpoint, no build step); {@code mvn -Pbundle package} produces the
  * same bundle as a static site under {@code target/mateu-bundle/}. See README.md.
  */
-@SpringBootApplication(scanBasePackages = "io.mateu")
+@SpringBootApplication(scanBasePackages = "io.mateu.demo")
 public class StaticBundleDemoApplication {
 
   public static void main(String[] args) {

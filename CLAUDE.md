@@ -402,8 +402,12 @@ Nine work streams were integrated on `integration/ga` for the first beta/GA. The
   discovered; quarkus-spring-di was dropped — apps must declare `quarkus-rest-jackson`). The Spring bean
   is `mateuObjectMapper`. `io.mateu:mateu-bom` imports every Mateu artifact at one version
   (`MateuBomCompletenessTest`); annotation processors go on the processor path only and declare
-  themselves Gradle-incremental. mvc-core test apps live in `com.example.*` (the generated config scans
-  all of `io.mateu`).
+  themselves Gradle-incremental. mvc-core test apps live in `com.example.*`. **Spring scan (2026-10-10)**:
+  Mateu's beans come from `io.mateu.MateuAutoConfiguration` (mvc-core/webflux-core, registered in
+  `AutoConfiguration.imports`) which scans `io.mateu` EXCLUDING every sub-package but `core`, `export`
+  and `agent.cli` (regex filter) — a third-party library under `io.mateu.*` is not swept in; the
+  generated `…Config` no longer component-scans; apps must NOT put `io.mateu` in `scanBasePackages`
+  (pinned by `MateuComponentScanTest` in both Spring adapters). CDI/Micronaut never scanned by package.
 - **Web client (libs/mateu).** `infra/ui/expression.ts` is the ONLY expression evaluator (sandboxed,
   CSP-safe — no `new Function`); `runJs.ts` is the only `new Function`, behind an opt-in
   (`<meta name="mateu-allow-run-js" content="true">` / `configureRunJs(true)`; RunJS is OFF by

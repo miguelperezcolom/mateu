@@ -61,6 +61,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   `HttpContext.User`. A field hidden by `@EyesOnly` is also left out of the component state.
 - **`mateu.*` settings are read from the framework's configuration** (`application.properties`/`.yml`,
   MicroProfile Config) as well as system properties and environment variables.
+- **Spring: no more component scan of all `io.mateu`.** The generated configuration used to scan
+  the whole package, pulling in the beans of any third-party library living under `io.mateu.*`
+  (e.g. a workflow engine's own UI). Mateu's beans now come from the adapter's auto-configuration,
+  which scans only Mateu's packages. Apps no longer need `scanBasePackages = "io.mateu"` — drop it
+  (and scan your own packages if your code lives under `io.mateu.*`).
 - **CORS is off by default** on every adapter; allow origins with `mateu.cors.allowed-origins`.
 - **The MCP endpoint is off by default**; `mateu.mcp.enabled=true`.
 - **`${secret.X}`** falls back only to the env var `MATEU_SECRET_X` (Java, .NET, Python).
