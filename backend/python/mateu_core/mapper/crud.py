@@ -72,6 +72,7 @@ from ._common import (
     enum_label,
     enum_set_element_type,
     is_enum,
+    value_labels_of,
     listing_types,
 )
 
@@ -143,6 +144,7 @@ class CrudMapperMixin(MixinBase):
                 tooltip_path=self.tooltip_path_of(f),
             ), f)))
         # Crud.display() (CrudDisplay): New / Delete on | off | disabled — a disabled affordance
+                value_labels=value_labels_of(f.type),
         # travels as a disabled button, an off one does not travel (Java's ListRouteResolver).
         display = self._crud_display(cls, instance)
         toolbar = []
@@ -397,6 +399,7 @@ class CrudMapperMixin(MixinBase):
         if rows_clickable:
             actions.append(Action(id="view", validation_required=False))
         if editable:
+                value_labels=value_labels_of(f.type),
             actions.append(Action(id="edit", validation_required=False))
             actions.append(Action(id="save"))
             actions.append(Action(id="cancel-edit", validation_required=False))

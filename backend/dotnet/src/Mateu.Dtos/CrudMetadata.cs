@@ -122,3 +122,9 @@ public record GridColumnMetaDto(string Id, string Label)
 }
 
 public record TriggerDto(string Type, string ActionId);
+
+    /// <summary>What each raw value of the column reads as — an enum column's labels ([Label], else
+    /// the humanized name), the same as its options. Display only: rows keep the raw value. Omitted
+    /// for any other column. (Mirrors GridColumnDto.valueLabels.)</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyDictionary<string, string>? ValueLabels { get; init; }

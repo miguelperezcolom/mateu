@@ -5,8 +5,9 @@ import { StatusType } from "@mateu/shared/apiClients/dtos/componentmetadata/Stat
 export const renderStatusCell = (item: any,
                                  _model: GridItemModel<any>,
                                  column: VaadinGridColumn,
-                                 tones?: Record<string, string> | null) => {
-    const status = toStatus(item[column.path!], tones)
+                                 tones?: Record<string, string> | null,
+                                 valueLabels?: Record<string, string> | null) => {
+    const status = toStatus(item[column.path!], tones, valueLabels)
     return status?html`<span theme="badge pill ${getThemeForBadgetType(status.type)}">${status.message}</span>`:html``
 }
 
@@ -25,10 +26,18 @@ const DANGER_WORDS = new Set(['FAILED', 'TERMINATED', 'ERROR', 'DELETED', 'STOPP
  * plain word (`"AVAILABLE"`), which used to paint an EMPTY badge — the static-UI case, where nobody
  * maps the API's response. A plain word is shown as is, with the badge its usual meaning gives it.
  */
-export const toStatus = (value: unknown, tones?: Record<string, string> | null): { type: StatusType, message: string } | undefined => {
+export const toStatus = (value: unknown, tones?: Record<string, string> | null,
+                         valueLabels?: Record<string, string> | null): { type: StatusType, message: string } | undefined => {
     if (value === null || value === undefined || value === '') return undefined
     if (typeof value === 'object') return value as { type: StatusType, message: string }
-    const message = String(value)
+    const raw = String(value)
+    // the tone is picked by the RAW value; the badge reads as the column's label for it (an enum's)
+    const status = toRawStatus(raw, tones)
+    const label = valueLabels ? valueLabels[raw] : undefined
+    return label !== undefined && label !== null ? { ...status, message: label } : status
+}
+
+const toRawStatus = (message: string, tones?: Record<string, string> | null): { type: StatusType, message: string } => {
     // A declared tone for this VALUE (a field type's `tones: {OPEN: warning}`) wins over the word.
     const declared = tones ? (tones[message] ?? tones[message.trim().toUpperCase()]) : undefined
     const toned = declared ? statusTypeOfTone(declared) : undefined

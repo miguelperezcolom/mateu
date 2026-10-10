@@ -110,6 +110,7 @@ public sealed partial class ReflectionMapper
                 CaptionPath = CaptionPathOf(p),
                 LeadingPath = LeadingPathOf(p),
                 TooltipPath = TooltipPathOf(p),
+                ValueLabels = ValueLabelsOf(p),
             }))
             .Select(c => WithFieldType(c, row))
             .ToList();
@@ -248,6 +249,7 @@ public sealed partial class ReflectionMapper
                     ActionId = rowsClickable && index == 0 ? "view" : null,
                 });
             })
+                    ValueLabels = ValueLabelsOf(p),
             .Select(c => WithFieldType(c, element))
             .ToList();
         var toolbar = new List<ButtonDto>();
@@ -352,6 +354,7 @@ public sealed partial class ReflectionMapper
             .ToList();
         var toolbar = new List<ButtonDto>();
         var actions = new List<ActionDto> { new("search") };
+                ValueLabels = ValueLabelsOf(p),
         AddExportButtons(instance, toolbar, actions);
         if (rowsClickable) actions.Add(new ActionDto("view", ValidationRequired: false));
         if (profile.CanCreate)
@@ -555,6 +558,14 @@ public sealed partial class ReflectionMapper
     internal static bool IsNumeric(Type t) =>
         t == typeof(byte) || t == typeof(short) || t == typeof(int) || t == typeof(long)
         || t == typeof(float) || t == typeof(double) || t == typeof(decimal);
+    /// <summary>An enum column's cell labels (member name → EnumLabel), null for any other type —
+    /// display only, the rows keep the raw name (Java: GridColumnBuilder.getValueLabels).</summary>
+    private static Dictionary<string, string>? ValueLabelsOf(PropertyInfo p)
+    {
+        var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
+        return t.IsEnum ? Enum.GetNames(t).ToDictionary(n => n, n => EnumLabel(t, n)) : null;
+    }
+
 
     internal static bool IsTemporal(Type t) => t == typeof(DateOnly) || t == typeof(DateTime);
 
@@ -615,6 +626,7 @@ public sealed partial class ReflectionMapper
             {
                 DataType = "string",
                 Stereotype = "button",
+                    ValueLabels = ValueLabelsOf(c),
                 Text = "Edit",
                 ActionId = fieldId + "_select",
                 Width = "3rem",

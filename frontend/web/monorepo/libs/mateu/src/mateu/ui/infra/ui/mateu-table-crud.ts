@@ -30,6 +30,7 @@ import {
 } from "@infra/ui/layout/weightEngine.ts";
 import { badge } from "@infra/ui/badgeStyles.ts";
 import { getThemeForBadgetType, toStatus } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
+import { valueLabel } from "@infra/ui/renderers/columnRenderers/valueLabel.ts";
 import { onActivate } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
 import { isBackButton, isNavButton } from '@infra/ui/toolbarButtonKinds.ts';
@@ -1024,13 +1025,13 @@ export class MateuTableCrud extends LitElement {
             const val = item[col.id]
             if (val === null || val === undefined) return html``
             if (col.dataType === 'status') {
-                const status = toStatus(val, col.tones)!
+                const status = toStatus(val, col.tones, col.valueLabels)!
                 const theme = getThemeForBadgetType(status.type)
                 return html`<span theme="badge pill ${theme}">${status.message}</span>`
             }
             if (col.dataType === 'bool') return html`${val ? '✓' : '✗'}`
             if (typeof val === 'object') return html`${val.label ?? val.name ?? val.message ?? ''}`
-            return html`${val}`
+            return html`${valueLabel(val, col.valueLabels)}`
         }
 
         const renderTwoLineList = () => {
@@ -1100,7 +1101,7 @@ export class MateuTableCrud extends LitElement {
                             })}"
                             style="cursor: pointer;"
                         >
-                            <div style="font-weight: 600;">${idCol ? item[idCol.id] ?? '' : ''}</div>
+                            <div style="font-weight: 600;">${idCol ? valueLabel(item[idCol.id], idCol.valueLabels) ?? '' : ''}</div>
                             <div style="font-size: var(--lumo-font-size-s); color: var(--lumo-secondary-text-color); display: flex; flex-wrap: wrap; gap: var(--lumo-space-xs); align-items: center;">
                                 ${secCols.map(c => html`<span>${c.label}: ${formatListValue(c, item)}</span>`)}
                             </div>
@@ -1231,7 +1232,7 @@ export class MateuTableCrud extends LitElement {
                                     @click="${() => { this.selectedItem = item }}" @keydown="${onActivate(() => { this.selectedItem = item })}"
                                     style="cursor: pointer;"
                                 >
-                                    <div style="font-weight: 600;">${idCol ? item[idCol.id] ?? '' : ''}</div>
+                                    <div style="font-weight: 600;">${idCol ? valueLabel(item[idCol.id], idCol.valueLabels) ?? '' : ''}</div>
                                     <div style="font-size: var(--lumo-font-size-s); color: var(--lumo-secondary-text-color); display: flex; flex-wrap: wrap; gap: var(--lumo-space-xs); align-items: center;">
                                         ${secCols.map(c => html`${formatListValue(c, item)} `)}
                                     </div>

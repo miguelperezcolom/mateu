@@ -22,6 +22,14 @@ public class ViewRouteResolver implements CrudOrchestratorRouteResolver {
 
   @Override
   public OrchestrationResult resolve(String route, HttpRequest httpRequest, Crud orchestrator) {
+    // A crud that offers no record page (@NotNavigable, or a capability listing that is not
+    // Navigable) must not serve one to a typed / bookmarked URL either: hiding the row link is UX,
+    // this is the rule. The route answers the standard not-found page.
+    if (io.mateu.core.infra.reflection.MetaAnnotations.isPresent(
+            orchestrator.metadataSource(), io.mateu.uidl.annotations.NotNavigable.class)
+        || !orchestrator.canView()) {
+      throw new java.util.NoSuchElementException();
+    }
     // This is the catch-all resolver (supports() == true), so guard the id extraction: only strip
     // the consumedRoute prefix when the route actually lives under it (route = consumedRoute/{id});
     // otherwise take the last path segment. Prevents a StringIndexOutOfBoundsException when a route

@@ -31,4 +31,40 @@ public class EnumLabelTests
         Assert.Contains("\"Label\":\"Room 1\"", json);
         Assert.DoesNotContain("\"Label\":\"CHECK_OUT\"", json);
     }
+
+    [Fact]
+    public void An_enum_column_carries_its_value_labels_while_rows_keep_the_raw_value()
+    {
+        var handler = new SyncHandler(new MateuRegistry(typeof(EnumLabelStays).Assembly));
+        var load = JsonSerializer.Serialize(handler.Handle(new RunActionRqDto
+        {
+            Route = "/enum-label-stays", ServerSideType = typeof(EnumLabelStays).FullName,
+        }));
+        Assert.Contains("\"ValueLabels\":{", load);
+        Assert.Contains("\"EXTEND_ONE_NIGHT\":\"Extend one night\"", load);
+        Assert.Contains("\"NoShow\":\"No-show\"", load);
+
+        var search = JsonSerializer.Serialize(handler.Handle(new RunActionRqDto
+        {
+            Route = "/enum-label-stays", ActionId = "search",
+            ServerSideType = typeof(EnumLabelStays).FullName, InitiatorComponentId = "ux_list",
+        }));
+        Assert.Contains("CHECK_OUT", search);
+    }
+}
+
+public class EnumLabelStay
+{
+    public string Id { get; set; } = "";
+    public string Guest { get; set; } = "";
+    public EnumLabelDeparture Departure { get; set; }
+}
+
+[UI("enum-label-stays"), Title("Stays")]
+public class EnumLabelStays : Crud<EnumLabelStay>
+{
+    public override IEnumerable<EnumLabelStay> Fetch(string? search) =>
+        [new() { Id = "1", Guest = "Ada", Departure = EnumLabelDeparture.CHECK_OUT }];
+
+    public override void Save(EnumLabelStay entity) { }
 }

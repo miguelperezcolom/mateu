@@ -151,6 +151,8 @@ final class ListingColumnBuilder {
         .editable(editable)
         .editorType(editable ? GridColumnBuilder.getEditorType(field) : null)
         .editorOptions(editable ? GridColumnBuilder.getEditorOptions(field) : null)
+        // an enum column's cells read as its labels ("In house"), not the raw constant
+        .valueLabels(GridColumnBuilder.getValueLabels(field))
         .aggregate(
             MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Aggregate.class)
                 ? MetaAnnotations.find(field, io.mateu.uidl.annotations.Aggregate.class)

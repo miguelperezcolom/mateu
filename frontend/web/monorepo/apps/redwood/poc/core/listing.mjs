@@ -167,6 +167,10 @@ export function listingBaseOf(ctx, opts = {}) {
         def.field = c.id + CLIP_CELL_SUFFIX
         def.template = 'cellClip'
       }
+      // un enum se lee por su etiqueta («In house», no IN_HOUSE): la celda lee <id>__labelCell
+      if (!def.template && labelColumn(c)) {
+        def.field = c.id + LABEL_CELL_SUFFIX
+      }
       return def
     }).concat(lines.extra.length ? [ROW_LINES_COLUMN] : []),
     // nº de líneas extra (0 = listado normal) y la clase de la tabla que les hace sitio
@@ -196,7 +200,7 @@ export function listingBaseOf(ctx, opts = {}) {
       .filter((a) => a.rowsSelectedRequired).map((a) => a.id),
     // @RowStatus: cada fila lleva su tono (_tone) — lo pinta tables.mjs sobre los tr del oj-table;
     // @GroupBy: filas de grupo intercaladas (valor (n) + subtotales), sólo presentación
-    rows: groupedRows(toneRows(rowLinesRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), lines.extra), md.rowStatusField), md, (ctx.data || {}).crud),
+    rows: groupedRows(toneRows(rowLinesRows(labelCellRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), md.columns || []), lines.extra), md.rowStatusField), md, (ctx.data || {}).crud),
     // @Aggregate: los totales del conjunto filtrado, por columna (pie del oj-table)
     totals: aggregateFootersOf(md, (ctx.data || {}).crud),
     hasTotals: !!aggregateFootersOf(md, (ctx.data || {}).crud),
@@ -309,7 +313,7 @@ export function listingSearchStateOf(hostState, opts = {}) {
  */
 export function listingSortOf(detail, sortFields) {
   if (!detail || !detail.header) return []
-  const key = String(detail.header).replace(new RegExp('(' + UUID_CELL_SUFFIX + '|' + PRIMARY_CELL_SUFFIX + '|' + CLIP_CELL_SUFFIX + ')$'), '')
+  const key = String(detail.header).replace(new RegExp('(' + UUID_CELL_SUFFIX + '|' + PRIMARY_CELL_SUFFIX + '|' + CLIP_CELL_SUFFIX + '|' + LABEL_CELL_SUFFIX + ')$'), '')
   const field = (sortFields && sortFields[key]) || key
   const direction = detail.direction === 'descending' ? 'descending' : 'ascending'
   return [{ field, direction }]
@@ -337,22 +341,28 @@ export function selectedRowsOf(rows, selection) {
   const picked = selection.all
     ? (rows || []).filter((r) => selection.except.indexOf(r._rowNumber) < 0)
     : (rows || []).filter((r) => selection.keys.indexOf(r._rowNumber) >= 0)
-  return picked.map((row) => {
-    const out = {}
-    for (const key of Object.keys(row)) {
-      const value = row[key]
-      if (key.endsWith(UUID_CELL_SUFFIX) || key.endsWith(CLIP_CELL_SUFFIX)) {
-        continue
-      }
-      if (value && typeof value === 'object' && !Array.isArray(value) && 'badgeClass' in value) {
-        const { badgeClass, ...rest } = value
-        out[key] = rest.plain ? rest.message : rest
-      } else {
-        out[key] = value
-      }
+  return picked.map(rowAsArrived)
+}
+
+/** A table row as the server sent it: without the cells precomputed for the templates (the
+ *  abbreviated UUID, the clipped text, an enum's label) and with a plain status word back in place
+ *  of its badge — what a row click ("view") and a selection hand back to the server. */
+export function rowAsArrived(row) {
+  if (!row || typeof row !== 'object') return row
+  const out = {}
+  for (const key of Object.keys(row)) {
+    const value = row[key]
+    if (key.endsWith(UUID_CELL_SUFFIX) || key.endsWith(CLIP_CELL_SUFFIX) || key.endsWith(LABEL_CELL_SUFFIX)) {
+      continue
     }
-    return out
-  })
+    if (value && typeof value === 'object' && !Array.isArray(value) && 'badgeClass' in value) {
+      const { badgeClass, ...rest } = value
+      out[key] = rest.plain ? (rest.raw !== undefined ? rest.raw : rest.message) : rest
+    } else {
+      out[key] = value
+    }
+  }
+  return out
 }
 
 /** El componentState de una acción del host de un listado con selección: lleva las filas
@@ -487,6 +497,40 @@ export const CLIP_CELL_SUFFIX = '__clipCell'
 
 /** El ancho que el wire pide para una columna (GridColumn.width / flexGrow), en las claves de
  *  oj-table: width (y, si no crece — flexGrow "0" —, minWidth = maxWidth = width). Sin width, {}. */
+/** The cell of a column that declares labels for its values (GridColumn.valueLabels — an enum's:
+ *  IN_HOUSE → "In house", what its form options say). The row keeps the RAW value (sorting,
+ *  filtering, selection and editing work on it); the cell reads <id>__labelCell. */
+export const LABEL_CELL_SUFFIX = '__labelCell'
+
+/** What a cell shows for a raw value: the column's label for it, or the value itself. */
+export function valueLabelOf(c, value) {
+  const labels = c && c.valueLabels
+  if (!labels || value == null || typeof value === 'object') return value
+  const label = labels[String(value)]
+  return label != null ? label : value
+}
+
+/** Whether a (non-status, non-editable) column reads its values through their labels. */
+export function labelColumn(c) {
+  return !!(c && c.valueLabels && Object.keys(c.valueLabels).length) && !c.editable
+    && c.dataType !== 'status' && c.dataType !== 'actionGroup' && c.stereotype !== 'primary'
+}
+
+/** A cada columna con etiquetas se le añade <id>__labelCell = el texto que pinta la celda (CSP de
+ *  VB: la plantilla no puede buscar en un mapa). La fila queda intacta. */
+export function labelCellRows(rows, columns) {
+  const cols = (columns || []).map((c) => c.metadata || c).filter(labelColumn)
+  if (!cols.length) return rows
+  return rows.map((row) => {
+    const out = { ...row }
+    for (const c of cols) {
+      const shown = valueLabelOf(c, row[c.id])
+      out[c.id + LABEL_CELL_SUFFIX] = shown == null ? '' : String(shown)
+    }
+    return out
+  })
+}
+
 export function columnWidthOf(c) {
   const width = c && typeof c.width === 'string' ? c.width.trim() : (c && typeof c.width === 'number' ? c.width + 'px' : '')
   if (!width || width === 'auto') return {}
@@ -511,7 +555,7 @@ export function clipCellRows(rows, columns) {
   return rows.map((row) => {
     const out = { ...row }
     for (const c of cols) {
-      const shown = text(row[c.id])
+      const shown = text(valueLabelOf(c, row[c.id]))
       // tooltipPath a OTRO campo (@Tooltip): un detalle → la ventana flotante; a sí mismo (un ancho
       // fijo que corta): el texto entero en el title de siempre
       const tip = c.tooltipPath && c.tooltipPath !== c.id ? text(row[c.tooltipPath]) : ''
@@ -596,7 +640,9 @@ export function statusBadgeRows(rows, columns) {
         // a plain word (a REST row): its badge by the declared tone or the word; `plain` lets
         // selectedRowsOf hand the row back as it arrived
         const type = statusTypeOfValue(value, c.tones)
-        out[id] = { type, message: String(value), badgeClass: STATUS_BADGE[type] || STATUS_BADGE.NONE, plain: true }
+        out[id] = { type, message: String(valueLabelOf(c, value)), badgeClass: STATUS_BADGE[type] || STATUS_BADGE.NONE, plain: true, raw: value }
+        // the tone by the RAW value, the badge text by the column's label for it (an enum's);
+        // `raw` is what selectedRowsOf hands back
       }
     }
     return out
