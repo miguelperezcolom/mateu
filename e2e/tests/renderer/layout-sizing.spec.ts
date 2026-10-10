@@ -134,9 +134,6 @@ test.describe('layout sizing (fill / hug)', () => {
   });
 
   test('clicking a CollectionDetail list item renders its detail in the main slot', async ({ page }) => {
-    // VB: the server answers the detail (verified on the wire) but the re-projection after
-    // selectCollectionItem drops it — a renderer gap, documented here rather than hidden
-    test.fixme(!usesSharedWebLayout(), 'Redwood drops the CollectionDetail detail pane after a selection');
     await page.goto('/collection-detail');
     await expect(page.getByText('Riu Palace')).toBeVisible({ timeout: 15000 });
     await page.getByText('Riu Plaza').click();
@@ -169,14 +166,17 @@ test.describe('layout sizing (fill / hug)', () => {
   });
 
   test('an @Aside field composes a main/aside template on the one grid (#7 migration)', async ({ page }) => {
-    // VB: when a page has fields, its generic form wins over the other content, and the @Aside
-    // card (a Card of Texts, no "rich" atom) is not painted beside it — a renderer gap, tracked in
-    // the Redwood coverage work; the spec documents it instead of hiding it
-    test.fixme(!usesSharedWebLayout(), 'Redwood does not paint the @Aside panel beside a form yet');
     await page.goto('/aside-demo');
     // The form fields render (the form-wrapping into the main slot does not break them).
     await expect(page.getByText('Need help?')).toBeVisible({ timeout: 15000 });
     await page.waitForTimeout(1000);
+    // VB lays the template out with its own oj-flex columns (the form beside its aside): the CSS-grid
+    // geometry below is the web layout's; the content checks hold on both
+    if (!usesSharedWebLayout()) {
+      await expect(page.getByText('Call the front desk at ext. 100.')).toBeVisible();
+      await expect(page.getByLabel('First Name')).toBeVisible();
+      return;
+    }
     // The @Aside composes a ResponsiveGrid template (display:grid) with two tracks and a sticky
     // aside — not the bespoke ContentLayout. The form field labels are still present.
     const info = await page.locator('.mateu-responsive-grid').first().evaluate((el) => {

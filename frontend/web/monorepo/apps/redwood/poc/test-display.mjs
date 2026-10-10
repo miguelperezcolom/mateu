@@ -16,7 +16,7 @@ import {
   breadcrumbsAtomOf, workflowAtomOf, workflowOrderOf, formEditorFieldsOf, bpmnDiagramOf, bpmnAtomOf, componentHtmlOf,
   flattenTreeRows, gridPageOf, autoFitColClass, AUTO_FIT_DEFAULT, unsupportedAtomOf, VISITOR_PASS_THROUGH, safeHref, toneOf, cssColorOf,
   setUiValue, setPanelExpanded, carouselPagerAtomOf, microFrontendOf, tagSurfaceActions, heroAtomOf, emptyStateAtomOf, progressBarAtomOf,
-  registerCustomComponent, customComponentRegistered, layoutFieldOf, HOST_ID,
+  registerCustomComponent, customComponentRegistered, layoutFieldOf, HOST_ID, taskQueueOf, emptyStateOf, hostContentShown,
 } from './reduceContexts.mjs'
 import { markdownToHtml, deltaOps, deltaToHtml, richTextHtml, richTextValueOf, sanitizeHtml } from './richtext.mjs'
 import { hexColorOf } from './inputs.mjs'
@@ -492,6 +492,19 @@ test('client rules on every surface: host, islands and the overlay on top', () =
   assert.equal(surfaceOfElement(el('data-mateu-surface')), 'island')
   assert.equal(surfaceOfElement(el('nothing-matches')), 'host')
   assert.ok(readFileSync(join(here, 'make-amd.mjs'), 'utf8').includes('setRulesContexts(reg)'))
+})
+
+test('slot templates: a CollectionDetail list is content (not the queue page), a form with @Aside shows its aside', () => {
+  const slotted = (type, slot, md = {}) => ({ type: 'ClientSide', id: '', slot, metadata: { type, ...md }, children: [] })
+  const cd = node({ type: 'ResponsiveGrid', gridTemplateAreas: '"list detail"' }, [slotted('TaskQueue', 'list', { groups: [] }), slotted('EmptyState', 'detail', { title: 'Select an item' })])
+  assert.equal(taskQueueOf(cd), null, 'a list in a template is not the queue page')
+  assert.equal(emptyStateOf(cd), null, 'its @detail placeholder is not the page empty state')
+  assert.ok(atomsOf(cd, {}, {}, { kind: 'host' }).some((a) => a.isEmptyStateAtom), 'it is painted in the content')
+  const aside = node({ type: 'ResponsiveGrid', gridTemplateAreas: '"main aside"', gridTemplateColumns: '2fr 1fr' }, [
+    slotted('VerticalLayout', 'main'), { ...slotted('Card', 'aside'), children: [node({ type: 'Text', text: 'Need help?' })] }])
+  const blocks = islandContentOf({ tree: aside, state: {} })
+  assert.ok(blocks.every((b) => b.fromTemplate))
+  assert.ok(hostContentShown(blocks, { fields: [{}], sections: [{}] }), 'the template wins over the generic form')
 })
 
 test('display chrome in the interface language (English by default)', () => {

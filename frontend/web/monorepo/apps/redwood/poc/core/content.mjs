@@ -6,7 +6,7 @@ import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMi
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes } from './pageHeader.mjs'
-import { findByType, statusBadgeRows } from './listing.mjs'
+import { findByType, findFirst, statusBadgeRows } from './listing.mjs'
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
@@ -34,7 +34,9 @@ export function taskQueueOf(tree) {
   // una cola DENTRO de un panel de consola es la lista de esa consola (átomo isQueue del
   // dispatcher), no el modo «cola de trabajo + isla» de página completa
   const node = findOutsidePanes(tree, 'TaskQueue')
-  if (!node) return null
+  // …ni la lista de un template con huecos (CollectionDetail: TaskQueue@list junto a su @detail):
+  // es contenido, y el detalle que llega al elegir se pinta a su lado
+  if (!node || node.slot) return null
   return queueProjectionOf(node.metadata)
 }
 
@@ -67,8 +69,11 @@ export function queueProjectionOf(md) {
 
 /** Proyección del EmptyState suelto (placeholder del panel de detalle, o página de
  *  bienvenida). Tras seleccionar un item el server lo sustituye por la isla → null. */
+/** The PAGE's empty state: the first EmptyState that is not in a slot of a template (a slotted
+ *  one — the @detail placeholder of a CollectionDetail — is content). */
+export const pageEmptyStateNode = (tree) => findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot))
 export function emptyStateOf(tree) {
-  const node = findByType(tree, 'EmptyState')
+  const node = pageEmptyStateNode(tree)
   if (!node) return null
   const md = node.metadata
   return {
@@ -585,7 +590,11 @@ export function islandContentOf(ctx, opts = {}) {
         || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() ? '' : AUTO_FIT_DEFAULT))
       const classes = gridColClasses(m.gridTemplateColumns, spans, kids.length)
         || (autoFit ? kids.map(() => autoFit) : null)
-      if (classes && projectSized(kids, classes, tags)) return
+      // a slot TEMPLATE (gridTemplateAreas: @Aside, a CollectionDetail…) is the page's layout: its
+      // blocks carry the mark, and the content wins over the generic form (hostContentShown)
+      const templated = !!(m.gridTemplateAreas && String(m.gridTemplateAreas).trim())
+      const allTags = templated ? kids.map((_, i) => ({ ...((tags && tags[i]) || {}), fromTemplate: true })) : tags
+      if (classes && projectSized(kids, classes, allTags)) return
     }
     if (t === 'DashboardLayout') {
       const columns = m.columns > 0 ? m.columns : 3
@@ -1195,7 +1204,7 @@ export function islandContentOf(ctx, opts = {}) {
     }
     // an EmptyState inside the content (the host's FIRST one is the page-level oj-sp-empty-state
     // of emptyStateOf — painted there, not twice)
-    if (t === 'EmptyState' && !(ctx.kind === 'host' && findByType(ctx.tree, 'EmptyState') === node)) {
+    if (t === 'EmptyState' && !(ctx.kind === 'host' && pageEmptyStateNode(ctx.tree) === node)) {
       atom(emptyStateAtomOf(m, interp), container)
       return
     }
@@ -1315,6 +1324,8 @@ export function hostContentShown(blocks, summary) {
   if (!blocks || !blocks.length) return false
   const rich = (a) => isRichAtom(a) || !!(a && (a.isTabs || a.isGrid || a.isElement || a.isSubresource))
   if (blocks.some((block) => (block.items || []).some(rich))) return true
+  // the page is laid out by a slot template (a form with its @Aside…): its fields are painted in it
+  if (blocks.some((block) => block.fromTemplate)) return true
   const s = summary || {}
   return !s.formMetadata && !(s.fields || []).length && !(s.sections || []).length && !s.text
 }

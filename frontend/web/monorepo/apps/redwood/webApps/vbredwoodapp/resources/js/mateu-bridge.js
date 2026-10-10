@@ -2178,6 +2178,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
     // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
     'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt', 'isImage', 'isAvatar', 'isGallery', 'isRichText', 'isMap',
+    // the display components of core/display.mjs
+    'isKanban', 'isTimeline', 'isPricing', 'isOrgChart', 'isHeatmap', 'isFunnel', 'isFeatureGrid', 'isTestimonials',
+    'isCallout', 'isComments', 'isFileList', 'isChecklist', 'isComparison', 'isProcessMonitor', 'isSkeleton', 'isIcon',
+    'isTooltip', 'isContextMenu', 'isMenuBar', 'isDirectory', 'isMessages', 'isMessageInput', 'isChatComponent', 'isBpmn',
+    'isWorkflow', 'isResult', 'isCookieConsent', 'isConfirmDialog', 'isBreadcrumbs', 'isStepHeader', 'isCarouselPager',
+    'isHero', 'isEmptyStateAtom', 'isProgressBar', 'isCustomSlot',
   ]
   function isRichAtom(a) {
     return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -2762,7 +2768,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // una cola DENTRO de un panel de consola es la lista de esa consola (átomo isQueue del
     // dispatcher), no el modo «cola de trabajo + isla» de página completa
     const node = findOutsidePanes(tree, 'TaskQueue')
-    if (!node) return null
+    // …ni la lista de un template con huecos (CollectionDetail: TaskQueue@list junto a su @detail):
+    // es contenido, y el detalle que llega al elegir se pinta a su lado
+    if (!node || node.slot) return null
     return queueProjectionOf(node.metadata)
   }
 
@@ -2795,8 +2803,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** Proyección del EmptyState suelto (placeholder del panel de detalle, o página de
    *  bienvenida). Tras seleccionar un item el server lo sustituye por la isla → null. */
+  /** The PAGE's empty state: the first EmptyState that is not in a slot of a template (a slotted
+   *  one — the @detail placeholder of a CollectionDetail — is content). */
+  const pageEmptyStateNode = (tree) => findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot))
   function emptyStateOf(tree) {
-    const node = findByType(tree, 'EmptyState')
+    const node = pageEmptyStateNode(tree)
     if (!node) return null
     const md = node.metadata
     return {
@@ -3313,7 +3324,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           || (m.gridTemplateAreas && String(m.gridTemplateAreas).trim() ? '' : AUTO_FIT_DEFAULT))
         const classes = gridColClasses(m.gridTemplateColumns, spans, kids.length)
           || (autoFit ? kids.map(() => autoFit) : null)
-        if (classes && projectSized(kids, classes, tags)) return
+        // a slot TEMPLATE (gridTemplateAreas: @Aside, a CollectionDetail…) is the page's layout: its
+        // blocks carry the mark, and the content wins over the generic form (hostContentShown)
+        const templated = !!(m.gridTemplateAreas && String(m.gridTemplateAreas).trim())
+        const allTags = templated ? kids.map((_, i) => ({ ...((tags && tags[i]) || {}), fromTemplate: true })) : tags
+        if (classes && projectSized(kids, classes, allTags)) return
       }
       if (t === 'DashboardLayout') {
         const columns = m.columns > 0 ? m.columns : 3
@@ -3923,7 +3938,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       // an EmptyState inside the content (the host's FIRST one is the page-level oj-sp-empty-state
       // of emptyStateOf — painted there, not twice)
-      if (t === 'EmptyState' && !(ctx.kind === 'host' && findByType(ctx.tree, 'EmptyState') === node)) {
+      if (t === 'EmptyState' && !(ctx.kind === 'host' && pageEmptyStateNode(ctx.tree) === node)) {
         atom(emptyStateAtomOf(m, interp), container)
         return
       }
@@ -4043,6 +4058,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!blocks || !blocks.length) return false
     const rich = (a) => isRichAtom(a) || !!(a && (a.isTabs || a.isGrid || a.isElement || a.isSubresource))
     if (blocks.some((block) => (block.items || []).some(rich))) return true
+    // the page is laid out by a slot template (a form with its @Aside…): its fields are painted in it
+    if (blocks.some((block) => block.fromTemplate)) return true
     const s = summary || {}
     return !s.formMetadata && !(s.fields || []).length && !(s.sections || []).length && !s.text
   }
