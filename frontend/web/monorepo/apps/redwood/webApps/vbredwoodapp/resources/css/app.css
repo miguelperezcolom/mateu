@@ -1354,3 +1354,22 @@ body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-title { 
 .mateu-drop-zone.mateu-drop-ready { border: 2px dashed var(--oj-core-focus-border-color, #227e9e); }
 .mateu-drop-zone.mateu-drop-ready .mateu-drop-hint { display: block; }
 .mateu-drop-zone.mateu-drop-over { background-color: rgba(34, 126, 158, 0.10); }
+
+/* Image / galería (P2 #20): JET no tiene componente de imagen; el <img> nunca desborda su
+   contenedor. La galería es un oj-film-strip, que necesita items de tamaño FIJO (con un ancho en
+   % los mide a 0 y se queda sin páginas: "Invalid 'page' set: 0"); pagina tantas como quepan. */
+.mateu-atom-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--oj-core-border-radius-lg, 6px);
+  margin-bottom: var(--oj-core-spacing-2x, 8px);
+}
+.mateu-atom-gallery { width: 100%; }
+.mateu-atom-gallery-slide { width: 24rem; height: 13.5rem; padding: 0 var(--oj-core-spacing-1x, 4px); box-sizing: border-box; }
+.mateu-atom-gallery-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--oj-core-border-radius-lg, 6px);
+}

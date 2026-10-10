@@ -1175,6 +1175,29 @@ test('proceso guiado: ni el contador del RAIL ni el pie Back + completar se dupl
   assert.equal(items.filter((a) => a.isButtons).length, 0)
 })
 
+import { setElementModuleBase } from './elements.mjs'
+
+test('P2 #20 imagen, avatares y galería: <img> del backend, oj-avatar con +N, oj-film-strip si todo son imágenes', () => {
+  setElementModuleBase('http://localhost:9005')
+  const [img] = atomsOf(node({ type: 'Image', src: '/pms/rooms/std-1.svg' }))
+  assert.ok(img.isImage)
+  assert.equal(img.src, 'http://localhost:9005/pms/rooms/std-1.svg', 'una ruta relativa la sirve el backend')
+  const [group] = atomsOf(node({ type: 'AvatarGroup', maxItemsVisible: 2, avatars: [{ name: 'Lucía Martín' }, { name: 'Tomás Ruiz', abbreviation: 'TR' }, { name: 'Ana' }] }))
+  assert.deepEqual(group.avatars.map((a) => a.initials), ['LM', 'TR'])
+  assert.equal(group.overflow, '+1')
+  const [gallery] = atomsOf(node({ type: 'CarouselLayout', loop: true }, [node({ type: 'Image', src: 'https://x/a.png' }), node({ type: 'Image', src: 'https://x/b.png' })]))
+  assert.ok(gallery.isGallery)
+  assert.deepEqual(gallery.images.map((i) => i.src), ['https://x/a.png', 'https://x/b.png'])
+  assert.equal(gallery.looping, 'page')
+  // un carrusel de contenido arbitrario sigue apilando
+  assert.ok(atomsOf(node({ type: 'CarouselLayout' }, [node({ type: 'Text', text: 'slide' })])).some((a) => a.isText))
+  // el título de un Card fluido es un componente Text
+  const cardAtoms = atomsOf(node({ type: 'Card', title: node({ type: 'Text', text: 'Suite' }), content: node({ type: 'Image', src: 'https://x/c.png' }) }))
+  assert.equal(cardAtoms[0].text, 'Suite')
+  assert.match(webApp('flows/main/pages/main-start-page.html'), /<oj-film-strip class="mateu-atom-gallery/)
+  setElementModuleBase('')
+})
+
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }
 console.log(`\n${pass} tests PMS OK`)
 void HOST_ID

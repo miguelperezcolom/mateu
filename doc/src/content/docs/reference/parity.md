@@ -259,8 +259,8 @@ not the feature rows above — is the authority when a screen looks emptier on R
 
 <!-- redwood-coverage:start -->
 Generated from `frontend/web/monorepo/apps/redwood/poc/coverage.mjs` and checked in CI against the
-wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 49 rendered, 12 layout
-containers, 8 partial, 39 not rendered (they are dropped silently — the
+wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 52 rendered, 11 layout
+containers, 9 partial, 36 not rendered (they are dropped silently — the
 children of a container still render).
 
 | Component | Redwood | How |
@@ -270,6 +270,8 @@ children of a container still render).
 | `AddOnPicker` | ✅ |  |
 | `Anchor` | ✅ | link / file download |
 | `App` | ✅ | oj-sp shell: navigation drawer / top tabs / card menus |
+| `Avatar` | ✅ | oj-avatar |
+| `AvatarGroup` | ✅ | oj-avatar per person, +N beyond maxItemsVisible |
 | `Badge` | ✅ | oj-badge classes |
 | `BulletedList` | ✅ |  |
 | `Button` | ✅ | oj-button |
@@ -291,6 +293,7 @@ children of a container still render).
 | `FormLayout` | ✅ | oj-form-layout |
 | `Gantt` | ✅ | oj-gantt: a row per task, progress fill, task click → onTaskSelectionActionId |
 | `HorizontalLayout` | ✅ | oj-flex row |
+| `Image` | ✅ | JET has no image component: an <img>; relative sources are served by the backend |
 | `Ledger` | ✅ |  |
 | `MasterDetailLayout` | ✅ | list + detail panes |
 | `MatrixGrid` | ✅ | oj-data-grid |
@@ -315,7 +318,6 @@ children of a container still render).
 | `Text` | ✅ |  |
 | `TrendChart` | ✅ | oj-chart line/area |
 | `BoardLayout` | ✅ layout | children stacked, not a board |
-| `CarouselLayout` | ✅ layout | slides stacked, no carousel |
 | `Container` | ✅ layout |  |
 | `ContentLayout` | ✅ layout |  |
 | `CustomField` | ✅ layout | its component in place |
@@ -326,6 +328,7 @@ children of a container still render).
 | `FullWidth` | ✅ layout |  |
 | `Scroller` | ✅ layout |  |
 | `VerticalLayout` | ✅ layout |  |
+| `CarouselLayout` | 🟡 | an image gallery is an oj-film-strip; slides with other content are stacked |
 | `CustomComponent` | 🟡 | visible placeholder + slotted children (no VB registry) |
 | `EmptyState` | 🟡 | page-level empty state only |
 | `Grid` | 🟡 | oj-table (list display) with its columns and rows; no tree, no paging |
@@ -341,8 +344,6 @@ children of a container still render).
 | `FormRow` | ↳ | of FormLayout |
 | `GridColumn` | ↳ | of Grid / Crud |
 | `Tab` | ↳ | of TabLayout |
-| `Avatar` | — |  |
-| `AvatarGroup` | — |  |
 | `Bpmn` | — |  |
 | `Breadcrumbs` | — | the shell has its own breadcrumbs |
 | `CalloutCard` | — |  |
@@ -361,7 +362,6 @@ children of a container still render).
 | `Funnel` | — |  |
 | `Heatmap` | — |  |
 | `Icon` | — |  |
-| `Image` | — |  |
 | `Kanban` | — |  |
 | `Map` | — |  |
 | `MenuBar` | — |  |

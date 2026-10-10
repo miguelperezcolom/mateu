@@ -8,4 +8,6 @@ public class InventoryMenu {
   @Menu io.mateu.mdd.demovbpms.infra.in.ui.housekeeping.HousekeepingBoard housekeepingBoard;
 
   @Menu FloorPlan floorPlan;
+
+  @Menu RoomTypes roomTypes;
 }

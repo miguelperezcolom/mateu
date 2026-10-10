@@ -972,6 +972,30 @@
                         </oj-bind-for-each>
                       </ul>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>
                     </oj-bind-if>
@@ -1865,6 +1889,30 @@
                           </template>
                         </oj-bind-for-each>
                       </ul>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>
@@ -2781,6 +2829,30 @@
                         </oj-bind-for-each>
                       </ul>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>
                     </oj-bind-if>
@@ -3674,6 +3746,30 @@
                           </template>
                         </oj-bind-for-each>
                       </ul>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>
@@ -4656,6 +4752,30 @@
                         </oj-bind-for-each>
                       </ul>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>
                     </oj-bind-if>
@@ -5556,6 +5676,30 @@
                           </template>
                         </oj-bind-for-each>
                       </ul>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>
@@ -6459,6 +6603,30 @@
                           </template>
                         </oj-bind-for-each>
                       </ul>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>
@@ -7381,6 +7549,30 @@
                           </template>
                         </oj-bind-for-each>
                       </ul>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>
@@ -8458,6 +8650,30 @@
                           </template>
                         </oj-bind-for-each>
                       </ul>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>
@@ -9556,6 +9772,30 @@
                         </oj-bind-for-each>
                       </ul>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>
                     </oj-bind-if>
@@ -10447,6 +10687,30 @@
                           </template>
                         </oj-bind-for-each>
                       </ul>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>
@@ -11787,6 +12051,30 @@
                         </oj-bind-for-each>
                       </ul>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>
                     </oj-bind-if>
@@ -12678,6 +12966,30 @@
                           </template>
                         </oj-bind-for-each>
                       </ul>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>
@@ -13637,6 +13949,30 @@
                         </oj-bind-for-each>
                       </ul>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>
                     </oj-bind-if>
@@ -14530,6 +14866,30 @@
                           </template>
                         </oj-bind-for-each>
                       </ul>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>
@@ -15439,6 +15799,30 @@
                         </oj-bind-for-each>
                       </ul>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>
                     </oj-bind-if>
@@ -16332,6 +16716,30 @@
                           </template>
                         </oj-bind-for-each>
                       </ul>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>
@@ -17270,6 +17678,30 @@
                         </oj-bind-for-each>
                       </ul>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>
                     </oj-bind-if>
@@ -18163,6 +18595,30 @@
                           </template>
                         </oj-bind-for-each>
                       </ul>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isImage ]]">
+                      <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isAvatar ]]">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-margin-2x-bottom">
+                        <oj-bind-for-each data="[[ $current.data.avatars ]]">
+                          <template>
+                            <oj-avatar class="oj-sm-margin-1x-end" size="xs" shape="circle" initials="[[ $current.data.initials ]]" src="[[ $current.data.src || null ]]" :title="[[ $current.data.name ]]"></oj-avatar>
+                          </template>
+                        </oj-bind-for-each>
+                        <oj-bind-if test="[[ !!$current.data.overflow ]]">
+                          <span class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.overflow ]]"></oj-bind-text></span>
+                        </oj-bind-if>
+                      </div>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isGallery ]]">
+                      <oj-film-strip class="mateu-atom-gallery oj-sm-margin-2x-bottom" looping="[[ $current.data.looping ]]" arrow-placement="adjacent" aria-label="Gallery">
+                        <oj-bind-for-each data="[[ $current.data.images ]]">
+                          <template>
+                            <div class="mateu-atom-gallery-slide"><img class="mateu-atom-gallery-img" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" /></div>
+                          </template>
+                        </oj-bind-for-each>
+                      </oj-film-strip>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSeparator ]]">
                       <div class="oj-sm-margin-3x-vertical"></div>

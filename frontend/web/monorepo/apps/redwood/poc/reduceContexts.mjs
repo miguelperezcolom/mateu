@@ -2,6 +2,7 @@ import { calendarAtomOf } from './calendar.mjs'
 import { autoTrail } from './breadcrumbs.mjs'
 import { sectionHomeOf, sectionRoutes, isSentinelHome } from './navTree.mjs'
 import { applyColumnPrefs } from './prefs.mjs'
+import { elementModuleUrl } from './elements.mjs'
 // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
 // En la app VB estas funciones serían métodos de app-flow.js; aquí son funciones
 // libres para testearlas en Node.
@@ -711,6 +712,13 @@ export function gridColClasses(template, colSpans, count) {
  *  puede leer los datos), si lo que viene es suyo. */
 export const dragMimeOf = (type) => (type ? 'application/x-mateu-' + String(type).toLowerCase().replace(/[^a-z0-9.+-]/g, '-') : '')
 
+/** Un Avatar del wire → lo que pinta oj-avatar: iniciales (las dadas o las del nombre) e imagen. */
+export function avatarOf(m) {
+  const name = String((m && m.name) || '')
+  const initials = (m && m.abbreviation) || name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('')
+  return { name, initials, src: m && m.image ? elementModuleUrl(m.image) : '' }
+}
+
 /** Markdown → bloques: {level, text} (encabezado #… o párrafo) o {list: [items]}. Énfasis, código
  *  en línea y enlaces quedan como texto (sin sus marcas); nada de HTML. */
 export function markdownBlocksOf(md) {
@@ -815,7 +823,7 @@ export const RICH_ATOM_FLAGS = [
   'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
   // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
   // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
-  'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt',
+  'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt', 'isImage', 'isAvatar', 'isGallery',
 ]
 export function isRichAtom(a) {
   return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -1926,7 +1934,8 @@ export function islandContentOf(ctx, opts = {}) {
       const card = { isCard: true, items: [] }
       blocks.push(card)
       plain = null
-      const title = m.title && (m.title.text || (typeof m.title === 'string' ? m.title : ''))
+      // el título de un Card fluido es un COMPONENTE (un Text): sus textos, como en cardOf
+      const title = m.title && (typeof m.title === 'string' ? m.title : (m.title.text || collectTexts(m.title)[0] || ''))
       if (title) card.items.push({ isText: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-2x-bottom' })
       for (const child of node.children || []) visit(child, card)
       const cardInner = m.content
@@ -2183,6 +2192,36 @@ export function islandContentOf(ctx, opts = {}) {
       atom({ isBullets: true, items: (m.items || []).map(interp) }, container)
       return
     }
+    if (t === 'Image') {
+      // JET no tiene componente de imagen: un <img> con el ancho de su contenedor como tope
+      // una ruta RELATIVA la sirve el backend (como el módulo de un Element), no la app VB
+      if (m.src) atom({ isImage: true, src: elementModuleUrl(interp(m.src)), alt: interp(m.alt || '') }, container)
+      return
+    }
+    if (t === 'Avatar') {
+      atom({ isAvatar: true, avatars: [avatarOf(m)], overflow: '' }, container)
+      return
+    }
+    if (t === 'AvatarGroup') {
+      // oj-avatar por persona hasta maxItemsVisible, y «+N» con las que no caben
+      const all = (m.avatars || []).map(avatarOf)
+      const max = m.maxItemsVisible > 0 ? m.maxItemsVisible : all.length
+      atom({ isAvatar: true, avatars: all.slice(0, max), overflow: all.length > max ? '+' + (all.length - max) : '' }, container)
+      return
+    }
+    if (t === 'CarouselLayout') {
+      // una GALERÍA (todas las diapositivas son imágenes) → oj-film-strip de JET, con sus flechas
+      // y su paginación; un carrusel de contenido arbitrario sigue apilando sus diapositivas
+      const slides = kidsOf(node)
+      const images = slides.map((n) => (n && n.metadata && n.metadata.type === 'Image' && n.metadata.src ? n.metadata : null))
+      if (slides.length && images.every(Boolean)) {
+        atom({ isGallery: true, id: node.id || 'gallery',
+          images: images.map((im, i) => ({ key: String(i), src: elementModuleUrl(interp(im.src)), alt: interp(im.alt || '') })),
+          looping: m.loop ? 'page' : 'off' }, container)
+        return
+      }
+    }
+
     if (t === 'Separator') {
       atom({ isSeparator: true }, container)
       return

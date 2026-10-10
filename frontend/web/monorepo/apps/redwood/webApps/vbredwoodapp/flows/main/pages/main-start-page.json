@@ -1042,6 +1042,9 @@
       "oj-avatar": {
         "path": "ojs/ojavatar"
       },
+      "oj-film-strip": {
+        "path": "ojs/ojfilmstrip"
+      },
       "oj-progress-bar": {
         "path": "ojs/ojprogress"
       },
