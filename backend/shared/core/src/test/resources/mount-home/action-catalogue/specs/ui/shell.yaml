@@ -1,0 +1,23 @@
+type: AppShell
+title: Catalogue shell
+variant: MENU_ON_TOP
+homeRoute: home
+# The shell's own flow: wins over a catalogue entry of the same id.
+actions:
+  - id: announce
+    steps:
+      - type: Emit
+        event: shell-announce
+menu:
+  - type: RouteLink
+    label: Home
+    route: home
+  - type: RouteLink
+    label: Orders
+    route: orders
+  # Names a CATALOGUE action: the shell does not declare it.
+  - type: RuleLink
+    label: New order
+    rules:
+      - action: RunAction
+        actionId: newOrder

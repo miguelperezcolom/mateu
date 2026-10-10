@@ -103,6 +103,7 @@ public final class AppMapper {
             .requiredCapabilities(getRequiredCapabilities(app, httpRequest))
             .locale(getLocale(httpRequest))
             .actions(mapShellActions(app))
+            .actionCatalogue(ActionCatalogMapper.mapCatalogue())
             .build();
     return new ClientSideComponentDto(
         appDto,
