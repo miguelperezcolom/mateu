@@ -44,7 +44,7 @@ class ContractCache(private val project: Project) {
   private fun fetchAsync(fqn: String) {
     ApplicationManager.getApplication().executeOnPooledThread {
       val contract = try {
-        ContractClient.fetch(fqn)
+        ContractClient.fetch(project, fqn)
       } catch (e: Exception) {
         null
       }

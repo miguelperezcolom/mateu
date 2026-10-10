@@ -1,8 +1,34 @@
 <idea-plugin>
     <id>io.mateu.ijp.plugin</id>
     <name>Mateu</name>
-    <vendor>Mateu</vendor>
-    <description>Renders Mateu model-driven Java UIs inside IntelliJ — a dockable tool window, IDE menus, and native platform components (date pickers, popups, tabs).</description>
+    <vendor email="miguelperezcolom@gmail.com" url="https://mateu.io">Mateu</vendor>
+    <description><![CDATA[
+<p>Tooling for <a href="https://mateu.io">Mateu</a>, the model-driven UI system: declare the UI once
+(Java/C#/Python classes or YAML under <code>specs/ui/</code>) and Mateu renders it everywhere.</p>
+<ul>
+  <li><b>Authoring</b>: schema validation and completion for <code>specs/ui/**</code> YAML, a visual
+      editor (palette, WYSIWYG canvas, properties), binding checks against the Java view model with
+      quick fixes, and <b>New | Mateu</b> file templates for every specs kind.</li>
+  <li><b>Running</b>: renders a Mateu app inside the IDE with native components &mdash; a navigator tool
+      window, listings in a results panel, pages and details as editor tabs.</li>
+</ul>
+<p>Point a project at its backend in <b>Settings | Tools | Mateu</b> (base URL or app registry, plus
+token or OpenID Connect sign-in). Projects without a Mateu backend are left untouched.</p>
+<p><b>Requires a Java IDE</b> (IntelliJ IDEA Community or Ultimate, or another IDE bundling the Java and
+YAML plugins): the binding checks resolve view models through Java PSI.</p>
+]]></description>
+    <change-notes><![CDATA[
+<ul>
+  <li>Settings | Tools | Mateu: per-project base URL, start route, app registry and authentication.</li>
+  <li>Authentication: bearer token or OpenID Connect device sign-in, stored in the IDE credential
+      store; 401 responses trigger a silent refresh or a sign-in prompt.</li>
+  <li>No longer takes over the window title, toolbar or tool windows of projects without a Mateu
+      backend; the standalone desktop distribution keeps its app-shell behaviour.</li>
+  <li>Renders every Mateu wire component type (grids, details, breadcrumbs, avatars, menus,
+      carousels, chat, results, BPMN/workflow, cookie consent and more).</li>
+  <li>New | Mateu file templates for UI mounts, routes, app shells, REST sources and pages.</li>
+</ul>
+]]></change-notes>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
@@ -27,7 +53,8 @@
              + properties in one view. Successor to the retired Swing split-preview. -->
         <fileEditorProvider implementation="io.mateu.ijp.visualeditor.MateuVisualEditorProvider"/>
         <postStartupActivity implementation="io.mateu.ijp.plugin.MateuFocusedModeActivity"/>
-        <frameTitleBuilder implementation="io.mateu.ijp.plugin.MateuFrameTitleBuilder"/>
+        <projectConfigurable parentId="tools" id="io.mateu.settings" displayName="Mateu"
+                             instance="io.mateu.ijp.plugin.MateuConfigurable"/>
         <notificationGroup id="Mateu" displayType="BALLOON"/>
     </extensions>
 
@@ -37,7 +64,8 @@
     </extensions>
 
     <actions>
-        <!-- New-UI main toolbar: the app menu as a combo widget next to the VCS widget. -->
+        <!-- New-UI main toolbar: the app menu as a combo widget next to the VCS widget. Invisible unless
+             the project's Mateu app has booted (i.e. a backend is configured) — see update(). -->
         <action id="io.mateu.AppToolbarWidget" class="io.mateu.ijp.plugin.MateuToolbarWidget"
                 text="Mateu" description="Mateu application menu">
             <add-to-group group-id="MainToolbarLeft" anchor="last"/>

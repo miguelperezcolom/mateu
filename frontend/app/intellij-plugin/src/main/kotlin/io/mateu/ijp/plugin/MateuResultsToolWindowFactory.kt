@@ -14,6 +14,10 @@ import com.intellij.openapi.wm.ToolWindowFactory
  * through the tool window's own content manager, so this factory intentionally creates none.
  */
 class MateuResultsToolWindowFactory : ToolWindowFactory, DumbAware {
+    /** Only projects pointed at a Mateu backend (or the standalone distribution) get the stripe
+     *  button; Settings | Tools | Mateu flips it on when a backend is configured. */
+    override fun shouldBeAvailable(project: Project): Boolean = loadMateuConfig(project).configured
+
     override fun createToolWindowContent(project: Project, toolWindow: ToolWindow) {
         // No-op: CRUD result tabs are added dynamically by MateuViewManager as views open.
     }

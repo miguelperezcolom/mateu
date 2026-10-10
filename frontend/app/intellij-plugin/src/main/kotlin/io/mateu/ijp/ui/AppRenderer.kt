@@ -88,7 +88,7 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
     // AI chat (App.sseUrl): the assistant opens in a modeless dialog from the navigator.
     val sseUrl = metadata.text("sseUrl")
     if (sseUrl.isNotBlank()) {
-        val chat = ActionLink("💬 Assistant") { openChatDialog(sseUrl) }
+        val chat = ActionLink("💬 Assistant") { openChatDialog(sseUrl, session.apiClient.tokenProvider) }
         chat.border = JBUI.Borders.empty(8)
         sidebar.addStacked(chat, 2)
     }
@@ -249,7 +249,7 @@ private fun menuCardVisual(card: MenuCards.Card): JComponent? {
 
 /** Minimal assistant dialog speaking the mateu-chat contract: POST {message, sessionId} to the
  *  SSE endpoint and show the accumulated `data:` payloads as the agent reply. */
-private fun openChatDialog(sseUrl: String) {
+private fun openChatDialog(sseUrl: String, tokens: io.mateu.ijp.api.TokenProvider) {
     val dialog = javax.swing.JDialog(null as java.awt.Frame?, "Assistant", false)
     val messages = javax.swing.JTextArea()
     messages.isEditable = false
@@ -271,6 +271,7 @@ private fun openChatDialog(sseUrl: String) {
                 val request = java.net.http.HttpRequest.newBuilder(java.net.URI.create(sseUrl))
                     .header("Accept", "text/event-stream")
                     .header("Content-Type", "application/json")
+                    .apply { io.mateu.ijp.api.bearer(tokens.accessToken())?.let { header("Authorization", it) } }
                     .POST(java.net.http.HttpRequest.BodyPublishers.ofString(body))
                     .build()
                 val response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString())
