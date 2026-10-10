@@ -49,6 +49,7 @@ import {isIdempotentAction} from "@infra/http/retryPolicy.ts";
 import {isLocalRequest} from "@infra/http/localRequests.ts";
 import {clearPending, decorable, markPending, originOf} from "@infra/ui/pendingIndicator.ts";
 import {runDeclaredFlow} from "@infra/ui/flowRunner.ts";
+import {getCatalogueAction} from "@infra/ui/actionCatalogue.ts";
 import {applySizing, SizableHost} from "@infra/ui/sizing.ts";
 import { confirmationDialogTexts } from '@infra/ui/confirmationTexts.ts'
 import { fabStyles } from '@infra/ui/layout/fabRail.ts'
@@ -400,6 +401,28 @@ export class MateuComponent extends ComponentElement {
         }
     }
 
+    /**
+     * True when a mateu-component ABOVE this one advertises the action (the owner-first rule: the
+     * enclosing page's own action wins over the catalogue). Walks the composed tree, crossing shadow
+     * boundaries through their hosts.
+     */
+    ancestorClaims = (actionId: string): boolean => {
+        let node: Node | null = this.parentNode ?? null
+        while (node) {
+            if (node instanceof ShadowRoot) {
+                node = node.host
+                continue
+            }
+            if ((node as Element).localName === 'mateu-component') {
+                const actions = ((node as any).component as ServerSideComponent | undefined)?.actions
+                if (actions?.some(a => a.id == actionId
+                    || (a.id.endsWith('*') && actionId.startsWith(a.id.slice(0, -1))))) return true
+            }
+            node = node.parentNode
+        }
+        return false
+    }
+
     manageActionRequestedEvent = (e: CustomEvent) => {
         const detail = e.detail as {
             actionId: string,
@@ -411,7 +434,9 @@ export class MateuComponent extends ComponentElement {
             // A trigger (OnLoad/OnSuccess) can force the call to run as a silent background refresh
             // even when the action itself is not declared background — a status poll wants no veil.
             background?: boolean,
-            _originElement?: Element
+            _originElement?: Element,
+            // set by the shell for an id IT declares: the catalogue must not answer it (owner first)
+            skipCatalogue?: boolean
         }
         // The control the user pressed, so the busy state can be shown ON it. An action that
         // bubbles up to an ancestor component carries the original control in the detail —
@@ -437,6 +462,11 @@ export class MateuComponent extends ComponentElement {
             const action = serverSideComponent.actions?.find(action => action.id == detail.actionId)
                 ?? serverSideComponent.actions?.find(action =>
                     action.id.endsWith('*') && detail.actionId.startsWith(action.id.slice(0, -1)))
+                // OWNER FIRST, then the app's ACTION catalogue: an id no component on the way up
+                // declares runs the catalogue's flow / REST call here, as if this page owned it.
+                ?? (detail.skipCatalogue || this.ancestorClaims(detail.actionId)
+                    ? undefined
+                    : getCatalogueAction(detail.actionId))
 
             if (action) {
 

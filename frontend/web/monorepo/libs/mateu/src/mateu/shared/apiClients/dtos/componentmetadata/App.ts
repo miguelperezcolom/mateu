@@ -94,4 +94,10 @@ export default interface App extends ComponentMetadata {
      * those commands in the browser — no server round-trip (see infra/ui/shellFlows.ts). */
     actions?: Action[] | undefined
 
+    /** The app's ACTION catalogue (`specs/ui/actions.yaml`, any `type: Actions` file,
+     * `ActionCatalogSupplier` beans): named client-runnable actions, lowered like `actions`. An id the
+     * owner (page or shell) does not declare resolves here before going to the server (see
+     * infra/ui/actionCatalogue.ts). */
+    actionCatalogue?: Action[] | undefined
+
 }

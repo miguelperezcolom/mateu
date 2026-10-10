@@ -248,4 +248,23 @@ class ActionCatalogueSyncTest {
     assertThat(manifest.structureHash()).isEqualTo(without.structureHash());
     assertThat(JSON.readTree(json).has("actions")).isTrue();
   }
+
+  /**
+   * The Java golden of the browser side ({@code actionCatalogue.test.ts}): the shell and the orders
+   * page as the server sends them. Run with {@code -Dmateu.golden.write=true} to refresh it.
+   */
+  @Test
+  void writesTheGoldenForTheBrowserExpander() throws Exception {
+    var shell = load("/", List.of());
+    var orders = load("/orders", List.of());
+    assertThat(appOf(shell).actionCatalogue()).isNotEmpty();
+    if (!Boolean.getBoolean("mateu.golden.write")) return;
+    var tree = JSON.createObjectNode();
+    tree.set("shell", JSON.valueToTree(shell));
+    tree.set("orders", JSON.valueToTree(orders));
+    java.nio.file.Files.writeString(
+        java.nio.file.Path.of(
+            "../../../frontend/web/monorepo/libs/mateu/src/mateu/ui/infra/expander/__fixtures__/action-catalogue.golden.json"),
+        JSON.writerWithDefaultPrettyPrinter().writeValueAsString(tree));
+  }
 }
