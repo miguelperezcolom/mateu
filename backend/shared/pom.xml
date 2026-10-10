@@ -21,6 +21,7 @@
     <module>core</module>
     <module>export-excel</module>
     <module>export-pdf</module>
+    <module>documents</module>
     <module>frontend</module>
     <module>integration-tests</module>
     <module>agent-cli</module>

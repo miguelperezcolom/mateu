@@ -149,6 +149,12 @@
         <artifactId>mateu-export-pdf</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <!-- optional document rendering (HTML to PDF) -->
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>mateu-documents</artifactId>
+        <version>${project.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
