@@ -1300,3 +1300,9 @@ public sealed class SizeAttribute : Attribute
     /// <summary>The concrete length when Value is Fixed (e.g. "15rem").</summary>
     public string Length { get; set; } = "";
 }
+
+/// <summary>A reference to a named business component of the catalogue (components.yaml /
+/// [BusinessComponent] / IComponentCatalogSupplier): drop it anywhere a component goes and the server
+/// substitutes the entry's composition before rendering; an unknown name renders as a placeholder
+/// text, never an error. (Mirrors io.mateu.uidl.data.ComponentRef.)</summary>
+public sealed record ComponentRef(string Ref) : ComponentBase;

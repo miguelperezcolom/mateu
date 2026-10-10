@@ -10,8 +10,14 @@ namespace Mateu.Core;
 
 /// <summary>Handles a single POST /mateu/v3/sync/{route} call → a UIIncrement.</summary>
 public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? translator = null, Func<Identity?>? identity = null,
-    Func<string, string?>? secrets = null, HttpClient? http = null)
+    Func<string, string?>? secrets = null, HttpClient? http = null,
+    RestSourceRegistry? restSources = null, ComponentRegistry? components = null)
 {
+    /// <summary>The REST source catalogue (sources.yaml over [RestSource] + suppliers) and the
+    /// business-component catalogue (components.yaml over [BusinessComponent] + suppliers).</summary>
+    private readonly RestSourceRegistry _restSources = restSources ?? new RestSourceRegistry(registry);
+    private readonly ComponentRegistry _components = components ?? new ComponentRegistry(registry);
+
     private static readonly HttpClient DefaultHttp = new() { Timeout = TimeSpan.FromSeconds(60) };
 
     /// <summary>The client proxied REST fetches go through (injectable: a host-configured client,
@@ -130,6 +136,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     private void EstablishRequestContext(RunActionRqDto rq)
     {
         ActionGuard.SetIdentity(identity);
+        MateuCatalogs.Set(_restSources.Catalog, _components.Catalog);
 
         // Audience PROJECTION, not security: the value is client-controlled app state (the
         // [AppContext] selector named audience), so it only filters [Audience]-marked members out of
@@ -309,6 +316,23 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     private UIIncrementDto RenderApp(Type appType, string title, RunActionRqDto rq, string? requestBaseUrl)
     {
         var app = _mapper.MapApp(appType, requestBaseUrl);
+        // The catalogues ride the APP metadata (app-wide configuration, not per response); a
+        // non-empty REST source catalogue adds the rest-sources capability (Java's AppMapper).
+        if (app is { Metadata: AppMetadataDto catalogued })
+        {
+            var sources = MateuCatalogs.MapCatalogue(MateuCatalogs.Sources);
+            var caps = new SortedSet<string>(catalogued.RequiredCapabilities, StringComparer.Ordinal);
+            if (sources.Count > 0) caps.Add(Capabilities.RestSources);
+            app = app with
+            {
+                Metadata = catalogued with
+                {
+                    RestSources = sources,
+                    Components = MateuCatalogs.MapComponents(MateuCatalogs.Components),
+                    RequiredCapabilities = caps.ToList(),
+                },
+            };
+        }
         // AppData: a route entry's app-scope data source rides on the app metadata — the shell
         // fetches it once into the app-data store, shared across routes. Java attaches it only from
         // a route ON THIS APP'S MOUNT (AppDto.appDataSource); the .NET port has no route↔mount

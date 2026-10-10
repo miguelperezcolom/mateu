@@ -110,9 +110,9 @@ public record RestDataSourceDto(string Url)
 
     /// <summary>The name of a catalogue entry to take the endpoint from; null/blank means this
     /// descriptor is inline (carries its own Url). The <c>data: countries</c> shorthand in
-    /// routes.yaml produces a ref-only descriptor. (Mirrors io.mateu.dtos.RestDataSourceDto.ref;
-    /// the .NET port has no source catalogue yet, so a ref-only descriptor travels on the wire but
-    /// is not resolved server-side here.)</summary>
+    /// routes.yaml produces a ref-only descriptor. The renderer resolves it against the catalogue on
+    /// AppMetadataDto.RestSources; the server resolves it only for a proxied fetch. (Mirrors
+    /// io.mateu.dtos.RestDataSourceDto.ref.)</summary>
     public string? Ref { get; init; }
 
     /// <summary>A descriptor that only names a catalogue entry — the <c>data: countries</c>

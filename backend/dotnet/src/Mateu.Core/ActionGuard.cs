@@ -187,6 +187,11 @@ internal static class ActionGuard
     private static void Walk(object? node, ICollection<string> ids, HashSet<object> seen, int depth)
     {
         if (node is null or string || depth > 64) return;
+        if (node is ComponentRef reference)
+        {
+            Walk(MateuCatalogs.Resolve(reference), ids, seen, depth + 1);
+            return;
+        }
         var t = node.GetType();
         if (t.IsPrimitive || t.IsEnum) return;
         if (!t.IsValueType && !seen.Add(node)) return;

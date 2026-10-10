@@ -33,6 +33,9 @@ public static class YamlComponentBuilder
         }
     }
 
+    /// <summary>An already-deserialised YAML node as a component (components.yaml entries).</summary>
+    internal static IComponent? FromNode(object? node) => Single(node, PartialRegistry.Default, []);
+
     public static IComponent? Parse(string yaml, PartialRegistry? partials = null)
     {
         if (string.IsNullOrWhiteSpace(yaml)) return null;
@@ -166,6 +169,8 @@ public static class YamlComponentBuilder
                 Primary = Str(map, "buttonStyle") == "primary",
             },
             "Text" => new Text(Str(map, "text") ?? ""),
+            // A reference to a named business component (components.yaml / [BusinessComponent]).
+            "ComponentRef" => new ComponentRef(Str(map, "ref") ?? ""),
             var other => new Text($"Unsupported component: {other}"),
         };
     }

@@ -16,5 +16,8 @@
     <!-- The route registry and the definitions it routes to: read from disk at runtime, so they
          have to sit next to the test assembly. -->
     <Content Include="specs/**/*.yaml" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Catalogue fixtures live OUTSIDE specs/ui on purpose: a sources.yaml there would put a REST
+         source catalogue on every app the suite renders (the conformance app cases included). -->
+    <Content Include="catalogue-specs/**/*.yaml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

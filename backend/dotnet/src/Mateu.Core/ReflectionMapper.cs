@@ -284,7 +284,7 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         // Proxy mode ([RestOptions]/[RestListing]/[RestAction]/[RestData] with Proxy=true): advertise
         // the reserved __restfetch__ action so the renderer can route the fetch through the server
         // (which resolves the DECLARED source, injects ${secret.X} and fetches server-side).
-        if (HasProxySource(type))
+        if (HasProxySource(type, instance))
             actions.Add(new ActionDto("__restfetch__"));
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), type.FullName!, route,

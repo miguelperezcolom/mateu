@@ -18,6 +18,20 @@ public sealed class MateuRegistry
     /// the code-authored half (routes.yaml wins over them).</summary>
     public IReadOnlyList<RouteEntry> SuppliedRoutes { get; }
 
+    /// <summary>Every registered view/app class (the ones a route or a serverSideType resolves to) —
+    /// where [RestSource] declarations are collected from.</summary>
+    public IReadOnlyCollection<Type> RegisteredTypes => _byName.Values.Distinct().ToList();
+
+    /// <summary>Every type of the scanned assemblies — where catalogue suppliers and
+    /// [BusinessComponent] members are discovered.</summary>
+    public IReadOnlyList<Type> ScannedTypes => _assemblies.SelectMany(SafeTypes).ToList();
+
+    private static IEnumerable<Type> SafeTypes(Assembly assembly)
+    {
+        try { return assembly.GetTypes(); }
+        catch (ReflectionTypeLoadException e) { return e.Types.OfType<Type>(); }
+    }
+
     public MateuRegistry(params Assembly[] assemblies)
     {
         var asms = assemblies.Length > 0 ? assemblies : [Assembly.GetEntryAssembly()!];

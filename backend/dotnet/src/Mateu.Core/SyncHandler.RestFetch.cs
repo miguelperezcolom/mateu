@@ -85,8 +85,19 @@ public sealed partial class SyncHandler
         });
     }
 
-    /// <summary>The source a proxied fetch may hit: ONLY one the routed view declares (never a
-    /// url from the request).</summary>
-    private RestDataSourceDto? ResolveProxySource(Type type, RunActionRqDto rq, string? kind, string? id) =>
-        ReflectionMapper.ResolveRestSource(type, kind, id);
+    /// <summary>The source a proxied fetch may hit: ONLY one the routed view declares — by
+    /// attribute, or at runtime as an <see cref="Mateu.Uidl.IRestSourceSupplier"/> (the instance is
+    /// built and bound from the state like any action target) — with a catalogue reference resolved
+    /// from the server's table. Never a url from the request.</summary>
+    private RestDataSourceDto? ResolveProxySource(Type type, RunActionRqDto rq, string? kind, string? id)
+    {
+        object? instance = null;
+        if (typeof(Mateu.Uidl.IRestSourceSupplier).IsAssignableFrom(type)
+            && type is { IsAbstract: false } && type.GetConstructor(Type.EmptyTypes) is not null)
+        {
+            instance = Activator.CreateInstance(type)!;
+            BindState(instance, rq.ComponentState);
+        }
+        return ReflectionMapper.ResolveRestSource(type, instance, kind, id);
+    }
 }

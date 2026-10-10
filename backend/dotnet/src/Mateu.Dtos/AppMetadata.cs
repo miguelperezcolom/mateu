@@ -73,7 +73,31 @@ public record AppMetadataDto(
     /// capability, not by version. Sorted + deduped so the wire is stable. (Mirrors
     /// io.mateu.dtos.AppDto.requiredCapabilities.)</summary>
     public IReadOnlyList<string> RequiredCapabilities { get; init; } = [];
+
+    /// <summary>The app's REST source catalogue: a surface referencing a source carries only its name
+    /// (RestDataSourceDto.Ref), the endpoint travels once, here. Empty when the app declares no named
+    /// source. (Mirrors io.mateu.dtos.AppDto.restSources.)</summary>
+    public IReadOnlyList<RestSourceEntryDto> RestSources { get; init; } = [];
+
+    /// <summary>The app's business-component catalogue, each composition already mapped to the wire,
+    /// so a client-side expander can resolve a ComponentRef with no backend. (Mirrors
+    /// io.mateu.dtos.AppDto.components.)</summary>
+    public IReadOnlyList<ComponentEntryDto> Components { get; init; } = [];
 }
+
+/// <summary>One named entry of the REST source catalogue as it travels to the renderer. Provenance is
+/// "generate" | "existing" (never auto). (Mirrors io.mateu.dtos.RestSourceEntryDto.)</summary>
+public record RestSourceEntryDto(
+    string Name,
+    RestDataSourceDto Source,
+    IReadOnlyDictionary<string, string> Fields,
+    string TotalPath,
+    string Provenance,
+    string Description);
+
+/// <summary>One named business component with its resolved composition. (Mirrors
+/// io.mateu.dtos.ComponentEntryDto.)</summary>
+public record ComponentEntryDto(string Name, ComponentDto? Component);
 
 /// <summary>An application-level context selector shown on the app header: fixes a value for
 /// every screen (the active hotel, the company…). The picked value lives in the app state under
