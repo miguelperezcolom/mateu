@@ -39,6 +39,13 @@ const PLUMBING = [
     'State',
     'Data',
     'FutureComponent',
+    // flow Step verbs (reached through AppShell.actions): authored in the Actions panels, not the palette
+    'Navigate',
+    'Emit',
+    'CloseOverlay',
+    'RunAction',
+    'MarkClean',
+    'MarkDirty',
 ]
 
 // A handful of components that must always be authorable — anchors so "the catalog is complete" can't

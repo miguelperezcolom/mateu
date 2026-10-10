@@ -42,7 +42,10 @@ export interface ComponentSchema {
 export const GROUPS = ['Layout', 'Form', 'Display', 'Actions', 'Overlay', 'Data', 'Other'] as const
 
 // Wire plumbing that is a component in the schema but never authored by hand.
-const HIDDEN = new Set(['ServerSideComponent', 'ClientSideComponent', 'ModelViewComponent', 'PageView', 'AppData', 'AppState', 'State', 'Data', 'FutureComponent'])
+const HIDDEN = new Set(['ServerSideComponent', 'ClientSideComponent', 'ModelViewComponent', 'PageView', 'AppData', 'AppState', 'State', 'Data', 'FutureComponent',
+    // The flow Step verbs: discriminated like components (an AppShell's `actions:` reach them), but
+    // they are steps of a flow — authored in the Actions panels, never dropped on a canvas.
+    'Navigate', 'Emit', 'CloseOverlay', 'RunAction', 'MarkClean', 'MarkDirty'])
 
 function groupOf(name: string): string {
     const n = name.toLowerCase()

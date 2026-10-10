@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { parse } from 'yaml'
-import { hasAppShell, parseApp, serializeApp, AppDoc } from './appModel'
+import {
+    hasAppShell, parseApp, serializeApp, AppDoc,
+    appActionIds, appActionSteps, setAppActionSteps, addAppFlowAction, removeAppAction,
+    widgetProp, addWidget, setWidgetProp, moveWidget, removeWidget,
+} from './appModel'
 
 const src = `type: AppShell
 title: Back office
@@ -95,5 +99,69 @@ describe('app shell — brand accent and back link', () => {
         const out = parse(serializeApp({ ...doc, fields: { ...doc.fields, backLink: undefined } }))
         expect(out.accentColor).toBe('#D2232A')
         expect(out.backLink).toBeUndefined()
+    })
+})
+
+describe('app shell — flows, header switches and widgets', () => {
+    const shell = `type: AppShell
+title: App
+homeRoute: home
+themeToggle: true
+actions:
+  - id: newOrder
+    confirmationRequired: true
+    steps:
+      - type: Navigate
+        route: orders/new
+        note: kept
+menu:
+  - type: RuleLink
+    label: New order
+    rules:
+      - action: RunAction
+        actionId: newOrder
+widgets:
+  - type: Text
+    text: v1
+  - type: Avatar
+    name: x
+`
+
+    it('round-trips the shell actions losslessly (unmodelled keys on the action and its steps survive)', () => {
+        const doc = parseApp(shell)
+        expect(appActionIds(doc)).toEqual(['newOrder'])
+        expect(parse(serializeApp(doc))).toEqual(parse(shell))
+        expect(doc.appRest.actions).toBeUndefined()
+    })
+
+    it('edits a shell flow with the page flow model', () => {
+        let doc = parseApp(shell)
+        doc = setAppActionSteps(doc, 'newOrder', [...appActionSteps(doc, 'newOrder'), { type: 'MarkClean', extra: {} }])
+        doc = addAppFlowAction(doc, 'announce')
+        doc = setAppActionSteps(doc, 'announce', [{ type: 'Emit', event: 'started', extra: {} }])
+        const out = parse(serializeApp(doc))
+        expect(out.actions[0].confirmationRequired).toBe(true)
+        expect(out.actions[0].steps).toEqual([{ type: 'Navigate', route: 'orders/new', note: 'kept' }, { type: 'MarkClean' }])
+        expect(out.actions[1]).toEqual({ id: 'announce', steps: [{ type: 'Emit', event: 'started' }] })
+        expect(appActionIds(removeAppAction(doc, 'newOrder'))).toEqual(['announce'])
+    })
+
+    it('reads and writes the header switches', () => {
+        const doc = parseApp(shell)
+        expect(doc.fields.themeToggle).toBe(true)
+        const out = parse(serializeApp({ ...doc, fields: { ...doc.fields, accessKeys: true, chromeless: true } }))
+        expect(out).toMatchObject({ themeToggle: true, accessKeys: true, chromeless: true })
+    })
+
+    it('adds, edits, reorders and removes widgets, keeping an unknown one untouched', () => {
+        let doc = parseApp(shell)
+        expect(widgetProp(doc.widgets[0])).toBe('text')
+        expect(widgetProp(doc.widgets[1])).toBeUndefined()
+        doc = addWidget(doc, 'Button')
+        doc = setWidgetProp(doc, 2, 'Help')
+        doc = moveWidget(doc, 2, -1)
+        expect(doc.widgets).toEqual([{ type: 'Text', text: 'v1' }, { type: 'Button', label: 'Help' }, { type: 'Avatar', name: 'x' }])
+        expect(setWidgetProp(doc, 2, 'nope')).toBe(doc) // an unknown widget is never edited lossily
+        expect(removeWidget(doc, 0).widgets).toHaveLength(2)
     })
 })
