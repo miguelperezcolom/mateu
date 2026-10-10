@@ -186,13 +186,21 @@ public sealed partial class ReflectionMapper
             toolbar.Add(new ButtonDto("New", "new"));
             actions.Add(new ActionDto("new"));
         }
-        // Export the listing (Crud.CsvExportable): the whole filtered set as a CSV download
-        // (mirrors Java's ListRouteResolver export buttons; the port's built-in CSV writer is the
-        // exporter, and Excel/PDF have none here).
-        if (Hook0("CsvExportable"))
+        // Export the listing (Crud.CsvExportable / ExcelExportable / PdfExportable): the whole
+        // filtered set as a download, buttons first in the toolbar in Java's order (mirrors
+        // ListRouteResolver; the exporters are pluggable, built-in writers by default).
+        var exports = new (string Hook, string Label, string ActionId)[]
         {
-            toolbar.Insert(0, new ButtonDto("Export CSV", "export-csv"));
-            actions.Add(new ActionDto("export-csv", ValidationRequired: false));
+            ("CsvExportable", "Export CSV", "export-csv"),
+            ("ExcelExportable", "Export Excel", "export-excel"),
+            ("PdfExportable", "Export PDF", "export-pdf"),
+        };
+        var exportAt = 0;
+        foreach (var (hook, label, actionId) in exports)
+        {
+            if (!Hook0(hook)) continue;
+            toolbar.Insert(exportAt++, new ButtonDto(label, actionId));
+            actions.Add(new ActionDto(actionId, ValidationRequired: false));
         }
         if (canDelete)
         {

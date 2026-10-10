@@ -56,7 +56,15 @@ public static class MateuExtensions
                 // Read per call: the handler is a singleton, the identity is the current request's.
                 identity: () => accessor.HttpContext is { } ctx ? options.Identity(ctx) : null,
                 secrets: secrets,
-                http: options.HttpClient);
+                http: options.HttpClient)
+            {
+                // Listing exports: an exporter registered as a service replaces the built-in writer
+                // of its format (Java: the CsvExporter/ExcelExporter/PdfExporter beans).
+                Exporters = new Mateu.Core.Export.MateuExporters(
+                    sp.GetService<ICsvExporter>() ?? Mateu.Core.Export.MateuExporters.BuiltIn.Csv,
+                    sp.GetService<IExcelExporter>() ?? Mateu.Core.Export.MateuExporters.BuiltIn.Excel,
+                    sp.GetService<IPdfExporter>() ?? Mateu.Core.Export.MateuExporters.BuiltIn.Pdf),
+            };
         });
         return services;
     }

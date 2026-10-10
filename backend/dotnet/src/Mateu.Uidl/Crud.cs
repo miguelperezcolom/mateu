@@ -13,7 +13,7 @@ namespace Mateu.Uidl;
 /// </summary>
 public abstract class Crud<T> :
     IListing<T>, ISearchable, IFilterable<T>,
-    INavigable<T, string>, IEditable<T, string>, ICreatable<T, string>, IDeletable<string>
+    INavigable<T, string>, IEditable<T, string>, ICreatable<T, string>, IDeletable<string>, ICrudExports
     where T : class, new()
 {
     /// <summary>Rows to show, optionally filtered by the search box text.</summary>
@@ -53,8 +53,18 @@ public abstract class Crud<T> :
     /// <summary>When true the listing toolbar offers "Export CSV" (action export-csv), which
     /// downloads the WHOLE filtered result set (search text + smart-search-bar filters) as a CSV
     /// file, one column per visible entity property. (C# analogue of Java's
-    /// Listing.csvExportable on an AutoCrud; Excel/PDF exports have no exporter in this port.)</summary>
+    /// Listing.csvExportable on an AutoCrud.)</summary>
     public virtual bool CsvExportable => false;
+
+    /// <summary>When true the listing toolbar offers "Export Excel" (action export-excel): the same
+    /// rows as an .xlsx workbook, written by the registered IExcelExporter (a built-in,
+    /// dependency-free writer unless the app registers its own). (Java's Listing.excelExportable.)</summary>
+    public virtual bool ExcelExportable => false;
+
+    /// <summary>When true the listing toolbar offers "Export PDF" (action export-pdf): the same rows
+    /// as a paginated PDF table, written by the registered IPdfExporter (built-in unless the app
+    /// registers its own). (Java's Listing.pdfExportable.)</summary>
+    public virtual bool PdfExportable => false;
 
     // ── The capability model over the classic Crud surface ─────────────────────
     // A Crud declares every capability; these hooks narrow them per crud (consulted by the
