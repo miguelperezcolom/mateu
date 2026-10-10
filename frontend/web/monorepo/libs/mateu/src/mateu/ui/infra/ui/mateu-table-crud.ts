@@ -11,9 +11,9 @@ import './mateu-content-header'
 import { ColumnLike, applyColumnPrefs, isProtectedColumn, readColumnPrefs } from '../columnPrefsStore.ts'
 import { interpolate, templateResolver } from './interpolation'
 import { fetchExternalPage, fetchExternalRows, pageOf } from '@infra/http/externalOptions.ts'
-import { filterExternalRows } from '@infra/http/restRowFilters.ts'
+import { filterExternalRows, sortExternalRows } from '@infra/http/restRowFilters.ts'
 import { rowRouteFields, navigateToRoute } from '@infra/ui/rowRoute.ts'
-import { resolveRestSource, totalPathOf } from '@infra/http/restSourceCatalogue.ts'
+import { isSampled, totalPathOf, viaProxy } from '@infra/http/restSourceCatalogue.ts'
 import './mateu-pagination'
 import './mateu-card-list'
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
@@ -706,8 +706,12 @@ export class MateuTableCrud extends LitElement {
         // paged — its url carries the conditions. Re-applying them here would be wrong twice over:
         // the filters would run against one page instead of the collection, and slicing an already
         // sliced page would empty every page after the first.
-        const serverPaged = totalPathOf(src) != null
-        const pagePromise: Promise<{ rows: Record<string, unknown>[]; total: number | null }> = resolveRestSource(src)?.proxy
+        // A source answered from its SAMPLE (sample mode) cannot honour `${state.page}` & co: the
+        // whole sample is the collection, so it is searched, filtered, sorted and paged HERE —
+        // whatever totalPath it declares — and it is never proxied (there may be no server at all).
+        const sampled = isSampled(src)
+        const serverPaged = totalPathOf(src) != null && !sampled
+        const pagePromise: Promise<{ rows: Record<string, unknown>[]; total: number | null }> = viaProxy(src)
             ? new Promise((resolve) => {
                 this.dispatchEvent(new CustomEvent('action-requested', {
                     detail: {
@@ -745,7 +749,8 @@ export class MateuTableCrud extends LitElement {
                 const serverAnswered = serverPaged && total != null
                 const filtered = serverAnswered
                     ? rows
-                    : filterExternalRows(rows, columnIds, metadata.filters, this.state)
+                    : sortExternalRows(filterExternalRows(rows, columnIds, metadata.filters, this.state),
+                        (this.state as { sort?: { fieldId?: string; direction?: string }[] } | undefined)?.sort)
                 const size = metadata.pageSize && metadata.pageSize > 0 ? metadata.pageSize : (filtered.length || 1)
                 const content = serverAnswered ? filtered : filtered.slice(page * size, page * size + size)
                 const totalElements = serverAnswered ? (total as number) : filtered.length
@@ -1017,7 +1022,7 @@ export class MateuTableCrud extends LitElement {
             const val = item[col.id]
             if (val === null || val === undefined) return html``
             if (col.dataType === 'status') {
-                const status = toStatus(val)!
+                const status = toStatus(val, col.tones)!
                 const theme = getThemeForBadgetType(status.type)
                 return html`<span theme="badge pill ${theme}">${status.message}</span>`
             }

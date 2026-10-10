@@ -93,5 +93,8 @@ export default interface App extends ComponentMetadata {
      * each with its steps lowered to `commands`. A menu leaf whose RunAction rule names one runs
      * those commands in the browser — no server round-trip (see infra/ui/shellFlows.ts). */
     actions?: Action[] | undefined
+    /** True when the server runs in SAMPLE mode (`mateu.sources.mock=true`): REST sources carrying
+     * sample data answer with it, on the direct leg (browser) as on the proxied one. */
+    mockSources?: boolean | null
 
 }

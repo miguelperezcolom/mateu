@@ -4,7 +4,8 @@
 // instead of POSTing to the Mateu server — so the UI runs from static assets with no backend. Live
 // data still comes from external endpoints (@RestOptions/@RestListing …); ACTIONS still need a
 // backend and degrade with the normal "request failed" path when it is absent.
-import { setRestSourceCatalogue } from './restSourceCatalogue.ts'
+import { setRestSourceCatalogue, setSampleMode } from './restSourceCatalogue.ts'
+import { setFieldTypeCatalogue, type FieldTypeEntry } from '../expander/fieldTypes.ts'
 import type RestSourceEntry from '@mateu/shared/apiClients/dtos/componentmetadata/RestSourceEntry.ts'
 import type UIIncrement from '@mateu/shared/apiClients/dtos/UIIncrement'
 import { expandDefinition, isClientExpandable, type DefinitionSpec } from '@infra/expander/expandDefinition.ts'
@@ -56,6 +57,12 @@ interface BundleManifest {
     // being pre-rendered at build time — so editing a definition and refreshing shows it, with no
     // backend and no export step. A `viewModel` route cannot be expanded client-side and is skipped.
     definitions?: Record<string, DefinitionSpec>
+    // A bundle built with the mock flag (`-Dmateu.bundle.mock=true`), or play: the sources answer
+    // with their SAMPLE data instead of being called.
+    mockSources?: boolean | null
+    // The field type catalogue (types.yaml) the raw definitions reference by `fieldType:`. Play ships
+    // it; the server exporter resolves the references at build time and ships none.
+    types?: { types?: FieldTypeEntry[] }
 }
 
 // syncPath → parsed increment, for the routes that exported OK. undefined = no bundle loaded.
@@ -185,6 +192,12 @@ export function loadBundleManifest(url: string, fetchImpl: typeof fetch = fetch)
             definitions = manifest.definitions ?? {}
             catalogueSources = manifest.sources?.sources ?? []
             setRestSourceCatalogue(manifest.sources?.sources)
+            // A bundle built with the mock flag answers its sources from their samples. Only ever
+            // switched ON here: a plain manifest does not switch off an editor that set it.
+            if (manifest.mockSources) setSampleMode(true)
+            // The field types the raw definitions reference (play ships them; an exported bundle
+            // resolves them at build time, so its table is empty and nothing changes).
+            if (manifest.types) setFieldTypeCatalogue(manifest.types.types)
         } catch (e) {
             console.warn('mateu: bundle manifest load failed', e)
         }

@@ -38,20 +38,40 @@ class FieldTypesSyncTest {
     }
   }
 
+  static final java.nio.file.Path FIXTURES =
+      java.nio.file.Path.of(
+          "../../../frontend/web/monorepo/libs/mateu/src/mateu/ui/infra/expander/__fixtures__");
+
+  /**
+   * A fresh load of {@code route}, as wire JSON — and, with {@code -Dexpander.golden.write=true},
+   * written as the golden the browser expander's {@code fieldTypes.test.ts} is pinned to (the same
+   * YAML expanded client-side must be a structural subset of it).
+   */
   private static JsonNode load(String route) {
-    return SpecsFixture.over(
-        "field-types",
-        () -> {
-          try (var mateu = TestMateu.withUisAndBeans(List.of(new CodeTypes()))) {
-            return SpecsFixture.wire(
-                mateu.run(
-                    RunActionRqDto.builder()
-                        .route(route)
-                        .consumedRoute("_empty")
-                        .actionId("")
-                        .build()));
-          }
-        });
+    var wire =
+        SpecsFixture.over(
+            "field-types",
+            () -> {
+              try (var mateu = TestMateu.withUisAndBeans(List.of(new CodeTypes()))) {
+                return SpecsFixture.wire(
+                    mateu.run(
+                        RunActionRqDto.builder()
+                            .route(route)
+                            .consumedRoute("_empty")
+                            .actionId("")
+                            .build()));
+              }
+            });
+    if (Boolean.getBoolean("expander.golden.write")) {
+      try {
+        java.nio.file.Files.writeString(
+            FIXTURES.resolve(route.replace("/", "") + ".golden.json"),
+            SpecsFixture.JSON.writerWithDefaultPrettyPrinter().writeValueAsString(wire) + "\n");
+      } catch (java.io.IOException e) {
+        throw new java.io.UncheckedIOException(e);
+      }
+    }
+    return wire;
   }
 
   /**
