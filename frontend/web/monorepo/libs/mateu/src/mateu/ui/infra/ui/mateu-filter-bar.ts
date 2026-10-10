@@ -16,6 +16,7 @@ import {
     setDefaultView,
 } from "../savedViewsStore.ts";
 import { ListenerSlot } from '@infra/ui/connectionScope.ts'
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * Smart-search filter bar, after the Redwood Smart Search pattern: ONE search field hosting both
@@ -303,7 +304,7 @@ export class MateuFilterBar extends LitElement {
             const option = field.options.find(o => o.value === String(value))
             if (option) return option.label ?? option.value
         }
-        if (typeof value === 'boolean') return value ? 'Yes' : 'No'
+        if (typeof value === 'boolean') return value ? chromeText('yes') : chromeText('no')
         return String(value)
     }
 
@@ -357,18 +358,18 @@ export class MateuFilterBar extends LitElement {
         }
         return html`
             <div class="panel-input-row">
-                <input class="range-from" type="${inputType}" placeholder="From"
+                <input class="range-from" type="${inputType}" placeholder="${chromeText('rangeFrom')}"
                        .value="${this.rangeBound(field, 'from')}"
                        @mousedown="${(e: Event) => e.stopPropagation()}"
                        @keydown="${onKeydown}"/>
                 <span class="range-separator" aria-hidden="true">–</span>
-                <input class="range-to" type="${inputType}" placeholder="To"
+                <input class="range-to" type="${inputType}" placeholder="${chromeText('rangeTo')}"
                        .value="${this.rangeBound(field, 'to')}"
                        @mousedown="${(e: Event) => e.stopPropagation()}"
                        @keydown="${onKeydown}"/>
                 <button class="apply-button"
                         @mousedown="${this.keepFocus}"
-                        @click="${(e: Event) => apply(e.target as HTMLElement)}">Apply</button>
+                        @click="${(e: Event) => apply(e.target as HTMLElement)}">${chromeText('apply')}</button>
             </div>`
     }
 
@@ -407,8 +408,8 @@ export class MateuFilterBar extends LitElement {
         }
         if (this.isBooleanFilter(field)) {
             return html`
-                ${this.panelRow('Yes', () => this.applyFilter(field.fieldId, true))}
-                ${this.panelRow('No', () => this.applyFilter(field.fieldId, false))}`
+                ${this.panelRow(chromeText('yes'), () => this.applyFilter(field.fieldId, true))}
+                ${this.panelRow(chromeText('no'), () => this.applyFilter(field.fieldId, false))}`
         }
         const numeric = this.isNumericFilter(field)
         const apply = (input: HTMLInputElement) => {
@@ -426,7 +427,7 @@ export class MateuFilterBar extends LitElement {
                        }}"/>
                 <button class="apply-button"
                         @mousedown="${this.keepFocus}"
-                        @click="${(e: Event) => apply((e.target as HTMLElement).previousElementSibling as HTMLInputElement)}">Apply</button>
+                        @click="${(e: Event) => apply((e.target as HTMLElement).previousElementSibling as HTMLInputElement)}">${chromeText('apply')}</button>
             </div>`
     }
 
@@ -436,27 +437,27 @@ export class MateuFilterBar extends LitElement {
         const anySet = !!this.state.searchText || this.filters.some(field => this.isSet(field))
         return html`
             <div class="panel views-panel">
-                <div class="panel-caption">Saved views</div>
+                <div class="panel-caption">${chromeText('savedViews')}</div>
                 ${views.length === 0 ? html`
-                    <div class="panel-row views-empty">No saved views yet</div>` : nothing}
+                    <div class="panel-row views-empty">${chromeText('noSavedViews')}</div>` : nothing}
                 ${views.map(view => html`
                     <div class="panel-row view-row" @mousedown="${this.keepFocus}">
                         <span class="view-name" @click="${() => this.applyView(view)}">${view.name}</span>
                         <button class="view-star ${view.isDefault ? 'view-star--on' : ''}"
-                                title="${view.isDefault ? 'Unset as default' : 'Open this listing with this view'}"
+                                title="${view.isDefault ? chromeText('unsetDefaultView') : chromeText('openWithView')}"
                                 @click="${() => { setDefaultView(this.viewsScope, view.name); this.requestUpdate() }}">★</button>
                         <button class="chip-remove" aria-label="Delete view ${view.name}"
                                 @click="${() => { deleteView(this.viewsScope, view.name); this.requestUpdate() }}">✕</button>
                     </div>`)}
                 ${anySet ? html`
                     <div class="panel-input-row" @mousedown="${(e: Event) => e.stopPropagation()}">
-                        <input class="view-name-input" type="text" placeholder="Save current view as…"
+                        <input class="view-name-input" type="text" placeholder="${chromeText('saveViewAs')}"
                                @keydown="${(e: KeyboardEvent) => {
                                    if (e.key === 'Enter') this.saveCurrentView(e.target as HTMLInputElement)
                                    if (e.key === 'Escape') { this.viewsOpened = false }
                                }}"/>
                         <button class="apply-button"
-                                @click="${(e: Event) => this.saveCurrentView((e.target as HTMLElement).previousElementSibling as HTMLInputElement)}">Save</button>
+                                @click="${(e: Event) => this.saveCurrentView((e.target as HTMLElement).previousElementSibling as HTMLInputElement)}">${chromeText('save')}</button>
                     </div>` : html`
                     <div class="panel-row views-empty">Apply some filters to save a view</div>`}
             </div>`
@@ -479,14 +480,14 @@ export class MateuFilterBar extends LitElement {
         const anySet = !!this.state.searchText || this.filters.some(field => this.isSet(field))
         return html`
             <div class="panel">
-                <div class="panel-caption">Filter by</div>
+                <div class="panel-caption">${chromeText('filterBy')}</div>
                 ${this.filters.map(field => this.panelRow(html`
                     ${this.labelOf(field)}
                     ${this.isSet(field)
                         ? html`<span class="current-value">${this.conditionDisplay(field)}</span>`
                         : nothing}
                 `, () => { this.activeFilter = field }))}
-                ${anySet ? this.panelRow('Clear filters', this.clearAllFilters, 'panel-row panel-footer') : nothing}
+                ${anySet ? this.panelRow(chromeText('clearFilters'), this.clearAllFilters, 'panel-row panel-footer') : nothing}
             </div>`
     }
 
@@ -522,7 +523,7 @@ export class MateuFilterBar extends LitElement {
                         <path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/>
                     </svg>
                     ${this.scopeFilters.filter(field => this.isSet(field)).map(field => html`
-                        <span theme="badge pill" class="chip chip-scope" title="Fixed by the page">
+                        <span theme="badge pill" class="chip chip-scope" title="${chromeText('fixedByPage')}">
                             <span class="chip-label">${this.labelOf(field)}:</span> ${this.conditionDisplay(field)}
                         </span>`)}
                     ${chips.map(chip => html`
@@ -534,7 +535,7 @@ export class MateuFilterBar extends LitElement {
                         </span>`)}
                     ${this.metadata?.searchable !== false ? html`
                         <input class="free-text" type="text" id="searchText"
-                               placeholder="${chips.length === 0 ? 'Search' : ''}"
+                               placeholder="${chips.length === 0 ? chromeText('search') : ''}"
                                autofocus="${this.metadata?.autoFocusOnSearchText ? true : nothing}"
                                .value="${this.draftText ?? ''}"
                                @input="${(e: Event) => {
@@ -548,7 +549,7 @@ export class MateuFilterBar extends LitElement {
                                    if (e.key === 'Escape') this.closePanel()
                                }}"/>
                     ` : nothing}
-                    <button class="views-button" title="Saved views" aria-label="Saved views"
+                    <button class="views-button" title="${chromeText('savedViews')}" aria-label="${chromeText('savedViews')}"
                             @mousedown="${this.keepFocus}"
                             @click="${(e: Event) => {
                                 e.stopPropagation()

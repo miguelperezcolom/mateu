@@ -426,6 +426,14 @@ class ReflectionMapper:
         self.translator = translator
         self.identity_provider = identity_provider
 
+    def _locale(self) -> str | None:
+        """The UI language the translator declares, or None (the browser decides)."""
+        locale = getattr(self.translator, "locale", None) if self.translator else None
+        try:
+            return locale() if callable(locale) else None
+        except Exception:
+            return None
+
     def authorized(self, gate) -> bool:
         """Whether the caller passes ``gate`` (mirrors Java's Authorizer): AND across declared
         dimensions, OR within each; nothing declared → unrestricted; no identity → unauthorized."""
@@ -577,6 +585,8 @@ class ReflectionMapper:
             chromeless=bool(getattr(cls, "__mateu_app_chromeless__", False)),
             # Keyboard access keys (hold Alt to see them): opt-in, mirrors AppDto.accessKeys.
             access_keys=bool(getattr(cls, "__mateu_app_access_keys__", False)),
+            # The UI language: what the translator says (mirrors AppDto.locale).
+            locale=self._locale(),
             # The capability tokens this app requires from its host renderer: derived from the
             # app-scoped features it declares plus whatever @app(requires=[...]) adds. app-data /
             # rest-sources are not carried by this port at build time (app_data_source is applied

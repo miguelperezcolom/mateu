@@ -105,7 +105,12 @@ public record AppDto(
      */
     String backRoute,
     /** The label of the "← Parent" link: the parent screen's title. */
-    String backLabel)
+    String backLabel,
+    /**
+     * The UI language for this request, a BCP 47 tag ({@code Translator.locale}); null = let the
+     * browser decide. The web client sets it on {@code <html lang>} and draws its chrome in it.
+     */
+    String locale)
     implements ComponentMetadataDto {
 
   public AppDto {

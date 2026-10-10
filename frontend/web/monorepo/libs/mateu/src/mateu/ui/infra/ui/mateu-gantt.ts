@@ -3,6 +3,7 @@ import { customElement, property } from 'lit/decorators.js';
 import GanttTask from "@mateu/shared/apiClients/dtos/componentmetadata/GanttTask";
 import { onActivate } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -147,7 +148,7 @@ export class MateuGantt extends LitElement {
         const now = Date.now()
         return html`
             <div class="frame">
-                <div class="head">Task</div>
+                <div class="head">${chromeText('task')}</div>
                 <div class="head months">
                     ${this.months(range.min, range.max).map(month => html`
                         <div class="month" style="width: ${(month.to - month.from) / span * 100}%;">${month.label}</div>

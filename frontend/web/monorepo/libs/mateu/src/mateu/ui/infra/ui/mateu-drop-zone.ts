@@ -2,6 +2,7 @@ import { css, html, LitElement, nothing } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
 import type DropZone from '@mateu/shared/apiClients/dtos/componentmetadata/DropZone'
 import { draggedIdsOf, dragMimeOf, dropParamsOf } from '@infra/ui/dragAndDrop.ts'
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * A place to drop dragged listing rows (`DropZone`): a titled card wrapping its content (slotted).
@@ -72,7 +73,7 @@ export class MateuDropZone extends LitElement {
                 ${zone.title ? html`<div class="title">${zone.title}</div>` : nothing}
                 ${zone.subtitle ? html`<div class="subtitle">${zone.subtitle}</div>` : nothing}
                 <slot></slot>
-                ${this.ready ? html`<div class="hint">Drop here</div>` : nothing}
+                ${this.ready ? html`<div class="hint">${chromeText('dropHere')}</div>` : nothing}
             </div>`
     }
 

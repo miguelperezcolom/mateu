@@ -9,6 +9,7 @@ import {
     readAppContextLabels,
     writeAppContext
 } from "@infra/appContextStore.ts";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * One application-level context selector on the app header (an @AppContext field of the app
@@ -163,7 +164,7 @@ export class MateuAppContextPicker extends LitElement {
         return html`
             <div class="panel">
                 ${searchable ? html`
-                    <input class="picker-search" type="text" placeholder="Search"
+                    <input class="picker-search" type="text" placeholder="${chromeText('search')}" aria-label="${chromeText('search')}"
                            .value="${this.searchText}"
                            @input="${this.onSearchInput}"
                            @keydown="${(e: KeyboardEvent) => { if (e.key === 'Escape') this.closePanel() }}"/>` : nothing}

@@ -9,6 +9,7 @@ import { interpolateNested } from "@infra/ui/interpolation.ts";
 import { FocusTrap, trapFocus } from "@infra/a11y/focusTrap.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 @customElement('mateu-drawer')
 export class MateuDrawer extends ComponentElement {
@@ -240,19 +241,19 @@ export class MateuDrawer extends ComponentElement {
                     <mateu-event-interceptor .target="${this}">${renderComponent(this, metadata.header, this.baseUrl, this.state, this.data, this.appState, this.appData)}</mateu-event-interceptor>
                 ` : nothing}
                 ${peerNav ? html`
-                    <button class="drawer-icon" aria-label="${peerNav.prevLabel ?? 'Previous'}" title="${peerNav.prevLabel ?? 'Previous'}"
+                    <button class="drawer-icon" aria-label="${peerNav.prevLabel ?? chromeText('previous')}" title="${peerNav.prevLabel ?? chromeText('previous')}"
                             ?disabled="${!peerNav.prevRoute}" @click="${() => { if (peerNav.prevRoute) safeNavigate(peerNav.prevRoute) }}">‹</button>
-                    <button class="drawer-icon" aria-label="${peerNav.nextLabel ?? 'Next'}" title="${peerNav.nextLabel ?? 'Next'}"
+                    <button class="drawer-icon" aria-label="${peerNav.nextLabel ?? chromeText('next')}" title="${peerNav.nextLabel ?? chromeText('next')}"
                             ?disabled="${!peerNav.nextRoute}" @click="${() => { if (peerNav.nextRoute) safeNavigate(peerNav.nextRoute) }}">›</button>
                 ` : nothing}
                 ${metadata.collapsible ? html`
-                    <button class="drawer-icon" aria-label="${this.collapsed ? 'Expand' : 'Collapse'}" title="${this.collapsed ? 'Expand' : 'Collapse'}"
+                    <button class="drawer-icon" aria-label="${this.collapsed ? chromeText('expand') : chromeText('collapse')}" title="${this.collapsed ? chromeText('expand') : chromeText('collapse')}"
                             @click="${() => this.collapsed = !this.collapsed}">${this.collapsed ? '▴' : '▾'}</button>
                 ` : nothing}
                 ${this.canMaximize(metadata) ? html`
-                    <button class="drawer-icon" aria-label="Maximize" title="Maximize" @click="${() => this.maximizeSteps++}">⤢</button>
+                    <button class="drawer-icon" aria-label="${chromeText('maximize')}" title="${chromeText('maximize')}" @click="${() => this.maximizeSteps++}">⤢</button>
                 ` : nothing}
-                <button class="drawer-close" aria-label="Close" @click="${this.close}">✕</button>
+                <button class="drawer-close" aria-label="${chromeText('close')}" @click="${this.close}">✕</button>
             </header>
             ${this.collapsed ? nothing : html`
             <div class="content ${metadata.noPadding ? 'no-padding' : ''}">

@@ -6,6 +6,7 @@
  * may override it via {@link setNotifier} (e.g. the Vaadin app's VaadinNotifier).
  */
 import { Notifier, ToastMessage, setNotifier } from '@application/Notifier.ts'
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 type Corner = { top?: string; bottom?: string; left?: string; right?: string; transform?: string }
 
@@ -79,10 +80,10 @@ export const neutralNotifier: Notifier = {
         // One inline control, from either source: a client-side closure (Retry) or a server
         // action (Undo). The closure wins when both are present.
         const control = message.onAction
-            ? { label: message.actionLabel ?? 'Retry', run: message.onAction }
+            ? { label: message.actionLabel ?? chromeText('retry'), run: message.onAction }
             : message.undoActionId
                 ? {
-                    label: message.undoLabel ?? 'Undo',
+                    label: message.undoLabel ?? chromeText('undo'),
                     run: () => initiator.dispatchEvent(new CustomEvent('action-requested', {
                         detail: { actionId: message.undoActionId, parameters: message.undoParameters ?? {} },
                         bubbles: true,

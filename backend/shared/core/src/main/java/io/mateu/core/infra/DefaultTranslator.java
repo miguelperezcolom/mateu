@@ -26,6 +26,17 @@ public class DefaultTranslator implements Translator {
     return text;
   }
 
+  /** The request's first {@code Accept-Language} tag, or null when it sends none. */
+  @Override
+  public String locale(HttpRequest httpRequest) {
+    if (httpRequest == null) return null;
+    String acceptLanguage = httpRequest.getHeaderValue("Accept-Language");
+    if (acceptLanguage == null || acceptLanguage.isBlank()) return null;
+    String tag = acceptLanguage.split(",")[0].trim().split(";")[0].trim();
+    if (tag.isEmpty() || "*".equals(tag)) return null;
+    return Locale.forLanguageTag(tag).toLanguageTag();
+  }
+
   private Locale resolveLocale(HttpRequest httpRequest) {
     if (httpRequest == null) return Locale.getDefault();
     String acceptLanguage = httpRequest.getHeaderValue("Accept-Language");

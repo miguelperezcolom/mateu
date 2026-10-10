@@ -17,6 +17,7 @@ import {mirrorThemeAttribute} from "@infra/theme/themeScope.ts";
 import {nanoid} from "nanoid";
 import { nextHistoryUrl, isScreenChange } from './navigationUrl'
 import { keyed } from 'lit/directives/keyed.js'
+import { applyUiLanguage } from '@infra/ui/chromeTexts.ts'
 
 // Install the design-system-neutral toast adapter as the default. A DS app (e.g. Vaadin) may
 // override it with setNotifier after importing mateu-ui.
@@ -150,6 +151,9 @@ export class MateuUi extends LitElement {
 
     connectedCallback() {
         super.connectedCallback()
+
+        // <html lang>: the browser's until the app shell says the server's (AppDto.locale).
+        applyUiLanguage()
 
         // Theming isolation: mirror the document's theme onto this container so the scoped token
         // baseline (declared on `mateu-ui`) firewalls the app from a host page's design tokens.

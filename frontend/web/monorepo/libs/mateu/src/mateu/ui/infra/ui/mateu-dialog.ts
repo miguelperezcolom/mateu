@@ -9,6 +9,7 @@ import { interpolateNested } from "@infra/ui/interpolation.ts";
 import './mateu-event-interceptor.ts';
 import { FocusTrap, trapFocus } from '@infra/a11y/focusTrap.ts';
 import { linkStyles } from "@infra/ui/linkStyles.ts";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /*
  * Design-system-neutral modal dialog — a fixed backdrop + centered card (no `@vaadin`). Preserves
@@ -112,7 +113,7 @@ export class MateuDialog extends ComponentElement {
                                 ${title ? html`<span class="dialog-title">${title}</span>` : nothing}
                                 ${metadata.header ? renderComponent(this, metadata.header, this.baseUrl, this.state, this.data, this.appState, this.appData) : nothing}
                             </mateu-event-interceptor>
-                            ${metadata.closeButtonOnHeader ? html`<button class="dialog-close" @click="${this.close}" aria-label="Close">✕</button>` : nothing}
+                            ${metadata.closeButtonOnHeader ? html`<button class="dialog-close" @click="${this.close}" aria-label="${chromeText('close')}">✕</button>` : nothing}
                         </div>` : nothing}
                     ${metadata.content ? html`
                         <div class="dialog-body">

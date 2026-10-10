@@ -1,6 +1,7 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import MessageInput from "@mateu/shared/apiClients/dtos/componentmetadata/MessageInput";
 import { html, nothing } from "lit";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /*
  * Design-system-neutral MessageInput — a native input + Send button (no `@vaadin`). The wire contract is
@@ -28,7 +29,7 @@ export const renderMessageInput = (component: ClientSideComponent) => {
                    style="flex:1; min-width:0; font:inherit; padding:.5rem .75rem; border:1px solid var(--lumo-contrast-20pct,rgba(0,0,0,.16)); border-radius:var(--lumo-border-radius-m,6px); background:var(--lumo-base-color,#fff); color:var(--lumo-body-text-color,#161513);"
                    @keydown="${(e: KeyboardEvent) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSubmit(e.currentTarget as HTMLElement) } }}">
             <button style="font:inherit; font-weight:500; cursor:pointer; padding:.5rem 1rem; border:none; border-radius:var(--lumo-border-radius-m,6px); background:var(--lumo-primary-color,#3b5bdb); color:var(--lumo-primary-contrast-color,#fff);"
-                    @click="${(e: Event) => doSubmit(e.currentTarget as HTMLElement)}">Send</button>
+                    @click="${(e: Event) => doSubmit(e.currentTarget as HTMLElement)}">${chromeText('send')}</button>
         </div>
     `
 }

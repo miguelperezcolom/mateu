@@ -6,16 +6,17 @@ const escapeHtml = (text: unknown): string => String(text ?? '')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 import { customElement, property, query, state } from 'lit/decorators.js';
 import 'cookieconsent/build/cookieconsent.min.js';
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 
 @customElement('mateu-cookie-consent')
 export class MateuCookieConsent extends LitElement {
 
     @property()
-    message = 'This website uses cookies.'
+    message = chromeText('cookiesMessage')
 
     @property()
-    dismiss = 'Ok. Thanks :).'
+    dismiss = chromeText('cookiesDismiss')
 
     @property()
     learnMore = 'Learn more'
@@ -36,7 +37,7 @@ export class MateuCookieConsent extends LitElement {
     _css: any
 
 
-    @query('[aria-label="cookieconsent"]')
+    @query('[aria-label="cookieconsent"]') // i18n-ok: the library's own marker
     private popup!: HTMLCanvasElement;
 
     protected updated(_changedProperties: PropertyValues) {

@@ -79,6 +79,9 @@ class AppMetadata(Wire):
     #: compares them against what it PROVIDES and reports the difference: compatibility by
     #: capability, not by version. Sorted + deduped (mirrors AppDto.requiredCapabilities).
     required_capabilities: list[str] = Field(default_factory=list)
+    #: The UI language, a BCP 47 tag (``Translator.locale()``); None = let the browser decide. The
+    #: web client sets it on ``<html lang>`` and draws its chrome in it (mirrors AppDto.locale).
+    locale: str | None = None
 
 
 class AppContextSelector(Wire):

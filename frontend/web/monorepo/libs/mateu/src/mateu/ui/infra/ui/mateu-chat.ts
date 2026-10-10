@@ -15,6 +15,7 @@ import {chatText} from "./chatTexts";
 import {CHAT_MIC_ARIA_KEYSHORTCUTS, chatMicTitle, isChatMicShortcut} from "./chatShortcut";
 import {CHAT_WIDE_VW, CHAT_WIDTH, CHAT_WIDTH_STEP, clampChatWidth, dragChatWidth, loadChatWidth, saveChatWidth} from "./chatPanel";
 import { authHeaders, sessionId } from '@infra/http/authToken.ts'
+import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 
 /**
  * An icon-only button of the panel's header: the active renderer's own (the Vaadin adapter: a
@@ -346,7 +347,7 @@ export class MateuChat extends LitElement {
         const msg: ChatMessageItem = {
             text,
             time: new Date().toLocaleTimeString(),
-            userName: role.includes('agent') ? 'Asistente' : 'Tú',
+            userName: role.includes('agent') ? chatText('title') : chromeText('chatYou'),
             userColorIndex: role.includes('agent') ? 2 : 1,
         };
         this.items = [...this.items, msg];
@@ -514,7 +515,7 @@ export class MateuChat extends LitElement {
 
             if (!response.ok) {
                 const errorText = await response.text();
-                throw new Error(`Servidor respondió ${response.status}: ${errorText}`);
+                throw new Error(chromeTextf('chatServerError', { status: response.status, error: errorText }));
             }
 
             const reader = response.body?.getReader();
@@ -570,16 +571,16 @@ export class MateuChat extends LitElement {
             }
 
             if (!accumulatedText) {
-                this.updateMessage(agentIdx, '⚠️ El agente no devolvió ninguna respuesta. Comprueba que el LLM está configurado correctamente (API key).');
+                this.updateMessage(agentIdx, chromeText('chatNoAnswer'));
             }
         } catch (error) {
             console.error('Error en el flujo SSE:', error);
             const errorMessage = (error as Error)?.message ?? String(error)
             const isNetworkError = errorMessage === 'Failed to fetch' || errorMessage === 'network error' || errorMessage === 'Load failed';
             if (isNetworkError && !accumulatedText) {
-                this.updateMessage(agentIdx, '⚠️ No se recibió respuesta del agente. El servidor cerró la conexión sin enviar datos — comprueba que el LLM tiene la API key configurada y está disponible.');
+                this.updateMessage(agentIdx, chromeText('chatConnectionClosed'));
             } else {
-                this.updateMessage(agentIdx, '⚠️ Error: ' + errorMessage);
+                this.updateMessage(agentIdx, chromeText('chatErrorPrefix') + errorMessage);
             }
         } finally {
                 this.stopLoading();
@@ -646,7 +647,7 @@ export class MateuChat extends LitElement {
         const steps = this.progress?.steps ?? [];
         if (!steps.length) return nothing;
         return html`
-            <ul class="tool-steps" aria-label="Herramientas usadas">
+            <ul class="tool-steps" aria-label="${chromeText('toolsUsed')}">
                 ${steps.map(step => html`
                     <li class="tool-step ${step.running ? 'running' : step.error ? 'failed' : 'done'}"
                         title="${step.server ? `${step.name} (${step.server})` : step.name}">
@@ -731,9 +732,9 @@ export class MateuChat extends LitElement {
                 ` : nothing}
                 <div class="input-bar">
                     ${this.uploadUrl ? html`
-                        <button class="mic-btn" title="Adjuntar ficheros"
+                        <button class="mic-btn" title="${chromeText('attachFiles')}"
                                 @click="${this.pickFiles}" ?disabled="${this.uploading}"
-                                aria-label="Adjuntar ficheros">${this.uploading ? '…' : '📎'}</button>
+                                aria-label="${chromeText('attachFiles')}">${this.uploading ? '…' : '📎'}</button>
                         <input class="file-input" type="file" multiple hidden
                                @change="${this.onFilesPicked}"/>
                     ` : nothing}

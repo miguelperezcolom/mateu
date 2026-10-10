@@ -7,6 +7,7 @@ import {
     readColumnPrefs,
     writeColumnPrefs,
 } from "../columnPrefsStore.ts";
+import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 
 /** One offerable-or-protected column as the host crud sees it (top-level: groups count as one). */
 export interface ColumnChooserEntry {
@@ -139,8 +140,8 @@ export class MateuColumnChooser extends LitElement {
                 <button
                     class="trigger ${personalized ? 'active' : ''}"
                     type="button"
-                    title="Columns"
-                    aria-label="Columns"
+                    title="${chromeText('columns')}"
+                    aria-label="${chromeText('columns')}"
                     aria-haspopup="true"
                     aria-expanded="${this.panelOpened}"
                     @click="${this.togglePanel}"
@@ -153,7 +154,7 @@ export class MateuColumnChooser extends LitElement {
                 </button>
                 ${this.panelOpened ? html`
                     <div class="panel" role="menu">
-                        <div class="panel-title">Columns</div>
+                        <div class="panel-title">${chromeText('columns')}</div>
                         ${offerable.map((entry, ix) => {
                             const hidden = prefs.hidden.includes(entry.id)
                             return html`
@@ -166,17 +167,17 @@ export class MateuColumnChooser extends LitElement {
                                         />
                                         <span class="${hidden ? 'muted' : ''}">${entry.label || entry.id}</span>
                                     </label>
-                                    <button class="move" type="button" title="Move up" aria-label="Move ${entry.label || entry.id} up"
+                                    <button class="move" type="button" title="${chromeText('moveUp')}" aria-label="${chromeTextf('moveColumnUp', { column: entry.label || entry.id })}"
                                         ?disabled="${ix === 0}"
                                         @click="${() => this.move(entry.id, -1)}">↑</button>
-                                    <button class="move" type="button" title="Move down" aria-label="Move ${entry.label || entry.id} down"
+                                    <button class="move" type="button" title="${chromeText('moveDown')}" aria-label="${chromeTextf('moveColumnDown', { column: entry.label || entry.id })}"
                                         ?disabled="${ix === offerable.length - 1}"
                                         @click="${() => this.move(entry.id, 1)}">↓</button>
                                 </div>
                             `
                         })}
                         <div class="footer">
-                            <button class="reset" type="button" ?disabled="${!personalized}" @click="${this.reset}">Reset</button>
+                            <button class="reset" type="button" ?disabled="${!personalized}" @click="${this.reset}">${chromeText('reset')}</button>
                         </div>
                     </div>
                 ` : nothing}

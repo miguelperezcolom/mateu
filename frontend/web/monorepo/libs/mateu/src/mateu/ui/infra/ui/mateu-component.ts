@@ -54,6 +54,7 @@ import { confirmationDialogTexts } from '@infra/ui/confirmationTexts.ts'
 import { fabStyles } from '@infra/ui/layout/fabRail.ts'
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { runJs } from '@infra/ui/runJs.ts'
+import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 
 let _pendingInitiatorComponent: MateuComponent | null = null
 
@@ -441,7 +442,7 @@ export class MateuComponent extends ComponentElement {
 
                 if (action && action.rowsSelectedRequired) {
                     if (!this.state['crud_selected_items'] || this.state['crud_selected_items'].length == 0) {
-                        this.notify('You first need to select some rows')
+                        this.notify(chromeText('selectRowsFirst'))
                         return
                     }
                 }
@@ -519,10 +520,10 @@ export class MateuComponent extends ComponentElement {
             })
         })
         if (lines.length === 0) {
-            this.notify('There are validation errors')
+            this.notify(chromeText('validationErrors'))
             return
         }
-        const text = 'There are validation errors\n'
+        const text = chromeText('validationErrors') + '\n'
             + lines.map(({ label, msg }) => label ? `• ${label}: ${msg}` : `• ${msg}`).join('\n')
         showToast({ text, variant: 'error', position: 'bottomEnd', duration: Math.max(3000, 1500 + lines.length * 1000) }, this)
         this.focusFirstInvalidField()
@@ -577,7 +578,7 @@ export class MateuComponent extends ComponentElement {
             const err = uiIncrement?.appData?.['_restfetchError']
             if (err) {
                 const status = typeof err?.status === 'number' && err.status > 0 ? ` (HTTP ${err.status})` : ''
-                showToast({ text: `Request failed${status}`, variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
+                showToast({ text: chromeTextf('requestFailed', { status }), variant: 'error', position: 'bottomEnd', duration: 3000 }, this)
                 return
             }
             onOk(uiIncrement?.appData?.['_restfetch'])
@@ -597,7 +598,7 @@ export class MateuComponent extends ComponentElement {
         // not pass through that guard, so the calls can run concurrently. Either way, announce once.
         if (rest.forEachSelectedRow) {
             const rows = (this.state['crud_selected_items'] as Record<string, unknown>[] | undefined) ?? []
-            if (!rows.length) { this.notify('You first need to select some rows'); return }
+            if (!rows.length) { this.notify(chromeText('selectRowsFirst')); return }
             if (isProxy) {
                 this.manageActionRequestedEvent(new CustomEvent('action-requested', {
                     detail: {

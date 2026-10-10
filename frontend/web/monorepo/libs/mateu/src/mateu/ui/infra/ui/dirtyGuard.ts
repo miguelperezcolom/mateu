@@ -1,3 +1,4 @@
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 /**
  * Centralised dirty-state guard.
  *
@@ -19,7 +20,7 @@ class DirtyGuard {
     private _installed = false
 
     /** Message shown in the confirmation dialog. Assign to localise it. */
-    message = 'You have unsaved changes. Are you sure you want to leave this page?'
+    message = chromeText('unsavedChanges')
 
     /**
      * Idempotent. Wires the document-level `dirty` / `clean` listeners and the

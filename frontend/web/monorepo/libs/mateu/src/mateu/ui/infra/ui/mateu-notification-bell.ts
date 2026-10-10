@@ -5,6 +5,7 @@ import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
 import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
 import { onActivate } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /** One inbox entry as served by the _notifications-list / _notifications-read actions. */
 interface AppNotification {
@@ -167,13 +168,13 @@ export class MateuNotificationBell extends LitElement {
             <div class="panel">
                 <div class="entries">
                     ${this.notifications.length === 0 ? html`
-                        <div class="empty">No notifications</div>` : nothing}
+                        <div class="empty">${chromeText('noNotifications')}</div>` : nothing}
                     ${this.notifications.map(notification => this.renderEntry(notification))}
                 </div>
                 ${this.notifications.length > 0 ? html`
                     <div class="footer">
                         <button class="mark-all" ?disabled="${this.unreadCount() === 0}"
-                                @click="${() => this.markRead('all')}">Mark all read</button>
+                                @click="${() => this.markRead('all')}">${chromeText('markAllRead')}</button>
                     </div>` : nothing}
             </div>`
     }
@@ -182,7 +183,7 @@ export class MateuNotificationBell extends LitElement {
         const unread = this.unreadCount()
         return html`
             <div class="root">
-                <button class="bell-button" data-access-key-target title="Notifications" aria-label="Notifications"
+                <button class="bell-button" data-access-key-target title="${chromeText('notifications')}" aria-label="${chromeText('notifications')}"
                         @click="${() => this.opened ? this.closePanel() : this.openPanel()}">
                     <svg class="bell-icon" viewBox="0 0 24 24" aria-hidden="true"
                          fill="none" stroke="currentColor" stroke-width="1.8"

@@ -33,6 +33,7 @@ import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
 import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
 import { safeLocalStorage } from '@infra/safeStorage.ts'
 import { runJs } from '@infra/ui/runJs.ts'
+import { applyUiLanguage, chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 
 // one hit of the app's GlobalSearchSupplier, shown by the command palette under the menu results
 interface GlobalSearchHit { label: string, description?: string, route: string, category?: string }
@@ -425,7 +426,7 @@ export class MateuApp extends ComponentElement {
                         ${icon('vaadin:search', undefined, 'cmd-search-icon')}
                         <input
                             class="cmd-input"
-                            placeholder="Go to…"
+                            placeholder="${chromeText('goTo')}"
                             .value=${this.commandPaletteQuery}
                             @input=${(e: InputEvent) => {
                                 this.commandPaletteQuery = (e.target as HTMLInputElement).value
@@ -464,7 +465,7 @@ export class MateuApp extends ComponentElement {
                                         ${hit.description ? html`<span class="cmd-result-breadcrumb">${hit.description}</span>` : nothing}
                                     </div>`
                             })}` : nothing}
-                        ${filtered.length === 0 && this.commandPaletteDataHits.length === 0 ? html`<div class="cmd-empty">No results for "${this.commandPaletteQuery}"</div>` : nothing}
+                        ${filtered.length === 0 && this.commandPaletteDataHits.length === 0 ? html`<div class="cmd-empty">${chromeTextf('noResultsFor', { query: this.commandPaletteQuery })}</div>` : nothing}
                     </div>
                 </div>
             </div>
@@ -840,6 +841,14 @@ export class MateuApp extends ComponentElement {
         e.stopPropagation()
         var detail = (e as CustomEvent).detail
         this.selectRoute(detail.consumedRoute, detail.route, detail.actionId, detail.baseUrl, detail.serverSideType, detail.uriPrefix, detail.rules)
+    }
+
+    // The page language must be right BEFORE this render: the chrome draws its words from it.
+    protected willUpdate(changed: PropertyValues) {
+        super.willUpdate(changed)
+        if (changed.has('component')) {
+            applyUiLanguage(((this.component as ClientSideComponent | undefined)?.metadata as App | undefined)?.locale)
+        }
     }
 
     protected updated(_changedProperties: PropertyValues) {

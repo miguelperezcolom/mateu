@@ -976,6 +976,11 @@ public record AppMetadataDto(
     /// capability, not by version. Sorted + deduped so the wire is stable. (Mirrors
     /// io.mateu.dtos.AppDto.requiredCapabilities.)</summary>
     public IReadOnlyList<string> RequiredCapabilities { get; init; } = [];
+
+    /// <summary>The UI language, a BCP 47 tag (ITranslator.Locale); null = let the browser decide.
+    /// The web client sets it on &lt;html lang&gt; and draws its chrome in it. (Mirrors
+    /// io.mateu.dtos.AppDto.locale.)</summary>
+    public string? Locale { get; init; }
 }
 
 /// <summary>An application-level context selector shown on the app header: fixes a value for

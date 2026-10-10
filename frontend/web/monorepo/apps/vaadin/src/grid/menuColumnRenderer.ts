@@ -7,6 +7,7 @@ import '@vaadin/icon';
 import '@vaadin/icons';
 import { safeHref } from '@infra/ui/safeNavigate.ts'
 import { ifDefined } from 'lit/directives/if-defined.js'
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 type XColumn = VaadinGridColumn & { xcolumn?: GridColumn }
 type RowTarget = EventTarget & { row: unknown }
@@ -115,12 +116,12 @@ export const renderActionCell = (item: any,
         const action = {
             actionId: _column.path,
             icon: '',
-            label: 'Select',
+            label: chromeText('select'),
             disabled: false,
             methodNameInCrud: 'select'
         } as ActionItem
         return html`
-         <vaadin-button theme="tertiary" title="Select" @click="${clicked}" .row="${item}" .action="${action}">
+         <vaadin-button theme="tertiary" title="${chromeText('select')}" @click="${clicked}" .row="${item}" .action="${action}">
              Select
          </vaadin-button>
     `

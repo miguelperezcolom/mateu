@@ -3,7 +3,7 @@ import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { AppVariant } from "@mateu/shared/apiClients/dtos/componentmetadata/AppVariant.ts";
 import { MateuApp, MenuBarItem } from "@infra/ui/mateu-app.ts";
 import { componentRenderer, HeaderIconButton } from "@infra/ui/renderers/ComponentRenderer.ts";
-import { chromeText } from "@infra/ui/chromeTexts.ts";
+import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import "@infra/ui/mateu-app-context-picker.ts";
 import "@infra/ui/mateu-notification-bell.ts";
@@ -42,7 +42,7 @@ const runHeaderAction = async (metadata: App, container: MateuApp, actionId: str
     try {
         await dispatchAppHeaderAction(metadata, container, actionId)
     } catch (e) {
-        notify({ text: 'La acción falló: ' + e, position: 'bottomStart', duration: 6000, variant: 'error' }, container)
+        notify({ text: chromeTextf('actionFailed', { error: e }), position: 'bottomStart', duration: 6000, variant: 'error' }, container)
     }
 }
 
@@ -137,7 +137,7 @@ const renderTopBar = (items: MenuBarItem[], onSelect: (item: MenuBarItem) => voi
  * dropdown with its keyboard handling. The neutral fallback is a <details> with the same items.
  */
 const renderMenuButton = (items: MenuBarItem[], onSelect: (item: MenuBarItem) => void) => {
-    const root: MenuBarItem[] = [{ text: '☰', children: items, className: 'mateu-menu-button-root', 'aria-label': 'Menu' }]
+    const root: MenuBarItem[] = [{ text: '☰', children: items, className: 'mateu-menu-button-root', 'aria-label': chromeText('menu') }]
     return componentRenderer.get()?.renderTopNav?.(root, onSelect, 'menu-button')
         ?? renderNeutralNav(root, onSelect, 'menu-button')
 }
@@ -157,7 +157,7 @@ export const renderBackLink = (metadata: App, container: MateuApp) =>
                e.preventDefault()
                if (!dirtyGuard.confirmLeave()) return
                navigateToRoute(container, metadata.backRoute!)
-           }}">← ${metadata.backLabel ?? 'Back'}</a>` : nothing
+           }}">← ${metadata.backLabel ?? chromeText('back')}</a>` : nothing
 
 /**
  * An icon-only button of the header's chrome. The active renderer draws it with its own design
@@ -473,7 +473,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
             ${metadata.variant == AppVariant.HAMBURGUER_MENU || metadata.variant == AppVariant.HAMBURGER_MENU?html`
                 <div class="mateu-app-layout m-app-layout ${metadata.drawerClosed ? '' : 'drawer-open'} ${metadata?.cssClasses}" style="${metadata?.style}">
                     <header class="app-navbar">
-                        <button class="drawer-toggle" title="Menu"
+                        <button class="drawer-toggle" title="${chromeText('menu')}" aria-label="${chromeText('menu')}"
                                 @click="${(e: Event) => (e.currentTarget as HTMLElement).closest('.m-app-layout')?.classList.toggle('drawer-open')}">
                             ${icon('vaadin:menu')}
                         </button>
@@ -486,7 +486,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         <aside class="app-drawer p-s" @navigation-requested="${container.updateRoute}">
                             ${metadata.menu && metadata.totalMenuOptions > 10?html`
                                 <div style="position: sticky; top: 0; z-index: 2; background: var(--lumo-base-color); padding: .25rem 0 .5rem;">
-                                    <input class="drawer-search" placeholder="Search…" style="width: calc(100% - 20px); margin: 0 10px;"
+                                    <input class="drawer-search" placeholder="${chromeText('searchMenu')}" aria-label="${chromeText('searchMenu')}" style="width: calc(100% - 20px); margin: 0 10px;"
                                            @input="${(e: any) => filterMenu({ detail: { value: e.target.value } } as CustomEvent, container)}">
                                 </div>
                                 `:nothing}
@@ -539,7 +539,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                         </div>
                     </div>
                     </div>
-                    <nav class="mateu-app-band2" aria-label="${metadata.title || 'Menu'}"
+                    <nav class="mateu-app-band2" aria-label="${metadata.title || chromeText('menu')}"
                             @navigation-requested="${container.updateRoute}">
                         <div class="mateu-app-menu-button">
                             ${renderMenuButton(items, fireSelect(container, container.itemSelected))}
@@ -601,7 +601,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                     </div>
                     </div>
                     <nav class="mateu-app-band2 mateu-section-band ${active ? '' : 'mateu-section-band--empty'}"
-                            aria-label="${active?.label || metadata.title || 'Menu'}" ?inert="${!active}"
+                            aria-label="${active?.label || metadata.title || chromeText('menu')}" ?inert="${!active}"
                             @navigation-requested="${container.updateRoute}">
                         ${renderSectionBand(active, container)}
                     </nav>

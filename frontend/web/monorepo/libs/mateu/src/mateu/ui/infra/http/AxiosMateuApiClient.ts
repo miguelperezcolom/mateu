@@ -13,6 +13,7 @@ import {connectivity} from "@infra/http/connectivity.ts";
 import {reportClientError} from "@infra/http/clientErrorReporter.ts";
 import {StaleResponse} from "@infra/ui/staleViewGuard.ts";
 import { getAuthToken, sessionId } from '@infra/http/authToken.ts'
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 let abortControllers: AbortController[] = []
 
@@ -286,8 +287,7 @@ export class AxiosMateuApiClient implements MateuApiClient {
             return {
                 messages: loop.firstTrip ? [{
                     title: '',
-                    text: 'A repeating request was detected and stopped to protect the server. '
-                        + 'Reload the page or navigate elsewhere.',
+                    text: chromeText('repeatingRequest'),
                     position: 'bottom-end',
                     variant: 'error',
                     duration: 6000,

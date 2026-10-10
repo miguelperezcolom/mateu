@@ -26,6 +26,7 @@ import '@vaadin/icons';
 import {dialogRenderer} from "@vaadin/dialog/lit";
 import {nanoid} from "nanoid";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types"
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /** The active element, crossing shadow-DOM boundaries. */
 const deepActiveElement = (): Element | null => {
@@ -394,7 +395,7 @@ export class MateuGrid extends MetadataDrivenElement {
                 ${(this.field?.inlineEditing && !this.field?.readOnly)?html`
                     <vaadin-grid-column width="3.5rem" flex-grow="0" frozen-to-end
                             ${columnBodyRenderer<any>((row) => html`
-                                <vaadin-button theme="tertiary icon error" title="Remove row"
+                                <vaadin-button theme="tertiary icon error" title="${chromeText('removeRow')}" aria-label="${chromeText('removeRow')}"
                                     @click="${() => {
                                         this.state[this.id + '_selected_items'] = [row]
                                         this.dispatchEvent(new CustomEvent('action-requested', {
@@ -415,8 +416,8 @@ export class MateuGrid extends MetadataDrivenElement {
             (person, { detailsOpened }) => html`
               <vaadin-button
                 theme="tertiary icon"
-                title="${detailsOpened ? 'Collapse' : 'Expand'}"
-                aria-label="Toggle details"
+                title="${detailsOpened ? chromeText('collapse') : chromeText('expand')}"
+                aria-label="${chromeText('toggleDetails')}"
                 aria-expanded="${detailsOpened ? 'true' : 'false'}"
                 @click="${() => {
                 this.detailsOpenedItems = this.detailsOpenedItems.length?
@@ -439,7 +440,7 @@ export class MateuGrid extends MetadataDrivenElement {
                     <vaadin-horizontal-layout theme="spacing">
                         <!-- Inline mode: rows are removed with the per-row trash button, so the
                              toolbar only needs the "add" action. -->
-                        <vaadin-button theme="tertiary icon" title="Add row" @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
+                        <vaadin-button theme="tertiary icon" title="${chromeText('addRow')}" aria-label="${chromeText('addRow')}" @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
                             detail: { actionId: this.id + '_add' },
                             bubbles: true, composed: true
                         }))}"><vaadin-icon icon="vaadin:plus"></vaadin-icon></vaadin-button>
@@ -454,11 +455,11 @@ export class MateuGrid extends MetadataDrivenElement {
             detail: { actionId: this.id + '_remove' },
             bubbles: true, composed: true
         }))}"><vaadin-icon icon="vaadin:minus"></vaadin-icon></vaadin-button>
-                        <vaadin-button theme="tertiary icon" title="Move up" @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
+                        <vaadin-button theme="tertiary icon" title="${chromeText('moveUp')}" aria-label="${chromeText('moveUp')}" @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
                             detail: { actionId: this.id + '_move-up' },
                             bubbles: true, composed: true
                         }))}"><vaadin-icon icon="vaadin:arrow-up"></vaadin-icon></vaadin-button>
-                        <vaadin-button theme="tertiary icon" title="Move down" @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
+                        <vaadin-button theme="tertiary icon" title="${chromeText('moveDown')}" aria-label="${chromeText('moveDown')}" @click="${() => this.dispatchEvent(new CustomEvent('action-requested', {
                             detail: { actionId: this.id + '_move-down' },
                             bubbles: true, composed: true
                         }))}"><vaadin-icon icon="vaadin:arrow-down"></vaadin-icon></vaadin-button>

@@ -4,6 +4,7 @@ import { html, LitElement, nothing } from "lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { interpolateAndEvaluate } from "@infra/ui/interpolation.ts";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /*
  * Design-system-neutral ConfirmDialog — a native modal (backdrop + card) with confirm/reject/cancel
@@ -44,9 +45,9 @@ export const renderConfirmDialog = (container: LitElement, component: ClientSide
                 ${metadata.header ? html`<h3 style="margin:0 0 .75rem; font-size:1.15rem;">${metadata.header}</h3>` : nothing}
                 <div>${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}</div>
                 <div style="display:flex; gap:.5rem; justify-content:flex-end; margin-top:1.25rem;">
-                    ${metadata.canCancel ? html`<button style="${SECONDARY}" @click="${(e: Event) => dispatchAction(e.currentTarget, metadata.cancelActionId)}">${metadata.rejectText && !metadata.canReject ? metadata.rejectText : 'Cancel'}</button>` : nothing}
-                    ${metadata.canReject ? html`<button style="${SECONDARY}" @click="${(e: Event) => dispatchAction(e.currentTarget, metadata.rejectActionId)}">${metadata.rejectText || 'No'}</button>` : nothing}
-                    <button style="${PRIMARY}" @click="${(e: Event) => dispatchAction(e.currentTarget, metadata.confirmActionId)}">${metadata.confirmText || 'OK'}</button>
+                    ${metadata.canCancel ? html`<button style="${SECONDARY}" @click="${(e: Event) => dispatchAction(e.currentTarget, metadata.cancelActionId)}">${metadata.rejectText && !metadata.canReject ? metadata.rejectText : chromeText('cancel')}</button>` : nothing}
+                    ${metadata.canReject ? html`<button style="${SECONDARY}" @click="${(e: Event) => dispatchAction(e.currentTarget, metadata.rejectActionId)}">${metadata.rejectText || chromeText('no')}</button>` : nothing}
+                    <button style="${PRIMARY}" @click="${(e: Event) => dispatchAction(e.currentTarget, metadata.confirmActionId)}">${metadata.confirmText || chromeText('ok')}</button>
                 </div>
             </div>
         </div>

@@ -101,6 +101,7 @@ public final class AppMapper {
             .accentStrip(getAccentStrip(app))
             .generatedAccentStrip(getGeneratedAccentStrip(app))
             .requiredCapabilities(getRequiredCapabilities(app, httpRequest))
+            .locale(getLocale(httpRequest))
             .build();
     return new ClientSideComponentDto(
         appDto,
@@ -168,6 +169,17 @@ public final class AppMapper {
     var actions = supplier.appActions(httpRequest);
     if (actions == null) return List.of();
     return actions.stream().map(AppMapper::mapHeaderAction).toList();
+  }
+
+  /** The UI language: what the app's {@link io.mateu.uidl.interfaces.Translator} says. */
+  static String getLocale(HttpRequest httpRequest) {
+    try {
+      var translator =
+          io.mateu.uidl.di.MateuBeanProvider.getBean(io.mateu.uidl.interfaces.Translator.class);
+      return translator != null ? translator.locale(httpRequest) : null;
+    } catch (RuntimeException noTranslator) {
+      return null;
+    }
   }
 
   /**

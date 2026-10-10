@@ -2,6 +2,7 @@ import {customElement, property} from "lit/decorators.js";
 import {css, html, LitElement, nothing, TemplateResult} from "lit";
 import { safeHref } from '@infra/ui/safeNavigate.ts'
 import { ifDefined } from 'lit/directives/if-defined.js'
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * Generic file upload for a @FileUpload String field — the generic sibling of @UploadableImage
@@ -109,10 +110,10 @@ export class MateuFileUpload extends LitElement {
             <div class="row">
                 ${nameBlock}
                 <button class="button" @click="${this.triggerPick}">
-                    ${hasValue ? 'Replace' : 'Choose file'}
+                    ${hasValue ? chromeText('replace') : chromeText('chooseFile')}
                 </button>
                 ${hasValue ? html`
-                    <button class="button button--danger" @click="${() => this.emit('')}">Remove</button>` : nothing}
+                    <button class="button button--danger" @click="${() => this.emit('')}">${chromeText('remove')}</button>` : nothing}
             </div>`
     }
 

@@ -6,7 +6,7 @@ import '@components/mateu-file-upload.ts';
 import { fieldAttribute } from '@components/mateu-file-upload.ts';
 import '@components/mateu-bulleted-list.ts';
 import '@components/mateu-range-slider.ts';
-import { chromeText } from '@components/chromeTexts';
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import { interpolate } from '@components/interpolation'
 import { isNoOpCommit, numericCommitValue } from '@components/fieldValue'
@@ -878,7 +878,7 @@ export class MateuField extends LitElement {
                 ><vaadin-icon
                         slot="suffix"
                         icon="vaadin:copy"
-                        title="Copiar"
+                        title="${chromeText('copy')}" aria-label="${chromeText('copy')}"
                         ?hidden="${strValue.length <= 15}"
                         style="cursor: pointer; color: var(--lumo-secondary-text-color);"
                         @click="${() => this.copyValue(strValue)}"
@@ -943,7 +943,7 @@ export class MateuField extends LitElement {
                         ${readOnly ? nothing : html`<vaadin-button
                                 theme="icon tertiary-inline small"
                                 aria-label="Remove ${chip.label}"
-                                title="Remove"
+                                title="${chromeText('remove')}"
                                 @click="${() => remove(chip.id)}"
                         ><vaadin-icon icon="vaadin:close-small"></vaadin-icon></vaadin-button>`}
                     </span>`)}
@@ -952,7 +952,7 @@ export class MateuField extends LitElement {
                             theme="small tertiary"
                             class="searchable-add"
                             @click="${search}"
-                    ><vaadin-icon icon="lumo:search" slot="prefix"></vaadin-icon>Add</vaadin-button>`}
+                    ><vaadin-icon icon="lumo:search" slot="prefix"></vaadin-icon>${chromeText('add')}</vaadin-button>`}
                 </div>
             </vaadin-custom-field>
         `
@@ -1715,11 +1715,11 @@ export class MateuField extends LitElement {
                             <vaadin-horizontal-layout theme="spacing" style="justify-content: flex-start;">
                                 <vaadin-button @click="${this.triggerImageUpload}">
                                     <vaadin-icon icon="vaadin:upload" slot="prefix"></vaadin-icon>
-                                    ${hasImage ? 'Replace' : 'Upload'}
+                                    ${hasImage ? chromeText('replace') : chromeText('upload')}
                                 </vaadin-button>
                                 ${hasImage ? html`<vaadin-button theme="error tertiary" @click="${this.imageDelete}">
                                     <vaadin-icon icon="vaadin:trash" slot="prefix"></vaadin-icon>
-                                    Delete
+                                    ${chromeText('delete')}
                                 </vaadin-button>` : nothing}
                             </vaadin-horizontal-layout>
                         </vaadin-vertical-layout>

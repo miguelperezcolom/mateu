@@ -1,4 +1,4 @@
-import { chromeLanguage } from './chromeTexts'
+import { chromeText, chromeTextf } from './chromeTexts'
 
 /**
  * The framework's reserved id-set filter: `?ids=A,B,C` on ANY listing's URL shows exactly those
@@ -26,10 +26,6 @@ export function parseIds(raw: unknown): string[] {
     return ids
 }
 
-const TEXTS = {
-    en: { label: 'Selection', many: (n: number) => `${n} selected items` },
-    es: { label: 'Selección', many: (n: number) => `${n} elementos seleccionados` },
-}
 
 /**
  * The chip the id set shows as: the ids themselves while they are few enough to read
@@ -38,6 +34,8 @@ const TEXTS = {
 export function idsChip(raw: unknown, lang?: string): { label: string, display: string } | undefined {
     const ids = parseIds(raw)
     if (!ids.length) return undefined
-    const texts = TEXTS[chromeLanguage(lang)]
-    return { label: texts.label, display: ids.length <= 3 ? ids.join(', ') : texts.many(ids.length) }
+    return {
+        label: chromeText('selection', lang),
+        display: ids.length <= 3 ? ids.join(', ') : chromeTextf('selectedItems', { count: ids.length }, lang),
+    }
 }

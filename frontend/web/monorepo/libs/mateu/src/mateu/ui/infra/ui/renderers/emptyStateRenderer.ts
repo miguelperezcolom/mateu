@@ -5,6 +5,7 @@ import { html, nothing, TemplateResult } from "lit";
 import "@infra/ui/mateu-skeleton.ts";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { icon as renderIcon } from "@infra/ui/renderers/neutralIcon.ts";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /** The glyph of an empty listing when the page names none: an icon of the design system, not an emoji. */
 const DEFAULT_EMPTY_ICON = 'vaadin:ban'
@@ -46,7 +47,7 @@ export const emptyStateTemplate = (message?: string, icon?: string, title?: stri
              style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .35rem; padding: var(--lumo-space-l, 1.5rem); text-align: center; color: var(--lumo-secondary-text-color, #666);">
             <span style="font-size: 1.8rem; line-height: 1; opacity: .6;">${emptyIcon(icon)}</span>
             ${title?html`<span style="font-weight: 600; color: var(--lumo-body-text-color, #333);">${title}</span>`:nothing}
-            <span style="font-size: var(--lumo-font-size-s, .875rem);">${description ?? message ?? 'Nothing here yet.'}</span>
+            <span style="font-size: var(--lumo-font-size-s, .875rem);">${description ?? message ?? chromeText('nothingHere')}</span>
             ${actionId && actionLabel?html`
                 <button style="margin-top: .25rem; font: inherit; font-weight: 500; cursor: pointer; padding: .4rem .9rem; border: none; border-radius: var(--lumo-border-radius-m, 6px); background: transparent; color: var(--lumo-primary-text-color, #3b5bdb);"
                         @click="${(e: Event) => requestAction(e, actionId)}">${actionLabel}</button>

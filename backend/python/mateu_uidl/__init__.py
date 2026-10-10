@@ -1712,6 +1712,12 @@ class Translator:
     def translate(self, key: str) -> str:
         raise NotImplementedError
 
+    def locale(self) -> str | None:
+        """The UI language as a BCP 47 tag (``"es"``, ``"en-GB"``), or None to let the browser
+        decide. Travels as ``AppMetadata.locale``: the web client sets ``<html lang>`` from it and
+        draws its own chrome (buttons, empty states…) in that language."""
+        return None
+
 
 class ComponentTreeSupplier:
     """A view that supplies its UI as a fluent component tree (see ``mateu_uidl.components``)
