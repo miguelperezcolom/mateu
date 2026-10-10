@@ -10,7 +10,7 @@
   <artifactId>export-excel</artifactId>
   <packaging>jar</packaging>
 
-  <name>Export Excel</name>
+  <name>Mateu Excel export</name>
   <description>Apache POI-based Excel exporter for Mateu listings. Add this module to your project to enable Excel export.</description>
 
   <dependencyManagement>

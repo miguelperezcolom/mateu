@@ -10,8 +10,8 @@
   <artifactId>shared</artifactId>
   <packaging>pom</packaging>
 
-  <name>Shared</name>
-  <description>parent project</description>
+  <name>Mateu shared modules (parent)</name>
+  <description>Parent of the framework-neutral Mateu modules.</description>
 
   <modules>
     <module>uidl</module>

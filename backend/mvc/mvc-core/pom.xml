@@ -10,8 +10,8 @@
     <artifactId>mvc-core</artifactId>
     <packaging>jar</packaging>
 
-    <name>mvc-core</name>
-    <url>http://maven.apache.org</url>
+    <name>Mateu Spring MVC adapter</name>
+    <description>Runtime of the Mateu adapter for Spring Boot (Spring MVC).</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

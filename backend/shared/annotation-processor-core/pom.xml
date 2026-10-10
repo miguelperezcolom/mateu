@@ -10,8 +10,8 @@
   <modelVersion>4.0.0</modelVersion>
   <artifactId>annotation-processor-core</artifactId>
 
-  <name>annotation-processor-core</name>
-  <description>shared interfaces for mateu mdd</description>
+  <name>Mateu annotation processor core</name>
+  <description>Logic shared by the framework annotation processors of Mateu (controller generation, lint).</description>
 
   <properties>
     <jacoco.min.coverage>70%</jacoco.min.coverage>

@@ -10,10 +10,17 @@
   <artifactId>agent-cli</artifactId>
   <packaging>jar</packaging>
 
-  <name>Agent CLI</name>
+  <name>Mateu agent CLI</name>
   <description>Pseudo-agent for local development: serves the chat's SSE contract by bridging to an
     LLM CLI already authenticated on the developer's machine (claude, gemini), so no API key is
     needed. Add this module to your project and point the app's @AI(sse=...) at /mateu/agent/stream.</description>
+
+  <properties>
+
+    <!-- internal: built and tested with the rest, never published to Maven Central -->
+    <maven.deploy.skip>true</maven.deploy.skip>
+  </properties>
+
 
   <dependencies>
     <dependency>

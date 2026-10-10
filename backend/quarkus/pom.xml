@@ -10,8 +10,8 @@
   <artifactId>quarkus</artifactId>
   <packaging>pom</packaging>
 
-  <name>Quarkus</name>
-  <description>parent project</description>
+  <name>Mateu Quarkus adapter (parent)</name>
+  <description>Parent of the Mateu adapter for Quarkus.</description>
 
   <modules>
     <module>quarkus-core</module>

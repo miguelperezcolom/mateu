@@ -10,8 +10,8 @@
   <artifactId>helidon-mp</artifactId>
   <packaging>pom</packaging>
 
-  <name>Helidon-mp</name>
-  <description>parent project</description>
+  <name>Mateu Helidon MP adapter (parent)</name>
+  <description>Parent of the Mateu adapter for Helidon MicroProfile.</description>
 
   <modules>
     <module>helidon-mp-core</module>

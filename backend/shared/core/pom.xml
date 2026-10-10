@@ -9,7 +9,8 @@
         <version>0.0.1-MATEU</version>
     </parent>
     <artifactId>core</artifactId>
-    <name>Core</name>
+    <name>Mateu core</name>
+    <description>Framework kernel of Mateu: route resolution, reflective mapping of view models to the wire model, actions, CRUD, wizards and app shells.</description>
 
     <properties>
         <!-- default for surefire's @{argLine}; jacoco:prepare-agent overrides it with its agent -->
@@ -71,7 +72,8 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
-            <version>3.4.2</version>
+            <!-- version from the Spring Boot BOM imported by the parent (it was pinned to 3.4.2,
+                 a Boot 3 test stack under the Boot 4.1 BOM) -->
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

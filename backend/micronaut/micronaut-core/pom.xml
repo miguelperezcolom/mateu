@@ -10,8 +10,8 @@
   <artifactId>micronaut-core</artifactId>
   <packaging>jar</packaging>
 
-  <name>micronaut-core</name>
-  <url>http://maven.apache.org</url>
+  <name>Mateu Micronaut adapter</name>
+    <description>Runtime of the Mateu adapter for Micronaut.</description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

@@ -10,8 +10,8 @@
   <artifactId>mvc</artifactId>
   <packaging>pom</packaging>
 
-  <name>Mvc</name>
-  <description>parent project</description>
+  <name>Mateu Spring MVC adapter (parent)</name>
+  <description>Parent of the Mateu adapter for Spring MVC.</description>
 
   <modules>
     <module>mvc-core</module>
