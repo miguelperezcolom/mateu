@@ -84,6 +84,13 @@
         on-sp-go-to-parent="[[ $listeners.headerGoToParent ]]"
         display-options.go-to-parent="[[ $application.variables.mateuPageHeader.goToParent ]]"
         translations="[[ $application.variables.mateuPageHeaderTranslations ]]"
+        select-object="[[ $variables.pageSwitcherObject ]]"
+        select-object-value="[[ $application.variables.mateuPageHeader.switcher.value ]]"
+        on-select-object-value-changed="[[ $listeners.pageSwitched ]]"
+        select-context="[[ $variables.pageSwitcherContext ]]"
+        select-context-value="[[ $application.variables.mateuPageHeader.switcher.value ]]"
+        on-select-context-value-changed="[[ $listeners.pageSwitched ]]"
+        display-options.switcher-search="[[ !!$application.variables.mateuPageHeader.switcher.searchable ]]"
         display-options.contextual-info-label="true"></oj-sp-header-general-overview>
     </div>
   </div>
@@ -318,6 +325,7 @@
     <oj-bind-for-each data="[[ $application.variables.mateuDrawer.actions ]]">
       <template>
         <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+          disabled="[[ !!$current.data.disabled ]]"
           :data-action-id="[[ $current.data.actionId ]]"
           on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
       </template>
@@ -682,6 +690,13 @@
     on-sp-go-to-parent="[[ $listeners.headerGoToParent ]]"
     display-options.go-to-parent="[[ $application.variables.mateuPageHeader.goToParent ]]"
     translations="[[ $application.variables.mateuPageHeaderTranslations ]]"
+    select-object="[[ $variables.pageSwitcherObject ]]"
+    select-object-value="[[ $application.variables.mateuPageHeader.switcher.value ]]"
+    on-select-object-value-changed="[[ $listeners.pageSwitched ]]"
+    select-context="[[ $variables.pageSwitcherContext ]]"
+    select-context-value="[[ $application.variables.mateuPageHeader.switcher.value ]]"
+    on-select-context-value-changed="[[ $listeners.pageSwitched ]]"
+    display-options.switcher-search="[[ !!$application.variables.mateuPageHeader.switcher.searchable ]]"
     display-options.contextual-info-label="true"></oj-sp-header-general-overview>
 </oj-bind-if>
 
@@ -1127,6 +1142,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -2711,6 +2727,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -3899,6 +3916,10 @@
               :style.width="[[ $current.data.width || null ]]"
               :style.min-width="[[ $current.data.width || null ]]"
               :style.max-width="[[ $current.data.width || null ]]">
+              <!-- FoldoutPanel.summary (child summary-N): the panel's own `summary` slot -->
+              <oj-bind-if test="[[ !!($application.variables.mateuFoldoutContent.panels[$current.index] || $current.data).hasSummary ]]">
+                <div slot="summary" class="oj-typography-body-sm oj-text-color-secondary mateu-foldout-summary"><oj-bind-text value="[[ ($application.variables.mateuFoldoutContent.panels[$current.index] || $current.data).summary ]]"></oj-bind-text></div>
+              </oj-bind-if>
               <!-- bloques RICOS del panel: mismo template de átomos que el host. Ligados al
                    CONTENIDO vivo (mateuFoldoutContent) indexado por posición: el panel se
                    estampa UNA vez y su interior re-evalúa en cada repaint del host -->
@@ -4316,6 +4337,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -5900,6 +5922,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -7571,6 +7594,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -9162,6 +9186,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -10755,6 +10780,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -12367,6 +12393,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -14134,6 +14161,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -15521,6 +15549,7 @@
             <oj-button class="oj-sm-margin-2x-end oj-sm-margin-1x-bottom"
               :data-action-id="[[ $current.data.actionId ]]"
               chroming="[[ $current.data.chroming ]]"
+              disabled="[[ !!$current.data.disabled ]]"
               on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
           </template>
         </oj-bind-for-each>
@@ -15975,6 +16004,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -17557,6 +17587,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -18973,6 +19004,7 @@
             <oj-button class="oj-sm-margin-2x-end"
               :data-action-id="[[ $current.data.actionId ]]"
               chroming="[[ $current.data.chroming ]]"
+              disabled="[[ !!$current.data.disabled ]]"
               on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
           </template>
         </oj-bind-for-each>
@@ -19225,6 +19257,7 @@
             <oj-button class="oj-sm-margin-2x-end"
               :data-action-id="[[ $current.data.actionId ]]"
               chroming="[[ $current.data.chroming ]]"
+              disabled="[[ !!$current.data.disabled ]]"
               on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
           </template>
         </oj-bind-for-each>
@@ -19692,6 +19725,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -21274,6 +21308,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -22500,7 +22535,14 @@
     primary-action="[[ $application.variables.mateuPageHeader.primary ]]"
     secondary-actions="[[ $application.variables.mateuPageHeader.secondary ]]"
     on-sp-primary-action="[[ $listeners.headerPrimary ]]"
-    on-sp-secondary-action="[[ $listeners.headerSecondary ]]">
+    on-sp-secondary-action="[[ $listeners.headerSecondary ]]"
+    select-object="[[ $variables.pageSwitcherObject ]]"
+    select-object-value="[[ $application.variables.mateuPageHeader.switcher.value ]]"
+    on-select-object-value-changed="[[ $listeners.pageSwitched ]]"
+    select-context="[[ $variables.pageSwitcherContext ]]"
+    select-context-value="[[ $application.variables.mateuPageHeader.switcher.value ]]"
+    on-select-context-value-changed="[[ $listeners.pageSwitched ]]"
+    display-options.switcher-search="[[ !!$application.variables.mateuPageHeader.switcher.searchable ]]">
     <div slot="main">
       <oj-bind-if test="[[ !!$application.variables.mateuGop.main.title ]]">
         <div class="oj-sm-margin-6x-bottom">
@@ -22922,6 +22964,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -24506,6 +24549,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -26104,6 +26148,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -27688,6 +27733,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -29315,6 +29361,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -30899,6 +30946,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>

@@ -622,7 +622,18 @@
         },
         "primaryId": "",
         "secondary": [],
-        "toolbar": []
+        "toolbar": [],
+        "switcher": {
+          "on": false,
+          "type": "object",
+          "value": null,
+          "label": "",
+          "searchable": false,
+          "disabled": false,
+          "actionId": "_switchRecord",
+          "objectOptions": [],
+          "contextOptions": []
+        }
       },
       "description": "header gen\u00e9rico: SIEMPRE objeto (asignar null revienta los bindings internos .title antes de que el bind-if colapse) \u2014 flags showBand/showInline precomputados"
     },

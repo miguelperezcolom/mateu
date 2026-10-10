@@ -41,8 +41,37 @@ export function listingOf(ctx, opts = {}) {
   const listing = listingBaseOf(ctx, opts)
   if (!listing) return listing
   const prefs = columnPrefsReader ? columnPrefsReader() : null
+  // PRE-SEARCH content (Listing.preSearch / SmartSearchPage.preSearchContent → CrudlDto.preSearch,
+  // the smart-filter-search `dashboard` slot): until the first search answers, those components
+  // stand IN PLACE of the results — the table (and its empty state) is hidden and the blocks go
+  // where the listing's header blocks go. oj-sp's own dashboard slot is a side column counted at
+  // mount, not a stand-in that leaves, so the projection does it.
+  const preSearch = listingPreSearchBlocksOf(ctx)
+  const header = listingHeaderBlocksOf(ctx)
   return { ...listing, allColumns: listing.columns, columns: applyColumnPrefs(listing.columns, prefs),
-    headerBlocks: listingHeaderBlocksOf(ctx) }
+    headerBlocks: preSearch ? header.concat(preSearch) : header,
+    showPreSearch: !!preSearch,
+    ...(preSearch ? {
+      tableClass: listing.tableClass + ' oj-helper-hidden',
+      paging: { ...listing.paging, visible: false },
+    } : {}),
+  }
+}
+
+/** Whether the listing has had a search answered: the server's page arrives in ctx.data.crud. */
+export function listingSearchedOf(ctx) {
+  const crud = ctx && ctx.data ? ctx.data.crud : null
+  return !!(crud && crud.page)
+}
+
+/** The pre-search blocks while no search has answered yet; null otherwise (or when none). */
+export function listingPreSearchBlocksOf(ctx) {
+  const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
+  const pre = crudNode && crudNode.metadata && Array.isArray(crudNode.metadata.preSearch) ? crudNode.metadata.preSearch : []
+  if (!pre.length || listingSearchedOf(ctx)) return null
+  const blocks = islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_listingPreSearch', metadata: { type: 'VerticalLayout' }, children: pre } }) || []
+  const out = blocks.map((b) => ({ ...b, blockClass: b.colClass || 'oj-flex-item oj-sm-12', preSearch: true }))
+  return out.length ? out : null
 }
 
 /** Los componentes de CABECERA de la página del listado (HeaderSupplier → Page.metadata.header)
@@ -172,6 +201,7 @@ export function listingBaseOf(ctx, opts = {}) {
       actionId: b.actionId,
       label: b.label,
       chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+      disabled: !!b.disabled,
     })),
     // selector RÁPIDO del listado: filtros de opciones (p.ej. un enum en Filters, como
     // la Vista del listado de reservas) → chips oj-sp-filter-chip junto al smart search;

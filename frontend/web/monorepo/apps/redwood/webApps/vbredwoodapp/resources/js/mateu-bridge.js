@@ -1466,6 +1466,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         style: a.buttonStyle || 'outlined',
         chroming: a.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
         parameters: a.parameters || {},
+        // shown but inert (a Toggle.disabled wizard/crud button): the oj-button's disabled
+        disabled: !!a.disabled,
         ...(ids && ids.get(a) ? { nodeId: ids.get(a) } : {}),
       })
     }
@@ -1791,8 +1793,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         width: panel.width || '',
         texts: collectTexts(bySlot['panel-' + i]),
         blocks: blocksOf(bySlot['panel-' + i]),
+        // FoldoutPanel.summary (child slotted summary-N): oj-sp-foldout-panel's own `summary` slot,
+        // the compact line under the panel title
+        ...foldoutSummaryOf(bySlot['summary-' + i]),
       })),
     }
+  }
+
+  /** A foldout panel's summary (the `summary-N` child): `hasSummary` + its texts as one line. */
+  function foldoutSummaryOf(slotNode) {
+    const parts = []
+    const walk = (n) => {
+      if (!n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach(walk); return }
+      const m = n.metadata || {}
+      // the short pieces a summary is made of: texts, and the label of a badge/chip
+      if (m.type === 'Text' && m.text != null) parts.push(String(m.text))
+      else if ((m.type === 'Badge' || m.type === 'Chip') && (m.label || m.text)) parts.push(String(m.label || m.text))
+      else if (m.type === 'Notice' && m.text) parts.push(String(m.text))
+      for (const c of n.children || []) walk(c)
+      if (m.content) walk(m.content)
+    }
+    walk(slotNode)
+    const text = parts.map((t) => t.trim()).filter(Boolean).join(' · ')
+    return { hasSummary: !!text, summary: text }
   }
 
   /** Proyección del WIZARD (Fase 8): los ProgressSteps del wire → pasos ({id,label} + currentStep
@@ -2333,7 +2357,28 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * @param key       welcomeKeyOf del contexto que se proyecta
    * @param previous  el aspecto pintado ({key, theme, illuBg, illu}) si ya había una welcome, o null
    */
-  function welcomeLookOf(key, previous, random = Math.random) {
+  /** HeroSection.tone (the server's HeroTone) → the banner's background-color. oj-sp's welcome banner
+   *  ships a dark-* tone for each of the nine (dark-ocean … dark-sienna); the five that have an
+   *  illustration pair in the gallery keep it, the other four go without one. */
+  const WELCOME_TONES = ['ocean', 'pine', 'lilac', 'teal', 'rose', 'pebble', 'slate', 'plum', 'sienna']
+  function welcomeToneLookOf(key, tone) {
+    const t = String(tone || '').toLowerCase()
+    if (WELCOME_TONES.indexOf(t) < 0) return null
+    const theme = 'dark-' + t
+    const pair = WELCOME_LOOKS.find(([th]) => th === theme)
+    return {
+      key,
+      tone: t,
+      theme,
+      illuBg: pair ? WELCOME_GALLERY + 'illust-welcome-banner-bg-' + pair[1] + '.png' : '',
+      illu: pair ? WELCOME_GALLERY + 'illust-welcome-banner-fg-' + pair[1] + '.png' : '',
+    }
+  }
+
+  function welcomeLookOf(key, previous, random = Math.random, tone = null) {
+    // a DECLARED tone (Welcome.heroTone / @WelcomeBanner(tone)) wins over the rotation, every time
+    const toned = welcomeToneLookOf(key, tone)
+    if (toned) return toned
     if (previous && previous.theme && previous.key === key) return previous
     const [theme, n] = WELCOME_LOOKS[Math.floor(random() * WELCOME_LOOKS.length) % WELCOME_LOOKS.length]
     return {
@@ -2391,6 +2436,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     })
     return {
       trend,
+      // HeroSectionDto.tone: null = the rotating look (welcomeLookOf)
+      tone: md.tone || null,
       title: md.title || '',
       subtitle: md.subtitle || '',
       ctas,
@@ -3364,7 +3411,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (t === 'ResponsiveGrid' && !container) {
         // el span de cada hijo: el del wire (colSpans) o el que el hijo lleva consigo — un
         // DashboardPanel su colSpan, la banda de KPIs (Scoreboard) la fila entera
-        const serverKids = kidsOf(node)
+        // a slot TEMPLATE places its children by NAME (slot `main` → area `main`), not by list order:
+        // the GeneralOverview's promoted info slot travels FIRST in the list (so a stacking web grid
+        // puts it on top) and must still take the `info` column on a wide page
+        const serverKids = (m.colSpans && m.colSpans.length) ? kidsOf(node) : kidsInAreaOrder(kidsOf(node), m.gridTemplateAreas)
         const serverSpans = serverKids.map((k, i) => (m.colSpans && m.colSpans[i])
           || (k && k.metadata && k.metadata.type === 'DashboardPanel' ? k.metadata.colSpan
             : k && k.metadata && k.metadata.type === 'Scoreboard' ? 999 : 1))
@@ -3516,7 +3566,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           atom({ isCollapsible: true, collapsibleKey: key, title: interp(panel.title || ''), expanded, disabled: false }, container)
           const content = bySlot['panel-' + i]
           if (expanded && content) visit(content, container)
+          // a FOLDED panel shows its summary (FoldoutPanel.summary, slotted summary-N) instead
+          else if (!expanded && bySlot['summary-' + i]) visit(bySlot['summary-' + i], container)
         })
+        return
+      }
+      // any other foldout drawn from the generic visit (inside an island): its panels' summaries are
+      // the FOLDED view of content that is painted in full here — not content of their own
+      if (t === 'FoldoutLayout') {
+        for (const child of kidsOf(node)) if (!/^summary-/.test(child && child.slot ? child.slot : '')) visit(child, container)
         return
       }
       // PANELES PLEGABLES (AccordionLayout de AccordionPanel, Details): como las pestañas, se
@@ -4265,6 +4323,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return !!(first && first.isText && String(first.cls || '').indexOf('oj-typography-subheading') >= 0)
   }
 
+  /** The children of a slot-template grid ordered as the template's first row names their areas;
+   *  the list as it came when any child carries no slot, or a slot the template does not name. */
+  function kidsInAreaOrder(kids, areas) {
+    const row = String(areas || '').split(/["'\n]/).map((r) => r.trim()).filter(Boolean)[0]
+    if (!row) return kids
+    const names = [...new Set(row.split(/\s+/))]
+    const at = (k) => (k && k.slot ? names.indexOf(k.slot) : -1)
+    if (!kids.length || kids.some((k) => at(k) < 0)) return kids
+    return kids.map((k, i) => ({ k, i })).sort((a, b) => (at(a.k) - at(b.k)) || (a.i - b.i)).map((x) => x.k)
+  }
+
   function hostContentOf(ctx, islandBlocks, opts = {}) {
     const blocks = islandContentOf(ctx, opts)
     if (!blocks) return null
@@ -4453,6 +4522,56 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       secondary: (toolbar || []).filter((b) => b !== back)
         .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
     }
+  }
+
+  /**
+   * The record/context SWITCHER of the page header (RecordSwitcherSupplier → Page.metadata.switcher;
+   * the Redwood selectObject/selectContext element). oj-sp's header draws it natively: an
+   * oj-sp-data-switcher (the title becomes the switcher for `object`; the context switcher sits beside
+   * it for `context`), searchable through displayOptions.switcherSearch. Picking an entry dispatches
+   * `actionId` with `{_record: value}`.
+   *
+   * Always an object (the VB bindings read its fields unconditionally): `on` false without one. The
+   * options of the type that is NOT in use stay empty — an empty DataProvider is how oj-sp's header
+   * knows not to draw that switcher. A DISABLED switcher draws no switcher at all (the data switcher
+   * has no read-only mode): the current entry becomes a contextual fact, labelled with the hint.
+   */
+  const RECORD_SWITCHER_ACTION = '_switchRecord'
+  const RECORD_SWITCHER_PARAMETER = '_record'
+  function pageSwitcherOf(ctx) {
+    const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+    const sw = page && page.metadata ? page.metadata.switcher : null
+    const none = { on: false, type: 'object', value: null, label: '', searchable: false, disabled: false,
+      actionId: RECORD_SWITCHER_ACTION, objectOptions: [], contextOptions: [], fact: null }
+    if (!sw || !Array.isArray(sw.options) || !sw.options.length) return none
+    const options = sw.options
+      .filter((o) => o && o.value != null)
+      .map((o) => ({ value: String(o.value), label: o.label == null ? String(o.value) : String(o.label), description: o.description || '' }))
+    const type = sw.type === 'context' ? 'context' : 'object'
+    const value = sw.value == null ? null : String(sw.value)
+    const current = options.find((o) => o.value === value)
+    const disabled = !!sw.disabled
+    return {
+      on: true,
+      type,
+      value,
+      label: sw.label || '',
+      searchable: !!sw.searchable,
+      disabled,
+      actionId: sw.actionId || RECORD_SWITCHER_ACTION,
+      objectOptions: !disabled && type === 'object' ? options : [],
+      contextOptions: !disabled && type === 'context' ? options : [],
+      fact: disabled && current ? { label: sw.label || '', value: current.label } : null,
+    }
+  }
+
+  /** The action a pick of the header switcher runs, or null when nothing changed (the data switcher
+   *  also writes back the value it was given, and an echo must not re-run the page). */
+  function switcherPickOf(switcher, picked) {
+    if (!switcher || !switcher.on || switcher.disabled || picked == null) return null
+    const value = typeof picked === 'object' ? (picked.value != null ? picked.value : picked.key) : picked
+    if (value == null || String(value) === String(switcher.value)) return null
+    return { actionId: switcher.actionId || RECORD_SWITCHER_ACTION, parameters: { [RECORD_SWITCHER_PARAMETER]: String(value) } }
   }
 
   /** El TOOLBAR de la Page del host (para las acciones del header de banda):
@@ -4663,8 +4782,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const listing = listingBaseOf(ctx, opts)
     if (!listing) return listing
     const prefs = columnPrefsReader ? columnPrefsReader() : null
+    // PRE-SEARCH content (Listing.preSearch / SmartSearchPage.preSearchContent → CrudlDto.preSearch,
+    // the smart-filter-search `dashboard` slot): until the first search answers, those components
+    // stand IN PLACE of the results — the table (and its empty state) is hidden and the blocks go
+    // where the listing's header blocks go. oj-sp's own dashboard slot is a side column counted at
+    // mount, not a stand-in that leaves, so the projection does it.
+    const preSearch = listingPreSearchBlocksOf(ctx)
+    const header = listingHeaderBlocksOf(ctx)
     return { ...listing, allColumns: listing.columns, columns: applyColumnPrefs(listing.columns, prefs),
-      headerBlocks: listingHeaderBlocksOf(ctx) }
+      headerBlocks: preSearch ? header.concat(preSearch) : header,
+      showPreSearch: !!preSearch,
+      ...(preSearch ? {
+        tableClass: listing.tableClass + ' oj-helper-hidden',
+        paging: { ...listing.paging, visible: false },
+      } : {}),
+    }
+  }
+
+  /** Whether the listing has had a search answered: the server's page arrives in ctx.data.crud. */
+  function listingSearchedOf(ctx) {
+    const crud = ctx && ctx.data ? ctx.data.crud : null
+    return !!(crud && crud.page)
+  }
+
+  /** The pre-search blocks while no search has answered yet; null otherwise (or when none). */
+  function listingPreSearchBlocksOf(ctx) {
+    const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
+    const pre = crudNode && crudNode.metadata && Array.isArray(crudNode.metadata.preSearch) ? crudNode.metadata.preSearch : []
+    if (!pre.length || listingSearchedOf(ctx)) return null
+    const blocks = islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_listingPreSearch', metadata: { type: 'VerticalLayout' }, children: pre } }) || []
+    const out = blocks.map((b) => ({ ...b, blockClass: b.colClass || 'oj-flex-item oj-sm-12', preSearch: true }))
+    return out.length ? out : null
   }
 
   /** Los componentes de CABECERA de la página del listado (HeaderSupplier → Page.metadata.header)
@@ -4794,6 +4942,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         actionId: b.actionId,
         label: b.label,
         chroming: b.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
+        disabled: !!b.disabled,
       })),
       // selector RÁPIDO del listado: filtros de opciones (p.ej. un enum en Filters, como
       // la Vista del listado de reservas) → chips oj-sp-filter-chip junto al smart search;
@@ -5888,6 +6037,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       downloads: [], // todos los DownloadFile del increment (download = el último, compat)
       runActions: [],
       docTitle: null,
+      // UICommand.announce / announceAssertive: what assistive tech is told (a11y.mjs live regions);
+      // nothing is drawn — [{ text, assertive }]
+      announcements: [],
       events: [], // bus @SubscribeTo: [{ name, detail }]
     }
 
@@ -5946,6 +6098,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
       if (fr.action === 'Add') {
         const ctx = buildOverlay(fr, opts.initiator)
+        // the SAME overlay re-sent while it is open (a Drawer with the same id: the crud's edit
+        // drawer after «Save and next», or with its error banner) REFRESHES IN PLACE — it takes the
+        // open one's place in the stack instead of stacking a second drawer on top. It gets a new
+        // context id on purpose: the chains reset the drawer's draft when the overlay id changes, and
+        // the refreshed drawer carries new values (the next row, or what the server kept).
+        const sameId = fr.component && fr.component.id
+        const open = sameId ? stack.find((k) => contexts[k] && contexts[k].tree && contexts[k].tree.id === sameId) : null
+        if (open) {
+          contexts[ctx.id] = { ...ctx, opener: contexts[open].opener || ctx.opener }
+          delete contexts[open]
+          stack[stack.indexOf(open)] = ctx.id
+          continue
+        }
         contexts[ctx.id] = ctx
         stack.push(ctx.id)
         continue
@@ -6028,6 +6193,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         case 'RunAction':
           effects.runActions.push(c.data)
           break
+        case 'Announce': {
+          // the Redwood `announcement` slot: polite by default, assertive when the server says so
+          const d = c.data && typeof c.data === 'object' ? c.data : { text: c.data }
+          const text = d.text == null ? '' : String(d.text).trim()
+          if (text) effects.announcements.push({ text, assertive: !!d.assertive })
+          break
+        }
       }
     }
 
@@ -10016,6 +10188,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Efectos de DOM que el reducer (puro) solo DESCRIBE: descargar un fichero y abrir una URL en
   // otra pestaña. Antes `effects.download` se calculaba y nadie lo leía — el CSV de un listado o
   // el PDF de un folio llegaban al navegador y se perdían. Cada chain que reduce un increment
@@ -10076,6 +10249,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // los toasts con «Undo» salen por el oj-message de JET (notify.mjs), no por el toast normal
     const undo = takeUndoToasts(effects)
     if (undo.length && env && env.document) showUndoToasts(undo, env.document)
+    // the Announce command: through the live regions installAnnouncer created at boot (polite, or
+    // assertive for what must not be missed). `env.mateuAnnounce` is the test seam.
+    const say = (env && env.mateuAnnounce) || announce
+    for (const a of effects.announcements || []) say(a.text, { politeness: a.assertive ? 'assertive' : 'polite' })
     return n
   }
 
@@ -14256,10 +14433,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function listHeaderVarsOf(listingSummary) {
     const toolbar = listingSummary ? listingSummary.toolbar : []
     const primaryToolbar = toolbar.length ? toolbar[0] : null
+    // a DISABLED button (CrudDisplay New/Delete: Toggle.disabled) is shown but inert: oj-sp's
+    // display 'disabled'
     return {
-      mateuListPrimary: primaryToolbar ? { label: primaryToolbar.label } : { label: '', display: 'off' },
+      mateuListPrimary: primaryToolbar ? { label: primaryToolbar.label, ...(primaryToolbar.disabled ? { display: 'disabled' } : {}) } : { label: '', display: 'off' },
       mateuListPrimaryId: primaryToolbar ? primaryToolbar.actionId : '',
-      mateuListSecondary: toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
+      mateuListSecondary: toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label, ...(b.disabled ? { display: 'disabled' } : {}) })),
     }
   }
 
@@ -14302,7 +14481,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       mateuItemTabTexts: item && item.tabs.length ? item.tabs[0].items : [],
     }
     if (welcome) {
-      const look = welcomeLookOf(welcomeKeyOf(host), previousLook)
+      const look = welcomeLookOf(welcomeKeyOf(host), previousLook, Math.random, welcome.tone)
       vars.mateuWelcomeKey = look.key
       vars.mateuWelcomeTheme = look.theme
       vars.mateuWelcomeIlluBg = look.illuBg
@@ -14372,13 +14551,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const primaryBtn = primaryToolbarButton(hostToolbar)
     const backBtn = backToolbarButton(hostToolbar)
     const parentCrumbNav = backBtn ? undefined : parentCrumb(summary.trail)
+    const switcher = pageSwitcherOf(host)
+    const baseFacts = hostEntity ? hostEntity.facts : pageKpisOf(host)
     const header = {
       // with an EntityHeader (a record's card) the band stays FIXED on scroll and compacts
       bandClass: hostEntity ? 'oj-bg-neutral-30 oj-sm-padding-10x-bottom mateu-sticky-header' : 'oj-bg-neutral-30 oj-sm-padding-10x-bottom',
       title: hostEntity ? hostEntity.title : (summary.title || ''),
       subtitle: hostEntity ? hostEntity.subtitle : pageSubtitleOf(host),
       // without an EntityHeader, the Page's @KPIs are its facts
-      facts: hostEntity ? hostEntity.facts : pageKpisOf(host),
+      facts: switcher.fact ? [switcher.fact].concat(baseFacts || []) : baseFacts,
+      // the record/context switcher (pageSwitcherOf): select-object / select-context of the header
+      switcher,
       showBand: showBand && !gopOn && !iopOn,
       showInline: showHeader && !showBand && !gopOn && !iopOn,
       showListBand,
@@ -14386,7 +14569,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       primary: primaryBtn ? { label: primaryBtn.label, display: primaryBtn.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },
       primaryId: primaryBtn ? primaryBtn.actionId : '',
       secondary: hostToolbar.filter((b) => b !== primaryBtn && b !== backBtn)
-        .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
+        .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label, ...(b.disabled ? { display: 'disabled' } : {}) })),
       goToParent: !!backBtn || !!parentCrumbNav,
       backId: backBtn ? backBtn.actionId : (parentCrumbNav ? '__goToParent' : ''),
       parentRoute: !backBtn && parentCrumbNav ? parentCrumbNav.route : '',
@@ -15368,6 +15551,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     hostContentPlanOf,
     generalOverviewPageOf,
     pageHeaderOf,
+    // the page header's record/context switcher (RecordSwitcherSupplier): a pick → its action
+    switcherPickOf,
     formActionsBesideHeader,
     pageWidthOf,
     pageLayoutOf,

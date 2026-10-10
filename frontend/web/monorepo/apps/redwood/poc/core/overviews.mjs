@@ -52,7 +52,28 @@ export function welcomeKeyOf(ctx) {
  * @param key       welcomeKeyOf del contexto que se proyecta
  * @param previous  el aspecto pintado ({key, theme, illuBg, illu}) si ya había una welcome, o null
  */
-export function welcomeLookOf(key, previous, random = Math.random) {
+/** HeroSection.tone (the server's HeroTone) → the banner's background-color. oj-sp's welcome banner
+ *  ships a dark-* tone for each of the nine (dark-ocean … dark-sienna); the five that have an
+ *  illustration pair in the gallery keep it, the other four go without one. */
+export const WELCOME_TONES = ['ocean', 'pine', 'lilac', 'teal', 'rose', 'pebble', 'slate', 'plum', 'sienna']
+export function welcomeToneLookOf(key, tone) {
+  const t = String(tone || '').toLowerCase()
+  if (WELCOME_TONES.indexOf(t) < 0) return null
+  const theme = 'dark-' + t
+  const pair = WELCOME_LOOKS.find(([th]) => th === theme)
+  return {
+    key,
+    tone: t,
+    theme,
+    illuBg: pair ? WELCOME_GALLERY + 'illust-welcome-banner-bg-' + pair[1] + '.png' : '',
+    illu: pair ? WELCOME_GALLERY + 'illust-welcome-banner-fg-' + pair[1] + '.png' : '',
+  }
+}
+
+export function welcomeLookOf(key, previous, random = Math.random, tone = null) {
+  // a DECLARED tone (Welcome.heroTone / @WelcomeBanner(tone)) wins over the rotation, every time
+  const toned = welcomeToneLookOf(key, tone)
+  if (toned) return toned
   if (previous && previous.theme && previous.key === key) return previous
   const [theme, n] = WELCOME_LOOKS[Math.floor(random() * WELCOME_LOOKS.length) % WELCOME_LOOKS.length]
   return {
@@ -110,6 +131,8 @@ export function welcomeOf(ctx) {
   })
   return {
     trend,
+    // HeroSectionDto.tone: null = the rotating look (welcomeLookOf)
+    tone: md.tone || null,
     title: md.title || '',
     subtitle: md.subtitle || '',
     ctas,

@@ -179,6 +179,9 @@ export function reduceContexts(reg, increment, opts = {}) {
     downloads: [], // todos los DownloadFile del increment (download = el último, compat)
     runActions: [],
     docTitle: null,
+    // UICommand.announce / announceAssertive: what assistive tech is told (a11y.mjs live regions);
+    // nothing is drawn — [{ text, assertive }]
+    announcements: [],
     events: [], // bus @SubscribeTo: [{ name, detail }]
   }
 
@@ -237,6 +240,19 @@ export function reduceContexts(reg, increment, opts = {}) {
 
     if (fr.action === 'Add') {
       const ctx = buildOverlay(fr, opts.initiator)
+      // the SAME overlay re-sent while it is open (a Drawer with the same id: the crud's edit
+      // drawer after «Save and next», or with its error banner) REFRESHES IN PLACE — it takes the
+      // open one's place in the stack instead of stacking a second drawer on top. It gets a new
+      // context id on purpose: the chains reset the drawer's draft when the overlay id changes, and
+      // the refreshed drawer carries new values (the next row, or what the server kept).
+      const sameId = fr.component && fr.component.id
+      const open = sameId ? stack.find((k) => contexts[k] && contexts[k].tree && contexts[k].tree.id === sameId) : null
+      if (open) {
+        contexts[ctx.id] = { ...ctx, opener: contexts[open].opener || ctx.opener }
+        delete contexts[open]
+        stack[stack.indexOf(open)] = ctx.id
+        continue
+      }
       contexts[ctx.id] = ctx
       stack.push(ctx.id)
       continue
@@ -319,6 +335,13 @@ export function reduceContexts(reg, increment, opts = {}) {
       case 'RunAction':
         effects.runActions.push(c.data)
         break
+      case 'Announce': {
+        // the Redwood `announcement` slot: polite by default, assertive when the server says so
+        const d = c.data && typeof c.data === 'object' ? c.data : { text: c.data }
+        const text = d.text == null ? '' : String(d.text).trim()
+        if (text) effects.announcements.push({ text, assertive: !!d.assertive })
+        break
+      }
     }
   }
 

@@ -116,6 +116,8 @@ export function actionsOf(tree) {
       style: a.buttonStyle || 'outlined',
       chroming: a.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
       parameters: a.parameters || {},
+      // shown but inert (a Toggle.disabled wizard/crud button): the oj-button's disabled
+      disabled: !!a.disabled,
       ...(ids && ids.get(a) ? { nodeId: ids.get(a) } : {}),
     })
   }
