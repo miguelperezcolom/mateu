@@ -15,5 +15,10 @@ public enum UICommandType {
   /** Clears the dirty state (e.g. after a successful save), suppressing the confirmation dialog. */
   MarkAsClean,
   /** Triggers a file download in the browser; data must be a {@link FileDownload} instance. */
-  DownloadFile
+  DownloadFile,
+  /**
+   * Announces a text to assistive technology through the page's live region (the Redwood {@code
+   * announcement} slot); data must be an {@link Announcement}.
+   */
+  Announce
 }

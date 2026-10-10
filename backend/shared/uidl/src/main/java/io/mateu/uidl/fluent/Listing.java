@@ -6,7 +6,7 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Singular;
 
-@Builder
+@Builder(toBuilder = true)
 public record Listing(
     ListingType listingType,
     String id,
@@ -33,6 +33,12 @@ public record Listing(
     boolean rowsSelectionEnabled,
     @Singular("headerItem") List<Component> header,
     @Singular("footerItem") List<Component> footer,
+    /**
+     * What the listing shows BEFORE the first search has run (the Redwood smart-filter-search
+     * {@code dashboard} slot): a dashboard, recent items, tips… — replaced by the results as soon
+     * as the user searches. Only meaningful on a listing that does not search on opening.
+     */
+    @Singular("preSearchItem") List<Component> preSearch,
     boolean wrapCellContent,
     boolean compact,
     boolean noBorder,
@@ -88,6 +94,10 @@ public record Listing(
   @Override
   public List<Component> footer() {
     return footer != null ? footer : List.of();
+  }
+
+  public List<Component> preSearch() {
+    return preSearch != null ? preSearch : List.of();
   }
 
   @Override
