@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain"],ActionChain=>{"use strict";return class extends ActionChain{async run(context){const{$application}=context;$application.variables.mateuRowDetailOpen=!1,$application.variables.mateuRowDetail={title:"",text:""}}};});
+//# sourceMappingURL=mateuRowDetailDismissed.js.map

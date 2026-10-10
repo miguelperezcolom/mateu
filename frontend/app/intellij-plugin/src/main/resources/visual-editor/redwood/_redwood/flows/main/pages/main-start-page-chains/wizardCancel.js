@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context){const{$application}=context,home=$application.variables.mateuHomeRoute;home&&(await Actions.fireEvent(context,{name:"application:mateuNavigate",payload:{route:home}}))}};});
+//# sourceMappingURL=wizardCancel.js.map

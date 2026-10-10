@@ -1,4 +1,4 @@
-import { islandContentOf, subresourceIslandOf } from './content.mjs'
+import { islandContentOf, subresourceIslandOf, editorNodeIds } from './content.mjs'
 import { fieldWidgetOf, isExtraLayoutField, plainValueOf } from './rowEditor.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the component tree: walks, fields, actions, islands, overlays, texts.
 
@@ -17,6 +17,15 @@ export function walkWithinSurface(node, visit) {
     }
   }
   walk(node, true)
+}
+
+/** The node id of every metadata object of the tree (metadata → its node's id), for the visual
+ *  editor's canvas: the fields and the buttons are collected as their METADATA, and what the
+ *  editor selects is the node. Only asked for in editor mode (setEditorNodeIds). */
+export function ownerIdsOf(tree) {
+  const ids = new Map()
+  walkWithinSurface(tree, (n) => { if (n.metadata && typeof n.metadata === 'object' && n.id) ids.set(n.metadata, String(n.id)) })
+  return ids
 }
 
 /** Helper de RENDER: recolecta los FormFields de la superficie (sin cruzar islas). */
@@ -97,6 +106,7 @@ export function dynFormMetadataOf(tree) {
 export function actionsOf(tree) {
   const seen = {}
   const out = []
+  const ids = editorNodeIds ? ownerIdsOf(tree) : null
   for (const a of collectActions(tree)) {
     if (seen[a.actionId]) continue
     seen[a.actionId] = true
@@ -106,6 +116,7 @@ export function actionsOf(tree) {
       style: a.buttonStyle || 'outlined',
       chroming: a.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
       parameters: a.parameters || {},
+      ...(ids && ids.get(a) ? { nodeId: ids.get(a) } : {}),
     })
   }
   return out
@@ -123,6 +134,7 @@ export function fieldListOf(tree, state, data) {
   const s = state || {}
   const seen = {}
   const out = []
+  const ids = editorNodeIds ? ownerIdsOf(tree) : null
   for (const f of collectFields(tree)) {
     if (!f.dataType || seen[f.fieldId]) continue
     seen[f.fieldId] = true
@@ -137,7 +149,7 @@ export function fieldListOf(tree, state, data) {
     if (widget.isMultiSelect || widget.isCheckboxSet)
       value = Array.isArray(raw) ? raw.map((v) => plainValueOf(v)) : (raw == null || raw === '' ? [] : String(raw).split(','))
     else if (widget.isMoney) value = raw == null || raw === '' || Number.isNaN(Number(raw)) ? null : Number(raw)
-    out.push({ ...widget, value })
+    out.push({ ...widget, value, ...(ids && ids.get(f) ? { nodeId: ids.get(f) } : {}) })
   }
   return out
 }

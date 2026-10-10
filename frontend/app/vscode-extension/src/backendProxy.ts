@@ -1,5 +1,7 @@
+import * as fs from 'fs'
 import * as http from 'http'
 import * as https from 'https'
+import { staticAnswerOf } from './staticFiles'
 
 /**
  * A loopback HTTP proxy that forwards the Mateu sync endpoints (`/mateu`, `/sse`) to the configured
@@ -7,12 +9,18 @@ import * as https from 'https'
  * CSP `connect-src`), so the web app runs unchanged with `baseUrl = http://127.0.0.1:<port>` and no
  * cross-origin problem — the same "backend is same-ish-origin" trick the JCEF host uses.
  *
+ * It also serves the Redwood canvas (the editor frames the real Redwood/VB app from here — see
+ * staticFiles.ts), from `mediaDir`, the bundle the webview loads.
+ *
  * One proxy per backend URL, started lazily.
  */
 export class BackendProxy {
     private server?: http.Server
     private _port = -1
     private startedFor?: string
+
+    /** @param mediaDir the visual-editor bundle (`media/`), for the Redwood canvas */
+    constructor(private readonly mediaDir?: string) {}
 
     get port(): number { return this._port }
 
@@ -37,9 +45,16 @@ export class BackendProxy {
         res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, X-Session-Id')
         if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return }
 
-        const path = req.url ?? '/'
+        let path = req.url ?? '/'
         if (!path.startsWith('/mateu') && !path.startsWith('/sse')) {
-            res.writeHead(404); res.end('not found'); return
+            const answer = req.method === 'GET' ? staticAnswerOf(this.mediaDir, path) : { kind: 'none' as const }
+            if (answer.kind === 'file') {
+                res.writeHead(200, { 'Content-Type': answer.contentType, 'Cache-Control': 'no-cache' })
+                fs.createReadStream(answer.file).pipe(res)
+                return
+            }
+            if (answer.kind === 'none') { res.writeHead(404); res.end('not found'); return }
+            path = answer.path // the backend's own Redwood app
         }
         const target = new URL(backend.replace(/\/$/, '') + path)
         const headers: Record<string, string> = {

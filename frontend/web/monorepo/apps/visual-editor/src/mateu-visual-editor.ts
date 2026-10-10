@@ -326,7 +326,10 @@ export class MateuVisualEditor extends LitElement {
         // Load the whole mount (if the host exposes it) to power the reference pickers and the canvas's
         // REST source catalogue — the editor stays fully usable without it.
         this.loadProject()
-        useCanvasRenderer(this.renderer).then((r) => { this.renderer = r })
+        // The stored choice loads lazily; a pick made meanwhile (the Vaadin chunk can take a while
+        // on a cold dev server) must not be overwritten when that load lands.
+        const stored = this.renderer
+        useCanvasRenderer(stored).then((r) => { if (this.renderer === stored) this.renderer = r })
         window.addEventListener('keydown', this.onKeydown)
     }
 

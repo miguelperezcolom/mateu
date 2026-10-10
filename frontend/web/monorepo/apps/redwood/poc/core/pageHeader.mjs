@@ -113,9 +113,13 @@ export function itemOverviewPageOf(entity, blocks, toolbar) {
  *  [{actionId, label, chroming}]. El de estilo primary va al primaryAction del header. */
 export function pageToolbarOf(ctx) {
   if (!ctx || !ctx.tree) return []
-  const page = findByType(ctx.tree, 'Page')
+  // a fluent/YAML `Form` carries its toolbar exactly like a reflected Page does
+  const page = findByType(ctx.tree, 'Page') || findByType(ctx.tree, 'Form')
   if (!page) return []
   return (page.metadata.toolbar || [])
+    // a ButtonGroup (a toolbar's dropdown: on the wire a Button with `children`, no action of its
+    // own) brings its buttons — the header's actions list them
+    .flatMap((b) => (b && !b.actionId && Array.isArray(b.children || b.buttons) ? (b.children || b.buttons) : [b]))
     .filter((b) => b && b.actionId)
     .map((b) => ({
       actionId: b.actionId,
