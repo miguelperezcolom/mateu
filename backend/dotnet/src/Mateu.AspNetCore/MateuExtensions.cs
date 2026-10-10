@@ -95,6 +95,21 @@ public static class MateuExtensions
             await JsonSerializer.SerializeAsync(ctx.Response.Body, increment, Json, ctx.RequestAborted);
         });
 
+        // A document an action parked (Mateu.Core.DocumentStore), served ONCE. No auth beyond the
+        // token: a new tab or a download link cannot carry a bearer token, and the 256-bit,
+        // short-lived, single-use token was only handed out to a user allowed to run the action.
+        app.MapGet(prefix + DocumentDownloads.PathMarker + "{token}", async (HttpContext ctx, string token) =>
+        {
+            var served = DocumentDownloads.Serve(token);
+            ctx.Response.StatusCode = served.Status;
+            foreach (var (name, value) in served.Headers) ctx.Response.Headers[name] = value;
+            if (served.Body.Length > 0)
+            {
+                ctx.Response.ContentLength = served.Body.Length;
+                await ctx.Response.Body.WriteAsync(served.Body, ctx.RequestAborted);
+            }
+        });
+
         // Live reload (development mode only): the event stream and the re-render trigger. Absent
         // otherwise — a production app does not even route them.
         if (DevSpecs.Enabled) MapDevEndpoints(app);

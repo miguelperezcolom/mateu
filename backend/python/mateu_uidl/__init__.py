@@ -20,6 +20,10 @@ Example::
 
 from __future__ import annotations
 
+from .documents import (  # noqa: F401
+    Document,
+    DocumentDisposition,
+)
 from .messages import (  # noqa: F401
     BannerTheme,
     Message,
@@ -272,6 +276,8 @@ from .patterns import (  # noqa: F401
 
 
 __all__ = [
+    "Document",
+    "DocumentDisposition",
     "Access",
     "Translations",
     "TranslationsSupplier",
