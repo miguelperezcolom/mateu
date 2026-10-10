@@ -77,6 +77,28 @@ Experimental today:
   switch to keep the old behaviour for at least that minor. Security fixes are the exception: an
   insecure default can change in a patch, and the release notes say how to opt back in.
 
+## Enforcement
+
+Every build checks the Java public API against the **last released version** with
+[japicmp](https://siom79.github.io/japicmp/): `mvn verify` compares the `uidl` and `dtos` jars, and
+the archetype packages of `core` (`io.mateu.core.infra.declarative.orchestrators.*`), against
+`<mateu.japicmp.baseline>` (in `backend/pom.xml`) and writes a report to
+`target/japicmp/api-compatibility.{md,html,diff}` of each module; CI publishes it in the job summary.
+
+- **Until the beta** the check is **report-only** (`mateu.japicmp.enforce=false`): the alphas
+  change the API in place, and [Migrating from alpha](/reference/migrating-from-alpha/) is the record of it.
+- **From the beta tag on** the baseline moves to the beta and `mateu.japicmp.enforce` is `true`: a
+  binary- or source-incompatible change **fails the build** unless the type or member is
+  `@Experimental`, or the change is listed in **`backend/api-compat/japicmp-exclusions.properties`**
+  — the reviewed exclusion file. Adding an entry is how a planned removal (the end of a deprecation
+  period, a major release) gets through; each entry names the PR or release that accepted it, and the
+  list is reset whenever the baseline moves.
+- Marking an existing stable API `@Experimental` is itself reported as a removal — an API cannot
+  leave the promise silently; it is deprecated first like anything else.
+
+Run it locally with `mvn verify -pl shared/uidl` (add `-Dmateu.japicmp.enforce=true` to see what
+would fail).
+
 ## Wire compatibility
 
 The wire is versioned separately from the artifacts: every response carries `wireVersion` (currently

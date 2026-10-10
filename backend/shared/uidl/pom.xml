@@ -53,6 +53,24 @@
             </resource>
         </resources>
         <plugins>
+            <!-- Public-API compatibility check against the last release (see backend/pom.xml). -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>properties-maven-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>com.github.siom79.japicmp</groupId>
+                <artifactId>japicmp-maven-plugin</artifactId>
+                <configuration>
+                    <oldVersion>
+                        <dependency>
+                            <groupId>io.mateu</groupId>
+                            <artifactId>uidl</artifactId>
+                            <version>${mateu.japicmp.baseline}</version>
+                        </dependency>
+                    </oldVersion>
+                </configuration>
+            </plugin>
             <!-- Public API: its javadoc must pass doclint (every check except missing comments) and
                  a javadoc error FAILS the build here, unlike the backend default (doclint none). -->
             <plugin>

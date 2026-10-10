@@ -486,10 +486,35 @@ jobs:
       # javadoc is skipped: `verify` otherwise triggers the parent pom's javadoc jar, which fails to
       # generate on core (a pre-existing doclint issue) and is not what this gate is for — the gate is
       # the test suite + JaCoCo coverage check.
-      - name: Java module tests + coverage gate
+      #
+      # `verify` also runs the public-API compatibility check (japicmp) of uidl, dtos and core's
+      # archetypes against the last release (backend/pom.xml <mateu.japicmp.baseline>). It is
+      # REPORT-ONLY while the version is an alpha (<mateu.japicmp.enforce>false</...>); from the
+      # beta tag on it fails the build on an incompatible change that is neither @Experimental nor in
+      # backend/api-compat/japicmp-exclusions.properties.
+      - name: Java module tests + coverage gate + API compatibility
         run: >-
           mvn -B verify -Dgpg.skip=true -Dmaven.javadoc.skip=true --file backend/pom.xml
-          -pl shared/core,shared/uidl,shared/annotation-processor-core,shared/annotation-processor-indexer,shared/agent-cli,webflux/webflux-core
+          -pl shared/core,shared/uidl,shared/dtos,shared/annotation-processor-core,shared/annotation-processor-indexer,shared/agent-cli,webflux/webflux-core
+
+      - name: API compatibility report
+        if: always()
+        run: |
+          {
+            echo "## Public API compatibility (japicmp, vs the last release)"
+            for m in uidl dtos core; do
+              f="backend/shared/$m/target/japicmp/api-compatibility.md"
+              if [ -f "$f" ]; then echo; echo "### $m"; head -c 60000 "$f"; fi
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload API compatibility reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: japicmp-reports
+          path: backend/shared/*/target/japicmp/
+          if-no-files-found: ignore
 
       # The .NET port multi-targets both supported LTS runtimes (net8.0 until its 2026-11-10 end of
       # support, and net10.0): the 10 SDK builds both, the 8 runtime runs the net8.0 leg. `dotnet test`

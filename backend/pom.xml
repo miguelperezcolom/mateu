@@ -59,6 +59,14 @@
     <!-- Module-wide (BUNDLE) line-coverage floor; modules with real suites override it
          (backend/shared/core sets 70%). -->
     <jacoco.min.bundle.coverage>0%</jacoco.min.bundle.coverage>
+    <!-- Public-API compatibility check (japicmp) of uidl, dtos and core's archetypes against the
+         last RELEASED version. Report-only while the version is an alpha: set
+         mateu.japicmp.enforce=true (done from the beta tag on) and an incompatible change fails
+         `mvn verify` unless the type/member is @Experimental or listed in
+         api-compat/japicmp-exclusions.properties. See reference/stability-and-versioning.md. -->
+    <mateu.japicmp.baseline>3.0-alpha.407</mateu.japicmp.baseline>
+    <mateu.japicmp.enforce>false</mateu.japicmp.enforce>
+    <mateu.japicmp.skip>false</mateu.japicmp.skip>
   </properties>
 
   <modules>
@@ -168,6 +176,60 @@
                       <groupId>org.apache.maven.plugins</groupId>
                       <artifactId>maven-surefire-plugin</artifactId>
                       <version>3.5.6</version> </plugin>
+                  <!-- Loads the reviewed API-compatibility exclusions (one property, a ';' list). -->
+                  <plugin>
+                      <groupId>org.codehaus.mojo</groupId>
+                      <artifactId>properties-maven-plugin</artifactId>
+                      <version>1.2.1</version>
+                      <executions>
+                          <execution>
+                              <id>japicmp-exclusions</id>
+                              <phase>initialize</phase>
+                              <goals><goal>read-project-properties</goal></goals>
+                              <configuration>
+                                  <files>
+                                      <file>${project.basedir}/../../api-compat/japicmp-exclusions.properties</file>
+                                  </files>
+                              </configuration>
+                          </execution>
+                      </executions>
+                  </plugin>
+                  <!-- The public-API compatibility check; a module opts in by declaring the plugin
+                       (and properties-maven-plugin above) in its <plugins>, giving the old artifact
+                       and, for core, the packages that are public. -->
+                  <plugin>
+                      <groupId>com.github.siom79.japicmp</groupId>
+                      <artifactId>japicmp-maven-plugin</artifactId>
+                      <version>0.26.3</version>
+                      <executions>
+                          <execution>
+                              <id>api-compatibility</id>
+                              <phase>verify</phase>
+                              <goals><goal>cmp</goal></goals>
+                          </execution>
+                      </executions>
+                      <configuration>
+                          <skip>${mateu.japicmp.skip}</skip>
+                          <newVersion>
+                              <file>
+                                  <path>${project.build.directory}/${project.build.finalName}.${project.packaging}</path>
+                              </file>
+                          </newVersion>
+                          <parameter>
+                              <onlyModified>true</onlyModified>
+                              <accessModifier>protected</accessModifier>
+                              <ignoreMissingClasses>true</ignoreMissingClasses>
+                              <breakBuildOnBinaryIncompatibleModifications>${mateu.japicmp.enforce}</breakBuildOnBinaryIncompatibleModifications>
+                              <breakBuildOnSourceIncompatibleModifications>${mateu.japicmp.enforce}</breakBuildOnSourceIncompatibleModifications>
+                              <excludes>
+                                  <exclude>@io.mateu.uidl.annotations.Experimental</exclude>
+                                  <exclude>${japicmp.reviewedExcludes}</exclude>
+                              </excludes>
+                              <skipHtmlReport>false</skipHtmlReport>
+                              <skipMarkdownReport>false</skipMarkdownReport>
+                          </parameter>
+                      </configuration>
+                  </plugin>
               </plugins>
           </pluginManagement>
     <plugins>

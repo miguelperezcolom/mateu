@@ -18,3 +18,9 @@ for f in $files; do
   rm -f "$f.bak"
   echo "$f → $new"
 done
+# The public-API compatibility check compares against the last release too (backend/pom.xml).
+# Moving it means the reviewed exclusions in backend/api-compat/japicmp-exclusions.properties
+# described the diff against the OLD baseline — review and reset them in the same commit.
+sed -E -i.bak "s#<mateu.japicmp.baseline>[^<]+</mateu.japicmp.baseline>#<mateu.japicmp.baseline>$new</mateu.japicmp.baseline>#" backend/pom.xml
+rm -f backend/pom.xml.bak
+echo "backend/pom.xml (japicmp baseline) → $new"
