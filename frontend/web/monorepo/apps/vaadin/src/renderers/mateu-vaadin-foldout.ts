@@ -618,16 +618,26 @@ export class MateuVaadinFoldout extends LitElement {
             border-radius: 999px;
             background: var(--mateu-foldout-dots-bg, rgba(22, 21, 19, .78));
         }
+        /* the visible dot stays small, the TARGET is 24x24 (WCAG 2.5.8 Target Size) */
         .dot {
             all: unset;
+            box-sizing: border-box;
+            width: 24px;
+            height: 24px;
+            margin: calc((.7rem - 24px) / 2);
+            display: inline-grid;
+            place-items: center;
+            cursor: pointer;
+        }
+        .dot::before {
+            content: '';
             box-sizing: border-box;
             width: .7rem;
             height: .7rem;
             border-radius: 50%;
             border: 1.5px solid #fff;
-            cursor: pointer;
         }
-        .dot.on {
+        .dot.on::before {
             background: #fff;
         }
         .dot:focus-visible {

@@ -80,6 +80,12 @@ jobs:
       - name: Bundled frontend dependencies are under approved licences
         run: node scripts/check-frontend-licenses.mjs
 
+      # Mateu's own components take colour, spacing and type from the design system's tokens; a
+      # hard-coded literal ignores dark mode, forced colours and a customer theme. A ratchet: the
+      # per-file counts in scripts/design-tokens-baseline.json may only go down (UX review 2026-10).
+      - name: Visual consistency — no new hard-coded colours / spacing / font sizes
+        run: node --test scripts/check-design-tokens.test.mjs && node scripts/check-design-tokens.mjs
+
       # no-eval/no-new-func are ERRORS (the client runs under a CSP without 'unsafe-eval');
       # no-console/no-explicit-any warnings are capped by --max-warnings (ratchet it down).
       - name: Lint (ESLint)

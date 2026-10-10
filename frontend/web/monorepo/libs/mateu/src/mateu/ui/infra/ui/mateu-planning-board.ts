@@ -141,7 +141,7 @@ export class MateuPlanningBoard extends LitElement {
             display: block;
             font-size: .7em;
             text-transform: uppercase;
-            color: var(--lumo-tertiary-text-color, #999);
+            color: var(--lumo-secondary-text-color, #5f6b7a);
         }
         .day-head .num {
             font-weight: 600;

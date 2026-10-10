@@ -63,7 +63,7 @@ export const renderMetricCard = (component: ClientSideComponent) => {
                     ${trendArrow(metadata.trend)} ${metadata.trendLabel??nothing}
                 </span>
             `:nothing}
-            ${metadata.description?html`<span style="font-size: var(--lumo-font-size-xs, .8rem); color: var(--lumo-tertiary-text-color, #999);">${metadata.description}</span>`:nothing}
+            ${metadata.description?html`<span style="font-size: var(--lumo-font-size-xs, .8rem); color: var(--lumo-secondary-text-color, #5f6b7a);">${metadata.description}</span>`:nothing}
         </div>
     `
 }

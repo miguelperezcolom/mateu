@@ -41,9 +41,6 @@ export class MateuFeatureGrid extends LitElement {
         }
         .title { font-weight: 700; color: var(--lumo-body-text-color, #111); }
         .desc { color: var(--lumo-secondary-text-color, #666); font-size: var(--lumo-font-size-s, .875rem); }
-        @media (prefers-color-scheme: dark) {
-            .card { background: var(--lumo-contrast-5pct, #2a2a2a); }
-        }
     
         ${activatableFocusStyles}
     `

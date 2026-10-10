@@ -7,7 +7,13 @@ export interface ConfirmationDialogTexts {
     message: string
     confirmationText: string
     denialText: string
+    /** the action destroys data: the confirm button is painted as such and the SAFE one takes the focus */
+    destructive: boolean
 }
+
+/** The crud's bulk delete and a row's delete: their confirmation names the action and its cost. */
+export const isDeleteAction = (actionId: string | undefined): boolean =>
+    actionId === 'delete' || actionId === 'action-on-row-delete' || actionId === 'deleteSelected'
 
 /**
  * The framework's generic wording, in the page's language (chromeTexts: `<html lang>`, else the
@@ -18,6 +24,21 @@ const generic = (lang?: string): ConfirmationDialogTexts => ({
     message: chromeText('confirmMessage', lang),
     confirmationText: chromeText('confirmYes', lang),
     denialText: chromeText('confirmNo', lang),
+    destructive: false,
+})
+
+/**
+ * A delete says what it does: "Delete the selected items? / This cannot be undone." with buttons
+ * named after the outcome ("Delete" / "Cancel"), never a bare "Are you sure? Yes / No" — the user
+ * has to read the buttons to know what Yes means (NN/g, "Confirmation dialogs"; Carbon, Fiori and
+ * Material all label the confirm button with the verb).
+ */
+const genericDelete = (lang?: string): ConfirmationDialogTexts => ({
+    header: chromeText('confirmDeleteTitle', lang),
+    message: chromeText('confirmDeleteMessage', lang),
+    confirmationText: chromeText('delete', lang),
+    denialText: chromeText('cancel', lang),
+    destructive: true,
 })
 
 /**
@@ -29,7 +50,7 @@ const generic = (lang?: string): ConfirmationDialogTexts => ({
  * blanked the header and left both buttons unlabelled.
  */
 export const confirmationDialogTexts = (action: Action | undefined, lang?: string): ConfirmationDialogTexts => {
-    const GENERIC = generic(lang)
+    const GENERIC = isDeleteAction(action?.id) ? genericDelete(lang) : generic(lang)
     const texts = action?.confirmationTexts
     const declared = (text: string | undefined, fallback: string) =>
         text != null && text.trim().length > 0 ? text : fallback
@@ -38,5 +59,6 @@ export const confirmationDialogTexts = (action: Action | undefined, lang?: strin
         message: declared(texts?.message, GENERIC.message),
         confirmationText: declared(texts?.confirmationText, GENERIC.confirmationText),
         denialText: declared(texts?.denialText, GENERIC.denialText),
+        destructive: GENERIC.destructive,
     }
 }

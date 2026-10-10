@@ -38,7 +38,6 @@ export class MateuFaq extends LitElement {
             color: var(--lumo-secondary-text-color, #555);
             line-height: 1.55;
         }
-        @media (prefers-color-scheme: dark) { .q { background: var(--lumo-contrast-5pct, #2a2a2a); } }
     
         ${activatableFocusStyles}
     `

@@ -141,6 +141,7 @@ class CrudMapperMixin(MixinBase):
                     [Option(value=m.name, label=enum_label(m)) for m in f.type]
                     if editable and is_enum(f.type) else None
                 ),
+                data_type=listing_data_type(f.type),
                 aggregate=self.aggregate_of(f),
                 stereotype=self.column_stereotype_of(f),
                 caption_path=self.caption_path_of(f),
@@ -625,3 +626,22 @@ class CrudMapperMixin(MixinBase):
                 for r in instance.rules()
             )
         return rules
+
+
+def listing_data_type(t) -> str | None:
+    """A LISTING column keeps the number-ness of its field (Java: ColumnTypeMapper
+    .getDataTypeForListingColumn), so the renderers right-align numbers; everything else
+    stays as before (None: the renderer's default)."""
+    import decimal
+    import typing
+
+    args = [a for a in typing.get_args(t) if a is not type(None)]
+    if args and typing.get_origin(t) in (typing.Union, getattr(__import__("types"), "UnionType", None)):
+        t = args[0]
+    if t is bool:
+        return None
+    if t is int:
+        return "integer"
+    if t in (float, decimal.Decimal):
+        return "number"
+    return None

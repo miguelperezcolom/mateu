@@ -145,7 +145,7 @@ class CollectionDetail(ComponentTreeSupplier):
         from mateu_uidl import components as fluent
 
         return fluent.EmptyState(
-            icon="👈",
+            icon="vaadin:list-select",
             title="Select an item",
             description="Pick an item from the list to see its detail.",
             style="flex: 1; margin-top: 3rem;",

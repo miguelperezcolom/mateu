@@ -446,13 +446,19 @@ export class MateuTableCrud extends LitElement {
             }
         })
         this.resizeObserver.observe(this)
+        this.addEventListener('mateu-selection-changed', this.selectionChangedListener)
     }
+
+    // the grid writes the selection into the shared state in place — re-render the toolbar so
+    // selection-gated actions (needsSelection) enable and disable with it
+    selectionChangedListener = () => this.requestUpdate()
 
     disconnectedCallback() {
         super.disconnectedCallback()
         clearTimeout(this.loadingTimer)
         window.removeEventListener('resize', this.windowResizeListener)
         this.resizeObserver?.disconnect()
+        this.removeEventListener('mateu-selection-changed', this.selectionChangedListener)
     }
 
     /**
@@ -942,6 +948,21 @@ export class MateuTableCrud extends LitElement {
         }))
     }
 
+    /** Whether this toolbar button's action requires selected rows and none are selected. */
+    needsSelection = (button: Button): boolean => {
+        const selected = this.state?.['crud_selected_items']
+        if (Array.isArray(selected) && selected.length > 0) return false
+        let node: Node | null = this
+        while (node) {
+            const el = node as any
+            const actions = el.tagName === 'MATEU-COMPONENT' ? el.component?.actions : undefined
+            const action = Array.isArray(actions) ? actions.find((a: any) => a?.id === button.actionId) : undefined
+            if (action) return !!action.rowsSelectedRequired
+            node = el.parentElement ?? ((el.getRootNode?.() instanceof ShadowRoot) ? (el.getRootNode() as ShadowRoot).host : null)
+        }
+        return false
+    }
+
     handleImportUploadSuccess = (e: CustomEvent) => {
         const fileId = e.detail.xhr.responseText
         this.showImportDialog = false
@@ -962,7 +983,11 @@ export class MateuTableCrud extends LitElement {
 
         // One crud header toolbar button. Renderers with their own design system
         // provide it through the renderToolbarButton hook; the Vaadin default stays here.
-        const renderToolbarButton = (button: Button): TemplateResult => {
+        const renderToolbarButton = (shown: Button): TemplateResult => {
+            // An action that needs selected rows (a bulk Delete) is DISABLED while nothing is
+            // selected, instead of answering the click with an error toast — prevent the error
+            // rather than report it (Nielsen #5). The server-side gate stays as the backstop.
+            const button = this.needsSelection(shown) ? { ...shown, disabled: true } : shown
             const custom = componentRenderer.get()?.renderToolbarButton?.(
                 button, this.evalLabel(button.label), () => this.handleToolbarButtonClick(button))
             if (custom) {
@@ -975,6 +1000,7 @@ export class MateuTableCrud extends LitElement {
                 <button class="crud-btn ${neutralButtonClass(button)}"
                         data-action-id="${button.id}"
                         theme="${buttonTheme(button) || nothing}"
+                        ?disabled="${button.disabled}"
                         @click="${() => this.handleToolbarButtonClick(button)}"
                 >${this.evalLabel(button.label)}</button>
             `)

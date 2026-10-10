@@ -964,7 +964,7 @@ export class MateuChat extends LitElement {
 
         .message-time {
             font-size: 0.7rem;
-            color: var(--lumo-tertiary-text-color, #888);
+            color: var(--lumo-secondary-text-color, #5f6b7a);
         }
 
         .message-text {
@@ -1060,7 +1060,7 @@ export class MateuChat extends LitElement {
 
         .token-label {
             font-weight: 600;
-            color: var(--lumo-tertiary-text-color, #888);
+            color: var(--lumo-secondary-text-color, #5f6b7a);
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }

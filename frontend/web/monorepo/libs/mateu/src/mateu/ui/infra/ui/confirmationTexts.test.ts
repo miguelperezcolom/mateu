@@ -13,6 +13,7 @@ describe('confirmationDialogTexts', () => {
             message: 'Are you sure?',
             confirmationText: 'Yes',
             denialText: 'No',
+            destructive: false,
         })
     })
 
@@ -22,11 +23,13 @@ describe('confirmationDialogTexts', () => {
             message: 'Cancelling stops every selected process.',
             confirmationText: 'Cancel them',
             denialText: 'Keep running',
+            destructive: false,
         }))).toEqual({
             header: 'Cancel processes',
             message: 'Cancelling stops every selected process.',
             confirmationText: 'Cancel them',
             denialText: 'Keep running',
+            destructive: false,
         })
     })
 
@@ -38,11 +41,13 @@ describe('confirmationDialogTexts', () => {
             message: 'Cancelling stops every selected process.',
             confirmationText: '',
             denialText: '',
+            destructive: false,
         }), 'en')).toEqual({
             header: 'One moment, please',
             message: 'Cancelling stops every selected process.',
             confirmationText: 'Yes',
             denialText: 'No',
+            destructive: false,
         })
     })
 
@@ -62,6 +67,7 @@ describe('confirmationDialogTexts', () => {
             message: '¿Seguro?',
             confirmationText: 'Sí',
             denialText: 'No',
+            destructive: false,
         })
     })
 
@@ -71,10 +77,24 @@ describe('confirmationDialogTexts', () => {
             message: 'Se cancelará la reserva.',
             confirmationText: 'Sí',
             denialText: 'No',
+            destructive: false,
         })
     })
 
     it('falls back to English for any other language', () => {
         expect(confirmationDialogTexts(action(null), 'fr').confirmationText).toEqual('Yes')
+    })
+})
+
+describe('confirmationDialogTexts for a delete', () => {
+    it('names the action and its cost instead of "Are you sure? Yes / No"', () => {
+        const t = confirmationDialogTexts({ id: 'delete', confirmationRequired: true } as unknown as Action, 'en')
+        expect(t).toEqual({
+            header: 'Delete the selected items?',
+            message: 'This cannot be undone.',
+            confirmationText: 'Delete',
+            denialText: 'Cancel',
+            destructive: true,
+        })
     })
 })

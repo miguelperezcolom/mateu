@@ -512,7 +512,7 @@ export class MateuContentHeader extends LitElement {
            mode). Rendered inside the title heading so it keeps its size, but muted so it never
            reads as a real title. */
         .page-title-placeholder {
-            color: var(--lumo-tertiary-text-color, #9ca3af);
+            color: var(--lumo-secondary-text-color, #5f6b7a);
             font-weight: inherit;
         }
 
@@ -548,7 +548,7 @@ export class MateuContentHeader extends LitElement {
         }
         .header-fact-label {
             font-size: var(--lumo-font-size-xxs, .7rem); font-weight: 600; letter-spacing: .05em;
-            text-transform: uppercase; color: var(--lumo-tertiary-text-color, #999);
+            text-transform: uppercase; color: var(--lumo-secondary-text-color, #5f6b7a);
             white-space: nowrap;
         }
         .header-fact-value {

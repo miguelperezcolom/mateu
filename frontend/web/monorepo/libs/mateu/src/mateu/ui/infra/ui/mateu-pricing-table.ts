@@ -84,7 +84,7 @@ export class MateuPricingTable extends LitElement {
         }
         li::before {
             content: '✓';
-            color: var(--lumo-success-color, #12b76a);
+            color: var(--lumo-success-text-color, #12b76a);
             font-weight: 700;
             flex: 0 0 auto;
         }
@@ -104,9 +104,6 @@ export class MateuPricingTable extends LitElement {
             color: #fff;
         }
         .cta:hover { filter: brightness(.96); }
-        @media (prefers-color-scheme: dark) {
-            .plan { background: var(--lumo-contrast-5pct, #2a2a2a); }
-        }
     `
 
     private cta(plan: PricingPlan) {
