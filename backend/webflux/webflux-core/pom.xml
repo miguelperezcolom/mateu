@@ -38,7 +38,7 @@
             <groupId>io.projectreactor</groupId>
             <artifactId>reactor-test</artifactId>
             <scope>test</scope>
-            <version>3.8.6</version>
+            <version>3.8.7</version>
         </dependency>
 
         <dependency>
@@ -50,7 +50,7 @@
         <dependency>
             <groupId>org.hibernate.validator</groupId>
             <artifactId>hibernate-validator</artifactId>
-            <version>9.1.2.Final</version>
+            <version>9.1.4.Final</version>
         </dependency>
 
 
@@ -106,7 +106,7 @@
                         <path>
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
-                            <version>1.18.46</version>
+                            <version>1.18.48</version>
                         </path>
                     </annotationProcessorPaths>
                 </configuration>
