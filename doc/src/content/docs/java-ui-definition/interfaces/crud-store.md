@@ -109,6 +109,14 @@ Navigating to `/items` renders a full list-create-edit-delete UI with no additio
 
 ## Spring Data JPA integration
 
+:::tip[No adapter needed]
+The optional **`mateu-spring-data`** module gives you a ready-made store over a Spring Data JPA
+repository — `return CrudStores.of(productRepository);` — with search, filters, range/list
+criteria, sorting, paging and listing totals run in the database, and JPA `@Version` conflicts
+mapped to Mateu's conflict dialog. See [Spring Data JPA store](/java-user-manual/build/spring-data/).
+The hand-written adapter below is still the way when you need full control.
+:::
+
 `CrudStore` is a plain Java interface, not a Spring Data one. The most common pattern in Spring Boot applications is to wrap a Spring Data `CrudRepository`/`JpaRepository` in a thin adapter (note: that `CrudRepository` is Spring Data's own interface, unrelated to Mateu's port):
 
 ```java

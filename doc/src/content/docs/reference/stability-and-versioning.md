@@ -113,6 +113,7 @@ Experimental today:
 | The **AI assistant** chat panel and its MCP wiring | `@AI`, the `Chat` component (`io.mateu.uidl`); the MCP endpoint (`POST /mateu/mcp`, off by default) and the tool projection it serves; the `agent-cli` modules (not published) |
 | The **new YAML authoring catalogues** | field types (`types.yaml`: `FieldTypeEntry`, `FieldTypeCatalog`, `FieldTypeCatalogSupplier`, `GridColumn.tones`), translations (`Translations`, `TranslationsSupplier`), environments (`Environment`), YAML access keys (`Access`), the project descriptor (`ProjectSettings`, `ProjectRenderer`) and sample data on REST sources (`RestDataSource.sample`, `RestSourceEntry.sample`) — the YAML shapes and the Java types behind them |
 | **Development tooling** | live reload (dev mode, `/mateu/dev/*`), the Redwood embedded `<mateu-ui>` JET component |
+| The **Spring Data JPA store** | `JpaCrudStore`, `CrudStores` in the optional `io.mateu:mateu-spring-data` module ([guide](/java-user-manual/build/spring-data/)) |
 | The **Figma design-to-code pipeline** | the contract packaged at `META-INF/mateu/contract.json` in the uidl jar, the Figma plugin and the modux importer/codegen |
 
 ## Deprecation policy
