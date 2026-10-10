@@ -370,7 +370,7 @@ export class MateuApp extends ComponentElement {
     }
 
     itemSelected = (e: MenuBarItemSelectedEvent) => {
-        const v = e.detail.value as any
+        const v = e.detail.value as unknown as MenuOption
         // a remote section whose remote did not answer: nothing to open — ask it again instead
         if (v.unavailable) {
             retryUnavailableMenus()
@@ -380,7 +380,7 @@ export class MateuApp extends ComponentElement {
     }
 
     itemSelectedTiles = (e: MenuBarItemSelectedEvent) => {
-        const option: MenuOption = (e.detail.value as any)._menuOption
+        const option: MenuOption = (e.detail.value as unknown as { _menuOption: MenuOption })._menuOption
         if (option.submenus && option.submenus.length > 0) {
             this.tilesMenuOption = option
         } else {

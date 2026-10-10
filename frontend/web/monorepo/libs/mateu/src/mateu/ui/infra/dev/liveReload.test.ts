@@ -56,8 +56,8 @@ describe('reloadContent', () => {
 
 describe('applyLiveReload', () => {
     const host = () => {
-        const el = document.createElement('mateu-ui') as unknown as HTMLElement & { remount: ReturnType<typeof vi.fn> }
-        el.remount = vi.fn()
+        const el = document.createElement('mateu-ui') as unknown as HTMLElement & { remount: ReturnType<typeof vi.fn<() => void>> }
+        el.remount = vi.fn<() => void>()
         document.body.appendChild(el)
         return el
     }
