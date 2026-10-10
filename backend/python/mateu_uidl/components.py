@@ -1057,6 +1057,27 @@ class StatusList(Component):
 
 
 @dataclass(frozen=True)
+class DropZone(Component):
+    """A place to DROP dragged listing rows (a listing decorated ``@drag_rows(type)``): a titled
+    area wrapping any ``content``. When rows of the ``accept``ed type are dropped on it, it runs
+    ``action_id`` with its ``parameters`` plus ``_draggedIds`` (the dragged rows' ids) and
+    ``_dragType`` (mirrors Java's DropZone)."""
+
+    accept: str | None = None
+    action_id: str | None = None
+    parameters: dict[str, object] | None = None
+    title: str | None = None
+    subtitle: str | None = None
+    content: tuple[Component, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "content", tuple(self.content))
+
+
+@dataclass(frozen=True)
 class Notice(Component):
     """A compact inline banner: a theme-tinted strip with a severity icon and one line of text
     (e.g. "2 quejas pendientes"), plus an optional right-aligned action. ``theme``: "info" |
@@ -1663,6 +1684,7 @@ __all__ = [
     "MatrixRow",
     "MatrixSection",
     "MatrixGrid",
+    "DropZone",
     "QueueItem",
     "QueueGroup",
     "TaskQueue",

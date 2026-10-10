@@ -37,6 +37,13 @@ public record ListingSummarySpec(Map<String, AggregateFunction> aggregates, Stri
   }
 
   /** The row field annotated {@code @RowStatus} (its value tones the row), or null. */
+  /** The drag type of a listing whose rows can be dragged (@DragRows on its class); null = none. */
+  public static String dragTypeOf(Class<?> listingClass) {
+    if (listingClass == null) return null;
+    var dragRows = MetaAnnotations.find(listingClass, io.mateu.uidl.annotations.DragRows.class);
+    return dragRows != null && !dragRows.value().isBlank() ? dragRows.value() : null;
+  }
+
   public static String rowStatusFieldOf(Class<?> rowClass) {
     if (rowClass == null) return null;
     for (Field field : allFields(rowClass)) {

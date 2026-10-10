@@ -74,6 +74,7 @@ and edit in a drawer…)? They have their own map: [Page templates](./page-templ
 | [Action panel](./action-panel) | ✅ Implemented | `ActionPanel` (categorised "I want to…" overlay, shortcut, show more, hide unpopulated) |
 | [Matrix grid](./matrix-grid) | ✅ Implemented | `MatrixGrid` (rows × dates, collapsible sections, link cells, in-place editing) |
 | [Hover details](./hover-details) | ✅ Implemented | `Popover(trigger = hover)`, `@Tooltip("otherField")` on listing cells |
+| [Drag rows to a destination](./drag-to-a-destination) | ✅ Implemented | `@DragRows("type")` + `DropZone(accept, actionId, parameters)` |
 | [Kanban](./kanban) | ✅ Implemented | `Kanban` + `KanbanColumn`/`KanbanCard` |
 | [Timeline](./timeline) | ✅ Implemented | `Timeline` + `TimelineItem` (activity feed) |
 | [Progress steps](./progress-steps) | ✅ Implemented | `ProgressSteps` (also `@WizardProgress(STEPS)`) |

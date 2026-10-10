@@ -168,6 +168,9 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                     .rowStatusField(
                         io.mateu.core.infra.declarative.orchestrators.crud.ListingSummarySpec
                             .rowStatusFieldOf(orchestrator.rowClass()))
+                    .dragType(
+                        io.mateu.core.infra.declarative.orchestrators.crud.ListingSummarySpec
+                            .dragTypeOf(orchestrator.metadataSource()))
                     .columns(columns)
                     .detailPath(
                         io.mateu.core.domain.out.componentmapper.PageListingBuilder.getDetailPath(

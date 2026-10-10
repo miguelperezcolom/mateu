@@ -90,6 +90,9 @@ define([
       bridge.installKeys();
       // ventanas flotantes al pasar el ratón (celdas con @Tooltip, Popover)
       bridge.installHover();
+      // arrastrar filas (@DragRows) a un DropZone: su acción con origen y destino
+      bridge.installDragAndDrop();
+      bridge.setDropSink(runPageAction);
       bridge.setKeysActionSink(runPageAction);
 
       // Static-bundle (modo sin backend): si hay un mateuBundleUrl configurado, se arranca la carga

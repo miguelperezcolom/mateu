@@ -66,6 +66,20 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isDropZone ]]">
+                      <!-- DropZone: destino de filas arrastradas (@DragRows); dnd.mjs acepta su tipo MIME -->
+                      <div class="mateu-drop-zone oj-panel oj-sm-padding-4x oj-sm-margin-2x-bottom" role="group"
+                        :aria-label="[[ $current.data.ariaLabel ]]"
+                        :data-drop-accept="[[ $current.data.accept ]]" :data-drop-action="[[ $current.data.actionId ]]"
+                        :data-drop-params="[[ $current.data.params ]]">
+                        <div class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                        <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.subtitle ]]"></oj-bind-text></div>
+                        <oj-bind-for-each data="[[ $current.data.lines ]]">
+                          <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
+                        </oj-bind-for-each>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
                       <!-- Popover: el disparador; el contenido sale en el oj-popup compartido (hover.mjs) -->
                       <span class="mateu-pop-trigger oj-sm-margin-2x-bottom" tabindex="0" role="button"

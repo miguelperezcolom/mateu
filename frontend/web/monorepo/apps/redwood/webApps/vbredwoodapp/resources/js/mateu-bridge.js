@@ -1249,6 +1249,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return classes
   }
 
+  /** El tipo MIME de un tipo de arrastre: así el destino sabe, mientras se arrastra (cuando aún no
+   *  puede leer los datos), si lo que viene es suyo. */
+  const dragMimeOf = (type) => (type ? 'application/x-mateu-' + String(type).toLowerCase().replace(/[^a-z0-9.+-]/g, '-') : '')
+
   /** «colSpan de N columnas» → la clase oj-flex del bloque (doceavos, nunca más de 12). */
   function panelColClass(colSpan, columns) {
     const span = Math.max(1, Math.min(columns, colSpan > 0 ? colSpan : 1))
@@ -1322,7 +1326,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
     // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
     // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
-    'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover',
+    'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone',
   ]
   function isRichAtom(a) {
     return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -2578,6 +2582,22 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }, container)
         return
       }
+      if (t === 'DropZone') {
+        // un destino donde soltar filas arrastradas (@DragRows): título, subtítulo y su contenido como
+        // líneas de texto; dnd.mjs lo resalta mientras se arrastra su tipo y lanza su acción al soltar
+        const lines = kidsOf(node).flatMap((k) => collectTexts(k)).map(interp).filter(Boolean)
+        atom({
+          isDropZone: true,
+          title: interp(m.title || ''),
+          subtitle: interp(m.subtitle || ''),
+          lines,
+          accept: dragMimeOf(m.accept || ''),
+          actionId: m.actionId || '',
+          params: JSON.stringify(m.parameters || {}),
+          ariaLabel: (m.title || '') + (m.subtitle ? ', ' + m.subtitle : '') + ' — drop target',
+        }, container)
+        return
+      }
       if (t === 'Popover') {
         // lo envuelto se pinta como un disparador con su texto; el contenido, como líneas en la
         // ventana flotante compartida (hover.mjs) — al pasar/enfocar (hover) o al pulsar (click)
@@ -3339,7 +3359,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const listing = listingBaseOf(ctx, opts)
     if (!listing) return listing
     const prefs = columnPrefsReader ? columnPrefsReader() : null
-    return { ...listing, allColumns: listing.columns, columns: applyColumnPrefs(listing.columns, prefs) }
+    return { ...listing, allColumns: listing.columns, columns: applyColumnPrefs(listing.columns, prefs),
+      headerBlocks: listingHeaderBlocksOf(ctx) }
+  }
+
+  /** Los componentes de CABECERA de la página del listado (HeaderSupplier → Page.metadata.header)
+   *  como bloques de átomos: el listado no tiene contenido propio donde ponerlos. */
+  function listingHeaderBlocksOf(ctx) {
+    const pageNode = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+    const header = pageNode && pageNode.metadata && Array.isArray(pageNode.metadata.header) ? pageNode.metadata.header : []
+    if (!header.length) return []
+    const blocks = islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_listingHeader', metadata: { type: 'VerticalLayout' }, children: header } }) || []
+    return blocks.map((b) => ({ ...b, blockClass: b.colClass || 'oj-flex-item oj-sm-12' }))
   }
 
   function listingBaseOf(ctx, opts = {}) {
@@ -3447,6 +3478,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       totals: aggregateFootersOf(md, (ctx.data || {}).crud),
       hasTotals: !!aggregateFootersOf(md, (ctx.data || {}).crud),
       rowStatusField: md.rowStatusField || '',
+      // @DragRows: las filas se arrastran (JET oj-table dnd) con este tipo MIME — dnd.mjs
+      dragType: md.dragType || '',
+      dragTypes: md.dragType ? [dragMimeOf(md.dragType)] : [],
       // la propiedad por la que ordena el server cada columna (GridColumn.sortingProperty o su id)
       sortFields: Object.fromEntries((md.columns || []).map((col) => col.metadata || col)
         .map((c) => [c.id, c.sortingProperty || c.id])),
@@ -8495,6 +8529,81 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+  // ARRASTRAR FILAS A UN DESTINO: las filas de un listado @DragRows(tipo) se arrastran con el dnd
+  // del propio oj-table de JET (dnd.drag.rows.data-types = el tipo MIME del tipo); un DropZone
+  // (atom isDropZone) acepta ese tipo MIME — se resalta mientras pasa por encima algo suyo — y al
+  // soltar lanza su acción con sus parámetros más _draggedIds y _dragType: origen y destino.
+
+  /** Los ids de lo que trae el arrastre: el JSON que JET pone por tipo (filas, o {data,key}). */
+  function draggedIdsOf(json) {
+    let rows
+    try { rows = JSON.parse(json) } catch (e) { return [] }
+    if (!Array.isArray(rows)) rows = [rows]
+    return rows.map((r) => {
+      if (r == null) return null
+      if (typeof r !== 'object') return String(r)
+      const d = r.data && typeof r.data === 'object' ? r.data : r
+      const id = d.id != null ? d.id : (r.key != null ? r.key : null)
+      return id == null ? null : String(id)
+    }).filter((id) => id != null)
+  }
+
+  /** El tipo «charge» de un MIME «application/x-mateu-charge». */
+  const dragTypeOfMime = (mime) => String(mime || '').replace(/^application\/x-mateu-/, '')
+
+  let dropSink = null
+  function setDropSink(fn) { dropSink = typeof fn === 'function' ? fn : null }
+
+  function installDragAndDrop(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuDnd) return
+    doc.__mateuDnd = true
+    const zoneOf = (target, e) => {
+      const zone = target && target.closest ? target.closest('.mateu-drop-zone[data-drop-accept]') : null
+      if (!zone) return null
+      const accept = zone.getAttribute('data-drop-accept')
+      const types = (e.dataTransfer && e.dataTransfer.types) ? Array.from(e.dataTransfer.types) : []
+      return accept && types.includes(accept) ? zone : null
+    }
+    doc.addEventListener('dragover', (e) => {
+      const zone = zoneOf(e.target, e)
+      if (!zone) return
+      e.preventDefault()
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
+      zone.classList.add('mateu-drop-over')
+    }, true)
+    doc.addEventListener('dragleave', (e) => {
+      const zone = e.target && e.target.closest ? e.target.closest('.mateu-drop-zone') : null
+      if (zone && !(e.relatedTarget && zone.contains(e.relatedTarget))) zone.classList.remove('mateu-drop-over')
+    }, true)
+    // mientras se arrastra algo con tipo, los destinos que lo aceptan se ofrecen (borde punteado)
+    doc.addEventListener('dragstart', (e) => {
+      const types = (e.dataTransfer && e.dataTransfer.types) ? Array.from(e.dataTransfer.types) : []
+      setTimeout(() => {
+        const live = (e.dataTransfer && e.dataTransfer.types) ? Array.from(e.dataTransfer.types) : types
+        for (const z of doc.querySelectorAll('.mateu-drop-zone[data-drop-accept]')) {
+          if (live.includes(z.getAttribute('data-drop-accept'))) z.classList.add('mateu-drop-ready')
+        }
+      })
+    }, true)
+    const clear = () => {
+      for (const z of doc.querySelectorAll('.mateu-drop-zone')) z.classList.remove('mateu-drop-ready', 'mateu-drop-over')
+    }
+    doc.addEventListener('dragend', clear, true)
+    doc.addEventListener('drop', (e) => {
+      const zone = zoneOf(e.target, e)
+      if (!zone) return
+      e.preventDefault()
+      clear()
+      const mime = zone.getAttribute('data-drop-accept')
+      const ids = draggedIdsOf(e.dataTransfer.getData(mime))
+      if (!ids.length || !dropSink) return
+      let params = {}
+      try { params = JSON.parse(zone.getAttribute('data-drop-params') || '{}') } catch (err) { params = {} }
+      dropSink(zone.getAttribute('data-drop-action'), { ...params, _draggedIds: ids, _dragType: dragTypeOfMime(mime) }, {})
+    }, true)
+  }
+
+
   // MatrixGrid sobre oj-data-grid: el comportamiento que JET deja a la aplicación, instalado una
   // vez por documento (como el rango del tape chart o los paneles de acciones):
   //   - plegar/desplegar una sección: el grid pide (ojExpandRequest/ojCollapseRequest) y aquí se
@@ -10544,6 +10653,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     installCalendars,
     installKeys,
     installHover,
+    installDragAndDrop,
+    setDropSink,
     setKeysActionSink,
     setAccessKeysEnabled,
     startPolling,

@@ -101,6 +101,8 @@ class ComponentRenderer(val ctx: AppContext) {
             "StatusList" -> renderStatusList(this, metadata)
             "BulletedList" -> renderBulletedList(metadata)
             "Notice" -> renderNotice(this, component, metadata, state, data)
+            // DropZone: a titled panel accepting drops of dragged listing rows of its type.
+            "DropZone" -> renderDropZone(this, component, metadata, state, data)
             // Popover: click (default) or hover/focus opens the content under the wrapped component.
             "Popover" -> renderPopover(this, metadata, state, data)
             "TaskQueue" -> renderTaskQueue(this, metadata)

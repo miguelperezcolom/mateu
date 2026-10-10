@@ -160,6 +160,8 @@ public static class ComponentMapper
             mg.CellActionId,
             mg.EditActionId)),
 
+        DropZone dz => Dto(dz, new DropZoneMetadataDto(dz.Accept, dz.ActionId, dz.Parameters, dz.Title, dz.Subtitle),
+            dz.Content.Select(Map)),
         Notice n => Dto(n, new NoticeMetadataDto(n.Text, n.Theme, n.Icon, n.ActionLabel, n.ActionId, n.Slim, n.FullWidth, n.NoIcon, n.Status, n.InlineContent), n.Content.Select(Map)),
         CustomComponent cc => Dto(cc, new CustomComponentMetadataDto(cc.Name, cc.Props), cc.Content.Select(Map)),
 

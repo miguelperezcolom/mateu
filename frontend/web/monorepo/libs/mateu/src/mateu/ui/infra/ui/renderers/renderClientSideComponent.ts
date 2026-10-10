@@ -104,6 +104,7 @@ import { renderStatusList } from "@infra/ui/renderers/statusListRenderer.ts";
 import { renderBulletedList } from "@infra/ui/renderers/bulletedListRenderer.ts";
 import { renderActionPanel } from "@infra/ui/renderers/actionPanelRenderer.ts";
 import { renderMatrixGrid } from "@infra/ui/renderers/matrixGridRenderer.ts";
+import { renderDropZone } from "@infra/ui/renderers/dropZoneRenderer.ts";
 import { renderSeparator } from "@infra/ui/renderers/separatorRenderer.ts";
 import { renderCustomComponent } from "@infra/ui/renderers/customComponentRenderer.ts";
 import { renderNotice } from "@infra/ui/renderers/noticeRenderer.ts";
@@ -310,6 +311,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
     [ComponentMetadataType.BulletedList]: ({ component }) => renderBulletedList(component),
     [ComponentMetadataType.ActionPanel]: ({ component }) => renderActionPanel(component),
     [ComponentMetadataType.MatrixGrid]: ({ component }) => renderMatrixGrid(component),
+    [ComponentMetadataType.DropZone]: full(renderDropZone),
     [ComponentMetadataType.Separator]: ({ component }) => renderSeparator(component),
     [ComponentMetadataType.CustomComponent]: full(renderCustomComponent),
     [ComponentMetadataType.Notice]: full(renderNotice),

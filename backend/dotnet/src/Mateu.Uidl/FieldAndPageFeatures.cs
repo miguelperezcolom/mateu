@@ -401,6 +401,16 @@ public sealed class InlineEditingAttribute : Attribute;
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class VersionAttribute : Attribute;
 
+/// <summary>The rows of the decorated listing (an IListing / Crud / Listing) can be DRAGGED onto a
+/// <see cref="DropZone"/> accepting <see cref="Type"/> — the selected rows, or the one under the
+/// pointer. The drop runs the zone's action with _draggedIds and _dragType. (C# analogue of Java's
+/// @DragRows.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class DragRowsAttribute(string type) : Attribute
+{
+    public string Type { get; } = type;
+}
+
 /// <summary>Adds a toolbar button to the crud LISTING that runs the decorated method as a BULK
 /// action over the rows selected in the grid. The frontend keeps the selection in the
 /// crud_selected_items component state key and blocks the dispatch while RowsSelectedRequired

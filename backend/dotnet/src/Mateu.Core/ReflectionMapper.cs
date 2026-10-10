@@ -1151,6 +1151,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             Filters = MapListingFilters(filters),
             GridLayout = gridLayout,
             GroupBy = GroupByOf(row),
+            DragType = DragTypeOf(viewType),
             // [RestListing]: rows fetched client-side from an arbitrary REST endpoint.
             RowsSource = RestListingOf(viewType),
             // A listing fills the space its parent leaves and scrolls internally (coherence-plan #8).
@@ -1282,6 +1283,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             Filters = MapCrudFilters(element),
             CrudlType = hero is not null ? "cards" : "table",
             GroupBy = GroupByOf(element),
+            DragType = DragTypeOf(viewType),
             RowsSelectionEnabled = canDelete,
         }, "crud", []) with { Sizing = "fill" };
         var pageChildren = new List<ComponentDto>();
@@ -1370,6 +1372,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             Filters = profile.FiltersType is { } filtersType ? MapListingFilters(filtersType) : [],
             GridLayout = gridLayout,
             GroupBy = GroupByOf(profile.RowType),
+            DragType = DragTypeOf(viewType),
             RowsSelectionEnabled = profile.CanDelete,
         }, "crud", []) with { Sizing = "fill" };
         var page = Client(new PageMetadataDto(null, null, null, [], []), null, [crud]);
@@ -1541,6 +1544,11 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                 return true;
         return false;
     }
+
+    /// <summary>The drag type of a listing whose rows can be dragged ([DragRows] on its class);
+    /// null = none (mirrors ListingSummarySpec.dragTypeOf).</summary>
+    internal static string? DragTypeOf(Type listing) =>
+        listing.Find<DragRowsAttribute>() is { Type: { } t } && !string.IsNullOrWhiteSpace(t) ? t : null;
 
     /// <summary>The [GroupBy] column of a row class (camelCase field id); one per row class —
     /// first declared wins. Null when the class declares none (mirrors ListingSummarySpec).</summary>

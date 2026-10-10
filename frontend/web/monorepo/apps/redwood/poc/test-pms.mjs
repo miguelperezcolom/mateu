@@ -23,6 +23,8 @@ import { startPolling, actionSucceeded, setPollingRunner, timedOnLoadTriggers } 
 import { onLoadTriggers } from './reduceContexts.mjs'
 import { assignAccessKeys, keyHint, setShortcutContext, currentShortcutActions } from './keys.mjs'
 import { hoverLinesOf } from './hover.mjs'
+import { draggedIdsOf, dragTypeOfMime } from './dnd.mjs'
+import { dragMimeOf, listingHeaderBlocksOf } from './reduceContexts.mjs'
 import { dayIndexAtX } from './planning.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
 import { listingOf, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
@@ -316,10 +318,11 @@ test('el form layout pinta los mismos widgets nuevos; una lista sin estereotipo 
   assert.equal(layoutFieldOf(md({ dataType: 'array', stereotype: 'grid' }), {}), null)
 })
 
-test('plantilla: los widgets nuevos están en las 15 superficies de átomos y en las 7 copias de campos', () => {
+test('plantilla: los widgets nuevos están en cada superficie de átomos y en las 7 copias de campos', () => {
   const page = webApp('flows/main/pages/main-start-page.html')
+  const surfaces = (page.match(/<!-- @atoms /g) || []).length
   for (const tag of ['<oj-radioset', '<oj-select-many', '<oj-checkboxset', '<mateu-capture-field'])
-    assert.equal(page.split(tag).length - 1, 22, tag)
+    assert.equal(page.split(tag).length - 1, surfaces + 7, tag)
   // cada copia conserva SU listener de cambio
   assert.match(page, /<oj-select-many[^>]*\n[^]*?on-value-changed="\[\[ \$listeners\.mateuRowFieldChanged \]\]"/)
   const imports = JSON.parse(webApp('flows/main/pages/main-start-page.json')).imports.components
@@ -1013,6 +1016,40 @@ test('@Tooltip: la celda de la tarifa lleva el desglose para la ventana flotante
   const page = webApp('flows/main/pages/main-start-page.html')
   assert.equal((page.match(/:data-mateu-hover="\[\[ \(\$current\.data && \$current\.data\.hover\) \|\| '' \]\]"/g) || []).length, 2, 'las dos plantillas cellClip')
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installHover\(\)/)
+})
+
+// ── P1 #14 arrastrar filas a un destino (@DragRows + DropZone) ───────────────────────────────
+test('arrastre: el tipo viaja como MIME; los ids se leen de filas, {data,key} o ids sueltos', () => {
+  assert.equal(dragMimeOf('charge'), 'application/x-mateu-charge')
+  assert.equal(dragMimeOf('Folio Charge'), 'application/x-mateu-folio-charge')
+  assert.equal(dragTypeOfMime('application/x-mateu-charge'), 'charge')
+  assert.deepEqual(draggedIdsOf('[{"id":"C1"},{"data":{"id":"C2"}},{"key":3},"C4"]'), ['C1', 'C2', '3', 'C4'])
+  assert.deepEqual(draggedIdsOf('nope'), [])
+})
+
+test('arrastre: el listado @DragRows da su tipo al oj-table; el DropZone es un átomo con su acción', () => {
+  const ctx = { state: {}, data: { crud: { page: { content: [{ id: 'C1', amount: 10 }], totalElements: 1 } } },
+    tree: { type: 'ServerSide', id: 's', serverSideType: 'FolioWindows', children: [
+      node({ type: 'Page', title: 'Folio windows', header: [
+        node({ type: 'DropZone', accept: 'charge', actionId: 'moveCharges', parameters: { window: 2 }, title: 'Window 2', subtitle: 'Guest (cash)' },
+          [node({ type: 'Text', text: '13.20 € · 1 charges' })]),
+      ] }, [node({ type: 'Crud', dragType: 'charge', columns: [node({ type: 'GridColumn', id: 'id', label: 'Id' })] })]),
+    ] } }
+  const l = listingOf(ctx)
+  assert.equal(l.dragType, 'charge')
+  assert.deepEqual(l.dragTypes, ['application/x-mateu-charge'])
+  const zone = listingHeaderBlocksOf(ctx).flatMap((b) => b.items).find((a) => a.isDropZone)
+  assert.ok(zone, 'los componentes de cabecera de la página del listado se pintan (HeaderSupplier)')
+  assert.equal(zone.accept, 'application/x-mateu-charge')
+  assert.equal(zone.actionId, 'moveCharges')
+  assert.deepEqual(JSON.parse(zone.params), { window: 2 })
+  assert.deepEqual(zone.lines, ['13.20 € · 1 charges'])
+  const page = webApp('flows/main/pages/main-start-page.html')
+  assert.match(page, /dnd\.drag\.rows\.data-types="\[\[ \$application\.variables\.mateuListing\.dragTypes \|\| \[\] \]\]"/)
+  assert.match(page, /mateuListing\.headerBlocks/)
+  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installDragAndDrop\(\)/)
+  // una acción que repinta el host vuelve a pedir su carga OnLoad (el listado no queda vacío)
+  assert.match(webApp('flows/main/pages/main-start-page-chains/runMateuAction.js'), /hostNow\.tree\.id !== host\.tree\.id/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

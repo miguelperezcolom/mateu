@@ -8,4 +8,6 @@ public class FinancialsMenu {
   @Menu Billing billing;
 
   @Menu FolioCharges folio;
+
+  @Menu FolioWindows windows;
 }

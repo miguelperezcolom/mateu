@@ -156,6 +156,12 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         }
     }
 
+    // @DragRows: the rows can be dragged onto a DropZone accepting this type (the selected rows,
+    // or the one under the pointer); the zone runs its action with _draggedIds + _dragType.
+    metadata.text("dragType").takeIf { it.isNotBlank() }?.let { dragType ->
+        installRowDrag(table, dragType) { modelRow -> model.rowAt(modelRow) }
+    }
+
     // Header click cycles the column sort (ascending → descending → none) and re-runs the search
     // with the Pageable shape [{field, direction}].
     run {

@@ -193,6 +193,10 @@ final class DisplayComponentDispatcher {
       return mapCustomComponentToDto(
           customComponent, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
+    if (component instanceof io.mateu.uidl.data.DropZone dropZone) {
+      return io.mateu.core.domain.out.fragmentmapper.mappers.DropZoneMapper.mapDropZoneToDto(
+          dropZone, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+    }
     if (component instanceof Notice notice) {
       return mapNoticeToDto(
           notice, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);

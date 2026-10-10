@@ -31,6 +31,7 @@ import {
 import { PlanningBoardRenderer } from './PlanningBoardRenderer';
 import { ActionPanelRenderer } from './ActionPanelRenderer';
 import { MatrixGridRenderer } from './MatrixGridRenderer';
+import { DropZoneRenderer } from './DropZoneRenderer';
 import { EmptyState, MetricCard, PlanningBoard, Skeleton } from '../api/metadata';
 import { useAppContext } from '../context/AppContext';
 import { MateuViewHost, useViewController } from './MateuViewHost';
@@ -289,6 +290,8 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <ActionPanelRenderer metadata={metadata} state={state} />;
     case 'MatrixGrid':
       return <MatrixGridRenderer metadata={metadata} />;
+    case 'DropZone':
+      return <DropZoneRenderer component={component} state={state} renderComponent={renderComponent} />;
     case 'PlanningBoard':
       return <PlanningBoardRenderer metadata={metadata as unknown as PlanningBoard} />;
 

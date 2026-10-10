@@ -239,6 +239,28 @@ define([
           base, transportCtx, route, id, componentState,
           { ...transportExtra, parameters: parameters || {}, appState }));
       }
+      // RE-RENDER del host por la acción (devolvió la página: un componente nuevo, con otro id):
+      // como en el web (applyFragment → triggerOnLoad), lo que acaba de llegar pide su carga
+      // OnLoad — sin esto un listado que se repinta (p.ej. tras soltar filas en un DropZone)
+      // volvía VACÍO, con sus columnas y sin una fila. Se reduce aparte: lastIncrement es el de la
+      // acción, que el route-flip de abajo lee.
+      {
+        const hostNow = reg.contexts[bridge.HOST_ID];
+        const reRendered = !!(lastIncrement && (lastIncrement.fragments || [])
+          .some((f) => f.component && f.action !== 'Add'))
+          && !!(hostNow && hostNow.tree && host && host.tree && hostNow.tree.id !== host.tree.id);
+        if (reRendered) {
+          for (const triggerActionId of bridge.onLoadTriggers(hostNow)) {
+            const listingNow = bridge.listingOf(hostNow);
+            const loaded = await bridge.runMateuAction(base, hostNow, route, triggerActionId,
+              Object.assign({}, hostNow.state, { page: 0, size: (listingNow && listingNow.pageSize) || 20 }),
+              { appState });
+            reg = bridge.reduceContexts(reg, loaded);
+            bridge.applyDomEffects(reg.effects, reg);
+            hostRepainted = true;
+          }
+        }
+      }
       // ROUTE-FLIP del mediador del HOST: un crud de PÁGINA no contesta el detalle, contesta
       // un fragmento solo-estado cuyo `_route` apunta a él (clic de fila → /2CSXZN, New →
       // /new, volver → /list). Sin seguirlo no pasa NADA al pulsar: la petición sale, el

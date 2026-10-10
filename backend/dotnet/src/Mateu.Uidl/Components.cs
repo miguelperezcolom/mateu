@@ -827,6 +827,20 @@ public sealed record MatrixGrid : ComponentBase
     public string? EditActionId { get; init; }
 }
 
+/// <summary>A place to DROP dragged listing rows (a listing decorated [DragRows(type)]): a titled
+/// area wrapping any <see cref="Content"/>. When rows of the <see cref="Accept"/>ed type are dropped
+/// on it, it runs <see cref="ActionId"/> with its <see cref="Parameters"/> plus _draggedIds (the
+/// dragged rows' ids) and _dragType (mirrors Java's DropZone).</summary>
+public sealed record DropZone : ComponentBase
+{
+    public string? Accept { get; init; }
+    public string? ActionId { get; init; }
+    public IReadOnlyDictionary<string, object?> Parameters { get; init; } = new Dictionary<string, object?>();
+    public string? Title { get; init; }
+    public string? Subtitle { get; init; }
+    public IReadOnlyList<IComponent> Content { get; init; } = [];
+}
+
 /// <summary>A compact inline banner: a theme-tinted strip with a severity icon and one line of
 /// text (e.g. "2 quejas pendientes"), plus an optional right-aligned action. Theme: "info" |
 /// "success" | "warning" | "danger" (default info).</summary>

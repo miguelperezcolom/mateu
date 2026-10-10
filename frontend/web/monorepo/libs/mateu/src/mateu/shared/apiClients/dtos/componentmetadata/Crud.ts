@@ -22,6 +22,8 @@ export default interface Crud extends Table {
     groupBy?: string
     // the row field whose value tones the whole row (@RowStatus): success | warning | danger | info | neutral
     rowStatusField?: string | null
+    /** @DragRows: rows can be dragged onto a DropZone accepting this type */
+    dragType?: string | null
     /** @GroupAction buttons rendered on every group header row (actionId = listing method name). */
     groupActions?: Button[]
     /** @RestListing: rows fetched CLIENT-SIDE from an arbitrary REST endpoint instead of the

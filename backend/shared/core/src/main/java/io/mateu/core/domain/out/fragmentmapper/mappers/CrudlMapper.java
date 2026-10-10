@@ -182,6 +182,7 @@ public class CrudlMapper {
                     : null)
             .rowsSource(mapRestDataSource(crudl.rowsSource()))
             .rowStatusField(crudl.rowStatusField())
+            .dragType(crudl.dragType())
             .build();
     return new ClientSideComponentDto(
         crudlDto,

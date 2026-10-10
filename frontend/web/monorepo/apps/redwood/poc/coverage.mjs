@@ -81,6 +81,7 @@ export const REDWOOD_COVERAGE = {
   ProgressSteps: { status: 'full', note: 'oj-train' },
   ProgressBar: { status: 'partial', via: "=== 'ProgressBar'", note: 'wizard progress only' },
   ActionPanel: { status: 'full', note: 'oj-dialog + oj-switch ("I want to…")' },
+  DropZone: { status: 'full', note: 'drop target for @DragRows listing rows (oj-table dnd); its content as text lines' },
   MatrixGrid: { status: 'full', note: 'oj-data-grid' },
   PlanningBoard: { status: 'full', note: 'oj-gantt (move, resize, double click, range selection)' },
   EmptyState: { status: 'partial', via: "findByType(tree, 'EmptyState')", note: 'page-level empty state only' },

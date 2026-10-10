@@ -21,6 +21,7 @@ import '@vaadin/grid/vaadin-grid-filter-column.js';
 import '@vaadin/grid/vaadin-grid-selection-column.js';
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
+import { dragMimeOf } from "@infra/ui/dragAndDrop.ts";
 import { rowToneOf } from "@infra/ui/rowTone.ts";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
 import GridGroupColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridGroupColumn.ts";
@@ -140,6 +141,17 @@ export class MateuTable extends LitElement {
                 this.grid.recalculateColumnWidths()
             }
         }
+    }
+
+    /** @DragRows: the dragged rows (the selection, or the row under the pointer) travel as their ids
+     *  under the drag type's MIME type, which a mateu-drop-zone accepting that type reads. */
+    private onRowsDragStart = (e: CustomEvent) => {
+        const dragType = (this.metadata as Crud | undefined)?.dragType
+        if (!dragType) return
+        const idField = this.identifierFieldName ?? 'id'
+        const rows = ((e.detail?.draggedItems ?? []) as any[]).filter((r) => !isGroupRow(r))
+        e.detail.setDragData(dragMimeOf(dragType), JSON.stringify(rows.map((r) => r?.[idField]).filter((id) => id != null)))
+        e.detail.setDraggedItemsCount?.(rows.length)
     }
 
     private get identifierFieldName(): string | undefined {
@@ -344,6 +356,8 @@ export class MateuTable extends LitElement {
                     .dataProvider="${this.metadata?.infiniteScrolling ? this.dataProvider : undefined}"
                     page-size="${this.metadata?.pageSize}"
                     multi-sort-on-shift-click
+                    ?rows-draggable="${!!(this.metadata as Crud | undefined)?.dragType}"
+                    @grid-dragstart="${this.onRowsDragStart}"
                     @selected-items-changed="${(e: GridSelectedItemsChangedEvent<any>) => {
                         // group marker rows are presentation-only — never let them into the
                         // selection the server contract sees

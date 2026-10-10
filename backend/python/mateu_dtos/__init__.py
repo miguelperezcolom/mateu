@@ -306,6 +306,9 @@ class CrudMetadata(Wire):
     #: renderer maps each JSON item into a row keyed by column id instead of dispatching the server
     #: search. None on server-backed listings (mirrors CrudlDto.rowsSource).
     rows_source: "RestDataSource | None" = None
+    #: Rows can be dragged onto a DropZone accepting this type (@drag_rows); None = not draggable
+    #: (mirrors CrudlDto.dragType).
+    drag_type: str | None = None
 
 
 class ProgressBarMetadata(Wire):
@@ -1093,6 +1096,18 @@ class MatrixGridMetadata(Wire):
     edit_action_id: str | None = None
 
 
+class DropZoneMetadata(Wire):
+    """A drop target for dragged listing rows; its content travels as the component's children
+    (mirrors ``DropZoneDto``)."""
+
+    type: Literal["DropZone"] = "DropZone"
+    accept: str | None = None
+    action_id: str | None = None
+    parameters: dict[str, Any] = Field(default_factory=dict)
+    title: str | None = None
+    subtitle: str | None = None
+
+
 class QueueItemRecord(Wire):
     """One task-queue card (mirrors ``QueueItemDto``)."""
 
@@ -1376,6 +1391,7 @@ ComponentMetadata = Annotated[
         BulletedListMetadata,
         ActionPanelMetadata,
         MatrixGridMetadata,
+        DropZoneMetadata,
         SeparatorMetadata,
         CustomComponentMetadata,
         AnchorMetadata,

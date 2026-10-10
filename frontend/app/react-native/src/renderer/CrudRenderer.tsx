@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { canMove, dropOn, moveToLabel, subscribeDropZones, zoneLabel, zonesAccepting, type MountedDropZone } from './dragDrop';
 import { useViewController } from './MateuViewHost';
 import { getHiddenColumns, setHiddenColumns } from './columnPrefs';
 import { listSavedViews, saveView, deleteView, setDefaultView, defaultView, SavedView } from './savedViews';
@@ -123,7 +124,18 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   // Bulk row selection (Crud.rowsSelectionEnabled): the selected ROW OBJECTS live in the
   // component state under crud_selected_items so they travel with every dispatched action
   // (the web's mateu-table-crud contract). A new result set clears the selection.
-  const rowsSelectionEnabled = metadata['rowsSelectionEnabled'] === true;
+  // @DragRows: rows can be "dragged" onto a DropZone — on touch, selected and MOVED through a
+  // picker of the zones on screen accepting the type (see dragDrop.ts), so selection turns on too.
+  const dragType = (metadata['dragType'] as string | null | undefined) ?? null;
+  const rowsSelectionEnabled = metadata['rowsSelectionEnabled'] === true || !!dragType;
+  const [moveOpen, setMoveOpen] = useState(false);
+  const [dropZones, setDropZones] = useState<MountedDropZone[]>([]);
+  useEffect(() => {
+    if (!dragType) return;
+    const refresh = () => setDropZones(zonesAccepting(dragType));
+    refresh();
+    return subscribeDropZones(refresh);
+  }, [dragType]);
   const [selectedRows, setSelectedRows] = useState<Record<string, unknown>[]>([]);
   const syncSelection = (next: Record<string, unknown>[]) => {
     setSelectedRows(next);
@@ -392,14 +404,26 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         .join(' · ')
     : '';
 
+  const showMove = canMove(dragType, selectedRows.length) && dropZones.length > 0;
+  const moveTo = (zone: MountedDropZone) => {
+    setMoveOpen(false);
+    if (dragType && dropOn(zone, dragType, selectedRows)) syncSelection([]);
+  };
+
   return (
     <View style={styles.root}>
-      {(!!title || !!subtitle || toolbar.length > 0) && (
+      {(!!title || !!subtitle || toolbar.length > 0 || showMove) && (
         <View style={styles.header}>
           {!!title && <Text style={styles.title}>{title}</Text>}
           {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
-          {toolbar.length > 0 && (
+          {(toolbar.length > 0 || showMove) && (
             <View style={styles.toolbar}>
+              {showMove && (
+                <TouchableOpacity {...buttonA11y({ label: moveToLabel(selectedRows.length) })}
+                  style={styles.btnDefault} onPress={() => setMoveOpen(true)}>
+                  <Text style={styles.btnDefaultText}>{moveToLabel(selectedRows.length)}</Text>
+                </TouchableOpacity>
+              )}
               {toolbar.map((btn, i) => {
                 const id = btn.id ?? '';
                 const isPrimary = btn.buttonStyle?.toLowerCase() === 'primary';
@@ -737,6 +761,27 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                 <Text style={styles.btnPrimaryText}>Save</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* "Move to…": the touch equivalent of dragging the selected rows onto a DropZone. */}
+      <Modal visible={moveOpen} transparent animationType="fade" onRequestClose={() => setMoveOpen(false)}>
+        <TouchableOpacity style={styles.columnsBackdrop} activeOpacity={1} onPress={() => setMoveOpen(false)}>
+          <View style={styles.columnsSheet}>
+            <Text style={styles.columnsTitle}>{moveToLabel(selectedRows.length)}</Text>
+            {dropZones.length === 0 && <Text style={styles.columnsLabelDim}>No destinations on this screen.</Text>}
+            {dropZones.map((zone) => (
+              <TouchableOpacity {...buttonA11y({ label: zoneLabel(zone.meta) })}
+                key={zone.key} style={styles.columnsRow} onPress={() => moveTo(zone)}>
+                <View>
+                  <Text style={styles.columnsLabel}>{zoneLabel(zone.meta)}</Text>
+                  {!!zone.meta.title && !!zone.meta.subtitle && (
+                    <Text style={styles.columnsLabelDim}>{zone.meta.subtitle}</Text>
+                  )}
+                </View>
+              </TouchableOpacity>
+            ))}
           </View>
         </TouchableOpacity>
       </Modal>

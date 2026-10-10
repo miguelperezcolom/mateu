@@ -249,6 +249,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(BulletedListMetadataDto), "BulletedList")]
 [JsonDerivedType(typeof(ActionPanelMetadataDto), "ActionPanel")]
 [JsonDerivedType(typeof(MatrixGridMetadataDto), "MatrixGrid")]
+[JsonDerivedType(typeof(DropZoneMetadataDto), "DropZone")]
 [JsonDerivedType(typeof(SeparatorMetadataDto), "Separator")]
 [JsonDerivedType(typeof(CustomComponentMetadataDto), "CustomComponent")]
 [JsonDerivedType(typeof(AnchorMetadataDto), "Anchor")]
@@ -555,6 +556,15 @@ public record ActionPanelItemDto(
     bool Populated,
     bool Disabled);
 
+/// <summary>A drop target for dragged listing rows; its content travels as the component's
+/// children (mirrors Java's DropZoneDto).</summary>
+public record DropZoneMetadataDto(
+    string? Accept,
+    string? ActionId,
+    IReadOnlyDictionary<string, object?> Parameters,
+    string? Title,
+    string? Subtitle) : ComponentMetadataDto;
+
 /// <summary>Matrix grid: rows × columns in collapsible sections; every row carries exactly one cell
 /// per column (mirrors Java's MatrixGridDto).</summary>
 public record MatrixGridMetadataDto(
@@ -826,6 +836,10 @@ public record CrudMetadataDto(
     /// ([RestListing]); the renderer maps each JSON item into a row keyed by column id instead of
     /// dispatching the server search. Null on server-backed listings (mirrors CrudlDto.rowsSource).</summary>
     public RestDataSourceDto? RowsSource { get; init; }
+
+    /// <summary>Rows can be dragged onto a DropZone accepting this type ([DragRows]); null = not
+    /// draggable (mirrors CrudlDto.dragType).</summary>
+    public string? DragType { get; init; }
 }
 
 public record GridColumnDto(GridColumnMetaDto Metadata);

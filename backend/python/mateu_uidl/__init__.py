@@ -1361,6 +1361,19 @@ def shortcut(keys: str):
     return deco
 
 
+def drag_rows(drag_type: str) -> Callable[[type], type]:
+    """Class-level: the rows of the decorated listing (a ``Listing[Row]`` / Crud) can be DRAGGED
+    onto a :class:`~mateu_uidl.components.DropZone` accepting ``drag_type`` — the selected rows, or
+    the one under the pointer. The drop runs the zone's action with ``_draggedIds`` and
+    ``_dragType``. Python analogue of Java's @DragRows."""
+
+    def deco(cls: type) -> type:
+        cls.__mateu_drag_rows__ = drag_type
+        return cls
+
+    return deco
+
+
 def list_toolbar_button(arg=None, confirmation_required: bool = False, rows_selected_required: bool = True):
     """A toolbar button on a Crud LISTING running the decorated method as a BULK action over the
     rows selected in the grid. The frontend keeps the selection in the ``crud_selected_items``
@@ -1797,7 +1810,7 @@ __all__ = [
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "static_view",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
-    "plain_text", "emits", "subscribe_to", "secured", "welcome_banner", "rest_listing", "rest_action", "rest_data",
+    "plain_text", "emits", "subscribe_to", "secured", "welcome_banner", "rest_listing", "drag_rows", "rest_action", "rest_data",
     "button", "action", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
     "Crud", "HeroSearch", "Listing", "SearchRequest", "ListingData", "Filterable", "Navigable", "Editable", "Creatable", "Deletable", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "DataManagement", "Foldout", "GanttPage", "ItemOverview", "Welcome", "TodoList",

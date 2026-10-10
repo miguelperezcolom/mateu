@@ -1347,3 +1347,10 @@ body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-title { 
 .mateu-pop-trigger { display: inline-block; cursor: help; border-bottom: 1px dotted currentColor; }
 .mateu-pop-trigger[data-mateu-pop-click]:not([data-mateu-pop-click=""]) { cursor: pointer; color: var(--oj-core-link-text-color, #227e9e); }
 [data-mateu-hover]:not([data-mateu-hover=""]) { cursor: help; text-decoration: underline dotted; text-underline-offset: 3px; }
+
+/* ── DropZone (@DragRows → soltar aquí) ── */
+.mateu-drop-zone { border: 1px solid var(--oj-core-divider-color, #e5e1dc); transition: border-color .15s, background-color .15s; }
+.mateu-drop-zone .mateu-drop-hint { display: none; margin-top: 0.5rem; }
+.mateu-drop-zone.mateu-drop-ready { border: 2px dashed var(--oj-core-focus-border-color, #227e9e); }
+.mateu-drop-zone.mateu-drop-ready .mateu-drop-hint { display: block; }
+.mateu-drop-zone.mateu-drop-over { background-color: rgba(34, 126, 158, 0.10); }

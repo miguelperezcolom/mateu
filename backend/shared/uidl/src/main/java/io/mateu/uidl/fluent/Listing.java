@@ -64,7 +64,11 @@ public record Listing(
     @Singular("groupAction") List<UserTrigger> groupActions,
     io.mateu.uidl.data.RestDataSource rowsSource,
     /** The row field whose value tones the whole row (@RowStatus); null = no row tones. */
-    String rowStatusField)
+    String rowStatusField,
+    /**
+     * Rows can be dragged onto a DropZone accepting this type (@DragRows); null = not draggable.
+     */
+    String dragType)
     implements Component, PageMainContent {
 
   public Boolean autoFocusOnSearchText() {

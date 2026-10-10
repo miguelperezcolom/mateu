@@ -95,6 +95,7 @@ from mateu_dtos import (
     ActionPanelCategoryRecord,
     ActionPanelItemRecord,
     MatrixGridMetadata,
+    DropZoneMetadata,
     MatrixColumnRecord,
     MatrixSectionRecord,
     MatrixRowRecord,
@@ -1731,6 +1732,13 @@ class ReflectionMapper:
                 ),
                 c,
             )
+        if isinstance(c, fluent.DropZone):
+            return self._fluent_client(
+                DropZoneMetadata(
+                    accept=c.accept, action_id=c.action_id, parameters=dict(c.parameters or {}),
+                    title=self.T(c.title) if c.title else c.title,
+                    subtitle=self.T(c.subtitle) if c.subtitle else c.subtitle,
+                ), c, [self.map_component(child) for child in c.content])
         if isinstance(c, fluent.Notice):
             return self._fluent_client(
                 NoticeMetadata(
@@ -2314,6 +2322,7 @@ class ReflectionMapper:
                 filters=self.crud_filters(element),
                 crudl_type="cards" if hero is not None else "table",
                 group_by=self.group_by_of(element),
+                drag_type=self.drag_type_of(cls),
                 # a full Crud has all the capabilities: delete needs row selection
                 rows_selection_enabled=True,
             ),
@@ -2376,6 +2385,13 @@ class ReflectionMapper:
     def leading_path_of(f) -> str | None:
         marker = f.marker(PrimaryColumn)
         return marker.leading if marker is not None and marker.leading else None
+
+    @staticmethod
+    def drag_type_of(listing_cls) -> str | None:
+        """The drag type of a listing whose rows can be dragged (@drag_rows on its class); None =
+        none (mirrors Java's ListingSummarySpec.dragTypeOf)."""
+        t = getattr(listing_cls, "__mateu_drag_rows__", None)
+        return t if isinstance(t, str) and t.strip() else None
 
     @staticmethod
     def group_by_of(row_type) -> str | None:
@@ -2492,7 +2508,8 @@ class ReflectionMapper:
                          grid_layout=cls().grid_layout(),
                          group_by=self.group_by_of(row_type) if row_type is not None else None,
                          # @rest_listing: rows fetched client-side from an arbitrary REST endpoint.
-                         rows_source=self._rest_listing(cls)),
+                         rows_source=self._rest_listing(cls),
+                         drag_type=self.drag_type_of(cls)),
             "crud",
             [],
         )
