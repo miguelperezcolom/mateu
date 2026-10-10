@@ -89,23 +89,44 @@ to it; caching when the control plane is down (consoles must keep serving the la
 
 ---
 
-## 2. Newsletter edited WYSIWYG
+## 2. Newsletter edited WYSIWYG — the same page builder, another catalogue
 
-This is **content**, not UI: the editor edits a document, not a screen. Mateu is the application
-around it; the editor and the email HTML are the specific pieces.
+Revised 2026-10-10 (Miguel): the WYSIWYG editor already exists or is being built in Riu's
+`frontend-public-reference` — `building-blocks/layout-builder`, a framework-independent Lit web
+component `<layout-builder>` for dynamic pages built from **prebuilt components**:
 
-- **Mateu app as-is**: newsletter CRUD (draft / scheduled / sent), audiences, scheduling, sending
-  through the provider, history, permissions, approval.
-- **New: an email block-editor field** (`@EmailEditor` / fluent component). Blocks: header, text,
-  image, button, columns, divider, footer; live preview desktop/mobile.
-  - First version: wrap **GrapesJS** with its newsletter preset (BSD-3-Clause — compatible with the
-    Apache-2.0 bundles; add it to the license allowlist review in
-    `scripts/check-frontend-licenses.mjs`), as we did with Tiptap for rich text.
-  - Later, if it weighs too much: own blocks on the visual-editor canvas.
-- **Content stored as blocks (JSON), not HTML.** Rendered server-side to email-safe HTML with
-  **MJML** (MIT) — tables + inline styles that survive Outlook/Gmail. Content stays data:
-  versionable, reusable, re-renderable when the template changes.
-- Renderer parity: the editor is web-only (Vaadin; Redwood via the same web component if needed);
-  native renderers show the rendered preview read-only.
+- input `components: Catalog` (`{ id, nombre, imagen?, colspan? }`) and `layout: Layout` — a tree of
+  `component` leaves (`componentId`, `colspan`, `parametros` key/value) and nestable `container`s, every
+  container a 12-column grid;
+- output event `layout-change` with the full `layout` tree + a flat `usages` projection;
+- its integration into the control-plane's `DynamicPages` CRUD (a Mateu app) is still pending.
 
-Can ship before the control plane if it has a date: it only needs a Mateu app + the editor component.
+So the newsletter does **not** need GrapesJS or a second editor: it is the **same builder with an
+email catalogue**. What differs is only the output:
+
+| | Dynamic web page | Newsletter |
+|---|---|---|
+| Editor | `<layout-builder>` | `<layout-builder>` (same) |
+| Catalogue | web components of the design system | email-safe components (header, text, image, button, columns, footer…) |
+| Stored | layout tree (JSON) | layout tree (JSON) |
+| Rendered by | data-plane (Astro + islands) | server-side to email HTML — one **MJML** template per catalogue component (MIT), tables + inline styles that survive Outlook/Gmail |
+| Around it | DynamicPages CRUD | newsletter CRUD: draft/scheduled/sent, audiences, scheduling, sending, approval, history |
+
+### What Mateu has to provide (the reusable part)
+
+1. **A generic "web component field"**: bind ANY custom element to a form field — script URL + tag,
+   inputs as properties (the value, plus extra properties such as the catalogue), output = a named
+   event whose `detail` (or a path in it) becomes the field value. Mateu should not know about
+   `layout-builder`; the control-plane declares it. This is exactly the missing piece for the pending
+   `DynamicPages` integration, and every future building block (image picker, map editor…) reuses it.
+   Check first what `CustomField` / `Element` / `MicroFrontend` already cover; add only what is
+   missing (value binding + event mapping + passing non-string properties), across Vaadin and
+   Redwood (Redwood hosts it as a plain custom element), with RN/IntelliJ showing a read-only
+   summary.
+2. **Preview**: an action that renders the stored layout (web: the data-plane URL in an iframe;
+   email: the MJML output) inside a drawer, desktop/mobile widths.
+3. Nothing else: catalogue, renderers and the newsletter domain live in the Riu project, not in
+   Mateu (nothing Riu-specific in the framework).
+
+Can ship before the control plane: it needs (1) + (2) in Mateu and the email catalogue + MJML
+renderer on the Riu side.
