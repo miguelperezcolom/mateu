@@ -5140,7 +5140,7 @@ test('enlaces: un <a href> del contenido a una ruta de la app navega dentro de l
   assert.match(shell, /bridge\.inAppRouteOfLink\(anchor, event, window\.location/)
   assert.match(shell, /getElementById\('pageContent'\)/)
   assert.match(shell, /event\.preventDefault\(\);\s*Actions\.callChain\(liveContext\(\), \{\s*chain: 'onMateuNavigate'/)
-  assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /strip\('links\.mjs'\)/)
+  assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /'links\.mjs'/)
 })
 
 test('navegar: lo que la chain asigna (foldout, wizard, cola) se lee de constantes, no de vuelta de la variable', () => {

@@ -724,25 +724,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
-  // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
-  // En la app VB estas funciones serían métodos de app-flow.js; aquí son funciones
-  // libres para testearlas en Node.
-  //
-  // v3 (2026-07-24): ajustado al WIRE REAL (fixtures/real/*.json, capturados con capture.mjs
-  // contra demo/demo-vb en :9005). Contrato observado:
-  //   - Bootstrap del shell: POST {base}/mateu/v3/components/_/action (route '', __load__) → App.
-  //     Todo lo demás: POST {base}/mateu/v3/sync/{route|_no_route} con actionId '' para cargas.
-  //   - `targetComponentId` es el ECO del `initiatorComponentId` de la request ('' → host), y el
-  //     server DERIVA los ids internos del initiator ('crud1' → 'crud1_app', 'crud1_list'): la
-  //     unicidad de ids entre superficies es responsabilidad del CLIENTE (un contextId por superficie).
-  //   - El estado viaja en `fragment.state`; los overlays (Drawer) llevan `metadata.initialData`.
-  //   - Un mediador (crud, isla) llega como ServerSide cuyo child0 es un App (chromeless): su
-  //     CONTENIDO se carga con una segunda request con consumedRoute=rootRoute del App interior
-  //     + serverSideType=homeServerSideType. `mediatorOf(ctx)` extrae esa info.
-  //   - CloseModal lleva data.eventName → hay que emitir el evento del bus (@SubscribeTo);
-  //     p.ej. el crud refresca el listado suscrito a 'mateu-crud:saved-in-drawer'.
-  //   - Una frontera de isla embebida es un nodo ServerSide interior con id = nombre de campo
-  //     ('_guestNote') y initialData con los marcadores (_embeddedMediator/_inline).
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the component tree: walks, fields, actions, islands, overlays, texts.
 
   const HOST_ID = '__root__'
 
@@ -1098,6 +1080,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): page archetypes projected from the tree: foldout, wizard.
+
   /** Proyección del FOLDOUT (Fase 7): overview + paneles con sus cabeceras (metadata.panels)
    *  y su contenido slotted (overview / panel-N). null si el contexto no es un foldout.
    *  Cada slot proyecta además sus bloques RICOS (mismo pipeline que el host: tarjetas
@@ -1249,6 +1234,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }),
     }
   }
+
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): single-component atom projections: matrix, map, action panel, grid tracks, avatar, metric, chart; the wizard step view.
 
   // ── MatrixGrid → oj-data-grid ────────────────────────────────────────────────────────────────
   // La matriz (filas × fechas, secciones plegables, celdas que enlazan y filas editables) la pinta
@@ -1633,6 +1621,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { wizard, title: title || wizard.title, subtitle: wizard.subtitle, content, sections, nav }
   }
 
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): welcome, general/item overview, content tab strips, banners, page style.
+
   /** Helper de RENDER: todos los nodos de un tipo (sin cruzar fronteras de isla). */
   function findAllByType(tree, type) {
     const out = []
@@ -1883,6 +1874,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the shell: icons and the navigation menu.
+
   /** Proyección de NAVEGACIÓN de la shell: items de primer nivel + grupos con sus hijos.
    *  Los hijos de un grupo navegan por su ruta COMPUESTA (/gestion/person) con el serverSideType
    *  del app (como Vaadin); un RouteLink dentro de un grupo no resuelve así y se carga por su
@@ -2090,6 +2084,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         : shell.homeRoute,
     }
   }
+
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
 
   /** Colores de Chip del wire → clases badge de JET (sistema, Redwood). PRECOMPUTADO (CSP). */
   const BADGE_CLASSES = {
@@ -3411,6 +3408,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return forward
   }
 
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the page header: entity header, KPIs, subtitle, toolbar, back/primary buttons, triggers.
+
   /** El EntityHeader del host (p.ej. el huésped de la Reserva 360) proyectado al HEADER de
    *  pantalla: título = el nombre, subtítulo = subtitle + badges, facts (+métrica) →
    *  contextualInfo del oj-sp-header-general-overview. */
@@ -3675,6 +3675,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       actions: host.tree ? actionsOf(host.tree) : [],
     }
   }
+
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): listings: the table, paging, sort, selection, filters and the smart search bar.
 
   /** Helper de RENDER: primer nodo del árbol con metadata.type dado. */
   function findByType(tree, type) {
@@ -4763,6 +4766,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return String(value).trim() === ''
   }
 
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the reducer: increments → contexts/stack/shell, mediators, overlays.
+
   /** Triggers OnLoad del contexto (p.ej. el listing dispara 'search' al cargar). */
   function onLoadTriggers(ctx) {
     return ((ctx && ctx.tree && ctx.tree.triggers) || [])
@@ -5079,6 +5085,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (reg.loadedRoute) kept.loadedRoute = reg.loadedRoute
     return { ...kept, contexts, stack, shell, effects }
   }
+
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): forms: list actions, the modal row editor, field widgets, validation, confirmation, lookups.
 
   // ── EDITOR DE FILAS de una lista del formulario (@DetailFormCustomisation position = modal) ──
   //
@@ -5870,6 +5879,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return null
   }
 
+
+  // Part of the Redwood core (reduceContexts.mjs re-exports every piece): planning board, gantt, row tones and listing aggregates/groups.
 
   // ── PlanningBoard (Room Diary) sobre oj-gantt ─────────────────────────────────────────────────
   //

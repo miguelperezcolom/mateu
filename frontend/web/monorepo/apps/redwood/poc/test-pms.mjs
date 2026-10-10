@@ -108,7 +108,7 @@ test('DownloadFile: TODAS las chains que reducen un increment aplican sus efecto
     assert.ok(reduces > 0, rel)
     assert.equal(applies, reduces, `${rel}: ${reduces} reducciones, ${applies} applyDomEffects`)
   }
-  assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /strip\('files\.mjs'\)/)
+  assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /'files\.mjs'/)
 })
 
 test('Anchor: enlace real; _blank abre otra pestaña con noopener; la url se interpola', () => {
