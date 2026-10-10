@@ -160,7 +160,9 @@ val copyStarters = tasks.register("copyStarters") {
             .filter { it.isFile && it.name !in excluded }
             .map { it.relativeTo(source).invariantSeparatorsPath }
             .sorted().toList()
-        for (rel in files) source.resolve(rel).copyTo(out.resolve(rel), overwrite = true)
+        // Gradle's resource processing drops `.gitignore` files (Ant's default excludes), so they are
+        // stored under a neutral name; MateuProjectGenerator.resourceName maps the path back.
+        for (rel in files) source.resolve(rel).copyTo(out.resolve(rel.replace(Regex("(^|/)\\.gitignore$"), "$1_dot_gitignore")), overwrite = true)
         out.resolve("index.txt").writeText(files.joinToString("\n", postfix = "\n"))
     }
 }

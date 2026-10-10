@@ -32,7 +32,7 @@ object MateuProjectGenerator {
                 ?.lines()?.map { it.trim() }?.filter { it.isNotEmpty() } ?: emptyList()
         }
         override fun list() = index
-        override fun read(path: String): ByteArray? = javaClass.getResourceAsStream("/mateu/starters/$path")?.use { it.readBytes() }
+        override fun read(path: String): ByteArray? = javaClass.getResourceAsStream("/mateu/starters/${resourceName(path)}")?.use { it.readBytes() }
     }
 
     class Directory(private val root: File) : Sources {
@@ -359,3 +359,7 @@ object MateuProjectGenerator {
         files[path] = text.split("\n").flatMap { if (it.trim() == marker) lines else listOf(it) }.joinToString("\n")
     }
 }
+
+/** Where a starter file lives among the plugin resources: `.gitignore` is stored as `_dot_gitignore`
+ *  because Gradle's resource processing drops `.gitignore` files (Ant's default excludes). */
+internal fun resourceName(path: String): String = path.replace(Regex("(^|/)\\.gitignore$"), "$1_dot_gitignore")
