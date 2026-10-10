@@ -3536,6 +3536,9 @@
     style="min-height: 100vh; box-sizing: border-box; max-width: 90vw;"
     :style.width="[[ $application.variables.mateuDrawer.width || '26rem' ]]">
     <h2 class="oj-typography-heading-md"><oj-bind-text value="[[ $application.variables.mateuDrawer.title ]]"></oj-bind-text></h2>
+    <oj-bind-if test="[[ !!$application.variables.mateuDrawer.subtitle ]]">
+      <div class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-1x-top"><oj-bind-text value="[[ $application.variables.mateuDrawer.subtitle ]]"></oj-bind-text></div>
+    </oj-bind-if>
     <oj-bind-if test="[[ $application.variables.mateuDrawer.hasContent ]]">
       <div class="oj-sm-margin-4x-top">
         <oj-bind-for-each data="[[ $application.variables.mateuDrawer.content ]]">

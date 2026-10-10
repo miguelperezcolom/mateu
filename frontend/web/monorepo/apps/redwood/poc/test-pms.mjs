@@ -8,7 +8,7 @@ import assert from 'node:assert/strict'
 import { readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { planningAtomOf, planningActionOf } from './reduceContexts.mjs'
+import { planningAtomOf, planningActionOf, overlayOf } from './reduceContexts.mjs'
 import { dayIndexAtX } from './planning.mjs'
 import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, entityHeaderOf, taskQueueOf, formSectionsOf, layoutFieldOf, HOST_ID } from './reduceContexts.mjs'
 import { localMenuOptionOf, isSentinelHome } from './navTree.mjs'
@@ -458,6 +458,14 @@ test('Room Diary: el día bajo el puntero sale de las etiquetas reales del eje (
   for (const l of ['planningMoved', 'planningResized', 'planningDblClick']) assert.ok(page.eventListeners[l], l)
   assert.ok(page.imports.components['oj-gantt'])
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installPlanningRange\(\)/)
+})
+
+test('Drawer: el subtítulo del wire llega a la proyección del overlay', () => {
+  const reg = reduceContexts(empty(), { fragments: [{ targetComponentId: '', action: 'Add', component: { type: 'ClientSide', id: 'd1',
+    metadata: { type: 'Drawer', headerTitle: 'New reservation', subtitle: 'Room 102 · 12 oct → 14 oct', content: { type: 'ClientSide', metadata: { type: 'Text', text: 'x' } } } } }] })
+  const o = overlayOf(reg)
+  assert.equal(o.title, 'New reservation')
+  assert.equal(o.subtitle, 'Room 102 · 12 oct → 14 oct')
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

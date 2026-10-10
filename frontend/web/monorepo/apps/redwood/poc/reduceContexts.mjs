@@ -295,6 +295,8 @@ export function overlayOf(reg) {
   return {
     id,
     title: ctx.title || '',
+    // el subtítulo del Drawer (General Drawer: «Room 102 · 12 oct → 14 oct») bajo el título
+    subtitle: ctx.subtitle || '',
     position: ctx.position || 'end',
     width: ctx.width,
     state: ctx.state || {},
