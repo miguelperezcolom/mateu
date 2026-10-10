@@ -8,6 +8,7 @@ import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, 
 import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf } from './navTree.mjs'
+import { currentMount, pathOfRoute } from './mount.mjs'
 
 /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction).
  *  Sale ATADA a la pantalla en curso (resilience.currentView): si cuando contesta ya hay otra, la
@@ -144,6 +145,10 @@ export const loadRoute = async (base, route, initiator = '', extra = {}) => {
   // the home of a mount whose @UI is not an App: a fresh load of the mount — see bootstrapHasApp
   if ((!route || route === '/') && mountWithoutApp && !extra.consumedRoute && extra.serverSideType == null) {
     extra = { ...extra, consumedRoute: '_empty' }
+  } else if (mountWithoutApp && route && route !== '/') {
+    // …and below the mount (a deep link to /products/new): with no App to resolve it relative to,
+    // the server knows the crud's inner routes by their full path, mount included
+    route = pathOfRoute(route, currentMount())
   }
   await awaitBundle()
   if (hasBundle()) {
@@ -399,6 +404,9 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
   const wrapperActions = (wrapperTree && wrapperTree.actions) || []
   const info = mediatorOf(next.contexts[ctxId]) || mediatorFromShellApp(firstIncrement, effectiveRoute)
   if (info) {
+    // the home of a mount whose @UI is a crud (route '' or '/', a fresh load): the mediator names
+    // the route of its content — the crud's own path
+    if ((!effectiveRoute || effectiveRoute === '/') && info.homeRoute) effectiveRoute = info.homeRoute
     outbound = {
       route: effectiveRoute,
       consumedRoute: info.rootRoute || effectiveRoute,

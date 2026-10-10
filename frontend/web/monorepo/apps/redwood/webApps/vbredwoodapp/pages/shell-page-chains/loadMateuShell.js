@@ -242,7 +242,8 @@ define([
       const first = firstLeaf || (firstGroup && firstGroup.children[0]);
       // la HOME del app (@HomeRoute, p.ej. la welcome page) manda sobre la primera
       // opción del menú
-      const homeRoute = nav.homeRoute || (first ? first.id : '') || (withoutApp ? (bridge.currentMount() || '/') : '');
+      // (el homeRoute de un App montado llega entero, '/appdemo/screen': la ruta es relativa al montaje)
+      const homeRoute = bridge.routeUnderMount(nav.homeRoute) || (first ? first.id : '') || (withoutApp ? '/' : '');
       $application.variables.mateuHomeRoute = homeRoute;
 
       // 1.5: URL de la shell — modo PATH (/ruta) cuando la app la sirve el backend Mateu

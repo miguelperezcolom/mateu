@@ -8,10 +8,12 @@
 //     server cannot rewrite arbitrary paths to the index);
 //   - the MOUNT: the API of that UI lives at <mount>/mateu/v3/... (the root /mateu/v3 is ANOTHER
 //     UI's, or nothing at all when no @UI sits at "").
-// Routes stay ABSOLUTE: the server's route space is global and already includes the @UI path (a
-// crud @UI("/products") answers homeRoute '/products', and '/products/new' is its new-record
-// route), so the browser path IS the route — except the mount itself, which is the HOME of the UI
-// (the menu's home for an App; the mount's own route for a page or a crud).
+// Routes are RELATIVE to the mount, as on the web renderer (mateu-ui strips its pathPrefix): an
+// App @UI("/app") lists its menu as '/section1', and the browser shows /app/section1. The mount
+// itself is the HOME of the UI (the menu's home for an App; the page or crud itself otherwise).
+// One wrinkle: a crud's inner routes come back from the server already carrying the crud's own
+// path ('/products/new' for @UI("/products")), so a route that already starts with the mount is
+// not prefixed twice.
 // Before this module the packaged app called /mateu/v3 on the ROOT whatever the mount: it booted
 // the root app's shell at /products, and with no @UI at "" it did not boot at all.
 //
@@ -36,24 +38,32 @@ export function baseUrlOf(attrs, devDefault) {
   return normalizeMount(attrs.baseUrl != null ? attrs.baseUrl : attrs.baseurl)
 }
 
-/** The Mateu route of a browser path: the mount itself ('/console', '/console/', '/' at the root)
- *  is the home (''); any other path is its own route (routes are absolute). */
+/** The Mateu route of a browser path under the mount: '/console/orders' → '/orders', the mount
+ *  itself ('/console', '/console/', '/' at the root) → '' (the home). A path outside the mount is
+ *  returned as is. */
 export function routeOfPath(pathname, mount) {
   const m = normalizeMount(mount)
-  const p = pathname || '/'
-  if (p === '/' || p === m || p === m + '/') return ''
-  return p
+  let p = pathname || '/'
+  if (m) {
+    if (p === m || p === m + '/') return ''
+    if (p.startsWith(m + '/')) p = p.slice(m.length)
+  }
+  return p === '/' ? '' : p
 }
 
-/** The browser path of a Mateu route: the home ('' or '/') → the mount ('/' at the root); any
- *  other route is already the path. A route may carry its ?query. */
+/** The browser path of a Mateu route under the mount: '/orders' → '/console/orders', the home
+ *  ('' or '/') → '/console' ('/' at the root). A route may carry its ?query; one that already
+ *  starts with the mount (a crud's inner route) is not prefixed again. */
 export function pathOfRoute(route, mount) {
   const m = normalizeMount(mount)
   let r = route == null ? '' : String(route)
   if (r.charAt(0) === '?') r = '/' + r
   if (r === '' || r === '/') return m || '/'
   if (r.startsWith('/?')) return (m || '') + r.slice(m ? 1 : 0)
-  return r.charAt(0) === '/' ? r : '/' + r
+  if (r.charAt(0) !== '/') r = '/' + r
+  const path = r.split('?')[0]
+  if (m && (path === m || path.startsWith(m + '/'))) return r
+  return m + r
 }
 
 // ── the mount read at boot ─────────────────────────────────────────────────────────────────────
@@ -92,6 +102,15 @@ export function currentRouteOf(location) {
   if (!location) return ''
   if (mountPath == null) return (location.hash || '').replace(/^#/, '')
   return routeOfPath(location.pathname, mountPath) + (location.search || '')
+}
+
+/** A route the server names in full (an App's homeRoute '/console/home') as a route under the mount
+ *  ('/home'); unchanged in hash mode or when it is not under the mount. */
+export function routeUnderMount(route) {
+  if (mountPath == null || !route) return route || ''
+  const [path, query] = String(route).split(/(?=\?)/)
+  const r = routeOfPath(path, mountPath)
+  return (r || (query ? '/' : '')) + (query || '')
 }
 
 /** The route part (no query) of the browser path — what to compare a route against. */

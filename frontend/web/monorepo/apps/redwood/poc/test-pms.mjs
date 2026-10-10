@@ -21,7 +21,7 @@ import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM } from './map.mjs'
 import { attrSelectorValue } from './rules.mjs'
 import { wizardOf, WIZARD_DONE_STEP } from './reduceContexts.mjs'
 import { safeImageSrc } from './inputs.mjs'
-import { normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf } from './mount.mjs'
+import { routeUnderMount, normalizeMount, baseUrlOf, routeOfPath, pathOfRoute, initMount, setMount, isPathMode, mateuBase, mateuAssetBase, urlOfRoute, currentRouteOf, currentRoutePathOf } from './mount.mjs'
 import { inAppRouteOfLink } from './links.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays } from './calendar.mjs'
@@ -1314,24 +1314,28 @@ test('mount: the packaged app serves an @UI at any path — API base and routes 
   assert.equal(baseUrlOf({ baseUrl: '' }, 'http://localhost:9005'), '')
   assert.equal(baseUrlOf({ baseUrl: '/console' }, 'http://x'), '/console')
   assert.equal(baseUrlOf({ baseurl: '/console/' }, 'http://x'), '/console')
-  // browser path → Mateu route: absolute, the mount itself is the home
+  // browser path → Mateu route: relative to the mount, the mount itself is the home
   assert.equal(routeOfPath('/console', '/console'), '')
   assert.equal(routeOfPath('/console/', '/console'), '')
-  assert.equal(routeOfPath('/console/products/3', '/console'), '/console/products/3')
+  assert.equal(routeOfPath('/console/products/3', '/console'), '/products/3')
   assert.equal(routeOfPath('/', ''), '')
   assert.equal(routeOfPath('/products', ''), '/products')
-  assert.equal(routeOfPath('/', '/console'), '')
+  // a path that merely starts like the mount is not under it
+  assert.equal(routeOfPath('/consoles/x', '/console'), '/consoles/x')
   // Mateu route → browser path
   assert.equal(pathOfRoute('', '/console'), '/console')
   assert.equal(pathOfRoute('/', '/console'), '/console')
-  assert.equal(pathOfRoute('/console/products?status=open', '/console'), '/console/products?status=open')
-  assert.equal(pathOfRoute('products', ''), '/products')
+  assert.equal(pathOfRoute('/products?status=open', '/console'), '/console/products?status=open')
+  assert.equal(pathOfRoute('products', '/console'), '/console/products')
   assert.equal(pathOfRoute('', ''), '/')
   assert.equal(pathOfRoute('/products', ''), '/products')
   assert.equal(pathOfRoute('?q=1', '/console'), '/console?q=1')
   assert.equal(pathOfRoute('?q=1', ''), '/?q=1')
+  // a crud's inner route already carries the crud's path (@UI("/products") → '/products/new')
+  assert.equal(pathOfRoute('/products/new', '/products'), '/products/new')
+  assert.equal(pathOfRoute('/products', '/products'), '/products')
   // round trip
-  for (const r of ['', '/m/a', '/m/a/b']) assert.equal(routeOfPath(pathOfRoute(r, '/m'), '/m'), r)
+  for (const r of ['', '/a', '/a/b']) assert.equal(routeOfPath(pathOfRoute(r, '/m'), '/m'), r)
 })
 
 test('mount: read once at boot — path mode under a mount, hash mode without <mateu-ui>', () => {
@@ -1343,10 +1347,16 @@ test('mount: read once at boot — path mode under a mount, hash mode without <m
   // static things stay at the backend root, as on the Vaadin renderer
   assert.equal(mateuAssetBase('http://localhost:9005'), '')
   assert.equal(urlOfRoute(''), '/console')
-  assert.equal(urlOfRoute('/console/orders?x=1'), '/console/orders?x=1')
-  assert.equal(currentRouteOf({ pathname: '/console/orders', search: '?x=1', hash: '' }), '/console/orders?x=1')
-  assert.equal(currentRoutePathOf({ pathname: '/console/orders', search: '?x=1', hash: '' }), '/console/orders')
+  assert.equal(urlOfRoute('/orders?x=1'), '/console/orders?x=1')
+  assert.equal(currentRouteOf({ pathname: '/console/orders', search: '?x=1', hash: '' }), '/orders?x=1')
+  assert.equal(currentRoutePathOf({ pathname: '/console/orders', search: '?x=1', hash: '' }), '/orders')
   assert.equal(currentRouteOf({ pathname: '/console', search: '', hash: '' }), '')
+  // an App's homeRoute comes in full: the route is the part under the mount
+  assert.equal(routeUnderMount('/console/home'), '/home')
+  assert.equal(routeUnderMount('/console/home?x=1'), '/home?x=1')
+  assert.equal(routeUnderMount('/console'), '')
+  assert.equal(routeUnderMount('section1'), 'section1')
+  assert.equal(routeUnderMount(''), '')
   // the root mount: today's behaviour
   assert.equal(initMount(doc({ baseUrl: '' })), '')
   assert.equal(mateuBase('http://localhost:9005'), '')
@@ -1363,11 +1373,11 @@ test('mount: read once at boot — path mode under a mount, hash mode without <m
   setMount(null)
 })
 
-test('mount: an in-content link is a screen of the app only below the mount', () => {
+test('mount: an in-content link is a screen of the app only below the mount, and its route drops the mount', () => {
   const loc = { href: 'https://h/console/a', origin: 'https://h', pathname: '/console/a', search: '' }
   const a = (href) => ({ getAttribute: (n) => (n === 'href' ? href : null) })
   const route = (href) => inAppRouteOfLink(a(href), { button: 0 }, loc, false, '/console')
-  assert.equal(route('/console/orders/3?x=1'), '/console/orders/3?x=1')
+  assert.equal(route('/console/orders/3?x=1'), '/orders/3?x=1')
   assert.equal(route('/console'), '/')
   assert.equal(route('/other/app'), null)
   assert.equal(route('/console/_inbox'), null)

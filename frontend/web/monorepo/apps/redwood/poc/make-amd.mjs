@@ -299,6 +299,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     currentRoutePathOf,
     routeOfPath,
     pathOfRoute,
+    routeUnderMount,
     bootstrapShell,
     bootstrapHasApp,
     setMountWithoutApp,

@@ -47,14 +47,14 @@ export function inAppRouteOfLink(anchor, event, location, hashMode = false, moun
   // un ancla a esta misma página (#expand=…): la hace el navegador
   if (url.hash && path === location.pathname && url.search === (location.search || '')) return null
   // the app mounted under a path (@UI("/console")): only links below it are screens of THIS app
-  // (another path is another UI: the browser loads it); the mount itself is its home
+  // (another path is another UI: the browser loads it), its route is the part after the mount and
+  // the mount itself is the home
   const m = String(mount || '').replace(/\/+$/, '')
   if (m) {
     if (path === m || path === m + '/') path = '/'
-    else if (!path.startsWith(m + '/')) return null
+    else if (path.startsWith(m + '/')) path = path.slice(m.length)
+    else return null
   }
-  // the reserved prefixes (/_inbox, /api…) count from the mount: /console/_inbox is not a screen
-  const own = m && path.startsWith(m + '/') ? path.slice(m.length) : path
-  if (NOT_A_SCREEN.test(own) || LOOKS_LIKE_FILE.test(own)) return null
+  if (NOT_A_SCREEN.test(path) || LOOKS_LIKE_FILE.test(path)) return null
   return path + url.search
 }
