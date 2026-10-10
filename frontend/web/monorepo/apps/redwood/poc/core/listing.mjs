@@ -58,6 +58,17 @@ export function listingOf(ctx, opts = {}) {
   }
 }
 
+/**
+ * Whether a plain click on a row of this listing opens its record (the crud's `view` action). Only
+ * when the listing says so: its first column carries the `view` action (`navigable`, which the
+ * server leaves out for `@NotNavigable` and for listings without a way into a record). A listing
+ * that does not — a status board you select rows on, a report — keeps the click for itself, like
+ * the web renderer, instead of asking the server for a record page it did not offer.
+ */
+export function rowClickOpensRecord(listing) {
+  return !listing || listing.navigable !== false
+}
+
 /** Whether the listing has had a search answered: the server's page arrives in ctx.data.crud. */
 export function listingSearchedOf(ctx) {
   const crud = ctx && ctx.data ? ctx.data.crud : null

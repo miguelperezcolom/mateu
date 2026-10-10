@@ -4911,6 +4911,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  /**
+   * Whether a plain click on a row of this listing opens its record (the crud's `view` action). Only
+   * when the listing says so: its first column carries the `view` action (`navigable`, which the
+   * server leaves out for `@NotNavigable` and for listings without a way into a record). A listing
+   * that does not — a status board you select rows on, a report — keeps the click for itself, like
+   * the web renderer, instead of asking the server for a record page it did not offer.
+   */
+  function rowClickOpensRecord(listing) {
+    return !listing || listing.navigable !== false
+  }
+
   /** Whether the listing has had a search answered: the server's page arrives in ctx.data.crud. */
   function listingSearchedOf(ctx) {
     const crud = ctx && ctx.data ? ctx.data.crud : null
@@ -11346,7 +11357,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // TECLADO de la shell VB: los atajos declarados y las TECLAS DE ACCESO.
   //  - @Action(shortcut) de la pantalla en curso: el atajo lanza la acción (por el canal de los
   //    Element), como en el renderer web; sólo combinaciones con Ctrl/Alt/Meta — una tecla suelta
-  //    es del campo donde se escribe.
+  //    es del campo donde se escribe — o una TECLA DE FUNCIÓN (F1–F12, sola o combinada): no
+  //    escribe nada en un campo, y las aplicaciones de back-office las usan (F2, F9…).
   //  - @Tab(shortcut): selecciona la pestaña (el li del oj-tab-bar lleva data-shortcut).
   //  - @App(accessKeys): mantener Alt enseña una tecla junto a cada botón y pestaña visibles — su
   //    atajo si lo declara, si no una letra de su etiqueta asignada sin repetir — y Alt+letra lo
@@ -11373,11 +11385,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // ── atajos de acción de la pantalla en curso ──────────────────────────────────────────────────
   let shortcutActions = []
-  /** La pantalla en curso (afterReduce): sus acciones con atajo con modificador. */
+  /** Una tecla de función (F1–F12): la de un atajo («f2», «shift+f9») o la de un evento (e.key). */
+  const FUNCTION_KEY = /^f([1-9]|1[0-2])$/i
+  const isFunctionKeyShortcut = (shortcut) =>
+    FUNCTION_KEY.test(String(shortcut || '').split('+').pop().trim())
+  /** La pantalla en curso (afterReduce): sus acciones con atajo con modificador o tecla de función. */
   function setShortcutContext(hostCtx) {
     const actions = (hostCtx && hostCtx.tree && hostCtx.tree.actions) || []
     shortcutActions = actions
-      .filter((a) => a && a.id && a.shortcut && /(^|\+)(ctrl|control|alt|meta|cmd)(\+|$)/i.test(a.shortcut))
+      .filter((a) => a && a.id && a.shortcut
+        && (/(^|\+)(ctrl|control|alt|meta|cmd)(\+|$)/i.test(a.shortcut) || isFunctionKeyShortcut(a.shortcut)))
       .map((a) => ({ id: a.id, shortcut: String(a.shortcut).toLowerCase() }))
   }
   const currentShortcutActions = () => shortcutActions
@@ -11461,7 +11478,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (holdTimer) { clearTimeout(holdTimer); holdTimer = null }
-      if (!e.ctrlKey && !e.altKey && !e.metaKey) return
+      if (!e.ctrlKey && !e.altKey && !e.metaKey && !FUNCTION_KEY.test(String(e.key || ''))) return
       // 1. una acción de la pantalla
       const action = shortcutActions.find((a) => matches(a.shortcut, e))
       if (action && keysSink) {
@@ -15452,6 +15469,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     appLevelOf,
     rowRouteOf,
     listingOf,
+    rowClickOpensRecord,
     // paginación y orden del listing (pie de la tabla, cabecera → server)
     listingPagingOf,
     targetPageOf,

@@ -1,7 +1,8 @@
 // TECLADO de la shell VB: los atajos declarados y las TECLAS DE ACCESO.
 //  - @Action(shortcut) de la pantalla en curso: el atajo lanza la acción (por el canal de los
 //    Element), como en el renderer web; sólo combinaciones con Ctrl/Alt/Meta — una tecla suelta
-//    es del campo donde se escribe.
+//    es del campo donde se escribe — o una TECLA DE FUNCIÓN (F1–F12, sola o combinada): no
+//    escribe nada en un campo, y las aplicaciones de back-office las usan (F2, F9…).
 //  - @Tab(shortcut): selecciona la pestaña (el li del oj-tab-bar lleva data-shortcut).
 //  - @App(accessKeys): mantener Alt enseña una tecla junto a cada botón y pestaña visibles — su
 //    atajo si lo declara, si no una letra de su etiqueta asignada sin repetir — y Alt+letra lo
@@ -28,11 +29,16 @@ export const keyHint = (shortcut) => String(shortcut || '').split('+').filter(Bo
 
 // ── atajos de acción de la pantalla en curso ──────────────────────────────────────────────────
 let shortcutActions = []
-/** La pantalla en curso (afterReduce): sus acciones con atajo con modificador. */
+/** Una tecla de función (F1–F12): la de un atajo («f2», «shift+f9») o la de un evento (e.key). */
+const FUNCTION_KEY = /^f([1-9]|1[0-2])$/i
+export const isFunctionKeyShortcut = (shortcut) =>
+  FUNCTION_KEY.test(String(shortcut || '').split('+').pop().trim())
+/** La pantalla en curso (afterReduce): sus acciones con atajo con modificador o tecla de función. */
 export function setShortcutContext(hostCtx) {
   const actions = (hostCtx && hostCtx.tree && hostCtx.tree.actions) || []
   shortcutActions = actions
-    .filter((a) => a && a.id && a.shortcut && /(^|\+)(ctrl|control|alt|meta|cmd)(\+|$)/i.test(a.shortcut))
+    .filter((a) => a && a.id && a.shortcut
+      && (/(^|\+)(ctrl|control|alt|meta|cmd)(\+|$)/i.test(a.shortcut) || isFunctionKeyShortcut(a.shortcut)))
     .map((a) => ({ id: a.id, shortcut: String(a.shortcut).toLowerCase() }))
 }
 export const currentShortcutActions = () => shortcutActions
@@ -116,7 +122,7 @@ export function installKeys(doc = typeof document !== 'undefined' ? document : n
       return
     }
     if (holdTimer) { clearTimeout(holdTimer); holdTimer = null }
-    if (!e.ctrlKey && !e.altKey && !e.metaKey) return
+    if (!e.ctrlKey && !e.altKey && !e.metaKey && !FUNCTION_KEY.test(String(e.key || ''))) return
     // 1. una acción de la pantalla
     const action = shortcutActions.find((a) => matches(a.shortcut, e))
     if (action && keysSink) {
