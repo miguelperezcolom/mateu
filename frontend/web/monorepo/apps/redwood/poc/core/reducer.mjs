@@ -1,14 +1,21 @@
 import { HOST_ID, collectFields } from './tree.mjs'
-import { findByType } from './listing.mjs'
+import { findByType, findFirst } from './listing.mjs'
 import { applyOverlayEvent } from './rowEditor.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the reducer: increments → contexts/stack/shell, mediators, overlays.
 
 /** Triggers OnLoad del contexto (p.ej. el listing dispara 'search' al cargar). */
 export function onLoadTriggers(ctx) {
-  return ((ctx && ctx.tree && ctx.tree.triggers) || [])
+  const ids = ((ctx && ctx.tree && ctx.tree.triggers) || [])
     // los que llevan espera (refresco periódico) los programa polling.mjs, no se lanzan ya
     .filter((t) => t.type === 'OnLoad' && t.actionId && !(t.timeoutMillis > 0))
     .map((t) => t.actionId)
+  // a listing reading its rows from a REST source (rowsSource) loads them on opening, as the web's
+  // mateu-table-crud does — a YAML listing carries no OnLoad trigger of its own
+  if (ids.indexOf('search') < 0 && ctx && ctx.tree
+      && findFirst(ctx.tree, (n) => n && n.metadata && n.metadata.type === 'Crud' && !!n.metadata.rowsSource)) {
+    ids.push('search')
+  }
+  return ids
 }
 
 /**

@@ -4,6 +4,8 @@ import {
     BOOT_TIMEOUT_MS, PreviewFragment, frameMessageOf, redwoodPreviewUrl, renderMessage, selectMessage,
     type FrameToEditor,
 } from './redwoodProtocol'
+import { restSourceCatalogue } from '@infra/http/restSourceCatalogue.ts'
+import { fieldTypeCatalogue } from '@infra/expander/fieldTypes.ts'
 
 export type RedwoodFrameStatus = 'booting' | 'ready' | 'offline' | 'unavailable'
 
@@ -88,7 +90,13 @@ export class RedwoodFrame extends LitElement {
     /** Paints this fragment (sent now, or as soon as the app says hello). */
     show(fragment: PreviewFragment) {
         this.fragment = fragment
-        if (this.hello) this.post(renderMessage(fragment))
+        if (this.hello) this.post(this.renderOf(fragment))
+    }
+
+    /** The render message: the fragment plus the project's catalogues (sources with their sample
+     *  data, field types) — the frame previews with samples, as every canvas does. */
+    private renderOf(fragment: PreviewFragment) {
+        return renderMessage(fragment, { sources: restSourceCatalogue(), types: fieldTypeCatalogue() })
     }
 
     private startBoot() {
@@ -139,7 +147,7 @@ export class RedwoodFrame extends LitElement {
             case 'hello':
                 this.hello = true
                 window.clearTimeout(this.bootTimer)
-                if (this.fragment) this.post(renderMessage(this.fragment))
+                if (this.fragment) this.post(this.renderOf(this.fragment))
                 this.sendSelection(false)
                 return
             case 'rendered':

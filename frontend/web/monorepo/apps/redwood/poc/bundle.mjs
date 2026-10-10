@@ -8,6 +8,7 @@
 // backend (they fall through to the normal transport).
 //
 // Pure except loadBundleManifest, so test.mjs can exercise it in Node with a fetch double.
+import { adoptManifestSources } from './restSources.mjs'
 
 // syncPath → parsed increment, for the routes that exported OK. undefined = no bundle loaded.
 let increments
@@ -119,6 +120,8 @@ export function loadBundleManifest(url, fetchImpl) {
       increments = map
       templates = tpls
       routeEntries = (manifest.routes && manifest.routes.routes) || []
+      // the REST source catalogue the bundle ships, and its sample-mode flag (mockSources)
+      adoptManifestSources(manifest)
     } catch (e) {
       // leave bundle mode off
     }
