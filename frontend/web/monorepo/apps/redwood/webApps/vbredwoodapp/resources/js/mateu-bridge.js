@@ -136,11 +136,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatUploadFailed: 'Upload failed: {status}',
       chatAttach: 'Attach files',
       chatRemoveAttachment: 'Remove {name}',
-      chatNewConversation: 'New conversation',
-      chatStop: 'Stop',
-      chatStopped: '(stopped)',
-      chatCopy: 'Copy',
-      chatCopied: 'Copied',
+      chatTool: 'tool',
+      chatToolsUsed: 'Tools used',
+      chatNoAnswer: 'No answer from the agent. The server closed the connection without sending anything — check that the LLM has its API key configured and is available.',
+      chatEmptyAnswer: 'The agent returned no answer. Check that the LLM is configured correctly (API key).',
+      chatError: 'Error: {message}',
+      chatUploadError: 'Could not upload the files: {message}',
+      chatLocalAgent: 'local agent',
+      chatLocalAgentHint: 'Talking to your local CLI (the companion agent) — no API key',
+      chatExpand: 'Widen the assistant',
+      chatRestore: 'Restore the width',
     },
     es: {
       close: 'Cerrar',
@@ -251,11 +256,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatUploadFailed: 'Falló la subida: {status}',
       chatAttach: 'Adjuntar ficheros',
       chatRemoveAttachment: 'Quitar {name}',
-      chatNewConversation: 'Nueva conversación',
-      chatStop: 'Detener',
-      chatStopped: '(detenido)',
-      chatCopy: 'Copiar',
-      chatCopied: 'Copiado',
+      chatTool: 'herramienta',
+      chatToolsUsed: 'Herramientas usadas',
+      chatNoAnswer: 'No se recibió respuesta del agente. El servidor cerró la conexión sin enviar datos — comprueba que el LLM tiene la API key configurada y está disponible.',
+      chatEmptyAnswer: 'El agente no devolvió ninguna respuesta. Comprueba que el LLM está configurado correctamente (API key).',
+      chatError: 'Error: {message}',
+      chatUploadError: 'No se pudieron subir los ficheros: {message}',
+      chatLocalAgent: 'agente local',
+      chatLocalAgentHint: 'Hablando con tu CLI local (el agente companion) — sin API key',
+      chatExpand: 'Ampliar el asistente',
+      chatRestore: 'Ancho normal',
     },
     // partial languages: only the words they have (the rest falls back to English)
     ca: { selectValue: 'Seleccioneu un valor' },
@@ -5261,6 +5271,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           homeRoute: md.homeRoute || '',
           // chat de IA (@AI → App.sseUrl): si viene, la shell pinta el botón del chat del agente en la cabecera
           sseUrl: md.sseUrl || '',
+          // @AI(upload) → el botón de adjuntar del chat; @AI(mcp) → el mcpUrl que el agente usa para operar la app
+          uploadUrl: md.uploadUrl || '',
+          mcpUrl: md.mcpUrl || '',
           // el FAB de "ask" del shell (@App(askLabel, askIcon)): vacíos = el FAB neutro (Search)
           askLabel: md.askLabel || '',
           askIcon: md.askIcon || '',
@@ -11130,7 +11143,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       tool(detail, at) {
         p.reported = true
         const d = detail || {}
-        const name = d.name || 'herramienta'
+        const name = d.name || chromeText('chatTool')
         if (d.phase === 'start') {
           p.steps = [...p.steps, { name, server: d.server, kind: d.kind, running: true }]
           p.since = at
@@ -11529,6 +11542,191 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return () => { observer.disconnect(); el.removeEventListener('scroll', onScroll) }
   }
 
+  // ---- Paridad con el chat web (libs/mateu mateu-chat.ts): lo que el panel VB necesitaba ----------
+  //
+  // El chat compartido manda en cada mensaje, además del texto: el CONTEXTO de la pantalla (url,
+  // título, appState/appData, el estado del componente — su contextProvider), una PROYECCIÓN
+  // autodescriptiva de la pantalla (screenContext.ts: campos con tipo/rótulo/valor + acciones, la
+  // misma que recibe un agente MCP), el `mcpUrl` del @AI y los adjuntos; prefiere el agente LOCAL si
+  // contesta a /health; titula el panel con el @App(askLabel); enseña las herramientas que usa el
+  // agente en el turno en curso; y explica una respuesta vacía o un corte de red. Todo puro aquí.
+
+  /** El agente local (companion) por defecto, el mismo que el chat web. */
+  const LOCAL_AGENT_URL = 'http://127.0.0.1:8776'
+
+  /** ¿Contesta el agente local? (GET <url>/health con un tope de 1,2 s; cualquier fallo = no). */
+  async function probeLocalAgent({ url = LOCAL_AGENT_URL, fetchImpl = globalThis.fetch, timeoutMs = 1200 } = {}) {
+    if (!url || !fetchImpl) return false
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null
+    const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null
+    try {
+      const response = await fetchImpl(url + '/health', controller ? { signal: controller.signal } : {})
+      return !!(response && response.ok)
+    } catch {
+      return false
+    } finally {
+      if (timer) clearTimeout(timer)
+    }
+  }
+
+  /** La configuración del panel desde la shell (el App del bootstrap) y la base del backend. */
+  function chatConfigOf(shell, base = '') {
+    const s = shell || {}
+    const abs = (u) => (u ? (/^[a-z][a-z0-9+.-]*:/i.test(u) ? u : base + u) : '')
+    return {
+      sseUrl: abs(s.sseUrl),
+      uploadUrl: abs(s.uploadUrl),
+      mcpUrl: abs(s.mcpUrl),
+      // el título del panel: la marca del App (@App(askLabel)), si no «Assistant»
+      title: String(s.askLabel || '').trim() || chromeText('chatTitle'),
+    }
+  }
+
+  const mdTypeOf = (node) => (node && node.metadata && typeof node.metadata.type === 'string' ? node.metadata.type : undefined)
+
+  /**
+   * La pantalla proyectada para el agente — port de screenContext.ts `projectScreen`: los FormField
+   * (id, rótulo, tipo, estereotipo, obligatorio, solo lectura, valor del estado, opciones) y las
+   * acciones (las declaradas por el componente, con el rótulo de su botón; y los botones sueltos).
+   */
+  function projectChatScreen(component, state) {
+    if (!component || typeof component !== 'object') return { fields: [], actions: [] }
+    const fieldMds = []
+    const buttons = new Map()
+    let page
+    const seen = new Set()
+    const visit = (node) => {
+      if (!node || typeof node !== 'object' || seen.has(node)) return
+      seen.add(node)
+      if (!Array.isArray(node)) {
+        const t = mdTypeOf(node)
+        if (t === 'FormField' && node.metadata.fieldId) fieldMds.push(node.metadata)
+        else if (t === 'Page' && !page) page = node.metadata
+        else if (t === 'Button' && node.metadata.actionId && !buttons.has(node.metadata.actionId)) buttons.set(node.metadata.actionId, node.metadata.label)
+      }
+      for (const v of Array.isArray(node) ? node : Object.values(node)) if (v && typeof v === 'object') visit(v)
+    }
+    visit(component)
+    const values = state && typeof state === 'object' ? state
+      : (component.initialData && typeof component.initialData === 'object' ? component.initialData : {})
+    const fields = []
+    const seenField = new Set()
+    for (const md of fieldMds) {
+      if (seenField.has(md.fieldId)) continue
+      seenField.add(md.fieldId)
+      const field = {
+        id: md.fieldId,
+        label: md.label != null ? md.label : md.fieldId,
+        dataType: md.dataType || 'string',
+        stereotype: md.stereotype || 'regular',
+        required: !!md.required,
+        readOnly: !!md.readOnly,
+      }
+      if (Object.prototype.hasOwnProperty.call(values, md.fieldId)) field.value = values[md.fieldId]
+      if (Array.isArray(md.options) && md.options.length) {
+        field.options = md.options.map((o) => (o && typeof o === 'object'
+          ? { value: o.value, label: o.label != null ? o.label : String(o.value != null ? o.value : '') }
+          : { value: o, label: String(o) }))
+      }
+      fields.push(field)
+    }
+    const actions = []
+    const seenAction = new Set()
+    for (const a of Array.isArray(component.actions) ? component.actions : []) {
+      if (!a || !a.id || seenAction.has(a.id)) continue
+      seenAction.add(a.id)
+      const action = { id: a.id, label: buttons.get(a.id) != null ? buttons.get(a.id) : a.id }
+      if (a.shortcut) action.shortcut = a.shortcut
+      actions.push(action)
+    }
+    for (const [id, label] of buttons) {
+      if (!seenAction.has(id)) { seenAction.add(id); actions.push({ id, label: label != null ? label : id }) }
+    }
+    const screen = { fields, actions }
+    const title = (page && (page.pageTitle || page.title)) || undefined
+    if (title) screen.title = title
+    if (component.route) screen.route = component.route
+    if (component.serverSideType) screen.serverSideType = component.serverSideType
+    if (component.pageType || (page && page.pageType)) screen.pageType = component.pageType || page.pageType
+    return screen
+  }
+
+  /**
+   * El POST de un turno, con la misma forma que el del chat web: el texto, la sesión, la ruta, los
+   * adjuntos, el contexto (url, título, appState/appData y el estado/datos del contexto HOST del
+   * registro), la pantalla proyectada (si tiene algo), el mcpUrl y, sólo en el primer mensaje de la
+   * sesión (`sendMenu`), el menú. Devuelve `{ body, shown }`: `shown` es lo que se pinta como mensaje
+   * del usuario (el texto + 📎 los adjuntos).
+   */
+  function chatTurnOf({ message, sessionId, attachments = [], registry, appState, appData, url, screenTitle, currentRoute, mcpUrl, menu, sendMenu, origin }) {
+    const text = String(message || '').trim()
+    const host = registry && registry.contexts ? registry.contexts.__root__ : null
+    const context = {
+      url: url || '',
+      screenTitle: screenTitle || '',
+      appState: appState || {},
+      appData: appData || (registry && registry.appData) || {},
+      componentState: (host && host.state) || {},
+      componentData: (host && host.data) || {},
+    }
+    const screen = host && host.tree ? projectChatScreen(host.tree, host.state) : null
+    const hasScreen = !!screen && (screen.fields.length > 0 || screen.actions.length > 0 || !!screen.title)
+    const pageOrigin = origin || (typeof location !== 'undefined' && location.origin) || 'http://localhost'
+    const body = {
+      ...buildChatBody({
+        message: text,
+        sessionId,
+        attachments,
+        context,
+        mcpUrl: mcpUrl ? new URL(mcpUrl, pageOrigin).href : undefined,
+        menuContext: sendMenu ? buildChatMenuContext(menu || []) : undefined,
+        currentRoute,
+      }),
+      ...(hasScreen ? { screen } : {}),
+    }
+    const names = (attachments || []).map((a) => a.name).join(', ')
+    const shown = names ? `${text}${text ? '\n\n' : ''}📎 ${names}` : text
+    return { body, shown }
+  }
+
+  /** El texto final del turno: la respuesta, o por qué no la hay (respuesta vacía, corte de red, error). */
+  function chatTurnTextOf(accumulated, error) {
+    if (error) {
+      const message = (error && error.message) || String(error)
+      const network = message === 'Failed to fetch' || message === 'network error' || message === 'Load failed'
+      if (network && !accumulated) return '⚠️ ' + chromeText('chatNoAnswer')
+      return '⚠️ ' + chromeText('chatError', { message })
+    }
+    if (!accumulated) return '⚠️ ' + chromeText('chatEmptyAnswer')
+    return accumulated
+  }
+
+  /** La duración de una herramienta como el chat web: «850 ms», «1,2 s». */
+  function formatToolDuration(ms) {
+    if (typeof ms !== 'number' || !Number.isFinite(ms)) return ''
+    return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1).replace('.', ',')} s`
+  }
+
+  /** Las herramientas del turno en curso, listas para pintar bajo la respuesta (CSP: todo precomputado). */
+  function chatToolStepsOf(progress) {
+    return ((progress && progress.steps) || []).map((step, i) => ({
+      key: i + ':' + step.name,
+      name: step.name,
+      title: step.server ? `${step.name} (${step.server})` : step.name,
+      icon: step.running ? '…' : step.error ? '✕' : '✓',
+      cls: 'mateu-chat-step ' + (step.running ? 'running' : step.error ? 'failed' : 'done'),
+      time: step.running ? '' : formatToolDuration(step.ms),
+      error: step.error ? String(step.error) : '',
+    }))
+  }
+
+  /** Adjuntos tras una subida: los que había + los nuevos, sin repetir ruta. */
+  function withAttachments(current, added) {
+    const out = (current || []).slice()
+    for (const a of added || []) if (a && a.path && !out.some((b) => b.path === a.path)) out.push({ name: a.name || a.path, path: a.path, removeLabel: chromeText('chatRemoveAttachment', { name: a.name || a.path }) })
+    return out
+  }
+
   // el importe de un campo money: IntlNumberConverter con estilo moneda (un objeto JSON ya no vale)
   setConverterFactory((spec) => new NumberConverter.IntlNumberConverter(spec.options));
   // reglas del cliente: cada reducción fija su contexto (las del host, con su estado)
@@ -11837,6 +12035,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     streamChat,
     stickChatToBottom,
     uploadChatFiles,
+    // paridad con el chat web: config del panel, el turno completo (contexto + pantalla + mcp +
+    // adjuntos), agente local, herramientas en curso y los textos de una respuesta vacía o fallida
+    chatConfigOf,
+    chatTurnOf,
+    chatTurnTextOf,
+    chatToolStepsOf,
+    withAttachments,
+    probeLocalAgent,
+    projectChatScreen,
+    LOCAL_AGENT_URL,
     // el panel mientras el asistente trabaja, los contadores de tokens y el dictado
     mergeTurnUsage,
     addUsage,

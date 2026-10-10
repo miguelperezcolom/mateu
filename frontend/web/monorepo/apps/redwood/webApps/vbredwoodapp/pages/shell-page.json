@@ -327,6 +327,37 @@
         }
       ]
     },
+    "chatAttach": {
+      "chains": [
+        {
+          "chain": "chatAttach",
+          "parameters": {
+            "op": "pick"
+          }
+        }
+      ]
+    },
+    "chatRemoveAttachment": {
+      "chains": [
+        {
+          "chain": "chatAttach",
+          "parameters": {
+            "op": "remove",
+            "path": "{{ $current.data.path }}"
+          }
+        }
+      ]
+    },
+    "chatExpand": {
+      "chains": [
+        {
+          "chain": "chatAttach",
+          "parameters": {
+            "op": "expand"
+          }
+        }
+      ]
+    },
     "bellClicked": {
       "chains": [
         {

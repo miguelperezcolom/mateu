@@ -107,9 +107,14 @@
   "chatUploadFailed": "Upload failed: {status}",
   "chatAttach": "Attach files",
   "chatRemoveAttachment": "Remove {name}",
-  "chatNewConversation": "New conversation",
-  "chatStop": "Stop",
-  "chatStopped": "(stopped)",
-  "chatCopy": "Copy",
-  "chatCopied": "Copied"
+  "chatTool": "tool",
+  "chatToolsUsed": "Tools used",
+  "chatNoAnswer": "No answer from the agent. The server closed the connection without sending anything — check that the LLM has its API key configured and is available.",
+  "chatEmptyAnswer": "The agent returned no answer. Check that the LLM is configured correctly (API key).",
+  "chatError": "Error: {message}",
+  "chatUploadError": "Could not upload the files: {message}",
+  "chatLocalAgent": "local agent",
+  "chatLocalAgentHint": "Talking to your local CLI (the companion agent) — no API key",
+  "chatExpand": "Widen the assistant",
+  "chatRestore": "Restore the width"
 }

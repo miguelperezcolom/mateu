@@ -436,11 +436,30 @@
       start-opened="[[ $application.variables.mateuChatOpen ]]"
       on-oj-before-close="[[ $listeners.chatClose ]]">
       <div slot="start" id="mateuChatPanel" role="complementary" :aria-label="[[ $application.translations.appBundle.chatPanel ]]"
-        :class="[[ $application.variables.mateuMenuTabs ? 'mateu-chat-panel mateu-over-tabs' : 'mateu-chat-panel' ]]">
+        :class="[[ 'mateu-chat-panel' + ($application.variables.mateuMenuTabs ? ' mateu-over-tabs' : '') + ($application.variables.mateuChatExpanded ? ' mateu-chat-wide' : '') ]]">
         <oj-bind-if test="[[ $application.variables.mateuChatOpen ]]">
           <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-padding-4x-start oj-sm-padding-2x-end oj-sm-padding-2x-vertical mateu-chat-panel-header">
             <span class="oj-ux-ico-chat oj-ux-icon-size-5x oj-sm-margin-2x-end" aria-hidden="true"></span>
-            <h2 class="oj-typography-heading-xs oj-flex-item oj-sm-margin-0"><oj-bind-text value="[[ $application.translations.appBundle.chatTitle ]]"></oj-bind-text></h2>
+            <h2 class="oj-typography-heading-xs oj-flex-item oj-sm-margin-0"><oj-bind-text value="[[ $application.variables.mateuChatTitle || $application.translations.appBundle.chatTitle ]]"></oj-bind-text></h2>
+            <!-- el agente LOCAL (companion del usuario) contesta: el chat habla con él, sin api key -->
+            <oj-bind-if test="[[ $application.variables.mateuChatLocalAgent ]]">
+              <span class="oj-badge oj-badge-info oj-badge-subtle oj-sm-margin-2x-end mateu-chat-local-agent"
+                :title="[[ $application.translations.appBundle.chatLocalAgentHint ]]"><oj-bind-text value="[[ $application.translations.appBundle.chatLocalAgent ]]"></oj-bind-text></span>
+            </oj-bind-if>
+            <!-- modo ancho (60vw), como el del chat web: un botón por estado (el texto de un
+                 oj-button no sigue a un binding) -->
+            <oj-bind-if test="[[ !$application.variables.mateuChatExpanded ]]">
+              <oj-button id="mateuChatExpand" chroming="borderless" display="icons" on-oj-action="[[ $listeners.chatExpand ]]">
+                <span slot="startIcon" class="oj-ux-ico-expand"></span>
+                <oj-bind-text value="[[ $application.translations.appBundle.chatExpand ]]"></oj-bind-text>
+              </oj-button>
+            </oj-bind-if>
+            <oj-bind-if test="[[ $application.variables.mateuChatExpanded ]]">
+              <oj-button id="mateuChatExpand" chroming="borderless" display="icons" on-oj-action="[[ $listeners.chatExpand ]]">
+                <span slot="startIcon" class="oj-ux-ico-collapse"></span>
+                <oj-bind-text value="[[ $application.translations.appBundle.chatRestore ]]"></oj-bind-text>
+              </oj-button>
+            </oj-bind-if>
             <oj-button chroming="borderless" display="icons" on-oj-action="[[ $listeners.chatClose ]]">
               <span slot="startIcon" class="oj-ux-ico-close"></span>
               <oj-bind-text value="[[ $application.translations.appBundle.chatClose ]]"></oj-bind-text>
@@ -485,6 +504,22 @@
                 </span>
               </div>
             </oj-bind-if>
+            <!-- las herramientas del turno en curso: hechas (✓ y su tiempo), fallidas (✕ y el error)
+                 o en marcha (…), como el chat web -->
+            <oj-bind-if test="[[ ($application.variables.mateuChatSteps || []).length > 0 ]]">
+              <ul id="mateuChatSteps" class="mateu-chat-steps" :aria-label="[[ $application.translations.appBundle.chatToolsUsed ]]">
+                <oj-bind-for-each data="[[ $application.variables.mateuChatSteps ]]">
+                  <template>
+                    <li :class="[[ $current.data.cls ]]" :title="[[ $current.data.title ]]">
+                      <span class="mateu-chat-step-icon" aria-hidden="true"><oj-bind-text value="[[ $current.data.icon ]]"></oj-bind-text></span>
+                      <span class="mateu-chat-step-name"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></span>
+                      <span class="mateu-chat-step-time"><oj-bind-text value="[[ $current.data.time ]]"></oj-bind-text></span>
+                      <span class="mateu-chat-step-error"><oj-bind-text value="[[ $current.data.error ]]"></oj-bind-text></span>
+                    </li>
+                  </template>
+                </oj-bind-for-each>
+              </ul>
+            </oj-bind-if>
           </div>
           <!-- tokens de la conversación, sumados respuesta a respuesta -->
           <oj-bind-if test="[[ !!$application.variables.mateuChatTokens ]]">
@@ -501,7 +536,33 @@
               </oj-bind-if>
             </div>
           </oj-bind-if>
+          <!-- los adjuntos del SIGUIENTE mensaje (@AI(upload)): un chip por fichero, con su ✕ -->
+          <oj-bind-if test="[[ ($application.variables.mateuChatAttachments || []).length > 0 ]]">
+            <div id="mateuChatAttachments" class="oj-flex oj-sm-flex-wrap oj-sm-padding-4x-horizontal oj-sm-padding-2x-top mateu-chat-attachments">
+              <oj-bind-for-each data="[[ $application.variables.mateuChatAttachments ]]">
+                <template>
+                  <span class="oj-badge oj-badge-subtle oj-sm-margin-1x-end oj-sm-margin-1x-bottom mateu-chat-attachment" :title="[[ $current.data.path ]]">
+                    📎 <oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text>
+                    <oj-button chroming="borderless" display="icons" class="mateu-chat-attachment-remove"
+                      on-oj-action="[[ $listeners.chatRemoveAttachment ]]">
+                      <span slot="startIcon" class="oj-ux-ico-close"></span>
+                      <oj-bind-text value="[[ $current.data.removeLabel ]]"></oj-bind-text>
+                    </oj-button>
+                  </span>
+                </template>
+              </oj-bind-for-each>
+            </div>
+          </oj-bind-if>
           <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-padding-4x-horizontal oj-sm-padding-3x-vertical mateu-chat-composer">
+            <!-- adjuntar: sólo con @AI(upload) -->
+            <oj-bind-if test="[[ !!$application.variables.mateuChatUploadUrl ]]">
+              <oj-button id="mateuChatAttach" display="icons" class="oj-sm-margin-2x-end" chroming="borderless"
+                :disabled="[[ $application.variables.mateuChatBusy || $application.variables.mateuChatUploading ]]"
+                on-oj-action="[[ $listeners.chatAttach ]]">
+                <span slot="startIcon" class="oj-ux-ico-attach"></span>
+                <oj-bind-text value="[[ $application.translations.appBundle.chatAttach ]]"></oj-bind-text>
+              </oj-button>
+            </oj-bind-if>
             <!-- dictar: solo donde el navegador reconoce la voz; lo dictado se envía.
                  Ctrl+Shift+M lo pulsa con el panel abierto (shell-page.js). Un botón por estado: el
                  texto de un oj-button (su tooltip y su nombre accesible) no sigue a un oj-bind-text -->

@@ -806,6 +806,46 @@
       "type": "boolean",
       "defaultValue": false,
       "description": "el dictado esta escuchando"
+    },
+    "mateuChatTitle": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "titulo del panel del chat: la marca del App (@App(askLabel)) o el texto del catalogo (chatConfigOf)"
+    },
+    "mateuChatUploadUrl": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "endpoint de adjuntos del chat (@AI(upload)); si esta puesto, sale el boton de adjuntar"
+    },
+    "mateuChatMcpUrl": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "el endpoint MCP de la app (@AI(mcp)): viaja en cada mensaje para que el agente pueda operar ESTA app"
+    },
+    "mateuChatLocalAgent": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "el agente LOCAL (companion en 127.0.0.1:8776) contesto a /health: el chat habla con el, sin api key"
+    },
+    "mateuChatAttachments": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "ficheros subidos para el SIGUIENTE mensaje: [{name, path}] (chips; viajan como attachments)"
+    },
+    "mateuChatUploading": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "hay una subida de adjuntos en curso"
+    },
+    "mateuChatSteps": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "herramientas que usa el agente en el turno en curso (chatToolStepsOf): hechas, fallidas o en marcha"
+    },
+    "mateuChatExpanded": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "modo ancho del panel del chat (~60% del viewport), como el del chat web"
     }
   },
   "userConfig": {

@@ -28,33 +28,56 @@ define([
   class chatSend extends ActionChain {
     async run(context) {
       const { $application } = context;
+      const vars = $application.variables;
       const el = inputEl();
-      const text = ((el && el.value) || $application.variables.mateuChatInput || '').trim();
-      if (!text || $application.variables.mateuChatBusy) return;
+      const text = ((el && el.value) || vars.mateuChatInput || '').trim();
+      const attachments = vars.mateuChatAttachments || [];
+      // un mensaje con sólo adjuntos (sin texto) también se envía, como en el chat web
+      if ((!text && !attachments.length) || vars.mateuChatBusy) return;
 
-      if (!$application.variables.mateuChatSessionId) {
-        $application.variables.mateuChatSessionId = 'chat-' + crypto.randomUUID();
+      if (!vars.mateuChatSessionId) {
+        vars.mateuChatSessionId = 'chat-' + crypto.randomUUID();
       }
-
-      const msgs = ($application.variables.mateuChatMessages || []).slice();
-      msgs.push({ role: 'user', text });
-      const agentIdx = msgs.push({ role: 'agent', text: '' }) - 1;
-      $application.variables.mateuChatMessages = msgs;
-      clearInput($application);
-      $application.variables.mateuChatBusy = true;
-
-      const sessionId = $application.variables.mateuChatSessionId;
-      const registry = $application.variables.mateuRegistry || {};
-      const menuContext = window.__mateuChatMenuSentFor === sessionId ? undefined
-        : bridge.buildChatMenuContext(window.__mateuShellMenu || (registry.shell && registry.shell.menu) || []);
+      const sessionId = vars.mateuChatSessionId;
+      const registry = vars.mateuRegistry || {};
+      // el menú sólo en el PRIMER mensaje de la sesión: el agente lo guarda por sesión
+      const sendMenu = window.__mateuChatMenuSentFor !== sessionId;
       window.__mateuChatMenuSentFor = sessionId;
+      // el turno con la forma del chat web (poc/chat.mjs chatTurnOf): texto, sesión, ruta, adjuntos,
+      // el contexto de la pantalla (url, título, appState, estado del host), la pantalla proyectada
+      // para el agente, el mcpUrl y el menú
+      const turn = bridge.chatTurnOf({
+        message: text,
+        sessionId,
+        attachments,
+        registry,
+        appState: vars.mateuAppState || {},
+        url: window.location.pathname + window.location.search + window.location.hash,
+        screenTitle: document.title,
+        // currentRoute: la pantalla desde la que se pregunta — el plano de control elige el
+        // agente por ella (en /mapping, el de mapeado)
+        currentRoute: vars.mateuSelectedRoute || undefined,
+        mcpUrl: vars.mateuChatMcpUrl || undefined,
+        menu: window.__mateuShellMenu || (registry.shell && registry.shell.menu) || [],
+        sendMenu,
+      });
+
+      const msgs = (vars.mateuChatMessages || []).slice();
+      msgs.push({ role: 'user', text: turn.shown });
+      const agentIdx = msgs.push({ role: 'agent', text: '' }) - 1;
+      vars.mateuChatMessages = msgs;
+      vars.mateuChatAttachments = [];
+      vars.mateuChatSteps = [];
+      clearInput($application);
+      vars.mateuChatBusy = true;
 
       const startedAt = Date.now();
       let hasText = false;
       let turnUsage = null;
       let progress = null;
+      let accumulated = '';
       const showStatus = () => {
-        $application.variables.mateuChatStatus = bridge.chatStatusText({
+        vars.mateuChatStatus = bridge.chatStatusText({
           busy: true, hasText, elapsedSeconds: (Date.now() - startedAt) / 1000, progress, now: Date.now(),
         });
       };
@@ -62,9 +85,9 @@ define([
       const ticking = setInterval(showStatus, 1000);
 
       const setAgent = (value) => {
-        const next = ($application.variables.mateuChatMessages || []).slice();
+        const next = (vars.mateuChatMessages || []).slice();
         if (next[agentIdx]) next[agentIdx] = { role: 'agent', text: value };
-        $application.variables.mateuChatMessages = next;
+        vars.mateuChatMessages = next;
         if (!hasText && value) { hasText = true; showStatus(); }
       };
 
@@ -74,44 +97,50 @@ define([
       let renderYaml = null;
       // Y uno `navigation-requested` ([NAVIGATE:…] del agente): la ruta a abrir, también al final.
       let navigateTo = null;
+      let failure = null;
       try {
-        await bridge.streamChat({
-          url: $application.variables.mateuChatSseUrl,
+        accumulated = await bridge.streamChat({
+          // el agente LOCAL si contestó a /health al abrir el panel (sin api key), si no el sseUrl
+          url: bridge.effectiveChatUrl({
+            localAgentAlive: vars.mateuChatLocalAgent,
+            localAgentUrl: bridge.LOCAL_AGENT_URL,
+            sseUrl: vars.mateuChatSseUrl,
+          }),
           // el agente actúa como quien pregunta: el token de la sesión (el stream no pasa por
           // fetchWithPolicy, que es quien lo pone en el resto del tráfico). Una función, leída en
           // cada envío: tras un 401 se pide reautenticar y el reenvío lleva el token nuevo
           headers: () => bridge.authHeadersOf(),
           reauthenticate: bridge.askForReauthentication,
-          // currentRoute: la pantalla desde la que se pregunta — el plano de control elige el
-          // agente por ella (en /mapping, el de mapeado)
-          body: bridge.buildChatBody({
-            message: text,
-            sessionId: $application.variables.mateuChatSessionId,
-            currentRoute: $application.variables.mateuSelectedRoute || undefined,
-            // las pantallas de la consola (con los filtros por URL de cada listado), en el PRIMER
-            // mensaje de la sesión: el agente las guarda por sesión — sin ellas no sabe a qué
-            // ruta llevar ni cómo filtrarla. Mismo contrato que el chat de Vaadin.
-            menuContext: menuContext,
-          }),
-          onText: (accumulated) => setAgent(accumulated),
-          onProgress: (p) => { progress = p; showStatus(); },
+          body: turn.body,
+          onText: (value) => { accumulated = value; setAgent(value); },
+          onProgress: (p) => {
+            progress = p;
+            vars.mateuChatSteps = bridge.chatToolStepsOf(p);
+            showStatus();
+          },
           onUsage: (usage) => { turnUsage = bridge.mergeTurnUsage(turnUsage, usage); },
           onEvent: (ev) => {
             if (ev && ev.event === 'render-screen' && ev.detail && ev.detail.yaml) {
               renderYaml = ev.detail.yaml;
-            }
-            if (ev && ev.event === 'navigation-requested' && ev.detail && typeof ev.detail.route === 'string') {
+            } else if (ev && ev.event === 'navigation-requested' && ev.detail && typeof ev.detail.route === 'string') {
               navigateTo = ev.detail.route;
+            } else if (ev && ev.event) {
+              // cualquier otro evento del agente sale al documento, como en el chat web (que lo
+              // despacha burbujeando): lo oye quien lo escuche (un componente web de la página)
+              document.dispatchEvent(new CustomEvent(ev.event, { detail: ev.detail, bubbles: true, composed: true }));
             }
           },
-        });
+        }) || accumulated;
       } catch (e) {
-        setAgent('⚠️ ' + (e && e.message ? e.message : 'Error'));
+        failure = e || new Error('Error');
       } finally {
         clearInterval(ticking);
-        $application.variables.mateuChatStatus = '';
-        $application.variables.mateuChatTokens = bridge.latestUsage($application.variables.mateuChatTokens, turnUsage);
-        $application.variables.mateuChatBusy = false;
+        // la respuesta, o por qué no la hay: vacía, corte de red o error (mismos textos que el web)
+        setAgent(bridge.chatTurnTextOf(accumulated, failure));
+        vars.mateuChatStatus = '';
+        vars.mateuChatSteps = [];
+        vars.mateuChatTokens = bridge.latestUsage(vars.mateuChatTokens, turnUsage);
+        vars.mateuChatBusy = false;
         focusInput();
       }
 
@@ -123,7 +152,7 @@ define([
         await Actions.callChain(context, {
           chain: 'onMateuNavigate',
           params: {
-            event: { route: $application.variables.mateuSelectedRoute || '/ai-screen', renderYaml },
+            event: { route: vars.mateuSelectedRoute || '/ai-screen', renderYaml },
             force: true,
           },
         });

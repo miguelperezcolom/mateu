@@ -212,8 +212,13 @@ define([
         ? base + reg.shell.logo : '';
       // chat de IA (@AI → App.sseUrl): endpoint del agente, same-origin del backend Mateu.
       // Con esto puesto sale el botón del chat en la cabecera (su drawer a la izquierda).
-      $application.variables.mateuChatSseUrl = reg.shell && reg.shell.sseUrl
-        ? base + reg.shell.sseUrl : '';
+      // Y, como el chat web: el título del panel (la marca del @App(askLabel)), los adjuntos
+      // (@AI(upload)) y el mcpUrl (@AI(mcp)) — bridge.chatConfigOf
+      const chat = bridge.chatConfigOf(reg.shell, base);
+      $application.variables.mateuChatSseUrl = chat.sseUrl;
+      $application.variables.mateuChatTitle = chat.title;
+      $application.variables.mateuChatUploadUrl = chat.uploadUrl;
+      $application.variables.mateuChatMcpUrl = chat.mcpUrl;
       // el FAB de "ask": Ask Oracle con su glifo, o el rótulo/icono del @App(askLabel, askIcon)
       const askFab = bridge.askFabOf(reg.shell, base);
       $application.variables.mateuAskLabel = askFab.label;
