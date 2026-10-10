@@ -41,9 +41,8 @@ field annotated with JPA's `@jakarta.persistence.Version` (or Spring Data's
 `@org.springframework.data.annotation.Version`) — takes part in that check like Mateu's own
 `@Version`, so a stale save gets the same dialog and *Sobrescribir* adopts the stored version; but
 Mateu does **not** bump it, because the persistence provider increments it itself. For a race the
-check cannot see, throw `OptimisticLock.StaleEditException` from `save` (the
-[Spring Data JPA store](/java-user-manual/build/spring-data/) translates Spring's
-`OptimisticLockingFailureException` for you).
+check cannot see, throw `OptimisticLock.StaleEditException` from `save` (e.g. translate Spring's
+`OptimisticLockingFailureException` in your store).
 
 ## Related
 
