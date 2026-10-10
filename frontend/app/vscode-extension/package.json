@@ -70,6 +70,16 @@
         "command": "mateu.addRoute",
         "title": "Add Route…",
         "category": "Mateu"
+      },
+      {
+        "command": "mateu.runLive",
+        "title": "Run App (Live)",
+        "category": "Mateu"
+      },
+      {
+        "command": "mateu.reloadScreen",
+        "title": "Reload Screen",
+        "category": "Mateu"
       }
     ],
     "menus": {
@@ -118,7 +128,9 @@
     "workspaceContains:**/specs/ui/**/*.yml",
     "onCustomEditor:mateu.visualEditor",
     "onCommand:mateu.newFile",
-    "onCommand:mateu.addRoute"
+    "onCommand:mateu.addRoute",
+    "onCommand:mateu.runLive",
+    "onCommand:mateu.reloadScreen"
   ],
   "keywords": [
     "mateu",
