@@ -11,7 +11,10 @@ export function walkWithinSurface(node, visit) {
     if (!n || typeof n !== 'object') return
     if (!isRoot && n.type === 'ServerSide') return // frontera de isla: parar
     visit(n)
-    for (const v of Object.values(n)) {
+    for (const [k, v] of Object.entries(n)) {
+      // the page header's record/context switcher (Page.metadata.switcher) is header chrome, not
+      // content: its actionId + label made a stray «Customer» button in the form's action row
+      if (k === 'switcher' && n.type === 'Page') continue
       if (Array.isArray(v)) v.forEach((x) => walk(x, false))
       else if (v && typeof v === 'object') walk(v, false)
     }
@@ -116,6 +119,8 @@ export function actionsOf(tree) {
       style: a.buttonStyle || 'outlined',
       chroming: a.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
       parameters: a.parameters || {},
+      // shown but inert (a Toggle.disabled wizard/crud button): the oj-button's disabled
+      disabled: !!a.disabled,
       ...(ids && ids.get(a) ? { nodeId: ids.get(a) } : {}),
     })
   }
@@ -181,6 +186,46 @@ export function sectionHeadOf(card) {
 }
 
 /**
+ * The buttons a SECTION carries (@Section(editAction, addAction, viewMoreAction), an @Inline type's
+ * @Toolbar/@Button): those in the title row (the HorizontalLayout holding the section's heading)
+ * stay beside the title, the rest go under the section's content — they belong to the section,
+ * not to the form's action row. Not crossing a nested section or an island.
+ */
+export function sectionButtonsOf(card) {
+  const titleButtons = []
+  const footerButtons = []
+  const isHeading = (k) => !!(k && k.metadata && k.metadata.type === 'Text' && /^h[1-6]$/.test(k.metadata.container || ''))
+  const buttonOf = (m) => ({
+    actionId: m.actionId,
+    label: m.label || m.actionId,
+    // tertiary (the affordances) = JET borderless
+    chroming: m.buttonStyle === 'primary' ? 'callToAction' : m.buttonStyle === 'tertiary' ? 'borderless' : 'outlined',
+    disabled: !!m.disabled,
+    parameters: m.parameters || {},
+  })
+  const walk = (n, isRoot, inTitleRow) => {
+    if (!n || typeof n !== 'object') return
+    if (Array.isArray(n)) { n.forEach((x) => walk(x, false, inTitleRow)); return }
+    if (!isRoot && (n.type === 'ServerSide' || isSectionNode(n))) return
+    const md = n.metadata
+    if (md && md.type === 'Button' && md.actionId) {
+      (inTitleRow ? titleButtons : footerButtons).push(buttonOf(md))
+      return
+    }
+    const titleRow = !!(md && md.type === 'HorizontalLayout' && (n.children || []).some(isHeading))
+    for (const [k, v] of Object.entries(n)) {
+      if (k === 'metadata' && md) {
+        for (const mv of Object.values(md)) if (mv && typeof mv === 'object') walk(mv, false, inTitleRow || titleRow)
+        continue
+      }
+      if (v && typeof v === 'object') walk(v, false, inTitleRow || titleRow)
+    }
+  }
+  walk(card, true, false)
+  return { titleButtons, footerButtons }
+}
+
+/**
  * Las columnas de un grupo de campos en un formulario a TODO EL ANCHO (página, wizard): las
  * declaradas (FormLayout maxColumns, @Section(columns)) o, sin declarar, dos — el reparto por
  * defecto del FormLayout de Vaadin en escritorio. oj-form-layout las baja solo cuando no caben
@@ -209,7 +254,7 @@ export function formSectionsOf(tree, state, data) {
     if (!isRoot && n.type === 'ServerSide') return // frontera de isla: sus campos no son de aquí
     let here = section
     if (isSectionNode(n)) {
-      here = { key: 's' + sections.length, ...sectionHeadOf(n), fields: [] }
+      here = { key: 's' + sections.length, ...sectionHeadOf(n), ...sectionButtonsOf(n), fields: [] }
       sections.push(here)
     }
     if (n.fieldId && byId[n.fieldId] && !placed[n.fieldId]) {
@@ -218,7 +263,7 @@ export function formSectionsOf(tree, state, data) {
         here.fields.push(byId[n.fieldId])
       } else {
         if (!loose || sections[sections.length - 1] !== loose) {
-          loose = { key: 's' + sections.length, title: '', columns: 1, declaredColumns: false, fields: [] }
+          loose = { key: 's' + sections.length, title: '', columns: 1, declaredColumns: false, titleButtons: [], footerButtons: [], fields: [] }
           sections.push(loose)
         }
         loose.fields.push(byId[n.fieldId])
@@ -239,7 +284,9 @@ export function formSectionsOf(tree, state, data) {
       const head = !sec.declaredColumns && rootColumns.declaredColumns ? { ...sec, columns: rootColumns.columns, declaredColumns: true } : sec
       // (el @Colspan de un campo no se aplica: de los hijos del oj-form-layout clásico sólo
       // oj-label-value tiene colspan, y envolver el control en uno descuadra la rejilla)
-      return { ...head, hasTitle: !!sec.title, wideColumns: wideColumnsOf(head) }
+      return { ...head, hasTitle: !!sec.title, wideColumns: wideColumnsOf(head),
+        hasTitleButtons: !!(sec.titleButtons && sec.titleButtons.length),
+        hasFooterButtons: !!(sec.footerButtons && sec.footerButtons.length) }
     })
 }
 

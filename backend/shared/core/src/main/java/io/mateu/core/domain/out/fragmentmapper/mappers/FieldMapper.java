@@ -131,7 +131,7 @@ public class FieldMapper {
   }
 
   /** Maps an option INCLUDING its children, so hierarchical option sets (tree selects) survive. */
-  private static OptionDto mapOption(io.mateu.uidl.data.Option option) {
+  public static OptionDto mapOption(io.mateu.uidl.data.Option option) {
     return new OptionDto(
         option.value(),
         option.label(),

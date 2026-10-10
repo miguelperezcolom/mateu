@@ -127,6 +127,13 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
                 WithActionOptions(new ActionDto(Naming.CamelCase(m.Name)) { RestAction = RestActionOf(m) },
                     type, Naming.CamelCase(m.Name)))
             .Where(a => actions.All(x => x.Id != a.Id)));
+        // The section affordances ([Section(EditAction/AddAction/ViewMoreAction)]) dispatch the
+        // named methods, and the header's record switcher dispatches _switchRecord — both must be
+        // advertised or the renderer drops the click (mirrors Java's ActionMapper).
+        foreach (var sectionAction in SectionActionIds(type).Where(a => actions.All(x => x.Id != a)))
+            actions.Add(new ActionDto(sectionAction, ValidationRequired: false));
+        if (instance is IRecordSwitcherSupplier)
+            actions.Add(new ActionDto(IRecordSwitcherSupplier.ActionId, ValidationRequired: false));
 
         // A component-tree view (an archetype like Dashboard/Foldout, or any IComponentTreeSupplier)
         // renders its fluent tree as the page content; actionIds referenced by the tree (metric-card
@@ -190,7 +197,10 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
                 banner.Title.Length > 0 ? T(banner.Title) : title,
                 banner.Subtitle.Length > 0 ? T(banner.Subtitle) : null,
                 banner.Image.Length > 0 ? banner.Image : null,
-                null, true), "welcome-banner", []));
+                null, true)
+            {
+                Tone = banner.Tone == HeroTone.Auto ? null : banner.Tone.ToString().ToLowerInvariant(),
+            }, "welcome-banner", []));
 
         var compact = type.Find<CompactAttribute>() != null;
         // pageTitle is the humanized class name; title is the declared [Title] (falling back to the
@@ -210,6 +220,7 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
             Kpis = inline ? [] : Kpis(type, instance),
             Fabs = fabs,
             PeerNav = PeerNavOf(instance),
+            Switcher = SwitcherOf(instance),
             Timestamp = TimestampOf(type, instance),
             Overline = OptT(type.Find<OverlineAttribute>()?.Value),
             TitlePlaceholder = OptT(type.Find<TitlePlaceholderAttribute>()?.Value),

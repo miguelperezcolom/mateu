@@ -19,6 +19,7 @@ import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.ActionSupplier;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.interfaces.*;
+import io.mateu.uidl.interfaces.Draftable;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -69,7 +70,64 @@ public abstract class Wizard
 
   @Override
   public Object handleRoute(String route, HttpRequest httpRequest) {
+    // A Draftable wizard opened afresh (no position in the state yet) resumes on the step the user
+    // left (the Redwood guided-process resumeStepId).
+    if (this instanceof Draftable draftable && !hasPosition(httpRequest)) {
+      var resume = draftable.resumeStep(httpRequest);
+      if (resume != null && !resume.isBlank()) {
+        var fields = WizardStepInspector.getStepFields(this);
+        for (int i = 0; i < fields.size() - 1; i++) {
+          if (fields.get(i).getName().equals(resume) && applies(i)) {
+            position = i;
+            break;
+          }
+        }
+      }
+    }
     return this;
+  }
+
+  private static boolean hasPosition(HttpRequest httpRequest) {
+    var rq = httpRequest != null ? httpRequest.runActionRq() : null;
+    var state = rq != null ? rq.componentState() : null;
+    return state != null && state.get("position") != null;
+  }
+
+  /**
+   * This wizard's built-in affordances (the Redwood guided-process {@code displayOptions}): the
+   * draft buttons of a {@link Draftable} wizard and the "Skip" button of {@link #stepSkippable}
+   * steps — each {@code on}, {@code off} or {@code disabled}. Override to switch them.
+   */
+  protected WizardDisplay display() {
+    return WizardDisplay.defaults();
+  }
+
+  /**
+   * Whether the user may SKIP the step held by the given field (the Redwood guided-process {@code
+   * spSkip}): a "Skip" button moves on to the next step without requiring that step's fields —
+   * unlike {@link #stepApplies}, which removes a step the answers made irrelevant, a skippable step
+   * is still there, the user just chooses not to fill it in now. Default: no step is skippable.
+   */
+  protected boolean stepSkippable(String stepFieldName) {
+    return false;
+  }
+
+  /**
+   * Cancelable hook run BEFORE the wizard moves from one step to another (the Redwood
+   * guided-process {@code spBeforeStepNavigate}/{@code spBeforeNext}): Next, Back, Skip, a jump to
+   * a visited step and the completion action (whose {@code toStep} is the result step) all pass
+   * through it, after the current step has been hydrated and — going forward — its required fields
+   * checked. Return null to let the move happen; anything else cancels it and becomes the response
+   * (typically a {@code Message.error(...)} explaining why). Default: never cancels.
+   */
+  protected Object beforeStepNavigate(String fromStep, String toStep, HttpRequest httpRequest) {
+    return null;
+  }
+
+  /** The step field name at an index (null when out of range). */
+  String stepName(int index) {
+    var fields = WizardStepInspector.getStepFields(this);
+    return index >= 0 && index < fields.size() ? fields.get(index).getName() : null;
   }
 
   @Override
@@ -500,6 +558,12 @@ public abstract class Wizard
   public List<Action> actions(HttpRequest httpRequest) {
     var actions = new ArrayList<Action>();
     actions.add(Action.builder().id("next").validationRequired(true).build());
+    // skipping and saving a draft deliberately leave the step incomplete: no client validation
+    actions.add(Action.builder().id("skip").validationRequired(false).build());
+    if (this instanceof Draftable) {
+      actions.add(Action.builder().id("saveDraft").validationRequired(false).build());
+      actions.add(Action.builder().id("saveAndClose").validationRequired(false).build());
+    }
     // A completion action that streams (returns a Flux, e.g. a LongTask) has to be called over
     // SSE, or the client waits for the whole stream and the progress never shows.
     getAllMethods(getClass()).stream()

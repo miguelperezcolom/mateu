@@ -62,6 +62,32 @@ accent color strip only shows on pages WITHOUT a welcome banner** — so on any 
 one (this annotation, or a `HeroSection` anywhere in the content, like `Welcome` and
 `HeroSearch`), the Redwood renderer suppresses the strip automatically.
 
+## Hero tone
+
+The hero band can take one of nine deep tones — the Redwood welcome palette idea, expressed as
+hues, not as Oracle's swatches:
+
+```java
+@Override
+protected HeroTone heroTone() { return HeroTone.pine; }
+```
+
+or `@WelcomeBanner(tone = HeroTone.plum)` on any page. `auto` (the default) keeps the renderer's
+own band. Vaadin, React Native and IntelliJ paint Mateu's palette (ocean `#1f4e79`, pine `#2d5a3d`,
+lilac `#5b4a7a`, teal `#1f5c5c`, rose `#7a3b4f`, pebble `#5a5550`, slate `#3d4a57`, plum `#5e3557`,
+sienna `#7a4a2e`, with light ink); Redwood maps each tone onto its welcome banner's
+`dark-<tone>` background.
+
+![A pine hero](/images/docs/welcome/hero-tone.png)
+
+## Coverage
+
+| | Java | .NET | Python | Vaadin | Redwood | React Native | IntelliJ |
+|---|---|---|---|---|---|---|---|
+| Hero + CTAs + highlight tiles | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `@WelcomeBanner` on any page | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Hero tone | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
 ## Redwood parameter and slot reference
 
 What the Redwood `welcome-page` template exposes, and what Mateu gives you for it. The canonical
@@ -76,7 +102,7 @@ page-header elements shared by every template are documented once in
 | `descriptionText` | `heroSubtitle()` / `@WelcomeBanner(subtitle=…)` | ✅ |
 | `overlineText` (small text above the title) | `@Overline("Reservations")`, or `OverlineSupplier` when it depends on runtime state | ✅ |
 | `primaryAction` / `secondaryAction` / `secondaryActions` | `Button` fields; the fluent `Button` carries `iconOnLeft`/`iconOnRight`, `disabled` and `actionId` | ✅ |
-| `backgroundColor`: 9 dark tones + `auto` | — the Redwood/VB bridge rotates tones on its own (`mateuWelcomeTheme`), but the archetype cannot declare one, so the other renderers do not follow | — |
+| `backgroundColor`: 9 dark tones + `auto` | `heroTone()` / `@WelcomeBanner(tone=…)` → `HeroTone` (ocean, pine, lilac, teal, rose, pebble, slate, plum, sienna, `auto`) | ✅ |
 | `illustrationBackground` + `illustrationForeground` (two illustration layers) | `heroImage()` — a single background image with a dark overlay | 🟡 |
 | `themedImage: pebbles \| none` | ⚪ an Oracle illustration asset; design-system-specific by nature | ⚪ |
 | `displayOptions.imageStretch: none \| full` | — | — |

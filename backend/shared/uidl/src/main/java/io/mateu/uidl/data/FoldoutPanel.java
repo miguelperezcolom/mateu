@@ -19,6 +19,12 @@ public record FoldoutPanel(
     boolean open,
     String width,
     Component content,
+    /**
+     * What the panel shows while it is FOLDED (the Redwood foldout-panel {@code summary} slot): a
+     * compact digest — a count, a status, a total — drawn in the collapsed strip under the rotated
+     * title, so the user can tell whether it is worth opening. Null = title only.
+     */
+    Component summary,
     String style,
     String cssClasses)
     implements Component {}

@@ -211,6 +211,7 @@ from .archetype_pages import (  # noqa: F401
     TodoList,
 )
 from .flow import (  # noqa: F401
+    Announce,
     CloseOverlay,
     Emit,
     FlowStep,
@@ -247,6 +248,18 @@ from .business_components import (  # noqa: F401
 from .adapters import (  # noqa: F401
     AdaptedView,
     ComponentAdapter,
+)
+from .patterns import (  # noqa: F401
+    CrudDisplay,
+    DockedPanel,
+    Draftable,
+    GeneralOverviewDisplay,
+    HeroTone,
+    RecordSwitcher,
+    RecordSwitcherSupplier,
+    SwitcherType,
+    Toggle,
+    WizardDisplay,
 )
 
 
@@ -300,4 +313,6 @@ __all__ = [
     "ComponentTreeSupplier", "Dashboard", "DataManagement", "Foldout", "GanttPage", "ItemOverview", "Welcome", "TodoList",
     "CalendarPage",
     "AppShell", "AppSupplier", "MenuSupplier",
+    "Announce", "CrudDisplay", "DockedPanel", "Draftable", "GeneralOverviewDisplay", "HeroTone",
+    "RecordSwitcher", "RecordSwitcherSupplier", "SwitcherType", "Toggle", "WizardDisplay",
 ]

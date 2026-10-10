@@ -127,6 +127,7 @@ class ArchetypeMapperMixin(MixinBase):
                     icon=panel.icon or None,
                     open=panel.open,
                     content=value,
+                    summary=instance.panel_summary(f.name),
                 )
             )
         return fluent.FoldoutLayout(
@@ -199,11 +200,13 @@ class ArchetypeMapperMixin(MixinBase):
             hero_title = instance.hero_title()
             hero_subtitle = instance.hero_subtitle()
             hero_image = instance.hero_image()
+            hero_tone = instance.hero_tone()
         else:
             # @auto_page plain class: the hero title is the declared @title; subtitle and
             # image have no declarative source — setting them is a reason to subclass Welcome.
             hero_title = getattr(type(instance), "__mateu_title__", None)
             hero_subtitle = hero_image = None
+            hero_tone = None
         content = [
             self.map_component(
                 fluent.HeroSection(
@@ -212,6 +215,7 @@ class ArchetypeMapperMixin(MixinBase):
                     subtitle=hero_subtitle,
                     image=hero_image,
                     centered=True,
+                    tone=hero_tone,
                     content=tuple(ctas),
                 )
             )

@@ -111,6 +111,11 @@ public sealed partial class ReflectionMapper
             DragType = DragTypeOf(viewType),
             // [RestListing]: rows fetched client-side from an arbitrary REST endpoint.
             RowsSource = RestListingOf(viewType),
+            // SmartSearchPage.PreSearchContent: shown in place of the results until the first
+            // search (the Redwood smart-filter-search dashboard slot); null when none.
+            PreSearch = smartSearch?.PreSearchContent() is { } preSearch
+                ? [ComponentMapper.Map(preSearch)]
+                : null,
             // A listing fills the space its parent leaves and scrolls internally (coherence-plan #8).
         }, "crud", []) with { Sizing = "fill" };
         var pageChildren = new List<ComponentDto>();
@@ -182,6 +187,9 @@ public sealed partial class ReflectionMapper
         var canCreate = Hook("CanCreate");
         var canDelete = Hook("CanDelete");
         var rowsClickable = canView || canEdit;
+        // Crud.Display (CrudDisplay): New/Delete On|Off|Disabled on top of the capability hooks —
+        // Off removes the button, Disabled shows it inert (mirrors Java's ListRouteResolver).
+        var display = (crud as ICrudAffordances)?.Display ?? CrudDisplay.Defaults;
         // Class-level [InlineEditing]: every data column (except [ReadOnly] ones) is edited in
         // place; each committed cell dispatches the crud's update-row action (Java parity).
         var inlineEditing = viewType.Find<InlineEditingAttribute>() != null;
@@ -209,9 +217,9 @@ public sealed partial class ReflectionMapper
             .ToList();
         var toolbar = new List<ButtonDto>();
         var actions = new List<ActionDto> { new("search") };
-        if (canCreate)
+        if (canCreate && display.Create.Shown())
         {
-            toolbar.Add(new ButtonDto("New", "new"));
+            toolbar.Add(new ButtonDto("New", "new") { Disabled = !display.Create.Enabled() });
             actions.Add(new ActionDto("new"));
         }
         // Export the listing (Crud.CsvExportable / ExcelExportable / PdfExportable): the whole
@@ -230,9 +238,9 @@ public sealed partial class ReflectionMapper
             toolbar.Insert(exportAt++, new ButtonDto(label, actionId));
             actions.Add(new ActionDto(actionId, ValidationRequired: false));
         }
-        if (canDelete)
+        if (canDelete && display.Delete.Shown())
         {
-            toolbar.Add(new ButtonDto("Delete", "delete"));
+            toolbar.Add(new ButtonDto("Delete", "delete") { Disabled = !display.Delete.Enabled() });
             actions.Add(new ActionDto("delete"));
         }
         if (rowsClickable) actions.Add(new ActionDto("view", ValidationRequired: false));

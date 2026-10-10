@@ -28,4 +28,7 @@ public @interface WelcomeBanner {
 
   /** Optional background image URL for the banner (rendered with a dark overlay). */
   String image() default "";
+
+  /** The banner's tone: {@code auto} (default look) or a dark tinted band. */
+  io.mateu.uidl.data.HeroTone tone() default io.mateu.uidl.data.HeroTone.auto;
 }

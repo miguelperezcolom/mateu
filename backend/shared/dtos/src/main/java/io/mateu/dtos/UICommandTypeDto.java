@@ -12,5 +12,6 @@ public enum UICommandTypeDto {
   DispatchEvent,
   MarkAsDirty,
   MarkAsClean,
-  DownloadFile
+  DownloadFile,
+  Announce
 }

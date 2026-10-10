@@ -357,6 +357,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     }
     // GridLayout.masterDetail: table on the left, a read-only detail form of the selected row on
     // the right (a JBSplitter). Every other layout keeps the plain full-width table.
+    val resultsHost = JPanel(BorderLayout()).apply { isOpaque = false }
     if (metadata.text("gridLayout") == "masterDetail") {
         val detail = JPanel(BorderLayout())
         detail.border = JBUI.Borders.emptyLeft(12)
@@ -388,16 +389,42 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         val splitter = com.intellij.ui.OnePixelSplitter(false, 0.55f)
         splitter.firstComponent = JBScrollPane(table)
         splitter.secondComponent = detail
-        center.add(splitter, BorderLayout.CENTER)
+        resultsHost.add(splitter, BorderLayout.CENTER)
     } else {
-        center.add(JBScrollPane(table), BorderLayout.CENTER)
+        resultsHost.add(JBScrollPane(table), BorderLayout.CENTER)
+    }
+    // `preSearch` (the smart-search page's "dashboard"): shown IN PLACE of the results until this
+    // listing's first search answers; from then on the results own the spot for good (a later
+    // empty answer shows the normal empty state). Remembered in the component state so a
+    // re-render of the crud does not bring it back.
+    val preSearchKey = PageSlots.preSearchDoneKey(component.text("id"))
+    var preSearchShown = PageSlots.showsPreSearch(metadata, ctx.currentComponentState[preSearchKey] == true)
+    if (preSearchShown) {
+        val pre = verticalPanel()
+        for (node in metadata.arr("preSearch")) pre.addStacked(r.render(node, state, data), JBGap)
+        center.add(JBScrollPane(pre).apply { border = null }, BorderLayout.CENTER)
+        pager.isVisible = false
+    } else {
+        center.add(resultsHost, BorderLayout.CENTER)
     }
     center.add(pager, BorderLayout.SOUTH)
     panel.add(center, BorderLayout.CENTER)
+    val leavePreSearch = {
+        if (preSearchShown) {
+            preSearchShown = false
+            ctx.currentComponentState[preSearchKey] = true
+            (center.layout as BorderLayout).getLayoutComponent(BorderLayout.CENTER)?.let { center.remove(it) }
+            center.add(resultsHost, BorderLayout.CENTER)
+            pager.isVisible = true
+            center.revalidate()
+            center.repaint()
+        }
+    }
 
     // ── data handler: initial data + async search results land here ──
     val groupBy = metadata.text("groupBy")
     val applyData = { d: JsonNode ->
+        if (PageSlots.isListingAnswer(d)) leavePreSearch()
         // The listing envelope (the object carrying `page` — plus `aggregates`/`groups` when the
         // crud is grouped/aggregated); `eff` is the page itself.
         val crudNode = d.path("crud")

@@ -198,16 +198,21 @@ def list_toolbar_button(arg=None, confirmation_required: bool = False, rows_sele
     )
 
 
-def wizard_completion_action(label: str = "Finish"):
+def wizard_completion_action(label: str = "Finish", available_from_step: int | None = None):
     """Marks the wizard method that COMPLETES it (Java's ``@WizardCompletionAction``): the
     penultimate step shows a primary ``label`` button running it (instead of Next), and the LAST
     step becomes the read-only result screen shown after it ran — progress at 100%, no navigation
     buttons. The method reads the bound state of every step and may set the result step's fields;
     a returned ``Message`` is shown as well. Without it, the last step's Finish runs
-    ``complete()``."""
+    ``complete()``.
+
+    ``available_from_step`` (a 1-based ``Step(n)`` number) offers the completion EARLY, beside
+    Next, from that step on — a user with nothing more to add can finish (the Redwood
+    guided-process ``availableFromStep``; Java's ``@WizardCompletionAction(availableFromStep)``)."""
 
     def deco(fn):
         setattr(fn, "__mateu_wizard_completion__", label)
+        setattr(fn, "__mateu_wizard_completion_from__", available_from_step)
         return fn
 
     return deco

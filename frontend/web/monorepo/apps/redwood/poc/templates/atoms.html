@@ -404,6 +404,7 @@
                         <oj-bind-for-each data="[[ $current.data.buttons ]]">
                           <template>
                             <oj-button class="oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                              disabled="[[ !!$current.data.disabled ]]"
                               :data-mateu-hover="[[ $current.data.tooltip ]]"
                               :data-action-id="[[ $current.data.actionId ]]"
                               on-oj-action="[[ $listeners.{{blockAction}} ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>

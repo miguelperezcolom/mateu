@@ -44,7 +44,13 @@ public sealed partial class SyncHandler
         {
             "search" => CrudSearch(crud, element, rq),
             "create" or "save" => CrudSave(crud, crudType, element, id, rq, baseRoute),
+            // the edit drawer's "Save and next" (CrudDisplay.SaveAndNext): the id rides the route
+            // of the drawer's form, or its state
+            "save-and-next" => CrudSave(crud, crudType, element, id ?? RowId(rq, element), rq, baseRoute),
             "update-row" => UpdateRow(crud, crudType, element, rq),
+            // CrudDisplay: a Disabled (or Off) New/Delete cannot be forced from the client either
+            "delete" or "new" when !Allowed(DisplayOf(crud), rq.ActionId!) =>
+                Error($"Action not available: {rq.ActionId}"),
             "delete" => Navigate(baseRoute, id is null ? null : Delete(crud, id), rq),
             // Crud.CsvExportable / ExcelExportable / PdfExportable: only a crud that offers the
             // export answers its export-* action (the id is wire input).
@@ -145,6 +151,16 @@ public sealed partial class SyncHandler
         FragmentResponse(Title(crudType), _mapper.MapEntityForm(crudType, element, entity, mode, route), rq,
             LookupLabels(element, entity, Activator.CreateInstance(crudType)!));
 
+    private static CrudDisplay DisplayOf(object crud) =>
+        (crud as ICrudAffordances)?.Display ?? CrudDisplay.Defaults;
+
+    private static bool Allowed(CrudDisplay display, string actionId) => actionId switch
+    {
+        "new" => display.Create.Enabled(),
+        "delete" => display.Delete.Enabled(),
+        _ => true,
+    };
+
     private static bool EditInDrawer(object crud) =>
         crud.GetType().GetProperty("EditInDrawer")?.GetValue(crud) as bool? ?? false;
 
@@ -158,17 +174,34 @@ public sealed partial class SyncHandler
     /// <summary>The EditInDrawer create/edit form: the same entity form the /new — /{id}/edit
     /// routes render, wrapped in a Drawer emitted as an Add fragment over the listing.</summary>
     private UIIncrementDto CrudDrawer(
-        Type crudType, Type element, object entity, string mode, string route, RunActionRqDto rq, object crud)
+        Type crudType, Type element, object entity, string mode, string route, RunActionRqDto rq, object crud) =>
+        UIIncrementDto.Of(fragments: [CrudDrawerFragment(crudType, element, entity, mode, route, rq, crud)]);
+
+    /// <summary>The create/edit drawer as an Add fragment. It always carries the same id
+    /// (crud-edit-drawer): re-sending it while it is open refreshes it in place — how "Save and
+    /// next" moves it on to the next record (<paramref name="initialData"/> = that record) and how a
+    /// failed save shows its <paramref name="errorMessage"/> as a danger Notice over the form with
+    /// what was typed (mirrors Java's CrudDrawerBuilder).</summary>
+    private UIFragmentDto CrudDrawerFragment(
+        Type crudType, Type element, object entity, string mode, string route, RunActionRqDto rq, object crud,
+        object? initialData = null, string? errorMessage = null)
     {
-        var form = _mapper.MapEntityForm(crudType, element, entity, mode, route);
+        ComponentDto form = _mapper.MapEntityForm(crudType, element, entity, mode, route, crud as ICrudAffordances);
+        if (errorMessage is not null)
+            form = new ClientSideComponentDto(new VerticalLayoutMetadataDto(), null,
+            [
+                new ClientSideComponentDto(
+                    new NoticeMetadataDto(errorMessage, "danger", null, null, null, FullWidth: true),
+                    "crud-drawer-error", [], null, null, null),
+                form,
+            ], "width: 100%;", null, null);
         var width = crudType.GetProperty("EditDrawerWidth")?.GetValue(crud) as string ?? "36rem";
         var drawer = new ClientSideComponentDto(
             new DrawerMetadataDto("crud-edit-drawer", mode == "new" ? "New" : "Edit", form)
-                { Width = width },
+                { Width = width, InitialData = initialData },
             "crud-edit-drawer", [], null, null, null);
-        return UIIncrementDto.Of(fragments:
-            [new UIFragmentDto(Target(rq), drawer, null,
-                LookupLabels(element, entity, Activator.CreateInstance(crudType)!), "Add", null)]);
+        return new UIFragmentDto(Target(rq), drawer, null,
+            LookupLabels(element, entity, Activator.CreateInstance(crudType)!), "Add", null);
     }
 
     // ── Capability listings (IListing + declared capabilities; mirrors Java's CapabilityCrud) ──
@@ -203,7 +236,50 @@ public sealed partial class SyncHandler
             BumpVersion(entity);
         }
 
-        crudType.GetMethod("Save")!.Invoke(crud, [entity]);
+        var saveAndNext = rq.ActionId == "save-and-next";
+        if (saveAndNext && (!EditInDrawer(crud) || !DisplayOf(crud).SaveAndNext.Enabled()))
+            return UIIncrementDto.Of();
+        try
+        {
+            crudType.GetMethod("Save")!.Invoke(crud, [entity]);
+        }
+        catch (TargetInvocationException failure)
+            when (failure.InnerException is not null and not MateuForbiddenException
+                  && EditInDrawer(crud) && DisplayOf(crud).ErrorBanner.Shown())
+        {
+            // drawer mode: a failed save keeps the drawer open and shows WHY inside it (the Redwood
+            // create-edit-drawer error banner) with the values the user typed, and announces it
+            // assertively — nothing takes focus (mirrors Java's PersistActionHandler).
+            var message = string.IsNullOrWhiteSpace(failure.InnerException.Message)
+                ? "The record could not be saved"
+                : failure.InnerException.Message;
+            var mode = id is null ? "new" : "edit";
+            var route = id is null ? $"{baseRoute}/new" : $"{baseRoute}/{id}/edit";
+            return UIIncrementDto.Of(
+                commands: [UICommandDto.AnnounceAssertive(message) with { TargetComponentId = Target(rq) }],
+                fragments: [CrudDrawerFragment(crudType, element, entity, mode, route, rq, crud,
+                    _mapper.EntityState(element, entity), message)]);
+        }
+        if (saveAndNext
+            && (element.GetProperty("Id")?.GetValue(entity)?.ToString() ?? id) is { } savedId
+            && (crud as ICrudAffordances)?.NextIdAfter(savedId) is { } nextId)
+        {
+            // the drawer stays open and is re-sent with the same id for the next row — the Add
+            // fragment of an open overlay refreshes it in place — while the listing refreshes
+            // through the same saved event the close would have emitted
+            var next = GetOrNew(crud, crudType, element, nextId);
+            return UIIncrementDto.Of(
+                commands:
+                [
+                    UICommandDto.MarkAsClean() with { TargetComponentId = Target(rq) },
+                    UICommandDto.DispatchEvent(SavedInDrawerEvent) with { TargetComponentId = Target(rq) },
+                    new UICommandDto(Target(rq), "RunAction",
+                        new { actionId = "search", targetComponentId = Target(rq) }),
+                ],
+                messages: [new MessageDto("success", "middle", "", "Saved", 3000)],
+                fragments: [CrudDrawerFragment(crudType, element, next, "edit", $"{baseRoute}/{nextId}/edit", rq,
+                    crud, _mapper.EntityState(element, next))]);
+        }
         if (EditInDrawer(crud))
         {
             // drawer mode: no navigation — close the drawer emitting the saved event and re-run

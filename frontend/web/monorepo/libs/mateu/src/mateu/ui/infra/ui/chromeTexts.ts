@@ -67,6 +67,10 @@ const en = {
     // navigation inside a component
     previous: 'Previous',
     next: 'Next',
+    // header record/context switcher
+    switchRecord: 'Switch record',
+    context: 'Context',
+    noMatches: 'No matches',
     expand: 'Expand',
     collapse: 'Collapse',
     maximize: 'Maximize',
@@ -243,6 +247,9 @@ const es: Catalogue = {
     goBack: 'Volver',
     previous: 'Anterior',
     next: 'Siguiente',
+    switchRecord: 'Cambiar de registro',
+    context: 'Contexto',
+    noMatches: 'Sin coincidencias',
     expand: 'Expandir',
     collapse: 'Contraer',
     maximize: 'Maximizar',

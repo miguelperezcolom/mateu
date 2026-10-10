@@ -96,6 +96,36 @@ class Crud(Generic[T]):
         v = getattr(entity, "id", None)
         return None if v is None else str(v)
 
+    def display(self):
+        """This crud's built-in affordances (the Redwood collection-container /
+        create-edit-drawer ``displayOptions``): the New and Delete buttons (on / off / disabled),
+        the edit drawer's "Save and next" (default off) and its error banner (default on). See
+        :class:`mateu_uidl.CrudDisplay`; e.g. ``dataclasses.replace(CrudDisplay.defaults(),
+        create=Toggle.disabled)``."""
+        from .patterns import CrudDisplay
+
+        return CrudDisplay.defaults()
+
+    def save_and_next_label(self) -> str:
+        """The edit drawer's "Save and next" label."""
+        return "Save and next"
+
+    def next_id_after(self, current_id) -> str | None:
+        """The id of the row that follows ``current_id`` in the listing, for the edit drawer's
+        "Save and next" — None when it was the last one (the drawer then closes as after a plain
+        save). The default walks ``fetch(None)`` in its own order; override to follow the user's
+        filters/sort or to page through a large table."""
+        if current_id is None:
+            return None
+        current = str(current_id)
+        found = False
+        for row in self.fetch(None):
+            row_id = self.id_of(row)
+            if found:
+                return row_id
+            found = row_id is not None and row_id == current
+        return None
+
 
 @dataclass(frozen=True)
 class DateRange:

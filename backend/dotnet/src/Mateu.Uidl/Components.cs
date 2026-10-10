@@ -171,6 +171,11 @@ public sealed record FoldoutPanel : ComponentBase
     public string? Width { get; init; }
 
     public IComponent? Content { get; init; }
+
+    /// <summary>What the panel shows while FOLDED (the Redwood foldout-panel summary slot): a compact
+    /// digest drawn in the collapsed strip under the rotated title. Travels as the child slotted
+    /// "summary-N". Null = title only.</summary>
+    public IComponent? Summary { get; init; }
 }
 
 /// <summary>Redwood-style foldout: a fixed overview panel on the left plus lateral fold-out panels
@@ -235,6 +240,8 @@ public sealed record HeroSection : ComponentBase
     public string? Image { get; init; }
     public string? Height { get; init; }
     public bool Centered { get; init; }
+    /// <summary>The band's tone: Auto (default look) or a dark tinted band with light ink.</summary>
+    public HeroTone Tone { get; init; } = HeroTone.Auto;
     public IReadOnlyList<IComponent> Content { get; init; } = [];
 }
 
@@ -1102,6 +1109,13 @@ public sealed record Button(string Label, string ActionId) : ComponentBase
 {
     public bool Primary { get; init; }
 
+    /// <summary>Shown but inert (e.g. a Toggle.Disabled affordance).</summary>
+    public bool Disabled { get; init; }
+
+    /// <summary>Explicit button style ("primary" | "secondary" | "tertiary"…); null keeps
+    /// <see cref="Primary"/>'s choice.</summary>
+    public string? ButtonStyle { get; init; }
+
     /// <summary>Extra parameters merged into the dispatched action request (e.g. the conflict
     /// dialog's <c>_forceOverwrite</c>).</summary>
     public IReadOnlyDictionary<string, object?>? Parameters { get; init; }
@@ -1286,6 +1300,12 @@ public sealed record MarkClean : FlowStep;
 
 /// <summary>Mark the current view dirty — arms the unsaved-changes navigation guard.</summary>
 public sealed record MarkDirty : FlowStep;
+
+/// <summary>Tell assistive technology what just happened (the Redwood announcement slot): the text
+/// is read through the page's polite live region, or the assertive one when
+/// <paramref name="Assertive"/> (interrupts — errors only). Nothing is drawn. Lowers to the
+/// <c>Announce</c> command (Java's UICommand.announce / announceAssertive).</summary>
+public sealed record Announce(string Text, bool Assertive = false) : FlowStep;
 
 // ── Sizing intent (coherence-plan #8) ────────────────────────────────────────
 /// <summary>How a component is sized within the space its parent gives it (coherence-plan #8).

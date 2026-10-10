@@ -34,6 +34,21 @@ export const announce = (message: string): void => {
     AccessibilityInfo.announceForAccessibility(text)
 }
 
+/**
+ * The `Announce` command (UICommand.announce / announceAssertive): the live-region counterpart.
+ * POLITE queues behind whatever the screen reader is saying; ASSERTIVE interrupts it (iOS honours
+ * `queue`; Android's TalkBack always interrupts, which is the closest it has).
+ */
+export const announceLive = (message: string, assertive: boolean): void => {
+    const text = (message ?? '').trim()
+    if (!text) return
+    const withOptions = (AccessibilityInfo as unknown as {
+        announceForAccessibilityWithOptions?: (m: string, o: { queue?: boolean }) => void
+    }).announceForAccessibilityWithOptions
+    if (typeof withOptions === 'function') withOptions.call(AccessibilityInfo, text, { queue: !assertive })
+    else AccessibilityInfo.announceForAccessibility(text)
+}
+
 /** Whether a screen reader is running, for the rare case where behaviour should differ. */
 export const isScreenReaderEnabled = (): Promise<boolean> =>
     AccessibilityInfo.isScreenReaderEnabled()

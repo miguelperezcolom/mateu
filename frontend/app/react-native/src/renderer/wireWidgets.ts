@@ -122,11 +122,49 @@ export function trackCount(template: string | null | undefined): number {
 /** Columns to lay a responsive grid out in at `width` px: stacked (1) below `stackBelow` (default
  *  600px — a phone in portrait), else the declared tracks, else as many 280px columns as fit. */
 export function responsiveColumns(template: string | null | undefined, width: number, stackBelow?: string | null): number {
-  const threshold = stackBelow && /^\d+(px)?$/.test(stackBelow.trim()) ? parseInt(stackBelow, 10) : 600;
+  const threshold = cssLengthPx(stackBelow) ?? 600;
   if (width < threshold) return 1;
   const tracks = trackCount(template);
   if (tracks > 0) return tracks;
   return Math.max(1, Math.floor(width / 280));
+}
+
+/** A CSS length in px (px, rem/em at 16px, or a bare number); null when it is not one. */
+export function cssLengthPx(value: string | null | undefined): number | null {
+  const m = /^(\d+(?:\.\d+)?)(px|rem|em)?$/.exec((value ?? '').trim());
+  if (!m) return null;
+  const n = parseFloat(m[1]!);
+  return m[2] === 'rem' || m[2] === 'em' ? n * 16 : n;
+}
+
+/** A simple track list ("1fr 22rem", "2fr 1fr 300px") as flex sizes: `{fr}` grows, `{px}` is fixed.
+ *  Null for anything fancier (repeat(), minmax(), auto…) — callers fall back to equal columns. */
+export function gridTrackSizes(template: string | null | undefined): ({ fr: number } | { px: number })[] | null {
+  const tokens = (template ?? '').trim().split(/\s+/).filter(Boolean);
+  if (tokens.length === 0) return null;
+  const out: ({ fr: number } | { px: number })[] = [];
+  for (const t of tokens) {
+    const fr = /^(\d+(?:\.\d+)?)fr$/.exec(t);
+    if (fr) { out.push({ fr: parseFloat(fr[1]!) }); continue; }
+    const px = cssLengthPx(t);
+    if (px === null) return null;
+    out.push({ px });
+  }
+  return out;
+}
+
+/** Children ordered by the FIRST row of `gridTemplateAreas` ("main info") matched against their
+ *  `slot`, so a promoted slot listed first (for stacking) still lands in its declared column when
+ *  the grid is wide. Null when the areas don't name every child exactly once. */
+export function orderByAreas<T>(areas: string | null | undefined, children: T[]): T[] | null {
+  const raw = (areas ?? '').trim();
+  const quoted = /["']([^"']*)["']/.exec(raw);
+  const firstRow = (quoted ? quoted[1]! : raw).trim().split(/\s+/).filter(Boolean);
+  if (firstRow.length === 0 || firstRow.length !== children.length) return null;
+  const slot = (c: T) => (((c as Dict)?.['slot'] as string) ?? '');
+  const ordered = firstRow.map((name) => children.find((c) => slot(c) === name));
+  if (ordered.some((c) => c === undefined) || new Set(ordered).size !== children.length) return null;
+  return ordered as T[];
 }
 
 // ── ContentLayout ───────────────────────────────────────────────────────────

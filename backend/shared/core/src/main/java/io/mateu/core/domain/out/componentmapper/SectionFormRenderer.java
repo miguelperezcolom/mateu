@@ -143,7 +143,9 @@ final class SectionFormRenderer {
     return sections.stream()
         .map(
             section -> {
-              var formLayout = buildSectionBody(section, ctx);
+              var formLayout =
+                  SectionAffordances.wrap(
+                      section, buildSectionBody(section, ctx), ctx.httpRequest(), ctx.level());
               if (inline || section.frameless()) {
                 // Inline embedded mediator or @Section(frameless=true): render the section content
                 // bare, without the outlined Card wrapper (nor its padding), so it blends into the
@@ -193,21 +195,27 @@ final class SectionFormRenderer {
     return sections.stream()
         .map(
             section -> {
-              var toolbarTriggers = collectInlineTriggers(section, ctx, true);
-              var buttonTriggers = collectInlineTriggers(section, ctx, false);
+              var toolbarTriggers = new ArrayList<>(collectInlineTriggers(section, ctx, true));
+              toolbarTriggers.addAll(SectionAffordances.titleRow(section, ctx.httpRequest()));
+              var buttonTriggers = new ArrayList<>(collectInlineTriggers(section, ctx, false));
+              buttonTriggers.addAll(SectionAffordances.footer(section, ctx.httpRequest()));
               // When the section's only field is an @Inline embedded MultiView, the embedded view
               // brings its own (demoted) title + toolbar; suppress the parent section title so the
               // two don't visually compete. A blank/whitespace section title emits no heading at
               // all (so an untitled zoned band or column doesn't leave an empty header line).
               var hideTitle =
                   hostsInlineEmbeddedMediator(section, ctx.fieldsPerSection())
-                      || section.value() == null
-                      || section.value().isBlank();
+                      || ((section.value() == null || section.value().isBlank())
+                          && !SectionAffordances.any(section));
 
               var titleComponent =
                   hideTitle
                       ? null
-                      : buildTitleRow(section.value(), toolbarTriggers, ctx.level(), titleStyle);
+                      : buildTitleRow(
+                          section.value() != null ? section.value() : "",
+                          toolbarTriggers,
+                          ctx.level(),
+                          titleStyle);
               var formLayout = buildFormLayout(section, ctx);
 
               var contentItems = new ArrayList<Component>();
@@ -512,7 +520,7 @@ final class SectionFormRenderer {
     return width == null || width.isBlank() ? GridTrack.fill() : GridTrack.fixed(width);
   }
 
-  private static Component buildTitleRow(
+  static Component buildTitleRow(
       String title, List<UserTrigger> toolbar, int level, String titleStyle) {
     var titleText =
         Text.builder()

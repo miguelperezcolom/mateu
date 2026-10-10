@@ -54,6 +54,8 @@ export interface HeroSection {
   image?: string;
   height?: string;
   centered?: boolean;
+  /** Band tone (ocean|pine|lilac|teal|rose|pebble|slate|plum|sienna); null = default look. */
+  tone?: string | null;
 }
 
 export interface EmptyState {

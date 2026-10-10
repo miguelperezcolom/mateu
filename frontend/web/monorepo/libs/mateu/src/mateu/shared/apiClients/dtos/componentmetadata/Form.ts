@@ -1,3 +1,4 @@
+import RecordSwitcher from "@mateu/shared/apiClients/dtos/componentmetadata/RecordSwitcher";
 import ComponentMetadata from "@mateu/shared/apiClients/dtos/ComponentMetadata";
 import Status from "@mateu/shared/apiClients/dtos/componentmetadata/Status";
 import Badge from "@mateu/shared/apiClients/dtos/componentmetadata/Badge";
@@ -36,6 +37,8 @@ export default interface Form extends ComponentMetadata {
     fabs: Fab[] | undefined
     toc?: boolean
     peerNav?: PeerNav
+    /** the header's record/context switcher (RecordSwitcherSupplier) */
+    switcher?: RecordSwitcher
     timestamp?: string
 
 }

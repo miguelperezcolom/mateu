@@ -145,6 +145,16 @@ public abstract class Foldout implements ComponentTreeSupplier, ActionSupplier, 
     return FoldoutOrientation.vertical;
   }
 
+  /**
+   * What a fold-out panel shows while FOLDED (the Redwood foldout-panel {@code summary} slot) — a
+   * compact digest drawn in the collapsed strip under the rotated title ("3 open", "€1,240 due"),
+   * so the user can tell whether it is worth opening. Receives the panel's field name; null (the
+   * default) = title only.
+   */
+  protected Component panelSummary(String panelFieldName) {
+    return null;
+  }
+
   @Override
   public Component component(HttpRequest httpRequest) {
     Component overview = null;
@@ -178,6 +188,7 @@ public abstract class Foldout implements ComponentTreeSupplier, ActionSupplier, 
               .icon(!panel.icon().isEmpty() ? panel.icon() : null)
               .open(panel.open())
               .content(component)
+              .summary(panelSummary(field.getName()))
               .build());
     }
     return FoldoutLayout.builder()

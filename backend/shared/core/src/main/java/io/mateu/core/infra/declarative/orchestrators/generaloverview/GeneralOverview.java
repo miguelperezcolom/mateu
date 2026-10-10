@@ -3,7 +3,11 @@ package io.mateu.core.infra.declarative.orchestrators.generaloverview;
 import io.mateu.uidl.annotations.Colspan;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.data.EmptyState;
+import io.mateu.uidl.data.GeneralOverviewDisplay;
+import io.mateu.uidl.data.GridTrack;
 import io.mateu.uidl.data.Option;
+import io.mateu.uidl.data.ResponsiveGrid;
+import io.mateu.uidl.data.Slotted;
 import io.mateu.uidl.fluent.AutoSaveTrigger;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Trigger;
@@ -46,6 +50,26 @@ public abstract class GeneralOverview<Row> implements TriggersSupplier, OptionsS
    */
   protected abstract Component overview(Row row, HttpRequest httpRequest);
 
+  /**
+   * The contextual {@code info} panel (the Redwood general-overview {@code info} slot): secondary,
+   * read-only context about the record — related contacts, recent activity, notes — drawn beside
+   * the overview on wide pages and stacked with it on narrow ones (above it when {@link
+   * GeneralOverviewDisplay#promoteInfoSlot()} is on). Null (the default) = no info panel.
+   */
+  protected Component info(Row row, HttpRequest httpRequest) {
+    return null;
+  }
+
+  /** The info panel's width on wide pages (a CSS length). */
+  protected String infoWidth() {
+    return "20rem";
+  }
+
+  /** This page's built-in affordances (see {@link GeneralOverviewDisplay}). */
+  protected GeneralOverviewDisplay display() {
+    return GeneralOverviewDisplay.defaults();
+  }
+
   /** What to show when no record is selected/found. */
   protected Component emptyOverview() {
     return EmptyState.builder()
@@ -79,7 +103,32 @@ public abstract class GeneralOverview<Row> implements TriggersSupplier, OptionsS
       }
     }
     var row = id == null || id.isBlank() ? null : load(id, currentRequest);
-    return row == null ? emptyOverview() : overview(row, currentRequest);
+    if (row == null) {
+      return emptyOverview();
+    }
+    var main = overview(row, currentRequest);
+    var display = display();
+    var info = display.info().shown() ? info(row, currentRequest) : null;
+    if (info == null) {
+      return main;
+    }
+    // main + info on the one responsive grid: side by side on wide pages, stacked below 48rem. The
+    // stacked order is the DOM order, which is what promoteInfoSlot flips (info first = on top).
+    var promote = display.promoteInfoSlot().enabled();
+    var slots =
+        promote
+            ? List.<Component>of(new Slotted("info", info), new Slotted("main", main))
+            : List.<Component>of(new Slotted("main", main), new Slotted("info", info));
+    return new ResponsiveGrid(
+        "general-overview",
+        List.of(GridTrack.fill(), GridTrack.fixed(infoWidth())),
+        null,
+        slots,
+        null,
+        "48rem",
+        "\"main info\"",
+        null,
+        null);
   }
 
   @io.mateu.uidl.annotations.Action

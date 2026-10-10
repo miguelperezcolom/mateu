@@ -25,10 +25,18 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val header = verticalPanel(4)
     val exprCtx = mapOf<String, Any?>("state" to r.ctx.currentComponentState, "appState" to r.ctx.appState)
     val title = io.mateu.ijp.state.Expressions.interpolate(metadata.text("title", metadata.text("pageTitle")), exprCtx)
-    if (title.isNotBlank()) {
-        val l = JBLabel(title)
-        l.font = l.font.deriveFont(Font.BOLD, 20f)
-        header.addStacked(l, 4)
+    // Title + (optional) record/context switcher beside it — the header's "which one" selector.
+    val switcher = PageSlots.switcherOf(metadata)
+    if (title.isNotBlank() || switcher != null) {
+        val titleRow = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(12), 0))
+        titleRow.isOpaque = false
+        if (title.isNotBlank()) {
+            val l = JBLabel(title)
+            l.font = l.font.deriveFont(Font.BOLD, 20f)
+            titleRow.add(l)
+        }
+        if (switcher != null) titleRow.add(renderRecordSwitcher(r, switcher))
+        header.addStacked(titleRow, 4)
     }
     val subtitle = io.mateu.ijp.state.Expressions.interpolate(metadata.text("subtitle"), exprCtx)
     if (subtitle.isNotBlank()) {
@@ -148,4 +156,48 @@ private fun headerBadge(badge: JsonNode, exprCtx: Map<String, Any?>): JComponent
         background = bg
         border = JBUI.Borders.empty(2, 8)
     }
+}
+
+/**
+ * The page header's record/context switcher (`PageDto.switcher`): a muted hint + a combo box on the
+ * current value. Picking another entry runs the switcher's action (`_switchRecord`) with
+ * `{_record: value}`; `disabled` makes it read-only; `searchable` adds the IDE's speed search
+ * (type over the open list to filter/jump), the platform idiom for a filterable combo.
+ */
+internal fun renderRecordSwitcher(r: ComponentRenderer, switcher: PageSlots.Switcher): JComponent {
+    val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0))
+    row.isOpaque = false
+    val hint = JBLabel(switcher.label)
+    hint.foreground = JBUI.CurrentTheme.Label.disabledForeground()
+    row.add(hint)
+
+    val combo = com.intellij.openapi.ui.ComboBox(javax.swing.DefaultComboBoxModel(switcher.options.toTypedArray()))
+    combo.renderer = object : com.intellij.ui.ColoredListCellRenderer<PageSlots.SwitcherOption>() {
+        override fun customizeCellRenderer(
+            list: javax.swing.JList<out PageSlots.SwitcherOption>,
+            value: PageSlots.SwitcherOption?,
+            index: Int,
+            selected: Boolean,
+            hasFocus: Boolean,
+        ) {
+            if (value == null) return
+            append(value.label)
+            // Descriptions only in the open list — the closed box shows just the current value.
+            if (index >= 0 && value.description.isNotBlank()) {
+                append("  " + value.description, com.intellij.ui.SimpleTextAttributes.GRAYED_ATTRIBUTES)
+            }
+        }
+    }
+    combo.selectedIndex = switcher.selectedIndex
+    combo.isEnabled = !switcher.disabled
+    hint.labelling(combo)
+    combo.accessibleDescription(if (switcher.type == "context") "Changes the context of this page" else "Shows another record")
+    if (switcher.searchable) runCatching { com.intellij.ui.ComboboxSpeedSearch.installOn(combo) }
+    combo.addItemListener { e ->
+        if (e.stateChange != java.awt.event.ItemEvent.SELECTED) return@addItemListener
+        val picked = e.item as? PageSlots.SwitcherOption ?: return@addItemListener
+        PageSlots.switchParameters(switcher, picked)?.let { r.ctx.runAction(switcher.actionId, it) }
+    }
+    row.add(combo)
+    return row
 }

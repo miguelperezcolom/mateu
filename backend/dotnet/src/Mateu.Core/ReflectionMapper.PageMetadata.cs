@@ -125,6 +125,17 @@ public sealed partial class ReflectionMapper
         return null;
     }
 
+    /// <summary>The header's record/context switcher from an IRecordSwitcherSupplier, as the wire
+    /// DTO; null when the page supplies none (mirrors Java's PageMapper.mapSwitcher).</summary>
+    internal static RecordSwitcherDto? SwitcherOf(object? instance)
+    {
+        if ((instance as IRecordSwitcherSupplier)?.Switcher() is not { } s) return null;
+        return new RecordSwitcherDto(
+            (s.Options ?? []).Select(MapOption).ToList(), s.Value,
+            s.Type == SwitcherType.Context ? "context" : "object",
+            s.Label, s.Searchable, s.Disabled, IRecordSwitcherSupplier.ActionId);
+    }
+
     /// <summary>The page's "last updated" timestamp from the first [Timestamp] property (an
     /// optional label prefix + the value's ToString()); null when there is no such property or its
     /// value is null (mirrors Java's PageMetadataExtractor.getTimestamp).</summary>

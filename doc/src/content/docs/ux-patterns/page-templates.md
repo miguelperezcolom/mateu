@@ -112,3 +112,95 @@ Three notes on how to read the table:
   placed in the `aside`; the rest of the form becomes the `main` region of a `ContentLayout`
   (`position`/`width`/`sticky` come from the annotation). You keep declaring data as usual and just
   point at the one supporting panel that belongs to the side.
+
+## Record and context switcher
+
+The Redwood header's `selectObject` / `selectContext` element, available on **any** page with a
+header — not only inside `GeneralOverview`. Implement `RecordSwitcherSupplier` (the sibling of
+`PeerNavigationSupplier`: peer navigation steps to the previous/next record, the switcher jumps to
+any of them):
+
+```java
+@UI("/customer")
+public class CustomerPage implements RecordSwitcherSupplier {
+  public String customer = "c1";
+
+  @Override
+  public RecordSwitcher switcher(HttpRequest rq) {
+    return RecordSwitcher.builder()
+        .options(customers.stream().map(c -> new Option(c.id(), c.name(), c.city())).toList())
+        .value(customer)
+        .type(SwitcherType.object)      // or context: what the page is evaluated in
+        .label("Customer")
+        .searchable(true)               // type-ahead over label + description
+        .build();
+  }
+
+  @Override
+  public Object switchTo(String value, HttpRequest rq) {
+    customer = value;                   // point the page at the new record…
+    return this;                        // …and re-render in place (or return a URI to navigate)
+  }
+}
+```
+
+It travels as `PageDto.switcher`; a pick runs the page's `_switchRecord` action with the value in
+`_record`, which calls `switchTo`. Vaadin draws a native select (a filtering combobox when
+`searchable`) beside the title; Redwood uses the oj-sp header's own data switcher (with
+`switcherSearch`); React Native a pill opening a bottom sheet; IntelliJ a combo box with speed
+search.
+
+![The header switcher, searching](/images/docs/page-templates/record-switcher.png)
+
+## Announcements
+
+The Redwood `announcement` slot — what a screen-reader user should hear when nothing on screen
+takes focus — is a command any action can return: `UICommand.announce("3 rows imported")`, or
+`UICommand.announceAssertive(text)` for errors (it interrupts). Nothing is drawn; each renderer
+pushes the text through its live region (web), `AccessibilityInfo` (React Native) or the IDE's
+announcer (IntelliJ). The CRUD edit drawer already announces a failed save.
+
+## Display options: one tri-state grammar
+
+Redwood switches a template's built-in affordances through `displayOptions`, each `on`, `off` or
+`disabled`. Mateu's equivalent is the shared `Toggle` enum (`on` · `off` · `disabled` = shown but
+inert — the state permissions need) grouped in one display record per archetype, returned by an
+overridable `display()`:
+
+| Archetype | Record | Toggles |
+|---|---|---|
+| `Wizard` | `WizardDisplay` | `saveDraft`, `saveAndClose`, `skip` |
+| `Crud` / `AutoCrud` | `CrudDisplay` | `create`, `delete`, `saveAndNext`, `errorBanner` |
+| `GeneralOverview` | `GeneralOverviewDisplay` | `info`, `promoteInfoSlot` |
+
+Toggles are consumed on the server while composing — a `disabled` affordance travels as a disabled
+button and is refused if forced, an `off` one does not travel — so no renderer needs to know about
+them. The existing gates (`canCreate`, `@NotDeletable`…) still decide whether an affordance exists;
+the display record decides how it shows. Only the archetypes with affordances worth switching have
+a record: inventing toggles for the others would be surface without behaviour.
+
+## Section affordances
+
+The Redwood `section` template's edit / add / view-more actions, on any `@Section`:
+
+```java
+@Section(value = "Guests", addAction = "addGuest", editAction = "editGuests")
+public String leadGuest;
+
+@Section(value = "Payments", viewMoreAction = "allPayments")
+public String lastPayment;
+```
+
+Each attribute names an action method of the form: *Add* and *Edit* render as small tertiary
+buttons on the section's title row, *View more* as a link under its content. They are ordinary
+buttons composed on the server, so every renderer draws them.
+
+## Coverage of the header and cross-template pieces
+
+| | Java | .NET | Python | Vaadin | Redwood | React Native | IntelliJ |
+|---|---|---|---|---|---|---|---|
+| Record / context switcher | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Announcements | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Display records (`Toggle`) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Section affordances | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Peer navigation, overline, title placeholder, timestamp | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
