@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<!-- A HOST page for <mateu-ui>: a plain Oracle JET app (no Visual Builder), JET from Oracle's CDN —
+     the shape of a VB page that imported the component. It binds the component with Knockout the
+     way a VB page does ([[ ]] properties, on-mateu-* listeners) and logs its events, so the
+     embedded probe (e2e/vb-embedded-probe.mjs) can check them. Query: ?backend=<Mateu base URL>
+     &route=<route>&params=<json>&appContext=<json>&navigation=internal|host&cancel=1 -->
+<html class="oj-html" lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Host app — mateu-ui embedded</title>
+    <!-- the host's Redwood theme: JET's, and the Core Pack (Preact) one a VB app loads too -->
+    <link rel="stylesheet" href="https://static.oracle.com/cdn/jet/18.1.0-2510.3/default/css/redwood/oj-redwood-min.css" />
+    <link rel="stylesheet" href="https://static.oracle.com/cdn/jet/18.1.0-2510.3/3rdparty/oraclejet-preact/amd/Theme-redwood/theme.css" />
+    <!-- the Redwood UX icon font (oj-ux-ico-*), which a VB app's theme brings -->
+    <link rel="stylesheet" href="https://static.oracle.com/cdn/fnd/gallery/2604.0.2/images/iconfont/ojuxIconFont.min.css" />
+    <style>
+      body { margin: 0; background: var(--oj-core-neutral-30, #f1efed); }
+      .host-header { background: #312d2a; color: #fff; padding: 12px 24px; display: flex; gap: 16px; align-items: center; }
+      .host-header h1 { font-size: 1.125rem; margin: 0; font-weight: 600; color: #fff; }
+      .host-layout { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 16px; padding: 16px 24px; }
+      .host-panel { background: #fff; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,.12); }
+      .host-panel h2 { font-size: 1rem; margin: 0; padding: 12px 16px; border-bottom: 1px solid #e5e2df; }
+      #hostLog { font: 12px/1.5 ui-monospace, monospace; padding: 8px 16px; max-height: 60vh; overflow: auto; margin: 0; white-space: pre-wrap; }
+      #hostIntro { padding: 12px 16px; }
+    </style>
+  </head>
+  <body class="oj-body">
+    <div id="host">
+      <header class="host-header" id="hostHeader">
+        <h1>ACME Visual Builder app</h1>
+        <span id="hostTitle" data-bind="text: 'Screen: ' + title()"></span>
+      </header>
+      <div class="host-layout">
+        <section class="host-panel">
+          <p id="hostIntro">This is the host page. The panel below is a <code>&lt;mateu-ui&gt;</code> component.</p>
+          <mateu-ui id="mateu"
+            base-url="[[ baseUrl ]]"
+            route="{{ route }}"
+            params="[[ params ]]"
+            app-context="[[ appContext ]]"
+            headers-provider="[[ headersProvider ]]"
+            navigation="[[ navigation ]]"
+            on-mateu-navigate="[[ onNavigate ]]"
+            on-mateu-action="[[ onAction ]]"
+            on-mateu-title="[[ onTitle ]]"
+            on-mateu-ready="[[ onReady ]]"
+            on-mateu-message="[[ onMessage ]]"
+            on-mateu-error="[[ onError ]]"></mateu-ui>
+        </section>
+        <aside class="host-panel">
+          <h2>Host event log</h2>
+          <pre id="hostLog"></pre>
+        </aside>
+      </div>
+    </div>
+    <script src="https://static.oracle.com/cdn/jet/18.1.0-2510.3/3rdparty/require/require.js"></script>
+    <script src="https://static.oracle.com/cdn/jet/18.1.0-2510.3/default/js/bundles-config.js"></script>
+    <script>
+      // the component, imported as a VB app imports one (its folder, loaded by path)
+      requirejs.config({ paths: { 'mateu-ui': '/mateu-ui' } });
+      window.__hostEvents = [];
+      window.__hostHeaderCalls = 0;
+      require(['knockout', 'ojs/ojbootstrap', 'ojs/ojknockout', 'mateu-ui/loader'], (ko, Bootstrap) => {
+        const q = new URLSearchParams(window.location.search);
+        const log = (type, detail) => {
+          window.__hostEvents.push({ type, detail });
+          document.getElementById('hostLog').textContent += type + ' ' + JSON.stringify(detail) + '\n';
+        };
+        const vm = {
+          baseUrl: q.get('backend') || 'http://localhost:9005',
+          route: ko.observable(q.get('route') || ''),
+          params: ko.observable(q.get('params') ? JSON.parse(q.get('params')) : {}),
+          appContext: ko.observable(q.get('appContext') ? JSON.parse(q.get('appContext')) : {}),
+          navigation: q.get('navigation') || 'internal',
+          title: ko.observable(''),
+          // the identity of the HOST: a provider asked on every request (a token that rotates)
+          headersProvider: () => {
+            window.__hostHeaderCalls++;
+            return { Authorization: 'Bearer host-token-' + window.__hostHeaderCalls, 'X-Host-App': 'acme-vb' };
+          },
+          onNavigate: (event) => {
+            log('mateuNavigate', event.detail);
+            // ?cancel=1: the host takes every navigation over
+            if (q.get('cancel')) event.preventDefault();
+          },
+          onAction: (event) => log('mateuAction', event.detail),
+          onTitle: (event) => { log('mateuTitle', event.detail); vm.title(event.detail.title); },
+          onReady: (event) => log('mateuReady', event.detail),
+          onMessage: (event) => log('mateuMessage', event.detail),
+          onError: (event) => log('mateuError', event.detail),
+        };
+        window.__hostVm = vm;
+        Bootstrap.whenDocumentReady().then(() => ko.applyBindings(vm, document.getElementById('host')));
+      });
+    </script>
+  </body>
+</html>

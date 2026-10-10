@@ -24,7 +24,7 @@ export const EXCLUDED = [
   /^poc\/capture[^/]*\.mjs$/,
   /^poc\/probe[^/]*\.mjs$/,
   // the generators and the parity check: what they produce (the bridge, the page) is in webApps/
-  /^poc\/(make-amd|make-html|coverage|parity-check)\.mjs$/,
+  /^poc\/(make-amd|make-html|make-embedded|coverage|parity-check)\.mjs$/,
   /(^|\/)\.DS_Store$/,
 ]
 
