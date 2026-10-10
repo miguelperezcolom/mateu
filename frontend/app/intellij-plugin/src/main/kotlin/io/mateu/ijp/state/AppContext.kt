@@ -249,6 +249,12 @@ class AppContext(val session: AppSession) {
      *  endpoint instead of dispatching to the Mateu server (keyed by action id). */
     private var currentActionRestData: MutableMap<String, JsonNode> = HashMap()
 
+    /** The current component's full wire actions: the OWNER of an id, before the catalogue. */
+    private var currentActionDefs: JsonNode? = null
+
+    /** Nesting of flows applied client-side, bounded so a flow running itself cannot loop. */
+    private var flowDepth = 0
+
     /** A wire `parameters` object node → a plain map (empty when absent / not an object). */
     @Suppress("UNCHECKED_CAST")
     fun jsonToParams(node: JsonNode?): Map<String, Any?> =
@@ -503,6 +509,25 @@ class AppContext(val session: AppSession) {
             return
         }
 
+        // A declared FLOW (the view's own actions lowered to commands) or — for an id the view does
+        // NOT declare — the app's ACTION catalogue, owner first. Runs here with no round-trip; a
+        // RunAction inside the flow comes back through runAction and resolves the same way.
+        val resolved = ShellFlows.resolve(actionId, currentActionDefs, session.actionCatalogue)
+        if (ShellFlows.isClientRunnable(resolved) && flowDepth < 8) {
+            val commands = resolved!!.path("commands")
+            if (commands.isArray && !commands.isEmpty) {
+                flowDepth++
+                try {
+                    for (cmd in commands) handleCommand(cmd)
+                } finally {
+                    flowDepth--
+                }
+                return
+            }
+            handleRestAction(resolved.path("restAction"), actionId)
+            return
+        }
+
         val serverSideType = resolveActionTarget(actionId)
         val generation = polling.generation
         background(
@@ -631,6 +656,9 @@ class AppContext(val session: AppSession) {
         currentActionBubble = bubbleFlags
         currentActionRowsSelectedRequired = rowsSelectedFlags
         currentActionRestData = restData
+        currentActionDefs = actionNodes.takeIf { it.isArray }
+        // A catalogue REST call reached from the menu runs against the latest loaded view.
+        session.restActionRunner = { id, rest -> SwingUtilities.invokeLater { handleRestAction(rest, id) } }
         currentComponentValidations = sscNode.path("validations")
         currentRules = sscNode.path("rules").takeIf { it.isArray && it.size() > 0 }
         fieldAttributes.clear()
@@ -882,6 +910,7 @@ class AppContext(val session: AppSession) {
         val appMeta = component.path("metadata").takeIf { it.text("type") == "App" }
             ?: component.path("children").path(0).path("metadata").takeIf { it.text("type") == "App" }
         if (appMeta != null && appMeta.has("restSources")) RestFetch.registerRestSources(appMeta.path("restSources"))
+        if (appMeta != null && appMeta.has("actionCatalogue")) session.actionCatalogue = appMeta.path("actionCatalogue")
 
         // Overlay fragments (action Add + Drawer/Dialog component) stack over the page instead of
         // replacing it — shown as a side panel anchored to the IDE window.

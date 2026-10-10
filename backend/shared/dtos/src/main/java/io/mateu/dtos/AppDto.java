@@ -116,7 +116,14 @@ public record AppDto(
      * lowered to {@code commands}, which the client applies when a menu leaf's {@code RunAction}
      * rule names it — no server round-trip. Empty for a shell that declares none.
      */
-    List<ActionDto> actions)
+    List<ActionDto> actions,
+    /**
+     * The app's ACTION catalogue ({@code specs/ui/actions.yaml} + {@code ActionCatalogSupplier}
+     * beans): named client-runnable actions, each flow lowered to {@code commands} like {@link
+     * #actions}. A client resolves an id its owner (the page, the shell) does not declare against
+     * this list before falling back to a server dispatch. Empty when the app declares none.
+     */
+    List<ActionDto> actionCatalogue)
     implements ComponentMetadataDto {
 
   public AppDto {
@@ -134,6 +141,8 @@ public record AppDto(
             requiredCapabilities != null ? requiredCapabilities : List.of());
     components = Collections.unmodifiableList(components != null ? components : List.of());
     actions = Collections.unmodifiableList(actions != null ? actions : List.of());
+    actionCatalogue =
+        Collections.unmodifiableList(actionCatalogue != null ? actionCatalogue : List.of());
   }
 
   @Override

@@ -1,0 +1,26 @@
+# Action catalogue fixture (ActionCatalogueTests): named client-runnable actions run by id.
+type: Actions
+actions:
+  - id: newOrder
+    description: Start a new order
+    steps:
+      - type: MarkClean
+      - type: Navigate
+        route: orders/new
+  - id: refreshCustomers
+    restAction:
+      source:
+        url: https://example.test/api/customers
+        method: POST
+      successMessage: Refreshed
+  - id: refresh
+    steps:
+      - type: Emit
+        event: catalogue-refresh
+  - id: chained
+    steps:
+      - type: RunAction
+        actionId: newOrder
+  # neither steps nor a restAction: server logic, ignored with a warning
+  - id: serverOnly
+    confirmationRequired: true

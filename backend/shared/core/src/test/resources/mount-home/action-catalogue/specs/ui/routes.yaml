@@ -1,0 +1,10 @@
+type: Routes
+routes:
+  - route: ""
+    definition: shell.yaml
+  - route: home
+    definition: home.yaml
+  - route: orders
+    definition: orders.yaml
+  - route: orders/new
+    definition: new-order.yaml

@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
 
 from pydantic import Field
 
 from .base import Wire
 from .components import RuleRecord
 from .fields import RestDataSource
+
+if TYPE_CHECKING:
+    from .envelope import UICommand
 
 
 # ── Flat helper records (not part of the polymorphic unions) ────────────────────
@@ -193,6 +196,10 @@ class Action(Wire):
     #: dispatching to the Mateu server (@rest_action); None for normal actions (mirrors
     #: io.mateu.dtos.ActionDto.restAction).
     rest_action: "RestAction | None" = None
+    #: A declared client-side flow lowered to the wire commands the client applies with no server
+    #: round trip (an action-catalogue entry's steps); None for a normal server-dispatched action
+    #: (mirrors io.mateu.dtos.ActionDto.commands).
+    commands: "list[UICommand] | None" = None
 
 
 class RestAction(Wire):

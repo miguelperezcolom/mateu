@@ -47,7 +47,9 @@ In scope: the framework artifacts published from this repository (`io.mateu:*` o
 
 Out of scope: the demo applications and their hosted instances (`demo.mateu.io`, `swapi.ec1.mateu.io`),
 which run with throw-away data, and vulnerabilities in third-party dependencies that do not affect
-Mateu — report those upstream (we track them with Dependabot and CodeQL).
+Mateu — report those upstream (we track them with Dependabot and CodeQL). The dependency
+advisories we cannot fix by upgrading, and the overrides we carry for the rest, are listed with
+their reasons in [SECURITY-DEPENDENCIES.md](SECURITY-DEPENDENCIES.md).
 
 ## Hardening guidance
 

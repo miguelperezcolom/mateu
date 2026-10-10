@@ -140,7 +140,7 @@ public sealed class RestSourceRegistry
         }
     }
 
-    private static RestDataSource SourceOf(object? node)
+    internal static RestDataSource SourceOf(object? node)
     {
         if (node is not IDictionary<object, object> map) return new RestDataSource();
         return new RestDataSource
@@ -332,6 +332,12 @@ internal static class MateuCatalogs
     private static readonly AsyncLocal<RestSourceCatalog?> Rest = new();
     private static readonly AsyncLocal<ComponentCatalog?> Comps = new();
     private static readonly AsyncLocal<int> Depth = new();
+    private static readonly AsyncLocal<ActionCatalog?> Acts = new();
+
+    /// <summary>The action catalogue in effect for this request (set by the SyncHandler).</summary>
+    internal static void SetActions(ActionCatalog? actions) => Acts.Value = actions;
+
+    internal static ActionCatalog Actions => Acts.Value ?? ActionCatalog.Empty;
 
     internal static void Set(RestSourceCatalog? sources, ComponentCatalog? components)
     {

@@ -1,0 +1,265 @@
+{
+  "$schema" : "http://json-schema.org/draft-07/schema#",
+  "$id" : "https://mateu.io/uidl/actions-schema.json",
+  "version" : "3.0",
+  "title" : "Mateu action catalogue",
+  "description" : "JSON Schema for the app's action catalogue — named, client-runnable actions (flows with `steps`, or a `restAction`) declared once and run by id from the shell menu or any page; an owner's own action of the same id wins. GENERATED from the fluent Action record by UidlSchemaGenerator — do not edit by hand.",
+  "oneOf" : [ {
+    "type" : "object",
+    "properties" : {
+      "type" : {
+        "const" : "Actions"
+      },
+      "actions" : {
+        "type" : "array",
+        "items" : {
+          "$ref" : "#/$defs/Action"
+        },
+        "description" : "Named client-runnable actions: each one a flow (`steps`) or a REST call (`restAction`). Server logic stays an @Action method — an entry with neither is ignored with a warning."
+      }
+    },
+    "required" : [ "actions" ]
+  }, {
+    "type" : "array",
+    "items" : {
+      "$ref" : "#/$defs/Action"
+    }
+  } ],
+  "$defs" : {
+    "Action" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "background" : {
+          "type" : "boolean"
+        },
+        "validationRequired" : {
+          "type" : "boolean"
+        },
+        "confirmationRequired" : {
+          "type" : "boolean"
+        },
+        "rowsSelectedRequired" : {
+          "type" : "boolean"
+        },
+        "confirmationTexts" : {
+          "$ref" : "#/$defs/ConfirmationTexts"
+        },
+        "modalStyle" : {
+          "type" : "string"
+        },
+        "modalTitle" : {
+          "type" : "string"
+        },
+        "customEvent" : {
+          "$ref" : "#/$defs/CustomEvent"
+        },
+        "href" : {
+          "type" : "string"
+        },
+        "js" : {
+          "type" : "string"
+        },
+        "sse" : {
+          "type" : "boolean"
+        },
+        "fieldsToValidate" : {
+          "type" : "string"
+        },
+        "bubble" : {
+          "type" : "boolean"
+        },
+        "shortcut" : {
+          "type" : "string"
+        },
+        "timeoutMillis" : {
+          "type" : "integer"
+        },
+        "idempotent" : {
+          "type" : "boolean"
+        },
+        "restAction" : {
+          "$ref" : "#/$defs/RestAction"
+        },
+        "steps" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Step"
+          }
+        },
+        "description" : {
+          "type" : "string"
+        }
+      }
+    },
+    "CloseOverlay" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "CloseOverlay"
+        },
+        "event" : {
+          "type" : "string"
+        }
+      }
+    },
+    "ConfirmationTexts" : {
+      "type" : "object",
+      "properties" : {
+        "title" : {
+          "type" : "string"
+        },
+        "message" : {
+          "type" : "string"
+        },
+        "confirmationText" : {
+          "type" : "string"
+        },
+        "denialText" : {
+          "type" : "string"
+        }
+      }
+    },
+    "CustomEvent" : {
+      "type" : "object",
+      "properties" : {
+        "eventName" : {
+          "type" : "string"
+        },
+        "detail" : { }
+      }
+    },
+    "Emit" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "Emit"
+        },
+        "event" : {
+          "type" : "string"
+        },
+        "payload" : { }
+      }
+    },
+    "MarkClean" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "MarkClean"
+        }
+      }
+    },
+    "MarkDirty" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "MarkDirty"
+        }
+      }
+    },
+    "Navigate" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "Navigate"
+        },
+        "route" : {
+          "type" : "string"
+        }
+      }
+    },
+    "RestAction" : {
+      "type" : "object",
+      "properties" : {
+        "source" : {
+          "$ref" : "#/$defs/RestDataSource"
+        },
+        "successMessage" : {
+          "type" : "string"
+        },
+        "resultPath" : {
+          "type" : "string"
+        },
+        "successRoute" : {
+          "type" : "string"
+        },
+        "forEachSelectedRow" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "RestDataSource" : {
+      "type" : "object",
+      "properties" : {
+        "ref" : {
+          "type" : "string"
+        },
+        "url" : {
+          "type" : "string"
+        },
+        "method" : {
+          "type" : "string"
+        },
+        "headers" : {
+          "type" : "object"
+        },
+        "body" : {
+          "type" : "string"
+        },
+        "itemsPath" : {
+          "type" : "string"
+        },
+        "valuePath" : {
+          "type" : "string"
+        },
+        "labelPath" : {
+          "type" : "string"
+        },
+        "proxy" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "RunAction" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "RunAction"
+        },
+        "actionId" : {
+          "type" : "string"
+        }
+      }
+    },
+    "Step" : {
+      "description" : "One of the Step implementations.",
+      "oneOf" : [ {
+        "$ref" : "#/$defs/CloseOverlay"
+      }, {
+        "$ref" : "#/$defs/Emit"
+      }, {
+        "$ref" : "#/$defs/MarkClean"
+      }, {
+        "$ref" : "#/$defs/MarkDirty"
+      }, {
+        "$ref" : "#/$defs/Navigate"
+      }, {
+        "$ref" : "#/$defs/RunAction"
+      } ]
+    }
+  }
+}

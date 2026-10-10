@@ -5,7 +5,9 @@
 // data still comes from external endpoints (@RestOptions/@RestListing …); ACTIONS still need a
 // backend and degrade with the normal "request failed" path when it is absent.
 import { setRestSourceCatalogue } from './restSourceCatalogue.ts'
+import { setActionCatalogue } from '../ui/actionCatalogue.ts'
 import type RestSourceEntry from '@mateu/shared/apiClients/dtos/componentmetadata/RestSourceEntry.ts'
+import type Action from '@mateu/shared/apiClients/dtos/componentmetadata/Action.ts'
 import type UIIncrement from '@mateu/shared/apiClients/dtos/UIIncrement'
 import { expandDefinition, isClientExpandable, type DefinitionSpec } from '@infra/expander/expandDefinition.ts'
 
@@ -50,6 +52,9 @@ interface BundleManifest {
     // what the source names its surfaces reference actually point at — and, being one table in one
     // file, it is what makes re-pointing a deployment an edit rather than a rebuild.
     sources?: { sources?: RestSourceEntry[] }
+    // The ACTION catalogue, shipped once and already lowered: an id a statically served page or the
+    // shell menu names but does not declare runs the catalogue's flow / REST call (actionCatalogue.ts).
+    actions?: Action[]
     // SPECS MODE (Phase 6, #1): the raw authored definitions, keyed by the file name a route entry's
     // `definition` names (e.g. "about.yaml"). When present, a definition-only route (a `definition`,
     // no `viewModel`) is expanded to the wire IN THE BROWSER by the client-side expander instead of
@@ -185,6 +190,8 @@ export function loadBundleManifest(url: string, fetchImpl: typeof fetch = fetch)
             definitions = manifest.definitions ?? {}
             catalogueSources = manifest.sources?.sources ?? []
             setRestSourceCatalogue(manifest.sources?.sources)
+            // the action catalogue, shipped once and already lowered (BundleManifest.actions)
+            setActionCatalogue(manifest.actions)
         } catch (e) {
             console.warn('mateu: bundle manifest load failed', e)
         }

@@ -104,6 +104,7 @@ from ._common import (  # noqa: F401 - the public import path of every helper
     view_fields,
 )
 from ..component_registry import ComponentRegistry
+from ..action_registry import ActionRegistry
 from ..rest_source_registry import RestSourceRegistry
 from .. import action_guard, islands
 from ._base import MixinBase
@@ -145,6 +146,7 @@ class SyncHandler(
         proxy_timeout_seconds: float = 30.0,
         rest_sources: RestSourceRegistry | None = None,
         components: ComponentRegistry | None = None,
+        action_catalog: ActionRegistry | None = None,
     ):
         self.registry = registry
         #: Upper bound for a proxied (__restfetch__) upstream call.
@@ -161,7 +163,13 @@ class SyncHandler(
             classes=getattr(registry, "classes", []),
             suppliers=getattr(registry, "component_suppliers", []),
         )
+        #: The action catalogue: ActionCatalogSupplier classes (derived), specs/ui/actions.yaml and
+        #: any `type: Actions` file on top (authored).
+        self.action_catalog = action_catalog or ActionRegistry(
+            suppliers=getattr(registry, "action_suppliers", []),
+        )
         self.mapper = ReflectionMapper(translator, identity_provider, self.rest_sources, self.components)
+        self.mapper.action_catalog = self.action_catalog
         self.mapper.adapters = getattr(registry, "adapters", {})
         #: resolves ${secret.X} for proxy mode; None → same-named env var fallback.
         self._secrets = secrets_provider

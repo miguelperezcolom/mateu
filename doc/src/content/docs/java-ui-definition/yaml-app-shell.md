@@ -109,8 +109,11 @@ and in the visual editor's **▶ Play** the browser expander emits the same lowe
 `Navigate` to a route of the app stays inside the shell (the same in-app navigation a menu link does);
 a full URL (`https://…`) leaves the page.
 
-A `RunAction` rule naming an id the shell does **not** declare with steps keeps its old meaning: an
-app-level action dispatched to the server (an `@Action` on the app class).
+A `RunAction` rule naming an id the shell does **not** declare is looked up in the
+[action catalogue](/java-ui-definition/action-catalogue/) — named flows and REST calls declared once
+in `specs/ui/actions.yaml` and runnable from the menu and any page. An id the shell declares wins over
+the catalogue's, even one without steps. Anything else keeps its old meaning: an app-level action
+dispatched to the server (an `@Action` on the app class).
 
 Built in code, the shell carries flows the same way:
 
@@ -232,7 +235,9 @@ Not carried by the definition yet — these are read reflectively off an `@App` 
 one: SSE / MCP / upload URLs, `@AppContext` selectors, notifications, global search and FABs. (The
 theme toggle, command center, chromeless and access-keys switches are authorable on the shell.)
 
-The .NET and Python servers have no `type: AppShell` definitions, so shell flows do not apply there.
+The .NET and Python servers have no `type: AppShell` definitions, so shell flows do not apply there
+(they do carry the [action catalogue](/java-ui-definition/action-catalogue/), which a menu leaf of
+their app class can run).
 
 Before shell flows landed, a `RuleLink` in a YAML menu did not parse on the server (the schema
 advertised it, the YAML mapper did not know it), and the whole shell answered "Not found." — it is
