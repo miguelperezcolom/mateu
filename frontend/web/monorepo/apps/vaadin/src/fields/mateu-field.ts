@@ -5,6 +5,8 @@ import '@components/mateu-camera-capture.ts';
 import '@components/mateu-file-upload.ts';
 import { fieldAttribute } from '@components/mateu-file-upload.ts';
 import '@components/mateu-bulleted-list.ts';
+import '@components/mateu-range-slider.ts';
+import { chromeText } from '@components/chromeTexts';
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import { interpolate } from '@components/interpolation'
 import { isNoOpCommit, numericCommitValue } from '@components/fieldValue'
@@ -44,7 +46,6 @@ import '@components/mateu-choice'
 import './mateu-money-field'
 import { ComboBoxLitRenderer, comboBoxRenderer } from "@vaadin/combo-box/lit";
 import { ifDefined } from "lit/directives/if-defined.js";
-import { dialogFooterRenderer, dialogRenderer } from "@vaadin/dialog/lit";
 import { popoverRenderer } from "@vaadin/popover/lit";
 import { allIcons } from "@infra/ui/allIcons.ts";
 import { getThemeForBadgetType } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
@@ -67,21 +68,6 @@ interface FileLike {
 }
 
 
-// UI5's ColorPicker/RangeSlider are only needed by the color-picker and range-slider field
-// stereotypes. Load them LAZILY (a dynamic import on first use) so every other renderer/field does
-// not pull in the whole @ui5/webcomponents library — and its global ui5-announcement-area — just to
-// render a text field. Memoized so the modules load at most once per page.
-let ui5FieldComponentsPromise: Promise<unknown> | null = null
-const ensureUi5FieldComponents = (): Promise<unknown> => {
-    if (!ui5FieldComponentsPromise) {
-        ui5FieldComponentsPromise = Promise.all([
-            import("@ui5/webcomponents/dist/ColorPicker.js"),
-            import("@ui5/webcomponents/dist/RangeSlider.js"),
-        ])
-    }
-    return ui5FieldComponentsPromise
-}
-
 @customElement('mateu-field')
 export class MateuField extends LitElement {
 
@@ -93,16 +79,6 @@ export class MateuField extends LitElement {
     connectedCallback() {
         super.connectedCallback()
         this.inFoldout = isInside(this, 'mateu-vaadin-foldout')
-    }
-
-    // Set once the lazily-loaded UI5 field components (color-picker / range-slider) have registered,
-    // so the element re-renders and the placed <ui5-*> upgrades.
-    @state()
-    private ui5FieldComponentsReady = false
-
-    private loadUi5FieldComponents() {
-        if (this.ui5FieldComponentsReady) return
-        ensureUi5FieldComponents().then(() => { this.ui5FieldComponentsReady = true })
     }
 
     @property()
@@ -128,12 +104,6 @@ export class MateuField extends LitElement {
 
     @property()
     labelAlreadyRendered: boolean | undefined
-
-    @state()
-    colorPickerOpened = false
-
-    @state()
-    colorPickerValue : string | undefined = undefined
 
     comboData: Option[] = []
 
@@ -191,32 +161,6 @@ export class MateuField extends LitElement {
     }
 
     rendered = false
-
-    renderColorPicker = () => {
-        this.loadUi5FieldComponents()
-        const fieldId = this.field?.fieldId!
-        const value = this.state && fieldId in this.state?this.state[ fieldId]:this.field?.initialValue
-        return html`
-            <ui5-color-picker value="${value}" @change="${(e: CustomEvent) => this.colorPickerValue = (e.target as HTMLInputElement).value}">Picker</ui5-color-picker>
-        `
-    }
-
-    saveColor = () => {
-        this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
-            detail: {
-                value: this.colorPickerValue,
-                fieldId: this.field!.fieldId
-            },
-            bubbles: true,
-            composed: true
-        }))
-        this.colorPickerOpened = false
-    }
-
-    renderColorPickerFooter = () => {
-        return html`<vaadin-button @click="${() => this.colorPickerOpened = false}">Cancel</vaadin-button>
-        <vaadin-button theme="primary" @click="${this.saveColor}">Save</vaadin-button>`
-    }
 
     checked = (e:Event) => {
         const input = e.target as HTMLInputElement;
@@ -1808,22 +1752,7 @@ export class MateuField extends LitElement {
                                 composed: true
                             }))
                         }}"/>
-                        <!--
-                        <vaadin-horizontal-layout theme="spacing" style="align-items: center;">
-                            <span style="background-color: ${value}; display: inline-block; height: 20px; width: 40px; border: 1px solid var(--lumo-secondary-text-color);"></span>
-                            <vaadin-button @click="${() => this.colorPickerOpened = true}">Change</vaadin-button>
-                        </vaadin-horizontal-layout>
-                        -->
                     </vaadin-custom-field>
-                    <vaadin-dialog
-  header-title="Choose color"
-  .opened="${this.colorPickerOpened}"
-  @closed="${() => {
-                    this.colorPickerOpened = false;
-                }}"
-  ${dialogRenderer(this.renderColorPicker, [])}
-  ${dialogFooterRenderer(this.renderColorPickerFooter, [])}
-></vaadin-dialog>
                 `
             }
             return html`
@@ -2326,7 +2255,6 @@ export class MateuField extends LitElement {
 
     private renderRangeField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
         if (!this.field) return html``
-            this.loadUi5FieldComponents()
             const range = value as {
                 from: number
                 to: number
@@ -2337,10 +2265,12 @@ export class MateuField extends LitElement {
                         label="${label}"
                         .helperText="${this.helperText()}"
                         data-colspan="${this.field.colspan}"
-                ><ui5-range-slider start-value="${range?.from??0}" end-value="${range?.to??0}" 
+                ><mateu-range-slider start-value="${range?.from??0}" end-value="${range?.to??0}" 
                                    min="${this.field.sliderMin??0}" 
                                    max="${(this.field.sliderMax)??10}"
                                    step="${this.field.step || nothing}"
+                                   from-label="${chromeText('rangeFrom')}"
+                                   to-label="${chromeText('rangeTo')}"
                                    @change="${(e: Event) => {
                                        const values = e.target as unknown as {
                                            startValue: number
@@ -2359,7 +2289,7 @@ export class MateuField extends LitElement {
                                        }))
                                    }}"
                                    style="min-width: 10rem;"
-                ></ui5-range-slider></vaadin-custom-field>
+                ></mateu-range-slider></vaadin-custom-field>
             `
     }
 

@@ -121,8 +121,7 @@ export default defineConfig({
     },
     build: {
         // After the manualChunks split below, the remaining >500 kB chunks are
-        // single third-party libraries (vendor-vaadin 1.9 MB eager, vendor-ui5
-        // 0.6 MB eager; vendor-diagrams 1.6 MB, vendor-highcharts 0.8 MB and
+        // single third-party libraries (vendor-vaadin 1.6 MB eager; vendor-diagrams 1.6 MB, vendor-highcharts 0.8 MB and
         // vendor-chartjs 0.25 MB are lazy-loaded async chunks — see mateu-bpmn.ts,
         // mateu-chart.ts and elementRenderer.ts in
         // libs/mateu) that cannot be split further,

@@ -27,6 +27,8 @@ const TEXTS = {
         notFound: 'Not found',
         notFoundMessage: 'It may have been deleted, or the link is wrong.',
         goBack: 'Go back',
+        rangeFrom: 'From',
+        rangeTo: 'To',
     },
     es: {
         chat: 'Asistente',
@@ -48,6 +50,8 @@ const TEXTS = {
         notFound: 'No encontrado',
         notFoundMessage: 'Puede que se haya borrado o que el enlace no sea correcto.',
         goBack: 'Volver',
+        rangeFrom: 'Desde',
+        rangeTo: 'Hasta',
     },
 } as const
 
