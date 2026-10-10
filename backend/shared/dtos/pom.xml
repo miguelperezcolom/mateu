@@ -33,12 +33,11 @@
                 <groupId>com.github.siom79.japicmp</groupId>
                 <artifactId>japicmp-maven-plugin</artifactId>
                 <configuration>
-                    <!-- the baseline (3.0-alpha.407) predates the mateu-* rename, hence the old artifactId;
-                         switch it to the mateu-* id once the baseline is a release that has it -->
+                    <!-- the baseline is a release published under the mateu-* ids (3.0-alpha.408+) -->
                     <oldVersion>
                         <dependency>
                             <groupId>io.mateu</groupId>
-                            <artifactId>dtos</artifactId>
+                            <artifactId>mateu-dtos</artifactId>
                             <version>${mateu.japicmp.baseline}</version>
                         </dependency>
                     </oldVersion>

@@ -1,5 +1,6 @@
 package io.mateu.uidl.interfaces;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.fluent.Component;
 
 /**
@@ -43,6 +44,7 @@ public interface Actionable {
    * How the entry looks beyond its label (a group opening as cards, a card's icon/image); null = a
    * plain list entry.
    */
+  @Experimental("card menus (3.0-alpha.409)")
   default io.mateu.uidl.data.MenuPresentation presentation() {
     return null;
   }

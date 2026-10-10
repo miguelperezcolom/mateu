@@ -21,8 +21,10 @@ public @interface Menu {
    * How a GROUP shows its entries when it opens: {@code list} (default) or {@code cards} — a panel
    * of cards with each entry's title, description, icon/image and its own children as actions.
    */
+  @Experimental("card menus (3.0-alpha.409)")
   io.mateu.uidl.data.MenuDisplay display() default io.mateu.uidl.data.MenuDisplay.list;
 
   /** An image for the entry's card (a URL, relative to the app, or a data URI). */
+  @Experimental("card menus (3.0-alpha.409)")
   String image() default "";
 }

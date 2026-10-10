@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
@@ -18,4 +19,5 @@ import lombok.Builder;
  * @param open whether it starts open
  */
 @Builder
+@Experimental("docked panels of DataManagement (3.0-alpha.409)")
 public record DockedPanel(String id, String title, Component content, String size, boolean open) {}

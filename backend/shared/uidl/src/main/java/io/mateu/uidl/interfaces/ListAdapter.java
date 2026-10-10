@@ -10,7 +10,10 @@ import io.mateu.uidl.data.Pageable;
  *
  * @param <Filters> the filter object type driving the listing
  * @param <Row> the listing row type
+ * @deprecated nothing reads it — the pre-capability listing contract. Implement {@link Listing}
+ *     ({@code search(SearchRequest, HttpRequest)}) instead.
  */
+@Deprecated(since = "3.0-alpha.410", forRemoval = true)
 public interface ListAdapter<Filters, Row> {
 
   ListingData<Row> search(String searchText, Filters filters, Pageable pageable);

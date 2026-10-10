@@ -13,6 +13,7 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
+@Experimental("drag rows to a destination (3.0-alpha.409)")
 public @interface DragRows {
 
   /** The drag type a drop zone accepts (e.g. "charge"). */
