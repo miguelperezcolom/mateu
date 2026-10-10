@@ -1986,12 +1986,12 @@ def test_list_toolbar_button_emits_toolbar_button_and_selection_flagged_action()
     assert (
         '{"id": "action-on-row-deactivate", "validationRequired": false, '
         '"confirmationRequired": false, "rowsSelectedRequired": true, "bubble": true, '
-        '"fieldsToValidate": null, "timeoutMillis": 0, "idempotent": false, "restAction": null}'
+        '"fieldsToValidate": null, "timeoutMillis": 0, "idempotent": false, "restAction": null, "commands": null}'
     ) in j
     assert (
         '{"id": "action-on-row-restockAll", "validationRequired": false, '
         '"confirmationRequired": true, "rowsSelectedRequired": false, "bubble": true, '
-        '"fieldsToValidate": null, "timeoutMillis": 0, "idempotent": false, "restAction": null}'
+        '"fieldsToValidate": null, "timeoutMillis": 0, "idempotent": false, "restAction": null, "commands": null}'
     ) in j
 
 
