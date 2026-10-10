@@ -1,6 +1,7 @@
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import ProcessItem from "@mateu/shared/apiClients/dtos/componentmetadata/ProcessItem";
+import { icon as dsIcon } from '@infra/ui/renderers/neutralIcon.ts'
 
 /**
  * Monitored automation processes with health + fix action: a bordered row list where each process
@@ -71,9 +72,9 @@ export class MateuProcessMonitor extends LitElement {
                             ${item.systems?.length ? html`<span class="systems">${item.systems.join(' · ')}</span>` : nothing}
                         </div>
                         <div class="counters">
-                            <span class="counter ok">✓ ${item.ok ?? 0} OK</span>
-                            ${(item.warnings ?? 0) > 0 ? html`<span class="counter warning">⚠ ${item.warnings} warnings</span>` : nothing}
-                            ${(item.errors ?? 0) > 0 ? html`<span class="counter error">⛔ ${item.errors} errors</span>` : nothing}
+                            <span class="counter ok">${dsIcon('vaadin:check-circle', 'width: var(--lumo-icon-size-s, 1rem); height: var(--lumo-icon-size-s, 1rem); vertical-align: text-bottom;')} ${item.ok ?? 0} OK</span>
+                            ${(item.warnings ?? 0) > 0 ? html`<span class="counter warning">${dsIcon('vaadin:warning', 'width: var(--lumo-icon-size-s, 1rem); height: var(--lumo-icon-size-s, 1rem); vertical-align: text-bottom;')} ${item.warnings} warnings</span>` : nothing}
+                            ${(item.errors ?? 0) > 0 ? html`<span class="counter error">${dsIcon('vaadin:exclamation-circle', 'width: var(--lumo-icon-size-s, 1rem); height: var(--lumo-icon-size-s, 1rem); vertical-align: text-bottom;')} ${item.errors} errors</span>` : nothing}
                         </div>
                         ${item.actionLabel && item.actionId
                             ? html`<button @click="${() => this.runAction(item)}">${item.actionLabel}</button>`

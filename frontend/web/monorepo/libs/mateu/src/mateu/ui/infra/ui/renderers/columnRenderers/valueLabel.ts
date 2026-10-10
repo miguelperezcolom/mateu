@@ -10,3 +10,15 @@ export const valueLabel = (value: unknown, labels?: Record<string, string> | nul
     const label = labels[String(value)]
     return label !== undefined && label !== null ? label : value
 }
+
+/**
+ * A raw CONSTANT the screen has no label for ("OUT_OF_STOCK", "IN_PROGRESS") read the way the
+ * server humanizes an enum constant (Humanizer: "Out of stock", "In progress") — the enum-label rule
+ * for values that arrive WITHOUT labels: a YAML listing, a REST source. Anything that is not a bare
+ * constant (mixed case, words, ids with digits only) is left as is.
+ */
+export const humanizeConstant = (raw: string): string => {
+    if (!/^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)*$/.test(raw) || raw.length < 2) return raw
+    const words = raw.toLowerCase().replace(/_/g, ' ').replace(/([a-z])(\d)/g, '$1 $2')
+    return words.charAt(0).toUpperCase() + words.slice(1)
+}

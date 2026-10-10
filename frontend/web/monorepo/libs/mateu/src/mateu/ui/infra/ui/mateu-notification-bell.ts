@@ -316,7 +316,7 @@ export class MateuNotificationBell extends LitElement {
             flex-shrink: 0;
             margin-left: auto;
             font-size: var(--lumo-font-size-xs, 0.75rem);
-            color: var(--lumo-tertiary-text-color, rgba(0, 0, 0, 0.45));
+            color: var(--lumo-secondary-text-color, #5f6b7a));
         }
         .entry-text {
             overflow: hidden;

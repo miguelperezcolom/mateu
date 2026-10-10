@@ -71,7 +71,7 @@ export class MateuProgressSteps extends LitElement {
         }
         .step.current .dot {
             background: var(--lumo-base-color, #fff);
-            color: var(--lumo-primary-color, #1a73e8);
+            color: var(--lumo-primary-text-color, #1a73e8);
             border-color: var(--lumo-primary-color, #1a73e8);
         }
         .label {

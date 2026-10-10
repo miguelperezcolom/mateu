@@ -3,6 +3,7 @@ import {css, html, LitElement, nothing, TemplateResult} from "lit";
 import { safeHref } from '@infra/ui/safeNavigate.ts'
 import { ifDefined } from 'lit/directives/if-defined.js'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { icon as dsIcon } from '@infra/ui/renderers/neutralIcon.ts'
 
 /**
  * Generic file upload for a @FileUpload String field — the generic sibling of @UploadableImage
@@ -97,7 +98,7 @@ export class MateuFileUpload extends LitElement {
         const name = MateuFileUpload.fileName(this.value)
         const isDataUri = hasValue && this.value!.startsWith('data:')
         const nameBlock = hasValue
-            ? html`<span class="file" title="${name}">📄 ${isDataUri
+            ? html`<span class="file" title="${name}">${dsIcon('vaadin:file-o', 'width: var(--lumo-icon-size-s, 1rem); height: var(--lumo-icon-size-s, 1rem); vertical-align: text-bottom;')} ${isDataUri
                 ? html`<a href="${ifDefined(safeHref(this.value, { allowData: true }))}" download="${name}">${name}</a>`
                 : html`<a href="${ifDefined(safeHref(this.value))}" target="_blank" rel="noopener noreferrer">${name}</a>`}</span>`
             : nothing

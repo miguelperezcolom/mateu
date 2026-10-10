@@ -247,6 +247,9 @@ public sealed partial class ReflectionMapper
                     Naming.CamelCase(p.Name),
                     p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
                 {
+                    // a LISTING column keeps the number-ness of its field so the renderers
+                    // right-align it (Java: ColumnTypeMapper.getDataTypeForListingColumn)
+                    DataType = ListingDataType(p),
                     Editable = editable,
                     EditorType = editable ? EditorTypeOf(p) : null,
                     EditorOptions = editable ? EditorOptionsOf(p) : null,
@@ -745,6 +748,14 @@ public sealed partial class ReflectionMapper
 
     /// <summary>The coarse data type of a grid-field column (Java: ColumnTypeMapper — booleans keep
     /// their checkbox, everything else is shown as text).</summary>
+    private static string? ListingDataType(PropertyInfo c)
+    {
+        var t = Nullable.GetUnderlyingType(c.PropertyType) ?? c.PropertyType;
+        if (t == typeof(int) || t == typeof(long) || t == typeof(short) || t == typeof(System.Numerics.BigInteger)) return "integer";
+        if (t == typeof(double) || t == typeof(float) || t == typeof(decimal)) return "number";
+        return null;
+    }
+
     private static string GridColumnDataType(PropertyInfo c)
     {
         var t = Nullable.GetUnderlyingType(c.PropertyType) ?? c.PropertyType;

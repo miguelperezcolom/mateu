@@ -191,7 +191,9 @@ public interface CrudStore<T extends Identifiable> {
       return true;
     }
     var haystack =
-        (item instanceof SearchableText searchable ? searchable.searchableText() : item.toString())
+        (item instanceof SearchableText searchable
+                ? searchable.searchableText()
+                : item.toString() + " " + plainValuesOf(item))
             .toLowerCase();
     for (String word : searchText.trim().split("\\s+")) {
       if (!haystack.contains(word.toLowerCase())) {
@@ -199,6 +201,42 @@ public interface CrudStore<T extends Identifiable> {
       }
     }
     return true;
+  }
+
+  /**
+   * The row's plain values (text, numbers, enums, dates) — what the listing SHOWS. Without them the
+   * search box searched only {@code toString()} (usually the name), so typing a value the user
+   * could see in another column ("Engineering" in a Department column) found nothing: the box did
+   * not search what the screen showed (UX review W-V-SEARCH). A row that implements {@link
+   * SearchableText} still decides for itself.
+   */
+  private static String plainValuesOf(Object item) {
+    var out = new StringBuilder();
+    for (Class<?> c = item.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+      for (var f : c.getDeclaredFields()) {
+        if (java.lang.reflect.Modifier.isStatic(f.getModifiers()) || f.isSynthetic()) {
+          continue;
+        }
+        var t = f.getType();
+        if (!(t == String.class
+            || t.isEnum()
+            || Number.class.isAssignableFrom(t)
+            || (t.isPrimitive() && t != boolean.class)
+            || java.time.temporal.Temporal.class.isAssignableFrom(t))) {
+          continue;
+        }
+        try {
+          f.setAccessible(true);
+          var v = f.get(item);
+          if (v != null) {
+            out.append(v).append(' ');
+          }
+        } catch (RuntimeException | IllegalAccessException e) {
+          // not readable (module boundary): the row's toString() still applies
+        }
+      }
+    }
+    return out.toString();
   }
 
   /**

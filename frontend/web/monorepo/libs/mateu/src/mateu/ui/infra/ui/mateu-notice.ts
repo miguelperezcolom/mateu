@@ -1,7 +1,18 @@
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
+import { icon as dsIcon } from "@infra/ui/renderers/neutralIcon.ts";
 
-const THEME_ICONS: Record<string, string> = { info: 'ℹ', success: '✓', warning: '!', danger: '!' }
+/**
+ * The severity glyph comes from the renderer's icon set (Vaadin icons on the Vaadin renderer) — the
+ * notice used to draw text glyphs (ℹ ✓ !) in a coloured circle, a second icon family next to the
+ * design system's (UX review W-V-ICON).
+ */
+export const NOTICE_ICONS: Record<string, string> = {
+    info: 'vaadin:info-circle', success: 'vaadin:check-circle', warning: 'vaadin:warning', danger: 'vaadin:exclamation-circle',
+}
+
+/** A declared icon NAME (`vaadin:user`, `lumo:…`) goes through the icon set; anything else is content. */
+export const isIconName = (icon: string | undefined): boolean => !!icon && /^[a-z][\w-]*:[\w-]+$/.test(icon)
 
 /**
  * A compact inline banner: a rounded, theme-tinted strip with a small circular severity icon and
@@ -46,24 +57,17 @@ export class MateuNotice extends LitElement {
             gap: .45rem;
             line-height: normal;
         }
-        .notice.slim .icon { width: .95rem; height: .95rem; font-size: .6rem; }
-        /* a custom icon (e.g. an emoji like 👥) renders at its natural size, no severity circle */
-        .icon.custom, .notice .icon.custom {
-            background: transparent; width: auto; height: auto;
-            font-size: 1rem; color: inherit;
-        }
+        .notice.slim .icon { --mateu-notice-icon-size: var(--lumo-icon-size-s, 1rem); }
+        /* a custom content icon (text, an emoji) renders at its natural size */
+        .icon.custom { font-size: var(--lumo-font-size-m, 1rem); }
         .icon {
             flex: 0 0 auto;
-            width: 1.1rem;
-            height: 1.1rem;
-            border-radius: 50%;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: .7rem;
-            font-weight: 700;
-            color: #fff;
+            line-height: 1;
         }
+        .icon > * { width: var(--mateu-notice-icon-size, var(--lumo-icon-size-s, 1.1rem)); height: var(--mateu-notice-icon-size, var(--lumo-icon-size-s, 1.1rem)); }
         .text { flex: 1; min-width: 0; font-weight: 600; }
         .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .25rem; }
         .content { min-width: 0; }
@@ -82,17 +86,19 @@ export class MateuNotice extends LitElement {
             border: 1px solid currentColor;
             background: transparent; color: inherit; cursor: pointer;
         }
-        .notice-action:hover { background: rgba(0,0,0,.06); }
+        .notice-action:hover { background: var(--lumo-contrast-5pct, rgba(0,0,0,.06)); }
         .status { flex: 0 0 auto; font-weight: 600; font-size: var(--lumo-font-size-xs, .75rem); }
-        /* pastel background + dark ink per theme (always-light pastels, like the page banners) */
-        .info    { background: #e3f0fb; } .info .text, .info .status       { color: #1a5dad; }
-        .info    .icon    { background: #4285d3; }
-        .success { background: #e2f3e6; } .success .text, .success .status { color: #22703a; }
-        .success .icon { background: #3e8635; }
-        .warning { background: #fdf0dc; } .warning .text, .warning .status { color: #925a13; }
-        .warning .icon { background: #c98a1e; }
-        .danger  { background: #f6e0da; } .danger .text, .danger .status   { color: #a5502e; }
-        .danger  .icon  { background: #b25b3d; }
+        /* the theme's own semantic tints and inks (Lumo tunes the *-text-color tokens for 4.5:1 on
+           the matching 10pct tint, in light AND dark) — the notice used to hard-code pastels that
+           stayed light on a dark page */
+        .info    { background: var(--lumo-primary-color-10pct, #e3f0fb); }
+        .info .text, .info .status, .info .icon { color: var(--lumo-primary-text-color, #1a5dad); }
+        .success { background: var(--lumo-success-color-10pct, #e2f3e6); }
+        .success .text, .success .status, .success .icon { color: var(--lumo-success-text-color, #22703a); }
+        .warning { background: var(--lumo-warning-color-10pct, #fdf0dc); }
+        .warning .text, .warning .status, .warning .icon { color: var(--lumo-warning-text-color, #925a13); }
+        .danger  { background: var(--lumo-error-color-10pct, #f6e0da); }
+        .danger .text, .danger .status, .danger .icon { color: var(--lumo-error-text-color, #a5502e); }
     `
 
     private runAction() {
@@ -114,7 +120,9 @@ export class MateuNotice extends LitElement {
             <div class="notice ${theme} ${this.slim ? 'slim' : ''}">
                 ${this.noIcon
                     ? nothing
-                    : html`<span class="icon ${this.icon ? 'custom' : ''}">${this.icon || THEME_ICONS[theme]}</span>`}
+                    : this.icon && !isIconName(this.icon)
+                        ? html`<span class="icon custom" aria-hidden="true">${this.icon}</span>`
+                        : html`<span class="icon" aria-hidden="true">${dsIcon(this.icon || NOTICE_ICONS[theme])}</span>`}
                 <div class="body ${this.inlineContent ? 'inline' : ''}">
                     ${hasText ? html`<span class="text">${this.text}</span>` : nothing}
                     ${this.hasContent ? html`<div class="content"><slot></slot></div>` : nothing}

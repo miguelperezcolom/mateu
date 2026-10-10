@@ -44,7 +44,10 @@ describe('the hero', () => {
     it('paints a declared tone as its own deep hue, keeping the light ink', () => {
         const hero = draw({ title: 'Hola', tone: 'pine' })
         expect(hero.getAttribute('style')).toContain('background: #2d5a3d')
-        expect(hero.getAttribute('style')).toContain('color: #fff')
+        expect(hero.getAttribute('style')).toContain('color: var(--mateu-hero-ink, #fff)')
+        // the theme's text tokens are re-pointed at the hero's light ink, so a tertiary CTA inside
+        // the dark band is not blue-on-teal (UX review W-V-HERO)
+        expect(hero.getAttribute('style')).toContain('--lumo-primary-text-color: var(--mateu-hero-ink, #fff)')
         expect(hero.dataset.tone).toBe('pine')
     })
 

@@ -702,7 +702,7 @@ export class MateuPage extends LitElement {
             flex-shrink: 0;
             font-size: var(--lumo-font-size-xxs);
             font-family: var(--lumo-font-family-monospace, monospace);
-            color: var(--lumo-tertiary-text-color);
+            color: var(--lumo-secondary-text-color, #5f6b7a);
             background: var(--lumo-contrast-5pct);
             border-radius: var(--lumo-border-radius-s);
             padding: 0 0.3rem;

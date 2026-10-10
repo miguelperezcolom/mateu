@@ -88,15 +88,12 @@ export class MateuKanban extends LitElement {
         }
         .badge {
             align-self: flex-start;
-            background: var(--lumo-primary-color-10pct, rgba(26,115,232,.1));
-            color: var(--lumo-primary-text-color, #1a73e8);
+            background: var(--lumo-contrast-10pct, rgba(0,0,0,.08));
+            color: var(--lumo-body-text-color, #1a1a1a);
             border-radius: 999px;
             padding: .05rem .5rem;
             font-size: var(--lumo-font-size-xs, .72rem);
             font-weight: 600;
-        }
-        @media (prefers-color-scheme: dark) {
-            .card { background: var(--lumo-contrast-5pct, #2a2a2a); }
         }
     
         ${activatableFocusStyles}

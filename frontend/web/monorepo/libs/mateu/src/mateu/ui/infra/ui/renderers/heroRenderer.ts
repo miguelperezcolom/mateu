@@ -29,6 +29,18 @@ export const HERO_TONES: Record<string, string> = {
     sienna: '#7a4a2e',
 }
 
+/**
+ * The hero is a DARK surface inside a (usually) light page, so the theme's text tokens are wrong
+ * inside it: a tertiary/secondary CTA ("See the dashboard") painted with --lumo-primary-text-color
+ * is blue on deep teal — about 1.6:1, unreadable (WCAG 1.4.3). Re-pointing the text tokens at the
+ * hero's light ink makes every non-primary control inside legible; a primary button keeps its own
+ * filled background and contrast text.
+ */
+export const HERO_INK_TOKENS =
+    '--lumo-primary-text-color: var(--mateu-hero-ink, #fff); --lumo-body-text-color: var(--mateu-hero-ink, #fff);' +
+    ' --lumo-secondary-text-color: var(--mateu-hero-ink-secondary, rgba(255, 255, 255, .88));' + // design-token-ok: light ink on the hero's dark band
+    ' --lumo-contrast-5pct: rgba(255, 255, 255, .12); --lumo-contrast-10pct: rgba(255, 255, 255, .18);' // design-token-ok: light ink on the hero's dark band
+
 /** The band background for a hero: its declared tone, else the themed default. */
 export const heroBackground = (tone: string | undefined): string =>
     (tone && HERO_TONES[tone]) ?? HERO_BACKGROUND
@@ -52,7 +64,7 @@ export const renderHeroSection = (container: LitElement, component: ClientSideCo
     const textAlign = centered ? 'center' : 'start'
     return html`
         <div class="mateu-hero ${component.cssClasses??''}" data-tone="${metadata.tone ?? nothing}"
-             style="position: relative; display: flex; flex-direction: column; overflow: hidden; border-radius: var(--lumo-border-radius-l, 12px); margin-top: var(--mateu-hero-margin-top, var(--lumo-space-l, 1.5rem)); min-height: ${metadata.height ?? '12rem'}; box-sizing: border-box; background: ${heroBackground(metadata.tone)}; color: #fff; ${component.style??''}"
+             style="position: relative; display: flex; flex-direction: column; overflow: hidden; border-radius: var(--lumo-border-radius-l, 12px); margin-top: var(--mateu-hero-margin-top, var(--lumo-space-l, 1.5rem)); min-height: ${metadata.height ?? '12rem'}; box-sizing: border-box; background: ${heroBackground(metadata.tone)}; color: var(--mateu-hero-ink, #fff); ${HERO_INK_TOKENS} ${component.style??''}"
              slot="${component.slot??nothing}"
         >
             ${image ? html`<div class="mateu-hero-image" aria-hidden="true"
@@ -60,7 +72,7 @@ export const renderHeroSection = (container: LitElement, component: ClientSideCo
             <div class="mateu-hero-text"
                  style="position: relative; flex: 1; display: flex; flex-direction: column; align-items: ${alignment}; justify-content: center; gap: var(--lumo-space-s, .5rem); text-align: ${textAlign}; padding: var(--lumo-space-xl, 2.5rem); ${image ? 'max-width: min(60%, 42rem);' : ''} box-sizing: border-box;">
                 ${metadata.title?html`<h1 style="margin: 0; font-family: var(--lumo-font-family); font-size: var(--lumo-font-size-xxxl, 2.5rem); font-weight: 600; line-height: 1.15; letter-spacing: -0.01em; color: inherit;">${metadata.title}</h1>`:nothing}
-                ${metadata.subtitle?html`<p style="margin: 0; font-size: var(--lumo-font-size-l, 1.125rem); color: rgba(255, 255, 255, .88); max-width: 40rem;">${metadata.subtitle}</p>`:nothing}
+                ${metadata.subtitle?html`<p style="margin: 0; font-size: var(--lumo-font-size-l, 1.125rem); color: var(--lumo-secondary-text-color); max-width: 40rem;">${metadata.subtitle}</p>`:nothing}
                 ${component.children?.length?html`
                     <div style="display: flex; gap: var(--lumo-space-s, .5rem); flex-wrap: wrap; justify-content: ${alignment}; width: 100%; max-width: 40rem; margin-top: var(--lumo-space-s, .5rem);">
                         ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}

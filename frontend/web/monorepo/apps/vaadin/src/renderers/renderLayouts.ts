@@ -58,6 +58,11 @@ export const renderFormLayout = (container: LitElement, component: ClientSideCom
     if (metadata.fullWidth) {
         style += 'width: 100%;';
     }
+    // A form takes the width of the layout it sits in. Inside a vaadin-vertical-layout (whose items
+    // align to flex-start) it used to size to its CONTENT, and an auto-responsive form's content is
+    // its widest row — two fields side by side, ~410px — so on a 390px phone the second column was
+    // cut off instead of the form dropping to one column (WCAG 1.4.10; UX review W-V-REFLOW).
+    style += 'align-self: stretch; min-width: 0;'
 
     return html`
                <vaadin-form-layout 
@@ -228,6 +233,11 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
     if (metadata.fullWidth) {
         style += 'width: 100%;';
     }
+    // A form takes the width of the layout it sits in. Inside a vaadin-vertical-layout (whose items
+    // align to flex-start) it used to size to its CONTENT, and an auto-responsive form's content is
+    // its widest row — two fields side by side, ~410px — so on a 390px phone the second column was
+    // cut off instead of the form dropping to one column (WCAG 1.4.10; UX review W-V-REFLOW).
+    style += 'align-self: stretch; min-width: 0;'
 
     let variant = metadata.variant
     if ('equalWidth' == variant) {
@@ -307,7 +317,7 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
                 </vaadin-tabs>
 
                 ${component.children?.map((child, index) => html`
-                    <div slot="panel-${index}" data-node-id="${nodeIdAttr(child)}" style="padding: var(--lumo-space-m) 0;">
+                    <div slot="panel-${index}" data-node-id="${nodeIdAttr(child)}" style="padding: var(--lumo-space-m) 0; align-self: stretch; min-width: 0;">
                         ${withinTab(tabIds[index], () => (child as ClientSideComponent).children?.map(grandChild => renderComponent(container, grandChild, baseUrl, state, data, appState, appData)))}
                     </div>`)}
             </mateu-adaptive-tabs>
@@ -357,7 +367,7 @@ export const renderTab = (container: LitElement, tab: ClientSideComponent, baseU
     const rawLabel = (tab.metadata as Tab).label
     const label = rawLabel?.includes('${') ? (container as any)._evalTemplate(rawLabel) : rawLabel
     return html`
-        <div tab="${tabId ?? label}" data-node-id="${nodeIdAttr(tab)}" style="padding: var(--lumo-space-m) 0;">
+        <div tab="${tabId ?? label}" data-node-id="${nodeIdAttr(tab)}" style="padding: var(--lumo-space-m) 0; align-self: stretch; min-width: 0;">
                    ${tab.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
                </div>
             `
@@ -393,7 +403,7 @@ export const renderAccordionLayout = (container: LitElement, component: Componen
     }
     return html`
                <vaadin-accordion
-                       style="${component.style}"
+                       style="align-self: stretch; min-width: 0; ${component.style ?? ''}"
                        class="${component.cssClasses}"
                        opened="${opened}"
                        slot="${component.slot??nothing}"

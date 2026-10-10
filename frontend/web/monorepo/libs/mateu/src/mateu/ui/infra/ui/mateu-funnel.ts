@@ -1,6 +1,7 @@
 import { css, html, LitElement, nothing } from "lit";
 import { customElement, property } from 'lit/decorators.js';
 import FunnelStage from "@mateu/shared/apiClients/dtos/componentmetadata/FunnelStage";
+import { inkOn } from '@infra/ui/inkOn.ts'
 
 /**
  * Dependency-free conversion funnel: one centered bar per stage, its width proportional to the
@@ -24,7 +25,7 @@ export class MateuFunnel extends LitElement {
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #fff;
+            color: var(--bar-ink, var(--lumo-primary-contrast-color, #fff));
             font-weight: 700;
             min-width: 3rem;
             transition: width .2s;
@@ -56,7 +57,7 @@ export class MateuFunnel extends LitElement {
                                 <span class="label">${stage.label}</span>
                                 ${i > 0 ? html`<span class="conv">${conv} of previous</span>` : nothing}
                             </div>
-                            <div class="bar" style="width: ${width}%; ${stage.color ? `--bar: ${stage.color};` : ''}">
+                            <div class="bar" style="width: ${width}%; ${stage.color ? `--bar: ${stage.color}; ${inkOn(stage.color) ? `--bar-ink: ${inkOn(stage.color)};` : ''}` : ''}">
                                 ${value.toLocaleString()}
                             </div>
                         </div>

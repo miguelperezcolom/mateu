@@ -61,6 +61,7 @@ import {announce} from "@infra/a11y/announcer.ts";
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { safeHref } from '@infra/ui/safeNavigate.ts'
 import { displayedValue, formatMoney } from './fieldDisplay'
+import { humanizeFieldId } from '@infra/ui/humanize.ts'
 
 type ValueChangedDetail = { value: unknown; fieldId: string | undefined }
 
@@ -659,10 +660,25 @@ export class MateuField extends LitElement {
         super.updated(changedProperties);
         this.positionNavLink()
         this.applyValidationState()
+        this.nameUnlabelledControl()
         // Whether the control displays its own message decides if the fallback list is rendered.
         // It can only be known after the control exists, so it feeds the NEXT render — which Lit
         // schedules because it is @state.
         this.controlOwnsValidity = !!this.validatableControl()
+    }
+
+    /**
+     * A field declared with a HIDDEN label (`@Label("")` — a record switcher, a search box that the
+     * page explains around it) still needs an accessible name: without one a screen reader announced
+     * a bare "edit text" (WCAG 4.1.2; UX review W-V-RECORD-SWITCH). The control gets the field's
+     * humanized id as its name; a visible label always wins.
+     */
+    private nameUnlabelledControl() {
+        const label = this.field?.label
+        if (!this.field || (typeof label === 'string' && label.trim())) return
+        const control = this.validatableControl() as (HTMLElement & { accessibleName?: string, label?: string }) | null
+        if (!control || !('accessibleName' in control) || control.accessibleName || control.label) return
+        control.accessibleName = humanizeFieldId(this.field.fieldId ?? '')
     }
 
     iconFilterChanged = (event: CustomEvent) => {
@@ -730,7 +746,7 @@ export class MateuField extends LitElement {
             if (lookupLabel !== undefined && lookupLabel !== '') v = lookupLabel
             const { isBool, checked, isMoney, display } = displayedValue(v, this.field?.dataType)
             const valueBody = isBool
-                ? html`<vaadin-icon icon="${checked ? 'vaadin:check' : 'vaadin:minus'}" style="height: 16px; width: 16px;"></vaadin-icon>`
+                ? html`<vaadin-icon icon="${checked ? 'vaadin:check' : 'vaadin:minus'}" role="img" aria-label="${chromeText(checked ? 'yes' : 'no')}" style="height: var(--lumo-icon-size-s, 1rem); width: var(--lumo-icon-size-s, 1rem);"></vaadin-icon>`
                 : html`<span style="font-weight: 500; text-align: right; word-break: break-word; margin-left: auto;${isMoney ? ' font-variant-numeric: tabular-nums;' : ''}">${display}</span>`
             const showLabel = labelText && labelText != 'null'
             return html`<div
@@ -759,7 +775,7 @@ export class MateuField extends LitElement {
             let v = evalIfNecessary(value, this.state, this.data)
             const { isBool, checked, isMoney, display } = displayedValue(v, this.field?.dataType)
             const body = isBool
-                ? html`<vaadin-icon icon="${checked ? 'vaadin:check' : 'vaadin:minus'}" style="height: 16px; width: 16px;"></vaadin-icon>`
+                ? html`<vaadin-icon icon="${checked ? 'vaadin:check' : 'vaadin:minus'}" role="img" aria-label="${chromeText(checked ? 'yes' : 'no')}" style="height: var(--lumo-icon-size-s, 1rem); width: var(--lumo-icon-size-s, 1rem);"></vaadin-icon>`
                 : this.field?.multiline
                     ? html`<span style="font-weight: 500; white-space: pre-wrap; word-break: break-word;">${display}</span>`
                     : html`<span style="font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;${isMoney ? ' font-variant-numeric: tabular-nums;' : ''}">${display}</span>`
@@ -821,7 +837,7 @@ export class MateuField extends LitElement {
                         required="${this.field.required || nothing}"
                         .helperText="${this.helperText()}"
                         data-colspan="${this.field.colspan}"
-                ><img src="${valueToDisplay}" id="${this.field.fieldId}_img" style="${this.field.style}">
+                ><img src="${valueToDisplay}" alt="${label ?? ''}" id="${this.field.fieldId}_img" style="${this.field.style}">
                 </vaadin-custom-field>`
             }
             if ('bool' == this.field.dataType || 'boolean' == this.field.dataType) {
@@ -831,7 +847,7 @@ export class MateuField extends LitElement {
                         required="${this.field.required || nothing}"
                         .helperText="${this.helperText()}"
                         data-colspan="${this.field.colspan}"
-                ><vaadin-icon icon="${valueToDisplay?'vaadin:check':'vaadin:minus'}" style="height: 20px;"></vaadin-icon>
+                ><vaadin-icon icon="${valueToDisplay?'vaadin:check':'vaadin:minus'}" role="img" aria-label="${chromeText(valueToDisplay ? 'yes' : 'no')}" style="height: var(--lumo-icon-size-m, 1.5rem);"></vaadin-icon>
                 </vaadin-custom-field>`
             }
             const strValue = valueToDisplay != null ? String(valueToDisplay) : ''
@@ -998,9 +1014,9 @@ export class MateuField extends LitElement {
                             data-colspan="${this.field.colspan}"
                     >
                         <vaadin-horizontal-layout theme="spacing" style="--lumo-space-m: 0.33rem;">
-                            <vaadin-text-field style="width: 4rem;" @change="${searchCode}" value="${value}"></vaadin-text-field>
-                            <vaadin-text-field readonly="" value="${this.data[this.field.fieldId + '-label']}"></vaadin-text-field>
-                            <vaadin-button theme="icon" @click="${search}"><vaadin-icon icon="lumo:search"></vaadin-icon></vaadin-button>
+                            <vaadin-text-field style="width: 4rem;" accessible-name="${(this.field.label ?? this.field.fieldId) + ' — ' + chromeText('code')}" @change="${searchCode}" value="${value}"></vaadin-text-field>
+                            <vaadin-text-field readonly="" accessible-name="${this.field.label ?? this.field.fieldId}" value="${this.data[this.field.fieldId + '-label']}"></vaadin-text-field>
+                            <vaadin-button theme="icon" aria-label="${chromeText('search')}" @click="${search}"><vaadin-icon icon="lumo:search"></vaadin-icon></vaadin-button>
                         </vaadin-horizontal-layout>
                     </vaadin-custom-field>
                 `
@@ -1604,7 +1620,7 @@ export class MateuField extends LitElement {
                             .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
                     ><img
-                            src="${value}"
+                            src="${value}" alt="${label ?? ''}"
                             style="${this.component?.style}" class="${this.component?.cssClasses}"></vaadin-custom-field>
                 `
             }
@@ -1680,7 +1696,7 @@ export class MateuField extends LitElement {
                     >
                         <vaadin-vertical-layout style="align-items: stretch; gap: var(--lumo-space-s); max-width: 320px;">
                             ${hasImage ? html`<img
-                                    src="${value}"
+                                    src="${value}" alt="${label ?? ''}"
                                     style="max-width: 100%; max-height: 240px; object-fit: contain; border: 1px solid var(--lumo-contrast-20pct); border-radius: var(--lumo-border-radius-m); ${this.field.style ?? ''}"
                                     class="${this.component?.cssClasses}">`
                                 : html`<div style="height: 135px; display: flex; align-items: center; justify-content: center; border: 1px dashed var(--lumo-contrast-30pct); border-radius: var(--lumo-border-radius-m); color: var(--lumo-secondary-text-color);">
@@ -1805,7 +1821,7 @@ export class MateuField extends LitElement {
                             label="${label}"
                             .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
-                    ><input type="range" @input="${(e: Event) => {
+                    ><input type="range" aria-label="${label ?? ''}" @input="${(e: Event) => {
                         this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
                             detail: {
                                 value: (e.target as HTMLInputElement).value,

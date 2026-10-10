@@ -700,9 +700,12 @@ export class MateuUx extends ConnectedElement {
            sets it to 0. Fixed keeps its 1408px column and gets the gutter when narrower. */
         :host([data-page-width='fixed']) {
             box-sizing: border-box;
-            max-width: min(calc(1408px + 2 * var(--mateu-content-gutter, 0px)), 100%);
+            max-width: min(calc(1408px + 2 * var(--mateu-content-gutter, var(--lumo-space-m, 1rem))), 100%);
             margin-inline: auto;
-            padding-inline: var(--mateu-content-gutter, 0px);
+            /* a STANDALONE page (no app shell to set the gutter) keeps the design system's side
+               gutter — on a phone the content used to touch the screen edges (UX review W-V-GUTTER);
+               every shell sets --mateu-content-gutter itself (0 where its content area is padded) */
+            padding-inline: var(--mateu-content-gutter, var(--lumo-space-m, 1rem));
         }
         :host([data-page-width='full']) {
             box-sizing: border-box;

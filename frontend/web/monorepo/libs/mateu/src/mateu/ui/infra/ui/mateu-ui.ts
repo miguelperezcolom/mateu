@@ -20,6 +20,7 @@ import { keyed } from 'lit/directives/keyed.js'
 import { applyUiLanguage } from '@infra/ui/chromeTexts.ts'
 import { installLiveReload } from '@infra/dev/liveReload.ts'
 import { installPrintSupport } from '@infra/ui/documents.ts'
+import { unclaimedActionWarning } from '@infra/ui/unclaimedAction.ts'
 
 // Install the design-system-neutral toast adapter as the default. A DS app (e.g. Vaadin) may
 // override it with setNotifier after importing mateu-ui.
@@ -213,6 +214,14 @@ export class MateuUi extends LitElement {
 
         this.addEventListener('url-update-requested', this.routeChangedListener)
         this.addEventListener('navigate-to-requested', this.navigateToRequestedListener)
+        this.addEventListener('action-requested', this.unclaimedActionListener)
+    }
+
+    // an action that reached the ROOT was claimed by nobody: say so instead of losing it silently
+    unclaimedActionListener = (e: Event) => {
+        const warning = unclaimedActionWarning((e as CustomEvent).detail)
+        // eslint-disable-next-line no-console -- a developer signal, by design
+        if (warning) console.warn(warning)
     }
 
     disconnectedCallback() {
@@ -221,6 +230,7 @@ export class MateuUi extends LitElement {
         this.upstreamSubscription?.unsubscribe()
         this.removeEventListener('url-update-requested', this.routeChangedListener)
         this.removeEventListener('navigate-to-requested', this.navigateToRequestedListener)
+        this.removeEventListener('action-requested', this.unclaimedActionListener)
     }
 
     /** Rebuilds the whole tree on the current URL (live reload of an app-level change). */

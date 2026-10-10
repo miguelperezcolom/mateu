@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import uuid
 
 from pydantic import ValidationError
@@ -51,7 +52,7 @@ def describe(
         if isinstance(e, ValidationError):
             text = "\n".join(
                 sorted(
-                    (".".join(str(p) for p in err.get("loc", ())) + ": " if err.get("loc") else "")
+                    (_field_label(err.get("loc")) + ": " if err.get("loc") else "")
                     + str(err.get("msg", ""))
                     for err in e.errors()
                 )
@@ -65,3 +66,12 @@ def describe(
         source = list(_chain(error))[-1]
         return _message(type(source).__name__, f"{source} (ref {reference})")
     return _message(GENERIC_TITLE, GENERIC_TEXT + reference)
+
+
+def _field_label(loc) -> str:
+    """The field a validation error is about, as the user knows it ("start_date" -> "Start date")
+    rather than its programmer path ("start_date") — Java's ErrorBoundary.labelOf."""
+    parts = [str(p) for p in (loc or ()) if not isinstance(p, int)]
+    leaf = parts[-1] if parts else ""
+    words = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", re.sub(r"[_-]+", " ", leaf)).strip().lower()
+    return words[:1].upper() + words[1:] if words else ".".join(str(p) for p in (loc or ()))

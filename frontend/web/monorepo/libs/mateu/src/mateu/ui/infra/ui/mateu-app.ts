@@ -1307,7 +1307,7 @@ export class MateuApp extends ComponentElement {
 
         .rail-item--active {
             background-color: var(--lumo-primary-color-10pct);
-            color: var(--lumo-primary-color);
+            color: var(--lumo-primary-text-color);
         }
 
         .rail-icon {
@@ -1367,7 +1367,7 @@ export class MateuApp extends ComponentElement {
 
         .rail-sub-item--active {
             background-color: var(--lumo-primary-color-10pct);
-            color: var(--lumo-primary-color);
+            color: var(--lumo-primary-text-color);
             font-weight: 600;
         }
 

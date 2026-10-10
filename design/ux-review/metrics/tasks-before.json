@@ -1,0 +1,473 @@
+{
+ "base": "http://localhost:19701",
+ "at": "2026-10-10T21:25:15.552Z",
+ "results": [
+  {
+   "task": "T1",
+   "name": "Create a record",
+   "profile": "mouse",
+   "completed": true,
+   "steps": 5,
+   "clicks": 4,
+   "keystrokes": 20,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 0,
+   "deadEnds": [],
+   "ms": 5661
+  },
+  {
+   "task": "T1",
+   "name": "Create a record",
+   "profile": "phone",
+   "completed": true,
+   "steps": 5,
+   "clicks": 4,
+   "keystrokes": 20,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 0,
+   "deadEnds": [],
+   "ms": 5500
+  },
+  {
+   "task": "T1",
+   "name": "Create a record",
+   "profile": "keyboard",
+   "completed": true,
+   "steps": 5,
+   "clicks": 0,
+   "keystrokes": 40,
+   "tabs": 18,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 0,
+   "deadEnds": [],
+   "ms": 5406
+  },
+  {
+   "task": "T1",
+   "name": "Create a record",
+   "profile": "sr",
+   "completed": true,
+   "steps": 5,
+   "clicks": 4,
+   "keystrokes": 20,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 0,
+   "deadEnds": [],
+   "ms": 5435
+  },
+  {
+   "task": "T2",
+   "name": "Find a record and edit it",
+   "profile": "mouse",
+   "completed": true,
+   "steps": 6,
+   "clicks": 6,
+   "keystrokes": 18,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [
+    "ambiguous \"Task Gamma\" (2 matches)",
+    "opening \"Task Gamma\" did nothing — looked for another way in"
+   ],
+   "errors": 0,
+   "deadEnds": [],
+   "ms": 7879
+  },
+  {
+   "task": "T2",
+   "name": "Find a record and edit it",
+   "profile": "phone",
+   "completed": false,
+   "steps": 3,
+   "clicks": 3,
+   "keystrokes": 6,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [
+    "ambiguous \"Task Gamma\" (2 matches)",
+    "small target \"Task Gamma\" 94x22",
+    "opening \"Task Gamma\" did nothing — looked for another way in"
+   ],
+   "errors": 0,
+   "deadEnds": [
+    "no control \"Edit\""
+   ],
+   "ms": 4690
+  },
+  {
+   "task": "T2",
+   "name": "Find a record and edit it",
+   "profile": "keyboard",
+   "completed": false,
+   "steps": 2,
+   "clicks": 0,
+   "keystrokes": 126,
+   "tabs": 3,
+   "scrolls": 0,
+   "hesitations": [
+    "ambiguous \"Task Gamma\" (2 matches)",
+    "opening \"Task Gamma\" did nothing — looked for another way in"
+   ],
+   "errors": 0,
+   "deadEnds": [
+    "keyboard cannot reach \"Task Gamma\"",
+    "keyboard cannot reach \"t3\"",
+    "cannot open \"Task Gamma\""
+   ],
+   "ms": 2314
+  },
+  {
+   "task": "T2",
+   "name": "Find a record and edit it",
+   "profile": "sr",
+   "completed": true,
+   "steps": 6,
+   "clicks": 6,
+   "keystrokes": 18,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [
+    "opening \"Task Gamma\" did nothing — looked for another way in"
+   ],
+   "errors": 0,
+   "deadEnds": [],
+   "ms": 7882
+  },
+  {
+   "task": "T3",
+   "name": "Delete a record (error prevention)",
+   "profile": "mouse",
+   "completed": false,
+   "steps": 5,
+   "clicks": 3,
+   "keystrokes": 0,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 1,
+   "deadEnds": [
+    "rows did not change (11 → 11)"
+   ],
+   "ms": 5934
+  },
+  {
+   "task": "T3",
+   "name": "Delete a record (error prevention)",
+   "profile": "phone",
+   "completed": false,
+   "steps": 5,
+   "clicks": 3,
+   "keystrokes": 0,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 1,
+   "deadEnds": [
+    "rows did not change (11 → 11)"
+   ],
+   "ms": 5965
+  },
+  {
+   "task": "T3",
+   "name": "Delete a record (error prevention)",
+   "profile": "keyboard",
+   "completed": false,
+   "steps": 2,
+   "clicks": 0,
+   "keystrokes": 71,
+   "tabs": 14,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 1,
+   "deadEnds": [
+    "keyboard cannot reach \"Select Row\""
+   ],
+   "ms": 2718
+  },
+  {
+   "task": "T3",
+   "name": "Delete a record (error prevention)",
+   "profile": "sr",
+   "completed": false,
+   "steps": 5,
+   "clicks": 3,
+   "keystrokes": 0,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 1,
+   "deadEnds": [
+    "rows did not change (11 → 11)"
+   ],
+   "ms": 5974
+  },
+  {
+   "task": "T4",
+   "name": "Complete a wizard (with a validation error)",
+   "profile": "mouse",
+   "completed": false,
+   "steps": 8,
+   "clicks": 7,
+   "keystrokes": 36,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 1,
+   "deadEnds": [
+    "did not see \"Welcome, Ada\""
+   ],
+   "ms": 7496
+  },
+  {
+   "task": "T4",
+   "name": "Complete a wizard (with a validation error)",
+   "profile": "phone",
+   "completed": false,
+   "steps": 8,
+   "clicks": 7,
+   "keystrokes": 36,
+   "tabs": 0,
+   "scrolls": 1,
+   "hesitations": [
+    "page scrolls sideways",
+    "scrolled to reach \"Street\""
+   ],
+   "errors": 1,
+   "deadEnds": [
+    "did not see \"Welcome, Ada\""
+   ],
+   "ms": 7395
+  },
+  {
+   "task": "T4",
+   "name": "Complete a wizard (with a validation error)",
+   "profile": "keyboard",
+   "completed": false,
+   "steps": 8,
+   "clicks": 0,
+   "keystrokes": 47,
+   "tabs": 8,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 1,
+   "deadEnds": [
+    "did not see \"Welcome, Ada\""
+   ],
+   "ms": 7337
+  },
+  {
+   "task": "T4",
+   "name": "Complete a wizard (with a validation error)",
+   "profile": "sr",
+   "completed": false,
+   "steps": 8,
+   "clicks": 7,
+   "keystrokes": 36,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 1,
+   "deadEnds": [
+    "did not see \"Welcome, Ada\""
+   ],
+   "ms": 7394
+  },
+  {
+   "task": "T5",
+   "name": "Recover from a validation error",
+   "profile": "mouse",
+   "completed": true,
+   "steps": 7,
+   "clicks": 5,
+   "keystrokes": 17,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 1,
+   "deadEnds": [],
+   "ms": 6378
+  },
+  {
+   "task": "T5",
+   "name": "Recover from a validation error",
+   "profile": "phone",
+   "completed": false,
+   "steps": 6,
+   "clicks": 4,
+   "keystrokes": 17,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 1,
+   "deadEnds": [
+    "exception: locator.click: Timeout 5000ms exceeded."
+   ],
+   "ms": 9494
+  },
+  {
+   "task": "T5",
+   "name": "Recover from a validation error",
+   "profile": "keyboard",
+   "completed": true,
+   "steps": 7,
+   "clicks": 0,
+   "keystrokes": 34,
+   "tabs": 15,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 1,
+   "deadEnds": [],
+   "ms": 6160
+  },
+  {
+   "task": "T5",
+   "name": "Recover from a validation error",
+   "profile": "sr",
+   "completed": true,
+   "steps": 7,
+   "clicks": 5,
+   "keystrokes": 17,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 1,
+   "deadEnds": [],
+   "ms": 6215
+  },
+  {
+   "task": "T6",
+   "name": "Find a screen through the menu",
+   "profile": "mouse",
+   "completed": true,
+   "steps": 2,
+   "clicks": 1,
+   "keystrokes": 0,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 0,
+   "deadEnds": [],
+   "ms": 3353
+  },
+  {
+   "task": "T6",
+   "name": "Find a screen through the menu",
+   "profile": "phone",
+   "completed": true,
+   "steps": 2,
+   "clicks": 1,
+   "keystrokes": 0,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 0,
+   "deadEnds": [],
+   "ms": 3354
+  },
+  {
+   "task": "T6",
+   "name": "Find a screen through the menu",
+   "profile": "keyboard",
+   "completed": true,
+   "steps": 2,
+   "clicks": 0,
+   "keystrokes": 5,
+   "tabs": 4,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 0,
+   "deadEnds": [],
+   "ms": 3349
+  },
+  {
+   "task": "T6",
+   "name": "Find a screen through the menu",
+   "profile": "sr",
+   "completed": true,
+   "steps": 2,
+   "clicks": 1,
+   "keystrokes": 0,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 0,
+   "deadEnds": [],
+   "ms": 3356
+  },
+  {
+   "task": "T7",
+   "name": "Filter a listing",
+   "profile": "mouse",
+   "completed": false,
+   "steps": 2,
+   "clicks": 1,
+   "keystrokes": 12,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 0,
+   "deadEnds": [
+    "expected 2 rows, saw 1"
+   ],
+   "ms": 3058
+  },
+  {
+   "task": "T7",
+   "name": "Filter a listing",
+   "profile": "phone",
+   "completed": false,
+   "steps": 2,
+   "clicks": 1,
+   "keystrokes": 12,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 0,
+   "deadEnds": [
+    "expected 2 rows, saw 1"
+   ],
+   "ms": 3061
+  },
+  {
+   "task": "T7",
+   "name": "Filter a listing",
+   "profile": "keyboard",
+   "completed": false,
+   "steps": 2,
+   "clicks": 0,
+   "keystrokes": 12,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 0,
+   "deadEnds": [
+    "expected 2 rows, saw 1"
+   ],
+   "ms": 3020
+  },
+  {
+   "task": "T7",
+   "name": "Filter a listing",
+   "profile": "sr",
+   "completed": false,
+   "steps": 2,
+   "clicks": 1,
+   "keystrokes": 12,
+   "tabs": 0,
+   "scrolls": 0,
+   "hesitations": [],
+   "errors": 0,
+   "deadEnds": [
+    "expected 2 rows, saw 1"
+   ],
+   "ms": 3060
+  }
+ ]
+}

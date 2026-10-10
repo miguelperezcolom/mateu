@@ -1,6 +1,7 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import ProgressBar from "@mateu/shared/apiClients/dtos/componentmetadata/ProgressBar";
 import { html, nothing } from "lit";
+import { chromeText } from "@infra/ui/chromeTexts.ts";
 
 /**
  * Vaadin adapter ProgressBar → vaadin-progress-bar (Lumo styling + min support). Lives in apps/vaadin
@@ -20,6 +21,7 @@ export const renderProgressBar = (component: ClientSideComponent, state: Record<
                 style="${component.style}"
                 class="${component.cssClasses}"
                 slot="${component.slot ?? nothing}"
+                aria-label="${metadata.text || chromeText('progress')}"
         ></vaadin-progress-bar>
         ${metadata.text ? html`<span class="text-secondary text-xs" id="sublbl">
     ${metadata.text}

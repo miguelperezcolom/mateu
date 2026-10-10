@@ -58,6 +58,8 @@ import { fabStyles } from '@infra/ui/layout/fabRail.ts'
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { runJs } from '@infra/ui/runJs.ts'
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
+import { humanizeFieldId } from '@infra/ui/humanize.ts'
+import { trapFocus, type FocusTrap } from '@infra/a11y/focusTrap.ts'
 
 let _pendingInitiatorComponent: MateuComponent | null = null
 
@@ -522,19 +524,24 @@ export class MateuComponent extends ComponentElement {
     }
 
     buildFieldLabelMap = (): Record<string, string> => {
+        // Walks the WHOLE tree, metadata included: a crud's form fields (and a card's, a section's)
+        // travel inside METADATA records rather than as children, and a field missing from this
+        // map was reported to the user by its raw id ("title: Cannot be empty").
         const map: Record<string, string> = {}
-        const traverse = (nodes: any[] | undefined) => {
-            if (!nodes) return
-            for (const node of nodes) {
-                const meta = (node as ClientSideComponent).metadata
-                if (meta?.type === ComponentMetadataType.FormField) {
-                    const field = meta as any
-                    if (field.fieldId && field.label) map[field.fieldId] = field.label
-                }
-                traverse(node.children)
+        const seen = new Set<unknown>()
+        const visit = (node: unknown) => {
+            if (!node || typeof node !== 'object' || seen.has(node)) return
+            seen.add(node)
+            if (Array.isArray(node)) { node.forEach(visit); return }
+            const o = node as Record<string, any>
+            if (o.type === ComponentMetadataType.FormField && typeof o.fieldId === 'string'
+                && typeof o.label === 'string' && o.label && !map[o.fieldId]) {
+                map[o.fieldId] = o.label
             }
+            for (const v of Object.values(o)) if (v && typeof v === 'object') visit(v)
         }
-        traverse(this.component?.children)
+        visit(this.component?.children)
+        visit((this.component as any)?.metadata)
         return map
     }
 
@@ -544,7 +551,8 @@ export class MateuComponent extends ComponentElement {
         const lines: Array<{label: string | undefined, msg: string}> = []
         Object.entries(errors).forEach(([fieldId, fieldErrors]) => {
             if (!Array.isArray(fieldErrors)) return
-            const label = fieldId === '_component' ? undefined : (labelMap[fieldId] ?? fieldId)
+            // no label anywhere: at least not the camelCase id ("startDate" → "Start date")
+            const label = fieldId === '_component' ? undefined : (labelMap[fieldId] ?? humanizeFieldId(fieldId))
             fieldErrors.forEach(msg => {
                 if (msg && !lines.some(l => l.label === label && l.msg === msg)) {
                     lines.push({label, msg})
@@ -701,7 +709,7 @@ export class MateuComponent extends ComponentElement {
     }
 
     callAfterConfirmation = (action: Action, callback: Function) => {
-        const { header, message, confirmationText, denialText } = confirmationDialogTexts(action)
+        const { header, message, confirmationText, denialText, destructive } = confirmationDialogTexts(action)
 
         // DS-neutral confirm modal (was a vaadin-confirm-dialog).
         const backdrop = document.createElement('div')
@@ -712,20 +720,30 @@ export class MateuComponent extends ComponentElement {
             + 'padding:1.2rem;max-width:min(90vw,26rem);'
         // The modal lives in <body>: it goes away with this component (a navigation while it is
         // open), and so do its listeners.
+        // An ALERT DIALOG (WAI-ARIA APG): named by its title, described by its message, modal, and it
+        // owns the focus while open — it used to be an unnamed div that left the focus on the page
+        // behind it, so a keyboard user's next Tab went past the question (UX review W-V-CONFIRM).
+        const titleId = 'mateu-confirm-title-' + Math.random().toString(36).slice(2, 8)
+        card.setAttribute('role', 'alertdialog')
+        card.setAttribute('aria-modal', 'true')
+        card.setAttribute('aria-labelledby', titleId)
+        card.setAttribute('aria-describedby', titleId + '-msg')
         const modal = new AbortController()
+        let trap: FocusTrap | undefined
         const close = () => {
             modal.abort()
+            trap?.release()
             if (backdrop.parentElement) backdrop.parentElement.removeChild(backdrop)
         }
         this.connection.signal.addEventListener('abort', close, { signal: modal.signal })
         const btn = 'font:inherit;font-weight:600;padding:.45rem 1rem;border-radius:var(--lumo-border-radius-m,6px);cursor:pointer;'
         render(html`
-            <h3 style="margin:0 0 .5rem;">${header}</h3>
-            <div style="margin-bottom:1.2rem;">${message}</div>
-            <div style="display:flex;justify-content:flex-end;gap:.5rem;">
-                <button style="${btn}border:1px solid var(--lumo-contrast-30pct,rgba(0,0,0,.25));background:var(--lumo-base-color,#fff);"
+            <h3 id="${titleId}" style="margin:0 0 var(--lumo-space-s,.5rem);">${header}</h3>
+            <div id="${titleId}-msg" style="margin-bottom:var(--lumo-space-l,1.5rem);">${message}</div>
+            <div style="display:flex;justify-content:flex-end;gap:var(--lumo-space-s,.5rem);">
+                <button class="mateu-confirm-deny" style="${btn}border:1px solid var(--lumo-contrast-30pct,rgba(0,0,0,.25));background:var(--lumo-base-color,#fff);color:var(--lumo-body-text-color,#1a1a1a);"
                         @click="${() => close()}">${denialText}</button>
-                <button style="${btn}border:none;background:var(--lumo-primary-color,#1676f3);color:var(--lumo-primary-contrast-color,#fff);"
+                <button class="mateu-confirm-accept" style="${btn}border:none;background:${destructive ? 'var(--lumo-error-color,#c62828)' : 'var(--lumo-primary-color,#1676f3)'};color:${destructive ? 'var(--lumo-error-contrast-color,#fff)' : 'var(--lumo-primary-contrast-color,#fff)'};"
                         @click="${() => { close(); callback() }}">${confirmationText}</button>
             </div>
         `, card)
@@ -733,6 +751,10 @@ export class MateuComponent extends ComponentElement {
         backdrop.addEventListener('click', (e) => { if (e.target === backdrop) close() }, { signal: modal.signal })
         document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close() }, { signal: modal.signal })
         document.body.appendChild(backdrop)
+        // a destructive question starts on the SAFE answer: Enter must not delete by accident
+        trap = trapFocus(card, {
+            initialFocus: () => card.querySelector<HTMLElement>(destructive ? '.mateu-confirm-deny' : '.mateu-confirm-accept'),
+        })
     }
 
     /**
