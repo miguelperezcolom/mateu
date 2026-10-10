@@ -85,6 +85,10 @@ class AppMetadata(Wire):
     #: resolved by a renderer / the client-side expander with no backend (mirrors
     #: AppDto.components).
     components: list["ComponentEntryRecord"] = Field(default_factory=list)
+    #: True when the server runs in SAMPLE mode (``MATEU_SOURCES_MOCK=true``): the client switches
+    #: its sample mode on, so the direct leg answers sampled sources with their samples too. None
+    #: (absent) otherwise (mirrors AppDto.mockSources).
+    mock_sources: bool | None = None
 
 
 class AppContextSelector(Wire):

@@ -57,6 +57,7 @@ from ..naming import (
     humanize,
 )
 from ..page_type_inference import page_type_of
+from mateu_uidl.field_types import FieldType
 from ..reflection import (
     methods_with,
     view_fields,
@@ -126,7 +127,7 @@ class CrudMapperMixin(MixinBase):
             if not self.visible(f):
                 continue
             editable = inline and not f.has(ReadOnly)
-            columns.append(GridColumn(metadata=GridColumnMeta(
+            columns.append(GridColumn(metadata=self.typed_column(GridColumnMeta(
                 id=camel_case(f.name),
                 label=(f.marker(Label).value if f.has(Label) else humanize(f.name)),
                 editable=editable,
@@ -140,7 +141,7 @@ class CrudMapperMixin(MixinBase):
                 caption_path=self.caption_path_of(f),
                 leading_path=self.leading_path_of(f),
                 tooltip_path=self.tooltip_path_of(f),
-            )))
+            ), f)))
         toolbar = [Button(label="New", action_id="new"), Button(label="Delete", action_id="delete")]
         # Export the listing (Crud.csv/excel/pdf_exportable): the whole filtered set as a file
         # download (mirrors Java's ListRouteResolver export buttons).
@@ -214,6 +215,46 @@ class CrudMapperMixin(MixinBase):
         None on non-aggregated columns (mirrors Java's ListingColumnBuilder)."""
         marker = f.marker(Aggregate)
         return marker.function.name if marker is not None else None
+
+    def typed_column(self, meta: GridColumnMeta, f) -> GridColumnMeta:
+        """A column whose row field carries ``FieldType("X")`` takes the type's COLUMN attributes
+        (label, dataType, stereotype, width, autoWidth, tones) as defaults — the code twin of
+        ``fieldType:`` on an authored GridColumn. What the field declares itself wins (a Label()
+        marker, a PrimaryColumn stereotype); an unknown type is WARNed about and the column
+        rendered as declared."""
+        marker = f.marker(FieldType)
+        if marker is None:
+            return meta
+        registry = self.field_types
+        if registry is None:
+            from ..field_type_registry import default_registry
+
+            registry = default_registry()
+        entry = registry.get(marker.id)
+        if entry is None:
+            import logging
+
+            logging.getLogger("mateu.field_types").warning(
+                "Unknown field type '%s' (on '%s') — rendered as declared. Declare it in"
+                " specs/ui/types.yaml or a FieldTypeCatalogSupplier.",
+                marker.id,
+                meta.id,
+            )
+            return meta
+        update: dict[str, Any] = {}
+        if entry.label and not f.has(Label):
+            update["label"] = self.T(entry.label)
+        if entry.data_type:
+            update["data_type"] = entry.data_type
+        if entry.stereotype and meta.stereotype is None:
+            update["stereotype"] = entry.stereotype
+        if entry.width and meta.width is None:
+            update["width"] = entry.width
+        if entry.auto_width is not None and not meta.auto_width:
+            update["auto_width"] = bool(entry.auto_width)
+        if entry.tones and meta.tones is None:
+            update["tones"] = dict(entry.tones)
+        return meta.model_copy(update=update) if update else meta
 
     @staticmethod
     def column_stereotype_of(f) -> str | None:
@@ -319,7 +360,7 @@ class CrudMapperMixin(MixinBase):
         for f in view_fields(row_type) if row_type is not None else []:
             if self.grid_row_type(f) is not None or not self.visible(f):
                 continue
-            columns.append(GridColumn(metadata=GridColumnMeta(
+            columns.append(GridColumn(metadata=self.typed_column(GridColumnMeta(
                 id=camel_case(f.name),
                 label=(f.marker(Label).value if f.has(Label) else humanize(f.name)),
                 data_type=self.infer_data_type(f.type, f),
@@ -330,7 +371,7 @@ class CrudMapperMixin(MixinBase):
                 tooltip_path=self.tooltip_path_of(f),
                 # the first column of a Navigable/Editable listing opens the record
                 action_id="view" if rows_clickable and not columns else None,
-            )))
+            ), f)))
         actions = [Action(id="search")]
         if rows_clickable:
             actions.append(Action(id="view", validation_required=False))

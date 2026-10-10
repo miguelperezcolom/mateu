@@ -39,6 +39,7 @@ class YamlSpecLoader:
         directory: str | None = None,
         registry: RouteRegistry | None = None,
         partials: PartialRegistry | None = None,
+        field_types=None,
     ) -> None:
         self._dir = Path(directory or os.environ.get("MATEU_SPECS_DIR") or Path("specs") / "ui")
         self._by_route: dict[str, Spec | None] = {}
@@ -49,6 +50,13 @@ class YamlSpecLoader:
         #: of the ``<route>.yaml`` convention, which ties a screen's layout to its URL and so
         #: prevents one definition from serving several routes.
         self._registry = registry if registry is not None else RouteRegistry(str(self._dir))
+        #: The field type catalogue (``specs/ui/types.yaml`` + code suppliers): a field naming a
+        #: type by ``fieldType:`` takes its attributes as defaults before it is built.
+        if field_types is None:
+            from mateu_core.field_type_registry import FieldTypeRegistry
+
+            field_types = FieldTypeRegistry(str(self._dir))
+        self.field_types = field_types
 
     def load_spec(self, route: str | None) -> Spec | None:
         key = _normalize(route)
@@ -64,7 +72,9 @@ class YamlSpecLoader:
         if not path.is_file():
             return None
         try:
-            model_view, layout, delta = parse_spec_with_delta(path.read_text(), self.partials)
+            model_view, layout, delta = parse_spec_with_delta(
+                path.read_text(), self.partials, self.field_types
+            )
         except OSError:
             return None
         if layout is None and delta is None:

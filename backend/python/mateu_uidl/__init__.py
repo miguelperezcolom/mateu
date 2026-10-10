@@ -247,6 +247,11 @@ from .adapters import (  # noqa: F401
     AdaptedView,
     ComponentAdapter,
 )
+from .field_types import (  # noqa: F401
+    FieldType,
+    FieldTypeCatalogSupplier,
+    FieldTypeEntry,
+)
 
 
 __all__ = [
@@ -265,6 +270,9 @@ __all__ = [
     "DeclaredRestSource",
     "RestDataSource",
     "RestSourceCatalogSupplier",
+    "FieldType",
+    "FieldTypeCatalogSupplier",
+    "FieldTypeEntry",
     "RestSourceEntry",
     "RestSourceKind",
     "RestSourceProvenance",

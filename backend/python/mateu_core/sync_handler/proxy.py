@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import json
 import os
 import re
@@ -10,6 +11,7 @@ import urllib.request
 
 from mateu_dtos import UIIncrement
 
+from .. import sample_sources
 from ..url_template import interpolate_url, secret_env_name
 from ._base import MixinBase
 from ._common import (
@@ -38,7 +40,13 @@ class ProxyHandlerMixin(MixinBase):
                     log.warning("__restfetch__: %s could not be instantiated (%s)", cls, e)
                     instance = None
             source = self.mapper.resolve_rest_source(cls, kind, source_id, instance)
-            if source is not None:
+            if source is not None and sample_sources.enabled() and source.sample is not None:
+                # SAMPLE mode (opt-in only): the proxied twin of the browser's short-circuit, so
+                # both legs agree — a read gets the sample, a write succeeds without persisting
+                # anything, and the endpoint is never called.
+                method = (source.method or "GET").strip().upper()
+                json_obj = copy.deepcopy(source.sample) if method in ("", "GET", "HEAD") else {}
+            elif source is not None:
                 json_obj = self._fetch_proxy(source, rq.component_state)
         return UIIncrement(app_data={"_restfetch": json_obj})
 

@@ -64,6 +64,10 @@ class GridColumnMeta(Wire):
     flex_grow: str | None = None
     #: The text of a button-stereotype cell (e.g. a grid field's "Edit" column).
     text: str | None = None
+    #: value → badge tone (success|warning|danger|info|neutral) for a status cell, usually from a
+    #: field type; a declared tone wins over the renderer's word heuristics. None when absent
+    #: (mirrors GridColumnDto.tones).
+    tones: dict[str, str] | None = None
 
 
 class GridColumn(Wire):

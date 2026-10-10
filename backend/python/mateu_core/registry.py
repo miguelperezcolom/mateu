@@ -38,6 +38,9 @@ class MateuRegistry:
         self.catalog_suppliers: list[type] = []
         #: ComponentCatalogSupplier subclasses (the code half of the business-component catalogue).
         self.component_suppliers: list[type] = []
+        #: FieldTypeCatalogSupplier subclasses (the code half of the field type catalogue;
+        #: specs/ui/types.yaml wins over them).
+        self.field_type_suppliers: list[type] = []
         #: model type → its ComponentAdapter instance (the ComponentAdapter SPI).
         self.adapters: dict[type, object] = {}
         for src in sources:
@@ -96,6 +99,15 @@ class MateuRegistry:
                     # the island / routed model is addressed by its type name on the wire
                     self._by_name[type_name(model)] = model
 
+        from mateu_uidl.field_types import FieldTypeCatalogSupplier
+
+        if (
+            isinstance(cls, type)
+            and issubclass(cls, FieldTypeCatalogSupplier)
+            and cls is not FieldTypeCatalogSupplier
+            and cls not in self.field_type_suppliers
+        ):
+            self.field_type_suppliers.append(cls)
         if is_catalog_supplier(cls) and cls not in self.component_suppliers:
             self.component_suppliers.append(cls)
         if (
