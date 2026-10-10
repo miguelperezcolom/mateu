@@ -135,6 +135,13 @@ endpoint the proxy calls is resolved from a table the server holds, rather than 
 scattered across fields, and never from the request. That is what keeps the proxy from becoming an
 open relay.
 
+## Per-environment overrides
+
+`pre` and `pro` usually differ only in where the endpoints live. An
+[environment](/java-ui-definition/environments/) file re-points named sources — `baseUrl`, `url`,
+`headers`, `proxy` — for `MATEU_ENVIRONMENT=pre`, without editing `sources.yaml`, and the overlay
+reaches the wire, the proxy and the bundle manifest alike.
+
 ## What is not covered
 
 The mapping reaches **any JSON whose pieces are reachable by a dot path** — no envelope convention is

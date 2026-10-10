@@ -60,6 +60,10 @@ public class App {
 
 ---
 
+> **YAML-authored apps** express the same restrictions as data — `access:` on routes, menu items
+> and actions; `eyesOnly`/`readOnlyUnless`/`disabledUnless` on components — evaluated by the same
+> authorizer. See [Permissions in YAML](/java-ui-definition/yaml-security/).
+
 ## How authorization works
 
 Mateu reads the JWT Bearer token from the `Authorization` request header. It decodes the payload and checks the claims. Signature verification is expected to happen at the API gateway before the request reaches Mateu.

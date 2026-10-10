@@ -341,6 +341,21 @@ no API key, nothing in between.
 A link opens the editor at the page's own address. To point links at a hosted editor instead, set
 `window.__mateuEditorUrl` before the bundle loads.
 
+## Permissions, translations and environments
+
+- **Access rules.** The properties panel of a component has a small editor for `eyesOnly`,
+  `readOnlyUnless` and `disabledUnless` (roles, groups, scopes, permissions); the app editor's menu
+  items and the routes editor carry the same editor for `access`. See
+  [Permissions in YAML](/java-ui-definition/yaml-security/). Play has no identity, so it shows
+  everything.
+- **Translation keys.** Label fields offer the project's translation keys (`${i18n.…}`) in their
+  combo, read from the translation files; you can still type any text. **▶ Play** has a locale
+  switcher that renders the app in each language your files declare. See
+  [Translations in YAML](/java-ui-definition/yaml-i18n/).
+- **Environments.** Environment files are plain YAML: open them in the text editor, validated by
+  the `type: Environment` branch of the schema. See [Environments](/java-ui-definition/environments/).
+- **New › Mateu** in IntelliJ and VS Code creates an empty *Translations* or *Environment* file.
+
 ## Project awareness — the roadmap
 
 Everything above works today; what is still landing is the **"pick, don't type"** half of each
@@ -355,3 +370,4 @@ manual describes and validate that a reference resolves.
 - [App shell as data](/java-ui-definition/yaml-app-shell/) — the chrome the app file authors.
 - [Partials](/java-ui-definition/partials/) — reusable fragments.
 - [YAML UI definition](/java-ui-definition/yaml-ui-definition/) — the component-tree YAML a page is.
+- [Permissions in YAML](/java-ui-definition/yaml-security/), [Translations in YAML](/java-ui-definition/yaml-i18n/), [Environments](/java-ui-definition/environments/).

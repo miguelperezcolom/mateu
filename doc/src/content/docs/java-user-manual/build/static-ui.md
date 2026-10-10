@@ -122,6 +122,11 @@ backend at `baseUrl`. That is a legitimate deployment too.
 - **Authorization lives in the API.** UI gating in a static bundle is advisory — the files are
   public, and a hidden button is not a permission. `@EyesOnly` screens are refused by the static
   check on purpose (a bundle also reveals structure).
+- **YAML access rules** (`access:`, `eyesOnly:`, `readOnlyUnless:`, `disabledUnless:`) are refused
+  by the static check the same way, and a hybrid bundle keeps those routes backend-served — see
+  [Permissions in YAML](/java-ui-definition/yaml-security/#static-bundles-and-play).
+- **Translations work statically**: the catalogue travels in `manifest.json` and the browser
+  resolves `${i18n.…}` for the visitor's language — see [Translations in YAML](/java-ui-definition/yaml-i18n/#static-bundles-and-play).
 - **No secrets in the bundle.** An API key belongs on a server: use the proxy (a hybrid deploy) or a
   token the user's session obtains.
 
