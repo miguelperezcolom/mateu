@@ -17,7 +17,7 @@ import { matrixCellParams, matrixEditChanged } from './matrix.mjs'
 import { coverageProblems } from './parity-check.mjs'
 import { coverageTable } from './coverage.mjs'
 import { mapAtomOf, mapHeightOf } from './reduceContexts.mjs'
-import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM } from './map.mjs'
+import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM, tileLayerOf, OSM_TILES } from './map.mjs'
 import { attrSelectorValue } from './rules.mjs'
 import { wizardOf, WIZARD_DONE_STEP } from './reduceContexts.mjs'
 import { safeImageSrc } from './inputs.mjs'
@@ -1269,6 +1269,14 @@ test('P2 #21 mapa: Leaflet con marcadores, encuadre y la acción de un marcador'
   assert.deepEqual(mapViewPlanOf(spec), { kind: 'fit', min: { lat: 39.558, lon: 2.649 }, max: { lat: 39.5715, lon: 2.6735 } })
   assert.deepEqual(mapViewPlanOf({ markers: [] }), { kind: 'center', center: { lat: 0, lon: 0 }, zoom: 3 })
   assert.deepEqual(mapMarkerParams('PMI03'), { _markerId: 'PMI03' })
+  // teselas: sin tileUrl en el wire, OSM con su atribución; con tileUrl, la del Map
+  assert.equal(spec.tileUrl, '')
+  assert.equal(tileLayerOf(spec).url, OSM_TILES)
+  assert.match(tileLayerOf(spec).options.attribution, /OpenStreetMap/)
+  const custom = JSON.parse(mapAtomOf({ markers: [], tileUrl: 'https://{s}.tiles.example.com/{z}/{x}/{y}.png', attribution: '© Example' }, 'm', '').mapSpec)
+  assert.equal(custom.tileUrl, 'https://{s}.tiles.example.com/{z}/{x}/{y}.png')
+  assert.deepEqual(tileLayerOf(custom), { url: 'https://{s}.tiles.example.com/{z}/{x}/{y}.png', options: { maxZoom: 19, attribution: '© Example' } })
+  assert.deepEqual(tileLayerOf({ tileUrl: 'https://t.example/{z}/{x}/{y}.png' }).options, { maxZoom: 19 })
   // cableado: plantilla con el contenedor, shell que lo instala
   const page = webApp('flows/main/pages/main-start-page.html')
   assert.match(page, /:data-map-spec="\[\[ \$current\.data\.mapSpec \]\]"/)

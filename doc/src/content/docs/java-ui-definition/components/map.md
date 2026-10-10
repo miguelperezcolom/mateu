@@ -22,6 +22,8 @@ Map.builder()
 | `zoom` | String | — | Zoom level (typically `"1"` to `"20"`) |
 | `markers` | `List<MapMarker>` | empty | The points to show |
 | `markerActionId` | String | — | Action a marker click runs, with the marker id in `parameters._markerId` |
+| `tileUrl` | String | OpenStreetMap | Tile URL template (Leaflet style: `{s}`, `{z}`, `{x}`, `{y}`) — see [Tile provider](#tile-provider) |
+| `attribution` | String | OpenStreetMap's | Credit shown on the map for the tiles (text or HTML) |
 | `style` | String | — | Inline CSS — use to set height |
 | `cssClasses` | String | — | CSS class names |
 
@@ -67,13 +69,26 @@ The view needs a method named after `markerActionId` (public, or marked `@Action
 
 | Renderer | How it draws the map |
 |---|---|
-| Vaadin | OpenLayers with OpenStreetMap tiles |
-| Redwood | Leaflet, loaded from cdnjs, with OpenStreetMap tiles. JET has no street map component (`oj-thematic-map` draws GeoJSON geography, not tiles) |
+| Vaadin | OpenLayers with OpenStreetMap tiles (or the `tileUrl` provider) |
+| Redwood | Leaflet, loaded from cdnjs, with OpenStreetMap tiles (or the `tileUrl` provider). JET has no street map component (`oj-thematic-map` draws GeoJSON geography, not tiles) |
 | React Native, IntelliJ | A list of the markers, each opening the point on openstreetmap.org. Neither renderer ships a native map SDK |
 
-The OpenStreetMap tile servers are not meant for heavy production traffic. A deployment with real load should use its own or a contracted tile provider.
+## Tile provider
 
-The .NET (`Map`, `MapMarker`) and Python (`fluent.Map`, `MapMarker`) backends emit the same wire.
+By default the map draws OpenStreetMap's public tiles, which are not meant for heavy production traffic. A deployment with real load should point each map at its own or a contracted tile provider:
+
+```java
+Map.builder()
+    .position("39.57, 2.65")
+    .zoom("12")
+    .tileUrl("https://{s}.tiles.example.com/{z}/{x}/{y}.png")
+    .attribution("© Example Tiles, © OpenStreetMap contributors")
+    .build()
+```
+
+`tileUrl` is a Leaflet-style template: `{z}`/`{x}`/`{y}` are the tile coordinates and `{s}` an optional subdomain (the Vaadin renderer translates it to OpenLayers' `{a-c}`). `attribution` is shown in the map's corner; when `tileUrl` is set and `attribution` is not, no credit is shown — most providers require one. React Native and IntelliJ ignore both (they show the markers as a list).
+
+The .NET (`Map`, `MapMarker`, with `TileUrl`/`Attribution`) and Python (`fluent.Map`, `MapMarker`, with `tile_url`/`attribution`) backends emit the same wire.
 
 ## Example with fixed height
 

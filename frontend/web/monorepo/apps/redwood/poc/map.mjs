@@ -4,7 +4,8 @@
 //   - Leaflet (1.9.4) y su CSS se cargan del CDN de cdnjs al pintarse el primer mapa — nada se
 //     vendoriza; con requirejs presente (VB) se pide por require, porque un <script> UMD con
 //     requirejs cargado choca con su define anónimo;
-//   - teselas de OpenStreetMap, como el <mateu-map> del web;
+//   - teselas de OpenStreetMap, como el <mateu-map> del web — o las del proveedor que el Map
+//     declara en el wire (tileUrl, plantilla de Leaflet, + attribution): tileLayerOf;
 //   - un marcador = un círculo de su color con la etiqueta al lado (y la descripción al pasar);
 //     pulsarlo lanza markerActionId con { _markerId };
 //   - con marcadores y sin posición, la vista los encuadra (mapViewPlanOf, la misma regla que
@@ -16,6 +17,17 @@ export const OSM_TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
 export const DEFAULT_PIN = '#c74634'
 export const DEFAULT_ZOOM = 3
 export const SINGLE_MARKER_ZOOM = 15
+
+export const OSM_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+
+/** La capa de teselas de un mapa: la del wire (tileUrl + attribution) o, sin tileUrl, OSM. La
+ *  plantilla del wire ya es la de Leaflet ({s}, {z}, {x}, {y}), así que pasa tal cual. */
+export function tileLayerOf(spec) {
+  const url = spec && typeof spec.tileUrl === 'string' ? spec.tileUrl.trim() : ''
+  if (!url) return { url: OSM_TILES, options: { maxZoom: 19, attribution: OSM_ATTRIBUTION } }
+  const attribution = spec.attribution ? String(spec.attribution).trim() : ''
+  return { url, options: { maxZoom: 19, ...(attribution ? { attribution } : {}) } }
+}
 
 let mapSink = null
 /** Quién ejecuta la acción de un marcador (la shell reutiliza el sumidero de los Element). */
@@ -91,10 +103,8 @@ function loadLeaflet(doc) {
 function drawMap(L, el, spec) {
   if (el.__mateuMap) { el.__mateuMap.remove(); el.__mateuMap = null }
   const map = L.map(el, { scrollWheelZoom: true })
-  L.tileLayer(OSM_TILES, {
-    maxZoom: 19,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  }).addTo(map)
+  const tiles = tileLayerOf(spec)
+  L.tileLayer(tiles.url, tiles.options).addTo(map)
   for (const m of spec.markers || []) {
     const pin = L.circleMarker([m.latitude, m.longitude], {
       radius: 8, color: '#ffffff', weight: 2, fillColor: m.color || DEFAULT_PIN, fillOpacity: 1,

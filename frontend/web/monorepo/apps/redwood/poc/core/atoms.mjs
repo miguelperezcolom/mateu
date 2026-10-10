@@ -83,7 +83,11 @@ export function mapAtomOf(m, id, style) {
   return {
     isMap: true,
     mapId: 'mateuMap-' + (id || 'map'),
-    mapSpec: JSON.stringify({ position: m.position || '', zoom: m.zoom || '', markers, markerActionId: m.markerActionId || '' }),
+    mapSpec: JSON.stringify({
+      position: m.position || '', zoom: m.zoom || '', markers, markerActionId: m.markerActionId || '',
+      // el proveedor de teselas del wire ('' = OSM, ver tileLayerOf en map.mjs)
+      tileUrl: m.tileUrl || '', attribution: m.attribution || '',
+    }),
     mapStyle: { width: '100%', height: mapHeightOf(style) },
   }
 }

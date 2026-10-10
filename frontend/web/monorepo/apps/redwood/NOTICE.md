@@ -82,9 +82,10 @@ solo aparece si la app lo pide con `@App(askLabel, askIcon)`.
   teselas). Igual que JET, **no se vendoriza**: `poc/map.mjs` lo carga de cdnjs
   (`cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/`) la primera vez que una pantalla pinta un mapa.
 - **Teselas de OpenStreetMap** (`tile.openstreetmap.org`, datos © colaboradores de OpenStreetMap,
-  ODbL): las mismas que usa el `<mateu-map>` del renderer web. Su política de uso no admite tráfico
-  intensivo de producción; un despliegue con carga real debe apuntar a un proveedor de teselas
-  propio o contratado.
+  ODbL): las mismas que usa el `<mateu-map>` del renderer web, y solo el VALOR POR DEFECTO. Su
+  política de uso no admite tráfico intensivo de producción; un despliegue con carga real debe
+  apuntar a un proveedor de teselas propio o contratado, y eso se configura por mapa en el wire:
+  `Map.tileUrl` (plantilla de Leaflet) + `Map.attribution` (`tileLayerOf` en `poc/map.mjs`).
 
 ## Qué necesita quien lo ejecute
 
