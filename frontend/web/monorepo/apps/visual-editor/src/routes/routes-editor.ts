@@ -4,6 +4,7 @@ import {
     RoutesDoc, RouteRow, parseRoutes, serializeRoutes, parseParams, formatParams, dataRef, masterWithTabs,
 } from '../model/routesModel'
 import type { ProjectIndex } from '../model/projectIndex'
+import '../widgets/ve-combo'
 
 /**
  * The route-registry editor: a table over `routes.yaml`, binding each URL to a definition, a view
@@ -25,7 +26,7 @@ export class RoutesEditor extends LitElement {
         input { width: 100%; padding: 0.35rem 0.45rem; font: 13px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade);
                 border-radius: 6px; box-sizing: border-box; background: var(--ve-base, #fff); color: inherit; }
         input::placeholder { color: var(--ve-tertiary, #b8bec6); }
-        td.mono input { font-family: ui-monospace, monospace; font-size: 12px; }
+        td.mono input, td.mono ve-combo { font-family: ui-monospace, monospace; font-size: 12px; }
         td.mono > select { width: 100%; padding: 0.3rem 0.35rem; font: 12px ui-monospace, monospace; border: 1px solid var(--ve-input-border, #d7dade);
                 border-radius: 6px; box-sizing: border-box; background: var(--ve-base, #fff); color: inherit; }
         .del { border: 1px solid #f2c2c8; color: var(--ve-error, #b00020); background: var(--ve-base, #fff); color: inherit; border-radius: 6px;
@@ -70,8 +71,6 @@ export class RoutesEditor extends LitElement {
                 <h2>Routes</h2>
                 <span class="sub">${count} route${count === 1 ? '' : 's'} · relative to the mount${'app' in this.doc.preamble ? ' · app: preserved' : ''}</span>
             </div>
-            <datalist id="ve-viewmodels">${(this.project?.viewModels ?? []).map((v) => html`<option value=${v}></option>`)}</datalist>
-            <datalist id="ve-sources">${(this.project?.sources ?? []).map((s) => html`<option value=${s.name}>${s.description ?? ''}</option>`)}</datalist>
             <table>
                 <thead>
                     <tr>
@@ -141,12 +140,14 @@ export class RoutesEditor extends LitElement {
                         </select></div>` : ''}
                 </td>
                 <td class="mono">${this.definitionPicker(row, at)}</td>
-                <td class="mono"><input list="ve-viewmodels" .value=${row.viewModel ?? ''} placeholder="com.acme.Orders"
-                    @change=${(e: Event) => this.patchRow(at, { viewModel: clean((e.target as HTMLInputElement).value) })} /></td>
+                <td class="mono"><ve-combo .options=${this.project?.viewModels ?? []} .value=${row.viewModel ?? ''} placeholder="com.acme.Orders"
+                    empty-text="No view models referenced yet — type a class name"
+                    @change=${(e: Event) => this.patchRow(at, { viewModel: clean((e.target as HTMLInputElement).value) })}></ve-combo></td>
                 <td class="mono">${typeof row.data === 'object' && row.data && !dataRef(row.data)
                     ? html`<span title=${JSON.stringify(row.data)}>inline source</span>`
-                    : html`<input list="ve-sources" .value=${dataRef(row.data)} placeholder="source name"
-                        @change=${(e: Event) => this.setData(at, row, (e.target as HTMLInputElement).value)} />`}</td>
+                    : html`<ve-combo .options=${(this.project?.sources ?? []).map((s) => ({ value: s.name, hint: s.description }))}
+                        .value=${dataRef(row.data)} placeholder="source name" empty-text="No sources declared — add them in sources.yaml"
+                        @change=${(e: Event) => this.setData(at, row, (e.target as HTMLInputElement).value)}></ve-combo>`}</td>
                 <td class="mono"><input .value=${formatParams(row.fixedParams)} placeholder="k=v, k2=v2"
                     @change=${(e: Event) => this.patchRow(at, { fixedParams: params((e.target as HTMLInputElement).value) })} /></td>
                 <td class="mono"><input .value=${formatParams(row.defaultParams)} placeholder="k=v"

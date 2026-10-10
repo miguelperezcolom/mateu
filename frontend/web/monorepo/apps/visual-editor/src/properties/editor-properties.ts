@@ -1,4 +1,6 @@
-import { LitElement, html, css, nothing } from 'lit'
+import { LitElement, html, css } from 'lit'
+import '../widgets/ve-combo'
+import type { ComboOption } from '../widgets/comboModel'
 import { customElement, property, state } from 'lit/decorators.js'
 import { PageNode, scalarProps } from '../model/pageModel'
 import { PropSpec, slotProps } from '../model/componentSchema'
@@ -66,6 +68,8 @@ export class EditorProperties extends LitElement {
     @property({ attribute: false }) node: PageNode | null = null
     @property({ attribute: false }) project?: ProjectIndex
     @property({ attribute: false }) contract?: ContractMembers
+    /** The ids of the actions this page declares (its `actions:` — REST calls and flows). */
+    @property({ attribute: false }) pageActionIds: string[] = []
     @state() private moreOpen = false
 
     render() {
@@ -92,9 +96,6 @@ export class EditorProperties extends LitElement {
         const extra = scalarProps(node).filter((k) => k !== 'note' && !knownNames.has(k) && (node[k] == null || typeof node[k] !== 'object'))
 
         return html`
-            <datalist id="ve-partials">${(this.project?.partials ?? []).map((p) => html`<option value=${p}></option>`)}</datalist>
-            <datalist id="ve-fields">${(this.contract?.fields ?? []).map((f) => html`<option value=${f}></option>`)}</datalist>
-            <datalist id="ve-actions">${(this.contract?.actions ?? []).map((a) => html`<option value=${a}></option>`)}</datalist>
             <div class="title">Properties</div>
             <div class="type">${node.type}${spec ? '' : ' (unknown)'}</div>
             <label for="ve-note">Note <span class="muted-inline">— what this should do; goes in the view-model prompt, never rendered</span></label>
@@ -139,25 +140,37 @@ export class EditorProperties extends LitElement {
      * The datalist a reference prop picks from, or null for a plain field: a `Partial.ref` picks a
      * partial, a `FormField.id` picks a bound data-source field, any `actionId` picks a bound action.
      */
-    private pickerListFor(prop: string): string | null {
-        if (this.node?.type === 'Partial' && prop === 'ref') return 've-partials'
-        if (this.node?.type === 'FormField' && prop === 'id') return 've-fields'
-        if (prop === 'actionId') return 've-actions'
+    /** What a reference prop can pick: a partial, a view-model field, an action (the page's own
+     *  actions first, then the view model's). Null when the prop is not a reference. */
+    private pickerOptionsFor(prop: string): ComboOption[] | null {
+        if (this.node?.type === 'Partial' && prop === 'ref') return (this.project?.partials ?? []).map((p) => ({ value: p }))
+        if (this.node?.type === 'FormField' && prop === 'id') return (this.contract?.fields ?? []).map((f) => ({ value: f, hint: 'view model' }))
+        if (prop === 'actionId' || prop.endsWith('ActionId')) {
+            return [
+                ...this.pageActionIds.map((a) => ({ value: a, hint: 'this page' })),
+                ...(this.contract?.actions ?? []).map((a) => ({ value: a, hint: 'view model' })),
+            ]
+        }
         return null
+    }
+
+    /** The mount's routes, each with the page it shows. */
+    private get routeOptions(): ComboOption[] {
+        return (this.project?.routes ?? []).filter((r) => r.route).map((r) => ({ value: r.route, hint: r.definition ?? r.viewModel }))
     }
 
     /** A typed editor for a schema-declared prop. */
     private field(p: PropSpec, value: unknown) {
         const req = p.required ? html`<span class="req"> *</span>` : ''
         // References that pick from another file / the data source: partial ref, field id, action id.
-        const list = this.pickerListFor(p.name)
-        if (list) {
+        const options = this.pickerOptionsFor(p.name)
+        if (options) {
             const renamable = p.name === 'id' && BOUND.has(this.node?.type ?? '') && typeof value === 'string' && value
             return html`
                 <label>${p.name}${req}</label>
                 <div class="inline">
-                    <input list=${list} .value=${value == null ? '' : String(value)}
-                        @change=${(e: Event) => this.emit(p.name, (e.target as HTMLInputElement).value)} />
+                    <ve-combo .options=${options} .value=${value == null ? '' : String(value)}
+                        @change=${(e: Event) => this.emit(p.name, (e.target as HTMLInputElement).value)}></ve-combo>
                     ${renamable ? html`<button title="Rename this binding and every reference to it on the page"
                         @click=${() => this.fire('binding-rename', { from: value })}>Rename…</button>` : ''}
                 </div>`
@@ -219,17 +232,15 @@ export class EditorProperties extends LitElement {
         if (p.ref === 'Actionable') {
             const v = (value && typeof value === 'object' ? value : undefined) as Record<string, unknown> | undefined
             const editable = !v || v.type === 'RouteLink'
-            const routes = (this.project?.routes ?? []).map((r) => r.route).filter((r) => r)
             return html`
                 <label>On click: navigate to</label>
                 ${editable ? html`
-                    <datalist id="ve-routes">${routes.map((r) => html`<option value=${r}></option>`)}</datalist>
-                    <input list="ve-routes" placeholder="route (e.g. people/new) — empty: run its action"
+                    <ve-combo .options=${this.routeOptions} placeholder="route (e.g. people/new) — empty: run its action"
                         .value=${typeof v?.route === 'string' ? v.route : ''}
                         @change=${(e: Event) => {
                             const r = (e.target as HTMLInputElement).value.trim()
                             this.emit(p.name, r ? { ...(v ?? {}), type: 'RouteLink', route: r } : '')
-                        }} />`
+                        }}></ve-combo>`
                     : html`<div class="help">a ${String(v?.type)} — edit it in YAML</div>`}`
         }
         if (p.kind === 'children' && p.ref === 'Option') {
@@ -248,11 +259,14 @@ export class EditorProperties extends LitElement {
     }
 
     private textField(key: string, value: unknown) {
-        const list = this.pickerListFor(key)
+        const options = this.pickerOptionsFor(key)
         return html`
             <label>${key}</label>
-            <input list=${list ?? nothing} .value=${value == null ? '' : String(value)}
-                @change=${(e: Event) => this.emit(key, coerce((e.target as HTMLInputElement).value))} />`
+            ${options
+                ? html`<ve-combo .options=${options} .value=${value == null ? '' : String(value)}
+                    @change=${(e: Event) => this.emit(key, coerce((e.target as HTMLInputElement).value))}></ve-combo>`
+                : html`<input .value=${value == null ? '' : String(value)}
+                    @change=${(e: Event) => this.emit(key, coerce((e.target as HTMLInputElement).value))} />`}`
     }
 
     private emitTyped(p: PropSpec, raw: string) {

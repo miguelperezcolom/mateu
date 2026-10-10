@@ -55,6 +55,7 @@ import './mount/mount-editor'
 import './sources/sources-editor'
 import './board/mount-board'
 import './play/mount-play'
+import './widgets/ve-combo'
 
 /** The bottom dock's panels (page mode). One is open at a time; clicking its tab again closes it. */
 type DockTab = 'actions' | 'triggers' | 'quickstart' | 'templates' | 'sync' | 'tidy' | 'ai' | 'yaml'
@@ -492,7 +493,8 @@ export class MateuVisualEditor extends LitElement {
                             <editor-canvas .doc=${this.doc} .baseUrl=${renderBaseUrl(this.previewSource)}
                                            .clientRender=${rendersClientSide(this.previewSource)} .renderer=${this.renderer} .theme=${this.theme}
                                            .selectedPath=${this.selectedPath} .frameWidth=${viewportWidth(this.viewport)}></editor-canvas>
-                            <editor-properties .node=${selected} .project=${this.project} .contract=${this.contract}></editor-properties>
+                            <editor-properties .node=${selected} .project=${this.project} .contract=${this.contract}
+                                .pageActionIds=${this.doc ? pageActions(this.doc).map((a) => a.id) : []}></editor-properties>
                         </div>
                     </div>
                     ${this.renderDock()}
@@ -1467,10 +1469,19 @@ export class MateuVisualEditor extends LitElement {
                 <select @change=${(e: Event) => this.flowSet(actionId, steps, i, 'type', (e.target as HTMLSelectElement).value)}>
                     ${STEP_TYPES.map((t) => html`<option value=${t} ?selected=${s.type === t}>${t}</option>`)}
                 </select>
-                ${p
-                    ? html`<input placeholder=${p.label} .value=${(s[p.key] as string) ?? ''}
+                ${!p
+                    ? html`<span class="qs-hint">no params</span>`
+                    : p.key === 'event'
+                        ? html`<input placeholder=${p.label} .value=${(s[p.key] as string) ?? ''}
                                   @change=${(e: Event) => this.flowSet(actionId, steps, i, p.key, (e.target as HTMLInputElement).value)} />`
-                    : html`<span class="qs-hint">no params</span>`}
+                        : html`<ve-combo placeholder=${p.label} .value=${(s[p.key] as string) ?? ''}
+                                  .options=${p.key === 'route'
+                                      ? (this.project?.routes ?? []).filter((r) => r.route).map((r) => ({ value: r.route, hint: r.definition ?? r.viewModel }))
+                                      : [
+                                          ...(this.doc ? pageActions(this.doc).map((a) => a.id).filter((id) => id !== actionId) : []).map((id) => ({ value: id, hint: 'this page' })),
+                                          ...(this.contract?.actions ?? []).map((a) => ({ value: a, hint: 'view model' })),
+                                      ]}
+                                  @change=${(e: Event) => this.flowSet(actionId, steps, i, p.key, (e.target as HTMLInputElement).value)}></ve-combo>`}
                 <button @click=${() => this.flowMove(actionId, steps, i, -1)} ?disabled=${i === 0}>↑</button>
                 <button @click=${() => this.flowMove(actionId, steps, i, 1)} ?disabled=${i === steps.length - 1}>↓</button>
                 <button class="danger" @click=${() => this.commitFlow(actionId, steps.filter((_, j) => j !== i))}>✕</button>

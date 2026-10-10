@@ -8,6 +8,8 @@ import {
 import { STEP_TYPES, stepParam, type FlowStep } from '../model/flowEditor'
 import { enumValues } from '../model/schemaCatalog'
 import type { ProjectIndex } from '../model/projectIndex'
+import '../widgets/ve-combo'
+import type { ComboOption } from '../widgets/comboModel'
 
 /**
  * The app-shell editor: a form over the `app:` block of `routes.yaml` — title, chrome and the
@@ -32,7 +34,7 @@ export class AppEditor extends LitElement {
         .menu-item { border: 1px solid var(--ve-border, #e3e5e8); border-radius: 8px; padding: 0.5rem 0.6rem; margin: 0.4rem 0; background: #fbfbfc; }
         .menu-item .kind { font: 600 10px var(--ve-font, system-ui); text-transform: uppercase; letter-spacing: .04em; color: var(--ve-tertiary, #8b93a1); }
         .menu-row { display: flex; gap: 0.4rem; align-items: center; }
-        .menu-row input { flex: 1; }
+        .menu-row input, .menu-row ve-combo { flex: 1; }
         .del { border: 1px solid #f2c2c8; color: var(--ve-error, #b00020); background: var(--ve-base, #fff); color: inherit; border-radius: 6px; height: 30px; min-width: 30px; cursor: pointer; }
         .sub { margin: 0.4rem 0 0 1rem; padding-left: 0.5rem; border-left: 2px solid var(--ve-border, #e9ebef); }
         .sep { height: 1px; background: var(--ve-input-border, #d7dade); flex: 1; }
@@ -57,8 +59,15 @@ export class AppEditor extends LitElement {
     private lastEmitted?: string
 
     /** The routes this mount declares, for the menu-link and home-route pickers (empty without a project). */
-    private get routeOptions(): string[] {
-        return (this.project?.routes ?? []).map((r) => r.route).filter((r) => r !== '')
+    /** The mount's routes (the root, the shell itself, aside), each with the page it shows. */
+    private get routeOptions(): ComboOption[] {
+        return (this.project?.routes ?? []).filter((r) => r.route !== '')
+            .map((r) => ({ value: r.route, hint: r.definition ?? r.viewModel }))
+    }
+
+    /** The shell's own flows — what a menu Action item, or a RunAction step, can run. */
+    private get actionOptions(): ComboOption[] {
+        return appActionIds(this.doc).map((id) => ({ value: id, hint: 'flow' }))
     }
 
     updated(changed: PropertyValues) {
@@ -70,7 +79,6 @@ export class AppEditor extends LitElement {
         const f = this.doc.fields
         return html`
             <div class="wrap">
-                <datalist id="ve-routes">${this.routeOptions.map((r) => html`<option value=${r}></option>`)}</datalist>
                 <h2>App shell</h2>
                 <div class="section">General</div>
                 ${this.text('Title', 'title', f)}
@@ -97,8 +105,9 @@ export class AppEditor extends LitElement {
                     <div>${this.select('Back link', 'backLink', f, ['', ...enumValues('BackLink')])}</div>
                 </div>
                 <label>Home route</label>
-                <input list="ve-routes" .value=${(f.homeRoute as string) ?? ''}
-                    @change=${(e: Event) => this.setField('homeRoute', (e.target as HTMLInputElement).value)} />
+                <ve-combo .options=${this.routeOptions} placeholder="route" empty-text="No routes yet — add them in a routes file"
+                    .value=${(f.homeRoute as string) ?? ''}
+                    @change=${(e: Event) => this.setField('homeRoute', (e.target as HTMLInputElement).value)} ></ve-combo>
                 <div class="check">
                     <input type="checkbox" .checked=${f.drawerClosed === true}
                         @change=${(e: Event) => this.setField('drawerClosed', (e.target as HTMLInputElement).checked)} />
@@ -116,7 +125,6 @@ export class AppEditor extends LitElement {
 
                 <div class="section">Actions</div>
                 <div class="note">Flows the shell declares — a bounded list of steps run in the browser, no backend. A menu “Action” item runs one.</div>
-                <datalist id="ve-app-actions">${appActionIds(this.doc).map((id) => html`<option value=${id}></option>`)}</datalist>
                 ${appActionIds(this.doc).map((id) => this.renderFlow(id))}
                 <div class="adds">
                     <input style="width:12rem" placeholder="new action id" .value=${this.newActionId}
@@ -173,8 +181,12 @@ export class AppEditor extends LitElement {
             <select @change=${(e: Event) => this.setStep(id, steps, i, 'type', (e.target as HTMLSelectElement).value)}>
                 ${STEP_TYPES.map((t) => html`<option value=${t} ?selected=${t === s.type}>${t}</option>`)}
             </select>
-            ${p ? html`<input placeholder=${p.label} list=${p.key === 'route' ? 've-routes' : ''} .value=${(s[p.key] as string) ?? ''}
+            ${p ? (p.key === 'event'
+                    ? html`<input placeholder=${p.label} .value=${(s[p.key] as string) ?? ''}
                         @change=${(e: Event) => this.setStep(id, steps, i, p.key, (e.target as HTMLInputElement).value)} />`
+                    : html`<ve-combo placeholder=${p.label} .value=${(s[p.key] as string) ?? ''}
+                        .options=${p.key === 'route' ? this.routeOptions : this.actionOptions.filter((o) => o.value !== id)}
+                        @change=${(e: Event) => this.setStep(id, steps, i, p.key, (e.target as HTMLInputElement).value)}></ve-combo>`)
                 : html`<span class="sep"></span>`}
             <button class="mini" @click=${() => this.moveStep(id, steps, i, -1)} ?disabled=${i === 0}>↑</button>
             <button class="mini" @click=${() => this.moveStep(id, steps, i, 1)} ?disabled=${i === steps.length - 1}>↓</button>
@@ -264,8 +276,9 @@ export class AppEditor extends LitElement {
                 <span class="kind">Action</span>
                 <div class="menu-row">
                     <input placeholder="Label" .value=${item.label ?? ''} @change=${(e: Event) => this.setItem(path, 'label', (e.target as HTMLInputElement).value)} />
-                    <input placeholder="actionId" list="ve-app-actions" title="One of the shell's flows (Actions above), or a server @Action id"
-                        .value=${item.actionId ?? ''} @change=${(e: Event) => this.setItem(path, 'actionId', (e.target as HTMLInputElement).value)} />
+                    <ve-combo placeholder="actionId" title="One of the shell's flows (Actions above), or a server @Action id"
+                        .options=${this.actionOptions} empty-text="No flows yet — add one in Actions, or type a server @Action id"
+                        .value=${item.actionId ?? ''} @change=${(e: Event) => this.setItem(path, 'actionId', (e.target as HTMLInputElement).value)}></ve-combo>
                     ${this.delBtn(path)}
                 </div>
             </div>`
@@ -275,7 +288,8 @@ export class AppEditor extends LitElement {
                 <span class="kind">Link</span>
                 <div class="menu-row">
                     <input placeholder="Label" .value=${item.label ?? ''} @change=${(e: Event) => this.setItem(path, 'label', (e.target as HTMLInputElement).value)} />
-                    <input placeholder="route" list="ve-routes" .value=${item.route ?? ''} @change=${(e: Event) => this.setItem(path, 'route', (e.target as HTMLInputElement).value)} />
+                    <ve-combo placeholder="route" .options=${this.routeOptions} empty-text="No routes yet — add them in a routes file"
+                        .value=${item.route ?? ''} @change=${(e: Event) => this.setItem(path, 'route', (e.target as HTMLInputElement).value)}></ve-combo>
                     <input placeholder="icon" .value=${item.icon ?? ''} @change=${(e: Event) => this.setItem(path, 'icon', (e.target as HTMLInputElement).value)} />
                     ${this.delBtn(path)}
                 </div>
