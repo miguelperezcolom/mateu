@@ -43,6 +43,13 @@ export class LiveRunCommand {
         )
         await vscode.tasks.executeTask(task)
         LiveRunCommand.appUrl = run.appUrl
+        // the visual editor's Play (and its preview) talk to mateu.baseUrl: point it at the app
+        // being run when the workspace has not chosen another backend
+        const config = vscode.workspace.getConfiguration('mateu')
+        const chosen = config.inspect<string>('baseUrl')
+        if (!chosen?.workspaceValue && !chosen?.workspaceFolderValue && config.get('baseUrl') !== run.appUrl) {
+            await config.update('baseUrl', run.appUrl, vscode.ConfigurationTarget.Workspace)
+        }
         vscode.window.showInformationMessage(
             `Mateu: starting the ${run.framework} app in development mode — attach a "Java: Attach" debugger ` +
             `on port ${run.debugPort} for hot code replace.`)
