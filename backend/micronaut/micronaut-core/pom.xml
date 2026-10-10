@@ -15,18 +15,29 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <!-- aligned with the micronaut platform version used by the demos, so the generated
-         bean definitions match the runtime that consumes them.
-         NOTE: a lone bump of this to 4.10.22 (to clear the dependabot TimeConverterRegistrar DoS
-         alert) breaks the build — micronaut-context 4.10.22 references io.micronaut.core.annotation
-         .NullMarked, absent from the 4.9.x micronaut AP/core-annotation the rest of the platform
-         still resolves (NoClassDefFoundError at compile). These deps are `provided` scope, so the
-         vuln is not shipped to consumers (they supply their own micronaut runtime) — the alert is
-         low-risk here. Clearing it properly needs a COORDINATED micronaut platform bump, out of
-         scope for GA; kept at 4.9.9 so the build stays green. -->
-    <micronaut.core.version>4.9.9</micronaut.core.version>
-    <micronaut.serialization.version>2.15.1</micronaut.serialization.version>
+    <!-- aligned with the micronaut platform version used by the demos/starters/e2e app
+         (micronaut-platform 4.10.21), so the generated bean definitions match the runtime that
+         consumes them. Bumped from the 4.9.x line as a COORDINATED platform bump (adapter + every
+         consumer pom) to clear the micronaut-context / micronaut-http-server advisories
+         (dependabot #302, #740) - a lone bump of the adapter broke on NullMarked. -->
+    <micronaut.core.version>4.10.31</micronaut.core.version>
+    <micronaut.serialization.version>2.16.2</micronaut.serialization.version>
   </properties>
+
+  <!-- micronaut-serde 2.16 still declares the 4.9.x micronaut-core line, which leaked onto the
+       annotation processor path next to 4.10 (NoClassDefFoundError NullMarked). The core BOM,
+       also applied to the processor path (annotationProcessorPathsUseDepMgmt), converges it. -->
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>io.micronaut</groupId>
+        <artifactId>micronaut-core-bom</artifactId>
+        <version>${micronaut.core.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
 
@@ -69,7 +80,7 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>2.22.1</version>
+      <version>2.22.3</version>
       <scope>provided</scope>
     </dependency>
 
@@ -110,7 +121,7 @@
     <dependency>
       <groupId>io.micronaut.reactor</groupId>
       <artifactId>micronaut-reactor</artifactId>
-      <version>3.8.0</version>
+      <version>3.9.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -129,7 +140,7 @@
       <groupId>io.micronaut.test</groupId>
       <artifactId>micronaut-test-junit5</artifactId>
       <scope>test</scope>
-      <version>4.6.2</version>
+      <version>4.10.3</version>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -151,6 +162,7 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <configuration>
+          <annotationProcessorPathsUseDepMgmt>true</annotationProcessorPathsUseDepMgmt>
           <!-- generates the bean definitions / introspections / serdes for mateu itself,
                so micronaut apps discover them from this jar with zero configuration -->
           <annotationProcessorPaths>
