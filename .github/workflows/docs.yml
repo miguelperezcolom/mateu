@@ -15,11 +15,10 @@
 # Without them the deploy step is skipped with a notice, never failed.
 name: Docs
 
+# Pull requests: EVERY one, with the path filter inside (the `changes` job), so `docs-ok` always
+# reports and can be required — a workflow skipped by a trigger-level `paths:` reports nothing.
 on:
   pull_request:
-    paths:
-      - 'doc/**'
-      - '.github/workflows/docs.yml'
   push:
     branches: [master]
     paths:
@@ -37,22 +36,51 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read # sparse checkout of scripts/
+      pull-requests: read # list the PR's files
+    outputs:
+      relevant: ${{ steps.diff.outputs.relevant }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts
+      - id: diff
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EVENT: ${{ github.event_name }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+          PATTERN: '^doc/|^\.github/workflows/docs\.yml$'
+        run: scripts/ci-changes.sh
+
   build:
+    needs: changes
     # Framework releases only (tag vX.Y…); the desktop installer releases don't touch the docs.
-    if: github.event_name != 'release' || startsWith(github.event.release.tag_name, 'v')
+    if: >-
+      needs.changes.outputs.relevant == 'true' &&
+      (github.event_name != 'release' || startsWith(github.event.release.tag_name, 'v'))
+    timeout-minutes: 30
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           # The version plugin falls back to the newest release tag when Maven Central can't answer.
           fetch-depth: 0
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: doc/package-lock.json
+      # --ignore-scripts: the lockfile's only install hooks are esbuild's (its platform binary is an
+      # optional dependency) and fsevents (macOS); the build and the link check pass without them.
       - name: Install
-        run: npm ci
+        run: npm ci --ignore-scripts
         working-directory: doc
       - name: Pin the version shown in the snippets to the release being published
         if: github.event_name == 'release'
@@ -73,6 +101,28 @@ jobs:
             echo "::notice::NETLIFY_AUTH_TOKEN / NETLIFY_SITE_ID not configured — skipping the deploy."
             exit 0
           fi
-          npx --yes netlify-cli@latest deploy --dir=doc/dist --prod --no-build \
+          # At an exact version, without install hooks (its postinstall only sets up shell
+          # completion and prints a welcome), outside the project — not `npx --yes …@latest`.
+          npm install --prefix "$RUNNER_TEMP/netlify" --no-save --ignore-scripts netlify-cli@27.12.0
+          "$RUNNER_TEMP/netlify/node_modules/.bin/netlify" deploy --dir=doc/dist --prod --no-build \
             --site "$NETLIFY_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" \
             --message "${GITHUB_SHA::9} ${GITHUB_EVENT_NAME}"
+
+  # The check to require on master (design/ci-required-checks.md): always reports, green when the
+  # build passed or was skipped because the PR does not touch the docs.
+  docs-ok:
+    if: always()
+    needs: [changes, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every job passed or was legitimately skipped
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.value.result)\t\(.key)"'
+          bad=$(echo "$NEEDS" | jq '[to_entries[] | select(.value.result != "success" and .value.result != "skipped")] | length')
+          if [ "$bad" != 0 ]; then
+            echo "::error::$bad job(s) failed or were cancelled — see the list above."
+            exit 1
+          fi
