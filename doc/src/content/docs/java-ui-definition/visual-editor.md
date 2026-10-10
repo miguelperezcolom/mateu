@@ -113,7 +113,18 @@ menu:
 ```
 
 The **app** editor is a form: title/subtitle/logo/home-route text, the `variant`/`layout` dropdowns,
-and a menu tree where you add links, groups and separators.
+the header switches (theme toggle, command center, chromeless, access keys), and a menu tree where
+you add links, groups, separators and **actions**.
+
+- **Actions** — the shell's [flows](/java-ui-definition/yaml-app-shell/#flows-on-the-shell): add an
+  action, give it an id and build its steps (Navigate, Emit, Close overlay, Run action, Mark
+  clean/dirty) with the same flow editor a page's actions use. They are written to the shell's
+  `actions:` and round-trip losslessly.
+- **Action menu items** — a menu entry that runs an action instead of navigating (a `RuleLink` with a
+  `RunAction` rule). Its action id is picked from the actions the shell declares; you can still type
+  any other id, which then runs an `@Action` on the server.
+- **Widgets** — the components drawn in the shell header (`widgets:`): add, remove and reorder them.
+  Widgets the editor does not know how to edit are kept untouched.
 
 Each `RouteLink` names a **route** in the `route` field. *Target:* choose the route from a dropdown of
 the routes declared in this mount. *Today:* type the route name (e.g. `orders`) — it must match a
@@ -289,7 +300,7 @@ its arrows. **Edit** opens that card's file: in place in a browser, or in its ow
 and VS Code.
 
 **▶ Play** runs the mount from the files as you have edited them, so you can click through it like
-the app. The menu, row clicks, buttons and save landings take you where the app would, and a small
+the app. The menu (including menu entries that run a shell flow), row clicks, buttons and save landings take you where the app would, and a small
 address bar with back and forward follows along. A mount that is only YAML needs no backend: play
 expands each screen in the browser, the same way a statically deployed bundle does. A route served
 by a view model goes to the preview backend, if you have one. The width selector shows the app on a

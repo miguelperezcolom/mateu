@@ -65,11 +65,82 @@ point.
 | `menu` | a list of navigation items |
 | `widgets` | a list of components rendered in the header |
 | `homeRoute` | what the mount loads at its root |
+| `actions` | the shell's **flows**: actions with `steps:`, run by a menu leaf — see [Flows on the shell](#flows-on-the-shell) |
+| `themeToggle`, `commandCenter`, `chromeless`, `accessKeys` | the header switches — the twins of the same `@App(...)` attributes. Absent: the `@App` class decides (no class: off). `chromeless` implies the command center |
 
 `menu:` and `widgets:` deserialize through the **same `type:` discriminator as page layouts**, so
 every navigation type (`RouteLink`, `Menu`, `RemoteMenu`, …) and every component of the catalog is
 available with no extra wiring, and the same [JSON Schema IntelliSense](/java-ui-definition/yaml-ui-definition/#intellisense-setup)
 applies while you edit.
+
+## Flows on the shell
+
+A menu entry does not have to navigate somewhere: it can **run a flow**. The shell declares its
+flows under `actions:` — exactly the shape a [page definition's `actions:`](/java-ui-definition/yaml-ui-definition/)
+already has: an `id` plus a list of `steps` (`Navigate`, `Emit`, `CloseOverlay`, `RunAction`,
+`MarkClean`, `MarkDirty`). A menu leaf runs one with the existing **rule leaf**: a `RuleLink` whose
+single rule is `RunAction` naming the action's id.
+
+```yaml
+type: AppShell
+title: App
+homeRoute: home
+actions:
+  - id: newOrder
+    steps:
+      - type: MarkClean
+      - type: Navigate
+        route: orders/new      # relative to the mount, like every routes.yaml route
+menu:
+  - type: RouteLink
+    label: Home
+    route: home
+  - type: RuleLink
+    label: New order
+    rules:
+      - action: RunAction
+        actionId: newOrder
+```
+
+The server lowers each flow to the wire commands it produces and ships them on the App
+(`AppDto.actions`); clicking **New order** applies them **in the browser, with no server round-trip**.
+That is what makes it work with no backend at all: in a [static bundle](/java-user-manual/build/static-ui/)
+and in the visual editor's **▶ Play** the browser expander emits the same lowered actions. A
+`Navigate` to a route of the app stays inside the shell (the same in-app navigation a menu link does);
+a full URL (`https://…`) leaves the page.
+
+A `RunAction` rule naming an id the shell does **not** declare with steps keeps its old meaning: an
+app-level action dispatched to the server (an `@Action` on the app class).
+
+Built in code, the shell carries flows the same way:
+
+```java
+AppShell.builder()
+    .title("App")
+    .menuItem(new RuleLink("New order",
+        List.of(Rule.builder().action(RuleAction.RunAction).actionId("newOrder").build())))
+    .action(Action.builder()
+        .id("newOrder")
+        .steps(List.of(new Step.MarkClean(), new Step.Navigate("orders/new")))
+        .build())
+    .themeToggle(true)
+    .build();
+```
+
+## Header widgets
+
+`widgets:` is a list of components drawn in the shell header — a version tag, a status badge, a
+button. Each one is an ordinary component of the catalog (same `type:` discriminator as page
+layouts) and travels as a child of the App in the `widgets` slot; on `MENU_ON_TOP` they sit in the
+top band, with the menu in the band below next to the title.
+
+```yaml
+widgets:
+  - type: Text
+    text: "v1.0"
+```
+
+The server and the browser expander (static bundles, the visual editor's Play) render them alike.
 
 ### `homeRoute` matters
 
@@ -150,15 +221,22 @@ src/main/
 
 Open any of these files in the [visual editor](/java-ui-definition/visual-editor/) and it picks the
 mode from the file's `type:`: `app.yaml` opens the **app** form (title, chrome and a
-link/group/separator menu tree), `routes.yaml` opens the **routes** table, and the `type: UI` file
+link/group/separator/action menu tree, an **Actions** panel for the shell's flows and a **Widgets**
+section), `routes.yaml` opens the **routes** table, and the `type: UI` file
 opens the **mount** form. Each file is authored on its own — editing the shell never rewrites the
 routes.
 
 ## Limits
 
 Not carried by the definition yet — these are read reflectively off an `@App` class and still need
-one: theme toggle, command center / chromeless, SSE / MCP / upload URLs, `@AppContext` selectors,
-notifications, global search and FABs.
+one: SSE / MCP / upload URLs, `@AppContext` selectors, notifications, global search and FABs. (The
+theme toggle, command center, chromeless and access-keys switches are authorable on the shell.)
+
+The .NET and Python servers have no `type: AppShell` definitions, so shell flows do not apply there.
+
+Before shell flows landed, a `RuleLink` in a YAML menu did not parse on the server (the schema
+advertised it, the YAML mapper did not know it), and the whole shell answered "Not found." — it is
+registered now.
 
 A broken or unparseable definition never takes the application down: a route pointing at a file that
 is not a `type: AppShell` definition simply resolves to no shell, exactly like the route registry
