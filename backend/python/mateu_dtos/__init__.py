@@ -691,21 +691,39 @@ class StatMetadata(Wire):
 
 
 class CalendarEventRecord(Wire):
-    """One calendar event; ``date`` is ISO-8601; ``action_id`` makes the chip clickable."""
+    """One calendar event (mirrors ``CalendarEventDto``); ``date``/``end_date`` are ISO-8601,
+    ``start_time``/``end_time`` "HH:mm"; ``action_id`` makes the chip clickable."""
 
     id: str | None = None
     title: str | None = None
     date: str | None = None
+    end_date: str | None = None
+    start_time: str | None = None
+    end_time: str | None = None
     color: str | None = None
     action_id: str | None = None
 
 
+class CalendarDayRecord(Wire):
+    """One date's cell of a calendar (mirrors ``CalendarDayDto``): ISO date, label and tone."""
+
+    date: str | None = None
+    label: str | None = None
+    tone: str | None = None
+
+
 class CalendarMetadata(Wire):
-    """Month-grid calendar metadata (mirrors ``CalendarDto``); dates are ISO-8601."""
+    """Calendar metadata (mirrors ``CalendarDto``); dates are ISO-8601. ``view`` is
+    month|week|day|list (default month), ``views`` the switchable ones, ``days`` the per-date
+    cells and ``day_action_id`` makes those cells clickable."""
 
     type: Literal["Calendar"] = "Calendar"
     month: str | None = None
     events: list[CalendarEventRecord] = Field(default_factory=list)
+    view: str = "month"
+    views: list[str] = Field(default_factory=list)
+    days: list[CalendarDayRecord] = Field(default_factory=list)
+    day_action_id: str | None = None
 
 
 class PricingPlanRecord(Wire):

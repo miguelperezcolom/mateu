@@ -91,7 +91,7 @@ export const REDWOOD_COVERAGE = {
   Gantt: { status: 'none' },
   Kanban: { status: 'none' },
   Timeline: { status: 'none' },
-  Calendar: { status: 'none' },
+  Calendar: { status: 'full', note: 'month, week, day and list views (JET has no calendar: a Redwood-token grid, oj-buttonset-one switcher), per-date cells, clickable dates' },
   PricingTable: { status: 'none' },
   OrgChart: { status: 'none' },
   Heatmap: { status: 'none' },

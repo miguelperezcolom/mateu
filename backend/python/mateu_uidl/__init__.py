@@ -2035,25 +2035,31 @@ class TodoList(ComponentTreeSupplier):
 
 class CalendarPage(ComponentTreeSupplier):
     """Calendar page (the Redwood "Calendar" template, the Python analogue of Java's
-    CalendarPage archetype): a full month-grid ``Calendar`` under the page's calendar toolbar —
-    previous/next month chevrons, a *Today* button and an optional primary *+ Create* button —
-    where clicking an event ACTS on it (typically navigating to its detail). Month navigation
-    re-runs :meth:`events` with the newly displayed month, so events can be fetched per month
-    from the backend. Implement :meth:`events` and :meth:`action_on`; :meth:`initial_month`
-    defaults to the current month, :meth:`show_create`/:meth:`create_action` enable the create
-    flow."""
+    CalendarPage archetype): a full ``Calendar`` under the page's calendar toolbar —
+    previous/next chevrons, a *Today* button, the view switcher and an optional primary
+    *+ Create* button — where clicking an event ACTS on it (typically navigating to its detail).
+    Navigation re-runs :meth:`events` for the newly displayed period (once per month it
+    touches), so events can be fetched per month from the backend. Implement :meth:`events` and
+    :meth:`action_on`; :meth:`initial_month` defaults to the current month,
+    :meth:`show_create`/:meth:`create_action` enable the create flow, :meth:`views` enables the
+    week/day/list views (the chevrons then step by the view's period), :meth:`days` puts a label
+    and a tone in each date's cell and :meth:`days_clickable` + :meth:`action_on_day` make the
+    cells themselves act."""
 
-    #: The displayed month (any day of it, ISO-8601; bound from componentState).
+    #: The displayed anchor date (ISO-8601; bound from componentState).
     month: str | None = None
     #: The last clicked event's id (bound from componentState; set by the event click).
     event_id: str | None = None
+    #: The current view (month|week|day|list; bound from componentState). No underscore, like
+    #: ``month``: underscore fields are excluded from initialData seeding.
+    view: str | None = None
 
     #: The inbound request of the current render/action (the port's analogue of Java's
     #: HttpRequest injection) — set by the sync handler on every request.
     http_request = None
 
     def events(self, month: date, http_request):
-        """The events of the displayed month (any day of it, for the grid to place them)."""
+        """The events of a month (any day of it, for the grid to place them)."""
         raise NotImplementedError
 
     def action_on(self, event, http_request):
@@ -2073,10 +2079,31 @@ class CalendarPage(ComponentTreeSupplier):
         """What the "+ Create" button does (required when :meth:`show_create` is true)."""
         return None
 
+    def views(self):
+        """The views the user can switch between (``CalendarView``s); the first one is the
+        initial view. Default: the month view only (no switcher)."""
+        from mateu_uidl.components import CalendarView
+
+        return [CalendarView.month]
+
+    def days(self, date_from: date, date_to: date, http_request):
+        """A label and a tone (``CalendarDay``s) for each date's cell, from ``date_from`` to
+        ``date_to`` (inclusive)."""
+        return []
+
+    def days_clickable(self) -> bool:
+        """Whether the date cells themselves are clickable (:meth:`action_on_day`). Default:
+        False."""
+        return False
+
+    def action_on_day(self, day: date, http_request):
+        """What clicking a date's cell does — e.g. open that day's availability."""
+        return None
+
     # ── Wiring ────────────────────────────────────────────────────────────────
 
     def current_month(self) -> date:
-        """The displayed month: the bound ``month`` state when it parses, else
+        """The displayed anchor date: the bound ``month`` state when it parses, else
         :meth:`initial_month`."""
         if self.month:
             try:
@@ -2085,27 +2112,92 @@ class CalendarPage(ComponentTreeSupplier):
                 pass  # a stale/unparseable state falls back to the initial month
         return self.initial_month()
 
+    def current_view(self):
+        """The bound ``view`` when it is one of :meth:`views`, else the first of them."""
+        from mateu_uidl.components import CalendarView
+
+        allowed = list(self.views()) or [CalendarView.month]
+        if self.view is not None:
+            for option in allowed:
+                if option.value == self.view:
+                    return option
+        return allowed[0]
+
+    @staticmethod
+    def _period(view, anchor: date) -> tuple[date, date]:
+        """The first and last date of the period ``view`` shows around ``anchor``."""
+        from datetime import timedelta
+
+        from mateu_uidl.components import CalendarView
+
+        if view == CalendarView.day:
+            return anchor, anchor
+        if view == CalendarView.week:
+            monday = anchor - timedelta(days=anchor.weekday())
+            return monday, monday + timedelta(days=6)
+        first = anchor.replace(day=1)
+        return first, CalendarPage._add_months(first, 1) - timedelta(days=1)
+
+    def _events_of(self, date_from: date, date_to: date) -> list:
+        """The events of the period: one :meth:`events` call per month it touches,
+        deduplicated by id (or ``title@date`` when there is none)."""
+        by_key: dict = {}
+        month = date_from.replace(day=1)
+        while month <= date_to:
+            for event in self.events(month, self.http_request):
+                key = event.id if event.id is not None else f"{event.title}@{event.date}"
+                by_key.setdefault(key, event)
+            month = self._add_months(month, 1)
+        return list(by_key.values())
+
+    def _step(self, anchor: date, direction: int) -> date:
+        """One step of the current view: a month, a week or a day (the list view steps by
+        month)."""
+        from datetime import timedelta
+
+        from mateu_uidl.components import CalendarView
+
+        view = self.current_view()
+        if view == CalendarView.week:
+            return anchor + timedelta(weeks=direction)
+        if view == CalendarView.day:
+            return anchor + timedelta(days=direction)
+        return self._add_months(anchor, direction)
+
     def previous_calendar_month(self):
-        """``previousCalendarMonth``: moves the displayed month one month back (re-render)."""
-        self.month = self._shift_month(self.current_month(), -1).isoformat()
+        """``previousCalendarMonth``: moves the displayed period one step back (re-render)."""
+        self.month = self._step(self.current_month(), -1).isoformat()
 
     def next_calendar_month(self):
-        """``nextCalendarMonth``: moves the displayed month one month forward (re-render)."""
-        self.month = self._shift_month(self.current_month(), 1).isoformat()
+        """``nextCalendarMonth``: moves the displayed period one step forward (re-render)."""
+        self.month = self._step(self.current_month(), 1).isoformat()
 
     def go_calendar_today(self):
-        """``goCalendarToday``: moves the displayed month back to the current one (re-render)."""
+        """``goCalendarToday``: moves the displayed period back to today (re-render)."""
         self.month = date.today().isoformat()
 
+    def switch_calendar_view(self, requested):
+        """``switchCalendarView``: switches to the requested view (re-render); None is ignored."""
+        if requested is not None:
+            self.view = str(requested)
+
     def open_calendar_event(self, event_id):
-        """``openCalendarEvent``: finds the clicked event by id among the displayed month's and
+        """``openCalendarEvent``: finds the clicked event by id among the displayed period's and
         returns its :meth:`action_on` result; None (unknown event) re-renders the page (the
         analogue of Java returning ``this``)."""
         self.event_id = event_id
-        for event in self.events(self.current_month(), self.http_request):
+        date_from, date_to = self._period(self.current_view(), self.current_month())
+        for event in self._events_of(date_from, date_to):
             if event.id == event_id:
                 return self.action_on(event, self.http_request)
         return None
+
+    def open_calendar_day(self, raw_date):
+        """``openCalendarDay``: runs :meth:`action_on_day` for the clicked date (ISO); None
+        re-renders the page."""
+        if raw_date is None:
+            return None
+        return self.action_on_day(date.fromisoformat(str(raw_date)), self.http_request)
 
     def create_calendar_event(self):
         """``createCalendarEvent``: runs :meth:`create_action`; a None result re-renders the
@@ -2113,27 +2205,47 @@ class CalendarPage(ComponentTreeSupplier):
         return self.create_action(self.http_request)
 
     @staticmethod
-    def _shift_month(month: date, delta: int) -> date:
-        """The first day of the month ``delta`` months away from ``month`` (any day of a month
-        identifies it for the grid)."""
-        m = month.month - 1 + delta
-        return date(month.year + m // 12, m % 12 + 1, 1)
+    def _add_months(day: date, delta: int) -> date:
+        """``day`` moved ``delta`` months, clamped to the target month's length (Java's
+        ``LocalDate.plusMonths``)."""
+        import calendar as _calendar
+
+        m = day.month - 1 + delta
+        year, month = day.year + m // 12, m % 12 + 1
+        return date(year, month, min(day.day, _calendar.monthrange(year, month)[1]))
+
+    @staticmethod
+    def _view_label(view) -> str:
+        return {"month": "Month", "week": "Week", "day": "Day", "list": "List"}[view.value]
 
     def component(self):
         from mateu_uidl import components as fluent
 
-        month = self.current_month()
+        anchor = self.current_month()
+        view = self.current_view()
+        date_from, date_to = self._period(view, anchor)
         # Every event chip dispatches the same uniform actionId; the clicked event travels in
         # the action's parameters (_clickedEvent) and the archetype finds it back by id.
         events = tuple(
             replace(e, action_id="openCalendarEvent")
-            for e in self.events(month, self.http_request)
+            for e in self._events_of(date_from, date_to)
         )
         buttons = [
             fluent.Button(label="‹", action_id="previousCalendarMonth"),
             fluent.Button(label="Today", action_id="goCalendarToday"),
             fluent.Button(label="›", action_id="nextCalendarMonth"),
         ]
+        views = list(self.views())
+        if len(views) > 1:
+            for option in views:
+                buttons.append(
+                    fluent.Button(
+                        label=self._view_label(option),
+                        action_id="switchCalendarView",
+                        parameters={"_view": option.value},
+                        button_style="primary" if option == view else None,
+                    )
+                )
         if self.show_create():
             buttons.append(
                 fluent.Button(label="+ Create", action_id="createCalendarEvent",
@@ -2145,7 +2257,13 @@ class CalendarPage(ComponentTreeSupplier):
                 fluent.HorizontalLayout(
                     spacing=True, style="align-items: center;", content=tuple(buttons)
                 ),
-                fluent.Calendar(month=month, events=events),
+                fluent.Calendar(
+                    month=anchor,
+                    events=events,
+                    view=view,
+                    days=tuple(self.days(date_from, date_to, self.http_request)),
+                    day_action_id="openCalendarDay" if self.days_clickable() else None,
+                ),
             ),
         )
 

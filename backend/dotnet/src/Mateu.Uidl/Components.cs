@@ -411,22 +411,51 @@ public sealed record Stat : ComponentBase
     public string? ActionId { get; init; }
 }
 
-/// <summary>One event on a <see cref="Calendar"/>: a title on a Date, with an optional color and
-/// an ActionId that makes the chip clickable.</summary>
+/// <summary>One event on a <see cref="Calendar"/>: a title on a Date — through EndDate (inclusive)
+/// when it spans several days —, optionally between StartTime and EndTime ("HH:mm", shown in the
+/// week, day and list views), with an optional color and an ActionId that makes the chip
+/// clickable.</summary>
 public sealed record CalendarEvent
 {
     public string? Id { get; init; }
     public string? Title { get; init; }
     public DateOnly? Date { get; init; }
+    public DateOnly? EndDate { get; init; }
+    public string? StartTime { get; init; }
+    public string? EndTime { get; init; }
     public string? Color { get; init; }
     public string? ActionId { get; init; }
 }
 
-/// <summary>A read-only month-grid calendar with events. Month is any day in the month to show.</summary>
+/// <summary>How a <see cref="Calendar"/> shows its period: the Month grid, the Week (Monday to
+/// Sunday around the anchor date), a single Day, or a List — the agenda of the month, grouped by
+/// date. Travels in lowercase (month|week|day|list), like Java's CalendarView.</summary>
+public enum CalendarView
+{
+    Month,
+    Week,
+    Day,
+    List,
+}
+
+/// <summary>What a <see cref="Calendar"/> shows IN a date's cell, besides its events: a short
+/// Label (e.g. the availability of a hotel's Property Calendar) and a Tone (info, success,
+/// warning, danger, neutral) that tints the cell.</summary>
+public sealed record CalendarDay(DateOnly? Date, string? Label, string? Tone = null);
+
+/// <summary>A calendar with events. Month is the ANCHOR date: any day of the month to show in the
+/// month and list views, the day of the day view, a day of the week in the week view. View picks
+/// how the period is shown (default month) and Views, when it lists more than one, lets the user
+/// switch between them in place. Days put a label and a tone in each date's cell, and DayActionId
+/// makes the cells clickable (the action receives the date as <c>_date</c>).</summary>
 public sealed record Calendar : ComponentBase
 {
     public DateOnly? Month { get; init; }
     public IReadOnlyList<CalendarEvent> Events { get; init; } = [];
+    public CalendarView? View { get; init; }
+    public IReadOnlyList<CalendarView> Views { get; init; } = [];
+    public IReadOnlyList<CalendarDay> Days { get; init; } = [];
+    public string? DayActionId { get; init; }
 }
 
 /// <summary>One plan of a <see cref="PricingTable"/>: name, price + period, features and a CTA.

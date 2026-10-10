@@ -914,6 +914,24 @@
             "$ref" : "#/$defs/CalendarEvent"
           }
         },
+        "view" : {
+          "$ref" : "#/$defs/CalendarView"
+        },
+        "views" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/CalendarView"
+          }
+        },
+        "days" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/CalendarDay"
+          }
+        },
+        "dayActionId" : {
+          "type" : "string"
+        },
         "style" : {
           "type" : "string"
         },
@@ -923,6 +941,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        }
+      }
+    },
+    "CalendarDay" : {
+      "type" : "object",
+      "properties" : {
+        "date" : { },
+        "label" : {
+          "type" : "string"
+        },
+        "tone" : {
+          "type" : "string"
         }
       }
     },
@@ -936,6 +966,13 @@
           "type" : "string"
         },
         "date" : { },
+        "endDate" : { },
+        "startTime" : {
+          "type" : "string"
+        },
+        "endTime" : {
+          "type" : "string"
+        },
         "color" : {
           "type" : "string"
         },
@@ -943,6 +980,10 @@
           "type" : "string"
         }
       }
+    },
+    "CalendarView" : {
+      "type" : "string",
+      "enum" : [ "month", "week", "day", "list" ]
     },
     "CalloutCard" : {
       "type" : "object",

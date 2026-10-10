@@ -40,6 +40,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Card menus (`@Menu(display = cards)` / `MenuGroup` / `menu_group`) | ✅ | ✅ | ✅ |
 | `ActionPanel` (categorised "I want to…" actions) | ✅ | ✅ | ✅ |
 | `MatrixGrid` (rows × dates, collapsible sections, link/editable cells) | ✅ | ✅ | ✅ |
+| Calendar views (`Calendar.view`/`views`: month, week, day, list), per-date cells (`days`), clickable dates (`dayActionId`); `CalendarPage` `views()`/`days()`/`actionOnDay()` | ✅ | ✅ | ✅ |
 | Row tones (`@RowStatus` → `CrudlDto.rowStatusField`) and listing export buttons on `AutoCrud` | ✅ | — | — |
 | i18n, events (emit/subscribe), security scaffolding | ✅ | ✅ | ✅ |
 | Application context selector (`@AppContext`) | ✅ | ✅ | ✅ |
@@ -225,7 +226,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Tree lookup selector (dialog) | ✅ | ✅ | ✅ (tree layout) | ✅ (tree layout) |
 | Dashboards, Gantt, foldouts, skeletons | ✅ | 🟡 foldouts (`oj-sp-foldout-layout`, and collapsible panels inside a tab) and dashboards (KPI band, tiles by `colSpan`, `oj-chart`) ✅; the `Gantt` and `Skeleton` components are **not** rendered (the Room Diary's `PlanningBoard` is, on `oj-gantt`) | ✅ | ✅ |
 | Custom components (`registerCustomComponent`; unknown → visible placeholder) — the per-renderer escape hatch, each renderer with its own registry + graceful degradation (placeholder + slotted children) | ✅ | 🟡 placeholder + slotted children (bridge projection) | 🟡 registry + placeholder | 🟡 registry + placeholder |
-| High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | 🟡 the front-office set + `Stat` ✅; Kanban, Timeline, Calendar, PricingTable, OrgChart, Heatmap, Funnel, FeatureGrid, Testimonials, Faq, CalloutCard, CommentThread, FileList, Checklist, ComparisonCard **not rendered** — see the coverage table below | ✅ | ✅ |
+| High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | 🟡 the front-office set, `Stat` and `Calendar` (month/week/day/list) ✅; Kanban, Timeline, PricingTable, OrgChart, Heatmap, Funnel, FeatureGrid, Testimonials, Faq, CalloutCard, CommentThread, FileList, Checklist, ComparisonCard **not rendered** — see the coverage table below | ✅ | ✅ |
 | App header actions (buttons + dropdown groups) | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
 | Bulk row selection + selection-required toolbar actions | ✅ | ✅ | ✅ (native multi-select) | ✅ (checkbox column) |
 | Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (Views menu: apply/save/default/delete, persisted) | 🟡 apply/save/default/delete (session-scoped) |
@@ -251,8 +252,8 @@ not the feature rows above — is the authority when a screen looks emptier on R
 
 <!-- redwood-coverage:start -->
 Generated from `frontend/web/monorepo/apps/redwood/poc/coverage.mjs` and checked in CI against the
-wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 46 rendered, 12 layout
-containers, 5 partial, 44 not rendered (they are dropped silently — the
+wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 47 rendered, 12 layout
+containers, 5 partial, 43 not rendered (they are dropped silently — the
 children of a container still render).
 
 | Component | Redwood | How |
@@ -265,6 +266,7 @@ children of a container still render).
 | `Badge` | ✅ | oj-badge classes |
 | `BulletedList` | ✅ |  |
 | `Button` | ✅ | oj-button |
+| `Calendar` | ✅ | month, week, day and list views (JET has no calendar: a Redwood-token grid, oj-buttonset-one switcher), per-date cells, clickable dates |
 | `Card` | ✅ | oj-panel |
 | `Chart` | ✅ | oj-chart: bar, line, pie, doughnut, radar/polar area, scatter; several series |
 | `Crud` | ✅ | oj-table + smart search; groups, totals, tones, columns, saved views, export |
@@ -331,7 +333,6 @@ children of a container still render).
 | `AvatarGroup` | — |  |
 | `Bpmn` | — |  |
 | `Breadcrumbs` | — | the shell has its own breadcrumbs |
-| `Calendar` | — |  |
 | `CalloutCard` | — |  |
 | `Chat` | — | the app-level AI chat panel exists; the component does not |
 | `Checklist` | — |  |

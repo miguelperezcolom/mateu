@@ -66,6 +66,108 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isCalendar ]]">
+                      <!-- Calendar: JET no trae calendario — rejilla con tokens de Redwood, selector de vista
+                           oj-buttonset-one, eventos como enlaces; las cuatro vistas van pintadas y se muestra
+                           la de data-cal-shown (installCalendars) -->
+                      <div class="mateu-cal oj-sm-margin-2x-bottom" :id="[[ $current.data.calId ]]"
+                        :data-cal-shown="[[ $current.data.view ]]" :data-day-action="[[ $current.data.dayActionId ]]">
+                        <div class="mateu-cal-head">
+                          <span class="oj-typography-subheading-sm mateu-cal-title" data-for="month"><oj-bind-text value="[[ $current.data.titles.month ]]"></oj-bind-text></span>
+                          <span class="oj-typography-subheading-sm mateu-cal-title" data-for="week"><oj-bind-text value="[[ $current.data.titles.week ]]"></oj-bind-text></span>
+                          <span class="oj-typography-subheading-sm mateu-cal-title" data-for="day"><oj-bind-text value="[[ $current.data.titles.day ]]"></oj-bind-text></span>
+                          <span class="oj-typography-subheading-sm mateu-cal-title" data-for="list"><oj-bind-text value="[[ $current.data.titles.list ]]"></oj-bind-text></span>
+                          <oj-bind-if test="[[ $current.data.hasSwitcher ]]">
+                            <oj-buttonset-one data-cal-switch="true" chroming="outlined" value="[[ $current.data.view ]]" aria-label="View">
+                              <oj-bind-for-each data="[[ $current.data.viewOptions ]]">
+                                <template>
+                                  <oj-option :value="[[ $current.data.value ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+                                </template>
+                              </oj-bind-for-each>
+                            </oj-buttonset-one>
+                          </oj-bind-if>
+                        </div>
+                        <div class="mateu-cal-view mateu-cal-grid" data-for="month">
+                          <oj-bind-for-each data="[[ $current.data.dows ]]">
+                            <template><div class="mateu-cal-dow"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
+                          </oj-bind-for-each>
+                          <oj-bind-for-each data="[[ $current.data.monthCells ]]">
+                            <template>
+                              <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]" :aria-label="[[ $current.data.ariaLabel ]]">
+                                    <div class="mateu-cal-top"><span class="mateu-cal-label"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span><span class="mateu-cal-num"><oj-bind-text value="[[ $current.data.num ]]"></oj-bind-text></span></div>
+                                    <oj-bind-for-each data="[[ $current.data.events ]]">
+                                      <template>
+                                        <a href="#" class="mateu-cal-chip" :style="[[ $current.data.style ]]" :title="[[ $current.data.text ]]"
+                                          :data-cal-event="[[ $current.data.id ]]" :data-cal-title="[[ $current.data.title ]]"
+                                          :data-cal-date="[[ $current.data.date ]]" :data-cal-action="[[ $current.data.actionId ]]"
+                                          :data-cal-clickable="[[ $current.data.clickable ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                                      </template>
+                                    </oj-bind-for-each>
+                                  </div>
+                            </template>
+                          </oj-bind-for-each>
+                        </div>
+                        <div class="mateu-cal-view mateu-cal-grid mateu-cal-week" data-for="week">
+                          <oj-bind-for-each data="[[ $current.data.weekHeads ]]">
+                            <template><div class="mateu-cal-dow"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
+                          </oj-bind-for-each>
+                          <oj-bind-for-each data="[[ $current.data.weekCells ]]">
+                            <template>
+                              <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]" :aria-label="[[ $current.data.ariaLabel ]]">
+                                    <div class="mateu-cal-top"><span class="mateu-cal-label"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span><span class="mateu-cal-num"><oj-bind-text value="[[ $current.data.num ]]"></oj-bind-text></span></div>
+                                    <oj-bind-for-each data="[[ $current.data.events ]]">
+                                      <template>
+                                        <a href="#" class="mateu-cal-chip" :style="[[ $current.data.style ]]" :title="[[ $current.data.text ]]"
+                                          :data-cal-event="[[ $current.data.id ]]" :data-cal-title="[[ $current.data.title ]]"
+                                          :data-cal-date="[[ $current.data.date ]]" :data-cal-action="[[ $current.data.actionId ]]"
+                                          :data-cal-clickable="[[ $current.data.clickable ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                                      </template>
+                                    </oj-bind-for-each>
+                                  </div>
+                            </template>
+                          </oj-bind-for-each>
+                        </div>
+                        <div class="mateu-cal-view mateu-cal-grid mateu-cal-day" data-for="day">
+                          <div class="mateu-cal-dow"><oj-bind-text value="[[ $current.data.dayHead ]]"></oj-bind-text></div>
+                          <oj-bind-for-each data="[[ $current.data.dayCells ]]">
+                            <template>
+                              <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]" :aria-label="[[ $current.data.ariaLabel ]]">
+                                    <div class="mateu-cal-top"><span class="mateu-cal-label"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span><span class="mateu-cal-num"><oj-bind-text value="[[ $current.data.num ]]"></oj-bind-text></span></div>
+                                    <oj-bind-for-each data="[[ $current.data.events ]]">
+                                      <template>
+                                        <a href="#" class="mateu-cal-chip" :style="[[ $current.data.style ]]" :title="[[ $current.data.text ]]"
+                                          :data-cal-event="[[ $current.data.id ]]" :data-cal-title="[[ $current.data.title ]]"
+                                          :data-cal-date="[[ $current.data.date ]]" :data-cal-action="[[ $current.data.actionId ]]"
+                                          :data-cal-clickable="[[ $current.data.clickable ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                                      </template>
+                                    </oj-bind-for-each>
+                                  </div>
+                            </template>
+                          </oj-bind-for-each>
+                        </div>
+                        <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-for-each data="[[ $current.data.agenda ]]">
+                            <template>
+                              <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
+                                <span><oj-bind-text value="[[ $current.data.dateLabel ]]"></oj-bind-text></span>
+                                <span class="mateu-cal-label"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                              </div>
+                              <div class="mateu-cal-agenda-entries">
+                                <oj-bind-for-each data="[[ $current.data.events ]]">
+                                  <template>
+                                    <a href="#" class="mateu-cal-chip" :style="[[ $current.data.style ]]"
+                                      :data-cal-event="[[ $current.data.id ]]" :data-cal-title="[[ $current.data.title ]]"
+                                      :data-cal-date="[[ $current.data.date ]]" :data-cal-action="[[ $current.data.actionId ]]"
+                                      :data-cal-clickable="[[ $current.data.clickable ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a>
+                                  </template>
+                                </oj-bind-for-each>
+                              </div>
+                            </template>
+                          </oj-bind-for-each>
+                        </div>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isScoreboard ]]">
                       <!-- banda de KPIs (Scoreboard / MetricCard): valor grande, tendencia, y el botón de la
                            acción que lo explica (p.ej. la búsqueda filtrada) -->

@@ -17,6 +17,7 @@ import { matrixCellParams, matrixEditChanged } from './matrix.mjs'
 import { coverageProblems } from './parity-check.mjs'
 import { coverageTable } from './coverage.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass } from './reduceContexts.mjs'
+import { calendarAtomOf, calPeriod, calEventsOn, calAddDays } from './calendar.mjs'
 import { dayIndexAtX } from './planning.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
 import { listingOf, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
@@ -815,6 +816,56 @@ test('MetricCard: tendencia con flecha y color; ResponsiveGrid: pesos de pista y
   assert.deepEqual(gridColClasses('1fr 1fr 1fr', [2, 2, 1], 3).map((c) => c.match(/oj-md-(\d+)/)[1]), ['8', '8', '4'])
   assert.equal(gridColClasses('1fr', [], 2), null)
   assert.match(panelColClass(2, 3), /oj-md-8/)
+})
+
+// ── P1 #12 calendario: mes, semana, día, lista; celdas por fecha; fechas que actúan ─────────
+const calWire = {
+  type: 'Calendar', month: '2026-10-28', view: 'month', views: ['month', 'week', 'day', 'list'], dayActionId: 'openCalendarDay',
+  days: [{ date: '2026-10-30', label: 'Avail 3', tone: 'danger' }],
+  events: [
+    { id: 'conv', title: 'Convention', date: '2026-10-29', endDate: '2026-10-31', startTime: '09:00', endTime: '18:00', color: '#2c6e8f', actionId: 'openCalendarEvent' },
+    { id: 'gala', title: 'Gala', date: '2026-11-01', startTime: '20:00' },
+    { id: 'early', title: 'Breakfast', date: '2026-10-30', startTime: '07:30' },
+  ],
+}
+test('calendario: periodos por vista y eventos de varios días en cada día, por hora', () => {
+  assert.deepEqual(calPeriod('week', '2026-10-28'), { from: '2026-10-26', to: '2026-11-01' })
+  assert.deepEqual(calPeriod('list', '2026-02-10'), { from: '2026-02-01', to: '2026-02-28' })
+  assert.equal(calAddDays('2026-03-29', 1), '2026-03-30', 'sin saltos de horario de verano')
+  assert.deepEqual(calEventsOn(calWire.events, '2026-10-30').map((e) => e.id), ['early', 'conv'])
+})
+
+test('calendario: el átomo trae las cuatro vistas precomputadas, celdas con etiqueta y tono, y chips', () => {
+  const a = calendarAtomOf(calWire, 'cal', '2026-10-28')
+  assert.equal(a.isCalendar, true)
+  assert.equal(a.view, 'month')
+  assert.equal(a.hasSwitcher, true)
+  assert.deepEqual(a.viewOptions.map((o) => o.label), ['Month', 'Week', 'Day', 'List'])
+  assert.equal(a.monthCells.length % 7, 0)
+  assert.equal(a.monthCells.filter((c) => c.blank).length, 3 + 1, 'octubre 2026: empieza en jueves y acaba en sábado')
+  const d30 = a.monthCells.find((c) => c.date === '2026-10-30')
+  assert.equal(d30.label, 'Avail 3')
+  assert.match(d30.cls, /mateu-cal-danger/)
+  assert.match(d30.cls, /mateu-cal-clickable/)
+  assert.deepEqual(d30.events.map((e) => e.title), ['Breakfast', 'Convention'])
+  assert.equal(d30.ariaLabel, 'Friday, October 30, Avail 3, 2 events')
+  assert.deepEqual(a.weekHeads, ['Mon 26', 'Tue 27', 'Wed 28', 'Thu 29', 'Fri 30', 'Sat 31', 'Sun 1'])
+  assert.equal(a.weekCells[3].events[0].text, '09:00–18:00 Convention')
+  assert.deepEqual(a.weekCells[3].events[0].style, { borderLeftColor: '#2c6e8f' }, ':style de JET: objeto')
+  assert.equal(a.weekCells[3].events[0].clickable, 'true')
+  assert.equal(a.dayHead, 'Wednesday, October 28')
+  assert.deepEqual(a.agenda.map((d) => d.date), ['2026-10-29', '2026-10-30', '2026-10-31'])
+  assert.equal(a.titles.week, 'Oct 26 – Nov 1, 2026')
+  assert.match(a.monthCells.find((c) => c.date === '2026-10-28').cls, /mateu-cal-today/)
+})
+
+test('calendario: la plantilla pinta las vistas por data-cal-shown, con oj-buttonset-one, y la shell lo instala', () => {
+  const page = webApp('flows/main/pages/main-start-page.html')
+  assert.match(page, /<oj-buttonset-one data-cal-switch="true"/)
+  assert.match(page, /:data-cal-shown="\[\[ \$current\.data\.view \]\]"/)
+  assert.match(webApp('flows/main/pages/main-start-page.json'), /"oj-buttonset-one": \{\s*"path": "ojs\/ojbutton"/)
+  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installCalendars\(\)/)
+  assert.match(webApp('resources/css/app.css'), /\.mateu-cal\[data-cal-shown="week"\] \.mateu-cal-view\[data-for="week"\]/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

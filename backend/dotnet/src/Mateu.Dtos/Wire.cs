@@ -406,11 +406,20 @@ public record StepDto(string? Id, string? Title, string? Description, string? St
 /// <summary>KPI stat metadata: value/unit, delta, trend (up|down|flat) and a sparkline.</summary>
 public record StatMetadataDto(string? Label, string? Value, string? Unit, string? Delta, string? Trend, IReadOnlyList<double> Spark, string? ActionId) : ComponentMetadataDto;
 
-/// <summary>Month-grid calendar metadata; Month/Event dates are ISO-8601 (yyyy-MM-dd).</summary>
-public record CalendarMetadataDto(string? Month, IReadOnlyList<CalendarEventDto> Events) : ComponentMetadataDto;
+/// <summary>Calendar metadata; Month (the anchor) and every date are ISO-8601 (yyyy-MM-dd). View is
+/// month|week|day|list (default month), Views the switchable ones, Days the per-date cells and
+/// DayActionId makes those cells clickable.</summary>
+public record CalendarMetadataDto(string? Month, IReadOnlyList<CalendarEventDto> Events,
+    string View, IReadOnlyList<string> Views, IReadOnlyList<CalendarDayDto> Days, string? DayActionId)
+    : ComponentMetadataDto;
 
-/// <summary>One calendar event; Date is ISO-8601; ActionId makes the chip clickable.</summary>
-public record CalendarEventDto(string? Id, string? Title, string? Date, string? Color, string? ActionId);
+/// <summary>One calendar event; Date/EndDate are ISO-8601, Start/EndTime "HH:mm"; ActionId makes
+/// the chip clickable.</summary>
+public record CalendarEventDto(string? Id, string? Title, string? Date, string? EndDate,
+    string? StartTime, string? EndTime, string? Color, string? ActionId);
+
+/// <summary>One date's cell of a calendar: ISO date, a short label and a tone.</summary>
+public record CalendarDayDto(string? Date, string? Label, string? Tone);
 
 /// <summary>Pricing-table metadata: plan cards.</summary>
 public record PricingTableMetadataDto(IReadOnlyList<PricingPlanDto> Plans) : ComponentMetadataDto;

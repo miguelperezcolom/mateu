@@ -58,6 +58,7 @@ from mateu_dtos import (
     StatMetadata,
     CalendarMetadata,
     CalendarEventRecord,
+    CalendarDayRecord,
     PricingTableMetadata,
     PricingPlanRecord,
     OrgChartMetadata,
@@ -1462,6 +1463,9 @@ class ReflectionMapper:
                     id=e.id,
                     title=e.title,
                     date=e.date.isoformat() if e.date is not None else None,
+                    end_date=e.end_date.isoformat() if e.end_date is not None else None,
+                    start_time=e.start_time,
+                    end_time=e.end_time,
                     color=e.color,
                     action_id=e.action_id,
                 )
@@ -1469,7 +1473,19 @@ class ReflectionMapper:
             ]
             return self._fluent_client(
                 CalendarMetadata(
-                    month=c.month.isoformat() if c.month is not None else None, events=events
+                    month=c.month.isoformat() if c.month is not None else None,
+                    events=events,
+                    view=c.view.value if c.view is not None else "month",
+                    views=[v.value for v in c.views],
+                    days=[
+                        CalendarDayRecord(
+                            date=d.date.isoformat() if d.date is not None else None,
+                            label=d.label,
+                            tone=d.tone,
+                        )
+                        for d in c.days
+                    ],
+                    day_action_id=c.day_action_id,
                 ),
                 c,
             )

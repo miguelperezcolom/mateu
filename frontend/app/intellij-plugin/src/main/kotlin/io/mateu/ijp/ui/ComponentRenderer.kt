@@ -81,7 +81,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "Timeline" -> renderTimeline(this, metadata)
             "ProgressSteps" -> renderProgressSteps(metadata)
             "Stat" -> renderStat(this, metadata)
-            "Calendar" -> renderCalendar(this, metadata)
+            "Calendar" -> renderCalendar(ctx, metadata)
             "PricingTable" -> renderPricingTable(this, metadata)
             "OrgChart" -> renderOrgChart(this, metadata)
             "Heatmap" -> renderHeatmap(metadata)

@@ -1,6 +1,6 @@
 ---
-title: Calendar (month view)
-description: Show events on a month grid — a schedule, a team calendar, a content plan.
+title: Calendar
+description: Show events by month, week, day or as an agenda — a schedule, a team calendar, a hotel's property calendar with availability per date.
 ---
 
 **Status:** ✅ Implemented
@@ -28,11 +28,31 @@ Component calendar = Calendar.builder()
 
 ![Team calendar](/images/docs/calendar/team-calendar.png)
 
-The renderer is dependency-free (a Monday-first CSS grid), themes through the standard CSS variables, marks today, and works in dark mode. On mobile (React Native) and in the IntelliJ plugin the same events render as an **agenda list** (sorted by date) — the natural narrow-viewport adaptation.
+The renderer is dependency-free (a Monday-first CSS grid), themes through the standard CSS variables, marks today, and works in dark mode.
+
+### Views, dates that carry information, dates that act
+
+- **`view`** — `CalendarView.month` (default), `week` (Monday to Sunday around the anchor, events with their times), `day` (the anchor date) or `list` (the month's agenda, grouped by date). `month` stays the **anchor** date for every view.
+- **`views`** — when it lists more than one view, a switcher changes the view **in place** (client-side, no round trip).
+- **`days`** — a `CalendarDay(date, label, tone)` per date puts a short label in the date's cell and tints it (`info`, `success`, `warning`, `danger`, `neutral`): the maximum availability of a hotel's Property Calendar, a restriction, a closing.
+- **`dayActionId`** — makes the date cells clickable; the action receives the date as `_date`.
+- Events gain **`endDate`** (inclusive — a multi-day event appears on each of its days) and **`startTime`/`endTime`** (`"HH:mm"`, shown in the week, day and list views).
+
+```java
+Calendar.builder()
+        .month(LocalDate.of(2026, 10, 12))
+        .view(CalendarView.list)
+        .views(List.of(CalendarView.list, CalendarView.month))
+        .days(List.of(new CalendarDay(LocalDate.of(2026, 10, 30), "Avail 3", "danger")))
+        .dayActionId("openDay")
+        .events(List.of(CalendarEvent.builder().title("Tech Summit").date(LocalDate.of(2026, 10, 15))
+                .endDate(LocalDate.of(2026, 10, 18)).startTime("09:00").endTime("18:00").build()))
+        .build();
+```
 
 ## Calendar page (the RDS template)
 
-The `CalendarPage` archetype turns the component into the full Redwood **Calendar** page template: a calendar toolbar — previous/next month chevrons, a *Today* button and an optional primary *+ Create* button — over the month grid. Month navigation re-runs `events(month)` with the newly displayed month (so events can be fetched per month), and clicking an event runs `actionOn(event)`.
+The `CalendarPage` archetype turns the component into the full Redwood **Calendar** page template: a calendar toolbar — previous/next chevrons, a *Today* button, the view switcher and an optional primary *+ Create* button — over the calendar. Navigation re-runs `events(month)` for every month the displayed period touches (so events can be fetched per month), and clicking an event runs `actionOn(event)`. Override `views()` to offer the week, day and list views (the chevrons then step by the view's period), `days(from, to)` to put a label and a tone in each date, and `daysClickable()` + `actionOnDay(date)` to make the dates act — the shape of OPERA's Property Calendar (demo: `demo-vb-pms` `/home/calendar`).
 
 ```java
 @UI("/calendar-demo")
@@ -57,8 +77,7 @@ public class HousekeepingCalendar extends CalendarPage {
 ![Calendar page](/images/docs/calendar/calendar-demo.png)
 
 - `initialMonth()` defaults to the current month; the displayed month is page state, so ‹ / › and *Today* round-trip through the backend and re-fetch.
-- The week/day/list views of the RDS template are **not built in yet** — the underlying component is a month grid.
-- Works on Vaadin and the native renderers, and on the .NET (`CalendarPage`) and Python (`CalendarPage`) backends. **Not yet on Redwood**: its renderer has no `Calendar` branch, so the page comes out empty there — see the [parity matrix](/reference/parity/#redwood-component-coverage).
+- Works on every renderer — Vaadin, Redwood (JET has no calendar component, so the grid is drawn with Redwood's tokens; the switcher is `oj-buttonset-one`), React Native and the IntelliJ plugin — and on the .NET (`CalendarPage`) and Python (`CalendarPage`) backends.
 
 ## Redwood parameter and slot reference
 
@@ -75,7 +94,8 @@ canonical page-header elements shared by every template are documented once in
 | Month navigation | ‹ / › / *Today* round-trip through the backend; `initialMonth()` sets the start | ✅ |
 | `displayOptions.createEvent` / `createEventLabel` | `showCreate()` + `createAction(HttpRequest)` | ✅ |
 | Event click | `actionOn(CalendarEvent, HttpRequest)` — return a `URI` to navigate | ✅ |
-| `selectedViewValue` + `displayOptions {monthView, weekView, dayView, listView}` | — month only; on narrow viewports (React Native, IntelliJ) the same events render as an agenda list | — |
+| `selectedViewValue` + `displayOptions {monthView, weekView, dayView, listView}` | `views()` (+ `Calendar.view`/`views`): month, week, day and list | ✅ |
+| Date cell content / date click | `days(from, to)` labels and tones; `daysClickable()` + `actionOnDay(date)` | ✅ |
 | `displayOptions.firstDayOfWeek` | — the grid is Monday-first | — |
 | `displayOptions {eventCounter, eventSortCriteria, eventDetailMode}` | — | — |
 | `calendarProviders[]` + `visibleCalendars[]` (multi-calendar) | — one event source per page | — |
@@ -88,4 +108,4 @@ canonical page-header elements shared by every template are documented once in
 
 ## When to use it
 
-Use a `Calendar` to show **dated events on a month** for scanning and light interaction (click an event to drill in). It is read-only by design; for scheduling/drag-to-create, pair it with a form that creates or moves events and re-renders. Demo: `/calendar-demo`.
+Use a `Calendar` to show **dated events by month, week, day or as an agenda** for scanning and light interaction (click an event to drill in). It is read-only by design; for scheduling/drag-to-create, pair it with a form that creates or moves events and re-renders. Demo: `/calendar-demo`.

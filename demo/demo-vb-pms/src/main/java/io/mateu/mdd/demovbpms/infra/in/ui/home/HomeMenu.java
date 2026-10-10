@@ -6,4 +6,6 @@ import io.mateu.uidl.annotations.Menu;
 public class HomeMenu {
 
   @Menu PmsDashboard dashboard;
+
+  @Menu HotelCalendar calendar;
 }

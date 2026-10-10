@@ -184,7 +184,9 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
                     ? MapResult(result, rq)
                     : Render(type, instance, rq);
             // A CalendarPage's built-in actions: the toolbar chevrons/Today move the displayed
-            // month and re-render (re-running Events for the new month); an event click ACTS on
+            // period (a month, week or day by the view) and the view buttons switch the view
+            // (parameters._view), both re-rendering; a date cell click (parameters._date) runs
+            // ActionOnDay; an event click ACTS on
             // the event — the frontend sends it as parameters._clickedEvent = {id, title, date,
             // color} and the archetype finds it back by id, its ActionOn result mapping as a
             // regular action result (a route string → NavigateTo); "+ Create" runs CreateAction.
@@ -206,6 +208,13 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
                     case "goCalendarToday":
                         calendarPage.GoToday();
                         return Render(type, instance, rq);
+                    case "switchCalendarView":
+                        calendarPage.SwitchView(StateString(GetState(rq.Parameters, "_view")));
+                        return Render(type, instance, rq);
+                    case "openCalendarDay":
+                        return calendarPage.OpenCalendarDay(StateString(GetState(rq.Parameters, "_date"))) is { } day
+                            ? MapResult(day, rq)
+                            : Render(type, instance, rq);
                     case "createCalendarEvent":
                         return calendarPage.CreateCalendarEvent() is { } created
                             ? MapResult(created, rq)

@@ -593,27 +593,65 @@ class Stat(Component):
 
 @dataclass(frozen=True)
 class CalendarEvent:
-    """One event on a :class:`Calendar`: a title on a ``date``, optional color and ``action_id``."""
+    """One event on a :class:`Calendar`: a title on a ``date`` — through ``end_date`` (inclusive)
+    when it spans several days —, optionally between ``start_time`` and ``end_time`` ("HH:mm",
+    shown in the week, day and list views), with an optional color and an ``action_id`` that
+    makes the chip clickable."""
 
     id: str | None = None
     title: str | None = None
     date: date | None = None
     color: str | None = None
     action_id: str | None = None
+    end_date: date | None = None
+    start_time: str | None = None
+    end_time: str | None = None
+
+
+class CalendarView(Enum):
+    """How a :class:`Calendar` shows its period: the ``month`` grid, the ``week`` (Monday to
+    Sunday around the anchor date), a single ``day``, or a ``list`` — the agenda of the month,
+    grouped by date. The Python analogue of ``io.mateu.uidl.data.CalendarView``."""
+
+    month = "month"
+    week = "week"
+    day = "day"
+    list = "list"
+
+
+@dataclass(frozen=True)
+class CalendarDay:
+    """What a :class:`Calendar` shows IN a date's cell, besides its events: a short ``label``
+    (e.g. the availability of a hotel's Property Calendar) and a ``tone`` (info, success,
+    warning, danger, neutral) that tints the cell."""
+
+    date: date | None = None
+    label: str | None = None
+    tone: str | None = None
 
 
 @dataclass(frozen=True)
 class Calendar(Component):
-    """A read-only month-grid calendar with events. ``month`` is any day in the month to show."""
+    """A calendar with events. ``month`` is the ANCHOR date: any day of the month to show in the
+    month and list views, the day of the day view, a day of the week in the week view. ``view``
+    picks how the period is shown (default month) and ``views``, when it lists more than one,
+    lets the user switch between them in place. ``days`` put a label and a tone in each date's
+    cell, and ``day_action_id`` makes the cells clickable (the action receives ``_date``)."""
 
     month: date | None = None
     events: tuple[CalendarEvent, ...] = ()
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    view: CalendarView | None = None
+    views: tuple[CalendarView, ...] = ()
+    days: tuple[CalendarDay, ...] = ()
+    day_action_id: str | None = None
 
     def __post_init__(self):
         object.__setattr__(self, "events", tuple(self.events))
+        object.__setattr__(self, "views", tuple(self.views))
+        object.__setattr__(self, "days", tuple(self.days))
 
 
 @dataclass(frozen=True)
@@ -1560,6 +1598,8 @@ __all__ = [
     "ProgressSteps",
     "Stat",
     "CalendarEvent",
+    "CalendarView",
+    "CalendarDay",
     "Calendar",
     "PricingPlan",
     "PricingTable",

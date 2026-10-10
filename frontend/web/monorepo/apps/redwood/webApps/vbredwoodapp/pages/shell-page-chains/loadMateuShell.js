@@ -73,6 +73,9 @@ define([
       bridge.installActionPanels();
       // MatrixGrid (oj-data-grid): plegar secciones, editar filas editables, celdas que enlazan
       bridge.installMatrixGrids();
+      // Calendar: cambiar de vista en el DOM, eventos y fechas que lanzan su acción
+      bridge.installCalendars();
+      bridge.setCalendarActionSink(runPageAction);
       bridge.setMatrixActionSink(runPageAction);
       // tonos de fila (@RowStatus) y filas de grupo (@GroupBy) del oj-table del listado
       bridge.installRowTones();

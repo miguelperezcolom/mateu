@@ -77,7 +77,12 @@ public static class ComponentMapper
             st.Label, st.Value, st.Unit, st.Delta, st.Trend, st.Spark, st.ActionId)),
 
         Calendar cal => Dto(cal, new CalendarMetadataDto(Iso(cal.Month), cal.Events.Select(e =>
-            new CalendarEventDto(e.Id, e.Title, Iso(e.Date), e.Color, e.ActionId)).ToList())),
+                new CalendarEventDto(e.Id, e.Title, Iso(e.Date), Iso(e.EndDate), e.StartTime, e.EndTime,
+                    e.Color, e.ActionId)).ToList(),
+            CalendarViewName(cal.View ?? CalendarView.Month),
+            cal.Views.Select(CalendarViewName).ToList(),
+            cal.Days.Select(d => new CalendarDayDto(Iso(d.Date), d.Label, d.Tone)).ToList(),
+            cal.DayActionId)),
 
         PricingTable pt => Dto(pt, new PricingTableMetadataDto(pt.Plans.Select(p => new PricingPlanDto(
             p.Id, p.Name, p.Price, p.Period, p.Featured, p.Features, p.CtaLabel, p.ActionId)).ToList())),
@@ -365,6 +370,9 @@ public static class ComponentMapper
         value.ToString().ToLowerInvariant();
 
     private static string? Iso(DateOnly? d) => d?.ToString("yyyy-MM-dd");
+
+    /// <summary>A CalendarView's wire name: lowercase, exactly Java's enum constant names.</summary>
+    internal static string CalendarViewName(CalendarView view) => view.ToString().ToLowerInvariant();
 
     private static OrgNodeDto? MapOrgNode(OrgNode? n) =>
         n is null ? null : new OrgNodeDto(n.Id, n.Title, n.Subtitle, n.Avatar, n.Color, n.ActionId,

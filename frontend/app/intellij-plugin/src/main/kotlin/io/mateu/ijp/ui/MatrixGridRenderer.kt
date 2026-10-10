@@ -31,7 +31,7 @@ private val CELL_W get() = JBUI.scale(72)
 private val LABEL_W get() = JBUI.scale(150)
 private const val MAX_VISIBLE_W = 900
 
-private fun toneBackground(tone: String?): Color? = when (tone) {
+internal fun toneBackground(tone: String?): Color? = when (tone) {
     "info" -> JBColor(0xE9EFF7, 0x23324A)
     "success" -> JBColor(0xE8F2E9, 0x243B28)
     "warning" -> JBColor(0xF8EFE6, 0x45361F)
@@ -40,7 +40,7 @@ private fun toneBackground(tone: String?): Color? = when (tone) {
     else -> null
 }
 
-private fun toneInk(tone: String?): Color? = when (tone) {
+internal fun toneInk(tone: String?): Color? = when (tone) {
     "info" -> JBColor(0x2763B1, 0x7AA7E8)
     "success" -> JBColor(0x177A23, 0x6CC17A)
     "warning" -> JBColor(0xB85E04, 0xF0B060)

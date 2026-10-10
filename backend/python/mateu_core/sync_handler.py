@@ -384,7 +384,9 @@ class SyncHandler:
             if rq.action_id in ("filterCollection", "switchRecord"):
                 return self.render(type_, instance, rq)
         # 4c. A CalendarPage's built-in actions: the toolbar chevrons/Today move the displayed
-        # month and re-render (re-running events for the new month); an event click ACTS on the
+        # period (a month, week or day by the view) and the view buttons (parameters._view)
+        # switch the view, both re-rendering; a date cell click (parameters._date) runs
+        # action_on_day; an event click ACTS on the
         # event — the frontend sends it as parameters._clickedEvent = {id, title, date, color}
         # and the archetype finds it back by id, its action_on result mapping as a regular
         # action result (a route string → NavigateTo); "+ Create" runs create_action. Unknown
@@ -403,6 +405,16 @@ class SyncHandler:
             if rq.action_id == "goCalendarToday":
                 instance.go_calendar_today()
                 return self.render(type_, instance, rq)
+            if rq.action_id == "switchCalendarView":
+                instance.switch_calendar_view((rq.parameters or {}).get("_view"))
+                return self.render(type_, instance, rq)
+            if rq.action_id == "openCalendarDay":
+                opened_day = instance.open_calendar_day((rq.parameters or {}).get("_date"))
+                return (
+                    self.map_result(opened_day, rq)
+                    if opened_day is not None
+                    else self.render(type_, instance, rq)
+                )
             if rq.action_id == "createCalendarEvent":
                 created = instance.create_calendar_event()
                 return self.map_result(created, rq) if created is not None else self.render(type_, instance, rq)

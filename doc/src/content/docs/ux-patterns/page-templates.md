@@ -35,7 +35,7 @@ your call per screen (Mateu only composes it for you in two fully-derivable case
 | **Empty States** | `EmptyState` component — used by every listing and archetype automatically | `/empty-skeleton-demo` | [Empty states & skeletons](/ux-patterns/empty-states-and-skeletons/) | ✅ (`Skeleton` —) |
 | **Data Management** (grid ⇄ Gantt) | `DataManagement` archetype — the same data as a grid and a Gantt with a toolbar switcher (full-width). Dense editable grids use `@InlineEditing` + `@Compact` | `/data-management-demo` | [Data management](/ux-patterns/data-management/) | — neither view renders (`Grid`, `Gantt`) |
 | **Gantt page** | `GanttPage` archetype — edge-to-edge Gantt canvas + docked detail; clicking a bar opens the task in a drawer | `/gantt-page-demo` | [Gantt](/ux-patterns/gantt/#gantt-page-template-ganttpage-archetype) | — the `Gantt` is dropped |
-| **Calendar** | `CalendarPage` archetype — the full page: calendar toolbar (‹/Today/›, optional *+ Create*) over the month grid, per-month event fetching, event click actions (week/day/list views not built in yet) | `/calendar-demo` | [Calendar](/ux-patterns/calendar/) | — the calendar is dropped |
+| **Calendar** | `CalendarPage` archetype — the full page: calendar toolbar (‹/Today/›, optional *+ Create*) over the calendar, per-month event fetching, event click actions, month/week/day/list views, per-date labels and clickable dates | `/calendar-demo` | [Calendar](/ux-patterns/calendar/) | ✅ |
 
 Three notes on how to read the table:
 

@@ -1290,3 +1290,42 @@ body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-title { 
 .mateu-scoreboard .mateu-metric { min-width: 12rem; }
 .mateu-trend-up { color: var(--oj-core-success-3, #2e7d32); }
 .mateu-trend-down { color: var(--oj-core-danger-3, #b3261e); }
+
+/* ── Calendar (JET no trae calendario: rejilla con los tokens de Redwood) ── */
+.mateu-cal-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.5rem; }
+.mateu-cal .mateu-cal-title, .mateu-cal .mateu-cal-view { display: none; }
+.mateu-cal[data-cal-shown="month"] [data-for="month"], .mateu-cal[data-cal-shown="week"] [data-for="week"],
+.mateu-cal[data-cal-shown="day"] [data-for="day"], .mateu-cal[data-cal-shown="list"] [data-for="list"] { display: block; }
+.mateu-cal[data-cal-shown="month"] .mateu-cal-view[data-for="month"], .mateu-cal[data-cal-shown="week"] .mateu-cal-view[data-for="week"],
+.mateu-cal[data-cal-shown="day"] .mateu-cal-view[data-for="day"] { display: grid; }
+.mateu-cal-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--oj-core-divider-color, #e5e1dc);
+  border: 1px solid var(--oj-core-divider-color, #e5e1dc); border-radius: var(--oj-core-border-radius-md, 6px); overflow: hidden; }
+.mateu-cal-day { grid-template-columns: minmax(0, 1fr); }
+.mateu-cal-dow { background: var(--oj-core-bg-color-content, #fbf9f8); padding: 0.4rem 0.5rem; font-size: 0.75rem; font-weight: 600;
+  text-transform: uppercase; text-align: center; color: var(--oj-core-text-color-secondary, #6f6a66); }
+.mateu-cal-cell { background: var(--oj-core-bg-color-content, #fff); min-height: 5rem; padding: 0.3rem; display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+.mateu-cal-week .mateu-cal-cell { min-height: 12rem; }
+.mateu-cal-day .mateu-cal-cell { min-height: 10rem; }
+.mateu-cal-blank { background: var(--oj-core-neutral-contrast, #f5f4f2); }
+.mateu-cal-clickable { cursor: pointer; }
+.mateu-cal-clickable:hover { box-shadow: inset 0 0 0 2px var(--oj-core-focus-border-color, #227e9e); }
+.mateu-cal-top { display: flex; justify-content: space-between; gap: 0.25rem; }
+.mateu-cal-label { font-size: 0.75rem; font-weight: 600; color: var(--oj-core-text-color-secondary, #6f6a66); }
+.mateu-cal-num { margin-left: auto; font-size: 0.75rem; color: var(--oj-core-text-color-secondary, #6f6a66); }
+.mateu-cal-today .mateu-cal-num { background: var(--oj-core-text-color-primary, #161513); color: #fff; border-radius: 50%; width: 1.3rem; height: 1.3rem;
+  display: inline-flex; align-items: center; justify-content: center; }
+.mateu-cal-chip { display: block; font-size: 0.75rem; padding: 0.1rem 0.35rem; border-radius: 4px; border-left: 3px solid #227e9e;
+  background: rgba(34, 126, 158, 0.10); color: var(--oj-core-text-color-primary, #161513); text-decoration: none;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mateu-cal-week .mateu-cal-chip, .mateu-cal-day .mateu-cal-chip, .mateu-cal-agenda .mateu-cal-chip { white-space: normal; }
+.mateu-cal-chip[data-cal-clickable="true"]:hover { text-decoration: underline; }
+.mateu-cal-agenda { border: 1px solid var(--oj-core-divider-color, #e5e1dc); border-radius: var(--oj-core-border-radius-md, 6px); }
+.mateu-cal-agenda-date { display: flex; justify-content: space-between; padding: 0.5rem 0.75rem; font-weight: 600;
+  background: var(--oj-core-neutral-contrast, #f5f4f2); }
+.mateu-cal-agenda-entries { padding: 0.4rem 0.75rem; display: flex; flex-direction: column; gap: 0.3rem; }
+.mateu-cal-info { background-color: rgba(0, 110, 200, 0.08); }
+.mateu-cal-success { background-color: rgba(30, 140, 60, 0.10); }
+.mateu-cal-warning { background-color: rgba(220, 140, 0, 0.16); }
+.mateu-cal-danger { background-color: rgba(200, 40, 30, 0.10); }
+.mateu-cal-danger .mateu-cal-label { color: #b3261e; }
+.mateu-cal-neutral { background-color: rgba(0, 0, 0, 0.035); }

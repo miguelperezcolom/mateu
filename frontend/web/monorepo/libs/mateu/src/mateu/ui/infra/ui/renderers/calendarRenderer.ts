@@ -9,6 +9,10 @@ export const renderCalendar = (component: ClientSideComponent) => {
         <mateu-calendar
                 month="${metadata.month ?? nothing}"
                 .events="${metadata.events ?? []}"
+                view="${metadata.view ?? nothing}"
+                .views="${metadata.views ?? []}"
+                .days="${metadata.days ?? []}"
+                dayActionId="${metadata.dayActionId ?? nothing}"
                 style="${component.style??nothing}"
                 class="${component.cssClasses??nothing}"
                 slot="${component.slot??nothing}"

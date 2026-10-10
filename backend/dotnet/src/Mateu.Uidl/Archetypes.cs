@@ -524,8 +524,8 @@ public abstract class GeneralOverview<TRow> : IComponentTreeSupplier, IRefreshOn
 }
 
 /// <summary>The non-generic face of <see cref="CalendarPage"/>: lets the sync handler run the
-/// archetype's built-in actions (month navigation, event click, create) without reflection
-/// (the analogue of Java dispatching the archetype's @Action methods by name).</summary>
+/// archetype's built-in actions (period navigation, view switch, event/day click, create) without
+/// reflection (the analogue of Java dispatching the archetype's @Action methods by name).</summary>
 public interface ICalendarPage
 {
     /// <summary>Finds the event behind a clicked event id and returns its ActionOn result; null
@@ -533,36 +533,48 @@ public interface ICalendarPage
     /// returning `this`).</summary>
     object? OpenCalendarEvent(string? id);
 
-    /// <summary>Moves the displayed month one month back.</summary>
+    /// <summary>Runs ActionOnDay for a clicked date cell (ISO date); null means "nothing to do".</summary>
+    object? OpenCalendarDay(string? date);
+
+    /// <summary>Moves the displayed period one step back (a month, a week or a day, by the view).</summary>
     void PreviousMonth();
 
-    /// <summary>Moves the displayed month one month forward.</summary>
+    /// <summary>Moves the displayed period one step forward (a month, a week or a day, by the view).</summary>
     void NextMonth();
 
-    /// <summary>Moves the displayed month back to the current one.</summary>
+    /// <summary>Moves the displayed period back to today.</summary>
     void GoToday();
+
+    /// <summary>Switches to the requested view (month|week|day|list); ignored when null.</summary>
+    void SwitchView(string? view);
 
     /// <summary>Runs the "+ Create" action; null means "nothing to do" (re-render).</summary>
     object? CreateCalendarEvent();
 }
 
 /// <summary>Calendar page (the Redwood "Calendar" template, the C# analogue of Java's CalendarPage
-/// archetype): a full month-grid <see cref="Calendar"/> under the page's calendar toolbar —
-/// previous/next month chevrons, a <i>Today</i> button and an optional primary <i>+ Create</i>
-/// button — where clicking an event <b>acts on it</b> (typically navigating to its detail). Month
-/// navigation re-runs <see cref="Events"/> with the newly displayed month, so events can be fetched
-/// per month from the backend. Implement <see cref="Events"/> and <see cref="ActionOn"/>;
-/// <see cref="InitialMonth"/> defaults to the current month, <see cref="ShowCreate"/> and
-/// <see cref="CreateAction"/> enable the create flow.</summary>
+/// archetype): a full <see cref="Calendar"/> under the page's calendar toolbar — previous/next
+/// chevrons, a <i>Today</i> button, the view switcher and an optional primary <i>+ Create</i>
+/// button — where clicking an event <b>acts on it</b> (typically navigating to its detail).
+/// Navigation re-runs <see cref="Events"/> for the newly displayed period (once per month it
+/// touches), so events can be fetched per month from the backend. Implement <see cref="Events"/>
+/// and <see cref="ActionOn"/>; <see cref="InitialMonth"/> defaults to the current month,
+/// <see cref="ShowCreate"/> and <see cref="CreateAction"/> enable the create flow,
+/// <see cref="Views"/> enables the week/day/list views (the chevrons then step by the view's
+/// period), <see cref="Days"/> puts a label and a tone in each date's cell and
+/// <see cref="DaysClickable"/> + <see cref="ActionOnDay"/> make the cells themselves act.</summary>
 public abstract class CalendarPage : IComponentTreeSupplier, ICalendarPage
 {
-    /// <summary>The displayed month (any day of it, ISO-8601; bound from componentState).</summary>
+    /// <summary>The displayed anchor date (ISO-8601; bound from componentState).</summary>
     public string? Month { get; set; }
 
     /// <summary>The last clicked event's id (bound from componentState; set by the event click).</summary>
     public string? EventId { get; set; }
 
-    /// <summary>The events of the displayed month (any day of it, for the grid to place them).</summary>
+    /// <summary>The current view (month|week|day|list; bound from componentState).</summary>
+    public string? View { get; set; }
+
+    /// <summary>The events of a month (any day of it, for the grid to place them).</summary>
     protected abstract IReadOnlyList<CalendarEvent> Events(DateOnly month);
 
     /// <summary>What clicking an event does — typically a route string to navigate to its detail,
@@ -578,32 +590,112 @@ public abstract class CalendarPage : IComponentTreeSupplier, ICalendarPage
     /// <summary>What the "+ Create" button does (required when <see cref="ShowCreate"/> is true).</summary>
     protected virtual object? CreateAction() => null;
 
+    /// <summary>The views the user can switch between; the first one is the initial view.
+    /// Default: the month view only (no switcher).</summary>
+    protected virtual IReadOnlyList<CalendarView> Views() => [CalendarView.Month];
+
+    /// <summary>A label and a tone for each date's cell, from <paramref name="from"/> to
+    /// <paramref name="to"/> (inclusive).</summary>
+    protected virtual IReadOnlyList<CalendarDay> Days(DateOnly from, DateOnly to) => [];
+
+    /// <summary>Whether the date cells themselves are clickable (<see cref="ActionOnDay"/>).
+    /// Default: false.</summary>
+    protected virtual bool DaysClickable => false;
+
+    /// <summary>What clicking a date's cell does — e.g. open that day's availability.</summary>
+    protected virtual object? ActionOnDay(DateOnly date) => null;
+
     private DateOnly CurrentMonth() =>
         Month is not null && DateOnly.TryParse(Month, out var parsed) ? parsed : InitialMonth();
+
+    private IReadOnlyList<CalendarView> AllowedViews()
+    {
+        var views = Views();
+        return views.Count == 0 ? [CalendarView.Month] : views;
+    }
+
+    private CalendarView CurrentView()
+    {
+        var allowed = AllowedViews();
+        if (View is not null)
+            foreach (var view in allowed)
+                if (ViewName(view) == View)
+                    return view;
+        return allowed[0];
+    }
+
+    /// <summary>The first and last date of the period the view shows around the anchor.</summary>
+    private static (DateOnly From, DateOnly To) Period(CalendarView view, DateOnly anchor)
+    {
+        switch (view)
+        {
+            case CalendarView.Day:
+                return (anchor, anchor);
+            case CalendarView.Week:
+                var monday = anchor.AddDays(-(((int)anchor.DayOfWeek + 6) % 7));
+                return (monday, monday.AddDays(6));
+            default:
+                var first = new DateOnly(anchor.Year, anchor.Month, 1);
+                return (first, first.AddMonths(1).AddDays(-1));
+        }
+    }
+
+    /// <summary>The events of the period: one <see cref="Events"/> call per month it touches,
+    /// deduplicated by id (or title@date when there is none).</summary>
+    private List<CalendarEvent> EventsOf(DateOnly from, DateOnly to)
+    {
+        var byKey = new Dictionary<string, CalendarEvent>();
+        var ordered = new List<CalendarEvent>();
+        for (var month = new DateOnly(from.Year, from.Month, 1); month <= to; month = month.AddMonths(1))
+            foreach (var ev in Events(month))
+            {
+                var key = ev.Id ?? $"{ev.Title}@{(ev.Date is { } d ? Iso(d) : "null")}";
+                if (byKey.TryAdd(key, ev)) ordered.Add(ev);
+            }
+        return ordered;
+    }
+
+    private DateOnly Step(DateOnly anchor, int direction) => CurrentView() switch
+    {
+        CalendarView.Week => anchor.AddDays(7 * direction),
+        CalendarView.Day => anchor.AddDays(direction),
+        _ => anchor.AddMonths(direction),
+    };
 
     public object? OpenCalendarEvent(string? id)
     {
         EventId = id;
-        foreach (var ev in Events(CurrentMonth()))
+        var (from, to) = Period(CurrentView(), CurrentMonth());
+        foreach (var ev in EventsOf(from, to))
             if (ev.Id == id)
                 return ActionOn(ev);
         return null;
     }
 
-    public void PreviousMonth() => Month = Iso(CurrentMonth().AddMonths(-1));
+    public object? OpenCalendarDay(string? date) =>
+        date is not null && DateOnly.TryParse(date, out var parsed) ? ActionOnDay(parsed) : null;
 
-    public void NextMonth() => Month = Iso(CurrentMonth().AddMonths(1));
+    public void PreviousMonth() => Month = Iso(Step(CurrentMonth(), -1));
+
+    public void NextMonth() => Month = Iso(Step(CurrentMonth(), 1));
 
     public void GoToday() => Month = Iso(DateOnly.FromDateTime(DateTime.Today));
+
+    public void SwitchView(string? view)
+    {
+        if (view is not null) View = view;
+    }
 
     public object? CreateCalendarEvent() => CreateAction();
 
     public IComponent Component()
     {
-        var month = CurrentMonth();
+        var anchor = CurrentMonth();
+        var view = CurrentView();
+        var (from, to) = Period(view, anchor);
         // Every event chip dispatches the same uniform actionId; the clicked event travels in the
         // action's parameters (_clickedEvent) and the archetype finds it back by id (Java parity).
-        var events = Events(month)
+        var events = EventsOf(from, to)
             .Select(ev => ev with { ActionId = "openCalendarEvent" })
             .ToList();
         var buttons = new List<IComponent>
@@ -612,6 +704,14 @@ public abstract class CalendarPage : IComponentTreeSupplier, ICalendarPage
             new Button("Today", "goCalendarToday"),
             new Button("›", "nextCalendarMonth"),
         };
+        var views = Views();
+        if (views.Count > 1)
+            foreach (var option in views)
+                buttons.Add(new Button(ViewLabel(option), "switchCalendarView")
+                {
+                    Primary = option == view,
+                    Parameters = new Dictionary<string, object?> { ["_view"] = ViewName(option) },
+                });
         if (ShowCreate) buttons.Add(new Button("+ Create", "createCalendarEvent") { Primary = true });
         return new VerticalLayout
         {
@@ -622,10 +722,25 @@ public abstract class CalendarPage : IComponentTreeSupplier, ICalendarPage
                 {
                     Spacing = true, Style = "align-items: center;", Content = buttons,
                 },
-                new Calendar { Month = month, Events = events },
+                new Calendar
+                {
+                    Month = anchor, Events = events, View = view,
+                    Days = Days(from, to),
+                    DayActionId = DaysClickable ? "openCalendarDay" : null,
+                },
             ],
         };
     }
+
+    private static string ViewName(CalendarView view) => view.ToString().ToLowerInvariant();
+
+    private static string ViewLabel(CalendarView view) => view switch
+    {
+        CalendarView.Week => "Week",
+        CalendarView.Day => "Day",
+        CalendarView.List => "List",
+        _ => "Month",
+    };
 
     private static string Iso(DateOnly d) => d.ToString("yyyy-MM-dd");
 }

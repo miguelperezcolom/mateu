@@ -6,6 +6,8 @@ import io.mateu.uidl.annotations.Action;
 import io.mateu.uidl.annotations.Panel;
 import io.mateu.uidl.annotations.Title;
 import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.data.Calendar;
+import io.mateu.uidl.data.CalendarView;
 import io.mateu.uidl.data.Chart;
 import io.mateu.uidl.data.ChartData;
 import io.mateu.uidl.data.ChartDataset;
@@ -55,6 +57,16 @@ public class PmsDashboard extends Dashboard {
 
   @Panel(title = "Room status")
   Chart rooms = roomStatus();
+
+  @Panel(title = "Upcoming events", subtitle = "Switch between the agenda and the month", colSpan = 3)
+  Calendar upcoming =
+      Calendar.builder()
+          .id("upcoming")
+          .month(Hotel.businessDate())
+          .view(CalendarView.list)
+          .views(List.of(CalendarView.list, CalendarView.month))
+          .events(new HotelCalendar().upcomingEvents())
+          .build();
 
   @Override
   protected int columns() {

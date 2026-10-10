@@ -1,3 +1,4 @@
+import { calendarAtomOf } from './calendar.mjs'
 import { autoTrail } from './breadcrumbs.mjs'
 import { sectionHomeOf, sectionRoutes, isSentinelHome } from './navTree.mjs'
 import { applyColumnPrefs } from './prefs.mjs'
@@ -779,7 +780,7 @@ export const RICH_ATOM_FLAGS = [
   'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
   // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
   // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
-  'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard',
+  'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar',
 ]
 export function isRichAtom(a) {
   return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -2031,6 +2032,10 @@ export function islandContentOf(ctx, opts = {}) {
         noticeClass: NOTICE_CLASSES[m.theme] || NOTICE_CLASSES.info,
         buttons: collectButtons({ children: kidsOf(node) }, []),
       }, container)
+      return
+    }
+    if (t === 'Calendar') {
+      atom(calendarAtomOf(m, node.id), container)
       return
     }
     if (t === 'MatrixGrid') {
