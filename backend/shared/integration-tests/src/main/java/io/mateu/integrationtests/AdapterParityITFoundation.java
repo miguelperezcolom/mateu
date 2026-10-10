@@ -283,6 +283,32 @@ public class AdapterParityITFoundation {
         .statusCode(204);
   }
 
+  /**
+   * A document an action parked is served ONCE under any UI's base URL, with a safe {@code
+   * Content-Disposition}, {@code no-store} and {@code nosniff} — and even for a navigation that
+   * asks for HTML (a new tab), never the index page. {@code token} was parked (in the server's JVM)
+   * as {@code Document.attachment("Factura ñ.pdf", "application/pdf", "%PDF-1.4 parity")}.
+   */
+  public void servesAParkedDocumentOnce(String token) {
+    String path = "/hello/mateu/v3/documents/" + token;
+    given()
+        .accept("text/html")
+        .when()
+        .get(path)
+        .then()
+        .statusCode(200)
+        .header("Content-Type", startsWith("application/pdf"))
+        .header(
+            "Content-Disposition",
+            equalTo(
+                "attachment; filename=\"Factura _.pdf\"; filename*=UTF-8''Factura%20%C3%B1.pdf"))
+        .header("Cache-Control", equalTo("no-store"))
+        .header("X-Content-Type-Options", equalTo("nosniff"))
+        .body(equalTo("%PDF-1.4 parity"));
+    given().when().get(path).then().statusCode(404);
+    given().when().get("/hello/mateu/v3/documents/unknown-token-0123456789").then().statusCode(404);
+  }
+
   /** Mateu's fixed-name assets are revalidated ({@code no-cache}). */
   public void revalidatesFixedNameAssets(String assetPath) {
     given()

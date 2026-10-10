@@ -54,6 +54,7 @@ public final class ViewTypeClassifier {
     // UICommand is a record, so without this it fell through to isRecord() and its
     // toString() ended up as the window title
     if (instance instanceof UICommand) return false;
+    if (instance instanceof io.mateu.uidl.data.Document) return false;
     if (instance instanceof PageBanner) return false;
     if (instance instanceof PageBanners) return false;
     if (instance instanceof URI) return false;

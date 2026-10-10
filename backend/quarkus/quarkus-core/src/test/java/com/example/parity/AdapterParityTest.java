@@ -51,6 +51,18 @@ class AdapterParityTest {
   }
 
   @Test
+  void servesAParkedDocumentOnce() {
+
+    contract.servesAParkedDocumentOnce(
+        io.mateu.core.infra.documents.DocumentStore.shared()
+            .park(
+                io.mateu.uidl.data.Document.attachment(
+                    "Factura ñ.pdf",
+                    "application/pdf",
+                    "%PDF-1.4 parity".getBytes(java.nio.charset.StandardCharsets.US_ASCII))));
+  }
+
+  @Test
   void revalidatesFixedNameAssets() {
     contract.revalidatesFixedNameAssets("/assets/fixed.js");
   }

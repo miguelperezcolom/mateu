@@ -18,6 +18,7 @@ import io.mateu.core.infra.StaticAssetCaching;
 import io.mateu.core.infra.WireMapper;
 import io.mateu.core.infra.YamlMounts;
 import io.mateu.core.infra.dev.DevEndpoint;
+import io.mateu.core.infra.documents.DocumentDownloads;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIIncrementDto;
 import jakarta.annotation.Priority;
@@ -136,6 +137,24 @@ public class MateuHelidonRoutes {
             return;
           }
           res.status(ClientErrorLog.handle(body, null)).send();
+        });
+
+    // GET <baseUrl>/mateu/v3/documents/<token>: a document an action produced, served once
+    // (DocumentDownloads), on the Helidon routing ahead of Jersey; the single-use token is the
+    // authorization.
+    routing.route(
+        Method.GET,
+        "/*",
+        (req, res) -> {
+          String path = req.path().path();
+          if (!DocumentDownloads.isEndpoint(path)) {
+            res.next();
+            return;
+          }
+          var served = DocumentDownloads.serve(path);
+          res.status(Status.create(served.status()));
+          served.headers().forEach(res::header);
+          res.send(served.body());
         });
 
     // Streamed actions of the generated controllers: answered here, on the Helidon routing, so each

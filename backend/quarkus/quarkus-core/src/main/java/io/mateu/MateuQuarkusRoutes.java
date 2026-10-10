@@ -10,6 +10,7 @@ import io.mateu.core.infra.MateuController;
 import io.mateu.core.infra.StaticAssetCaching;
 import io.mateu.core.infra.WireMapper;
 import io.mateu.core.infra.YamlMounts;
+import io.mateu.core.infra.documents.DocumentDownloads;
 import io.mateu.dtos.RunActionRqDto;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.ext.web.Router;
@@ -72,6 +73,7 @@ public class MateuQuarkusRoutes {
       assetCaching(router);
     }
     clientLog(router);
+    documents(router);
     if (mcpEnabled) {
       mcp(router);
     }
@@ -152,6 +154,23 @@ public class MateuQuarkusRoutes {
               rc.response()
                   .setStatusCode(ClientErrorLog.handle(body == null ? null : body.getBytes(), user))
                   .end();
+            });
+  }
+
+  // GET <baseUrl>/mateu/v3/documents/<token>: a document an action produced, served once
+  // (DocumentDownloads). Early, before any auth: the single-use token is the authorization.
+  private void documents(Router router) {
+    router
+        .routeWithRegex(
+            HttpMethod.GET,
+            ".*" + java.util.regex.Pattern.quote(DocumentDownloads.PATH_MARKER) + "[A-Za-z0-9_-]+")
+        .order(EARLY + 2)
+        .blockingHandler(
+            rc -> {
+              var served = DocumentDownloads.serve(rc.request().path());
+              var response = rc.response().setStatusCode(served.status());
+              served.headers().forEach(response::putHeader);
+              response.end(io.vertx.core.buffer.Buffer.buffer(served.body()));
             });
   }
 

@@ -38,6 +38,7 @@ final class FragmentListMapper {
         || instance instanceof PageBanner
         || instance instanceof PageBanners
         || instance instanceof UICommand
+        || instance instanceof io.mateu.uidl.data.Document
         || instance instanceof Step
         || instance instanceof URI
         || instance instanceof URL) {
@@ -54,6 +55,7 @@ final class FragmentListMapper {
                       && !(object instanceof PageBanner)
                       && !(object instanceof PageBanners)
                       && !(object instanceof UICommand)
+                      && !(object instanceof io.mateu.uidl.data.Document)
                       && !(object instanceof Step)
                       && !(object instanceof URI)
                       && !(object instanceof URL))
