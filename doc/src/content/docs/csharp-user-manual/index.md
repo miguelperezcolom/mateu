@@ -248,11 +248,44 @@ first tab is active by default.
 | `[Money]` | tags the field `money` so the renderer formats it as currency |
 | `[PlainText]` | renders read-only plain text (also valid at **class level** for all fields) |
 | `[Stereotype("…")]` | sets an explicit stereotype |
+| `[Text(Size = "xl", Container = "p")]` | shows the value as a text block (`${state.field}`) instead of an input |
+| `[Colspan(n)]` | the field spans `n` columns of its form row |
 
 ```csharp
 [Multiline] public string? Notes { get; set; }
 [Money]     public decimal Balance { get; set; }
 [PlainText] public string? MemberSince { get; set; }
+[Text(Size = "xl")] public string? Greeting { get; set; } = "Welcome back";
+```
+
+Intrinsically wide widgets — grids, text areas, rich text, HTML and Markdown — span the whole row of
+a multi-column section on their own; an explicit `[Colspan]` still wins. In a one-column form they
+stay one column wide.
+
+## Grids inside forms
+
+A list property of rows (`List<Guest>`) renders as a grid. Unless the form is read-only, the grid
+is editable the same way as on the Java server: **+** opens an empty row editor beside the grid,
+each row has an **Edit** button (with Prev/Next between rows), and the toolbar removes or moves the
+selected rows. Every change is applied to the form's state on the server — the list is saved with
+the form, by your own `[Button]`. The row editor validates only the row's own constraints
+(`[Required]`, `[Range]`…).
+
+With `[InlineEditing]` on the property the cells edit in place instead, and **+** appends an empty
+row to edit in place. This works on plain views, on the entity form of a `Crud<T>` and on the
+current step of a wizard.
+
+```csharp
+public class Guest { [Required] public string? Name { get; set; } public int Age { get; set; } }
+
+[UI("check-in"), Title("Check-in")]
+public class CheckIn
+{
+    public List<Guest> Guests { get; set; } = [];
+    [InlineEditing] public List<Guest> Companions { get; set; } = [];
+
+    [Button] public Message Save() => new($"{Guests.Count} guests");
+}
 ```
 
 ## KPIs & floating action buttons
