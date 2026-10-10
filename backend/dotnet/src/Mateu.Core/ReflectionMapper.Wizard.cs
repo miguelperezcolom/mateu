@@ -18,11 +18,16 @@ public sealed partial class ReflectionMapper
         var currentProps = stepProps.Where(x => x.step == current).Select(x => x.p).ToList();
         var fields = currentProps.Select(p => MapField(p, instance)).ToList();
 
-        var title = type.Find<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name);
+        // Opt-in result step (Java's @WizardCompletionAction): the penultimate step's forward
+        // button is the completion, the last step a read-only result with no navigation.
+        var wizard = instance as Wizard;
+        var completion = wizard?.CompletionActionLabel;
+        var onResult = completion is not null && current == total;
+        var title = wizard?.WizardTitle ?? type.Find<TitleAttribute>()?.Value ?? Naming.Humanize(type.Name);
         var titleText = Client(new TextMetadataDto(title), null, []);
         var progressStyle = type.Find<WizardProgressAttribute>()?.Style;
-        StepDto Bullet(int i) => new($"step-{i}", $"Step {i}", null,
-            i < current ? "done" : i == current ? "current" : "upcoming");
+        StepDto Bullet(int i) => new($"step-{i}", wizard?.StepTitle(i) ?? $"Step {i}", null,
+            i < current || onResult ? "done" : i == current ? "current" : "upcoming");
         // [WizardProgress("steps")]: connected step bullets instead of the progress bar
         // (mirrors Java's @WizardProgress(WizardProgressStyle.STEPS)).
         var progress = progressStyle == "steps"
@@ -35,8 +40,10 @@ public sealed partial class ReflectionMapper
             LabelsAside = LabelsAsideInference.LabelsAside(currentProps, columns, type, T),
         }, null, FormRows(fields, columns))), "fieldId", []);
         var back = Client(new ButtonMetadataDto("Back", "back") { Disabled = current == 1 }, null, []);
-        var next = Client(new ButtonMetadataDto(current == total ? "Finish" : "Next", "next") { ButtonStyle = "Primary" }, null, []);
-        var bar = Client(new HorizontalLayoutMetadataDto(), null, [back, next]);
+        var nextLabel = completion is not null && current == total - 1 ? completion
+            : current == total ? "Finish" : "Next";
+        var next = Client(new ButtonMetadataDto(nextLabel, "next") { ButtonStyle = "Primary" }, null, []);
+        var bar = Client(new HorizontalLayoutMetadataDto(), null, onResult ? [] : [back, next]);
         ComponentDto layout;
         if (progressStyle == "rail")
         {
