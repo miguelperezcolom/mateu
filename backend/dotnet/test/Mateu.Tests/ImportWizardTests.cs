@@ -27,6 +27,13 @@ public class ProductImport : ImportWizard<ImportedProduct>
     protected override void ImportRows(List<ImportedProduct> rows) => ImportedRows = [.. rows];
 }
 
+/// <summary>The same import with step bullets, to see the step names.</summary>
+[UI("product-import-steps"), WizardProgress("steps")]
+public class StepsProductImport : ImportWizard<ImportedProduct>
+{
+    protected override void ImportRows(List<ImportedProduct> rows) { }
+}
+
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 /// <summary>The ImportWizard&lt;Row&gt; archetype: upload/paste a CSV, auto-map its columns onto
@@ -34,10 +41,10 @@ public class ProductImport : ImportWizard<ImportedProduct>
 /// by the wizard's IOptionsSupplier), review a per-line validation report (conversion failures +
 /// DataAnnotations constraints), then import exactly the valid rows. Driven through the same wire
 /// the browser uses (the state JSON round-trips between requests), mirroring Java's
-/// ImportWizardSyncTest. Port deltas vs Java: the import runs on the validation step's Next
-/// (the port's wizards have no @WizardCompletionAction button), and the constraint messages are
-/// the DataAnnotations defaults ("The Name field is required.") instead of Java's jakarta-style
-/// wording.</summary>
+/// ImportWizardSyncTest. The validation step's forward button is the "Import" completion action
+/// and the result step is final (Java's @WizardCompletionAction + ImportResultStep). Port delta vs
+/// Java: the constraint messages are the DataAnnotations defaults ("The Name field is required.")
+/// instead of Java's jakarta-style wording.</summary>
 public class ImportWizardTests
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
@@ -82,6 +89,8 @@ public class ImportWizardTests
         // step 2 → 3: the validation report counts 3 valid / 2 invalid and details the issues
         var third = Handler().Handle(Next(Wire(secondState)));
         var thirdState = StateOf(third);
+        // the penultimate step's forward button is the completion action
+        Assert.Contains("\"label\":\"Import\",\"actionId\":\"next\"", JsonSerializer.Serialize(third, Json));
         Assert.Equal(3, thirdState.GetProperty("__step").GetInt32());
         Assert.Equal(3, thirdState.GetProperty("validRows").GetInt32());
         Assert.Equal(2, thirdState.GetProperty("invalidRows").GetInt32());
@@ -104,9 +113,31 @@ public class ImportWizardTests
         Assert.Equal(3, doneState.GetProperty("imported").GetInt32());
         Assert.Equal(2, doneState.GetProperty("skipped").GetInt32());
 
-        // Finish on the result step completes with the summary message
-        var finished = Handler().Handle(Next(Wire(doneState)));
-        Assert.Equal("Imported 3 rows (2 skipped)", Assert.Single(finished.Messages).Text);
+        // the result step is final: no Back/Next buttons, every step bullet done...
+        var doneJson = JsonSerializer.Serialize(done, Json);
+        Assert.DoesNotContain("\"actionId\":\"back\"", doneJson);
+        Assert.DoesNotContain("\"actionId\":\"next\"", doneJson);
+        // ...and a back/next named on the wire anyway neither leaves it nor imports twice
+        foreach (var action in new[] { "next", "back" })
+        {
+            var again = Handler().Handle(Next(Wire(doneState)) with { ActionId = action });
+            Assert.Equal(4, StateOf(again).GetProperty("__step").GetInt32());
+            Assert.Empty(again.Messages);
+        }
+        Assert.Equal(3, ProductImport.ImportedRows!.Count);
+    }
+
+    [Fact]
+    public void The_wizard_is_titled_after_the_row_and_names_its_steps()
+    {
+        var json = JsonSerializer.Serialize(
+            Handler().Handle(new RunActionRqDto { ServerSideType = typeof(ProductImport).FullName }), Json);
+        Assert.Contains("\"data\":\"Import ImportedProduct\"", json); // SetWindowTitle
+        Assert.Contains("\"text\":\"Import ImportedProduct\"", json);
+        var steps = JsonSerializer.Serialize(
+            Handler().Handle(new RunActionRqDto { ServerSideType = typeof(StepsProductImport).FullName }), Json);
+        foreach (var title in new[] { "Upload", "Mapping", "Validation", "Result" })
+            Assert.Contains($"\"title\":\"{title}\"", steps);
     }
 
     [Fact]
@@ -118,7 +149,7 @@ public class ImportWizardTests
 
         Assert.Contains(
             "\"id\":\"targetField\",\"label\":\"Target field\",\"type\":\"GridColumn\"," +
-            "\"dataType\":\"string\",\"stereotype\":null,\"captionPath\":null,\"leadingPath\":null,\"editable\":true,\"editorType\":\"select\"",
+            "\"dataType\":\"string\",\"stereotype\":\"regular\",\"captionPath\":null,\"leadingPath\":null,\"editable\":true,\"editorType\":\"select\"",
             json);
         Assert.Contains("{\"value\":\"\",\"label\":\"— skip —\",\"children\":[]}", json);
         Assert.Contains("{\"value\":\"name\",\"label\":\"name\",\"children\":[]}", json);
@@ -127,7 +158,7 @@ public class ImportWizardTests
         // the read-only cells stay display-only
         Assert.Contains(
             "\"id\":\"csvColumn\",\"label\":\"CSV column\",\"type\":\"GridColumn\"," +
-            "\"dataType\":\"string\",\"stereotype\":null,\"captionPath\":null,\"leadingPath\":null,\"editable\":false",
+            "\"dataType\":\"string\",\"stereotype\":\"regular\",\"captionPath\":null,\"leadingPath\":null,\"editable\":false",
             json);
     }
 

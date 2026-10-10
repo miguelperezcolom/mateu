@@ -48,6 +48,10 @@ When every node is the same kind of thing (a category that nests into categories
 @UI("/catalog")
 @SplitCrud
 public class CatalogTree extends AutoCrud<Category> {
+    @Override
+    public CrudStore<Category> store() {
+        return new CategoryStore(); // your CrudStore<Category>
+    }
 
     @Override
     public GridLayout gridLayout() {

@@ -10,32 +10,53 @@ dependency. Use **Java 21** and **Spring Boot 4.x**.
 
 ## Step 2: Add Mateu dependencies
 
+Import Mateu's BOM once, so no Mateu artifact needs a version of its own:
+
+```xml
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-bom</artifactId>
+            <version>MATEU_VERSION</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+Then the runtime dependencies:
+
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>mvc-core</artifactId>
-    <version>MATEU_VERSION</version>
 </dependency>
-<dependency>
-    <groupId>io.mateu</groupId>
-    <artifactId>annotation-processor-mvc</artifactId>
-    <version>MATEU_VERSION</version>
-</dependency>
-<!-- serves the built-in frontend (web components); choose one: vaadin-lit, redwood -->
+<!-- serves the built-in frontend; choose one: vaadin-lit (Vaadin), redwood (Oracle Redwood / Visual Builder) -->
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>vaadin-lit</artifactId>
-    <version>MATEU_VERSION</version>
 </dependency>
 ```
 
-Or, if you are using Gradle:
+> The annotation processor (`annotation-processor-mvc`) goes on the **annotation processor path only** — never as a
+> regular `<dependency>`: it is a compile-time code generator, and as a dependency it would ship its
+> own libraries (FreeMarker, Guava) inside your application. Its jar declares itself to Gradle as an
+> incremental (aggregating) processor.
+
+Or, with Gradle:
 
 ```kotlin
-annotationProcessor("io.mateu:annotation-processor-mvc:MATEU_VERSION")
-implementation("io.mateu:mvc-core:MATEU_VERSION")
-implementation("io.mateu:vaadin-lit:MATEU_VERSION")
+implementation(platform("io.mateu:mateu-bom:MATEU_VERSION"))
+annotationProcessor(platform("io.mateu:mateu-bom:MATEU_VERSION"))
+implementation("io.mateu:mvc-core")
+implementation("io.mateu:vaadin-lit")
+annotationProcessor("io.mateu:annotation-processor-mvc")
 ```
+
+See [Configuration properties](/java-create-your-project/configuration/) for what you can tune —
+notably cross-origin access (off unless you list the origins) and the MCP endpoint (off unless enabled).
 
 ## Step 3: Configure the annotation processor
 
@@ -126,7 +147,9 @@ mvn spring-boot:run
 
 Open `http://localhost:8080` in your browser.
 
-<p align="center"><img src="../../../images/helloworld.png?raw=true" width="600"/></p>
+An empty class renders an empty page. For a complete project on this runtime — a model, a store and
+a full CRUD, with this exact build setup — copy the [`starters/spring-mvc`](https://github.com/miguelperezcolom/mateu/tree/master/starters/spring-mvc) project; CI
+compiles and boots it on every change.
 
 ---
 

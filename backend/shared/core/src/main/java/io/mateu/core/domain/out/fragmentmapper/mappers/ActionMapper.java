@@ -142,7 +142,12 @@ public class ActionMapper {
                     && !Map.class.isAssignableFrom(field.getType())
                     && !Amount.class.equals(field.getType())
                     && !Status.class.equals(field.getType())
-                    && !isBasicArray(field.getType()))
+                    && !isBasicArray(field.getType())
+                    // a component held by a field (a dashboard panel's Text, a Callable island)
+                    // renders as itself, not as a nested form: its record components (a Text's
+                    // `variants` list…) are not editable lists of the page
+                    && !io.mateu.core.infra.reflection.read.HolderFieldChecker.isNonDataHolder(
+                        field))
         .forEach(
             field -> {
               List<Action> nestedFormActions = new ArrayList<>();

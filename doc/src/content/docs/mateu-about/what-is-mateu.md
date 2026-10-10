@@ -13,7 +13,12 @@ This is enough to get a working CRUD screen in the browser:
 
 ```java
 @UI("/products")
-public class Products extends AutoCrud<Product> {}
+public class Products extends AutoCrud<Product> {
+    @Override
+    public CrudStore<Product> store() {
+        return new ProductStore(); // your CrudStore<Product>
+    }
+}
 ```
 
 That single class produces:
@@ -96,7 +101,12 @@ that keep the two halves from drifting.
 
 ```java
 @UI("/products")
-public class Products extends AutoCrud<Product> {}
+public class Products extends AutoCrud<Product> {
+    @Override
+    public CrudStore<Product> store() {
+        return new ProductStore(); // your CrudStore<Product>
+    }
+}
 ```
 
 **Crud** — use this when you need explicit control over filters, rows, view forms, edit forms, and creation forms:

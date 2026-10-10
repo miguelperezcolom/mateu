@@ -293,9 +293,9 @@ public class ArchetypeTests
             state: new Dictionary<string, object?> { ["record"] = Val("\"r2\"") }));
         Assert.Contains("Vision Services", json);
         Assert.DoesNotContain("Vision Operations", json);
-        Assert.Empty(Run("/requisition-overview", typeof(RequisitionOverview), "switchRecord",
-            state: new Dictionary<string, object?> { ["record"] = Val("\"r2\"") }).Commands
-            .Where(c => c.Type == "NavigateTo"));
+        Assert.DoesNotContain(Run("/requisition-overview", typeof(RequisitionOverview), "switchRecord",
+            state: new Dictionary<string, object?> { ["record"] = Val("\"r2\"") }).Commands,
+            c => c.Type == "NavigateTo");
     }
 
     // ── TodoList (the Redwood "To-do list" template) ─────────────────────────────
@@ -357,7 +357,7 @@ public class ArchetypeTests
         Assert.Contains("\"actionId\":\"goCalendarToday\"", json);
         Assert.Contains("\"actionId\":\"nextCalendarMonth\"", json);
         Assert.Contains("\"actionId\":\"createCalendarEvent\"", json);
-        Assert.Contains("\"buttonStyle\":\"Primary\"", json);
+        Assert.Contains("\"buttonStyle\":\"primary\"", json);
         // every event chip is re-sealed to the uniform click action
         Assert.Contains("\"actionId\":\"openCalendarEvent\"", json);
     }

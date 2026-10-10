@@ -13,13 +13,14 @@ import java.util.List;
  * bundle again (the Vaadin bundle alone is ~900 KB, Redwood's app bundle ~780 KB).
  *
  * <ul>
- *   <li><b>Immutable</b> — Redwood's {@code /version_<n>/…}: the build stamps a new number into the
- *       path whenever the bundle changes, so the bytes behind a given path never change. Cached for
- *       a year and never revalidated.
+ *   <li><b>Immutable</b> — the {@code /version_<n>/…} of Redwood jars built before 2026-10: the
+ *       build stamped a new number into the path whenever the bundle changed, so the bytes behind a
+ *       given path never change. Cached for a year and never revalidated.
  *   <li><b>Revalidate</b> — the assets whose names are fixed across releases (the Vaadin renderer's
- *       {@code /assets/mateu-vaadin.js} and its chunks, keycloak.min.js, …): {@code no-cache}, so
- *       the browser keeps them and asks, and an unchanged file costs a 304 with no body (ETag and
- *       Last-Modified are both sent).
+ *       {@code /assets/mateu-vaadin.js} and its chunks, keycloak.min.js, the Redwood app under its
+ *       stable {@code /_redwood/…}, whose loads also carry a {@code ?v=<source hash>}): {@code
+ *       no-cache}, so the browser keeps them and asks, and an unchanged file costs a 304 with no
+ *       body (ETag and Last-Modified are both sent).
  * </ul>
  *
  * <p>Spring Security's cache-control writer only adds its headers when the response has none, so a
@@ -39,7 +40,8 @@ public final class StaticAssetCaching {
    * patterns: a resource handler resolves the path that follows a pattern's literal prefix, so
    * {@code /assets/**} is served from each static location's {@code assets/} sub-folder.
    */
-  public static final List<String> REVALIDATE_FOLDERS = List.of("assets", "js", "myassets");
+  public static final List<String> REVALIDATE_FOLDERS =
+      List.of("assets", "js", "myassets", "_redwood");
 
   /** How long an immutable asset is cached. */
   public static final Duration IMMUTABLE_MAX_AGE = Duration.ofDays(365);
@@ -61,6 +63,34 @@ public final class StaticAssetCaching {
       return null;
     }
     return "W/\"" + Long.toHexString(contentLength) + "-" + Long.toHexString(lastModified) + "\"";
+  }
+
+  /** The {@code Cache-Control} of an immutable (content-versioned) asset. */
+  public static final String IMMUTABLE_CACHE_CONTROL =
+      "max-age=" + IMMUTABLE_MAX_AGE.toSeconds() + ", public, immutable";
+
+  /** The {@code Cache-Control} of an asset with a stable name: keep it, but always revalidate. */
+  public static final String REVALIDATE_CACHE_CONTROL = "no-cache";
+
+  /**
+   * The policy for a request path, for adapters whose static handler cannot be configured per
+   * pattern (Micronaut, Quarkus, Helidon set the header with a response filter): {@link
+   * #IMMUTABLE_CACHE_CONTROL} for {@code /version_<n>/…}, {@link #REVALIDATE_CACHE_CONTROL} for the
+   * {@link #REVALIDATE_FOLDERS}, null for anything else (not a Mateu asset — left alone).
+   */
+  public static String cacheControlFor(String path) {
+    if (path == null || !path.startsWith("/")) {
+      return null;
+    }
+    if (path.startsWith("/version_") && path.indexOf('/', 1) > 0) {
+      return IMMUTABLE_CACHE_CONTROL;
+    }
+    for (String folder : REVALIDATE_FOLDERS) {
+      if (path.startsWith("/" + folder + "/")) {
+        return REVALIDATE_CACHE_CONTROL;
+      }
+    }
+    return null;
   }
 
   private StaticAssetCaching() {}

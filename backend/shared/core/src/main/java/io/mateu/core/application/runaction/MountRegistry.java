@@ -22,10 +22,17 @@ import lombok.extern.slf4j.Slf4j;
  * # back-office.ui.yaml
  * type: UI
  * basePath: /back-office
+ * home: orders            # optional: the route of this mount that is its home page
  * routes:                 # a LIST of route files, merged (last wins) into this mount's registry
  *   - orders-routes.yaml
  *   - shared-routes.yaml
  * }</pre>
+ *
+ * <p>{@code home} names a route of the mount (relative to it, as in its route files). Without an
+ * app shell the mount root renders that route when no route {@code ""} is authored (an authored
+ * {@code ""} always wins); an app shell bound to {@code ""} that declares no {@code homeRoute:}
+ * lands on it. A {@code home} that names no route is warned about and ignored. See {@link
+ * RouteRegistry#authoredFrom} and {@link RouteRegistry#mountHomeFor}.
  *
  * <p>Mounts are found by SCANNING the classpath under {@code specs/ui/**} for files carrying {@code
  * type: UI} (by content, not by filename), so several UIs can coexist. A route file with no mount
@@ -36,11 +43,20 @@ public final class MountRegistry {
 
   static final String ROOT = "specs/ui";
 
-  /** A discovered mount: its base path and the ordered route files that make up its registry. */
-  public record Mount(String basePath, List<String> routeFiles) {
+  /**
+   * A discovered mount: its base path, the ordered route files that make up its registry, its
+   * optional {@code home} route (relative to the mount, slashes trimmed; {@code null} when not
+   * declared) and the resource the descriptor was read from (for diagnostics; may be null).
+   */
+  public record Mount(String basePath, List<String> routeFiles, String home, String descriptor) {
     public Mount {
       basePath = normalizeBasePath(basePath);
       routeFiles = routeFiles == null ? List.of() : List.copyOf(routeFiles);
+      home = home == null || home.isBlank() ? null : normalizeBasePath(home);
+    }
+
+    public Mount(String basePath, List<String> routeFiles) {
+      this(basePath, routeFiles, null, null);
     }
   }
 
@@ -121,7 +137,7 @@ public final class MountRegistry {
       } else if (routes != null && routes.isTextual()) {
         routeFiles.add(routes.asText());
       }
-      return new Mount(basePath, routeFiles);
+      return new Mount(basePath, routeFiles, text(root, "home"), resourcePath);
     } catch (Exception e) {
       log.warn("Failed to read mount descriptor {}: {}", resourcePath, e.getMessage());
       return null;

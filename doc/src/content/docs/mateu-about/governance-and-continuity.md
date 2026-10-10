@@ -68,7 +68,7 @@ can be checked against written invariants rather than tribal knowledge.
 A committee needs a responsible party. Choose one, explicitly:
 - **Commercial support agreement with the maintainer** — turns the author into an accountable vendor
   with an SLA; or
-- **Internal ownership charter** — Riu names the internal team/owner answerable for the framework as
+- **Internal ownership charter** — the adopting organization names the internal team/owner answerable for the framework as
   deployed.
 Either is fine; *unstated* is not.
 
@@ -77,7 +77,7 @@ AI plus a single author cannot self-certify security. Commission a **periodic ex
 framework as deployed. (Mateu already runs CodeQL and ships a11y/RBAC by construction, but that is not
 a substitute for independent review at adoption scale.)
 
-## What this asks of Riu
+## What this asks of an adopting organization
 
 Governance is a **funded commitment**, not a free property of open source:
 
@@ -90,7 +90,7 @@ Do these, and "small OSS project" moves from an unmanaged risk to a managed one.
 committee is right to treat the risk as material — which is exactly why they are stated here rather
 than hidden.
 
-## Decision points (maintainer / Riu)
+## Decision points (maintainer / adopter)
 
 - Who are the **≥2 core judges**, and what is the sign-off rule?
 - **Support model:** commercial SLA vs internal ownership charter?

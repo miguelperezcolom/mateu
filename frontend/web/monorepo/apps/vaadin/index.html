@@ -30,14 +30,19 @@
 
   <script>
     (function () {
-      var saved = localStorage.getItem('mateu-theme');
+      // the page language: the browser's until the app shell says the server's (AppDto.locale)
+      if (!document.documentElement.lang) document.documentElement.lang = navigator.language || 'en';
+      var saved = null;
+      try { saved = localStorage.getItem('mateu-theme'); } catch (e) { /* storage blocked */ }
       if (saved) {
         document.documentElement.setAttribute('theme', saved);
       } else if (window.matchMedia) {
         document.documentElement.setAttribute('theme',
           window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
-          if (!localStorage.getItem('mateu-theme')) {
+          var stored = null;
+          try { stored = localStorage.getItem('mateu-theme'); } catch (e) { /* storage blocked */ }
+          if (!stored) {
             document.documentElement.setAttribute('theme', e.matches ? 'dark' : 'light');
           }
         });

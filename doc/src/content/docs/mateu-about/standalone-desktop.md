@@ -39,7 +39,7 @@ setup; for the native path see [Desktop & Mobile](/native/).
    <dependency>
      <groupId>io.mateu</groupId>
      <artifactId>vaadin-lit</artifactId>
-     <version>0.0.1-MATEU</version>
+     <version>MATEU_VERSION</version>
    </dependency>
    ```
 

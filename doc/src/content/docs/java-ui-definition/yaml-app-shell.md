@@ -73,9 +73,11 @@ applies while you edit.
 
 ### `homeRoute` matters
 
-A YAML mount has no class to carry `@HomeRoute`, so the home defaults to the **first navigable menu
-item**. Declare `homeRoute:` explicitly to point somewhere else. Do not leave a mount with neither:
-the shell would load its own root route, which is the shell again.
+A YAML mount has no class to carry `@HomeRoute`, so the home defaults to the **mount's `home:`**
+(see [below](#the-mount-that-ties-it-together)) and, when the mount declares none, to the **first
+navigable menu item**. Declare `homeRoute:` on the shell to point somewhere else — the shell's own
+value always wins. Do not leave a mount with none of them: the shell would load its own root route,
+which is the shell again.
 
 :::note[App ≠ its Home Screen]
 An **App is a shell** — a menu, title, subtitle, logo and widgets — **plus a reference to a Home
@@ -95,15 +97,30 @@ App remains its own content, unchanged.
 ## The mount that ties it together
 
 The app shell, the routes and the pages are files of one **mount**, declared by a `type: UI` file —
-the data-driven `@UI`. It carries the base path and lists the route files that make up the mount:
+the data-driven `@UI`. It carries the base path, optionally names its home page, and lists the route
+files that make up the mount:
 
 ```yaml
 # specs/ui/back-office.ui.yaml
 type: UI
 basePath: /
+home: dashboard        # optional: a route of this mount (relative, as in routes.yaml)
 routes:
   - routes.yaml
 ```
+
+`home:` says which page the mount opens on:
+
+- **With an app shell** bound to `""`, the shell's `homeRoute` defaults to it (a `homeRoute:` on the
+  shell still wins).
+- **Without a shell**, requesting the mount root renders the `home` route — the same definition,
+  view model and parameters as if that route were requested — unless a `route: ""` is authored,
+  which always wins (explicit beats derived).
+- A `home` naming a route the mount does not have is logged as a warning at startup and ignored.
+
+It only applies to `type: UI` mounts; a class-declared `@UI` mount is unaffected. Java, .NET and
+Python resolve the root the same way (the ports have no `type: AppShell` definitions, so the shell
+default is Java-only).
 
 Mounts are found by scanning the classpath under `specs/ui/**` for `type: UI` files (by content, not
 by filename), so several UIs can coexist. When there is **no** `type: UI` file at all, the

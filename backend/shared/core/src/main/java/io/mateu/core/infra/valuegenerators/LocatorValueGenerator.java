@@ -2,9 +2,11 @@ package io.mateu.core.infra.valuegenerators;
 
 import io.mateu.uidl.interfaces.ValueGenerator;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.security.SecureRandom;
 
 @Named
+@Singleton
 public class LocatorValueGenerator implements ValueGenerator {
   private static final String ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
   private static final SecureRandom RNG = new SecureRandom();

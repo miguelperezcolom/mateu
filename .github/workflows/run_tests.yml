@@ -77,11 +77,28 @@ jobs:
       - name: Bundled frontend dependencies are under approved licences
         run: node scripts/check-frontend-licenses.mjs
 
+      # no-eval/no-new-func are ERRORS (the client runs under a CSP without 'unsafe-eval');
+      # no-console/no-explicit-any warnings are capped by --max-warnings (ratchet it down).
+      - name: Lint (ESLint)
+        run: cd frontend/web/monorepo && npm run lint
+
       - name: Typecheck and build the library
         run: cd frontend/web/monorepo/libs/mateu && npm run build
 
-      - name: Unit tests
-        run: cd frontend/web/monorepo/libs/mateu && npm test
+      # Coverage is a ratchet: the thresholds in vitest.config.ts are the measured values, so a PR
+      # can only keep or raise them.
+      - name: Unit tests (with coverage thresholds)
+        run: cd frontend/web/monorepo/libs/mateu && npm run test:coverage
+
+      # The JavaScript every page loads eagerly has a recorded ceiling (scripts/bundle-budget.json):
+      # @ui5 once sat in a preloaded chunk (≈640 KB on every page) for one optional field.
+      - name: Vaadin renderer — typecheck, tests (with coverage thresholds), build and eager bundle budget
+        run: |
+          cd frontend/web/monorepo/apps/vaadin
+          npx tsc --noEmit -p .
+          npm run test:coverage
+          npx vite build
+          node scripts/check-bundle-budget.mjs
 
       # The visual editor (embedded in both IDE plugins) has its own vitest suite (~120 tests, <1s)
       # that only ran by hand. Same order as above: typecheck before the tests.
@@ -106,10 +123,18 @@ jobs:
           node-version: 24
 
       - name: Redwood core contract tests
-        run: cd frontend/web/monorepo/apps/redwood/poc && node test.mjs && node test-pms.mjs
+        run: cd frontend/web/monorepo/apps/redwood/poc && node test.mjs && node test-pms.mjs && node test-display.mjs && node test-chains.mjs
 
       - name: Redwood atom template is expanded in every surface
         run: cd frontend/web/monorepo/apps/redwood/poc && node make-html.mjs --check
+
+      - name: Redwood VB translation bundle matches the chrome catalogue (poc/i18n.mjs)
+        run: cd frontend/web/monorepo/apps/redwood/poc && node make-nls.mjs --check
+
+      # The committed AMD bridge (webApps/.../mateu-bridge.js) is what the app loads; poc/ is what the
+      # tests above exercise. A poc/ change without `npm run bridge` passed CI and shipped old code.
+      - name: Redwood bridge is regenerated from poc/
+        run: cd frontend/web/monorepo/apps/redwood/poc && node make-amd.mjs --check
 
       - name: parity.md tells the truth about Redwood (coverage vs wire catalogue vs renderer code)
         run: cd frontend/web/monorepo/apps/redwood/poc && node parity-check.mjs
@@ -123,8 +148,57 @@ jobs:
       - name: React Native renderer unit tests
         run: cd frontend/app/react-native && node --test 'src/**/*.test.ts'
 
-      - name: VS Code extension tests
-        run: cd frontend/app/vscode-extension && npm ci --ignore-scripts && npx vitest run
+      - name: React Native renderer wire coverage (every wire type rendered, parity.md in sync)
+        run: cd frontend/app/react-native && node scripts/parity-check.mjs
+
+      - name: React Native renderer type check
+        run: cd frontend/app/react-native && npm ci --ignore-scripts && npx tsc --noEmit
+
+      # Typecheck, unit tests (manifest contract + New File skeletons) and a real non-interactive
+      # `vsce package` — packaging stages LICENSE, the specs schema, the New File templates and the
+      # visual-editor bundle (the one committed in the IntelliJ plugin, since the monorepo is not
+      # installed here), so a broken staging step fails the PR instead of the release.
+      - name: VS Code extension — typecheck, tests and packaging
+        run: |
+          cd frontend/app/vscode-extension
+          npm ci --ignore-scripts
+          npm run compile
+          npm test
+          npm run package < /dev/null
+          rm -f *.vsix
+
+      # The Figma plugin draws the library from design/figma/contract.json: its test fails when a
+      # sketch primitive used by the contract has no case in renderItem (the `tile` gap).
+      - name: Figma plugin — typecheck and tests
+        run: |
+          cd design/figma/plugin
+          npm ci --ignore-scripts
+          npm run typecheck
+          npm test
+
+  # The IntelliJ plugin's suite (settings/auth, New | Mateu skeletons validated against the specs
+  # schema, wire-type parity, headless rendering of every component type, the YAML binding
+  # annotator) only ran on a developer's machine. The platform download is cached by setup-gradle.
+  intellij-plugin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v5
+        with:
+          java-version: 21
+          distribution: zulu
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+
+      # copyVisualEditor is skipped (with a warning) because the web monorepo is not installed: the
+      # tests run against the committed visual-editor bundle, which bundle-freshness guards.
+      - name: IntelliJ plugin tests
+        run: cd frontend/app/intellij-plugin && ./gradlew test --console=plain
 
   e2e:
     runs-on: ubuntu-latest
@@ -227,12 +301,166 @@ jobs:
           path: e2e/playwright-report/
           retention-days: 7
 
+  # The Python port (PyPI `mateu-ui`): the suite — including its wire-conformance runner, a HARD
+  # gate (an unexpected corpus diff fails; only allow-listed cases xfail, strictly) — on every
+  # supported interpreter, with the package INSTALLED from pyproject (its declared dependencies,
+  # not a hand-kept requirements list), plus mypy over the typed packages and a wheel that must install and import cleanly.
+  python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install the package
+        run: pip install "./backend/python[dev,all]"
+      - name: Tests
+        run: cd backend/python && python -m pytest -q -p no:cacheprovider tests/
+      - name: Types
+        run: cd backend/python && mypy
+      - name: The wheel builds, installs and imports
+        run: |
+          python -m build backend/python --outdir /tmp/dist
+          python -m venv /tmp/wheelcheck
+          /tmp/wheelcheck/bin/pip install /tmp/dist/*.whl
+          /tmp/wheelcheck/bin/python -c "import mateu_uidl, mateu_dtos, mateu_core, mateu_fastapi"
+
+  # The oldest versions the package's lower bounds admit: a bound nobody installs is a bound
+  # nobody tests, and `>=` is a promise.
+  python-lowest-deps:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: astral-sh/setup-uv@v6
+      - name: Install the package at its lowest direct dependencies
+        run: |
+          uv venv /tmp/lowest --python 3.11
+          VIRTUAL_ENV=/tmp/lowest uv pip install --resolution lowest-direct "./backend/python[dev]"
+      - name: Tests
+        run: cd backend/python && /tmp/lowest/bin/python -m pytest -q -p no:cacheprovider tests/
+
+  # The VB/Redwood renderer in a real browser. Nothing else loads it: the e2e job above serves only
+  # vaadin-lit, and the Redwood Node suites (tooling-tests) check its core, not the app VB paints.
+  # The jar is built HERE FROM SOURCE (grunt vb-build + scripts/copy.mjs) rather than taken from the
+  # committed resources, so a renderer change is exercised in the PR that makes it. It runs headless:
+  # the old "VB does not paint headless" finding was the unsecured index never promoting the VB boot
+  # scripts (fixed in index.ftl), not Chromium. Needs static.oracle.com: Oracle's grunt tooling at
+  # npm install time and JET / oj-sp / the visual-runtime at runtime (never vendored - NOTICE.md).
+  renderer-vb:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: 21
+          distribution: zulu
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Build backend
+        run: mvn -B install -DskipTests -Dgpg.skip=true --file backend/pom.xml
+
+      # Only the redwood workspace: its devDependencies are Oracle's grunt tooling (tarballs from
+      # static.oracle.com, pinned in package.json / package-lock.json).
+      - name: Install the Redwood renderer's build tooling
+        run: cd frontend/web/monorepo && npm ci --workspace mateu-redwood
+
+      # vb-build's exit code is unreliable (it can fail in a network subtask after writing the
+      # output), so the artifact is what is checked; copy.mjs then lays it out as the jar resources.
+      - name: Build the Redwood renderer from source into its jar
+        run: |
+          (cd frontend/web/monorepo/apps/redwood && (npm run build || true))
+          test -f frontend/web/monorepo/apps/redwood/build/optimized/webApps/vbredwoodapp/index.html
+          (cd frontend/web/monorepo/apps/redwood && npm run copy)
+          mvn -B install -DskipTests -Dgpg.skip=true --file backend/pom.xml -pl shared/frontend/redwood
+
+      # demo-vb (the renderer's reference app: a root App with a menu plus standalone UIs at their own
+      # mounts) for the probes and the smoke pass; mvc-app1 built a second time with the redwood
+      # renderer for the renderer-agnostic Playwright specs.
+      - name: Build demo-vb and the renderer-vb SUT
+        run: |
+          mvn -B package -DskipTests --file demo/demo-vb/pom.xml
+          mvn -B install -Dmaven.test.skip=true -Dgpg.skip=true --file e2e/sut/pom.xml -pl modules/sample1
+          mvn -B package -Dmaven.test.skip=true -Dgpg.skip=true --file e2e/sut/pom.xml -pl apps/mvc-app1 -Dmateu.renderer=redwood -Dsut.build.dir=target-vb
+
+      - name: Start demo-vb (:9005) and the renderer-vb SUT (:8090)
+        run: |
+          java -jar demo/demo-vb/target/demo-vb-0.0.1-SNAPSHOT.jar --server.port=9005 > /tmp/demo-vb.log 2>&1 &
+          java -jar e2e/sut/apps/mvc-app1/target-vb/mvc-app1-1.0.0-SNAPSHOT.jar --server.port=8090 > /tmp/mvc-app-vb.log 2>&1 &
+          for url in http://localhost:9005/ http://localhost:8090/app; do
+            tries=0
+            until curl -s -o /dev/null "$url"; do
+              tries=$((tries + 1))
+              if [ "$tries" -ge 90 ]; then echo "::error::$url was not ready after 3 minutes"; exit 1; fi
+              sleep 2
+            done
+            echo "$url is ready"
+          done
+
+      - name: Install npm dependencies
+        run: cd e2e && npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('e2e/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-playwright-
+
+      - name: Install Playwright browsers
+        run: cd e2e && npx playwright install --with-deps chromium
+
+      - name: Smoke pass of demo-vb's key screens (root App and standalone mounts)
+        run: cd e2e && VB_URL=http://localhost:9005 node vb-smoke.mjs --shots vb-shots
+
+      - name: Accessibility probe (axe + SPA behaviour)
+        run: cd e2e && VB_URL=http://localhost:9005/ node vb-a11y-probe.mjs
+
+      - name: Slow / unreliable network probe
+        run: cd e2e && VB_URL=http://localhost:9005/ node vb-slow-network-probe.mjs
+
+      - name: Renderer-agnostic specs against Redwood
+        run: cd e2e && RENDERER_VB=1 npx playwright test --project renderer-vb
+
+      - name: Dump renderer-vb logs on failure
+        if: failure()
+        run: |
+          for f in /tmp/demo-vb.log /tmp/mvc-app-vb.log; do
+            echo "===== $f ====="
+            tail -n 80 "$f"
+          done
+
+      - name: Upload Redwood screenshots and Playwright report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: renderer-vb
+          path: |
+            e2e/vb-shots/
+            e2e/playwright-report/
+          retention-days: 7
+
   # Backend + port test suites — including the shared wire-conformance corpus (conformance/README.md).
   # Until now the rest of run_tests.yml built the whole backend with -DskipTests and never invoked
   # pytest or dotnet test, so ~1000 core tests, the .NET/Python golden suites AND the conformance
   # corpus all ran only on whoever remembered — a port could drift from the wire with every check
-  # still green. This job runs them. All three are green as of this change (Java core 1030, Python
-  # 298 + 2 xfailed, .NET 299); each suite includes its wire-conformance runner.
+  # still green. This job runs the Java and .NET ones (the Python suite has its own `python` job
+  # above, on every supported interpreter); each suite includes its wire-conformance runner.
   backend-tests:
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -263,25 +491,19 @@ jobs:
           mvn -B verify -Dgpg.skip=true -Dmaven.javadoc.skip=true --file backend/pom.xml
           -pl shared/core,shared/uidl,shared/annotation-processor-core,shared/annotation-processor-indexer,shared/agent-cli,webflux/webflux-core
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      # The tests import the packages from the source tree (sys.path), so install the DEPENDENCIES,
-      # not the editable package — `pip install -e .` fails on the flat multi-package layout. pyyaml
-      # is a runtime dep (pyproject) missing from requirements.txt, so add it explicitly.
-      - name: Python tests
-        run: |
-          cd backend/python
-          pip install -r requirements.txt pyyaml
-          python -m pytest tests/ -q
-
+      # The .NET port multi-targets both supported LTS runtimes (net8.0 until its 2026-11-10 end of
+      # support, and net10.0): the 10 SDK builds both, the 8 runtime runs the net8.0 leg. `dotnet test`
+      # runs the suite once per target framework, so both legs (and the conformance gate) are tested.
       - name: Set up .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0.x'
+          dotnet-version: |
+            8.0.x
+            10.0.x
 
-      - name: .NET tests
+      - name: .NET tests (net8.0 + net10.0)
         run: cd backend/dotnet && dotnet test
+
+      - name: .NET packages build
+        run: cd backend/dotnet && for p in src/*/*.csproj; do dotnet pack "$p" -c Release -o /tmp/nupkgs; done
 

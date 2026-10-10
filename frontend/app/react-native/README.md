@@ -4,12 +4,16 @@ Runs any Mateu backend as a **native mobile app** (iOS & Android), built with [E
 and TypeScript. Like every Mateu renderer it speaks `POST /mateu/v3/sync/{route}` — the same backend
 serves web, desktop, and mobile clients simultaneously.
 
-Full documentation: [Native Renderers](../../../doc/src/content/docs/native/index.md) (§ Mobile — React Native).
+Full documentation: [React Native renderer](../../../doc/src/content/docs/native/react-native.md)
+(backend, registry, sign-in, store builds) and [Native Renderers](../../../doc/src/content/docs/native/index.md).
+
+Expo SDK 57 · React Native 0.86 · every wire component type rendered natively (`npm run parity`).
 
 ## Quick start
 
-Start a Mateu backend first (e.g. the demo admin panel at `http://localhost:8592`; the port is set in
-`App.tsx`, `MATEU_BACKEND_PORT`). Then pick how you want to run the renderer:
+Start a Mateu backend first — by default the app looks for `demo/demo-front-office` on
+`http://localhost:8594`; point it elsewhere with `EXPO_PUBLIC_MATEU_BACKEND_PORT` (e.g. `8595` for
+`demo-admin-panel`). Then `npm ci` and pick how you want to run the renderer:
 
 ### 1. Browser with a phone viewport (fastest)
 
@@ -45,9 +49,19 @@ npm run ios        # macOS + Xcode only
 ## Building installables (APK / App Store / Play Store)
 
 Builds go through [EAS](https://docs.expo.dev/build/introduction/) (Expo's build service — sign in
-once with a free Expo account: `npx eas-cli login`). Profiles live in `eas.json`; application ids
-(`io.mateu.native`) in `app.json`. Set the app-registry coordinates for the installable in the
-profile's `env` block (`EXPO_PUBLIC_MATEU_REGISTRY_URL` / `EXPO_PUBLIC_MATEU_APP_ID`).
+once with a free Expo account: `npx eas-cli login`). Profiles live in `eas.json` (`development`,
+`preview`, `production` — each with its own EAS environment and EAS Update channel); application
+ids in `app.json`: **`io.mateu.mobile` on Android, `io.mateu.native` on iOS** (the `development`
+profile adds `.dev`, via `app.config.ts`). Set the app-registry coordinates as variables of the
+profile's EAS environment:
+
+```bash
+npx eas-cli env:create --environment preview --name EXPO_PUBLIC_MATEU_REGISTRY_URL --value https://registry.example.com
+npx eas-cli env:create --environment preview --name EXPO_PUBLIC_MATEU_APP_ID --value front-office
+```
+
+Only the `development` profile allows cleartext `http` (a LAN backend); `preview` and
+`production` are https-only.
 
 ```bash
 npm run build:apk           # installable .apk (internal distribution / sideload / QA)
@@ -59,10 +73,11 @@ npm run submit:android      # upload the last build to the Play Store (internal 
 npm run submit:ios          # upload the last build to App Store Connect
 ```
 
-Submissions need store credentials once: a Play Console **service-account JSON**
-(`play-service-account.json`, see `eas.json`) and an App Store Connect **API key**
-(`asc-api-key.p8` + key/issuer ids). Both file names are gitignored. `runtimeVersion` follows the
-app version, so EAS OTA updates (the registry's update path) only reach compatible installables.
+Submissions need store credentials once — **kept in EAS, never in the repo**: upload the Play
+Console service-account JSON and the App Store Connect API key with `npx eas-cli credentials` (or
+export `EXPO_ASC_API_KEY_PATH` / `EXPO_ASC_KEY_ID` / `EXPO_ASC_ISSUER_ID` on the submitting
+machine). OTA updates: `npx eas-cli update --channel production`; `runtimeVersion` follows the app
+version, so an update only reaches compatible installables.
 
 ## App registry (production installables)
 
@@ -73,6 +88,16 @@ the launch `parameters` (seeded into `appState`) and the `requiredRendererVersio
 renderer is older, a blocking screen tries an OTA update (`expo-updates`, real on EAS builds) and
 falls back to the store link. No registry configured → dev config (localhost / Expo host).
 See `src/core/AppRegistry.ts` and `registry-example/demo-admin-panel.json`.
+
+## Signing in (secured backends)
+
+Every request carries a per-install `X-Session-Id` and, when a token provider is registered,
+`Authorization: Bearer <token>`. Built-in OIDC (Authorization Code + PKCE, `expo-auth-session`,
+tokens in the keychain/keystore) is configured by an `auth` block in the registry entry —
+`{ "type": "oidc", "issuer": "…", "clientId": "…", "scopes": [...] }` — or, in dev, by
+`EXPO_PUBLIC_MATEU_OIDC_ISSUER` / `EXPO_PUBLIC_MATEU_OIDC_CLIENT_ID`. A 401 refreshes or re-prompts
+and retries once. Redirect URIs to allow at the IdP: `mateu://auth` and `<web origin>/auth`. Your
+own login: `setTokenProvider(...)` in `src/core/auth.ts`.
 
 ## Architecture (short version)
 
@@ -87,6 +112,10 @@ See `src/core/AppRegistry.ts` and `registry-example/demo-admin-panel.json`.
 
 ## Dev verification
 
+- `npm test`, `npm run typecheck`, `npm run parity` — unit tests, `tsc --noEmit`, and the wire
+  coverage check (every wire component type has a native case; parity.md in sync). All run in CI.
+- `node scripts/wire-fixture-server.mjs 18600` + `EXPO_PUBLIC_MATEU_BACKEND_PORT=18600 npm run web`
+  — a fixture backend with a page of the rarely-used component types, for eyeballing renderers.
 - `npx tsx scripts/controller-probe.ts` — drives the real controller (no React) against a live
   backend at `:8592` and asserts the full pipeline (listing + search data, row → detail, edit
   bubbling, validation, state merge).

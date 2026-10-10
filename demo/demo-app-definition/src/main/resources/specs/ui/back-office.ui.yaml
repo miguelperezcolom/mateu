@@ -2,5 +2,6 @@
 $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/mount-schema.json
 type: UI
 basePath: /
+home: dashboard   # the page the mount opens on (the shell declares no homeRoute:, so it lands here)
 routes:
   - routes.yaml

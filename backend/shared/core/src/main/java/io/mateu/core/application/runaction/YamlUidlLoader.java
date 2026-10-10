@@ -208,7 +208,7 @@ public class YamlUidlLoader {
             : "specs/ui/" + normalizedRoute + ".yaml";
     var resource = resolve(yamlPath);
     if (resource == null) {
-      log.info("No YAML spec found at {}", yamlPath);
+      log.debug("No YAML spec found at {}", yamlPath);
       return NONE;
     }
     try (var is = resource) {
@@ -242,7 +242,7 @@ public class YamlUidlLoader {
       }
       var actions = actionsOf(root);
       var triggers = triggersOf(root);
-      log.info(
+      log.debug(
           "Loaded YAML spec {} (modelView={}, {})",
           yamlPath,
           modelView,

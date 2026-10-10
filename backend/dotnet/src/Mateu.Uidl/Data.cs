@@ -38,7 +38,7 @@ public sealed record NavLink(string Href, string? Icon = null, string? Title = n
 
 /// <summary>Implemented by a view to attach a navigation link icon to fields at runtime (an
 /// alternative to the static [LinkTo] attribute, over which this takes precedence). Return the
-/// <see cref="NavLink"/> for the property named <paramref name="memberName"/>, or null for no link
+/// <see cref="NavLink"/> for the property named by the memberName argument, or null for no link
 /// — a [LinkTo] on the property then applies if present. (C# analogue of Java's LinkSupplier.)</summary>
 public interface ILinkSupplier
 {

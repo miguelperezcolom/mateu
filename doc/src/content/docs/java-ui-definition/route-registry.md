@@ -169,6 +169,27 @@ federated domains can therefore each have their own `orders` screen without coll
 only has to hold *within* a mount, and between mount base paths (two `@UI` classes claiming the same
 base path already fail at startup).
 
+### The mount's home
+
+A `type: UI` mount can name its home page with `home:` — a route of the mount, relative to it like
+every other route (a leading `/` is tolerated):
+
+```yaml
+type: UI
+basePath: /
+home: dashboard
+routes:
+  - routes.yaml
+```
+
+When the mount authors no `route: ""`, its root resolves to the `home` entry — same definition, view
+model and pinned/default parameters — so `/` renders the dashboard. An authored `route: ""` always
+wins (explicit beats derived); when that root is an [app shell](/java-ui-definition/yaml-app-shell/),
+the shell's `homeRoute` defaults to `home` instead (its own `homeRoute:` still wins). A `home` that
+names no route of the mount is warned about at startup and ignored. A static bundle ships the same
+behaviour: the root alias travels in the route table, and a shell definition shipped raw carries
+the home as its `homeRoute`.
+
 ### Nested routes (a sub-route in a parent's slot)
 
 Some screens are a *shell with a slot* — a record master with tabs, or a mediator app — where a

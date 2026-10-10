@@ -10,8 +10,8 @@
   <artifactId>frontend</artifactId>
   <packaging>pom</packaging>
 
-  <name>Frontend</name>
-  <description>parent project</description>
+  <name>Mateu web renderers (parent)</name>
+  <description>Parent of the jars that serve the Mateu web renderers as static assets.</description>
 
   <modules>
     <module>vaadin-lit</module>

@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<!-- The child.*.inherit.append.path="false" attributes keep url/scm as declared here in every
+     module, instead of Maven appending each artifactId to them (a 404 per published module). -->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+         child.project.url.inherit.append.path="false">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>io.mateu</groupId>
@@ -7,10 +10,12 @@
   <version>0.0.1-MATEU</version>
   <packaging>pom</packaging>
 
-  <name>Backend</name>
-  <description>parent project</description>
+  <name>Mateu</name>
+  <description>Mateu, a model-driven UI system: declare the model once (Java, C#, Python or YAML) and
+    Mateu renders forms, CRUDs, wizards and app shells across web and native. Parent of the Java
+    backend modules.</description>
 
-  <url>http://maven.apache.org</url>
+  <url>https://github.com/miguelperezcolom/mateu</url>
 
   <licenses>
     <license>
@@ -19,11 +24,18 @@
     </license>
   </licenses>
 
-  <scm>
-    <connection>scm:git:git@github.com:miguelperezcolom/mateu-security.git</connection>
-    <developerConnection>scm:git:git@github.com:miguelperezcolom/mateu-security.git</developerConnection>
-    <url>https://github.com/miguelperezcolom/mateu-security</url>
+  <scm child.scm.connection.inherit.append.path="false"
+       child.scm.developerConnection.inherit.append.path="false"
+       child.scm.url.inherit.append.path="false">
+    <connection>scm:git:https://github.com/miguelperezcolom/mateu.git</connection>
+    <developerConnection>scm:git:git@github.com:miguelperezcolom/mateu.git</developerConnection>
+    <url>https://github.com/miguelperezcolom/mateu</url>
   </scm>
+
+  <issueManagement>
+    <system>GitHub</system>
+    <url>https://github.com/miguelperezcolom/mateu/issues</url>
+  </issueManagement>
 
   <developers>
     <developer>
@@ -38,6 +50,9 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- Reproducible builds: a fixed timestamp for every entry of every jar, so the same sources
+         produce byte-identical artifacts (the release process may bump it). -->
+    <project.build.outputTimestamp>2026-10-10T00:00:00Z</project.build.outputTimestamp>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
     <jacoco.min.coverage>0%</jacoco.min.coverage>
@@ -54,6 +69,9 @@
     <module>mvc</module>
     <module>helidon-mp</module>
     <module>mateu-bundle-maven-plugin</module>
+    <!-- not a child of this pom (see its header): only aggregated, so it is built and released
+         with the rest -->
+    <module>mateu-bom</module>
   </modules>
 
   <dependencyManagement>
@@ -304,9 +322,17 @@
         <configuration>
           <publishingServerId>central</publishingServerId>
           <autoPublish>true</autoPublish>
-          <!--
+          <!-- the release job only succeeds once Maven Central has actually published the bundle
+               (not merely accepted the upload); give up after an hour -->
           <waitUntil>published</waitUntil>
-          -->
+          <waitMaxTime>3600</waitMaxTime>
+          <!-- internal modules: built and tested, never published (each also sets
+               maven.deploy.skip) -->
+          <excludeArtifacts>
+            <artifact>integration-tests</artifact>
+            <artifact>agent-cli</artifact>
+            <artifact>agent-cli-companion</artifact>
+          </excludeArtifacts>
         </configuration>
       </plugin>
 

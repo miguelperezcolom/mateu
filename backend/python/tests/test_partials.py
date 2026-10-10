@@ -85,9 +85,9 @@ def test_a_partial_can_be_registered_in_code_and_wins_over_a_file_of_the_same_na
     assert [describe(c) for c in tree.content] == ["Registered in code."]
 
 
-def test_a_layout_delta_page_is_declined_rather_than_rendered_as_garbage():
-    # `layoutDelta:` is Java-only today. What matters here is that the port does not render the
-    # envelope itself as a component — a visibly wrong page is worse than no page.
+def test_a_layout_delta_page_has_no_layout_of_its_own():
+    # A `layoutDelta:` is re-applied over the INFERRED layout (see test_layout_delta.py); the
+    # envelope itself must never be rendered as a component.
     from mateu_core.yaml_preview import parse_spec
 
     model_view, layout = parse_spec("modelView: com.acme.Contact\nlayoutDelta:\n  order: [b, a]\n")

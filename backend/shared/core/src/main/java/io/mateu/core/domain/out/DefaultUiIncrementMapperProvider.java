@@ -3,9 +3,11 @@ package io.mateu.core.domain.out;
 import io.mateu.core.domain.ports.BeanProvider;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.util.Comparator;
 
 @Named
+@Singleton
 public class DefaultUiIncrementMapperProvider implements UiIncrementMapperProvider {
 
   private final BeanProvider beanProvider;

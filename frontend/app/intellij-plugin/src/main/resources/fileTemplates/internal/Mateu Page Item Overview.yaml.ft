@@ -1,0 +1,17 @@
+# Item overview: key information on the left, the rest of the record in tabs on the right.
+type: HorizontalLayout
+__PAGE_WIDTH__
+content:
+  - type: Card
+    style: "flex: 0 0 22rem; position: sticky; top: 0;"
+    title: {type: Text, text: __TITLE__}
+    content:
+      type: FormLayout
+      content:
+        - {type: FormField, id: sku, label: SKU, dataType: string, readOnly: true, propertyRow: true}
+        - {type: FormField, id: price, label: Price, dataType: money, readOnly: true, propertyRow: true}
+        - {type: FormField, id: stock, label: Stock, dataType: integer, readOnly: true, propertyRow: true}
+  - type: TabLayout
+    tabs:
+      - {type: Tab, label: Details, active: true, content: {type: Text, text: Details go here}}
+      - {type: Tab, label: History, content: {type: Text, text: History goes here}}

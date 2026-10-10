@@ -1,5 +1,6 @@
 """The Mateu engine: route registry, reflection mapper, and the sync use-case."""
 
+from ._version import __version__
 from .action_guard import MateuForbiddenException
 from .importwizard import ColumnMapping, ImportWizard, RowIssue, detect_separator, parse_csv
 from .mapper import ReflectionMapper
@@ -19,4 +20,5 @@ __all__ = [
     "normalize",
     "parse_csv",
     "type_name",
+    "__version__",
 ]

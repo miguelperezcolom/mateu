@@ -26,6 +26,8 @@ export class RoutesEditor extends LitElement {
                 border-radius: 6px; box-sizing: border-box; background: var(--ve-base, #fff); color: inherit; }
         input::placeholder { color: var(--ve-tertiary, #b8bec6); }
         td.mono input { font-family: ui-monospace, monospace; font-size: 12px; }
+        td.mono > select { width: 100%; padding: 0.3rem 0.35rem; font: 12px ui-monospace, monospace; border: 1px solid var(--ve-input-border, #d7dade);
+                border-radius: 6px; box-sizing: border-box; background: var(--ve-base, #fff); color: inherit; }
         .del { border: 1px solid #f2c2c8; color: var(--ve-error, #b00020); background: var(--ve-base, #fff); color: inherit; border-radius: 6px;
                width: 26px; height: 28px; cursor: pointer; }
         .add { margin: 0 1rem 1.5rem; padding: 0.45rem 0.8rem; font: 13px var(--ve-font, system-ui); background: var(--ve-base, #fff); color: inherit;
@@ -42,7 +44,7 @@ export class RoutesEditor extends LitElement {
         .buttons { display: flex; gap: 0.5rem; margin: 0 1rem 1.5rem; }
         .buttons .add { margin: 0; }
         .help { margin: 0 1rem 1rem; color: var(--ve-tertiary, #9ca3af); font-size: 12px; }
-        input.missing { border-color: hsl(30, 100%, 50%); background: hsla(30, 100%, 50%, 0.06); }
+        input.missing, select.missing { border-color: hsl(30, 100%, 50%); background: hsla(30, 100%, 50%, 0.06); }
     `
 
     @property() yaml = ''
@@ -68,7 +70,6 @@ export class RoutesEditor extends LitElement {
                 <h2>Routes</h2>
                 <span class="sub">${count} route${count === 1 ? '' : 's'} · relative to the mount${'app' in this.doc.preamble ? ' · app: preserved' : ''}</span>
             </div>
-            <datalist id="ve-definitions">${this.definitionOptions.map((d) => html`<option value=${d}></option>`)}</datalist>
             <datalist id="ve-viewmodels">${(this.project?.viewModels ?? []).map((v) => html`<option value=${v}></option>`)}</datalist>
             <datalist id="ve-sources">${(this.project?.sources ?? []).map((s) => html`<option value=${s.name}>${s.description ?? ''}</option>`)}</datalist>
             <table>
@@ -96,6 +97,25 @@ export class RoutesEditor extends LitElement {
         `
     }
 
+    /**
+     * The layout a route shows, picked from the mount's pages and app shells. A real <select>, not an
+     * <input list>: a datalist only suggests what matches the text already typed, and the IDE's
+     * embedded browser does not always open it. A definition that is not in specs/ui (yet) stays
+     * selectable, marked as missing, so the file is not rewritten under the user.
+     */
+    private definitionPicker(row: RouteRow, at: number[]) {
+        const options = this.definitionOptions
+        const current = row.definition ?? ''
+        const missing = this.isMissing(row.definition)
+        return html`<select class=${missing ? 'missing' : ''}
+                title=${missing ? `No ${current} in specs/ui yet — create it, then open it here to lay it out` : ''}
+                @change=${(e: Event) => this.patchRow(at, { definition: clean((e.target as HTMLSelectElement).value) })}>
+            <option value="" ?selected=${!current}>${options.length ? '— choose a page —' : '— no pages in specs/ui —'}</option>
+            ${current && !options.includes(current) ? html`<option value=${current} selected>${current} (missing)</option>` : ''}
+            ${options.map((d) => html`<option value=${d} ?selected=${d === current}>${d}</option>`)}
+        </select>`
+    }
+
     private rowsView(rows: RouteRow[], at: number[]): unknown[] {
         return rows.flatMap((row, i) => [
             this.rowView(row, [...at, i]),
@@ -120,10 +140,7 @@ export class RoutesEditor extends LitElement {
                             ${children.map((c) => html`<option value=${c.route} ?selected=${c.route === row.defaultChild}>${c.route}</option>`)}
                         </select></div>` : ''}
                 </td>
-                <td class="mono"><input list="ve-definitions" .value=${row.definition ?? ''} placeholder="orders.yaml"
-                    class=${this.isMissing(row.definition) ? 'missing' : ''}
-                    title=${this.isMissing(row.definition) ? `No ${row.definition} in specs/ui yet — create it, then open it here to lay it out` : ''}
-                    @change=${(e: Event) => this.patchRow(at, { definition: clean((e.target as HTMLInputElement).value) })} /></td>
+                <td class="mono">${this.definitionPicker(row, at)}</td>
                 <td class="mono"><input list="ve-viewmodels" .value=${row.viewModel ?? ''} placeholder="com.acme.Orders"
                     @change=${(e: Event) => this.patchRow(at, { viewModel: clean((e.target as HTMLInputElement).value) })} /></td>
                 <td class="mono">${typeof row.data === 'object' && row.data && !dataRef(row.data)

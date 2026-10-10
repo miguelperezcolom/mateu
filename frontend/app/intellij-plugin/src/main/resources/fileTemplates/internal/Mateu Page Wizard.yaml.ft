@@ -1,0 +1,16 @@
+# One step of a guided process. Add one definition per step and route them
+# (e.g. signup/1, signup/2); Back / Next navigate between them.
+type: Form
+title: __TITLE__
+__PAGE_WIDTH__
+header:
+  - {type: Text, text: "Step 1 of 3 — Your details", size: s}
+  - {type: ProgressBar, value: 0.33}
+content:
+  - type: FormLayout
+    content:
+      - {type: FormField, id: fullName, label: Full name, dataType: string, required: true}
+      - {type: FormField, id: email, label: Email, dataType: string, stereotype: email, required: true}
+buttons:
+  - {type: Button, label: Back, actionId: back, buttonStyle: secondary}
+  - {type: Button, label: Next, actionId: next, buttonStyle: primary}

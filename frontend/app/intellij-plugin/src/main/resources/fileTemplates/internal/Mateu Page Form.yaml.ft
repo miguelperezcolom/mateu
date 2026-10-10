@@ -1,0 +1,15 @@
+# Form page. Bind it to a route in routes.yaml (with a viewModel to handle `save`, or an
+# `actions:` entry carrying a restAction for a backend-less page).
+type: Form
+title: __TITLE__
+__PAGE_WIDTH__
+content:
+  - type: FormLayout
+    content:
+      - {type: FormField, id: name, label: Name, dataType: string, required: true}
+      - {type: FormField, id: email, label: Email, dataType: string, stereotype: email}
+      - {type: FormField, id: birthDate, label: Birth date, dataType: date}
+      - {type: FormField, id: notes, label: Notes, dataType: string, stereotype: textarea, colspan: 2}
+buttons:
+  - {type: Button, label: Cancel, actionId: cancel, buttonStyle: secondary}
+  - {type: Button, label: Save, actionId: save, buttonStyle: primary}

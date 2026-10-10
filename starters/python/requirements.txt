@@ -1,0 +1,4 @@
+# Inside the Mateu repository the starter runs against the sources: install their dependencies and
+# put backend/python on PYTHONPATH (see README). In your own project, replace this with the
+# published package (see the release notes for its PyPI name).
+-r ../../backend/python/requirements.txt

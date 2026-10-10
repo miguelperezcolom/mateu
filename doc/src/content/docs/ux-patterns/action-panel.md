@@ -5,6 +5,8 @@ description: A categorised action overlay — the record's actions in columns by
 
 **Status:** ✅ Implemented
 
+![A reservation page with its "I want to…" trigger above the header card](/images/docs/action-panel/reservation-detail.png)
+
 ## Intent
 
 Back-office records accumulate dozens of actions — modify the routing, add a trace, copy the reservation, open the folio history, go to billing. A toolbar cannot hold them and a flat menu hides how they relate. The pattern used by hospitality and ERP suites (OPERA Cloud's **"I Want To…"**) is a layer over the page with the actions grouped **by category** in columns, the ones with data behind them listed first and emphasised, and a keyboard shortcut to open it.

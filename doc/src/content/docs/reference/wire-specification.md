@@ -197,7 +197,7 @@ are shared by every renderer.
 **Two hosts, one projection.** The **sidecar** (`frontend/mcp-server/`, zero-dependency Node) speaks only
 this wire, so it operates a Java, .NET or Python backend with no backend change. The **native endpoint**
 serves the same projection from `MateuService` directly, enforcing RBAC natively. Reference
-implementation + the tool surface: `frontend/mcp-server/README.md`; design: `design/riu-agent-operability-plan.md`.
+implementation + the tool surface: `frontend/mcp-server/README.md` in the repository.
 
 ## Conformance
 

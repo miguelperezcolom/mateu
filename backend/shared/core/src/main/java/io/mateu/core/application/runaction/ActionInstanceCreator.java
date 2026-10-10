@@ -6,7 +6,6 @@ import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isApp;
 import static io.mateu.core.infra.reflection.ClassLoaders.forName;
 
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
-import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.interfaces.PostHydrationHandler;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -32,7 +31,7 @@ public class ActionInstanceCreator {
   private final io.mateu.core.application.RoutedClassResolver routedClassResolver;
 
   Mono<?> createInstance(RunActionCommand command) {
-    log.info("createInstance {}", command);
+    log.debug("createInstance {}", command);
 
     try {
       var adjusted = crudNavigationAdjuster.adjust(command);
@@ -54,9 +53,11 @@ public class ActionInstanceCreator {
                         }));
       }
 
-    } catch (Throwable e) {
-      log.info(e.getClass().getSimpleName() + ": " + e.getMessage());
-      return Mono.just(UIIncrementDto.builder().build());
+    } catch (Exception e) {
+      // Propagated, not swallowed: an empty increment here rendered as a blank screen with nothing
+      // logged above INFO. The use case's error boundary logs it at ERROR with a reference id and
+      // tells the user (or answers 403 / not-found for those).
+      return Mono.error(e);
     }
 
     // A definition-only page has no class to re-instantiate: what it IS lives in its YAML, and the
@@ -87,7 +88,10 @@ public class ActionInstanceCreator {
     // set) still goes through findRouteResolver, so a class mediator keeps serving its own
     // sub-routes.
     if (wrapsInAppShell(command)) {
-      var app = yamlAppLoader.load(routeRegistry.rootDefinitionFor(command.route()));
+      var app =
+          yamlAppLoader.load(
+              routeRegistry.rootDefinitionFor(command.route()),
+              routeRegistry.mountHomeFor(command.route()));
       return appMenuResolver
           .resolveMenuIfApp(finalCommand, app, routeInstanceCreator::findRouteResolver)
           .switchIfEmpty((Mono) Mono.just(app));
@@ -108,7 +112,7 @@ public class ActionInstanceCreator {
    */
   private Mono<?> loadYaml(RunActionCommand command) {
     var appDefinition = routeRegistry.rootDefinitionFor(command.route());
-    var app = yamlAppLoader.load(appDefinition);
+    var app = yamlAppLoader.load(appDefinition, routeRegistry.mountHomeFor(command.route()));
     if (app == null || isTerminalRoute(command.route()) || isAppLevelAction(command)) {
       return loadYamlPage(command);
     }
@@ -365,6 +369,16 @@ public class ActionInstanceCreator {
     }
     try {
       var appClass = forName(command.serverSideType());
+      // an app-level @Fab (a method of the app class) is dispatched to the app instance too: the
+      // floating button lives on the shell, whatever screen is below it
+      if (java.util.Arrays.stream(appClass.getMethods())
+          .anyMatch(
+              m ->
+                  actionId.equals(m.getName())
+                      && io.mateu.core.infra.reflection.MetaAnnotations.isPresent(
+                          m, io.mateu.uidl.annotations.Fab.class))) {
+        return true;
+      }
       if (!io.mateu.uidl.interfaces.AppActionsSupplier.class.isAssignableFrom(appClass)) {
         return false;
       }

@@ -142,4 +142,24 @@ class WizardLongTaskSyncTest {
   private static Map<String, Object> state(UIIncrementDto increment) {
     return (Map<String, Object>) increment.fragments().get(0).state();
   }
+
+  @Test
+  void aProgressStepNeverBecomesTheWindowTitle() {
+    var state = new HashMap<>(state(mateu.sync("/long-task-wizard")));
+    state.put("rounds", 2);
+
+    var increments =
+        mateu.runAll(
+            RunActionRqDto.builder()
+                .route("/long-task-wizard")
+                .actionId("run")
+                .serverSideType(LongTaskWizard.class.getName())
+                .componentState(state)
+                .build());
+
+    assertThat(increments)
+        .flatMap(increment -> increment.commands())
+        .noneSatisfy(
+            command -> assertThat(String.valueOf(command.data())).startsWith("UIFragmentDto["));
+  }
 }

@@ -30,12 +30,23 @@ Python attributes can't carry C#-style attributes, so:
 - **Field modifiers** ride inside `Annotated[T, Marker(...)]`.
 - **Class and method features** are decorators.
 
+## Install
+
+```bash
+pip install "mateu-ui[server]"     # the package + uvicorn
+pip install "mateu-ui[all]"        # + PyJWT (identity), openpyxl / reportlab (Excel / PDF export)
+```
+
+The distribution is **`mateu-ui`** (the PyPI name `mateu` belongs to an unrelated project); you
+import `mateu_uidl`, `mateu_dtos`, `mateu_core` and `mateu_fastapi`. Versions move in lockstep with
+the Java artifacts: the `v3.0-alpha.N` release publishes `3.0.0aN`. Python 3.11–3.13 are tested.
+
 ## Run it
 
 ```bash
 cd backend/python
 python3 -m venv .venv && . .venv/bin/activate
-pip install -r requirements.txt
+pip install -e ".[dev,all]"
 uvicorn samples.demo.main:app --host 0.0.0.0 --port 8594   # serves the sync API
 pytest                                                     # golden tests
 ```
@@ -53,6 +64,46 @@ from samples.demo import views      # a module holding your @ui / @app classes
 app = FastAPI()
 add_mateu(app, views)
 ```
+
+### `add_mateu` options
+
+```python
+from mateu_core.identity import jwt_identity_provider
+
+add_mateu(
+    app, views,
+    cors_origins=["https://app.example.com"],      # CORS is OFF unless you list origins
+    identity_provider=jwt_identity_provider(key=PUBLIC_KEY, algorithms=["RS256"]),
+    secrets_provider=lambda key: vault.read(key),  # ${secret.KEY} in proxied REST sources
+    dev=False,                                     # exception detail in error toasts (or MATEU_DEV)
+    proxy_timeout_seconds=30,
+)
+```
+
+- **Identity.** `EyesOnly` / `ReadOnlyUnless` / `DisabledUnless` / `@eyes_only` match the caller's
+  `Identity(roles, groups, scopes, permissions)`. The provider is **parameterless**; it reads the
+  request in flight from `mateu_core.request_context` (`current_request()`, `bearer_token()`). The
+  default, `jwt_identity_provider()`, maps the Bearer JWT's claims exactly like Java's `Authorizer`
+  (Keycloak `realm_access`/`resource_access`, `roles`, `groups`, `scope`/`scp`, `permissions`). **With
+  no `key` it reads the claims unverified**, like Java, which assumes a gateway verified the token —
+  pass `key=` to verify here. It needs the `jwt` extra; without PyJWT no identity resolves and every
+  gate denies.
+- **Secrets.** `secrets_provider(key)` resolves `${secret.KEY}`; unset → the env var `MATEU_SECRET_<KEY>` (only that prefix, never an arbitrary variable). Only
+  proxied fetches (`__restfetch__`) see them.
+- **CORS (breaking change).** `add_mateu` used to allow every origin. Now CORS is off unless
+  `cors_origins` lists them; `cors=True` without origins raises. A renderer served by the same app
+  needs none.
+- **Errors.** An unhandled exception answers an error toast, never a raw 500 — the same texts as
+  Java and .NET ("Something went wrong" / "An unexpected error occurred. Reference: <id>"), the
+  reference being the request's correlation id (also in the `X-Mateu-Correlation-Id` header and the
+  logged traceback). `dev=True` / `MATEU_ERRORS_DETAILED=true` shows the exception; raise
+  `mateu_uidl.UserFacingException("…", title="…")` for a message written for the user. A denied
+  action answers 403.
+- **Concurrency.** The handler runs in the threadpool (a slow proxied upstream never blocks the event
+  loop); per-request state lives in `ContextVar`s.
+- **Audience is a projection, not security.** `Audience()` / `@audience` read the client-controlled
+  `appState["audience"]` — any caller can send any value. Tailor screens with it; hide data with
+  `EyesOnly`.
 
 ## Forms
 
@@ -318,7 +369,10 @@ automatically and dispatch to the method of the same (camelCased) name.
 - **i18n** — subclass `Translator`, override `translate`, and pass it to `add_mateu(..., translator=…)`.
 - **Events** — `@emits("event-name")` advertises an event; `@subscribe_to("event", "action")` runs
   `action` when that event fires.
-- **Security** — `@secured("permission")` marks a view as requiring a permission.
+- **Security** — `EyesOnly(...)` on a field hides it, `ReadOnlyUnless(...)` / `DisabledUnless(...)`
+  lock it; `@eyes_only(...)` on a **class** refuses the whole view (403, by route, type or sub-route)
+  and hides menu entries leading to it, on a **method** hides the button / menu entry and refuses the
+  call. All match the identity `add_mateu` resolves (see above).
 
 ```python
 class UpperTranslator(Translator):
@@ -414,9 +468,40 @@ The island mounts its own `mateu-ux` against the remote backend and runs its own
 
 ## Adapting foreign classes (component adapters)
 
-Java's `ComponentAdapter` SPI renders third-party classes that carry no Mateu annotations. In
-Python the idiomatic equivalent needs no SPI: **wrap** the foreign object in a view — the mapper
-renders plain fields reflectively, and your actions write back:
+The `ComponentAdapter` SPI (Java's `ComponentAdapter<T>`) renders a class that carries no Mateu
+markers and rebuilds it from the state:
+
+```python
+from mateu_uidl import AdaptedView, ComponentAdapter, ui
+from mateu_uidl import components as fluent
+
+@ui("/order")                    # routing only: the adapter owns the UI
+class Order:                     # a plain domain class
+    customer = "Ana"
+    def confirm(self): self.confirmed = True
+
+class OrderAdapter(ComponentAdapter[Order]):
+    def type(self): return Order
+    def adapt(self, order):
+        return AdaptedView(
+            components=[fluent.FormField(field_id="customer", label="Customer"),
+                        fluent.Button(label="Confirm", action_id="confirm")],
+            state={"customer": order.customer},
+            actions=["confirm"],
+        )
+    def deserialize(self, state):
+        order = Order()
+        if "customer" in state: order.customer = state["customer"]
+        return order
+```
+
+Put the adapter in a module you pass to `add_mateu`. A routed model renders through its adapter; a
+model held by a **field** of an ordinary form renders as an independent island with its own state
+and actions. Only the action ids the adapted view lists reach the model; returning `None` (or the
+model) re-renders it.
+
+The lighter idiom still works when you control the screen: **wrap** the foreign object in a view —
+the mapper renders plain fields reflectively, and your actions write back:
 
 ```python
 @ui("/pedido")
@@ -551,6 +636,59 @@ See the full reference, including the JSON Schema for editor completion, in
 [Route registry](/java-ui-definition/route-registry/). Not available in this port: the static-bundle
 exporter, so nothing ships the table to a browser.
 
+## Validation
+
+`Required()`, `Min(n)`, `Max(n)`, `Size(min=, max=)` and `Pattern(regexp)` in a field's
+`Annotated[...]`, `@validation(condition, field_id, message)` on the class and a `ValidationSupplier`
+travel as the component's `validations` (the same conditions and messages Java emits), so the
+renderer refuses to submit an invalid form — and the same constraints are checked again on the
+server when a crud form is saved and in the import wizard's report.
+
+## Grid fields
+
+A `list[Row]` field is a grid with a row editor: `+` / Edit open the row form beside the grid
+(`DetailForm(position=, columns=)` customises it), Save / Save and add another / Prev / Next /
+remove / move up / move down edit the rows held in the form state, saved with the form.
+`InlineEditing()` edits the cells in place instead (its `+` appends an empty row). Grids,
+textareas and rich text span the whole row of a multi-column form; `Colspan(n)` sets a span.
+
+## Wizards with a completion action
+
+`@wizard_completion_action("Book")` on a wizard method: the penultimate step shows that button
+instead of Next; the last step becomes the read-only result screen, reached only through it.
+
+## Exports
+
+`csv_exportable()`, `excel_exportable()` and `pdf_exportable()` on a `Crud` add Export CSV / Excel
+/ PDF buttons (the whole filtered result set). Excel uses openpyxl (MIT), PDF reportlab (BSD) —
+the `export` extra; a format whose library is missing is not offered.
+
+## Catalogues: REST sources and business components
+
+`@rest_source("countries", url=…, value_path=…)` on any app class, a `RestSourceCatalogSupplier`
+class, or `specs/ui/sources.yaml` declare a named endpoint once; surfaces reference it with
+`RestOptions(source="countries")`, `@rest_listing(source=…)`, `@rest_action(source=…)`,
+`@rest_data(source=…)`. The catalogue rides the app metadata; proxy fetches resolve it on the
+server. A view assembled at runtime declares its proxy sources with `RestSourceSupplier`.
+
+`@business_component("AgencySelector")` on a method returning a composition, a
+`ComponentCatalogSupplier`, or `specs/ui/components.yaml` declare a reusable composition;
+`fluent.ComponentRef("AgencySelector")` references it anywhere a component goes.
+
+## Embedded islands
+
+A field holding a routed view (`documento: Annotated[Documento, Inline()]`) mounts it as an
+independent sub-app: its own route, type, state and actions; the host passes context by setting
+fields on the value (they seed the island's state). `Inline()` drops the island's page chrome.
+A view action returning `self` re-renders it in place — that is how an island switches between
+its own server-decided states.
+
+## `layoutDelta:` pages
+
+A `specs/ui/<route>.yaml` with `viewModel:` + `layoutDelta: {order, hidden, overrides}` re-applies
+the human's decisions over the view model's INFERRED layout on every request, so the screen keeps
+following its model.
+
 ## Status
 
 Forms + sections + field types + validation, `Crud[T]` (list / detail / edit / new / save / delete),
@@ -558,6 +696,6 @@ the `@app` shell + menu navigation, wizards, page decorations, tabs, stereotypes
 shortcuts, compact, the unsaved-changes guard, i18n, events, security scaffolding, and the
 UX-pattern components (MetricCard/Scoreboard/DashboardPanel/DashboardLayout, FoldoutLayout,
 HeroSection, EmptyState, Skeleton, Gantt) with the Dashboard/Foldout/ItemOverview/Welcome
-declarative archetypes. Over 270 tests cover this port, including a golden-JSON wire-conformance
-suite (`test_wire_conformance.py`) that checks the emitted JSON against shared `expected.json`
-snapshots derived from the Java reference.
+declarative archetypes, plus everything above. Over 570 tests cover this port, including the
+shared wire-conformance corpus (`test_wire_conformance.py`) as a HARD gate: every case must match
+the Java golden except an explicit allow-list of known Java-golden defects.

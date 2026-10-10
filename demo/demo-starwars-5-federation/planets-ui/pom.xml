@@ -21,7 +21,9 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <mateu.version>0.0.1-MATEU</mateu.version>
+        <!-- Latest Mateu release on Maven Central. Build against your checkout instead with
+             -Dmateu.version=0.0.1-MATEU after installing the backend (see demo/README.md). -->
+        <mateu.version>3.0-alpha.406</mateu.version>
     </properties>
 
     <dependencies>

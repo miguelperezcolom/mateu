@@ -36,28 +36,41 @@ def build_from_yaml(text: str, partials: PartialRegistry | None = None) -> fluen
     return _single(data, partials or _DEFAULT_PARTIALS, [])
 
 
+def build_node(node: Any, partials: PartialRegistry | None = None) -> fluent.Component | None:
+    """One already-parsed YAML node (a dict) as a fluent component tree."""
+    return _single(node, partials or _DEFAULT_PARTIALS, [])
+
+
 def parse_spec(
     text: str, partials: PartialRegistry | None = None
 ) -> tuple[str | None, fluent.Component | None]:
     """Parse a page spec (a file under specs/ui): the declared ModelView class name (or ``None``
     for a bare, unbound layout) plus the layout component. Envelope-aware — a ``layout:`` key holds
-    the tree and a ``modelView:`` key names the logic class the tooling binds it to."""
+    the tree and a ``viewModel:`` (or the deprecated ``modelView:``) key names the logic class the
+    tooling binds it to. A ``layoutDelta:`` page has no layout of its own (see
+    :func:`parse_spec_with_delta`)."""
+    model_view, layout, _ = parse_spec_with_delta(text, partials)
+    return model_view, layout
+
+
+def parse_spec_with_delta(text: str, partials: PartialRegistry | None = None):
+    """``(view model class name, layout, layout delta)``. A ``layoutDelta:`` is not a layout: it
+    is a diff re-applied over the INFERRED layout of the view model, so such a page returns no
+    layout and the parsed :class:`~mateu_core.layout_delta.LayoutDelta`."""
+    from .layout_delta import LayoutDelta
+
     registry = partials or _DEFAULT_PARTIALS
     try:
         data = yaml.safe_load(text)
     except yaml.YAMLError:
-        return None, None
+        return None, None, None
     if not isinstance(data, dict):
-        return None, _single(data, registry, [])
-    model_view = data.get("modelView")
+        return None, _single(data, registry, []), None
+    model_view = data.get("viewModel") or data.get("modelView")
     if "layout" not in data and "layoutDelta" in data:
-        # A `layoutDelta:` is not a layout: it is a diff to re-apply over the INFERRED one, which
-        # only the Java server does today. Returning None here is what stops the port from
-        # rendering the envelope itself as a component ("Unsupported component: None") — a visible
-        # wrong page is worse than no page.
-        return model_view, None
+        return model_view, None, LayoutDelta.parse(data.get("layoutDelta"))
     layout_node = data["layout"] if "layout" in data else data
-    return model_view, _single(layout_node, registry, [])
+    return model_view, _single(layout_node, registry, []), None
 
 
 def _single(node: Any, partials: PartialRegistry, chain: list[str]) -> fluent.Component | None:
@@ -121,6 +134,8 @@ def _build(node: Any, partials: PartialRegistry, chain: list[str]) -> fluent.Com
         )
     if kind == "Text":
         return fluent.Text(text=node.get("text", ""))
+    if kind == "ComponentRef":
+        return fluent.ComponentRef(ref=str(node.get("ref") or ""))
     return fluent.Text(text=f"Unsupported component: {kind}")
 
 

@@ -13,8 +13,8 @@ import java.util.List;
  *
  * <ol>
  *   <li>r ≤ 1.0 → table (everything fits)
- *   <li>r > 1.6 or column count > 10 → master-detail
- *   <li>1.0 < r ≤ 1.6 AND a compact primary subset (priority ≤ 2 or identifier) fits in ≤ 8u →
+ *   <li>r &gt; 1.6 or column count &gt; 10 → master-detail
+ *   <li>1.0 &lt; r ≤ 1.6 AND a compact primary subset (priority ≤ 2 or identifier) fits in ≤ 8u →
  *       two-line list
  *   <li>has image/html stereotype OR 4–8 fields without a clear primary → cards
  *   <li>fallback → master-detail

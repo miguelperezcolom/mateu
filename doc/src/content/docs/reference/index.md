@@ -21,6 +21,8 @@ Use this section when you want to answer questions like:
 - [Key interfaces](/reference/key-interfaces/)
 - [Fluent model](/reference/fluent-model/)
 - [Useful types](/reference/useful-types/)
+- [Stability & versioning](/reference/stability-and-versioning/) — what is public API, deprecation and wire compatibility
+- [Migrating from alpha](/reference/migrating-from-alpha/) — every rename and removal of the 3.0 alphas
 
 ## How to use this section
 

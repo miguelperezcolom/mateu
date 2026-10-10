@@ -15,6 +15,10 @@ import com.intellij.openapi.util.Disposer
 import com.intellij.openapi.util.UserDataHolderBase
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.openapi.vfs.VirtualFileManager
+import com.intellij.openapi.vfs.newvfs.BulkFileListener
+import com.intellij.openapi.vfs.newvfs.events.VFileEvent
+import com.intellij.util.Alarm
 import com.intellij.ui.jcef.JBCefApp
 import com.intellij.ui.jcef.JBCefBrowser
 import com.intellij.ui.jcef.JBCefJSQuery
@@ -52,12 +56,18 @@ class MateuVisualEditor(
     private val query: JBCefJSQuery? = browser?.let { JBCefJSQuery.create(it as com.intellij.ui.jcef.JBCefBrowserBase) }
     private val fallback: JComponent? = if (browser == null) JLabel("JCEF is not available in this IDE runtime.") else null
 
+    /** Coalesces bursts of file events (a save-all, a refactoring) into one push of the file list. */
+    private val filesAlarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
+
     init {
         val b = browser
         val q = query
         if (b != null && q != null) {
             q.addHandler { request -> onWebMessage(request); null }
-            val port = MateuVisualEditorServer.ensureStarted(loadMateuConfig().baseUrl)
+            val port = MateuVisualEditorServer.ensureStarted(
+                loadMateuConfig(project).baseUrl,
+                io.mateu.ijp.auth.MateuAuthService.getInstance(project),
+            )
             b.jbCefClient.addLoadHandler(object : CefLoadHandlerAdapter() {
                 override fun onLoadEnd(cef: CefBrowser?, frame: CefFrame?, httpStatusCode: Int) {
                     if (frame?.isMain == true) installBridge()
@@ -74,7 +84,21 @@ class MateuVisualEditor(
                 sendToWeb(mapOf("type" to "externalChange", "yaml" to event.document.text))
             }
         }, this)
+        // A page/shell created, changed or deleted under specs/ui while this editor is open must reach
+        // its pickers (a routes file's definition list) without reopening the editor: push the files.
+        project.messageBus.connect(this).subscribe(VirtualFileManager.VFS_CHANGES, object : BulkFileListener {
+            override fun after(events: List<VFileEvent>) {
+                val root = specsUiRoot(file)?.path ?: return
+                if (events.any { e -> isSpecsYaml(e.path, root) }) {
+                    filesAlarm.cancelAllRequests()
+                    filesAlarm.addRequest({ sendFiles() }, 300)
+                }
+            }
+        })
     }
+
+    private fun isSpecsYaml(path: String, root: String): Boolean =
+        path.startsWith("$root/") && (path.endsWith(".yaml") || path.endsWith(".yml"))
 
     /** Drain messages queued before the pipe existed and route future ones through the JCEF query. */
     private fun installBridge() {

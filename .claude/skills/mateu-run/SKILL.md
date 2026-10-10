@@ -31,7 +31,11 @@ cd e2e/sut/apps/mvc-app1 && mvn spring-boot:run
 
 Default port `8080` → open `http://localhost:8080/<route>`. Run it in the background so you
 can screenshot while it serves. Demo apps live under `demo/` (e.g.
-`demo/demo-admin-panel`, `demo/demo-vaadin-mvc`) and start the same way.
+`demo/demo-admin-panel`, `demo/demo-vaadin-mvc`) and start the same way — each on its own port
+(`demo/README.md` lists them). The showcase demos default to `mateu.version=0.0.1-MATEU`, so
+`mvn install` the backend first; the start-here ones use the latest release. To avoid port clashes
+with other running apps, pass `--server.port=<free port>` (`-Dspring-boot.run.arguments=…`).
+For a minimal app to try something on, use `starters/spring-mvc`.
 
 ## 3. Screenshot a route
 

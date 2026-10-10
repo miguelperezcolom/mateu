@@ -3,6 +3,7 @@ import { customElement, property, state } from 'lit/decorators.js';
 import PlanningResource from "@mateu/shared/apiClients/dtos/componentmetadata/PlanningResource";
 import PlanningBlock from "@mateu/shared/apiClients/dtos/componentmetadata/PlanningBlock";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 interface DragState {
     blockId: string
@@ -544,7 +545,7 @@ export class MateuPlanningBoard extends LitElement {
         })
         return html`
             <div class="frame" style="grid-template-columns: minmax(${8 + 4.5 * this.attributeColumns.length}rem, ${12 + 4.5 * this.attributeColumns.length}rem) repeat(${win.days}, minmax(2.2rem, 1fr));">
-                <div class="corner"><span class="res-name">Resource</span>${this.attributeColumns.map(c => html`<span class="attr">${c}</span>`)}</div>
+                <div class="corner"><span class="res-name">${chromeText('resource')}</span>${this.attributeColumns.map(c => html`<span class="attr">${c}</span>`)}</div>
                 ${days.map((day, i) => html`
                     <div class="day-head ${this.isWeekend(day) ? 'weekend' : ''} ${i === todayIdx ? 'today' : ''}">
                         <span class="dow">${day.toLocaleDateString(undefined, { weekday: 'short' })}</span>

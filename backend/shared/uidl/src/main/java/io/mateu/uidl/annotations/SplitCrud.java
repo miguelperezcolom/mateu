@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Switches a {@link io.mateu.core.infra.declarative.orchestrators.crud.Crud} to a split-panel
+ * Switches a {@code io.mateu.core.infra.declarative.orchestrators.crud.Crud} to a split-panel
  * layout: the record list is displayed on the left and the create/edit form on the right, both
  * visible at the same time.
  *

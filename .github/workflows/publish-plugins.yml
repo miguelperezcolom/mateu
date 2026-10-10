@@ -48,6 +48,10 @@ jobs:
         run: cd frontend/web/monorepo && npm ci
       - name: Set the plugin version from the tag
         run: cd frontend/app/intellij-plugin && sed -i 's/^version = ".*"/version = "'"$PLUGIN_VERSION"'"/' build.gradle.kts
+      # Never publish what the Plugin Verifier rejects (compatibility with the recommended IDEs of the
+      # since/until range, internal or removed API usage, descriptor problems).
+      - name: Verify the plugin
+        run: cd frontend/app/intellij-plugin && ./gradlew test verifyPlugin --no-daemon --console=plain
       # `publishPlugin` intermittently dies with a transient Gradle `ClosedFileSystemException` during
       # the build phase (before the upload), so retry a few times — with a fresh daemon each attempt —
       # instead of needing a manual re-run. If a prior attempt actually uploaded (so the marketplace
@@ -100,6 +104,8 @@ jobs:
         run: cd frontend/app/vscode-extension && npm ci
       - name: Set the extension version from the tag
         run: cd frontend/app/vscode-extension && npm version "$PLUGIN_VERSION" --no-git-tag-version --allow-same-version
+      - name: Test the extension
+        run: cd frontend/app/vscode-extension && npm run compile && npm test
       - name: Package the .vsix
         run: cd frontend/app/vscode-extension && npx @vscode/vsce package -o mateu-visual-editor.vsix
       - name: Publish to the VS Code Marketplace

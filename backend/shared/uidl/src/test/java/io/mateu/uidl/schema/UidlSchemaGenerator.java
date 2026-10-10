@@ -362,6 +362,12 @@ public final class UidlSchemaGenerator {
     // files, so every specs/ui file can be told apart by its `type`. A bare list has no room for
     // it.
     envelopeProps.putObject("type").put("const", "Routes");
+    envelopeProps
+        .putObject("basePath")
+        .put("type", "string")
+        .put(
+            "description",
+            "The mount this file's routes belong to, for a route file that is not listed by a `type: UI` mount (a class-declared @UI(\"/shop\") mount): its routes are authored relative to it. Optional; default the root mount.");
     envelopeProps.set("routes", list);
     envelope.putArray("required").add("routes");
 
@@ -447,6 +453,14 @@ public final class UidlSchemaGenerator {
     var props = root.putObject("properties");
     props.putObject("type").put("const", "UI");
     props.putObject("basePath").put("type", "string");
+    props
+        .putObject("home")
+        .put("type", "string")
+        .put(
+            "description",
+            "A route of this mount (relative to it, as in routes.yaml) that is the mount's home"
+                + " page: the mount root renders it when no route \"\" is authored, and an app shell"
+                + " bound to \"\" without its own homeRoute lands on it.");
     var routes = props.putObject("routes");
     routes.put("type", "array");
     routes.putObject("items").put("type", "string");
@@ -498,12 +512,26 @@ public final class UidlSchemaGenerator {
     var mountProps = mount.putObject("properties");
     mountProps.putObject("type").put("const", "UI");
     mountProps.putObject("basePath").put("type", "string");
+    mountProps
+        .putObject("home")
+        .put("type", "string")
+        .put(
+            "description",
+            "A route of this mount (relative to it, as in routes.yaml) that is the mount's home"
+                + " page: the mount root renders it when no route \"\" is authored, and an app shell"
+                + " bound to \"\" without its own homeRoute lands on it.");
     mountProps.putObject("routes").put("type", "array").putObject("items").put("type", "string");
     mount.putArray("required").add("type");
 
     var routesEnvelope = MAPPER.createObjectNode().put("type", "object");
     var routesProps = routesEnvelope.putObject("properties");
     routesProps.putObject("type").put("const", "Routes");
+    routesProps
+        .putObject("basePath")
+        .put("type", "string")
+        .put(
+            "description",
+            "The mount this file's routes belong to, for a route file that is not listed by a `type: UI` mount (a class-declared @UI(\"/shop\") mount): its routes are authored relative to it. Optional; default the root mount.");
     routesProps.set("routes", entryList);
     routesEnvelope.putArray("required").add("routes");
 

@@ -55,6 +55,10 @@ routes:
 
 ```java
 public class Steps extends AutoCrud<Step> {
+    @Override
+    public CrudStore<Step> store() {
+        return new StepStore(); // your CrudStore<Step>
+    }
 
     String processId;
 

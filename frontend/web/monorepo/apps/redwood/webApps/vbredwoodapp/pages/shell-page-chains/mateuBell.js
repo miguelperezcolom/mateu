@@ -23,7 +23,7 @@ define([
      */
     async run(context, { op, item }) {
       const { $application } = context;
-      const base = $application.constants.mateuBaseUrl;
+      const base = bridge.mateuBase($application.constants.mateuBaseUrl);
       const sst = $application.variables.mateuShellSST;
       const appState = $application.variables.mateuAppState || {};
       const popup = document.getElementById('mateuBellPopup');

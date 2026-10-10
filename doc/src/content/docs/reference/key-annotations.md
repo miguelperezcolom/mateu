@@ -347,7 +347,7 @@ Defines dynamic browser-side behavior.
 
 ```java
 @Rule(
-  filter = "name == null || name == ''",
+  filter = "state.name == null || state.name == ''",
   action = RuleAction.SetAttributeValue,
   fieldName = "save",
   fieldAttribute = RuleFieldAttribute.disabled,
@@ -567,7 +567,12 @@ Switches a `Crud` (or `AutoCrud`) to a split-panel layout: the record list stays
 ```java
 @UI("/orders")
 @SplitCrud
-public class OrdersCrud extends AutoCrud<Order> {}
+public class OrdersCrud extends AutoCrud<Order> {
+    @Override
+    public CrudStore<Order> store() {
+        return new OrderStore(); // your CrudStore<Order>
+    }
+}
 ```
 
 The framework hides the *Cancel* button in the create form and automatically refreshes the list after saving. See [Split View](/ux-patterns/split-view/) for the full behaviour.

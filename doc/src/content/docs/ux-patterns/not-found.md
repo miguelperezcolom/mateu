@@ -24,7 +24,7 @@ user. Nothing else to do: no screen-by-screen handling.
 @Override
 public Stay view(String id, HttpRequest httpRequest) {
   return stays.findById(id)
-      .orElseThrow(() -> new NoSuchElementException("Reserva " + id + " no encontrada"));
+      .orElseThrow(() -> new NoSuchElementException("Booking " + id + " not found"));
 }
 ```
 
@@ -37,9 +37,9 @@ loaded view — anything that runs for the initial load of a route (an empty act
   wire) as the content of the route — not an error message. The renderers paint it in place of the
   page, keeping the app shell (top bar, menu) around it;
 - uses the exception's **message as the heading**;
-- logs **one INFO line** (`Not found: route /reservas/FO-X6JB7F — Reserva FO-X6JB7F no encontrada`)
+- logs **one INFO line** (`Not found: route /bookings/FO-X6JB7F — Booking FO-X6JB7F not found`)
   instead of an ERROR with a stack trace;
-- offers a **way back** to the parent route (`/reservas/FO-X6JB7F` → `/reservas`), or the app home
+- offers a **way back** to the parent route (`/bookings/FO-X6JB7F` → `/bookings`), or the app home
   for a top-level route.
 
 A route that resolves to **nothing at all** (no view, no definition) answers the same page, headed
@@ -70,10 +70,10 @@ own texts or way back:
 
 ```java
 return NotFound.builder()
-    .title("Esta reserva ya no existe")
-    .message("Se canceló y se archivó el 3 de octubre.")
-    .backRoute("/reservas")
-    .backLabel("Ver reservas")
+    .title("This booking no longer exists")
+    .message("It was cancelled and archived on 3 October.")
+    .backRoute("/bookings")
+    .backLabel("See bookings")
     .build();
 ```
 

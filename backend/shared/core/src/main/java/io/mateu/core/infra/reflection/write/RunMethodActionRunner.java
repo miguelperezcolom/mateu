@@ -19,6 +19,7 @@ import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,6 +30,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Named
+@Singleton
 @RequiredArgsConstructor(onConstructor_ = @Inject)
 public class RunMethodActionRunner implements ActionRunner {
 

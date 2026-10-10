@@ -10,7 +10,6 @@ import com.intellij.openapi.fileEditor.FileEditorPolicy
 import com.intellij.openapi.fileEditor.FileEditorProvider
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview
-import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
 import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.UserDataHolderBase
@@ -54,7 +53,8 @@ class YamlPagePreviewProvider : FileEditorProvider, DumbAware {
   }
 
   override fun createEditor(project: Project, file: VirtualFile): FileEditor {
-    val textEditor = TextEditorProvider.getInstance().createEditor(project, file) as TextEditor
+    val textEditor = com.intellij.openapi.fileEditor.ex.FileEditorProviderManager.getInstance()
+      .getProvider("text-editor")!!.createEditor(project, file) as TextEditor
     val preview = YamlPagePreviewEditor(project, file)
     return TextEditorWithPreview(
       textEditor,
@@ -76,7 +76,10 @@ private class YamlPagePreviewEditor(
 ) : UserDataHolderBase(), FileEditor {
 
   private val root = JPanel(BorderLayout())
-  private val session = AppSession(loadMateuConfig().baseUrl)
+  private val session = AppSession(
+    loadMateuConfig(project).baseUrl,
+    tokenProvider = io.mateu.ijp.auth.MateuAuthService.getInstance(project),
+  )
   private val alarm = Alarm(Alarm.ThreadToUse.SWING_THREAD, this)
   private val document = FileDocumentManager.getInstance().getDocument(file)
 

@@ -1,3 +1,4 @@
+import { safeHref } from './safeNavigate'
 /**
  * How a `richText` field's stored value is read. The value is HTML. Values written by the old
  * vaadin-rich-text-editor are Quill Delta JSON (`[{"insert":"…"}]` or `{"ops":[…]}`); those are
@@ -26,10 +27,7 @@ export const deltaOps = (value: string | null | undefined): Op[] | null => {
 const escapeHtml = (text: string) =>
     text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
-const safeHref = (href: unknown) => {
-    const h = String(href ?? '').trim()
-    return /^(https?:|mailto:|tel:|\/|#)/i.test(h) || !/^[a-z][a-z0-9+.-]*:/i.test(h) ? h : ''
-}
+
 
 const inline = (text: string, a: Record<string, unknown> = {}) => {
     let out = escapeHtml(text)
@@ -38,7 +36,8 @@ const inline = (text: string, a: Record<string, unknown> = {}) => {
     if (a.italic) out = `<em>${out}</em>`
     if (a.underline) out = `<u>${out}</u>`
     if (a.strike) out = `<s>${out}</s>`
-    if (a.link && safeHref(a.link)) out = `<a href="${escapeHtml(safeHref(a.link))}">${out}</a>`
+    const href = safeHref(a.link)
+    if (a.link && href) out = `<a href="${escapeHtml(href)}">${out}</a>`
     return out
 }
 

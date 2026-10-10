@@ -1,3 +1,4 @@
+import { sanitizeHtml } from './richtext.mjs'
 // VENTANAS FLOTANTES al pasar el ratón (y al enfocar con el teclado): el resumen de una tarifa, el
 // detalle de una celda. UNA oj-popup de JET compartida, creada fuera de Knockout, a la que se
 // le cambia el contenido: cualquier elemento con data-mateu-hover (texto, líneas con \n) la abre
@@ -41,7 +42,10 @@ export function installHover(doc = typeof document !== 'undefined' ? document : 
   const open = (el, text) => {
     const p = ensure()
     body.textContent = ''
-    for (const line of hoverLinesOf(text)) {
+    // rich content (a Popover's components): the sanitised HTML; else the text lines
+    const html = el.getAttribute('data-mateu-pop-html') || ''
+    if (html) body.innerHTML = sanitizeHtml(html)
+    else for (const line of hoverLinesOf(text)) {
       const div = doc.createElement('div')
       div.textContent = line
       body.appendChild(div)

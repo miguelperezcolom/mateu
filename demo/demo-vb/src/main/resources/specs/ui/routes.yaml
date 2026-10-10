@@ -8,6 +8,11 @@
 # link and back/forward. Reached on its own, the master opens its defaultChild.
 type: Routes
 routes:
+  # the display components galleries: data only (components*.yaml), no view model
+  - route: components
+    definition: components.yaml
+  - route: components-2
+    definition: components-2.yaml
   - route: customers
     viewModel: io.mateu.mdd.demovb.infra.in.ui.mastertabs.Customers
   - route: customers/:customerId

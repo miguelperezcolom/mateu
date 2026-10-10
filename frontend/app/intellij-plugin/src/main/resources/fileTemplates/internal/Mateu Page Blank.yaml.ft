@@ -1,0 +1,5 @@
+# A blank layout: open it in the Mateu visual editor to build it from the palette.
+type: VerticalLayout
+__PAGE_WIDTH__
+content:
+  - {type: Text, text: __TITLE__, container: h2}

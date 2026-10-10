@@ -25,13 +25,15 @@ import App from "@mateu/shared/apiClients/dtos/componentmetadata/App.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
 
 // DS-neutral stand-ins for the vaadin-menu-bar / vaadin-app-layout types this base class used.
-// (sapui5 overrides the rendering methods; the Vaadin renderer's chrome now renders neutrally too.)
 export type MenuBarItem = { text?: string; route?: string; checked?: boolean; disabled?: boolean; className?: string; component?: unknown; children?: MenuBarItem[]; [key: string]: unknown }
 type MenuBarItemSelectedEvent = CustomEvent<{ value: MenuBarItem }>
 type AppLayout = HTMLElement & { drawerOpened?: boolean }
 import {MateuChat} from "@infra/ui/mateu-chat.ts";
 import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
 import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
+import { safeLocalStorage } from '@infra/safeStorage.ts'
+import { runJs } from '@infra/ui/runJs.ts'
+import { applyUiLanguage, chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 
 // one hit of the app's GlobalSearchSupplier, shown by the command palette under the menu results
 interface GlobalSearchHit { label: string, description?: string, route: string, category?: string }
@@ -263,7 +265,7 @@ export class MateuApp extends ComponentElement {
         this.isDark = !this.isDark
         const theme = this.isDark ? 'dark' : 'light'
         document.documentElement.setAttribute('theme', theme)
-        localStorage.setItem('mateu-theme', theme)
+        safeLocalStorage.set('mateu-theme', theme)
     }
 
     showHideIa = () => {
@@ -295,7 +297,7 @@ export class MateuApp extends ComponentElement {
                 this.runAction(rule.actionId)
             } else if (rule.action === RuleAction.RunJS && rule.value != null) {
                 try {
-                    new Function(String(rule.value))()
+                    runJs(String(rule.value))
                 } catch (e) {
                     console.error('menu RunJS rule failed', e)
                 }
@@ -424,7 +426,7 @@ export class MateuApp extends ComponentElement {
                         ${icon('vaadin:search', undefined, 'cmd-search-icon')}
                         <input
                             class="cmd-input"
-                            placeholder="Go to…"
+                            placeholder="${chromeText('goTo')}"
                             .value=${this.commandPaletteQuery}
                             @input=${(e: InputEvent) => {
                                 this.commandPaletteQuery = (e.target as HTMLInputElement).value
@@ -463,7 +465,7 @@ export class MateuApp extends ComponentElement {
                                         ${hit.description ? html`<span class="cmd-result-breadcrumb">${hit.description}</span>` : nothing}
                                     </div>`
                             })}` : nothing}
-                        ${filtered.length === 0 && this.commandPaletteDataHits.length === 0 ? html`<div class="cmd-empty">No results for "${this.commandPaletteQuery}"</div>` : nothing}
+                        ${filtered.length === 0 && this.commandPaletteDataHits.length === 0 ? html`<div class="cmd-empty">${chromeTextf('noResultsFor', { query: this.commandPaletteQuery })}</div>` : nothing}
                     </div>
                 </div>
             </div>
@@ -841,6 +843,14 @@ export class MateuApp extends ComponentElement {
         this.selectRoute(detail.consumedRoute, detail.route, detail.actionId, detail.baseUrl, detail.serverSideType, detail.uriPrefix, detail.rules)
     }
 
+    // The page language must be right BEFORE this render: the chrome draws its words from it.
+    protected willUpdate(changed: PropertyValues) {
+        super.willUpdate(changed)
+        if (changed.has('component')) {
+            applyUiLanguage(((this.component as ClientSideComponent | undefined)?.metadata as App | undefined)?.locale)
+        }
+    }
+
     protected updated(_changedProperties: PropertyValues) {
         super.updated(_changedProperties);
         syncCommandCenter(this);
@@ -1019,6 +1029,12 @@ export class MateuApp extends ComponentElement {
             border-bottom: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));
             /* (no accent line here: the app's accent is a strip drawn where Redwood draws its
                colour strip — under the page header, on top of a listing — see applyAccent) */
+        }
+        /* home / section links are buttons (no href="javascript:…", which a strict CSP blocks):
+           reset to look like the links they replace */
+        :where(button.mateu-app-brand, button.mateu-app-band-title) {
+            background: none; border: none; padding: 0; margin: 0; font: inherit; color: inherit;
+            cursor: pointer; text-align: inherit;
         }
         .mateu-app-band-title {
             flex: 0 0 auto;

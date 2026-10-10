@@ -1,0 +1,8 @@
+type: Routes
+routes:
+  - route: ""
+    definition: shell.yaml
+  - route: dashboard
+    definition: dashboard.yaml
+  - route: orders
+    definition: orders.yaml

@@ -11,6 +11,7 @@ import { Banner } from "@mateu/shared/apiClients/dtos/componentmetadata/Banner.t
 import { requestAside } from "@infra/ui/layout/fabRail.ts"
 import type { AsidePlacement } from "@infra/ui/layout/fabRail.ts"
 import { linkStyles } from "@infra/ui/linkStyles.ts";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /** Narrow viewports (the rail's NARROW_VIEWPORT): nothing pins but the section bar, and that compact. */
 const NARROW_QUERY = '(max-width: 599px)'
@@ -267,7 +268,7 @@ export class MateuPage extends LitElement {
                     <div style="display: flex; align-items: center; justify-content: space-between; color: #1a1a1a; width: 100%;">
                         <span style="font-weight: 600;">${title ?? ''}</span>
                         ${banner.hasCloseButton ? html`
-                            <button class="banner-close" @click=${onDismiss} title="Dismiss" aria-label="Dismiss">✕</button>
+                            <button class="banner-close" @click=${onDismiss} title="${chromeText('dismiss')}" aria-label="${chromeText('dismiss')}">✕</button>
                         ` : nothing}
                     </div>
                 ` : nothing}
@@ -539,7 +540,7 @@ export class MateuPage extends LitElement {
                     </div>
                 </div>
                 ${this._tocVisible ? html`
-                    <aside class="page-toc" aria-label="Sections">
+                    <aside class="page-toc" aria-label="${chromeText('sections')}">
                         <nav>
                             ${this._tocEntries.map((entry, i) => html`
                                 <a class="page-toc__item ${i === this._activeToc ? 'is-active' : ''}"

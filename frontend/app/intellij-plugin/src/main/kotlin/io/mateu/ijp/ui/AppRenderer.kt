@@ -88,7 +88,7 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
     // AI chat (App.sseUrl): the assistant opens in a modeless dialog from the navigator.
     val sseUrl = metadata.text("sseUrl")
     if (sseUrl.isNotBlank()) {
-        val chat = ActionLink("💬 Assistant") { openChatDialog(sseUrl) }
+        val chat = ActionLink("💬 Assistant") { openChatDialog(sseUrl, session.apiClient.tokenProvider) }
         chat.border = JBUI.Borders.empty(8)
         sidebar.addStacked(chat, 2)
     }
@@ -247,15 +247,26 @@ private fun menuCardVisual(card: MenuCards.Card): JComponent? {
     }
 }
 
-/** Minimal assistant dialog speaking the mateu-chat contract: POST {message, sessionId} to the
- *  SSE endpoint and show the accumulated `data:` payloads as the agent reply. */
-private fun openChatDialog(sseUrl: String) {
+/** The assistant in a modeless dialog (the navigator's "Assistant" link). */
+private fun openChatDialog(sseUrl: String, tokens: io.mateu.ijp.api.TokenProvider) {
     val dialog = javax.swing.JDialog(null as java.awt.Frame?, "Assistant", false)
+    dialog.contentPane = buildChatPanel(sseUrl, tokens)
+    dialog.setSize(420, 480)
+    dialog.setLocationRelativeTo(null)
+    dialog.isVisible = true
+}
+
+/** Minimal assistant speaking the mateu-chat contract: POST {message, sessionId} to the SSE
+ *  endpoint and show the accumulated `data:` payloads as the agent reply. Shared by the app's
+ *  assistant dialog and an inline `Chat` component. */
+internal fun buildChatPanel(sseUrl: String, tokens: io.mateu.ijp.api.TokenProvider): JComponent {
     val messages = javax.swing.JTextArea()
     messages.isEditable = false
     messages.lineWrap = true
     messages.wrapStyleWord = true
     val input = com.intellij.ui.components.JBTextField()
+    messages.accessibleName("Conversation")
+    input.accessibleName("Message to the assistant")
     val sessionId = "chat-" + java.util.UUID.randomUUID().toString().take(8)
     val client = java.net.http.HttpClient.newHttpClient()
     val mapper = com.fasterxml.jackson.databind.ObjectMapper()
@@ -271,6 +282,7 @@ private fun openChatDialog(sseUrl: String) {
                 val request = java.net.http.HttpRequest.newBuilder(java.net.URI.create(sseUrl))
                     .header("Accept", "text/event-stream")
                     .header("Content-Type", "application/json")
+                    .apply { io.mateu.ijp.api.bearer(tokens.accessToken())?.let { header("Authorization", it) } }
                     .POST(java.net.http.HttpRequest.BodyPublishers.ofString(body))
                     .build()
                 val response = client.send(request, java.net.http.HttpResponse.BodyHandlers.ofString())
@@ -289,8 +301,5 @@ private fun openChatDialog(sseUrl: String) {
     root.border = JBUI.Borders.empty(10)
     root.add(JBScrollPane(messages), java.awt.BorderLayout.CENTER)
     root.add(input, java.awt.BorderLayout.SOUTH)
-    dialog.contentPane = root
-    dialog.setSize(420, 480)
-    dialog.setLocationRelativeTo(null)
-    dialog.isVisible = true
+    return root
 }

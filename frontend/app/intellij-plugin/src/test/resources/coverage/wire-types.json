@@ -1,0 +1,773 @@
+{
+ "fragments": [
+  {
+   "targetComponentId": "",
+   "action": "Replace",
+   "component": {
+    "type": "ClientSide",
+    "id": "coverage",
+    "metadata": {
+     "type": "VerticalLayout",
+     "spacing": true
+    },
+    "children": [
+     {
+      "type": "ClientSide",
+      "id": "c3",
+      "metadata": {
+       "type": "MasterDetailLayout"
+      },
+      "children": [
+       {
+        "type": "ClientSide",
+        "id": "c1",
+        "metadata": {
+         "type": "Text",
+         "text": "Master list"
+        },
+        "children": []
+       },
+       {
+        "type": "ClientSide",
+        "id": "c2",
+        "metadata": {
+         "type": "Text",
+         "text": "Detail pane"
+        },
+        "children": []
+       }
+      ]
+     },
+     {
+      "type": "ClientSide",
+      "id": "c7",
+      "metadata": {
+       "type": "CarouselLayout",
+       "nav": true,
+       "loop": true,
+       "selected": 0
+      },
+      "children": [
+       {
+        "type": "ClientSide",
+        "id": "c4",
+        "metadata": {
+         "type": "Text",
+         "text": "Slide one"
+        },
+        "children": []
+       },
+       {
+        "type": "ClientSide",
+        "id": "c5",
+        "metadata": {
+         "type": "Text",
+         "text": "Slide two"
+        },
+        "children": []
+       },
+       {
+        "type": "ClientSide",
+        "id": "c6",
+        "metadata": {
+         "type": "Text",
+         "text": "Slide three"
+        },
+        "children": []
+       }
+      ]
+     },
+     {
+      "type": "ClientSide",
+      "id": "c13",
+      "metadata": {
+       "type": "BoardLayout"
+      },
+      "children": [
+       {
+        "type": "ClientSide",
+        "id": "c12",
+        "metadata": {
+         "type": "BoardLayoutRow"
+        },
+        "children": [
+         {
+          "type": "ClientSide",
+          "id": "c9",
+          "metadata": {
+           "type": "BoardLayoutItem",
+           "boardCols": 1
+          },
+          "children": [
+           {
+            "type": "ClientSide",
+            "id": "c8",
+            "metadata": {
+             "type": "Text",
+             "text": "Board A"
+            },
+            "children": []
+           }
+          ]
+         },
+         {
+          "type": "ClientSide",
+          "id": "c11",
+          "metadata": {
+           "type": "BoardLayoutItem"
+          },
+          "children": [
+           {
+            "type": "ClientSide",
+            "id": "c10",
+            "metadata": {
+             "type": "Text",
+             "text": "Board B"
+            },
+            "children": []
+           }
+          ]
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "type": "ClientSide",
+      "id": "c17",
+      "metadata": {
+       "type": "ContentLayout",
+       "asidePosition": "end",
+       "asideWidth": "16rem"
+      },
+      "children": [
+       {
+        "type": "ClientSide",
+        "id": "c14",
+        "metadata": {
+         "type": "Text",
+         "text": "Main region"
+        },
+        "children": [],
+        "slot": "main-0"
+       },
+       {
+        "type": "ClientSide",
+        "id": "c15",
+        "metadata": {
+         "type": "Text",
+         "text": "Aside region"
+        },
+        "children": [],
+        "slot": "aside-0"
+       },
+       {
+        "type": "ClientSide",
+        "id": "c16",
+        "metadata": {
+         "type": "Text",
+         "text": "Footer region"
+        },
+        "children": [],
+        "slot": "footer-0"
+       }
+      ]
+     },
+     {
+      "type": "ClientSide",
+      "id": "c22",
+      "metadata": {
+       "type": "ResponsiveGrid",
+       "gridTemplateColumns": "repeat(3, 1fr)"
+      },
+      "children": [
+       {
+        "type": "ClientSide",
+        "id": "c18",
+        "metadata": {
+         "type": "Text",
+         "text": "Cell 1"
+        },
+        "children": []
+       },
+       {
+        "type": "ClientSide",
+        "id": "c19",
+        "metadata": {
+         "type": "Text",
+         "text": "Cell 2"
+        },
+        "children": []
+       },
+       {
+        "type": "ClientSide",
+        "id": "c20",
+        "metadata": {
+         "type": "Text",
+         "text": "Cell 3"
+        },
+        "children": []
+       },
+       {
+        "type": "ClientSide",
+        "id": "c21",
+        "metadata": {
+         "type": "Text",
+         "text": "Cell 4"
+        },
+        "children": []
+       }
+      ]
+     },
+     {
+      "type": "ClientSide",
+      "id": "c25",
+      "metadata": {
+       "type": "FormItem"
+      },
+      "children": [
+       {
+        "type": "ClientSide",
+        "id": "c23",
+        "metadata": {
+         "type": "Text",
+         "text": "Label"
+        },
+        "children": []
+       },
+       {
+        "type": "ClientSide",
+        "id": "c24",
+        "metadata": {
+         "type": "Button",
+         "label": "Inside form item",
+         "actionId": "noop"
+        },
+        "children": []
+       }
+      ]
+     },
+     {
+      "type": "ClientSide",
+      "id": "c27",
+      "metadata": {
+       "type": "Tab",
+       "label": "Lonely tab"
+      },
+      "children": [
+       {
+        "type": "ClientSide",
+        "id": "c26",
+        "metadata": {
+         "type": "Text",
+         "text": "Tab body"
+        },
+        "children": []
+       }
+      ]
+     },
+     {
+      "type": "ClientSide",
+      "id": "c29",
+      "metadata": {
+       "type": "AccordionPanel",
+       "label": "Lonely panel"
+      },
+      "children": [
+       {
+        "type": "ClientSide",
+        "id": "c28",
+        "metadata": {
+         "type": "Text",
+         "text": "Panel body"
+        },
+        "children": []
+       }
+      ]
+     },
+     {
+      "type": "ClientSide",
+      "id": "c31",
+      "metadata": {
+       "type": "Stepper"
+      },
+      "children": [
+       {
+        "type": "ClientSide",
+        "id": "c30",
+        "metadata": {
+         "type": "Text",
+         "text": "Step content"
+        },
+        "children": []
+       }
+      ]
+     },
+     {
+      "type": "ClientSide",
+      "id": "c32",
+      "metadata": {
+       "type": "Breadcrumbs",
+       "currentItemText": "Order 42",
+       "breadcrumbs": [
+        {
+         "text": "Home",
+         "link": "/"
+        },
+        {
+         "text": "Orders",
+         "link": "/orders"
+        }
+       ]
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c33",
+      "metadata": {
+       "type": "Breadcrumb",
+       "text": "Single crumb",
+       "link": "/x"
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c34",
+      "metadata": {
+       "type": "MenuBar",
+       "options": [
+        {
+         "label": "Sales",
+         "submenus": [
+          {
+           "label": "Orders",
+           "route": "/orders"
+          },
+          {
+           "separator": true
+          },
+          {
+           "label": "Customers",
+           "route": "/customers",
+           "description": "Everyone you sell to"
+          }
+         ]
+        },
+        {
+         "label": "Reload",
+         "actionId": "reload"
+        }
+       ]
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c36",
+      "metadata": {
+       "type": "ContextMenu",
+       "activateOnLeftClick": true,
+       "menu": [
+        {
+         "label": "Sales",
+         "submenus": [
+          {
+           "label": "Orders",
+           "route": "/orders"
+          },
+          {
+           "separator": true
+          },
+          {
+           "label": "Customers",
+           "route": "/customers",
+           "description": "Everyone you sell to"
+          }
+         ]
+        },
+        {
+         "label": "Reload",
+         "actionId": "reload"
+        }
+       ],
+       "wrapped": {
+        "type": "ClientSide",
+        "id": "c35",
+        "metadata": {
+         "type": "Button",
+         "label": "Right-click me",
+         "actionId": "noop"
+        },
+        "children": []
+       }
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c37",
+      "metadata": {
+       "type": "Directory",
+       "menu": [
+        {
+         "label": "Sales",
+         "submenus": [
+          {
+           "label": "Orders",
+           "route": "/orders"
+          },
+          {
+           "separator": true
+          },
+          {
+           "label": "Customers",
+           "route": "/customers",
+           "description": "Everyone you sell to"
+          }
+         ]
+        },
+        {
+         "label": "Reload",
+         "actionId": "reload"
+        }
+       ]
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "people",
+      "metadata": {
+       "type": "Grid",
+       "content": [
+        {
+         "type": "ClientSide",
+         "id": "c38",
+         "metadata": {
+          "type": "GridColumn",
+          "id": "name",
+          "label": "Name"
+         },
+         "children": []
+        },
+        {
+         "type": "ClientSide",
+         "id": "c39",
+         "metadata": {
+          "type": "GridColumn",
+          "id": "age",
+          "label": "Age"
+         },
+         "children": []
+        }
+       ],
+       "page": {
+        "content": [
+         {
+          "name": "Ana",
+          "age": 31
+         },
+         {
+          "name": "Luis",
+          "age": 45
+         }
+        ],
+        "totalElements": 2
+       }
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c41",
+      "metadata": {
+       "type": "GridColumn",
+       "id": "orphan",
+       "label": "Orphan column"
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c42",
+      "metadata": {
+       "type": "VirtualList",
+       "page": {
+        "content": [
+         {
+          "name": "Item A",
+          "code": "A"
+         },
+         {
+          "name": "Item B",
+          "code": "B"
+         }
+        ],
+        "totalElements": 2
+       }
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c43",
+      "metadata": {
+       "type": "Avatar",
+       "name": "Ana García",
+       "abbreviation": ""
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c44",
+      "metadata": {
+       "type": "AvatarGroup",
+       "maxItemsVisible": 2,
+       "avatars": [
+        {
+         "name": "Ana García"
+        },
+        {
+         "name": "Luis Pérez"
+        },
+        {
+         "name": "Marta Ruiz"
+        }
+       ]
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c45",
+      "metadata": {
+       "type": "Icon",
+       "icon": "vaadin:plus"
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c48",
+      "metadata": {
+       "type": "Details",
+       "opened": false,
+       "summary": {
+        "type": "ClientSide",
+        "id": "c46",
+        "metadata": {
+         "type": "Text",
+         "text": "More details"
+        },
+        "children": []
+       },
+       "content": {
+        "type": "ClientSide",
+        "id": "c47",
+        "metadata": {
+         "type": "Text",
+         "text": "Hidden details"
+        },
+        "children": []
+       }
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c50",
+      "metadata": {
+       "type": "Tooltip",
+       "text": "Helpful tip",
+       "wrapped": {
+        "type": "ClientSide",
+        "id": "c49",
+        "metadata": {
+         "type": "Button",
+         "label": "Hover me",
+         "actionId": "noop"
+        },
+        "children": []
+       }
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c51",
+      "metadata": {
+       "type": "Notification",
+       "title": "Heads up",
+       "text": "Something happened"
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c52",
+      "metadata": {
+       "type": "Result",
+       "title": "Order placed",
+       "resultType": "Success",
+       "message": "We emailed you the receipt.",
+       "interestingLinks": [
+        {
+         "id": "l1",
+         "type": "Route",
+         "description": "See your orders",
+         "value": "/orders"
+        }
+       ],
+       "nowTo": {
+        "id": "n1",
+        "type": "Route",
+        "description": "Back home",
+        "value": "/"
+       }
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c53",
+      "metadata": {
+       "type": "NotFound",
+       "title": "Not found",
+       "message": "No such order.",
+       "backRoute": "/orders",
+       "backLabel": "Back to orders"
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c54",
+      "metadata": {
+       "type": "CookieConsent",
+       "cookieName": "probe_consent",
+       "message": "We use cookies.",
+       "dismiss": "Got it",
+       "learnMore": "Learn more",
+       "learnMoreLink": "https://mateu.io"
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c55",
+      "metadata": {
+       "type": "Element",
+       "name": "h3",
+       "content": "An <element>",
+       "html": false,
+       "on": {
+        "click": "elementClicked"
+       },
+       "attributes": {}
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c56",
+      "metadata": {
+       "type": "Bpmn",
+       "xml": "<definitions xmlns='http://www.omg.org/spec/BPMN/20100524/MODEL'><process id='p'><startEvent id='s' name='Start'/><userTask id='t' name='Approve'/><endEvent id='e' name='Done'/><sequenceFlow id='f1' sourceRef='s' targetRef='t'/><sequenceFlow id='f2' sourceRef='t' targetRef='e'/></process></definitions>"
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c57",
+      "metadata": {
+       "type": "Workflow",
+       "value": "{\"steps\":[\"draft\",\"review\",\"published\"]}"
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c58",
+      "metadata": {
+       "type": "FormEditor",
+       "value": "type: Form\ntitle: Example"
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c59",
+      "metadata": {
+       "type": "Chat",
+       "sseUrl": "http://127.0.0.1:9/chat",
+       "uploadUrl": ""
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c60",
+      "metadata": {
+       "type": "MessageList",
+       "items": [
+        {
+         "text": "Hello!",
+         "userName": "Ana García",
+         "time": "10:00",
+         "userAbbr": "AG"
+        },
+        {
+         "text": "Hi Ana",
+         "userName": "Luis",
+         "time": "10:01"
+        }
+       ]
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c61",
+      "metadata": {
+       "type": "MessageInput",
+       "actionId": "sendMessage"
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c62",
+      "metadata": {
+       "type": "ConfirmDialog",
+       "header": "Sure?",
+       "openedCondition": "false",
+       "confirmText": "Yes",
+       "confirmActionId": "confirm"
+      },
+      "children": []
+     },
+     {
+      "type": "ClientSide",
+      "id": "c63",
+      "metadata": {
+       "type": "MicroFrontend",
+       "baseUrl": "http://127.0.0.1:9",
+       "route": "/remote",
+       "consumedRoute": "",
+       "serverSideType": "",
+       "actionId": ""
+      },
+      "children": []
+     }
+    ]
+   },
+   "state": {},
+   "data": {}
+  }
+ ],
+ "messages": [],
+ "commands": []
+}

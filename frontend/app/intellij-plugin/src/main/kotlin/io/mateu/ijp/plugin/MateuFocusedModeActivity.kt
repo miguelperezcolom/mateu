@@ -24,7 +24,11 @@ import kotlinx.coroutines.withContext
 class MateuFocusedModeActivity : ProjectActivity {
 
     override suspend fun execute(project: Project) {
-        val focused = loadMateuConfig().focused
+        val cfg = loadMateuConfig(project)
+        val focused = cfg.focused
+        // Not a Mateu project (no backend configured, not the standalone distribution): stay out of
+        // the way — no boot, no HTTP, no tool window popping open.
+        if (!cfg.configured) return
         withContext(Dispatchers.EDT) {
             if (focused) {
                 // Explicit-save UX (app-shell only): Mateu authors edit and save WHEN THEY DECIDE

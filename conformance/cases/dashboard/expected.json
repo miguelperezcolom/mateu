@@ -2,13 +2,6 @@
   "fragments" : [ {
     "action" : "Replace",
     "component" : {
-      "actions" : [ {
-        "validationRequired" : true
-      }, {
-        "validationRequired" : true
-      }, { }, { }, { }, { }, { }, {
-        "validationRequired" : true
-      }, { }, { }, { }, { } ],
       "children" : [ {
         "children" : [ {
           "children" : [ {

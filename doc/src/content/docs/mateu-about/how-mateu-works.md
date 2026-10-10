@@ -154,7 +154,12 @@ For standard business entities, `AutoCrud` gives you a full CRUD flow from a sin
 
 ```java
 @UI("/orders")
-public class Orders extends AutoCrud<Order> {}
+public class Orders extends AutoCrud<Order> {
+    @Override
+    public CrudStore<Order> store() {
+        return new OrderStore(); // your CrudStore<Order>
+    }
+}
 ```
 
 When you need explicit control, `Crud` lets you define each screen separately:

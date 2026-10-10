@@ -32,4 +32,33 @@ public record RunActionCommand(
   public Map<String, Object> appState() {
     return Collections.unmodifiableMap(appState);
   }
+
+  /**
+   * Names the command without the VALUES of its states: they carry whatever the user typed
+   * (passwords, personal data), and the record's default toString put all of it in the request log.
+   */
+  @Override
+  public String toString() {
+    return "RunActionCommand[route="
+        + route
+        + ", consumedRoute="
+        + consumedRoute
+        + ", actionId="
+        + actionId
+        + ", serverSideType="
+        + serverSideType
+        + ", serverSideComponentRoute="
+        + serverSideComponentRoute
+        + ", initiatorComponentId="
+        + initiatorComponentId
+        + ", baseUrl="
+        + baseUrl
+        + ", uiId="
+        + uiId
+        + ", componentState="
+        + io.mateu.dtos.RunActionRqDto.redacted(componentState)
+        + ", appState="
+        + io.mateu.dtos.RunActionRqDto.redacted(appState)
+        + "]";
+  }
 }

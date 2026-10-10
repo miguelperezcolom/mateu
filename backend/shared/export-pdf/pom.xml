@@ -10,7 +10,7 @@
   <artifactId>export-pdf</artifactId>
   <packaging>jar</packaging>
 
-  <name>Export PDF</name>
+  <name>Mateu PDF export</name>
   <description>Apache PDFBox-based PDF exporter for Mateu listings. Add this module to your project to enable PDF export.</description>
 
   <dependencies>

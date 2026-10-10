@@ -1,0 +1,6 @@
+# A UI mount: an app served at a base path — the data-driven equivalent of @UI. Discovered by
+# scanning specs/ui/** for `type: UI`. Its screens are declared in the route files listed below.
+type: UI
+basePath: /
+routes:
+  - routes.yaml

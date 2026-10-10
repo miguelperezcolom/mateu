@@ -1,2 +1,0 @@
-"use strict";define(["vb/action/actionChain","vb/action/actions","resources/js/mateu-bridge"],(ActionChain,Actions,bridge)=>{"use strict";return class extends ActionChain{async run(context){const{$application,$page}=context;if($page.variables.mateuRowEditorOpen){$page.variables.mateuRowEditorOpen=!1;const editor=bridge.rowEditorOf($application.variables.mateuRegistry);editor&&(await Actions.callChain(context,{chain:"runMateuAction",params:{actionId:editor.fieldId+"_cancel"}}))}}};});
-//# sourceMappingURL=mateuRowEditorDismissed.js.map

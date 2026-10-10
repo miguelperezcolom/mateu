@@ -52,7 +52,16 @@ intellijPlatform {
         name = "Mateu"
         ideaVersion {
             sinceBuild = "252"
-            untilBuild = provider { null }
+            // Capped to the platform lines it is verified against (pluginVerification below); raise it
+            // after verifyPlugin passes on the next major — an open range ships untested combinations.
+            untilBuild = "253.*"
+        }
+    }
+    // `./gradlew verifyPlugin` runs the JetBrains Plugin Verifier (compatibility, internal/deprecated
+    // API usage, descriptor problems) against the IDEs the Marketplace recommends for this range.
+    pluginVerification {
+        ides {
+            recommended()
         }
     }
     // `./gradlew publishPlugin` uploads to the JetBrains Marketplace (CI, on a `plugins-v*` release).
@@ -114,6 +123,20 @@ val generatePluginVersion = tasks.register("generatePluginVersion") {
 }
 sourceSets.main.get().resources.srcDir(versionResourceDir)
 tasks.named("processResources") { dependsOn(generatePluginVersion) }
+
+// The bundled authoring schema is the GENERATED backend/shared/uidl/specs-schema.json, copied at build
+// time (never a committed duplicate that drifts): it drives the specs/ui YAML validation and the
+// New | Mateu skeleton test.
+val specsSchema = projectDir.resolve("../../../backend/shared/uidl/specs-schema.json")
+val schemaResourceDir = layout.buildDirectory.dir("generated/schema")
+val copySpecsSchema = tasks.register<Copy>("copySpecsSchema") {
+    description = "Copy the generated Mateu specs schema into the plugin resources."
+    from(specsSchema)
+    into(schemaResourceDir.map { it.dir("schema") })
+    doFirst { check(specsSchema.exists()) { "missing $specsSchema" } }
+}
+sourceSets.main.get().resources.srcDir(schemaResourceDir)
+tasks.named("processResources") { dependsOn(copySpecsSchema) }
 
 // `./gradlew runIde` launches the IDE (from the configured platform) with the Mateu plugin — open
 // the "Mateu" tool window (View ▸ Tool Windows ▸ Mateu, or the Mateu menu). The consent flag just
@@ -492,9 +515,16 @@ tasks.register("buildInstaller") {
     }
 }
 
+// Dev-only probes (render/registry) live in their OWN source set: they are compiled against the
+// plugin + platform for the probe tasks, but never packaged into the plugin jar.
+val probes: SourceSet = sourceSets.create("probes") {
+    compileClasspath += sourceSets.main.get().output + sourceSets.main.get().compileClasspath
+    runtimeClasspath += output + compileClasspath
+}
+
 // Dev-only: exercise the app-registry client (entry URL, fetch/parse, version gate) headlessly.
 tasks.register<JavaExec>("registryProbe") {
-    classpath = sourceSets.main.get().output + sourceSets.main.get().compileClasspath
+    classpath = probes.output + probes.compileClasspath
     mainClass.set("io.mateu.ijp.debug.RegistryProbeKt")
 }
 
@@ -503,7 +533,7 @@ tasks.register<JavaExec>("registryProbe") {
 tasks.register<JavaExec>("renderProbe") {
     // The intellij-platform plugin wires the IDE jars into compileClasspath only, so compose the
     // exec classpath from output + compileClasspath (runtimeClasspath lacks the platform).
-    classpath = sourceSets.main.get().output + sourceSets.main.get().compileClasspath
+    classpath = probes.output + probes.compileClasspath
     mainClass.set("io.mateu.ijp.debug.RenderProbeKt")
     (findProperty("probe.json") as String?)?.let { systemProperty("probe.json", it) }
     (findProperty("probe.png") as String?)?.let { systemProperty("probe.png", it) }
@@ -522,5 +552,15 @@ tasks.register<JavaExec>("renderProbe") {
         "--add-opens=java.desktop/javax.swing=ALL-UNNAMED",
         "--add-opens=java.base/java.lang=ALL-UNNAMED",
         "--add-opens=java.base/java.util=ALL-UNNAMED",
+        "--add-opens=java.desktop/javax.swing.plaf.basic=ALL-UNNAMED",
+        "--add-opens=java.desktop/com.apple.laf=ALL-UNNAMED",
     )
+    // JBScrollPane's macOS scroll bars load JNA, whose native dispatch library ships in the IDE's
+    // lib/jna/<arch> folder (not inside the jna jar) — point JNA at it or every scrollable screen dies
+    // with UnsatisfiedLinkError on a Mac.
+    doFirst {
+        val ideLib = classpath.files.firstOrNull { it.name == "app-client.jar" }?.parentFile
+        val jnaDir = ideLib?.resolve("jna")?.listFiles()?.firstOrNull { it.isDirectory }
+        if (jnaDir != null) jvmArgs("-Djna.boot.library.path=${jnaDir.absolutePath}", "-Djna.nosys=true")
+    }
 }

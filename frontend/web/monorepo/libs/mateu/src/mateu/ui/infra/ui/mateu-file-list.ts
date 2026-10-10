@@ -3,6 +3,8 @@ import { customElement, property } from 'lit/decorators.js';
 import FileItem from "@mateu/shared/apiClients/dtos/componentmetadata/FileItem";
 import { onActivate } from '@infra/a11y/activate.ts';
 import { activatableFocusStyles } from '@infra/a11y/focusStyles.ts';
+import { safeHref } from '@infra/ui/safeNavigate.ts'
+import { ifDefined } from 'lit/directives/if-defined.js'
 
 const ICONS: Record<string, string> = {
     pdf: '📕', image: '🖼️', img: '🖼️', doc: '📘', docx: '📘', word: '📘',
@@ -69,7 +71,7 @@ export class MateuFileList extends LitElement {
                         ${file.url ? html`<span class="dl">⬇</span>` : nothing}
                     `
                     return file.url
-                        ? html`<a class="file clickable" href="${file.url}" download target="_blank" rel="noopener">${inner}</a>`
+                        ? html`<a class="file clickable" href="${ifDefined(safeHref(file.url, { allowData: true }))}" download target="_blank" rel="noopener">${inner}</a>`
                         : html`<div role="button" tabindex="0" class="file ${clickable ? 'clickable' : ''}" @click="${(e: Event) => this.clickFile(file, e)}" @keydown="${onActivate((e: Event) => this.clickFile(file, e))}">${inner}</div>`
                 })}
             </div>

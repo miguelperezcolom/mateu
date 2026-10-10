@@ -1,0 +1,78 @@
+# Keeps the code people copy from compiling: the starters (starters/, the quickstart of the docs) and
+# every demo (demo/). Both are built against the REACTOR — the backend of this very commit, installed
+# as 0.0.1-MATEU — so an API change that breaks them fails the PR that made it, instead of the first
+# user who copies a starter after the next release.
+name: Examples
+
+on:
+  pull_request:
+    paths:
+      - 'backend/**'
+      - 'starters/**'
+      - 'demo/**'
+      - '.github/workflows/examples.yml'
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: examples-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  java-starters-and-demos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: 21
+          distribution: zulu
+          cache: maven
+
+      - name: Install the backend reactor (0.0.1-MATEU)
+        run: mvn -B -q install -Dmaven.test.skip -Dgpg.skip=true --file backend/pom.xml
+
+      # Starters: compile, package, then boot each one and load its CRUD through the action endpoint.
+      - name: Build the Java starters against the reactor
+        run: mvn -B package -Dmateu.version=0.0.1-MATEU --file starters/pom.xml
+
+      - name: Boot every Java starter and load its CRUD
+        run: starters/smoke-test.sh
+
+      # Demos: compile only (several talk to external services or need a frontend build to RUN).
+      # -Dmateu.version overrides the release pinned by the "start here" demos, so they too are
+      # checked against this commit.
+      - name: Compile every demo against the reactor
+        run: mvn -B compile -Dmateu.version=0.0.1-MATEU --file demo/pom.xml
+
+  dotnet-starter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - name: Build the .NET starter
+        run: dotnet build starters/dotnet/MateuStarter.csproj
+
+  python-starter:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install and test the Python starter
+        working-directory: starters/python
+        run: |
+          pip install -r requirements.txt pytest httpx
+          PYTHONPATH=../../backend/python:. pytest -q

@@ -1,0 +1,88 @@
+{
+  "$comment": "New | Mateu file kinds — the SINGLE source shared by the IntelliJ plugin (New | Mateu group) and the VS Code extension (Mateu: New File…, staged by scripts/prepackage.mjs). Each `template` names a skeleton at fileTemplates/internal/<template>.yaml.ft. Placeholders: __TITLE__ (title derived from the file name), __NAME__ (file base name) and a line holding only __PAGE_WIDTH__ (replaced by a root `style:` for the chosen page width, or removed). Every skeleton is validated against backend/shared/uidl/specs-schema.json by NewMateuFileSkeletonsTest.",
+  "files": [
+    {
+      "id": "mount",
+      "label": "UI Mount",
+      "description": "A UI served at a base path (type: UI) — the data-driven equivalent of @UI. Lists its route files.",
+      "fileName": "app.ui",
+      "template": "Mateu UI Mount",
+      "schemaType": "UI"
+    },
+    {
+      "id": "routes",
+      "label": "Routes File",
+      "description": "The route registry of a mount (type: Routes), created EMPTY and registered in the mount's routes list. Add its entries one at a time with Add Route…",
+      "fileName": "routes",
+      "template": "Mateu Routes",
+      "schemaType": "Routes"
+    },
+    {
+      "id": "appShell",
+      "label": "App Shell",
+      "description": "The app chrome (type: AppShell): title, menu and home route. Bind it to the mount root (\"\") in routes.yaml.",
+      "fileName": "app",
+      "template": "Mateu App Shell",
+      "schemaType": "AppShell"
+    },
+    {
+      "id": "sources",
+      "label": "REST Source Catalogue",
+      "description": "Named REST endpoints (type: Sources) that pages reference by name instead of repeating URLs.",
+      "fileName": "sources",
+      "template": "Mateu Sources",
+      "schemaType": "Sources"
+    },
+    {
+      "id": "page",
+      "label": "Page…",
+      "description": "A page / component definition, started from a page template.",
+      "fileName": "page",
+      "page": true
+    }
+  ],
+  "pageWidths": [
+    {"id": "fixed", "label": "Fixed (centered, max 1408px)", "style": "max-width: min(1408px, 100% - 48px); margin-inline: auto;"},
+    {"id": "fullWidth", "label": "Full width (24px gutters)", "style": "padding-inline: 24px;"},
+    {"id": "edgeToEdge", "label": "Edge to edge (no margins)", "style": "padding: 0;"},
+    {"id": "auto", "label": "Let the renderer decide", "style": null}
+  ],
+  "pageTemplates": [
+    {"id": "form", "label": "Form", "family": "form", "pageWidth": "fixed", "template": "Mateu Page Form",
+     "description": "A titled form: fields in a responsive layout and a Save button."},
+    {"id": "listing", "label": "Listing / CRUD", "family": "collection", "pageWidth": "fullWidth", "template": "Mateu Page Listing",
+     "description": "A searchable, filterable table over a REST source, with New and a row route to the record."},
+    {"id": "wizard", "label": "Wizard step", "family": "process", "pageWidth": "fixed", "template": "Mateu Page Wizard",
+     "description": "One step of a guided process: progress, the step's fields, Back / Next."},
+    {"id": "dashboard", "label": "Dashboard", "family": "dashboard", "pageWidth": "fullWidth", "template": "Mateu Page Dashboard",
+     "description": "A KPI band (scoreboard of metric cards) over a grid of titled panels."},
+    {"id": "smartSearch", "label": "Smart Search", "family": "collection", "pageWidth": "fullWidth", "template": "Mateu Page Smart Search",
+     "description": "A search-first page: an intro line over the smart search bar and its results."},
+    {"id": "todoList", "label": "To-do List", "family": "collection", "pageWidth": "fixed", "template": "Mateu Page Todo List",
+     "description": "Pending work as counted buckets of cards; clicking a card acts on it."},
+    {"id": "calendar", "label": "Calendar", "family": "collection", "pageWidth": "fullWidth", "template": "Mateu Page Calendar",
+     "description": "A calendar toolbar (previous / today / next / create) over a month grid of events."},
+    {"id": "welcome", "label": "Welcome", "family": "landing", "pageWidth": "fixed", "template": "Mateu Page Welcome",
+     "description": "A hero with calls to action over highlight tiles."},
+    {"id": "heroSearch", "label": "Hero Search", "family": "landing", "pageWidth": "fixed", "template": "Mateu Page Hero Search",
+     "description": "A centered hero with the search, results as cards below."},
+    {"id": "collectionDetail", "label": "Collection Detail", "family": "collection", "pageWidth": "fullWidth", "template": "Mateu Page Collection Detail",
+     "description": "A list of items on the left, the selected item's detail on the right."},
+    {"id": "generalOverview", "label": "General Overview", "family": "detail", "pageWidth": "fullWidth", "template": "Mateu Page General Overview",
+     "description": "A record switcher on top and the record's overview: header, facts and property cards."},
+    {"id": "itemOverview", "label": "Item Overview", "family": "detail", "pageWidth": "fullWidth", "template": "Mateu Page Item Overview",
+     "description": "A key-info panel on the left and tabs with the rest of the record on the right."},
+    {"id": "foldout", "label": "Foldout", "family": "detail", "pageWidth": "edgeToEdge", "template": "Mateu Page Foldout",
+     "description": "An always-visible overview with lateral fold-out panels."},
+    {"id": "ganttPage", "label": "Gantt Page", "family": "detail", "pageWidth": "edgeToEdge", "template": "Mateu Page Gantt",
+     "description": "A title over a Gantt timeline of tasks."},
+    {"id": "dataManagement", "label": "Data Management", "family": "collection", "pageWidth": "fullWidth", "template": "Mateu Page Data Management",
+     "description": "The same records as a grid or as a Gantt, switched with tabs."},
+    {"id": "matrixGrid", "label": "Matrix Grid", "family": "collection", "pageWidth": "edgeToEdge", "template": "Mateu Page Matrix Grid",
+     "description": "Rows of metrics in sections against date columns, editable in place."},
+    {"id": "planningBoard", "label": "Planning Board", "family": "collection", "pageWidth": "edgeToEdge", "template": "Mateu Page Planning Board",
+     "description": "Resources by days (a tape chart) with draggable blocks."},
+    {"id": "blank", "label": "Blank layout", "family": "form", "pageWidth": "auto", "template": "Mateu Page Blank",
+     "description": "An empty vertical layout to build from scratch in the visual editor."}
+  ]
+}

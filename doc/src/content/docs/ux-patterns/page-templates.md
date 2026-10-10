@@ -78,6 +78,9 @@ Three notes on how to read the table:
   `PeerNav(prevLabel, prevRoute, nextLabel, nextRoute)` for the current record — a `null` route
   disables that side. Ported to .NET (`IPeerNavigationSupplier`) and Python
   (`PeerNavigationSupplier`). Demo: `/peer-nav-demo`.
+
+  ![Peer navigation: the ‹ › arrows in the page header step to the previous/next record](/images/docs/page-templates/peer-navigation.png)
+
 - **Header overline and title placeholder.** Two small text elements of the Redwood canonical
   header. `@Overline("Requisitions")` puts a quiet line **above** the title — a category, a parent
   context, a step marker. `@TitlePlaceholder("New booking…")` supplies what the header shows

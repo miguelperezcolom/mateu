@@ -1,3 +1,4 @@
+import { chromeText } from './i18n.mjs'
 // Accesibilidad del renderer VB — la parte que NO traen los componentes oj-*.
 //
 // Medido antes de escribir nada (axe-core sobre la app servida): la composición de oj-sp-*
@@ -167,7 +168,7 @@ export function resetNavigationState() { hasNavigated = false }
  * Oculto por transform y no por display:none, porque un elemento con display:none no puede
  * recibir foco — y entonces el enlace sería inalcanzable, que es justo lo contrario.
  */
-export function mountSkipLink(label = 'Saltar al contenido') {
+export function mountSkipLink(label = chromeText('skipToContent')) {
   if (typeof document === 'undefined') return
   if (!document.body) {
     document.addEventListener('DOMContentLoaded', () => mountSkipLink(label), { once: true })

@@ -10,8 +10,8 @@
   <artifactId>micronaut</artifactId>
   <packaging>pom</packaging>
 
-  <name>Micronaut</name>
-  <description>parent project</description>
+  <name>Mateu Micronaut adapter (parent)</name>
+  <description>Parent of the Mateu adapter for Micronaut.</description>
 
   <modules>
     <module>micronaut-core</module>

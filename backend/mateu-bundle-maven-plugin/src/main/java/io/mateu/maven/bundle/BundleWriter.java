@@ -2,6 +2,7 @@ package io.mateu.maven.bundle;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mateu.core.application.export.MateuBundleExporter;
+import io.mateu.core.infra.IndexPage;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.net.URL;
@@ -89,12 +90,10 @@ final class BundleWriter {
             + "\" bundleUrl=\""
             + base
             + "/manifest.json\" style=\"width:100%;height:100vh;\"></mateu-ui>";
-    int a = html.indexOf("<!-- AQUIUI -->");
-    int b = html.indexOf("<!-- HASTAAQUIUI -->");
-    if (a >= 0 && b > a) {
-      html = html.substring(0, a) + "<!-- AQUIUI -->\n  " + ui + "\n  " + html.substring(b);
-    }
-    return html;
+    // The shared mount (core IndexPage) also appends the deferred-boot replayer, so a bundle built
+    // with the redwood (Visual Builder) renderer starts too — and shows a fallback page when the
+    // Oracle runtime cannot be loaded.
+    return IndexPage.mountUi(html, ui);
   }
 
   private static void copyTree(Path src, Path dest) throws IOException {

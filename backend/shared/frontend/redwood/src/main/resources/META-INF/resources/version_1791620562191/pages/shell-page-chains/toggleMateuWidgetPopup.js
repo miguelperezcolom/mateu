@@ -1,2 +1,0 @@
-"use strict";define(["vb/action/actionChain"],ActionChain=>{"use strict";return class extends ActionChain{async run(context,{popupId,anchorId}){const popup=popupId&&document.getElementById(popupId);popup&&"function"==typeof popup.open&&(!popup.__mateuCloseWired&&(popup.__mateuCloseWired=!0,popup.addEventListener("ojClose",()=>{popup.__mateuClosedAt=Date.now()})),popup.isOpen()?popup.close():(!popup.__mateuClosedAt||300<Date.now()-popup.__mateuClosedAt)&&popup.open("#"+anchorId))}};});
-//# sourceMappingURL=toggleMateuWidgetPopup.js.map

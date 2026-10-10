@@ -5,6 +5,7 @@ import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOpti
 import { mateuApiClient } from "@infra/http/AxiosMateuApiClient.ts";
 import { listRecentRoutes, pushRecentRoute } from "@infra/recentRoutesStore.ts";
 import { fabPosition, fabStyles, onFabRail } from "@infra/ui/layout/fabRail.ts";
+import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 
 // One hit of the app's GlobalSearchSupplier, mirrored from mateu-app's command palette.
 interface GlobalSearchHit { label: string, description?: string, route: string, category?: string }
@@ -21,7 +22,7 @@ interface FlatItem { label: string, breadcrumb: string, route: string }
  * OR on ⌘K / Ctrl+K.
  *
  * Design-system neutral: Lumo custom properties with hard fallbacks, so it renders on every shell
- * (Vaadin, Redwood, SAP UI5, PatternFly, SLDS). Navigation is emitted as the same
+ * (every renderer). Navigation is emitted as the same
  * `route-changed` + `navigate-to-requested` event pair every shell already honors, so this element
  * needs no shell-specific glue — a shell just drops `<mateu-command-center .app .baseUrl>` once.
  */
@@ -211,7 +212,7 @@ export class MateuCommandCenter extends LitElement {
     render() {
         return html`
             <button class="cc-fab" style="${fabPosition(this.fabOffset)} z-index: 950;" ${onFabRail('shell', this.fabOffset)}
-                @click=${() => this.openCenter()} title="Buscar y navegar (⌘K)" aria-label="Command center">
+                @click=${() => this.openCenter()} title="${chromeText('commandCenterHint')}" aria-label="${chromeText('commandCenter')}">
                 ${this.fabIcon()}
             </button>
             ${this.open ? this.renderOverlay() : nothing}
@@ -235,19 +236,21 @@ export class MateuCommandCenter extends LitElement {
             <div class="cc-backdrop" @click=${() => this.close()}>
                 <div class="cc-panel" @click=${(e: Event) => e.stopPropagation()}>
                     <div class="cc-bar">
-                        <button class="cc-icon-btn" @click=${() => this.queryText ? this.onInput('') : this.close()} title="${this.queryText ? 'Borrar' : 'Cerrar'}">
+                        <button class="cc-icon-btn" @click=${() => this.queryText ? this.onInput('') : this.close()} title="${this.queryText ? chromeText('clear') : chromeText('close')}"
+                            aria-label="${this.queryText ? chromeText('clear') : chromeText('close')}">
                             ${this.queryText ? this.backIcon() : this.searchGlyph()}
                         </button>
-                        <input class="cc-input" .value=${this.queryText} placeholder="Buscar pantallas, datos y acciones…"
+                        <input class="cc-input" .value=${this.queryText} placeholder="${chromeText('commandCenterPlaceholder')}"
+                            aria-label="${chromeText('commandCenterPlaceholder')}"
                             @input=${(e: InputEvent) => this.onInput((e.target as HTMLInputElement).value)}
                             @keydown=${(e: KeyboardEvent) => this.onKeydown(e, targets)}>
-                        ${this.queryText ? html`<button class="cc-icon-btn" @click=${() => this.onInput('')} title="Limpiar">${this.clearIcon()}</button>` : nothing}
+                        ${this.queryText ? html`<button class="cc-icon-btn" @click=${() => this.onInput('')} title="${chromeText('clear')}" aria-label="${chromeText('clear')}">${this.clearIcon()}</button>` : nothing}
                     </div>
                     <div class="cc-body">
                         ${query ? this.renderResults(menuMatches) : this.renderDefault()}
                     </div>
                 </div>
-                <button class="cc-close" @click=${() => this.close()} title="Cerrar">${this.clearIcon()}</button>
+                <button class="cc-close" @click=${() => this.close()} title="${chromeText('close')}" aria-label="${chromeText('close')}">${this.clearIcon()}</button>
             </div>
         `
     }
@@ -259,7 +262,7 @@ export class MateuCommandCenter extends LitElement {
         return html`
             <div class="cc-columns">
                 <div class="cc-col">
-                    <div class="cc-section-title">Ir a</div>
+                    <div class="cc-section-title">${chromeText('goTo')}</div>
                     <div class="cc-tiles">
                         ${tiles.map(t => { idx++; const i = idx; return html`
                             <button class="cc-tile ${i === this.selectedIndex ? 'cc-sel' : ''}"
@@ -268,12 +271,12 @@ export class MateuCommandCenter extends LitElement {
                                 <span class="cc-tile-label">${t.label}</span>
                                 ${t.breadcrumb ? html`<span class="cc-sub">${t.breadcrumb}</span>` : nothing}
                             </button>`})}
-                        ${tiles.length === 0 ? html`<div class="cc-empty">Sin opciones de menú.</div>` : nothing}
+                        ${tiles.length === 0 ? html`<div class="cc-empty">${chromeText('noMenuOptions')}</div>` : nothing}
                     </div>
                 </div>
                 ${recents.length > 0 ? html`
                     <div class="cc-col cc-col--recent">
-                        <div class="cc-section-title">Recientes</div>
+                        <div class="cc-section-title">${chromeText('recent')}</div>
                         ${recents.map(r => { idx++; const i = idx; return html`
                             <button class="cc-row ${i === this.selectedIndex ? 'cc-sel' : ''}"
                                 @click=${() => this.navigateTo(r.route, r.label)}
@@ -294,9 +297,9 @@ export class MateuCommandCenter extends LitElement {
             <div class="cc-list">
                 ${this.app?.sseUrl ? html`
                     <button class="cc-row cc-ask-ai" @click=${() => this.askAi()}>
-                        ${this.aiIcon()}<span class="cc-tile-label">Preguntar a la IA: “${this.queryText.trim()}”</span>
+                        ${this.aiIcon()}<span class="cc-tile-label">${chromeTextf('askAi', { query: this.queryText.trim() })}</span>
                     </button>` : nothing}
-                ${menuMatches.length > 0 ? html`<div class="cc-section-title">Pantallas</div>` : nothing}
+                ${menuMatches.length > 0 ? html`<div class="cc-section-title">${chromeText('screens')}</div>` : nothing}
                 ${menuMatches.map((m, k) => html`
                     <button class="cc-row ${k === this.selectedIndex ? 'cc-sel' : ''}"
                         @click=${() => this.navigateTo(m.route, m.label)}
@@ -305,7 +308,7 @@ export class MateuCommandCenter extends LitElement {
                         ${m.breadcrumb ? html`<span class="cc-sub">${m.breadcrumb}</span>` : nothing}
                     </button>`)}
                 ${this.renderDataHits(menuMatches.length)}
-                ${noResults ? html`<div class="cc-empty">No encontramos coincidencias para “${this.queryText.trim()}”.</div>` : nothing}
+                ${noResults ? html`<div class="cc-empty">${chromeTextf('noMatchesFor', { query: this.queryText.trim() })}</div>` : nothing}
             </div>
         `
     }

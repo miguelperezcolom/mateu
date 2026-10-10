@@ -845,13 +845,16 @@ public sealed record MapMarker
 
 /// <summary>A street map (mirrors Java's io.mateu.uidl.data.Map): Position is the centre as
 /// "lat, lon" (free string), Zoom the zoom level as a string. When MarkerActionId is set, clicking
-/// a marker runs that action with the marker's id in parameters._markerId.</summary>
+/// a marker runs that action with the marker's id in parameters._markerId. TileUrl (a Leaflet-style
+/// template) and Attribution pick the tile provider; null keeps OpenStreetMap.</summary>
 public sealed record Map : ComponentBase
 {
     public string? Position { get; init; }
     public string? Zoom { get; init; }
     public IReadOnlyList<MapMarker> Markers { get; init; } = [];
     public string? MarkerActionId { get; init; }
+    public string? TileUrl { get; init; }
+    public string? Attribution { get; init; }
 }
 
 /// <summary>A place to DROP dragged listing rows (a listing decorated [DragRows(type)]): a titled
@@ -1079,6 +1082,8 @@ public sealed record Text(string Content) : ComponentBase
 {
     public string? Size { get; init; }
     public bool NoMargins { get; init; }
+    /// <summary>The HTML container element (div, p, h1…h6, span); null → div.</summary>
+    public string? Container { get; init; }
 }
 
 /// <summary>A horizontal divider line (&lt;hr&gt;) separating contents inside a section, form or
@@ -1298,3 +1303,9 @@ public sealed class SizeAttribute : Attribute
     /// <summary>The concrete length when Value is Fixed (e.g. "15rem").</summary>
     public string Length { get; set; } = "";
 }
+
+/// <summary>A reference to a named business component of the catalogue (components.yaml /
+/// [BusinessComponent] / IComponentCatalogSupplier): drop it anywhere a component goes and the server
+/// substitutes the entry's composition before rendering; an unknown name renders as a placeholder
+/// text, never an error. (Mirrors io.mateu.uidl.data.ComponentRef.)</summary>
+public sealed record ComponentRef(string Ref) : ComponentBase;

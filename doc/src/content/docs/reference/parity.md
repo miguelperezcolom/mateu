@@ -22,7 +22,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Wizards (incl. branching, cross-step state, `@WizardProgress` BAR/STEPS/RAIL) | ✅ | ✅ | ✅ |
 | CRUD create/edit in a drawer (`editInDrawer` — save closes + refreshes the listing in place) | ✅ | ✅ | ✅ |
 | Collection-detail / general-overview archetypes (`CollectionDetail<Row>`, `GeneralOverview<Row>`) + fluent `FormField` | ✅ | ✅ | ✅ |
-| Guided import wizard (`ImportWizard<Row>`: CSV upload/paste, auto-mapping grid, validation report, typed import) | ✅ | 🟡 | 🟡 |
+| Guided import wizard (`ImportWizard<Row>`: CSV upload/paste, auto-mapping grid, validation report, typed import) | ✅ | ✅ | ✅ |
 | Page decorations (subtitle, banners, badges, KPIs, FABs) | ✅ | ✅ | ✅ |
 | Header overline + title placeholder (`@Overline`/`@TitlePlaceholder`; Java also has `OverlineSupplier`/`TitlePlaceholderSupplier`, the ports carry only the declarative form — same as `@Subtitle`) | ✅ | ✅ | ✅ |
 | Tabs, stereotypes, shortcuts, compact, dirty guard | ✅ | ✅ | ✅ |
@@ -45,7 +45,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Access keys mode (`@App(accessKeys)` → `AppDto.accessKeys`) | ✅ | ✅ | ✅ |
 | `Popover.trigger` (click/hover) + `@Tooltip("field")` → `GridColumn.tooltipPath` | ✅ | ✅ | ✅ |
 | `@DragRows` → `CrudlDto.dragType` + `DropZone` | ✅ | ✅ | ✅ |
-| Row tones (`@RowStatus` → `CrudlDto.rowStatusField`) and listing export buttons on `AutoCrud` | ✅ | 🟡 `[RowStatus]` + Export CSV (`Crud.CsvExportable`, built-in CSV writer); no Excel/PDF exporters in the port | 🟡 `RowStatus()` + Export CSV (`Crud.csv_exportable()`, built-in CSV writer); no Excel/PDF exporters in the port |
+| Row tones (`@RowStatus` → `CrudlDto.rowStatusField`) and listing export buttons on `AutoCrud` | ✅ | ✅ `[RowStatus]` + Export CSV / Excel / PDF (`CsvExportable`/`ExcelExportable`/`PdfExportable` on `Crud<T>`, `Listing<F,R>` or any `ICrudExports` listing; built-in dependency-free writers, pluggable `ICsvExporter`/`IExcelExporter`/`IPdfExporter`) | ✅ `RowStatus()` + Export CSV / Excel / PDF (`csv_exportable()` / `excel_exportable()` / `pdf_exportable()`; openpyxl MIT and reportlab BSD, the `export` extra — a format whose library is missing is not offered, as Java shows a button only with an exporter bean) |
 | i18n, events (emit/subscribe), security scaffolding | ✅ | ✅ | ✅ |
 | Application context selector (`@AppContext`) | ✅ | ✅ | ✅ |
 | App header actions (`AppActionsSupplier` → buttons + dropdown groups) | ✅ | ✅ | ✅ |
@@ -64,17 +64,17 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | External REST listing rows (`@RestListing`/`[RestListing]`/`@rest_listing` on a listing → rows fetched client-side from an arbitrary endpoint via `Crudl.rowsSource`; columns from the Row type) | ✅ | ✅ | ✅ |
 | External REST button action (`@RestAction`/`[RestAction]`/`@rest_action` on a button → calls an arbitrary endpoint client-side via `Action.restAction`; response toast + merge into form state) | ✅ | ✅ | ✅ |
 | External REST screen data (`@RestData`/`[RestData]`/`@rest_data` on a view → initial data fetched client-side on load and merged into the form state; reuses the `restAction` machinery via a synthetic `__restdata__` action + OnLoad trigger) | ✅ | ✅ | ✅ |
-| — Proxy mode (`proxy = true` on any of the four → the fetch is routed through the Mateu server via the reserved `__restfetch__` action: no CORS, and `${secret.X}` auth injected server-side from a secrets provider / env var; the server resolves the DECLARED source only) | ✅ | ✅ | ✅ |
-| — Proxy mode for views with no annotation to read (`RestSourceSupplier`: a view assembled at runtime declares its sources programmatically, and they gate `__restfetch__` and resolve a proxy fetch exactly as annotations do) | ✅ | ❌ | ❌ |
-| [REST source catalogue](/java-ui-definition/rest-source-catalogue/) (`specs/ui/sources.yaml` + `@RestSource`/`RestSourceCatalogSupplier` → a named endpoint referenced by `ref`; two producers, authored wins). The registry (catalogue reader + `ref` resolution) is Java-only, matching the route-registry-in-data pattern; the ports resolve inlined sources, not a named catalogue | ✅ | 🟡 | 🟡 |
-| [Business components](/java-ui-definition/component-catalogue/) (`specs/ui/components.yaml` + `@BusinessComponent`/`ComponentCatalogSupplier` + `ComponentRef` → a named, BOUND composition of existing pieces referenced by name; ports for free, resolves with no backend). Same two-producers/authored-wins registry as the source catalogue, so the ports sit at the same 🟡 (a `ComponentRef`/populated `AppDto.components` is only emitted where the registry exists — the wire contract is preserved) | ✅ | 🟡 | 🟡 |
+| — Proxy mode (`proxy = true` on any of the four → the fetch is routed through the Mateu server via the reserved `__restfetch__` action: no CORS, and `${secret.X}` auth injected server-side from a secrets provider / `MATEU_SECRET_*` env var; url values percent-encoded by position on both legs; the server resolves the DECLARED source only) | ✅ | ✅ | ✅ |
+| — Proxy mode for views with no annotation to read (`RestSourceSupplier`: a view assembled at runtime declares its sources programmatically, and they gate `__restfetch__` and resolve a proxy fetch exactly as annotations do) | ✅ | ✅ | ✅ |
+| [REST source catalogue](/java-ui-definition/rest-source-catalogue/) (`specs/ui/sources.yaml` + `@RestSource`/`RestSourceCatalogSupplier` → a named endpoint referenced by `ref`; two producers, authored wins). Java and .NET carry the registry (catalogue reader + `ref` resolution + `AppDto.restSources`); Python carries it too (`@rest_source` / `RestSourceCatalogSupplier` / `sources.yaml`, `AppMetadata.restSources`, refs resolved server-side for proxy fetches) | ✅ | ✅ | ✅ |
+| [Business components](/java-ui-definition/component-catalogue/) (`specs/ui/components.yaml` + `@BusinessComponent`/`ComponentCatalogSupplier` + `ComponentRef` → a named, BOUND composition of existing pieces referenced by name; ports for free, resolves with no backend). Same two-producers/authored-wins registry as the source catalogue; .NET and Python carry it too (`ComponentRef` expanded server-side, `AppDto.components`; Python `@business_component` / `fluent.ComponentRef`) | ✅ | ✅ | ✅ |
 | [Custom components](/java-ui-definition/custom-components/) (`CustomComponent(name, props, content)` — a genuinely NEW rendering as data; the per-renderer escape hatch). The WIRE is data and identical across backends; the RENDERING is per-renderer (`registerCustomComponent`, degrading to `<mateu-unsupported>`) | ✅ | ✅ | ✅ |
 | Sizing intent (`hug`/`fill`/`fixed:<len>` as portable data on the component; a listing infers `fill`) | ✅ | ✅ | ✅ |
 | Editable grids / inline CRUD editing (`@InlineEditing` + update-row) | ✅ | ✅ | ✅ |
 | Bulk list actions (`@ListToolbarButton` + typed selection) | ✅ | ✅ | ✅ |
 | Listing aggregates & grouping (`@Aggregate`/`@GroupBy` + summaries) | ✅ | ✅ | ✅ |
-| Group header actions (`@GroupAction` buttons on group rows, `_groupValue` parameter) | ✅ | — | — |
-| Group summaries synthesized for custom `Listing`s (`ListingData.withSynthesizedGroups`) | ✅ | — | — |
+| Group header actions (`@GroupAction` buttons on group rows, `_groupValue` parameter; Python `@group_action` + `GroupActionVisibility`) | ✅ | ✅ | ✅ |
+| Group summaries synthesized for custom `Listing`s (`ListingData.withSynthesizedGroups`) | ✅ | ✅ | ✅ |
 | Optimistic locking (`@Version` → conflict dialog on save/update-row, `_forceOverwrite`) | ✅ | ✅ | ✅ |
 | Notification inbox (`NotificationsSupplier` → header bell + `_notifications-*` actions) | ✅ | ✅ | ✅ |
 | Undoable toasts (`Message.undoable` → undo action id + parameters on the wire) | ✅ | ✅ | ✅ |
@@ -83,30 +83,34 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Structure ETag / template-ref (`structureHash` + request `knownStructureHash` → omit the component when unchanged) | ✅ | ✅ | ✅ |
 | ModelView bindable contract (`__contract__` sync action → fields + actions on `appData._contract`, for the visual-builder tooling) | ✅ | ✅ | ✅ |
 | Visual-builder live preview (`__preview__` sync action → renders arbitrary YAML page text; the plugin's preview pane) | ✅ | ✅ | ✅ |
-| [`layoutDelta:`](/java-ui-definition/yaml-ui-definition/) (what a human changed about the INFERRED layout, anchored to field ids and re-applied every request, so a screen touched in the visual editor keeps following its model). The editor writes it and falls back to a `layout:` snapshot — visibly — when an edit cannot be a delta. The ports parse the key and decline the page rather than rendering it wrongly | ✅ | — | — |
+| [`layoutDelta:`](/java-ui-definition/yaml-ui-definition/) (what a human changed about the INFERRED layout, anchored to field ids and re-applied every request, so a screen touched in the visual editor keeps following its model). The editor writes it and falls back to a `layout:` snapshot — visibly — when an edit cannot be a delta. Java, .NET and Python apply it (same three rules) | ✅ | ✅ | ✅ |
 | [Partials](/java-ui-definition/partials/) (`specs/ui/partials/<ref>.yaml`; spliced into the parent's content, resolved server-side so they never reach the wire). All three splice, stack where there is no list, drop a missing ref and break a cycle; only Java resolves a `ref` that names a class | ✅ | ✅ | ✅ |
 | YAML pages bound to a ModelView (`specs/ui/<route>.yaml` with `modelView:` → the file supplies the layout, the class supplies state + actions; on the classpath in Java, under the cwd — `MATEU_SPECS_DIR` — in the ports) | ✅ | ✅ | ✅ |
 | Static-view skip (`@StaticView`/`[StaticView]`/`@static_view` → `staticView` flag; client caches the full response for the session and skips the round-trip on return) | ✅ | ✅ | ✅ |
 | Sticky sections index (`@Toc`) | ✅ | ✅ | ✅ |
 | Client-side rules (`@Hidden(expr)`/`@Disabled`/rule supplier) | ✅ | ✅ | ✅ |
 | Grid form fields + `@OnRowSelected` row-click actions (incl. add/create/select on plain forms outside wizards) | ✅ | ✅ | ✅ |
-| Wide-field auto-colspan (grid/textarea/richText span the full row of a multi-column section) | ✅ | — | — |
-| Inline-editing grid "+" appends an in-place row (the detail-form response targets a container inline grids never render) | ✅ | — | — |
-| Multi-state embedded islands (`@Inline` orchestrator fields, host-seeded initialData) | ✅ | — | — |
+| Wide-field auto-colspan (grid/textarea/richText span the full row of a multi-column section) | ✅ | ✅ | ✅ |
+| Inline-editing grid "+" appends an in-place row (the detail-form response targets a container inline grids never render) | ✅ | ✅ | ✅ |
+| Multi-state embedded islands (`@Inline` orchestrator fields, host-seeded initialData; Python: a field holding a routed view + `Inline()`) | ✅ | ✅ | ✅ |
 | Multi-column layouts (`@Zones`, `@FoldedLayout`) | ✅ | ✅ | ✅ |
 | AI chat (`@AI`/`[AI]`/`@ai` → `sseUrl`; the SSE endpoint is developer-provided) | ✅ | ✅ | ✅ |
 | Semantic (composed) annotations | ✅ | ✅ | ✅ (an `Annotated` alias) |
 | Federation (remote menus + `MicroFrontend` islands) | ✅ | ✅ | ✅ |
-| Component adapters | ✅ | 🟡 wrapper idiom | 🟡 wrapper idiom |
+| Component adapters | ✅ | ✅ `IComponentAdapter<T>` SPI | ✅ (`ComponentAdapter` + `AdaptedView`) |
 | Hero search archetype | ✅ | ✅ | ✅ |
 
 Import wizard on .NET/Python: same step flow (upload/paste → auto-mapped column grid with a
 select-editable target-field cell → per-line validation report → typed import + result counts)
-and the same CSV semantics (`,`/`;` autodetect, RFC-4180-ish quoting, data-URI uploads), but
-adapted to the ports' `[Step(n)]` wizard machinery: the import runs on the validation step's
-**Next** (the ports' wizards have no `@WizardCompletionAction` button — Finish then shows the
-summary message), and the validation surface is each port's own — DataAnnotations (`[Required]`,
-`[Range]`…) on .NET, `Required()` only on Python (it has no Min/Max markers). Hence the 🟡.
+and the same CSV semantics (`,`/`;` autodetect, RFC-4180-ish quoting, data-URI uploads), on the
+ports' `[Step(n)]` wizard machinery, and both ports now have the full flow (2026-10-10). On .NET the
+validation step's forward button is the **Import** completion action, the result step is final (no
+navigation, a re-sent back/next cannot import twice), steps are named Upload / Mapping / Validation /
+Result, the heading defaults to `Import <Row>` and `TimeOnly`/`DateTimeOffset`/`Guid` columns
+convert; its validation surface is DataAnnotations (`[Required]`, `[Range]`…). On Python the import
+is the wizard's completion action (`@wizard_completion_action("Import")`, Java's `doImport`, then a
+read-only result step) and its report checks `Required()`, `Min`/`Max`/`Size`/`Pattern` — the same
+constraints that travel as client-side `validations` and are re-checked when a form is saved.
 
 Smart-search filters on .NET/Python: the Crud entity's fields become the same filter widgets
 (enums → multi-select IN, temporals → date ranges, `[RangeFilter]`/`RangeFilter()` numerics →
@@ -179,30 +183,27 @@ adopts the stored version then bumps) and the notification inbox
 `_notifications-list`/`_notifications-read` with ids list or `"all"`) landed on .NET and Python,
 each pinned by golden-JSON tests mirroring the Java sync suites.
 
-### Deliberately Java-only (not oversights)
+### What the ports closed (2026-10-10)
 
-A short list of rows above is `—`/`❌` on the ports **by design**, not because they are pending. They
-are called out here so a reader choosing .NET or Python for GA knows exactly what is and is not on
-offer — the honest edge of the "same wire" promise.
+Both ports closed every server row above on 2026-10-10, each pinned by its own tests and the
+wire by the hard conformance gate:
 
-- **Proxy mode for views with no annotation to read** (`RestSourceSupplier`). The ports resolve a
-  proxy source by *reflecting the routed type's annotations* (`ResolveRestSource(type, kind, id)` /
-  `resolve_rest_source(cls, …)`) and never instantiate the view for `__restfetch__`. The feature
-  this row describes is a view that assembles its sources *at runtime* and declares them
-  programmatically — and it is the SSRF-sensitive path (the server must take the endpoint from its
-  own state, never the request). Half-porting that is worse than not porting it, so on the ports
-  proxy mode stays annotation-driven. Annotation-declared proxy sources (`[RestOptions(Proxy=true)]`
-  etc.) work fully on all three.
-- **In-page orchestration behaviours** — `@GroupAction` group-header buttons + synthesized group
-  summaries for custom listings, wide-field auto-colspan, the inline-grid "+" append row, and
-  multi-state embedded islands. These are render/interaction refinements layered on the Java
-  orchestrators, not wire-surface primitives; the declarative surface they sit on (grouping,
-  aggregates, grids, inline editing) is at full parity. They remain Java-only until the shared
-  conformance corpus (see the GA plan) makes porting them mechanical rather than manual.
+- **.NET**: `IRestSourceSupplier` proxy sources, the source and component catalogues,
+  `layoutDelta:`, group actions and synthesized group summaries, wide-field auto-colspan, the
+  inline-grid "+" row and the whole grid-field row editor, multi-state embedded islands, the
+  `IComponentAdapter<T>` SPI, Excel/PDF exports and the import wizard's completion action.
+- **Python**: the same list (`RestSourceSupplier`, `@rest_source`/`sources.yaml`,
+  `@business_component`/`ComponentRef`, `layoutDelta:`, `@group_action`, the grid row editor,
+  embedded islands, `ComponentAdapter`, Excel/PDF exports, `@wizard_completion_action`), plus
+  `Min`/`Max`/`Size`/`Pattern` validation and class- and method-level `@eyes_only`.
 
-The sustainable fix for this edge is not the maintainer porting each one by hand — it is the shared
-wire-conformance corpus that every port runs in its own CI, so a gap fails loudly and its owner
-closes it. That is tracked as a GA workstream.
+Proxy mode for views assembled at runtime stays the SSRF-sensitive path on every server: the
+endpoint is taken from what the server holds (the view's own declarations), never from the request.
+
+The shared wire-conformance corpus is a HARD gate on Python: every case must match the Java golden
+except an explicit, strictly-xfailed allow-list whose every entry is a defect of the golden itself
+(today one: `dashboard`, whose Java golden advertises list-row actions for the fields of a `Text`
+component).
 
 ## Renderers
 
@@ -216,25 +217,25 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Inline editing (@InlineEditing, update-row) | ✅ | ✅ | ✅ (row form) | ✅ (row form) |
 | Date picker | ✅ | ✅ | ✅ (calendar popup) | ✅ (own calendar) |
 | Remote lookup select (@Lookup / searchable) | ✅ | ✅ | ✅ | ✅ |
-| Full field-stereotype set (radio, multiSelect, slider, stepper, stars, color, image upload, money, markdown…) | ✅ | 🟡 radio, multi-select, checkboxes, toggle, number/money (`oj-input-number`), textarea, dates, lookups, file/image/signature/photo; **no** slider, stars, color or rich text/markdown yet | ✅ | ✅ |
-| Client-side rules (visible/disabled/state) + \${...} interpolation | ✅ | 🟡 CSP-safe engine (visible/disabled/required/value + `OnValueChange`) on the page's own form; not yet inside drawers/dialogs or embedded islands | ✅ (shared engine) | ✅ (no-eval engine) |
+| Full field-stereotype set (radio, multiSelect, slider, stepper, stars, color, image upload, money, markdown…) | ✅ | ✅ radio, multi-select, checkboxes, toggle, number/money (`oj-input-number`), textarea, dates, lookups, file/image/signature/photo, slider (`oj-slider`), stars (`oj-rating-gauge`), color, rich text (own editor: HTML, legacy Quill Delta read), markdown/html read-only | ✅ | ✅ |
+| Client-side rules (visible/disabled/state) + \${...} interpolation | ✅ | ✅ CSP-safe engine (visible/disabled/required/value + `OnValueChange`) on every surface: the page, embedded islands and the open drawer/dialog | ✅ (shared engine) | ✅ (no-eval engine) |
 | Page banners (@Banner + action-returned) | ✅ | ✅ | ✅ | ✅ |
-| FABs, header badges, KPIs, charts | ✅ | 🟡 header badges, KPIs, `MetricCard`/`Scoreboard` tiles and charts on any page (`oj-chart`: bar, line, area, pie, doughnut, polar, several series); **no** FABs | ✅ (FABs as header buttons) | ✅ |
+| FABs, header badges, KPIs, charts | ✅ | ✅ header badges, KPIs, `MetricCard`/`Scoreboard` tiles and charts on any page (`oj-chart`: bar, line, area, pie, doughnut, polar, funnel, several series); page and app `@Fab`s stacked above the shell FAB | ✅ (FABs as header buttons) | ✅ |
 | @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | ✅ | ✅ | ✅ |
 | Periodic refresh (`OnLoad` with `timeoutMillis` + `OnSuccess` loop, `background`) | ✅ | ✅ (stops when the screen changes) | ✅ (stops when the view changes or its tab closes) | ✅ (stops when the screen changes or unmounts) |
 | Keyboard shortcuts (`@Action(shortcut)`, `@Tab(shortcut)`) + access keys mode (`@App(accessKeys)`: hold Alt, Alt+letter) | ✅ | ✅ | ✅ (Swing mnemonics) | — (no hardware-key model) |
 | Hover details (`Popover` with `trigger = hover`, `@Tooltip("otherField")` on listing cells) | ✅ | ✅ (shared `oj-popup`) | ✅ | 🟡 press / long-press (no hover on touch) |
 | Drag rows to a destination (`@DragRows` + `DropZone`: origin and destination in one action) | ✅ | ✅ (`oj-table` dnd) | ✅ | 🟡 "Move to…" picker (no drag on touch) |
-| AI chat (sseUrl) / theme toggle | ✅ | 🟡 AI chat (the shell chat FAB's Ask Oracle palette has a 💬 Chat mode — a streaming panel wired to the shared transport core); the `themeToggle` flag is read but **no toggle is drawn** | ✅ chat (theme = the IDE's own) | ✅ |
+| AI chat (sseUrl) / theme toggle | ✅ | ✅ AI chat at parity with the web panel (header button + left drawer: streaming, agent progress and tool steps, token usage, markdown answers with in-app links, screen context + projection, `mcpUrl`, `@AI(upload)` attachments, local agent, dictation, wide mode, `render-screen`/navigation events); `@App(themeToggle)` draws a header light/dark switch (JET's inverted colour scheme, remembered like the web) | ✅ chat (theme = the IDE's own) | ✅ |
 | App context selector | ✅ | ✅ | ✅ (navigator combos) | ✅ |
 | — searchable picker w/ remote search | ✅ | ✅ | 🟡 loaded options only | ✅ |
 | Signature capture | ✅ canvas | ✅ canvas (own element: JET has no signature pad) | ✅ mouse canvas | ✅ svg + view-shot |
 | Photo capture | ✅ getUserMedia | ✅ | 🟡 file picker (no desktop camera API) | ✅ expo-camera |
 | Tree select dropdown | ✅ | ✅ | ✅ (JTree popup) | ✅ |
 | Tree lookup selector (dialog) | ✅ | ✅ | ✅ (tree layout) | ✅ (tree layout) |
-| Dashboards, Gantt, foldouts, skeletons | ✅ | 🟡 foldouts (`oj-sp-foldout-layout`, and collapsible panels inside a tab) and dashboards (KPI band, tiles by `colSpan`, `oj-chart`) ✅; the `Gantt` and `Skeleton` components are **not** rendered (the Room Diary's `PlanningBoard` is, on `oj-gantt`) | ✅ | ✅ |
-| Custom components (`registerCustomComponent`; unknown → visible placeholder) — the per-renderer escape hatch, each renderer with its own registry + graceful degradation (placeholder + slotted children) | ✅ | 🟡 placeholder + slotted children (bridge projection) | 🟡 registry + placeholder | 🟡 registry + placeholder |
-| High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | 🟡 the front-office set, `Stat` and `Calendar` (month/week/day/list) ✅; Kanban, Timeline, PricingTable, OrgChart, Heatmap, Funnel, FeatureGrid, Testimonials, Faq, CalloutCard, CommentThread, FileList, Checklist, ComparisonCard **not rendered** — see the coverage table below | ✅ | ✅ |
+| Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ foldouts (`oj-sp-foldout-layout`, collapsible panels inside a tab), dashboards (KPI band, tiles by `colSpan`, `oj-chart`), `Gantt` and `PlanningBoard` on `oj-gantt`, `Skeleton` | ✅ | ✅ |
+| Custom components (`registerCustomComponent`; unknown → visible placeholder) — the per-renderer escape hatch, each renderer with its own registry + graceful degradation (placeholder + slotted children) | ✅ | ✅ registry (`bridge.registerCustomComponent(name, mount)`) + placeholder and slotted children | 🟡 registry + placeholder | 🟡 registry + placeholder |
+| High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | ✅ every type — Oracle components where they exist (oj-chart funnel, oj-avatar, oj-action-card, oj-rating-gauge, oj-checkboxset, oj-menu-button, oj-collapsible, oj-dialog…), Redwood-token atoms where JET has none (board, timeline, heatmap, org outline, BPMN); see the coverage table below | ✅ | ✅ |
 | App header actions (buttons + dropdown groups) | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
 | Bulk row selection + selection-required toolbar actions | ✅ | ✅ | ✅ (native multi-select) | ✅ (checkbox column) |
 | Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (Views menu: apply/save/default/delete, persisted) | 🟡 apply/save/default/delete (session-scoped) |
@@ -242,7 +243,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | ✅ |
 | Notification bell (inbox, unread count) | ✅ | ✅ (header bell + `oj-popup` with an `oj-list-view`) | ✅ (sidebar popup) | ✅ (drawer row) |
 | Undoable toasts (Undo button) | ✅ | ✅ (JET `oj-message` with the Undo `oj-button` in its detail slot — `oj-sp-messages-toast` has no actions) | ✅ (balloon action) | ✅ (toast button) |
-| Entity search (GlobalSearchSupplier: ⌘K palette / search box) | ✅ palette | 🟡 Ask Oracle command palette (navigation); GlobalSearchSupplier entity results not wired | ✅ sidebar search | ✅ drawer search |
+| Entity search (GlobalSearchSupplier: ⌘K palette / search box) | ✅ palette | ✅ the Ask palette: destinations + GlobalSearchSupplier entity results by category | ✅ sidebar search | ✅ drawer search |
 | Planning board (tape chart) | ✅ drag+select | ✅ `oj-gantt`: move, resize, double click, range selection, hover summary | ✅ drag+select (MouseListener + pure PlanningDrag) | ✅ drag+select (PanResponder + pure planningDrag) |
 | Session-expiry re-auth + retry (`onSessionExpired`) | ✅ | ✅ | ✅ (SessionGuard, sync re-auth) | ✅ (sessionGuard, retry once) |
 | Card menus (`@Menu(display = cards)`: a group opening as a panel of cards) | ✅ | ✅ (`oj-popup`) | ✅ | ✅ |
@@ -255,14 +256,15 @@ Every renderer speaks the same wire; the depth of widget support varies.
 ### Redwood component coverage
 
 What the Redwood/VB renderer does with each component type of the wire. A type it does not
-render is **dropped silently** (its children, if it is a container, still render), so this table —
-not the feature rows above — is the authority when a screen looks emptier on Redwood than on Vaadin.
+render shows a visible "Unsupported component" placeholder (its children, if it is a container, still
+render), so this table — not the feature rows above — is the authority on what Redwood paints.
 
 <!-- redwood-coverage:start -->
 Generated from `frontend/web/monorepo/apps/redwood/poc/coverage.mjs` and checked in CI against the
-wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 53 rendered, 11 layout
-containers, 9 partial, 35 not rendered (they are dropped silently — the
-children of a container still render).
+wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 95 rendered, 11 layout
+containers, 2 partial, 0 not rendered. A type the renderer does not know
+(one added to the wire later) shows a visible "Unsupported component" placeholder, like the web
+renderers, and its children still render.
 
 | Component | Redwood | How |
 |---|---|---|
@@ -274,51 +276,93 @@ children of a container still render).
 | `Avatar` | ✅ | oj-avatar |
 | `AvatarGroup` | ✅ | oj-avatar per person, +N beyond maxItemsVisible |
 | `Badge` | ✅ | oj-badge classes |
+| `Bpmn` | ✅ | an SVG drawn from its BPMN-DI (or laid out by its flows): bpmn-js is not under a permissive licence |
+| `Breadcrumbs` | ✅ | a breadcrumb nav in the content (the shell keeps its own trail) |
 | `BulletedList` | ✅ |  |
 | `Button` | ✅ | oj-button |
 | `Calendar` | ✅ | month, week, day and list views (JET has no calendar: a Redwood-token grid, oj-buttonset-one switcher), per-date cells, clickable dates |
+| `CalloutCard` | ✅ | oj-panel band with its theme, icon and CTA oj-button |
 | `Card` | ✅ | oj-panel |
+| `CarouselLayout` | ✅ | an image gallery is an oj-film-strip; other slides one at a time with a ‹ › pager and dots (client-side) |
 | `Chart` | ✅ | oj-chart: bar, line, pie, doughnut, radar/polar area, scatter; several series |
+| `Chat` | ✅ | an inline conversation streamed from its sseUrl (poc/chat.mjs); the app-level assistant is the shell panel |
+| `Checklist` | ✅ | oj-checkboxset per item (sends {_item, _done}) + oj-progress-bar |
+| `CommentThread` | ✅ | replies indented under their comment, oj-avatar per author |
+| `ComparisonCard` | ✅ | oj-panel: both values and the delta with its trend |
+| `ConfirmDialog` | ✅ | oj-dialog, open while its openedCondition holds; Confirm / Reject / Cancel send their actions |
+| `ContextMenu` | ✅ | its content, then an oj-menu-button with the menu; a right click on the content opens it too |
+| `CookieConsent` | ✅ | a band fixed to the top/bottom; hidden once its cookie exists, dismissing sets it |
 | `Crud` | ✅ | oj-table + smart search; groups, totals, tones, columns, saved views, export |
+| `CustomComponent` | ✅ | a registry the app fills (bridge.registerCustomComponent); without a view, a visible placeholder + its children — same contract as the web |
 | `DashboardLayout` | ✅ | oj-flex columns, each panel its colSpan |
 | `DashboardPanel` | ✅ | oj-panel tile (title, subtitle, content) |
 | `Details` | ✅ | oj-collapsible (client-side state) |
 | `Dialog` | ✅ | oj-dialog (overlay stack) |
+| `Directory` | ✅ | a column per group with its links (in-app routes navigate inside the shell) |
 | `Drawer` | ✅ | oj-drawer-popup (overlay stack), subtitle, footer actions |
 | `DropZone` | ✅ | drop target for @DragRows listing rows (oj-table dnd); its content as text lines |
 | `Element` | ✅ | third-party web component, events wired back |
+| `EmptyState` | ✅ | oj-sp-empty-state: the page-level one, and any other in the content with its call to action |
 | `EntityHeader` | ✅ | projected to the page header (sticky business card) |
+| `Faq` | ✅ | oj-collapsible per question (client-side state), the answer as Markdown |
+| `FeatureGrid` | ✅ | oj-panel / oj-action-card tiles on an oj-flex grid of its columns |
+| `FileList` | ✅ | a row per file: icon by type, download link, size · type, its action |
 | `FoldoutLayout` | ✅ | oj-sp-foldout-layout; inside a tab, collapsible panels |
 | `Form` | ✅ | oj-form-layout |
 | `FormField` | ✅ | oj-input-*, oj-select-*, oj-radioset, oj-checkboxset, oj-input-number, capture fields |
 | `FormLayout` | ✅ | oj-form-layout |
+| `Funnel` | ✅ | oj-chart type funnel |
 | `Gantt` | ✅ | oj-gantt: a row per task, progress fill, task click → onTaskSelectionActionId |
+| `Grid` | ✅ | oj-table (list display): tree rows with disclosure, client-side paging by its size |
+| `Heatmap` | ✅ | JET has none: a calendar heatmap (a column per week), 4 levels + legend, values on hover |
+| `HeroSection` | ✅ | the Welcome archetype: oj-sp-header-welcome-banner; in the content, a hero band (title, subtitle, background image) over its children |
 | `HorizontalLayout` | ✅ | oj-flex row |
+| `Icon` | ✅ | the Redwood icon font (oj-ux-ico-*), an emoji as text |
 | `Image` | ✅ | JET has no image component: an <img>; relative sources are served by the backend |
+| `Kanban` | ✅ | JET has no board: oj-panel columns, cards as oj-action-card when they act (_clickedCard) |
 | `Ledger` | ✅ |  |
 | `Map` | ✅ | Leaflet + OSM tiles (JET has no street map): markers, fit, markerActionId |
+| `Markdown` | ✅ | formatted (headings, lists, quotes, code, tables, bold, italics, links, allowed inline HTML) as allowlist-sanitized HTML |
 | `MasterDetailLayout` | ✅ | list + detail panes |
 | `MatrixGrid` | ✅ | oj-data-grid |
+| `MenuBar` | ✅ | oj-buttons, links and oj-menu-buttons for submenus |
+| `MessageInput` | ✅ | oj-input-text + Send oj-button; Enter or Send sends {message} |
+| `MessageList` | ✅ | oj-avatar + name, time and text per message |
 | `Meter` | ✅ | oj-progress-bar |
 | `MetricCard` | ✅ | KPI tile: value, trend, drill-in action |
+| `MicroFrontend` | ✅ | loaded from its baseUrl into a surface of its own and painted in place; its actions go back to it |
 | `NotFound` | ✅ |  |
 | `Notice` | ✅ | oj-sp-message-banner style band + actions |
+| `Notification` | ✅ | an info band (title — text); action messages show as toasts |
 | `OfferCard` | ✅ |  |
+| `OrgChart` | ✅ | the tree as an indented outline (VB templates cannot recurse) with oj-avatar; nodes with an action are oj-action-cards (_clickedNode) |
 | `Page` | ✅ | oj-sp header (title, subtitle, KPIs, toolbar, banners) |
 | `PaymentPicker` | ✅ |  |
 | `PlanningBoard` | ✅ | oj-gantt (move, resize, double click, range selection) |
+| `Popover` | ✅ | trigger + the content WITH its structure (headings, lists, links, badges, markdown) as sanitised HTML in a shared oj-popup (hover/focus or click) |
+| `PricingTable` | ✅ | oj-panel plans (the featured one highlighted), CTA oj-button |
+| `ProcessMonitor` | ✅ | a row per process: systems, ok/warning/error badges, status, action |
+| `ProgressBar` | ✅ | oj-progress-bar (value or the state at valueKey, indeterminate); a wizard shows its progress as the guided process |
 | `ProgressSteps` | ✅ | oj-train |
 | `ResourceGrid` | ✅ |  |
+| `ResponsiveGrid` | ✅ | fixed tracks → oj-flex columns by their fr weights and spans; auto-fill/auto-fit → as many per row as fit at each breakpoint; reorderable tiles drag (and Alt+←/→) |
+| `Result` | ✅ | oj-panel with the icon of its type, message, links and the what-next action |
 | `Scoreboard` | ✅ | KPI band |
 | `Separator` | ✅ |  |
+| `Skeleton` | ✅ | the shell skeleton bones (JET has no skeleton), text/card/grid/form × count |
 | `SplitLayout` | ✅ | two panes |
 | `Stat` | ✅ |  |
 | `StatusList` | ✅ |  |
+| `Stepper` | ✅ | a numbered step header per child, its content below |
 | `TabLayout` | ✅ | oj-tab-bar (nested strips flattened) |
 | `TaskProgress` | ✅ |  |
 | `TaskQueue` | ✅ |  |
+| `Testimonials` | ✅ | oj-panel quotes, oj-avatar, oj-rating-gauge (read only) |
 | `Text` | ✅ |  |
+| `Timeline` | ✅ | oj-timeline is deprecated: a Redwood list with markers, items with an action as borderless oj-buttons (_clickedItem) |
+| `Tooltip` | ✅ | the wrapped component keeps its view; the text opens in the shared oj-popup on hover/focus (on the button itself, or an info marker) |
 | `TrendChart` | ✅ | oj-chart line/area |
+| `VirtualList` | ✅ | every item through the same projection (no windowing — neither has the neutral web renderer) |
 | `BoardLayout` | ✅ layout | children stacked, not a board |
 | `Container` | ✅ layout |  |
 | `ContentLayout` | ✅ layout |  |
@@ -330,15 +374,8 @@ children of a container still render).
 | `FullWidth` | ✅ layout |  |
 | `Scroller` | ✅ layout |  |
 | `VerticalLayout` | ✅ layout |  |
-| `CarouselLayout` | 🟡 | an image gallery is an oj-film-strip; slides with other content are stacked |
-| `CustomComponent` | 🟡 | visible placeholder + slotted children (no VB registry) |
-| `EmptyState` | 🟡 | page-level empty state only |
-| `Grid` | 🟡 | oj-table (list display) with its columns and rows; no tree, no paging |
-| `HeroSection` | 🟡 | Welcome archetype hero only |
-| `Markdown` | 🟡 | formatted (headings, lists, quotes, code, bold, italics, links) as allowlist-sanitized HTML; no tables, and HTML inside the Markdown shows as text |
-| `Popover` | 🟡 | trigger + the content as text lines in a shared oj-popup (hover/focus or click); the wrapped component shows as its text |
-| `ProgressBar` | 🟡 | wizard progress only |
-| `ResponsiveGrid` | 🟡 | fixed tracks → oj-flex columns sized by their fr weights and spans; auto-fill/auto-fit grids stack; reorderable tiles drag (and Alt+←/→) |
+| `FormEditor` | 🟡 | read only: the defined form previewed with the real field widgets; the web designer edits it |
+| `Workflow` | 🟡 | read only: the definition as a numbered flow of steps; the web designer edits it |
 | `AccordionPanel` | ↳ | of AccordionLayout |
 | `BoardLayoutItem` | ↳ | of BoardLayout |
 | `BoardLayoutRow` | ↳ | of BoardLayout |
@@ -346,42 +383,177 @@ children of a container still render).
 | `FormRow` | ↳ | of FormLayout |
 | `GridColumn` | ↳ | of Grid / Crud |
 | `Tab` | ↳ | of TabLayout |
-| `Bpmn` | — |  |
-| `Breadcrumbs` | — | the shell has its own breadcrumbs |
-| `CalloutCard` | — |  |
-| `Chat` | — | the app-level AI chat panel exists; the component does not |
-| `Checklist` | — |  |
-| `CommentThread` | — |  |
-| `ComparisonCard` | — |  |
-| `ConfirmDialog` | — |  |
-| `ContextMenu` | — | its wrapped content shows, the menu does not |
-| `CookieConsent` | — |  |
-| `Directory` | — |  |
-| `Faq` | — |  |
-| `FeatureGrid` | — |  |
-| `FileList` | — |  |
-| `FormEditor` | — |  |
-| `Funnel` | — |  |
-| `Heatmap` | — |  |
-| `Icon` | — |  |
-| `Kanban` | — |  |
-| `MenuBar` | — |  |
-| `MessageInput` | — |  |
-| `MessageList` | — |  |
-| `MicroFrontend` | — |  |
-| `Notification` | — | action messages do show as toasts; the component does not |
-| `OrgChart` | — |  |
-| `PricingTable` | — |  |
-| `ProcessMonitor` | — |  |
-| `Result` | — |  |
-| `Skeleton` | — | the shell shows its own loading skeleton |
-| `Stepper` | — |  |
-| `Testimonials` | — |  |
-| `Timeline` | — |  |
-| `Tooltip` | — |  |
-| `VirtualList` | — |  |
-| `Workflow` | — |  |
 <!-- redwood-coverage:end -->
+
+### React Native component coverage
+
+What the React Native renderer (iOS / Android, `frontend/app/react-native`) does with each
+component type of the wire. Since 2026-10-10 **every** type has a native renderer — CI fails the
+build if a new wire type is added without one (`scripts/parity-check.mjs`), so a screen never shows
+"Unsupported component" on a phone. 🟡 marks a deliberate mobile adaptation (no hover or
+right-click on touch → press / long-press; diagram editors shown read-only).
+
+<!-- rn-coverage:start -->
+Generated from `frontend/app/react-native/scripts/coverage.mjs` and checked in CI against the
+wire catalogue and the renderer's switch (`node scripts/parity-check.mjs`): every wire type has a
+native renderer — 88 rendered, 11 layout containers, 6 parts of another component,
+10 with a documented mobile adaptation. None is dropped.
+
+| Component | React Native | How |
+|---|---|---|
+| `AccordionLayout` | ✅ |  |
+| `ActionPanel` | ✅ | modal; no keyboard shortcut |
+| `AddOnPicker` | ✅ |  |
+| `Anchor` | ✅ | in-app route or OS browser |
+| `App` | ✅ | drawer / tabs shell (AppRenderer); nested App = own island at its home route |
+| `Avatar` | ✅ | image or initials |
+| `AvatarGroup` | ✅ | overlapping, +N overflow |
+| `Badge` | ✅ |  |
+| `Breadcrumbs` | ✅ |  |
+| `BulletedList` | ✅ |  |
+| `Button` | ✅ |  |
+| `Calendar` | ✅ | month / week / day / list |
+| `CalloutCard` | ✅ |  |
+| `Card` | ✅ |  |
+| `CarouselLayout` | ✅ | paging swipe, dots, prev/next, auto-advance, loop |
+| `Chart` | ✅ |  |
+| `Chat` | ✅ | opens the assistant panel (same contract as the app chat FAB) |
+| `Checklist` | ✅ |  |
+| `CommentThread` | ✅ |  |
+| `ComparisonCard` | ✅ |  |
+| `ConfirmDialog` | ✅ |  |
+| `ContentLayout` | ✅ | main / aside / footer; aside beside main ≥ 768 px, stacked on a phone |
+| `CookieConsent` | ✅ | dismissible banner, dismissal persisted on the device |
+| `Crud` | ✅ | table / list / cards / tree, smart-search panel, selection, totals, groups, inline edit, saved views |
+| `DashboardLayout` | ✅ |  |
+| `DashboardPanel` | ✅ |  |
+| `Details` | ✅ | collapsible panel |
+| `Dialog` | ✅ | overlay fragments open as a modal sheet |
+| `Directory` | ✅ |  |
+| `Drawer` | ✅ | overlay fragments open as a modal sheet; a Drawer in the tree is drawn in place |
+| `EmptyState` | ✅ |  |
+| `EntityHeader` | ✅ |  |
+| `Faq` | ✅ |  |
+| `FeatureGrid` | ✅ |  |
+| `FileList` | ✅ |  |
+| `FoldoutLayout` | ✅ | overview card + accordion of panels |
+| `Form` | ✅ |  |
+| `FormField` | ✅ | every stereotype, date picker, lookups, capture fields |
+| `FormSection` | ✅ |  |
+| `FormSubSection` | ✅ |  |
+| `Funnel` | ✅ |  |
+| `Gantt` | ✅ |  |
+| `Grid` | ✅ | horizontal-scroll table, tree rows indented, action cells |
+| `Heatmap` | ✅ |  |
+| `HeroSection` | ✅ |  |
+| `Image` | ✅ |  |
+| `Kanban` | ✅ |  |
+| `Ledger` | ✅ |  |
+| `Map` | ✅ |  |
+| `Markdown` | ✅ |  |
+| `MasterDetailLayout` | ✅ | side by side ≥ 768 px, stacked on a phone |
+| `MatrixGrid` | ✅ |  |
+| `MenuBar` | ✅ | horizontal strip; submenus as an action sheet |
+| `MessageInput` | ✅ |  |
+| `MessageList` | ✅ |  |
+| `Meter` | ✅ |  |
+| `MetricCard` | ✅ |  |
+| `MicroFrontend` | ✅ | own island (own session when it has its own baseUrl) |
+| `NotFound` | ✅ |  |
+| `Notice` | ✅ |  |
+| `Notification` | ✅ | inline status strip |
+| `OfferCard` | ✅ |  |
+| `OrgChart` | ✅ |  |
+| `Page` | ✅ | header (title, subtitle, badges, KPIs, toolbar, banners), FABs |
+| `PaymentPicker` | ✅ |  |
+| `PlanningBoard` | ✅ | drag + select (PanResponder) |
+| `PricingTable` | ✅ |  |
+| `ProcessMonitor` | ✅ |  |
+| `ProgressBar` | ✅ |  |
+| `ProgressSteps` | ✅ | vertical by design |
+| `ResourceGrid` | ✅ |  |
+| `ResponsiveGrid` | ✅ | declared tracks + col spans; stacks below stackBelow (600 px default) |
+| `Result` | ✅ | icon by result type, links, next step |
+| `Scoreboard` | ✅ |  |
+| `Separator` | ✅ |  |
+| `Skeleton` | ✅ |  |
+| `SplitLayout` | ✅ |  |
+| `Stat` | ✅ |  |
+| `StatusList` | ✅ |  |
+| `Stepper` | ✅ | children as numbered steps |
+| `TabLayout` | ✅ |  |
+| `TaskProgress` | ✅ |  |
+| `TaskQueue` | ✅ |  |
+| `Testimonials` | ✅ |  |
+| `Text` | ✅ |  |
+| `Timeline` | ✅ |  |
+| `TrendChart` | ✅ |  |
+| `VirtualList` | ✅ |  |
+| `BoardLayout` | ✅ container |  |
+| `Container` | ✅ container |  |
+| `CustomField` | ✅ container | its component in place |
+| `Div` | ✅ container |  |
+| `FormItem` | ✅ container |  |
+| `FormLayout` | ✅ container |  |
+| `FormRow` | ✅ container |  |
+| `FullWidth` | ✅ container |  |
+| `HorizontalLayout` | ✅ container |  |
+| `Scroller` | ✅ container |  |
+| `VerticalLayout` | ✅ container |  |
+| `Bpmn` | 🟡 | read-only diagram (react-native-svg, from the BPMN DI section); edit on the web |
+| `ContextMenu` | 🟡 | long-press (no right-click on touch) opens an action sheet |
+| `CustomComponent` | 🟡 | registry (registerCustomComponent) + visible placeholder |
+| `DropZone` | 🟡 | "Move to…" picker (no drag on touch) |
+| `Element` | 🟡 | HTML tags map to native text / image / rule, on.click runs its action; custom elements (web components) show their text content |
+| `FormEditor` | 🟡 | read-only definition preview; edit on the web |
+| `Icon` | 🟡 | emoji / glyphs and common icon names; other design-system icons show a dot |
+| `Popover` | 🟡 | opens on press (no hover on touch) |
+| `Tooltip` | 🟡 | long-press shows it (no hover on touch); also the accessibility hint |
+| `Workflow` | 🟡 | read-only layered diagram; edit on the web |
+| `AccordionPanel` | ✅ part | of AccordionLayout |
+| `BoardLayoutItem` | ✅ part | of BoardLayout |
+| `BoardLayoutRow` | ✅ part | of BoardLayout (items side by side ≥ 768 px) |
+| `Breadcrumb` | ✅ part | of Breadcrumbs |
+| `GridColumn` | ✅ part | of Grid / Crud |
+| `Tab` | ✅ part | of TabLayout |
+<!-- rn-coverage:end -->
+
+### IntelliJ plugin component coverage
+
+The IntelliJ plugin has a case for **every** wire component type in `ComponentMetadataDto` (115 as
+of 2026-10-10). This is enforced, not just claimed: `WireTypeParityTest` reads the backend's
+`@JsonSubTypes` list and fails the plugin build when a type has no branch in
+`ui/ComponentRenderer.kt`, and `WireTypeRenderTest` renders each of them headlessly and checks for
+exceptions, the "Unsupported component" fallback and accessible names on every control. The types
+below were the last to arrive, so this is how each one maps to Swing:
+
+| Wire type | IntelliJ rendering |
+|---|---|
+| `Grid` / `GridColumn` | `JBTable` over the page rows (read-only); a stray column shows its header |
+| `VirtualList` | `JBList`, one line per row |
+| `MasterDetailLayout` | `Splitter` (master / detail) |
+| `CarouselLayout` | one slide at a time, ‹ › buttons and `n / total` |
+| `BoardLayout` / `BoardLayoutRow` / `BoardLayoutItem` | rows stacked, equal-width columns |
+| `ContentLayout` | `main-*` centre, `aside-*` start/end column (`asideWidth`), `footer-*` below |
+| `ResponsiveGrid` | grid with the column count of `gridTemplateColumns` |
+| `FormItem`, `Tab`, `AccordionPanel`, `Stepper` met outside their container | a row / titled group / stack of their children |
+| `Breadcrumbs` / `Breadcrumb` | link trail, current item in bold |
+| `MenuBar` | row of buttons; groups open a popup menu (submenus nest) |
+| `ContextMenu` | the wrapped component with a popup (right click, or left click when asked) |
+| `Directory` | sitemap of links under group headings |
+| `Avatar` / `AvatarGroup` | round initials badge (name as tooltip and accessible name); `+N` overflow |
+| `Icon` | the platform icon for known names, else the name |
+| `Details` | disclosure toggle (▸/▾) over its content |
+| `Tooltip` | tooltip + accessible description on the wrapped component |
+| `Notification`, `Result`, `NotFound` | inline strip / outcome page with links / not-found page with a way back |
+| `CookieConsent` | dismissible strip (the IDE has no cookies; dismissal lasts the session) |
+| `Element` | the element as HTML text; an `on.click` runs its action |
+| `Bpmn` | the process as an ordered list of its named flow nodes (start → tasks → end) |
+| `Workflow`, `FormEditor` | their value, read-only and monospaced |
+| `Chat`, `MessageList`, `MessageInput` | inline assistant (mateu-chat SSE, with the project's token), message list, input + Send (`{message}`) |
+| `Dialog`, `Drawer` met inline | opened as the usual overlay window, once per id |
+| `ConfirmDialog` | modal confirm / reject / cancel when `openedCondition` holds |
+| `MicroFrontend` | an embedded island with its own context; another origin gets its own session **without** the project's token |
 
 Since 2026-07-12 (DS-native rule) the non-Vaadin web renderers render crud layouts
 (table/list/cards/masterDetail/tree), toolbar buttons and grid-stereotype form fields with their
@@ -402,10 +574,11 @@ Redwood/VB line.**
 `frontend/app/vscode-extension` is **not** a renderer: it hosts the visual editor (the same web
 bundle the IntelliJ JCEF host runs), so it belongs with the tooling, not in this table.
 
-**Tooling (preview, not part of the supported matrix).** The visual editor (`apps/visual-editor`)
-and its VS Code host (`frontend/app/vscode-extension`) are authoring tooling shipped as *preview* —
-they consume the wire like any renderer but are not covered by the GA support promise above. The
-Figma design-to-code pipeline is preview for the same reason.
+**Authoring tooling.** The IntelliJ plugin (renderer, visual editor, specs/ui schema validation,
+binding checks, **New | Mateu** file templates, per-project settings with bearer/OIDC
+authentication) and the VS Code extension (the same visual editor bundle, `yamlValidation` for
+`specs/ui/**`, **Mateu: New File…** with the same skeletons) are supported tooling. The Figma
+design-to-code pipeline remains *preview*: it is not covered by the support promise above.
 
 **Fetch-plan edges (known renderer gaps).** The client-side fetch plan (`optionsSource`,
 `rowsSource`, `restAction`, `restData` — see [the renderer contract](/design-systems/renderer-contract/))

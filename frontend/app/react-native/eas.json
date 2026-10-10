@@ -1,34 +1,40 @@
 {
   "cli": {
-    "version": ">= 13.0.0",
+    "version": ">= 16.0.0",
     "appVersionSource": "remote"
   },
   "build": {
-    "preview": {
+    "development": {
       "distribution": "internal",
+      "channel": "development",
+      "environment": "development",
+      "env": {
+        "APP_VARIANT": "development"
+      },
       "android": {
         "buildType": "apk"
-      },
-      "env": {
-        "EXPO_PUBLIC_MATEU_REGISTRY_URL": "http://192.168.1.78:8594/registry",
-        "EXPO_PUBLIC_MATEU_APP_ID": "front-office"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "channel": "preview",
+      "environment": "preview",
+      "android": {
+        "buildType": "apk"
       }
     },
     "production": {
+      "channel": "production",
+      "environment": "production",
       "autoIncrement": true
     }
   },
   "submit": {
     "production": {
       "android": {
-        "serviceAccountKeyPath": "./play-service-account.json",
         "track": "internal"
       },
-      "ios": {
-        "ascApiKeyPath": "./asc-api-key.p8",
-        "ascApiKeyId": "REPLACE_ME",
-        "ascApiKeyIssuerId": "REPLACE_ME"
-      }
+      "ios": {}
     }
   }
 }

@@ -1,0 +1,17 @@
+# Hero search: a centered hero hosting the search, results as cards below.
+type: VerticalLayout
+__PAGE_WIDTH__
+content:
+  - type: HeroSection
+    title: __TITLE__
+    subtitle: Find what you are looking for.
+    centered: true
+  - type: Listing
+    searchable: true
+    searchOnEnter: true
+    gridLayout: cards
+    rowsSource:
+      ref: orders
+    columns:
+      - {type: GridColumn, id: name, label: Name, identifier: true}
+      - {type: GridColumn, id: description, label: Description}

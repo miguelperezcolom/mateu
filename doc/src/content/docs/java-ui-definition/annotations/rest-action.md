@@ -10,9 +10,9 @@ when `resultPath` is set, merges the object at that path in the JSON response in
 (so bound fields refresh).
 
 It is the action surface of decoupling the Mateu UI from the Mateu backend — after
-[`@RestOptions`](./rest-options) (select options) and [`@RestListing`](./rest-listing) (listing rows).
+[`@RestOptions`](/java-ui-definition/annotations/rest-options/) (select options) and [`@RestListing`](/java-ui-definition/annotations/rest-listing/) (listing rows).
 
-**Target:** `METHOD` (and `ANNOTATION_TYPE`, so it composes as a [semantic annotation](./semantic-annotations)).
+**Target:** `METHOD` (and `ANNOTATION_TYPE`, so it composes as a [semantic annotation](/java-ui-definition/annotations/semantic-annotations/)).
 Put it on a method that is **also** a `@Button`/`@Toolbar` (which renders the clickable button).
 
 ## Example
@@ -63,7 +63,7 @@ endpoint must be reachable from the browser (CORS-friendly for cross-origin APIs
 `proxy = true` also works on `@RestAction`: the call goes through the Mateu server (no CORS) with
 `${secret.X}` auth injected server-side. To authenticate the direct call instead, register a
 client-side auth provider. Both are described under
-[`@RestOptions`](./rest-options#server-proxy-mode-proxy--true--cors--auth-hardening).
+[`@RestOptions`](/java-ui-definition/annotations/rest-options/#server-proxy-mode-proxy--true--cors--auth-hardening).
 :::
 
 ## Other backends

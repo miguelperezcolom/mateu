@@ -5,6 +5,8 @@ import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { icon as renderIcon } from "@infra/ui/renderers/neutralIcon.ts";
 import { chromeText } from "@infra/ui/chromeTexts.ts";
 import { navigateToRoute } from "@infra/ui/rowRoute.ts";
+import { safeHref } from '@infra/ui/safeNavigate.ts'
+import { ifDefined } from 'lit/directives/if-defined.js'
 
 /** A magnifying glass, for renderers with no icon hook (the port would draw an empty placeholder). */
 const MAGNIFIER = svg`<svg viewBox="0 0 24 24" width="100%" height="100%" fill="none" stroke="currentColor"
@@ -53,7 +55,7 @@ export const renderNotFound = (component: ClientSideComponent): TemplateResult =
                        color: var(--lumo-header-text-color, var(--lumo-body-text-color, #1a2533)); overflow-wrap: anywhere;">${title}</h2>
             <p class="mateu-not-found-message" style="margin: 0; max-width: 32rem; font-size: var(--lumo-font-size-m, 1rem);">${message}</p>
             ${backRoute ? html`
-                <a class="mateu-not-found-back" href="${backRoute}" @click="${(e: Event) => goBack(e, backRoute)}"
+                <a class="mateu-not-found-back" href="${ifDefined(safeHref(backRoute))}" @click="${(e: Event) => goBack(e, backRoute)}"
                    style="margin-top: var(--lumo-space-m, 1rem); font-weight: 500; text-decoration: none;
                           color: var(--lumo-primary-text-color, #1676f3);">← ${metadata.backLabel || chromeText('goBack')}</a>
             ` : nothing}

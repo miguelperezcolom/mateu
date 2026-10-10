@@ -28,6 +28,7 @@ import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import "@infra/ui/mateu-adaptive-tabs.ts";
 import { announceTabRoute, tabIndexFromPath } from "@infra/ui/tabRoutes.ts";
 import { currentTabScope, tabDomId, tabStripKey, withinTab } from "@infra/ui/tabIds.ts";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 export const renderFormLayout = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as FormLayout
 
@@ -203,7 +204,7 @@ export const renderMasterDetailLayout = (container: LitElement, component: Compo
                    <div>${renderComponent(container, component.children![0], baseUrl, state, data, appState, appData)}</div>
                    ${hasDetail && detailContent
                        ? html`<div slot="detail">${renderComponent(container, detailContent, baseUrl, state, data, appState, appData)}</div>`
-                       : html`<div slot="detail" style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s);">Select an item to view details</div>`}
+                       : html`<div slot="detail" style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--lumo-secondary-text-color); font-size: var(--lumo-font-size-s);">${chromeText('selectItemForDetails')}</div>`}
                </vaadin-master-detail-layout>
             `
 }

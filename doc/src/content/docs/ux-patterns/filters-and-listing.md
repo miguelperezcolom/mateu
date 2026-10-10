@@ -20,6 +20,10 @@ Use `@List` for the collection class, `@Filterable` on filter fields, `@RowActio
 ```java
 @UI("/products")
 public class ProductsListing extends AutoCrud<Product> {
+    @Override
+    public CrudStore<Product> store() {
+        return new ProductStore(); // your CrudStore<Product>
+    }
 
     @ListToolbarButton(rowsSelectedRequired = true, confirmationRequired = true)
     public void deactivateSelected(List<Product> selected) {

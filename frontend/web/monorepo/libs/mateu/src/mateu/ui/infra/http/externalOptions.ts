@@ -2,6 +2,7 @@ import type RestDataSource from '@mateu/shared/apiClients/dtos/componentmetadata
 import { externalAuthHeaders } from './externalAuth.ts'
 import { declaresJson } from './jsonTemplate.ts'
 import { pathOfField, resolveRestSource, totalPathOf } from './restSourceCatalogue.ts'
+import type { TemplateResolver } from '../ui/interpolation.ts'
 
 /**
  * Client-side consumption of an arbitrary (non-Mateu) REST endpoint for a field's select options —
@@ -101,7 +102,7 @@ export function registerExternalJsonMock(fn: ExternalJsonMock | null): void {
 
 export async function fetchExternalJson(
     declared: RestDataSource,
-    resolve: (tpl: string | undefined) => string | undefined = (t) => t,
+    resolve: TemplateResolver = (t) => t,
     fetchImpl: typeof fetch = fetch,
     resolveJson?: (tpl: string | undefined) => string | undefined,
 ): Promise<unknown> {
@@ -109,15 +110,18 @@ export async function fetchExternalJson(
     // surface at once — options, rows and actions all come through this function.
     const source = resolveRestSource(declared)
     const method = (source.method || 'GET').toUpperCase()
+    // The url is resolved with its values percent-encoded by position (`templateResolver(...).url`,
+    // see interpolateUrl) — the same rules the proxied leg applies on the server.
+    const resolveUrl = resolve.url ?? resolve
     // A registered mock (the visual editor's `mock` preview source) may serve this without a network
     // call — checked BEFORE the url is required, so a fixture can answer a source that has no live url yet.
     if (externalJsonMock) {
-        const mockUrl = source.url ? (resolve(source.url) ?? source.url) : ''
+        const mockUrl = source.url ? (resolveUrl(source.url) ?? source.url) : ''
         const mocked = externalJsonMock({ url: mockUrl, ref: declared.ref, method })
         if (mocked !== undefined) return mocked
     }
     if (!source.url) throw new Error(`External REST fetch has no url${declared.ref ? ` (unknown source "${declared.ref}")` : ''}`)
-    const url = resolve(source.url) ?? source.url
+    const url = resolveUrl(source.url) ?? source.url
     const headers: Record<string, string> = {}
     for (const [k, v] of Object.entries(source.headers ?? {})) headers[k] = resolve(v) ?? v
     // A registered client-side auth provider supplies dynamic headers (e.g. a bearer token from a
@@ -146,7 +150,7 @@ export async function fetchExternalJson(
  */
 export async function fetchExternalOptions(
     source: RestDataSource,
-    resolve: (tpl: string | undefined) => string | undefined = (t) => t,
+    resolve: TemplateResolver = (t) => t,
     fetchImpl: typeof fetch = fetch,
 ): Promise<FetchedOption[]> {
     const json = await fetchExternalJson(source, resolve, fetchImpl)
@@ -163,7 +167,7 @@ export async function fetchExternalOptions(
 export async function fetchExternalRows(
     source: RestDataSource,
     columnIds: string[],
-    resolve: (tpl: string | undefined) => string | undefined = (t) => t,
+    resolve: TemplateResolver = (t) => t,
     fetchImpl: typeof fetch = fetch,
 ): Promise<Record<string, unknown>[]> {
     const json = await fetchExternalJson(source, resolve, fetchImpl)
@@ -188,7 +192,7 @@ export async function fetchExternalRows(
 export async function fetchExternalPage(
     source: RestDataSource,
     columnIds: string[],
-    resolve: (tpl: string | undefined) => string | undefined = (t) => t,
+    resolve: TemplateResolver = (t) => t,
     fetchImpl: typeof fetch = fetch,
 ): Promise<{ rows: Record<string, unknown>[]; total: number | null }> {
     const json = await fetchExternalJson(source, resolve, fetchImpl)

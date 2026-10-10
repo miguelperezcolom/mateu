@@ -6,8 +6,6 @@ import com.intellij.notification.NotificationGroupManager
 import com.intellij.notification.NotificationType
 import com.intellij.openapi.actionSystem.ActionManager
 import com.intellij.openapi.actionSystem.ActionPlaces
-import com.intellij.openapi.actionSystem.ex.ActionUtil
-import com.intellij.openapi.actionSystem.impl.SimpleDataContext
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
@@ -55,7 +53,12 @@ class MateuProjectService(private val project: Project) {
     /** Boot the session + app shell (idempotent; call on the EDT). */
     fun ensureBooted() {
         if (session != null || booting) return
-        val cfg = loadMateuConfig()
+        val cfg = loadMateuConfig(project)
+        // A project with no Mateu backend configured is left alone: no HTTP, no title, no panels.
+        if (!cfg.configured) {
+            showStatus("No Mateu backend configured for this project — Settings | Tools | Mateu.")
+            return
+        }
         if (cfg.registryUrl == null || cfg.appId == null) {
             boot(cfg.baseUrl, cfg.config, cfg.route)
             return
@@ -89,7 +92,7 @@ class MateuProjectService(private val project: Project) {
 
     private fun boot(baseUrl: String, config: Map<String, Any?>, route: String) {
         if (session != null) return
-        val s = AppSession(baseUrl, config)
+        val s = AppSession(baseUrl, config, io.mateu.ijp.auth.MateuAuthService.getInstance(project))
         session = s
         val viewManager = MateuViewManager(project, s)
         s.openViewHandler = viewManager::openView
@@ -98,14 +101,19 @@ class MateuProjectService(private val project: Project) {
         project.putUserData(MATEU_SESSION, s)
         // Standalone-app window title: app-level SetWindowTitle lands on the real IDE frame, and the
         // app title feeds the frame-title builder so no "workspace"/IDE tell shows in the title bar.
-        s.frame = WindowManager.getInstance().getFrame(project)
-        MateuFrameTitleBuilder.setFrameTitle(project, loadMateuConfig().productName)
+        // Only the STANDALONE distribution owns the IDE frame; inside a developer's IDE the platform
+        // keeps its own title and the app's title goes to the Mateu tool window instead.
+        val standalone = loadMateuConfig(project).standalone
+        if (standalone) {
+            s.frame = WindowManager.getInstance().getFrame(project)
+            MateuFrameTitle.set(project, loadMateuConfig(project).productName)
+        }
         s.onAppMenuChanged = {
             MateuMenuActions.sync(s)
-            s.appTitle?.let { MateuFrameTitleBuilder.setFrameTitle(project, it) }
+            if (standalone) s.appTitle?.let { MateuFrameTitle.set(project, it) }
             // Standalone landing: open the first menu entry once, so the app lands on content
             // (listing in the bottom panel / page in an editor tab) instead of an empty editor.
-            if (!homeOpened) {
+            if (standalone && !homeOpened) {
                 homeOpened = true
                 openHomeView(s)
             }
@@ -204,10 +212,7 @@ class MateuProjectService(private val project: Project) {
                     // baseline the plugin targets; keeping the simplest form until the since-build rises.)
                     val action = ActionManager.getInstance().getAction("CheckForUpdate")
                     if (action != null) {
-                        @Suppress("DEPRECATION")
-                        ActionUtil.invokeAction(
-                            action, SimpleDataContext.getProjectContext(project), ActionPlaces.UNKNOWN, null, null,
-                        )
+                        ActionManager.getInstance().tryToExecute(action, null, navigatorRoot, ActionPlaces.UNKNOWN, true)
                     }
                     block.downloadUrl?.let(BrowserUtil::browse)
                 }

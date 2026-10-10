@@ -618,6 +618,18 @@ class WireConformanceTest {
             GridField.class,
             StatusListPage.class,
             CompactPage.class);
+    // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
+    // declares a source, so it must not leak restSources into the app goldens (the ports run with
+    // no catalogue at all).
+    try {
+      var registry =
+          mateu.context().getBean(io.mateu.core.application.runaction.RestSourceRegistry.class);
+      var field = registry.getClass().getDeclaredField("catalog");
+      field.setAccessible(true);
+      field.set(registry, io.mateu.uidl.data.RestSourceCatalog.empty());
+    } catch (ReflectiveOperationException e) {
+      throw new IllegalStateException(e);
+    }
   }
 
   @AfterAll
@@ -648,7 +660,13 @@ class WireConformanceTest {
    * sides rather than argued about.
    */
   private static final Set<String> VOLATILE =
-      Set.of("id", "structureHash", "generatedAt", "serverSideType", "targetComponentId");
+      Set.of(
+          "id",
+          "structureHash",
+          "generatedAt",
+          "serverSideType",
+          "homeServerSideType",
+          "targetComponentId");
 
   /** Drops volatile members and empty ones, and sorts keys, so two servers can be compared. */
   static JsonNode normalise(JsonNode node) {

@@ -1,6 +1,8 @@
 .idea
 .qodana
 target
+# the e2e SUT built a second time with the Redwood renderer (-Dsut.build.dir=target-vb)
+target-vb
 overlays
 *.iml
 mdd-vaadin/src/main/webapp/tmp
@@ -13,3 +15,4 @@ mvnw.*
 # One of these once dragged 94k files into a commit; none of it is source.
 .dev/
 .DS_Store
+.m2-stream/

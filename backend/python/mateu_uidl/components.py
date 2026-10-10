@@ -10,7 +10,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
+from datetime import date as _date
+from typing import TYPE_CHECKING
 from enum import Enum
+
+
+if TYPE_CHECKING:
+    from .suppliers import PeerNav
 
 
 class Component:
@@ -604,10 +610,10 @@ class CalendarEvent:
 
     id: str | None = None
     title: str | None = None
-    date: date | None = None
+    date: _date | None = None
     color: str | None = None
     action_id: str | None = None
-    end_date: date | None = None
+    end_date: _date | None = None
     start_time: str | None = None
     end_time: str | None = None
 
@@ -1113,6 +1119,17 @@ class Notice(Component):
 
 
 @dataclass(frozen=True)
+class ComponentRef(Component):
+    """A reference to a named BUSINESS component of the app's catalogue (Java's ``ComponentRef``):
+    a reusable bound composition declared once (``@business_component``, a
+    ``ComponentCatalogSupplier`` or ``specs/ui/components.yaml``) and referenced by name wherever a
+    component goes. The server substitutes the composition while rendering, so the reference never
+    reaches the wire; an unknown name renders a visible placeholder, never an error."""
+
+    ref: str = ""
+
+
+@dataclass(frozen=True)
 class CustomComponent(Component):
     """A genuinely NEW component type the platform does not ship (coherence-plan #14): the
     per-renderer escape hatch. Unlike a business component (composition of known pieces that ports
@@ -1287,13 +1304,16 @@ class MapMarker:
 class Map(Component):
     """A street map (mirrors Java's ``io.mateu.uidl.data.Map``): ``position`` is the centre as
     ``"lat, lon"`` (free string), ``zoom`` the zoom level as a string. When ``marker_action_id``
-    is set, clicking a marker runs that action with ``{"_markerId": <marker id>}``. A missing
-    ``id`` travels as ``"map"``."""
+    is set, clicking a marker runs that action with ``{"_markerId": <marker id>}``. ``tile_url``
+    (a Leaflet-style template) and ``attribution`` pick the tile provider; ``None`` keeps
+    OpenStreetMap. A missing ``id`` travels as ``"map"``."""
 
     position: str | None = None
     zoom: str | None = None
     markers: tuple[MapMarker, ...] = ()
     marker_action_id: str | None = None
+    tile_url: str | None = None
+    attribution: str | None = None
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
@@ -1644,6 +1664,7 @@ class Dialog(Component):
 
 
 __all__ = [
+    "ComponentRef",
     "Component",
     "MetricTrend",
     "SkeletonVariant",

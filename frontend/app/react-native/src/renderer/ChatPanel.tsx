@@ -45,10 +45,8 @@ export function ChatPanel({ session, sseUrl, onClose }: { session: MateuSession;
     try {
       const response = await fetch(sseUrl, {
         method: 'POST',
-        headers: {
-          Accept: 'text/event-stream',
-          'Content-Type': 'application/json',
-        },
+        // same identity as the Mateu requests (the web's mateu-chat sends the Bearer too)
+        headers: await session.api.headers({ Accept: 'text/event-stream' }),
         body: JSON.stringify({ message: text, sessionId: chatSessionId.current }),
       });
       const raw = await response.text();

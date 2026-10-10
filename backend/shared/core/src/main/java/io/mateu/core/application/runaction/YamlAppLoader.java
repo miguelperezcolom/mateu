@@ -27,7 +27,8 @@ import lombok.extern.slf4j.Slf4j;
  * {@link Component}; both deserialize through the same polymorphic {@code type:} discriminator as
  * page layouts (see {@link YamlUidlMapperFactory}). Scalars ({@code title}, {@code subtitle},
  * {@code logo}, {@code favicon}, {@code variant}, {@code layout}, {@code drawerClosed}, {@code
- * homeRoute}…) are read off the node. {@code homeRoute} defaults to the first navigable menu item.
+ * homeRoute}…) are read off the node. {@code homeRoute} defaults to the mount's {@code home:} (see
+ * {@link #load(String, String)}), else to the first navigable menu item.
  *
  * <p><b>Not carried yet</b>: the flags {@code AppMapper} re-reads reflectively from the app class
  * (theme toggle, command center, chromeless, SSE/MCP/upload URLs, {@code @AppContext} selectors,
@@ -45,6 +46,8 @@ public class YamlAppLoader {
   // forever.
   private static final AppShell NONE = AppShell.builder().clientSideComponentId("__none__").build();
   private final ConcurrentHashMap<String, AppShell> byPath = new ConcurrentHashMap<>();
+  // Definitions that declare their own `homeRoute:` — a mount's `home:` never overrides those.
+  private final java.util.Set<String> declaresHomeRoute = ConcurrentHashMap.newKeySet();
 
   /**
    * The {@link AppShell} declared by the definition file at {@code definitionPath}, or {@code null}
@@ -59,6 +62,22 @@ public class YamlAppLoader {
     return shell == NONE ? null : shell;
   }
 
+  /**
+   * As {@link #load(String)}, for a shell bound to the root of a mount whose descriptor declares
+   * {@code home:}: when the shell itself declares no {@code homeRoute:}, it lands on {@code
+   * mountHome} instead of its first navigable menu item. A shell's own {@code homeRoute:} wins.
+   */
+  public AppShell load(String definitionPath, String mountHome) {
+    var shell = load(definitionPath);
+    if (shell == null
+        || mountHome == null
+        || mountHome.isBlank()
+        || declaresHomeRoute.contains(definitionPath)) {
+      return shell;
+    }
+    return shell.withHomeRoute(mountHome);
+  }
+
   /** Whether the definition at {@code definitionPath} is a {@code type: AppShell}. */
   public boolean isAppShell(String definitionPath) {
     return load(definitionPath) != null;
@@ -71,6 +90,9 @@ public class YamlAppLoader {
       }
       var root = mapper.readTree(is);
       var shell = parse(root);
+      if (shell != null && root.hasNonNull("homeRoute")) {
+        declaresHomeRoute.add(definitionPath);
+      }
       return shell == null ? NONE : shell;
     } catch (Exception e) {
       log.warn("Failed to read app shell definition {}: {}", definitionPath, e.getMessage());

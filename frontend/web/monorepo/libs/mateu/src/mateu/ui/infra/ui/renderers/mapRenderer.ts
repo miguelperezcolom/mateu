@@ -10,6 +10,8 @@ export const renderMap = (component: ClientSideComponent) => {
                    position="${metadata.position ?? nothing}" zoom="${metadata.zoom ?? nothing}"
                    .markers=${metadata.markers ?? []}
                    .markerActionId=${metadata.markerActionId ?? undefined}
+                   .tileUrl=${metadata.tileUrl ?? undefined}
+                   .attribution=${metadata.attribution ?? undefined}
                    style="${component.style ?? nothing}" class="${component.cssClasses ?? nothing}"
                    slot="${component.slot??nothing}"></mateu-map>
             `

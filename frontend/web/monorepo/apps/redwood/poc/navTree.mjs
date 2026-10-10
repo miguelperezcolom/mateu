@@ -1,3 +1,4 @@
+import { chromeText } from './i18n.mjs'
 // El árbol de navegación: las reglas de libs/mateu/.../navTree.ts que necesita este renderer,
 // PORTADAS (no compartidas): el bridge se construye concatenando estos .mjs (make-amd.mjs) y no
 // puede importar TypeScript. Mismas reglas, mismos casos en test.mjs; si cambia una, cambian las dos.
@@ -42,9 +43,7 @@ export function unavailableHint(label, lang) {
     name = name.replace(/<[^<>]*>/g, '')
   }
   name = name.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim()
-  return String(language).toLowerCase().startsWith('es')
-    ? `${name} no está disponible ahora. Se volverá a intentar.`
-    : `${name} is not available right now. It will be retried.`
+  return chromeText('unavailableMount', { name }, language || 'en')
 }
 
 /**

@@ -1,7 +1,7 @@
 import { css, html, LitElement, PropertyValues } from "lit";
 import { customElement, property, query } from 'lit/decorators.js';
 import type OlMap from "ol/Map";
-import { planMapView } from "./mapPosition";
+import { planMapView, tileSourceOf } from "./mapPosition";
 import type { MapMarker } from "@mateu/shared/apiClients/dtos/componentmetadata/Map";
 
 /** Pin colour when a marker declares none (Redwood's brand red reads on any tile). */
@@ -10,7 +10,8 @@ const DEFAULT_PIN = '#c74634'
 /**
  * <mateu-map> — design-system-neutral map component (renderer parity phase 2).
  *
- * Wraps OpenLayers directly (the same engine vaadin-map wraps) with an OSM tile layer, so the
+ * Wraps OpenLayers directly (the same engine vaadin-map wraps) with an OSM tile layer (or the
+ * provider the wire names: `tileUrl` + `attribution`), so the
  * Map component no longer depends on the commercially-licensed vaadin-map element and renders
  * the same under every renderer. OpenLayers (~1 MB) is lazy-loaded so it stays out of the
  * initial bundle, mirroring mateu-bpmn/mateu-chart.
@@ -35,6 +36,13 @@ export class MateuMap extends LitElement {
 
     @property()
     markerActionId: string | undefined
+
+    /** Leaflet-style tile url template; unset → OpenStreetMap. */
+    @property()
+    tileUrl: string | undefined
+
+    @property()
+    attribution: string | undefined
 
     @query('#map')
     private mapElement!: HTMLDivElement;
@@ -115,13 +123,14 @@ export class MateuMap extends LitElement {
             return feature
         })
         const plan = planMapView(this.position, this.zoom, markers)
+        const tiles = tileSourceOf(this.tileUrl, this.attribution)
         const view = plan.kind === 'center'
             ? new View({ center: fromLonLat([plan.center.lon, plan.center.lat]), zoom: plan.zoom })
             : new View({ center: fromLonLat([0, 0]), zoom: 2 })
         this.map = new OlMapClass({
             target: this.mapElement,
             layers: [
-                new TileLayer({ source: new OSM() }),
+                new TileLayer({ source: tiles.url ? new OSM({ url: tiles.url, attributions: tiles.attributions }) : new OSM() }),
                 new VectorLayer({ source: new VectorSource({ features }) }),
             ],
             view,

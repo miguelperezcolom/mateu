@@ -10,7 +10,8 @@
     </parent>
 
     <artifactId>annotation-processor-micronaut</artifactId>
-    <name>Annotation processor for micronaut</name>
+    <name>Mateu annotation processor for Micronaut</name>
+    <description>Generates the Micronaut controllers of the @UI classes at compile time. Put it on the annotationProcessorPaths only, never on the runtime classpath.</description>
 
     <dependencies>
         <dependency>

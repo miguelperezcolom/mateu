@@ -5,6 +5,7 @@ import { classifyRequestFailure, offersManualRetry, RequestFailure } from "@infr
 import { connectivity } from "@infra/http/connectivity.ts";
 import { anyPending } from "@infra/ui/pendingIndicator.ts";
 import { reportClientError, failureReportOf } from "@infra/http/clientErrorReporter.ts";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * The global busy affordance — the LAST resort, not the first.
@@ -71,7 +72,7 @@ export class MateuApiCaller extends LitElement {
             // Long enough to read and act on; a plain error keeps the briefer dwell.
             duration: retry ? 8000 : 5000,
             position: 'bottomEnd',
-            ...(retry ? { actionLabel: 'Retry', onAction: retry } : {}),
+            ...(retry ? { actionLabel: chromeText('retry'), onAction: retry } : {}),
         }, this)
     }
 

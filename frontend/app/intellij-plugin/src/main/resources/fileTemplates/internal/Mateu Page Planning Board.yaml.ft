@@ -1,0 +1,13 @@
+# Planning board: resources by days; dragging a block runs moveActionId, clicking selectActionId.
+type: PlanningBoard
+__PAGE_WIDTH__
+from: "2026-01-05"
+to: "2026-01-18"
+moveActionId: moveBlock
+selectActionId: selectBlock
+resources:
+  - {id: r101, label: Room 101, group: First floor}
+  - {id: r102, label: Room 102, group: First floor}
+blocks:
+  - {id: b1, resourceId: r101, start: "2026-01-06", end: "2026-01-09", label: Smith, color: "#1e88e5"}
+  - {id: b2, resourceId: r102, start: "2026-01-08", end: "2026-01-12", label: García}

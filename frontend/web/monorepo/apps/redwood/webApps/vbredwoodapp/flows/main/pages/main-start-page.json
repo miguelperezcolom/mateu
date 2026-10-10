@@ -1,6 +1,6 @@
 {
   "title": "",
-  "description": "Contenido alimentado por Mateu: t\u00edtulo + form / listado + drawer del crud; la carga la orquesta la shell",
+  "description": "Contenido alimentado por Mateu: título + form / listado + drawer del crud; la carga la orquesta la shell",
   "variables": {
     "mateuColumnsModel": {
       "type": "any",
@@ -33,12 +33,12 @@
     "mateuDraft": {
       "type": "any",
       "defaultValue": {},
-      "description": "edici\u00f3n en curso del form del host ({fieldId: valor})"
+      "description": "edición en curso del form del host ({fieldId: valor})"
     },
     "mateuDrawerDraft": {
       "type": "any",
       "defaultValue": {},
-      "description": "edici\u00f3n en curso del form del drawer"
+      "description": "edición en curso del form del drawer"
     },
     "mateuToastText": {
       "type": "string",
@@ -47,7 +47,7 @@
     "mateuIslandDraft": {
       "type": "any",
       "defaultValue": {},
-      "description": "edici\u00f3n en curso del form de la isla"
+      "description": "edición en curso del form de la isla"
     },
     "overviewADP": {
       "type": "vb/ArrayDataProvider2",
@@ -62,7 +62,7 @@
         "data": "{{ $application.variables.mateuWelcomeTrendItems }}",
         "keyAttributes": "id"
       },
-      "description": "items del chart de previsi\u00f3n de la welcome para el oj-chart"
+      "description": "items del chart de previsión de la welcome para el oj-chart"
     },
     "overviewSelectConfig": {
       "type": "any",
@@ -105,12 +105,12 @@
     "mateuRowDraft": {
       "type": "any",
       "defaultValue": {},
-      "description": "edici\u00f3n en curso de la fila del editor modal ({fieldId: valor})"
+      "description": "edición en curso de la fila del editor modal ({fieldId: valor})"
     },
     "mateuRowErrors": {
       "type": "any",
       "defaultValue": {},
-      "description": "obligatorios vac\u00edos de la fila ({fieldId: mensaje})"
+      "description": "obligatorios vacíos de la fila ({fieldId: mensaje})"
     },
     "mateuRowEditorOpen": {
       "type": "boolean",
@@ -124,7 +124,7 @@
         "confirmText": "",
         "denyText": ""
       },
-      "description": "el di\u00e1logo de confirmaci\u00f3n de una acci\u00f3n (bridge.confirmationOf)"
+      "description": "el diálogo de confirmación de una acción (bridge.confirmationOf)"
     },
     "mateuPicker": {
       "type": "any",
@@ -508,6 +508,17 @@
         }
       ]
     },
+    "fabAction": {
+      "chains": [
+        {
+          "chain": "runMateuFab",
+          "parameters": {
+            "actionId": "{{ $current.data.actionId }}",
+            "appLevel": "{{ $current.data.appLevel }}"
+          }
+        }
+      ]
+    },
     "hostBlockAction": {
       "chains": [
         {
@@ -515,7 +526,8 @@
           "parameters": {
             "actionId": "{{ $current.data.actionId }}",
             "parameters": "{{ $current.data.parameters }}",
-            "fromNested": "{{ $current.data.fromNested }}"
+            "fromNested": "{{ $current.data.fromNested }}",
+            "surfaceId": "{{ $current.data.surfaceId }}"
           }
         }
       ]
@@ -985,6 +997,128 @@
           "chain": "mateuPickerDismissed"
         }
       ]
+    },
+    "hostMenuAction": {
+      "chains": [
+        {
+          "chain": "menuItemChosen",
+          "parameters": {
+            "items": "{{ $current.data.menuItems }}",
+            "value": "{{ $event.detail.selectedValue }}",
+            "variant": "host"
+          }
+        }
+      ]
+    },
+    "hostChecklistToggled": {
+      "chains": [
+        {
+          "chain": "checklistToggled",
+          "parameters": {
+            "actionId": "{{ $current.data.actionId }}",
+            "parameters": "{{ $current.data.parameters }}",
+            "updatedFrom": "{{ $event.detail.updatedFrom }}",
+            "variant": "host"
+          }
+        }
+      ]
+    },
+    "hostMessageSend": {
+      "chains": [
+        {
+          "chain": "messageInputSend",
+          "parameters": {
+            "inputId": "{{ $current.data.inputId }}",
+            "actionId": "{{ $current.data.actionId }}",
+            "variant": "host"
+          }
+        }
+      ]
+    },
+    "hostMessageKey": {
+      "chains": [
+        {
+          "chain": "messageInputSend",
+          "parameters": {
+            "inputId": "{{ $current.data.inputId }}",
+            "actionId": "{{ $current.data.actionId }}",
+            "key": "{{ $event.key }}",
+            "variant": "host"
+          }
+        }
+      ]
+    },
+    "islandMenuAction": {
+      "chains": [
+        {
+          "chain": "menuItemChosen",
+          "parameters": {
+            "items": "{{ $current.data.menuItems }}",
+            "value": "{{ $event.detail.selectedValue }}",
+            "variant": "island"
+          }
+        }
+      ]
+    },
+    "islandChecklistToggled": {
+      "chains": [
+        {
+          "chain": "checklistToggled",
+          "parameters": {
+            "actionId": "{{ $current.data.actionId }}",
+            "parameters": "{{ $current.data.parameters }}",
+            "updatedFrom": "{{ $event.detail.updatedFrom }}",
+            "variant": "island"
+          }
+        }
+      ]
+    },
+    "islandMessageSend": {
+      "chains": [
+        {
+          "chain": "messageInputSend",
+          "parameters": {
+            "inputId": "{{ $current.data.inputId }}",
+            "actionId": "{{ $current.data.actionId }}",
+            "variant": "island"
+          }
+        }
+      ]
+    },
+    "islandMessageKey": {
+      "chains": [
+        {
+          "chain": "messageInputSend",
+          "parameters": {
+            "inputId": "{{ $current.data.inputId }}",
+            "actionId": "{{ $current.data.actionId }}",
+            "key": "{{ $event.key }}",
+            "variant": "island"
+          }
+        }
+      ]
+    },
+    "uiValueChanged": {
+      "chains": [
+        {
+          "chain": "uiValueChanged",
+          "parameters": {
+            "key": "{{ $current.data.uiKey }}",
+            "value": "{{ $current.data.uiValue }}"
+          }
+        }
+      ]
+    },
+    "gridTreeToggled": {
+      "chains": [
+        {
+          "chain": "uiValueChanged",
+          "parameters": {
+            "key": "{{ $current.row.__uiKey }}",
+            "value": "{{ $current.row.__uiValue }}"
+          }
+        }
+      ]
     }
   },
   "imports": {
@@ -1079,9 +1213,6 @@
       "oj-menu": {
         "path": "ojs/ojmenu"
       },
-      "oj-dialog": {
-        "path": "ojs/ojdialog"
-      },
       "oj-collapsible": {
         "path": "ojs/ojcollapsible"
       },
@@ -1117,6 +1248,12 @@
       },
       "oj-label": {
         "path": "ojs/ojlabel"
+      },
+      "oj-rating-gauge": {
+        "path": "ojs/ojgauge"
+      },
+      "oj-slider": {
+        "path": "ojs/ojslider"
       }
     }
   }

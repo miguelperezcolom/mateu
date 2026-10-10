@@ -166,7 +166,9 @@ public static class ComponentMapper
             m.Zoom,
             (m.Markers ?? []).Select(k => new MapMarkerDto(
                 k.Id, k.Latitude, k.Longitude, k.Label, k.Description, k.Color)).ToList(),
-            m.MarkerActionId)),
+            m.MarkerActionId,
+            m.TileUrl,
+            m.Attribution)),
 
         DropZone dz => Dto(dz, new DropZoneMetadataDto(dz.Accept, dz.ActionId, dz.Parameters, dz.Title, dz.Subtitle),
             dz.Content.Select(Map)),
@@ -203,11 +205,14 @@ public static class ComponentMapper
                 p.Status, p.ActionLabel, p.ActionId)).ToList())),
 
         // Generic building blocks (used by the archetypes and free composition).
-        Text t => Dto(t, new TextMetadataDto(t.Content) { Size = t.Size, NoMargins = t.NoMargins }),
+        // A named business component: the catalogue entry's composition is mapped in its place.
+        ComponentRef r => MateuCatalogs.MapRef(r),
+
+        Text t => Dto(t, new TextMetadataDto(t.Content) { Size = t.Size, NoMargins = t.NoMargins, Container = t.Container ?? "div" }),
 
         Separator sep => Dto(sep, new SeparatorMetadataDto()),
         Anchor a => Dto(a, new AnchorMetadataDto(a.Text, a.Url, a.Target)),
-        Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "Primary" : null, Parameters = b.Parameters }),
+        Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "primary" : null, Parameters = b.Parameters }),
         Card c => Dto(c, new CardMetadataDto(c.Content is null ? null! : Map(c.Content)) { Title = c.Title }),
         HorizontalLayout hl => Dto(hl, new HorizontalLayoutMetadataDto { Spacing = hl.Spacing }, hl.Content.Select(Map)),
         VerticalLayout vl => Dto(vl, new VerticalLayoutMetadataDto { Spacing = vl.Spacing }, vl.Content.Select(Map)),
@@ -353,6 +358,7 @@ public static class ComponentMapper
                 break;
             case Mateu.Uidl.Map mp when !string.IsNullOrEmpty(mp.MarkerActionId): ids.Add(mp.MarkerActionId); break;
             case Button b when !string.IsNullOrEmpty(b.ActionId): ids.Add(b.ActionId); break;
+            case ComponentRef r: Collect(MateuCatalogs.Resolve(r), ids); break;
             case Scoreboard s: foreach (var m in s.Metrics) Collect(m, ids); break;
             case DashboardPanel p when p.Content is not null: Collect(p.Content, ids); break;
             case DashboardLayout d: foreach (var i in d.Items) Collect(i, ids); break;

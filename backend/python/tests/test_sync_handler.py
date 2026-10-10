@@ -1396,8 +1396,8 @@ def test_blank_audience_counts_as_unset():
 def test_inline_editing_grid_field_emits_editable_cells_and_rows_bind_back():
     j = render(handler().handle(RunActionRq(route="editable-grid", consumed_route="editable-grid")))
     # Cells edit in place, ReadOnly() row columns stay display-only.
-    assert '"id": "name", "label": "Name", "type": "GridColumn", "dataType": "string", "stereotype": null, "captionPath": null, "leadingPath": null, "editable": true, "editorType": "text"' in j
-    assert '"id": "id", "label": "Id", "type": "GridColumn", "dataType": "string", "stereotype": null, "captionPath": null, "leadingPath": null, "editable": false' in j
+    assert '"id": "name", "label": "Name", "type": "GridColumn", "dataType": "string", "stereotype": "regular", "captionPath": null, "leadingPath": null, "editable": true, "editorType": "text"' in j
+    assert '"id": "id", "label": "Id", "type": "GridColumn", "dataType": "string", "stereotype": "regular", "captionPath": null, "leadingPath": null, "editable": false' in j
 
     # The edited rows travel in the form state and bind back into list[EditableGuest].
     inc = handler().handle(
@@ -1986,12 +1986,12 @@ def test_list_toolbar_button_emits_toolbar_button_and_selection_flagged_action()
     assert (
         '{"id": "action-on-row-deactivate", "validationRequired": false, '
         '"confirmationRequired": false, "rowsSelectedRequired": true, "bubble": true, '
-        '"timeoutMillis": 0, "idempotent": false, "restAction": null}'
+        '"fieldsToValidate": null, "timeoutMillis": 0, "idempotent": false, "restAction": null}'
     ) in j
     assert (
         '{"id": "action-on-row-restockAll", "validationRequired": false, '
         '"confirmationRequired": true, "rowsSelectedRequired": false, "bubble": true, '
-        '"timeoutMillis": 0, "idempotent": false, "restAction": null}'
+        '"fieldsToValidate": null, "timeoutMillis": 0, "idempotent": false, "restAction": null}'
     ) in j
 
 

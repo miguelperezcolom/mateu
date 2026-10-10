@@ -207,6 +207,26 @@ class WireTypesTest {
   }
 
   @Test
+  void strictModeOnlyAcceptsMarkedMethods() throws Exception {
+    System.setProperty(ActionMethods.STRICT, "true");
+    try {
+      assertThat(ActionMethods.isStrict()).isTrue();
+      assertThat(invocable("marked")).isTrue();
+      // the conventions are off: a public method or a row-binding one is no longer an action
+      assertThat(invocable("publicConvention")).isFalse();
+      assertThat(invocable("bulk")).isTrue(); // @ListToolbarButton is a marker
+      assertThat(invocable("rowAction")).isFalse();
+      assertThat(invocable("selectedRows")).isFalse();
+      assertThatThrownBy(() -> ActionMethods.findInvocable(Actions.class, "publicConvention"))
+          .isInstanceOf(MateuForbiddenException.class);
+    } finally {
+      System.clearProperty(ActionMethods.STRICT);
+    }
+    assertThat(ActionMethods.isStrict()).isFalse();
+    assertThat(invocable("publicConvention")).isTrue();
+  }
+
+  @Test
   void recordAccessorsAreNotActions() throws Exception {
     assertThat(ActionMethods.isInvocable(RecordView.class.getMethod("name"), RecordView.class))
         .isFalse();

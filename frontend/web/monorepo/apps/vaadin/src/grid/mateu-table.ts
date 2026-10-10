@@ -43,6 +43,7 @@ import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { columnRenderer, renderColumnOrGroup } from "./renderColumn.ts";
 import { splitLines } from "@infra/ui/listingLines.ts";
 import { interpolate } from "@infra/ui/interpolation.ts";
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 
 @customElement('mateu-table')
@@ -407,8 +408,8 @@ export class MateuTable extends LitElement {
                                         return html`
               <vaadin-button
                 theme="tertiary icon"
-                title="${detailsOpened ? 'Collapse' : 'Expand'}"
-                aria-label="Toggle details"
+                title="${detailsOpened ? chromeText('collapse') : chromeText('expand')}"
+                aria-label="${chromeText('toggleDetails')}"
                 aria-expanded="${detailsOpened ? 'true' : 'false'}"
                 @click="${() => {
                                         this.detailsOpenedItems = detailsOpened

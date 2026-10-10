@@ -1,6 +1,9 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import './mateu-chat'
+
+// the chat speaks the page's language; these expectations are the Spanish catalogue's
+document.documentElement.lang = 'es'
 import type { MateuChat } from './mateu-chat'
 
 // jsdom lays nothing out, so it has no scrolling; the chat scrolls to its last message.

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useRef } from 'react';
 import { MateuApiClient } from '../api/MateuApiClient';
 import { MateuSession } from '../core/MateuSession';
+import { randomUuid } from '../core/sessionId';
 
 export interface MateuConfig {
   baseUrl: string;
@@ -30,7 +31,7 @@ interface Props {
 
 export function MateuAppProvider({ config, children }: Props) {
   const session = useRef(
-    new MateuSession(config.baseUrl, config.sessionId ?? 'native-session', config.appState ?? {}),
+    new MateuSession(config.baseUrl, config.sessionId ?? randomUuid(), config.appState ?? {}),
   ).current;
 
   const value: AppContextValue = {

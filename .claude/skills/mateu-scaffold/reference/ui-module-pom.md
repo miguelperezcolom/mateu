@@ -23,7 +23,7 @@ Model on `e2e/sut/modules/sample1/pom.xml`.
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <mateu.version>0.0.1-MATEU</mateu.version>
+    <mateu.version><!-- latest release on Maven Central; 0.0.1-MATEU for a local build --></mateu.version>
   </properties>
 
   <dependencies>

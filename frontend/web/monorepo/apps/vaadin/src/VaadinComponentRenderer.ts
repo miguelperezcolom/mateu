@@ -43,7 +43,7 @@ type WidgetRenderer = (
  * Vaadin-specific widget renderers that have been moved OUT of the core switch into this adapter
  * (the "move Vaadin rendering into the infrastructure adapter" refactor). The core keeps a
  * design-system-neutral fallback for each type; these overrides reinstate the Vaadin-optimized
- * rendering — exactly the mechanism SapUi5ComponentRenderer uses for its own widgets.
+ * rendering — the mechanism any design-system renderer uses for its own widgets.
  *
  * Add a moved widget with a single line here.
  */

@@ -1,2 +1,0 @@
-"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context,{event}){const target=event&&(event.currentTarget||event.target),dataset=target&&target.dataset||{},actionId=dataset.actionId;if(actionId){const parameters=null!=dataset.rowKey&&""!==dataset.rowKey?{_rowNumber:dataset.rowKey}:{};await Actions.callChain(context,{chain:"runMateuAction",params:{actionId,parameters}})}}};});
-//# sourceMappingURL=mateuListAction.js.map

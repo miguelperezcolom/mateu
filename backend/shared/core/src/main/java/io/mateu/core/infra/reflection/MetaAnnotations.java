@@ -28,11 +28,65 @@ public final class MetaAnnotations {
 
   private MetaAnnotations() {}
 
+  /** What the cache stores for "not present" (a ConcurrentHashMap cannot hold null). */
+  private static final Object ABSENT = new Object();
+
+  private record Key(AnnotatedElement element, Class<?> type) {}
+
+  /**
+   * Answers per declaring class, so a class unloaded (a dev-tools restart, a redeploy) takes its
+   * entries with it — a static map keyed by Field/Method would pin every class it ever saw. With
+   * ~560 call sites resolving the same annotations on every request, walking the composed
+   * annotations each time was measurable work for an answer that never changes.
+   */
+  private static final ClassValue<java.util.concurrent.ConcurrentHashMap<Key, Object>> CACHE =
+      new ClassValue<>() {
+        @Override
+        protected java.util.concurrent.ConcurrentHashMap<Key, Object> computeValue(Class<?> type) {
+          return new java.util.concurrent.ConcurrentHashMap<>();
+        }
+      };
+
   /** The {@code A} annotation present on {@code element} directly or via a composed annotation. */
+  @SuppressWarnings("unchecked")
   public static <A extends Annotation> A find(AnnotatedElement element, Class<A> type) {
     if (element == null) {
       return null;
     }
+    var owner = ownerOf(element);
+    if (owner == null) {
+      return resolve(element, type); // an element we cannot key safely: not cached
+    }
+    var cached =
+        CACHE
+            .get(owner)
+            .computeIfAbsent(
+                new Key(element, type),
+                key -> {
+                  var found = resolve(element, type);
+                  return found != null ? found : ABSENT;
+                });
+    return cached == ABSENT ? null : (A) cached;
+  }
+
+  /** The class whose lifetime an element's annotations share, or null for an unknown element. */
+  private static Class<?> ownerOf(AnnotatedElement element) {
+    if (element instanceof Class<?> c) {
+      return c;
+    }
+    if (element instanceof java.lang.reflect.Member member) {
+      return member.getDeclaringClass();
+    }
+    if (element instanceof java.lang.reflect.Parameter parameter) {
+      return parameter.getDeclaringExecutable().getDeclaringClass();
+    }
+    if (element instanceof java.lang.reflect.RecordComponent component) {
+      return component.getDeclaringRecord();
+    }
+    return null;
+  }
+
+  private static <A extends Annotation> A resolve(AnnotatedElement element, Class<A> type) {
     var direct = element.getAnnotation(type);
     if (direct != null) {
       return direct;

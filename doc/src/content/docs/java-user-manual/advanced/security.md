@@ -133,6 +133,70 @@ Anything else — a library class, a service or repository bean, an interface �
 
 `private` methods, fields that are not actions, and injected dependencies are never reachable. `@EyesOnly` and `@DisabledUnless` on an action are enforced **when it is invoked**, not only when the button is drawn; a refused action answers HTTP 403.
 
+### Strict action mode (`mateu.actions.strict`)
+
+**The threat.** An `actionId` is a string the client sends, and anyone can send any string — not
+just the ids of the buttons on screen. With the default convention, *every* public method of a view
+model is an action. That is convenient (a fluent `Button` can name a method without annotating it),
+and the framework already excludes accessors, `Object`/framework callbacks, lifecycle methods,
+statics and anything outside the view's own code. But a view model that grows a public method that
+was never meant to be a button — a helper, a `recalculatePrices()`, a `deleteDraftsOlderThan(...)`
+called by another action — exposes it to every user who can open that view, whether or not a button
+for it is drawn. Visibility rules (`@EyesOnly`, `@DisabledUnless`) protect it only if they were put
+on that method too. Likewise a non-public method that takes a row (`retry(Row row)`) is inferred to
+be a row action.
+
+**The mode.** Set `mateu.actions.strict=true` (JVM system property, or `MATEU_ACTIONS_STRICT=true`)
+and an action is only what is *declared* as one:
+
+- a method carrying an action marker — `@Action`, `@Button`, `@Toolbar`, `@ListToolbarButton`,
+  `@ViewToolbarButton`, `@Fab`, `@GroupAction`, `@WizardCompletionAction`, `@RestAction`, `@Menu`
+  (directly or through a composed annotation);
+- an id a `ComponentAdapter` declares in its `AdaptedView`;
+- a field marked as an action, or holding a function (`Runnable`, `Callable`, `Supplier`,
+  `Function`, `Consumer`) — a field of that type is already a deliberate UI declaration.
+
+Unmarked public methods and inferred row actions answer HTTP 403. Before turning it on, mark the
+methods your fluent buttons, `ColumnAction`s and `@SubscribeTo`/`@OnRowSelected` handlers name with
+`@Action` (it adds nothing else to the screen). The default is `false` for now so existing apps keep
+working; strict is the recommended setting for anything exposed to the internet, and it is expected
+to become the default in a later release.
+
+**The .NET and Python backends are always strict.** Their action resolution (`ActionGuard` /
+`action_guard`) only reaches a method that is marked (`[Action]`/`[Button]`/`[Fab]`,
+`@action`/`@button`/`@fab`) or whose id the view itself advertises (its component tree,
+`OnRowSelected`, `SubscribeTo`, rule and header-action ids) — there is no "public methods are
+actions" convention to switch off.
+
+**Errors do not leak.** When an action throws, the user sees one of three things:
+
+| What was thrown | What the toast shows |
+|---|---|
+| `io.mateu.uidl.UserFacingException` (anywhere in the cause chain) | its title (default "Error") and message, as written |
+| a Bean Validation `ConstraintViolationException` | "Validation error" and the constraint messages |
+| anything else | "Something went wrong — An unexpected error occurred. Reference: `3f9c1a0b7d42`" |
+
+In the last case the exception — class, message and stack trace — is logged at `ERROR` under that
+same reference, so a user reporting it gives support the exact log line. An exception's message is
+written for developers and routinely carries what a user must not see (SQL, file paths, hostnames,
+another customer's data); it used to go straight into the toast. Throw a `UserFacingException` for
+the messages that ARE for the user:
+
+```java
+@Action
+void reserve() {
+  if (stock < quantity) {
+    throw new UserFacingException("Not enough stock", "Only " + stock + " units left.");
+  }
+}
+```
+
+In development, `mateu.errors.detailed=true` (system property, or `MATEU_ERRORS_DETAILED=true`)
+puts the raw exception class and message back in the toast. The .NET (`Mateu.Uidl.UserFacingException`,
+`System.ComponentModel.DataAnnotations.ValidationException`) and Python (`mateu_uidl.UserFacingException`,
+pydantic `ValidationError`) backends apply the same boundary with the same texts — and an exception
+there is now a toast instead of a framework HTTP 500.
+
 **Data is not a template.** Texts the renderers show (titles, labels, texts, KPIs) may contain `${state.x}` expressions, which come from the definition. Values are data and are never evaluated: put them in the state and reference them, or escape a value you concatenate into such a text with `Templates.literal(value)`. HTML that a renderer shows (a `Text`, a header, an html column) is sanitized: scripts and inline event handlers (`onclick=…`) are removed — trigger behaviour with actions, not inline JavaScript.
 
 ---
@@ -154,14 +218,14 @@ For common cases, the gateway can also inject identity headers (`X-User-Id`, `X-
 
 Spring Security's default headers put `Cache-Control: no-cache, no-store, max-age=0, must-revalidate` on every response that has no cache policy of its own — static files included. Left at that, a browser downloads the whole renderer (≈900 KB for the Vaadin bundle, ≈780 KB for Redwood's app bundle, uncompressed) on every page load.
 
-The Spring MVC and WebFlux adapters therefore serve Mateu's assets with a policy, which Spring Security's writer leaves alone:
+Every Java adapter therefore serves Mateu's assets with a policy (Spring Security's writer leaves it alone; Micronaut, Quarkus and Helidon MP set it with a response filter):
 
 | Path | `Cache-Control` | Why |
 |---|---|---|
 | `/version_<n>/**` (Redwood) | `max-age=31536000, public, immutable` | the build stamps a new number into the path whenever the bundle changes |
 | `/assets/**`, `/js/**`, `/myassets/**` (Vaadin bundle, keycloak.min.js…) | `no-cache` + weak `ETag` + `Last-Modified` | stable names: the browser keeps them and gets a `304` while they are unchanged |
 
-They resolve from the same locations as Spring Boot's static handler (`spring.web.resources.static-locations`). Turn the policy off with `mateu.static-assets.caching=false`. The bootstrap page itself is generated per request and keeps whatever your security configuration sets.
+On Spring they resolve from the same locations as Spring Boot's static handler (`spring.web.resources.static-locations`). Turn the policy off with `mateu.static-assets.caching=false`. The bootstrap page itself is generated per request and keeps whatever your security configuration sets.
 
 Compression is the application's (or its proxy's) choice. With Spring Boot:
 
@@ -190,6 +254,83 @@ public Object handleAction(String actionId, HttpRequest httpRequest) {
     return null;
 }
 ```
+
+---
+
+## Where the browser keeps the Bearer token
+
+Every request the web client sends carries `Authorization: Bearer <token>` when a token is
+available. The bootstrap (the Keycloak adapter `@KeycloakSecured` injects, your own login page, an
+`onSessionExpired` handler) leaves it and Mateu reads it on each request. Where it lives is a
+security trade-off, so it is configurable:
+
+| Storage | Survives a reload | Shared by tabs | Readable by a script injected into the page |
+|---|---|---|---|
+| `localStorage` (default) | yes | yes | yes |
+| `sessionStorage` | yes (same tab) | no | yes |
+| `memory` | no — set it again after every load | no | only while the page is open |
+| a `provider` function | whatever the provider does | — | the token stays inside your OIDC library |
+
+Declare it in the page that hosts `<mateu-ui>`:
+
+```html
+<meta name="mateu-auth-token-storage" content="sessionStorage">
+```
+
+or programmatically, before the UI boots:
+
+```ts
+import { configureAuthToken, setAuthToken } from 'mateu'
+
+configureAuthToken({ storage: 'memory' })
+setAuthToken(keycloak.token)               // after login and after each refresh
+// or: configureAuthToken({ provider: () => keycloak.token })
+```
+
+The storage key is `__mateu_auth_token`. When your backend can use them, **HttpOnly session
+cookies are safer than any of these**: no token is visible to scripts at all. Storage access never
+throws — a browser that blocks storage (sandboxed iframe, privacy mode) just sends no token.
+
+---
+
+## Content Security Policy
+
+The web renderer runs under a strict Content Security Policy — no `'unsafe-eval'`. Rules, `${…}`
+expressions and conditions are evaluated by Mateu's own expression evaluator, not by `eval` or
+`new Function`. A policy like this one works:
+
+```
+Content-Security-Policy:
+  default-src 'self';
+  script-src 'self';
+  style-src 'self' 'unsafe-inline';
+  img-src 'self' data: blob: https:;
+  font-src 'self' data:;
+  connect-src 'self';
+  frame-ancestors 'self';
+  base-uri 'self';
+  object-src 'none'
+```
+
+- `style-src 'unsafe-inline'` is needed: the web components and the per-component `style`
+  attributes Mateu renders are inline styles.
+- `img-src data: blob:` covers uploaded/captured images and signatures, which travel as data URIs.
+- Add the origins of any REST source, SSE endpoint, remote menu or federated backend to
+  `connect-src`, and your identity provider to `connect-src`/`frame-src` when it uses an iframe.
+- The inline theme script in the default `index.html` needs either a hash in `script-src` or
+  moving to a file; the shipped bundle's own scripts are external.
+
+**`RunJS`** — the one feature that executes arbitrary JavaScript sent by the server (a
+`RunJS` rule action or an action's `js`) — is **off by default**. Enable it explicitly, and then
+the page needs `'unsafe-eval'`:
+
+```html
+<meta name="mateu-allow-run-js" content="true">
+```
+
+Server-sent URLs (`NavigateTo`, action `href`s, breadcrumbs, links) are only followed when they
+are `http(s)` or relative: same-origin ones in the current tab, cross-origin ones in a new tab
+without an opener. `javascript:` URLs are never followed.
 
 ---
 

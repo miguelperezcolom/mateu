@@ -257,7 +257,7 @@ public class CapabilityListingTests
         // the row click navigates to the detail route…
         var click = Run(typeof(NavigableBooks), "/navigable-books", "view",
             new Dictionary<string, object?> { ["id"] = El("b1") }, null);
-        var navigate = Assert.Single(click.Commands.Where(c => c.Type == "NavigateTo"));
+        var navigate = Assert.Single(click.Commands, c => c.Type == "NavigateTo");
         Assert.Equal("/navigable-books/b1", navigate.Data);
 
         // …and the detail route renders the object View(id) returned, read-only
@@ -284,7 +284,7 @@ public class CapabilityListingTests
         var drawerJson = Render(drawer);
         Assert.Contains("\"type\":\"Drawer\"", drawerJson);
         Assert.Contains("El Quijote", drawerJson);
-        Assert.Empty(drawer.Commands.Where(c => c.Type == "NavigateTo"));
+        Assert.DoesNotContain(drawer.Commands, c => c.Type == "NavigateTo");
 
         var saved = Run(typeof(EditableBooks), "/editable-books", "save",
             new Dictionary<string, object?>
@@ -295,9 +295,9 @@ public class CapabilityListingTests
             }, null);
         Assert.Equal("El Quijote (anotado)", EditableBooks.LastSavedTitle);
         // drawer contract: close emitting the saved event + re-run the search, no navigation
-        Assert.Single(saved.Commands.Where(c => c.Type == "CloseModal"));
-        Assert.Single(saved.Commands.Where(c => c.Type == "RunAction"));
-        Assert.Empty(saved.Commands.Where(c => c.Type == "NavigateTo"));
+        Assert.Single(saved.Commands, c => c.Type == "CloseModal");
+        Assert.Single(saved.Commands, c => c.Type == "RunAction");
+        Assert.DoesNotContain(saved.Commands, c => c.Type == "NavigateTo");
         Assert.Contains(SyncHandler.SavedInDrawerEvent, Render(saved));
     }
 

@@ -1,4 +1,5 @@
 import { isMount, mountPrefix, routeCovers } from './navTree.mjs'
+import { chromeText } from './i18n.mjs'
 // El rastro automático de una pantalla — la MISMA regla que el renderer web
 // (libs/mateu/.../breadcrumbTrail.ts): el camino de menús hasta la ruta (grupos y la entrada que
 // la muestra, secciones de un pod incluidas) y, pasada la entrada, el nivel del CRUD — el registro
@@ -100,17 +101,16 @@ export function autoTrail(menu, path, page = {}) {
   const rest = crumbRoute(path).slice(matched.length).split('/').filter(Boolean)
   const lang = page.lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
     || (typeof navigator !== 'undefined' && navigator.language) || ''
-  const es = String(lang).toLowerCase().startsWith('es')
   if (rest.length > 0) {
     const id = decodeURIComponent(rest[0])
     if (id === 'new' || id === 'create') {
-      trail.push({ text: es ? 'Nuevo' : 'New' })
+      trail.push({ text: chromeText('new', null, lang || 'en') })
     } else {
       const recordRoute = matched + '/' + rest[0]
       const title = crumbText(page.title)
       if (rest.length === 1 && title) recordTitles.set(recordRoute, title)
       trail.push({ text: recordTitles.get(recordRoute) || id, route: recordRoute })
-      if (rest[1] === 'edit') trail.push({ text: es ? 'Editar' : 'Edit' })
+      if (rest[1] === 'edit') trail.push({ text: chromeText('edit', null, lang || 'en') })
       else if (rest.length > 1) trail.push({ text: title || decodeURIComponent(rest[rest.length - 1]) })
     }
   }

@@ -224,7 +224,7 @@ export class MateuUx extends ConnectedElement {
 
             // A mediator's internal navigation (e.g. the crud's PushStateToHistory "/new") is
             // relative to this ux's consumed route. On renderer shells that serve many routes from
-            // one page (Redwood/SLDS/PatternFly) consumedRoute is e.g. "/products", so the URL must
+            // one page consumedRoute is e.g. "/products", so the URL must
             // become "/products/new"; on Vaadin each route is its own page (consumedRoute '' or
             // '_empty') and this is a no-op.
             if (typeof effectiveRoute === 'string' && (effectiveRoute === '' || effectiveRoute.startsWith('/'))
@@ -566,7 +566,7 @@ export class MateuUx extends ConnectedElement {
 
     /**
      * Tags the host with the page chrome the stylesheets key off: the resolved page width
-     * (fixed|full|edge) so the renderer can size the content column — redwood-oj paints the RDS
+     * (fixed|full|edge) so the renderer can size the content column — a renderer paints the RDS
      * page-width modes from it — the coarse page type
      * (landing|collection|detail|form|process|dashboard) as a stylesheet/conformance hook, and
      * whether the page carries a welcome banner, since the Redwood accent strip only shows on

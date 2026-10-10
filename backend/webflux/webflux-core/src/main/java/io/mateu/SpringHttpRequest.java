@@ -49,6 +49,16 @@ public class SpringHttpRequest implements HttpRequest {
   }
 
   @Override
+  public String getSelfBaseUrl() {
+    // the LOCAL socket this request arrived on — not the Host header, which the client sets
+    var local = delegate.getLocalAddress();
+    if (delegate.getSslInfo() != null || local == null || local.getPort() <= 0) {
+      return null;
+    }
+    return "http://localhost:" + local.getPort();
+  }
+
+  @Override
   public String path() {
     return delegate.getPath().value();
   }

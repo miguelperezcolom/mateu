@@ -25,7 +25,7 @@ public class BackofficeApp implements GlobalSearchSupplier {
         customers.top(searchText, 5).forEach(c ->
             hits.add(new GlobalSearchResult(c.name(), c.taxId(), "/customers/" + c.id(), "Clientes")));
         bookings.top(searchText, 5).forEach(b ->
-            hits.add(new GlobalSearchResult(b.code(), b.guestName(), "/bookings/" + b.id(), "Reservas")));
+            hits.add(new GlobalSearchResult(b.code(), b.guestName(), "/bookings/" + b.id(), "Bookings")));
         return hits;
     }
 }

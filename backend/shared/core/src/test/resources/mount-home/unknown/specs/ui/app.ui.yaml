@@ -1,0 +1,6 @@
+# Fixture for MountHomeSyncTest: a type: UI mount that names its home page.
+type: UI
+basePath: /
+home: nowhere
+routes:
+  - routes.yaml

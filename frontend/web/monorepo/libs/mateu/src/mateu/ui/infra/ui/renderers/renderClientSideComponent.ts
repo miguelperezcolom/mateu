@@ -148,7 +148,6 @@ export const updateMedata = (component: ClientSideComponent, data: ComponentData
             }
         }
     }
-    //console.log('metadata', component, data, metadata)
     return metadata
 }
 
@@ -330,7 +329,7 @@ export const renderClientSideComponent = (container: LitElement, component: Clie
         // A raw metadata object arrived instead of a ClientSideComponent — wrap it and retry once.
         if (component == undefined) {
             console.warn('No metadata for component', component)
-            return html`<p>No metadata for component</p>`
+            return html`<p>No metadata for component</p>` // i18n-ok: a developer diagnostic
         }
         return renderClientSideComponent(container, {
             id: nanoid(),

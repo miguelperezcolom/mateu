@@ -8,6 +8,7 @@ import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, 
 import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf } from './navTree.mjs'
+import { currentMount, pathOfRoute } from './mount.mjs'
 
 /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction).
  *  Sale ATADA a la pantalla en curso (resilience.currentView): si cuando contesta ya hay otra, la
@@ -114,11 +115,41 @@ export function routeFlipOf(previousState, nextCtx, increment, fallbackRoute = '
   return composeInnerRoute(mediatorBaseOf(outbound, fallbackRoute), flip)
 }
 
+// ── a mount whose @UI is not an App ───────────────────────────────────────────────────────────
+// @UI("/hello") on a plain page, @UI("/products") on a crud: the bootstrap (components/_/action)
+// answers the page itself or nothing at all ("__load__ not supported by ProductsCrud") — never an
+// App with a menu —, so there is no shell and no home route. Its home is the mount's own UI, which
+// the sync endpoint resolves for a FRESH load: route '' with consumedRoute '_empty', exactly what
+// the web renderer sends on a deep link or a reload. The shell remembers that the mount has no App
+// and the home load ('' or '/') goes out that way.
+let mountWithoutApp = false
+
+/** Did the bootstrap answer an App (the root of a console with its menu)? */
+export function bootstrapHasApp(increment) {
+  const fragments = (increment && increment.fragments) || []
+  return fragments.some((f) => {
+    const c = f && f.component
+    if (!c) return false
+    if (c.metadata && c.metadata.type === 'App') return true
+    return (c.children || []).some((child) => child && child.metadata && child.metadata.type === 'App')
+  })
+}
+
+export function setMountWithoutApp(value) { mountWithoutApp = !!value }
+
 /** Carga de una ruta (actionId '': el __load__ real; extra = consumedRoute/serverSideType…).
  *  Static-bundle: si hay manifest cargado, la carga se responde DESDE el bundle (sin backend);
  *  se espera al fetch del manifest en vuelo (la primera carga puede adelantarlo) y, si la ruta no
  *  está en el bundle, se cae al backend — así un despliegue híbrido (bundle + backend) sigue yendo. */
 export const loadRoute = async (base, route, initiator = '', extra = {}) => {
+  // the home of a mount whose @UI is not an App: a fresh load of the mount — see bootstrapHasApp
+  if ((!route || route === '/') && mountWithoutApp && !extra.consumedRoute && extra.serverSideType == null) {
+    extra = { ...extra, consumedRoute: '_empty' }
+  } else if (mountWithoutApp && route && route !== '/') {
+    // …and below the mount (a deep link to /products/new): with no App to resolve it relative to,
+    // the server knows the crud's inner routes by their full path, mount included
+    route = pathOfRoute(route, currentMount())
+  }
   await awaitBundle()
   if (hasBundle()) {
     const bundled = bundledIncrementFor(route, initiator)
@@ -373,6 +404,9 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
   const wrapperActions = (wrapperTree && wrapperTree.actions) || []
   const info = mediatorOf(next.contexts[ctxId]) || mediatorFromShellApp(firstIncrement, effectiveRoute)
   if (info) {
+    // the home of a mount whose @UI is a crud (route '' or '/', a fresh load): the mediator names
+    // the route of its content — the crud's own path
+    if ((!effectiveRoute || effectiveRoute === '/') && info.homeRoute) effectiveRoute = info.homeRoute
     outbound = {
       route: effectiveRoute,
       consumedRoute: info.rootRoute || effectiveRoute,
@@ -413,6 +447,9 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
  * y su búsqueda OnLoad (las filas). Devuelve el registro nuevo.
  */
 export async function loadSubresource(base, reg, sub, extra = {}) {
+  // a MicroFrontend lives in ITS backend (its baseUrl), with the app state it was given
+  if (sub.baseUrl) base = sub.baseUrl
+  if (sub.appState) extra = { ...extra, appState: { ...(extra.appState || {}), ...sub.appState } }
   const outbound = { route: sub.route, consumedRoute: sub.consumedRoute, serverSideType: sub.serverSideType, baseUrl: base }
   let next = reduceContexts(reg, await loadRoute(base, sub.route, sub.id, {
     ...extra,
@@ -436,6 +473,20 @@ export async function loadSubresource(base, reg, sub, extra = {}) {
  * pestaña activa: lo que está en otra pestaña espera a que se abra). Uno que falla se queda como
  * hueco: no tumba la pantalla.
  */
+/**
+ * An action of a surface that is neither the host nor the island (a MicroFrontend): posted to that
+ * surface with its own state and outbound (route, consumed route, server-side type, base), and the
+ * increment reduced into the registry. Returns the new registry (the chain re-projects the content).
+ */
+export async function runSurfaceAction(reg, surfaceId, actionId, parameters, extra = {}) {
+  const ctx = reg && reg.contexts && reg.contexts[surfaceId]
+  if (!ctx || !actionId) return reg
+  const outbound = ctx.outbound || {}
+  const increment = await runMateuAction(outbound.baseUrl, ctx, outbound.route || '', actionId, ctx.state || {},
+    { ...extra, parameters: parameters || {} })
+  return increment ? reduceContexts(reg, increment) : reg
+}
+
 export async function loadSubresources(base, reg, blocks, extra = {}) {
   let next = reg
   for (const sub of pendingSubresourcesOf(blocks, next.contexts)) {

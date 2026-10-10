@@ -78,3 +78,25 @@ export const planMapView = (
     }
     return { kind: 'center', center: DEFAULT_CENTER, zoom: parseZoom(zoom) }
 }
+
+/** What the tile layer needs: an OpenLayers XYZ url template and its attribution (or the OSM default). */
+export interface TileSourcePlan {
+    /** undefined → OpenLayers' own OSM source. */
+    url?: string
+    attributions?: string
+}
+
+/**
+ * The tile provider of a Map (wire `tileUrl` + `attribution`). The wire template is Leaflet-style,
+ * which writes the subdomain as `{s}`; OpenLayers expands `{a-c}` instead. No `tileUrl` → OSM.
+ */
+export const tileSourceOf = (tileUrl: string | undefined | null, attribution: string | undefined | null): TileSourcePlan => {
+    const url = tileUrl?.trim()
+    if (!url) {
+        return {}
+    }
+    return {
+        url: url.replace(/\{s\}/g, '{a-c}'),
+        attributions: attribution?.trim() || undefined,
+    }
+}

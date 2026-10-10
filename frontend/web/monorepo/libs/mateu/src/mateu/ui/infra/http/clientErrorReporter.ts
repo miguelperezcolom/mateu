@@ -1,3 +1,4 @@
+import { authHeaders } from '@infra/http/authToken.ts'
 /**
  * Client errors → server log. What this renderer shows or suffers (a classified transport failure
  * toasted to the user, an uncaught JS error, an unhandled promise rejection) is posted to
@@ -322,12 +323,7 @@ export const clientLogSender = (headers: () => Record<string, string> = () => ({
 
 /** The token the bootstrap left, as a header (same source as AxiosMateuApiClient). */
 export const storedAuthHeaders = (): Record<string, string> => {
-    try {
-        const token = typeof localStorage !== 'undefined' ? localStorage.getItem('__mateu_auth_token') : null
-        return token ? { Authorization: 'Bearer ' + token } : {}
-    } catch {
-        return {}
-    }
+    return authHeaders()
 }
 
 /**

@@ -1,0 +1,11 @@
+# A page that records a DELTA instead of a layout snapshot: what the human decided, anchored to
+# field ids, so inference keeps running and a field the model grows later still appears.
+# (Mirrors the Java core test resource of the same name.)
+modelView: Mateu.Tests.DeltaLogic
+layoutDelta:
+  order: [email, name]
+  hidden: [internalNote]
+  overrides:
+    name:
+      label: "Full name"
+      colspan: 2

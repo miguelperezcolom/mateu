@@ -12,6 +12,7 @@ import io.mateu.uidl.data.*;
 import io.mateu.uidl.interfaces.*;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -21,6 +22,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Named
+@Singleton
 @RequiredArgsConstructor(onConstructor_ = @Inject)
 public class ExportActionRunner implements ActionRunner {
 

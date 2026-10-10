@@ -56,11 +56,11 @@ public class MapTests
         var root = JsonSerializer.SerializeToElement(
             Handler().Handle(new RunActionRqDto { ServerSideType = typeof(HotelsMapView).FullName }), Json);
 
-        var host = Assert.Single(Objects(root).Where(o => o.TryGetProperty("children", out var c)
+        var host = Assert.Single(Objects(root), o => o.TryGetProperty("children", out var c)
             && c.ValueKind == JsonValueKind.Array
             && c.EnumerateArray().Any(ch => ch.TryGetProperty("metadata", out var md)
                 && md.ValueKind == JsonValueKind.Object
-                && md.TryGetProperty("type", out var t) && t.GetString() == "Map")));
+                && md.TryGetProperty("type", out var t) && t.GetString() == "Map"));
         var component = host.GetProperty("children").EnumerateArray()
             .Single(ch => ch.GetProperty("metadata").GetProperty("type").GetString() == "Map");
         Assert.Equal("hotels", component.GetProperty("id").GetString());
@@ -93,6 +93,23 @@ public class MapTests
         var meta = Assert.IsType<MapMetadataDto>(cs.Metadata);
         Assert.Empty(meta.Markers);
         Assert.Null(meta.MarkerActionId);
+        // no tile provider declared: the renderers fall back to OpenStreetMap
+        Assert.Null(meta.TileUrl);
+        Assert.Null(meta.Attribution);
+    }
+
+    [Fact]
+    public void The_tile_provider_travels_when_declared()
+    {
+        var dto = ComponentMapper.Map(new Mateu.Uidl.Map
+        {
+            Zoom = "10",
+            TileUrl = "https://tiles.example.com/{z}/{x}/{y}.png",
+            Attribution = "© Example Tiles",
+        });
+        var meta = Assert.IsType<MapMetadataDto>(Assert.IsType<ClientSideComponentDto>(dto).Metadata);
+        Assert.Equal("https://tiles.example.com/{z}/{x}/{y}.png", meta.TileUrl);
+        Assert.Equal("© Example Tiles", meta.Attribution);
     }
 
     [Fact]

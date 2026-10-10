@@ -8,6 +8,8 @@ import UIFragment from "@mateu/shared/apiClients/dtos/UIFragment";
 import { interpolateNested } from "@infra/ui/interpolation.ts";
 import { FocusTrap, trapFocus } from "@infra/a11y/focusTrap.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
+import { safeNavigate } from '@infra/ui/safeNavigate.ts'
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 @customElement('mateu-drawer')
 export class MateuDrawer extends ComponentElement {
@@ -79,8 +81,6 @@ export class MateuDrawer extends ComponentElement {
 
     firstUpdated() {
         requestAnimationFrame(() => this.opened = true)
-        // The embedded guided process (a wizard) bubbles its step position up to us (composed event).
-        this.addEventListener('mateu-guided-progress', this.onGuidedProgress)
         const metadata = (this.component as ClientSideComponent)?.metadata as Drawer | undefined
         if (metadata) requestAnimationFrame(() => this.applyLayoutInset(metadata))
     }
@@ -165,11 +165,14 @@ export class MateuDrawer extends ComponentElement {
 
     connectedCallback() {
         super.connectedCallback()
-        document.addEventListener('keydown', this._escListener)
+        const signal = this.connection.signal
+        document.addEventListener('keydown', this._escListener, { signal })
+        // The embedded guided process (a wizard) bubbles its step position up to us (composed event).
+        this.addEventListener('mateu-guided-progress', this.onGuidedProgress, { signal })
     }
 
     disconnectedCallback() {
-        document.removeEventListener('keydown', this._escListener)
+        // the listeners above go with this.connection (ConnectedElement.disconnectedCallback)
         this.releaseLayoutInset()
         // A drawer torn down without close() (an owner re-render, a navigation) must not leave
         // the trap installed.
@@ -238,19 +241,19 @@ export class MateuDrawer extends ComponentElement {
                     <mateu-event-interceptor .target="${this}">${renderComponent(this, metadata.header, this.baseUrl, this.state, this.data, this.appState, this.appData)}</mateu-event-interceptor>
                 ` : nothing}
                 ${peerNav ? html`
-                    <button class="drawer-icon" aria-label="${peerNav.prevLabel ?? 'Previous'}" title="${peerNav.prevLabel ?? 'Previous'}"
-                            ?disabled="${!peerNav.prevRoute}" @click="${() => { if (peerNav.prevRoute) window.location.href = peerNav.prevRoute! }}">‹</button>
-                    <button class="drawer-icon" aria-label="${peerNav.nextLabel ?? 'Next'}" title="${peerNav.nextLabel ?? 'Next'}"
-                            ?disabled="${!peerNav.nextRoute}" @click="${() => { if (peerNav.nextRoute) window.location.href = peerNav.nextRoute! }}">›</button>
+                    <button class="drawer-icon" aria-label="${peerNav.prevLabel ?? chromeText('previous')}" title="${peerNav.prevLabel ?? chromeText('previous')}"
+                            ?disabled="${!peerNav.prevRoute}" @click="${() => { if (peerNav.prevRoute) safeNavigate(peerNav.prevRoute) }}">‹</button>
+                    <button class="drawer-icon" aria-label="${peerNav.nextLabel ?? chromeText('next')}" title="${peerNav.nextLabel ?? chromeText('next')}"
+                            ?disabled="${!peerNav.nextRoute}" @click="${() => { if (peerNav.nextRoute) safeNavigate(peerNav.nextRoute) }}">›</button>
                 ` : nothing}
                 ${metadata.collapsible ? html`
-                    <button class="drawer-icon" aria-label="${this.collapsed ? 'Expand' : 'Collapse'}" title="${this.collapsed ? 'Expand' : 'Collapse'}"
+                    <button class="drawer-icon" aria-label="${this.collapsed ? chromeText('expand') : chromeText('collapse')}" title="${this.collapsed ? chromeText('expand') : chromeText('collapse')}"
                             @click="${() => this.collapsed = !this.collapsed}">${this.collapsed ? '▴' : '▾'}</button>
                 ` : nothing}
                 ${this.canMaximize(metadata) ? html`
-                    <button class="drawer-icon" aria-label="Maximize" title="Maximize" @click="${() => this.maximizeSteps++}">⤢</button>
+                    <button class="drawer-icon" aria-label="${chromeText('maximize')}" title="${chromeText('maximize')}" @click="${() => this.maximizeSteps++}">⤢</button>
                 ` : nothing}
-                <button class="drawer-close" aria-label="Close" @click="${this.close}">✕</button>
+                <button class="drawer-close" aria-label="${chromeText('close')}" @click="${this.close}">✕</button>
             </header>
             ${this.collapsed ? nothing : html`
             <div class="content ${metadata.noPadding ? 'no-padding' : ''}">

@@ -4,7 +4,7 @@ description: "@Route, @Routes and @HomeRoute were removed — how routes are dec
 ---
 
 :::caution[Removed]
-`@Route`, `@Routes` and `@HomeRoute` were removed from the code (commit `c50678e81`). `@UI` is the
+`@Route`, `@Routes` and `@HomeRoute` were removed before the beta (see [Migrating from alpha](/reference/migrating-from-alpha/)). `@UI` is the
 only routing annotation left: it declares a **mount** (an app at a base path). The screens inside a
 mount are data, declared in a [`routes.yaml` route registry](/java-ui-definition/route-registry/)
 (or supplied in code by a `RouteEntrySupplier` bean), and the home is the app's first menu item

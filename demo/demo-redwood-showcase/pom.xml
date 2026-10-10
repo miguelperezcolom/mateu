@@ -13,10 +13,13 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>demo-redwood-showcase</name>
     <description>Showcase app for the Oracle Redwood (Oracle JET) renderer — a permanent, self-contained
-        set of screens (CRUD listing, form, wizard, dashboard) served with the redwood-oj-lit bundle so
+        set of screens (CRUD listing, form, wizard, dashboard) served with the Redwood (Oracle Visual Builder) renderer so
         the Redwood UX can be reviewed natively, without the dev-server proxy.</description>
 
     <properties>
+        <!-- Tracks master: install the backend first (cd backend && mvn install -DskipTests).
+             This demo uses features newer than the last release. -->
+        <mateu.version>0.0.1-MATEU</mateu.version>
         <java.version>21</java.version>
     </properties>
 
@@ -41,18 +44,18 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>annotation-processor-mvc</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>mvc-core</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
         </dependency>
-        <!-- the Oracle Redwood (Oracle JET) frontend bundle -->
+        <!-- the Redwood renderer (Oracle Visual Builder); the OJET redwood-oj-lit bundle was retired -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>redwood-oj-lit</artifactId>
-            <version>0.0.1-MATEU</version>
+            <artifactId>redwood</artifactId>
+            <version>${mateu.version}</version>
         </dependency>
     </dependencies>
 
@@ -89,7 +92,7 @@
                                 <path>
                                     <groupId>io.mateu</groupId>
                                     <artifactId>annotation-processor-mvc</artifactId>
-                                    <version>0.0.1-MATEU</version>
+                                    <version>${mateu.version}</version>
                                 </path>
                             </annotationProcessorPaths>
                         </configuration>
@@ -109,7 +112,7 @@
                                 <path>
                                     <groupId>io.mateu</groupId>
                                     <artifactId>annotation-processor-mvc</artifactId>
-                                    <version>0.0.1-MATEU</version>
+                                    <version>${mateu.version}</version>
                                 </path>
                             </annotationProcessorPaths>
                         </configuration>

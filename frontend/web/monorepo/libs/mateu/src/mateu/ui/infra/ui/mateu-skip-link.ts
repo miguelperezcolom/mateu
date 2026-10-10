@@ -1,5 +1,6 @@
 import { LitElement, css, html } from 'lit'
 import { customElement } from 'lit/decorators.js'
+import { chromeText } from '@infra/ui/chromeTexts.ts'
 
 /**
  * "Skip to content" — the first tabbable thing in the document.
@@ -55,7 +56,7 @@ export class MateuSkipLink extends LitElement {
     }
 
     render() {
-        return html`<button class="skip" @click="${this.skip}">Skip to content</button>`
+        return html`<button class="skip" @click="${this.skip}">${chromeText('skipToContent')}</button>`
     }
 
     static styles = css`

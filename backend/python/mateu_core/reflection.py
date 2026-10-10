@@ -3,12 +3,15 @@ methods carrying Mateu method-decorators. The Python analogue of C# reflection o
 
 from __future__ import annotations
 
+import logging
 import inspect
 import types
 from dataclasses import dataclass, field
 from typing import Annotated, Any, Union, get_args, get_origin
 
 from mateu_uidl import Crud, Wizard
+
+_log = logging.getLogger("mateu.reflection")
 
 # Base classes whose annotations/members are framework plumbing, not user fields.
 _FRAMEWORK = {Crud.__name__, Wizard.__name__, "Generic", "object"}
@@ -37,10 +40,12 @@ def _local_hints(klass) -> dict[str, Any]:
     where annotations are no longer eagerly stored in ``__dict__['__annotations__']``."""
     try:
         return inspect.get_annotations(klass, eval_str=True)
-    except Exception:
+    except Exception as e:  # noqa: BLE001 - an unresolvable forward ref: read them unevaluated
+        _log.debug("%s: annotations not evaluable, reading them raw (%s)", klass, e)
         try:
             return inspect.get_annotations(klass)
-        except Exception:
+        except Exception as e:  # noqa: BLE001 - logged, not fatal
+            _log.warning("%s: annotations unreadable, no fields reflected (%s)", klass, e)
             return {}
 
 

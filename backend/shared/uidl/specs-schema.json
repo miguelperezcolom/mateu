@@ -13,6 +13,10 @@
       "basePath" : {
         "type" : "string"
       },
+      "home" : {
+        "type" : "string",
+        "description" : "A route of this mount (relative to it, as in routes.yaml) that is the mount's home page: the mount root renders it when no route \"\" is authored, and an app shell bound to \"\" without its own homeRoute lands on it."
+      },
       "routes" : {
         "type" : "array",
         "items" : {
@@ -26,6 +30,10 @@
     "properties" : {
       "type" : {
         "const" : "Routes"
+      },
+      "basePath" : {
+        "type" : "string",
+        "description" : "The mount this file's routes belong to, for a route file that is not listed by a `type: UI` mount (a class-declared @UI(\"/shop\") mount): its routes are authored relative to it. Optional; default the root mount."
       },
       "routes" : {
         "type" : "array",
@@ -4153,6 +4161,12 @@
           "type" : "string"
         },
         "cssClasses" : {
+          "type" : "string"
+        },
+        "tileUrl" : {
+          "type" : "string"
+        },
+        "attribution" : {
           "type" : "string"
         },
         "note" : {

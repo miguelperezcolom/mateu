@@ -57,6 +57,14 @@ public sealed class LookupAttribute : Attribute;
 public sealed class RestOptionsAttribute(string url) : Attribute
 {
     public string Url { get; } = url;
+
+    /// <summary>The name of a REST source catalogue entry to take the endpoint from (sources.yaml /
+    /// [RestSource] / IRestSourceCatalogSupplier); blank = inline (<see cref="Url"/>). Paths declared
+    /// here still win over the entry's. Use the parameterless form: <c>[RestOptions(Source = "countries")]</c>.</summary>
+    public string Source { get; init; } = "";
+
+    /// <summary>By reference: the endpoint comes from the catalogue entry named by <see cref="Source"/>.</summary>
+    public RestOptionsAttribute() : this("") { }
     public string Method { get; init; } = "GET";
 
     /// <summary>Request headers as "Name: Value" strings (values interpolated).</summary>
@@ -83,6 +91,14 @@ public sealed class RestOptionsAttribute(string url) : Attribute
 public sealed class RestListingAttribute(string url) : Attribute
 {
     public string Url { get; } = url;
+
+    /// <summary>The name of a REST source catalogue entry to take the endpoint from (sources.yaml /
+    /// [RestSource] / IRestSourceCatalogSupplier); blank = inline (<see cref="Url"/>). Paths declared
+    /// here still win over the entry's. Use the parameterless form: <c>[RestListing(Source = "countries")]</c>.</summary>
+    public string Source { get; init; } = "";
+
+    /// <summary>By reference: the endpoint comes from the catalogue entry named by <see cref="Source"/>.</summary>
+    public RestListingAttribute() : this("") { }
     public string Method { get; init; } = "GET";
 
     /// <summary>Request headers as "Name: Value" strings (values interpolated).</summary>

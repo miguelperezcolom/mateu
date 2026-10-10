@@ -1,0 +1,117 @@
+# Display components gallery, part 2 (route components-2): menus, overlays-in-content, carousels,
+# grids with tree rows and paging, diagrams and definitions. Authored as data — no Java.
+# (A HeroSection makes the page a Welcome and an EmptyState is the page-level empty state: both
+# have their own screens, so they are not in this gallery.)
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Form
+title: Display components (2)
+subtitle: Menus, carousels, grids, diagrams
+content:
+- type: MenuBar
+  options:
+  - type: RouteLink
+    label: Products
+    route: /products
+  - type: Menu
+    label: More
+    submenu:
+    - { type: RouteLink, label: Customers, route: /customers }
+    - { type: RouteLink, label: Components, route: /components }
+- type: ContextMenu
+  wrapped:
+    type: Text
+    text: Right-click this line (or use its ⋯ button) for its actions
+  menu:
+  - { type: RouteLink, label: Open products, route: /products }
+- type: Tooltip
+  text: The tooltip text, on hover and on focus
+  wrapped:
+    type: Text
+    text: Hover me
+- type: Popover
+  trigger: click
+  wrapped:
+    type: Text
+    text: Rate details
+  content:
+    type: VerticalLayout
+    content:
+    - { type: Text, text: Gold rate, container: h3 }
+    - { type: BulletedList, items: [Breakfast included, Free cancellation] }
+- type: CarouselLayout
+  id: tips
+  content:
+  - { type: Text, text: "Tip 1 — the model is the UI." }
+  - { type: Text, text: "Tip 2 — routes can be data." }
+  - { type: Text, text: "Tip 3 — every renderer reads the same wire." }
+- type: Grid
+  id: tree
+  tree: true
+  content:
+  - { type: GridColumn, id: name, label: Name }
+  - { type: GridColumn, id: owner, label: Owner }
+  page:
+    content:
+    - name: Engineering
+      owner: Grace
+      children:
+      - { name: Platform, owner: Alan }
+      - { name: Apps, owner: Ada }
+    - name: Finance
+      owner: Mary
+- type: Grid
+  id: paged
+  size: 3
+  content:
+  - { type: GridColumn, id: code, label: Code }
+  - { type: GridColumn, id: city, label: City }
+  page:
+    content:
+    - { code: MAD, city: Madrid }
+    - { code: BCN, city: Barcelona }
+    - { code: PMI, city: Palma }
+    - { code: LIS, city: Lisbon }
+    - { code: CDG, city: Paris }
+- type: ResponsiveGrid
+  content:
+  - { type: Text, text: Tile one }
+  - { type: Text, text: Tile two }
+  - { type: Text, text: Tile three }
+- type: Markdown
+  markdown: |
+    ### Release notes
+    | Version | Change |
+    |---|:--|
+    | 1.2 | **Redwood** at parity |
+    | 1.1 | Tables in <i>Markdown</i> |
+- type: Bpmn
+  xml: |
+    <definitions><process id="p"><startEvent id="s" name="Request"/><userTask id="a" name="Approve"/>
+    <exclusiveGateway id="g"/><serviceTask id="b" name="Book"/><endEvent id="e" name="Done"/>
+    <sequenceFlow id="f1" sourceRef="s" targetRef="a"/><sequenceFlow id="f2" sourceRef="a" targetRef="g"/>
+    <sequenceFlow id="f3" sourceRef="g" targetRef="b" name="ok"/><sequenceFlow id="f4" sourceRef="b" targetRef="e"/></process></definitions>
+- type: Workflow
+  value: '{"name":"Onboarding","status":"ACTIVE","steps":[{"id":"a","type":"USER_TASK","name":"Collect documents"},{"id":"b","type":"ACTION","name":"Create accounts","preconditionStepId":"a"},{"id":"c","type":"END","name":"Done","preconditionStepId":"b"}]}'
+- type: FormEditor
+  value: '{"name":"Sign-up form","fields":[{"id":"email","label":"Email","dataType":"string","required":true},{"id":"age","label":"Age","dataType":"integer"},{"id":"newsletter","label":"Newsletter","dataType":"bool"}]}'
+- type: Directory
+  menu:
+  - type: Menu
+    label: Sales
+    submenu:
+    - { type: RouteLink, label: Products, route: /products }
+    - { type: RouteLink, label: Customers, route: /customers }
+  - type: Menu
+    label: Admin
+    submenu:
+    - { type: RouteLink, label: Components, route: /components }
+- type: ProgressBar
+  value: 0.6
+  max: 1
+  text: 60% imported
+- type: Chat
+  sseUrl: /agent/stream
+- type: CookieConsent
+  cookieName: mateu_demo_cookies
+  message: This demo stores a cookie to remember this choice.
+  learnMoreLink: https://mateu.io

@@ -87,10 +87,10 @@ public class PartialTests
         Assert.Equal("Registered in code.", Describe(Assert.Single(ContentOf(tree))));
     }
     [Fact]
-    public void A_layout_delta_page_is_declined_rather_than_rendered_as_garbage()
+    public void A_layout_delta_page_has_no_explicit_layout()
     {
-        // `layoutDelta:` is Java-only today. What matters here is that the port does not render the
-        // envelope itself as a component — a visibly wrong page is worse than no page.
+        // A delta-only page renders the view model's INFERRED layout with the delta re-applied
+        // (LayoutDeltaTests); the envelope itself must never be parsed as a component.
         var (modelView, layout) = YamlComponentBuilder.ParseSpec(
             "modelView: Acme.Contact\nlayoutDelta:\n  order: [b, a]\n");
 
