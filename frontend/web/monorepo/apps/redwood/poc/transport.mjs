@@ -370,6 +370,13 @@ export async function loadMenuRouteInto(base, reg, route, targetId = '', extra =
  * Devuelve el registro nuevo. targetId = clave del contexto destino (initiator).
  */
 export async function loadRouteInto(base, reg, route, targetId = '', extra = {}) {
+  // live reload (liveReload.mjs): lo tecleado viaja con la carga — un view model se hidrata con
+  // ello — y se vuelve a poner sobre la respuesta, para que una página sólo-definición lo conserve
+  const liveState = extra && extra.liveState
+  if (extra && 'liveState' in extra) {
+    const { liveState: _omit, ...rest } = extra
+    extra = liveState ? { ...rest, componentState: liveState } : rest
+  }
   // el INCREMENTO crudo se conserva: la 1ª carga de una opción de menú llega como App de mediador
   // (ClientSide type App), que reduceContexts encamina al CHROME (shell) y no al contexto —
   // mediatorOf(host) no lo ve, así que hay que sacar el mediador del incremento mismo.
@@ -435,6 +442,15 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
         sseActionIds: wrapperActions.filter((a) => a && a.sse).map((a) => a.id),
       },
     },
+  }
+  if (liveState && next.contexts[ctxId]) {
+    next = {
+      ...next,
+      contexts: {
+        ...next.contexts,
+        [ctxId]: { ...next.contexts[ctxId], state: { ...(next.contexts[ctxId].state || {}), ...liveState } },
+      },
+    }
   }
   // los niveles de app (maestros) de la pantalla del HOST: una barra de pestañas por nivel
   if (targetId === '') next = { ...next, appLevels, loadedRoute: effectiveRoute }

@@ -343,6 +343,36 @@ define([
         });
       }
 
+      // LIVE RELOAD (sólo si el índice trae <meta name="mateu-dev">: un backend con mateu.dev=true).
+      // Un cambio de página repinta la ruta en pantalla conservando lo tecleado (liveState); uno de
+      // app (rutas, montajes, la shell) vuelve a montar la app en la misma URL.
+      if (!window.__mateuLiveReloadWired) {
+        window.__mateuLiveReloadWired = true;
+        bridge.installDevLiveReload(document, window, (action) => {
+          if (action === 'app') {
+            window.location.reload();
+            return;
+          }
+          const ctx = liveContext();
+          const reg = ctx.$application.variables.mateuRegistry;
+          const host = reg && reg.contexts ? reg.contexts[bridge.HOST_ID] : null;
+          const route = window.__mateuLoadedFull || urlRoute() || ctx.$application.variables.mateuHomeRoute || '';
+          if (!route) {
+            window.location.reload();
+            return;
+          }
+          Actions.callChain(ctx, {
+            chain: 'onMateuNavigate',
+            params: {
+              event: { detail: { route } },
+              fromUrl: true,
+              force: true,
+              liveState: host && host.state ? Object.assign({}, host.state) : undefined,
+            },
+          });
+        });
+      }
+
       // En modo path el historial es SOLO de Mateu, y el router de VB no puede verlo. Toma por
       // «application URL» la ruta con que arrancó la página (/customers → /customers/) y lee
       // cualquier URL por debajo de ella como una página suya (/customers/5 → la página «5»): en
