@@ -208,10 +208,12 @@ public class RemoteMenuHandler {
     if (baseUrl == null) {
       return Mono.error(
           new IllegalArgumentException(
-              "Remote menu " + remoteMenu.baseUrl() + ": the request's Origin is not an origin"));
+              "Remote menu "
+                  + remoteMenu.baseUrl()
+                  + " is relative and this server does not know its own base url: set "
+                  + io.mateu.core.infra.out.RemoteTargets.SELF_BASE_URL));
     }
-    // Keyed by the ABSOLUTE url asked, not the declared (maybe relative) one: a relative remote is
-    // resolved against the caller's Origin, so two callers can be asking two different hosts.
+    // Keyed by the ABSOLUTE url asked, not the declared (maybe relative) one.
     var cached = descriptorCache.get(baseUrl, remoteMenu.route(), authorization);
     if (cached != null) {
       return Mono.just(cached);
@@ -288,23 +290,32 @@ public class RemoteMenuHandler {
 
   /**
    * The absolute url the remote is asked at. A relative {@code baseUrl} (same deployment, another
-   * path) is resolved against the request's {@code Origin} header — which a non-browser client
-   * controls, so it is accepted only when it IS an origin ({@code scheme://host[:port]}, http(s),
-   * nothing else): no path, query, fragment or user info that would let it steer the request
-   * anywhere but {@code <origin><baseUrl>/mateu/v3/sync/...}. {@code null} when it is not.
+   * path) is resolved against THIS server's base url: the {@code mateu.self-base-url} setting, else
+   * what the adapter knows of the local socket ({@link HttpRequest#getSelfBaseUrl()}). {@code null}
+   * when neither is known.
+   *
+   * <p>Never against the request's {@code Origin} header, as it used to be: a non-browser client
+   * sets that to anything it likes, so the server could be steered to POST to an internal host
+   * (SSRF) even with the header restricted to a bare origin. The request decides nothing about
+   * which host a server-side call goes to.
    */
   static String absoluteBaseUrl(RemoteMenu remoteMenu, HttpRequest httpRequest) {
     var baseUrl = remoteMenu.baseUrl();
-    if (baseUrl.startsWith("http")) {
+    if (baseUrl.startsWith("http://") || baseUrl.startsWith("https://")) {
       return baseUrl;
     }
-    var origin = httpRequest.getHeaderValue("origin");
-    if (origin == null) {
-      // No Origin (a server-side caller, a test): kept as it always was — the http client fails on
-      // the non-absolute url and the remote is treated as unreachable.
-      return origin + baseUrl;
+    var self = io.mateu.core.infra.out.RemoteTargets.configuredSelfBaseUrl();
+    if (self == null && httpRequest != null) {
+      self = httpRequest.getSelfBaseUrl();
     }
-    return isOrigin(origin) ? origin + baseUrl : null;
+    if (self == null || !isOrigin(stripTrailingSlash(self))) {
+      return null;
+    }
+    return stripTrailingSlash(self) + (baseUrl.startsWith("/") ? baseUrl : "/" + baseUrl);
+  }
+
+  private static String stripTrailingSlash(String url) {
+    return url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
   }
 
   static boolean isOrigin(String origin) {

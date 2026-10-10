@@ -49,25 +49,30 @@ public class DefaultMateuHttpClient implements MateuHttpClient {
       if (path == null || path.isEmpty()) path = "/_no_route";
       if (!path.startsWith("/")) path = "/" + path;
 
-      var uri = baseUrl + "/mateu/v3/sync" + path;
+      var target = constrainedTarget(baseUrl, path);
 
       var requestBuilder =
-          HttpRequest.newBuilder().uri(URI.create(uri)).header("Content-Type", "application/json");
+          HttpRequest.newBuilder()
+              .uri(target)
+              .timeout(requestTimeout())
+              .header("Content-Type", "application/json");
       if (authorizationHeader != null && !authorizationHeader.isBlank()) {
         requestBuilder.header("Authorization", authorizationHeader);
       }
       HttpRequest request = requestBuilder.POST(HttpRequest.BodyPublishers.ofString(body)).build();
 
-      log.info("POST {} {}", uri, body);
+      // the body carries the component state (and the Authorization header the caller's token):
+      // neither is logged — at DEBUG, only where the call goes.
+      log.debug("POST {}", target);
 
       return httpClient
           .sendAsync(request, HttpResponse.BodyHandlers.ofString())
           .thenApply(
               response -> {
                 int status = response.statusCode();
-                log.info("got {}: {}", status, response.body());
+                log.debug("got {} from {}", status, target);
                 if (status < 200 || status >= 300) {
-                  throw new RuntimeException("HTTP " + status + ": " + response.body());
+                  throw new RuntimeException("HTTP " + status + " from " + target);
                 }
                 try {
                   return objectMapper.readValue(response.body(), UIIncrementDto.class);
@@ -79,5 +84,47 @@ public class DefaultMateuHttpClient implements MateuHttpClient {
     } catch (Exception e) {
       return CompletableFuture.failedFuture(e);
     }
+  }
+
+  /**
+   * How long a remote Mateu app has to answer: {@code mateu.remote.timeout-seconds}, default 30.
+   */
+  static Duration requestTimeout() {
+    var configured = io.mateu.core.infra.MateuSettings.get("mateu.remote.timeout-seconds");
+    try {
+      return Duration.ofSeconds(configured != null ? Long.parseLong(configured) : 30);
+    } catch (NumberFormatException e) {
+      return Duration.ofSeconds(30);
+    }
+  }
+
+  /**
+   * The url a remote Mateu app is called at, CONSTRAINED so this is not a server-side request
+   * forgery: {@code baseUrl} comes from DECLARED configuration (a {@code RemoteMenu}'s baseUrl, a
+   * relative one resolved against {@code mateu.self-base-url} or the local socket — never against a
+   * request header, see {@code RemoteMenuHandler.absoluteBaseUrl}); it must be plain http(s) with
+   * no user info and, when {@code mateu.remote.allowed-hosts} is configured, name an allowed host
+   * ({@link RemoteTargets#check}). The route appended to it may not move the call anywhere else:
+   * once normalised ({@code ..} resolved) the target must keep the base's scheme, host and port and
+   * stay under {@code <base path>/mateu/v3/sync/}.
+   */
+  static URI constrainedTarget(String baseUrl, String path) {
+    var base = URI.create(baseUrl);
+    RemoteTargets.check(base);
+    var basePath = base.getRawPath() == null ? "" : base.getRawPath();
+    if (basePath.endsWith("/")) {
+      basePath = basePath.substring(0, basePath.length() - 1);
+    }
+    var prefix = basePath + "/mateu/v3/sync/";
+    var target = URI.create(baseUrl.replaceAll("/+$", "") + "/mateu/v3/sync" + path).normalize();
+    if (!base.getScheme().equalsIgnoreCase(target.getScheme())
+        || !base.getHost().equalsIgnoreCase(String.valueOf(target.getHost()))
+        || base.getPort() != target.getPort()
+        || target.getRawUserInfo() != null
+        || target.getRawPath() == null
+        || !target.getRawPath().startsWith(prefix)) {
+      throw new IllegalArgumentException("Route " + path + " leaves the remote app at " + baseUrl);
+    }
+    return target;
   }
 }

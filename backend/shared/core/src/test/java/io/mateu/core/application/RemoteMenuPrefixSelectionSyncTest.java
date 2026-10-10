@@ -60,7 +60,7 @@ class RemoteMenuPrefixSelectionSyncTest {
     @Override
     public CompletableFuture<UIIncrementDto> send(
         String baseUrl, RunActionRqDto request, String authorization) {
-      var base = baseUrl.replace("null/", "/");
+      var base = baseUrl.replace("http://localhost:8080/", "/");
       CALLS.add(base);
       if (base.equals("/_dead")) {
         return CompletableFuture.failedFuture(new java.net.ConnectException("Connection refused"));
