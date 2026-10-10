@@ -28,4 +28,30 @@ public abstract class Wizard
 
     /// <summary>The wizard's heading; null keeps the [Title] (else the humanized class name).</summary>
     public virtual string? WizardTitle => null;
+
+    /// <summary>This wizard's built-in affordances (the Redwood guided-process displayOptions): the
+    /// draft buttons of an <see cref="IDraftable"/> wizard and the "Skip" button of
+    /// <see cref="StepSkippable"/> steps — each On, Off or Disabled. (Java's Wizard.display().)</summary>
+    public virtual WizardDisplay Display => WizardDisplay.Defaults;
+
+    /// <summary>Whether the user may SKIP step <paramref name="step"/> (1-based): a "Skip" button
+    /// moves on to the next step without requiring that step's fields. Default: no step is
+    /// skippable. (Java's Wizard.stepSkippable.)</summary>
+    public virtual bool StepSkippable(int step) => false;
+
+    /// <summary>Cancelable hook run BEFORE the wizard moves from step <paramref name="from"/> to
+    /// step <paramref name="to"/> (1-based; the state is already bound): Next, Back, Skip, a jump to
+    /// a visited step and the completion all pass through it. For a completion, <paramref name="to"/>
+    /// is the result step of a <see cref="CompletionActionLabel"/> wizard, or total + 1 for a classic
+    /// Finish. Return null to let the move happen; anything else cancels it and becomes the
+    /// response (typically an error <see cref="Message"/>). (Java's Wizard.beforeStepNavigate.)</summary>
+    public virtual object? BeforeStepNavigate(int from, int to) => null;
+
+    /// <summary>The step (1-based) from which the completion is already offered — beside Next — so a
+    /// user with nothing more to add can finish early (the Redwood guided-process availableFromStep,
+    /// Java's @WizardCompletionAction(availableFromStep)). The early button dispatches "complete":
+    /// a classic wizard runs <see cref="Complete"/>; a <see cref="CompletionActionLabel"/> wizard
+    /// runs <see cref="OnNext"/>(current, resultStep) and lands on its result step. Null (default) =
+    /// only on the last step.</summary>
+    public virtual int? CompletionAvailableFromStep => null;
 }

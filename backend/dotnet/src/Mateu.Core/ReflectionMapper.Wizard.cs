@@ -43,7 +43,46 @@ public sealed partial class ReflectionMapper
         var nextLabel = completion is not null && current == total - 1 ? completion
             : current == total ? "Finish" : "Next";
         var next = Client(new ButtonMetadataDto(nextLabel, "next") { ButtonStyle = "primary" }, null, []);
-        var bar = Client(new HorizontalLayoutMetadataDto(), null, onResult ? [] : [back, next]);
+        // The transactional affordances (Java's WizardButtonBuilder), between Back and Next:
+        // Skip on a skippable step, the draft buttons of an IDraftable wizard and the early
+        // completion — each switchable through WizardDisplay (Off = absent, Disabled = inert).
+        var barButtons = new List<ComponentDto> { back };
+        var extraActions = new List<ActionDto>();
+        if (!onResult && wizard is not null)
+        {
+            var display = wizard.Display;
+            var lastPlain = completion is not null ? total - 2 : total - 1;
+            if (current <= lastPlain && wizard.StepSkippable(current) && display.Skip.Shown())
+            {
+                barButtons.Add(Client(new ButtonMetadataDto(T("Skip"), "skip")
+                    { ButtonStyle = "tertiary", Disabled = !display.Skip.Enabled() }, "skip", []));
+                extraActions.Add(new ActionDto("skip", ValidationRequired: false));
+            }
+            if (wizard is IDraftable)
+            {
+                if (display.SaveDraft.Shown())
+                {
+                    barButtons.Add(Client(new ButtonMetadataDto(T("Save"), "saveDraft")
+                        { Disabled = !display.SaveDraft.Enabled() }, "saveDraft", []));
+                    extraActions.Add(new ActionDto("saveDraft", ValidationRequired: false));
+                }
+                if (display.SaveAndClose.Shown())
+                {
+                    barButtons.Add(Client(new ButtonMetadataDto(T("Save and close"), "saveAndClose")
+                        { Disabled = !display.SaveAndClose.Enabled() }, "saveAndClose", []));
+                    extraActions.Add(new ActionDto("saveAndClose", ValidationRequired: false));
+                }
+            }
+            // a user with nothing more to add can finish early, beside Next (not instead of it)
+            var completionStep = completion is not null ? total - 1 : total;
+            if (wizard.CompletionAvailableFromStep is { } from && current >= from && current < completionStep)
+            {
+                barButtons.Add(Client(new ButtonMetadataDto(T(completion ?? "Finish"), "complete"), "complete", []));
+                extraActions.Add(new ActionDto("complete"));
+            }
+        }
+        barButtons.Add(next);
+        var bar = Client(new HorizontalLayoutMetadataDto(), null, onResult ? [] : barButtons);
         ComponentDto layout;
         if (progressStyle == "rail")
         {
@@ -83,7 +122,8 @@ public sealed partial class ReflectionMapper
         return new ServerSideComponentDto(
             // the current step's list fields advertise their row-editing actions (Java resolves the
             // list on the step the user is on: FieldCrudActionRunner.getViewModelClass)
-            Guid.NewGuid().ToString(), type.FullName!, route, [layout], initial, FieldActions(currentProps), [], null, null, null)
+            Guid.NewGuid().ToString(), type.FullName!, route, [layout], initial,
+            [.. FieldActions(currentProps), .. extraActions], [], null, null, null)
         {
             PageType = PageTypeOf(type),
         };
