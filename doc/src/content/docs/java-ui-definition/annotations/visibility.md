@@ -211,7 +211,7 @@ public class OrderForm {
     String autoCalculatedTotal;    // always disabled
 
     @Button
-    @Disabled("status == 'closed'")
+    @Disabled("state.status == 'closed'")
     void reopen() { }              // disabled only when status is closed
 }
 ```

@@ -50,7 +50,7 @@ public @interface Validation {
 
 ```java
 @Validation(
-    condition = "endDate != null && startDate != null && endDate < startDate",
+    condition = "state.endDate != null && state.startDate != null && state.endDate < state.startDate",
     fieldId   = "endDate",
     message   = "End date must be on or after start date"
 )
@@ -63,9 +63,9 @@ public class DateRangeForm {
 Multiple validations are stacked on the same class:
 
 ```java
-@Validation(condition = "endDate != null && startDate != null && endDate < startDate",
+@Validation(condition = "state.endDate != null && state.startDate != null && state.endDate < state.startDate",
             fieldId = "endDate", message = "End date must be on or after start date")
-@Validation(condition = "amount != null && amount <= 0",
+@Validation(condition = "state.amount != null && state.amount <= 0",
             fieldId = "amount", message = "Amount must be positive")
 public class BookingForm {
     LocalDate startDate;
@@ -180,12 +180,12 @@ A date-range booking form that cross-validates dates with `@Validation` and hide
 
 ```java
 @Validation(
-    condition = "endDate != null && startDate != null && endDate < startDate",
+    condition = "state.endDate != null && state.startDate != null && state.endDate < state.startDate",
     fieldId   = "endDate",
     message   = "End date must be on or after start date"
 )
 @Rule(
-    filter         = "corporate == true",
+    filter         = "state.corporate == true",
     action         = RuleAction.SetAttributeValue,
     fieldName      = "discountCode",
     fieldAttribute = RuleFieldAttribute.hidden,
@@ -195,7 +195,7 @@ A date-range booking form that cross-validates dates with `@Validation` and hide
     result         = RuleResult.Continue
 )
 @Rule(
-    filter         = "corporate == false || corporate == null",
+    filter         = "state.corporate == false || state.corporate == null",
     action         = RuleAction.SetAttributeValue,
     fieldName      = "discountCode",
     fieldAttribute = RuleFieldAttribute.hidden,

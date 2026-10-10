@@ -347,7 +347,7 @@ Defines dynamic browser-side behavior.
 
 ```java
 @Rule(
-  filter = "name == null || name == ''",
+  filter = "state.name == null || state.name == ''",
   action = RuleAction.SetAttributeValue,
   fieldName = "save",
   fieldAttribute = RuleFieldAttribute.disabled,

@@ -184,7 +184,7 @@ public class BookingForm implements ValidationSupplier {
     @Override
     public List<Validation> validations() {
         return List.of(
-            new Validation("startDate > endDate", "endDate", "End date must be after start date")
+            new Validation("state.startDate > state.endDate", "endDate", "End date must be after start date")
         );
     }
 }
@@ -213,7 +213,7 @@ public class AccountForm implements RuleSupplier {
     public List<Rule> rules() {
         return List.of(
             Rule.builder()
-                .filter("accountType == 'BUSINESS'")
+                .filter("state.accountType == 'BUSINESS'")
                 .action(RuleAction.set)
                 .fieldName("vatNumber")
                 .fieldAttribute(RuleFieldAttribute.visible)
