@@ -12,7 +12,7 @@ from typing import (
     get_origin,
 )
 
-from mateu_dtos import TextMetadata
+from mateu_dtos import Action, TextMetadata
 from mateu_dtos import (
     Button,
     ClientSideComponent,
@@ -26,6 +26,7 @@ from mateu_dtos import (
     RestAction,
     RestDataSource,
 )
+from mateu_uidl import Max, Min, Pattern, Size
 from mateu_uidl import Text as TextMarker
 from mateu_uidl import (
     BulletedList,
@@ -69,7 +70,84 @@ from ._common import (
 )
 
 
+#: The row-editing actions a list field answers (Java's FieldActionCollector / the crud-field
+#: handlers): the detail editor's create / save / navigation, and the list's own add / remove /
+#: reorder. create, create-and-stay and save validate the row before they run.
+LIST_FIELD_ACTION_SUFFIXES = (
+    "_create",
+    "_create-and-stay",
+    "_add",
+    "_select",
+    "_selected",
+    "_prev",
+    "_next",
+    "_save",
+    "_remove",
+    "_move-up",
+    "_move-down",
+    "_cancel",
+)
+_VALIDATING_SUFFIXES = ("_create", "_create-and-stay", "_save")
+
+
+def is_list_field(f) -> bool:
+    """A field holding a list (``list[...]``): it answers the row-editing actions."""
+    return f.type is list or get_origin(f.type) is list
+
+
 class FieldMapperMixin(MixinBase):
+    def field_actions(self, cls) -> list[Action]:
+        """The actions a view's FIELDS declare, in Java's ``FieldActionCollector`` order: the
+        row-editing actions of every list field, the ``OnRowSelected()`` row-click actions, the
+        per-column lookup search of inline-editing grids, ``Lookup()`` searches and ``Searchable()``
+        code / selector lookups."""
+        fields = [f for f in view_fields(cls) if self.visible(f)]
+        out: list[Action] = []
+
+        def add(action: Action) -> None:
+            if all(a.id != action.id for a in out):
+                out.append(action)
+
+        for f in fields:
+            if is_list_field(f):
+                fid = camel_case(f.name)
+                row_type = self.grid_row_type(f)
+                constrained = (
+                    ",".join(
+                        camel_case(c.name)
+                        for c in view_fields(row_type)
+                        if any(c.has(m) for m in (Required, Min, Max, Size, Pattern))
+                    )
+                    if row_type is not None
+                    else ""
+                )
+                for suffix in LIST_FIELD_ACTION_SUFFIXES:
+                    validating = suffix in _VALIDATING_SUFFIXES
+                    add(
+                        Action(
+                            id=fid + suffix,
+                            validation_required=validating,
+                            fields_to_validate=(constrained or None) if validating else None,
+                        )
+                    )
+        for f in fields:
+            on_row = f.marker(OnRowSelected)
+            if on_row is not None:
+                add(Action(id=camel_case(on_row.value), validation_required=False))
+        for f in fields:
+            if is_list_field(f) and f.has(InlineEditing):
+                add(Action(id=f"search-{camel_case(f.name)}-*", validation_required=False))
+        for f in fields:
+            if f.has(Lookup):
+                add(Action(id=f"search-{camel_case(f.name)}", validation_required=False))
+        for f in fields:
+            if f.has(Searchable):
+                add(Action(id=f"code-{camel_case(f.name)}", validation_required=False))
+        for f in fields:
+            if f.has(Searchable):
+                add(Action(id=f"codesearch-{camel_case(f.name)}", validation_required=False))
+        return out
+
     @staticmethod
     def grid_row_type(f) -> type | None:
         """The row type of a grid (list-of-complex-rows) field; None when the field is not a

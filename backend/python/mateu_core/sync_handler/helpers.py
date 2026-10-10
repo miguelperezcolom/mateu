@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import get_args, get_origin
+
 from datetime import (
     date,
     datetime,
@@ -124,13 +126,35 @@ class ResponseHelpersMixin(MixinBase):
                 if isinstance(selector, LookupLabelSupplier):
                     label = selector.label(field_id, value)
             elif f.has(Lookup):
-                if isinstance(supplier_host, LookupLabelSupplier):
-                    label = supplier_host.label(field_id, value)
-                if label is None:
-                    for o in self.mapper._supplied_options(supplier_host, field_id):
-                        if o.value == str(value):
-                            label = o.label
-                            break
+                many = isinstance(value, (list, tuple, set))
+                ids = list(value) if many else [value]
+                options = []
+                for one in ids:
+                    one_label = None
+                    if isinstance(supplier_host, LookupLabelSupplier):
+                        one_label = supplier_host.label(field_id, one)
+                    if one_label is None:
+                        for o in self.mapper._supplied_options(supplier_host, field_id):
+                            if o.value == str(one):
+                                one_label = o.label
+                                break
+                    if one_label is None and not isinstance(supplier_host, LookupLabelSupplier):
+                        one_label = str(one)  # no label supplier at all: the raw id (Java)
+                    if one_label is not None:
+                        options.append({"value": str(one), "label": one_label})
+                if options:
+                    data = data or {}
+                    label = ", ".join(o["label"] for o in options)
+                    # The combo's options page, pre-seeded with the current value(s) so it shows
+                    # them without a first search (mirrors Java's LookupFieldDataWriter: the
+                    # signature is the label for one id, "xxxx" for a collection).
+                    data[field_id] = {
+                        "searchSignature": "xxxx" if many else label,
+                        "pageSize": 1,
+                        "pageNumber": 0,
+                        "totalElements": 1,
+                        "content": options,
+                    }
             if label is not None:
                 data = data or {}
                 data[field_id + "-label"] = label
@@ -215,7 +239,17 @@ class ResponseHelpersMixin(MixinBase):
                     return target[raw]
                 except KeyError:
                     return target(raw)
+            origin = get_origin(target)
+            if origin in (list, set, frozenset, tuple) and isinstance(raw, (list, tuple)):
+                # a collection of plain values: convert each element to the declared item type
+                args = [a for a in get_args(target) if a is not Ellipsis]
+                item = args[0] if args else None
+                items = [
+                    ResponseHelpersMixin.convert_value(v, item) if item is not None else v for v in raw
+                ]
+                items = [v for v in items if v is not None]
+                return items if origin is list else origin(items)
             return raw
         except Exception as e:  # noqa: BLE001 - logged, not fatal
-            log.warning("convert_value failed, falling back (%s)", e)
+            log.warning("convert_value(%r -> %s) failed, the field keeps its value (%s)", raw, target, e)
             return None

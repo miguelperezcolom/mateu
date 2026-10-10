@@ -112,6 +112,15 @@ class LayoutMapperMixin(MixinBase):
                 if isinstance(cell, Decimal):
                     cell = float(cell)
                 initial_data[camel_case(f.name)] = cell
+            elif isinstance(value, (list, tuple, set, frozenset)) and all(
+                isinstance(v, (str, int, float, bool, Decimal, date, datetime, Enum)) for v in value
+            ):
+                # a collection of plain values (tags, a bulleted list, a multi-select) rides as a
+                # JSON array, like Java's state serialisation of a List<String>
+                cells = [_row_cell(v) for v in value]
+                initial_data[camel_case(f.name)] = [
+                    float(c) if isinstance(c, Decimal) else c for c in cells
+                ]
         return initial_data
 
     def form_cards(self, cls, instance, read_only: bool = False, column_width: str | None = None) -> list:

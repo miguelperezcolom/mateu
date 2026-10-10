@@ -65,11 +65,11 @@ class ViewMapperMixin(MixinBase):
             )
             for (n, f), b in zip(button_methods, buttons)
         ]
-        # OnRowSelected() grid actions must be advertised or the renderer drops the row click.
-        for f in view_fields(cls):
-            on_row = f.marker(OnRowSelected)
-            if on_row is not None and all(a.id != camel_case(on_row.value) for a in actions):
-                actions.append(Action(id=camel_case(on_row.value), validation_required=False))
+        # Field-declared actions, in Java's FieldActionCollector order: list fields' row-editing
+        # actions, OnRowSelected() row clicks (the renderer drops a click whose action is not
+        # advertised), Lookup() searches, Searchable() code lookups — then the @button methods.
+        field_actions = self.field_actions(cls)
+        actions = field_actions + [a for a in actions if all(a.id != b.id for b in field_actions)]
 
         # @rest_data: fetch the screen's initial data client-side on load — a synthetic
         # __restdata__ action carrying the REST descriptor (fired by the OnLoad trigger added
