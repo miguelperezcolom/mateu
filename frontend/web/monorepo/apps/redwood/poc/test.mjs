@@ -2391,6 +2391,26 @@ test('bundle: the manifest URL comes from <mateu-ui bundleUrl>, as on the web re
   assert.equal(bundleUrlOf(doc(null)), '')
 })
 
+atest('bundle: on a static host the backend is only probed — its absence shows no error band', async () => {
+  __setBundleForTests(new Map([['_no_route', { fragments: [{ targetComponentId: null, component: { menu: [] } }] }]]))
+  connectivity.reset()
+  const failures = []
+  setTransportHooks({ onSettle: ({ failure }) => { if (failure) failures.push(failure) } })
+  const original = globalThis.fetch
+  globalThis.fetch = async () => ({ ok: false, status: 405, json: async () => ({}), text: async () => '' })
+  try {
+    const inc = await bootstrapShell('', 'shell')
+    assert.ok(inc && inc.fragments, 'the shell boots from the bundle')
+    assert.deepEqual(failures, [], 'a static host answering 405 is not news')
+    assert.equal(connectivity.isOnline(), true)
+  } finally {
+    globalThis.fetch = original
+    setTransportHooks(null)
+    connectivity.reset()
+    __setBundleForTests(undefined)
+  }
+})
+
 atest('bundle: bootstrapShell cae a la ruta raíz bundleada si el backend NO está', async () => {
   __setBundleForTests(new Map([['_no_route', { fragments: [{ targetComponentId: null, component: { menu: [] } }] }]]))
   connectivity.reset()
@@ -3221,7 +3241,7 @@ atest('widgets: las peticiones quiet no avisan a los ganchos de ocupado/error', 
     assert.deepEqual(seen, ['start', 'settle'])
   } finally {
     globalThis.fetch = realFetch
-    setTransportHooks({})
+    setTransportHooks(null)
   }
 })
 

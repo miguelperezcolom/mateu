@@ -12049,18 +12049,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  la app arranque igual. Sólo en el fallo — el camino feliz no cambia. */
   async function bootstrapShell(base, initiator = 'shell') {
     await awaitBundle()
+    // with a bundle that can boot the shell by itself, the backend is only PROBED: on a static host
+    // its absence is the normal case, not an error band nor a sign of being offline
+    const fallback = hasBundle() ? bundledIncrementFor('', initiator) : undefined
     try {
       const res = await fetchWithPolicy(`${base}/mateu/v3/components/_/action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
-      }, { actionId: '__load__' })
+      }, fallback ? { actionId: '__load__', quiet: true, isolated: true } : { actionId: '__load__' })
       return res.json()
     } catch (e) {
-      if (hasBundle()) {
-        const bundled = bundledIncrementFor('', initiator)
-        if (bundled) return bundled
-      }
+      if (fallback) return fallback
       throw e
     }
   }
