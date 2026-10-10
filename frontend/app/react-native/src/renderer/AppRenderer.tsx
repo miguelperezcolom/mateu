@@ -220,6 +220,7 @@ function ContextSelectors({ selectors, appMeta, onChanged }: { selectors: AppCon
               <TextInput
                 style={styles.contextSearch}
                 placeholder="Search…"
+                accessibilityLabel="Search"
                 placeholderTextColor={theme.faint}
                 value={searchText}
                 onChangeText={(value) => onSearchInput(selector.fieldName, value)}
@@ -438,6 +439,7 @@ function GlobalSearchBox({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigate
       <TextInput
         style={styles.globalSearchInput}
         placeholder="Search…"
+        accessibilityLabel="Search"
         placeholderTextColor={theme.faint}
         value={query}
         onChangeText={onInput}

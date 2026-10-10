@@ -897,9 +897,9 @@ function DiagramView({ diagram, label }: { diagram: Diagram; label: string }) {
               {!!n.label && (
                 <SvgText
                   x={n.x + n.w / 2}
-                  y={n.kind === 'task' || n.kind === 'subprocess' || n.color ? n.y + n.h / 2 + 4 : n.y + n.h + 14}
+                  y={n.kind === 'task' || n.kind === 'subprocess' || (n.color && n.kind !== 'end') ? n.y + n.h / 2 + 4 : n.y + n.h + 14}
                   fontSize={12}
-                  fill={n.color ? theme.white : theme.ink}
+                  fill={n.color && n.kind !== 'end' ? theme.white : theme.ink}
                   textAnchor="middle"
                 >
                   {n.label.length > 22 ? `${n.label.slice(0, 21)}…` : n.label}
