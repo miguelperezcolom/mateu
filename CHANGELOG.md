@@ -124,13 +124,8 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   split into modules, identity and secrets providers, Excel/PDF exports, embedded islands and more.
 - IDE tooling: New › Mateu for every specs/ui file kind, Add Route…, a settings page and
   authentication in IntelliJ; the same in VS Code ("Mateu: New File…", "Mateu: Add Route…").
-- **`io.mateu:mateu-spring-data`** (optional, `@Experimental`): a ready-made `CrudStore` over a
-  Spring Data JPA repository — `return CrudStores.of(productRepository);` in `store()` and a JPA
-  entity needs no hand-written adapter. Search text, example filters, `between`/`gte`/`lte`/`in`
-  criteria, sorting and paging run in the database (one `Specification`, count + page query); the
-  `@Aggregate`/`@GroupBy` totals too when given an `EntityManager`. A JPA (or Spring Data)
-  `@Version` now joins Mateu's optimistic locking — same conflict dialog, version incremented by the
-  provider, not by Mateu. Guide: Build › Spring Data JPA store.
+- A JPA (`jakarta`/`javax.persistence.Version`) or Spring Data `@Version` on an entity now joins
+  Mateu's optimistic locking: same conflict dialog, version incremented by the provider, not by Mateu.
 
 ### Fixed
 - **Enum values in grid and listing cells** read as their labels ("In house", not `IN_HOUSE`) on
