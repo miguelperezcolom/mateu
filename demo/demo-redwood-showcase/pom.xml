@@ -13,7 +13,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>demo-redwood-showcase</name>
     <description>Showcase app for the Oracle Redwood (Oracle JET) renderer — a permanent, self-contained
-        set of screens (CRUD listing, form, wizard, dashboard) served with the redwood-oj-lit bundle so
+        set of screens (CRUD listing, form, wizard, dashboard) served with the Redwood (Oracle Visual Builder) renderer so
         the Redwood UX can be reviewed natively, without the dev-server proxy.</description>
 
     <properties>
@@ -51,10 +51,10 @@
             <artifactId>mvc-core</artifactId>
             <version>${mateu.version}</version>
         </dependency>
-        <!-- the Oracle Redwood (Oracle JET) frontend bundle -->
+        <!-- the Redwood renderer (Oracle Visual Builder); the OJET redwood-oj-lit bundle was retired -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>redwood-oj-lit</artifactId>
+            <artifactId>redwood</artifactId>
             <version>${mateu.version}</version>
         </dependency>
     </dependencies>

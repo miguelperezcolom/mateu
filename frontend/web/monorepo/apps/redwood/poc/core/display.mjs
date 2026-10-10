@@ -860,6 +860,8 @@ export function bpmnAtomOf(m, id) {
 
 // ── Rich content as HTML (Popover/Tooltip content): a small, SANITISED serialisation ───────────
 const escapeHtml = (t) => str(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+/** For a double-quoted attribute value: also the quotes, or a `"` in the value ends the attribute. */
+const escapeAttrValue = (t) => escapeHtml(t).replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 /** A component subtree → sanitised HTML (texts with their heading level, links, lists, badges,
  *  markdown, separators; containers as blocks). What it does not know shows as its texts. */
 export function componentHtmlOf(node, interp = (x) => x) {
@@ -879,7 +881,7 @@ export function componentHtmlOf(node, interp = (x) => x) {
       html = '<' + tag + '>' + escapeHtml(interp(m.text)) + '</' + tag + '>'
       break
     }
-    case 'Anchor': html = '<p><a href="' + escapeHtml(interp(m.url)) + '">' + escapeHtml(interp(m.text || m.url)) + '</a></p>'; break
+    case 'Anchor': html = '<p><a href="' + escapeAttrValue(safeHref(interp(m.url))) + '">' + escapeHtml(interp(m.text || m.url)) + '</a></p>'; break
     case 'BulletedList': html = '<ul>' + (m.items || []).map((i) => '<li>' + escapeHtml(interp(i)) + '</li>').join('') + '</ul>'; break
     case 'Badge': html = '<span>' + escapeHtml(interp(m.text)) + '</span> '; break
     case 'Markdown': html = markdownToHtml(interp(m.markdown || m.text || '')); break

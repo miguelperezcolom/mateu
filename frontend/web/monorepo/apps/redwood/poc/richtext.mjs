@@ -15,7 +15,7 @@ const VOID = new Set(['br', 'hr'])
 const SAFE_HREF = /^(https?:|mailto:|tel:|\/|#)/i
 
 const escapeText = (t) => String(t).replace(/&(?!(#\d+|#x[0-9a-f]+|[a-z]+);)/gi, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-const escapeAttr = (t) => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+const escapeAttr = (t) => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
 /** HTML → HTML saneado por lista blanca. */
 export function sanitizeHtml(html) {

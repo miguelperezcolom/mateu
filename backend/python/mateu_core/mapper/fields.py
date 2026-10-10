@@ -380,7 +380,7 @@ class FieldMapperMixin(MixinBase):
         route = "/" + normalize(getattr(cls, "__mateu_ui__", "") or "")
         inline = f.has(Inline)
         marked = f"{route}?{EMBEDDED_MARKER}=1" + (f"&{INLINE_MARKER}=1" if inline else "")
-        ssn = type_name(cls)
+        island_type = type_name(cls)
         component_id = f"_{camel_case(f.name)}"
         app = ClientSideComponent(
             metadata=AppMetadata(
@@ -389,8 +389,8 @@ class FieldMapperMixin(MixinBase):
                 route=route,
                 home_route=marked,
                 home_consumed_route=route,
-                home_server_side_type=ssn,
-                server_side_type=ssn,
+                home_server_side_type=island_type,
+                server_side_type=island_type,
             ),
             id=component_id + "_app",
             children=[],
@@ -403,11 +403,11 @@ class FieldMapperMixin(MixinBase):
         try:
             actions = list(self.map_view(cls, value, route).actions or [])
         except Exception as e:  # noqa: BLE001 - an island that cannot map its actions still mounts
-            _log.warning("Island %s: its actions could not be mapped (%s)", ssn, e)
+            _log.warning("Island %s: its actions could not be mapped (%s)", island_type, e)
             actions = []
         wrapper = ServerSideComponent(
             id=component_id,
-            server_side_type=ssn,
+            server_side_type=island_type,
             route=marked,
             children=[app],
             initial_data=initial,
