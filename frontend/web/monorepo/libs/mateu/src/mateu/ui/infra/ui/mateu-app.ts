@@ -740,6 +740,9 @@ export class MateuApp extends ComponentElement {
                     description: option.unavailable ? undefined : option.description,
                     icon: option.icon,
                     image: option.image ?? undefined,
+                    // a rule leaf (RuleLink): itemSelected hands these to selectRoute, which RUNS
+                    // them instead of navigating — without them the click went to the label path
+                    rules: option.rules,
                 }
             } else return undefined
         }) as Array<MenuBarItem | undefined>).filter((option): option is MenuBarItem => option != null)
