@@ -4,6 +4,8 @@ overlaid on sources.yaml for the wire AND the proxy, literal credential headers 
 
 from __future__ import annotations
 
+from urllib.parse import urlparse
+
 import logging
 import sys
 from pathlib import Path
@@ -68,7 +70,7 @@ def test_the_active_environment_repoints_the_named_sources(tmp_path, monkeypatch
     assert registry.get("untouched").source.url == "https://keep.acme.com/x"
     # the wire catalogue (AppMetadata.rest_sources) carries the overlay too
     wire = {e.name: e for e in registry.wire()}
-    assert wire["orders"].source.url.startswith("https://pre.api.acme.com")
+    assert urlparse(wire["orders"].source.url).netloc == "pre.api.acme.com"
     # the proxy resolves a by-ref descriptor against the same catalogue
     from mateu_dtos import RestDataSource
 
@@ -85,7 +87,7 @@ def test_an_unknown_environment_warns_and_changes_nothing(tmp_path, monkeypatch,
     monkeypatch.setenv("MATEU_ENVIRONMENT", "qa")
     with caplog.at_level(logging.WARNING, logger="mateu.environments"):
         registry = RestSourceRegistry(str(specs(tmp_path)))
-        assert registry.get("orders").source.url.startswith("https://api.acme.com")
+        assert urlparse(registry.get("orders").source.url).netloc == "api.acme.com"
     assert any("'qa'" in r.message for r in caplog.records)
 
 

@@ -29,11 +29,12 @@ export const frameworkOf = (buildFile: string): Framework => {
 export const portOf = (framework: Framework, properties: string): number => {
     const key = framework === 'quarkus' ? 'quarkus.http.port'
         : framework === 'micronaut' ? 'micronaut.server.port' : 'server.port'
-    const match = new RegExp('^\\s*' + key.replace(/\./g, '\\.') + '\\s*[=:]\\s*(\\d+)\\s*$', 'm').exec(properties)
+    const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const match = new RegExp('^\\s*' + escaped + '\\s*[=:]\\s*(\\d+)\\s*$', 'm').exec(properties)
     return match ? Number(match[1]) : 8080
 }
 
-const quote = (arg: string) => (/[\s"']/.test(arg) ? `"${arg.replace(/"/g, '\\"')}"` : arg)
+const quote = (arg: string) => (/[\s"'\\]/.test(arg) ? `"${arg.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"` : arg)
 
 export const liveRunPlan = (
     buildTool: BuildTool,
