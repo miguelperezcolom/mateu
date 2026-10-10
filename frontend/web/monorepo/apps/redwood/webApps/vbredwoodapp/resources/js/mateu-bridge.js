@@ -980,7 +980,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       if (tag === 'th' || tag === 'td') {
         const align = /\balign\s*=\s*["']?(left|right|center)\b/i.exec(m[2] || '')
-        if (align) attrs = ' align="' + align[1].toLowerCase() + '"'
+        // emitted from constants only: nothing of the input reaches the attribute
+        const ALIGNS = { left: ' align="left"', right: ' align="right"', center: ' align="center"' }
+        if (align) attrs = ALIGNS[align[1].toLowerCase()] || ''
       }
       out.push('<' + tag + attrs + '>')
     }

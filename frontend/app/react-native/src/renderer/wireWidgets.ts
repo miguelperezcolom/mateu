@@ -222,13 +222,17 @@ export function elementKind(name: string | null | undefined): ElementKind {
 
 /** Strips markup to readable text (an `html: true` element's content). */
 export function textOfHtml(html: string | null | undefined): string {
-  return (html ?? '')
+  let text = (html ?? '')
     .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<\/(p|div|li|h[1-6])>/gi, '\n')
-    .replace(/<[^>]*>/g, '')
-    // a tag split around another (`<scr<b>ipt>`) re-forms once its inner tag is gone: and
-    // whatever is left of an unclosed one is dropped too — the result is plain text either way
-    .replace(/<[^>]*>/g, '')
+    .replace(/<\/(p|div|li|h[1-6])>/gi, '\n');
+  // until stable: a tag split around another (`<scr<b>ipt>`) re-forms once its inner tag is gone
+  let previous: string;
+  do {
+    previous = text;
+    text = text.replace(/<[^>]*>/g, '');
+  } while (text !== previous);
+  return text
+    // whatever is left of an unclosed tag — the result is plain text either way
     .replace(/</g, '')
     .replace(/&nbsp;/g, ' ')
     .replace(/&lt;/g, '<')
