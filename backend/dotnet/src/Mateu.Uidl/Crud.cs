@@ -85,13 +85,14 @@ public abstract class Crud<T> :
     public virtual bool CsvExportable => false;
 
     /// <summary>When true the listing toolbar offers "Export Excel" (action export-excel): the same
-    /// rows as an .xlsx workbook, written by the registered IExcelExporter (a built-in,
-    /// dependency-free writer unless the app registers its own). (Java's Listing.excelExportable.)</summary>
+    /// rows as an .xlsx workbook, written by the app's IListingExporter for ExportFormat.Excel —
+    /// Mateu ships no spreadsheet engine, so without one the button is not shown.
+    /// (Java's Listing.excelExportable.)</summary>
     public virtual bool ExcelExportable => false;
 
     /// <summary>When true the listing toolbar offers "Export PDF" (action export-pdf): the same rows
-    /// as a paginated PDF table, written by the registered IPdfExporter (built-in unless the app
-    /// registers its own). (Java's Listing.pdfExportable.)</summary>
+    /// as a PDF, written by the app's IListingExporter for ExportFormat.Pdf — Mateu ships no PDF
+    /// engine, so without one the button is not shown. (Java's Listing.pdfExportable.)</summary>
     public virtual bool PdfExportable => false;
 
     // ── The capability model over the classic Crud surface ─────────────────────

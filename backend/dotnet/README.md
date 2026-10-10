@@ -40,7 +40,7 @@ C# backend with **zero client changes**. See [`DESIGN.md`](DESIGN.md) for the fu
 >   declarative page archetypes (`Dashboard`, `Foldout`, `Welcome`, `ItemOverview`) that compose them
 >   from component-holding properties (`[Panel]` carries title/subtitle/colSpan/rowSpan/icon/open).
 >
-> The Mateu server surface is covered (520+ tests on net8.0 and net10.0), and the shared wire-conformance corpus is a HARD gate (`WireConformanceTests`). Component adapters, embedded islands, the REST source/component catalogues, `layoutDelta:`, Excel/PDF exports, group actions and the grid-field row editor are in. The web renderer renders all of it; the Compose
+> The Mateu server surface is covered (520+ tests on net8.0 and net10.0), and the shared wire-conformance corpus is a HARD gate (`WireConformanceTests`). Component adapters, embedded islands, the REST source/component catalogues, `layoutDelta:`, listing exports (the `IListingExporter` port; CSV built in), group actions and the grid-field row editor are in. The web renderer renders all of it; the Compose
 > renderer (a subset) renders forms/CRUD/app-shell/wizards/banners/tabs.
 
 ## Projects

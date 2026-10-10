@@ -73,7 +73,7 @@ for the sibling implementation.
   endpoint. Without it, samples never reach the wire and endpoints are called for real.
 - **Component adapters** (`ComponentAdapter` + `AdaptedView`), **embedded islands** (a field holding
   a routed view), **`layoutDelta:`** pages, **group actions** (`@group_action`), **wizard
-  completion actions**, **Excel/PDF exports**, class/method-level **`@eyes_only`**.
+  completion actions**, **listing exports** (CSV built in; Excel/PDF through your own `ListingExporter`), class/method-level **`@eyes_only`**.
 
 The shared wire-conformance corpus is a hard gate here: see `tests/test_wire_conformance.py`.
 
@@ -92,7 +92,7 @@ The shared wire-conformance corpus is a hard gate here: see `tests/test_wire_con
 
 ```bash
 pip install "mateu-ui[server]"          # the package + uvicorn
-pip install "mateu-ui[all]"             # + PyJWT (identity), openpyxl/reportlab (Excel/PDF export)
+pip install "mateu-ui[all]"             # + PyJWT (identity)
 ```
 
 The distribution is **`mateu-ui`** (the PyPI name `mateu` belongs to an unrelated project); the

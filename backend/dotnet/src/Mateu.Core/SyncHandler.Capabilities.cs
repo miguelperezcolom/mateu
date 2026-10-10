@@ -42,7 +42,7 @@ public sealed partial class SyncHandler
                 null,
                 new Pageable(0, int.MaxValue, PageableOf(rq).Sort));
             return ExportRows(export, profile.ListingInterface.GetMethod("Search")!.Invoke(listing, [all]),
-                profile.RowType, rq);
+                profile.RowType, profile.ListingType, rq);
         }
 
         return rq.ActionId switch

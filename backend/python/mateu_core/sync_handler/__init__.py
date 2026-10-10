@@ -107,6 +107,7 @@ from ..component_registry import ComponentRegistry
 from ..action_registry import ActionRegistry
 from ..rest_source_registry import RestSourceRegistry
 from ..field_type_registry import FieldTypeRegistry
+from ..export import Exporters
 from .. import action_guard, islands
 from ._base import MixinBase
 from .dispatch import DispatchMixin
@@ -176,6 +177,8 @@ class SyncHandler(
         self.mapper = ReflectionMapper(translator, identity_provider, self.rest_sources, self.components)
         self.mapper.action_catalog = self.action_catalog
         self.mapper.adapters = getattr(registry, "adapters", {})
+        #: The listing exporters (the app's ListingExporter subclasses + the built-in CSV writer).
+        self.mapper.exporters = Exporters(getattr(registry, "exporters", []))
         #: The translation catalogue: TranslationsSupplier classes (code) under the
         #: `type: Translations` files of the specs directory (authored wins). ${i18n.key} in YAML
         #: definitions and in any translated text is resolved per request locale.

@@ -1,7 +1,5 @@
-using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
-using System.Xml.Linq;
 using Mateu.AspNetCore;
 using Mateu.Core;
 using Mateu.Core.Export;
@@ -45,13 +43,30 @@ public class ExCsvOnly : Crud<ExGuest>
     public override IEnumerable<ExGuest> Fetch(string? search) => ExGuests.All;
 }
 
-/// <summary>Listing exports (Java's ExportActionRunner + Csv/Excel/Pdf exporters): the toolbar
-/// buttons, the DownloadFile command and the built-in, dependency-free .xlsx and PDF writers.</summary>
+/// <summary>A sample application exporter (Mateu ships no Excel / PDF engine — the app implements
+/// IListingExporter with ClosedXML, QuestPDF…). Writes a readable digest of what Mateu handed it.</summary>
+public sealed class DigestExporter(ExportFormat format, string? filename = null) : IListingExporter
+{
+    public ListingExport? Last { get; private set; }
+
+    public ExportFormat Format => format;
+
+    public ExportedFile Export(ListingExport export)
+    {
+        Last = export;
+        var digest = $"{export.Title}: {export.Rows.Count} rows, {string.Join("|", export.Columns.Select(c => c.Label))}";
+        return new ExportedFile(Encoding.UTF8.GetBytes(digest), Filename: filename);
+    }
+}
+
+/// <summary>Listing exports (Java's ExportActionRunner + the ListingExporter port): the toolbar
+/// buttons, the DownloadFile command and what the application's exporter receives.</summary>
 public class ExportTests
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
-    private static SyncHandler Handler() => new(new MateuRegistry(typeof(ExGuests).Assembly));
+    private static SyncHandler Handler(params IListingExporter[] exporters) =>
+        new(new MateuRegistry(typeof(ExGuests).Assembly)) { Exporters = new MateuExporters(exporters) };
 
     private static (string Filename, string MimeType, byte[] Bytes) Download(UIIncrementDto inc)
     {
@@ -75,7 +90,8 @@ public class ExportTests
     [Fact]
     public void Each_opted_in_format_gets_its_toolbar_button_in_Javas_order()
     {
-        var json = JsonSerializer.Serialize(Handler().Handle(new RunActionRqDto { Route = "ex-guests" }), Json);
+        var handler = Handler(new DigestExporter(ExportFormat.Excel), new DigestExporter(ExportFormat.Pdf));
+        var json = JsonSerializer.Serialize(handler.Handle(new RunActionRqDto { Route = "ex-guests" }), Json);
         var csv = json.IndexOf("\"export-csv\"", StringComparison.Ordinal);
         var excel = json.IndexOf("\"export-excel\"", StringComparison.Ordinal);
         var pdf = json.IndexOf("\"export-pdf\"", StringComparison.Ordinal);
@@ -83,49 +99,54 @@ public class ExportTests
         Assert.Contains("\"label\":\"Export Excel\"", json);
         Assert.Contains("\"label\":\"Export PDF\"", json);
 
-        var only = JsonSerializer.Serialize(Handler().Handle(new RunActionRqDto { Route = "ex-csv-only" }), Json);
+        var only = JsonSerializer.Serialize(handler.Handle(new RunActionRqDto { Route = "ex-csv-only" }), Json);
         Assert.Contains("export-csv", only);
         Assert.DoesNotContain("export-excel", only);
         Assert.DoesNotContain("export-pdf", only);
     }
 
     [Fact]
+    public void Without_an_exporter_the_Excel_and_PDF_buttons_are_not_offered()
+    {
+        // Mateu ships no Excel / PDF engine: the crud opts into all three, only CSV (built in) shows
+        var json = JsonSerializer.Serialize(Handler().Handle(new RunActionRqDto { Route = "ex-guests" }), Json);
+        Assert.Contains("export-csv", json);
+        Assert.DoesNotContain("export-excel", json);
+        Assert.DoesNotContain("export-pdf", json);
+        // and a request naming a format nobody writes is a message for the user, not a crash
+        var error = Assert.Throws<UserFacingException>(() => Run(Handler(), typeof(ExGuests), "export-excel"));
+        Assert.Equal("Export not available", error.Title);
+    }
+
+    [Fact]
     public void A_format_the_crud_does_not_offer_is_refused()
     {
-        var inc = Run(Handler(), typeof(ExCsvOnly), "export-pdf");
+        var inc = Run(Handler(new DigestExporter(ExportFormat.Pdf)), typeof(ExCsvOnly), "export-pdf");
         Assert.DoesNotContain(inc.Commands, c => c.Type == "DownloadFile");
     }
 
     [Fact]
-    public void Excel_export_is_a_valid_workbook_with_every_filtered_row()
+    public void The_exporter_receives_the_title_columns_and_every_filtered_row()
     {
-        var (filename, mime, bytes) = Download(Run(Handler(), typeof(ExGuests), "export-excel"));
+        var excel = new DigestExporter(ExportFormat.Excel);
+        var (filename, mime, bytes) = Download(Run(Handler(excel), typeof(ExGuests), "export-excel"));
+        // no filename / media type answered: the format's defaults
         Assert.Equal("export.xlsx", filename);
         Assert.Equal("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", mime);
+        Assert.Equal("Guests: 120 rows, Id|Name|Nights|Vip|Amount", Encoding.UTF8.GetString(bytes));
+        var handed = excel.Last!;
+        Assert.Equal(ExportFormat.Excel, handed.Format);
+        Assert.Equal("Zoë (VIP) 100€", handed.Columns[1].TextOf(handed.Rows[6]));
+        Assert.Equal(73.5m, handed.Columns[4].ValueOf(handed.Rows[6]));
+    }
 
-        using var zip = new ZipArchive(new MemoryStream(bytes));
-        var names = zip.Entries.Select(e => e.FullName).ToHashSet();
-        foreach (var part in new[] { "[Content_Types].xml", "_rels/.rels", "xl/workbook.xml",
-                     "xl/_rels/workbook.xml.rels", "xl/styles.xml", "xl/worksheets/sheet1.xml" })
-        {
-            Assert.Contains(part, names);
-            using var stream = zip.GetEntry(part)!.Open();
-            XDocument.Load(stream); // every part is well-formed XML
-        }
-        XNamespace ns = "http://schemas.openxmlformats.org/spreadsheetml/2006/main";
-        using var sheetStream = zip.GetEntry("xl/worksheets/sheet1.xml")!.Open();
-        var sheet = XDocument.Load(sheetStream);
-        var rows = sheet.Descendants(ns + "row").ToList();
-        Assert.Equal(121, rows.Count); // header + the whole result set, not one page
-        Assert.Equal(["Id", "Name", "Nights", "Vip", "Amount"],
-            rows[0].Elements(ns + "c").Select(c => c.Value));
-        Assert.Equal("1", rows[0].Elements(ns + "c").First().Attribute("s")?.Value); // bold header
-        var seven = rows[7].Elements(ns + "c").ToList();
-        Assert.Equal("Zoë (VIP) 100€", seven[1].Value);
-        Assert.Equal("2", seven[2].Value);
-        Assert.Null(seven[2].Attribute("t")); // a number cell
-        Assert.Equal("b", seven[3].Attribute("t")?.Value);
-        Assert.Equal("73.5", seven[4].Value);
+    [Fact]
+    public void The_exporters_filename_wins_over_the_default()
+    {
+        var (filename, mime, _) = Download(Run(Handler(new DigestExporter(ExportFormat.Pdf, "guests.pdf")),
+            typeof(ExGuests), "export-pdf"));
+        Assert.Equal("guests.pdf", filename);
+        Assert.Equal("application/pdf", mime);
     }
 
     [Fact]
@@ -139,83 +160,25 @@ public class ExportTests
     }
 
     [Fact]
-    public void Pdf_export_is_a_valid_paginated_document()
-    {
-        var (filename, mime, bytes) = Download(Run(Handler(), typeof(ExGuests), "export-pdf"));
-        Assert.Equal("export.pdf", filename);
-        Assert.Equal("application/pdf", mime);
-        var text = Encoding.Latin1.GetString(bytes);
-        Assert.StartsWith("%PDF-1.4", text);
-        Assert.EndsWith("%%EOF\n", text);
-        Assert.Contains("(Guest 120) Tj", text);
-        Assert.Contains("(Zo\\353 \\(VIP\\) 100\\200) Tj", text); // ë, escaped parens, € in WinAnsi
-        // 120 rows do not fit one A4 page: several pages, each repeating the bold header
-        var pages = text.Split("/Type /Page ").Length - 1;
-        Assert.True(pages >= 3, $"{pages} pages");
-        Assert.Equal(pages, text.Split("BT /F2 9 Tf 36 550 Td (Id) Tj ET").Length - 1);
-
-        // the cross-reference table points at every object exactly
-        var startxref = long.Parse(text[(text.LastIndexOf("startxref\n", StringComparison.Ordinal) + 10)..].Split('\n')[0]);
-        Assert.StartsWith("xref\n0 ", text[(int)startxref..]);
-        var lines = text[(int)startxref..].Split('\n');
-        var count = int.Parse(lines[1].Split(' ')[1]);
-        for (var i = 1; i < count; i++)
-        {
-            var offset = int.Parse(lines[2 + i][..10]);
-            Assert.StartsWith($"{i} 0 obj\n", text[offset..]);
-        }
-        Assert.Contains($"/Size {count} /Root 1 0 R", text);
-    }
-
-    [Fact]
-    public void Content_stream_lengths_match_their_bytes()
-    {
-        var bytes = new BuiltInPdfExporter().Export(ExGuests.All.Cast<object>().ToList(),
-            [new ExportColumn("Name", "Name")]);
-        var text = Encoding.Latin1.GetString(bytes);
-        var at = 0;
-        while ((at = text.IndexOf("/Length ", at, StringComparison.Ordinal)) >= 0)
-        {
-            var length = int.Parse(text[(at + 8)..].Split(' ')[0]);
-            var start = text.IndexOf("stream\n", at, StringComparison.Ordinal) + 7;
-            Assert.Equal("endstream", text.Substring(start + length, 9));
-            at = start;
-        }
-    }
-
-    private sealed class FakeExcel : IExcelExporter
-    {
-        public byte[] Export(IReadOnlyList<object> rows, IReadOnlyList<ExportColumn> columns) =>
-            Encoding.UTF8.GetBytes($"{rows.Count} rows, {string.Join("|", columns.Select(c => c.Label))}");
-    }
-
-    [Fact]
-    public void A_registered_exporter_replaces_the_built_in_writer()
+    public void Exporters_registered_as_services_are_picked_up_and_a_csv_one_replaces_the_built_in()
     {
         var services = new ServiceCollection();
-        services.AddSingleton<IExcelExporter, FakeExcel>();
+        services.AddSingleton<IListingExporter>(new DigestExporter(ExportFormat.Excel));
+        services.AddSingleton<IListingExporter>(new DigestExporter(ExportFormat.Csv));
         services.AddMateu(typeof(ExGuests).Assembly);
         var handler = services.BuildServiceProvider().GetRequiredService<SyncHandler>();
         var (_, _, bytes) = Download(Run(handler, typeof(ExGuests), "export-excel"));
-        Assert.Equal("120 rows, Id|Name|Nights|Vip|Amount", Encoding.UTF8.GetString(bytes));
-        Assert.IsType<BuiltInPdfExporter>(handler.Exporters.Pdf);
-    }
-
-    [Fact]
-    public void Column_letters_go_past_Z()
-    {
-        Assert.Equal("A1", BuiltInExcelExporter.Ref(0, 1));
-        Assert.Equal("Z3", BuiltInExcelExporter.Ref(25, 3));
-        Assert.Equal("AA1", BuiltInExcelExporter.Ref(26, 1));
-        Assert.Equal("ZZ1", BuiltInExcelExporter.Ref(701, 1));
-        Assert.Equal("AAA1", BuiltInExcelExporter.Ref(702, 1));
+        Assert.Equal("Guests: 120 rows, Id|Name|Nights|Vip|Amount", Encoding.UTF8.GetString(bytes));
+        Assert.IsType<DigestExporter>(handler.Exporters.For(ExportFormat.Csv));
+        Assert.False(handler.Exporters.Offers(ExportFormat.Pdf));
+        Assert.IsType<BuiltInCsvExporter>(MateuExporters.BuiltIn.For(ExportFormat.Csv));
     }
 
     [Fact]
     public void Any_listing_that_opts_in_exports_its_whole_filtered_result_set()
     {
         // Java exports any Listing (Listing.csvExportable & co), not only a Crud.
-        var handler = Handler();
+        var handler = Handler(new DigestExporter(ExportFormat.Pdf));
         foreach (var (type, route) in new[] { (typeof(ExGuestListing), "ex-guest-listing"), (typeof(ExCapListing), "ex-cap-listing") })
         {
             var render = JsonSerializer.Serialize(handler.Handle(new RunActionRqDto { Route = route }), Json);

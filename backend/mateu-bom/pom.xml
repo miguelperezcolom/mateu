@@ -138,17 +138,6 @@
         <artifactId>mateu-redwood</artifactId>
         <version>${project.version}</version>
       </dependency>
-      <!-- optional exporters -->
-      <dependency>
-        <groupId>io.mateu</groupId>
-        <artifactId>mateu-export-excel</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.mateu</groupId>
-        <artifactId>mateu-export-pdf</artifactId>
-        <version>${project.version}</version>
-      </dependency>
       <!-- optional data-access adapters -->
       <dependency>
         <groupId>io.mateu</groupId>
@@ -243,16 +232,6 @@
       <dependency>
         <groupId>io.mateu</groupId>
         <artifactId>redwood</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.mateu</groupId>
-        <artifactId>export-excel</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>io.mateu</groupId>
-        <artifactId>export-pdf</artifactId>
         <version>${project.version}</version>
       </dependency>
     </dependencies>

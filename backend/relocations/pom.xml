@@ -31,8 +31,6 @@
     <module>core</module>
     <module>annotation-processor-core</module>
     <module>annotation-processor-indexer</module>
-    <module>export-excel</module>
-    <module>export-pdf</module>
     <module>vaadin-lit</module>
     <module>redwood</module>
     <module>mvc-core</module>

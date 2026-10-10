@@ -35,23 +35,29 @@ public sealed partial class ReflectionMapper
     internal static bool IsSelector(Type viewType) =>
         viewType.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(ISelector<>));
 
+    /// <summary>Whether an exporter writes a format (set by the SyncHandler from its exporters): Mateu
+    /// ships no Excel / PDF engine, so a format nobody writes gets no button. Defaults to the
+    /// built-in CSV writer only.</summary>
+    internal Func<ExportFormat, bool> ExportOffered { get; set; } = format => format == ExportFormat.Csv;
+
     /// <summary>The export buttons of a listing that opted in (ICrudExports: CsvExportable /
-    /// ExcelExportable / PdfExportable), first in the toolbar in Java's order, plus their actions —
-    /// any Listing exports in Java, not only a Crud (Listing.csvExportable &amp; co).</summary>
-    private static void AddExportButtons(object? listing, List<ButtonDto> toolbar, List<ActionDto> actions)
+    /// ExcelExportable / PdfExportable) and whose format an exporter writes, first in the toolbar in
+    /// Java's order, plus their actions — any Listing exports in Java, not only a Crud
+    /// (Listing.csvExportable &amp; co).</summary>
+    private void AddExportButtons(object? listing, List<ButtonDto> toolbar, List<ActionDto> actions)
     {
         if (listing is not ICrudExports exports) return;
         var at = 0;
-        foreach (var (on, label, actionId) in new[]
+        foreach (var (on, format) in new[]
                  {
-                     (exports.CsvExportable, "Export CSV", "export-csv"),
-                     (exports.ExcelExportable, "Export Excel", "export-excel"),
-                     (exports.PdfExportable, "Export PDF", "export-pdf"),
+                     (exports.CsvExportable, ExportFormat.Csv),
+                     (exports.ExcelExportable, ExportFormat.Excel),
+                     (exports.PdfExportable, ExportFormat.Pdf),
                  })
         {
-            if (!on) continue;
-            toolbar.Insert(at++, new ButtonDto(label, actionId));
-            actions.Add(new ActionDto(actionId, ValidationRequired: false));
+            if (!on || !ExportOffered(format)) continue;
+            toolbar.Insert(at++, new ButtonDto(format.ButtonLabel(), format.ActionId()));
+            actions.Add(new ActionDto(format.ActionId(), ValidationRequired: false));
         }
     }
 
@@ -259,19 +265,19 @@ public sealed partial class ReflectionMapper
         }
         // Export the listing (Crud.CsvExportable / ExcelExportable / PdfExportable): the whole
         // filtered set as a download, buttons first in the toolbar in Java's order (mirrors
-        // ListRouteResolver; the exporters are pluggable, built-in writers by default).
-        var exports = new (string Hook, string Label, string ActionId)[]
+        // ListRouteResolver; a button only when an IListingExporter writes the format).
+        var exports = new (string Hook, ExportFormat Format)[]
         {
-            ("CsvExportable", "Export CSV", "export-csv"),
-            ("ExcelExportable", "Export Excel", "export-excel"),
-            ("PdfExportable", "Export PDF", "export-pdf"),
+            ("CsvExportable", ExportFormat.Csv),
+            ("ExcelExportable", ExportFormat.Excel),
+            ("PdfExportable", ExportFormat.Pdf),
         };
         var exportAt = 0;
-        foreach (var (hook, label, actionId) in exports)
+        foreach (var (hook, format) in exports)
         {
-            if (!Hook0(hook)) continue;
-            toolbar.Insert(exportAt++, new ButtonDto(label, actionId));
-            actions.Add(new ActionDto(actionId, ValidationRequired: false));
+            if (!Hook0(hook) || !ExportOffered(format)) continue;
+            toolbar.Insert(exportAt++, new ButtonDto(format.ButtonLabel(), format.ActionId()));
+            actions.Add(new ActionDto(format.ActionId(), ValidationRequired: false));
         }
         if (canDelete && display.Delete.Shown())
         {

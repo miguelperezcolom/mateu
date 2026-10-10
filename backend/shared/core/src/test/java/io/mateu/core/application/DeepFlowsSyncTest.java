@@ -76,19 +76,33 @@ class DeepFlowsSyncTest {
   @SuppressWarnings("unused")
   public static class TypedFormPage extends TypedForm {}
 
-  public static class FakeExcelExporter implements io.mateu.uidl.interfaces.ExcelExporter {
+  /** The application's exporters: Mateu ships no Excel / PDF engine, only the port. */
+  public static class FakeExcelExporter implements io.mateu.uidl.interfaces.ListingExporter {
+    static io.mateu.uidl.data.ListingExport last;
+
     @Override
-    public byte[] export(
-        List<?> rows, List<io.mateu.uidl.data.ExportColumn> columns, HttpRequest httpRequest) {
-      return "excel".getBytes();
+    public io.mateu.uidl.data.ExportFormat format() {
+      return io.mateu.uidl.data.ExportFormat.excel;
+    }
+
+    @Override
+    public io.mateu.uidl.data.ExportedFile export(
+        io.mateu.uidl.data.ListingExport export, HttpRequest httpRequest) {
+      last = export;
+      return io.mateu.uidl.data.ExportedFile.of("excel".getBytes());
     }
   }
 
-  public static class FakePdfExporter implements io.mateu.uidl.interfaces.PdfExporter {
+  public static class FakePdfExporter implements io.mateu.uidl.interfaces.ListingExporter {
     @Override
-    public byte[] export(
-        List<?> rows, List<io.mateu.uidl.data.ExportColumn> columns, HttpRequest httpRequest) {
-      return "pdf".getBytes();
+    public io.mateu.uidl.data.ExportFormat format() {
+      return io.mateu.uidl.data.ExportFormat.pdf;
+    }
+
+    @Override
+    public io.mateu.uidl.data.ExportedFile export(
+        io.mateu.uidl.data.ListingExport export, HttpRequest httpRequest) {
+      return new io.mateu.uidl.data.ExportedFile("pdf".getBytes(), "application/pdf", "cities.pdf");
     }
   }
 
@@ -178,6 +192,13 @@ class DeepFlowsSyncTest {
     var increment = export("export-excel");
     assertThat(increment.commands())
         .anySatisfy(command -> assertThat(command.type().name()).isEqualTo("DownloadFile"));
+    // Mateu decided the format, columns and rows; the application's exporter only wrote the file
+    var handed = FakeExcelExporter.last;
+    assertThat(handed.format()).isEqualTo(io.mateu.uidl.data.ExportFormat.excel);
+    assertThat(handed.columns()).isNotEmpty();
+    assertThat(handed.rows()).isNotEmpty();
+    assertThat(handed.search()).isNotNull();
+    assertThat(downloadOf(increment)).containsEntry("filename", "export.xlsx");
   }
 
   @Test
@@ -185,6 +206,19 @@ class DeepFlowsSyncTest {
     var increment = export("export-pdf");
     assertThat(increment.commands())
         .anySatisfy(command -> assertThat(command.type().name()).isEqualTo("DownloadFile"));
+    // the exporter's own filename / media type win over the format's defaults
+    assertThat(downloadOf(increment)).containsEntry("filename", "cities.pdf");
+  }
+
+  @SuppressWarnings("unchecked")
+  private static Map<String, Object> downloadOf(UIIncrementDto increment) {
+    var data =
+        increment.commands().stream()
+            .filter(command -> "DownloadFile".equals(command.type().name()))
+            .findFirst()
+            .orElseThrow()
+            .data();
+    return new com.fasterxml.jackson.databind.ObjectMapper().convertValue(data, Map.class);
   }
 
   // ── editable grid _create ───────────────────────────────────────────────────

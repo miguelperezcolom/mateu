@@ -163,14 +163,29 @@ public interface Listing<Row> extends ActionHandler, ActionSupplier {
     return GridLayout.auto;
   }
 
+  /**
+   * Offer "Export PDF": the whole filtered result set as a PDF. The button shows only while a
+   * {@link ListingExporter} for {@link io.mateu.uidl.data.ExportFormat#pdf} is registered — Mateu
+   * ships no PDF engine.
+   */
   default boolean pdfExportable() {
     return false;
   }
 
+  /**
+   * Offer "Export Excel": the whole filtered result set as a spreadsheet. The button shows only
+   * while a {@link ListingExporter} for {@link io.mateu.uidl.data.ExportFormat#excel} is registered
+   * — Mateu ships no spreadsheet engine.
+   */
   default boolean excelExportable() {
     return false;
   }
 
+  /**
+   * Offer "Export CSV": the whole filtered result set as CSV, written by core's built-in CSV writer
+   * unless the application registers its own {@link ListingExporter} for {@link
+   * io.mateu.uidl.data.ExportFormat#csv}.
+   */
   default boolean csvExportable() {
     return false;
   }

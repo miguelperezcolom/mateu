@@ -573,7 +573,7 @@ public class OrdersListing implements Listing<OrderRow> {
     @Override public boolean pdfExportable()   { return true; }
 }
 ```
-Add `export-excel` and `export-pdf` Maven dependencies to enable those buttons.
+Excel and PDF need a `ListingExporter` bean of your own (Mateu ships no spreadsheet / PDF engine); without one those buttons are not shown. CSV is built in.
 
 ### CRUD URL pagination
 Mateu syncs page, sort, and filter to the URL automatically:

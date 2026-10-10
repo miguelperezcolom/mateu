@@ -166,15 +166,9 @@ public class PageListingBuilder {
       buttons.add(new Button("History", "history"));
     }
     if (instance instanceof io.mateu.uidl.interfaces.Listing<?> listing) {
-      if (listing.csvExportable() && ExporterContext.isCsvAvailable()) {
-        buttons.add(new Button("Export CSV", "export-csv"));
-      }
-      if (listing.excelExportable() && ExporterContext.isExcelAvailable()) {
-        buttons.add(new Button("Export Excel", "export-excel"));
-      }
-      if (listing.pdfExportable() && ExporterContext.isPdfAvailable()) {
-        buttons.add(new Button("Export PDF", "export-pdf"));
-      }
+      buttons.addAll(
+          io.mateu.core.domain.act.ListingExporters.exportButtons(
+              listing, ExporterContext.available()));
     }
     return buttons;
   }

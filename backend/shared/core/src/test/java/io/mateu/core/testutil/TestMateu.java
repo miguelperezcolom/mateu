@@ -43,8 +43,8 @@ public final class TestMateu implements AutoCloseable {
   }
 
   /**
-   * Same, additionally registering platform beans an adapter would normally contribute (e.g. an
-   * ExcelExporter for the export actions). Each bean is registered under its concrete class.
+   * Same, additionally registering platform beans an adapter would normally contribute (e.g. a
+   * ListingExporter for the export actions). Each bean is registered under its concrete class.
    */
   public static TestMateu withUisAndBeans(List<Object> extraBeans, Class<?>... uiClasses) {
     var ctx = new AnnotationConfigApplicationContext();

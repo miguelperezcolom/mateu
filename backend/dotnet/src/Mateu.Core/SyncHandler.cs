@@ -242,7 +242,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
                 var all = new SearchRequest(SearchText(rq), AssembleFilters(listing.Filters, rq.ComponentState),
                     null, new Pageable(0, int.MaxValue, PageableOf(rq).Sort));
                 return ExportRows(listingExport,
-                    type.GetMethod("Search", [typeof(SearchRequest)])!.Invoke(view, [all]), listing.Row, rq);
+                    type.GetMethod("Search", [typeof(SearchRequest)])!.Invoke(view, [all]), listing.Row, type, rq);
             }
             return rq.ActionId switch
             {

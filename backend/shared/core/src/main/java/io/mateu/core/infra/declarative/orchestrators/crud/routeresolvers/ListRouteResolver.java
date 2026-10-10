@@ -72,13 +72,16 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
   }
 
   /**
-   * An exporter of that kind is registered (the toolbar is built before ExporterContext is set).
+   * The formats a registered ListingExporter writes (the toolbar is built before ExporterContext is
+   * set).
    */
-  private static boolean exporterAvailable(Class<?> exporter) {
+  private static java.util.Set<io.mateu.uidl.data.ExportFormat> availableExportFormats() {
     try {
-      return !io.mateu.uidl.di.MateuBeanProvider.getBeans(exporter).isEmpty();
+      return io.mateu.core.domain.act.ListingExporters.formats(
+          io.mateu.uidl.di.MateuBeanProvider.getBeans(
+              io.mateu.uidl.interfaces.ListingExporter.class));
     } catch (RuntimeException notInitialised) {
-      return false;
+      return java.util.EnumSet.noneOf(io.mateu.uidl.data.ExportFormat.class);
     }
   }
 
@@ -91,20 +94,11 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
     if (orchestrator.behaviourSource() instanceof Auditable) {
       toolbar.add(new Button(orchestrator.historyLabel(), "history"));
     }
-    // exportar el listado (Listing.csvExportable/excelExportable/pdfExportable): un AutoCrud es un
-    // Listing y ExportActionRunner ya lo atiende, pero sus botones no salían en el toolbar
-    if (orchestrator.csvExportable()
-        && exporterAvailable(io.mateu.uidl.interfaces.CsvExporter.class)) {
-      toolbar.add(new Button("Export CSV", "export-csv"));
-    }
-    if (orchestrator.excelExportable()
-        && exporterAvailable(io.mateu.uidl.interfaces.ExcelExporter.class)) {
-      toolbar.add(new Button("Export Excel", "export-excel"));
-    }
-    if (orchestrator.pdfExportable()
-        && exporterAvailable(io.mateu.uidl.interfaces.PdfExporter.class)) {
-      toolbar.add(new Button("Export PDF", "export-pdf"));
-    }
+    // export the listing (Listing.csvExportable/excelExportable/pdfExportable): an AutoCrud is a
+    // Listing and ExportActionRunner answers it; a button only when an exporter writes the format
+    toolbar.addAll(
+        io.mateu.core.domain.act.ListingExporters.exportButtons(
+            orchestrator, availableExportFormats()));
     var display = orchestrator.display();
     if (!notCreatable(orchestrator) && orchestrator.canCreate() && display.create().shown()) {
       toolbar.add(

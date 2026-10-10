@@ -48,6 +48,9 @@ class MateuRegistry:
         #: TranslationsSupplier subclasses (the code half of the translation catalogue; the
         #: `type: Translations` files win over them key by key).
         self.translations_suppliers: list[type] = []
+        #: The application's ListingExporter instances (one per format; Mateu ships no Excel / PDF
+        #: engine — the built-in CSV writer fills in when none writes CSV).
+        self.exporters: list = []
         for src in sources:
             if isinstance(src, ModuleType):
                 for _, cls in inspect.getmembers(src, inspect.isclass):
@@ -103,6 +106,20 @@ class MateuRegistry:
                     self.adapters[model] = adapter
                     # the island / routed model is addressed by its type name on the wire
                     self._by_name[type_name(model)] = model
+
+        from mateu_uidl.export import ListingExporter
+
+        if (
+            isinstance(cls, type)
+            and issubclass(cls, ListingExporter)
+            and cls is not ListingExporter
+            and not cls.__module__.startswith("mateu_core.")
+            and not any(type(e) is cls for e in self.exporters)
+        ):
+            try:
+                self.exporters.append(cls())
+            except Exception as e:  # noqa: BLE001 - a broken exporter exports nothing
+                _log.warning("Listing exporter %s could not be registered (%s)", cls.__name__, e)
 
         from mateu_uidl.i18n import TranslationsSupplier
 

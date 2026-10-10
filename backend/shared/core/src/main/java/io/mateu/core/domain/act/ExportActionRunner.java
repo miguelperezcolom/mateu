@@ -5,6 +5,7 @@ import static io.mateu.uidl.Humanizer.toUpperCaseFirst;
 import io.mateu.core.application.runaction.RunActionCommand;
 import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.core.infra.reflection.MetaAnnotations;
+import io.mateu.uidl.UserFacingException;
 import io.mateu.uidl.annotations.Hidden;
 import io.mateu.uidl.annotations.HiddenInList;
 import io.mateu.uidl.annotations.Label;
@@ -48,58 +49,83 @@ public class ExportActionRunner implements ActionRunner {
     // A ReactiveListing's rows arrive asynchronously: compose on them instead of block()ing, which
     // throws on a non-blocking thread (the WebFlux / Netty event loop) whenever the search has not
     // completed synchronously — i.e. with any real reactive repository.
-    return fetchAllRows(instance, httpRequest)
-        .flatMapMany(rows -> Flux.just(export(actionId, rows, rowClass(instance), httpRequest)));
+    var format = ExportFormat.ofActionId(actionId);
+    var exportFormat = format != null ? format : ExportFormat.csv;
+    // the button is only offered while an exporter exists; a request naming a format nobody writes
+    // is answered with a message (before searching anything), never a 500
+    var exporter =
+        ListingExporters.forFormat(exportFormat, beanProvider.getBeans(ListingExporter.class));
+    if (exporter.isEmpty()) {
+      return Flux.error(
+          new UserFacingException(
+              "Export not available", "This application has no exporter for that format."));
+    }
+    var search = exportSearch(instance, httpRequest);
+    return fetchAllRows(instance, search, httpRequest)
+        .flatMapMany(
+            rows ->
+                Flux.just(
+                    export(
+                        exporter.get(),
+                        exportFormat,
+                        instance,
+                        search,
+                        rows,
+                        rowClass(instance),
+                        httpRequest)));
   }
 
   private List<UICommand> export(
-      String actionId, List<?> rows, Class<?> rowClass, HttpRequest httpRequest) {
-    var columns = buildExportColumns(rowClass);
+      ListingExporter exporter,
+      ExportFormat format,
+      Object instance,
+      SearchRequest search,
+      List<?> rows,
+      Class<?> rowClass,
+      HttpRequest httpRequest) {
+    var export =
+        new ListingExport(format, titleOf(instance), buildExportColumns(rowClass), rows, search);
 
-    byte[] bytes;
-    String filename;
-    String mimeType;
-
-    // the exporter interface declares `throws Exception` (IO/format failures) — surface it as
-    // itself
+    ExportedFile file;
+    // the port declares `throws Exception` (IO/format failures) — surface it as itself
     try {
-      switch (actionId) {
-        case "export-excel" -> {
-          var exporter = beanProvider.getBean(ExcelExporter.class);
-          bytes = exporter.export(rows, columns, httpRequest);
-          filename = "export.xlsx";
-          mimeType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-        }
-        case "export-pdf" -> {
-          var exporter = beanProvider.getBean(PdfExporter.class);
-          bytes = exporter.export(rows, columns, httpRequest);
-          filename = "export.pdf";
-          mimeType = "application/pdf";
-        }
-        default -> {
-          var exporter = beanProvider.getBean(CsvExporter.class);
-          bytes = exporter.export(rows, columns, httpRequest);
-          filename = "export.csv";
-          mimeType = "text/csv";
-        }
-      }
+      file = exporter.export(export, httpRequest);
     } catch (Exception e) {
       throw e instanceof RuntimeException re ? re : new RuntimeException(e);
     }
+    if (file == null || file.content() == null) {
+      throw new IllegalStateException(
+          exporter.getClass().getName() + " returned no file for " + format);
+    }
+    var filename = file.filename() != null ? file.filename() : format.defaultFilename();
+    var mimeType = file.mediaType() != null ? file.mediaType() : format.defaultMediaType();
 
     return List.of(
         UICommand.builder()
             .type(UICommandType.DownloadFile)
-            .data(new FileDownload(filename, mimeType, Base64.getEncoder().encodeToString(bytes)))
+            .data(
+                new FileDownload(
+                    filename, mimeType, Base64.getEncoder().encodeToString(file.content())))
             .build());
   }
 
-  private Mono<List<?>> fetchAllRows(Object instance, HttpRequest httpRequest) {
+  private static String titleOf(Object instance) {
+    try {
+      return io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getTitle(instance);
+    } catch (RuntimeException e) {
+      return null;
+    }
+  }
+
+  private static SearchRequest exportSearch(Object instance, HttpRequest httpRequest) {
     // export the WHOLE filtered set: same search inputs as the on-screen listing, one huge page
     var base = io.mateu.uidl.interfaces.SearchRequestBuilder.build(instance, httpRequest);
-    var request =
-        new io.mateu.uidl.data.SearchRequest(
-            base.searchText(), base.filters(), base.criteria(), new Pageable(0, 10_000, List.of()));
+    return new SearchRequest(
+        base.searchText(), base.filters(), base.criteria(), new Pageable(0, 10_000, List.of()));
+  }
+
+  private Mono<List<?>> fetchAllRows(
+      Object instance, SearchRequest request, HttpRequest httpRequest) {
 
     if (instance instanceof Listing<?> listing) {
       return Mono.just(contentOf(listing.search(request, httpRequest)));

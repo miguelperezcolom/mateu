@@ -30,9 +30,8 @@ public class ComponentMapperBean implements ComponentMapper {
       HttpRequest httpRequest) {
     TranslatorContext.set(translator, httpRequest);
     ExporterContext.set(
-        !beanProvider.getBeans(ExcelExporter.class).isEmpty(),
-        !beanProvider.getBeans(PdfExporter.class).isEmpty(),
-        !beanProvider.getBeans(CsvExporter.class).isEmpty());
+        io.mateu.core.domain.act.ListingExporters.formats(
+            beanProvider.getBeans(ListingExporter.class)));
     try {
       return getContent(object, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     } finally {

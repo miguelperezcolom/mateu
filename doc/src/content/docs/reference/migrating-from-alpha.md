@@ -38,8 +38,6 @@ deprecated: update your poms (or import `io.mateu:mateu-bom` and drop the versio
 | `annotation-processor-micronaut` | `mateu-annotation-processor-micronaut` |
 | `annotation-processor-quarkus` | `mateu-annotation-processor-quarkus` |
 | `annotation-processor-helidon-mp` | `mateu-annotation-processor-helidon-mp` |
-| `export-excel` | `mateu-export-excel` |
-| `export-pdf` | `mateu-export-pdf` |
 | `mateu-bom`, `mateu-bundle-maven-plugin` | unchanged |
 
 An old id in `<annotationProcessorPaths>` is followed too, but **silently** (Maven only warns for
@@ -79,6 +77,11 @@ relocation.
 | `@RowAction` | A `ColumnActionGroup` field on the row (`new ColumnAction("approve", "Approve")`) runs the listing method `approve(Row row)`. |
 | `@BaseRoute` | `basePath:` in the route file (`type: Routes`). |
 | `io.mateu.uidl.fluent.ActionType` (an empty enum) | Nothing — it had no constants and nothing used it. |
+| The `mateu-export-excel` and `mateu-export-pdf` modules (and their old ids `export-excel` / `export-pdf`) | Mateu ships UI only: the Export buttons, columns, rows and the download stay, but the **file engine** is yours. Implement `io.mateu.uidl.interfaces.ListingExporter` (one bean per format, with Apache POI, PDFBox, OpenPDF… as your own dependency) — two implementations to copy are in [Export engines](/java-ui-definition/interfaces/listing/#export-engines). Without one, the Excel / PDF buttons are simply not shown. CSV still works out of the box. |
+| `ExcelExporter`, `PdfExporter`, `CsvExporter` (`io.mateu.uidl.interfaces`) | `ListingExporter`: `ExportFormat format()` + `ExportedFile export(ListingExport, HttpRequest)` — it receives the format, title, columns, ALL filtered rows and the search, and returns the bytes plus an optional media type and filename. |
+| .NET `IExcelExporter` / `IPdfExporter` / `ICsvExporter` and the built-in Excel / PDF writers | `IListingExporter` (`Format` + `Export(ListingExport)` → `ExportedFile`), registered as a service; see the [C# manual](/csharp-user-manual/#listing-exports). CSV stays built in. |
+| Python `mateu-ui[export]` extra (openpyxl / reportlab) and the built-in Excel / PDF writers | a `ListingExporter` subclass of yours in a module you register (`add_mateu(app, my_module)`), discovered like the other suppliers; see the [Python manual](/python-user-manual/#exports). CSV stays built in. |
+| The `mateu-agent-cli` / `agent-cli-companion` modules (never published; the CLI bridge for the AI chat) and the chat's probe of a local companion on `127.0.0.1:8776` | Point `@AI(sse = …)` at your own agent endpoint — the chat panel and its SSE contract are unchanged ([AI assistant](/ai/)). |
 | Renderers: SAP UI5, Oracle JET (`redwood-oj`), PatternFly (`redhat`), Salesforce Lightning (`slds`); the JavaFX and Compose native renderers | Web: `mateu-vaadin` or `mateu-redwood` (Oracle Visual Builder). Native: React Native and the IntelliJ plugin. Your UI code does not change — swap the renderer dependency. |
 
 All the annotations in the rows above had **no effect** in any alpha — nothing read them — so

@@ -77,13 +77,13 @@ See [Listing layout](/java-user-manual/build/listing-layout/) for every `GridLay
 
 ## Export support
 
-Enable export buttons by overriding any of three boolean methods. The framework reuses `search()` to gather the data and produces the file on the server — no extra query code needed.
+Enable export buttons by overriding any of three boolean methods. Mateu owns everything about the export that is UI — the buttons, which columns and rows are exported (it reuses `search()` with the active search text and filters, unpaged, and the visible row fields labelled like the grid) and delivering the file to the user. **Writing** the file is the application's job, through the `ListingExporter` port (see [Export engines](#export-engines)).
 
 | Method | Default | Effect when `true` |
 |---|---|---|
-| `pdfExportable()` | `false` | Shows an "Export PDF" button in the listing toolbar |
-| `excelExportable()` | `false` | Shows an "Export Excel" button in the listing toolbar |
-| `csvExportable()` | `false` | Shows an "Export CSV" button in the listing toolbar |
+| `pdfExportable()` | `false` | Shows an "Export PDF" button — when a PDF `ListingExporter` is registered |
+| `excelExportable()` | `false` | Shows an "Export Excel" button — when an Excel `ListingExporter` is registered |
+| `csvExportable()` | `false` | Shows an "Export CSV" button (core's built-in CSV writer, or yours) |
 
 Override one or more to enable the corresponding button:
 
@@ -102,31 +102,106 @@ public class OrdersListing implements Listing<OrderRow>, Searchable, Filterable<
 }
 ```
 
-### Required dependencies
+## Export engines
 
-**CSV** is built into the `core` module — no extra dependency needed.
+Mateu ships **no spreadsheet or PDF engine** — it ships UI. The file is written by a bean of yours implementing `io.mateu.uidl.interfaces.ListingExporter`, one per format:
 
-**Excel** and **PDF** are in separate optional modules. A button is shown only when its module is on the classpath; if the dependency is absent the button is hidden automatically.
+```java
+public interface ListingExporter {
+    ExportFormat format();                                  // csv | excel | pdf
+    ExportedFile export(ListingExport export, HttpRequest httpRequest) throws Exception;
+}
 
-Add the modules you need to `pom.xml`:
-
-```xml
-<!-- Excel export via Apache POI -->
-<dependency>
-    <groupId>io.mateu</groupId>
-    <artifactId>mateu-export-excel</artifactId>
-    <version>${mateu.version}</version>
-</dependency>
-
-<!-- PDF export via Apache PDFBox -->
-<dependency>
-    <groupId>io.mateu</groupId>
-    <artifactId>mateu-export-pdf</artifactId>
-    <version>${mateu.version}</version>
-</dependency>
+public record ListingExport(ExportFormat format, String title, List<ExportColumn> columns,
+                            List<?> rows, SearchRequest search) {}
+public record ExportColumn(String id, String label) { Object valueOf(Object row); String textOf(Object row); }
+public record ExportedFile(byte[] content, String mediaType, String filename) {}  // nulls → the format's defaults
 ```
 
-Both libraries are Apache 2.0 licensed. If you need a different library (e.g. iText for PDF) you can implement the `PdfExporter` or `ExcelExporter` interface yourself and register it as a CDI bean — the framework will pick it up instead.
+- **What you receive**: the format, the listing's title, the columns (in order, already labelled), the WHOLE filtered result set (not just the page on screen) and the search it answers (search text, filters, criteria — e.g. to print the applied filters in a header). `ExportColumn.valueOf(row)` reads a cell from a record, a bean or a map.
+- **What you return**: the bytes, plus optionally a media type and a filename (`null` takes `export.xlsx` / `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`, `export.pdf` / `application/pdf`, `export.csv` / `text/csv`). Mateu delivers it as a download.
+- **No exporter, no button.** A listing that opts into Excel or PDF shows the button only while an exporter for that format is registered — never a button that fails. **CSV** is the one format with a built-in, dependency-free writer in core; a CSV `ListingExporter` of yours replaces it.
+
+The library is your choice and your dependency. Two starting points you can copy:
+
+**Excel with Apache POI** (`org.apache.poi:poi-ooxml`):
+
+```java
+@Component
+public class ExcelListingExporter implements ListingExporter {
+
+    @Override public ExportFormat format() { return ExportFormat.excel; }
+
+    @Override
+    public ExportedFile export(ListingExport export, HttpRequest httpRequest) throws Exception {
+        try (var workbook = new XSSFWorkbook(); var out = new ByteArrayOutputStream()) {
+            var sheet = workbook.createSheet("Export");
+            var columns = export.columns();
+            var header = sheet.createRow(0);
+            for (int c = 0; c < columns.size(); c++) {
+                header.createCell(c).setCellValue(columns.get(c).label());
+            }
+            for (int r = 0; r < export.rows().size(); r++) {
+                var row = sheet.createRow(r + 1);
+                for (int c = 0; c < columns.size(); c++) {
+                    var value = columns.get(c).valueOf(export.rows().get(r));
+                    if (value instanceof Number n) row.createCell(c).setCellValue(n.doubleValue());
+                    else if (value != null) row.createCell(c).setCellValue(value.toString());
+                }
+            }
+            for (int c = 0; c < columns.size(); c++) sheet.autoSizeColumn(c);
+            workbook.write(out);
+            return ExportedFile.of(out.toByteArray());
+        }
+    }
+}
+```
+
+**PDF with Apache PDFBox** (`org.apache.pdfbox:pdfbox`) — or OpenPDF, iText, a report engine… the port does not care:
+
+```java
+@Component
+public class PdfListingExporter implements ListingExporter {
+
+    @Override public ExportFormat format() { return ExportFormat.pdf; }
+
+    @Override
+    public ExportedFile export(ListingExport export, HttpRequest httpRequest) throws Exception {
+        var font = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
+        var size = new PDRectangle(PDRectangle.A4.getHeight(), PDRectangle.A4.getWidth()); // landscape
+        try (var doc = new PDDocument(); var out = new ByteArrayOutputStream()) {
+            var columns = export.columns();
+            float margin = 40, lineHeight = 16;
+            float colWidth = (size.getWidth() - 2 * margin) / Math.max(1, columns.size());
+            PDPageContentStream cs = null;
+            float y = 0;
+            for (int r = -1; r < export.rows().size(); r++) {   // -1 = the header
+                if (cs == null || y < margin) {
+                    if (cs != null) cs.close();
+                    var page = new PDPage(size);
+                    doc.addPage(page);
+                    cs = new PDPageContentStream(doc, page);
+                    y = size.getHeight() - margin;
+                }
+                for (int c = 0; c < columns.size(); c++) {
+                    var text = r < 0 ? columns.get(c).label() : columns.get(c).textOf(export.rows().get(r));
+                    cs.beginText();
+                    cs.setFont(font, 9);
+                    cs.newLineAtOffset(margin + c * colWidth, y);
+                    cs.showText(text);   // Standard 14 fonts: WinAnsi only — sanitise in real code
+                    cs.endText();
+                }
+                y -= lineHeight;
+            }
+            if (cs != null) cs.close();
+            doc.save(out);
+            return ExportedFile.of(out.toByteArray());
+        }
+    }
+}
+```
+
+Register them as beans the way your runtime does (Spring `@Component`, CDI / Micronaut `@Singleton`, …) — Mateu discovers every `ListingExporter` bean.
 
 ## Key supporting types
 

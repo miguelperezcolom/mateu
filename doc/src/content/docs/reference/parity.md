@@ -50,7 +50,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Access keys mode (`@App(accessKeys)` → `AppDto.accessKeys`) | ✅ | ✅ | ✅ |
 | `Popover.trigger` (click/hover) + `@Tooltip("field")` → `GridColumn.tooltipPath` | ✅ | ✅ | ✅ |
 | `@DragRows` → `CrudlDto.dragType` + `DropZone` | ✅ | ✅ | ✅ |
-| Row tones (`@RowStatus` → `CrudlDto.rowStatusField`) and listing export buttons on `AutoCrud` | ✅ | ✅ `[RowStatus]` + Export CSV / Excel / PDF (`CsvExportable`/`ExcelExportable`/`PdfExportable` on `Crud<T>`, `Listing<F,R>` or any `ICrudExports` listing; built-in dependency-free writers, pluggable `ICsvExporter`/`IExcelExporter`/`IPdfExporter`) | ✅ `RowStatus()` + Export CSV / Excel / PDF (`csv_exportable()` / `excel_exportable()` / `pdf_exportable()`; openpyxl MIT and reportlab BSD, the `export` extra — a format whose library is missing is not offered, as Java shows a button only with an exporter bean) |
+| Row tones (`@RowStatus` → `CrudlDto.rowStatusField`) and listing export buttons on `AutoCrud` | ✅ | ✅ `[RowStatus]` + Export CSV / Excel / PDF (`CsvExportable`/`ExcelExportable`/`PdfExportable` on `Crud<T>`, `Listing<F,R>` or any `ICrudExports` listing; built-in CSV writer, Excel / PDF through the app's `IListingExporter` services — no exporter, no button) | ✅ `RowStatus()` + Export CSV / Excel / PDF (`csv_exportable()` / `excel_exportable()` / `pdf_exportable()`; built-in CSV writer, Excel / PDF through the app's `ListingExporter` subclasses — no exporter, no button, as in Java) |
 | i18n, events (emit/subscribe), security scaffolding | ✅ | ✅ | ✅ |
 | Application context selector (`@AppContext`) | ✅ | ✅ | ✅ |
 | App header actions (`AppActionsSupplier` → buttons + dropdown groups) | ✅ | ✅ | ✅ |
@@ -199,10 +199,10 @@ wire by the hard conformance gate:
 - **.NET**: `IRestSourceSupplier` proxy sources, the source and component catalogues,
   `layoutDelta:`, group actions and synthesized group summaries, wide-field auto-colspan, the
   inline-grid "+" row and the whole grid-field row editor, multi-state embedded islands, the
-  `IComponentAdapter<T>` SPI, Excel/PDF exports and the import wizard's completion action.
+  `IComponentAdapter<T>` SPI, listing exports (the `IListingExporter` port) and the import wizard's completion action.
 - **Python**: the same list (`RestSourceSupplier`, `@rest_source`/`sources.yaml`,
   `@business_component`/`ComponentRef`, `layoutDelta:`, `@group_action`, the grid row editor,
-  embedded islands, `ComponentAdapter`, Excel/PDF exports, `@wizard_completion_action`), plus
+  embedded islands, `ComponentAdapter`, listing exports (the `ListingExporter` port), `@wizard_completion_action`), plus
   `Min`/`Max`/`Size`/`Pattern` validation and class- and method-level `@eyes_only`.
 
 Proxy mode for views assembled at runtime stays the SSRF-sensitive path on every server: the

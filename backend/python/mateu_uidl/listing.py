@@ -81,14 +81,14 @@ class Crud(Generic[T]):
         return False
 
     def excel_exportable(self) -> bool:
-        """Override to return True to offer "Export Excel" (``export-excel``, an .xlsx of the whole
-        filtered result set). Shown only when openpyxl is installed (``mateu-ui[export]``), as
-        Java shows it only with an ExcelExporter bean."""
+        """Override to return True to offer "Export Excel" (``export-excel``: the whole filtered
+        result set). Shown only while a ``ListingExporter`` for ``ExportFormat.EXCEL`` is
+        registered — Mateu ships no spreadsheet engine."""
         return False
 
     def pdf_exportable(self) -> bool:
-        """Override to return True to offer "Export PDF" (``export-pdf``). Shown only when
-        reportlab is installed (``mateu-ui[export]``)."""
+        """Override to return True to offer "Export PDF" (``export-pdf``). Shown only while a
+        ``ListingExporter`` for ``ExportFormat.PDF`` is registered — Mateu ships no PDF engine."""
         return False
 
     @staticmethod
