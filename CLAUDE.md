@@ -105,7 +105,8 @@ The same `UIIncrementDto` carries `commands` (e.g. `SetWindowTitle`, `navigateTo
 
 A **mount** is a UI app served at a base path (what `@UI` declares; the annotated class is its root
 view, the entry whose route is `""`). Inside it, routes can also be declared as **data**, in a
-`routes.yaml` next to the definitions — an entry binds a `definition` (layout), a `viewModel` and
+`routes.yaml` next to the definitions — an entry binds a `layout` (the definition file; the key
+`definition:` is a deprecated alias, and the IDE wizards write `layout:`), a `viewModel` and
 `fixedParams`/`defaultParams` **independently**, so one screen can answer several routes with
 different parameters pinned, one definition can serve several view models, and a route can exist
 with **no view model at all** (the statically deployed case). An annotation can only ever express
@@ -136,6 +137,15 @@ the one-to-one case.
   route resolution also runs in the browser: `fixed > client state > path > query > defaults`.
   Applied in `RouteSegmentUtils.addParameterValues`. The fixed ones are **re-applied server-side**
   rather than trusted from the client (a pin enforced only in the browser would be a suggestion).
+- **A mount names its home page (`home: <route>` on the `type: UI` descriptor, 2026-10-10).**
+  Without an app shell the mount root (`""`) becomes a copy of the home route's entry when no
+  `route: ""` is authored (`RouteRegistry.applyHomes`, at table-build time, so server, static bundle
+  and in-browser resolution agree); with a shell bound to `""` the shell's `homeRoute` defaults to it
+  (`YamlAppLoader.load(definition, mountHome)`; the exporter stamps it into a specs-only shell). An
+  authored `""` / a shell's own `homeRoute` win; an unknown or parameterised home warns once and is
+  ignored. .NET/Python implement the root rule only (no `type: AppShell` there). Tests
+  `MountHomeSyncTest` (fixtures under `src/test/resources/mount-home/<case>/specs/ui`, read through a
+  scoped classloader — the shared test `specs/ui` is untouched), `MountHomeTests`, `test_mount_home.py`.
 - **The definition is layout only.** `YamlUidlLoader` uses the entry's `definition` instead of the
   `specs/ui/<route>.yaml` convention, and the entry's `viewModel` when the YAML declares none — so a
   shared definition must NOT declare `modelView:`, or it can only serve the class it names.
@@ -168,7 +178,7 @@ supplies it.
   page with no server behind it. It is also a **`RestSourceSupplier`**, which is what makes a write
   safe: the proxy resolves a source by asking the instance, a classless page had nothing to answer
   with, and **proxy is the ONLY channel that injects `${secret.KEY}`** (`RunActionUseCase.resolveSecret`
-  → a `SecretsProvider` bean, else `System.getenv`) — so an API key can stay off the browser.
+  → a `SecretsProvider` bean, else ONLY the env var `MATEU_SECRET_<KEY>`) — so an API key can stay off the browser.
 - **`proxy` must be read off the RESOLVED source, not the declared one.** A surface naming a catalogue
   entry by `ref` carries only the name, so a by-ref proxied call looked direct: it ran in the browser,
   where the interpolator has no `secret` scope, and the key travelled as its own placeholder → 401.
@@ -333,6 +343,77 @@ Brought to full parity with Micronaut/Quarkus and pinned by the shared e2e suite
 - **Jar name.** The Helidon parent pom's `finalName` is the artifactId WITHOUT the version → the runnable artifact is `helidon-app1.jar`, not `helidon-app1-1.0.0-SNAPSHOT.jar` (a wrong reference in the CI start step made `java -jar` fail silently and the unbounded readiness loop hung the runner — that wait step is now bounded to 3 min/port + dumps SUT logs on failure).
 
 The AP templates (`controller.ftl` returns `UIIncrementDto` via `.blockFirst()` over JAX-RS `@Context HttpHeaders/UriInfo`; `route.ftl` emits `@ApplicationScoped`) are otherwise close copies of the Quarkus templates. User setup docs: `doc/.../java-create-your-project/helidon.md`.
+
+## GA integration (2026-10-10) — what changed and where it lives
+
+Nine work streams were integrated on `integration/ga` for the first beta/GA. The durable rules:
+
+- **Licensing.** Nothing under a commercial licence ships in the Apache-2.0 bundles (see the
+  "No commercially licensed frontend code" convention); `scripts/check-frontend-licenses.mjs` gates CI.
+- **Security defaults (all adapters + ports).** CORS is OFF unless `mateu.cors.allowed-origins` is set
+  (core `CorsPolicy`; never `*` with credentials; Python `cors_origins=[...]`); the MCP endpoint is OFF
+  unless `mateu.mcp.enabled=true`; `${secret.X}` falls back ONLY to the env var `MATEU_SECRET_<X>`
+  (Java `RunActionUseCase`, .NET `UrlTemplate.SecretEnvName`, Python `url_template`); proxied URLs are
+  percent-encoded by position on every leg. **Error boundary** (Java `ErrorBoundary`, .NET
+  `Mateu.Core.ErrorBoundary` + adapter `MateuErrors`, Python `mateu_core.error_boundary`): a
+  `UserFacingException(title?, message)` shows as written; bean/pydantic validation shows its message;
+  anything else shows "Something went wrong / An unexpected error occurred. Reference: <id>" and is
+  logged at ERROR under that id (.NET/Python use the request correlation id, also in
+  `X-Mateu-Correlation-Id`). `MATEU_ERRORS_DETAILED=true` (or .NET Development / Python `dev=True`)
+  shows the raw exception. The texts are identical in the three backends — keep them so.
+- **Adapters.** One shared index-page builder (`IndexPage`), `WireMapper`, `CorsPolicy`, `McpEndpoint`,
+  `SpaFallback`, `YamlMounts`, `StaticAssetCaching` in core; each adapter's test sources compile with
+  its own AP and run `AdapterParityITFoundation` — add any new HTTP behaviour there. SSE/LongTask now
+  works on every adapter (Helidon SSE + MCP run on the Helidon routing `MateuHelidonRoutes`, not Jersey,
+  which buffered streams). Quarkus ArC needs a SCOPE on generated and core beans (`@Named` alone is not
+  discovered; quarkus-spring-di was dropped — apps must declare `quarkus-rest-jackson`). The Spring bean
+  is `mateuObjectMapper`. `io.mateu:mateu-bom` imports every Mateu artifact at one version
+  (`MateuBomCompletenessTest`); annotation processors go on the processor path only and declare
+  themselves Gradle-incremental. mvc-core test apps live in `com.example.*` (the generated config scans
+  all of `io.mateu`).
+- **Web client (libs/mateu).** `infra/ui/expression.ts` is the ONLY expression evaluator (sandboxed,
+  CSP-safe — no `new Function`); `runJs.ts` is the only `new Function`, behind an opt-in
+  (`<meta name="mateu-allow-run-js" content="true">` / `configureRunJs(true)`; RunJS is OFF by
+  default). Rule/validation expressions see only `state`, `data`, `appState`, `appData`, `component`
+  — never bare field names; a non-identifier state key is read as `state['a-b']` (the server emits
+  that form, `ReflectionFormFieldMapper.stateExpression`). Every server-sent URL goes through
+  `safeNavigate`/`safeHref`; storage through `safeStorage`/`http/authToken.ts`; listeners that must die
+  with a component through `ConnectedElement.connection` (a `ConnectionScope`). The client's own text
+  lives in `chromeTexts.ts` (en/es, chosen by `AppDto.locale` ← `Translator.locale(HttpRequest)`;
+  `chromeTexts.lint.test.ts` fails on new hard-coded UI strings). `MateuRendererApp` is gone. CI runs
+  ESLint, `test:coverage` with ratcheted thresholds in libs/mateu and apps/vaadin, and the eager-bundle
+  budget (`apps/vaadin/scripts/check-bundle-budget.mjs` vs `bundle-budget.json`).
+- **Redwood (VB).** Every wire type renders (`poc/coverage.mjs`; only Workflow/FormEditor are read-only);
+  an unknown type shows an "Unsupported component" placeholder. Core split into `poc/core/*.mjs` (page
+  logic in `pageProjection.mjs`/`actionPlan.mjs`); chrome text in `poc/i18n.mjs` bound via the VB
+  `appBundle`; `RICH_ATOM_FLAGS` must list any new atom flag or a page with fields hides it behind the
+  generic form. Jar layout: `static/_redwood` + `mateu-build-info.json` (source hash checked by
+  `check-bundle-freshness.sh`), works at any `@UI` mount path, ~5 MB. CI job `renderer-vb` builds the
+  jar FROM SOURCE and runs the smoke/a11y/slow-network probes + Playwright specs against demo-vb.
+- **Ports.** Python is split into packages of mixins (`mateu_core/mapper/`, `mateu_core/sync_handler/`;
+  `mateu_dtos` resolves forward refs in `_rebuild_all()`; use snake_case DTO fields — camelCase breaks
+  older pydantic); per-request state lives in `ContextVar`s; published to PyPI as **`mateu-ui`** (the
+  name `mateu` is taken) from the same release tag (`3.0.0aN`), only when `PYPI_API_TOKEN` or
+  `PYPI_TRUSTED_PUBLISHING=true` is set. .NET is split into partial files (`ReflectionMapper.*.cs`,
+  `SyncHandler.*.cs`), targets net8.0+net10.0 and has a NuGet release job.
+- **Conformance.** `conformance/cases` (25) match EXACTLY in Java, .NET and Python, with empty
+  allow-lists; `homeServerSideType` is volatile in all three normalisers; Java renders the corpus with
+  an empty REST source catalogue (the core test classpath carries one). `ActionMapper` does not treat a
+  component-holder field as a nested form.
+- **IDE tooling.** New › Mateu (UI Mount, Routes File — created EMPTY and registered in the chosen
+  mount —, App Shell, Sources, Page… from templates) and **Add Route…** (IntelliJ `MateuRoutes.kt`,
+  VS Code `routesWizard.ts`; minimal text appends, never reformatting) incl. "Make this the home page"
+  (`home:`). The visual editor's reference pickers update when files change (`HostBridge.onFilesChanged`
+  + an IntelliJ VFS listener / the VS Code watcher) and a route's layout is a `<select>` (a `<datalist>`
+  does not open reliably in JCEF). VS Code defaults to `http://localhost:8080`, like IntelliJ.
+- **Docs, starters, demos.** `starters/` = one minimal Product CRUD per runtime (spring-mvc/webflux,
+  quarkus, micronaut, helidon-mp, dotnet, python); the quickstart page is generated from
+  `starters/spring-mvc`; `scripts/bump-example-version.sh` moves the pinned release after each release.
+  Demo poms read `mateu.version`; demos are on Boot 4 with distinct ports (front-office-evolution 8596,
+  redwood-showcase 8597, explorer 8598, webflux 8092, micronaut 8093, quarkus 8094, helidon 8095,
+  kotlin 8096 — `demo/README.md`). The docs site must pass `npm run verify` (build + link check). A
+  servlet context path (`server.servlet.context-path`) is UNSUPPORTED (the page loads `/assets` from the
+  host root). CHANGELOG.md, CONTRIBUTING.md (DCO), SECURITY.md (GitHub advisories) exist.
 
 ## Backend testing (core integration harness)
 
