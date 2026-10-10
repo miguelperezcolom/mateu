@@ -97,7 +97,7 @@ public sealed partial class SyncHandler
         var request = new SearchRequest(
             SearchText(rq), AssembleFilters(filtersType, rq.ComponentState), null, PageableOf(rq));
         var found = view.GetType().GetMethod("Search", [typeof(SearchRequest)])!.Invoke(view, [request]);
-        return EmitListingData(found, rowType, rq);
+        return EmitListingData(found, rowType, rq, view);
     }
 
     /// <summary>The Pageable of a listing request, read from the component state (page/size/sort
@@ -110,19 +110,59 @@ public sealed partial class SyncHandler
     /// <summary>Emits a search's ListingData as the standard listing data fragment: an unpaged
     /// result (ListingData.From) is sorted + paginated by the engine; a paged one (a listing that
     /// ran the count + page queries itself) goes to the wire as-is with its real total.</summary>
-    private static UIIncrementDto EmitListingData(object? found, Type rowType, RunActionRqDto rq)
+    private static UIIncrementDto EmitListingData(object? found, Type rowType, RunActionRqDto rq, object? listing = null)
     {
         var props = ReflectionMapper.EditableProperties(rowType).ToList();
         if (found is null) return PageRows([], props, rq);
         var content = ((System.Collections.IEnumerable)found.GetType().GetProperty("Content")!.GetValue(found)!)
             .Cast<object>().ToList();
+        var summaries = ListingSummaries(found, content, rowType, listing);
         if (found.GetType().GetProperty("TotalElements")!.GetValue(found) is not long total)
-            return PageRows(content, props, rq);
+            return PageRows(content, props, rq, summaries);
         var page = ToInt(GetState(rq.ComponentState, "page"), 0);
         var size = ToInt(GetState(rq.ComponentState, "size"), 10);
         if (size <= 0) size = content.Count == 0 ? 1 : content.Count;
         var rows = content.Select(item => RowDict(item, props)).ToList();
-        var data = new { crud = new { page = new { content = rows, pageSize = size, pageNumber = page, totalElements = total } } };
+        return CrudData(rows, size, page, total, summaries, rq);
+    }
+
+    /// <summary>The group/aggregate companion of a custom listing's search: the groups the listing
+    /// computed itself, else counted groups synthesized from the rows it returned by the row
+    /// class's [GroupBy] column — then the [GroupAction]s the listing vetoes per group (Java's
+    /// Listing.handleAction: withSynthesizedGroups + GroupActions.applyVisibility).</summary>
+    private static Dictionary<string, object?> ListingSummaries(object found, List<object> content, Type rowType, object? listing)
+    {
+        var extras = new Dictionary<string, object?>();
+        var groups = found.GetType().GetProperty("Groups")?.GetValue(found) as IReadOnlyList<GroupSummary>;
+        if (groups is not { Count: > 0 }) groups = GroupSummaries.Synthesize(content, rowType);
+        groups = GroupSummaries.ApplyVisibility(listing, groups);
+        if (found.GetType().GetProperty("Aggregates")?.GetValue(found) is IReadOnlyDictionary<string, object?> aggregates)
+            extras["aggregates"] = aggregates;
+        if (groups is { Count: > 0 })
+            extras["groups"] = groups.Select(g =>
+            {
+                var group = new Dictionary<string, object?>
+                {
+                    ["value"] = g.Value,
+                    ["count"] = g.Count,
+                    ["aggregates"] = g.Aggregates ?? new Dictionary<string, object?>(),
+                };
+                if (g.HiddenActions is { Count: > 0 }) group["hiddenActions"] = g.HiddenActions;
+                return group;
+            }).ToList();
+        return extras;
+    }
+
+    private static UIIncrementDto CrudData(List<Dictionary<string, object?>> rows, int size, int page, long total,
+        Dictionary<string, object?>? extras, RunActionRqDto rq)
+    {
+        var crud = new Dictionary<string, object?>
+        {
+            ["page"] = new { content = rows, pageSize = size, pageNumber = page, totalElements = total },
+        };
+        if (extras is not null)
+            foreach (var (key, value) in extras) crud[key] = value;
+        var data = new Dictionary<string, object?> { ["crud"] = crud };
         return UIIncrementDto.Of(fragments: [new UIFragmentDto(Target(rq), null, null, data, "Replace", null)]);
     }
 
@@ -167,7 +207,8 @@ public sealed partial class SyncHandler
 
     /// <summary>Sorts (Pageable.sort), paginates and serializes rows into the standard listing
     /// data fragment — shared by crud and declarative-listing searches.</summary>
-    private static UIIncrementDto PageRows(List<object> items, List<PropertyInfo> props, RunActionRqDto rq)
+    private static UIIncrementDto PageRows(List<object> items, List<PropertyInfo> props, RunActionRqDto rq,
+        Dictionary<string, object?>? extras = null)
     {
         var propByCamel = props.ToDictionary(p => Naming.CamelCase(p.Name), p => p);
         foreach (var spec in EnumerateSort(rq.ComponentState).AsEnumerable().Reverse())
@@ -182,8 +223,7 @@ public sealed partial class SyncHandler
         var size = ToInt(GetState(rq.ComponentState, "size"), 10);
         if (size <= 0) size = total == 0 ? 1 : total;
         var rows = items.Skip(page * size).Take(size).Select(item => RowDict(item, props)).ToList();
-        var data = new { crud = new { page = new { content = rows, pageSize = size, pageNumber = page, totalElements = total } } };
-        return UIIncrementDto.Of(fragments: [new UIFragmentDto(Target(rq), null, null, data, "Replace", null)]);
+        return CrudData(rows, size, page, total, extras, rq);
     }
 
     /// <summary>A row as a camelCase dict; a self-referential children list (tree layouts)

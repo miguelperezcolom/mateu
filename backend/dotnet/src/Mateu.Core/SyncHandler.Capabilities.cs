@@ -86,7 +86,7 @@ public sealed partial class SyncHandler
             null,
             PageableOf(rq));
         var found = profile.ListingInterface.GetMethod("Search")!.Invoke(listing, [request]);
-        return EmitListingData(found, profile.RowType, rq);
+        return EmitListingData(found, profile.RowType, rq, listing);
     }
 
     private static object CapabilityView(CapabilityProfile profile, object listing, string id) =>

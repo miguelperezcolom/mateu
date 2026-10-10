@@ -172,6 +172,9 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
                 "search" => ListingSearch(view, listing.Filters, listing.Row, rq),
                 // A selector dialog's row pick: write (id, label) back into the host field.
                 "action-on-row-select" => SelectorRowSelected(view, listing.Row, rq),
+                // A [GroupAction] button on a group header row (the group value in _groupValue).
+                { } groupAction when groupAction.StartsWith("action-on-row-") =>
+                    GroupActionResult(type, view, groupAction["action-on-row-".Length..], rq),
                 _ => Render(type, view, rq),
             };
         }

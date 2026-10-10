@@ -71,6 +71,11 @@ public sealed partial class ReflectionMapper
             }));
             actions.Add(new ActionDto("action-on-row-select", ValidationRequired: false));
         }
+        // [GroupAction] methods become buttons on the [GroupBy] group header rows, dispatched as
+        // row actions carrying the group value in _groupValue (Java: PageListingBuilder).
+        var groupActions = GroupActionButtons(viewType);
+        foreach (var button in groupActions)
+            actions.Add(new ActionDto("action-on-row-" + button.ActionId, ValidationRequired: false));
         var gridLayout = viewType.GetMethod("GridLayout")!
             .Invoke(instance, []) as string ?? "auto";
         var crud = Client(new CrudMetadataDto(title, columns, [])
@@ -79,6 +84,7 @@ public sealed partial class ReflectionMapper
             Filters = MapListingFilters(filters),
             GridLayout = gridLayout,
             GroupBy = GroupByOf(row),
+            GroupActions = groupActions,
             RowStatusField = RowStatusFieldOf(row),
             DragType = DragTypeOf(viewType),
             // [RestListing]: rows fetched client-side from an arbitrary REST endpoint.
@@ -388,6 +394,15 @@ public sealed partial class ReflectionMapper
 
     /// <summary>The [GroupBy] column of a row class (camelCase field id); one per row class —
     /// first declared wins. Null when the class declares none (mirrors ListingSummarySpec).</summary>
+    /// <summary>The [GroupAction] buttons of a listing class: label + camelCased method name.</summary>
+    internal static List<ButtonDto> GroupActionButtons(Type listingType) =>
+        listingType.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+            .Select(m => (Method: m, Attribute: m.Find<GroupActionAttribute>()))
+            .Where(x => x.Attribute is not null)
+            .Select(x => new ButtonDto(x.Attribute!.Label, Naming.CamelCase(x.Method.Name)))
+            .GroupBy(b => b.ActionId).Select(g => g.First())
+            .ToList();
+
     internal static string? GroupByOf(Type row) =>
         EditableProperties(row).FirstOrDefault(p => p.Find<GroupByAttribute>() != null) is { } group
             ? Naming.CamelCase(group.Name)

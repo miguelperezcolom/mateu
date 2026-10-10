@@ -27,6 +27,11 @@ public record CrudMetadataDto(
     /// Null when the row class declares no [GroupBy] column (mirrors CrudlDto.groupBy).</summary>
     public string? GroupBy { get; init; }
 
+    /// <summary>The [GroupAction] buttons rendered on every group header row; a click dispatches
+    /// action-on-row-&lt;actionId&gt; with the group value as _groupValue (mirrors
+    /// CrudlDto.groupActions).</summary>
+    public IReadOnlyList<ButtonDto> GroupActions { get; init; } = [];
+
     /// <summary>Row selection checkboxes on the listing (a deletable/bulk-capable listing needs
     /// them; a bare listing shows none — mirrors CrudlDto.rowsSelectionEnabled).</summary>
     public bool RowsSelectionEnabled { get; init; }
