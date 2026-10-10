@@ -18,15 +18,15 @@ public static class ErrorBoundary
 
     /// <summary>The toast for <paramref name="error"/>, and the reference to log it under — null
     /// when it is a message meant for the user (nothing to log as an error).</summary>
-    public static (MessageDto Message, string? Reference) Describe(Exception error, bool? detailed = null)
+    public static (MessageDto Message, string? Reference) Describe(
+        Exception error, bool? detailed = null, string? reference = null)
     {
         if (Find<UserFacingException>(error) is { } userFacing)
             return (Message(userFacing.Title ?? "Error", userFacing.Message), null);
         if (Find<ValidationException>(error) is { } validation)
             return (Message("Validation error", validation.ValidationResult?.ErrorMessage ?? validation.Message), null);
-        var reference = Guid.NewGuid().ToString("N")[..12];
-        var showDetails = detailed ?? string.Equals(
-            Environment.GetEnvironmentVariable(DetailedEnv), "true", StringComparison.OrdinalIgnoreCase);
+        reference ??= Guid.NewGuid().ToString("N")[..12];
+        var showDetails = detailed ?? DetailedByEnvironment();
         if (showDetails)
         {
             var source = Innermost(error);
@@ -34,6 +34,10 @@ public static class ErrorBoundary
         }
         return (Message(GenericTitle, GenericText + reference), reference);
     }
+
+    /// <summary>Whether <c>MATEU_ERRORS_DETAILED=true</c> asks for the raw exception.</summary>
+    public static bool DetailedByEnvironment() => string.Equals(
+        Environment.GetEnvironmentVariable(DetailedEnv), "true", StringComparison.OrdinalIgnoreCase);
 
     private static MessageDto Message(string title, string text) => new("error", "middle", title, text, 0);
 

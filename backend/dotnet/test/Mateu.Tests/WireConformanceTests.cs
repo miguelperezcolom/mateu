@@ -25,7 +25,11 @@ public class WireConformanceTests
 
     /// <summary>Values servers legitimately disagree on. Dropped rather than argued about — a corpus
     /// that reports noise gets ignored.</summary>
-    private static readonly HashSet<string> Volatile_ = ["id", "structureHash", "generatedAt", "serverSideType", "targetComponentId"];
+    /// <para><c>homeServerSideType</c> is a server type name exactly like <c>serverSideType</c> (a
+    /// Java binary class name vs a CLR full name, by construction never equal); the Java and Python
+    /// normalisers do not list it yet — it belongs in theirs too.</para>
+    private static readonly HashSet<string> Volatile_ =
+        ["id", "structureHash", "generatedAt", "serverSideType", "homeServerSideType", "targetComponentId"];
 
     /// <summary>Mirrors the Java and Python normalisers: drop volatile and DEFAULT members, sort
     /// keys. "Absent" and "at its default" are the same thing to a renderer.</summary>
@@ -113,6 +117,7 @@ public class WireConformanceTests
     [Theory, MemberData(nameof(Cases))]
     public void The_corpus_exists_for_every_case(string @case, Type view)
     {
+        Assert.NotNull(view);
         Assert.True(
             File.Exists(Path.Combine(Corpus, @case, "expected.json")),
             $"no golden for '{@case}' — generate it from the Java reference (conformance/README.md)");
@@ -126,16 +131,92 @@ public class WireConformanceTests
         Assert.True(fragments is { Count: > 0 }, $"'{@case}' produced no fragments");
     }
 
+    /// <summary>The ONLY cases allowed to differ from the corpus, each with the reason. Anything not
+    /// listed here that diverges FAILS the build — and a listed case that starts to match fails too,
+    /// so the list can only shrink. A reason must name something wrong in the Java golden itself (a
+    /// harness leak), never a .NET gap: a .NET gap is fixed, not allow-listed. Each entry is scoped
+    /// to the wire paths the reason explains: a difference ANYWHERE else in a listed case still
+    /// fails.</summary>
+    private static readonly IReadOnlyDictionary<string, string[]> AllowedPaths = new Dictionary<string, string[]>
+    {
+        ["app-context"] = [AppRestSources, AppCapabilities],
+        ["app-header-actions"] = [AppRestSources, AppCapabilities],
+        ["app-in-code"] = [AppRestSources, AppCapabilities],
+        ["dashboard"] = ["$.fragments[0].component.actions"],
+    };
+
+    private const string AppRestSources = "$.fragments[0].component.metadata.restSources";
+    private const string AppCapabilities = "$.fragments[0].component.metadata.requiredCapabilities";
+
+    private static readonly IReadOnlyDictionary<string, string> KnownDivergences = new Dictionary<string, string>
+    {
+        // The Java core TEST classpath carries a specs/ui/sources.yaml (countries/orders/invoices),
+        // and the Java harness renders the conformance apps inside that environment: every APP
+        // golden therefore carries AppDto.restSources with those three entries plus a "rest-sources"
+        // token in requiredCapabilities, which no fixture declares. The .NET (and Python) apps
+        // correctly emit neither. Fix belongs in the Java harness (render the corpus without the
+        // test catalogue), then regenerate these three goldens.
+        ["app-context"] = "Java harness leak: restSources + 'rest-sources' capability from the core test catalogue",
+        ["app-header-actions"] = "Java harness leak: restSources + 'rest-sources' capability from the core test catalogue",
+        ["app-in-code"] = "Java harness leak: restSources + 'rest-sources' capability from the core test catalogue",
+        // Java's FieldActionCollector walks the `notes` panel field (an io.mateu.uidl.data.Text, a
+        // COMPONENT holder, not a nested form) as if it were a nested form, and advertises twelve
+        // nested-form-action-notes-variants_* list actions for Text's internal `variants` list.
+        // Those actions name no field of the view and nothing can dispatch them; the .NET dashboard
+        // (whose composition otherwise matches member for member) correctly emits none. Fix belongs
+        // in Java (skip component-holder fields when collecting nested-form actions).
+        ["dashboard"] = "Java bug: nested-form list actions advertised for the internals of a Text panel field",
+    };
+
     [Theory, MemberData(nameof(Cases))]
     public void Dotnet_matches_the_corpus(string @case, Type view)
     {
-        var mine = Actual(view).ToJsonString();
-        var theirs = Expected(@case).ToJsonString();
-        if (mine == theirs) return;
+        var mine = Actual(view);
+        var theirs = Expected(@case);
+        var diffs = new List<string>();
+        Diff("$", theirs, mine, diffs);
 
-        // Known divergence — recorded in conformance/cases/<case>/case.md rather than hidden. The
-        // corpus exists to make the difference visible and decidable, not to fail the build until
-        // somebody picks a side.
-        Assert.True(true, $"'{@case}' diverges from the corpus; see conformance/cases/{@case}/case.md");
+        if (KnownDivergences.TryGetValue(@case, out var reason))
+        {
+            Assert.True(diffs.Count > 0,
+                $"'{@case}' now MATCHES the corpus — remove it from KnownDivergences ({reason})");
+            // only the paths the reason explains may differ
+            var allowed = AllowedPaths[@case];
+            diffs = diffs.Where(d => !allowed.Any(a => d.StartsWith(a, StringComparison.Ordinal))).ToList();
+        }
+        Assert.True(diffs.Count == 0,
+            $"'{@case}' diverges from conformance/cases/{@case}/expected.json:\n  "
+            + string.Join("\n  ", diffs.Take(40)));
+    }
+
+    /// <summary>A path-wise diff of two normalised trees (expected vs actual), so a failure says
+    /// WHERE the wire differs instead of dumping two documents.</summary>
+    private static void Diff(string path, JsonNode? expected, JsonNode? actual, List<string> diffs)
+    {
+        switch (expected, actual)
+        {
+            case (JsonObject e, JsonObject a):
+                foreach (var key in e.Select(p => p.Key).Union(a.Select(p => p.Key)).OrderBy(k => k, StringComparer.Ordinal))
+                {
+                    if (!a.ContainsKey(key)) diffs.Add($"{path}.{key}: missing (expected {Short(e[key])})");
+                    else if (!e.ContainsKey(key)) diffs.Add($"{path}.{key}: unexpected {Short(a[key])}");
+                    else Diff($"{path}.{key}", e[key], a[key], diffs);
+                }
+                break;
+            case (JsonArray e, JsonArray a):
+                if (e.Count != a.Count) diffs.Add($"{path}: {a.Count} items, expected {e.Count}");
+                for (var i = 0; i < Math.Min(e.Count, a.Count); i++) Diff($"{path}[{i}]", e[i], a[i], diffs);
+                break;
+            default:
+                if (expected?.ToJsonString() != actual?.ToJsonString())
+                    diffs.Add($"{path}: {Short(actual)}, expected {Short(expected)}");
+                break;
+        }
+    }
+
+    private static string Short(JsonNode? node)
+    {
+        var s = node?.ToJsonString() ?? "null";
+        return s.Length > 160 ? s[..160] + "…" : s;
     }
 }

@@ -22,7 +22,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Wizards (incl. branching, cross-step state, `@WizardProgress` BAR/STEPS/RAIL) | ✅ | ✅ | ✅ |
 | CRUD create/edit in a drawer (`editInDrawer` — save closes + refreshes the listing in place) | ✅ | ✅ | ✅ |
 | Collection-detail / general-overview archetypes (`CollectionDetail<Row>`, `GeneralOverview<Row>`) + fluent `FormField` | ✅ | ✅ | ✅ |
-| Guided import wizard (`ImportWizard<Row>`: CSV upload/paste, auto-mapping grid, validation report, typed import) | ✅ | 🟡 | 🟡 |
+| Guided import wizard (`ImportWizard<Row>`: CSV upload/paste, auto-mapping grid, validation report, typed import) | ✅ | ✅ | 🟡 |
 | Page decorations (subtitle, banners, badges, KPIs, FABs) | ✅ | ✅ | ✅ |
 | Header overline + title placeholder (`@Overline`/`@TitlePlaceholder`; Java also has `OverlineSupplier`/`TitlePlaceholderSupplier`, the ports carry only the declarative form — same as `@Subtitle`) | ✅ | ✅ | ✅ |
 | Tabs, stereotypes, shortcuts, compact, dirty guard | ✅ | ✅ | ✅ |
@@ -45,7 +45,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Access keys mode (`@App(accessKeys)` → `AppDto.accessKeys`) | ✅ | ✅ | ✅ |
 | `Popover.trigger` (click/hover) + `@Tooltip("field")` → `GridColumn.tooltipPath` | ✅ | ✅ | ✅ |
 | `@DragRows` → `CrudlDto.dragType` + `DropZone` | ✅ | ✅ | ✅ |
-| Row tones (`@RowStatus` → `CrudlDto.rowStatusField`) and listing export buttons on `AutoCrud` | ✅ | 🟡 `[RowStatus]` + Export CSV (`Crud.CsvExportable`, built-in CSV writer); no Excel/PDF exporters in the port | 🟡 `RowStatus()` + Export CSV (`Crud.csv_exportable()`, built-in CSV writer); no Excel/PDF exporters in the port |
+| Row tones (`@RowStatus` → `CrudlDto.rowStatusField`) and listing export buttons on `AutoCrud` | ✅ | ✅ `[RowStatus]` + Export CSV / Excel / PDF (`CsvExportable`/`ExcelExportable`/`PdfExportable` on `Crud<T>`, `Listing<F,R>` or any `ICrudExports` listing; built-in dependency-free writers, pluggable `ICsvExporter`/`IExcelExporter`/`IPdfExporter`) | 🟡 `RowStatus()` + Export CSV (`Crud.csv_exportable()`, built-in CSV writer); no Excel/PDF exporters in the port |
 | i18n, events (emit/subscribe), security scaffolding | ✅ | ✅ | ✅ |
 | Application context selector (`@AppContext`) | ✅ | ✅ | ✅ |
 | App header actions (`AppActionsSupplier` → buttons + dropdown groups) | ✅ | ✅ | ✅ |
@@ -65,16 +65,16 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | External REST button action (`@RestAction`/`[RestAction]`/`@rest_action` on a button → calls an arbitrary endpoint client-side via `Action.restAction`; response toast + merge into form state) | ✅ | ✅ | ✅ |
 | External REST screen data (`@RestData`/`[RestData]`/`@rest_data` on a view → initial data fetched client-side on load and merged into the form state; reuses the `restAction` machinery via a synthetic `__restdata__` action + OnLoad trigger) | ✅ | ✅ | ✅ |
 | — Proxy mode (`proxy = true` on any of the four → the fetch is routed through the Mateu server via the reserved `__restfetch__` action: no CORS, and `${secret.X}` auth injected server-side from a secrets provider / `MATEU_SECRET_*` env var; url values percent-encoded by position on both legs; the server resolves the DECLARED source only) | ✅ | ✅ | ✅ |
-| — Proxy mode for views with no annotation to read (`RestSourceSupplier`: a view assembled at runtime declares its sources programmatically, and they gate `__restfetch__` and resolve a proxy fetch exactly as annotations do) | ✅ | ❌ | ❌ |
-| [REST source catalogue](/java-ui-definition/rest-source-catalogue/) (`specs/ui/sources.yaml` + `@RestSource`/`RestSourceCatalogSupplier` → a named endpoint referenced by `ref`; two producers, authored wins). The registry (catalogue reader + `ref` resolution) is Java-only, matching the route-registry-in-data pattern; the ports resolve inlined sources, not a named catalogue | ✅ | 🟡 | 🟡 |
-| [Business components](/java-ui-definition/component-catalogue/) (`specs/ui/components.yaml` + `@BusinessComponent`/`ComponentCatalogSupplier` + `ComponentRef` → a named, BOUND composition of existing pieces referenced by name; ports for free, resolves with no backend). Same two-producers/authored-wins registry as the source catalogue, so the ports sit at the same 🟡 (a `ComponentRef`/populated `AppDto.components` is only emitted where the registry exists — the wire contract is preserved) | ✅ | 🟡 | 🟡 |
+| — Proxy mode for views with no annotation to read (`RestSourceSupplier`: a view assembled at runtime declares its sources programmatically, and they gate `__restfetch__` and resolve a proxy fetch exactly as annotations do) | ✅ | ✅ | ❌ |
+| [REST source catalogue](/java-ui-definition/rest-source-catalogue/) (`specs/ui/sources.yaml` + `@RestSource`/`RestSourceCatalogSupplier` → a named endpoint referenced by `ref`; two producers, authored wins). Java and .NET carry the registry (catalogue reader + `ref` resolution + `AppDto.restSources`); Python resolves inlined sources, not a named catalogue | ✅ | ✅ | 🟡 |
+| [Business components](/java-ui-definition/component-catalogue/) (`specs/ui/components.yaml` + `@BusinessComponent`/`ComponentCatalogSupplier` + `ComponentRef` → a named, BOUND composition of existing pieces referenced by name; ports for free, resolves with no backend). Same two-producers/authored-wins registry as the source catalogue; .NET carries it too (`ComponentRef` expanded server-side, `AppDto.components`) | ✅ | ✅ | 🟡 |
 | [Custom components](/java-ui-definition/custom-components/) (`CustomComponent(name, props, content)` — a genuinely NEW rendering as data; the per-renderer escape hatch). The WIRE is data and identical across backends; the RENDERING is per-renderer (`registerCustomComponent`, degrading to `<mateu-unsupported>`) | ✅ | ✅ | ✅ |
 | Sizing intent (`hug`/`fill`/`fixed:<len>` as portable data on the component; a listing infers `fill`) | ✅ | ✅ | ✅ |
 | Editable grids / inline CRUD editing (`@InlineEditing` + update-row) | ✅ | ✅ | ✅ |
 | Bulk list actions (`@ListToolbarButton` + typed selection) | ✅ | ✅ | ✅ |
 | Listing aggregates & grouping (`@Aggregate`/`@GroupBy` + summaries) | ✅ | ✅ | ✅ |
-| Group header actions (`@GroupAction` buttons on group rows, `_groupValue` parameter) | ✅ | — | — |
-| Group summaries synthesized for custom `Listing`s (`ListingData.withSynthesizedGroups`) | ✅ | — | — |
+| Group header actions (`@GroupAction` buttons on group rows, `_groupValue` parameter) | ✅ | ✅ | — |
+| Group summaries synthesized for custom `Listing`s (`ListingData.withSynthesizedGroups`) | ✅ | ✅ | — |
 | Optimistic locking (`@Version` → conflict dialog on save/update-row, `_forceOverwrite`) | ✅ | ✅ | ✅ |
 | Notification inbox (`NotificationsSupplier` → header bell + `_notifications-*` actions) | ✅ | ✅ | ✅ |
 | Undoable toasts (`Message.undoable` → undo action id + parameters on the wire) | ✅ | ✅ | ✅ |
@@ -83,30 +83,32 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Structure ETag / template-ref (`structureHash` + request `knownStructureHash` → omit the component when unchanged) | ✅ | ✅ | ✅ |
 | ModelView bindable contract (`__contract__` sync action → fields + actions on `appData._contract`, for the visual-builder tooling) | ✅ | ✅ | ✅ |
 | Visual-builder live preview (`__preview__` sync action → renders arbitrary YAML page text; the plugin's preview pane) | ✅ | ✅ | ✅ |
-| [`layoutDelta:`](/java-ui-definition/yaml-ui-definition/) (what a human changed about the INFERRED layout, anchored to field ids and re-applied every request, so a screen touched in the visual editor keeps following its model). The editor writes it and falls back to a `layout:` snapshot — visibly — when an edit cannot be a delta. The ports parse the key and decline the page rather than rendering it wrongly | ✅ | — | — |
+| [`layoutDelta:`](/java-ui-definition/yaml-ui-definition/) (what a human changed about the INFERRED layout, anchored to field ids and re-applied every request, so a screen touched in the visual editor keeps following its model). The editor writes it and falls back to a `layout:` snapshot — visibly — when an edit cannot be a delta. Java and .NET apply it; Python parses the key and declines the page rather than rendering it wrongly | ✅ | ✅ | — |
 | [Partials](/java-ui-definition/partials/) (`specs/ui/partials/<ref>.yaml`; spliced into the parent's content, resolved server-side so they never reach the wire). All three splice, stack where there is no list, drop a missing ref and break a cycle; only Java resolves a `ref` that names a class | ✅ | ✅ | ✅ |
 | YAML pages bound to a ModelView (`specs/ui/<route>.yaml` with `modelView:` → the file supplies the layout, the class supplies state + actions; on the classpath in Java, under the cwd — `MATEU_SPECS_DIR` — in the ports) | ✅ | ✅ | ✅ |
 | Static-view skip (`@StaticView`/`[StaticView]`/`@static_view` → `staticView` flag; client caches the full response for the session and skips the round-trip on return) | ✅ | ✅ | ✅ |
 | Sticky sections index (`@Toc`) | ✅ | ✅ | ✅ |
 | Client-side rules (`@Hidden(expr)`/`@Disabled`/rule supplier) | ✅ | ✅ | ✅ |
 | Grid form fields + `@OnRowSelected` row-click actions (incl. add/create/select on plain forms outside wizards) | ✅ | ✅ | ✅ |
-| Wide-field auto-colspan (grid/textarea/richText span the full row of a multi-column section) | ✅ | — | — |
-| Inline-editing grid "+" appends an in-place row (the detail-form response targets a container inline grids never render) | ✅ | — | — |
-| Multi-state embedded islands (`@Inline` orchestrator fields, host-seeded initialData) | ✅ | — | — |
+| Wide-field auto-colspan (grid/textarea/richText span the full row of a multi-column section) | ✅ | ✅ | — |
+| Inline-editing grid "+" appends an in-place row (the detail-form response targets a container inline grids never render) | ✅ | ✅ | — |
+| Multi-state embedded islands (`@Inline` orchestrator fields, host-seeded initialData) | ✅ | ✅ | — |
 | Multi-column layouts (`@Zones`, `@FoldedLayout`) | ✅ | ✅ | ✅ |
 | AI chat (`@AI`/`[AI]`/`@ai` → `sseUrl`; the SSE endpoint is developer-provided) | ✅ | ✅ | ✅ |
 | Semantic (composed) annotations | ✅ | ✅ | ✅ (an `Annotated` alias) |
 | Federation (remote menus + `MicroFrontend` islands) | ✅ | ✅ | ✅ |
-| Component adapters | ✅ | 🟡 wrapper idiom | 🟡 wrapper idiom |
+| Component adapters | ✅ | ✅ `IComponentAdapter<T>` SPI | 🟡 wrapper idiom |
 | Hero search archetype | ✅ | ✅ | ✅ |
 
 Import wizard on .NET/Python: same step flow (upload/paste → auto-mapped column grid with a
 select-editable target-field cell → per-line validation report → typed import + result counts)
-and the same CSV semantics (`,`/`;` autodetect, RFC-4180-ish quoting, data-URI uploads), but
-adapted to the ports' `[Step(n)]` wizard machinery: the import runs on the validation step's
-**Next** (the ports' wizards have no `@WizardCompletionAction` button — Finish then shows the
-summary message), and the validation surface is each port's own — DataAnnotations (`[Required]`,
-`[Range]`…) on .NET, `Required()` only on Python (it has no Min/Max markers). Hence the 🟡.
+and the same CSV semantics (`,`/`;` autodetect, RFC-4180-ish quoting, data-URI uploads), on the
+ports' `[Step(n)]` wizard machinery. .NET closed the remaining gaps (2026-10-10): the validation
+step's forward button is the **Import** completion action, the result step is final (no navigation,
+a re-sent back/next cannot import twice), steps are named Upload / Mapping / Validation / Result,
+the heading defaults to `Import <Row>` and `TimeOnly`/`DateTimeOffset`/`Guid` columns convert;
+its validation surface is DataAnnotations (`[Required]`, `[Range]`…), with their default messages.
+Python still imports on the validation step's **Next** and only knows `Required()` — hence its 🟡.
 
 Smart-search filters on .NET/Python: the Crud entity's fields become the same filter widgets
 (enums → multi-select IN, temporals → date ranges, `[RangeFilter]`/`RangeFilter()` numerics →
@@ -181,24 +183,23 @@ each pinned by golden-JSON tests mirroring the Java sync suites.
 
 ### Deliberately Java-only (not oversights)
 
-A short list of rows above is `—`/`❌` on the ports **by design**, not because they are pending. They
-are called out here so a reader choosing .NET or Python for GA knows exactly what is and is not on
-offer — the honest edge of the "same wire" promise.
+A short list of rows above is `—`/`❌` on Python **by design**, not because it is pending. It is
+called out here so a reader choosing a port for GA knows exactly what is and is not on offer — the
+honest edge of the "same wire" promise. (.NET closed all of these on 2026-10-10: `IRestSourceSupplier`
+proxy sources, the source and component catalogues, `layoutDelta:`, group actions and synthesized
+group summaries, wide-field auto-colspan, the inline-grid "+" row and the whole grid-field row
+editor, multi-state embedded islands and the `IComponentAdapter<T>` SPI — each pinned by tests, and
+the wire by the hard conformance gate.)
 
-- **Proxy mode for views with no annotation to read** (`RestSourceSupplier`). The ports resolve a
-  proxy source by *reflecting the routed type's annotations* (`ResolveRestSource(type, kind, id)` /
-  `resolve_rest_source(cls, …)`) and never instantiate the view for `__restfetch__`. The feature
-  this row describes is a view that assembles its sources *at runtime* and declares them
-  programmatically — and it is the SSRF-sensitive path (the server must take the endpoint from its
-  own state, never the request). Half-porting that is worse than not porting it, so on the ports
-  proxy mode stays annotation-driven. Annotation-declared proxy sources (`[RestOptions(Proxy=true)]`
-  etc.) work fully on all three.
+- **Proxy mode for views with no annotation to read** (`RestSourceSupplier`). Python resolves a
+  proxy source by *reflecting the routed type's annotations* and never instantiates the view for
+  `__restfetch__`. It is the SSRF-sensitive path (the server must take the endpoint from its own
+  state, never the request); .NET instantiates the view server-side and asks it first, never the
+  request.
 - **In-page orchestration behaviours** — `@GroupAction` group-header buttons + synthesized group
   summaries for custom listings, wide-field auto-colspan, the inline-grid "+" append row, and
-  multi-state embedded islands. These are render/interaction refinements layered on the Java
-  orchestrators, not wire-surface primitives; the declarative surface they sit on (grouping,
-  aggregates, grids, inline editing) is at full parity. They remain Java-only until the shared
-  conformance corpus (see the GA plan) makes porting them mechanical rather than manual.
+  multi-state embedded islands. Render/interaction refinements layered on the orchestrators; the
+  declarative surface they sit on (grouping, aggregates, grids, inline editing) is at full parity.
 
 The sustainable fix for this edge is not the maintainer porting each one by hand — it is the shared
 wire-conformance corpus that every port runs in its own CI, so a gap fails loudly and its owner

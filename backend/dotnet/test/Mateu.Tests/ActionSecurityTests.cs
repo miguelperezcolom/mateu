@@ -149,7 +149,7 @@ public class SecCapListing : IListing<CapBook>
 /// <summary>Security regressions for the action pipeline (H1): an actionId coming from the wire
 /// can only reach a method that is DECLARED as an action — a marker attribute the mapper
 /// advertises, or an id the view itself advertises — and the access gates
-/// ([DisabledUnless]/[Audience]/class-level [EyesOnly]) are enforced at invocation, not only at
+/// ([DisabledUnless]/class-level [EyesOnly]; [Audience] is only a projection) are enforced at invocation, not only at
 /// render. The wire cannot write fields hidden ([EyesOnly]) or locked ([ReadOnlyUnless]) for the
 /// caller (mass assignment).</summary>
 [Collection("ActionSecurity")]
@@ -299,12 +299,16 @@ public class ActionSecurityTests
     }
 
     [Fact]
-    public void An_Audience_action_is_forbidden_for_another_audience()
+    public void Audience_is_a_projection_not_a_gate()
     {
+        // The audience is CLIENT-controlled app state: refusing the action for another audience would
+        // only stop a client that chose to be stopped (it can just clear the selector). [Audience]
+        // projects what is rendered; it never denies an invocation (Java's AudienceGate likewise).
         var before = SecProbeView.AudienceCalls;
-        AssertForbidden(Handler(), Action("sec-probe", "audit", appState: new() { ["audience"] = "cliente" }));
-        Assert.Equal(before, SecProbeView.AudienceCalls);
-        // No projection active → visible → runs; the matching audience → runs.
+        Assert.Contains("audited", JsonSerializer.Serialize(Handler().Handle(
+            Action("sec-probe", "audit", appState: new() { ["audience"] = "cliente" })), Json));
+        Assert.Equal(before + 1, SecProbeView.AudienceCalls);
+        // No projection active → runs; the matching audience → runs.
         Assert.Contains("audited", JsonSerializer.Serialize(Handler().Handle(Action("sec-probe", "audit")), Json));
         Assert.Contains("audited", JsonSerializer.Serialize(Handler().Handle(
             Action("sec-probe", "audit", appState: new() { ["audience"] = "staff" })), Json));

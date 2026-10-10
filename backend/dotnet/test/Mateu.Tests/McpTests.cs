@@ -54,7 +54,7 @@ public class McpTests
         Assert.Equal("Simple form", (string?)s["title"]);
         Assert.Equal("", (string?)s["route"]); // _empty normalised
         Assert.Equal("3.0", (string?)s["wireVersion"]);
-        var byId = s["fields"]!.AsArray().ToDictionary(f => (string?)f!["id"], f => f!.AsObject());
+        var byId = s["fields"]!.AsArray().ToDictionary(f => (string)f!["id"]!, f => f!.AsObject());
         Assert.Equal("string", (string?)byId["name"]["dataType"]);
         Assert.True((bool)byId["name"]["required"]!);
         Assert.Equal("Ada", (string?)byId["name"]["value"]);
@@ -71,7 +71,7 @@ public class McpTests
           "children":[{"type":"ClientSide","metadata":{"type":"Button","actionId":"save","label":"Guardar"}}]},"state":{}}]}
         """);
         var s = McpProjection.Project(inc);
-        var byId = s["actions"]!.AsArray().ToDictionary(a => (string?)a!["id"], a => a!.AsObject());
+        var byId = s["actions"]!.AsArray().ToDictionary(a => (string)a!["id"]!, a => a!.AsObject());
         Assert.Equal("Guardar", (string?)byId["save"]["label"]);
         Assert.Equal("ctrl+s", (string?)byId["save"]["shortcut"]);
         Assert.True((bool)byId["save"]["confirmationRequired"]!);

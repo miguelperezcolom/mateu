@@ -9,6 +9,7 @@ public sealed class MateuRegistry
     private readonly Dictionary<string, Type> _byRoute = new();
     private readonly Dictionary<string, Type> _byName = new();
     private readonly Assembly[] _assemblies;
+    private readonly List<IComponentAdapter> _adapters = [];
 
     public Type? AppType { get; }
 
@@ -16,6 +17,20 @@ public sealed class MateuRegistry
     /// in the scanned assemblies, already flattened to absolute entries. Fed to the RouteRegistry as
     /// the code-authored half (routes.yaml wins over them).</summary>
     public IReadOnlyList<RouteEntry> SuppliedRoutes { get; }
+
+    /// <summary>Every registered view/app class (the ones a route or a serverSideType resolves to) —
+    /// where [RestSource] declarations are collected from.</summary>
+    public IReadOnlyCollection<Type> RegisteredTypes => _byName.Values.Distinct().ToList();
+
+    /// <summary>Every type of the scanned assemblies — where catalogue suppliers and
+    /// [BusinessComponent] members are discovered.</summary>
+    public IReadOnlyList<Type> ScannedTypes => _assemblies.SelectMany(SafeTypes).ToList();
+
+    private static IEnumerable<Type> SafeTypes(Assembly assembly)
+    {
+        try { return assembly.GetTypes(); }
+        catch (ReflectionTypeLoadException e) { return e.Types.OfType<Type>(); }
+    }
 
     public MateuRegistry(params Assembly[] assemblies)
     {
@@ -45,6 +60,16 @@ public sealed class MateuRegistry
                     // a broken supplier must not take route discovery down — skip it.
                 }
             }
+            if (typeof(IComponentAdapter).IsAssignableFrom(type)
+                && type is { IsAbstract: false, IsInterface: false, ContainsGenericParameters: false }
+                && type.GetConstructor(Type.EmptyTypes) is not null)
+            {
+                try { RegisterAdapter((IComponentAdapter)Activator.CreateInstance(type)!); }
+                catch
+                {
+                    // a broken adapter must not take discovery down — skip it.
+                }
+            }
             var ui = type.GetCustomAttribute<UIAttribute>();
             // The route a class declares (coherence-plan #5): [UI].Route OR [App(Route = "/x")] (the
             // single "declare an app" attribute). [App].Route wins when both are set; a value-less
@@ -55,6 +80,28 @@ public sealed class MateuRegistry
             _byName[type.FullName!] = type;
         }
         SuppliedRoutes = supplied;
+    }
+
+    /// <summary>Registers a component adapter (one per adapted type; a later registration for the
+    /// same type replaces the earlier). The adapted type becomes resolvable by name, so an island of
+    /// it — which names its model type as serverSideType — routes back here.</summary>
+    public void RegisterAdapter(IComponentAdapter adapter)
+    {
+        lock (_adapters)
+        {
+            _adapters.RemoveAll(a => a.Type == adapter.Type);
+            _adapters.Add(adapter);
+            _byName[adapter.Type.FullName!] = adapter.Type;
+        }
+    }
+
+    /// <summary>The adapter rendering <paramref name="type"/> (exact or a base type), or null.</summary>
+    public IComponentAdapter? AdapterFor(Type? type)
+    {
+        if (type is null) return null;
+        lock (_adapters)
+            return _adapters.FirstOrDefault(a => a.Type == type)
+                   ?? _adapters.FirstOrDefault(a => a.Type.IsAssignableFrom(type));
     }
 
     /// <summary>Resolves the type for a request: by serverSideType, else by route, else the app shell at root.</summary>
@@ -92,7 +139,11 @@ public sealed class MateuRegistry
 
     public static string Normalize(string? route)
     {
-        var r = (route ?? "").Trim('/');
+        var r = route ?? "";
+        // an embedded island's route carries markers in a query string (?_embeddedMediator=1…)
+        var query = r.IndexOf('?');
+        if (query >= 0) r = r[..query];
+        r = r.Trim('/');
         return r is "" or "_empty" or "_no_route" or "_no_home_route" ? "" : r;
     }
 }

@@ -111,9 +111,7 @@ public class SeparatorText
     [SeparatorBefore]
     public string? Email { get; set; } = "maria@example.com";
 
-    // NOTE: Java renders this as a sized @Text(size = xl) component. .NET has no declarative
-    // [Text] field marker (the Text component is fluent-only), so the field travels as an
-    // ordinary form field here — a port difference worth recording rather than papering over.
+    [Text(Size = "xl")]
     public string? Titular { get; set; } = "Bienvenida";
 }
 

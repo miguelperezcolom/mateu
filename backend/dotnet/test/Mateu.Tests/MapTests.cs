@@ -56,11 +56,11 @@ public class MapTests
         var root = JsonSerializer.SerializeToElement(
             Handler().Handle(new RunActionRqDto { ServerSideType = typeof(HotelsMapView).FullName }), Json);
 
-        var host = Assert.Single(Objects(root).Where(o => o.TryGetProperty("children", out var c)
+        var host = Assert.Single(Objects(root), o => o.TryGetProperty("children", out var c)
             && c.ValueKind == JsonValueKind.Array
             && c.EnumerateArray().Any(ch => ch.TryGetProperty("metadata", out var md)
                 && md.ValueKind == JsonValueKind.Object
-                && md.TryGetProperty("type", out var t) && t.GetString() == "Map")));
+                && md.TryGetProperty("type", out var t) && t.GetString() == "Map"));
         var component = host.GetProperty("children").EnumerateArray()
             .Single(ch => ch.GetProperty("metadata").GetProperty("type").GetString() == "Map");
         Assert.Equal("hotels", component.GetProperty("id").GetString());

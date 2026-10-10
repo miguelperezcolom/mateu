@@ -34,9 +34,11 @@ public class RowIssue
 /// + DataAnnotations violations per line), then import the valid rows through
 /// <see cref="ImportRows"/>. The result step shows imported/skipped counts.
 ///
-/// <para>Steps: 1 upload → 2 mapping → 3 validation → 4 result. Moving forward computes the next
-/// step's content (<see cref="OnNext"/>); the import itself runs on the validation step's Next —
-/// the port's wizards have no completion-action button, Next/Finish is the driver.</para>
+/// <para>Steps: 1 Upload → 2 Mapping → 3 Validation → 4 Result. Moving forward computes the next
+/// step's content (<see cref="OnNext"/>); the validation step's forward button is the "Import"
+/// completion action, and the result step is a read-only, final screen (no Back/Next, full
+/// progress) — like Java's <c>@WizardCompletionAction doImport</c> + <c>ImportResultStep</c>. The
+/// heading defaults to "Import &lt;Row&gt;" (override <see cref="WizardTitle"/>).</para>
 ///
 /// <para>Extend it, route it with <c>[UI]</c>, and implement <c>ImportRows</c>:</para>
 /// <code>
@@ -78,6 +80,18 @@ public abstract class ImportWizard<Row> : Wizard, IOptionsSupplier where Row : n
     protected abstract void ImportRows(List<Row> rows);
 
     public override Message Complete() => new($"Imported {Imported} rows ({Skipped} skipped)");
+
+    /// <summary>The validation step's forward button: the import itself (Java: @Label("Import")
+    /// on the @WizardCompletionAction).</summary>
+    public override string? CompletionActionLabel => "Import";
+
+    private static readonly string[] StepTitles = ["Upload", "Mapping", "Validation", "Result"];
+
+    public override string? StepTitle(int step) => step is >= 1 and <= 4 ? StepTitles[step - 1] : null;
+
+    /// <summary>"Import &lt;Row&gt;" (Java's ImportWizard.title()); a [Title] on the subclass wins.</summary>
+    public override string? WizardTitle =>
+        GetType().GetCustomAttributes(typeof(TitleAttribute), true).Length > 0 ? null : "Import " + typeof(Row).Name;
 
     public override void OnNext(int from, int to)
     {
@@ -243,7 +257,8 @@ public abstract class ImportWizard<Row> : Wizard, IOptionsSupplier where Row : n
         return type == typeof(string) || type == typeof(bool)
             || type == typeof(byte) || type == typeof(short) || type == typeof(int) || type == typeof(long)
             || type == typeof(float) || type == typeof(double) || type == typeof(decimal)
-            || type == typeof(DateOnly) || type == typeof(DateTime) || type.IsEnum;
+            || type == typeof(DateOnly) || type == typeof(DateTime) || type == typeof(TimeOnly)
+            || type == typeof(DateTimeOffset) || type == typeof(Guid) || type.IsEnum;
     }
 
     private static object Coerce(Type type, string raw)
@@ -260,6 +275,9 @@ public abstract class ImportWizard<Row> : Wizard, IOptionsSupplier where Row : n
         if (type == typeof(decimal)) return decimal.Parse(raw, CultureInfo.InvariantCulture);
         if (type == typeof(DateOnly)) return DateOnly.Parse(raw, CultureInfo.InvariantCulture);
         if (type == typeof(DateTime)) return DateTime.Parse(raw, CultureInfo.InvariantCulture);
+        if (type == typeof(TimeOnly)) return TimeOnly.Parse(raw, CultureInfo.InvariantCulture);
+        if (type == typeof(DateTimeOffset)) return DateTimeOffset.Parse(raw, CultureInfo.InvariantCulture);
+        if (type == typeof(Guid)) return Guid.Parse(raw);
         if (type.IsEnum) return Enum.Parse(type, raw, ignoreCase: true);
         throw new NotSupportedException(type.Name);
     }

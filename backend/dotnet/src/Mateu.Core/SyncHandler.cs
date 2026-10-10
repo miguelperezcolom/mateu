@@ -9,12 +9,22 @@ using Mateu.Uidl;
 namespace Mateu.Core;
 
 /// <summary>Handles a single POST /mateu/v3/sync/{route} call → a UIIncrement.</summary>
-public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator = null, Func<Identity?>? identity = null,
-    Func<string, string?>? secrets = null)
+public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? translator = null, Func<Identity?>? identity = null,
+    Func<string, string?>? secrets = null, HttpClient? http = null,
+    RestSourceRegistry? restSources = null, ComponentRegistry? components = null)
 {
-    private static readonly HttpClient RestHttp = new() { Timeout = TimeSpan.FromSeconds(60) };
+    /// <summary>The REST source catalogue (sources.yaml over [RestSource] + suppliers) and the
+    /// business-component catalogue (components.yaml over [BusinessComponent] + suppliers).</summary>
+    private readonly RestSourceRegistry _restSources = restSources ?? new RestSourceRegistry(registry);
+    private readonly ComponentRegistry _components = components ?? new ComponentRegistry(registry);
 
-    private readonly ReflectionMapper _mapper = new(translator, identity);
+    private static readonly HttpClient DefaultHttp = new() { Timeout = TimeSpan.FromSeconds(60) };
+
+    /// <summary>The client proxied REST fetches go through (injectable: a host-configured client,
+    /// or a fake in tests).</summary>
+    private readonly HttpClient _http = http ?? DefaultHttp;
+
+    private readonly ReflectionMapper _mapper = new(translator, identity, registry);
     /// <summary>The mount's authored route registry: specs/ui/routes.yaml merged OVER the routes
     /// contributed in code by IRouteEntrySupplier implementers (discovered by the MateuRegistry).</summary>
     private readonly RouteRegistry _routes = new(supplied: registry.SuppliedRoutes);
@@ -24,16 +34,27 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     /// the instance is not worth a constructor just for it.</summary>
     private readonly YamlSpecLoader _yaml = new();
 
+    /// <summary>Handles a sync call asynchronously — the entry point of the HTTP endpoint. The only
+    /// step that does I/O of its own, the proxied REST fetch (<c>__restfetch__</c>), is awaited end
+    /// to end instead of blocking a request thread on the remote API.</summary>
+    public async Task<UIIncrementDto> HandleAsync(
+        RunActionRqDto rq, string? requestBaseUrl = null, CancellationToken cancellationToken = default)
+    {
+        if (rq.ActionId == "__restfetch__")
+        {
+            EstablishRequestContext(rq);
+            return await RestFetchResponseAsync(rq, cancellationToken).ConfigureAwait(false);
+        }
+        return Handle(rq, requestBaseUrl);
+    }
+
+    /// <summary>Handles a sync call synchronously. In-process callers (tests, the MCP projection)
+    /// use it; a proxied REST fetch on this path blocks — the HTTP endpoint goes through
+    /// <see cref="HandleAsync"/>.</summary>
     public UIIncrementDto Handle(RunActionRqDto rq, string? requestBaseUrl = null)
     {
-        // Security context of this request: the identity the gates ([EyesOnly]/[ReadOnlyUnless]/
-        // [DisabledUnless]) are matched against at INVOCATION and when binding wire state.
-        ActionGuard.SetIdentity(identity);
-
-        // 0. Audience projection: the appState value under "audience" (the [AppContext] selector
-        // named audience) filters [Audience]-marked members for the whole request.
-        ReflectionMapper.SetCurrentAudience(
-            rq.AppState.TryGetValue("audience", out var audience) ? StateString(audience) : null);
+        EstablishRequestContext(rq);
+        rq = FoldRouteMarkers(rq);
 
         // 0b. Visual-builder contract: return the ModelView's bindable fields + actions instead of
         // rendering — the tooling POSTs a sync request with the ModelView as serverSideType and this
@@ -60,7 +81,7 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         // inject ${secret.X} and fetch server-side, returning the raw JSON on appData._restfetch
         // (mirrors Java's __restfetch__ reserved action).
         if (rq.ActionId == "__restfetch__")
-            return RestFetchResponse(rq);
+            return RestFetchResponseAsync(rq, CancellationToken.None).GetAwaiter().GetResult();
 
         // 1. App shell at the root route.
         if (string.IsNullOrEmpty(rq.ActionId)
@@ -109,6 +130,21 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         return SeedRouteScopes(ResolveRoute(rq, type, routeEntry), rq, routeEntry);
     }
 
+    /// <summary>The per-request context every step reads: the caller's identity (the gates
+    /// [EyesOnly]/[ReadOnlyUnless]/[DisabledUnless] are matched against it at INVOCATION and when
+    /// binding wire state) and the [Audience] projection.</summary>
+    private void EstablishRequestContext(RunActionRqDto rq)
+    {
+        ActionGuard.SetIdentity(identity);
+        MateuCatalogs.Set(_restSources.Catalog, _components.Catalog);
+
+        // Audience PROJECTION, not security: the value is client-controlled app state (the
+        // [AppContext] selector named audience), so it only filters [Audience]-marked members out of
+        // what is rendered. Access control is [EyesOnly]/[DisabledUnless] against the identity.
+        ReflectionMapper.SetCurrentAudience(
+            rq.AppState.TryGetValue("audience", out var audience) ? StateString(audience) : null);
+    }
+
     /// <summary>The route-resolution tail of <see cref="Handle"/>: a view/listing/wizard resolved
     /// either from the authored registry or from attributes. Split out so route-scope seeding can
     /// decorate its result once, at every exit. When <paramref name="routeEntry"/> declares Data the
@@ -139,14 +175,27 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         if (ReflectionMapper.ListingTypes(type) is { } listing)
         {
             var view = Activator.CreateInstance(type)!;
+            if (ExportKind(view, rq.ActionId) is { } listingExport)
+            {
+                var all = new SearchRequest(SearchText(rq), AssembleFilters(listing.Filters, rq.ComponentState),
+                    null, new Pageable(0, int.MaxValue, PageableOf(rq).Sort));
+                return ExportRows(listingExport,
+                    type.GetMethod("Search", [typeof(SearchRequest)])!.Invoke(view, [all]), listing.Row, rq);
+            }
             return rq.ActionId switch
             {
                 "search" => ListingSearch(view, listing.Filters, listing.Row, rq),
                 // A selector dialog's row pick: write (id, label) back into the host field.
                 "action-on-row-select" => SelectorRowSelected(view, listing.Row, rq),
+                // A [GroupAction] button on a group header row (the group value in _groupValue).
+                { } groupAction when groupAction.StartsWith("action-on-row-") =>
+                    GroupActionResult(type, view, groupAction["action-on-row-".Length..], rq),
                 _ => Render(type, view, rq),
             };
         }
+
+        // 2c. A domain type rendered by a registered IComponentAdapter.
+        if (registry.AdapterFor(type) is { } adapter) return HandleAdapted(adapter, rq);
 
         // 3. A wizard.
         if (typeof(Wizard).IsAssignableFrom(type)) return HandleWizard(type, rq);
@@ -154,6 +203,9 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         // 4. A plain view.
         var instance = Activator.CreateInstance(type)!;
         BindState(instance, rq.ComponentState);
+        // The row editing actions of a list property (grid "+", Edit, Save, Remove, move…).
+        if (FieldCrudTarget(type, rq.ActionId) is { } fieldCrud)
+            return HandleFieldCrud(fieldCrud.Property, fieldCrud.FieldId, fieldCrud.Suffix, rq);
         if (rq.ActionId?.StartsWith("search-") == true) return FieldSearch(instance, rq);
         if (rq.ActionId?.StartsWith("codesearch-") == true) return FieldCodeSearch(type, rq);
         // The notification inbox's app-level actions — dispatched with the app's serverSideType,
@@ -239,1137 +291,9 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
             : RunAction(type, instance, rq, layoutOverride);
     }
 
-    private UIIncrementDto HandleWizard(Type type, RunActionRqDto rq)
-    {
-        var wizard = Activator.CreateInstance(type)!;
-        BindState(wizard, rq.ComponentState);
-        var step = StepOf(rq);
-        var total = ReflectionMapper.EditableProperties(type)
-            .Select(p => p.Find<StepAttribute>()?.Step ?? 1).DefaultIfEmpty(1).Max();
-        var route = "/" + (type.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? "");
-
-        switch (rq.ActionId)
-        {
-            case "back": step = Math.Max(1, step - 1); break;
-            case "next" when step >= total: return MapResult(((Wizard)wizard).Complete());
-            case "next": ((Wizard)wizard).OnNext(step, step + 1); step++; break;
-            // The drawer step pager's jump-to-step: `_stepId` = the bullet id "step-N"; jump only
-            // BACKWARD (to an already-visited step) so we never skip a step's validation forward.
-            case "goToStep" when GoToStepTarget(rq) is { } t && t >= 1 && t < step: step = t; break;
-        }
-        return FragmentResponse(Title(type), _mapper.MapWizard(type, wizard, route, step), rq);
-    }
-
-    private static int? GoToStepTarget(RunActionRqDto rq)
-    {
-        if (!rq.Parameters.TryGetValue("_stepId", out var v)) return null;
-        var s = v is JsonElement { ValueKind: JsonValueKind.String } je ? je.GetString() : v?.ToString();
-        return s is not null && s.StartsWith("step-") && int.TryParse(s.AsSpan(5), out var n) ? n : null;
-    }
-
-    private static int StepOf(RunActionRqDto rq) =>
-        rq.ComponentState.TryGetValue("__step", out var v) && v is JsonElement { ValueKind: JsonValueKind.Number } el
-            ? el.GetInt32() : 1;
-
-    // ── CRUD ───────────────────────────────────────────────────────────────────
-    private (Type Type, Type Element, string BaseRoute)? ResolveCrud(RunActionRqDto rq)
-    {
-        if (!string.IsNullOrEmpty(rq.ServerSideType) && registry.Resolve(rq.ServerSideType, null) is { } byName
-            && ReflectionMapper.CrudElementType(byName) is { } el1)
-            return (byName, el1, "/" + (byName.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? ""));
-
-        if (registry.ResolveByPrefix(rq.Route) is { } pref
-            && ReflectionMapper.CrudElementType(pref.Type) is { } el2)
-            return (pref.Type, el2, "/" + pref.BaseRoute);
-
-        return null;
-    }
-
-    private UIIncrementDto HandleCrud(Type crudType, Type element, string baseRoute, RunActionRqDto rq)
-    {
-        ActionGuard.EnsureViewVisible(crudType);
-        var crud = Activator.CreateInstance(crudType)!;
-        var (mode, id) = ParseCrudRoute(baseRoute, rq.Route);
-
-        // A [Lookup] field on the entity form searches its options through the crud view.
-        if (rq.ActionId?.StartsWith("search-") == true) return FieldSearch(crud, rq);
-        // A [Searchable] field on the entity form opens its selector dialog.
-        if (rq.ActionId?.StartsWith("codesearch-") == true) return FieldCodeSearch(element, rq);
-
-        return rq.ActionId switch
-        {
-            "search" => CrudSearch(crud, element, rq),
-            "create" or "save" => CrudSave(crud, crudType, element, id, rq, baseRoute),
-            "update-row" => UpdateRow(crud, crudType, element, rq),
-            "delete" => Navigate(baseRoute, id is null ? null : Delete(crud, id), rq),
-            // Crud.CsvExportable: only an exportable crud answers export-csv (the id is wire input).
-            "export-csv" when crudType.GetProperty("CsvExportable")?.GetValue(crud) is true =>
-                ExportCsv(crud, element, rq),
-            // EditInDrawer (the Redwood "Create and Edit - Drawer" template): New and row clicks
-            // open the crud form in a Drawer over the listing instead of navigating; cancels just
-            // close it. Route-based /new — /{id}/edit deep links keep working unchanged.
-            "new" when EditInDrawer(crud) =>
-                CrudDrawer(crudType, element, New(element), "new", $"{baseRoute}/new", rq, crud),
-            "view" or "edit" when EditInDrawer(crud) && RowId(rq, element) is { } rowId =>
-                CrudDrawer(crudType, element, GetOrNew(crud, crudType, element, rowId), "edit",
-                    $"{baseRoute}/{rowId}/edit", rq, crud),
-            "cancel-new" or "cancel-edit" or "cancel-view" when EditInDrawer(crud) =>
-                UIIncrementDto.Of(commands: [UICommandDto.CloseModal() with { TargetComponentId = Target(rq) }]),
-            null or "" => mode switch
-            {
-                "new" => RenderEntity(crudType, element, New(element), "new", $"{baseRoute}/new", rq),
-                "view" => RenderEntity(crudType, element, GetOrNew(crud, crudType, element, id), "view", $"{baseRoute}/{id}", rq),
-                "edit" => RenderEntity(crudType, element, GetOrNew(crud, crudType, element, id), "edit", $"{baseRoute}/{id}/edit", rq),
-                _ => RenderCrudList(crudType, crud, baseRoute, rq),
-            },
-            { } aid when aid.StartsWith("action-on-row-") => ActionOnRows(crud, crudType, element, rq),
-            _ => Error($"Action not found: {rq.ActionId}"),
-        };
-    }
-
-    /// <summary>export-csv on a Crud.CsvExportable crud: the WHOLE filtered result set (search
-    /// text + smart-search-bar filters, the same rows the listing pages through) as a CSV file,
-    /// one column per visible entity property, answered as a DownloadFile command (mirrors Java's
-    /// ExportActionRunner + DefaultCsvExporter).</summary>
-    private UIIncrementDto ExportCsv(object crud, Type element, RunActionRqDto rq)
-    {
-        var props = ReflectionMapper.EditableProperties(element).ToList();
-        var rows = FilteredRows(crud, rq, props);
-        var columns = _mapper.ExportColumns(element);
-        static string Escape(string? value) =>
-            value is null ? ""
-            : value.Contains(',') || value.Contains('"') || value.Contains('\n')
-                ? "\"" + value.Replace("\"", "\"\"") + "\""
-                : value;
-        var sb = new System.Text.StringBuilder();
-        sb.Append(string.Join(",", columns.Select(c => Escape(c.Label)))).Append('\n');
-        foreach (var row in rows)
-            sb.Append(string.Join(",", columns.Select(c =>
-                Escape(c.Property.GetValue(row) is { } v ? Convert.ToString(v, System.Globalization.CultureInfo.InvariantCulture) : "")))).Append('\n');
-        var content = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(sb.ToString()));
-        return UIIncrementDto.Of(commands:
-        [
-            new UICommandDto(Target(rq), "DownloadFile",
-                new { filename = "export.csv", mimeType = "text/csv", base64Content = content }),
-        ]);
-    }
-
-    /// <summary>A [ListToolbarButton] bulk action: runs the named method on the crud with the
-    /// grid's selected rows (componentState crud_selected_items) rebuilt as typed entities — a
-    /// List&lt;T&gt; parameter receives them. A null/void result re-runs the search so the
-    /// listing reflects the changes; anything else maps as a regular action result (mirrors
-    /// Java's ActionOnRowActionHandler).</summary>
-    private static UIIncrementDto ActionOnRows(object crud, Type crudType, Type element, RunActionRqDto rq)
-    {
-        var name = rq.ActionId!["action-on-row-".Length..];
-        // Only a [ListToolbarButton] method is a bulk row action — never Save/Delete/any public
-        // method of the crud (security: the actionId comes from the wire).
-        var method = ActionGuard.ResolveRowAction(crudType, name);
-        if (method is null) return Error($"Action not found: {rq.ActionId}");
-        ActionGuard.EnsureMayInvoke(crudType, method, rq.ActionId);
-        var result = method.Invoke(crud, BuildBulkArguments(method, rq));
-        return result is null ? CrudSearch(crud, element, rq) : MapResult(result, rq);
-    }
-
-    /// <summary>Fills a bulk method's parameters: a List&lt;T&gt;/IReadOnlyList&lt;T&gt;
-    /// parameter receives the selected rows rebuilt as typed entities (the same New+BindState
-    /// path update-row uses); anything unfillable is null.</summary>
-    private static object?[] BuildBulkArguments(MethodInfo method, RunActionRqDto rq)
-    {
-        var parameters = method.GetParameters();
-        if (parameters.Length == 0) return [];
-        var selected = rq.ComponentState.TryGetValue("crud_selected_items", out var raw)
-                       && raw is JsonElement { ValueKind: JsonValueKind.Array } el
-            ? el
-            : (JsonElement?)null;
-        return parameters.Select(p => SelectedRowElementType(p.ParameterType) is { } rowType
-            ? SelectedRows(rowType, selected)
-            : null).ToArray();
-    }
-
-    private static Type? SelectedRowElementType(Type t) =>
-        t.IsGenericType
-        && (t.GetGenericTypeDefinition() == typeof(List<>)
-            || t.GetGenericTypeDefinition() == typeof(IList<>)
-            || t.GetGenericTypeDefinition() == typeof(IReadOnlyList<>)
-            || t.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-            ? t.GetGenericArguments()[0]
-            : null;
-
-    private static object SelectedRows(Type rowType, JsonElement? selected)
-    {
-        var rows = (System.Collections.IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(rowType))!;
-        if (selected is not { } array) return rows;
-        foreach (var rowEl in array.EnumerateArray())
-        {
-            if (rowEl.ValueKind != JsonValueKind.Object) continue;
-            var row = Activator.CreateInstance(rowType)!;
-            BindState(row, rowEl.EnumerateObject().ToDictionary(x => x.Name, x => (object?)x.Value));
-            rows.Add(row);
-        }
-        return rows;
-    }
-
-    private static (string Mode, string? Id) ParseCrudRoute(string baseRoute, string? route)
-    {
-        var r = "/" + MateuRegistry.Normalize(route);
-        var bp = baseRoute.TrimEnd('/');
-        var suffix = r.Length > bp.Length && r.StartsWith(bp) ? r[bp.Length..].Trim('/') : "";
-        if (suffix == "") return ("list", null);
-        if (suffix == "new") return ("new", null);
-        var parts = suffix.Split('/');
-        return parts.Length >= 2 && parts[1] == "edit" ? ("edit", parts[0]) : ("view", parts[0]);
-    }
-
-    private UIIncrementDto RenderCrudList(Type crudType, object crud, string baseRoute, RunActionRqDto rq) =>
-        FragmentResponse(Title(crudType), _mapper.MapView(crudType, crud, baseRoute), rq);
-
-    private UIIncrementDto RenderEntity(Type crudType, Type element, object entity, string mode, string route, RunActionRqDto rq) =>
-        FragmentResponse(Title(crudType), _mapper.MapEntityForm(crudType, element, entity, mode, route), rq,
-            LookupLabels(element, entity, Activator.CreateInstance(crudType)!));
-
     /// <summary>The event the EditInDrawer drawer emits on save: the listing refreshes by
     /// re-running its search (mirrors Java's Crud.SAVED_IN_DRAWER_EVENT).</summary>
     public const string SavedInDrawerEvent = "mateu-crud:saved-in-drawer";
-
-    private static bool EditInDrawer(object crud) =>
-        crud.GetType().GetProperty("EditInDrawer")?.GetValue(crud) as bool? ?? false;
-
-    private static string? RowId(RunActionRqDto rq, Type element)
-    {
-        var idField = Naming.CamelCase(element.GetProperty("Id")?.Name ?? "Id");
-        return StateString(GetState(rq.Parameters, idField))
-            ?? StateString(GetState(rq.ComponentState, idField));
-    }
-
-    /// <summary>The EditInDrawer create/edit form: the same entity form the /new — /{id}/edit
-    /// routes render, wrapped in a Drawer emitted as an Add fragment over the listing.</summary>
-    private UIIncrementDto CrudDrawer(
-        Type crudType, Type element, object entity, string mode, string route, RunActionRqDto rq, object crud)
-    {
-        var form = _mapper.MapEntityForm(crudType, element, entity, mode, route);
-        var width = crudType.GetProperty("EditDrawerWidth")?.GetValue(crud) as string ?? "36rem";
-        var drawer = new ClientSideComponentDto(
-            new DrawerMetadataDto("crud-edit-drawer", mode == "new" ? "New" : "Edit", form)
-                { Width = width },
-            "crud-edit-drawer", [], null, null, null);
-        return UIIncrementDto.Of(fragments:
-            [new UIFragmentDto(Target(rq), drawer, null,
-                LookupLabels(element, entity, Activator.CreateInstance(crudType)!), "Add", null)]);
-    }
-
-    // ── Capability listings (IListing + declared capabilities; mirrors Java's CapabilityCrud) ──
-
-    private (CapabilityProfile Profile, string BaseRoute)? ResolveCapability(RunActionRqDto rq)
-    {
-        if (!string.IsNullOrEmpty(rq.ServerSideType)
-            && registry.Resolve(rq.ServerSideType, null) is { } byName
-            && CapabilityProfile.Of(byName) is { } p1)
-            return (p1, "/" + (byName.GetCustomAttribute<UIAttribute>()?.Route.Trim('/') ?? ""));
-
-        if (registry.ResolveByPrefix(rq.Route) is { } pref && CapabilityProfile.Of(pref.Type) is { } p2)
-            return (p2, "/" + pref.BaseRoute);
-
-        return null;
-    }
-
-    private UIIncrementDto HandleCapabilityListing(CapabilityProfile profile, string baseRoute, RunActionRqDto rq)
-    {
-        ActionGuard.EnsureViewVisible(profile.ListingType);
-        var listing = Activator.CreateInstance(profile.ListingType)!;
-        var (mode, id) = ParseCrudRoute(baseRoute, rq.Route);
-
-        // Reference fields on the detail/edit/create forms keep working like on cruds.
-        if (rq.ActionId?.StartsWith("search-") == true) return FieldSearch(listing, rq);
-        if (rq.ActionId?.StartsWith("codesearch-") == true) return FieldCodeSearch(profile.EditorType, rq);
-
-        return rq.ActionId switch
-        {
-            "search" => CapabilitySearch(profile, listing, rq),
-            // Editable without navigable: rows open the EDITOR in a drawer over the listing (the
-            // "editable listing" idiom — there is no view page in this mode).
-            "view" or "edit" when profile.EditInDrawer && CapabilityRowId(rq, profile) is { } drawerId =>
-                CapabilityEditDrawer(profile, listing, drawerId, baseRoute, rq),
-            "new" when profile.EditInDrawer && profile.CanCreate =>
-                CapabilityCreateDrawer(profile, listing, baseRoute, rq),
-            // Navigable: the row click navigates to the read-only detail route.
-            "view" when profile.CanView && CapabilityRowId(rq, profile) is { } viewId =>
-                UIIncrementDto.Of(commands: [new UICommandDto(Target(rq), "NavigateTo", $"{baseRoute}/{viewId}")]),
-            "edit" when profile.CanEdit && CapabilityRowId(rq, profile) is { } editId =>
-                UIIncrementDto.Of(commands: [new UICommandDto(Target(rq), "NavigateTo", $"{baseRoute}/{editId}/edit")]),
-            "new" when profile.CanCreate =>
-                UIIncrementDto.Of(commands: [new UICommandDto(Target(rq), "NavigateTo", $"{baseRoute}/new")]),
-            "save" when profile.CanEdit => CapabilitySave(profile, listing, baseRoute, rq),
-            "create" when profile.CanCreate => CapabilityCreate(profile, listing, baseRoute, rq),
-            "delete" when profile.CanDelete => CapabilityDelete(profile, listing, rq),
-            "cancel-new" or "cancel-edit" or "cancel-view" when profile.EditInDrawer =>
-                UIIncrementDto.Of(commands: [UICommandDto.CloseModal() with { TargetComponentId = Target(rq) }]),
-            "cancel-new" or "cancel-edit" or "cancel-view" =>
-                UIIncrementDto.Of(commands: [new UICommandDto(Target(rq), "NavigateTo", baseRoute)]),
-            null or "" => mode switch
-            {
-                "new" when profile.CanCreate => CapabilityEntity(
-                    profile, profile.FormType, CapabilityCreationForm(profile, listing),
-                    "new", $"{baseRoute}/new", rq),
-                "view" when profile.CanView && id is not null => CapabilityEntity(
-                    profile, profile.DetailType, CapabilityView(profile, listing, id),
-                    "view", $"{baseRoute}/{id}", rq),
-                "edit" when profile.CanEdit && profile.CanView && id is not null => CapabilityEntity(
-                    profile, profile.EditorType, CapabilityEdit(profile, listing, id),
-                    "edit", $"{baseRoute}/{id}/edit", rq),
-                _ => FragmentResponse(Title(profile.ListingType),
-                    _mapper.MapCapabilityListing(profile, baseRoute), rq),
-            },
-            { } aid when aid.StartsWith("action-on-row-") => CapabilityActionOnRows(profile, listing, rq),
-            _ => Error($"Action not found: {rq.ActionId}"),
-        };
-    }
-
-    private static UIIncrementDto CapabilitySearch(CapabilityProfile profile, object listing, RunActionRqDto rq)
-    {
-        // Free text only when the listing declared ISearchable; typed filters only when it
-        // declared IFilterable (mirrors Java's SearchRequestBuilder).
-        var request = new SearchRequest(
-            profile.Searchable ? SearchText(rq) : null,
-            profile.FiltersType is { } filtersType ? AssembleFilters(filtersType, rq.ComponentState) : null,
-            null,
-            PageableOf(rq));
-        var found = profile.ListingInterface.GetMethod("Search")!.Invoke(listing, [request]);
-        return EmitListingData(found, profile.RowType, rq);
-    }
-
-    private static object CapabilityView(CapabilityProfile profile, object listing, string id) =>
-        profile.NavigableInterface!.GetMethod("View")!.Invoke(listing, [ToId(id, profile.IdType)])!;
-
-    private static object CapabilityEdit(CapabilityProfile profile, object listing, string id) =>
-        profile.EditableInterface!.GetMethod("Edit")!.Invoke(listing, [ToId(id, profile.IdType)])!;
-
-    private static object CapabilityCreationForm(CapabilityProfile profile, object listing) =>
-        profile.CreatableInterface!.GetMethod("CreationForm")!.Invoke(listing, [])!;
-
-    private UIIncrementDto CapabilityEntity(
-        CapabilityProfile profile, Type formType, object entity, string mode, string route, RunActionRqDto rq) =>
-        FragmentResponse(Title(profile.ListingType),
-            _mapper.MapCapabilityForm(profile.ListingType, formType, entity,
-                readOnly: mode == "view", CapabilityToolbar(profile, mode), route), rq);
-
-    /// <summary>Only the buttons the declared capabilities allow: the view page offers Edit only
-    /// when editable; edit/create forms offer Cancel + Save.</summary>
-    private static List<ButtonDto> CapabilityToolbar(CapabilityProfile profile, string mode)
-    {
-        if (mode == "view")
-        {
-            var toolbar = new List<ButtonDto> { new("Back to list", "cancel-view") };
-            if (profile.CanEdit) toolbar.Add(new ButtonDto("Edit", "edit"));
-            return toolbar;
-        }
-        return
-        [
-            new("Cancel", mode == "new" ? "cancel-new" : "cancel-edit"),
-            new("Save", mode == "new" ? "create" : "save") { ButtonStyle = "Primary" },
-        ];
-    }
-
-    private UIIncrementDto CapabilityEditDrawer(
-        CapabilityProfile profile, object listing, string id, string baseRoute, RunActionRqDto rq) =>
-        CapabilityDrawer(profile, profile.EditorType, CapabilityEdit(profile, listing, id),
-            "edit", $"{baseRoute}/{id}/edit", rq);
-
-    private UIIncrementDto CapabilityCreateDrawer(
-        CapabilityProfile profile, object listing, string baseRoute, RunActionRqDto rq) =>
-        CapabilityDrawer(profile, profile.FormType, CapabilityCreationForm(profile, listing),
-            "new", $"{baseRoute}/new", rq);
-
-    /// <summary>The editable-listing drawer: the capability form riding as the content of a
-    /// Drawer emitted as an Add fragment over the listing (same shape as the crud's
-    /// EditInDrawer).</summary>
-    private UIIncrementDto CapabilityDrawer(
-        CapabilityProfile profile, Type formType, object entity, string mode, string route, RunActionRqDto rq)
-    {
-        var form = _mapper.MapCapabilityForm(
-            profile.ListingType, formType, entity, readOnly: false, CapabilityToolbar(profile, mode), route);
-        var drawer = new ClientSideComponentDto(
-            new DrawerMetadataDto("crud-edit-drawer", mode == "new" ? "New" : "Edit", form)
-                { Width = "36rem" },
-            "crud-edit-drawer", [], null, null, null);
-        return UIIncrementDto.Of(fragments:
-            [new UIFragmentDto(Target(rq), drawer, null, null, "Add", null)]);
-    }
-
-    private UIIncrementDto CapabilitySave(
-        CapabilityProfile profile, object listing, string baseRoute, RunActionRqDto rq)
-    {
-        var editor = New(profile.EditorType);
-        BindState(editor, rq.ComponentState);
-        var id = profile.EditableInterface!.GetMethod("Save")!.Invoke(listing, [editor]);
-        return CapabilityPersisted(profile, baseRoute, id, rq);
-    }
-
-    private UIIncrementDto CapabilityCreate(
-        CapabilityProfile profile, object listing, string baseRoute, RunActionRqDto rq)
-    {
-        var form = New(profile.FormType);
-        BindState(form, rq.ComponentState);
-        var id = profile.CreatableInterface!.GetMethod("Create")!.Invoke(listing, [form]);
-        return CapabilityPersisted(profile, baseRoute, id, rq);
-    }
-
-    /// <summary>After a save/create: drawer mode closes the drawer emitting the saved event and
-    /// re-runs the search in place (no navigation — same contract as the crud's EditInDrawer);
-    /// otherwise navigate back to the detail (navigable) or the listing.</summary>
-    private static UIIncrementDto CapabilityPersisted(
-        CapabilityProfile profile, string baseRoute, object? id, RunActionRqDto rq)
-    {
-        if (profile.EditInDrawer)
-            return UIIncrementDto.Of(
-                commands:
-                [
-                    UICommandDto.CloseModal(SavedInDrawerEvent) with { TargetComponentId = Target(rq) },
-                    new UICommandDto(Target(rq), "RunAction",
-                        new { actionId = "search", targetComponentId = Target(rq) }),
-                ],
-                messages: [new MessageDto("success", "middle", "", "Saved", 3000)]);
-        return Navigate(profile.CanView && id is not null ? $"{baseRoute}/{id}" : baseRoute, "Saved", rq);
-    }
-
-    private static UIIncrementDto CapabilityDelete(CapabilityProfile profile, object listing, RunActionRqDto rq)
-    {
-        var idField = Naming.CamelCase(profile.RowType.GetProperty("Id")?.Name ?? "Id");
-        var ids = (System.Collections.IList)Activator.CreateInstance(
-            typeof(List<>).MakeGenericType(profile.IdType))!;
-        if (GetState(rq.ComponentState, "crud_selected_items")
-            is JsonElement { ValueKind: JsonValueKind.Array } selected)
-            foreach (var rowEl in selected.EnumerateArray())
-                if (rowEl.ValueKind == JsonValueKind.Object
-                    && rowEl.TryGetProperty(idField, out var idEl)
-                    && StateString(idEl) is { } raw)
-                    ids.Add(ToId(raw, profile.IdType));
-        profile.DeletableInterface!.GetMethod("DeleteAllById")!.Invoke(listing, [ids]);
-        var refreshed = CapabilitySearch(profile, listing, rq);
-        return UIIncrementDto.Of(
-            fragments: refreshed.Fragments,
-            messages: [new MessageDto("success", "middle", "", "Deleted", 3000)]);
-    }
-
-    /// <summary>A [ListToolbarButton] bulk action on the listing: same dispatch as on cruds —
-    /// the selected rows rebuilt as typed row objects fill a List&lt;TRow&gt; parameter; a
-    /// null/void result re-runs the capability search.</summary>
-    private static UIIncrementDto CapabilityActionOnRows(CapabilityProfile profile, object listing, RunActionRqDto rq)
-    {
-        var name = rq.ActionId!["action-on-row-".Length..];
-        var method = ActionGuard.ResolveRowAction(profile.ListingType, name);
-        if (method is null) return Error($"Action not found: {rq.ActionId}");
-        ActionGuard.EnsureMayInvoke(profile.ListingType, method, rq.ActionId);
-        var result = method.Invoke(listing, BuildBulkArguments(method, rq));
-        return result is null ? CapabilitySearch(profile, listing, rq) : MapResult(result, rq);
-    }
-
-    /// <summary>The record id of a row action, from the action parameters or the component state
-    /// (under the row type's camelCased Id property).</summary>
-    private static string? CapabilityRowId(RunActionRqDto rq, CapabilityProfile profile)
-    {
-        var idField = Naming.CamelCase(profile.RowType.GetProperty("Id")?.Name ?? "Id");
-        return StateString(GetState(rq.Parameters, idField))
-            ?? StateString(GetState(rq.ComponentState, idField));
-    }
-
-    /// <summary>Maps the raw route/state id into the listing's declared TId (mirrors Java's
-    /// CrudIdConverter for the well-known scalar id types).</summary>
-    private static object ToId(string raw, Type idType)
-    {
-        var t = Nullable.GetUnderlyingType(idType) ?? idType;
-        if (t == typeof(string)) return raw;
-        if (t == typeof(int)) return int.Parse(raw, System.Globalization.CultureInfo.InvariantCulture);
-        if (t == typeof(long)) return long.Parse(raw, System.Globalization.CultureInfo.InvariantCulture);
-        if (t == typeof(Guid)) return Guid.Parse(raw);
-        if (t.IsEnum) return Enum.Parse(t, raw, ignoreCase: true);
-        return Convert.ChangeType(raw, t, System.Globalization.CultureInfo.InvariantCulture);
-    }
-
-    private UIIncrementDto CrudSave(object crud, Type crudType, Type element, string? id, RunActionRqDto rq, string baseRoute)
-    {
-        // Start from the stored entity (so untouched fields survive) and apply the edited fields.
-        // Versioned entities bind onto a DETACHED copy: an in-memory Get may return the live
-        // stored instance by reference, and a rejected (stale) save must persist NOTHING.
-        var stored = id is not null ? crudType.GetMethod("Get")!.Invoke(crud, [id]) : null;
-        var storedVersion = StoredVersionOf(stored);
-        var entity = stored is null ? New(element)
-            : storedVersion is null ? stored
-            : CopyOf(stored, element);
-        BindState(entity, rq.ComponentState);
-        if (id is not null) element.GetProperty("Id")?.SetValue(entity, id);
-
-        var missing = RequiredMissing(entity, element);
-        if (missing.Count > 0)
-            return Error("Please fill: " + string.Join(", ", missing));
-
-        // Optimistic locking ([Version] property): reject the editor save when someone else saved
-        // in between (unless _forceOverwrite), bump the version otherwise — both no-ops without a
-        // [Version] property; creating a new entity skips both (there is no stored entity yet).
-        if (id is not null)
-        {
-            if (IsStale(entity, storedVersion, rq))
-                return ConflictDialog(
-                    "Este registro ha cambiado mientras lo editabas. Puedes recargar para ver los"
-                    + " cambios (perdiendo los tuyos) o sobrescribir con tu versión.",
-                    "cancel-edit", rq.ActionId!, null, rq);
-            BumpVersion(entity);
-        }
-
-        crudType.GetMethod("Save")!.Invoke(crud, [entity]);
-        if (EditInDrawer(crud))
-        {
-            // drawer mode: no navigation — close the drawer emitting the saved event and re-run
-            // the listing's search in place so the new/edited row shows up.
-            return UIIncrementDto.Of(
-                commands:
-                [
-                    UICommandDto.CloseModal(SavedInDrawerEvent) with { TargetComponentId = Target(rq) },
-                    new UICommandDto(Target(rq), "RunAction",
-                        new { actionId = "search", targetComponentId = Target(rq) }),
-                ],
-                messages: [new MessageDto("success", "middle", "", "Saved", 3000)]);
-        }
-        return Navigate(baseRoute, "Saved", rq);
-    }
-
-    /// <summary>Answers a lookup field's search-&lt;fieldId&gt; action: the view's
-    /// IOptionsSupplier options for that field, filtered by the typed text (case-insensitive
-    /// containment on the label) and paged, returned as a data-only fragment keyed by the field
-    /// (mirrors Java's SearchFieldActionRunner).</summary>
-    private static UIIncrementDto FieldSearch(object instance, RunActionRqDto rq)
-    {
-        var fieldId = rq.ActionId!["search-".Length..];
-        if (instance is not IOptionsSupplier supplier)
-            return Error($"no lookup options supplier found for field {fieldId}");
-
-        var searchText = StateString(GetState(rq.Parameters, "searchText"))?.ToLowerInvariant() ?? "";
-        var page = ToInt(GetState(rq.Parameters, "page"), 0);
-        var size = ToInt(GetState(rq.Parameters, "size"), 50);
-        if (size <= 0) size = 50;
-
-        var all = supplier.Options(fieldId)
-            .Where(o => searchText.Length == 0
-                        || o.Label.Contains(searchText, StringComparison.OrdinalIgnoreCase))
-            .ToList();
-        var content = all.Skip(page * size).Take(size)
-            .Select(o => new OptionDto(o.Value, o.Label)).ToList();
-        var data = new Dictionary<string, object?>
-        {
-            [fieldId] = new { content, pageSize = size, pageNumber = page, totalElements = all.Count },
-        };
-        return UIIncrementDto.Of(fragments:
-            [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
-    }
-
-    /// <summary>The notification inbox's app-level actions (mirrors Java's
-    /// NotificationsActionRunner): _notifications-list answers the supplier's current list as a
-    /// data-only fragment keyed _notifications; _notifications-read marks the ids parameter (an
-    /// explicit list, "all" → every currently-unread id, or one bare id) read and answers the
-    /// REFRESHED list the same way.</summary>
-    private static UIIncrementDto Notifications(object instance, RunActionRqDto rq)
-    {
-        if (instance is not INotificationsSupplier supplier)
-            return Error("the app class does not implement INotificationsSupplier — no inbox to serve");
-        if (rq.ActionId == "_notifications-read")
-            supplier.MarkNotificationsRead(ReadIds(supplier, rq));
-        var data = new Dictionary<string, object?>
-        {
-            ["_notifications"] = supplier.Notifications() ?? [],
-        };
-        return UIIncrementDto.Of(fragments:
-            [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
-    }
-
-    /// <summary>The command palette's entity search (mirrors Java's GlobalSearchActionRunner):
-    /// _globalsearch with a searchText parameter answers the app class's IGlobalSearchSupplier
-    /// hits as a data-only fragment keyed _globalsearch.</summary>
-    private static UIIncrementDto GlobalSearch(object instance, RunActionRqDto rq)
-    {
-        if (instance is not IGlobalSearchSupplier supplier)
-            return Error("the app class does not implement IGlobalSearchSupplier — no global search to serve");
-        var searchText = StateString(GetState(rq.Parameters, "searchText")) ?? "";
-        var data = new Dictionary<string, object?>
-        {
-            ["_globalsearch"] = supplier.GlobalSearch(searchText) ?? [],
-        };
-        return UIIncrementDto.Of(fragments:
-            [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", null, null, data, "Replace", null)]);
-    }
-
-    /// <summary>The ids parameter of _notifications-read: an explicit list, "all" → every
-    /// currently-unread notification's id, or a single bare id.</summary>
-    private static List<string> ReadIds(INotificationsSupplier supplier, RunActionRqDto rq)
-    {
-        var raw = GetState(rq.Parameters, "ids");
-        if (raw is JsonElement { ValueKind: JsonValueKind.Array }) return MultiValues(raw);
-        var text = StateString(raw);
-        if (text == "all")
-            return (supplier.Notifications() ?? []).Where(n => n.Unread).Select(n => n.Id).ToList();
-        return text is null ? [] : [text];
-    }
-
-    /// <summary>Persists a single row edited in place in the listing grid (inline editing). The
-    /// edited row travels in the _editedRow action parameter (mirrors Java's
-    /// UpdateRowActionHandler → FilteredAutoCrud.updateRow: rebuild the entity, save).</summary>
-    private static UIIncrementDto UpdateRow(object crud, Type crudType, Type element, RunActionRqDto rq)
-    {
-        if (!rq.Parameters.TryGetValue("_editedRow", out var raw)
-            || raw is not JsonElement { ValueKind: JsonValueKind.Object } rowEl)
-            return Error("update-row requires an _editedRow parameter");
-
-        var row = rowEl.EnumerateObject()
-            .ToDictionary(prop => prop.Name, prop => (object?)prop.Value);
-        var entity = New(element);
-        BindState(entity, row);
-
-        // Optimistic locking ([Version] property): Sobrescribir re-sends the SAME edited row (the
-        // button's parameters merge into the action request), Recargar re-runs the search.
-        var id = element.GetProperty("Id")?.GetValue(entity)?.ToString();
-        var stored = string.IsNullOrEmpty(id) ? null : crudType.GetMethod("Get")!.Invoke(crud, [id]);
-        if (IsStale(entity, StoredVersionOf(stored), rq))
-            return ConflictDialog(
-                "Esta fila ha cambiado mientras la editabas. Recarga para ver los cambios o"
-                + " sobrescribe con tu versión.",
-                "search", "update-row",
-                new Dictionary<string, object?> { ["_editedRow"] = rowEl }, rq);
-        BumpVersion(entity);
-
-        crudType.GetMethod("Save")!.Invoke(crud, [entity]);
-        return UIIncrementDto.Of(messages: [new MessageDto("success", "middle", "", "Saved", 3000)]);
-    }
-
-    // ── Optimistic locking ([Version], mirrors Java's OptimisticLock) ────────────
-
-    /// <summary>The entity's [Version] property (int or long), or null — every optimistic-locking
-    /// step is a no-op without one.</summary>
-    private static PropertyInfo? VersionProperty(Type entityClass) =>
-        entityClass.GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .FirstOrDefault(p => p.Find<VersionAttribute>() is not null);
-
-    /// <summary>The [Version] value of the STORED entity, or null when there is no stored entity
-    /// or no [Version] property (→ every optimistic-locking step is a no-op).</summary>
-    private static long? StoredVersionOf(object? stored) =>
-        stored is not null && VersionProperty(stored.GetType()) is { } version
-            ? Convert.ToInt64(version.GetValue(stored) ?? 0L)
-            : null;
-
-    /// <summary>True when the STORED entity is newer than the incoming one (someone else saved in
-    /// between). When the request carries _forceOverwrite (the conflict dialog's explicit
-    /// override) the stored version is ADOPTED into the incoming entity instead, so the bump
-    /// below moves it forward — stale numbers never resurrect.</summary>
-    private static bool IsStale(object incoming, long? storedVersion, RunActionRqDto rq)
-    {
-        if (storedVersion is not { } stored || VersionProperty(incoming.GetType()) is not { } version)
-            return false;
-        if (ForceOverwrite(rq))
-        {
-            SetVersion(incoming, version, stored);
-            return false;
-        }
-        return stored > Convert.ToInt64(version.GetValue(incoming) ?? 0L);
-    }
-
-    /// <summary>Increments the entity's [Version] by 1 before persisting (int stays int, long
-    /// stays long).</summary>
-    private static void BumpVersion(object entity)
-    {
-        if (VersionProperty(entity.GetType()) is not { } version) return;
-        SetVersion(entity, version, Convert.ToInt64(version.GetValue(entity) ?? 0L) + 1);
-    }
-
-    private static void SetVersion(object entity, PropertyInfo version, long value)
-    {
-        var t = Nullable.GetUnderlyingType(version.PropertyType) ?? version.PropertyType;
-        version.SetValue(entity, t == typeof(int) ? (int)value : value);
-    }
-
-    /// <summary>A detached property-by-property copy of the stored entity, so the editor's binding
-    /// never mutates the live stored instance.</summary>
-    private static object CopyOf(object source, Type element)
-    {
-        var copy = New(element);
-        foreach (var p in element.GetProperties(BindingFlags.Public | BindingFlags.Instance))
-            if (p.CanRead && p.CanWrite) p.SetValue(copy, p.GetValue(source));
-        return copy;
-    }
-
-    private static bool ForceOverwrite(RunActionRqDto rq) =>
-        string.Equals(StateString(GetState(rq.Parameters, "_forceOverwrite")), "true",
-            StringComparison.OrdinalIgnoreCase);
-
-    /// <summary>The conflict dialog (mirrors Java's OptimisticLock.conflictDialog): reload
-    /// (discard my changes and see theirs) or overwrite (my version wins, explicitly — the button
-    /// re-dispatches the save action with _forceOverwrite merged into its parameters). Emitted
-    /// like any action-returned overlay: an Add fragment on the initiator.</summary>
-    private static UIIncrementDto ConflictDialog(
-        string text, string reloadActionId, string overwriteActionId,
-        IReadOnlyDictionary<string, object?>? overwriteParameters, RunActionRqDto rq)
-    {
-        var parameters = new Dictionary<string, object?> { ["_forceOverwrite"] = true };
-        foreach (var (key, value) in overwriteParameters ?? new Dictionary<string, object?>())
-            parameters[key] = value;
-        return MapResult(new Dialog
-        {
-            HeaderTitle = "Modificado por otro usuario",
-            Width = "30rem",
-            Content = new VerticalLayout
-            {
-                Content =
-                [
-                    new Text(text),
-                    new HorizontalLayout
-                    {
-                        Style = "justify-content: flex-end; gap: 0.5rem;",
-                        Content =
-                        [
-                            new Button("Recargar", reloadActionId),
-                            new Button("Sobrescribir", overwriteActionId)
-                            {
-                                Primary = true,
-                                Parameters = parameters,
-                            },
-                        ],
-                    },
-                ],
-            },
-        }, rq);
-    }
-
-    /// <summary>Opens a [Searchable] field's selector dialog: the selector Listing (with its
-    /// Select column, own actions and OnLoad search) rides as the content of a Dialog emitted as
-    /// an Add fragment; the host field id travels in the selector's initial data so the row pick
-    /// can address it back (mirrors Java's CodeSearchFieldActionRunner).</summary>
-    private UIIncrementDto FieldCodeSearch(Type hostType, RunActionRqDto rq)
-    {
-        var fieldId = rq.ActionId!["codesearch-".Length..];
-        var property = ReflectionMapper.EditableProperties(hostType)
-            .FirstOrDefault(p => Naming.CamelCase(p.Name) == fieldId);
-        var selectorType = property?.Find<SearchableAttribute>()?.Selector;
-        if (selectorType is null || ReflectionMapper.ListingTypes(selectorType) is not { } listing)
-            return Error($"no selector found for field {fieldId}");
-
-        var component = _mapper.MapListing(selectorType, listing.Filters, listing.Row, rq.ConsumedRoute ?? "")
-            with { InitialData = new Dictionary<string, object?> { ["_fieldId"] = fieldId } };
-        var dialog = new ClientSideComponentDto(
-            new DialogMetadataDto(null, null, component), null, [], null, null, null);
-        return UIIncrementDto.Of(fragments:
-            [new UIFragmentDto(rq.InitiatorComponentId ?? "ux_main", dialog, null, null, "Add", null)]);
-    }
-
-    /// <summary>A selector dialog's row pick: rebuilds the clicked row, asks the ISelector for
-    /// the (id, label) pair and writes it back into the host field via the event bus —
-    /// value-changed sets the value, data-changed the display label, close-modal-requested
-    /// dismisses the dialog (mirrors Java's Listing.handleActionOnRow("select")).</summary>
-    private static UIIncrementDto SelectorRowSelected(object view, Type rowType, RunActionRqDto rq)
-    {
-        if (!rq.Parameters.TryGetValue("_clickedRow", out var raw)
-            || raw is not JsonElement { ValueKind: JsonValueKind.Object } rowEl)
-            return Error("action-on-row-select requires a _clickedRow parameter");
-        var row = Activator.CreateInstance(rowType)!;
-        BindState(row, rowEl.EnumerateObject().ToDictionary(x => x.Name, x => (object?)x.Value));
-
-        var selected = (SelectedItem)view.GetType().GetMethod("Selected")!.Invoke(view, [row])!;
-        var fieldId = StateString(GetState(rq.ComponentState, "_fieldId")) ?? "";
-        return UIIncrementDto.Of(commands:
-        [
-            new UICommandDto(Target(rq), "DispatchEvent", new CustomEventDto("value-changed",
-                new Dictionary<string, object?> { ["fieldId"] = fieldId, ["value"] = selected.Id })),
-            new UICommandDto(Target(rq), "DispatchEvent", new CustomEventDto("data-changed",
-                new Dictionary<string, object?> { ["key"] = fieldId + "-label", ["value"] = selected.Label })),
-            new UICommandDto(Target(rq), "DispatchEvent", new CustomEventDto("close-modal-requested", null)),
-        ]);
-    }
-
-    /// <summary>A declarative Listing's search: hydrates the TYPED filters from the component
-    /// state — &lt;field&gt;_from/&lt;field&gt;_to keys assemble into DateRange/NumberRange, value
-    /// lists (or comma-joined strings after a URL restore) into enum sets, blank/unparseable
-    /// bounds and stale constants dropped (mirrors Java's FilterStateAssembler) — bundles them
-    /// with the free text and the pageable into one SearchRequest (the capability-model search
-    /// signature, mirrors Java's SearchRequestBuilder), calls Search(request) and sorts +
-    /// paginates the returned rows when the listing didn't page them itself.</summary>
-    private static UIIncrementDto ListingSearch(object view, Type filtersType, Type rowType, RunActionRqDto rq)
-    {
-        var request = new SearchRequest(
-            SearchText(rq), AssembleFilters(filtersType, rq.ComponentState), null, PageableOf(rq));
-        var found = view.GetType().GetMethod("Search", [typeof(SearchRequest)])!.Invoke(view, [request]);
-        return EmitListingData(found, rowType, rq);
-    }
-
-    /// <summary>The Pageable of a listing request, read from the component state (page/size/sort
-    /// — mirrors Java's SearchRequestBuilder.pageable).</summary>
-    private static Pageable PageableOf(RunActionRqDto rq) =>
-        new(ToInt(GetState(rq.ComponentState, "page"), 0),
-            ToInt(GetState(rq.ComponentState, "size"), 10),
-            EnumerateSort(rq.ComponentState).Select(s => new SortSpec(s.field, s.descending)).ToList());
-
-    /// <summary>Emits a search's ListingData as the standard listing data fragment: an unpaged
-    /// result (ListingData.From) is sorted + paginated by the engine; a paged one (a listing that
-    /// ran the count + page queries itself) goes to the wire as-is with its real total.</summary>
-    private static UIIncrementDto EmitListingData(object? found, Type rowType, RunActionRqDto rq)
-    {
-        var props = ReflectionMapper.EditableProperties(rowType).ToList();
-        if (found is null) return PageRows([], props, rq);
-        var content = ((System.Collections.IEnumerable)found.GetType().GetProperty("Content")!.GetValue(found)!)
-            .Cast<object>().ToList();
-        if (found.GetType().GetProperty("TotalElements")!.GetValue(found) is not long total)
-            return PageRows(content, props, rq);
-        var page = ToInt(GetState(rq.ComponentState, "page"), 0);
-        var size = ToInt(GetState(rq.ComponentState, "size"), 10);
-        if (size <= 0) size = content.Count == 0 ? 1 : content.Count;
-        var rows = content.Select(item => RowDict(item, props)).ToList();
-        var data = new { crud = new { page = new { content = rows, pageSize = size, pageNumber = page, totalElements = total } } };
-        return UIIncrementDto.Of(fragments: [new UIFragmentDto(Target(rq), null, null, data, "Replace", null)]);
-    }
-
-    private static object AssembleFilters(Type filtersType, IReadOnlyDictionary<string, object?> state)
-    {
-        var invariant = System.Globalization.CultureInfo.InvariantCulture;
-        var filters = Activator.CreateInstance(filtersType)!;
-        string? Bound(string key) => state.TryGetValue(key, out var raw) ? StateString(raw) : null;
-        foreach (var p in ReflectionMapper.EditableProperties(filtersType))
-        {
-            var key = Naming.CamelCase(p.Name);
-            var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
-            if (t == typeof(DateRange))
-            {
-                DateOnly? lower = DateOnly.TryParse(Bound(key + "_from") ?? "", invariant, out var l) ? l : null;
-                DateOnly? upper = DateOnly.TryParse(Bound(key + "_to") ?? "", invariant, out var u) ? u : null;
-                if (lower is not null || upper is not null) p.SetValue(filters, new DateRange(lower, upper));
-            }
-            else if (t == typeof(NumberRange))
-            {
-                decimal? lower = decimal.TryParse(Bound(key + "_from") ?? "", System.Globalization.NumberStyles.Any, invariant, out var l) ? l : null;
-                decimal? upper = decimal.TryParse(Bound(key + "_to") ?? "", System.Globalization.NumberStyles.Any, invariant, out var u) ? u : null;
-                if (lower is not null || upper is not null) p.SetValue(filters, new NumberRange(lower, upper));
-            }
-            else if (ReflectionMapper.EnumSetElementType(p) is { } el)
-            {
-                if (!state.TryGetValue(key, out var raw)) continue;
-                var set = Activator.CreateInstance(typeof(HashSet<>).MakeGenericType(el))!;
-                var add = set.GetType().GetMethod("Add")!;
-                foreach (var v in MultiValues(raw))
-                    if (Enum.TryParse(el, v, ignoreCase: true, out var constant)) add.Invoke(set, [constant]);
-                p.SetValue(filters, set);
-            }
-            else if (state.TryGetValue(key, out var raw) && raw is not null)
-            {
-                var value = ConvertValue(raw, p.PropertyType);
-                if (value is not null) p.SetValue(filters, value);
-            }
-        }
-        return filters;
-    }
-
-    /// <summary>Sorts (Pageable.sort), paginates and serializes rows into the standard listing
-    /// data fragment — shared by crud and declarative-listing searches.</summary>
-    private static UIIncrementDto PageRows(List<object> items, List<PropertyInfo> props, RunActionRqDto rq)
-    {
-        var propByCamel = props.ToDictionary(p => Naming.CamelCase(p.Name), p => p);
-        foreach (var spec in EnumerateSort(rq.ComponentState).AsEnumerable().Reverse())
-        {
-            if (!propByCamel.TryGetValue(spec.field, out var prop)) continue;
-            items = (spec.descending
-                ? items.OrderByDescending(it => prop.GetValue(it), SortKeyComparer.Instance)
-                : items.OrderBy(it => prop.GetValue(it), SortKeyComparer.Instance)).ToList();
-        }
-        var total = items.Count;
-        var page = ToInt(GetState(rq.ComponentState, "page"), 0);
-        var size = ToInt(GetState(rq.ComponentState, "size"), 10);
-        if (size <= 0) size = total == 0 ? 1 : total;
-        var rows = items.Skip(page * size).Take(size).Select(item => RowDict(item, props)).ToList();
-        var data = new { crud = new { page = new { content = rows, pageSize = size, pageNumber = page, totalElements = total } } };
-        return UIIncrementDto.Of(fragments: [new UIFragmentDto(Target(rq), null, null, data, "Replace", null)]);
-    }
-
-    /// <summary>A row as a camelCase dict; a self-referential children list (tree layouts)
-    /// recurses so every level of the hierarchy rides in the same payload.</summary>
-    private static Dictionary<string, object?> RowDict(object item, List<PropertyInfo> props) =>
-        props.ToDictionary(p => Naming.CamelCase(p.Name), p =>
-        {
-            if (ReflectionMapper.GridRowType(p) is { } childType
-                && p.GetValue(item) is System.Collections.IEnumerable children)
-            {
-                var childProps = ReflectionMapper.EditableProperties(childType).ToList();
-                return (object?)children.Cast<object>().Select(child => RowDict(child, childProps)).ToList();
-            }
-            return CellValue(p.GetValue(item));
-        });
-
-    private static UIIncrementDto CrudSearch(object instance, Type element, RunActionRqDto rq)
-    {
-        var props = ReflectionMapper.EditableProperties(element).ToList();
-        var summarySpec = SummarySpecOf(props);
-        // The [GroupBy] column is the implicit primary sort, so rows of the same group stay
-        // contiguous in the listing (the user's own sort applies within groups; mirrors Java's
-        // ListingSummarySpec.prependGroupSort).
-        var sort = PrependGroupSort(EnumerateSort(rq.ComponentState).ToList(), summarySpec);
-
-        // Database pushdown: an overridden Find runs search+filter+sort+paginate as one query
-        // and returns the page with its real total — skip the in-memory pipeline entirely
-        // ([Aggregate]/[GroupBy] summaries are still computed in memory over Fetch, the analogue
-        // of Java's default CrudRepository.summaries over findAll()).
-        var pageable = new Pageable(
-            ToInt(GetState(rq.ComponentState, "page"), 0),
-            ToInt(GetState(rq.ComponentState, "size"), 10),
-            sort.Select(s => new SortSpec(s.field, s.descending)).ToList());
-        var found = instance.GetType().GetMethod("Find")!
-            .Invoke(instance, [SearchText(rq), rq.ComponentState, pageable]);
-        if (found is not null)
-        {
-            var content = (System.Collections.IEnumerable)found.GetType().GetProperty("Content")!.GetValue(found)!;
-            var totalElements = (long)found.GetType().GetProperty("TotalElements")!.GetValue(found)!;
-            var pushedRows = content.Cast<object>().Select(item => RowDict(item, props)).ToList();
-            var pushedCrud = new Dictionary<string, object?>
-            {
-                ["page"] = new { content = pushedRows, pageSize = pageable.Size, pageNumber = pageable.Page, totalElements },
-            };
-            AttachSummaries(pushedCrud, summarySpec,
-                () => FilteredRows(instance, rq, props));
-            var pushedData = new Dictionary<string, object?> { ["crud"] = pushedCrud };
-            return UIIncrementDto.Of(fragments: [new UIFragmentDto(Target(rq), null, null, pushedData, "Replace", null)]);
-        }
-
-        var propByCamel = props.ToDictionary(p => Naming.CamelCase(p.Name), p => p);
-
-        // filter
-        var items = FilteredRows(instance, rq, props);
-
-        // sort — Pageable.sort is a list of { field, direction:'ascending'|'descending' }; applied
-        // last-spec-first so the first spec is the primary key.
-        foreach (var sortSpec in sort.AsEnumerable().Reverse())
-        {
-            if (!propByCamel.TryGetValue(sortSpec.field, out var prop)) continue;
-            var ordered = sortSpec.descending
-                ? items.OrderByDescending(it => prop.GetValue(it), SortKeyComparer.Instance)
-                : items.OrderBy(it => prop.GetValue(it), SortKeyComparer.Instance);
-            items = ordered.ToList();
-        }
-
-        var total = items.Count;
-        // paginate in memory
-        var page = ToInt(GetState(rq.ComponentState, "page"), 0);
-        var size = ToInt(GetState(rq.ComponentState, "size"), 10);
-        if (size <= 0) size = total == 0 ? 1 : total;
-        var window = items.Skip(page * size).Take(size);
-
-        var rows = new List<Dictionary<string, object?>>();
-        foreach (var item in window)
-        {
-            var row = new Dictionary<string, object?>();
-            foreach (var p in props) row[Naming.CamelCase(p.Name)] = CellValue(p.GetValue(item));
-            rows.Add(row);
-        }
-        var crudData = new Dictionary<string, object?>
-        {
-            ["page"] = new { content = rows, pageSize = size, pageNumber = page, totalElements = total },
-        };
-        AttachSummaries(crudData, summarySpec, () => items);
-        var data = new Dictionary<string, object?> { ["crud"] = crudData };
-        return UIIncrementDto.Of(fragments: [new UIFragmentDto(Target(rq), null, null, data, "Replace", null)]);
-    }
-
-    /// <summary>Fetch + the smart-search-bar filters: the WHOLE filtered result set the
-    /// summaries aggregate over (not just the visible page).</summary>
-    private static List<object> FilteredRows(object instance, RunActionRqDto rq, List<PropertyInfo> props)
-    {
-        var fetched = (System.Collections.IEnumerable)instance.GetType().GetMethod("Fetch")!.Invoke(instance, [SearchText(rq)])!;
-        return fetched.Cast<object>().Where(item => MatchesFilters(item, props, rq.ComponentState)).ToList();
-    }
-
-    // ── Listing aggregates + row grouping ([Aggregate]/[GroupBy], mirrors Java's
-    // ListingSummarySpec + CrudRepository.summaries) ─────────────────────────────
-
-    /// <summary>What the row class asks to be summarized: the [Aggregate] columns
-    /// (camelCase field id → function) and the [GroupBy] column, read once per request.</summary>
-    private sealed record SummarySpec(
-        List<(string Key, PropertyInfo Property, AggregateFunction Function)> Aggregates,
-        PropertyInfo? GroupBy)
-    {
-        public bool IsEmpty => Aggregates.Count == 0 && GroupBy is null;
-
-        public string? GroupKey => GroupBy is null ? null : Naming.CamelCase(GroupBy.Name);
-    }
-
-    private static SummarySpec SummarySpecOf(List<PropertyInfo> props) =>
-        new(
-            props.Select(p => (Property: p, Attribute: p.Find<AggregateAttribute>()))
-                .Where(x => x.Attribute is not null)
-                .Select(x => (Naming.CamelCase(x.Property.Name), x.Property, x.Attribute!.Function))
-                .ToList(),
-            props.FirstOrDefault(p => p.Find<GroupByAttribute>() != null));
-
-    /// <summary>Prepends the group column to the sort (unless the user already sorts by it
-    /// first), deduping any other occurrence of it.</summary>
-    private static List<(string field, bool descending)> PrependGroupSort(
-        List<(string field, bool descending)> sort, SummarySpec spec)
-    {
-        if (spec.GroupKey is not { } groupKey) return sort;
-        if (sort.Count > 0 && sort[0].field == groupKey) return sort;
-        var prepended = new List<(string field, bool descending)> { (groupKey, false) };
-        prepended.AddRange(sort.Where(s => s.field != groupKey));
-        return prepended;
-    }
-
-    /// <summary>Attaches the aggregation companion of the search next to the page: "aggregates"
-    /// carries the totals of every [Aggregate] column over the WHOLE filtered result set (the
-    /// listing's totals footer) and "groups" one summary per [GroupBy] group — its value (as
-    /// text), row count and per-group aggregates, sorted case-insensitively by value (mirrors
-    /// Java's ListingData.aggregates/groups filled by CrudRepository.summaries).</summary>
-    private static void AttachSummaries(
-        Dictionary<string, object?> crudData, SummarySpec spec, Func<List<object>> filteredRows)
-    {
-        if (spec.IsEmpty) return;
-        var rows = filteredRows();
-        crudData["aggregates"] = AggregateOver(rows, spec);
-        crudData["groups"] = spec.GroupBy is null
-            ? new List<Dictionary<string, object?>>()
-            : rows.GroupBy(row => ValueOf(spec.GroupBy.GetValue(row)))
-                .OrderBy(group => group.Key, StringComparer.OrdinalIgnoreCase)
-                .Select(group => new Dictionary<string, object?>
-                {
-                    ["value"] = group.Key,
-                    ["count"] = (long)group.Count(),
-                    ["aggregates"] = AggregateOver(group.ToList(), spec),
-                })
-                .ToList();
-    }
-
-    // Java keys groups by String.valueOf(value) — a null group value becomes "null".
-    private static string ValueOf(object? value) => value?.ToString() ?? "null";
-
-    /// <summary>One aggregate per [Aggregate] column over <paramref name="rows"/>: count counts
-    /// non-null values; sum/avg/min/max run over the numeric values as doubles (a column with no
-    /// numeric values is omitted) — mirrors Java's CrudRepository.aggregateOver.</summary>
-    private static Dictionary<string, object?> AggregateOver(List<object> rows, SummarySpec spec)
-    {
-        var totals = new Dictionary<string, object?>();
-        foreach (var (key, property, function) in spec.Aggregates)
-        {
-            var values = rows.Select(property.GetValue).Where(value => value is not null).ToList();
-            if (function == AggregateFunction.Count)
-            {
-                totals[key] = (long)values.Count;
-                continue;
-            }
-            var numbers = values
-                .Where(value => value is byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal)
-                .Select(value => Convert.ToDouble(value))
-                .ToList();
-            if (numbers.Count == 0) continue;
-            totals[key] = function switch
-            {
-                AggregateFunction.Sum => numbers.Sum(),
-                AggregateFunction.Avg => numbers.Average(),
-                AggregateFunction.Min => numbers.Min(),
-                AggregateFunction.Max => numbers.Max(),
-                _ => null,
-            };
-        }
-        return totals;
-    }
-
-    private static IEnumerable<(string field, bool descending)> EnumerateSort(Dictionary<string, object?>? state)
-    {
-        if (state is null || !state.TryGetValue("sort", out var raw) || raw is null) yield break;
-        if (raw is System.Text.Json.JsonElement je && je.ValueKind == System.Text.Json.JsonValueKind.Array)
-        {
-            foreach (var el in je.EnumerateArray())
-            {
-                var field = el.TryGetProperty("field", out var f) ? f.GetString() ?? "" : "";
-                var dir = el.TryGetProperty("direction", out var d) ? d.GetString() ?? "ascending" : "ascending";
-                if (field.Length > 0) yield return (field, dir == "descending");
-            }
-        }
-    }
-
-    private static object? GetState(Dictionary<string, object?>? state, string key)
-        => state is not null && state.TryGetValue(key, out var v) ? v : null;
-
-    /// <summary>The __restfetch__ reserved action: resolve the DECLARED source of the routed view by
-    /// _sourceKind/_sourceId, interpolate ${state.x}/${secret.X}, fetch server-side and return the
-    /// raw JSON on appData._restfetch (an empty object on any failure — the renderer maps it as in
-    /// direct mode).</summary>
-    private UIIncrementDto RestFetchResponse(RunActionRqDto rq)
-    {
-        object? json = new Dictionary<string, object?>();
-        if (registry.Resolve(rq.ServerSideType, rq.Route) is { } type)
-        {
-            ActionGuard.EnsureViewVisible(type);
-            var kind = StateString(GetState(rq.Parameters, "_sourceKind"));
-            var id = StateString(GetState(rq.Parameters, "_sourceId"));
-            if (ReflectionMapper.ResolveRestSource(type, kind, id) is { } source)
-                json = FetchProxy(source, rq.ComponentState) ?? new Dictionary<string, object?>();
-        }
-        return new UIIncrementDto([], [], [], [], false,
-            new Dictionary<string, object?> { ["_restfetch"] = json }, null);
-    }
-
-    /// <summary>Fetch a resolved source server-side (url/headers/body interpolated); null on any
-    /// non-2xx or transport error.</summary>
-    private object? FetchProxy(RestDataSourceDto source, Dictionary<string, object?> state)
-    {
-        try
-        {
-            // values percent-encoded by position: client state cannot steer the server's request
-            var url = UrlTemplate.Interpolate(source.Url, expr => ValueOf(expr, state, ResolveSecret));
-            var method = string.IsNullOrWhiteSpace(source.Method) ? "GET" : source.Method!.ToUpperInvariant();
-            using var req = new HttpRequestMessage(new HttpMethod(method), url);
-            if (source.Headers is not null)
-                foreach (var (k, v) in source.Headers)
-                    req.Headers.TryAddWithoutValidation(k, Interpolate(v, state, ResolveSecret));
-            if (method is not "GET" and not "HEAD" && !string.IsNullOrWhiteSpace(source.Body))
-                req.Content = new StringContent(Interpolate(source.Body, state, ResolveSecret) ?? "");
-            using var resp = RestHttp.Send(req);
-            if ((int)resp.StatusCode >= 400) return null;
-            using var reader = new StreamReader(resp.Content.ReadAsStream());
-            return JsonSerializer.Deserialize<JsonElement>(reader.ReadToEnd());
-        }
-        catch
-        {
-            return null;
-        }
-    }
-
-    /// <summary>Resolve a secret: the injected provider first, then the environment — but ONLY a
-    /// variable prefixed <c>MATEU_SECRET_</c> (<c>${secret.API_TOKEN}</c> reads
-    /// <c>MATEU_SECRET_API_TOKEN</c>), so a template cannot read any variable of the process
-    /// (database passwords, cloud credentials) and send it to an endpoint.</summary>
-    public string? ResolveSecret(string key) =>
-        secrets?.Invoke(key) ?? Environment.GetEnvironmentVariable(UrlTemplate.SecretEnvName(key));
-
-    private static string ValueOf(string expr, Dictionary<string, object?> state, Func<string, string?> secrets)
-    {
-        if (expr.StartsWith("state.")) return StateString(GetState(state, expr[6..])) ?? "";
-        if (expr.StartsWith("secret.")) return secrets(expr[7..]) ?? "";
-        return "";
-    }
-
-    /// <summary>Interpolate ${state.x}/${secret.X} placeholders (unknown → empty).</summary>
-    private static string Interpolate(string? template, Dictionary<string, object?> state, Func<string, string?> secrets)
-    {
-        if (string.IsNullOrEmpty(template)) return template ?? "";
-        return Regex.Replace(template, @"\$\{([^}]+)\}", m => ValueOf(m.Groups[1].Value.Trim(), state, secrets));
-    }
-
-    /// <summary>The id inside the calendar's <c>_clickedEvent</c> action parameter — a map
-    /// {id, title, date, color} the frontend sends with every "openCalendarEvent" dispatch
-    /// (mirrors Java reading httpRequest.runActionRq().parameters().get("_clickedEvent") as a Map).</summary>
-    private static string? ClickedEventId(RunActionRqDto rq) => GetState(rq.Parameters, "_clickedEvent") switch
-    {
-        JsonElement { ValueKind: JsonValueKind.Object } el =>
-            el.TryGetProperty("id", out var id) ? StateString(id) : null,
-        IDictionary<string, object?> map => StateString(map.TryGetValue("id", out var id) ? id : null),
-        _ => null,
-    };
-
-    private static int ToInt(object? v, int fallback)
-    {
-        if (v is null) return fallback;
-        if (v is System.Text.Json.JsonElement je)
-            return je.ValueKind == System.Text.Json.JsonValueKind.Number && je.TryGetInt32(out var n) ? n : fallback;
-        return int.TryParse(v.ToString(), out var m) ? m : fallback;
-    }
 
     /// <summary>None-safe, type-stable comparer: nulls first, numbers numerically, otherwise by
     /// case-insensitive string, so mixed columns never throw.</summary>
@@ -1388,123 +312,27 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         private static bool IsNumeric(object o) => o is byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal;
     }
 
-    /// <summary>Applies the smart search bar's filter values (component state) over the fetched
-    /// rows, mirroring the Java defaults: strings by case-insensitive containment, bools/numbers
-    /// by equality, enums as IN over the multi-select values (list, or comma-joined after a URL
-    /// restore), and &lt;field&gt;_from/&lt;field&gt;_to range bounds for temporals and
-    /// [RangeFilter] numerics. A filter counts as applied when its key is present and non-blank.</summary>
-    private static bool MatchesFilters(object item, List<PropertyInfo> props, IReadOnlyDictionary<string, object?> state)
-    {
-        foreach (var p in props)
-        {
-            var key = Naming.CamelCase(p.Name);
-            var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
-            var value = p.GetValue(item);
-
-            var from = state.TryGetValue(key + "_from", out var rawFrom) ? StateString(rawFrom) : null;
-            var to = state.TryGetValue(key + "_to", out var rawTo) ? StateString(rawTo) : null;
-            if (!InRange(value, t, from, to)) return false;
-
-            if (!state.TryGetValue(key, out var raw)) continue;
-            if (t.IsEnum)
-            {
-                var wanted = MultiValues(raw);
-                if (wanted.Count > 0 && !wanted.Contains(value?.ToString() ?? "")) return false;
-                continue;
-            }
-            var text = StateString(raw);
-            if (string.IsNullOrWhiteSpace(text)) continue;
-            if (t == typeof(string))
-            {
-                if (!(value?.ToString() ?? "").Contains(text, StringComparison.OrdinalIgnoreCase)) return false;
-            }
-            else if (t == typeof(bool))
-            {
-                if (bool.TryParse(text, out var wanted) && !Equals(value, wanted)) return false;
-            }
-            else if (ReflectionMapper.IsNumeric(t))
-            {
-                if (decimal.TryParse(text, System.Globalization.NumberStyles.Any,
-                        System.Globalization.CultureInfo.InvariantCulture, out var wanted)
-                    && (value is null || Convert.ToDecimal(value) != wanted)) return false;
-            }
-            else if (!string.Equals(value?.ToString(), text, StringComparison.OrdinalIgnoreCase))
-            {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /// <summary>Range bounds compare at date granularity for temporals (the widget picks days)
-    /// and as decimals for numerics; blank/unparseable bounds are ignored rather than fatal.</summary>
-    private static bool InRange(object? value, Type t, string? from, string? to)
-    {
-        if (string.IsNullOrWhiteSpace(from) && string.IsNullOrWhiteSpace(to)) return true;
-        if (value is null) return false;
-        var invariant = System.Globalization.CultureInfo.InvariantCulture;
-        if (ReflectionMapper.IsTemporal(t))
-        {
-            var day = value is DateOnly d ? d : DateOnly.FromDateTime((DateTime)value);
-            if (!string.IsNullOrWhiteSpace(from) && DateOnly.TryParse(from, invariant, out var lower) && day < lower) return false;
-            if (!string.IsNullOrWhiteSpace(to) && DateOnly.TryParse(to, invariant, out var upper) && day > upper) return false;
-            return true;
-        }
-        if (ReflectionMapper.IsNumeric(t))
-        {
-            var v = Convert.ToDecimal(value);
-            if (!string.IsNullOrWhiteSpace(from)
-                && decimal.TryParse(from, System.Globalization.NumberStyles.Any, invariant, out var lower) && v < lower) return false;
-            if (!string.IsNullOrWhiteSpace(to)
-                && decimal.TryParse(to, System.Globalization.NumberStyles.Any, invariant, out var upper) && v > upper) return false;
-        }
-        return true;
-    }
-
-    private static string? StateString(object? raw) => raw switch
-    {
-        null => null,
-        JsonElement { ValueKind: JsonValueKind.String } el => el.GetString(),
-        JsonElement { ValueKind: JsonValueKind.Number } el => el.GetRawText(),
-        JsonElement { ValueKind: JsonValueKind.True } => "true",
-        JsonElement { ValueKind: JsonValueKind.False } => "false",
-        JsonElement { ValueKind: JsonValueKind.Null or JsonValueKind.Undefined } => null,
-        _ => raw.ToString(),
-    };
-
-    // multi-select values arrive as an array from a live client and comma-joined after a URL restore
-    private static List<string> MultiValues(object? raw) => raw switch
-    {
-        JsonElement { ValueKind: JsonValueKind.Array } el =>
-            el.EnumerateArray()
-                .Select(e => e.ValueKind == JsonValueKind.String ? e.GetString() ?? "" : e.GetRawText())
-                .Where(v => v != "").ToList(),
-        _ => (StateString(raw) ?? "")
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList(),
-    };
-
-    private static object New(Type element) => Activator.CreateInstance(element)!;
-
-    private static object GetOrNew(object crud, Type crudType, Type element, string? id) =>
-        (id is not null ? crudType.GetMethod("Get")!.Invoke(crud, [id]) : null) ?? New(element);
-
-    private static string? Delete(object crud, string id)
-    {
-        crud.GetType().GetMethod("Delete")!.Invoke(crud, [id]);
-        return "Deleted";
-    }
-
-    private static List<string> RequiredMissing(object entity, Type element) =>
-        ReflectionMapper.EditableProperties(element)
-            .Where(p => p.Find<RequiredAttribute>() != null
-                        && string.IsNullOrWhiteSpace(p.GetValue(entity)?.ToString()))
-            .Select(p => p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name))
-            .ToList();
-
     // ── Plain views ─────────────────────────────────────────────────────────────
     private UIIncrementDto RenderApp(Type appType, string title, RunActionRqDto rq, string? requestBaseUrl)
     {
         var app = _mapper.MapApp(appType, requestBaseUrl);
+        // The catalogues ride the APP metadata (app-wide configuration, not per response); a
+        // non-empty REST source catalogue adds the rest-sources capability (Java's AppMapper).
+        if (app is { Metadata: AppMetadataDto catalogued })
+        {
+            var sources = MateuCatalogs.MapCatalogue(MateuCatalogs.Sources);
+            var caps = new SortedSet<string>(catalogued.RequiredCapabilities, StringComparer.Ordinal);
+            if (sources.Count > 0) caps.Add(Capabilities.RestSources);
+            app = app with
+            {
+                Metadata = catalogued with
+                {
+                    RestSources = sources,
+                    Components = MateuCatalogs.MapComponents(MateuCatalogs.Components),
+                    RequiredCapabilities = caps.ToList(),
+                },
+            };
+        }
         // AppData: a route entry's app-scope data source rides on the app metadata — the shell
         // fetches it once into the app-data store, shared across routes. Java attaches it only from
         // a route ON THIS APP'S MOUNT (AppDto.appDataSource); the .NET port has no route↔mount
@@ -1565,19 +393,34 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
                      || (instance is not IComponentTreeSupplier
                          && !PageInference.ComposesDashboard(type)
                          && !PageInference.ComposesWelcome(type));
-        return FragmentResponse(Title(type), _mapper.MapView(type, instance, route, layoutOverride), rq,
-            LookupLabels(type, instance, instance), emitWindowTitle: isPage);
+        var (embedded, inline) = IslandFlags(rq);
+        var view = _mapper.MapView(type, instance, route, layoutOverride, embedded, inline);
+        // A `layoutDelta:` is re-applied to the FRESHLY inferred page on every render — that is the
+        // whole difference from a `layout:` snapshot, which stops the screen from re-deriving. Only
+        // for a page, and only when the route's definition is bound to THIS view model (mirrors
+        // Java's ReflectionObjectToComponentMapper + YamlUidlLoader.deltaForRoute).
+        if (isPage) view = LayoutDeltaApplier.Apply(view, DeltaFor(rq.Route, type));
+        return FragmentResponse(Title(type), view, rq,
+            LookupLabels(type, instance, instance), emitWindowTitle: isPage && !embedded);
     }
+
+    /// <summary>The <c>layoutDelta:</c> of the route's definition when it is bound to
+    /// <paramref name="type"/>, else empty — so the caller can apply it unconditionally.</summary>
+    private LayoutDelta DeltaFor(string? route, Type type) =>
+        _yaml.LoadSpec(route) is { } spec && spec.ModelView == type.FullName ? spec.Delta : LayoutDelta.Empty;
 
     /// <summary>Runs a view action. The actionId comes from the wire, so it only reaches a method
     /// DECLARED as an action (see <see cref="ActionGuard.ResolveAction"/>) and only when the caller
     /// passes its access gates; anything else is "Action not found" / 403.</summary>
-    private static UIIncrementDto RunAction(Type type, object instance, RunActionRqDto rq, IComponent? layoutOverride)
+    private UIIncrementDto RunAction(Type type, object instance, RunActionRqDto rq, IComponent? layoutOverride)
     {
         var method = ActionGuard.ResolveAction(type, instance, rq.ActionId!, layoutOverride);
         if (method is null) return Error($"Action not found: {rq.ActionId}");
         ActionGuard.EnsureMayInvoke(type, method, rq.ActionId!);
-        return MapResult(method.Invoke(instance, BuildArguments(method, rq)), rq);
+        var result = method.Invoke(instance, BuildArguments(method, rq));
+        // An action returning a routed view (itself, or the model of the view's next state)
+        // re-renders it in place — how a multi-state island switches between its states.
+        return IsRoutedViewResult(result) ? Render(result!.GetType(), result, rq) : MapResult(result, rq);
     }
 
     /// <summary>Fills a method's parameters from the action request: a row-click's _clickedRow
@@ -1729,86 +572,6 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         return ssc with { Actions = actions, Triggers = triggers };
     }
 
-    // ── ModelView contract ─────────────────────────────────────────────────────
-    private UIIncrementDto ContractResponse(Type type, RunActionRqDto rq)
-    {
-        var instance = Activator.CreateInstance(type)!;
-        BindState(instance, rq.ComponentState);
-        var component = _mapper.MapView(type, instance, rq.ConsumedRoute ?? "_empty");
-        var fields = new List<ModelViewContractDto.Field>();
-        CollectFields(component, fields);
-        var actions = component.Actions
-            .Select(a => a.Id)
-            .Where(id => !string.IsNullOrEmpty(id))
-            .Distinct()
-            .Select(id => new ModelViewContractDto.Action(id))
-            .ToList();
-        var contract = new ModelViewContractDto(type.FullName ?? "", fields, actions);
-        return new UIIncrementDto([], [], [], [], false, new Dictionary<string, object?> { ["_contract"] = contract }, null);
-    }
-
-    // A form field is the metadata of a ClientSideComponentDto — but the components themselves nest
-    // inside METADATA records (a Page/Form/Card holds its content there), not always in Children, so
-    // descend into metadata reflectively too (mirrors Java's walk + walkMetadata).
-    private static void CollectFields(ComponentDto? component, List<ModelViewContractDto.Field> fields)
-    {
-        switch (component)
-        {
-            case ClientSideComponentDto client:
-                if (client.Metadata is FormFieldMetadataDto f && !string.IsNullOrEmpty(f.FieldId)
-                    && fields.All(x => x.Id != f.FieldId))
-                    fields.Add(new ModelViewContractDto.Field(f.FieldId, f.DataType, f.Stereotype, f.Label, f.Required, f.ReadOnly));
-                if (client.Metadata is { } md) WalkMetadata(md, fields);
-                foreach (var child in client.Children) CollectFields(child, fields);
-                break;
-            case ServerSideComponentDto server:
-                foreach (var child in server.Children) CollectFields(child, fields);
-                break;
-        }
-    }
-
-    private static void WalkMetadata(object metadata, List<ModelViewContractDto.Field> fields)
-    {
-        foreach (var prop in metadata.GetType().GetProperties())
-        {
-            object? value;
-            try { value = prop.GetValue(metadata); }
-            catch { continue; }
-            if (value is ComponentDto dto)
-                CollectFields(dto, fields);
-            else if (value is System.Collections.IEnumerable seq and not string)
-                foreach (var item in seq)
-                    if (item is ComponentDto d) CollectFields(d, fields);
-        }
-    }
-
-    // Structure ETag / template-ref (phase b of the client structure cache): stamp a routed
-    // component with a stable hash of its structure and, when the client echoed a still-matching
-    // hash, omit the component so only state/data travel (the frontend merges them onto its cached
-    // structure). knownStructureHash is only ever sent on a route load, so an action re-render can
-    // never accidentally strip. Mirrors io.mateu StructureHashPostProcessor.
-    private static ComponentDto? StampOrStripStructure(ComponentDto component, RunActionRqDto rq)
-    {
-        if (component is not ServerSideComponentDto ss) return component;
-        var hash = StructureHashOf(ss);
-        // A [StaticView] is never omitted: the client caches its FULL response the first time it
-        // sees it each session and then skips the round-trip entirely, so it must always receive
-        // the component (carrying staticView=true) to learn that.
-        if (!ss.StaticView && rq.KnownStructureHash is { Length: > 0 } known && known == hash) return null;
-        return ss with { StructureHash = hash };
-    }
-
-    private static string StructureHashOf(ServerSideComponentDto component)
-    {
-        // Normalize away the two per-request fields before hashing so the SAME structure always
-        // hashes the same: the top-level id is a fresh Guid every request (an instance id, not
-        // structure) and the hash slot must not feed itself. Nested/structural ids are kept. The
-        // client only ever echoes the server's hash, so nulling id here is symmetric.
-        var normalized = component with { Id = "", StructureHash = null };
-        var json = JsonSerializer.SerializeToUtf8Bytes<ComponentDto>(normalized, WebJson);
-        return Convert.ToHexString(SHA256.HashData(json)).ToLowerInvariant();
-    }
-
     /// <summary>Fragments and commands address the component that initiated the request (the
     /// web frontend's top ux id is "_ux" — Java echoes the initiator the same way).</summary>
     private static string Target(RunActionRqDto rq) =>
@@ -1837,6 +600,17 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
                 label = (supplierHost as ILookupLabelSupplier)?.Label(fieldId, id)
                         ?? (supplierHost as IOptionsSupplier)?.Options(fieldId)
                             .FirstOrDefault(o => o.Value == id)?.Label;
+                if (label is not null)
+                {
+                    // The combo's pre-set selection: a one-option page under the field id, so the
+                    // renderer shows the label without a search round trip (Java's
+                    // LookupFieldDataWriter — searchSignature is the label).
+                    (data ??= new Dictionary<string, object?>())[fieldId] = new
+                    {
+                        searchSignature = label, pageSize = 1, pageNumber = 0, totalElements = 1,
+                        content = new[] { new OptionDto(id, label) },
+                    };
+                }
             }
             if (label is not null) (data ??= new Dictionary<string, object?>())[fieldId + "-label"] = label;
         }
@@ -1852,57 +626,4 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         UIIncrementDto.Of(messages: [new MessageDto("error", "middle", "", text, 5000)]);
 
     private static readonly JsonSerializerOptions WebJson = new(JsonSerializerDefaults.Web);
-
-    private static string? SearchText(RunActionRqDto rq) =>
-        rq.ComponentState.TryGetValue("searchText", out var v) && v is JsonElement { ValueKind: JsonValueKind.String } el
-            ? el.GetString()
-            : null;
-
-    private static object? CellValue(object? value) => value switch
-    {
-        null => null,
-        DateOnly d => d.ToString("yyyy-MM-dd"),
-        DateTime dt => dt.ToString("yyyy-MM-dd"),
-        Enum e => e.ToString(),
-        _ => value,
-    };
-
-    private static void BindState(object instance, IDictionary<string, object?> state)
-    {
-        foreach (var p in ReflectionMapper.EditableProperties(instance.GetType()))
-        {
-            // Mass-assignment guard: a field hidden ([EyesOnly]) or locked ([ReadOnlyUnless]) for
-            // this caller is never written from the wire — it keeps its server-side value.
-            if (!ActionGuard.MayWrite(p)) continue;
-            var key = Naming.CamelCase(p.Name);
-            if (!state.TryGetValue(key, out var raw) || raw is null) continue;
-            var value = ConvertValue(raw, p.PropertyType);
-            if (value is not null) p.SetValue(instance, value);
-        }
-    }
-
-    private static object? ConvertValue(object raw, Type target)
-    {
-        target = Nullable.GetUnderlyingType(target) ?? target;
-        if (raw is not JsonElement el) return raw;
-        try
-        {
-            if (el.ValueKind is JsonValueKind.Null) return null;
-            if (target == typeof(string)) return el.ValueKind == JsonValueKind.String ? el.GetString() : el.ToString();
-            if (target == typeof(bool)) return el.GetBoolean();
-            if (target == typeof(int)) return el.GetInt32();
-            if (target == typeof(long)) return el.GetInt64();
-            if (target == typeof(double)) return el.GetDouble();
-            if (target == typeof(decimal)) return el.GetDecimal();
-            if (target == typeof(DateOnly)) return DateOnly.Parse(el.GetString() ?? "");
-            if (target == typeof(DateTime)) return DateTime.Parse(el.GetString() ?? "");
-            if (target.IsEnum) return Enum.Parse(target, el.GetString() ?? "", ignoreCase: true);
-            // Complex values (grid row lists…) arrive with camelCase keys — bind them as the web wire.
-            return el.Deserialize(target, WebJson);
-        }
-        catch
-        {
-            return null;
-        }
-    }
 }

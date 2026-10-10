@@ -22,10 +22,27 @@ the `type` discriminators the renderers expect.
 The implementation lives at [`backend/dotnet`](https://github.com/miguelperezcolom/mateu/tree/master/backend/dotnet)
 (`DESIGN.md` for the plan, `README.md` for status).
 
-## Run it
+## Install
+
+Mateu.NET ships as four NuGet packages, versioned in lockstep with the Java artifacts (the release
+`v3.0-alpha.N` is `3.0.0-alpha.N` on NuGet). They target **net8.0 and net10.0**. An ASP.NET Core app
+needs only the adapter — it brings the other three:
 
 ```bash
-# .NET 8 SDK required (e.g. via https://dot.net/v1/dotnet-install.sh --channel 8.0)
+dotnet add package Mateu.AspNetCore --prerelease
+```
+
+| Package | When you reference it directly |
+|---|---|
+| `Mateu.AspNetCore` | The web app: `AddMateu()` / `MapMateu()` |
+| `Mateu.Uidl` | A class library holding only your views (the attributes and fluent components) |
+| `Mateu.Core` | Hosting the engine without ASP.NET Core (tests, another web stack) |
+| `Mateu.Dtos` | Reading or producing the wire model |
+
+## Run it from the repository
+
+```bash
+# .NET 10 SDK required (it builds both targets; the net8.0 tests also need the 8.0 runtime)
 cd backend/dotnet
 dotnet run --project samples/Mateu.Demo   # serves on http://0.0.0.0:8593
 dotnet test                               # golden-JSON tests
@@ -231,11 +248,44 @@ first tab is active by default.
 | `[Money]` | tags the field `money` so the renderer formats it as currency |
 | `[PlainText]` | renders read-only plain text (also valid at **class level** for all fields) |
 | `[Stereotype("…")]` | sets an explicit stereotype |
+| `[Text(Size = "xl", Container = "p")]` | shows the value as a text block (`${state.field}`) instead of an input |
+| `[Colspan(n)]` | the field spans `n` columns of its form row |
 
 ```csharp
 [Multiline] public string? Notes { get; set; }
 [Money]     public decimal Balance { get; set; }
 [PlainText] public string? MemberSince { get; set; }
+[Text(Size = "xl")] public string? Greeting { get; set; } = "Welcome back";
+```
+
+Intrinsically wide widgets — grids, text areas, rich text, HTML and Markdown — span the whole row of
+a multi-column section on their own; an explicit `[Colspan]` still wins. In a one-column form they
+stay one column wide.
+
+## Grids inside forms
+
+A list property of rows (`List<Guest>`) renders as a grid. Unless the form is read-only, the grid
+is editable the same way as on the Java server: **+** opens an empty row editor beside the grid,
+each row has an **Edit** button (with Prev/Next between rows), and the toolbar removes or moves the
+selected rows. Every change is applied to the form's state on the server — the list is saved with
+the form, by your own `[Button]`. The row editor validates only the row's own constraints
+(`[Required]`, `[Range]`…).
+
+With `[InlineEditing]` on the property the cells edit in place instead, and **+** appends an empty
+row to edit in place. This works on plain views, on the entity form of a `Crud<T>` and on the
+current step of a wizard.
+
+```csharp
+public class Guest { [Required] public string? Name { get; set; } public int Age { get; set; } }
+
+[UI("check-in"), Title("Check-in")]
+public class CheckIn
+{
+    public List<Guest> Guests { get; set; } = [];
+    [InlineEditing] public List<Guest> Companions { get; set; } = [];
+
+    [Button] public Message Save() => new($"{Guests.Count} guests");
+}
 ```
 
 ## KPIs & floating action buttons
@@ -317,7 +367,8 @@ public class SalesDashboard : Dashboard   // or Foldout, Welcome, ItemOverview
 - **Events** — `[Emits("event-name")]` advertises an event a view emits; `[SubscribeTo("event",
   "action")]` runs `action` when that event fires (an `OnCustomEvent` trigger).
 - **Security** — `[Secured("permission")]` marks a view as requiring a permission; the `[App]` shell
-  can carry login/logout URLs.
+  can carry login/logout URLs. Field and action access is covered in
+  [Identity, permissions and secrets](#identity-permissions-and-secrets) below.
 
 ```csharp
 public class UpperTranslator : ITranslator
@@ -328,6 +379,57 @@ public class UpperTranslator : ITranslator
 [UI("orders"), Emits("order-created"), SubscribeTo("inventory-changed", "refresh")]
 public class Orders { /* … */ }
 ```
+
+## Identity, permissions and secrets
+
+`[EyesOnly]` (hide), `[ReadOnlyUnless]` (lock) and `[DisabledUnless]` (disable, and refuse the
+action with HTTP 403 when invoked anyway) match the caller's `Identity` — roles, groups, scopes,
+permissions: AND across the declared dimensions, OR within each, and no identity means
+unauthorized. `AddMateu` takes the identity from **`HttpContext.User`**, so whatever authentication
+the host configures (JWT bearer, cookies, Windows) applies as is:
+
+| Dimension | Claims read |
+|---|---|
+| roles | the identity's role claim type (what `IsInRole` reads), `role`, `roles` |
+| groups | `groups`, `group` |
+| scopes | `scope`, `scp` (space-separated) |
+| permissions | `permissions`, `permission` |
+
+A claim holding a JSON array is split. When your claims are shaped differently, map them yourself:
+
+```csharp
+builder.Services.AddAuthentication().AddJwtBearer();
+builder.Services.AddMateu(o =>
+{
+    o.Identity = ctx => ctx.User.Identity?.IsAuthenticated == true
+        ? new Identity(Roles: ctx.User.FindAll("app_roles").Select(c => c.Value).ToList())
+        : null;
+    // ${secret.KEY} in a PROXIED REST source (the only channel that injects secrets, so the key
+    // never reaches the browser). Without it: an ISecretsProvider service, else the env var KEY.
+    o.Secrets = key => builder.Configuration[$"Mateu:Secrets:{key}"];
+}, typeof(Program).Assembly);
+```
+
+`[Audience("staff")]` is **not** one of these gates. The audience is the value of the `[AppContext]`
+selector named `audience` — app state the client sends — so it only *projects* what is rendered
+(fields, buttons, menu entries for that persona). It never refuses an invocation: anything a client
+could get by clearing a selector is not protected. Put `[EyesOnly]`/`[DisabledUnless]` on whatever
+must really be restricted.
+
+## Errors
+
+An exception escaping an action does not reach the browser as a raw HTTP 500 (which no renderer can
+show). The endpoint answers an error toast instead:
+
+- throw a **`UserFacingException`** (`Mateu.Uidl`) for a business refusal — its message (and
+  optional title) is shown as is: `throw new UserFacingException("The booking is already checked in");`
+- any other exception is a failure: the user sees a generic message with a **correlation id** (the
+  trace id), and the exception is logged with the same id. In the Development environment the
+  message is shown too; `o.DetailedErrors = true/false` overrides that.
+
+Mateu's own diagnostics (an unparseable YAML definition, a broken `routes.yaml`, a proxied endpoint
+that failed, a wire value that could not be converted) are logged as warnings through the app's
+`ILoggerFactory` under `Mateu.*` categories.
 
 ## Navigation links, radio groups & adaptive layout
 
@@ -424,25 +526,93 @@ The island mounts its own `mateu-ux` against the remote backend and runs its own
 
 ## Adapting foreign classes (component adapters)
 
-Java's `ComponentAdapter` SPI renders third-party classes that carry no Mateu annotations. In C#
-the idiomatic equivalent needs no SPI: **wrap** the foreign object in a view — the mapper renders
-any plain properties reflectively, and your actions write back:
+Java's `ComponentAdapter` SPI is available as is: an adapter renders a domain object that is NOT a
+Mateu view and carries no Mateu attributes, and rebuilds it from the state that comes back on an
+action. Adapters are discovered in the scanned assemblies, registered with
+`MateuRegistry.RegisterAdapter`, or registered as `IComponentAdapter` services (picked up by
+`AddMateu`).
 
 ```csharp
-[UI("/pedido")]
-public class PedidoView   // Pedido is a third-party class you cannot touch
+[UI("pedido")]                       // routing only — the adapter owns the whole UI
+public class Pedido { public string Cliente { get; set; } = "Acme"; public decimal Importe { get; set; } }
+
+public class PedidoAdapter : ComponentAdapter<Pedido>
 {
-    private readonly Pedido _pedido = PedidoRepo.Load();
+    public override AdaptedView Adapt(Pedido p) => AdaptedView.Of(
+        new VerticalLayout { Content = [new FormField { FieldId = "cliente", Label = "Cliente" }, new Button("Guardar", "guardar")] },
+        state: new Dictionary<string, object?> { ["cliente"] = p.Cliente },
+        actions: ["guardar"]);
 
-    public string Cliente { get => _pedido.Cliente; set => _pedido.Cliente = value; }
-    public decimal Importe { get => _pedido.Importe; set => _pedido.Importe = value; }
-
-    [Button] public Message Guardar() { PedidoRepo.Save(_pedido); return new Message("Saved"); }
+    public override Pedido Deserialize(IReadOnlyDictionary<string, object?> state)
+    {
+        var p = new Pedido();                     // the initial load passes an EMPTY state:
+        if (state.TryGetValue("cliente", out var c)) p.Cliente = (string)c!;   // overwrite only what came
+        return p;
+    }
 }
 ```
 
-For full control of the UI, implement `IComponentTreeSupplier` on the wrapper instead and emit a
-fluent tree.
+An action listed in `Actions` runs the method of that name on the rebuilt model. A property of an
+adapted type on a normal form renders as an independent island that round-trips through the
+adapter on its own.
+
+## Embedded islands
+
+A property whose type is a routed `[UI]` view embeds that view as an independent island: its own
+server-side type, actions and state, inside the host page. The host seeds it by setting the
+property — the value's simple properties (ids, flags) become the island's initial state. `[Inline]`
+drops the island's own chrome (badges, KPIs, the card around a single section; the title demoted)
+so it blends into the host section or tab. An island action that returns a routed view re-renders
+the island in place — the way to build an element with several server-decided states (empty →
+data → editor).
+
+```csharp
+[UI("documento"), Title("Documento")]
+public class DocumentoView { public string? StayId { get; set; } /* … state-dependent fields … */ }
+
+[UI("check-in/:id"), Title("Check-in")]
+public class CheckIn
+{
+    [Section("Identidad"), Inline] public DocumentoView Documento { get; set; } = new() { StayId = "42" };
+}
+```
+
+## Listing exports
+
+`CsvExportable`, `ExcelExportable` and `PdfExportable` (on `Crud<T>`, on `Listing<F,R>`, or on any
+listing implementing `ICrudExports`) add **Export CSV / Excel / PDF** to the listing toolbar. Each
+exports the WHOLE filtered result set (search text, filters and sort — not just the page) and
+answers a `DownloadFile`. The built-in writers have no third-party dependency (an Office Open XML
+workbook and a paginated PDF table); register your own `ICsvExporter`, `IExcelExporter` or
+`IPdfExporter` as a service to replace them.
+
+## Group actions
+
+On a listing whose row type has a `[GroupBy]` column, a method marked `[GroupAction("Label")]`
+becomes a button on every group header row; a `string` parameter receives the clicked group's
+value. Implement `IGroupActionVisibility` to hide it on some groups. When a custom listing returns
+rows without computing groups, the server synthesizes the group counts from them.
+
+## REST source catalogue and business components
+
+Name an endpoint once and reference it everywhere: `specs/ui/sources.yaml` (authored, wins), or
+`[RestSource("countries", "https://…")]` on a registered view / an `IRestSourceCatalogSupplier`
+class (derived). A surface then says `[RestOptions(Source = "countries")]`. The catalogue travels
+to the client on the app metadata (`restSources`), so a statically deployed screen can be
+re-pointed without a rebuild, and a proxied source is resolved from the SERVER's table — its
+`${secret.KEY}` never reaches the browser. A view assembled at runtime declares its sources by
+implementing `IRestSourceSupplier`; they gate and resolve the proxy exactly like the attributes.
+
+Business components work the same way: `specs/ui/components.yaml`, `[BusinessComponent("name")]`
+or an `IComponentCatalogSupplier` name a bound composition, and `new ComponentRef("name")` (or
+`type: ComponentRef` in YAML) places it; the server expands it before it reaches the wire.
+
+## YAML layout deltas
+
+A YAML definition bound to a view model can carry `layoutDelta:` instead of a full `layout:` — what
+a person changed about the INFERRED layout (hidden fields, label/colspan overrides, order within a
+container), anchored to field ids and re-applied on every render, so the screen keeps following its
+model. A delta that cannot be applied is logged and the inferred layout renders.
 
 ## Semantic attributes
 
@@ -562,10 +732,11 @@ unsaved-changes guard), the nine dashboard/UX component types (MetricCard, Score
 DashboardPanel, DashboardLayout, FoldoutLayout, HeroSection, EmptyState, Skeleton, Gantt) and the
 declarative page archetypes (Dashboard, Foldout, Welcome, ItemOverview). Federated microfrontends
 (`[RemoteMenu]` + the `MicroFrontend` component) and the SSE/AI chat entry point (`[AI]` → the
-app's `SseUrl`) are wired through the mapper as well. Over 270 tests cover this port, including a
+app's `SseUrl`) are wired through the mapper as well. Over 520 tests (run on net8.0 and net10.0) cover this port, including a
 golden-JSON wire-conformance corpus (`WireConformanceTests`) that checks the emitted JSON against
 shared `expected.json` snapshots derived from the Java reference.
 
-Beyond the core, the remaining Java features (the component-adapter SPI, the other framework
-adapters, the static-bundle exporter) follow the same pattern: extend the mapper, add a metadata
-DTO, add a conformance case.
+The shared wire-conformance corpus is a hard gate for this port: `WireConformanceTests` fails on
+any difference from the Java reference outside a short, path-scoped allow-list of defects in the
+Java goldens themselves (see the test for the reasons).
+
