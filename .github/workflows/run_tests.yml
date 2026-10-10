@@ -103,6 +103,9 @@ jobs:
       - name: Redwood core contract tests
         run: cd frontend/web/monorepo/apps/redwood/poc && node test.mjs
 
+      - name: Redwood atom template is expanded in every surface
+        run: cd frontend/web/monorepo/apps/redwood/poc && node make-html.mjs --check
+
       - name: MCP server tests
         run: cd frontend/mcp-server && node --test
 
