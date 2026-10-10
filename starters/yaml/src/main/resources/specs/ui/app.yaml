@@ -1,0 +1,11 @@
+# The app shell: title and menu around every screen, bound to the mount root ("") in routes.yaml.
+# Each menu entry routes to an entry of the route registry.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/uidl-schema.json
+type: AppShell
+title: My app
+variant: MENU_ON_TOP
+menu:
+  - type: RouteLink
+    label: Products
+    route: products
+  # __MENU__

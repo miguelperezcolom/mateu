@@ -5,6 +5,16 @@ description: Context files for Claude, Gemini, Cursor, and other AI tools to gen
 
 AI coding assistants generate much better Mateu code when they have the API in their context. This page provides ready-to-use reference files for the most common tools.
 
+## Projects ship their own guidance
+
+A project created from the [New Project front doors](/java-create-your-project/) (IntelliJ, VS Code,
+the Maven archetype) — and every [starter](https://github.com/miguelperezcolom/mateu/tree/master/starters)
+— carries an **`AGENTS.md`**: what the project is, its layout, how to run it, where its UI is
+declared and the rules an assistant must respect. Its **`CLAUDE.md`** imports it (`@AGENTS.md`), so
+Claude Code reads the same text as Codex, Cursor, Copilot and the other tools that read
+`AGENTS.md`. Each flavour gets its own: a YAML-only project's assistant is told to edit `specs/ui`
+and not to add Java UI classes.
+
 ## Reference files
 
 | File | Size | Best for |

@@ -8,6 +8,7 @@ import '@infra/ui/mateu-api-caller.ts'
 import '@infra/ui/mateu-ux.ts'
 import type { ProjectFile } from '../model/projectIndex'
 import { buildPlayManifest, filesDeclareAccess } from '../model/playManifest'
+import { withPreviewImages, type ProjectImage } from '../model/projectImages'
 import { VIEWPORTS, ViewportId, viewportWidth } from '../model/viewport'
 import { PROJECT_RENDERER_LABELS, type ProjectRendererId } from '../model/projectSettings'
 import './redwood-play'
@@ -59,6 +60,8 @@ export class MountPlay extends LitElement {
 
     /** The mount's files, the edited one already laid over its saved copy. */
     @property({ attribute: false }) files: ProjectFile[] = []
+    /** The project's images: Play shows them from where the host serves them (no backend does). */
+    @property({ attribute: false }) images: readonly ProjectImage[] = []
     /** The route play opens on ('' = the mount root). */
     @property() start = ''
     /** The backend for what the browser cannot expand (view-model routes, server actions); '' = none. */
@@ -106,12 +109,13 @@ export class MountPlay extends LitElement {
     }
 
     protected willUpdate(changed: PropertyValues) {
-        if (changed.has('files')) this.loadManifest()
+        if (changed.has('files') || changed.has('images')) this.loadManifest()
         if (changed.has('start') && this.at < 0) { this.history = [clean(this.start)]; this.at = 0 }
     }
 
     private loadManifest() {
         const built = buildPlayManifest(this.files)
+        built.definitions = withPreviewImages(built.definitions, this.images)
         this.locales = Object.keys(built.translations ?? {})
         this.accessRules = filesDeclareAccess(this.files)
         const manifest = JSON.stringify(built)

@@ -7,7 +7,7 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { islandContentOf, setEditorNodeIds, fieldListOf, actionsOf, formSectionsOf } from './reduceContexts.mjs'
+import { islandContentOf, setEditorNodeIds, fieldListOf, actionsOf, formSectionsOf, welcomeOf, itemOverviewOf } from './reduceContexts.mjs'
 import {
   PREVIEW_ROUTE, isEditorPreview, previewAppIncrement, previewLoadIncrement, previewAnswerOf, previewFetch,
   stampNodeIds, nodeIdOfPath, elementOfNodeId,
@@ -178,6 +178,94 @@ test('only the editor preview page enters the mode, and the shell wires it befor
   assert.equal(shell.split('setEditorNodeIds(').length - 1, 1)
   assert.ok(shell.indexOf('setEditorNodeIds(true)') > guard)
   assert.ok(shell.indexOf('installEditorPreview(') < shell.indexOf('bridge.bootstrapShell(base)'))
+})
+
+// the Welcome page template, as the editor's preview sends it (expanded, with ve-<path> ids)
+const welcome = () => node({ type: 'VerticalLayout' }, [
+  node({ type: 'HeroSection', title: 'Welcome', subtitle: 'Hi' }, [
+    node({ type: 'Button', label: 'Get started', actionId: 'getStarted' }, [], 've-0-0'),
+    node({ type: 'Button', label: 'Learn more', actionId: 'learnMore' }, [], 've-0-1'),
+  ], 've-0'),
+  node({ type: 'DashboardLayout', columns: 3 }, [
+    node({ type: 'DashboardPanel', title: 'Orders' }, [node({ type: 'Text', text: 'Track orders.' }, [], 've-1-items.0-0')], 've-1-items.0'),
+    node({ type: 'DashboardPanel', title: 'Customers' }, [node({ type: 'Text', text: 'Everyone.' }, [], 've-1-items.1-0')], 've-1-items.1'),
+  ], 've-1'),
+], 've-root')
+
+test('editor mode: the welcome banner, its CTAs, its tiles and their texts carry their node ids', () => {
+  setEditorNodeIds(false)
+  const plain = welcomeOf({ tree: welcome(), state: {}, data: {} })
+  assert.ok(!JSON.stringify(plain).includes('ve-'), 'production: no editor id')
+  setEditorNodeIds(true)
+  try {
+    const w = welcomeOf({ tree: welcome(), state: {}, data: {} })
+    assert.equal(w.nodeId, 've-0')
+    assert.equal(w.ctaNodeIds, 've-0-0 ve-0-1')
+    assert.equal(w.tilesNodeId, 've-1')
+    assert.deepEqual(w.tiles.map((t) => t.nodeId), ['ve-1-items.0', 've-1-items.1'])
+    assert.deepEqual(w.tiles[0].textNodes, [{ text: 'Track orders.', nodeId: 've-1-items.0-0' }])
+  } finally {
+    setEditorNodeIds(false)
+  }
+})
+
+test('editor mode: a dashboard panel is its own node (not the layout\'s), and each metric is its MetricCard\'s', () => {
+  const dashboard = node({ type: 'VerticalLayout' }, [
+    node({ type: 'Scoreboard' }, [
+      node({ type: 'MetricCard', title: 'Revenue', value: '1.2M' }, [], 've-0-metrics.0'),
+      node({ type: 'MetricCard', title: 'Orders', value: '3' }, [], 've-0-metrics.1'),
+    ], 've-0'),
+    node({ type: 'DashboardLayout', columns: 2 }, [
+      node({ type: 'DashboardPanel', title: 'Sales' }, [node({ type: 'Text', text: 'chart' }, [], 've-1-items.0-0')], 've-1-items.0'),
+      node({ type: 'DashboardPanel', title: 'Latest' }, [node({ type: 'Text', text: 'list' }, [], 've-1-items.1-0')], 've-1-items.1'),
+    ], 've-1'),
+  ], 've-root')
+  setEditorNodeIds(true)
+  try {
+    const blocks = islandContentOf({ tree: dashboard, state: {}, data: {} })
+    const all = JSON.stringify(blocks)
+    for (const id of ['ve-0-metrics.0', 've-0-metrics.1', 've-1-items.0', 've-1-items.1', 've-1-items.0-0', 've-1-items.1-0']) {
+      assert.ok(all.includes(`"nodeId":"${id}"`), id + ' is projected')
+    }
+  } finally {
+    setEditorNodeIds(false)
+  }
+})
+
+test('editor mode: an item overview\'s key panel, tab bar and tabs carry their node ids', () => {
+  const tree = node({ type: 'HorizontalLayout' }, [
+    node({ type: 'Card', content: node({ type: 'Text', text: 'key' }, [], 've-0-0') }, [], 've-0'),
+    node({ type: 'TabLayout' }, [
+      node({ type: 'Tab', label: 'Details' }, [node({ type: 'Text', text: 'd' }, [], 've-1-tabs.0-0')], 've-1-tabs.0'),
+      node({ type: 'Tab', label: 'History' }, [node({ type: 'Text', text: 'h' }, [], 've-1-tabs.1-0')], 've-1-tabs.1'),
+    ], 've-1'),
+  ], 've-root')
+  setEditorNodeIds(true)
+  try {
+    const ov = itemOverviewOf({ tree, state: {}, data: {} })
+    assert.equal(ov.keyNodeId, 've-0')
+    assert.equal(ov.tabsNodeId, 've-1')
+    assert.deepEqual(ov.tabs.map((t) => t.nodeId), ['ve-1-tabs.0', 've-1-tabs.1'])
+  } finally {
+    setEditorNodeIds(false)
+  }
+})
+
+test('stamping: an id the page binds itself is kept, its children inherit it, and its buttons get theirs in order', () => {
+  const b1 = el({}); const b2 = el({})
+  const banner = el(undefined, [el(undefined, [b1, b2])])
+  banner.setAttribute('data-node-bound', '')
+  banner.setAttribute('data-node-id', 've-0')
+  banner.setAttribute('data-node-buttons', 've-0-0 ve-0-1')
+  banner.querySelectorAll = () => [b1, b2]
+  const inside = el({ text: 'no node of its own' })
+  banner.children.push(inside)
+  const count = stampNodeIds(el(undefined, [banner]), (e) => e.data)
+  assert.equal(banner.getAttribute('data-node-id'), 've-0', 'not wiped as stale')
+  assert.equal(b1.getAttribute('data-node-id'), 've-0-0')
+  assert.equal(b2.getAttribute('data-node-id'), 've-0-1')
+  assert.equal(inside.getAttribute('data-node-id'), null)
+  assert.ok(count >= 1)
 })
 
 await Promise.all(pending)

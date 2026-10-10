@@ -12,6 +12,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 ## [Unreleased] — towards 3.0 beta
 
 ### Documentation, starters and demos
+- **New Mateu project, everywhere**: IntelliJ **File › New › Project › Mateu**, VS Code **Mateu:
+  New Project…** and the **`io.mateu:mateu-archetype`** Maven archetype (`-Dauthoring=code|yaml|static`)
+  generate the same project from the same templates — the starters — via one description
+  (`starters/generator/new-project.json`): authoring (code, YAML served by a backend, static YAML,
+  code + YAML), runtime, renderer, sample, page templates, coordinates, latest release. Two new
+  starters, `yaml` (no UI code) and `static` (no backend), are built and smoke-tested like the rest.
+  Every starter and generated project ships an `AGENTS.md` plus a `CLAUDE.md` that imports it.
 - **Starters**: `starters/` holds the smallest complete app on every runtime — Spring MVC, Spring
   WebFlux, Quarkus, Micronaut, Helidon MP, ASP.NET Core (C#) and FastAPI (Python). CI compiles the
   Java ones against each commit, boots them and loads their CRUD. The quickstart is the Spring MVC

@@ -201,6 +201,7 @@ export default defineConfig({
 							label: 'Start Here',
 							items: [
 								{ slug: 'java-user-manual/start-here/quickstart' },
+								{ slug: 'java-user-manual/start-here/quickstart-yaml' },
 								{ slug: 'java-user-manual/start-here/first-app' },
 							],
 						},
@@ -321,6 +322,7 @@ export default defineConfig({
 				{
 					label: 'Create Your Project',
 					items: [
+						{ slug: 'java-create-your-project' },
 						{ slug: 'java-create-your-project/prerequisites' },
 						{ slug: 'java-create-your-project/springboot-mvc' },
 						{ slug: 'java-create-your-project/springboot-webflux' },

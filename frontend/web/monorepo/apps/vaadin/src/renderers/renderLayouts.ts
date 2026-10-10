@@ -1,6 +1,7 @@
 import Component from "@mateu/shared/apiClients/dtos/Component";
 import FormLayout from "@mateu/shared/apiClients/dtos/componentmetadata/FormLayout";
 import {html, LitElement, nothing, TemplateResult} from "lit";
+import { nodeIdAttr } from "@infra/ui/renderers/nodeIdStamp.ts";
 import Tab from "@mateu/shared/apiClients/dtos/componentmetadata/Tab";
 import AccordionPanel from "@mateu/shared/apiClients/dtos/componentmetadata/AccordionPanel";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
@@ -297,6 +298,7 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
                         const shortcut = (child.metadata as Tab).shortcut
                         return html`
                         <vaadin-tab id="${tabIds[index]}"
+                                    data-node-id="${nodeIdAttr(child)}"
                                     style="${child.style}"
                                     class="${child.cssClasses}"
                                     data-shortcut="${shortcut ?? nothing}"
@@ -305,7 +307,7 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
                 </vaadin-tabs>
 
                 ${component.children?.map((child, index) => html`
-                    <div slot="panel-${index}" style="padding: var(--lumo-space-m) 0;">
+                    <div slot="panel-${index}" data-node-id="${nodeIdAttr(child)}" style="padding: var(--lumo-space-m) 0;">
                         ${withinTab(tabIds[index], () => (child as ClientSideComponent).children?.map(grandChild => renderComponent(container, grandChild, baseUrl, state, data, appState, appData)))}
                     </div>`)}
             </mateu-adaptive-tabs>
@@ -331,6 +333,7 @@ export const renderTabLayout = (container: LitElement, component: ClientSideComp
                     const shortcut = (child.metadata as Tab).shortcut
                     return html`
                     <vaadin-tab id="${tabIds[index]}"
+                                data-node-id="${nodeIdAttr(child)}"
                                 style="${child.style}"
                                 class="${child.cssClasses}"
                                 data-shortcut="${shortcut ?? nothing}"
@@ -354,7 +357,7 @@ export const renderTab = (container: LitElement, tab: ClientSideComponent, baseU
     const rawLabel = (tab.metadata as Tab).label
     const label = rawLabel?.includes('${') ? (container as any)._evalTemplate(rawLabel) : rawLabel
     return html`
-        <div tab="${tabId ?? label}" style="padding: var(--lumo-space-m) 0;">
+        <div tab="${tabId ?? label}" data-node-id="${nodeIdAttr(tab)}" style="padding: var(--lumo-space-m) 0;">
                    ${tab.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
                </div>
             `
@@ -404,7 +407,7 @@ export const renderAccordionPanel = (container: LitElement, panel: ClientSideCom
     const metadata = panel.metadata as AccordionPanel
     const label = metadata.label?.includes('${') ? (container as any)._evalTemplate(metadata.label) : metadata.label
     return html`
-        <vaadin-accordion-panel style="${panel.style}"
+        <vaadin-accordion-panel data-node-id="${nodeIdAttr(panel)}" style="${panel.style}"
                                 class="${panel.cssClasses}"
                                 theme="${variant??nothing}"
                                 ?opened="${metadata.active}"

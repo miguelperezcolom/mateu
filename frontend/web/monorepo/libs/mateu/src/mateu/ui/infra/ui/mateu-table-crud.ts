@@ -1,4 +1,5 @@
 import { byLine } from './listingLines'
+import { stampButton } from "@infra/ui/renderers/nodeIdStamp.ts";
 import {customElement, property, state} from "lit/decorators.js";
 import { emptyStateTemplate } from "@infra/ui/renderers/emptyStateRenderer.ts";
 import "@infra/ui/mateu-skeleton.ts";
@@ -964,18 +965,18 @@ export class MateuTableCrud extends LitElement {
             const custom = componentRenderer.get()?.renderToolbarButton?.(
                 button, this.evalLabel(button.label), () => this.handleToolbarButtonClick(button))
             if (custom) {
-                return custom
+                return stampButton(button, custom)
             }
             // The DS-neutral fallback carries the theme BOTH as an attribute (for a design system
             // that reads it) and as classes, because a plain <button> has no theme mechanism of
             // its own — a red bulk action would otherwise render like any other button here.
-            return html`
+            return stampButton(button, html`
                 <button class="crud-btn ${neutralButtonClass(button)}"
                         data-action-id="${button.id}"
                         theme="${buttonTheme(button) || nothing}"
                         @click="${() => this.handleToolbarButtonClick(button)}"
                 >${this.evalLabel(button.label)}</button>
-            `
+            `)
         }
 
 

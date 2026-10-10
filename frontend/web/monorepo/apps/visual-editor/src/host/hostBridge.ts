@@ -6,6 +6,7 @@
  */
 import { SAMPLE_YAML } from '../model/catalog'
 import type { ProjectFile } from '../model/projectIndex'
+import type { ProjectImage } from '../model/projectImages'
 import { decodeShared, hasSharedDesign, type SharedDesign } from '../model/shareLink'
 
 export interface HostBridge {
@@ -53,6 +54,39 @@ export interface HostBridge {
     openFile?(path: string): Promise<string | undefined>
     /** Subscribe to out-of-band file changes (the file edited elsewhere). Optional. */
     onExternalChange?(cb: (yaml: string) => void): void
+    /**
+     * The project's image files (png, jpg, gif, svg, webp, avif under the web roots the app serves —
+     * `src/main/resources/static`, `public`, `wwwroot`, …), each with the URL the app serves it at and
+     * a thumbnail the editor can show. A host without a project (the standalone browser) has none:
+     * the image fields are then plain text.
+     */
+    listImages?(): Promise<ProjectImage[]>
+    /** The host pushes the list again when an image is added, changed or removed. */
+    onImagesChanged?(cb: (images: ProjectImage[]) => void): void
+    /**
+     * "Add image to project…": the host lets the author pick a file, copies it into the project's
+     * images folder (creating it) and resolves to it — undefined when the author cancels.
+     */
+    addImage?(): Promise<ProjectImage | undefined>
+    /**
+     * Write ANOTHER file of the mount (path relative to `specs/ui`; `null` deletes a file the board
+     * created) — the board's edits: a route, a menu entry, a new screen. The current file keeps going
+     * through `onContentChanged`. The host pushes the files again afterwards (`onFilesChanged`).
+     */
+    writeFile?(path: string, content: string | null): void
+}
+
+/** A path the board may write: relative to specs/ui, no `..`, no absolute path. */
+export function isWritablePath(path: string): boolean {
+    return !!path && !path.startsWith('/') && !/^[A-Za-z]:/.test(path) && !path.split(/[\\/]/).includes('..') && /\.ya?ml$/.test(path)
+}
+
+/** Keep what a host sent that looks like an image entry. */
+export function imagesOf(raw: unknown): ProjectImage[] {
+    if (!Array.isArray(raw)) return []
+    return raw.filter((i): i is ProjectImage => !!i && typeof i === 'object'
+        && typeof (i as ProjectImage).url === 'string' && typeof (i as ProjectImage).thumb === 'string')
+        .map((i) => ({ path: typeof i.path === 'string' ? i.path : i.url, url: i.url, thumb: i.thumb, ...(typeof i.src === 'string' ? { src: i.src } : {}) }))
 }
 
 /**
@@ -133,6 +167,9 @@ export class MessageHost implements HostBridge {
     private _resolveFiles?: (files: ProjectFile[]) => void
     private _filesListeners: ((files: ProjectFile[]) => void)[] = []
     private _path?: string
+    private _resolveImages?: (images: ProjectImage[]) => void
+    private _imagesListeners: ((images: ProjectImage[]) => void)[] = []
+    private _resolveAdded?: (image: ProjectImage | undefined) => void
 
     constructor(private channel: HostChannel) {
         // the channel's own events come from the host by construction
@@ -160,6 +197,16 @@ export class MessageHost implements HostBridge {
             if (pending) pending(files)
             // an unsolicited push (a file changed) or an answer that arrived after the timeout
             else this._filesListeners.forEach((cb) => cb(files))
+        } else if (msg.type === 'images') {
+            const images = imagesOf(msg.images)
+            const pending = this._resolveImages
+            this._resolveImages = undefined
+            if (pending) pending(images)
+            else this._imagesListeners.forEach((cb) => cb(images))
+        } else if (msg.type === 'imageAdded') {
+            const pending = this._resolveAdded
+            this._resolveAdded = undefined
+            pending?.(imagesOf(msg.image ? [msg.image] : [])[0])
         }
     }
 
@@ -175,6 +222,31 @@ export class MessageHost implements HostBridge {
     }
 
     onFilesChanged(cb: (files: ProjectFile[]) => void) { this._filesListeners.push(cb) }
+
+    writeFile(path: string, content: string | null) {
+        if (isWritablePath(path)) this.channel.postMessage({ type: 'writeFile', path, content })
+    }
+
+    onImagesChanged(cb: (images: ProjectImage[]) => void) { this._imagesListeners.push(cb) }
+
+    /** Ask the host for the project's images; empty when it does not answer in time (a late answer,
+     *  like every later push, reaches {@link onImagesChanged}). */
+    listImages(): Promise<ProjectImage[]> {
+        this.channel.postMessage({ type: 'listImages' })
+        return new Promise((resolve) => {
+            this._resolveImages = resolve
+            setTimeout(() => {
+                if (this._resolveImages) { this._resolveImages = undefined; resolve([]) }
+            }, 3000)
+        })
+    }
+
+    /** The host shows a file chooser; no time limit (the author may take a while), a cancel answers. */
+    addImage(): Promise<ProjectImage | undefined> {
+        this._resolveAdded?.(undefined)
+        this.channel.postMessage({ type: 'addImage' })
+        return new Promise((resolve) => { this._resolveAdded = resolve })
+    }
 
     /** Ask the IDE host for the project's files; resolve empty if it does not answer in time (a late
      *  answer still reaches {@link onFilesChanged}). */
@@ -213,6 +285,16 @@ class BrowserHost implements HostBridge {
     // Standalone has no IDE and no native save, so a local edit is kept as a localStorage draft.
     onContentChanged(yaml: string) {
         localStorage.setItem(this.key, yaml)
+    }
+
+    /** The board's edits land in the standalone project (a `{path: yaml}` map in localStorage). */
+    writeFile(path: string, content: string | null) {
+        if (!isWritablePath(path)) return
+        let map: Record<string, string> = {}
+        try { map = JSON.parse(localStorage.getItem(this.projectKey) ?? '{}') } catch { /* start empty */ }
+        if (content === null) delete map[path]
+        else map[path] = content
+        localStorage.setItem(this.projectKey, JSON.stringify(map))
     }
 
     async listFiles(): Promise<ProjectFile[]> {

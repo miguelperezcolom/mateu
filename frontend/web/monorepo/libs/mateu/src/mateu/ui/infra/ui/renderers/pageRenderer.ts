@@ -1,4 +1,5 @@
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
+import { buttonId } from "@infra/ui/renderers/nodeIdStamp.ts";
 import { html, LitElement, nothing } from "lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import PageComponent from "@mateu/shared/apiClients/dtos/componentmetadata/PageComponent.ts";
@@ -88,7 +89,7 @@ export const renderPage = (container: LitElement, rawComponent: ClientSideCompon
         ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
         ${metadata?.buttons?.map(button => html`
                    ${renderComponent(container, {
-            id: button.actionId,
+            id: buttonId(button),
             metadata: button,
             type: ComponentType.ClientSide,
             slot: 'buttons'

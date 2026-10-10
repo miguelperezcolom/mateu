@@ -138,6 +138,37 @@ val copySpecsSchema = tasks.register<Copy>("copySpecsSchema") {
 sourceSets.main.get().resources.srcDir(schemaResourceDir)
 tasks.named("processResources") { dependsOn(copySpecsSchema) }
 
+// New Project wizard: the repository's starters (the templates, compiled and booted by CI) and the
+// generator's data (starters/generator), copied at build time — never a committed duplicate — plus an
+// index.txt listing them, since a jar's resources cannot be listed.
+val startersDir = projectDir.resolve("../../../starters")
+val startersResourceDir = layout.buildDirectory.dir("generated/starters")
+val startersExcluded = setOf("target", "node_modules", "bin", "obj", "__pycache__", ".pytest_cache", ".venv", ".idea", ".DS_Store")
+val copyStarters = tasks.register("copyStarters") {
+    description = "Copy the Mateu starters (New Project templates) into the plugin resources."
+    val source = startersDir
+    val excluded = startersExcluded
+    val target = startersResourceDir
+    inputs.files(fileTree(source) { exclude("**/target/**", "**/node_modules/**", "**/bin/**", "**/obj/**", "**/__pycache__/**", "**/.venv/**") })
+    outputs.dir(target)
+    doLast {
+        check(source.resolve("generator/new-project.json").exists()) { "missing $source/generator/new-project.json" }
+        val out = target.get().dir("mateu/starters").asFile
+        out.deleteRecursively()
+        val files = source.walkTopDown()
+            .onEnter { it == source || it.name !in excluded }
+            .filter { it.isFile && it.name !in excluded }
+            .map { it.relativeTo(source).invariantSeparatorsPath }
+            .sorted().toList()
+        // Gradle's resource processing drops `.gitignore` files (Ant's default excludes), so they are
+        // stored under a neutral name; MateuProjectGenerator.resourceName maps the path back.
+        for (rel in files) source.resolve(rel).copyTo(out.resolve(rel.replace(Regex("(^|/)\\.gitignore$"), "$1_dot_gitignore")), overwrite = true)
+        out.resolve("index.txt").writeText(files.joinToString("\n", postfix = "\n"))
+    }
+}
+sourceSets.main.get().resources.srcDir(startersResourceDir)
+tasks.named("processResources") { dependsOn(copyStarters) }
+
 // `./gradlew runIde` launches the IDE (from the configured platform) with the Mateu plugin — open
 // the "Mateu" tool window (View ▸ Tool Windows ▸ Mateu, or the Mateu menu). The consent flag just
 // skips the data-sharing prompt on a fresh dev sandbox.

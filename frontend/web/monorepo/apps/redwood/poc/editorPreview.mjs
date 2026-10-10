@@ -159,6 +159,15 @@ export function nodeIdOfPath(path) {
 export function stampNodeIds(root, dataOf) {
   let count = 0
   const walk = (el, inherited) => {
+    // an id the PAGE binds itself (data-node-bound: an element outside any for-each, such as the
+    // welcome banner) is the element's own; its descendants inherit it like any other
+    if (el.hasAttribute && el.hasAttribute('data-node-bound')) {
+      const bound = el.getAttribute('data-node-id') || ''
+      if (bound) count++
+      stampButtonsOf(el)
+      for (const child of Array.from(el.children || [])) walk(child, bound || inherited)
+      return
+    }
     let data
     try { data = dataOf(el) } catch (e) { data = undefined }
     const own = data && typeof data === 'object' && data.nodeId ? String(data.nodeId) : ''
@@ -173,6 +182,24 @@ export function stampNodeIds(root, dataOf) {
   }
   for (const child of Array.from((root && root.children) || [])) walk(child, '')
   return count
+}
+
+/**
+ * A component that paints buttons of its own from props (the welcome banner's CTAs) cannot bind an
+ * id on each: it names them in order in `data-node-buttons` ("ve-0-0 ve-0-1"), and its n-th button
+ * gets the n-th id.
+ */
+function stampButtonsOf(el) {
+  const ids = (el.getAttribute('data-node-buttons') || '').split(' ').filter(Boolean)
+  if (!ids.length || typeof el.querySelectorAll !== 'function') return
+  const buttons = Array.from(el.querySelectorAll('oj-button, oj-c-button'))
+  ids.forEach((id, i) => {
+    const button = buttons[i]
+    if (button && button.getAttribute('data-node-id') !== id) {
+      button.setAttribute('data-node-id', id)
+      button.setAttribute('data-node-bound', '')
+    }
+  })
 }
 
 /** The element painted for an editor id (the first: an atom projected twice is selected once). */

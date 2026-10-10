@@ -1,0 +1,382 @@
+{
+  "$comment": "Shared cases for the two engines of new-project.json — MateuProjectGeneratorTest (Kotlin, IntelliJ) and newProject.test.ts (TypeScript, VS Code) both run every case and must agree. `files`: paths that must be generated; `absent`: paths that must not; `contains` / `lacks`: path → substrings. The version is fixed so no case touches the network.",
+  "cases": [
+    {
+      "name": "spring-mvc, code, CRUD, Vaadin",
+      "options": {
+        "runtime": "spring-mvc",
+        "buildTool": "maven",
+        "renderer": "vaadin",
+        "authoring": "code",
+        "sample": "crud",
+        "pages": [],
+        "groupId": "com.acme",
+        "artifactId": "my-shop",
+        "packageName": "com.acme.shop",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "pom.xml",
+        "AGENTS.md",
+        "CLAUDE.md",
+        ".gitignore",
+        "src/main/java/com/acme/shop/Application.java",
+        "src/main/java/com/acme/shop/Products.java",
+        "src/main/java/com/acme/shop/ProductStore.java",
+        "src/main/resources/application.properties"
+      ],
+      "absent": [
+        "src/main/java/com/example/app/Products.java",
+        "src/main/resources/specs/ui/routes.yaml"
+      ],
+      "contains": {
+        "pom.xml": [
+          "<groupId>com.acme</groupId>",
+          "<artifactId>my-shop</artifactId>",
+          "<mateu.version>3.0-alpha.999</mateu.version>",
+          "<artifactId>mateu-vaadin</artifactId>",
+          "<artifactId>mateu-annotation-processor-mvc</artifactId>"
+        ],
+        "src/main/java/com/acme/shop/Products.java": [
+          "package com.acme.shop;",
+          "@UI(\"\")"
+        ],
+        "src/main/java/com/acme/shop/Application.java": [
+          "scanBasePackages = {\"io.mateu\", \"com.acme.shop\"}"
+        ],
+        "AGENTS.md": [
+          "src/main/java/com/acme/shop/"
+        ]
+      },
+      "lacks": {
+        "pom.xml": [
+          "mateu-starter",
+          "<groupId>com.example</groupId>"
+        ]
+      }
+    },
+    {
+      "name": "spring-mvc, code, empty, Redwood",
+      "options": {
+        "runtime": "spring-mvc",
+        "buildTool": "maven",
+        "renderer": "redwood",
+        "authoring": "code",
+        "sample": "empty",
+        "pages": [],
+        "groupId": "org.example",
+        "artifactId": "hello",
+        "packageName": "org.example.hello",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "pom.xml",
+        "src/main/java/org/example/hello/Home.java",
+        "src/main/java/org/example/hello/Application.java"
+      ],
+      "absent": [
+        "src/main/java/org/example/hello/Products.java",
+        "src/main/java/org/example/hello/Product.java"
+      ],
+      "contains": {
+        "pom.xml": [
+          "<artifactId>mateu-redwood</artifactId>"
+        ],
+        "src/main/java/org/example/hello/Home.java": [
+          "package org.example.hello;",
+          "@Title(\"Hello\")"
+        ]
+      },
+      "lacks": {
+        "pom.xml": [
+          "<artifactId>mateu-vaadin</artifactId>"
+        ]
+      }
+    },
+    {
+      "name": "YAML only, served (Spring MVC), Redwood, two template pages",
+      "options": {
+        "authoring": "yaml",
+        "runtime": "spring-mvc",
+        "buildTool": "maven",
+        "renderer": "redwood",
+        "sample": "listing",
+        "pages": [
+          "form",
+          "dashboard"
+        ],
+        "groupId": "com.acme",
+        "artifactId": "ops-portal",
+        "packageName": "com.acme.ops",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "pom.xml",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "src/main/java/com/acme/ops/Application.java",
+        "src/main/resources/specs/ui/app.ui.yaml",
+        "src/main/resources/specs/ui/routes.yaml",
+        "src/main/resources/specs/ui/app.yaml",
+        "src/main/resources/specs/ui/products.yaml",
+        "src/main/resources/specs/ui/sources.yaml",
+        "src/main/resources/specs/ui/project.yaml",
+        "src/main/resources/specs/ui/form.yaml",
+        "src/main/resources/specs/ui/dashboard.yaml"
+      ],
+      "absent": [
+        "src/main/java/com/acme/ops/Products.java",
+        "src/main/java/com/acme/ops/Home.java"
+      ],
+      "contains": {
+        "src/main/resources/specs/ui/routes.yaml": [
+          "  - route: products\n    layout: products.yaml",
+          "  - route: form\n    layout: form.yaml",
+          "  - route: dashboard\n    layout: dashboard.yaml"
+        ],
+        "src/main/resources/specs/ui/app.yaml": [
+          "title: Ops portal",
+          "    label: Form\n    route: form",
+          "    label: Dashboard\n    route: dashboard"
+        ],
+        "src/main/resources/specs/ui/form.yaml": [
+          "type: Form",
+          "title: Form"
+        ],
+        "src/main/resources/specs/ui/project.yaml": [
+          "renderer: redwood"
+        ],
+        "pom.xml": [
+          "<artifactId>ops-portal</artifactId>",
+          "<artifactId>mateu-redwood</artifactId>",
+          "<mateu.version>3.0-alpha.999</mateu.version>"
+        ],
+        "AGENTS.md": [
+          "Edit `specs/ui`, do not write Java UI"
+        ]
+      },
+      "lacks": {
+        "src/main/resources/specs/ui/routes.yaml": [
+          "__ROUTES__",
+          "    viewModel: "
+        ],
+        "src/main/resources/specs/ui/app.yaml": [
+          "__MENU__"
+        ],
+        "pom.xml": [
+          "annotation-processor"
+        ]
+      }
+    },
+    {
+      "name": "YAML only, static (no backend)",
+      "options": {
+        "authoring": "static",
+        "buildTool": "maven",
+        "renderer": "vaadin",
+        "sample": "listing",
+        "pages": [],
+        "groupId": "com.acme",
+        "artifactId": "catalogue-site",
+        "packageName": "com.acme.catalogue",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "pom.xml",
+        ".mvn/maven.config",
+        "AGENTS.md",
+        "CLAUDE.md",
+        "src/main/resources/specs/ui/app.ui.yaml",
+        "src/main/resources/specs/ui/products.yaml",
+        "src/main/resources/specs/ui/sources.yaml"
+      ],
+      "absent": [
+        "src/main/java/com/acme/catalogue/Application.java"
+      ],
+      "contains": {
+        "pom.xml": [
+          "<artifactId>catalogue-site</artifactId>",
+          "<artifactId>mateu-bundle-maven-plugin</artifactId>",
+          "<staticOnly>true</staticOnly>",
+          "<pageTitle>Catalogue site</pageTitle>"
+        ],
+        "src/main/resources/specs/ui/app.yaml": [
+          "title: Catalogue site"
+        ],
+        "AGENTS.md": [
+          "npx serve -s target/mateu-bundle"
+        ]
+      },
+      "lacks": {
+        "pom.xml": [
+          "spring-boot"
+        ]
+      }
+    },
+    {
+      "name": "quarkus, code + YAML, CRUD bound in routes.yaml",
+      "options": {
+        "runtime": "quarkus",
+        "buildTool": "maven",
+        "renderer": "vaadin",
+        "authoring": "both",
+        "sample": "crud",
+        "pages": [],
+        "groupId": "io.acme",
+        "artifactId": "crm",
+        "packageName": "io.acme.crm",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "src/main/java/io/acme/crm/Products.java",
+        "src/main/resources/specs/ui/routes.yaml"
+      ],
+      "contains": {
+        "src/main/resources/specs/ui/routes.yaml": [
+          "  - route: products\n    viewModel: io.acme.crm.Products"
+        ],
+        "src/main/resources/specs/ui/app.yaml": [
+          "    label: Products\n    route: products"
+        ],
+        "pom.xml": [
+          "<artifactId>mateu-annotation-processor-quarkus</artifactId>",
+          "<groupId>io.acme</groupId>"
+        ]
+      },
+      "lacks": {
+        "src/main/java/io/acme/crm/Products.java": [
+          "@UI(",
+          "import io.mateu.uidl.annotations.UI;"
+        ],
+        "src/main/resources/specs/ui/routes.yaml": [
+          "__ROUTES__"
+        ]
+      }
+    },
+    {
+      "name": "helidon-mp, code, CRUD",
+      "options": {
+        "runtime": "helidon-mp",
+        "buildTool": "maven",
+        "renderer": "vaadin",
+        "authoring": "code",
+        "sample": "crud",
+        "pages": [],
+        "groupId": "com.acme",
+        "artifactId": "inventory",
+        "packageName": "com.acme.inventory",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "pom.xml",
+        "src/main/resources/META-INF/beans.xml",
+        "src/main/java/com/acme/inventory/Products.java"
+      ],
+      "contains": {
+        "AGENTS.md": [
+          "java -jar target/inventory.jar"
+        ]
+      }
+    },
+    {
+      "name": ".NET",
+      "options": {
+        "runtime": "dotnet",
+        "authoring": "code",
+        "sample": "crud",
+        "pages": [],
+        "groupId": "",
+        "artifactId": "my-shop",
+        "packageName": "",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "MyShop.csproj",
+        "Program.cs",
+        "Products.cs",
+        "AGENTS.md",
+        "CLAUDE.md"
+      ],
+      "absent": [
+        "MateuStarter.csproj"
+      ],
+      "contains": {
+        "MyShop.csproj": [
+          "<PackageReference Include=\"Mateu.AspNetCore\" Version=\"3.0.0-alpha.999\" />",
+          "<RootNamespace>MyShop</RootNamespace>"
+        ],
+        "Products.cs": [
+          "namespace MyShop;"
+        ],
+        "AGENTS.md": [
+          "MyShop.csproj"
+        ]
+      },
+      "lacks": {
+        "MyShop.csproj": [
+          "ProjectReference",
+          "../../backend"
+        ]
+      }
+    },
+    {
+      "name": "Python",
+      "options": {
+        "runtime": "python",
+        "authoring": "code",
+        "sample": "crud",
+        "pages": [],
+        "groupId": "",
+        "artifactId": "my-shop",
+        "packageName": "",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "main.py",
+        "views.py",
+        "requirements.txt",
+        "test_starter.py",
+        "AGENTS.md",
+        "CLAUDE.md"
+      ],
+      "contains": {
+        "requirements.txt": [
+          "mateu-ui==3.0.0a999"
+        ]
+      },
+      "lacks": {
+        "requirements.txt": [
+          "../../backend"
+        ]
+      }
+    },
+    {
+      "name": "micronaut, code, empty",
+      "options": {
+        "authoring": "code",
+        "runtime": "micronaut",
+        "buildTool": "maven",
+        "renderer": "vaadin",
+        "sample": "empty",
+        "pages": [],
+        "groupId": "io.acme",
+        "artifactId": "crm",
+        "packageName": "io.acme.crm",
+        "version": "3.0-alpha.999"
+      },
+      "files": [
+        "src/main/java/io/acme/crm/Home.java",
+        "src/main/java/io/acme/crm/Application.java"
+      ],
+      "absent": [
+        "src/main/java/io/acme/crm/Products.java"
+      ],
+      "contains": {
+        "pom.xml": [
+          "-Amicronaut.processing.group=io.acme",
+          "<exec.mainClass>io.acme.crm.Application</exec.mainClass>"
+        ]
+      }
+    }
+  ]
+}

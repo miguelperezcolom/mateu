@@ -85,4 +85,78 @@ describe('MessageHost project files', () => {
             expect(seen).toEqual([['welcome.yaml'], ['welcome.yaml', 'about.yaml']])
         } finally { t.restore() }
     })
+
+    const HERO = { path: 'src/main/resources/static/img/hero.jpg', url: '/img/hero.jpg', thumb: '/__mateu-images/t/x' }
+
+    it('asks for the project images and keeps only well-formed entries', async () => {
+        const { MessageHost } = await import('./hostBridge')
+        const t = setup()
+        try {
+            const host = new MessageHost(t.channel as never)
+            const images = host.listImages()
+            expect(t.posted).toContainEqual({ type: 'listImages' })
+            t.deliver({ type: 'images', images: [HERO, { url: 42 }, null, { url: '/a.png', thumb: 'data:x', src: 'http://h/a.png' }] })
+            expect(await images).toEqual([HERO, { path: '/a.png', url: '/a.png', thumb: 'data:x', src: 'http://h/a.png' }])
+        } finally { t.restore() }
+    })
+
+    it('hands later image pushes (a file added or changed) to onImagesChanged', async () => {
+        const { MessageHost } = await import('./hostBridge')
+        const t = setup()
+        try {
+            const host = new MessageHost(t.channel as never)
+            const seen: string[][] = []
+            host.onImagesChanged((images) => seen.push(images.map((i) => i.url)))
+            t.deliver({ type: 'images', images: [HERO] })
+            t.deliver({ type: 'images', images: [] })
+            expect(seen).toEqual([['/img/hero.jpg'], []])
+        } finally { t.restore() }
+    })
+
+    it('addImage resolves to the copied image, or undefined when the author cancels', async () => {
+        const { MessageHost } = await import('./hostBridge')
+        const t = setup()
+        try {
+            const host = new MessageHost(t.channel as never)
+            const added = host.addImage()
+            expect(t.posted).toContainEqual({ type: 'addImage' })
+            t.deliver({ type: 'imageAdded', image: HERO })
+            expect(await added).toEqual(HERO)
+            const cancelled = host.addImage()
+            t.deliver({ type: 'imageAdded' })
+            expect(await cancelled).toBeUndefined()
+        } finally { t.restore() }
+    })
+})
+
+describe('the board writes other files of the mount', () => {
+    it('posts writeFile for a YAML path under specs/ui (null deletes), and refuses anything else', async () => {
+        const g = globalThis as unknown as { window?: unknown }
+        const previous = g.window
+        g.window = { addEventListener: () => {}, location: { origin: ORIGIN } }
+        try {
+            const { MessageHost, isWritablePath } = await import('./hostBridge')
+            const posted: unknown[] = []
+            const host = new MessageHost({ postMessage: (m: unknown) => posted.push(m), addEventListener: () => {} } as never)
+            host.writeFile('routes.yaml', 'type: Routes\n')
+            host.writeFile('archive.yaml', null)
+            host.writeFile('../pom.xml', 'x')
+            host.writeFile('/etc/passwd.yaml', 'x')
+            expect(posted.filter((m) => (m as { type: string }).type === 'writeFile')).toEqual([
+                { type: 'writeFile', path: 'routes.yaml', content: 'type: Routes\n' },
+                { type: 'writeFile', path: 'archive.yaml', content: null },
+            ])
+            expect(isWritablePath('sales/orders.yml')).toBe(true)
+            expect(isWritablePath('a/../../x.yaml')).toBe(false)
+            expect(isWritablePath('x.json')).toBe(false)
+        } finally { g.window = previous }
+    })
+})
+
+describe('imagesOf', () => {
+    it('drops anything that is not an image entry', async () => {
+        const { imagesOf } = await import('./hostBridge')
+        expect(imagesOf(undefined)).toEqual([])
+        expect(imagesOf([{ url: '/a.png' }, { thumb: 'x' }])).toEqual([])
+    })
 })

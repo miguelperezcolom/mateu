@@ -2370,6 +2370,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
+  /** The Text components under `node`, as {text, nodeId} — the node id only in editor mode. */
+  function textNodesOf(node, out = []) {
+    if (!node || typeof node !== 'object') return out
+    if (node.metadata && node.metadata.type === 'Text' && node.metadata.text != null) {
+      out.push(editorNodeIds && node.id ? { text: node.metadata.text, nodeId: String(node.id) } : { text: node.metadata.text })
+    }
+    for (const v of Object.values(node)) {
+      if (Array.isArray(v)) v.forEach((x) => textNodesOf(x, out))
+      else if (v && typeof v === 'object') textNodesOf(v, out)
+    }
+    return out
+  }
+
   /** Card → {title, texts} (el título del Card es un componente Text anidado). */
   function cardOf(node) {
     const md = (node && node.metadata) || {}
@@ -2470,8 +2483,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const metric = findByType(panel, 'MetricCard') || findByType(panel, 'Stat')
       const mm = metric ? metric.metadata : null
       return {
+        ...(editorNodeIds && panel.id ? { nodeId: String(panel.id) } : {}),
         title: panel.metadata.title || '',
         texts: collectTexts(panel),
+        textNodes: textNodesOf(panel),
         isKpi: !!mm,
         kpiTitle: mm ? (mm.title || mm.label || '') : '',
         kpiValue: mm ? String(mm.value == null ? '' : mm.value) : '',
@@ -2480,6 +2495,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
     })
     return {
+      // editor mode: the banner is the hero's node, its CTAs (painted inside the banner, in order)
+      // their Buttons' — the page binds both onto the banner (data-node-id / data-node-buttons)
+      nodeId: editorNodeIds && hero.id ? String(hero.id) : '',
+      ctaNodeIds: editorNodeIds ? ctas.slice(0, 2).map((c) => c.nodeId || '').join(' ') : '',
+      // …and the band of tiles is the DashboardLayout's
+      tilesNodeId: editorNodeIds ? String((findByType(ctx.tree, 'DashboardLayout') || {}).id || '') : '',
       trend,
       // HeroSectionDto.tone: null = the rotating look (welcomeLookOf)
       tone: md.tone || null,
@@ -2629,6 +2650,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => b.items || [])
     const tabs = (tabLayout.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => ({
       id: 'itab-' + i,
+      ...(editorNodeIds && tab.id ? { nodeId: String(tab.id) } : {}),
       label: tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1),
       texts: collectTexts(tab),
       items: atomsOfNodes(tab.children || []),
@@ -2637,6 +2659,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return {
       key: keyCard ? { ...cardOf(keyCard), items: atomsOfNodes(Array.isArray(keyContent) ? keyContent : [keyContent]) } : { title: '', texts: [], items: [] },
       tabs,
+      // editor mode: the key panel is its Card's node, the tab bar its TabLayout's (bound by the page)
+      keyNodeId: editorNodeIds && keyCard && keyCard.id ? String(keyCard.id) : '',
+      tabsNodeId: editorNodeIds && tabLayout.id ? String(tabLayout.id) : '',
     }
   }
 
@@ -3106,6 +3131,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // element as data-node-id. OFF by default: a production page never carries editor ids.
   let editorNodeIds = false
   function setEditorNodeIds(on) { editorNodeIds = !!on }
+  /** Editor mode only: `o` tagged with the id of the wire node it was projected from. */
+  function withNodeId(o, node) {
+    if (editorNodeIds && o && typeof o === 'object' && node && node.id) o.nodeId = String(node.id)
+    return o
+  }
 
   let converterFactory = null
   function setConverterFactory(factory) { converterFactory = factory }
@@ -3240,6 +3270,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     // un DashboardPanel = una tarjeta-bloque (título + subtítulo + su contenido) con su ancho
     const visitDashboardPanel = (panel, colClass) => {
+      // editor mode: the card (and its title atoms) is the PANEL's node, not the layout's
+      if (editorNodeIds && panel && panel.id) {
+        const outer = editorNode
+        editorNode = String(panel.id)
+        try { projectDashboardPanel(panel, colClass) } finally { editorNode = outer }
+        return
+      }
+      projectDashboardPanel(panel, colClass)
+    }
+    const projectDashboardPanel = (panel, colClass) => {
       const pm = panel.metadata || {}
       const card = { isCard: true, items: [], ...(colClass ? { colClass } : {}) }
       blocks.push(card)
@@ -3564,7 +3604,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Scoreboard') {
-        const metrics = findAllByType(node, 'MetricCard').map((n) => metricOf(n.metadata, interp))
+        const metrics = findAllByType(node, 'MetricCard').map((n) => withNodeId(metricOf(n.metadata, interp), n))
         if (metrics.length) atom({ isScoreboard: true, metrics }, container)
         return
       }
@@ -3572,8 +3612,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // consecutivos se juntan en la misma banda (como los botones)
         const target = container || plain
         const last = target && target.items.length ? target.items[target.items.length - 1] : null
-        if (last && last.isScoreboard) last.metrics.push(metricOf(m, interp))
-        else atom({ isScoreboard: true, metrics: [metricOf(m, interp)] }, container)
+        if (last && last.isScoreboard) last.metrics.push(withNodeId(metricOf(m, interp), node))
+        else atom({ isScoreboard: true, metrics: [withNodeId(metricOf(m, interp), node)] }, container)
         return
       }
       if (t === 'Chart' || t === 'TrendChart') {
@@ -16321,6 +16361,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function stampNodeIds(root, dataOf) {
     let count = 0
     const walk = (el, inherited) => {
+      // an id the PAGE binds itself (data-node-bound: an element outside any for-each, such as the
+      // welcome banner) is the element's own; its descendants inherit it like any other
+      if (el.hasAttribute && el.hasAttribute('data-node-bound')) {
+        const bound = el.getAttribute('data-node-id') || ''
+        if (bound) count++
+        stampButtonsOf(el)
+        for (const child of Array.from(el.children || [])) walk(child, bound || inherited)
+        return
+      }
       let data
       try { data = dataOf(el) } catch (e) { data = undefined }
       const own = data && typeof data === 'object' && data.nodeId ? String(data.nodeId) : ''
@@ -16335,6 +16384,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     for (const child of Array.from((root && root.children) || [])) walk(child, '')
     return count
+  }
+
+  /**
+   * A component that paints buttons of its own from props (the welcome banner's CTAs) cannot bind an
+   * id on each: it names them in order in `data-node-buttons` ("ve-0-0 ve-0-1"), and its n-th button
+   * gets the n-th id.
+   */
+  function stampButtonsOf(el) {
+    const ids = (el.getAttribute('data-node-buttons') || '').split(' ').filter(Boolean)
+    if (!ids.length || typeof el.querySelectorAll !== 'function') return
+    const buttons = Array.from(el.querySelectorAll('oj-button, oj-c-button'))
+    ids.forEach((id, i) => {
+      const button = buttons[i]
+      if (button && button.getAttribute('data-node-id') !== id) {
+        button.setAttribute('data-node-id', id)
+        button.setAttribute('data-node-bound', '')
+      }
+    })
   }
 
   /** The element painted for an editor id (the first: an atom projected twice is selected once). */

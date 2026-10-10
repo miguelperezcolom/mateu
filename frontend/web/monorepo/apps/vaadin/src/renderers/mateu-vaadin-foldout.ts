@@ -693,7 +693,7 @@ export class MateuVaadinFoldout extends LitElement {
                     const alt = index % 2 === 1 ? ' panel-alt' : ''
                     if (!open) {
                         return html`
-                            <section class="section strip${alt}" part="section panel strip"
+                            <section class="section strip${alt}" part="section panel strip" data-node-id="${panel.id ?? nothing}"
                                      style="${this._sectionStyle(panel, index)}">
                                 <button class="strip-button" title="${panel.title ?? ''}"
                                         aria-expanded="false" @click="${() => this._toggle(index)}">
@@ -707,7 +707,7 @@ export class MateuVaadinFoldout extends LitElement {
                     }
                     const foldable = panel.open === false
                     return html`
-                    <section class="section${alt}" part="section panel"
+                    <section class="section${alt}" part="section panel" data-node-id="${panel.id ?? nothing}"
                              style="${this._sectionStyle(panel, index)}">
                         ${panel.title || panel.subtitle || foldable ? html`
                             <div class="panel-header">

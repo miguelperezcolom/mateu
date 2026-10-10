@@ -21,8 +21,12 @@ could not run in VSCode.
 - **Canvas** reuses the shared `libs/mateu` renderer (`mateu-ux`) for a faithful render. It POSTs the
   current layout to the reserved **`__preview__`** sync action and applies the returned fragment.
 - **DOM ↔ node mapping**: before preview, every layout node is stamped with a synthetic `id="ve-<path>"`
-  (`decorateForPreview`). The renderer stamps `id=` on each DOM element, so a click maps straight back to
-  a node path — no structural-alignment guesswork. Layout edits go through the `PageDoc` model, which
+  (`decorateForPreview`). In the editor, `libs/mateu`'s `renderComponent` tags the root element of
+  every component it paints with `data-node-id` (`nodeIdStamp.ts`, OFF in production); renderers that
+  paint a child themselves (tab headers, accordion/foldout panels, page/toolbar buttons) tag it with
+  `nodeIdAttr`/`stampButton`. A click maps the composed event path to the innermost tagged element
+  (`canvas/canvasSelection.ts`). `canvas/nodeReachability.test.ts` paints every page template and
+  fails if a definition node cannot be reached by a click. Layout edits go through the `PageDoc` model, which
   serializes back to YAML.
 - **Model of truth**: the YAML page file (`modelView` + `layout`). Behaviour/data stay in the Java
   ModelView. This editor edits *layout only*.
@@ -154,8 +158,24 @@ Two views of the whole mount, next to the file editor (both from lnkiai/m3e-canv
   `bundleStore`. A plain `mateu-ux` then loads routes from it, expanded in the browser. It stands in
   for `mateu-ui` but keeps its own history, because `mateu-ui` owns `window.history` and the editor's
   page is not the app's. On close it unloads the bundle.
+- **The board edits** (`model/boardEdits.ts` over `model/yamlEdit.ts`): create a missing screen
+  (page + route), give an orphan page a route, draw an arrow (menu entry / button / `rowRoute` /
+  `successRoute`), delete or re-point one. Each is a `BoardChange` of file writes plus their inverse
+  (the board's undo). The writes are minimal text splices located through the YAML node ranges, so
+  nothing else in the file moves. The shell sends the open file through its edit history and the
+  others through `HostBridge.writeFile` (IntelliJ: a Document edit in a write command, saved; VS Code:
+  a WorkspaceEdit, saved; the browser: the localStorage project). The board re-derives from the files.
 - Edit from the board goes through `HostBridge.openFile`. The browser host swaps the draft in place;
   IntelliJ and VS Code handle an `openFile` message by opening the file in another tab.
+- **Image pickers** (`widgets/ve-image-picker.ts`; the rule in `model/projectImages.ts`
+  `isImageProp`). The host answers `listImages` with `images: [{path, url, thumb, src?}]` (the
+  module-relative file, the URL the app serves it at, a thumbnail, and where the canvas loads it) and
+  pushes the list again when an image changes. It answers `addImage` (file chooser + copy) with
+  `imageAdded {image}`. IntelliJ (`ProjectImages.kt`) serves both `thumb` and `src` from its loopback
+  server (`/__mateu-images/<token>/<path>`, same origin as the editor). VS Code (`projectImages.ts`)
+  uses a webview URI for `thumb` and its loopback server for `src`, because the framed Redwood canvas
+  cannot load a webview URI. The canvas and Play swap a project image's URL for `src`
+  (`decorateForPreview`, `withPreviewImages`); the file keeps the URL.
 
 ## Palette thumbnails (`scripts/thumbnails.mjs`)
 
