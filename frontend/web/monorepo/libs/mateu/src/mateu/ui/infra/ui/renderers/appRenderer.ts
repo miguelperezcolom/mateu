@@ -16,6 +16,8 @@ import { dirtyGuard } from "@infra/ui/dirtyGuard.ts";
 import { isLazyRoute } from "@infra/ui/mateu-when-visible.ts";
 import MenuOption from "@mateu/shared/apiClients/dtos/componentmetadata/MenuOption";
 import { isMount } from "@infra/ui/navTree.ts";
+import "@infra/ui/mateu-card-menu.ts";
+import { isCardsGroup } from "@infra/ui/mateu-card-menu.ts";
 
 /**
  * A sub-resource island loaded when shown (`@Subresource(load = ON_OPEN)` → `_lazy=1` on its home
@@ -103,6 +105,29 @@ const renderNeutralNav = (items: MenuBarItem[], onSelect: (item: MenuBarItem) =>
                    </details>`
             : navLeaf(item, onSelect))}
     </nav>`
+
+/**
+ * A top navigation bar where some groups open as CARDS (`@Menu(display = cards)`): runs of plain
+ * entries keep going to the renderer's own bar (the Vaadin <vaadin-menu-bar>, else the neutral
+ * strip) and each cards group becomes a <mateu-card-menu> in its place. A bar without cards
+ * groups renders exactly as before.
+ */
+const renderTopBar = (items: MenuBarItem[], onSelect: (item: MenuBarItem) => void, cls: string) => {
+    const plain = (run: MenuBarItem[]) => componentRenderer.get()?.renderTopNav?.(run, onSelect, cls)
+        ?? renderNeutralNav(run, onSelect, cls)
+    if (!items.some(isCardsGroup)) return plain(items)
+    const segments: unknown[] = []
+    let run: MenuBarItem[] = []
+    for (const item of items) {
+        if (isCardsGroup(item)) {
+            if (run.length) segments.push(plain(run))
+            run = []
+            segments.push(html`<mateu-card-menu .item=${item} .onSelect=${onSelect}></mateu-card-menu>`)
+        } else run.push(item)
+    }
+    if (run.length) segments.push(plain(run))
+    return html`<div class="mateu-nav-with-cards" style="display: flex; align-items: center; flex-wrap: wrap; min-width: 0;">${segments}</div>`
+}
 
 /**
  * The menu folded into one button, for band 1 on a narrow viewport (band 2 is hidden there): the
@@ -318,8 +343,7 @@ const renderSectionBand = (active: MenuOption | undefined, container: MateuApp) 
         <a href="javascript: void(0);" class="mateu-app-band-title mateu-section-title"
            @click="${() => container.selectSection(active)}">${active.label}</a>
         ${items.length > 0
-            ? componentRenderer.get()?.renderTopNav?.(items, onSelect, 'menu-on-top sections-band')
-                ?? renderNeutralNav(items, onSelect, 'menu-on-top sections-band')
+            ? renderTopBar(items, onSelect, 'menu-on-top sections-band')
             : nothing}`
 }
 
@@ -523,8 +547,7 @@ export const renderApp = (container: MateuApp, metadata: App, _baseUrl: string |
                             const onSelect = fireSelect(container, container.itemSelected)
                             // The active renderer may supply its own chrome menu (the Vaadin adapter
                             // returns a <vaadin-menu-bar>); otherwise fall back to the neutral strip.
-                            return componentRenderer.get()?.renderTopNav?.(items, onSelect, 'menu-on-top menu-band')
-                                ?? renderNeutralNav(items, onSelect, 'menu-on-top menu-band')
+                            return renderTopBar(items, onSelect, 'menu-on-top menu-band')
                         })()}
                     </nav>
                     <div style="flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; box-sizing: border-box; width: 100%;">

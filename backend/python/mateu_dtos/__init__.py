@@ -1418,6 +1418,17 @@ class MenuItem(Wire):
     #: clicked instead of navigating. Non-empty only for a Rule / list[Rule] menu entry; a route
     #: leaf leaves it empty.
     rules: list["RuleRecord"] = Field(default_factory=list)
+    #: The entry's icon (e.g. "vaadin:calendar"), shown on its card (mirrors MenuOptionDto.icon).
+    icon: str | None = None
+    #: The entry's description — the text of a card (mirrors MenuOptionDto.description).
+    description: str | None = None
+    #: A GROUP that opens as a panel of cards ("cards") instead of the usual list (None). Its
+    #: entries are the cards; each entry's own submenus are the card's actions (mirrors
+    #: MenuOptionDto.display).
+    display: str | None = None
+    #: The image of an entry shown as a card (a URL or a data URI); None for none (mirrors
+    #: MenuOptionDto.image).
+    image: str | None = None
 
 
 class Kpi(Wire):

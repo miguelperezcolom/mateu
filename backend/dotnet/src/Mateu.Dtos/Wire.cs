@@ -923,6 +923,23 @@ public record MenuItemDto(string Label, string Route, string ServerSideType)
     /// method typed Rule / IReadOnlyList&lt;Rule&gt; is a rule leaf, not a route. Empty on a normal
     /// (navigating) entry. (Mirrors io.mateu.dtos.MenuOptionDto.rules / RuleLink.)</summary>
     public IReadOnlyList<RuleDto> Rules { get; init; } = [];
+
+    /// <summary>The entry's icon (an icon name like "vaadin:calendar"); null for none. Shown on a
+    /// card. (Mirrors io.mateu.dtos.MenuOptionDto.icon.)</summary>
+    public string? Icon { get; init; }
+
+    /// <summary>The entry's description — the text of a card. (Mirrors
+    /// io.mateu.dtos.MenuOptionDto.description.)</summary>
+    public string? Description { get; init; }
+
+    /// <summary>A GROUP that opens as a panel of cards ("cards") instead of the usual list (null).
+    /// Its entries are the cards; each entry's own Submenus are the card's actions. (Mirrors
+    /// io.mateu.dtos.MenuOptionDto.display.)</summary>
+    public string? Display { get; init; }
+
+    /// <summary>The image of an entry shown as a card (a URL or a data URI); null for none.
+    /// (Mirrors io.mateu.dtos.MenuOptionDto.image.)</summary>
+    public string? Image { get; init; }
 }
 
 /// <summary>Lateral navigation across peer objects — the previous/next arrows in the page header

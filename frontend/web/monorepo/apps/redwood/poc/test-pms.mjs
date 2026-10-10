@@ -367,6 +367,41 @@ test('reglas: cableado — contexto tras cada reducción y tras navegar, OnValue
     assert.match(webApp('flows/main/pages/main-start-page-chains/' + rel), /bridge\.valueChangeActionOf\(/, rel)
 })
 
+// ── menú de tarjetas (@Menu(display = cards)) ──────────────────────────────────────────────────
+
+test('menú de tarjetas: el grupo se proyecta como tarjetas con su popup; las entradas con hijos llevan acciones', () => {
+  const nav = shellNavOf({ shell: { variant: 'HAMBURGER_SECTIONS', menu: [
+    { label: 'Bookings', route: '/bookings', submenus: [
+      { label: 'New reservation', route: '/bookings/newReservation' },
+      { label: 'Quick access', route: '/bookings/quickAccess', display: 'cards', submenus: [
+        { label: 'Floor plan', route: '/bookings/quickAccess/floorPlan', description: 'Rooms by status', icon: 'vaadin:building' },
+        { label: 'Check in', route: '/bookings/quickAccess/checkIn', description: 'Sign', image: '/img/c.png' },
+        { label: 'Billing', route: '/bookings/quickAccess/billing', description: 'Folios', submenus: [
+          { label: 'Folio', route: '/bookings/quickAccess/billing/folio' },
+        ] },
+      ] },
+    ] },
+  ] } })
+  const group = nav.menuTree[0].children.find((c) => c.label === 'Quick access')
+  assert.ok(group.isCards && group.popupId && group.anchorId && group.popupId !== group.anchorId)
+  // estable entre proyecciones (el lanzador apunta al popup por id)
+  const again = shellNavOf({ shell: { variant: 'HAMBURGER_SECTIONS', menu: [{ label: 'Bookings', route: '/bookings', submenus: [
+    { label: 'Quick access', route: '/bookings/quickAccess', display: 'cards', submenus: [{ label: 'X', route: '/bookings/quickAccess/x' }] }] }] } })
+  assert.equal(again.menuTree[0].children[0].popupId, group.popupId)
+  const [plan, checkIn, billing] = group.cards
+  assert.deepEqual([plan.label, plan.description, plan.navigable, plan.hasIcon, plan.hasImage], ['Floor plan', 'Rooms by status', true, true, false])
+  assert.ok(plan.iconClass.startsWith('oj-ux-ico'))
+  assert.deepEqual([checkIn.hasImage, checkIn.image, checkIn.hasIcon], [true, '/img/c.png', false])
+  assert.equal(billing.navigable, false)
+  assert.deepEqual(billing.actions, [{ id: '/bookings/quickAccess/billing/folio', label: 'Folio' }])
+  // un grupo normal sigue siendo un desplegable
+  assert.equal(nav.menuTree[0].isCards, false)
+  const shell = webApp('pages/shell-page.html')
+  assert.match(shell, /\$current\.data\.hasChildren && !\$current\.data\.isCards/)
+  assert.match(shell, /oj-popup :id="\[\[ \$current\.data\.popupId \]\]" class="mateu-card-popup"/)
+  assert.ok(JSON.parse(webApp('pages/shell-page.json')).eventListeners.cardMenuToggle)
+})
+
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }
 console.log(`\n${pass} tests PMS OK`)
 void HOST_ID

@@ -96,6 +96,19 @@ public class DemoApp
     [MenuItem("Person")] public Person Person() => new();
 }
 
+// A card menu (like the product dropdowns of a docs site): [MenuGroup(Display = "cards")] opens a
+// folder as a panel of cards; [MenuItem(Description, Icon, Image)] / [MenuGroup] on a nested folder
+// ("Bookings/Reservations") give each card its look, and a nested folder's entries are its actions.
+// Code-authored menus (IMenuSupplier / IAppSupplier) set MenuItemDto.Display/Description/Icon/Image.
+[App("PMS")]
+[MenuGroup("Bookings", Display = MenuDisplay.Cards)]
+[MenuGroup("Bookings/Reservations", Description = "Search, create and modify", Icon = "vaadin:calendar", Image = "/img/res.png")]
+public class PmsApp
+{
+    [MenuItem("Search", Group = "Bookings/Reservations")] public Reservations Search() => new();
+    [MenuItem("Room diary", Group = "Bookings", Description = "Rooms by day")] public Person Diary() => new();
+}
+
 // A declarative dashboard: consecutive MetricCard properties form a Scoreboard KPI band,
 // [Panel] component properties become titled tiles on a responsive grid.
 [UI("dashboard"), Title("Sales dashboard")]

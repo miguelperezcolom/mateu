@@ -1209,3 +1209,15 @@ mateu-capture-field { display: block; }
   background: #fff; border: 1px dashed var(--oj-core-neutral-contrast, #6f6b66);
   border-radius: var(--oj-core-border-radius-md, 6px);
 }
+
+/* ── menú de tarjetas (@Menu(display = cards)): rejilla de oj-action-card en un oj-popup ── */
+.mateu-card-popup .mateu-card-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 0.5rem;
+  width: min(44rem, calc(100vw - 2rem)); padding: 0.75rem; box-sizing: border-box;
+}
+.mateu-menu-card { display: block; width: 100%; }
+.mateu-menu-card-body { display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.75rem; text-align: start; }
+.mateu-menu-card-icon { font-size: 1.5rem; color: var(--oj-core-brand-color, #227e9e); }
+.mateu-menu-card-image { width: 2.5rem; height: 2.5rem; object-fit: cover; border-radius: var(--oj-core-border-radius-md, 6px); }
+.mateu-menu-card-group { margin: 0; }
+.mateu-menu-card-actions { display: flex; flex-wrap: wrap; gap: 0 0.25rem; margin-top: 0.25rem; margin-inline-start: -0.5rem; }

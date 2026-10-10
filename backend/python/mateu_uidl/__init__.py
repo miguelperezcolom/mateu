@@ -1218,19 +1218,72 @@ def action(arg=None):
     return _maybe_bare(arg, "__mateu_action__", lambda _: True)
 
 
-def menu_item(arg=None, group: str = ""):
+def menu_item(
+    arg=None,
+    group: str = "",
+    description: str = "",
+    icon: str = "",
+    image: str = "",
+):
     """A menu entry. ``group`` nests the entry under that folder (entries sharing a group become
-    its submenu); empty = a top-level leaf entry."""
-    if group:
+    its submenu); empty = a top-level leaf entry. A ``/`` in the group nests folders
+    (``"Bookings/Reservations"`` = the Reservations folder inside Bookings). ``description``,
+    ``icon`` and ``image`` are the entry's look when it shows as a card (its group is a
+    ``@menu_group(..., display="cards")``)."""
+    if group or description or icon or image:
         label = arg if isinstance(arg, str) else None
 
         def deco(fn):
             fn.__mateu_menu_item__ = label or True
             fn.__mateu_menu_group__ = group
+            fn.__mateu_menu_look__ = MenuLook(description=description, icon=icon, image=image)
             return fn
 
         return deco
     return _maybe_bare(arg, "__mateu_menu_item__", lambda label: label or True)
+
+
+class MenuDisplay:
+    """How a menu group shows its entries (the values of ``@menu_group(display=...)``). The
+    Python analogue of Java's ``MenuDisplay``."""
+
+    list = "list"
+    cards = "cards"
+
+
+@dataclass(frozen=True)
+class MenuLook:
+    """The card look of a menu entry or folder: ``display`` ("cards" on a group), and the
+    ``description``/``icon``/``image`` of an entry shown as a card. The Python analogue of Java's
+    ``MenuPresentation``."""
+
+    display: str = ""
+    description: str = ""
+    icon: str = ""
+    image: str = ""
+
+
+def menu_group(
+    group: str, display: str = "", description: str = "", icon: str = "", image: str = ""
+) -> Callable[[type], type]:
+    """The look of a menu folder declared through ``@menu_item(group=...)``, on the ``@app`` class.
+    ``display="cards"`` opens the folder as a panel of CARDS (title, description, icon/image, and
+    each entry's own children as the card's actions) instead of the usual list — like the product
+    menus of a docs site. ``description``/``icon``/``image`` style the folder itself when it is a
+    card of an enclosing cards group (``"Bookings/Reservations"`` addresses a nested folder).
+    Repeatable. The Python analogue of Java's ``@Menu(display, description, image)`` + ``@Icon``
+    on a group field."""
+
+    def deco(cls: type) -> type:
+        looks = dict(getattr(cls, "__mateu_menu_groups__", {}))
+        looks.setdefault(
+            group.strip("/"),
+            MenuLook(display=display, description=description, icon=icon, image=image),
+        )
+        cls.__mateu_menu_groups__ = looks
+        return cls
+
+    return deco
 
 
 class kpi:
@@ -1719,6 +1772,9 @@ class Welcome(ComponentTreeSupplier):
 
 
 __all__ = [
+    "MenuDisplay",
+    "MenuLook",
+    "menu_group",
     "Message", "MessageVariant", "BannerTheme", "PageBanner", "PageWidth", "PageType",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
     "Money", "PlainText", "ReadOnly", "Version", "Lookup", "RestOptions", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel", "SizeMode", "size", "FlowStep", "Navigate", "Emit", "CloseOverlay", "RunAction", "MarkClean", "MarkDirty",

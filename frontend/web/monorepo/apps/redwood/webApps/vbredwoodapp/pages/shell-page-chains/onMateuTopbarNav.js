@@ -22,6 +22,10 @@ define([
       if (!route) {
         return;
       }
+      // una tarjeta de un menú de tarjetas: su popup se cierra al navegar
+      for (const popup of document.querySelectorAll('oj-popup.mateu-card-popup')) {
+        if (popup.isOpen && popup.isOpen()) popup.close();
+      }
       await Actions.callChain(context, {
         chain: 'onMateuNavigate',
         params: { event: { detail: { currentId: route } } },

@@ -181,6 +181,17 @@
         }
       ]
     },
+    "cardMenuToggle": {
+      "chains": [
+        {
+          "chain": "toggleMateuWidgetPopup",
+          "parameters": {
+            "popupId": "{{ $event.currentTarget.dataset.popupId }}",
+            "anchorId": "{{ $event.currentTarget.id }}"
+          }
+        }
+      ]
+    },
     "topbarNavClicked": {
       "chains": [
         {

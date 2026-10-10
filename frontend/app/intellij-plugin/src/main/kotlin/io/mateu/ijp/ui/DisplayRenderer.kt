@@ -914,7 +914,7 @@ fun renderBulletedList(metadata: JsonNode): JComponent {
 
 /** Maps the wire's neutral (Vaadin-set) action icon names to the IDE's own AllIcons glyphs;
  *  null → no icon known, the caller falls back to a labelled button. */
-private fun uxActionIcon(name: String): javax.swing.Icon? = when (name) {
+internal fun uxActionIcon(name: String): javax.swing.Icon? = when (name) {
     "vaadin:pencil", "vaadin:pen", "vaadin:edit" -> com.intellij.icons.AllIcons.Actions.Edit
     "vaadin:ban" -> com.intellij.icons.AllIcons.Actions.Cancel
     "vaadin:check" -> com.intellij.icons.AllIcons.Actions.Checked

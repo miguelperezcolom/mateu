@@ -216,7 +216,60 @@
                   :title="[[ $current.data.hint || '' ]]"
                   on-oj-action="[[ $listeners.topbarNavClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
               </oj-bind-if>
-              <oj-bind-if test="[[ $current.data.hasChildren ]]">
+              <!-- grupo como TARJETAS (@Menu(display = cards)): botón + oj-popup con oj-action-card -->
+              <oj-bind-if test="[[ $current.data.isCards ]]">
+                <oj-button chroming="borderless" data-nav-item
+                  :id="[[ $current.data.anchorId ]]"
+                  :class="[[ $functions.subheaderItemClass($current.data, $functions.subheaderItemsOf($application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId, $application.variables.mateuMenuSections), $application.variables.mateuSelectedNavId) ]]"
+                  :data-popup-id="[[ $current.data.popupId ]]"
+                  on-oj-action="[[ $listeners.cardMenuToggle ]]">
+                  <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
+                  <span slot="endIcon" class="oj-ux-ico-chevron-down"></span>
+                </oj-button>
+                <oj-popup :id="[[ $current.data.popupId ]]" class="mateu-card-popup" auto-dismiss="focusLoss" modality="modeless"
+                  position.my.horizontal="start" position.at.horizontal="start" position.at.vertical="bottom">
+                  <div class="mateu-card-grid" role="menu" :aria-label="[[ $current.data.label ]]">
+                    <oj-bind-for-each data="[[ $current.data.cards ]]">
+                      <template>
+                        <oj-bind-if test="[[ $current.data.navigable ]]">
+                          <oj-action-card class="mateu-menu-card" :data-route="[[ $current.data.id ]]"
+                            on-oj-action="[[ $listeners.topbarNavClicked ]]">
+                            <div class="mateu-menu-card-body">
+                              <oj-bind-if test="[[ $current.data.hasImage ]]"><img class="mateu-menu-card-image" :src="[[ $current.data.image ]]" alt="" /></oj-bind-if>
+                              <oj-bind-if test="[[ $current.data.hasIcon ]]"><span class="mateu-menu-card-icon" :class="[[ $current.data.iconClass ]]"></span></oj-bind-if>
+                              <div>
+                                <div class="oj-typography-body-md oj-typography-bold"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                              </div>
+                            </div>
+                          </oj-action-card>
+                        </oj-bind-if>
+                        <oj-bind-if test="[[ !$current.data.navigable ]]">
+                          <div class="oj-panel mateu-menu-card mateu-menu-card-group">
+                            <div class="mateu-menu-card-body">
+                              <oj-bind-if test="[[ $current.data.hasImage ]]"><img class="mateu-menu-card-image" :src="[[ $current.data.image ]]" alt="" /></oj-bind-if>
+                              <oj-bind-if test="[[ $current.data.hasIcon ]]"><span class="mateu-menu-card-icon" :class="[[ $current.data.iconClass ]]"></span></oj-bind-if>
+                              <div>
+                                <div class="oj-typography-body-md oj-typography-bold"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                                <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
+                                <div class="mateu-menu-card-actions">
+                                  <oj-bind-for-each data="[[ $current.data.actions ]]">
+                                    <template>
+                                      <oj-button chroming="borderless" class="oj-button-sm" :data-route="[[ $current.data.id ]]"
+                                        on-oj-action="[[ $listeners.topbarNavClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </oj-bind-if>
+                      </template>
+                    </oj-bind-for-each>
+                  </div>
+                </oj-popup>
+              </oj-bind-if>
+              <oj-bind-if test="[[ $current.data.hasChildren && !$current.data.isCards ]]">
                 <oj-menu-button chroming="borderless" data-nav-item
                   :class="[[ $functions.subheaderItemClass($current.data, $functions.subheaderItemsOf($application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId, $application.variables.mateuMenuSections), $application.variables.mateuSelectedNavId) ]]"
                   :disabled="[[ !!$current.data.disabled ]]"

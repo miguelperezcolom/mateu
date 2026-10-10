@@ -139,28 +139,34 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         else
         {
             // [MenuItem(Group = "…")] entries sharing a Group nest as that folder's submenu (the
-            // folder appears where its first entry was declared); ungrouped entries stay leaves.
+            // folder appears where its first entry was declared); ungrouped entries stay leaves. A
+            // "/" in the Group nests folders ("Bookings/Reservations" = the Reservations folder
+            // inside Bookings) — how a card of a [MenuGroup(Display = "cards")] gets its actions.
             items = new List<MenuItemDto>();
             var folders = new Dictionary<string, List<MenuItemDto>>();
+            var groupLooks = appType.GetCustomAttributes<MenuGroupAttribute>()
+                .GroupBy(g => g.Group.Trim('/')).ToDictionary(g => g.Key, g => g.First());
+            List<MenuItemDto> FolderOf(string path)
+            {
+                if (folders.TryGetValue(path, out var existing)) return existing;
+                var slash = path.LastIndexOf('/');
+                var parent = slash < 0 ? items : FolderOf(path[..slash]);
+                var submenus = new List<MenuItemDto>();
+                folders[path] = submenus;
+                var look = groupLooks.GetValueOrDefault(path);
+                parent.Add(Presented(new MenuItemDto(T(slash < 0 ? path : path[(slash + 1)..]), "", "")
+                    { Submenus = submenus },
+                    look?.Display, look?.Description, look?.Icon, look?.Image));
+                return submenus;
+            }
             foreach (var m in appType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                          .Where(m => m.Find<MenuItemAttribute>() != null && ForCurrentAudience(m)))
             {
-                var entry = MapMenuItem(m);
-                var group = m.Find<MenuItemAttribute>()!.Group;
-                if (group.Length == 0)
-                {
-                    items.Add(entry);
-                }
-                else if (folders.TryGetValue(group, out var submenu))
-                {
-                    submenu.Add(entry);
-                }
-                else
-                {
-                    var submenus = new List<MenuItemDto> { entry };
-                    folders[group] = submenus;
-                    items.Add(new MenuItemDto(T(group), "", "") { Submenus = submenus });
-                }
+                var attribute = m.Find<MenuItemAttribute>()!;
+                var entry = Presented(MapMenuItem(m), null, attribute.Description, attribute.Icon, attribute.Image);
+                var group = attribute.Group.Trim('/');
+                if (group.Length == 0) items.Add(entry);
+                else FolderOf(group).Add(entry);
             }
             // [RemoteMenu] entries: federated options — the frontend fetches the remote backend's
             // menu itself and mounts its views (no server-side proxying).
@@ -340,6 +346,18 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         }
         return selectors;
     }
+
+    /// <summary>The card look of a menu entry: Display "cards" on a group, description/icon/image on
+    /// an entry. Blank values stay null, so a plain menu travels exactly as before. (Mirrors Java's
+    /// MenuEntryMapper.presented + AppMenuDtoBuilder.)</summary>
+    private MenuItemDto Presented(MenuItemDto entry, string? display, string? description, string? icon, string? image) =>
+        entry with
+        {
+            Display = string.Equals(display, MenuDisplay.Cards, StringComparison.OrdinalIgnoreCase) ? MenuDisplay.Cards : null,
+            Description = string.IsNullOrWhiteSpace(description) ? null : T(description),
+            Icon = string.IsNullOrWhiteSpace(icon) ? null : icon,
+            Image = string.IsNullOrWhiteSpace(image) ? null : image,
+        };
 
     private MenuItemDto MapMenuItem(MethodInfo m)
     {

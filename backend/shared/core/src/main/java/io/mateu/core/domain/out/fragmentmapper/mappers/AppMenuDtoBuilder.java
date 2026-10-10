@@ -35,7 +35,16 @@ final class AppMenuDtoBuilder {
                   .label(remote != null ? remoteLabel(remote, path) : option.label())
                   .shellLabel(remote != null && hasText(remote.label()))
                   .routePrefix(remote != null ? remoteRoutePrefix(remote, path) : null)
-                  .icon(option.icon())
+                  .icon(
+                      option.icon() != null
+                          ? option.icon()
+                          : option.presentation() != null ? option.presentation().icon() : null)
+                  // card look (@Menu(display = cards) on a group, image/icon on its entries)
+                  .display(
+                      option.presentation() != null && option.presentation().showsCards()
+                          ? "cards"
+                          : null)
+                  .image(option.presentation() != null ? option.presentation().image() : null)
                   .path(path)
                   .selected(isSelected(option, appRoute, route))
                   // a hidden entry still travels: the renderer needs to know where its routes

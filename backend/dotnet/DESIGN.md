@@ -122,7 +122,7 @@ HTTP sync ─▶ RouteRegistry.resolve(route) ─▶ instantiate model type
 | **M1** | sync endpoint + DTO model + mapper for **SimpleForm** (`[UI]` class, one string field, a `[Button] greet → Message`) | Point the **Compose app** at the C# server → see the form + Greet showing "Hello {name}" toast |
 | **M2** | field types (string/number/bool/date/enum→options), **validation** (`[Required]`→required + server-side check), `[Section]`/`[Tab]` layout, page title/subtitle | A multi-field form renders & validates identically to the Java one |
 | **M3** | **AutoCrud<T>** + `ICrudRepository<T>`: listing (columns, search, pagination as data-only fragments) + detail/edit/new via the mediator/route-resolver pattern | Reservations-style CRUD list + cards on mobile |
-| **M4** | App shell variants (NAVIGATION_LAYOUT / MENU_ON_LEFT / HAMBURGUER_MENU / MEDIATOR), menu from routes, navigation commands (PushStateToHistory) | Full multi-screen app shell |
+| **M4** | App shell variants (NAVIGATION_LAYOUT / MENU_ON_LEFT / HAMBURGUER_MENU / MEDIATOR), menu from routes, navigation commands (PushStateToHistory). Card menus: `[MenuGroup(path, Display = "cards")]` + `[MenuItem(Group = "A/B", Description, Icon, Image)]` → `MenuItemDto.Display/Description/Icon/Image` (mirrors Java's `@Menu(display = cards)`/`MenuOptionDto`) | Full multi-screen app shell |
 | **M5+** | wizards, banners/badges/KPIs, `@SubscribeTo`/`@Emits`, semantic annotations, i18n, security — as needed | parity, incrementally |
 
 Each milestone ends green and demoable; we don't move on until a renderer shows it.

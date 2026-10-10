@@ -3,13 +3,14 @@ import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigatio
 import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useCallback, useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAppContext } from '../context/AppContext';
 import { NavTarget } from '../core/MateuSession';
 import { ChatPanel } from './ChatPanel';
 import { MateuViewHost } from './MateuViewHost';
 import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
+import { cardsOf, isCardsGroup } from './menuCards';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -23,6 +24,12 @@ interface MenuItem {
   serverSideType?: string;
   actionId?: string;
   submenus?: MenuItem[];
+  icon?: string | null;
+  description?: string | null;
+  /** "cards" on a GROUP whose entries render as cards (label/description/icon/image, submenus = actions). */
+  display?: string | null;
+  /** Image of an entry shown as a card: URL relative to the backend base, absolute, or data URI. */
+  image?: string | null;
 }
 
 interface AppContextSelector {
@@ -466,11 +473,72 @@ function GlobalSearchBox({ appMeta, onNavigate }: { appMeta: AppMeta; onNavigate
 }
 
 // Drawer content with sidebar menu
+// A `display: "cards"` group: one card per entry (title, description, icon/image). A card whose
+// entry has submenus is not navigable itself — its submenus render as action chips.
+function MenuCards({ group, onNavigate }: { group: MenuItem; onNavigate: (item: MenuItem) => void }) {
+  const { session } = useAppContext();
+  const cards = cardsOf(group, session.api.baseUrl);
+  return (
+    <View>
+      {!!group.label && <Text style={styles.menuGroupLabel}>{group.label.toUpperCase()}</Text>}
+      {cards.map((card, i) => {
+        const body = (
+          <>
+            {card.imageUri ? (
+              <Image source={{ uri: card.imageUri }} style={styles.menuCardImage} resizeMode="cover" accessibilityIgnoresInvertColors />
+            ) : card.glyph ? (
+              <Text style={styles.menuCardGlyph} importantForAccessibility="no">{card.glyph}</Text>
+            ) : null}
+            <View style={styles.menuCardBody}>
+              <Text style={styles.menuCardTitle}>{card.title}</Text>
+              {!!card.description && <Text style={styles.menuCardDescription}>{card.description}</Text>}
+            </View>
+          </>
+        );
+        return (
+          <View key={i} style={styles.menuCard}>
+            {card.target ? (
+              <TouchableOpacity
+                {...buttonA11y({ role: 'link', label: card.description ? `${card.title}, ${card.description}` : card.title })}
+                style={styles.menuCardHeader}
+                onPress={() => onNavigate(card.target!)}
+              >
+                {body}
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.menuCardHeader} accessible accessibilityLabel={card.description ? `${card.title}, ${card.description}` : card.title}>
+                {body}
+              </View>
+            )}
+            {card.actions.length > 0 && (
+              <View style={styles.menuCardActions}>
+                {card.actions.map((action, j) => (
+                  <TouchableOpacity
+                    {...buttonA11y({ role: 'link', label: `${card.title}: ${action.label ?? ''}` })}
+                    key={j}
+                    style={styles.menuCardAction}
+                    onPress={() => onNavigate(action)}
+                  >
+                    <Text style={styles.menuCardActionText}>{action.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
 function SidebarContent({ appMeta, onNavigate, onContextChanged }: { appMeta: AppMeta; onNavigate: (item: MenuItem) => void; onContextChanged: () => void }) {
   const renderItems = (items: MenuItem[], depth = 0): React.ReactNode[] => {
     return items.map((item, i) => {
       if (item.separator) {
         return <View key={`sep-${i}`} style={styles.separator} />;
+      }
+      if (isCardsGroup(item)) {
+        return <MenuCards key={i} group={item} onNavigate={onNavigate} />;
       }
       const hasSubmenus = item.submenus && item.submenus.length > 0;
       if (hasSubmenus && depth === 0) {
@@ -669,6 +737,17 @@ const styles = StyleSheet.create({
   menuItem: { paddingVertical: 12, paddingRight: 20 },
   menuItemText: { color: theme.white, fontSize: 14 },
   separator: { height: 1, backgroundColor: '#4a6070', marginVertical: 4 },
+  // card menus (display: "cards" groups)
+  menuCard: { marginHorizontal: 12, marginVertical: 4, borderWidth: 1, borderColor: '#4a6070', borderRadius: theme.radiusMd, backgroundColor: 'rgba(255,255,255,0.05)', overflow: 'hidden' },
+  menuCardHeader: { flexDirection: 'row', alignItems: 'center', padding: 12 },
+  menuCardImage: { width: 40, height: 40, borderRadius: theme.radiusSm, marginRight: 12 },
+  menuCardGlyph: { fontSize: 24, width: 40, textAlign: 'center', marginRight: 12 },
+  menuCardBody: { flex: 1 },
+  menuCardTitle: { color: theme.white, fontSize: 14, fontWeight: '700' },
+  menuCardDescription: { color: '#aac0d0', fontSize: 12, marginTop: 2 },
+  menuCardActions: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 12, paddingBottom: 10, gap: 6 },
+  menuCardAction: { borderWidth: 1, borderColor: '#6a8296', borderRadius: theme.radiusPill, paddingHorizontal: 10, paddingVertical: 4 },
+  menuCardActionText: { color: '#d5e2ec', fontSize: 12 },
   contextRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, paddingVertical: 10 },
   contextLabel: { color: '#aac0d0', fontSize: 12, fontWeight: '600', letterSpacing: 1 },
   contextValue: { color: theme.white, fontSize: 14, fontWeight: '700' },

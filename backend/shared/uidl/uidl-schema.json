@@ -2401,6 +2401,9 @@
         },
         "hidden" : {
           "type" : "boolean"
+        },
+        "presentation" : {
+          "$ref" : "#/$defs/MenuPresentation"
         }
       }
     },
@@ -3991,6 +3994,9 @@
         },
         "hidden" : {
           "type" : "boolean"
+        },
+        "presentation" : {
+          "$ref" : "#/$defs/MenuPresentation"
         }
       }
     },
@@ -4017,6 +4023,24 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        }
+      }
+    },
+    "MenuDisplay" : {
+      "type" : "string",
+      "enum" : [ "list", "cards" ]
+    },
+    "MenuPresentation" : {
+      "type" : "object",
+      "properties" : {
+        "display" : {
+          "$ref" : "#/$defs/MenuDisplay"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "image" : {
+          "type" : "string"
         }
       }
     },
@@ -5402,6 +5426,9 @@
         },
         "hidden" : {
           "type" : "boolean"
+        },
+        "presentation" : {
+          "$ref" : "#/$defs/MenuPresentation"
         }
       }
     },

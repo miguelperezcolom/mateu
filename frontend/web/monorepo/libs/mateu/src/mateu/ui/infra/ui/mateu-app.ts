@@ -667,6 +667,12 @@ export class MateuApp extends ComponentElement {
                         uriPrefix: option.uriPrefix,
                         actionId: option.actionId,
                         selected: filter || this.isActiveOption(option),
+                        // card menus: the group opens as cards; title/description/icon/image of
+                        // a card that has its own children (its actions)
+                        display: option.display ?? undefined,
+                        description: option.description,
+                        icon: option.icon,
+                        image: option.image ?? undefined,
                         children
                     }
                 }
@@ -696,6 +702,9 @@ export class MateuApp extends ComponentElement {
                     uriPrefix: option.uriPrefix,
                     actionId: option.actionId,
                     selected: filter || this.isActiveOption(option),
+                    description: option.unavailable ? undefined : option.description,
+                    icon: option.icon,
+                    image: option.image ?? undefined,
                 }
             } else return undefined
         }) as Array<MenuBarItem | undefined>).filter((option): option is MenuBarItem => option != null)

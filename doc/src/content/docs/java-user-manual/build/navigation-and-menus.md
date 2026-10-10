@@ -107,6 +107,63 @@ Route nesting (a sub-route that renders inside a parent screen's slot) is declar
 [`routes.yaml`](/java-ui-definition/route-registry/#nested-routes-a-sub-route-in-a-parents-slot)
 with `children:`, not by an annotation.
 
+### Card menus (a group that opens as cards)
+
+A group can open as a **panel of cards** instead of a plain dropdown, like the product menus of
+a documentation site: each entry is a card with a title, a description and an icon or image.
+Declare it on the field that holds the group, and describe each entry with `@Menu(description,
+image)` and `@Icon`:
+
+```java
+public class Bookings {
+
+    @Menu NewReservation newReservation;
+
+    @Menu(display = MenuDisplay.cards)
+    QuickAccess quickAccess;
+}
+
+public class QuickAccess {
+
+    @Menu(description = "Sign the registration card and scan the ID")
+    @Icon(IconKey.Clipboard)
+    RegistrationCard checkIn;
+
+    @Menu(description = "Rooms coloured by housekeeping status", image = "/img/floor.png")
+    FloorPlan floorPlan;
+
+    // an entry with its own entries is not a destination: its entries are the card's ACTIONS
+    @Menu(description = "Folios, charges and payments")
+    @Icon(IconKey.Invoice)
+    BillingActions billing;
+}
+
+public class BillingActions {
+    @Menu Billing folio;
+    @Menu NewReservation newReservation;
+}
+```
+
+- **Card**: the entry's label is the title, `description` the text, `image` (a URL relative to the
+  app, or a data URI) or `@Icon` the visual. Clicking it navigates like any entry.
+- **Actions**: an entry that holds entries shows them as links on its card; the card itself does
+  not navigate.
+- A group without `display = cards`, and every entry outside one, renders exactly as before.
+- In code (`MenuSupplier`, `AppSupplier`, fluent `AppShell`), set it with
+  `menu.withPresentation(MenuPresentation.cards())` on the group and
+  `withPresentation(MenuPresentation.card(icon, image))` / `withDescription(...)` on its entries.
+- .NET: `[MenuGroup("Bookings", Display = MenuDisplay.Cards)]` + `[MenuItem(..., Description,
+  Icon, Image)]`; Python: `@menu_group("Bookings", display=MenuDisplay.cards)` +
+  `@menu_item(..., description=, icon=, image=)` (see each port's README).
+
+Where it shows: in the top navigation bars — `MENU_ON_TOP` and the section band of
+`HAMBURGER_SECTIONS` — on Vaadin (`mateu-card-menu`) and Redwood (`oj-popup` with
+`oj-action-card`s). The native renderers draw the cards inside their drawer / sidebar (React
+Native: bordered cards with image, title, description and action chips; IntelliJ: two-line rows
+with icon and inline action links). Drawer and rail variants on the web, and the narrow-viewport
+☰ button, keep the plain list. On the wire it is `display: "cards"` on the group's
+`MenuOptionDto` and `image` on its entries.
+
 ---
 
 ### 6. Empty String (placeholder)

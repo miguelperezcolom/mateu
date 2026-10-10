@@ -1196,6 +1196,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
       hasChildren: children.length > 0,
       // el padre de un nieto es la ruta CRUDA del hijo, no su id ya recortado
       children: children.map((child) => navNodeOf(child, raw)),
+      // MENÚ DE TARJETAS (@Menu(display = cards) en un grupo): en vez de un oj-menu, un oj-popup
+      // con una rejilla de oj-action-card — título, descripción, icono/imagen y, si la entrada tiene
+      // hijos, esos hijos como acciones de la tarjeta. Los ids del popup y de su lanzador van
+      // precalculados (el CSP de VB no concatena en las plantillas).
+      ...cardsOf(option, children, raw),
+    }
+  }
+
+  function cardsOf(option, children, raw) {
+    const isCards = option.display === 'cards' && children.length > 0
+    if (!isCards) return { isCards: false, cards: [], popupId: '', anchorId: '' }
+    const key = String(raw || option.label || 'cards').replace(/[^A-Za-z0-9_-]/g, '_')
+    return {
+      isCards: true,
+      popupId: 'mateuCards_' + key,
+      anchorId: 'mateuCardsBtn_' + key,
+      cards: children.filter((c) => !c.separator).map((child) => {
+        const node = navNodeOf(child, raw)
+        return {
+          id: node.id,
+          label: node.label,
+          description: child.description || '',
+          // un icono declarado sin equivalente Redwood toma el genérico: las tarjetas quedan alineadas
+          iconClass: child.icon ? ojIconOrGenericOf(child.icon) : '',
+          image: child.image || '',
+          hasImage: !!child.image,
+          hasIcon: !child.image && !!child.icon,
+          navigable: !node.hasChildren,
+          actions: node.children.filter((a) => !a.hasChildren).map((a) => ({ id: a.id, label: a.label })),
+        }
+      }),
     }
   }
 

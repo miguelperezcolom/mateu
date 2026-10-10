@@ -268,6 +268,44 @@ public sealed class MenuItemAttribute(string? label = null) : Attribute
     /// <summary>Folder this entry nests under (entries sharing a Group become its submenu);
     /// empty = a top-level leaf entry.</summary>
     public string Group { get; set; } = "";
+
+    /// <summary>The entry's text when it shows as a card (its group is a [MenuGroup] with
+    /// Display = "cards").</summary>
+    public string Description { get; set; } = "";
+
+    /// <summary>The entry's icon (e.g. "vaadin:calendar"), shown on its card.</summary>
+    public string Icon { get; set; } = "";
+
+    /// <summary>The entry's image (a URL or a data URI), shown on its card.</summary>
+    public string Image { get; set; } = "";
+}
+
+/// <summary>The look of a menu folder declared through [MenuItem(Group = …)], on the [App] class.
+/// Display = "cards" opens the folder as a panel of CARDS (title, description, icon/image, and
+/// each entry's own children as the card's actions) instead of the usual list — like the product
+/// menus of a docs site. Description/Icon/Image style the folder itself when it is a card of an
+/// enclosing cards group ("Bookings/Reservations" addresses a nested folder).
+/// (C# analogue of Java's @Menu(display, description, image) + @Icon on a group field.)</summary>
+/// <summary>How a menu group shows its entries (the values of [MenuGroup(Display = …)]).
+/// (Mirrors Java's io.mateu.uidl.data.MenuDisplay.)</summary>
+public static class MenuDisplay
+{
+    public const string List = "list";
+    public const string Cards = "cards";
+}
+
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+public sealed class MenuGroupAttribute(string group) : Attribute
+{
+    /// <summary>The folder path, as used in [MenuItem(Group = …)].</summary>
+    public string Group { get; } = group;
+
+    /// <summary>"cards" opens the folder as a card panel; empty = the usual list.</summary>
+    public string Display { get; set; } = "";
+
+    public string Description { get; set; } = "";
+    public string Icon { get; set; } = "";
+    public string Image { get; set; } = "";
 }
 
 /// <summary>A FEDERATED menu entry on the [App] class: the option points at another Mateu backend

@@ -455,22 +455,35 @@ class ReflectionMapper:
             items = list(cls().menu() or [])
         else:
             # menu_item(group=...) entries sharing a group nest as that folder's submenu (the
-            # folder appears where its first entry was declared); ungrouped entries stay leaves.
+            # folder appears where its first entry was declared); ungrouped entries stay leaves. A
+            # "/" in the group nests folders ("Bookings/Reservations" = the Reservations folder
+            # inside Bookings) — how a card of a @menu_group(display="cards") gets its actions.
             items = []
             folders: dict[str, MenuItem] = {}
+            looks = getattr(cls, "__mateu_menu_groups__", {})
+
+            def folder_of(path: str) -> MenuItem:
+                if path in folders:
+                    return folders[path]
+                parent, _, name = path.rpartition("/")
+                folder = self._presented(
+                    MenuItem(label=self.T(name), route="", server_side_type=""), looks.get(path)
+                )
+                folders[path] = folder
+                (folder_of(parent).submenus if parent else items).append(folder)
+                return folder
+
             for n, f in methods_with(cls, "__mateu_menu_item__"):
                 if not for_current_audience(getattr(f, "__mateu_audience__", None)):
                     continue
-                entry = self.map_menu_item(n, f)
-                group = getattr(f, "__mateu_menu_group__", "")
+                entry = self._presented(
+                    self.map_menu_item(n, f), getattr(f, "__mateu_menu_look__", None)
+                )
+                group = getattr(f, "__mateu_menu_group__", "").strip("/")
                 if not group:
                     items.append(entry)
-                elif group in folders:
-                    folders[group].submenus.append(entry)
                 else:
-                    folder = MenuItem(label=self.T(group), route="", server_side_type="", submenus=[entry])
-                    folders[group] = folder
-                    items.append(folder)
+                    folder_of(group).submenus.append(entry)
             # @remote_menu entries: federated options — the frontend fetches the remote backend's
             # menu itself and mounts its views (no server-side proxying).
             for label, base_url, route, explode in getattr(cls, "__mateu_remote_menus__", []):
@@ -710,6 +723,18 @@ class ReflectionMapper:
                 return "TILES"
             return "HAMBURGUER_MENU" if len(items) > 7 else "MENU_ON_TOP"
         return "TABS"
+
+    def _presented(self, entry: MenuItem, look) -> MenuItem:
+        """The card look of a menu entry: display "cards" on a group, description/icon/image on an
+        entry. Blank values stay None, so a plain menu travels exactly as before (mirrors Java's
+        MenuEntryMapper.presented + AppMenuDtoBuilder)."""
+        if look is None:
+            return entry
+        entry.display = "cards" if (look.display or "").lower() == "cards" else None
+        entry.description = self.T(look.description) if look.description else None
+        entry.icon = look.icon or None
+        entry.image = look.image or None
+        return entry
 
     def map_menu_item(self, name: str, fn) -> MenuItem:
         try:

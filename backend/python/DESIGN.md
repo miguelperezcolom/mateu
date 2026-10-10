@@ -45,9 +45,14 @@ C# attributes don't exist on Python attributes, so:
   `Stereotype("…")`, `Multiline()`, `Password()`, `Money()`, `PlainText()`, `HeaderBadge(...)`,
   `Step(n)`, `Label("…")`.
 - **Class features** are decorators: `@ui`, `@title`, `@subtitle`, `@app`, `@compact`,
-  `@confirm_on_navigation_if_dirty`, `@plain_text`, `@emits`, `@subscribe_to`, `@secured`.
+  `@confirm_on_navigation_if_dirty`, `@plain_text`, `@emits`, `@subscribe_to`, `@secured`,
+  `@menu_group` (a menu folder's look: `display="cards"` opens it as a card panel — the analogue of
+  Java's `@Menu(display = cards)` on a group field).
 - **Method features** are decorators: `@button`, `@menu_item`, `@kpi`, `@fab`, `@banner`,
-  `@shortcut`. Each stamps a `__mateu_*__` attribute the mapper reads.
+  `@shortcut`. Each stamps a `__mateu_*__` attribute the mapper reads. `@menu_item(group=,
+  description=, icon=, image=)` — a `/` in `group` nests folders, and description/icon/image are
+  the entry's card look (wire `MenuItem.description/icon/display/image`, mirroring
+  `MenuOptionDto`).
 
 Validation reuses "a field has `Required()`" (the analogue of `@NotEmpty` / `[Required]`), enforced
 server-side on CRUD save.

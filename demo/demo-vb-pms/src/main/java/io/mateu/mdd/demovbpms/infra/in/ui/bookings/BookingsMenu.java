@@ -6,4 +6,7 @@ import io.mateu.uidl.annotations.Menu;
 public class BookingsMenu {
 
   @Menu NewReservation newReservation;
+
+  @Menu(display = io.mateu.uidl.data.MenuDisplay.cards)
+  QuickAccess quickAccess;
 }
