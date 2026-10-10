@@ -4,14 +4,15 @@ import io.mateu.SpringHttpRequest;
 import io.mateu.core.application.MateuService;
 import io.mateu.core.application.runaction.RouteRegistry;
 import io.mateu.core.application.runaction.YamlAppLoader;
-import io.mateu.core.infra.InputStreamReader;
 import io.mateu.core.infra.MateuController;
+import io.mateu.core.infra.YamlMounts;
 import io.mateu.dtos.RunActionRqDto;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.http.MediaType;
+import org.springframework.web.servlet.function.RequestPredicates;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerRequest;
@@ -22,16 +23,14 @@ import org.springframework.web.servlet.function.ServerResponse;
  * whose UIs are defined entirely in YAML ({@code type: UI} files), so it needs NO Java beyond the
  * Spring Boot entry point. The annotation processor generates these per {@code @UI} class; a
  * class-less deployment has none, and this fills the gap for every discovered mount at its own
- * {@code basePath}.
+ * {@code basePath}. The surface itself is {@link YamlMounts} (core), shared by every adapter.
  *
  * <p>Gated by {@link YamlMountCondition} (there is at least one {@code type: UI} mount) and a
  * class-level {@link ConditionalOnMissingBean} on {@link MateuController} — so the moment any
  * generated controller exists (a Java {@code @UI} in the same deployment), this stands down.
  *
  * <p>The endpoints are a {@link RouterFunction}, not annotated controllers: a functional route is
- * picked up by its {@code @Bean} type regardless of package or component scanning, and needs no
- * {@code @Controller} stereotype (which would get the class component-scanned AND registered here —
- * a duplicate mapping).
+ * picked up by its {@code @Bean} type regardless of package or component scanning.
  */
 @AutoConfiguration
 @Conditional(YamlMountCondition.class)
@@ -42,29 +41,28 @@ public class YamlMountAutoConfiguration {
   public RouterFunction<ServerResponse> mateuYamlMountRoutes(
       MateuService service, RouteRegistry routeRegistry, YamlAppLoader yamlAppLoader) {
     var builder = RouterFunctions.route();
-    for (var mount : routeRegistry.mounts()) {
-      var basePath = mount.basePath(); // "" for a root mount, e.g. "back-office" otherwise
-      var spaPath = basePath.isEmpty() ? "/" : "/" + basePath;
-      var syncPrefix = basePath.isEmpty() ? "/mateu" : "/" + basePath + "/mateu";
-      var title = titleOf(routeRegistry, yamlAppLoader, basePath);
+    for (var mount : YamlMounts.mounts(routeRegistry, yamlAppLoader)) {
+      var basePath = mount.basePath();
       builder
-          .GET(
-              spaPath,
-              request ->
-                  ServerResponse.ok()
-                      .contentType(MediaType.TEXT_HTML)
-                      .body(indexHtml(basePath, title)))
-          .POST(syncPrefix + "/v3/sse/**", request -> sse(service, request, basePath))
-          .POST(syncPrefix + "/v3/**", request -> sync(service, request, basePath));
+          .GET(mount.spaPath(), request -> index(mount))
+          .POST(mount.apiPrefix() + "/v3/sse/**", request -> sse(service, request, basePath))
+          .POST(mount.apiPrefix() + "/v3/**", request -> sync(service, request, basePath));
+      if (!basePath.isEmpty()) {
+        // Deep links under a nested mount answer its index (the root mount's are forwarded to "/"
+        // by SpaRedirectFilter — a catch-all here would shadow the application's own handlers).
+        builder.route(
+            RequestPredicates.GET(mount.spaPath() + "/**")
+                .and(
+                    request ->
+                        !request.path().contains(".") && !request.path().contains("/mateu/")),
+            request -> index(mount));
+      }
     }
     return builder.build();
   }
 
-  private static String titleOf(
-      RouteRegistry routeRegistry, YamlAppLoader appLoader, String basePath) {
-    var definition = routeRegistry.rootDefinitionFor(basePath);
-    var shell = appLoader.load(definition);
-    return shell != null && shell.title() != null ? shell.title() : "Mateu";
+  private static ServerResponse index(YamlMounts.Mount mount) {
+    return ServerResponse.ok().contentType(MediaType.TEXT_HTML).body(mount.indexHtml());
   }
 
   private static ServerResponse sync(MateuService service, ServerRequest request, String baseUrl)
@@ -113,23 +111,8 @@ public class YamlMountAutoConfiguration {
     return httpRequest;
   }
 
-  /**
-   * The SPA shell HTML with a {@code <mateu-ui baseUrl="{basePath}">} injected; the SPA then POSTs
-   * {@code /{basePath}/mateu/v3/**} and the YAML-defined mount answers. The initial page title
-   * comes from the mount's app shell definition (the SPA overrides it per route once loaded).
-   */
-  private static String indexHtml(String basePath, String title) {
-    String html =
-        InputStreamReader.readFromClasspath(
-            YamlMountAutoConfiguration.class, "/static/_index.html");
-    html = html.replace("<!-- AQUIFAVICON -->", "");
-    // replace, not replaceAll: the title is authored text, and a "$" in it ("Costs in $") is a
-    // group reference to replaceAll — IllegalArgumentException, a 500 on every page load.
-    html = html.replace("AQUIELTITULODELAPAGINA", title);
-    return html.substring(0, html.indexOf("<!-- AQUIUI -->"))
-        + "<mateu-ui baseUrl=\""
-        + basePath
-        + "\" pathPrefix=\"\" style=\"width:100%;height:100vh;\"></mateu-ui>"
-        + html.substring(html.indexOf("<!-- HASTAAQUIUI -->"));
+  /** The SPA shell HTML for a mount (kept for callers of the previous API). */
+  static String indexHtml(String basePath, String title) {
+    return YamlMounts.indexHtml(basePath, title);
   }
 }
