@@ -85,7 +85,8 @@ def main() -> int:
             # average it was set from fails --check by a rounding hair)
             recorded = json.loads(CEILING_FILE.read_text()) if CEILING_FILE.exists() else {}
             recorded["ceiling"] = math.ceil(average * 100) / 100
-            CEILING_FILE.write_text(json.dumps(recorded, indent=2, ensure_ascii=False) + "\n")
+            # NOSONAR: CEILING_FILE is a constant path inside the repo, not user input
+            CEILING_FILE.write_text(json.dumps(recorded, indent=2, ensure_ascii=False) + "\n")  # NOSONAR
             print(f"wrote ceiling {recorded['ceiling']:.2f} to {CEILING_FILE.name}")
         return 0
 
