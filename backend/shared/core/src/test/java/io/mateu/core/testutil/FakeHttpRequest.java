@@ -27,6 +27,27 @@ public class FakeHttpRequest implements HttpRequest {
     return this;
   }
 
+  private java.security.Principal principal;
+
+  /** The principal the (simulated) framework authenticated. */
+  public FakeHttpRequest withPrincipal(java.security.Principal principal) {
+    this.principal = principal;
+    return this;
+  }
+
+  /**
+   * The principal set with {@link #withPrincipal}, else the one {@link TestIdentities#ROLES_HEADER}
+   * describes — the test stand-in for what an adapter reads off its framework's security context.
+   */
+  @Override
+  public java.security.Principal getUserPrincipal() {
+    if (principal != null) {
+      return principal;
+    }
+    var roles = headers.get(TestIdentities.ROLES_HEADER);
+    return roles == null ? null : TestIdentities.principalWithRoles(roles.split(","));
+  }
+
   @Override
   public RunActionRqDto runActionRq() {
     return rq;

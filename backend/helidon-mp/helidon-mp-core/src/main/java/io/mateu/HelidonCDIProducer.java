@@ -38,14 +38,11 @@ public class HelidonCDIProducer {
   void eagerlyInitStaticFactories(@Observes @Initialized(ApplicationScoped.class) Object event) {
     instanceFactory.get().toString();
     beanProvider.get().toString();
-    // mateu.* settings (security, remote, errors…) also come from MicroProfile Config
-    // (application.properties / microprofile-config.properties)
-    io.mateu.core.infra.MateuSettings.setSource(
-        key ->
-            org.eclipse.microprofile.config.ConfigProvider.getConfig()
-                .getOptionalValue(key, String.class)
-                .orElse(null));
-    io.mateu.core.infra.security.IdentityResolver.warnOnStartup();
+    // warns, once, when nothing will authenticate callers (no security module, no resolver)
+    io.mateu.core.infra.security.IdentityResolver.warnOnStartup(
+        io.mateu.core.infra.security.IdentityResolver.present(
+            "org.eclipse.microprofile.jwt.JsonWebToken"),
+        "Add helidon-microprofile-jwt-auth (MicroProfile JWT)");
   }
 
   @Produces

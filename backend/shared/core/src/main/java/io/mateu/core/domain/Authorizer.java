@@ -12,11 +12,10 @@ import java.util.List;
 /**
  * Decides whether a restricted ({@link EyesOnly}, {@link ReadOnlyUnless}, {@link DisabledUnless},
  * YAML {@code access:}) element is available for the current request. The caller's identity comes
- * from {@link IdentityResolver} — the framework's authenticated principal, a {@code
- * PrincipalResolver}, or a Bearer token whose signature was VERIFIED — never from an unverified
- * token (unless the local-development opt-out {@code mateu.security.trust-unverified-tokens=true}
- * is on). A caller only needs to satisfy each dimension the annotation actually declares (AND
- * across declared dimensions, OR within each).
+ * from {@link IdentityResolver} — the principal the hosting framework authenticated, or a {@code
+ * PrincipalResolver} — never from a Bearer token's payload: Mateu does not authenticate. A caller
+ * only needs to satisfy each dimension the annotation actually declares (AND across declared
+ * dimensions, OR within each).
  */
 public class Authorizer {
 

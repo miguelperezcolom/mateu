@@ -58,7 +58,7 @@ class RouteLevelEyesOnlySyncTest {
   }
 
   private static Map<String, String> token(String... roles) {
-    return Map.of("Authorization", io.mateu.core.testutil.TestTokens.bearerWithRoles(roles));
+    return io.mateu.core.testutil.TestIdentities.headersWithRoles(roles);
   }
 
   private static String serverSideTypeOf(UIIncrementDto increment) {

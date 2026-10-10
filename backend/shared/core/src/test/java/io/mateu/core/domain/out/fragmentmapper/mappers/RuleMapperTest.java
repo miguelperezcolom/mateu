@@ -148,9 +148,9 @@ class RuleMapperTest {
 
   private static HttpRequest requestWithRoles(String... roles) throws Exception {
     var claims = Map.of("realm_access", Map.of("roles", List.of(roles)));
-    String jwt = io.mateu.core.testutil.TestTokens.signed(claims);
     HttpRequest req = mock(HttpRequest.class);
-    when(req.getHeaderValue("Authorization")).thenReturn("Bearer " + jwt);
+    when(req.getUserPrincipal())
+        .thenReturn(io.mateu.core.testutil.TestIdentities.principal(claims));
     return req;
   }
 

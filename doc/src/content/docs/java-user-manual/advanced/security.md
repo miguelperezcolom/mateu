@@ -66,73 +66,102 @@ public class App {
 
 ## How authorization works
 
-Every restricted element asks one question: *who is the caller?* Mateu answers it **only from a
-trusted source** — never from the unverified payload of a token, which anyone can write. The
-sources, first match wins:
+**Mateu does not authenticate.** Configure your framework's security — a Spring Security resource
+server, Quarkus OIDC, Micronaut Security, MicroProfile JWT on Helidon, ASP.NET Core
+authentication, your FastAPI dependency — and Mateu reads the principal it authenticated. Every
+restricted element asks *who is the caller?* and gets its answer, first match wins, from:
 
 1. a **`PrincipalResolver`** bean your application registers (`io.mateu.uidl.security`) — for an
-   identity Mateu cannot see by itself (a session, a header set by a gateway you trust);
+   identity Mateu cannot see by itself (a session, headers set by a gateway that authenticated the
+   request and is the only way in);
 2. the **principal your framework authenticated**: Spring Security's `Authentication` (servlet and
-   WebFlux), a Micronaut Security `Authentication`, Quarkus' `SecurityIdentity` (quarkus-oidc,
-   smallrye-jwt), the JAX-RS `SecurityContext` principal on Helidon MP (MicroProfile JWT);
-3. the **Bearer token, verified**: by a `TokenVerifier` bean, or by Mateu's built-in JWT verifier
-   when it is configured (below). A token whose signature, expiry (`exp` is required), `nbf`,
-   issuer or audience does not check out is no identity at all;
-4. otherwise the caller is **anonymous**: every `@EyesOnly`, `@ReadOnlyUnless`, `@DisabledUnless`
+   WebFlux — its token claims and its authorities: `ROLE_x` → role `x`, `SCOPE_x` → scope `x`,
+   anything else → role and permission), Quarkus' `SecurityIdentity`, Micronaut Security's
+   `Authentication`, the JAX-RS `SecurityContext` principal on Helidon MP (a MicroProfile
+   `JsonWebToken`: its groups are roles);
+3. otherwise the caller is **anonymous**: every `@EyesOnly`, `@ReadOnlyUnless`, `@DisabledUnless`
    and YAML `access:` element is hidden or denied.
 
-### Configuring the built-in JWT verifier
+Mateu never decodes the `Authorization` header itself: a token's payload is the client's to write,
+so on its own it grants nothing. When no security module is on the classpath (and no
+`PrincipalResolver` is registered) the server logs one WARN at startup saying restricted UI will be
+hidden for everyone.
 
-```properties
-# RS256/384/512, ES256/384/512 — keys fetched from the identity provider and cached
-mateu.security.jwt.jwks-uri=https://idp.example.com/realms/acme/protocol/openid-connect/certs
-# recommended
-mateu.security.jwt.issuer=https://idp.example.com/realms/acme
-# optional
-mateu.security.jwt.audience=my-app
-# the default
-mateu.security.jwt.clock-skew-seconds=30
+### Wiring each framework
 
-# HS256/384/512 with a shared secret — development and tests
-mateu.security.jwt.secret=change-me-to-at-least-32-random-bytes
+**Spring Boot (MVC or WebFlux)** — a resource server validating your identity provider's tokens:
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+</dependency>
 ```
 
-The keys are read from the framework's configuration (`application.properties`/`.yml` on Spring and
-Micronaut, MicroProfile Config on Quarkus and Helidon), a JVM system property, or the environment
-(`MATEU_SECURITY_JWT_JWKS_URI`, …). The algorithm is never chosen by the token alone: HMAC tokens
-are accepted only with a `secret`, RSA/ECDSA ones only with a `jwks-uri` — so `alg: none` and the
-RS→HS confusion attack get nowhere.
-
-If your framework already authenticates the request — e.g. a Spring Boot resource server
-(`spring-boot-starter-oauth2-resource-server` + `spring.security.oauth2.resourceserver.jwt.*`) — you
-need none of this: Mateu reads the verified `Authentication` (its token claims and its authorities:
-`ROLE_x` → role `x`, `SCOPE_x` → scope `x`, anything else → role and permission).
-
-### The default, and the development opt-out
-
-With **no** verifier configured and no authenticated principal, a Bearer token is **ignored**:
-restricted UI stays hidden for everyone, and the server logs a WARN box at startup saying so. For a
-local experiment with hand-written tokens only:
-
 ```properties
-# NEVER in a deployed profile
-mateu.security.trust-unverified-tokens=true
+spring.security.oauth2.resourceserver.jwt.issuer-uri=https://idp.example.com/realms/acme
 ```
 
-which reads the claims unverified and logs a WARN box at startup. Before 3.0 beta this was the
-behaviour by default; see [Migrating from alpha](/reference/migrating-from-alpha/#defaults-that-changed).
+To read Keycloak's `realm_access.roles`, Mateu also reads the authenticated token's claims, so no
+authorities converter is needed.
 
-The C# and Python backends follow the same rule: .NET reads only the claims of
-`HttpContext.User` — what ASP.NET Core's authentication (JwtBearer, cookies…) verified — and never
-decodes the header itself; Python's default `jwt_identity_provider()` uses the principal
-Starlette's `AuthenticationMiddleware` authenticated, else verifies the token against
-`MATEU_SECURITY_JWT_JWKS_URI` / `MATEU_SECURITY_JWT_SECRET` (+ `_ISSUER`, `_AUDIENCE`), and
-ignores it otherwise (`MATEU_SECURITY_TRUST_UNVERIFIED_TOKENS=true` is the same dev-only opt-out).
+**Quarkus** — `quarkus-oidc` (or `quarkus-smallrye-jwt`):
+
+```properties
+quarkus.oidc.auth-server-url=https://idp.example.com/realms/acme
+quarkus.oidc.client-id=my-app
+```
+
+**Micronaut** — `micronaut-security-jwt`:
+
+```yaml
+micronaut:
+  security:
+    token:
+      jwt:
+        signatures:
+          jwks:
+            idp:
+              url: https://idp.example.com/realms/acme/protocol/openid-connect/certs
+```
+
+**Helidon MP** — `helidon-microprofile-jwt-auth`, with `@LoginConfig(authMethod = "MP-JWT")` on
+your JAX-RS `Application` and `mp.jwt.verify.publickey.location` /
+`mp.jwt.verify.issuer` in `microprofile-config.properties`. (Mateu's streamed actions, MCP and YAML
+mounts run on Helidon's own routing, which does not carry the JAX-RS principal: register a
+`PrincipalResolver` if those need roles.)
+
+**Your own identity source** — a `PrincipalResolver` bean:
+
+```java
+@Component
+public class GatewayPrincipalResolver implements PrincipalResolver {
+  @Override
+  public Optional<CallerIdentity> resolve(HttpRequest request) {
+    var user = request.getHeaderValue("X-Authenticated-User"); // set by YOUR gateway, the only way in
+    var roles = request.getHeaderValue("X-Authenticated-Roles");
+    return user == null
+        ? Optional.empty()
+        : Optional.of(CallerIdentity.withRoles(user, List.of(roles.split(","))));
+  }
+}
+```
+
+The C# and Python backends follow the same rule: .NET reads only `HttpContext.User` — what ASP.NET
+Core's authentication (`AddAuthentication().AddJwtBearer(...)`, cookies…) established — and Python
+reads the `Identity` your FastAPI dependency or middleware put in `request.state.mateu_identity`
+(`identity_from_claims(claims)` maps a verified token's claims), else Starlette's
+`AuthenticationMiddleware`.
+
+Before 3.0 beta, Mateu read the roles from the Bearer token's payload without verifying it; see
+[Migrating from alpha](/reference/migrating-from-alpha/#defaults-that-changed).
 
 A field `@EyesOnly` hides is also left out of the component's state: its value never reaches a
 caller who may not see it.
 
-Authorization is **provider-agnostic** — it works with Keycloak, Okta, Azure AD, Auth0 or any OIDC issuer, reading each dimension from the conventional claim shapes:
+Authorization is **provider-agnostic** — it works with Keycloak, Okta, Azure AD, Auth0 or any OIDC
+issuer. From the claims of the authenticated token, each dimension is read from the conventional
+claim shapes:
 
 | `@EyesOnly` attribute | JWT claim(s) checked |
 |---|---|
@@ -143,7 +172,7 @@ Authorization is **provider-agnostic** — it works with Keycloak, Okta, Azure A
 
 If any required condition is not met, the element is omitted from the response. The user never sees the menu entry or page.
 
-> `@KeycloakSecured` only configures the (Keycloak) login flow. Authorization via `@EyesOnly` is independent of the identity provider — point your gateway at any OIDC issuer and the role/group/scope/permission checks above apply unchanged.
+> `@KeycloakSecured` only configures the (Keycloak) login flow in the browser. The backend still has to authenticate the token it sends — configure your framework's security as above.
 
 ---
 
@@ -273,12 +302,12 @@ there is now a toast instead of a framework HTTP 500.
 
 An API gateway (Nginx, Envoy, Kong, etc.) may validate the token at the edge, but Mateu does not
 trust a token just because a request reached it — a backend is often reachable by more than one
-path. Configure the verifier (or your framework's resource server) on the backend too:
+path. Configure your framework's security on the backend too:
 
 ```
 Browser → API Gateway (validates JWT signature + expiry)
-        → Mateu backend (verifies the token — jwks-uri or the framework's resource server —
-                         then enforces @EyesOnly on its claims)
+        → Mateu backend (the framework's resource server authenticates the token;
+                         Mateu enforces @EyesOnly on the principal it established)
 ```
 
 If the gateway injects identity headers (`X-User-Id`, `X-User-Roles`) and the backend is reachable

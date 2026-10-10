@@ -8,9 +8,8 @@ import java.util.List;
  *
  * <p>Only a TRUSTED source may produce one: the principal the hosting framework already
  * authenticated (Spring Security, Quarkus/Micronaut/Helidon security, a JAX-RS {@code
- * SecurityContext}), a {@link PrincipalResolver} the application supplies, or the claims of a
- * Bearer token whose signature a {@link TokenVerifier} checked. Never the raw payload of an
- * unverified token — anyone can write one.
+ * SecurityContext}) or a {@link PrincipalResolver} the application supplies. Never the payload of a
+ * Bearer token Mateu would decode itself — anyone can write one; Mateu does not authenticate.
  *
  * @param name the principal's name (display only; null when unknown)
  * @param roles roles

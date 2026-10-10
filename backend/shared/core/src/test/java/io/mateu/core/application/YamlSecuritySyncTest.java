@@ -177,9 +177,9 @@ class YamlSecuritySyncTest {
 
   // ── helpers ─────────────────────────────────────────────────────────────────────────────────
 
-  /** A JWT carrying {@code roles}, signed with the test secret (the Authorizer verifies it). */
+  /** A caller the framework authenticated with {@code roles}. */
   static Map<String, String> as(String... roles) {
-    return Map.of("Authorization", io.mateu.core.testutil.TestTokens.bearerWithRoles(roles));
+    return io.mateu.core.testutil.TestIdentities.headersWithRoles(roles);
   }
 
   static final Map<String, String> ANONYMOUS = Map.of();

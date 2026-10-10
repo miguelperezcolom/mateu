@@ -17,9 +17,6 @@ public class MicronautBeanProvider implements BeanProvider {
   public MicronautBeanProvider(ApplicationContext applicationContext) {
     this.applicationContext = applicationContext;
     MateuBeanProvider.setBeanProvider(this);
-    // mateu.* settings (security, remote, errors…) also come from application.properties/yml
-    io.mateu.core.infra.MateuSettings.setSource(
-        key -> applicationContext.getProperty(key, String.class).orElse(null));
   }
 
   @Override

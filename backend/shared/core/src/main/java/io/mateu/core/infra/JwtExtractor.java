@@ -6,8 +6,8 @@ import java.util.Optional;
 
 /**
  * The caller's display name ({@code preferred_username}, else {@code sub}, else the framework
- * principal's name) — taken from the identity {@link IdentityResolver} TRUSTS (a verified token or
- * the framework's authenticated principal), never from an unverified token.
+ * principal's name) — taken from the identity the framework authenticated ({@link
+ * IdentityResolver}), never from the Bearer token's payload.
  */
 public class JwtExtractor {
 

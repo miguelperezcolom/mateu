@@ -17,13 +17,10 @@ class AuthorizerTest {
 
   // ── helpers ────────────────────────────────────────────────────────────────
 
-  private static String jwt(Map<String, Object> claims) {
-    return io.mateu.core.testutil.TestTokens.signed(claims);
-  }
-
   private static HttpRequest requestWith(Map<String, Object> claims) {
     HttpRequest req = mock(HttpRequest.class);
-    when(req.getHeaderValue("Authorization")).thenReturn("Bearer " + jwt(claims));
+    when(req.getUserPrincipal())
+        .thenReturn(io.mateu.core.testutil.TestIdentities.principal(claims));
     return req;
   }
 

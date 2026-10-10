@@ -52,7 +52,7 @@ access:
 - Shorthand: `access: admin` or `access: [admin, hr]` lists **roles**.
 
 The caller's identity is resolved exactly as for the annotations: the principal your framework
-authenticated, or a Bearer token Mateu **verified** — never an unverified one (see
+authenticated — Mateu does not authenticate, and never reads a Bearer token itself (see
 [Security](/java-user-manual/advanced/security/#how-authorization-works)).
 
 ## Where each key goes, and what it does

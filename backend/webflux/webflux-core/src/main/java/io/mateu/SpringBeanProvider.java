@@ -17,15 +17,16 @@ public class SpringBeanProvider implements BeanProvider {
   public SpringBeanProvider(ApplicationContext applicationContext) {
     this.applicationContext = applicationContext;
     MateuBeanProvider.setBeanProvider(this);
-    // mateu.* settings (security, remote, errors…) also come from application.properties/yml
-    var environment = applicationContext.getEnvironment();
-    io.mateu.core.infra.MateuSettings.setSource(environment::getProperty);
   }
 
-  /** Says, once, what the security configuration means for restricted UI. */
+  /** Warns, once, when nothing will authenticate callers (no Spring Security, no resolver). */
   @EventListener(ApplicationReadyEvent.class)
   public void warnAboutSecurity() {
-    io.mateu.core.infra.security.IdentityResolver.warnOnStartup();
+    io.mateu.core.infra.security.IdentityResolver.warnOnStartup(
+        io.mateu.core.infra.security.IdentityResolver.present(
+            "org.springframework.security.core.Authentication"),
+        "Add Spring Security (e.g. spring-boot-starter-oauth2-resource-server +"
+            + " spring.security.oauth2.resourceserver.jwt.issuer-uri)");
   }
 
   @Override

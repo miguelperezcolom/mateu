@@ -14,8 +14,8 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * Builds a {@link CallerIdentity} from TRUSTED material: the claims of a token whose signature was
- * verified, or the principal the hosting framework authenticated.
+ * Builds a {@link CallerIdentity} from the principal the hosting framework authenticated (and,
+ * through {@link #fromClaims}, from the claims that principal carries).
  *
  * <p>Claims are read provider-agnostically: roles from Keycloak ({@code realm_access.roles}, {@code
  * resource_access.*.roles}) plus a top-level {@code roles} claim (Okta / Azure AD / generic OIDC);

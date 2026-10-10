@@ -51,16 +51,15 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   catalogue.
 - **Roles no longer come from unverified tokens** (security). `@EyesOnly`, `@ReadOnlyUnless`,
   `@DisabledUnless`, YAML `access:` and menu visibility used to read the Bearer token's payload
-  without checking its signature, so anyone could forge roles. The caller's identity now comes only
-  from the principal the framework authenticated (Spring Security, Quarkus/Micronaut/Helidon
-  security), a `PrincipalResolver` bean, or a token verified by `mateu.security.jwt.jwks-uri` /
-  `mateu.security.jwt.secret` (+ `issuer`, `audience`; `exp` required) or a `TokenVerifier` bean.
-  With none of those, restricted UI is hidden for everyone and a WARN at startup says so;
-  `mateu.security.trust-unverified-tokens=true` is a local-development opt-out. Python mirrors it
-  (`MATEU_SECURITY_JWT_*`, Starlette's `AuthenticationMiddleware`); .NET already read only
-  `HttpContext.User`. A field hidden by `@EyesOnly` is also left out of the component state.
-- **`mateu.*` settings are read from the framework's configuration** (`application.properties`/`.yml`,
-  MicroProfile Config) as well as system properties and environment variables.
+  without checking its signature, so anyone could forge roles. **Mateu does not authenticate**: the
+  caller's identity now comes only from the principal the host framework authenticated (Spring
+  Security, Quarkus `SecurityIdentity`, Micronaut `Authentication`, the JAX-RS `SecurityContext`
+  on Helidon) or a `PrincipalResolver` bean the app registers (`io.mateu.uidl.security`). A token
+  on its own grants nothing; with no security module on the classpath a WARN at startup says
+  restricted UI will be hidden. .NET already read only `HttpContext.User`; Python reads
+  `request.state.mateu_identity` or Starlette's `AuthenticationMiddleware` (`jwt_identity_provider`
+  and the `jwt` extra are removed). A field hidden by `@EyesOnly` is also left out of the
+  component state. `java-jwt` is no longer a dependency of `mateu-core`.
 - **Spring: no more component scan of all `io.mateu`.** The generated configuration used to scan
   the whole package, pulling in the beans of any third-party library living under `io.mateu.*`
   (e.g. a workflow engine's own UI). Mateu's beans now come from the adapter's auto-configuration,

@@ -25,7 +25,7 @@ from starlette.concurrency import run_in_threadpool
 
 from mateu_core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_core.errors import dev_mode_from_env, error_increment, new_correlation_id
-from mateu_core.identity import jwt_identity_provider, warn_on_startup
+from mateu_core.identity import framework_identity_provider, warn_on_startup
 from mateu_core import dev_specs
 from mateu_core.mcp import handle_jsonrpc
 from mateu_core.request_context import MateuRequest, bound_request, normalise_headers
@@ -44,11 +44,15 @@ _FORBIDDEN_BODY = {
 
 
 def authenticated_principal(request: Request) -> Identity | None:
-    """The identity the app's own authentication established — Starlette's
-    ``AuthenticationMiddleware`` (``request.user`` + ``request.auth.scopes``) — or None.
+    """The identity the app's own authentication established, or None: an ``Identity`` its
+    dependency/middleware put in ``request.state.mateu_identity``, else Starlette's
+    ``AuthenticationMiddleware`` (``request.user`` + ``request.auth.scopes``).
 
     Roles, groups and permissions are read from the user object's ``roles`` / ``groups`` /
-    ``permissions`` attributes when it has them. Trusted as is: the middleware authenticated it."""
+    ``permissions`` attributes when it has them. Trusted as is: the app authenticated it."""
+    state_identity = getattr(request.state, "mateu_identity", None)
+    if isinstance(state_identity, Identity):
+        return state_identity
     if "user" not in request.scope:
         return None  # no AuthenticationMiddleware installed
     user = request.scope.get("user")
@@ -93,13 +97,10 @@ def add_mateu(
       served by the same app needs no CORS at all. (Breaking: CORS used to default to ``*``.)
     - ``identity_provider`` — parameterless; returns the caller's ``Identity`` (roles, groups,
       scopes, permissions) that ``EyesOnly``/``ReadOnlyUnless``/``DisabledUnless`` match against.
-      Read the request in flight with ``mateu_core.request_context.current_request()`` /
-      ``bearer_token()``. Default: ``jwt_identity_provider()`` — the principal Starlette's
-      ``AuthenticationMiddleware`` authenticated, else the Bearer JWT VERIFIED against
-      ``MATEU_SECURITY_JWT_JWKS_URI`` / ``MATEU_SECURITY_JWT_SECRET`` (exp required; issuer and
-      audience checked when ``MATEU_SECURITY_JWT_ISSUER`` / ``_AUDIENCE`` are set). With none of
-      those a token is NOT trusted (``MATEU_SECURITY_TRUST_UNVERIFIED_TOKENS=true`` reads it
-      unverified — local development only). Verification requires the ``jwt`` extra.
+      Read the request in flight with ``mateu_core.request_context.current_request()``.
+      Default: ``framework_identity_provider()`` — Mateu does NOT authenticate; it takes the
+      identity your app established: ``request.state.mateu_identity`` (set by your dependency or
+      middleware), else Starlette's ``AuthenticationMiddleware``. A Bearer token is never decoded.
     - ``secrets_provider`` — ``key -> value`` for ``${secret.KEY}`` in proxied REST sources; None →
       the environment variable ``MATEU_SECRET_<KEY>`` (never an arbitrary one).
     - ``environment`` — the deployment environment whose ``type: Environment`` overrides re-point
@@ -124,7 +125,7 @@ def add_mateu(
     handler = SyncHandler(
         registry,
         translator,
-        identity_provider=identity_provider if identity_provider is not None else jwt_identity_provider(),
+        identity_provider=identity_provider if identity_provider is not None else framework_identity_provider(),
         secrets_provider=secrets_provider,
         proxy_timeout_seconds=proxy_timeout_seconds,
         environment=environment,

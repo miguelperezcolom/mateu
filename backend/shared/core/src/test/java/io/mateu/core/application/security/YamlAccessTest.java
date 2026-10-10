@@ -23,9 +23,8 @@ class YamlAccessTest {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
-    var token = io.mateu.core.testutil.TestTokens.signed(claims);
     return new FakeHttpRequest(RunActionRqDto.builder().build())
-        .withHeader("Authorization", "Bearer " + token);
+        .withPrincipal(io.mateu.core.testutil.TestIdentities.principal(claims));
   }
 
   @Test

@@ -2,8 +2,8 @@ package io.mateu.core.application.security;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.mateu.core.testutil.TestIdentities;
 import io.mateu.core.testutil.TestMateu;
-import io.mateu.core.testutil.TestTokens;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.annotations.EyesOnly;
@@ -32,7 +32,6 @@ class EyesOnlyStateSyncTest {
 
   @BeforeAll
   static void boot() {
-    TestTokens.configure();
     mateu = TestMateu.withUis(Salaries.class);
   }
 
@@ -76,8 +75,8 @@ class EyesOnlyStateSyncTest {
   }
 
   @Test
-  void aVerifiedTokenWithTheRoleSeesIt() {
-    var wire = json(load(Map.of("Authorization", TestTokens.bearerWithRoles("hr"))));
+  void aCallerTheFrameworkAuthenticatedWithTheRoleSeesIt() {
+    var wire = json(load(TestIdentities.headersWithRoles("hr")));
     assertThat(wire).contains("top-secret-salary");
   }
 }
