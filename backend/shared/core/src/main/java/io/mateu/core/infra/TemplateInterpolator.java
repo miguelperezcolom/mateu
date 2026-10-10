@@ -45,18 +45,159 @@ public final class TemplateInterpolator {
     var matcher = PLACEHOLDER.matcher(template);
     var sb = new StringBuilder();
     while (matcher.find()) {
-      var expr = matcher.group(1).trim();
-      String value = "";
-      if (expr.startsWith("state.")) {
-        var v = state != null ? state.get(expr.substring("state.".length())) : null;
-        value = v == null ? "" : String.valueOf(v);
-      } else if (expr.startsWith("secret.")) {
-        var v = secrets != null ? secrets.apply(expr.substring("secret.".length())) : null;
-        value = v == null ? "" : v;
-      }
+      var value = valueOf(matcher.group(1).trim(), state, secrets);
       matcher.appendReplacement(sb, Matcher.quoteReplacement(escape.apply(value)));
     }
     matcher.appendTail(sb);
+    return sb.toString();
+  }
+
+  /**
+   * Interpolates a URL template, percent-encoding every substituted value by where it lands.
+   *
+   * <p>A value is DATA, and data must never change the shape of the request. Without encoding, an
+   * id of {@code 1/../../admin?x=} turned {@code /people/${state.id}} into a request for {@code
+   * /admin} — and on the proxied leg that is the SERVER fetching whatever the client asked for. So:
+   *
+   * <ul>
+   *   <li>a placeholder in the <b>origin</b> (scheme + authority, or a template that starts with a
+   *       placeholder — {@code ${secret.API_BASE}/people}) is substituted raw: the origin is
+   *       configuration. A {@code ${state.x}} there is refused, because the client must not choose
+   *       which host is called;
+   *   <li>a placeholder in the <b>path</b> is encoded as a path segment (everything but the RFC
+   *       3986 unreserved characters, so {@code /} becomes {@code %2F}), and a value that is a dot
+   *       segment ({@code .} or {@code ..}) is refused — URL parsers resolve those even encoded;
+   *   <li>a placeholder in the <b>query or fragment</b> (after a literal {@code ?} or {@code #}) is
+   *       encoded as a query component ({@code &}, {@code =}, {@code #} and the rest escaped).
+   * </ul>
+   *
+   * <p>The browser leg ({@code libs/mateu} {@code interpolateUrl}) and the .NET and Python ports
+   * apply the same rules, byte for byte, so a direct and a proxied call reach the same URL.
+   *
+   * @throws IllegalArgumentException when a value is refused (client state in the origin, or a dot
+   *     segment in the path)
+   */
+  public static String interpolateUrl(
+      String template, Map<String, Object> state, Function<String, String> secrets) {
+    if (template == null || !template.contains("${")) {
+      return template == null ? "" : template;
+    }
+    int originEnd = originEnd(template);
+    var matcher = PLACEHOLDER.matcher(template);
+    var sb = new StringBuilder();
+    while (matcher.find()) {
+      var expr = matcher.group(1).trim();
+      var value = valueOf(expr, state, secrets);
+      String replacement;
+      if (matcher.start() < originEnd) {
+        if (expr.startsWith("state.")) {
+          throw new IllegalArgumentException(
+              "A client state value cannot choose the origin of a URL: " + template);
+        }
+        replacement = value;
+      } else if (inQuery(template, matcher.start())) {
+        replacement = urlEncode(value);
+      } else {
+        if (".".equals(value) || "..".equals(value)) {
+          throw new IllegalArgumentException("A dot segment is not a valid path value: " + value);
+        }
+        replacement = urlEncode(value);
+      }
+      matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+    }
+    matcher.appendTail(sb);
+    return sb.toString();
+  }
+
+  private static String valueOf(
+      String expr, Map<String, Object> state, Function<String, String> secrets) {
+    if (expr.startsWith("state.")) {
+      var v = state != null ? state.get(expr.substring("state.".length())) : null;
+      return v == null ? "" : String.valueOf(v);
+    }
+    if (expr.startsWith("secret.")) {
+      var v = secrets != null ? secrets.apply(expr.substring("secret.".length())) : null;
+      return v == null ? "" : v;
+    }
+    return "";
+  }
+
+  /**
+   * Where the origin of a URL template ends: after the authority of an absolute url, after a
+   * leading placeholder (a configured base), or 0 for a relative template.
+   */
+  static int originEnd(String template) {
+    int scheme = template.indexOf("://");
+    int firstPlaceholder = template.indexOf("${");
+    if (scheme >= 0 && (firstPlaceholder < 0 || scheme < firstPlaceholder)) {
+      int i = scheme + 3;
+      while (i < template.length()) {
+        if (template.startsWith("${", i)) {
+          int close = template.indexOf('}', i);
+          i = close < 0 ? template.length() : close + 1;
+          continue;
+        }
+        char c = template.charAt(i);
+        if (c == '/' || c == '?' || c == '#') {
+          return i;
+        }
+        i++;
+      }
+      return template.length();
+    }
+    if (template.startsWith("${")) {
+      int close = template.indexOf('}');
+      return close < 0 ? template.length() : close + 1;
+    }
+    return 0;
+  }
+
+  /** Whether a literal {@code ?} or {@code #} (outside placeholders) precedes {@code index}. */
+  private static boolean inQuery(String template, int index) {
+    int i = 0;
+    while (i < index) {
+      if (template.startsWith("${", i)) {
+        int close = template.indexOf('}', i);
+        i = close < 0 ? template.length() : close + 1;
+        continue;
+      }
+      char c = template.charAt(i);
+      if (c == '?' || c == '#') {
+        return true;
+      }
+      i++;
+    }
+    return false;
+  }
+
+  /**
+   * Percent-encodes everything but the RFC 3986 unreserved characters ({@code A-Z a-z 0-9 - . _
+   * ~}), UTF-8, upper-case hex — the same output as JavaScript's {@code encodeURIComponent} with
+   * {@code !'()*} also escaped, .NET's {@code Uri.EscapeDataString} and Python's {@code quote(v,
+   * safe="")}.
+   */
+  public static String urlEncode(String value) {
+    if (value == null || value.isEmpty()) {
+      return "";
+    }
+    var bytes = value.getBytes(java.nio.charset.StandardCharsets.UTF_8);
+    var sb = new StringBuilder(bytes.length + 8);
+    for (byte b : bytes) {
+      int c = b & 0xff;
+      if ((c >= 'A' && c <= 'Z')
+          || (c >= 'a' && c <= 'z')
+          || (c >= '0' && c <= '9')
+          || c == '-'
+          || c == '.'
+          || c == '_'
+          || c == '~') {
+        sb.append((char) c);
+      } else {
+        sb.append('%')
+            .append(Character.toUpperCase(Character.forDigit(c >> 4, 16)))
+            .append(Character.toUpperCase(Character.forDigit(c & 0xf, 16)));
+      }
+    }
     return sb.toString();
   }
 

@@ -1311,7 +1311,8 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
     {
         try
         {
-            var url = Interpolate(source.Url, state, ResolveSecret);
+            // values percent-encoded by position: client state cannot steer the server's request
+            var url = UrlTemplate.Interpolate(source.Url, expr => ValueOf(expr, state, ResolveSecret));
             var method = string.IsNullOrWhiteSpace(source.Method) ? "GET" : source.Method!.ToUpperInvariant();
             using var req = new HttpRequestMessage(new HttpMethod(method), url);
             if (source.Headers is not null)
@@ -1330,20 +1331,25 @@ public sealed class SyncHandler(MateuRegistry registry, ITranslator? translator 
         }
     }
 
-    /// <summary>Resolve a secret: the injected provider first, then the same-named env var.</summary>
-    private string? ResolveSecret(string key) => secrets?.Invoke(key) ?? Environment.GetEnvironmentVariable(key);
+    /// <summary>Resolve a secret: the injected provider first, then the environment — but ONLY a
+    /// variable prefixed <c>MATEU_SECRET_</c> (<c>${secret.API_TOKEN}</c> reads
+    /// <c>MATEU_SECRET_API_TOKEN</c>), so a template cannot read any variable of the process
+    /// (database passwords, cloud credentials) and send it to an endpoint.</summary>
+    public string? ResolveSecret(string key) =>
+        secrets?.Invoke(key) ?? Environment.GetEnvironmentVariable(UrlTemplate.SecretEnvName(key));
+
+    private static string ValueOf(string expr, Dictionary<string, object?> state, Func<string, string?> secrets)
+    {
+        if (expr.StartsWith("state.")) return StateString(GetState(state, expr[6..])) ?? "";
+        if (expr.StartsWith("secret.")) return secrets(expr[7..]) ?? "";
+        return "";
+    }
 
     /// <summary>Interpolate ${state.x}/${secret.X} placeholders (unknown → empty).</summary>
     private static string Interpolate(string? template, Dictionary<string, object?> state, Func<string, string?> secrets)
     {
         if (string.IsNullOrEmpty(template)) return template ?? "";
-        return Regex.Replace(template, @"\$\{([^}]+)\}", m =>
-        {
-            var expr = m.Groups[1].Value.Trim();
-            if (expr.StartsWith("state.")) return StateString(GetState(state, expr[6..])) ?? "";
-            if (expr.StartsWith("secret.")) return secrets(expr[7..]) ?? "";
-            return "";
-        });
+        return Regex.Replace(template, @"\$\{([^}]+)\}", m => ValueOf(m.Groups[1].Value.Trim(), state, secrets));
     }
 
     /// <summary>The id inside the calendar's <c>_clickedEvent</c> action parameter — a map

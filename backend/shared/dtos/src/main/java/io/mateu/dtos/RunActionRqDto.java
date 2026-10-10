@@ -47,4 +47,40 @@ public record RunActionRqDto(
   public Map<String, Object> appState() {
     return Collections.unmodifiableMap(appState);
   }
+
+  /**
+   * Names the request without its VALUES: the states and parameters carry whatever the user typed
+   * (passwords, personal data, tokens), and a record's default toString would put all of it in any
+   * log line that mentions the request. Only the keys are shown.
+   */
+  @Override
+  public String toString() {
+    return "RunActionRqDto[route="
+        + route
+        + ", consumedRoute="
+        + consumedRoute
+        + ", actionId="
+        + actionId
+        + ", serverSideType="
+        + serverSideType
+        + ", serverSideComponentRoute="
+        + serverSideComponentRoute
+        + ", initiatorComponentId="
+        + initiatorComponentId
+        + ", componentState="
+        + redacted(componentState)
+        + ", appState="
+        + redacted(appState)
+        + ", parameters="
+        + redacted(parameters)
+        + "]";
+  }
+
+  /** {@code <redacted keys=[a, b]>}: the keys of a state map, never its values. */
+  public static String redacted(Map<String, ?> map) {
+    if (map == null) {
+      return "null";
+    }
+    return "<redacted keys=" + new java.util.TreeSet<>(map.keySet()) + ">";
+  }
 }

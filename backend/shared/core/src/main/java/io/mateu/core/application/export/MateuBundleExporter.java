@@ -707,6 +707,9 @@ public final class MateuBundleExporter {
             ? requestFactory.get()
             : new HeadlessHttpRequest(rq).withAttribute("baseUrl", baseUrl == null ? "" : baseUrl);
     // A custom requestFactory may not carry the rq/baseUrl — the HeadlessHttpRequest default does.
+    // A failed route's skip reason is read by the developer building the bundle: ask the error
+    // boundary for the real exception text instead of the generic user-facing one.
+    httpRequest.setAttribute(io.mateu.core.application.runaction.ErrorBoundary.DETAILED, true);
     var increment =
         service.runAction("", rq, baseUrl == null ? "" : baseUrl, httpRequest).blockFirst();
     if (increment == null) {

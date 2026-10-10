@@ -6,7 +6,6 @@ import static io.mateu.core.domain.out.componentmapper.ViewTypeClassifier.isApp;
 import static io.mateu.core.infra.reflection.ClassLoaders.forName;
 
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
-import io.mateu.dtos.UIIncrementDto;
 import io.mateu.uidl.interfaces.PostHydrationHandler;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -32,7 +31,7 @@ public class ActionInstanceCreator {
   private final io.mateu.core.application.RoutedClassResolver routedClassResolver;
 
   Mono<?> createInstance(RunActionCommand command) {
-    log.info("createInstance {}", command);
+    log.debug("createInstance {}", command);
 
     try {
       var adjusted = crudNavigationAdjuster.adjust(command);
@@ -54,9 +53,11 @@ public class ActionInstanceCreator {
                         }));
       }
 
-    } catch (Throwable e) {
-      log.info(e.getClass().getSimpleName() + ": " + e.getMessage());
-      return Mono.just(UIIncrementDto.builder().build());
+    } catch (Exception e) {
+      // Propagated, not swallowed: an empty increment here rendered as a blank screen with nothing
+      // logged above INFO. The use case's error boundary logs it at ERROR with a reference id and
+      // tells the user (or answers 403 / not-found for those).
+      return Mono.error(e);
     }
 
     // A definition-only page has no class to re-instantiate: what it IS lives in its YAML, and the

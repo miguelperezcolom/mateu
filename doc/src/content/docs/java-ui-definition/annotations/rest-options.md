@@ -161,8 +161,40 @@ public class VaultSecrets implements SecretsProvider {
 }
 ```
 
-With no `SecretsProvider` registered, Mateu falls back to reading an **environment variable** of the
-same name (`${secret.COUNTRIES_TOKEN}` → `System.getenv("COUNTRIES_TOKEN")`).
+With no `SecretsProvider` registered (or when it answers null), Mateu falls back to reading an
+**environment variable prefixed `MATEU_SECRET_`**: `${secret.COUNTRIES_TOKEN}` →
+`System.getenv("MATEU_SECRET_COUNTRIES_TOKEN")` (a key that already starts with `MATEU_SECRET_` is read
+as is).
+
+:::caution[Changed in 3.0-beta: only `MATEU_SECRET_*` variables]
+The fallback used to read a variable of the **same** name — any variable of the process. A template
+naming `${secret.DB_PASSWORD}` (or a cloud credential) would then send it to whatever endpoint the
+source declared. Rename the variables you inject (`COUNTRIES_TOKEN` → `MATEU_SECRET_COUNTRIES_TOKEN`),
+or supply them through a `SecretsProvider`. The same rule applies in the .NET and Python backends.
+:::
+
+## Values in the url are percent-encoded
+
+Every `${…}` substituted into a **url** is percent-encoded according to where it lands, on both legs
+(the browser's direct fetch and the server's proxied one reach exactly the same url):
+
+| Where the placeholder is | What happens to the value |
+|---|---|
+| the **origin** — scheme + host (`https://${secret.HOST}/x`), or a template that *starts* with a placeholder (`${secret.API_BASE}/people`) | substituted raw: the origin is configuration. A `${state.x}` there is **refused** — the client must not choose which host is called |
+| the **path** (`/people/${state.id}`) | encoded as one path segment (`/` → `%2F`, `?` → `%3F`…); a value that is exactly `.` or `..` is **refused** |
+| the **query or fragment** (after a literal `?` or `#`) | encoded as a query component (`&` → `%26`, `=` → `%3D`…) |
+
+The encoding keeps only the RFC 3986 unreserved characters (`A-Z a-z 0-9 - . _ ~`) — what
+`encodeURIComponent` does plus `!'()*`. So an id of `1/../../admin?x=` reaches `/people/{id}` as
+`/people/1%2F..%2F..%2Fadmin%3Fx%3D` instead of turning the request into `GET /admin`. A refused value
+fails the call (an error toast), it never goes somewhere else. Headers and the body are not
+url-encoded; a JSON body keeps its JSON escaping.
+
+:::caution[Changed in 3.0-beta]
+A url that relied on a state value carrying several path segments (`${state.path}` = `a/b`) or a
+pre-built query string now receives it as ONE encoded segment/value. Split it into one placeholder
+per segment, or build the url server-side.
+:::
 
 ## Client-side auth for the direct path (`registerExternalAuthProvider`)
 
@@ -207,4 +239,4 @@ country: Annotated[str, RestOptions(
     items_path="data.countries", value_path="code", label_path="name.common")] = ""
 ```
 
-**Proxy mode ports.** `proxy` is available on all four annotations in every backend — `[RestOptions(Proxy = true)]` / `RestOptions(proxy=True)`, likewise for listing/action/data. The server resolves the declared source, injects `${secret.X}` and fetches server-side (`__restfetch__`). Supply secrets in .NET via the `SyncHandler`'s `secrets` delegate (`Func<string, string?>`) and in Python via the `SyncHandler(secrets_provider=…)` argument; both fall back to a same-named environment variable when no provider is registered.
+**Proxy mode ports.** `proxy` is available on all four annotations in every backend — `[RestOptions(Proxy = true)]` / `RestOptions(proxy=True)`, likewise for listing/action/data. The server resolves the declared source, injects `${secret.X}` and fetches server-side (`__restfetch__`). Supply secrets in .NET via the `SyncHandler`'s `secrets` delegate (`Func<string, string?>`) and in Python via the `SyncHandler(secrets_provider=…)` argument; both fall back to the `MATEU_SECRET_`-prefixed environment variable (`MATEU_SECRET_<KEY>`) when no provider answers, and both percent-encode the url exactly like the Java backend.

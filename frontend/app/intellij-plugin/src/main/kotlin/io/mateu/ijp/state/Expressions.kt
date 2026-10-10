@@ -27,6 +27,81 @@ object Expressions {
         }
     }
 
+    /**
+     * Interpolates a URL template with every value percent-encoded by where it lands — exactly like
+     * the server's proxied leg (`TemplateInterpolator.interpolateUrl`) and the web/RN renderers:
+     * raw in the origin (a `${state…}` there is refused: the client state must not choose the
+     * host), a path segment in the path (`.`/`..` refused), a query component after `?`/`#`.
+     * Without it a value like `1/../../admin?x=` steered the request. Throws when a value is refused.
+     */
+    fun interpolateUrl(template: String?, ctx: Map<String, Any?>): String {
+        if (template == null || !template.contains("\${")) return template ?: ""
+        val origin = originEnd(template)
+        return Regex("\\$\\{([^}]+)}").replace(template) { m ->
+            val expr = m.groupValues[1]
+            val value = try {
+                when (val v = evaluate(expr.trim(), ctx)) {
+                    null -> ""
+                    is Double -> if (v % 1.0 == 0.0 && !v.isInfinite()) v.toLong().toString() else v.toString()
+                    else -> v.toString()
+                }
+            } catch (e: Exception) {
+                ""
+            }
+            if (m.range.first < origin) {
+                require(!Regex("^\\s*state\\b").containsMatchIn(expr)) {
+                    "A client state value cannot choose the origin of a URL: $template"
+                }
+                value
+            } else {
+                val before = template.substring(0, m.range.first).replace(Regex("\\$\\{[^}]*}"), "")
+                if (!before.contains('?') && !before.contains('#')) {
+                    require(value != "." && value != "..") { "A dot segment is not a valid path value: $value" }
+                }
+                urlEncode(value)
+            }
+        }
+    }
+
+    /** All but the RFC 3986 unreserved characters percent-encoded (UTF-8, upper-case hex). */
+    fun urlEncode(value: String): String {
+        val sb = StringBuilder()
+        for (b in value.toByteArray(Charsets.UTF_8)) {
+            val c = b.toInt() and 0xff
+            if (c in 'A'.code..'Z'.code || c in 'a'.code..'z'.code || c in '0'.code..'9'.code ||
+                c == '-'.code || c == '.'.code || c == '_'.code || c == '~'.code
+            ) {
+                sb.append(c.toChar())
+            } else {
+                sb.append('%').append("%02X".format(c))
+            }
+        }
+        return sb.toString()
+    }
+
+    private fun originEnd(t: String): Int {
+        val scheme = t.indexOf("://")
+        val firstPlaceholder = t.indexOf("\${")
+        if (scheme >= 0 && (firstPlaceholder < 0 || scheme < firstPlaceholder)) {
+            var i = scheme + 3
+            while (i < t.length) {
+                if (t.startsWith("\${", i)) {
+                    val close = t.indexOf('}', i)
+                    i = if (close < 0) t.length else close + 1
+                    continue
+                }
+                if (t[i] == '/' || t[i] == '?' || t[i] == '#') return i
+                i++
+            }
+            return t.length
+        }
+        if (t.startsWith("\${")) {
+            val close = t.indexOf('}')
+            return if (close < 0) t.length else close + 1
+        }
+        return 0
+    }
+
     private data class Token(val type: Char, val value: String) // n=num s=str i=id o=op
 
     private fun tokenize(src: String): List<Token> {

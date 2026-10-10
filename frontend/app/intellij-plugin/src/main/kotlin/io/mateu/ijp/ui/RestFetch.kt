@@ -96,7 +96,7 @@ object RestFetch {
      *  Resolves a catalogue `ref` first. */
     fun fetch(apiClient: MateuApiClient, declared: JsonNode, ctx: Map<String, Any?>): JsonNode {
         val source = resolveRestSource(declared)
-        val url = Expressions.interpolate(source.text("url"), ctx)
+        val url = Expressions.interpolateUrl(source.text("url"), ctx)
         val method = source.text("method").ifBlank { "GET" }.uppercase()
         val headers = LinkedHashMap<String, String>()
         source.path("headers").properties().forEach { (k, v) -> headers[k] = Expressions.interpolate(v.asText(""), ctx) }

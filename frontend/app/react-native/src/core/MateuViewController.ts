@@ -1,4 +1,4 @@
-import { evaluateExpression, interpolate } from './expressions';
+import { evaluateExpression, interpolate, interpolateUrl } from './expressions';
 import { MateuSession, NavTarget } from './MateuSession';
 import { externalAuthHeaders, registerRestSources } from './restFetch';
 import { announce } from '../a11y/a11y';
@@ -274,7 +274,7 @@ export class MateuViewController {
         const kind = actionId === '__restdata__' ? 'data' : 'action';
         json = await this.fetchViaProxy(kind, actionId ?? '');
       } else {
-        const url = resolve(source['url']);
+        const url = interpolateUrl(str(source['url']), ctx);
         const method = (str(source['method']) || 'GET').toUpperCase();
         const headers: Record<string, string> = {};
         for (const [k, v] of Object.entries((source['headers'] as Json) ?? {})) headers[k] = resolve(v);

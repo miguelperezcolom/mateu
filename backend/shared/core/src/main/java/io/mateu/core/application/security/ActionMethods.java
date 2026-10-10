@@ -74,6 +74,19 @@ public final class ActionMethods {
           "PreRemove",
           "PostRemove");
 
+  /**
+   * The setting that turns on strict action mode: only methods carrying an action marker (or
+   * declared by a {@code ComponentAdapter}) are actions; the "public methods are actions"
+   * convention and the row-binding inference are off. Default false (the convention), see the
+   * threat model in the security guide.
+   */
+  public static final String STRICT = "mateu.actions.strict";
+
+  /** Whether strict action mode is on ({@value #STRICT}, or {@code MATEU_ACTIONS_STRICT}). */
+  public static boolean isStrict() {
+    return io.mateu.core.infra.MateuSettings.isTrue(STRICT);
+  }
+
   /** Carries one of the action markers, directly or composed. */
   public static boolean isMarked(AnnotatedElement element) {
     for (var marker : MARKERS) {
@@ -109,6 +122,12 @@ public final class ActionMethods {
     }
     if (isMarked(method)) {
       return true;
+    }
+    if (isStrict()) {
+      // strict mode: an action is what the developer DECLARED as one, nothing inferred — an
+      // incidental public method (a helper, a service-like method on the view model) is not
+      // reachable from the wire just because it is public
+      return false;
     }
     // ── the conventions: methods of the view model itself that are not plumbing ──
     if (Modifier.isStatic(modifiers)) {
@@ -156,12 +175,17 @@ public final class ActionMethods {
    * method has that name. Throws when a method with that name exists but is not an action.
    */
   public static Method findInvocable(Class<?> instanceClass, String name) {
-    var candidates =
-        AllMethodsProvider.getAllMethods(instanceClass).stream()
-            .filter(m -> m.getName().equals(name))
-            .toList();
-    for (var m : candidates) {
-      if (isInvocable(m, instanceClass)) {
+    var method = invocableNamed(instanceClass, name);
+    if (method == null && namesAMethod(instanceClass, name)) {
+      throw refused(instanceClass, name, "not an action");
+    }
+    return method;
+  }
+
+  /** The invocable method named {@code name}, or null (whether or not a non-action one exists). */
+  private static Method invocableNamed(Class<?> instanceClass, String name) {
+    for (var m : AllMethodsProvider.getAllMethods(instanceClass)) {
+      if (m.getName().equals(name) && isInvocable(m, instanceClass)) {
         return m;
       }
     }
@@ -171,10 +195,14 @@ public final class ActionMethods {
         return m;
       }
     }
-    if (!candidates.isEmpty() || hasPublicMethodNamed(instanceClass, name)) {
-      throw refused(instanceClass, name, "not an action");
-    }
     return null;
+  }
+
+  /** Whether any method (action or not) is called {@code name}. */
+  private static boolean namesAMethod(Class<?> instanceClass, String name) {
+    return AllMethodsProvider.getAllMethods(instanceClass).stream()
+            .anyMatch(m -> m.getName().equals(name))
+        || hasPublicMethodNamed(instanceClass, name);
   }
 
   private static boolean hasPublicMethodNamed(Class<?> c, String name) {
@@ -238,8 +266,16 @@ public final class ActionMethods {
 
   /** {@link #findInvocable} + {@link #checkAccess}: the method to run, or null if none is named. */
   public static Method resolve(Object instance, String name, HttpRequest httpRequest) {
-    var declared = declaredByAdapter(instance, name, httpRequest);
-    var method = declared != null ? declared : findInvocable(instance.getClass(), name);
+    // The cheap, reflective answer first: asking a ComponentAdapter means running its adapt() —
+    // building the whole view — so it is consulted only when the method is NOT an action by itself
+    // (a non-public or, in strict mode, unmarked method the adapter declares).
+    var method = invocableNamed(instance.getClass(), name);
+    if (method == null) {
+      method = declaredByAdapter(instance, name, httpRequest);
+    }
+    if (method == null && namesAMethod(instance.getClass(), name)) {
+      throw refused(instance.getClass(), name, "not an action");
+    }
     if (method != null) {
       checkAccess(method, instance.getClass(), httpRequest);
     }

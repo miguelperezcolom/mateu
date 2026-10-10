@@ -9,7 +9,7 @@ import './mateu-column-chooser'
 import type { ColumnChooserEntry } from './mateu-column-chooser'
 import './mateu-content-header'
 import { ColumnLike, applyColumnPrefs, isProtectedColumn, readColumnPrefs } from '../columnPrefsStore.ts'
-import { interpolate } from './interpolation'
+import { interpolate, templateResolver } from './interpolation'
 import { fetchExternalPage, fetchExternalRows, pageOf } from '@infra/http/externalOptions.ts'
 import { filterExternalRows } from '@infra/http/restRowFilters.ts'
 import { rowRouteFields, navigateToRoute } from '@infra/ui/rowRoute.ts'
@@ -720,8 +720,8 @@ export class MateuTableCrud extends LitElement {
                 }))
             })
             : serverPaged
-                ? fetchExternalPage(src, columnIds, (t) => interpolate(t, this.state, this.data))
-                : fetchExternalRows(src, columnIds, (t) => interpolate(t, this.state, this.data))
+                ? fetchExternalPage(src, columnIds, templateResolver(this.state, this.data))
+                : fetchExternalRows(src, columnIds, templateResolver(this.state, this.data))
                     .then((rows) => ({ rows, total: null }))
         pagePromise
             .then(({ rows: fetched, total }) => {

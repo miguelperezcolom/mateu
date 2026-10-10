@@ -6,7 +6,7 @@ import '@components/mateu-file-upload.ts';
 import { fieldAttribute } from '@components/mateu-file-upload.ts';
 import '@components/mateu-bulleted-list.ts';
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
-import { interpolate } from '@components/interpolation'
+import { interpolate, templateResolver } from '@components/interpolation'
 import { isNoOpCommit, numericCommitValue } from '@components/fieldValue'
 import { isSearchableMulti, removeSearchableId, searchableBaseFieldId, searchableChips, searchableIds } from '@components/searchableMulti'
 import { isInside, readOnlyAsPlainText } from '@infra/ui/foldoutGeometry.ts'
@@ -1115,7 +1115,7 @@ export class MateuField extends LitElement {
                                 composed: true
                             }))
                         } else {
-                            fetchExternalOptions(src, (t) => interpolate(t, this.state, this.data))
+                            fetchExternalOptions(src, templateResolver(this.state, this.data))
                                 .then((opts) => {
                                     this.data[this.id] = { content: opts, totalElements: opts.length, sourceSignature: signature }
                                     this.requestUpdate()

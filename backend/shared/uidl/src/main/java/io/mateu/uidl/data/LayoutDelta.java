@@ -44,6 +44,7 @@ public record LayoutDelta(
     return new LayoutDelta(List.of(), List.of(), Map.of());
   }
 
+  @com.fasterxml.jackson.annotation.JsonIgnore // a helper, not a property (round-trip tested)
   public boolean isEmpty() {
     return order.isEmpty() && hidden.isEmpty() && overrides.isEmpty();
   }

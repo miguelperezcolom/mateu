@@ -41,7 +41,7 @@ import {RuleAction} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleAc
 import {RuleFieldAttribute} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleFieldAttribute.ts";
 import {RuleResult} from "@mateu/shared/apiClients/dtos/componentmetadata/RuleResult.ts";
 import Validation from "@mateu/shared/apiClients/dtos/componentmetadata/Validation.ts";
-import {evaluateExpression, interpolate, interpolateAndEvaluate} from "@infra/ui/interpolation.ts";
+import {evaluateExpression, interpolate, interpolateAndEvaluate, templateResolver} from "@infra/ui/interpolation.ts";
 import {navigateToRoute} from "@infra/ui/rowRoute.ts";
 import {fetchExternalJson, getByPath} from "@infra/http/externalOptions.ts";
 import RestActionDto from "@mateu/shared/apiClients/dtos/componentmetadata/RestActionDto.ts";
@@ -614,7 +614,7 @@ export class MateuComponent extends ComponentElement {
                 return
             }
             Promise.all(rows.map(row =>
-                fetchExternalJson(rest.source, (t: string | undefined) => interpolate(t, { ...this.state, ...row }, this.data))))
+                fetchExternalJson(rest.source, templateResolver({ ...this.state, ...row }, this.data))))
                 .then(() => announce())
                 .catch(onError)
             return
@@ -636,7 +636,7 @@ export class MateuComponent extends ComponentElement {
             }))
             return
         }
-        const resolve = (t: string | undefined) => interpolate(t, this.state, this.data)
+        const resolve = templateResolver(this.state, this.data)
         // The same resolver over a json-escaped copy of the state, for the body of a JSON request.
         const resolveJson = (t: string | undefined) => interpolate(t, jsonSafe(this.state), jsonSafe(this.data))
         fetchExternalJson(rest.source, resolve, undefined, resolveJson)

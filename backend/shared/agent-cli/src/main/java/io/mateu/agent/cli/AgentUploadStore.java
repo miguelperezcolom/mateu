@@ -42,7 +42,15 @@ public class AgentUploadStore {
 
   /** The directory this session's files live in (the filesystem MCP's root for that session). */
   public Path sessionDir(String sessionId) {
-    return baseDir.resolve(safeSession(sessionId));
+    // The session id comes off the wire: reduced to a safe token AND, once resolved and normalised,
+    // checked to still be a direct child of the upload root — a path built from request data must
+    // never land anywhere else on the filesystem.
+    var root = baseDir.toAbsolutePath().normalize();
+    var dir = root.resolve(safeSession(sessionId)).normalize();
+    if (!dir.startsWith(root) || !root.equals(dir.getParent())) {
+      throw new IllegalArgumentException("Sesión inválida.");
+    }
+    return dir;
   }
 
   /** True when the session already has at least one uploaded file. */
