@@ -14,6 +14,8 @@ import { actionPanelAtomOf, shortcutHintOf } from './reduceContexts.mjs'
 import { shortcutMatches, parseShortcut } from './actionPanels.mjs'
 import { matrixSpecOf, matrixAtomOf, matrixSectionKey } from './reduceContexts.mjs'
 import { matrixCellParams, matrixEditChanged } from './matrix.mjs'
+import { coverageProblems } from './parity-check.mjs'
+import { coverageTable } from './coverage.mjs'
 import { dayIndexAtX } from './planning.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
 import { listingOf, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
@@ -750,6 +752,19 @@ test('MatrixGrid: la plantilla usa oj-data-grid con cell.editable/cell.class-nam
   assert.match(shell, /bridge\.installMatrixGrids\(\)/)
   assert.match(shell, /bridge\.setMatrixActionSink\(runPageAction\)/)
   assert.match(webApp('resources/js/mateu-bridge.js'), /new RowDataGridProvider\.RowDataGridProvider\(flat/)
+})
+
+// ── #11 parity.md dice la verdad ─────────────────────────────────────────────────────────────
+test('parity-check: detecta tipos sin clasificar, promesas sin rama, ramas sin promesa y tabla rancia', () => {
+  const coverage = { Text: { status: 'full' }, Kanban: { status: 'none' }, Chart: { status: 'partial', via: "findByType(panel, 'Chart')" } }
+  const source = "if (t === 'Text') {} findByType(panel, 'Chart')"
+  const ok = { wireTypes: ['Text', 'Kanban', 'Chart'], coverage, source, parity: '<!-- redwood-coverage:start -->\n' + coverageTable(coverage) + '\n<!-- redwood-coverage:end -->' }
+  assert.deepEqual(coverageProblems(ok), [])
+  assert.match(coverageProblems({ ...ok, wireTypes: [...ok.wireTypes, 'Map'] })[0], /Map is not classified/)
+  assert.match(coverageProblems({ ...ok, wireTypes: ['Text', 'Kanban'] })[0], /lists Chart, which the wire does not have/)
+  assert.match(coverageProblems({ ...ok, source: "findByType(panel, 'Chart')" }).join(), /Text is claimed full but the renderer has no t === 'Text'/)
+  assert.match(coverageProblems({ ...ok, source: source + " t === 'Kanban'" }).join(), /Kanban is marked none but the renderer has/)
+  assert.match(coverageProblems({ ...ok, parity: '<!-- redwood-coverage:start -->\nold\n<!-- redwood-coverage:end -->' }).join(), /stale/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

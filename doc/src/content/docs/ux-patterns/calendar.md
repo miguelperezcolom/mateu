@@ -58,7 +58,7 @@ public class HousekeepingCalendar extends CalendarPage {
 
 - `initialMonth()` defaults to the current month; the displayed month is page state, so ‹ / › and *Today* round-trip through the backend and re-fetch.
 - The week/day/list views of the RDS template are **not built in yet** — the underlying component is a month grid.
-- Works on every renderer and on the .NET (`CalendarPage`) and Python (`CalendarPage`) backends — see the [parity matrix](/reference/parity/).
+- Works on Vaadin and the native renderers, and on the .NET (`CalendarPage`) and Python (`CalendarPage`) backends. **Not yet on Redwood**: its renderer has no `Calendar` branch, so the page comes out empty there — see the [parity matrix](/reference/parity/#redwood-component-coverage).
 
 ## Redwood parameter and slot reference
 

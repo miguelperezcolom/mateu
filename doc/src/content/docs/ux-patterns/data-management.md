@@ -34,7 +34,8 @@ public class ProjectPlanBoard extends DataManagement {
 `gridView` is any component — typically a dense table (an embedded crud/listing, a fluent `Grid`,
 or `@InlineEditing` + `@Compact` for in-place editing); `ganttView` is typically a `Gantt` (the same
 canvas the `GanttPage` archetype uses). Pure composition of existing components, so it renders on
-every renderer without renderer work.
+Vaadin and the native renderers without renderer work — **not yet on Redwood**, which renders
+neither a fluent `Grid` nor a `Gantt` (only the view switcher shows).
 
 ## Redwood parameter and slot reference
 

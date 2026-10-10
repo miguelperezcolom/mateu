@@ -37,6 +37,10 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Front-office components (EntityHeader, Meter, TaskProgress, StatusList, TaskQueue, ResourceGrid, OfferCard incl. toggle state, AddOnPicker, Ledger, PaymentPicker, ProcessMonitor, Notice incl. status/noIcon/content, BulletedList) | ✅ | ✅ | ✅ |
 | Section polish (`@SeparatorBefore`, text sizes, `@Section(propertyList/frameless)`, responsive zones) | ✅ | ✅ | ✅ |
 | `Anchor` (external links, `target` + rel=noopener) | ✅ | ✅ | ✅ |
+| Card menus (`@Menu(display = cards)` / `MenuGroup` / `menu_group`) | ✅ | ✅ | ✅ |
+| `ActionPanel` (categorised "I want to…" actions) | ✅ | ✅ | ✅ |
+| `MatrixGrid` (rows × dates, collapsible sections, link/editable cells) | ✅ | ✅ | ✅ |
+| Row tones (`@RowStatus` → `CrudlDto.rowStatusField`) and listing export buttons on `AutoCrud` | ✅ | — | — |
 | i18n, events (emit/subscribe), security scaffolding | ✅ | ✅ | ✅ |
 | Application context selector (`@AppContext`) | ✅ | ✅ | ✅ |
 | App header actions (`AppActionsSupplier` → buttons + dropdown groups) | ✅ | ✅ | ✅ |
@@ -207,33 +211,167 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Inline editing (@InlineEditing, update-row) | ✅ | ✅ | ✅ (row form) | ✅ (row form) |
 | Date picker | ✅ | ✅ | ✅ (calendar popup) | ✅ (own calendar) |
 | Remote lookup select (@Lookup / searchable) | ✅ | ✅ | ✅ | ✅ |
-| Full field-stereotype set (radio, multiSelect, slider, stepper, stars, color, image upload, money, markdown…) | ✅ | ✅ | ✅ | ✅ |
-| Client-side rules (visible/disabled/state) + \${...} interpolation | ✅ | ✅ | ✅ (shared engine) | ✅ (no-eval engine) |
+| Full field-stereotype set (radio, multiSelect, slider, stepper, stars, color, image upload, money, markdown…) | ✅ | 🟡 radio, multi-select, checkboxes, toggle, number/money (`oj-input-number`), textarea, dates, lookups, file/image/signature/photo; **no** slider, stars, color or rich text/markdown yet | ✅ | ✅ |
+| Client-side rules (visible/disabled/state) + \${...} interpolation | ✅ | 🟡 CSP-safe engine (visible/disabled/required/value + `OnValueChange`) on the page's own form; not yet inside drawers/dialogs or embedded islands | ✅ (shared engine) | ✅ (no-eval engine) |
 | Page banners (@Banner + action-returned) | ✅ | ✅ | ✅ | ✅ |
-| FABs, header badges, KPIs, charts | ✅ | ✅ | ✅ (FABs as header buttons) | ✅ |
+| FABs, header badges, KPIs, charts | ✅ | 🟡 header badges + KPIs; charts only in the Welcome archetype's trend panel; **no** FABs | ✅ (FABs as header buttons) | ✅ |
 | @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | ✅ | ✅ | ✅ |
-| AI chat (sseUrl) / theme toggle | ✅ | ✅ (theme + AI chat: the shell chat FAB's Ask Oracle palette has a 💬 Chat mode — a streaming panel wired to the shared transport core) | ✅ chat (theme = the IDE's own) | ✅ |
+| AI chat (sseUrl) / theme toggle | ✅ | 🟡 AI chat (the shell chat FAB's Ask Oracle palette has a 💬 Chat mode — a streaming panel wired to the shared transport core); the `themeToggle` flag is read but **no toggle is drawn** | ✅ chat (theme = the IDE's own) | ✅ |
 | App context selector | ✅ | ✅ | ✅ (navigator combos) | ✅ |
 | — searchable picker w/ remote search | ✅ | ✅ | 🟡 loaded options only | ✅ |
-| Signature capture | ✅ canvas | ✅ canvas | ✅ mouse canvas | ✅ svg + view-shot |
+| Signature capture | ✅ canvas | ✅ canvas (own element: JET has no signature pad) | ✅ mouse canvas | ✅ svg + view-shot |
 | Photo capture | ✅ getUserMedia | ✅ | 🟡 file picker (no desktop camera API) | ✅ expo-camera |
 | Tree select dropdown | ✅ | ✅ | ✅ (JTree popup) | ✅ |
 | Tree lookup selector (dialog) | ✅ | ✅ | ✅ (tree layout) | ✅ (tree layout) |
-| Dashboards, Gantt, foldouts, skeletons | ✅ | ✅ | ✅ | ✅ |
+| Dashboards, Gantt, foldouts, skeletons | ✅ | 🟡 foldouts (`oj-sp-foldout-layout`, and collapsible panels inside a tab) ✅; dashboards only as the Welcome archetype's tiles; the `Gantt` and `Skeleton` components are **not** rendered (the Room Diary's `PlanningBoard` is, on `oj-gantt`) | ✅ | ✅ |
 | Custom components (`registerCustomComponent`; unknown → visible placeholder) — the per-renderer escape hatch, each renderer with its own registry + graceful degradation (placeholder + slotted children) | ✅ | 🟡 placeholder + slotted children (bridge projection) | 🟡 registry + placeholder | 🟡 registry + placeholder |
-| High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | ✅ | ✅ | ✅ |
+| High-level UX components (Kanban, Timeline, Stat, Calendar… + the front-office set) | ✅ | 🟡 the front-office set + `Stat` ✅; Kanban, Timeline, Calendar, PricingTable, OrgChart, Heatmap, Funnel, FeatureGrid, Testimonials, Faq, CalloutCard, CommentThread, FileList, Checklist, ComparisonCard **not rendered** — see the coverage table below | ✅ | ✅ |
 | App header actions (buttons + dropdown groups) | ✅ | ✅ | — (sidebar shell, no top bar) | — (drawer shell, no top bar) |
 | Bulk row selection + selection-required toolbar actions | ✅ | ✅ | ✅ (native multi-select) | ✅ (checkbox column) |
 | Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (Views menu: apply/save/default/delete, persisted) | 🟡 apply/save/default/delete (session-scoped) |
 | Column chooser (per-user show/hide/reorder) | ✅ | ✅ | ✅ (header menu show/hide + native drag-reorder, persisted) | 🟡 show/hide (session-scoped; no AsyncStorage dep) |
 | Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | ✅ |
-| Notification bell (inbox, unread count) | ✅ | ✅ | ✅ (sidebar popup) | ✅ (drawer row) |
-| Undoable toasts (Undo button) | ✅ | ✅ | ✅ (balloon action) | ✅ (toast button) |
+| Notification bell (inbox, unread count) | ✅ | — | ✅ (sidebar popup) | ✅ (drawer row) |
+| Undoable toasts (Undo button) | ✅ | — (the toast shows, without Undo) | ✅ (balloon action) | ✅ (toast button) |
 | Entity search (GlobalSearchSupplier: ⌘K palette / search box) | ✅ palette | 🟡 Ask Oracle command palette (navigation); GlobalSearchSupplier entity results not wired | ✅ sidebar search | ✅ drawer search |
-| Planning board (tape chart) | ✅ drag+select | ✅ | ✅ drag+select (MouseListener + pure PlanningDrag) | ✅ drag+select (PanResponder + pure planningDrag) |
+| Planning board (tape chart) | ✅ drag+select | ✅ `oj-gantt`: move, resize, double click, range selection, hover summary | ✅ drag+select (MouseListener + pure PlanningDrag) | ✅ drag+select (PanResponder + pure planningDrag) |
 | Session-expiry re-auth + retry (`onSessionExpired`) | ✅ | ✅ | ✅ (SessionGuard, sync re-auth) | ✅ (sessionGuard, retry once) |
+| Card menus (`@Menu(display = cards)`: a group opening as a panel of cards) | ✅ | ✅ (`oj-popup`) | ✅ | ✅ |
+| Action panel ("I want to…": categorised actions, show more, hide unpopulated, shortcut) | ✅ | ✅ (`oj-dialog` + `oj-switch`) | ✅ (dialog; IDE keymap wins on a shared shortcut) | ✅ (modal; no keyboard shortcut) |
+| Matrix grid (rows × dates, collapsible sections, link cells, in-place editing) | ✅ | ✅ (`oj-data-grid`) | ✅ (`JBTable` + row header) | ✅ |
+| Row tones (`@RowStatus`) | ✅ | ✅ | — | — |
 | Dockable multi-tab workspace | — | — | ✅ (IDE editor tabs/splits) | — |
 | App registry boot (installable → registry → backend) | — | — | ✅ (+ min IDE build gate) | ✅ |
+
+### Redwood component coverage
+
+What the Redwood/VB renderer does with each component type of the wire. A type it does not
+render is **dropped silently** (its children, if it is a container, still render), so this table —
+not the feature rows above — is the authority when a screen looks emptier on Redwood than on Vaadin.
+
+<!-- redwood-coverage:start -->
+Generated from `frontend/web/monorepo/apps/redwood/poc/coverage.mjs` and checked in CI against the
+wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 40 rendered, 15 layout
+containers, 8 partial, 44 not rendered (they are dropped silently — the
+children of a container still render).
+
+| Component | Redwood | How |
+|---|---|---|
+| `AccordionLayout` | ✅ | oj-collapsible per panel |
+| `ActionPanel` | ✅ | oj-dialog + oj-switch ("I want to…") |
+| `AddOnPicker` | ✅ |  |
+| `Anchor` | ✅ | link / file download |
+| `App` | ✅ | oj-sp shell: navigation drawer / top tabs / card menus |
+| `Badge` | ✅ | oj-badge classes |
+| `BulletedList` | ✅ |  |
+| `Button` | ✅ | oj-button |
+| `Card` | ✅ | oj-panel |
+| `Crud` | ✅ | oj-table + smart search; groups, totals, tones, columns, saved views, export |
+| `Details` | ✅ | oj-collapsible (client-side state) |
+| `Dialog` | ✅ | oj-dialog (overlay stack) |
+| `Drawer` | ✅ | oj-drawer-popup (overlay stack), subtitle, footer actions |
+| `Element` | ✅ | third-party web component, events wired back |
+| `EntityHeader` | ✅ | projected to the page header (sticky business card) |
+| `FoldoutLayout` | ✅ | oj-sp-foldout-layout; inside a tab, collapsible panels |
+| `Form` | ✅ | oj-form-layout |
+| `FormField` | ✅ | oj-input-*, oj-select-*, oj-radioset, oj-checkboxset, oj-input-number, capture fields |
+| `FormLayout` | ✅ | oj-form-layout |
+| `HorizontalLayout` | ✅ | oj-flex row |
+| `Ledger` | ✅ |  |
+| `MasterDetailLayout` | ✅ | list + detail panes |
+| `MatrixGrid` | ✅ | oj-data-grid |
+| `Meter` | ✅ | oj-progress-bar |
+| `NotFound` | ✅ |  |
+| `Notice` | ✅ | oj-sp-message-banner style band + actions |
+| `OfferCard` | ✅ |  |
+| `Page` | ✅ | oj-sp header (title, subtitle, KPIs, toolbar, banners) |
+| `PaymentPicker` | ✅ |  |
+| `PlanningBoard` | ✅ | oj-gantt (move, resize, double click, range selection) |
+| `ProgressSteps` | ✅ | oj-train |
+| `ResourceGrid` | ✅ |  |
+| `Separator` | ✅ |  |
+| `SplitLayout` | ✅ | two panes |
+| `Stat` | ✅ |  |
+| `StatusList` | ✅ |  |
+| `TabLayout` | ✅ | oj-tab-bar (nested strips flattened) |
+| `TaskProgress` | ✅ |  |
+| `TaskQueue` | ✅ |  |
+| `Text` | ✅ |  |
+| `BoardLayout` | ✅ layout | children stacked, not a board |
+| `CarouselLayout` | ✅ layout | slides stacked, no carousel |
+| `Container` | ✅ layout |  |
+| `ContentLayout` | ✅ layout |  |
+| `CustomField` | ✅ layout | its component in place |
+| `DashboardLayout` | ✅ layout | panels in flow (the Welcome archetype projects them as tiles) |
+| `Div` | ✅ layout |  |
+| `FormItem` | ✅ layout |  |
+| `FormSection` | ✅ layout |  |
+| `FormSubSection` | ✅ layout |  |
+| `FullWidth` | ✅ layout |  |
+| `ResponsiveGrid` | ✅ layout | children stacked, not a grid |
+| `Scoreboard` | ✅ layout | its MetricCards in flow |
+| `Scroller` | ✅ layout |  |
+| `VerticalLayout` | ✅ layout |  |
+| `Chart` | 🟡 | Welcome archetype trend panel only |
+| `CustomComponent` | 🟡 | visible placeholder + slotted children (no VB registry) |
+| `DashboardPanel` | 🟡 | tiles in the Welcome archetype only |
+| `EmptyState` | 🟡 | page-level empty state only |
+| `HeroSection` | 🟡 | Welcome archetype hero only |
+| `MetricCard` | 🟡 | Welcome archetype tiles only |
+| `ProgressBar` | 🟡 | wizard progress only |
+| `TrendChart` | 🟡 | Welcome archetype trend panel only |
+| `AccordionPanel` | ↳ | of AccordionLayout |
+| `BoardLayoutItem` | ↳ | of BoardLayout |
+| `BoardLayoutRow` | ↳ | of BoardLayout |
+| `Breadcrumb` | ↳ | of Breadcrumbs |
+| `FormRow` | ↳ | of FormLayout |
+| `GridColumn` | ↳ | of Grid / Crud |
+| `Tab` | ↳ | of TabLayout |
+| `Avatar` | — |  |
+| `AvatarGroup` | — |  |
+| `Bpmn` | — |  |
+| `Breadcrumbs` | — | the shell has its own breadcrumbs |
+| `Calendar` | — |  |
+| `CalloutCard` | — |  |
+| `Chat` | — | the app-level AI chat panel exists; the component does not |
+| `Checklist` | — |  |
+| `CommentThread` | — |  |
+| `ComparisonCard` | — |  |
+| `ConfirmDialog` | — |  |
+| `ContextMenu` | — | its wrapped content shows, the menu does not |
+| `CookieConsent` | — |  |
+| `Directory` | — |  |
+| `Faq` | — |  |
+| `FeatureGrid` | — |  |
+| `FileList` | — |  |
+| `FormEditor` | — |  |
+| `Funnel` | — |  |
+| `Gantt` | — |  |
+| `Grid` | — | listings go through Crud |
+| `Heatmap` | — |  |
+| `Icon` | — |  |
+| `Image` | — |  |
+| `Kanban` | — |  |
+| `Map` | — |  |
+| `Markdown` | — |  |
+| `MenuBar` | — |  |
+| `MessageInput` | — |  |
+| `MessageList` | — |  |
+| `MicroFrontend` | — |  |
+| `Notification` | — | action messages do show as toasts; the component does not |
+| `OrgChart` | — |  |
+| `Popover` | — |  |
+| `PricingTable` | — |  |
+| `ProcessMonitor` | — |  |
+| `Result` | — |  |
+| `Skeleton` | — | the shell shows its own loading skeleton |
+| `Stepper` | — |  |
+| `Testimonials` | — |  |
+| `Timeline` | — |  |
+| `Tooltip` | — |  |
+| `VirtualList` | — |  |
+| `Workflow` | — |  |
+<!-- redwood-coverage:end -->
 
 Since 2026-07-12 (DS-native rule) the non-Vaadin web renderers render crud layouts
 (table/list/cards/masterDetail/tree), toolbar buttons and grid-stereotype form fields with their

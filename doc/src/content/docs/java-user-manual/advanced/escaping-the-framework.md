@@ -37,7 +37,7 @@ At page altitude — the bigger drop — this is measured, not asserted:
 | **Actions** | ✅ `@Action` methods stay reachable through the same wire; nothing about the request cycle changes |
 | **State binding** | ✅ fields still hydrate from and round-trip through `componentState` |
 | **The shell** | ✅ menus, app header, navigation — the screen stays part of the app |
-| **Every renderer** | ✅ you composed wire components, so it paints on web, mobile and inside an IDE with no renderer work |
+| **Every renderer** | ✅ you composed wire components, so it paints on web, mobile and inside an IDE with no renderer work — on Redwood, as far as its [component coverage](/reference/parity/#redwood-component-coverage) goes |
 | **The canonical page header** | ⚠️ **only if you ask for it** — see below |
 | **Action *discovery*** | ⚠️ you drew the screen, so advertising what can be fired is now your job |
 

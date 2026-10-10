@@ -54,6 +54,7 @@ public class ProjectPlanPage extends GanttPage {
 ```
 
 It is pure composition of existing components (Gantt + VerticalLayout + Card), so it renders on
-every renderer without renderer work. Demo: `/gantt-page-demo`. Interactive task selection (click a
+Vaadin and the native renderers without renderer work — **not yet on Redwood**, which has no `Gantt`
+branch (its Room Diary-style `PlanningBoard` does render, on `oj-gantt`). Demo: `/gantt-page-demo`. Interactive task selection (click a
 bar → side/bottom drawer with the task detail) and the .NET/Python `GanttPage` ports are planned
 follow-ups.

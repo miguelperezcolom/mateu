@@ -13,6 +13,7 @@
  * · {dragBy:["css",dx,dy]} · {wait:ms} · {download:"texto del botón", expect:"trozo del nombre"} · {element:"css"} (la
  * captura se recorta a ese elemento) · {eval:"expresión JS"} (imprime su resultado, para depurar).
  * Opciones: --base (http://localhost:9006) --width 1440 --height 900 --settle 6000 --full
+ * --no-cors (Chromium sin same-origin: para apuntar el VB de :9006 a un backend SIN CorsConfig, sólo en pruebas)
  * Sale con código ≠ 0 si un paso falla o si una descarga esperada no llega.
  */
 import { chromium } from 'playwright'
@@ -28,7 +29,7 @@ if (!out) { console.error('falta --out'); process.exit(2) }
 const steps = args.steps ? JSON.parse(args.steps) : []
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
 
-const browser = await chromium.launch()
+const browser = await chromium.launch(args['no-cors'] ? { args: ['--disable-web-security'] } : {})
 const page = await browser.newPage({
   viewport: { width: +(args.width || 1440), height: +(args.height || 900) },
   acceptDownloads: true,

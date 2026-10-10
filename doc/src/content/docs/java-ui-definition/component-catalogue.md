@@ -9,7 +9,7 @@ specific endpoint. You declare it once and reference it by name wherever an agen
 instead of repeating the dropdown + its source at every field.
 
 It is **not** a new kind of rendering. A business component composes pieces every renderer already
-paints, so it **ports for free** and **runs with no backend** — the reference resolves against a
+paints (on Redwood, as far as its [component coverage](/reference/parity/#redwood-component-coverage) goes), so it **ports for free** and **runs with no backend** — the reference resolves against a
 catalogue that travels with the app. (Contrast with a *custom component*, which is genuinely new
 rendering and needs a per-renderer renderer — a different tool.)
 

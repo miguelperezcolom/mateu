@@ -99,7 +99,8 @@ composition.
   `dashboard`). Archetypes declare theirs; set it explicitly with `@PageTemplate(PageType.X)`.
 - **Density** → `@PageWidth(FIXED | FULL_WIDTH | EDGE_TO_EDGE)`, or leave it inferred.
 - **Template** → extend the archetype (or set the flag) from Step 3. Everything below is
-  composition of wire components that already render on every renderer.
+  composition of wire components that already render on every renderer — except where the
+  Redwood column of [Page templates](/ux-patterns/page-templates/) says otherwise.
 
 You are never forced onto a template: a plain `@UI` class with declared fields still infers a valid
 layout ([layout inference](/ux-patterns/layout-inference/)). The templates are opinionated rails on top, not a
@@ -131,7 +132,8 @@ The full Redwood page-template catalog is covered — the Overview, Detail and T
 families, the drawers (General, Bottom, Create&Edit, Guided Process), the dense canvases (Data
 Management, Gantt page) and the composed **Advanced Create & Edit** — plus the extras Redwood
 doesn't name. All of it is the same uniform slot grammar (a canonical page header + `ContentLayout`
-main/aside/footer), so every template renders on every renderer and has .NET/Python parity.
+main/aside/footer), so every template renders on Vaadin and the native renderers and has
+.NET/Python parity; on Redwood, check the template's row in [Page templates](/ux-patterns/page-templates/).
 
 What's left is polish, not coverage: deeper variants (a bottom + side drawer used *simultaneously*
 on the Gantt page, batch flows in the Guided Process Drawer) and closing the Figma design-to-code
