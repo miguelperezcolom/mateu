@@ -17,7 +17,7 @@ import { applyRoute, askMakeHome, editFile, scanWorkspace, validateRoute } from 
 
 /**
  * "Mateu: New File…" — the VS Code twin of the IntelliJ New › Mateu group: pick a specs/ui file kind
- * (UI mount, routes, app shell, REST sources, page), for a page its template and page width, then a
+ * (UI mount, routes, app shell, REST sources, field types, page), for a page its template and page width, then a
  * name. Same catalogue and skeletons as the IntelliJ plugin (see newFiles.ts).
  */
 export class NewMateuFileCommand {

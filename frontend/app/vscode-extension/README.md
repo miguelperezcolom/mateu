@@ -43,7 +43,7 @@ Mateu backend works — it exposes the reserved `__preview__` / `__contract__` a
 
 The extension contributes the Mateu `specs/ui` authoring schema through `yamlValidation`
 (`**/specs/ui/**/*.yaml|yml`), so with the [Red Hat YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)
-extension installed every page, `routes.yaml` and `sources.yaml` gets completion and validation. The
+extension installed every page, `routes.yaml`, `sources.yaml` and `types.yaml` gets completion and validation. The
 schema is bundled at packaging time from the generated `backend/shared/uidl/specs-schema.json`. Without
 the packaged copy (e.g. running from source before `npm run stage`), point a `$schema:` line or the
 `yaml.schemas` setting at
@@ -56,7 +56,7 @@ Mateu visual editor is opened.
 
 Right-click a folder in the Explorer (or run **Mateu: New File…** from the command palette) to create
 a `specs/ui` file: a **UI mount** (`type: UI`), a **routes file** (`type: Routes`), an **app shell**
-(`type: AppShell`), a **REST source catalogue** (`type: Sources`) or a **page** — for a page, pick
+(`type: AppShell`), a **REST source catalogue** (`type: Sources`), a **field type catalogue** (`type: Types`) or a **page** — for a page, pick
 its template (form, listing/CRUD, wizard step, dashboard, smart search, to-do list, calendar, welcome,
 hero search, collection detail, general overview, item overview, foldout, Gantt page, data
 management, matrix grid, planning board, blank) and its page width. The file goes into the clicked
