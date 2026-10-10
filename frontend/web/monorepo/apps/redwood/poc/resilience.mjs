@@ -16,6 +16,7 @@
 
 import { clientErrors } from './clientLog.mjs'
 import { chromeText } from './i18n.mjs'
+import { hostHeadersFor, lastHostHeadersOf, hostAuthorizes, hostCredentials } from './hostHeaders.mjs'
 
 // ── clasificación ────────────────────────────────────────────────────────────────────────
 
@@ -366,7 +367,9 @@ function storedToken() {
  * 401 y el panel enseña "Servidor respondió 401". {} si no hay token.
  */
 export function authHeadersOf() {
-  return authHeaders(null) || {}
+  // embedded mode (hostHeaders.mjs): the host's headers, as last answered by its provider, win
+  const host = lastHostHeadersOf()
+  return { ...((hostAuthorizes(host) ? null : authHeaders(null)) || {}), ...host }
 }
 
 /** El refresco en marcha, si lo hay: los 401 que llegan mientras tanto esperan a éste. */
@@ -435,10 +438,19 @@ export async function fetchWithPolicy(url, init, options = {}) {
   // El token con el que salió el ÚLTIMO envío (undefined si no llevaba el nuestro): ante un 401
   // dice si el refresco ya llegó mientras la petición volaba.
   let sentToken
-  const withAuth = () => {
-    const auth = authHeaders(init)
+  const withAuth = async () => {
+    // embedded mode: the HOST app's identity (hostHeaders.mjs) — asked on every send, so a retry
+    // after a 401 carries whatever the host has now; it wins over the stored token
+    const host = await hostHeadersFor(url)
+    const credentials = hostCredentials()
+    const auth = hostAuthorizes(host) ? null : authHeaders(init)
     sentToken = auth ? auth.Authorization.slice('Bearer '.length) : undefined
-    return auth ? { ...(init || {}), headers: { ...((init && init.headers) || {}), ...auth } } : init
+    if (!auth && !Object.keys(host).length && !credentials) return init
+    return {
+      ...(init || {}),
+      ...(credentials ? { credentials } : {}),
+      headers: { ...((init && init.headers) || {}), ...(auth || {}), ...host },
+    }
   }
   const actionId = options.actionId
   const idempotent = isIdempotentAction(actionId, options.idempotent)
@@ -466,7 +478,7 @@ export async function fetchWithPolicy(url, init, options = {}) {
   let reauthenticated = false
   for (;;) {
     try {
-      const res = await sendOnce(url, withAuth(), options.timeoutMillis)
+      const res = await sendOnce(url, await withAuth(), options.timeoutMillis)
       if (!isolated) connectivity.noteReachable()
       if (isViewStale(view)) dropStale()
       notifyUnlessQuiet('onSettle', { actionId, failure: null })
