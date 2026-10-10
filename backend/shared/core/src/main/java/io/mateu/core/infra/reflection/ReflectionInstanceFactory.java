@@ -15,8 +15,10 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @Singleton
 @Named
 @RequiredArgsConstructor(onConstructor_ = @Inject)
@@ -135,10 +137,58 @@ public class ReflectionInstanceFactory implements InstanceFactory {
           }
         }
       }
+      injectDependencies(o);
     } else {
       hydrate(o, data, this, httpRequest);
     }
     return (T) o;
+  }
+
+  /** The injection annotations a view model Mateu instantiates may use on its fields. */
+  private static final java.util.Set<String> FIELD_INJECTION =
+      java.util.Set.of("Autowired", "Inject", "Resource");
+
+  /**
+   * A view model Mateu instantiates itself (the default, recommended pattern: fresh per request,
+   * not a container bean) still gets its injection points filled: every field marked {@code
+   * Autowired} / {@code Inject} / {@code Resource} that is still null receives the container's bean
+   * of its type. Without this the documented pattern compiled, rendered, and threw a
+   * NullPointerException in the first action that used the service.
+   */
+  private void injectDependencies(Object o) {
+    if (o == null) {
+      return;
+    }
+    for (Class<?> c = o.getClass(); c != null && c != Object.class; c = c.getSuperclass()) {
+      for (var field : c.getDeclaredFields()) {
+        if (java.lang.reflect.Modifier.isStatic(field.getModifiers()) || field.isSynthetic()) {
+          continue;
+        }
+        boolean injected = false;
+        for (var annotation : field.getAnnotations()) {
+          if (FIELD_INJECTION.contains(annotation.annotationType().getSimpleName())) {
+            injected = true;
+            break;
+          }
+        }
+        if (!injected) {
+          continue;
+        }
+        try {
+          field.setAccessible(true);
+          if (field.get(o) != null) {
+            continue;
+          }
+          var bean = beanProvider.getBean(field.getType());
+          if (bean != null) {
+            field.set(o, bean);
+          }
+        } catch (RuntimeException | IllegalAccessException e) {
+          log.warn(
+              "Could not inject {}.{}: {}", c.getSimpleName(), field.getName(), e.getMessage());
+        }
+      }
+    }
   }
 
   private Object createInstance(
