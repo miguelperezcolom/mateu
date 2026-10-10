@@ -69,7 +69,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
   // el selector de columnas: listingOf aplica las preferencias de la ruta en pantalla
   setColumnPrefsReader(() => readColumnPrefs(listingScope()));
   setAfterReduceHook((reg) => {
-    setRulesContext(reg.contexts[HOST_ID]);
+    setRulesContexts(reg);
     // los @Action(shortcut) de la pantalla en curso (keys.mjs)
     setShortcutContext(reg.contexts[HOST_ID]);
     // los tonos de fila (@RowStatus) y las filas de grupo del listado del host

@@ -24,6 +24,7 @@ import { reprojectedContentOf } from './reproject.mjs'
 import { chatTurnsOf } from './displayDom.mjs'
 import { REDWOOD_COVERAGE } from './coverage.mjs'
 import { setChromeLanguage, CHROME_TEXTS } from './i18n.mjs'
+import { ruleSurfacesOf, surfaceOfElement } from './rules.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let passed = 0
@@ -479,6 +480,18 @@ test('HeroSection, EmptyState, ProgressBar and custom components in the content'
   assert.ok(customComponentRegistered('acme-gauge'))
   const [slot] = atomsOf(cc)
   assert.deepEqual([slot.isCustomSlot, slot.name, slot.props], [true, 'acme-gauge', '{"v":1}'])
+})
+
+test('client rules on every surface: host, islands and the overlay on top', () => {
+  const withRules = (id, kind) => ({ id, kind, state: {}, tree: { rules: [{ filter: 'true' }] } })
+  const reg = { contexts: { [HOST_ID]: withRules(HOST_ID, 'host'), isl: withRules('isl', 'island'), plain: { id: 'plain', kind: 'island', tree: {} }, d1: withRules('d1', 'drawer') }, stack: ['d1'] }
+  assert.deepEqual(ruleSurfacesOf(reg).map((x) => [x.surface, x.ctx.id]), [['host', HOST_ID], ['island', 'isl'], ['overlay', 'd1']])
+  assert.deepEqual(ruleSurfacesOf({ ...reg, stack: [] }).map((x) => x.surface), ['host', 'island'])
+  const el = (match) => ({ closest: (sel) => (sel.includes(match) ? {} : null) })
+  assert.equal(surfaceOfElement(el('#mateuDrawerPanel')), 'overlay')
+  assert.equal(surfaceOfElement(el('data-mateu-surface')), 'island')
+  assert.equal(surfaceOfElement(el('nothing-matches')), 'host')
+  assert.ok(readFileSync(join(here, 'make-amd.mjs'), 'utf8').includes('setRulesContexts(reg)'))
 })
 
 test('display chrome in the interface language (English by default)', () => {

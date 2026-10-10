@@ -19279,7 +19279,7 @@
            como bloques display (todo precomputado por el CSP: flags is*, clases, textos
            interpolados). Los botones despachan contra el contexto de la ISLA. -->
       <oj-bind-if test="[[ !!$application.variables.mateuIsland && !!$application.variables.mateuIsland.content ]]">
-        <div class="oj-sm-padding-4x-start">
+        <div class="oj-sm-padding-4x-start" data-mateu-surface="island">
         <oj-bind-for-each data="[[ $application.variables.mateuIsland.content ]]">
           <template>
             <oj-bind-if test="[[ $current.data.isCard ]]">
@@ -32335,7 +32335,7 @@
 <!-- solo islas de FORMULARIO (sin contenido display: p.ej. GuestNote) — las display
      se pintan como bloques en el panel derecho de la cola -->
 <oj-bind-if test="[[ !!$application.variables.mateuIsland && !$application.variables.mateuIsland.content ]]">
-  <div class="oj-flex oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical">
+  <div class="oj-flex oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical" data-mateu-surface="island">
     <div class="oj-flex-item oj-sm-12 oj-md-6">
       <!-- los campos, AGRUPADOS por sus secciones (@Section: título + columnas del FormLayout;
            bridge.formSectionsOf): sin secciones es un único grupo sin título -->

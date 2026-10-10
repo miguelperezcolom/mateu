@@ -10412,16 +10412,59 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // cambios de campo (`valueChanged` de JET, interno) actualizan el estado vivo y re-evalúan; y,
   // como VB re-pinta de forma asíncrona, se re-aplica unos frames después de cada render.
 
-  let rulesCtx = null
-  let liveState = {}
+  // Rules live on every SURFACE, not only the host: an island (an embedded mediator), the open
+  // drawer or dialog. Each surface's rules act on the fields painted in that surface — the DOM
+  // tells them apart (surfaceOfElement): the overlay panels by their ids, the island by its
+  // data-mateu-surface wrapper, the rest is the host. A field of the same name in the drawer is not
+  // hidden by the host's rule.
+  let surfaces = [] // [{ surface: 'host'|'island'|'overlay', ctx, appState, liveState }]
   let runActionSink = null
 
   /** Quién ejecuta una RunAction de regla (la shell reusa el sumidero de los Element). */
   function setRuleActionSink(fn) { runActionSink = typeof fn === 'function' ? fn : null }
 
+  const hasRules = (ctx) => !!(ctx && ctx.tree && (ctx.tree.rules || []).length)
+
+  /** The surfaces whose rules apply, from a reduced registry: the host, its islands and the
+   *  overlay on top. Pure. */
+  function ruleSurfacesOf(reg, hostId = '__root__') {
+    const out = []
+    const contexts = (reg && reg.contexts) || {}
+    if (hasRules(contexts[hostId])) out.push({ surface: 'host', ctx: contexts[hostId] })
+    for (const [id, ctx] of Object.entries(contexts)) {
+      if (id !== hostId && ctx && ctx.kind === 'island' && hasRules(ctx)) out.push({ surface: 'island', ctx })
+    }
+    const stack = (reg && reg.stack) || []
+    const top = stack.length ? contexts[stack[stack.length - 1]] : null
+    if (hasRules(top)) out.push({ surface: 'overlay', ctx: top })
+    return out
+  }
+
+  /** Which surface an element is painted in. */
+  function surfaceOfElement(el) {
+    if (!el || !el.closest) return 'host'
+    if (el.closest('#mateuDrawerPanel, #mateuModal, #mateuRowDetailPanel')) return 'overlay'
+    if (el.closest('[data-mateu-surface="island"]')) return 'island'
+    return 'host'
+  }
+
+  /** The host only (kept for callers that set one context). */
   function setRulesContext(ctx, appState) {
-    rulesCtx = ctx && ctx.tree && (ctx.tree.rules || []).length ? { ctx, appState: appState || {} } : null
-    liveState = { ...((ctx && ctx.state) || {}) }
+    setRuleSurfaces(hasRules(ctx) ? [{ surface: 'host', ctx }] : [], appState)
+  }
+  /** Every surface of a reduced registry (the reduce hook calls this). */
+  function setRulesContexts(reg, appState) {
+    setRuleSurfaces(ruleSurfacesOf(reg), appState)
+  }
+  function setRuleSurfaces(list, appState) {
+    const before = new Map(surfaces.map((x) => [x.surface + ':' + (x.ctx.id || ''), x]))
+    surfaces = list.map((x) => {
+      // a re-reduction that left the SAME state keeps what the user typed since; a new answer
+      // (another state object) starts from it
+      const kept = before.get(x.surface + ':' + (x.ctx.id || ''))
+      const liveState = kept && kept.ctx.state === x.ctx.state ? kept.liveState : { ...((x.ctx && x.ctx.state) || {}) }
+      return { ...x, appState: appState || {}, liveState }
+    })
     applyRulesSoon()
   }
 
@@ -10441,14 +10484,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
   }
 
-  function applyRulesNow(doc = typeof document !== 'undefined' ? document : null) {
-    if (!rulesCtx || !doc) return 0
-    const { ctx, appState } = rulesCtx
+  function applySurface(doc, entry) {
+    const { ctx, appState, liveState, surface } = entry
     const result = computeRules(ctx.tree.rules, { state: liveState, data: ctx.data || {}, appState, appData: {}, component: ctx.tree })
+    const inSurface = (el) => surfaceOfElement(el) === surface
     let touched = 0
     const flags = fieldFlagsOf(result.data)
     for (const fieldId of Object.keys(flags)) {
       for (const el of doc.querySelectorAll('[data-field-id="' + attrSelectorValue(fieldId) + '"]')) {
+        if (!inSurface(el)) continue
         const f = flags[fieldId]
         if ('hidden' in f) {
           const item = formItemOf(el)
@@ -10468,12 +10512,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const value = result.state[fieldId]
       if (liveState[fieldId] === value) continue
       liveState[fieldId] = value
-      for (const el of doc.querySelectorAll('[data-field-id="' + fieldId + '"]')) {
+      for (const el of doc.querySelectorAll('[data-field-id="' + attrSelectorValue(fieldId) + '"]')) {
+        if (!inSurface(el)) continue
         el.value = value
         el.dispatchEvent(new CustomEvent('valueChanged', { detail: { value, updatedFrom: 'internal' }, bubbles: true }))
       }
     }
-    for (const actionId of result.actions) if (runActionSink) runActionSink(actionId, {}, {})
+    for (const actionId of result.actions) if (runActionSink) runActionSink(actionId, {}, { surface })
+    return touched
+  }
+
+  function applyRulesNow(doc = typeof document !== 'undefined' ? document : null) {
+    if (!surfaces.length || !doc) return 0
+    let touched = 0
+    for (const entry of surfaces) touched += applySurface(doc, entry)
     return touched
   }
 
@@ -10484,7 +10536,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     requestAnimationFrame(tick)
   }
 
-  /** Escucha los cambios de campo del documento (una vez): actualiza el estado vivo y re-evalúa. */
+  /** Escucha los cambios de campo del documento (una vez): actualiza el estado vivo DE SU SUPERFICIE
+   *  y re-evalúa. */
   function installRules(doc = typeof document !== 'undefined' ? document : null) {
     if (!doc || doc.__mateuRulesInstalled) return
     doc.__mateuRulesInstalled = true
@@ -10493,14 +10546,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const fieldId = el && el.getAttribute && el.getAttribute('data-field-id')
       const detail = e.detail || {}
       if (!fieldId || (detail.updatedFrom && detail.updatedFrom !== 'internal')) return
-      liveState[fieldId] = detail.value
+      const surface = surfaceOfElement(el)
+      for (const entry of surfaces) if (entry.surface === surface) entry.liveState[fieldId] = detail.value
       applyRulesNow(doc)
     }, true)
   }
 
   /** Para diagnosticar desde la consola: las reglas en vigor y el estado vivo. */
   function rulesDebug() {
-    return { rules: rulesCtx ? (rulesCtx.ctx.tree.rules || []).length : 0, state: { ...liveState } }
+    return surfaces.map((x) => ({ surface: x.surface, rules: (x.ctx.tree.rules || []).length, state: { ...x.liveState } }))
   }
 
 
@@ -14064,7 +14118,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // el selector de columnas: listingOf aplica las preferencias de la ruta en pantalla
   setColumnPrefsReader(() => readColumnPrefs(listingScope()));
   setAfterReduceHook((reg) => {
-    setRulesContext(reg.contexts[HOST_ID]);
+    setRulesContexts(reg);
     // los @Action(shortcut) de la pantalla en curso (keys.mjs)
     setShortcutContext(reg.contexts[HOST_ID]);
     // los tonos de fila (@RowStatus) y las filas de grupo del listado del host
