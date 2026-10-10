@@ -2,6 +2,7 @@ import { isMountYaml } from './mountModel'
 import { isRoutesYaml, parseRoutes, flattenRoutes } from './routesModel'
 import { parse } from 'yaml'
 import { hasAppShell } from './appModel'
+import { environmentName, parseTranslationsFile, type TranslationsFile } from './translationsModel'
 import { isActionsYaml, parseActionCatalogue, type CatalogueAction } from './actionsModel'
 import type { ComboOption } from '../widgets/comboModel'
 
@@ -37,6 +38,10 @@ export interface ProjectIndex {
     viewModels: string[]  // distinct view-model FQNs referenced by routes
     /** The REST source catalogue (`sources.yaml`): each named endpoint, as authored. */
     sources: SourceEntry[]
+    /** The message catalogues (`type: Translations` / `translations/<locale>.yaml`), flattened. */
+    translations?: TranslationsFile[]
+    /** The deployment environments (`type: Environment` / `environments/<name>.yaml`), by name. */
+    environments?: string[]
     /** The ACTION catalogue (every `type: Actions` file): named client-runnable actions, by id. */
     actions: CatalogueAction[]
 }
@@ -89,6 +94,8 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
     const appShells: string[] = []
     const viewModels = new Set<string>()
     const sources: SourceEntry[] = []
+    const translations: TranslationsFile[] = []
+    const environments: string[] = []
     const actions = new Map<string, CatalogueAction>()
 
     for (const f of files ?? []) {
@@ -97,6 +104,10 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
         if (!path) continue
         if (isMountYaml(content)) continue // the mount descriptor is not itself a reference target
         if (isSourcesYaml(content)) { sources.push(...parseSources(content)); continue }
+        const catalogue = parseTranslationsFile(path, content)
+        if (catalogue) { translations.push(catalogue); continue }
+        const environment = environmentName(path, content)
+        if (environment) { environments.push(environment); continue }
         // A later file's entry replaces an earlier one of the same id, as the runtime merges them.
         if (isActionsYaml(content)) { for (const a of parseActionCatalogue(content)) actions.set(a.id, a); continue }
         if (isRoutesYaml(content)) {
@@ -119,6 +130,9 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
         appShells: dedupe(appShells),
         viewModels: [...viewModels].sort((a, b) => a.localeCompare(b)),
         sources,
+        // only when present, so an index of a mount without them keeps its shape
+        ...(translations.length ? { translations } : {}),
+        ...(environments.length ? { environments: dedupe(environments) } : {}),
         actions: [...actions.values()],
     }
 }

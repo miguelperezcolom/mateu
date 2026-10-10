@@ -436,6 +436,13 @@ There is no client-side YAML renderer and none is needed: a definition that decl
 renders as a bare layout through the ordinary sync path, so the exporter pre-renders it like any
 other route and a static host serves it with no backend.
 
+## Restricting a route
+
+A route entry can say who may reach it — `access: {roles: [admin]}` — and anybody else gets 403 for
+it and for every route nested under it, while a menu link to it is hidden. Same dimensions and
+matching as `@EyesOnly`; see [Permissions in YAML](/java-ui-definition/yaml-security/). Such a route
+is identity-dependent, so a static bundle keeps it backend-served (and `staticOnly` refuses it).
+
 ## Failure behaviour
 
 - A **missing** `routes.yaml` is the normal case: the registry is empty and everything resolves as

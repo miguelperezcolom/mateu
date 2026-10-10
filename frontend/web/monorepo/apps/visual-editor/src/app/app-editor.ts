@@ -9,6 +9,7 @@ import { STEP_TYPES, stepParam, type FlowStep } from '../model/flowEditor'
 import { enumValues } from '../model/schemaCatalog'
 import { catalogueActionOptions, type ProjectIndex } from '../model/projectIndex'
 import '../widgets/ve-combo'
+import { formatAccessInline, parseAccessInline } from '../model/access'
 import type { ComboOption } from '../widgets/comboModel'
 
 /**
@@ -50,6 +51,7 @@ export class AppEditor extends LitElement {
         .step select { width: 9rem; flex: none; }
         .mini { height: 30px; min-width: 30px; border: 1px solid var(--ve-input-border, #d7dade); background: var(--ve-base, #fff); color: inherit; border-radius: 6px; cursor: pointer; }
         .mini:disabled { opacity: .4; cursor: default; }
+        .menu-row input.access { flex: 0 1 11rem; font-size: 12px; }
     `
 
     @property() yaml = ''
@@ -281,6 +283,7 @@ export class AppEditor extends LitElement {
                     <ve-combo placeholder="actionId" title="One of the shell's flows (Actions above), an action of the catalogue, or a server @Action id"
                         .options=${this.actionOptions} empty-text="No flows yet — add one in Actions or in an action catalogue, or type a server @Action id"
                         .value=${item.actionId ?? ''} @change=${(e: Event) => this.setItem(path, 'actionId', (e.target as HTMLInputElement).value)}></ve-combo>
+                    ${this.accessInput(item, path)}
                     ${this.delBtn(path)}
                 </div>
             </div>`
@@ -293,6 +296,7 @@ export class AppEditor extends LitElement {
                     <ve-combo placeholder="route" .options=${this.routeOptions} empty-text="No routes yet — add them in a routes file"
                         .value=${item.route ?? ''} @change=${(e: Event) => this.setItem(path, 'route', (e.target as HTMLInputElement).value)}></ve-combo>
                     <input placeholder="icon" .value=${item.icon ?? ''} @change=${(e: Event) => this.setItem(path, 'icon', (e.target as HTMLInputElement).value)} />
+                    ${this.accessInput(item, path)}
                     ${this.delBtn(path)}
                 </div>
             </div>`
@@ -302,6 +306,7 @@ export class AppEditor extends LitElement {
             <span class="kind">Group</span>
             <div class="menu-row">
                 <input placeholder="Label" .value=${item.label ?? ''} @change=${(e: Event) => this.setItem(path, 'label', (e.target as HTMLInputElement).value)} />
+                ${this.accessInput(item, path)}
                 ${this.delBtn(path)}
             </div>
             <div class="sub">
@@ -313,6 +318,32 @@ export class AppEditor extends LitElement {
                 </div>
             </div>
         </div>`
+    }
+
+    /**
+     * Who sees this menu item (`access:`), one line: `admin, hr` (roles) or `roles=…; scopes=…`.
+     * The server drops it for anybody else; a link with none inherits its route's `access:`.
+     */
+    private accessInput(item: AppMenuItem, path: number[]) {
+        const extra = (item as { extra?: Record<string, unknown> }).extra ?? {}
+        return html`<input class="access" placeholder="🔒 visible to (roles)" aria-label="Access"
+            title="access: — who sees this item (roles, or roles=…; groups=…; scopes=…; permissions=…). Checked on the server; a link with none inherits its route's."
+            .value=${formatAccessInline(extra.access)}
+            @change=${(e: Event) => this.setItemAccess(path, (e.target as HTMLInputElement).value)} />`
+    }
+
+    private setItemAccess(path: number[], text: string) {
+        const menu = structuredClone(this.doc.menu)
+        const item = this.at(menu, path) as { extra?: Record<string, unknown> } | undefined
+        if (item) {
+            const extra = { ...(item.extra ?? {}) }
+            const access = parseAccessInline(text)
+            if (access) extra.access = access
+            else delete extra.access
+            item.extra = extra
+        }
+        this.doc = { ...this.doc, menu }
+        this.commit()
     }
 
     private delBtn(path: number[]) {

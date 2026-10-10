@@ -50,7 +50,33 @@ public class YamlUidlLoader {
       Component layout,
       io.mateu.uidl.data.LayoutDelta delta,
       java.util.List<io.mateu.uidl.fluent.Action> actions,
-      java.util.List<io.mateu.uidl.fluent.Trigger> triggers) {
+      java.util.List<io.mateu.uidl.fluent.Trigger> triggers,
+      JsonNode source,
+      java.util.Set<String> refusedActions,
+      java.util.Set<String> lockedFields) {
+
+    public YamlPageSpec {
+      refusedActions = refusedActions == null ? java.util.Set.of() : refusedActions;
+      lockedFields = lockedFields == null ? java.util.Set.of() : lockedFields;
+    }
+
+    public YamlPageSpec(
+        String modelView,
+        Component layout,
+        io.mateu.uidl.data.LayoutDelta delta,
+        java.util.List<io.mateu.uidl.fluent.Action> actions,
+        java.util.List<io.mateu.uidl.fluent.Trigger> triggers) {
+      this(modelView, layout, delta, actions, triggers, null, null, null);
+    }
+
+    /**
+     * Whether this spec depends on WHO asks or in which LANGUAGE — it declares access keys or
+     * {@code ${i18n.…}} expressions — and so must be re-derived per request ({@link
+     * YamlUidlLoader#loadSpec(String, io.mateu.uidl.interfaces.HttpRequest)}).
+     */
+    public boolean dependsOnRequest() {
+      return source != null;
+    }
 
     public YamlPageSpec(String modelView, Component layout) {
       this(
@@ -89,10 +115,20 @@ public class YamlUidlLoader {
    */
   private final RouteRegistry routeRegistry;
 
+  /** The translation catalogue {@code ${i18n.…}} expressions are resolved against. */
+  private final io.mateu.core.application.i18n.TranslationRegistry translations;
+
   @jakarta.inject.Inject
-  public YamlUidlLoader(RouteRegistry routeRegistry) {
+  public YamlUidlLoader(
+      RouteRegistry routeRegistry,
+      io.mateu.core.application.i18n.TranslationRegistry translations) {
     this.mapper = YamlUidlMapperFactory.create();
     this.routeRegistry = routeRegistry;
+    this.translations = translations;
+  }
+
+  public YamlUidlLoader(RouteRegistry routeRegistry) {
+    this(routeRegistry, new io.mateu.core.application.i18n.TranslationRegistry());
   }
 
   /** Without a registry: the convention alone, as before it existed. */
@@ -165,6 +201,176 @@ public class YamlUidlLoader {
 
   static final int MAX_CACHED_ROUTES = 4096;
 
+  /**
+   * The server-side half of the YAML access keys, applied to every request before anything runs:
+   *
+   * <ul>
+   *   <li>a route whose {@code access:} (or an ancestor's) the caller does not satisfy is refused
+   *       with 403, exactly like a class-level {@code @EyesOnly} on a {@code @UI};
+   *   <li>a declared action whose {@code access:} the caller does not satisfy is refused with 403
+   *       when it reaches the server anyway (dispatched, or proxied through {@code __restfetch__});
+   *   <li>the values of fields hidden or made read-only for the caller are dropped from the
+   *       incoming state, so a locked field keeps its server value rather than the client's.
+   * </ul>
+   *
+   * @return the command to run (possibly with a narrowed state)
+   * @throws io.mateu.core.application.security.MateuForbiddenException when refused
+   */
+  public RunActionCommand guard(RunActionCommand command) {
+    var route = command.route();
+    if (route == null) {
+      return command;
+    }
+    var httpRequest = command.httpRequest();
+    var refusing = routeRegistry.refusingEntry(route, httpRequest);
+    if (refusing != null) {
+      log.warn(
+          "Refused request: route '{}' declares access: and the caller's token does not satisfy"
+              + " it",
+          refusing.route());
+      throw new io.mateu.core.application.security.MateuForbiddenException(
+          "route not allowed for caller: " + refusing.route());
+    }
+    var path = normalize(route);
+    var spec = loadSpec(path);
+    if (spec == null || !spec.dependsOnRequest()) {
+      return command;
+    }
+    var personal = loadSpec(path, httpRequest);
+    if (personal == null) {
+      return command;
+    }
+    var actionId = command.actionId();
+    if (actionId != null && personal.refusedActions().contains(actionId)) {
+      throw refusedAction(actionId);
+    }
+    if ("__restfetch__".equals(actionId) && httpRequest != null) {
+      var rq = httpRequest.runActionRq();
+      var sourceId =
+          rq != null && rq.parameters() != null ? rq.parameters().get("_sourceId") : null;
+      if (sourceId != null && personal.refusedActions().contains(String.valueOf(sourceId))) {
+        throw refusedAction(String.valueOf(sourceId));
+      }
+    }
+    if (!personal.lockedFields().isEmpty()
+        && command.componentState() != null
+        && personal.lockedFields().stream().anyMatch(command.componentState()::containsKey)) {
+      var narrowed = new java.util.LinkedHashMap<>(command.componentState());
+      personal.lockedFields().forEach(narrowed::remove);
+      return command.withComponentState(narrowed);
+    }
+    return command;
+  }
+
+  /** The action catalogue, when there is a bean context to ask (null in a bare unit test). */
+  private static ActionRegistry actionRegistry() {
+    try {
+      return io.mateu.uidl.di.MateuBeanProvider.getBean(ActionRegistry.class);
+    } catch (Throwable t) {
+      return null;
+    }
+  }
+
+  /** Whether {@code tree} names a catalogue action that declares {@code access:}. */
+  private static boolean referencesRestrictedCatalogueAction(JsonNode tree) {
+    var registry = actionRegistry();
+    if (registry == null || !registry.restrictsAny()) {
+      return false;
+    }
+    return catalogueIdsNamedBy(tree).stream().anyMatch(registry.restrictedIds()::contains);
+  }
+
+  /**
+   * The action ids {@code tree} names that its own {@code actions:} do not declare — OWNER FIRST:
+   * an id the page declares is the page's, never the catalogue's.
+   */
+  private static java.util.Set<String> catalogueIdsNamedBy(JsonNode tree) {
+    var ids = new java.util.LinkedHashSet<String>();
+    ActionRegistry.collectIds(tree, ids);
+    var own = tree == null ? null : tree.get("actions");
+    if (own != null && own.isArray()) {
+      own.forEach(action -> ids.remove(action.path("id").asText()));
+    }
+    return ids;
+  }
+
+  /**
+   * The catalogue actions {@code tree} names that the caller may NOT run — enforced like a page's
+   * own restricted actions: buttons disabled, a call that reaches the server refused.
+   */
+  private static java.util.Set<String> catalogueActionsRefusedIn(
+      JsonNode tree, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    var registry = actionRegistry();
+    if (registry == null || !registry.restrictsAny()) {
+      return java.util.Set.of();
+    }
+    var ids = catalogueIdsNamedBy(tree);
+    ids.retainAll(registry.refusedFor(httpRequest));
+    return ids;
+  }
+
+  private static io.mateu.core.application.security.MateuForbiddenException refusedAction(
+      String actionId) {
+    log.warn(
+        "Refused request: action '{}' declares access: and the caller's token does not satisfy it",
+        actionId);
+    return new io.mateu.core.application.security.MateuForbiddenException(
+        "action not allowed for caller: " + actionId);
+  }
+
+  /**
+   * The spec for a route AS THIS REQUEST SEES IT. The cached spec is shared by everybody; one that
+   * declares access keys ({@code eyesOnly:}, {@code readOnlyUnless:}, {@code disabledUnless:},
+   * {@code access:}) or {@code ${i18n.…}} expressions is re-derived from its source tree for the
+   * caller's identity and locale — on the server, so what reaches the wire is already what this
+   * caller may see, in their language.
+   */
+  public YamlPageSpec loadSpec(String route, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    var spec = loadSpec(route);
+    if (spec == null || !spec.dependsOnRequest()) {
+      return spec;
+    }
+    try {
+      var tree = spec.source();
+      java.util.Set<String> refused = java.util.Set.of();
+      java.util.Set<String> locked = java.util.Set.of();
+      var catalogueRefused = catalogueActionsRefusedIn(tree, httpRequest);
+      if (io.mateu.core.application.security.YamlAccess.declaresAccess(tree)
+          || !catalogueRefused.isEmpty()) {
+        var applied =
+            io.mateu.core.application.security.YamlAccess.apply(
+                tree,
+                httpRequest,
+                path -> routeRegistry.isReachable(path, httpRequest),
+                catalogueRefused);
+        tree = applied.tree();
+        refused = applied.refusedActions();
+        locked = applied.lockedFields();
+      } else {
+        tree = tree.deepCopy();
+      }
+      if (tree == null) {
+        return null;
+      }
+      if (!io.mateu.core.application.i18n.TranslationRegistry.isRaw(httpRequest)) {
+        translations.translateTree(
+            tree, io.mateu.core.application.i18n.TranslationRegistry.localeOf(httpRequest));
+      }
+      return new YamlPageSpec(
+          spec.modelView(),
+          layoutOf(tree),
+          deltaOf(tree),
+          actionsOf(mapper, tree),
+          triggersOf(tree),
+          null,
+          refused,
+          locked);
+    } catch (Exception e) {
+      log.warn("Failed to personalise the YAML spec for {}: {}", route, e.getMessage());
+      return spec;
+    }
+  }
+
   int cachedRoutes() {
     return byRoute.size();
   }
@@ -176,7 +382,13 @@ public class YamlUidlLoader {
    * serverSideType), not just on the first load. Returns {@code null} otherwise.
    */
   public Component layoutForRoute(String route, Class<?> modelViewClass) {
-    var spec = loadSpec(route);
+    return layoutForRoute(route, modelViewClass, null);
+  }
+
+  /** As {@link #layoutForRoute(String, Class)}, as the request sees it (access keys, i18n). */
+  public Component layoutForRoute(
+      String route, Class<?> modelViewClass, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    var spec = httpRequest == null ? loadSpec(route) : loadSpec(route, httpRequest);
     if (spec == null || spec.modelView() == null || modelViewClass == null) {
       return null;
     }
@@ -247,7 +459,14 @@ public class YamlUidlLoader {
           yamlPath,
           modelView,
           delta.isEmpty() ? "explicit layout" : "layout delta");
-      return new YamlPageSpec(modelView, layout, delta, actions, triggers);
+      // A spec that depends on who asks or in which language keeps its source tree, so it can be
+      // re-derived per request (loadSpec(route, httpRequest)); everything else is shared as-is.
+      var dependsOnRequest =
+          io.mateu.core.application.security.YamlAccess.declaresAccess(root)
+              || io.mateu.core.application.i18n.TranslationRegistry.mentionsI18n(root)
+              || referencesRestrictedCatalogueAction(root);
+      return new YamlPageSpec(
+          modelView, layout, delta, actions, triggers, dependsOnRequest ? root : null, null, null);
     } catch (Exception e) {
       log.warn("Failed to parse YAML spec {}: {}", yamlPath, e.getMessage());
       return NONE;

@@ -119,6 +119,7 @@ export function loadBundleManifest(url, fetchImpl) {
       increments = map
       templates = tpls
       routeEntries = (manifest.routes && manifest.routes.routes) || []
+      bundleTranslations = manifest.translations || {}
     } catch (e) {
       // leave bundle mode off
     }
@@ -172,7 +173,7 @@ export function matchBundledTemplate(syncPath) {
  *  target that island, so stamp the initiator (matches the web intercept). undefined = not bundled. */
 export function bundledIncrementFor(route, initiator) {
   const syncPath = toSyncPath(route)
-  const inc = getBundledIncrement(syncPath) || matchBundledTemplate(syncPath)
+  const inc = localizeBundled(getBundledIncrement(syncPath) || matchBundledTemplate(syncPath))
   if (!inc) return undefined
   return {
     ...inc,
@@ -181,8 +182,75 @@ export function bundledIncrementFor(route, initiator) {
   }
 }
 
+// ── translations (the manifest's `translations`, locale → key → text) ─────────────────────────
+// Pre-rendered entries keep their `${i18n.key}` (the exporter renders RAW): with no server, the
+// browser resolves them for the visitor's locale — exact → language → 'en' → first; a missing key
+// shows as the key. Same rules as the server's TranslationRegistry and libs/mateu's bundleStore.
+let bundleTranslations = {}
+let bundleLocaleOverride
+
+/** Chooses the bundle locale over the app's (AppDto.locale) and the browser's; undefined = those. */
+export function setBundleLocale(locale) { bundleLocaleOverride = locale || undefined }
+
+const bundleNormLocale = (l) => String(l || '').trim().replace(/_/g, '-').toLowerCase()
+
+/** The catalogue locale for the preferred ones (most preferred first), or undefined when empty. */
+export function pickBundleLocale(catalogue, preferred) {
+  const keys = Object.keys(catalogue || {})
+  if (!keys.length) return undefined
+  const find = (l) => keys.find((k) => bundleNormLocale(k) === l)
+  for (const p of preferred || []) {
+    const n = bundleNormLocale(p)
+    if (!n) continue
+    const hit = find(n) || find(n.split('-')[0])
+    if (hit) return hit
+  }
+  return find('en') || keys[0]
+}
+
+const BUNDLE_I18N = /\$\{\s*i18n\.([A-Za-z0-9_][A-Za-z0-9_.-]*)\s*\}/g
+
+function bundleAppLocale() {
+  const inc = increments ? increments.get('_no_route') : undefined
+  const md = inc && inc.fragments && inc.fragments[0] && inc.fragments[0].component
+    && inc.fragments[0].component.metadata
+  return md && md.type === 'App' && md.locale ? md.locale : undefined
+}
+
+function bundleBrowserLocales() {
+  const nav = typeof navigator !== 'undefined' ? navigator : undefined
+  return nav ? [...(nav.languages || []), nav.language].filter(Boolean) : []
+}
+
+/** `inc` with every `${i18n.…}` resolved (a copy), or `inc` itself when there is nothing to do. */
+export function localizeBundled(inc) {
+  if (!inc || !Object.keys(bundleTranslations).length) return inc
+  const json = JSON.stringify(inc)
+  if (!json.includes('i18n.')) return inc
+  const locale = pickBundleLocale(bundleTranslations,
+    [bundleLocaleOverride, bundleAppLocale(), ...bundleBrowserLocales()])
+  const fallback = pickBundleLocale(bundleTranslations, [])
+  const messages = (locale && bundleTranslations[locale]) || {}
+  const fallbackMessages = (fallback && bundleTranslations[fallback]) || {}
+  const walk = (v) => {
+    if (typeof v === 'string') {
+      return v.replace(BUNDLE_I18N, (all, key) => messages[key] ?? fallbackMessages[key] ?? key)
+    }
+    if (Array.isArray(v)) return v.map(walk)
+    if (v && typeof v === 'object') {
+      const out = {}
+      for (const k of Object.keys(v)) out[k] = walk(v[k])
+      return out
+    }
+    return v
+  }
+  return walk(inc)
+}
+
 /** Test hook: seed/clear the in-memory bundle directly. */
-export function __setBundleForTests(m, t, r) {
+export function __setBundleForTests(m, t, r, tr) {
+  bundleTranslations = tr || {}
+  bundleLocaleOverride = undefined
   increments = m
   templates = t || []
   routeEntries = r || []

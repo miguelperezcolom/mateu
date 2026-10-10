@@ -53,6 +53,7 @@ def add_mateu(
     secrets_provider: Callable[[str], str | None] | None = None,
     dev: bool | None = None,
     proxy_timeout_seconds: float = 30.0,
+    environment: str | None = None,
 ) -> SyncHandler:
     """Register the Mateu endpoints, discovering ``@app``/``@ui`` views in ``sources``.
 
@@ -67,6 +68,8 @@ def add_mateu(
       ``jwt_identity_provider(key=...)`` to verify here). Requires the ``jwt`` extra.
     - ``secrets_provider`` — ``key -> value`` for ``${secret.KEY}`` in proxied REST sources; None →
       the environment variable ``MATEU_SECRET_<KEY>`` (never an arbitrary one).
+    - ``environment`` — the deployment environment whose ``type: Environment`` overrides re-point
+      the REST sources (default: the ``MATEU_ENVIRONMENT`` variable; neither → as authored).
     - ``dev`` — show exception details in error toasts (default: ``MATEU_DEV`` env var). Off in
       production: users then see a generic text with a correlation id, the detail goes to the log.
 
@@ -84,6 +87,7 @@ def add_mateu(
         identity_provider=identity_provider if identity_provider is not None else jwt_identity_provider(),
         secrets_provider=secrets_provider,
         proxy_timeout_seconds=proxy_timeout_seconds,
+        environment=environment,
     )
     show_details = dev_mode_from_env() if dev is None else dev
 

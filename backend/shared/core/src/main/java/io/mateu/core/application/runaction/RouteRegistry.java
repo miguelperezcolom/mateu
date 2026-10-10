@@ -79,6 +79,43 @@ public class RouteRegistry {
   }
 
   /**
+   * Whether the caller may reach {@code path}: every authored entry answering it — the deepest
+   * entry matching the path or a prefix of it (a crud's {@code /new} and {@code /:id/edit} are
+   * still that crud's route), and all its {@link RouteEntry#parent} ancestors — must have its
+   * {@code access:} satisfied. A path no authored entry answers is not restricted here.
+   */
+  public boolean isReachable(String path, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    return refusingEntry(path, httpRequest) == null;
+  }
+
+  /**
+   * The authored entry whose {@code access:} refuses the caller {@code path}, or null when it is
+   * reachable (see {@link #isReachable}).
+   */
+  public RouteEntry refusingEntry(String path, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    var table = authored();
+    if (table.routes().stream().noneMatch(RouteEntry::restrictsAccess)) {
+      return null; // the common case: nothing in the table is restricted
+    }
+    var normalized = normalize(stripQuery(path == null ? "" : path));
+    var segments = normalized.isEmpty() ? new String[0] : normalized.split("/");
+    // the root entry ("") guards the root path only: it must not guard routes it does not own
+    for (int n = segments.length; n >= (segments.length == 0 ? 0 : 1); n--) {
+      var prefix = String.join("/", java.util.Arrays.copyOf(segments, n));
+      if (table.match(prefix).isEmpty()) {
+        continue;
+      }
+      for (var link : chain(prefix)) {
+        if (!io.mateu.core.domain.Authorizer.isAuthorized(link.entry().access(), httpRequest)) {
+          return link.entry();
+        }
+      }
+      return null; // the deepest answering entry decides; a shallower one is a different route
+    }
+    return null;
+  }
+
+  /**
    * One level of a route chain: an authored entry, the concrete path it answers in this request
    * (its pattern with the {@code :params} filled in from the URL, with a leading slash) and the
    * path parameters read off that path.
@@ -437,7 +474,8 @@ public class RouteRegistry {
             node.data(),
             node.appData(),
             node.defaultChild(),
-            node.show()));
+            node.show(),
+            node.access()));
     for (var child : node.children()) {
       flattenEntry(child, full, full, out);
     }
@@ -586,7 +624,8 @@ public class RouteRegistry {
                 homeEntry.data(),
                 homeEntry.appData(),
                 null,
-                homeEntry.show()));
+                homeEntry.show(),
+                homeEntry.access()));
       }
     }
     return valid;
@@ -715,7 +754,8 @@ public class RouteRegistry {
             dataSourceOf(node, "data"),
             dataSourceOf(node, "appData"),
             node.hasNonNull("defaultChild") ? normalize(node.get("defaultChild").asText()) : null,
-            node.hasNonNull("show") ? node.get("show").asText() : null));
+            node.hasNonNull("show") ? node.get("show").asText() : null,
+            io.mateu.core.application.security.YamlAccess.accessOf(node.get("access"))));
     var childrenNode = node.get("children");
     if (childrenNode != null && childrenNode.isArray()) {
       for (var child : childrenNode) {
@@ -756,7 +796,8 @@ public class RouteRegistry {
         entry.data(),
         entry.appData(),
         entry.defaultChild(),
-        entry.show());
+        entry.show(),
+        entry.access());
   }
 
   /**

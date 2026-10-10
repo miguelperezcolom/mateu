@@ -30,10 +30,14 @@ public sealed class RestSourceRegistry
 
     /// <param name="registry">Where the registered classes and the supplier assemblies come from.</param>
     /// <param name="dir">The specs directory (default: MATEU_SPECS_DIR, else specs/ui).</param>
-    public RestSourceRegistry(MateuRegistry registry, string? dir = null)
+    /// <param name="environment">The deployment environment whose overrides are overlaid on the
+    /// merged catalogue (default: MATEU_ENVIRONMENT; none → as authored). See <see cref="Environments"/>.</param>
+    public RestSourceRegistry(MateuRegistry registry, string? dir = null, string? environment = null)
     {
         var specs = dir ?? Environment.GetEnvironmentVariable("MATEU_SPECS_DIR") ?? Path.Combine("specs", "ui");
-        _load = () => AuthoredFrom(specs).MergedOver(DerivedFrom(registry.RegisteredTypes, registry.ScannedTypes));
+        _load = () => Environments.OverlayActive(
+            AuthoredFrom(specs).MergedOver(DerivedFrom(registry.RegisteredTypes, registry.ScannedTypes)),
+            specs, environment);
     }
 
     /// <summary>A registry over a fixed catalogue (tests, hosts that build it themselves).</summary>
@@ -334,10 +338,27 @@ internal static class MateuCatalogs
     private static readonly AsyncLocal<int> Depth = new();
     private static readonly AsyncLocal<ActionCatalog?> Acts = new();
 
-    /// <summary>The action catalogue in effect for this request (set by the SyncHandler).</summary>
-    internal static void SetActions(ActionCatalog? actions) => Acts.Value = actions;
+    private static readonly AsyncLocal<IReadOnlySet<string>?> RefusedActs = new();
 
+    /// <summary>The action catalogue in effect for this request (set by the SyncHandler).</summary>
+    internal static void SetActions(ActionCatalog? actions) => SetActions(actions, null);
+
+    /// <summary>The action catalogue in effect for this request, with the ids of the restricted
+    /// entries the caller may NOT run (<c>access:</c>).</summary>
+    internal static void SetActions(ActionCatalog? actions, IReadOnlySet<string>? refused)
+    {
+        Acts.Value = actions;
+        RefusedActs.Value = refused;
+    }
+
+    /// <summary>The WHOLE catalogue — an id is still the catalogue's even when the caller may not run it.</summary>
     internal static ActionCatalog Actions => Acts.Value ?? ActionCatalog.Empty;
+
+    /// <summary>The ids of the catalogue entries the caller may not run.</summary>
+    internal static IReadOnlySet<string> RefusedActions => RefusedActs.Value ?? new HashSet<string>();
+
+    /// <summary>The catalogue as the caller may see it — what is shipped on the wire.</summary>
+    internal static ActionCatalog ActionsForCaller => ActionRegistry.Without(Actions, RefusedActions);
 
     internal static void Set(RestSourceCatalog? sources, ComponentCatalog? components)
     {

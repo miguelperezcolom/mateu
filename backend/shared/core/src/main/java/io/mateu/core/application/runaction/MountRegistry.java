@@ -144,8 +144,17 @@ public final class MountRegistry {
     }
   }
 
+  /**
+   * Every {@code *.yaml}/{@code *.yml} resource path under {@code specs/ui/} (recursive), across
+   * the classpath — for the other file kinds discovered by their {@code type:} ({@code
+   * Translations}, {@code Environment}).
+   */
+  public static Set<String> yamlResourcePaths(ClassLoader cl) {
+    return scanYamlResourcePaths(cl);
+  }
+
   /** Every {@code *.yaml}/{@code *.yml} resource path under {@code specs/ui/} (recursive). */
-  Set<String> scanYamlResourcePaths(ClassLoader cl) {
+  static Set<String> scanYamlResourcePaths(ClassLoader cl) {
     var paths = new LinkedHashSet<String>();
     try {
       var urls = cl.getResources(ROOT);

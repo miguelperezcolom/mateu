@@ -23,7 +23,7 @@ public static class YamlComponentBuilder
     private static readonly IDeserializer Yaml = new DeserializerBuilder().Build();
 
     /// <summary>Raw YAML → nodes, for callers that splice before building (the partial registry).</summary>
-    internal static object? Deserialize(string yaml)
+    public static object? Deserialize(string yaml)
     {
         try { return Yaml.Deserialize<object>(yaml); }
         catch (Exception e)
@@ -69,7 +69,15 @@ public static class YamlComponentBuilder
         string yaml, PartialRegistry? partials = null)
     {
         if (string.IsNullOrWhiteSpace(yaml)) return (null, null, LayoutDelta.Empty);
-        var root = Deserialize(yaml);
+        return ParsePageNode(Deserialize(yaml), partials);
+    }
+
+    /// <summary><see cref="ParsePage(string, PartialRegistry?)"/> over an already-deserialised tree —
+    /// what a per-request personalised spec (access keys applied, <c>${i18n.…}</c> resolved) is
+    /// re-built from.</summary>
+    public static (string? ModelView, IComponent? Layout, LayoutDelta Delta) ParsePageNode(
+        object? root, PartialRegistry? partials = null)
+    {
         if (root is null) return (null, null, LayoutDelta.Empty);
         var registry = partials ?? PartialRegistry.Default;
         if (root is not IDictionary<object, object> map) return (null, Single(root, registry, []), LayoutDelta.Empty);
@@ -163,10 +171,12 @@ public static class YamlComponentBuilder
                 Label = Str(map, "label"),
                 Stereotype = Str(map, "stereotype") ?? "regular",
                 Required = Bool(map, "required"),
+                ReadOnly = Bool(map, "readOnly"),
             },
             "Button" => new Button(Str(map, "label") ?? "", Str(map, "actionId") ?? "")
             {
                 Primary = Str(map, "buttonStyle") == "primary",
+                Disabled = Bool(map, "disabled"),
             },
             "Text" => new Text(Str(map, "text") ?? ""),
             // A reference to a named business component (components.yaml / [BusinessComponent]).

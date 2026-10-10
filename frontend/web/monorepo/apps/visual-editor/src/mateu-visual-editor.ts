@@ -38,6 +38,7 @@ import { InferredField } from './model/layoutDelta'
 import { isRoutesYaml } from './model/routesModel'
 import { hasAppShell } from './model/appModel'
 import { isMountYaml } from './model/mountModel'
+import { environmentName, parseTranslationsFile } from './model/translationsModel'
 import { buildIndex, ProjectIndex, ProjectFile } from './model/projectIndex'
 import { withEdited } from './model/playManifest'
 import { buildMountGraph } from './model/mountGraph'
@@ -271,7 +272,7 @@ export class MateuVisualEditor extends LitElement {
      * (page/partial); `mount` = a `type: UI` descriptor; `app` = a `type: AppShell` definition;
      * `routes` = a pure route file. Each is its OWN file — no mixing.
      */
-    @state() private mode: 'page' | 'mount' | 'app' | 'routes' | 'sources' | 'actions' = 'page'
+    @state() private mode: 'page' | 'mount' | 'app' | 'routes' | 'sources' | 'actions' | 'data' = 'page'
     @state() private structuredYaml = ''
     /** Which left-panel tab is showing: the layers tree (navigate/reorder) or the insert palette. */
     @state() private leftTab: 'layers' | 'insert' = 'layers'
@@ -482,6 +483,8 @@ export class MateuVisualEditor extends LitElement {
                     ? html`<sources-editor .yaml=${this.structuredYaml}></sources-editor>`
                     : this.mode === 'actions'
                     ? html`<actions-editor .yaml=${this.structuredYaml} .project=${this.project}></actions-editor>`
+                    : this.mode === 'data'
+                    ? this.renderDataFile()
                     : html`
                 <div class="work">
                     <div style="display:grid; grid-template-rows:auto 1fr; min-height:0">
@@ -739,6 +742,30 @@ export class MateuVisualEditor extends LitElement {
     }
 
     /**
+     * A translations catalogue (its keys and texts) or an environment (the sources it re-points),
+     * read-only: both are plain YAML the IDE validates against the specs schema — edit the file.
+     */
+    private renderDataFile() {
+        const yaml = this.structuredYaml ?? ''
+        const catalogue = parseTranslationsFile(this.currentPath ?? '', yaml)
+        const box = 'padding:1rem 1.25rem; overflow:auto; font:13px var(--ve-font, system-ui); color:var(--ve-text, #1f2937)'
+        if (catalogue) {
+            const keys = Object.keys(catalogue.messages)
+            return html`<div style=${box}>
+                <h3 style="margin:0 0 .25rem">Translations · ${catalogue.locale}</h3>
+                <div style="color:var(--ve-secondary,#6b7280); margin-bottom:.75rem">${keys.length} key${keys.length === 1 ? '' : 's'} — labels say <code>\${i18n.&lt;key&gt;}</code>; the server resolves them for the visitor's language. Edit this file as YAML.</div>
+                <table style="border-collapse:collapse; width:100%">${keys.map((k) => html`<tr>
+                    <td style="padding:.2rem .6rem .2rem 0; font-family:ui-monospace,monospace; font-size:12px; white-space:nowrap">${k}</td>
+                    <td style="padding:.2rem 0; border-bottom:1px solid var(--ve-border,#eceef1)">${catalogue.messages[k]}</td></tr>`)}</table>
+            </div>`
+        }
+        return html`<div style=${box}>
+            <h3 style="margin:0 0 .25rem">Environment · ${environmentName(this.currentPath ?? '', yaml)}</h3>
+            <div style="color:var(--ve-secondary,#6b7280)">Re-points named REST sources (baseUrl, url, headers, proxy) when this environment is active (<code>MATEU_ENVIRONMENT</code>, or the bundle goal's <code>environment</code>). Never put a secret here — use <code>\${secret.X}</code>. Edit this file as YAML.</div>
+        </div>`
+    }
+
+    /**
      * Load YAML into the editor, then ask the server what inference produces for its model view.
      *
      * The contract arrives asynchronously and the editor is fully usable before it does — it just
@@ -757,6 +784,13 @@ export class MateuVisualEditor extends LitElement {
         }
         if (isActionsYaml(yaml)) {
             this.mode = 'actions'
+            this.structuredYaml = yaml
+            return
+        }
+        // A message catalogue / a deployment environment: plain YAML (schema-validated by the IDE),
+        // summarised here — neither is a screen to lay out.
+        if (parseTranslationsFile(this.currentPath ?? '', yaml) || environmentName(this.currentPath ?? '', yaml)) {
+            this.mode = 'data'
             this.structuredYaml = yaml
             return
         }
@@ -957,6 +991,7 @@ export class MateuVisualEditor extends LitElement {
         if (this.mode === 'app') return html`<span class="shape app" title="An app shell definition (type: AppShell) — a view bound to a route like any other.">app</span>`
         if (this.mode === 'routes') return html`<span class="shape routes" title="A route file — pure routing: each URL bound to a definition and an optional view model.">routes</span>`
         if (this.mode === 'actions') return html`<span class="shape actions" title="The action catalogue — named client-runnable actions (flows, REST calls) run by id from the menu and any page.">actions</span>`
+        if (this.mode === 'data') return html`<span class="shape sources" title="A Translations catalogue or an Environment — plain YAML, validated by the specs schema.">data</span>`
         if (this.mode === 'sources') return html`<span class="shape sources" title="The REST source catalogue — each external endpoint named once, referenced by name.">sources</span>`
         if (this.mode === 'page' && this.doc?.fragment) return html`<span class="shape partial" title="A reusable partial — a rootless content: list, inlined wherever a Partial ref names it.">partial</span>`
         return ''

@@ -65,6 +65,7 @@ from .markers import (  # noqa: F401
     Version,
 )
 from .security import (  # noqa: F401
+    Access,
     Audience,
     audience,
     disabled_unless,
@@ -248,9 +249,16 @@ from .adapters import (  # noqa: F401
     AdaptedView,
     ComponentAdapter,
 )
+from .i18n import Translations, TranslationsSupplier  # noqa: F401
+from .environments import Environment, SourceOverride  # noqa: F401
 
 
 __all__ = [
+    "Access",
+    "Translations",
+    "TranslationsSupplier",
+    "Environment",
+    "SourceOverride",
     "UserFacingException",
     "Inline",
     "AdaptedView",

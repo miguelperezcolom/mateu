@@ -39,6 +39,11 @@ class ActionRegistry:
         self._dir = Path(directory or os.environ.get("MATEU_SPECS_DIR") or Path("specs") / "ui")
         self._suppliers = list(suppliers or [])
         self._catalog: list[CatalogAction] | None = None
+        #: id → ``access:`` of an AUTHORED entry (Java's ``accessById``). Enforced like a page's
+        #: declared action: not shipped to a caller who does not satisfy it (it runs in the
+        #: browser, so not shipping it IS the enforcement), buttons naming it disabled, and a call
+        #: that reaches the server anyway refused with 403.
+        self._access_by_id: dict[str, Any] = {}
         self._lock = threading.Lock()
 
     def catalog(self) -> list[CatalogAction]:
@@ -77,19 +82,61 @@ class ActionRegistry:
             if isinstance(root, dict) and root.get("type") == TYPE:
                 files.append(path)
         by_id: dict[str, CatalogAction] = {}
+        access_by_id: dict[str, Any] = {}
         for path in files:
-            for action in _read(path):
+            for action in _read(path, access_by_id):
                 by_id[action.id] = action
+        self._access_by_id = {k: v for k, v in access_by_id.items() if k in by_id}
         return list(by_id.values())
 
-    def wire(self) -> list[Action]:
-        """The catalogue on the wire (AppMetadata.actionCatalogue), flows lowered to commands."""
-        return [to_dto(a) for a in self.catalog()]
+    # ── access (``access:`` on an entry) ──────────────────────────────────────
+    def access_of(self, action_id: str | None):
+        """The restriction of catalogue action ``action_id``, or None."""
+        self.catalog()
+        return self._access_by_id.get(action_id) if action_id else None
 
-    def referenced_by(self, referenced: Iterable[str], owned: Iterable[str]) -> list[CatalogAction]:
+    def grants(self, action_id: str | None, authorized) -> bool:
+        """Whether the caller (``authorized``: the mapper's gate check) may run ``action_id``."""
+        access = self.access_of(action_id)
+        return access is None or bool(authorized(access))
+
+    def refused_for(self, authorized) -> set[str]:
+        """The ids of the restricted catalogue actions the caller may NOT run."""
+        self.catalog()
+        if authorized is None:
+            return set()
+        return {i for i, access in self._access_by_id.items() if not authorized(access)}
+
+    def restricted_ids(self) -> set[str]:
+        self.catalog()
+        return set(self._access_by_id)
+
+    def restricts_any(self) -> bool:
+        self.catalog()
+        return bool(self._access_by_id)
+
+    def catalog_for(self, authorized) -> list[CatalogAction]:
+        """The catalogue without the entries the caller may not run."""
+        all_ = self.catalog()
+        if not self._access_by_id or authorized is None:
+            return all_
+        refused = self.refused_for(authorized)
+        return [a for a in all_ if a.id not in refused]
+
+    def wire(self, authorized=None) -> list[Action]:
+        """The catalogue on the wire (AppMetadata.actionCatalogue), flows lowered to commands —
+        without the entries the caller (``authorized``) may not run."""
+        return [to_dto(a) for a in self.catalog_for(authorized)]
+
+    def referenced_by(
+        self, referenced: Iterable[str], owned: Iterable[str], authorized=None
+    ) -> list[CatalogAction]:
         """The catalogue entries an owner needs to carry: each referenced id it does NOT own, closed
-        transitively over RunAction steps. OWNER FIRST: an owned id is never replaced."""
+        transitively over RunAction steps. OWNER FIRST: an owned id is never replaced. With
+        ``authorized``, the entries the caller may not run are left out (nor followed)."""
         known = set(owned)
+        if authorized is not None and self.restricts_any():
+            known |= self.refused_for(authorized)  # treated as owned: never added, never followed
         found: list[CatalogAction] = []
         pending = list(referenced)
         while pending:
@@ -133,7 +180,38 @@ def _load(path: Path) -> Any:
         return None
 
 
-def _read(path: Path) -> list[CatalogAction]:
+def collect_ids(node: Any, out: set[str] | None = None) -> set[str]:
+    """Every ``actionId`` / ``*ActionId`` string a raw YAML tree names (Java's
+    ``ActionRegistry.collectIds``)."""
+    out = set() if out is None else out
+    if isinstance(node, dict):
+        for name, value in node.items():
+            if isinstance(value, str) and (name == "actionId" or name.endswith("ActionId")):
+                if value.strip():
+                    out.add(value)
+            else:
+                collect_ids(value, out)
+    elif isinstance(node, list):
+        for child in node:
+            collect_ids(child, out)
+    return out
+
+
+def catalogue_ids_named_by(tree: Any) -> set[str]:
+    """The action ids ``tree`` names that its own ``actions:`` do not declare — OWNER FIRST: an id
+    the page declares is the page's, never the catalogue's (Java's ``catalogueIdsNamedBy``)."""
+    ids = collect_ids(tree)
+    own = tree.get("actions") if isinstance(tree, dict) else None
+    if isinstance(own, list):
+        for action in own:
+            if isinstance(action, dict):
+                ids.discard(str(action.get("id")))
+    return ids
+
+
+def _read(path: Path, access_by_id: dict[str, Any] | None = None) -> list[CatalogAction]:
+    from .yaml_access import access_of
+
     root = _load(path)
     nodes = root.get("actions") if isinstance(root, dict) else root
     if not isinstance(nodes, list):
@@ -146,6 +224,12 @@ def _read(path: Path) -> list[CatalogAction]:
         if not action_id:
             log.warning("Ignoring an action with no id in %s", path)
             continue
+        if access_by_id is not None:
+            access = access_of(node.get("access"))
+            if access is not None:
+                access_by_id[action_id] = access
+            else:
+                access_by_id.pop(action_id, None)  # a later file redeclaring it without access
         parsed.append(
             CatalogAction(
                 id=action_id,
@@ -216,4 +300,12 @@ def to_dto(action: CatalogAction) -> Action:
     )
 
 
-__all__ = ["ActionRegistry", "ActionCatalogSupplier", "merged_over", "to_dto", "lower"]
+__all__ = [
+    "ActionRegistry",
+    "ActionCatalogSupplier",
+    "catalogue_ids_named_by",
+    "collect_ids",
+    "merged_over",
+    "to_dto",
+    "lower",
+]

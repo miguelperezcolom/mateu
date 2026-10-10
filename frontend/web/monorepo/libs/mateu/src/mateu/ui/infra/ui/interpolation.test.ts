@@ -298,3 +298,14 @@ describe('template parsing', () => {
         expect(() => evaluateTemplate("${'}", {})).toThrow(SyntaxError)
     })
 })
+
+describe('an unresolved i18n expression', () => {
+    // The server (or the bundle store) resolves these; one that still arrives has no catalogue
+    // behind it: it shows as the key, never blank or raw.
+    it('renders as its key', () => {
+        expect(interpolate('${i18n.orders.title}', {}, {})).toBe('orders.title')
+        expect(interpolate('Hi ${state.name}, ${i18n.welcome}', { name: 'Ana' }, {})).toBe('Hi Ana, welcome')
+        expect(interpolateNested('${i18n.a.b}', {}, {}, {}, {})).toBe('a.b')
+        expect(possiblyHtml('${i18n.title}', {}, {})).toBe('title')
+    })
+})

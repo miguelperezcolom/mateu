@@ -21,6 +21,7 @@ import {
 import {
   toSyncPath, loadBundleManifest, hasBundle, getBundledIncrement, matchBundledTemplate,
   bundledIncrementFor, __setBundleForTests, applyRouteParams, getRouteEntry,
+  setBundleLocale, pickBundleLocale,
 } from './bundle.mjs'
 import {
   classifyRequestFailure, isIdempotentAction, shouldRetry, retryDelayMs, MAX_RETRIES,
@@ -3541,6 +3542,22 @@ test('ask FAB: brandAskFab con la marca del App (inicial, imagen) — idempotent
   brandAskFab(fab, askFabOf(null))
   assert.equal(icon.children.length, 0)
   assert.ok(icon.classList.contains(ASK_FAB_GLYPH) && !icon.classList.contains('mateu-ask-fab-branded'))
+})
+
+test('interpolate: ${i18n.clave} sin catálogo se muestra como la clave', () => {
+  assert.equal(interpolate('${i18n.orders.title} (${state.n})', { n: 2 }), 'orders.title (2)')
+})
+
+test('bundle: traducciones del manifest resueltas para el locale elegido', () => {
+  const inc = { fragments: [{ component: { metadata: { type: 'Text', text: '${i18n.hello}!' } } }] }
+  __setBundleForTests(new Map([['home', inc]]), [], [], { en: { hello: 'Hello' }, es: { hello: 'Hola' } })
+  setBundleLocale('es-ES')
+  assert.equal(bundledIncrementFor('/home', '').fragments[0].component.metadata.text, 'Hola!')
+  setBundleLocale('fr')
+  assert.equal(bundledIncrementFor('/home', '').fragments[0].component.metadata.text, 'Hello!')
+  assert.equal(inc.fragments[0].component.metadata.text, '${i18n.hello}!')
+  assert.equal(pickBundleLocale({ de: {}, it: {} }, ['fr']), 'de')
+  __setBundleForTests(undefined)
 })
 
 test('interpolate: ${state.x} y ${state[\'x\']}', () => {

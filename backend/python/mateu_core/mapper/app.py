@@ -168,7 +168,7 @@ class AppMapperMixin(MixinBase):
             # the catalogue rides the app metadata once (surfaces carry only the names)
             rest_sources=self.rest_sources.wire() if self.rest_sources is not None else [],
             components=self._component_catalogue(),
-            action_catalogue=self.action_catalog.wire() if self.action_catalog is not None else [],
+            action_catalogue=self.action_catalog.wire(self.authorized) if self.action_catalog is not None else [],
             required_capabilities=self._required_capabilities(
                 cls,
                 sse_url=sse_url,

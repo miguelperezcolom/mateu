@@ -41,6 +41,68 @@ public sealed class ActionRegistry
     /// <summary>The merged catalogue (authored over derived), loaded once.</summary>
     public ActionCatalog Catalog => _catalog ??= _load();
 
+    /// <summary>The ids of every catalogue entry that declares <c>access:</c>.</summary>
+    public IReadOnlySet<string> RestrictedIds() => RestrictedIn(Catalog);
+
+    /// <summary>Whether any catalogue entry declares <c>access:</c>.</summary>
+    public bool RestrictsAny() => Catalog.Actions.Any(a => a.Access is { } x && x.Restricts());
+
+    /// <summary>Whether the caller may run catalogue action <paramref name="id"/> (true for an
+    /// unknown or unrestricted id).</summary>
+    public bool Grants(string id, Func<Access?, bool> granted) =>
+        Catalog.Get(id)?.Access is not { } access || granted(access);
+
+    /// <summary>The ids of the restricted catalogue actions the caller may NOT run.</summary>
+    public IReadOnlySet<string> RefusedFor(Func<Access?, bool> granted) => RefusedIn(Catalog, granted);
+
+    /// <summary>The catalogue without the entries the caller may not run.</summary>
+    public ActionCatalog CatalogFor(Func<Access?, bool> granted) => Without(Catalog, RefusedFor(granted));
+
+    internal static IReadOnlySet<string> RestrictedIn(ActionCatalog catalog) =>
+        catalog.Actions.Where(a => a.Access is { } x && x.Restricts()).Select(a => a.Id).ToHashSet();
+
+    internal static IReadOnlySet<string> RefusedIn(ActionCatalog catalog, Func<Access?, bool> granted) =>
+        catalog.Actions.Where(a => a.Access is { } x && x.Restricts() && !granted(x)).Select(a => a.Id).ToHashSet();
+
+    internal static ActionCatalog Without(ActionCatalog catalog, IReadOnlySet<string> refused) =>
+        refused.Count == 0 ? catalog : new ActionCatalog(catalog.Actions.Where(a => !refused.Contains(a.Id)).ToList());
+
+    /// <summary>Every <c>actionId</c> / <c>*ActionId</c> a deserialised YAML tree names (mirrors
+    /// Java's ActionRegistry.collectIds).</summary>
+    internal static void CollectIds(object? node, ISet<string> into)
+    {
+        switch (node)
+        {
+            case IDictionary<object, object> map:
+                foreach (var (k, v) in map)
+                {
+                    var name = k?.ToString() ?? "";
+                    if (v is string s && (name == "actionId" || name.EndsWith("ActionId")) && !string.IsNullOrWhiteSpace(s))
+                        into.Add(s);
+                    else CollectIds(v, into);
+                }
+                break;
+            case string:
+                break;
+            case IEnumerable<object> list:
+                foreach (var v in list) CollectIds(v, into);
+                break;
+        }
+    }
+
+    /// <summary>The action ids <paramref name="tree"/> names that its own <c>actions:</c> do not
+    /// declare — OWNER FIRST: an id the page declares is the page's, never the catalogue's.</summary>
+    internal static HashSet<string> CatalogueIdsNamedBy(object? tree)
+    {
+        var ids = new HashSet<string>();
+        CollectIds(tree, ids);
+        if (tree is IDictionary<object, object> map && map.TryGetValue("actions", out var own) && own is IEnumerable<object> list)
+            foreach (var action in list)
+                if (action is IDictionary<object, object> a && a.TryGetValue("id", out var id) && id is not null)
+                    ids.Remove(id.ToString()!);
+        return ids;
+    }
+
     private static ILogger Log => MateuLogging.For("Mateu.Actions");
 
     /// <summary>The derived half: what the <see cref="IActionCatalogSupplier"/> implementers add.</summary>
@@ -125,6 +187,8 @@ public sealed class ActionRegistry
                     Description = Str(map, "description") ?? "",
                     Steps = StepsOf(map.TryGetValue("steps", out var s) ? s : null),
                     RestAction = RestActionOf(map.TryGetValue("restAction", out var r) ? r : null),
+                    // remembered by id: enforced like a page's own declared action (YamlAccess)
+                    Access = YamlAccess.AccessOf(map.TryGetValue("access", out var acc) ? acc : null),
                 });
             }
             return ClientRunnableOnly(parsed, path);

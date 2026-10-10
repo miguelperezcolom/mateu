@@ -1102,6 +1102,10 @@ public sealed record Button(string Label, string ActionId) : ComponentBase
 {
     public bool Primary { get; init; }
 
+    /// <summary>Rendered disabled (e.g. a YAML <c>disabledUnless:</c> the caller does not satisfy,
+    /// or a button naming a declared action the caller may not run).</summary>
+    public bool Disabled { get; init; }
+
     /// <summary>Extra parameters merged into the dispatched action request (e.g. the conflict
     /// dialog's <c>_forceOverwrite</c>).</summary>
     public IReadOnlyDictionary<string, object?>? Parameters { get; init; }

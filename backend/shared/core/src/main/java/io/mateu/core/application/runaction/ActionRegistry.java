@@ -54,6 +54,79 @@ public class ActionRegistry {
 
   private volatile ActionCatalog catalog;
 
+  /** The {@code access:} of the authored entries that declare one, by id. */
+  private final java.util.Map<String, io.mateu.uidl.data.Access> accessById =
+      new java.util.concurrent.ConcurrentHashMap<>();
+
+  /**
+   * The restriction of catalogue action {@code id} ({@code access:} on its entry), or null.
+   * Enforced exactly like a page's declared action: not shipped to a caller who does not satisfy it
+   * (it runs in the browser, so not shipping it IS the enforcement), buttons naming it disabled,
+   * and a call that reaches the server anyway refused with 403.
+   */
+  public io.mateu.uidl.data.Access accessOf(String id) {
+    catalog();
+    return id == null ? null : accessById.get(id);
+  }
+
+  /** Whether the caller may run catalogue action {@code id} (true for unknown/unrestricted ids). */
+  public boolean grants(String id, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    return io.mateu.core.domain.Authorizer.isAuthorized(accessOf(id), httpRequest);
+  }
+
+  /** The ids of the restricted catalogue actions the caller may NOT run. */
+  public Set<String> refusedFor(io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    catalog();
+    var out = new LinkedHashSet<String>();
+    accessById.forEach(
+        (id, access) -> {
+          if (!io.mateu.core.domain.Authorizer.isAuthorized(access, httpRequest)) {
+            out.add(id);
+          }
+        });
+    return out;
+  }
+
+  /** The ids of every catalogue entry that declares {@code access:}. */
+  public Set<String> restrictedIds() {
+    catalog();
+    return Set.copyOf(accessById.keySet());
+  }
+
+  /** Whether any catalogue entry declares {@code access:}. */
+  public boolean restrictsAny() {
+    catalog();
+    return !accessById.isEmpty();
+  }
+
+  /** The catalogue without the entries the caller may not run. */
+  public ActionCatalog catalogFor(io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    var all = catalog();
+    if (accessById.isEmpty()) {
+      return all;
+    }
+    var refused = refusedFor(httpRequest);
+    return new ActionCatalog(
+        all.actions().stream().filter(a -> !refused.contains(a.id())).toList());
+  }
+
+  /**
+   * As {@link #referencedBy(Object, Collection, Set)}, without the entries the caller may not run
+   * (nor what only they referenced).
+   */
+  public List<Action> referencedBy(
+      Object tree,
+      Collection<Action> ownActions,
+      Set<String> owned,
+      io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    if (!restrictsAny()) {
+      return referencedBy(tree, ownActions, owned);
+    }
+    var known = new LinkedHashSet<String>(owned == null ? Set.of() : owned);
+    known.addAll(refusedFor(httpRequest)); // treated as owned: never added, never followed
+    return referencedBy(tree, ownActions, known);
+  }
+
   /** The merged catalogue (authored over derived), loaded once. */
   public ActionCatalog catalog() {
     var loaded = catalog;
@@ -124,7 +197,7 @@ public class ActionRegistry {
     if (cl.getResource(CONVENTIONAL_ACTIONS) != null) {
       files.add(CONVENTIONAL_ACTIONS);
     }
-    for (var path : new MountRegistry().scanYamlResourcePaths(cl)) {
+    for (var path : MountRegistry.yamlResourcePaths(cl)) {
       if (!path.equals(CONVENTIONAL_ACTIONS) && TYPE.equals(typeOf(cl, path))) {
         files.add(path);
       }
@@ -150,6 +223,18 @@ public class ActionRegistry {
       JsonNode envelope = root;
       if (root.isArray()) {
         envelope = yaml.createObjectNode().set("actions", root);
+      }
+      // `access:` is an authoring overlay, not an Action component (the same key a page's declared
+      // action takes): remember it by id so the catalogue entry is enforced like a page action.
+      var nodes = envelope.get("actions");
+      if (nodes != null && nodes.isArray()) {
+        for (var node : nodes) {
+          var restriction =
+              io.mateu.core.application.security.YamlAccess.accessOf(node.get("access"));
+          if (restriction != null && node.hasNonNull("id")) {
+            accessById.put(node.get("id").asText(), restriction);
+          }
+        }
       }
       var parsed = new ArrayList<Action>();
       for (var action : YamlUidlLoader.actionsOf(yaml, envelope)) {

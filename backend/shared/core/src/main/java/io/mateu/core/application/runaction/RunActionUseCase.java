@@ -83,14 +83,18 @@ public class RunActionUseCase {
 
   // ── Main entry point ──────────────────────────────────────────────────────
 
-  public Flux<UIIncrementDto> handle(RunActionCommand command) {
-    log.debug("run action {}", command.actionId());
+  public Flux<UIIncrementDto> handle(RunActionCommand incoming) {
+    log.debug("run action {}", incoming.actionId());
+    final RunActionCommand command;
     // The client names the server-side type it is talking to; only types the application exposes
     // may be resolved (C1). Refused here, before anything loads, instantiates or asks the
     // container for the class — every path below (contract, preview, rest proxy, actions) and
     // every entry point (the generated controllers, /mateu/mcp) goes through this method.
     try {
-      wireTypePolicy.check(command.serverSideType(), command.route(), command.httpRequest());
+      wireTypePolicy.check(incoming.serverSideType(), incoming.route(), incoming.httpRequest());
+      // the YAML access keys: a refused route / declared action answers 403, and fields locked
+      // for the caller lose their client-sent values (the data twin of @EyesOnly & co.)
+      command = yamlUidlLoader != null ? yamlUidlLoader.guard(incoming) : incoming;
     } catch (io.mateu.core.application.security.MateuForbiddenException e) {
       return Flux.error(e);
     }

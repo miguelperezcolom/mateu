@@ -181,7 +181,7 @@ public final class ComponentToFragmentDtoMapper {
           "",
           "",
           TreeActionHarvester.withTreeActions(
-              ActionMapper.mapActions(view, httpRequest), view, page),
+              ActionMapper.mapActions(view, httpRequest), view, page, httpRequest),
           TriggerMapper.mapTriggers(view, httpRequest),
           RuleMapper.mapRules(view, httpRequest),
           ValidationMapper.mapValidations(view, route, httpRequest),

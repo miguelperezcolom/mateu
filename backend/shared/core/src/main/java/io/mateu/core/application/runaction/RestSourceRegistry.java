@@ -75,7 +75,9 @@ public class RestSourceRegistry {
   RestSourceCatalog load(ClassLoader classLoader) {
     var derived = derivedFrom(classLoader);
     var authored = authoredFrom(classLoader);
-    var merged = authored.mergedOver(derived);
+    // The active deployment environment (mateu.environment / MATEU_ENVIRONMENT) re-points named
+    // sources on top of everything — so the wire, the proxy and the bundle manifest all see it.
+    var merged = Environments.overlayActive(authored.mergedOver(derived), classLoader);
     if (!merged.hasNoSources()) {
       log.info(
           "REST source catalogue: {} source(s) ({} derived, {} authored) — {} to implement, {}"

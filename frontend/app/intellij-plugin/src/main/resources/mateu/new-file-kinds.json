@@ -42,6 +42,22 @@
       "schemaType": "Actions"
     },
     {
+      "id": "translations",
+      "label": "Translations",
+      "description": "One language's messages (type: Translations): name the file after the locale (en, es…); labels say ${i18n.key}.",
+      "fileName": "en",
+      "template": "Mateu Translations",
+      "schemaType": "Translations"
+    },
+    {
+      "id": "environment",
+      "label": "Environment",
+      "description": "A deployment environment (type: Environment) re-pointing named REST sources — base url, url, headers, proxy — for MATEU_ENVIRONMENT. No secrets here.",
+      "fileName": "pre",
+      "template": "Mateu Environment",
+      "schemaType": "Environment"
+    },
+    {
       "id": "page",
       "label": "Page…",
       "description": "A page / component definition, started from a page template.",

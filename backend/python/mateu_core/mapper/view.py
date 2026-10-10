@@ -123,7 +123,7 @@ class ViewMapperMixin(MixinBase):
             if self.action_catalog is not None:
                 from ..action_registry import to_dto
 
-                for entry in self.action_catalog.referenced_by(tree_ids, known):
+                for entry in self.action_catalog.referenced_by(tree_ids, known, self.authorized):
                     known.add(entry.id)
                     actions.append(to_dto(entry))
         else:

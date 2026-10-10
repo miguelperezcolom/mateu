@@ -59,7 +59,15 @@ public static class MateuExtensions
                 // Read per call: the handler is a singleton, the identity is the current request's.
                 identity: () => accessor.HttpContext is { } ctx ? options.Identity(ctx) : null,
                 secrets: secrets,
-                http: options.HttpClient)
+                http: options.HttpClient,
+                restSources: options.Environment is { } environment
+                    ? new RestSourceRegistry(registry, environment: environment)
+                    : null,
+                // The request's locale (first Accept-Language tag): the UI language when the app's
+                // ITranslator names none, and what ${i18n.…} expressions resolve for.
+                locale: () => accessor.HttpContext is { } ctx
+                    ? TranslationRegistry.AcceptLanguage(ctx.Request.Headers.AcceptLanguage.ToString())
+                    : null)
             {
                 // Listing exports: an exporter registered as a service replaces the built-in writer
                 // of its format (Java: the CsvExporter/ExcelExporter/PdfExporter beans).
