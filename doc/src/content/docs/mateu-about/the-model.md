@@ -70,7 +70,7 @@ rearranged on top of a layout the framework still infers on every request.
 - **The [visual editor](/java-ui-definition/yaml-ui-definition/#the-visual-editor-writes-these)** —
   reads the catalog straight from the generated schema, so it offers every component without anyone
   maintaining a second list.
-- **External tooling** — the Figma contract ships inside the `io.mateu:uidl` jar at
+- **External tooling** — the Figma contract ships inside the `io.mateu:mateu-uidl` jar at
   `META-INF/mateu/contract.json`, so generators and importers read it from the artifact instead of
   keeping a copy that drifts.
 - **`mateu:openapi`** — the same declarations exported as an OpenAPI document.

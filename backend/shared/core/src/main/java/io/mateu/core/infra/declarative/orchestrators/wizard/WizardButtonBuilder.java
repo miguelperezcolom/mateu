@@ -33,7 +33,64 @@ final class WizardButtonBuilder {
               .disabled(wizard.position == 0)
               .build());
     }
+    var display = wizard.display();
+    if (!isLastStep
+        && wizard.nextApplicable(wizard.position) >= 0
+        && wizard.stepSkippable(wizard.stepName(wizard.position))
+        && display.skip().shown()) {
+      buttons.add(
+          Button.builder()
+              .id("skip")
+              .actionId("skip")
+              .label(Wizard.translate("Skip", httpRequest))
+              .buttonStyle(ButtonStyle.tertiary)
+              .disabled(!display.skip().enabled())
+              .build());
+    }
+    if (!isLastStep && wizard instanceof io.mateu.uidl.interfaces.Draftable) {
+      if (display.saveDraft().shown()) {
+        buttons.add(
+            Button.builder()
+                .id("saveDraft")
+                .actionId("saveDraft")
+                .label(Wizard.translate("Save", httpRequest))
+                .disabled(!display.saveDraft().enabled())
+                .build());
+      }
+      if (display.saveAndClose().shown()) {
+        buttons.add(
+            Button.builder()
+                .id("saveAndClose")
+                .actionId("saveAndClose")
+                .label(Wizard.translate("Save and close", httpRequest))
+                .disabled(!display.saveAndClose().enabled())
+                .build());
+      }
+    }
     if (wizard.nextApplicable(wizard.position) >= 0) {
+      // Completion actions offered early (@WizardCompletionAction(availableFromStep=…)): a user
+      // with nothing more to add can finish from that step on, beside Next.
+      var stepFields = WizardStepInspector.getStepFields(wizard);
+      getAllMethods(wizard.getClass()).stream()
+          .filter(method -> MetaAnnotations.isPresent(method, WizardCompletionAction.class))
+          .filter(
+              method -> {
+                var from =
+                    MetaAnnotations.find(method, WizardCompletionAction.class).availableFromStep();
+                if (from == null || from.isBlank()) {
+                  return false;
+                }
+                for (int i = 0; i < stepFields.size(); i++) {
+                  if (stepFields.get(i).getName().equals(from)) {
+                    return wizard.position >= i;
+                  }
+                }
+                return false;
+              })
+          .forEach(
+              method ->
+                  buttons.add(
+                      Button.builder().actionId(method.getName()).label(getLabel(method)).build()));
       // the step's way forward is the page's call to action, like the completion action below
       buttons.add(
           Button.builder()

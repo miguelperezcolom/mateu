@@ -11,17 +11,17 @@ Mateu is a model-driven UI system for business apps. You declare the model — h
 
 <dependency>
   <groupId>io.mateu</groupId>
-  <artifactId>mvc-core</artifactId>
+  <artifactId>mateu-mvc</artifactId>
   <version>${mateu.version}</version>
 </dependency>
 <dependency>
   <groupId>io.mateu</groupId>
-  <artifactId>vaadin-lit</artifactId>
+  <artifactId>mateu-vaadin</artifactId>
   <version>${mateu.version}</version>
 </dependency>
 
 <!-- REQUIRED: maven-compiler-plugin → annotationProcessorPaths must list
-     io.mateu:annotation-processor-mvc:${mateu.version} (and Lombok). Without it no
+     io.mateu:mateu-annotation-processor-mvc:${mateu.version} (and Lombok). Without it no
      controller is generated and every route 404s. Full pom: starters/spring-mvc/pom.xml -->
 ```
 
@@ -78,8 +78,7 @@ public class HelloForm {
 | `@Section(zone="left")` | Assign section to a named zone column |
 | `@Zones({@Zone(name="left",width="60%"),@Zone(name="right",width="40%")})` | Side-by-side columns |
 | `@Compact` | High-density mode (smaller controls, tighter spacing) |
-| `@Tabs` + `@Tab("Name")` | Tabbed layout |
-| `@Accordion` + `@AccordionPanel(summary="Name")` | Collapsible accordion |
+| `@Tab("Name")` | Tabbed layout (consecutive fields with the same name form one tab) |
 | `@FoldedLayout` | Each `@Section` becomes a collapsible panel |
 | `@Inline` | Expand nested type inline into parent section (no extra card) |
 | `@FormLayout(columns=3)` | Force N-column form layout |
@@ -95,7 +94,7 @@ public class HelloForm {
 | `@Action(validationRequired=true)` | Validate before executing |
 | `@Action(confirmationRequired=true)` | Show confirmation dialog |
 | `@Action(background=true)` | Fire-and-forget: start the job, keep the UI interactive (no busy indicator) |
-| `@RowAction` | Per-row action in a listing |
+| `ColumnActionGroup` row field | Per-row actions in a listing |
 | `@ListToolbarButton` | Listing toolbar button (acts on selected rows) |
 | `@AutoSave` | Auto-save on field change (debounced) |
 | `@WizardCompletionAction` | Final completion action in a wizard |
@@ -124,7 +123,7 @@ public class HelloForm {
 |---|---|
 | `@Label("...")` | Override field/method display label |
 | `@Help("...")` | Tooltip / helper text |
-| `@H1` – `@H5` | Render a `String` field as a heading |
+| `@Text(container = TextContainer.h2)` | Render a `String` field as a heading |
 | `@Trigger(type=TriggerType.OnLoad, actionId="load")` | Fire an action on lifecycle event |
 | `@Rule(filter="...", action=..., fieldName="...", fieldAttribute=..., value="...", expression="...", actionId="", result=...)` | Conditional show/hide/enable rule |
 

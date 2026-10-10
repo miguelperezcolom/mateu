@@ -11,7 +11,6 @@ Mateu's declarative UI is driven by Java annotations placed on classes, fields, 
 | [`@UI`](ui/) | Class | Registers a class as a Mateu UI entry point |
 | [`@Route`](route/) | — | **Removed** — inner routes are declared in a [`routes.yaml` route registry](/java-ui-definition/route-registry/) |
 | [`@HomeRoute`](route/) | — | **Removed** — the home is the first menu item, or `HomeRouteSupplier.homeRoute()` |
-| [`@BaseRoute`](route/) | — | Still in `uidl`, but not read by the runtime (no effect) |
 | [`@UISpec`](uispec/) | Class | Uses a YAML file as the component tree instead of `ComponentTreeSupplier` |
 
 ## App structure
@@ -58,10 +57,6 @@ These annotations inject tags into the `<head>` of the generated HTML page at co
 | Annotation | Target | Description |
 |---|---|---|
 | [`@FormLayout`](layout/) | Class | Renders a multi-column form layout |
-| [`@HorizontalLayout`](layout/) | Class | Renders children in a horizontal row |
-| [`@VerticalLayout`](layout/) | Class | Renders children in a vertical column |
-| [`@SplitLayout`](layout/) | Class | Renders a resizable split panel |
-| [`@Scroller`](layout/) | Class | Wraps content in a scrollable container |
 | [`@FoldedLayout`](layout/) | Class | Renders each `@Section` as a collapsible panel |
 | [`@Compact`](layout/) | Class | High-density mode — tighter spacing and smaller controls |
 | [`@Zones` / `@Zone`](layout/) | Class | Declares side-by-side column zones for sections |
@@ -74,12 +69,9 @@ These annotations inject tags into the `<head>` of the generated HTML page at co
 | Annotation | Target | Description |
 |---|---|---|
 | [`@Section`](sections/) | Field, method | Groups following fields under a heading |
-| [`@Tabs`](sections/) | Class | Wraps page content in a tabbed container |
 | [`@Tab`](sections/) | Field, method | Assigns a field to a named tab |
-| [`@Accordion`](sections/) | Class | Wraps content in an accordion |
-| [`@AccordionPanel`](sections/) | Field, method | Assigns a field to an accordion panel |
 | [`@List`](sections/) | Field | Renders a list (ordered or unordered) |
-| [`@H1` – `@H5`](heading/) | Field | Renders the field value as a heading |
+| [`@Text`](heading/) | Field | Renders the field value as text or a heading (`container = h1`…`h6`) |
 
 ## Actions and buttons
 
@@ -87,7 +79,6 @@ These annotations inject tags into the `<head>` of the generated HTML page at co
 |---|---|---|
 | [`@Button`](/java-ui-definition/actions/) | Field, method | Renders a button that calls the annotated method |
 | [`@Action`](/java-ui-definition/actions/) | Class, method | Attaches a configurable action |
-| [`@RowAction`](/java-ui-definition/actions/) | Method | Marks a method as a row-level action in a grid |
 | [`@ListToolbarButton`](/java-ui-definition/actions/) | Method | Adds a toolbar button to a listing |
 | [`@ViewToolbarButton`](/java-ui-definition/actions/) | Method | Adds a toolbar button to a view |
 | [`@Toolbar`](/java-ui-definition/actions/) | Field, method | Places an element in the toolbar area |
@@ -137,7 +128,6 @@ These annotations inject tags into the `<head>` of the generated HTML page at co
 | Annotation | Target | Description |
 |---|---|---|
 | [`@Lookup`](field-types/) | Field | Renders a lookup / search field |
-| [`@Option`](field-types/) | — | Declares an option for an enum or select field |
 | [`@OptionsLayout`](field-types/) | Field | Controls how options are laid out |
 | [`@UseRadioButtons`](field-types/) | Field | Renders enum options as radio buttons |
 | [`@Representation`](field-types/) | Field | Sets a non-default field stereotype |

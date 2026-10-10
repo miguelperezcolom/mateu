@@ -21,6 +21,7 @@ if TYPE_CHECKING:
         Fab,
         Kpi,
         PeerNav,
+        RecordSwitcherRecord,
     )
 
 
@@ -52,6 +53,9 @@ class PageMetadata(Wire):
     #: What the header shows while ``title`` is still empty (the Redwood pageTitlePlaceholder
     #: header element). A placeholder, NOT a default: renderers must ignore it once a title exists.
     title_placeholder: str | None = None
+    #: The record/context switcher of the header (the Redwood selectObject/selectContext
+    #: element); None when the page supplies none (mirrors PageDto.switcher).
+    switcher: "RecordSwitcherRecord | None" = None
 
 
 class FormMetadata(Wire):

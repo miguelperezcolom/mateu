@@ -59,6 +59,9 @@ export class MateuSession {
   constructor(baseUrl: string, sessionId: string, appState: Record<string, unknown> = {}) {
     this.api = new MateuApiClient(baseUrl, sessionId);
     this.appState = appState;
+    // Another wire MAJOR: say so plainly (once) instead of leaving a half-rendered screen to explain
+    // itself. Rendering goes on — unknown fields and types are still tolerated.
+    this.api.onWireMismatch = (message) => this.notify(null, message, 'error', { duration: 30000 });
   }
 
   subscribe(owner: unknown, eventName: string, handler: (payload: unknown) => void): void {

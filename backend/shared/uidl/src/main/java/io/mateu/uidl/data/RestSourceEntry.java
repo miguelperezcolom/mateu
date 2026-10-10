@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -41,7 +42,7 @@ public record RestSourceEntry(
     Map<String, String> fields,
     String totalPath,
     String description,
-    Object sample,
+    @Experimental("sample data / sample mode") Object sample,
     String sampleFile) {
 
   public RestSourceEntry {

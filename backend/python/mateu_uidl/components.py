@@ -11,7 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import date
 from datetime import date as _date
-from typing import TYPE_CHECKING
+from typing import Any, TYPE_CHECKING
 from enum import Enum
 
 
@@ -235,6 +235,9 @@ class FoldoutPanel(Component):
     #: Optional CSS length for the expanded panel (e.g. "40rem"); None = renderer default.
     width: str | None = None
     content: Component | None = None
+    #: What the panel shows while FOLDED (the Redwood foldout-panel ``summary`` slot): a compact
+    #: digest drawn in the collapsed strip under the rotated title. None = title only.
+    summary: Component | None = None
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
@@ -316,6 +319,9 @@ class HeroSection(Component):
     image: str | None = None
     height: str | None = None
     centered: bool = False
+    #: The band's tone (a ``HeroTone`` or its name): None/auto = the default look, any other hue
+    #: paints a dark tinted band with light ink.
+    tone: Any = None
     content: tuple[Component, ...] = ()
     id: str | None = None
     style: str | None = None

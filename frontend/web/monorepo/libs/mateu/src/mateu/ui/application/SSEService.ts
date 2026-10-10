@@ -8,6 +8,7 @@ import { ComponentState } from "@infra/ui/renderers/types.ts";
 import { RunActionOptions } from "@domain/MateuApiClient";
 import { isStaleResponse, StaleResponse } from "@infra/ui/staleViewGuard.ts";
 import { authHeaders, sessionId } from '@infra/http/authToken.ts'
+import { observeWireVersion } from '@infra/http/wireVersion.ts'
 
 export class SSEService implements Service {
 
@@ -93,6 +94,7 @@ export class SSEService implements Service {
                         if (line.startsWith('data:')) {
                             dropIfStale('answered')
                             const uiIncrement = JSON.parse(line.substring('data:'.length).trim())
+                            observeWireVersion(uiIncrement)
 
                             if (callback) {
                                 callback(uiIncrement)

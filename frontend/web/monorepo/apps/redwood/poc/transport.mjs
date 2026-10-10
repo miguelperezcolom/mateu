@@ -10,6 +10,7 @@ import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf } from './navTree.mjs'
 import { currentMount, pathOfRoute } from './mount.mjs'
 import { restAnswerOf, loadRestOptions, adoptAppSources } from './restSources.mjs'
+import { observeWireVersion } from './wireVersion.mjs'
 
 /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction).
  *  Sale ATADA a la pantalla en curso (resilience.currentView): si cuando contesta ya hay otra, la
@@ -34,6 +35,7 @@ export async function callMateu(base, body, options = {}) {
     }),
   }, { actionId: body.actionId, timeoutMillis: options.timeoutMillis, idempotent: options.idempotent, quiet: options.quiet, isolated: options.isolated, view })
   const increment = await res.json()
+  observeWireVersion(increment)
   // el cuerpo también tarda: lo que llegue después de cambiar de pantalla tampoco se aplica
   if (isViewStale(view)) throw staleResponseError(body.actionId)
   return increment
@@ -55,8 +57,10 @@ export async function bootstrapShell(base, initiator = 'shell') {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
     }, fallback ? { actionId: '__load__', quiet: true, isolated: true } : { actionId: '__load__' })
+    const increment = await res.json()
+    observeWireVersion(increment)
     // the App carries the REST source catalogue (restSources) and the sample-mode opt-in
-    return adoptAppSources(await res.json())
+    return adoptAppSources(increment)
   } catch (e) {
     if (fallback) return fallback
     throw e
@@ -295,6 +299,7 @@ export async function runMateuActionSse(base, ctx, route, actionId, componentSta
       throw staleResponseError(actionId)
     }
     const inc = JSON.parse(line.slice(5).trim())
+    observeWireVersion(inc)
     const consumed = onIncrement ? await onIncrement(inc) : false
     if (!consumed) increments.push(inc)
   }

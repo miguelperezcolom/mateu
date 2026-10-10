@@ -89,12 +89,12 @@
 
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>micronaut-core</artifactId>
+            <artifactId>mateu-micronaut</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>vaadin-lit</artifactId>
+            <artifactId>mateu-vaadin</artifactId>
             <version>${mateu.version}</version>
         </dependency>
 
@@ -159,7 +159,7 @@
                         </path>
                         <path>
                             <groupId>io.mateu</groupId>
-                            <artifactId>annotation-processor-micronaut</artifactId>
+                            <artifactId>mateu-annotation-processor-micronaut</artifactId>
                             <version>${mateu.version}</version>
                         </path>
                         <path>

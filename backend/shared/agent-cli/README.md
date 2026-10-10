@@ -1,4 +1,4 @@
-# Agent CLI (`io.mateu:agent-cli`)
+# Agent CLI (`io.mateu:mateu-agent-cli`)
 
 A **pseudo-agent for local development**: it serves the Mateu chat's SSE contract by
 bridging to an LLM CLI that is already authenticated on the developer's machine
@@ -15,7 +15,7 @@ login of the CLI you already have on your `PATH`.
    ```xml
    <dependency>
      <groupId>io.mateu</groupId>
-     <artifactId>agent-cli</artifactId>
+     <artifactId>mateu-agent-cli</artifactId>
    </dependency>
    ```
 

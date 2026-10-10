@@ -25,8 +25,8 @@ export const PROJECT_RENDERER_LABELS: Record<ProjectRendererId, string> = {
 
 /** The Maven artifact that serves each renderer — the editor's copy of `ProjectRenderer.artifactId()`. */
 export const RENDERER_ARTIFACTS: Record<ProjectRendererId, string> = {
-    vaadin: 'io.mateu:vaadin-lit',
-    redwood: 'io.mateu:redwood',
+    vaadin: 'io.mateu:mateu-vaadin',
+    redwood: 'io.mateu:mateu-redwood',
 }
 
 /** Where the descriptor lives, relative to `specs/ui/`. */
@@ -75,7 +75,7 @@ export function projectSettingsOf(files: ProjectFile[] | undefined): ProjectSett
 /** A fresh descriptor. */
 export function newProjectYaml(renderer: ProjectRendererId = 'vaadin'): string {
     return `# The project descriptor: settings true of the whole project. One per project.\n`
-        + `# renderer: vaadin (io.mateu:vaadin-lit, the default) | redwood (io.mateu:redwood)\n`
+        + `# renderer: vaadin (io.mateu:mateu-vaadin, the default) | redwood (io.mateu:mateu-redwood)\n`
         + `type: Project\nrenderer: ${renderer}\n`
 }
 

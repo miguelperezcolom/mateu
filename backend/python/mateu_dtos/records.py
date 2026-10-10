@@ -146,6 +146,20 @@ class PeerNav(Wire):
     next_route: str | None = None
 
 
+class RecordSwitcherRecord(Wire):
+    """The record/context switcher of the page header (mirrors ``io.mateu.dtos.RecordSwitcherDto``,
+    the Redwood selectObject/selectContext element). Picking an option dispatches ``action_id``
+    with the picked value in the ``_record`` parameter. ``type``: "object" | "context"."""
+
+    options: list[Option] = Field(default_factory=list)
+    value: str | None = None
+    type: str = "object"
+    label: str | None = None
+    searchable: bool = False
+    disabled: bool = False
+    action_id: str = "_switchRecord"
+
+
 class Banner(Wire):
     theme: str
     title: str | None = None

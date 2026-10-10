@@ -186,6 +186,10 @@ def advertised_ids(mapper, type_, instance, layout_override=None) -> set[str]:
     for _event, act in getattr(type_, "__mateu_subscriptions__", ()) or ():
         if act:
             ids.add(act)
+    # Section(add_action / edit_action / view_more_action) affordance buttons
+    from .mapper.layout import section_affordance_ids
+
+    ids.update(section_affordance_ids(type_))
     refresh = getattr(type_, "__mateu_refresh_action__", None)
     if isinstance(refresh, str) and refresh:
         ids.add(refresh)

@@ -173,7 +173,7 @@ kit + point at a Mateu → screen with native Redwood look, zero code of your ow
   `fixtures/real/*.json`, and `test.mjs` (11 tests) validates the reducer **against that real wire** (the
   synthetic fixtures were deleted). To regenerate: start demo-vb (`mvn spring-boot:run`) + `node capture.mjs`.
 - The old renderers `apps/redwood` and `apps/redwood-spectra` (+ their `-lit` modules) were DELETED
-  on this branch; demo-admin-panel and explorer go back to vaadin-lit. Project rule: **zero own HTML/CSS
+  on this branch; demo-admin-panel and explorer go back to mateu-vaadin. Project rule: **zero own HTML/CSS
   — always authentic VB/Redwood components**.
 - Resolved from the original plan: "Replace with unknown target falls to HOST_ID" no longer applies (routing
   is by initiator echo + fallback by `tree.id`); `PushStateToHistory` and `DispatchEvent` are already
@@ -1500,7 +1500,7 @@ asks for ONLY the pending ones.
 ## Federated menus: navigation had to go back to the pod (2026-09-03)
 
 Failure observed on `rw.ec1.mateu.io` (`ec-demo1/shell-redwood`, the SAME shell as the Vaadin one at
-`ec1.mateu.io` with `io.mateu:redwood` instead of `vaadin-lit`): **the menu painted in full and
+`ec1.mateu.io` with `io.mateu:mateu-redwood` instead of `mateu-vaadin`): **the menu painted in full and
 no crud opened**. `Booking → Bookings` answered a red `Text` "Not found.".
 
 Three things broken, in a chain. All three are about NAVIGATION, not about menu expansion: asking each
@@ -1884,3 +1884,28 @@ covered content. The chat becomes a button in the global header, as in the Vaadi
 - Screenshots: `poc/shots/chat-en.png`, `chat-es-tools.png` (in-progress turn tool, chrome in
   Spanish), `i18n-en-products.png`, `i18n-es-products.png`.
 
+
+## Redwood pattern gaps (2026-10-10)
+
+Each new wire piece lands on the oj-sp affordance that already exists for it (contract tests:
+`poc/test-patterns.mjs`):
+- **Announce** command → `effects.announcements` → `applyDomEffects` → the live regions of
+  `a11y.mjs` (polite, assertive when `assertive`). Draws nothing.
+- **PageDto.switcher** → `oj-sp-header-general-overview` `selectObject` (type object: the title
+  becomes the data switcher) or `selectContext` (type context), `displayOptions.switcherSearch`
+  for `searchable`; on the band, inline and general-overview-page headers. A pick → chain
+  `onPageSwitch` → `switcherPickOf` → the page's `_switchRecord` with `{_record}`. The unused
+  type gets an EMPTY DataProvider (that is how the header knows not to draw it). The data
+  switcher has no read-only mode: `disabled` draws no switcher and shows the current entry as a
+  contextual fact.
+- **HeroSection.tone** → the welcome banner's `background-color` `dark-<tone>` (oj-sp ships all
+  nine); a declared tone wins over the rotation; the five gallery pairs keep their illustration.
+- **summary-N** of a foldout → `oj-sp-foldout-panel`'s own `summary` slot (one line of its
+  texts/badges); a foldout inside a tab shows a FOLDED panel's summary instead of its content.
+- **Crudl preSearch** → shown where the listing's header blocks go while the table is hidden,
+  until a search answers (`ctx.data.crud.page`). oj-sp's smart-filter-search `dashboard` slot is
+  a side column counted at mount, not a stand-in that leaves, so it is not used.
+- Composition: a Drawer re-sent with the SAME id replaces the open one in the stack (new context
+  id, so the drawer draft resets); `disabled` reaches every action row (oj-button `disabled`) and
+  the oj-sp headers (`display: 'disabled'`); a slot-template ResponsiveGrid orders its children by
+  area name (a promoted info slot still takes the `info` column).

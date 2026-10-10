@@ -45,7 +45,29 @@ public record UICommandDto(string TargetComponentId, string Type, object? Data)
     /// UICommand.dispatchEvent) — @SubscribeTo counterparts react to it.</summary>
     public static UICommandDto DispatchEvent(string eventName, object? detail = null) =>
         new("ux_main", "DispatchEvent", new CustomEventDto(eventName, detail));
+
+    /// <summary>Announces <paramref name="text"/> to screen readers through the page's POLITE live
+    /// region — how to tell a non-sighted user what just happened when nothing takes focus
+    /// ("3 rows imported", "Saved"). Nothing is drawn. (Mirrors Java's UICommand.announce.)</summary>
+    public static UICommandDto Announce(string text) =>
+        new("ux_main", "Announce", new AnnouncementDto(text, false));
+
+    /// <summary>Like <see cref="Announce"/>, through the ASSERTIVE region (interrupts — errors only).
+    /// (Mirrors Java's UICommand.announceAssertive.)</summary>
+    public static UICommandDto AnnounceAssertive(string text) =>
+        new("ux_main", "Announce", new AnnouncementDto(text, true));
+
+    /// <summary>Clears the dirty state (e.g. after a save). (Mirrors Java's UICommand.markAsClean.)</summary>
+    public static UICommandDto MarkAsClean() => new("ux_main", "MarkAsClean", null);
+
+    /// <summary>Navigates to <paramref name="route"/>. (Mirrors Java's UICommand.navigateTo.)</summary>
+    public static UICommandDto NavigateTo(string route) => new("ux_main", "NavigateTo", route);
 }
+
+/// <summary>The payload of an Announce command: a text for assistive technology, read through the
+/// polite live region, or the assertive one when <see cref="Assertive"/>. (Mirrors
+/// io.mateu.uidl.data.Announcement.)</summary>
+public record AnnouncementDto(string Text, bool Assertive);
 
 /// <summary>A named custom event riding on a CloseModal/DispatchEvent command (mirrors
 /// io.mateu.uidl.fluent.CustomEvent).</summary>

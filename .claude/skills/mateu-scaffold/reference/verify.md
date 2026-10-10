@@ -45,5 +45,5 @@ To *see* it render, use the **mateu-run** skill (screenshot via Playwright).
 | Compiles, but route 404s / blank page | UI module not on app `annotationProcessorPaths` |
 | `ui-registrations` missing from jar | indexer AP not on UI module `annotationProcessorPaths` |
 | Beans/controllers not found at runtime | `scanBasePackages` on `@SpringBootApplication` omits `io.mateu` |
-| UI loads but no styles / 404 on assets | renderer jar (`vaadin-lit`) not a dependency of the app |
+| UI loads but no styles / 404 on assets | renderer jar (`mateu-vaadin`) not a dependency of the app |
 | Lombok getters missing in generated code | lombok not before the Mateu AP on the path |

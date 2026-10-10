@@ -276,6 +276,17 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         // The command palette's entity search — same app-level rail (mirrors Java's
         // GlobalSearchActionRunner).
         if (rq.ActionId == "_globalsearch") return GlobalSearch(instance, rq);
+        // The header record switcher's pick: runs SwitchTo with the picked value; null (or the
+        // view itself / another routed view) re-renders in place, anything else maps as a regular
+        // action result (mirrors Java's RecordSwitcherActionRunner).
+        if (rq.ActionId == IRecordSwitcherSupplier.ActionId && instance is IRecordSwitcherSupplier switcher)
+        {
+            var switched = switcher.SwitchTo(
+                StateString(GetState(rq.Parameters, IRecordSwitcherSupplier.ValueParameter)));
+            return switched is null ? Render(type, instance, rq, layoutOverride)
+                : IsRoutedViewResult(switched) ? Render(switched.GetType(), switched, rq)
+                : MapResult(switched, rq);
+        }
         // 4b. Archetype in-place actions (CollectionDetail / GeneralOverview): selection, search
         // filtering and record switching mutate the bound state and re-render the tree — no
         // navigation, no method dispatch.
@@ -345,6 +356,13 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
             if (instance is IDataManagement dataManagement && rq.ActionId is "switchToGrid" or "switchToGantt")
             {
                 dataManagement.View = rq.ActionId == "switchToGantt" ? "gantt" : "grid";
+                return Render(type, instance, rq);
+            }
+            // A DataManagement docked-panel toggle (toolbar or the panel's ✕) flips it in place.
+            if (instance is DataManagement docked && rq.ActionId is "toggleEndPanel" or "toggleBottomPanel")
+            {
+                if (rq.ActionId == "toggleEndPanel") docked.ToggleEndPanel();
+                else docked.ToggleBottomPanel();
                 return Render(type, instance, rq);
             }
         }
@@ -543,8 +561,22 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         FlowStep step => UIIncrementDto.Of(commands: [Retarget(StepToCommand(step), rq)]),
         IEnumerable<FlowStep> steps => UIIncrementDto.Of(commands:
             steps.Select(s => Retarget(StepToCommand(s), rq)).ToList()),
+        // A list of results (a message + commands, e.g. [Message, UICommandDto.Announce(...)])
+        // answers all of them, in order (mirrors Java mapping a returned Collection).
+        IEnumerable<object> many => Merge(many.Select(r => MapResult(r, rq))),
         _ => UIIncrementDto.Of(),
     };
+
+    /// <summary>Concatenates the commands, messages, fragments and banners of several increments.</summary>
+    private static UIIncrementDto Merge(IEnumerable<UIIncrementDto> increments)
+    {
+        var all = increments.ToList();
+        return UIIncrementDto.Of(
+            commands: all.SelectMany(i => i.Commands),
+            messages: all.SelectMany(i => i.Messages),
+            fragments: all.SelectMany(i => i.Fragments),
+            banners: all.SelectMany(i => i.Banners));
+    }
 
     /// <summary>Lowers a v0 flow Step to the wire command it produces (mirrors Java Step.toCommand).</summary>
     private static UICommandDto StepToCommand(FlowStep step) => step switch
@@ -555,6 +587,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         RunAction r => new UICommandDto("ux_main", "RunAction", new Dictionary<string, object?> { ["actionId"] = r.ActionId }),
         MarkClean => new UICommandDto("ux_main", "MarkAsClean", null),
         MarkDirty => new UICommandDto("ux_main", "MarkAsDirty", null),
+        Announce a => a.Assertive ? UICommandDto.AnnounceAssertive(a.Text) : UICommandDto.Announce(a.Text),
         _ => throw new InvalidOperationException($"Unknown flow step {step.GetType().Name}"),
     };
 

@@ -121,10 +121,23 @@ every template are documented once in [Page templates](/ux-patterns/page-templat
 | `dashboard-grid` placement | `@Panel(colSpan, rowSpan)`; `columns()` fixes the column count (`0` = responsive auto-fit) | ✅ |
 | `displayOptions.scoreboardSticky` | — the band scrolls with the page | — |
 | `displayOptions.density: standard \| compact` | `@Compact`, set on the view rather than as a template option | 🟡 |
-| `selectContext` / `selectObject` + `displayOptions.switcherSearch` | — the record switcher is only available inside `GeneralOverview`, not as a header element here | — |
+| `selectContext` / `selectObject` + `displayOptions.switcherSearch` | `RecordSwitcherSupplier` on a page with a header (the reflected form variant). The `Dashboard` archetype composes its own heading and has no page header, so it cannot carry one | 🟡 |
 | `editLayoutMode` (drag tiles) | `reorderable()`: each viewer drags the tiles into their own order, kept in their browser | 🟡 |
 | `contentLibraryData`, `editLayoutOptions {share, properties, contentLibraryFilters}` | ⚪ adding tiles from a content library and sharing layouts are a Fusion Apps concern, out of scope by decision | ⚪ |
 | `spRestoreDefaults`, `spShare` | ⚪ part of the same edit-layout feature | ⚪ |
+
+## Coverage
+
+| | Java | .NET | Python | Vaadin | Redwood | React Native | IntelliJ |
+|---|---|---|---|---|---|---|---|
+| `Dashboard` archetype (scoreboard band + panels) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `MetricCard.actionId` drill-in | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `@AutoPage` inference (MetricCard fields → dashboard) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Reorderable tiles | ✅ | ✅ | ✅ | ✅ | ✅ | — | — |
+
+The renderer columns of the first three rows need no dashboard code: the archetype is pure
+composition on the one responsive grid. Tile reordering is client-side (the viewer's own order),
+built on the web renderers (Vaadin, Redwood) only.
 
 ## When to use it
 

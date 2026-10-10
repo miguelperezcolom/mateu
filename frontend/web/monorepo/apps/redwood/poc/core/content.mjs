@@ -71,7 +71,20 @@ export function queueProjectionOf(md) {
  *  bienvenida). Tras seleccionar un item el server lo sustituye por la isla → null. */
 /** The PAGE's empty state: the first EmptyState that is not in a slot of a template (a slotted
  *  one — the @detail placeholder of a CollectionDetail — is content). */
-export const pageEmptyStateNode = (tree) => findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot))
+export const pageEmptyStateNode = (tree) => {
+  // a listing's PRE-SEARCH content (Crud.metadata.preSearch) is not the page's empty state: it
+  // stands in for the results until the first search (listingPreSearchBlocksOf) — taken for the
+  // page's it was painted at the bottom, under the table's own «No data.»
+  const pre = new Set()
+  const mark = (n) => {
+    if (!n || typeof n !== 'object') return
+    if (Array.isArray(n)) { n.forEach(mark); return }
+    pre.add(n)
+    for (const v of Object.values(n)) if (v && typeof v === 'object') mark(v)
+  }
+  findFirst(tree, (n) => { if (n && n.metadata && n.metadata.type === 'Crud' && Array.isArray(n.metadata.preSearch)) mark(n.metadata.preSearch); return false })
+  return findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot && !pre.has(n)))
+}
 export function emptyStateOf(tree) {
   const node = pageEmptyStateNode(tree)
   if (!node) return null
@@ -623,7 +636,10 @@ export function islandContentOf(ctx, opts = {}) {
     if (t === 'ResponsiveGrid' && !container) {
       // el span de cada hijo: el del wire (colSpans) o el que el hijo lleva consigo — un
       // DashboardPanel su colSpan, la banda de KPIs (Scoreboard) la fila entera
-      const serverKids = kidsOf(node)
+      // a slot TEMPLATE places its children by NAME (slot `main` → area `main`), not by list order:
+      // the GeneralOverview's promoted info slot travels FIRST in the list (so a stacking web grid
+      // puts it on top) and must still take the `info` column on a wide page
+      const serverKids = (m.colSpans && m.colSpans.length) ? kidsOf(node) : kidsInAreaOrder(kidsOf(node), m.gridTemplateAreas)
       const serverSpans = serverKids.map((k, i) => (m.colSpans && m.colSpans[i])
         || (k && k.metadata && k.metadata.type === 'DashboardPanel' ? k.metadata.colSpan
           : k && k.metadata && k.metadata.type === 'Scoreboard' ? 999 : 1))
@@ -775,7 +791,15 @@ export function islandContentOf(ctx, opts = {}) {
         atom({ isCollapsible: true, collapsibleKey: key, title: interp(panel.title || ''), expanded, disabled: false }, container)
         const content = bySlot['panel-' + i]
         if (expanded && content) visit(content, container)
+        // a FOLDED panel shows its summary (FoldoutPanel.summary, slotted summary-N) instead
+        else if (!expanded && bySlot['summary-' + i]) visit(bySlot['summary-' + i], container)
       })
+      return
+    }
+    // any other foldout drawn from the generic visit (inside an island): its panels' summaries are
+    // the FOLDED view of content that is painted in full here — not content of their own
+    if (t === 'FoldoutLayout') {
+      for (const child of kidsOf(node)) if (!/^summary-/.test(child && child.slot ? child.slot : '')) visit(child, container)
       return
     }
     // PANELES PLEGABLES (AccordionLayout de AccordionPanel, Details): como las pestañas, se
@@ -1522,6 +1546,17 @@ export function mergeNestedContent(islandBlocks, nestedBlocks) {
 export function cardHasTitle(block) {
   const first = (block.items || [])[0]
   return !!(first && first.isText && String(first.cls || '').indexOf('oj-typography-subheading') >= 0)
+}
+
+/** The children of a slot-template grid ordered as the template's first row names their areas;
+ *  the list as it came when any child carries no slot, or a slot the template does not name. */
+export function kidsInAreaOrder(kids, areas) {
+  const row = String(areas || '').split(/["'\n]/).map((r) => r.trim()).filter(Boolean)[0]
+  if (!row) return kids
+  const names = [...new Set(row.split(/\s+/))]
+  const at = (k) => (k && k.slot ? names.indexOf(k.slot) : -1)
+  if (!kids.length || kids.some((k) => at(k) < 0)) return kids
+  return kids.map((k, i) => ({ k, i })).sort((a, b) => (at(a.k) - at(b.k)) || (a.i - b.i)).map((x) => x.k)
 }
 
 export function hostContentOf(ctx, islandBlocks, opts = {}) {

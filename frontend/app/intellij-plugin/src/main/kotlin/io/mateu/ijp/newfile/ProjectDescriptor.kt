@@ -23,11 +23,11 @@ object ProjectDescriptor {
 
     /**
      * Each renderer and the Maven artifact that serves it — the ONE place the plugin spells those
-     * coordinates (the artifacts are due to be renamed; that rename is a change here only).
+     * coordinates (renamed to mateu-* in the GA public API: a rename is a change here only).
      */
     enum class Renderer(val id: String, val label: String, val artifactId: String) {
-        VAADIN("vaadin", "Vaadin (Lumo)", "vaadin-lit"),
-        REDWOOD("redwood", "Redwood (Oracle)", "redwood");
+        VAADIN("vaadin", "Vaadin (Lumo)", "mateu-vaadin"),
+        REDWOOD("redwood", "Redwood (Oracle)", "mateu-redwood");
 
         val coordinates: String get() = "$GROUP_ID:$artifactId"
 
@@ -50,8 +50,8 @@ object ProjectDescriptor {
     /** A fresh descriptor for [renderer]. */
     fun newText(renderer: Renderer): String =
         "# The project descriptor: settings true of the whole project, not of one page.\n" +
-            "# renderer — the design system the project paints with: vaadin (io.mateu:vaadin-lit, the\n" +
-            "# default) or redwood (io.mateu:redwood). The visual editor and Play open in it and the static\n" +
+            "# renderer — the design system the project paints with: vaadin (io.mateu:mateu-vaadin, the\n" +
+            "# default) or redwood (io.mateu:mateu-redwood). The visual editor and Play open in it and the static\n" +
             "# bundle ships it; a served app still renders with its Maven dependency (the server warns when\n" +
             "# the two disagree).\n" +
             "type: $TYPE\n" +

@@ -6,12 +6,15 @@ import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
 import { theme } from '../theme';
 import { buttonA11y, headingA11y } from '../a11y/a11y';
+import { RecordSwitcherRenderer } from './RecordSwitcherRenderer';
+import { switcherOf } from './patternGaps';
 
 interface ButtonDto {
   actionId?: string;
   id?: string;
   label?: string;
   buttonStyle?: string;
+  disabled?: boolean;
 }
 
 interface Props {
@@ -91,18 +94,21 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
   const kpis = (metadata['kpis'] as { title?: string; text?: string }[]) ?? [];
   const fabs = (metadata['fabs'] as { id?: string; label?: string; actionId?: string; icon?: string }[]) ?? [];
   const children = (component['children'] as unknown[]) ?? [];
+  // Record/context switcher (PageDto.switcher): a compact selector under the title.
+  const switcher = switcherOf(metadata);
 
   const handleAction = (actionId: string) => runAction(actionId);
 
   return (
     <View style={styles.root}>
-      {(!!title || !!subtitle || toolbar.length > 0) && (
+      {(!!title || !!subtitle || toolbar.length > 0 || !!switcher) && (
         <View style={styles.header}>
           {!!title && (
             // Marked as a heading so the rotor / reading controls can jump between screens'
             // sections instead of forcing a linear read from the top.
             <Text style={styles.title} {...headingA11y(1)}>{title}</Text>
           )}
+          {!!switcher && <RecordSwitcherRenderer switcher={switcher} />}
           {!!subtitle && <Text style={styles.subtitle}>{subtitle}</Text>}
           {badges.length > 0 && (
             <View style={styles.badges}>
@@ -129,7 +135,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
                 const id = btn.actionId ?? btn.id ?? '';
                 const isPrimary = btn.buttonStyle?.toLowerCase() === 'primary';
                 return (
-                  <TouchableOpacity {...buttonA11y()} key={i} style={isPrimary ? styles.btnPrimary : styles.btnDefault} onPress={() => handleAction(id)}>
+                  <TouchableOpacity {...buttonA11y({ disabled: !!btn.disabled })} key={i} disabled={!!btn.disabled} style={[isPrimary ? styles.btnPrimary : styles.btnDefault, btn.disabled && styles.btnDisabled]} onPress={() => handleAction(id)}>
                     <Text style={isPrimary ? styles.btnPrimaryText : styles.btnDefaultText}>
                       {interpolate(btn.label ?? id, ctx)}
                     </Text>
@@ -165,7 +171,7 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
             const id = btn.actionId ?? btn.id ?? '';
             const isPrimary = btn.buttonStyle?.toLowerCase() === 'primary';
             return (
-              <TouchableOpacity {...buttonA11y()} key={i} style={isPrimary ? styles.btnPrimary : styles.btnDefault} onPress={() => handleAction(id)}>
+              <TouchableOpacity {...buttonA11y({ disabled: !!btn.disabled })} key={i} disabled={!!btn.disabled} style={[isPrimary ? styles.btnPrimary : styles.btnDefault, btn.disabled && styles.btnDisabled]} onPress={() => handleAction(id)}>
                 <Text style={isPrimary ? styles.btnPrimaryText : styles.btnDefaultText}>
                   {interpolate(btn.label ?? id, ctx)}
                 </Text>
@@ -212,4 +218,5 @@ const styles = StyleSheet.create({
   btnPrimaryText: { color: theme.white, fontWeight: '600', fontSize: 14 },
   btnDefault: { backgroundColor: theme.background, paddingHorizontal: 20, paddingVertical: 10, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border },
   btnDefaultText: { color: theme.ink, fontSize: 14 },
+  btnDisabled: { opacity: 0.45 },
 });

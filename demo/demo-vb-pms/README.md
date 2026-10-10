@@ -2,7 +2,7 @@
 
 A property management system that copies the screens of Oracle OPERA Cloud. It has fictitious data
 in memory and no real business logic. It is written once, in Java, and it runs on both the
-**Redwood** renderer (Oracle Visual Builder, `io.mateu:redwood`) and the **Vaadin** renderer. Its job
+**Redwood** renderer (Oracle Visual Builder, `io.mateu:mateu-redwood`) and the **Vaadin** renderer. Its job
 is to show what Mateu can draw in Redwood for a real back-office product. It is the reference app
 for the Redwood PMS parity work (branch `feat/redwood-pms-parity`).
 
@@ -18,10 +18,10 @@ cd demo/demo-vb-pms && mvn spring-boot:run -Dspring-boot.run.arguments=--server.
 cd frontend/web/monorepo/apps/redwood && npm install && npm run serve
 
 # or the same app on the Vaadin renderer
-cd demo/demo-vb-pms && mvn spring-boot:run -Dmateu.renderer=vaadin-lit -Dspring-boot.run.arguments=--server.port=9011
+cd demo/demo-vb-pms && mvn spring-boot:run -Dmateu.renderer=mateu-vaadin -Dspring-boot.run.arguments=--server.port=9011
 ```
 
-With the `io.mateu:redwood` jar on the classpath (`npm run copy` + `mvn install` of
+With the `io.mateu:mateu-redwood` jar on the classpath (`npm run copy` + `mvn install` of
 `backend/shared/frontend/redwood`), the backend serves the Redwood app itself on its own port.
 
 ## Screens

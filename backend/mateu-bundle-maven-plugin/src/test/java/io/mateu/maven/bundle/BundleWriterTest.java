@@ -127,7 +127,7 @@ public class BundleWriterTest {
           out, manifest(), null, loader(vaadinJar()), "", "Shop", ProjectRenderer.redwood);
       throw new AssertionError("expected a failure");
     } catch (java.io.IOException e) {
-      assertTrue(e.getMessage(), e.getMessage().contains("io.mateu:redwood"));
+      assertTrue(e.getMessage(), e.getMessage().contains("io.mateu:mateu-redwood"));
     }
   }
 

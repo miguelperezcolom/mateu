@@ -1,39 +1,25 @@
 ---
 title: "Heading Annotations"
-description: "Annotations that render fields as H1–H5 HTML headings."
+description: "Render a field's value as an H1–H6 heading with @Text(container = …)."
 ---
 
-## @H1, @H2, @H3, @H4, @H5
+## Headings with `@Text`
 
-All share the same structure:
-
-```java
-public @interface H1 { String style() default ""; }
-public @interface H2 { String style() default ""; }
-// ... H3, H4, H5 identical
-```
-
-Applied to a `String` field, renders its value as the corresponding HTML heading element instead of an input field.
-
-| Annotation | HTML element | Typical use |
-|------------|-------------|-------------|
-| `@H1` | `<h1>` | Page-level heading |
-| `@H2` | `<h2>` | Section heading |
-| `@H3` | `<h3>` | Sub-section heading |
-| `@H4` | `<h4>` | Group heading |
-| `@H5` | `<h5>` | Minor heading |
-
-Example — inline headings between form fields:
+To show a `String` field's value as a heading instead of an input, annotate it with `@Text` and
+pick the heading level as its `container`:
 
 ```java
+import io.mateu.uidl.annotations.Text;
+import io.mateu.uidl.data.TextContainer;
+
 public class ProductForm {
-    @H2
+    @Text(container = TextContainer.h2)
     String basicInfo = "Basic Information";
 
     String name;
     String description;
 
-    @H2
+    @Text(container = TextContainer.h2)
     String pricingInfo = "Pricing";
 
     double price;
@@ -41,9 +27,10 @@ public class ProductForm {
 }
 ```
 
-The `style` attribute allows custom CSS on the heading element:
+`TextContainer` offers `h1` … `h6`, `p` (the default), `div` and `span`; `@Text(size = …)` and
+`@Text(noMargins = true)` tune the size and spacing. See [`@Text`](/java-ui-definition/annotations/metadata/#text).
 
-```java
-@H2(style = "color: var(--primary-color);")
-String sectionTitle = "Advanced Settings";
-```
+:::note
+The 3.0 alphas had `@H1` … `@H5` annotations for this. Nothing ever read them, so they were
+removed — use `@Text(container = TextContainer.hN)`.
+:::

@@ -38,6 +38,8 @@ import { buttonTheme, neutralButtonClass } from '@infra/ui/mateu-content-header.
 import { IDS_PARAM, SEARCH_ALIAS, SEARCH_PARAM } from '@infra/ui/idSetFilter.ts';
 import { isListingOwnLoad } from '@infra/http/localRequests.ts';
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
+import { showsPreSearch } from '@infra/ui/listingPreSearch.ts'
+import { renderComponent } from '@infra/ui/renderers/renderComponent.ts'
 
 const directions: Record<string, string> = {
     asc: 'ascending',
@@ -1340,7 +1342,13 @@ export class MateuTableCrud extends LitElement {
         // "Loading" and "empty" are different facts and must not share a screen. Waiting wins:
         // the rows may still turn up, and until the server has said otherwise the listing does not
         // know that there are none.
-        const contentHtml = rows.length === 0 && this.awaitingRows ? html`
+        // A search-first listing's pre-search content (the Redwood smart filter search `dashboard`
+        // slot) stands in for the results until the first answer arrives.
+        const contentHtml = showsPreSearch(metadata, listing) ? html`
+            <div class="crud-pre-search" style="width: 100%; box-sizing: border-box; padding-block: var(--lumo-space-s, .5rem);">
+                ${metadata.preSearch!.map(child => renderComponent(this, child, this.baseUrl, this.state, this.data, this.appState, this.appData))}
+            </div>
+        ` : rows.length === 0 && this.awaitingRows ? html`
             <div role="status" aria-live="polite" aria-busy="true"
                  style="padding: var(--lumo-space-m, 1rem); width: 100%; box-sizing: border-box;">
                 <span style="position: absolute; width: 1px; height: 1px; overflow: hidden;

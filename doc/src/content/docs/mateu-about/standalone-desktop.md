@@ -38,7 +38,7 @@ setup; for the native path see [Desktop & Mobile](/native/).
    ```xml
    <dependency>
      <groupId>io.mateu</groupId>
-     <artifactId>vaadin-lit</artifactId>
+     <artifactId>mateu-vaadin</artifactId>
      <version>MATEU_VERSION</version>
    </dependency>
    ```

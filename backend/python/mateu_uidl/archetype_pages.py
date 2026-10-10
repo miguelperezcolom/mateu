@@ -454,6 +454,72 @@ class DataManagement(ComponentTreeSupplier):
     #: The active view: "grid" (default) or "gantt". Bound from componentState (no underscore so it
     #: is seeded into initialData and round-trips).
     view: str = "grid"
+    #: Whether the end (side) docked panel is open; None = its ``DockedPanel.open`` default.
+    #: Bound from componentState (no underscore, so it round-trips — Java's ``_endOpen``).
+    end_open: bool | None = None
+    #: Whether the bottom docked panel is open; None = its ``DockedPanel.open`` default.
+    bottom_open: bool | None = None
+
+    def end_panel(self):
+        """A :class:`mateu_uidl.DockedPanel` docked at the END of the content (the Redwood
+        data-management ``innerEnd`` slot): a details pane beside the grid/gantt, which shrinks to
+        make room (it reflows, it does not overlay). The toolbar gains a toggle for it. None
+        (default) = none."""
+        return None
+
+    def bottom_panel(self):
+        """A :class:`mateu_uidl.DockedPanel` docked UNDER the content (the Redwood ``innerBottom``
+        slot): a messages, log or totals strip. Toggled from the toolbar like :meth:`end_panel`.
+        None (default) = none."""
+        return None
+
+    def _end_is_open(self, panel) -> bool:
+        return panel is not None and (self.end_open if self.end_open is not None else panel.open)
+
+    def _bottom_is_open(self, panel) -> bool:
+        return panel is not None and (
+            self.bottom_open if self.bottom_open is not None else panel.open
+        )
+
+    def toggle_end_panel(self):
+        """The toolbar toggle of the end panel: flips it and re-renders in place."""
+        self.end_open = not self._end_is_open(self.end_panel())
+        return self
+
+    def toggle_bottom_panel(self):
+        """The toolbar toggle of the bottom panel: flips it and re-renders in place."""
+        self.bottom_open = not self._bottom_is_open(self.bottom_panel())
+        return self
+
+    @staticmethod
+    def _panel_toggle(panel, action_id: str, is_open: bool):
+        from mateu_uidl import components as fluent
+
+        return fluent.Button(
+            id=f"{panel.id}-toggle" if panel.id else action_id,
+            label=panel.title or "",
+            action_id=action_id,
+            button_style="primary" if is_open else "tertiary",
+        )
+
+    @staticmethod
+    def _docked(panel, close_action_id: str, style: str):
+        from mateu_uidl import components as fluent
+
+        header = fluent.HorizontalLayout(
+            style="align-items: center; width: 100%;",
+            content=(
+                fluent.Text(text=panel.title or "", size="m", no_margins=True,
+                            style="font-weight: 600; flex: 1;"),
+                fluent.Button(label="✕", action_id=close_action_id, button_style="tertiary"),
+            ),
+        )
+        body = [header]
+        if panel.content is not None:
+            body.append(panel.content)
+        return fluent.VerticalLayout(
+            id=panel.id, css_classes="mateu-docked-panel", style=style, content=tuple(body)
+        )
 
     def grid_view(self):
         """The data-grid view (typically a dense table — an embedded crud/listing or a Grid)."""
@@ -484,16 +550,51 @@ class DataManagement(ComponentTreeSupplier):
                 fluent.Text(id="data-management-title", text=heading, size="xl", no_margins=True,
                             style="font-weight: 600;")
             )
+        end = self.end_panel()
+        bottom = self.bottom_panel()
+        end_open = self._end_is_open(end)
+        bottom_open = self._bottom_is_open(bottom)
+        toolbar = [
+            fluent.Button(label=self.grid_label(), action_id="switchToGrid",
+                          button_style="tertiary" if gantt else "primary"),
+            fluent.Button(label=self.gantt_label(), action_id="switchToGantt",
+                          button_style="primary" if gantt else "tertiary"),
+        ]
+        if end is not None:
+            toolbar.append(self._panel_toggle(end, "toggleEndPanel", end_open))
+        if bottom is not None:
+            toolbar.append(self._panel_toggle(bottom, "toggleBottomPanel", bottom_open))
         content.append(
             fluent.HorizontalLayout(
                 id="data-management-toolbar", spacing=True, style="align-items: center;",
-                content=(
-                    fluent.Button(label=self.grid_label(), action_id="switchToGrid",
-                                  button_style="tertiary" if gantt else "primary"),
-                    fluent.Button(label=self.gantt_label(), action_id="switchToGantt",
-                                  button_style="primary" if gantt else "tertiary"),
-                ),
+                content=tuple(toolbar),
             )
         )
-        content.append(self.gantt_view() if gantt else self.grid_view())
+        main = self.gantt_view() if gantt else self.grid_view()
+        if end_open:
+            # the end panel REFLOWS the content: a fill track for the view + a fixed one for the
+            # panel, stacking below 48rem (the panel then goes under the view)
+            main = fluent.ResponsiveGrid(
+                id="data-management-body",
+                columns=(fluent.GridTrack.fill(), fluent.GridTrack.fixed(end.size or "22rem")),
+                stack_below="48rem",
+                content=(
+                    main,
+                    self._docked(
+                        end, "toggleEndPanel",
+                        "border-left: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));"
+                        " padding-left: var(--lumo-space-m, 1rem);",
+                    ),
+                ),
+            )
+        content.append(main)
+        if bottom_open:
+            content.append(
+                self._docked(
+                    bottom, "toggleBottomPanel",
+                    "border-top: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));"
+                    " padding-top: var(--lumo-space-s, .5rem); max-height: "
+                    + (bottom.size or "16rem") + "; overflow: auto;",
+                )
+            )
         return fluent.VerticalLayout(id="data-management", spacing=True, content=tuple(content))

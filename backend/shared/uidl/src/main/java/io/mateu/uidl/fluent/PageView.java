@@ -43,6 +43,7 @@ public record PageView(
     String cssClasses,
     Boolean toc,
     PeerNav peerNav,
+    io.mateu.uidl.data.RecordSwitcher switcher,
     String timestamp,
     PageWidthStyle pageWidth,
     PageType pageType,

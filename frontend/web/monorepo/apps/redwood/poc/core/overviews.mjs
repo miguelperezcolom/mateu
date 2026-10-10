@@ -65,7 +65,28 @@ export function welcomeKeyOf(ctx) {
  * @param key       welcomeKeyOf del contexto que se proyecta
  * @param previous  el aspecto pintado ({key, theme, illuBg, illu}) si ya había una welcome, o null
  */
-export function welcomeLookOf(key, previous, random = Math.random) {
+/** HeroSection.tone (the server's HeroTone) → the banner's background-color. oj-sp's welcome banner
+ *  ships a dark-* tone for each of the nine (dark-ocean … dark-sienna); the five that have an
+ *  illustration pair in the gallery keep it, the other four go without one. */
+export const WELCOME_TONES = ['ocean', 'pine', 'lilac', 'teal', 'rose', 'pebble', 'slate', 'plum', 'sienna']
+export function welcomeToneLookOf(key, tone) {
+  const t = String(tone || '').toLowerCase()
+  if (WELCOME_TONES.indexOf(t) < 0) return null
+  const theme = 'dark-' + t
+  const pair = WELCOME_LOOKS.find(([th]) => th === theme)
+  return {
+    key,
+    tone: t,
+    theme,
+    illuBg: pair ? WELCOME_GALLERY + 'illust-welcome-banner-bg-' + pair[1] + '.png' : '',
+    illu: pair ? WELCOME_GALLERY + 'illust-welcome-banner-fg-' + pair[1] + '.png' : '',
+  }
+}
+
+export function welcomeLookOf(key, previous, random = Math.random, tone = null) {
+  // a DECLARED tone (Welcome.heroTone / @WelcomeBanner(tone)) wins over the rotation, every time
+  const toned = welcomeToneLookOf(key, tone)
+  if (toned) return toned
   if (previous && previous.theme && previous.key === key) return previous
   const [theme, n] = WELCOME_LOOKS[Math.floor(random() * WELCOME_LOOKS.length) % WELCOME_LOOKS.length]
   return {
@@ -131,6 +152,8 @@ export function welcomeOf(ctx) {
     // …and the band of tiles is the DashboardLayout's
     tilesNodeId: editorNodeIds ? String((findByType(ctx.tree, 'DashboardLayout') || {}).id || '') : '',
     trend,
+    // HeroSectionDto.tone: null = the rotating look (welcomeLookOf)
+    tone: md.tone || null,
     title: md.title || '',
     subtitle: md.subtitle || '',
     ctas,
@@ -139,6 +162,40 @@ export function welcomeOf(ctx) {
     secondaryCta: ctas.length > 1 ? { label: ctas[1].label } : null,
     secondaryCtaId: ctas.length > 1 ? ctas[1].actionId : '',
     tiles,
+  }
+}
+
+/** The first child slotted `slot` of a ResponsiveGrid in the tree, and whether it leads its
+ *  siblings: { node, first } or null. */
+export function findFirstSlotted(tree, slot) {
+  let found = null
+  const walk = (n) => {
+    if (found || !n || typeof n !== 'object') return
+    if (Array.isArray(n)) { n.forEach(walk); return }
+    if (n.metadata && n.metadata.type === 'ResponsiveGrid') {
+      const kids = n.children || []
+      const i = kids.findIndex((k) => k && k.slot === slot)
+      if (i >= 0) { found = { node: kids[i], first: i === 0 }; return }
+    }
+    for (const v of Object.values(n)) if (v && typeof v === 'object') walk(v)
+  }
+  walk(tree)
+  return found
+}
+
+/** The overview's `info` slot as a card: a Card brings its title and content, anything else is
+ *  the content itself. */
+export function overviewInfoCardOf(ctx, node) {
+  const isCard = !!(node && node.metadata && node.metadata.type === 'Card')
+  const content = isCard ? (node.metadata.content || []) : [node]
+  const blocks = islandContentOf({ ...ctx, kind: 'island', tree: { type: 'ClientSide', id: '_overviewInfo', metadata: { type: 'VerticalLayout' },
+    children: Array.isArray(content) ? content : [content] } }) || []
+  return {
+    title: isCard ? cardOf(node).title : '',
+    texts: [],
+    items: blocks.flatMap((b) => b.items || []),
+    isInfo: true,
+    colClass: 'oj-flex-item oj-sm-12 oj-md-4',
   }
 }
 
@@ -155,7 +212,13 @@ export function generalOverviewOf(ctx) {
   const badgeText = (md.badges || []).map((b) => b.label).join(' · ')
   const facts = (md.facts || []).map((f) => ({ label: f.label, value: f.value }))
   if (md.metricLabel) facts.push({ label: md.metricLabel, value: md.metricValue })
+  // the GeneralOverview `info` slot (GeneralOverview.info(): a child slotted `info` of the
+  // ResponsiveGrid `general-overview`): drawn as its own, narrower card — untitled, it was taken for
+  // a structural wrapper and dropped. First when it travels first (promoteInfoSlot).
+  const infoNode = findFirstSlotted(ctx.tree, 'info')
+  const infoCard = infoNode ? overviewInfoCardOf(ctx, infoNode.node) : null
   const cards = findAllByType(ctx.tree, 'Card')
+    .filter((node) => !infoNode || node !== infoNode.node)
     .map((node) => {
       const card = cardOf(node)
       // el contenido de la tarjeta como ÁTOMOS (no sólo sus textos): una StatusList, una tabla…
@@ -166,6 +229,12 @@ export function generalOverviewOf(ctx) {
       return { ...card, items: blocks.flatMap((b) => b.items || []) }
     })
     .filter((card) => card.title) // los Card sin título son wrappers de sección/estructura
+  if (infoCard) {
+    // a side column next to other cards; alone, as wide as a card
+    if (!cards.length) infoCard.colClass = 'oj-flex-item oj-sm-12 oj-md-6'
+    if (infoNode.first) cards.unshift(infoCard)
+    else cards.push(infoCard)
+  }
   return {
     title: md.title || '',
     subtitle: (md.subtitle || '') + (badgeText ? ' · ' + badgeText : ''),

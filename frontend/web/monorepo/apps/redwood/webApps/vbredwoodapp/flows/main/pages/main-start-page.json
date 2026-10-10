@@ -64,6 +64,40 @@
       },
       "description": "items del chart de previsión de la welcome para el oj-chart"
     },
+    "pageSwitcherObjectADP": {
+      "type": "vb/ArrayDataProvider2",
+      "defaultValue": {
+        "data": "{{ $application.variables.mateuPageHeader.switcher.objectOptions }}",
+        "keyAttributes": "value"
+      },
+      "description": "the page header's record switcher (RecordSwitcherSupplier, type object): empty = no switcher"
+    },
+    "pageSwitcherContextADP": {
+      "type": "vb/ArrayDataProvider2",
+      "defaultValue": {
+        "data": "{{ $application.variables.mateuPageHeader.switcher.contextOptions }}",
+        "keyAttributes": "value"
+      },
+      "description": "the page header's context switcher (RecordSwitcherSupplier, type context): empty = no switcher"
+    },
+    "pageSwitcherObject": {
+      "type": "any",
+      "defaultValue": {
+        "data": "{{ $page.variables.pageSwitcherObjectADP }}",
+        "itemText": "label",
+        "labelHint": "{{ $application.variables.mateuPageHeader.switcher.label }}"
+      },
+      "description": "selectObject of the page header (the DataProvider goes INSIDE the object)"
+    },
+    "pageSwitcherContext": {
+      "type": "any",
+      "defaultValue": {
+        "data": "{{ $page.variables.pageSwitcherContextADP }}",
+        "itemText": "label",
+        "labelHint": "{{ $application.variables.mateuPageHeader.switcher.label }}"
+      },
+      "description": "selectContext of the page header (the DataProvider goes INSIDE the object)"
+    },
     "overviewSelectConfig": {
       "type": "any",
       "defaultValue": {
@@ -354,6 +388,16 @@
           "chain": "runMateuAction",
           "parameters": {
             "actionId": "{{ $application.variables.mateuWelcome.secondaryCtaId }}"
+          }
+        }
+      ]
+    },
+    "pageSwitched": {
+      "chains": [
+        {
+          "chain": "onPageSwitch",
+          "parameters": {
+            "event": "{{ $event }}"
           }
         }
       ]

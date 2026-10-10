@@ -403,6 +403,7 @@ export const SINGLE_SLOTS: Record<string, string[]> = {
     Drawer: ['header', 'footer'],
     FieldLink: ['component'],
     FoldoutLayout: ['overview'],
+    FoldoutPanel: ['summary'],
     Form: ['avatar'],
     MasterDetailLayout: ['master', 'detail'],
     Menu: ['component'],

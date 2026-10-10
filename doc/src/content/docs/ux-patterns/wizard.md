@@ -153,6 +153,68 @@ public class OnboardingWizard extends Wizard { … }
 Both non-default modes render previously entered data read-only; steps should use distinct field
 names (the wizard state is a single flat map across steps).
 
+## Drafts, skipping and finishing early (the transactional guided process)
+
+Four affordances turn a wizard into a process the user can leave and come back to — the
+transactional half of the Redwood guided process. All of them are ordinary buttons composed on the
+server, so every renderer draws them with its own widgets.
+
+```java
+@UI("/onboarding")
+@WizardProgress(WizardProgressStyle.STEPS)
+public class Onboarding extends Wizard implements Draftable {
+  Contact contact = new Contact();
+  Preferences preferences = new Preferences();
+  Extras extras = new Extras();
+  Done done;
+
+  // Draftable: "Save" and "Save and close" on every step
+  @Override public Object saveDraft(HttpRequest rq) { drafts.save(this); return null; }
+  @Override public Object closeDraft(HttpRequest rq) { return URI.create("/home"); }
+  @Override public String resumeStep(HttpRequest rq) { return drafts.lastStepOf(rq); }
+
+  // "Skip" on the optional steps
+  @Override protected boolean stepSkippable(String step) { return "preferences".equals(step); }
+
+  // cancelable hook before ANY move: null lets it happen, anything else is the answer
+  @Override protected Object beforeStepNavigate(String from, String to, HttpRequest rq) {
+    return "contact".equals(from) && contact.email.endsWith("@blocked.test")
+        ? Message.error("That e-mail domain is not allowed") : null;
+  }
+
+  // offered beside Next from the preferences step on
+  @WizardCompletionAction(availableFromStep = "preferences")
+  @Label("Finish now")
+  Object finish() { ... }
+}
+```
+
+| Piece | What it does |
+|---|---|
+| `Draftable.saveDraft(rq)` | "Save": the current step is hydrated but **not validated** (a draft may be incomplete); `null` answers "Draft saved" and the wizard stays put |
+| `Draftable.closeDraft(rq)` | where "Save and close" lands after saving (a `URI` or a `UICommand`; `null` = `/`); the page is marked clean first |
+| `Draftable.resumeStep(rq)` | the step (field name) a fresh load opens on — the one the user left |
+| `stepSkippable(step)` | "Skip": moves on without requiring that step's fields. Unlike `stepApplies`, the step is still there — the user chose to leave it for later |
+| `@WizardCompletionAction(availableFromStep = "…")` | the completion is offered beside Next from that step on |
+| `beforeStepNavigate(from, to, rq)` | runs before Next, Back, Skip, a jump to a visited step and the completion (whose `to` is the result step), after the step is hydrated and — going forward — its required fields checked. Return `null` to proceed; anything else cancels the move and is the response |
+
+### Display options (`WizardDisplay`)
+
+Every built-in affordance of the wizard can be switched with the shared tri-state `Toggle`
+(`on` · `off` · `disabled` = shown but inert, which is what permissions need):
+
+```java
+@Override protected WizardDisplay display() {
+  return WizardDisplay.defaults().toBuilder()
+      .saveDraft(canWrite ? Toggle.on : Toggle.disabled)
+      .saveAndClose(Toggle.off)
+      .build();
+}
+```
+
+`saveDraft`, `saveAndClose` and `skip` default to `on` (each shows only where the wizard supports
+it). A `disabled` affordance is refused on the server too, not just greyed out.
+
 ## Structure
 
 ```
@@ -200,19 +262,34 @@ are documented once in [Page templates](/ux-patterns/page-templates/).
 | Completion step | **Slot** `completionStep` ↔ `@WizardCompletionAction` + the done state | ✅ |
 | Validation before advancing | `validations()` runs before the step advances | ✅ |
 | `avatar` + `displayOptions.avatar` | `PageDto.avatar/icon` on the canonical header | 🟡 |
-| `primaryAction.availableFromStep` (enable the finish action from step N on) | — | — |
-| `resumeStepId` (resume where the user left off) | — | — |
-| `displayOptions {save, saveAndClose}` + `spSave` / `spSaveAndClose` (drafts) | — there is no draft concept; the wizard state lives in the page state for the duration of the flow | — |
-| `spSkip {skippedStepId}` (user-initiated skip) | `stepApplies` skips a step by rule, but the user cannot skip one | 🟡 |
-| `spBeforeNext` / `spBeforeStepNavigate` (cancelable hooks) | validation runs, but there is no declarative cancelable hook — do it inside the action | 🟡 |
+| `primaryAction.availableFromStep` (enable the finish action from step N on) | `@WizardCompletionAction(availableFromStep = "…")` | ✅ |
+| `resumeStepId` (resume where the user left off) | `Draftable.resumeStep(rq)` | ✅ |
+| `displayOptions {save, saveAndClose}` + `spSave` / `spSaveAndClose` (drafts) | `Draftable.saveDraft` / `closeDraft` + `WizardDisplay.saveDraft` / `saveAndClose` | ✅ |
+| `spSkip {skippedStepId}` (user-initiated skip) | `stepSkippable(step)` + `WizardDisplay.skip` | ✅ |
+| `spBeforeNext` / `spBeforeStepNavigate` (cancelable hooks) | `beforeStepNavigate(from, to, rq)` | ✅ |
 | `completionStatus` / `continueWorkingStatus` | the done state is terminal | 🟡 |
 | `displayOptions.overviewAnimation` | — | — |
 | `displayOptions.density: standard \| compact` | `@Compact`, set on the view rather than as a template option | 🟡 |
-| **Slot** `announcement` (aria-live) | live regions are installed client-side for a11y, but the backend cannot declare announcement content | 🟡 |
+| **Slot** `announcement` (aria-live) | return `UICommand.announce(text)` / `announceAssertive(text)` from any action | ✅ |
 
 The related `step-by-step-page` template (a full-screen linear process) adds `timer {startTime,
 timeInterval}` for timed processes and `spFinishLater`; neither is built. For a wizard inside a
 drawer, see [Guided Process Drawer](/ux-patterns/drawer/#guided-process-drawer-a-wizard-in-a-drawer-embeddedview).
+
+## Coverage
+
+| | Java | .NET | Python | Vaadin | Redwood | React Native | IntelliJ |
+|---|---|---|---|---|---|---|---|
+| Steps, branching, progress (BAR / STEPS / RAIL) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Drafts (`Draftable`: save, save and close, resume) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Skip (`stepSkippable`) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Early completion (`availableFromStep`) | ✅ | 🟡 ¹ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `beforeStepNavigate` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `WizardDisplay` toggles | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+The renderer columns need no wizard-specific code: every affordance is a button composed on the
+server. ¹ The .NET and Python wizards number their steps (`[Step(n)]`), so the hooks take step
+numbers instead of field names, and .NET's early completion is the fixed `complete` action.
 
 ## Principles served
 

@@ -34,13 +34,13 @@
         <!-- Mateu runtime for Spring WebFlux -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>webflux-core</artifactId>
+            <artifactId>mateu-webflux</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <!-- The web renderer (served as static assets by the app) -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>vaadin-lit</artifactId>
+            <artifactId>mateu-vaadin</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <!-- The generated controllers use Lombok -->
@@ -68,7 +68,7 @@
                         </path>
                         <path>
                             <groupId>io.mateu</groupId>
-                            <artifactId>annotation-processor-webflux</artifactId>
+                            <artifactId>mateu-annotation-processor-webflux</artifactId>
                             <version>${mateu.version}</version>
                         </path>
                     </annotationProcessorPaths>

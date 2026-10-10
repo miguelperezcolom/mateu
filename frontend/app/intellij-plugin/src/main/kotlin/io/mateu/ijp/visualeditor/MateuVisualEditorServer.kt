@@ -19,10 +19,10 @@ import java.util.concurrent.Executors
  * the web app detects the IDE host (see [MateuVisualEditor]).
  *
  * The Redwood canvas is served the same way: the bundle carries the Redwood/VB app of
- * io.mateu:redwood under `redwood/` (the editor's build copies it there) and its page
+ * io.mateu:mateu-redwood under `redwood/` (the editor's build copies it there) and its page
  * `redwood-preview.html` frames it, so a YAML-only project previews in Redwood with NO backend. A
  * bundle built without it falls back to the backend's own Redwood app (`/redwood/x` → `<backend>/x`,
- * what a backend that depends on io.mateu:redwood serves at its root). JET and the VB runtime always
+ * what a backend that depends on io.mateu:mateu-redwood serves at its root). JET and the VB runtime always
  * load from Oracle's CDN.
  *
  * One server per backend URL, started lazily and shared by every open editor tab.

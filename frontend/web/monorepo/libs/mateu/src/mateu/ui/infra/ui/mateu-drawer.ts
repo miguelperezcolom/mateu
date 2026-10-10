@@ -145,7 +145,14 @@ export class MateuDrawer extends ComponentElement {
         super.updated(_changedProperties);
         if (_changedProperties.has('component') && this.component) {
             const metadata = (this.component as ClientSideComponent).metadata as Drawer
-            this.state = metadata.initialData
+            // Seed from initialData only when the SERVER sent a drawer (a new one, or the same id
+            // re-sent with other values — save-and-next, an error banner): the owner re-binds
+            // `.component` on each of its renders, and re-seeding then wiped what had been typed.
+            const previous = (_changedProperties.get('component') as ClientSideComponent | undefined)
+                ?.metadata as Drawer | undefined
+            if (!previous || previous.initialData !== metadata.initialData) {
+                this.state = metadata.initialData
+            }
         }
         // Take the focus once the panel is rendered. A modeless drawer sits alongside the page
         // rather than over it, so it neither blocks nor claims the focus; same for a layout
@@ -169,6 +176,30 @@ export class MateuDrawer extends ComponentElement {
         document.addEventListener('keydown', this._escListener, { signal })
         // The embedded guided process (a wizard) bubbles its step position up to us (composed event).
         this.addEventListener('mateu-guided-progress', this.onGuidedProgress, { signal })
+        // A client-side form in the drawer (the crud's create/edit drawer) has no mateu-component of
+        // its own: its edits and its buttons go through the interceptors to the HOST component. Keep
+        // the drawer's values here (seeded from initialData) and hand them to the host with each
+        // action as its initiatorState, as a bubbling mateu-component does — or a save only carried
+        // the fields the user had touched (no id: the record could not be found, nor rebuilt).
+        this.addEventListener('value-changed', this.trackDrawerEdit, { signal })
+        this.addEventListener('action-requested', this.attachDrawerState, { signal })
+    }
+
+    private trackDrawerEdit = (e: Event) => {
+        const detail = (e as CustomEvent<{ fieldId?: string, value?: unknown }>).detail
+        if (!detail?.fieldId) return
+        this.state = { ...(this.state ?? {}), [detail.fieldId]: detail.value }
+    }
+
+    private attachDrawerState = (e: Event) => {
+        const detail = (e as CustomEvent<{ parameters?: Record<string, unknown> }>).detail
+        if (!detail || typeof detail !== 'object') return
+        const metadata = (this.component as ClientSideComponent | undefined)?.metadata as Drawer | undefined
+        if (!metadata?.initialData) return
+        const parameters = { ...(detail.parameters ?? {}) }
+        if (parameters['initiatorState']) return
+        parameters['initiatorState'] = { ...(this.state ?? {}) }
+        detail.parameters = parameters
     }
 
     disconnectedCallback() {

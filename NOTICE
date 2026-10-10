@@ -20,7 +20,7 @@ frontend/web/monorepo/apps/redwood/NOTICE.md for details.
 All other renderers and the Mateu runtime, annotations, wire DTOs, generated
 schemas and tooling are licensed under Apache License 2.0.
 
-The web renderer bundles (the io.mateu:vaadin-lit jar) include third-party
+The web renderer bundles (the io.mateu:mateu-vaadin jar) include third-party
 open-source packages under permissive licences (MIT, BSD, Apache-2.0, ISC and
 similar); scripts/check-frontend-licenses.mjs lists the approved licences and
 fails the build on any other, so no commercially licensed component is shipped.

@@ -52,6 +52,32 @@ public class AssetSearch extends SmartSearchPage<AssetFilters, AssetRow> {
 - Results default to a table (`GridLayout.auto`); override `gridLayout()` to force `list`, `cards`, `masterDetail` or `tree`.
 - Works on every renderer and on the .NET (`SmartSearchPage<TFilters, TRow>`) and Python (`SmartSearchPage[F, R]`) backends — see the [parity matrix](/reference/parity/).
 
+## Before the first search (`preSearchContent`)
+
+A search-first page does not have to open on an empty listing. Override `preSearchContent(rq)`
+with what the user should see until they search — recent items, saved searches, a small dashboard,
+tips:
+
+```java
+@Override
+protected Component preSearchContent(HttpRequest rq) {
+  return EmptyState.builder().icon("🔎").title("Search to get started")
+      .description("Recently viewed: " + recent(rq)).build();
+}
+```
+
+It stands in for the results until the first search answers, and never comes back afterwards — a
+later empty result shows the normal empty state. Fluent: `Listing.builder().preSearchItem(...)`.
+
+![Pre-search content before the first search](/images/docs/smart-search/pre-search.png)
+
+## Coverage
+
+| | Java | .NET | Python | Vaadin | Redwood | React Native | IntelliJ |
+|---|---|---|---|---|---|---|---|
+| Smart search page (typed facets, chips, search-first) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `preSearchContent` | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+
 ## Redwood parameter and slot reference
 
 What the Redwood `smart-search-page` template and its `smart-filter-search` pattern expose, and what
@@ -71,11 +97,11 @@ once in [Page templates](/ux-patterns/page-templates/).
 | `smartFilters.suggestions` / `suggestionFilters` / `autocompleteSource` | — no suggestion layer; `@Lookup`/`@RestOptions` cover per-field remote options | — |
 | `showAllTotalCount` / `allTotalCountMessage` | — | — |
 | `collectionScroller: off \| page` | pagination is the listing's own | 🟡 |
-| `selectContext` | — the record switcher is only available inside `GeneralOverview` | — |
+| `selectContext` | `RecordSwitcherSupplier` on the page (header switcher, `type = context`) | ✅ |
 | **Slot** default (results) | the listing; `gridLayout()` picks `table`, `list` or `cards` | ✅ |
-| **Slot** `main` + **`dashboard`** (pre-search content) | — the page starts empty; there is no way to declare what shows before the first search | — |
+| **Slot** `main` + **`dashboard`** (pre-search content) | `preSearchContent(rq)` → `Listing.preSearch` | ✅ |
 | **Slot** `search` | the smart search bar is the page's own | ✅ |
-| **Slot** `announcement` (aria-live) | live regions are installed client-side for a11y, but the backend cannot declare announcement content | 🟡 |
+| **Slot** `announcement` (aria-live) | `UICommand.announce(text)` from any action | ✅ |
 | `smartFiltersChangedAction` | chip add/remove and facet toggles re-run `search` automatically | ✅ |
 
 ## When to use it

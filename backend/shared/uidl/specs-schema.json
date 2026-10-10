@@ -138,7 +138,7 @@
       },
       "renderer" : {
         "$ref" : "#/$defs/ProjectRenderer",
-        "description" : "The renderer the project paints with: `vaadin` (io.mateu:vaadin-lit, the default) or `redwood` (io.mateu:redwood). The visual editor's canvas and Play open in it and the static bundle ships it; a served app's renderer is still its Maven dependency, and the server warns at startup when the two disagree."
+        "description" : "The renderer the project paints with: `vaadin` (io.mateu:mateu-vaadin, the default) or `redwood` (io.mateu:mateu-redwood). The visual editor's canvas and Play open in it and the static bundle ships it; a served app's renderer is still its Maven dependency, and the server warns at startup when the two disagree."
       }
     },
     "required" : [ "type" ]
@@ -3719,6 +3719,9 @@
         "content" : {
           "$ref" : "#/$defs/Component"
         },
+        "summary" : {
+          "$ref" : "#/$defs/Component"
+        },
         "style" : {
           "type" : "string"
         },
@@ -4777,6 +4780,9 @@
         "centered" : {
           "type" : "boolean"
         },
+        "tone" : {
+          "$ref" : "#/$defs/HeroTone"
+        },
         "content" : {
           "type" : "array",
           "items" : {
@@ -4806,6 +4812,10 @@
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
+    },
+    "HeroTone" : {
+      "type" : "string",
+      "enum" : [ "auto", "ocean", "pine", "lilac", "teal", "rose", "pebble", "slate", "plum", "sienna" ]
     },
     "HorizontalAlignment" : {
       "type" : "string",
@@ -5245,6 +5255,12 @@
           }
         },
         "footer" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
+        },
+        "preSearch" : {
           "type" : "array",
           "items" : {
             "$ref" : "#/$defs/Component"

@@ -19,7 +19,8 @@ public sealed class MateuForbiddenException(string message) : Exception(message)
 /// <item>marked as an action: [Action], [Button] or [Fab] (directly or through a composed
 /// attribute), or</item>
 /// <item>advertised by the view itself: an [OnRowSelected] value, a [SubscribeTo] action, the
-/// IRefreshOnChange refresh action, any *ActionId of the view's component tree (fluent archetype
+/// IRefreshOnChange refresh action, a [Section] affordance (EditAction/AddAction/ViewMoreAction),
+/// any *ActionId of the view's component tree (fluent archetype
 /// tree, [AutoPage]-inferred tree or the YAML layout bound to it), of its IRuleSupplier rules or of
 /// its IAppActionsSupplier header actions.</item>
 /// </list>
@@ -167,6 +168,8 @@ internal static class ActionGuard
             if (s.Action.Length > 0) ids.Add(s.Action);
         if (instance is IRefreshOnChange refresh && !string.IsNullOrEmpty(refresh.RefreshActionId))
             ids.Add(refresh.RefreshActionId);
+        // [Section(EditAction/AddAction/ViewMoreAction)] buttons dispatch the named methods
+        foreach (var sectionAction in ReflectionMapper.SectionActionIds(type)) ids.Add(sectionAction);
 
         var seen = new HashSet<object>(ReferenceEqualityComparer.Instance);
         Collect(() => layoutOverride, ids, seen);

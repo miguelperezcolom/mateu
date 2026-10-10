@@ -12,6 +12,27 @@ import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 export const HERO_BACKGROUND =
     'var(--mateu-hero-background, color-mix(in srgb, var(--mateu-accent, #1f6f8f) 78%, #0b1a24))'
 
+/**
+ * The hero tones (HeroTone, the Redwood welcome-page backgroundColor idea) as Mateu's OWN deep hues
+ * — not Oracle's swatches. Every renderer uses the same nine values so a tone reads the same on
+ * every shell; ink stays light on all of them.
+ */
+export const HERO_TONES: Record<string, string> = {
+    ocean: '#1f4e79',
+    pine: '#2d5a3d',
+    lilac: '#5b4a7a',
+    teal: '#1f5c5c',
+    rose: '#7a3b4f',
+    pebble: '#5a5550',
+    slate: '#3d4a57',
+    plum: '#5e3557',
+    sienna: '#7a4a2e',
+}
+
+/** The band background for a hero: its declared tone, else the themed default. */
+export const heroBackground = (tone: string | undefined): string =>
+    (tone && HERO_TONES[tone]) ?? HERO_BACKGROUND
+
 /** The hero image's URL as a CSS url() — or nothing when it would end the declaration. */
 export const heroImageCss = (image: string | undefined): string | undefined =>
     image && /^[\w\s/.:%~?&=#+,@-]+$/.test(image.trim()) ? `url("${image.trim()}")` : undefined
@@ -30,8 +51,8 @@ export const renderHeroSection = (container: LitElement, component: ClientSideCo
     const alignment = centered ? 'center' : 'flex-start'
     const textAlign = centered ? 'center' : 'start'
     return html`
-        <div class="mateu-hero ${component.cssClasses??''}"
-             style="position: relative; display: flex; flex-direction: column; overflow: hidden; border-radius: var(--lumo-border-radius-l, 12px); margin-top: var(--mateu-hero-margin-top, var(--lumo-space-l, 1.5rem)); min-height: ${metadata.height ?? '12rem'}; box-sizing: border-box; background: ${HERO_BACKGROUND}; color: #fff; ${component.style??''}"
+        <div class="mateu-hero ${component.cssClasses??''}" data-tone="${metadata.tone ?? nothing}"
+             style="position: relative; display: flex; flex-direction: column; overflow: hidden; border-radius: var(--lumo-border-radius-l, 12px); margin-top: var(--mateu-hero-margin-top, var(--lumo-space-l, 1.5rem)); min-height: ${metadata.height ?? '12rem'}; box-sizing: border-box; background: ${heroBackground(metadata.tone)}; color: #fff; ${component.style??''}"
              slot="${component.slot??nothing}"
         >
             ${image ? html`<div class="mateu-hero-image" aria-hidden="true"

@@ -5,6 +5,9 @@ import { Banner } from "@mateu/shared/apiClients/dtos/componentmetadata/Banner.t
 
 export default interface UIIncrement {
 
+    /** Wire protocol version of the payload ("3.0"); checked by infra/http/wireVersion. */
+    wireVersion?: string
+
     messages: Message[] | undefined
     commands: UICommand[] | undefined
     fragments: UIFragment[] | undefined

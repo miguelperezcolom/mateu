@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import java.util.List;
 
 /**
@@ -27,6 +28,7 @@ import java.util.List;
  * bundle manifest (inside a route entry), and Jackson reads an {@code isX()} accessor on a record
  * as an extra property that then fails to deserialise.
  */
+@Experimental("access keys in YAML")
 public record Access(
     List<String> roles, List<String> groups, List<String> scopes, List<String> permissions) {
 

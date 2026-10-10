@@ -88,6 +88,8 @@ class ButtonMetadata(Wire):
     #: Extra parameters merged into the dispatched action request (e.g. the optimistic-lock
     #: conflict dialog's _forceOverwrite; mirrors ButtonDto.parameters).
     parameters: Any | None = None
+    #: The button size (e.g. "small"); None = the renderer's default (mirrors ButtonDto.size).
+    size: str | None = None
 
 
 class TabLayoutMetadata(Wire):

@@ -287,7 +287,7 @@ there rewrites only its `renderer:` line, so comments are kept. You can also use
 
 With `renderer: redwood`, or with the toolbar switched to **Redwood (Oracle)**, the canvas paints
 the page with the real Redwood renderer: the
-Oracle Visual Builder app that the `io.mateu:redwood` jar ships, running inside the canvas. You see
+Oracle Visual Builder app that the `io.mateu:mateu-redwood` jar ships, running inside the canvas. You see
 what a Redwood app shows, at the canvas's width, and the page is still editable:
 
 - **Click** a component in the Redwood canvas to select it. **Layers**, **Properties**, the
@@ -316,12 +316,12 @@ editor, so every host can serve it without a backend:
 
 | Host | The Redwood canvas |
 |---|---|
-| Browser (`npx vite` in `apps/visual-editor`) | the dev server serves `redwood/` from the `io.mateu:redwood` resources (`MATEU_REDWOOD_STATIC` points it elsewhere) |
+| Browser (`npx vite` in `apps/visual-editor`) | the dev server serves `redwood/` from the `io.mateu:mateu-redwood` resources (`MATEU_REDWOOD_STATIC` points it elsewhere) |
 | IntelliJ | the plugin's loopback server serves it from the bundled editor |
 | VS Code | the extension's loopback server serves it from the bundled editor, and the webview frames it from there |
 
 If the build does not include the Redwood app, the hosts ask the configured backend for it instead.
-A backend that depends on `io.mateu:redwood` serves it at its root (`/_index.html`, `/_redwood/`).
+A backend that depends on `io.mateu:mateu-redwood` serves it at its root (`/_index.html`, `/_redwood/`).
 
 **What it does not do yet.** You can drag a component from the palette onto the Redwood canvas, but
 it lands at the end of the page. Use the Vaadin canvas or **Layers** to place it exactly. Layout

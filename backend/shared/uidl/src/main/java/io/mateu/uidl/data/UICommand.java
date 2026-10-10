@@ -73,6 +73,20 @@ public record UICommand(UICommandType type, Object data) {
             filename, mimeType, java.util.Base64.getEncoder().encodeToString(content)));
   }
 
+  /**
+   * Announces {@code text} to screen readers through the page's polite live region — the way to
+   * tell a non-sighted user what just happened when nothing on screen takes focus ("3 rows
+   * imported", "Saved"). Nothing is drawn.
+   */
+  public static UICommand announce(String text) {
+    return new UICommand(UICommandType.Announce, new Announcement(text, false));
+  }
+
+  /** Like {@link #announce(String)}, through the ASSERTIVE region (interrupts — errors only). */
+  public static UICommand announceAssertive(String text) {
+    return new UICommand(UICommandType.Announce, new Announcement(text, true));
+  }
+
   /** Clears the dirty state; return this from a save action after persisting changes. */
   public static UICommand markAsClean() {
     return new UICommand(UICommandType.MarkAsClean, null);

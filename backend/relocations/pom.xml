@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Relocation poms for the artifactIds Mateu published before the mateu-* rename (3.0 beta).
+
+  Each child is a pom-only artifact at the OLD coordinates whose <relocation> points at the new one,
+  so a build that still declares e.g. io.mateu:mvc-core keeps resolving (Maven follows the
+  relocation and prints a warning naming the new id). Published with every release, like any other
+  module, for the deprecation period stated in reference/stability-and-versioning.md; the table of
+  old → new ids is in reference/migrating-from-alpha.md.
+
+  Generated once; to add one, copy a sibling and list it below. Never put code here.
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.mateu</groupId>
+    <artifactId>mateu-parent</artifactId>
+    <version>0.0.1-MATEU</version>
+  </parent>
+
+  <artifactId>mateu-relocations</artifactId>
+  <packaging>pom</packaging>
+
+  <name>Mateu relocations</name>
+  <description>Relocation poms: the artifactIds Mateu used before the mateu-* rename, pointing at the new ones.</description>
+
+  <modules>
+    <module>uidl</module>
+    <module>dtos</module>
+    <module>core</module>
+    <module>annotation-processor-core</module>
+    <module>annotation-processor-indexer</module>
+    <module>export-excel</module>
+    <module>export-pdf</module>
+    <module>vaadin-lit</module>
+    <module>redwood</module>
+    <module>mvc-core</module>
+    <module>annotation-processor-mvc</module>
+    <module>webflux-core</module>
+    <module>annotation-processor-webflux</module>
+    <module>micronaut-core</module>
+    <module>annotation-processor-micronaut</module>
+    <module>quarkus-core</module>
+    <module>annotation-processor-quarkus</module>
+    <module>helidon-mp-core</module>
+    <module>annotation-processor-helidon-mp</module>
+  </modules>
+</project>

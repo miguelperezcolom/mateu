@@ -1,4 +1,4 @@
-// The hash of the renderer's SOURCES: what the packaged jar (io.mateu:redwood) is built from.
+// The hash of the renderer's SOURCES: what the packaged jar (io.mateu:mateu-redwood) is built from.
 //
 // scripts/copy.mjs stamps it into the jar (static/mateu-build-info.json) and uses it to cache-bust
 // the app's modules; scripts/check-bundle-freshness.sh (repo root) recomputes it and fails when the

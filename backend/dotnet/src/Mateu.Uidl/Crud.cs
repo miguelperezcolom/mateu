@@ -13,9 +13,37 @@ namespace Mateu.Uidl;
 /// </summary>
 public abstract class Crud<T> :
     IListing<T>, ISearchable, IFilterable<T>,
-    INavigable<T, string>, IEditable<T, string>, ICreatable<T, string>, IDeletable<string>, ICrudExports
+    INavigable<T, string>, IEditable<T, string>, ICreatable<T, string>, IDeletable<string>, ICrudExports,
+    ICrudAffordances
     where T : class, new()
 {
+    /// <summary>This crud's built-in affordances (the Redwood collection-container /
+    /// create-edit-drawer displayOptions): New and Delete (On/Off/Disabled, on top of
+    /// <see cref="CanCreate"/>/<see cref="CanDelete"/>), the edit drawer's "Save and next" (default
+    /// Off) and its error banner (default On). (Java's Crud.display().)</summary>
+    public virtual CrudDisplay Display => CrudDisplay.Defaults;
+
+    /// <summary>The edit drawer's "Save and next" label.</summary>
+    public virtual string SaveAndNextLabel => "Save and next";
+
+    /// <summary>The id of the row that follows <paramref name="currentId"/> in the listing, for the
+    /// edit drawer's "Save and next" — or null when it was the last one (the drawer then closes as
+    /// after a plain save). The default walks the first 1000 rows of an unfiltered search in the
+    /// listing's own order; override it to follow the user's filters/sort or a large table.
+    /// (Java's Crud.nextIdAfter.)</summary>
+    public virtual string? NextIdAfter(string currentId)
+    {
+        var rows = Search(new SearchRequest("", null, null, new Pageable(0, 1000, []))).Content;
+        var found = false;
+        foreach (var row in rows)
+        {
+            var id = IdOf(row);
+            if (found) return id;
+            found = id == currentId;
+        }
+        return null;
+    }
+
     /// <summary>Rows to show, optionally filtered by the search box text.</summary>
     public abstract IEnumerable<T> Fetch(string? search);
 
@@ -107,6 +135,15 @@ public abstract class Crud<T> :
     }
 }
 
+/// <summary>The non-generic face of a <see cref="Crud{T}"/>'s display options, so the framework can
+/// read them without reflection over the entity type.</summary>
+public interface ICrudAffordances
+{
+    CrudDisplay Display { get; }
+    string SaveAndNextLabel { get; }
+    string? NextIdAfter(string currentId);
+}
+
 /// <summary>The hero header of a <see cref="HeroSearch{T}"/> page (non-generic view of it).</summary>
 public interface IHeroSearch
 {
@@ -189,6 +226,10 @@ public abstract class Listing<TFilters, TRow> : IListing<TRow>, ISearchable, IFi
 public interface ISmartSearchPage
 {
     string? PageSubtitle();
+
+    /// <summary>What the page shows BEFORE the first search (the Redwood smart-filter-search
+    /// dashboard slot) — travels on the listing as CrudMetadataDto.PreSearch. Null = none.</summary>
+    IComponent? PreSearchContent() => null;
 }
 
 /// <summary>Smart search page (the Oracle Redwood "Smart Search" template): a standalone,
@@ -201,6 +242,12 @@ public abstract class SmartSearchPage<TFilters, TRow> : Listing<TFilters, TRow>,
 {
     /// <summary>Optional intro line rendered under the page title, above the smart search bar.</summary>
     public virtual string? PageSubtitle() => null;
+
+    /// <summary>What the page shows BEFORE the first search (the Redwood smart-filter-search
+    /// dashboard slot): a dashboard, recent items, tips… — replaced by the results as soon as the
+    /// user searches. Null (default) = the usual empty listing. (Java's
+    /// SmartSearchPage.preSearchContent.)</summary>
+    public virtual IComponent? PreSearchContent() => null;
 }
 
 /// <summary>The item a <see cref="ISelector{TRow}"/> reports as chosen: its id (stored as the

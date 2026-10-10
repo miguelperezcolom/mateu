@@ -15,11 +15,11 @@ import lombok.extern.slf4j.Slf4j;
  * the renderer it declares with the one this server actually SERVES.
  *
  * <p>For a served app the Maven dependency stays the source of truth — whichever renderer jar
- * ({@code io.mateu:vaadin-lit} or {@code io.mateu:redwood}) is on the classpath is what the index
- * page boots. The descriptor is what the visual editor, Play and the static bundle paint with, so
- * when the two disagree the app a developer designed is not the app a user gets: that is worth one
- * clear WARN at startup, never a failure (a team may well serve Vaadin while trying Redwood out in
- * the editor).
+ * ({@code io.mateu:mateu-vaadin} or {@code io.mateu:mateu-redwood}) is on the classpath is what the
+ * index page boots. The descriptor is what the visual editor, Play and the static bundle paint
+ * with, so when the two disagree the app a developer designed is not the app a user gets: that is
+ * worth one clear WARN at startup, never a failure (a team may well serve Vaadin while trying
+ * Redwood out in the editor).
  *
  * <p>Which renderer the classpath serves is read off its static resources: the Redwood jar ships a
  * Visual Builder app under {@code static/_redwood/}, the Vaadin one only {@code static/_index.html}

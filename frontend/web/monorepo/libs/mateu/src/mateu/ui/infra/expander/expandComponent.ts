@@ -156,6 +156,10 @@ export function expandComponent(authored: FluentNode): Component {
         metadata.dataType = metadata.dataType ?? 'string'
         metadata.stereotype = metadata.stereotype ?? 'regular'
     }
+    if (type === 'HeroSection' && metadata.tone === 'auto') {
+        // HeroSectionMapper: `auto` is the default look, so nothing travels
+        delete metadata.tone
+    }
 
     let kids: FluentNode[] = []
     if (CHILDREN_KEY[type]) {
@@ -230,6 +234,10 @@ function expandFoldout(node: FluentNode): Component {
         if (isAuthoredNode(panel.content)) {
             kids.push({ ...expandComponent(panel.content), slot: 'panel-' + i } as Component)
         }
+        // what the FOLDED panel shows under its title (FoldoutPanel.summary) — slot summary-<index>
+        if (isAuthoredNode(panel.summary)) {
+            kids.push({ ...expandComponent(panel.summary), slot: 'summary-' + i } as Component)
+        }
         return Object.fromEntries(Object.entries({
             title: panel.title,
             subtitle: panel.subtitle,
@@ -289,6 +297,9 @@ function expandListing(node: FluentNode): Component {
             metadata[key] = (value as FluentNode[]).map(expandButton)
         } else if (key === 'filters' && Array.isArray(value)) {
             metadata[key] = (value as FluentNode[]).map(expandFilter)
+        } else if (key === 'preSearch' && Array.isArray(value)) {
+            // the smart filter search's pre-search content: components, expanded in place (CrudlMapper)
+            if (value.length > 0) metadata[key] = (value as FluentNode[]).map(expandComponent)
         } else metadata[key] = value // filters/rowsSource/title/rowRoute pass through
     }
 

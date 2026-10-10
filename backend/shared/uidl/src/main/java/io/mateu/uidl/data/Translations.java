@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import java.util.Map;
 
 /**
@@ -27,6 +28,7 @@ import java.util.Map;
  * @param locale a BCP 47 tag ({@code es}, {@code en-GB})
  * @param messages key → text, possibly nested (flattened with dots)
  */
+@Experimental("translations for YAML apps (type: Translations)")
 public record Translations(String locale, Map<String, Object> messages) {
 
   public Translations {

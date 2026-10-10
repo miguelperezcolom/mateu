@@ -56,6 +56,12 @@ public abstract class Foldout : IComponentTreeSupplier, IPageWidthSupplier
     /// the Edit button; the method typically returns a Dialog (vertical) or navigates (horizontal).</summary>
     protected virtual string? OverviewEditActionId => null;
 
+    /// <summary>What a fold-out panel shows while FOLDED (the Redwood foldout-panel summary slot) —
+    /// a compact digest drawn in the collapsed strip under the rotated title ("3 open", "€1,240
+    /// due"). Receives the panel's property name; null (default) = title only. (Java's
+    /// Foldout.panelSummary.)</summary>
+    protected virtual IComponent? PanelSummary(string panelPropertyName) => null;
+
     public IComponent Component()
     {
         IComponent? overview = null;
@@ -76,6 +82,7 @@ public abstract class Foldout : IComponentTreeSupplier, IPageWidthSupplier
                 Icon = panel.Icon is "" ? null : panel.Icon,
                 Open = panel.Open,
                 Content = component,
+                Summary = PanelSummary(p.Name),
             });
         }
         return new FoldoutLayout
@@ -96,9 +103,12 @@ public abstract class Welcome : IComponentTreeSupplier
     protected virtual string? HeroSubtitle => null;
     /// <summary>Optional background image URL for the hero.</summary>
     protected virtual string? HeroImage => null;
+    /// <summary>The hero band's tone: Auto (default look) or a dark tinted band with light ink
+    /// (the Redwood welcome-page backgroundColor). (Java's Welcome.heroTone.)</summary>
+    protected virtual HeroTone HeroTone => HeroTone.Auto;
 
     public IComponent Component() =>
-        ArchetypeComposers.ComposeWelcome(this, HeroTitle, HeroSubtitle, HeroImage);
+        ArchetypeComposers.ComposeWelcome(this, HeroTitle, HeroSubtitle, HeroImage, HeroTone);
 }
 
 /// <summary>Item overview page: the first component property without [Panel] is the key-info panel
@@ -186,7 +196,8 @@ public static class ArchetypeComposers
     }
 
     public static IComponent ComposeWelcome(
-        object host, string? heroTitle, string? heroSubtitle, string? heroImage)
+        object host, string? heroTitle, string? heroSubtitle, string? heroImage,
+        HeroTone heroTone = HeroTone.Auto)
     {
         var ctas = new List<IComponent>();
         var tiles = new List<IComponent>();
@@ -208,7 +219,7 @@ public static class ArchetypeComposers
             new HeroSection
             {
                 Id = "hero", Title = heroTitle, Subtitle = heroSubtitle, Image = heroImage,
-                Centered = true, Content = ctas,
+                Centered = true, Tone = heroTone, Content = ctas,
             },
         };
         // The highlight tiles land on the one responsive grid (coherence-plan #9), auto-fitting — the
@@ -505,6 +516,18 @@ public abstract class GeneralOverview<TRow> : IComponentTreeSupplier, IRefreshOn
     /// over property cards.</summary>
     protected abstract IComponent Overview(TRow row);
 
+    /// <summary>The contextual info panel (the Redwood general-overview info slot): secondary,
+    /// read-only context about the record drawn beside the overview on wide pages and stacked with
+    /// it on narrow ones (above it when <see cref="GeneralOverviewDisplay.PromoteInfoSlot"/> is On).
+    /// Null (default) = no info panel. (Java's GeneralOverview.info.)</summary>
+    protected virtual IComponent? Info(TRow row) => null;
+
+    /// <summary>The info panel's width on wide pages (a CSS length).</summary>
+    protected virtual string InfoWidth => "20rem";
+
+    /// <summary>This page's built-in affordances (see <see cref="GeneralOverviewDisplay"/>).</summary>
+    protected virtual GeneralOverviewDisplay Display => GeneralOverviewDisplay.Defaults;
+
     /// <summary>What to show when no record is selected/found.</summary>
     protected virtual IComponent EmptyOverview() => new EmptyState
     {
@@ -522,8 +545,30 @@ public abstract class GeneralOverview<TRow> : IComponentTreeSupplier, IRefreshOn
             Content =
             [
                 new FormField { FieldId = "record", Label = "", Options = options },
-                row is null ? EmptyOverview() : Overview(row),
+                row is null ? EmptyOverview() : WithInfo(row),
             ],
+        };
+    }
+
+    /// <summary>main + info on the one responsive grid: side by side on wide pages, stacked below
+    /// 48rem; the stacked order is the child order, which promoteInfoSlot flips (info first = on
+    /// top). Without an info panel the overview travels alone.</summary>
+    private IComponent WithInfo(TRow row)
+    {
+        var main = Overview(row);
+        var display = Display;
+        var info = display.Info.Shown() ? Info(row) : null;
+        if (info is null) return main;
+        IReadOnlyList<IComponent> slots = display.PromoteInfoSlot.Enabled()
+            ? [new Slotted("info", info), new Slotted("main", main)]
+            : [new Slotted("main", main), new Slotted("info", info)];
+        return new ResponsiveGrid
+        {
+            Id = "general-overview",
+            Columns = [GridTrack.Fill(), GridTrack.Fixed(InfoWidth)],
+            StackBelow = "48rem",
+            GridTemplateAreas = "\"main info\"",
+            Content = slots,
         };
     }
 }
@@ -845,7 +890,33 @@ public abstract class DataManagement : IComponentTreeSupplier, IPageWidthSupplie
     /// <summary>The active view: "grid" (default) or "gantt". Bound from componentState.</summary>
     public string View { get; set; } = "grid";
 
+    /// <summary>Whether the end panel is open; null = its <see cref="DockedPanel.Open"/> default.
+    /// Bound from componentState ("endOpen").</summary>
+    public bool? EndOpen { get; set; }
+
+    /// <summary>Whether the bottom panel is open; null = its <see cref="DockedPanel.Open"/> default.
+    /// Bound from componentState ("bottomOpen").</summary>
+    public bool? BottomOpen { get; set; }
+
     public virtual PageWidthStyle? PageWidth() => PageWidthStyle.FullWidth;
+
+    /// <summary>A panel docked at the END of the content (the Redwood data-management innerEnd
+    /// slot): a details pane beside the grid/gantt, which shrinks to make room (it reflows, it does
+    /// not overlay). The page adds a toggle for it to its toolbar. Null (default) = none. (Java's
+    /// DataManagement.endPanel.)</summary>
+    protected virtual DockedPanel? EndPanel() => null;
+
+    /// <summary>A panel docked UNDER the content (the Redwood data-management innerBottom slot): a
+    /// messages, log or totals strip, toggled from the toolbar like <see cref="EndPanel"/>. Null
+    /// (default) = none. (Java's DataManagement.bottomPanel.)</summary>
+    protected virtual DockedPanel? BottomPanel() => null;
+
+    /// <summary>Flips the end panel (the toolbar's toggleEndPanel action).</summary>
+    public void ToggleEndPanel() => EndOpen = !(EndPanel() is { } end && (EndOpen ?? end.Open));
+
+    /// <summary>Flips the bottom panel (the toolbar's toggleBottomPanel action).</summary>
+    public void ToggleBottomPanel() =>
+        BottomOpen = !(BottomPanel() is { } bottom && (BottomOpen ?? bottom.Open));
 
     /// <summary>The data-grid view (typically a dense table — an embedded crud/listing or a Grid).</summary>
     protected abstract IComponent GridView();
@@ -863,19 +934,73 @@ public abstract class DataManagement : IComponentTreeSupplier, IPageWidthSupplie
     public IComponent Component()
     {
         var gantt = View == "gantt";
+        var end = EndPanel();
+        var bottom = BottomPanel();
+        var endOpen = end is not null && (EndOpen ?? end.Open);
+        var bottomOpen = bottom is not null && (BottomOpen ?? bottom.Open);
         var content = new List<IComponent>();
         if (Heading is { Length: > 0 } h)
             content.Add(new Text(h) { Id = "data-management-title", Size = "xl", NoMargins = true, Style = "font-weight: 600;" });
+        var toolbar = new List<IComponent>
+        {
+            new Button(GridLabel, "switchToGrid") { Primary = !gantt },
+            new Button(GanttLabel, "switchToGantt") { Primary = gantt },
+        };
+        if (end is not null) toolbar.Add(PanelToggle(end, "toggleEndPanel", endOpen));
+        if (bottom is not null) toolbar.Add(PanelToggle(bottom, "toggleBottomPanel", bottomOpen));
         content.Add(new HorizontalLayout
         {
             Id = "data-management-toolbar", Spacing = true, Style = "align-items: center;",
-            Content =
-            [
-                new Button(GridLabel, "switchToGrid") { Primary = !gantt },
-                new Button(GanttLabel, "switchToGantt") { Primary = gantt },
-            ],
+            Content = toolbar,
         });
-        content.Add(gantt ? GanttView() : GridView());
+        var main = gantt ? GanttView() : GridView();
+        if (endOpen)
+            // the end panel REFLOWS the content: a fill track for the view + a fixed one for the
+            // panel, stacking below 48rem (the panel then goes under the view)
+            main = new ResponsiveGrid
+            {
+                Id = "data-management-body",
+                Columns = [GridTrack.Fill(), GridTrack.Fixed(end!.Size ?? "22rem")],
+                StackBelow = "48rem",
+                Content =
+                [
+                    main,
+                    Docked(end, "toggleEndPanel",
+                        "border-left: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));"
+                        + " padding-left: var(--lumo-space-m, 1rem);"),
+                ],
+            };
+        content.Add(main);
+        if (bottomOpen)
+            content.Add(Docked(bottom!, "toggleBottomPanel",
+                "border-top: 1px solid var(--lumo-contrast-10pct, rgba(0,0,0,.1));"
+                + " padding-top: var(--lumo-space-s, .5rem); max-height: "
+                + (bottom!.Size ?? "16rem") + "; overflow: auto;"));
         return new VerticalLayout { Id = "data-management", Spacing = true, Content = content };
+    }
+
+    private static Button PanelToggle(DockedPanel panel, string actionId, bool open) =>
+        new(panel.Title, actionId)
+        {
+            Id = string.IsNullOrEmpty(panel.Id) ? actionId : panel.Id + "-toggle",
+            ButtonStyle = open ? "primary" : "tertiary",
+        };
+
+    private static VerticalLayout Docked(DockedPanel panel, string closeActionId, string style)
+    {
+        var body = new List<IComponent>
+        {
+            new HorizontalLayout
+            {
+                Style = "align-items: center; width: 100%;",
+                Content =
+                [
+                    new Text(panel.Title) { Size = "m", NoMargins = true, Style = "font-weight: 600; flex: 1;" },
+                    new Button("✕", closeActionId) { ButtonStyle = "tertiary" },
+                ],
+            },
+        };
+        if (panel.Content is not null) body.Add(panel.Content);
+        return new VerticalLayout { Id = panel.Id, CssClasses = "mateu-docked-panel", Style = style, Content = body };
     }
 }

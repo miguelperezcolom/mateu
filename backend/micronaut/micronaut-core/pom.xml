@@ -4,10 +4,10 @@
 
   <parent>
     <groupId>io.mateu</groupId>
-    <artifactId>micronaut</artifactId>
+    <artifactId>mateu-micronaut-parent</artifactId>
     <version>0.0.1-MATEU</version>
   </parent>
-  <artifactId>micronaut-core</artifactId>
+  <artifactId>mateu-micronaut</artifactId>
   <packaging>jar</packaging>
 
   <name>Mateu Micronaut adapter</name>
@@ -93,7 +93,7 @@
 
     <dependency>
       <groupId>io.mateu</groupId>
-      <artifactId>core</artifactId>
+      <artifactId>mateu-core</artifactId>
       <version>${project.version}</version>
       <exclusions>
         <exclusion>
@@ -126,13 +126,13 @@
     </dependency>
     <dependency>
       <groupId>io.mateu</groupId>
-      <artifactId>integration-tests</artifactId>
+      <artifactId>mateu-integration-tests</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>io.mateu</groupId>
-      <artifactId>annotation-processor-micronaut</artifactId>
+      <artifactId>mateu-annotation-processor-micronaut</artifactId>
       <version>${project.version}</version>
       <scope>test</scope>
     </dependency>
@@ -179,7 +179,7 @@
             <!-- for the test sources only (main has no @UI): generates the test UI's controllers -->
             <path>
               <groupId>io.mateu</groupId>
-              <artifactId>annotation-processor-micronaut</artifactId>
+              <artifactId>mateu-annotation-processor-micronaut</artifactId>
               <version>${project.version}</version>
             </path>
           </annotationProcessorPaths>

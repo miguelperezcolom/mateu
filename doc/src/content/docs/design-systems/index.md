@@ -20,8 +20,8 @@ You don't have to pick just one: the identical backend can serve a web UI, a nat
 
 | Renderer | Design system | Dependency |
 |---|---|---|
-| [Vaadin](/design-systems/vaadin/) | Vaadin Lumo | `vaadin-lit` |
-| [Oracle Redwood](/design-systems/oracle-redwood/) | Oracle Redwood, on Visual Builder | `redwood` |
+| [Vaadin](/design-systems/vaadin/) | Vaadin Lumo | `mateu-vaadin` |
+| [Oracle Redwood](/design-systems/oracle-redwood/) | Oracle Redwood, on Visual Builder | `mateu-redwood` |
 
 ## Writing your own
 
@@ -42,14 +42,14 @@ Replace the renderer dependency in your `pom.xml`. For example, to switch from V
 <!-- remove -->
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>vaadin-lit</artifactId>
+    <artifactId>mateu-vaadin</artifactId>
     <version>MATEU_VERSION</version>
 </dependency>
 
 <!-- add -->
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>redwood</artifactId>
+    <artifactId>mateu-redwood</artifactId>
     <version>MATEU_VERSION</version>
 </dependency>
 ```

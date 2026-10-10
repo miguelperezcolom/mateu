@@ -4,8 +4,8 @@
 // locally started demo-vb:
 //
 //   cd demo/demo-vb
-//   mvn package -DskipTests -Dmateu.renderer=vaadin-lit && java -jar target/demo-vb-0.0.1-SNAPSHOT.jar --server.port=9206
-//   mvn package -DskipTests -Dmateu.renderer=redwood    && java -jar target/demo-vb-0.0.1-SNAPSHOT.jar --server.port=9205
+//   mvn package -DskipTests -Dmateu.renderer=mateu-vaadin && java -jar target/demo-vb-0.0.1-SNAPSHOT.jar --server.port=9206
+//   mvn package -DskipTests -Dmateu.renderer=mateu-redwood    && java -jar target/demo-vb-0.0.1-SNAPSHOT.jar --server.port=9205
 //   cd e2e && node master-tabs-check.mjs --vaadin http://localhost:9206 --redwood http://localhost:9205
 //
 // Either flag may be left out to check one renderer. Exits non-zero when a check fails.

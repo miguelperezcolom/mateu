@@ -171,7 +171,7 @@ el kit + apuntar a un Mateu → pantalla con look Redwood nativo, cero código p
   `fixtures/real/*.json`, y `test.mjs` (11 tests) valida el reducer **contra ese wire real** (los
   fixtures sintéticos se borraron). Regenerar: arrancar demo-vb (`mvn spring-boot:run`) + `node capture.mjs`.
 - Los renderers antiguos `apps/redwood` y `apps/redwood-spectra` (+ sus módulos `-lit`) fueron BORRADOS
-  en esta rama; demo-admin-panel y explorer vuelven a vaadin-lit. Regla del proyecto: **cero HTML/CSS
+  en esta rama; demo-admin-panel y explorer vuelven a mateu-vaadin. Regla del proyecto: **cero HTML/CSS
   propio — siempre componentes VB/Redwood auténticos**.
 - Resueltos del plan original: el "Replace con target desconocido cae en HOST_ID" ya no aplica (el ruteo
   es por eco del initiator + fallback por `tree.id`); `PushStateToHistory` y `DispatchEvent` ya están
@@ -1501,7 +1501,7 @@ pide SOLO las pendientes.
 ## Menús federados: la navegación tenía que volver al pod (2026-09-03)
 
 Fallo observado en `rw.ec1.mateu.io` (`ec-demo1/shell-redwood`, la MISMA shell que la Vaadin de
-`ec1.mateu.io` con `io.mateu:redwood` en lugar de `vaadin-lit`): **el menú se pintaba entero y
+`ec1.mateu.io` con `io.mateu:mateu-redwood` en lugar de `mateu-vaadin`): **el menú se pintaba entero y
 ningún crud abría**. `Booking → Bookings` contestaba un `Text` rojo "Not found.".
 
 Tres cosas rotas, en cadena. Las tres son de NAVEGACIÓN, no de expansión del menú: pedir su menú
@@ -1886,3 +1886,15 @@ tapaba contenido. El chat pasa a ser un botón de la cabecera global, como en el
   el binding declarativo de VB sobre un input nativo oculto no es fiable.
 - Capturas: `poc/shots/chat-en.png`, `chat-es-tools.png` (herramienta del turno en curso, chrome en
   español), `i18n-en-products.png`, `i18n-es-products.png`.
+
+## Huecos de patrones Redwood (2026-10-10)
+
+Cada pieza nueva del wire cae en la afordancia oj-sp que ya existe para ella (tests de contrato:
+`poc/test-patterns.mjs`): comando **Announce** → regiones vivas de `a11y.mjs`;
+**PageDto.switcher** → `selectObject`/`selectContext` del `oj-sp-header-general-overview`
+(+ `displayOptions.switcherSearch`; chain `onPageSwitch` → `_switchRecord` con `{_record}`; deshabilitado
+= sin switcher, la entrada actual como fact); **HeroSection.tone** → `background-color` `dark-<tono>`
+del welcome banner; **summary-N** del foldout → slot `summary` de `oj-sp-foldout-panel`;
+**preSearch** del Crudl → en lugar de la tabla hasta la primera búsqueda. Composición: un Drawer
+reenviado con el MISMO id sustituye al abierto; `disabled` llega a todos los botones; las rejillas
+con plantilla de slots ordenan sus hijos por área. Detalle en DESIGN-NOTES.en.md.

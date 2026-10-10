@@ -191,6 +191,9 @@ class CrudMetadata(Wire):
     #: | danger | info | neutral) tones the whole row. None = no row tones (mirrors
     #: CrudlDto.rowStatusField).
     row_status_field: str | None = None
+    #: Shown in place of the results until the first search has run (the Redwood
+    #: smart-filter-search ``dashboard`` slot); None = none (mirrors CrudlDto.preSearch).
+    pre_search: "list[Component] | None" = None
 
 
 class ComponentEntryRecord(Wire):

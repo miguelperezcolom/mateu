@@ -12,7 +12,7 @@
     <artifactId>demo-vb-pms</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>demo-vb-pms</name>
-    <description>PMS de referencia tipo OPERA Cloud sobre el renderer Redwood (io.mateu:redwood):
+    <description>PMS de referencia tipo OPERA Cloud sobre el renderer Redwood (io.mateu:mateu-redwood):
         pantallas que imitan las de OPERA con datos ficticios en memoria y sin lógica de negocio real,
         para verificar que Redwood dibuja lo que un PMS necesita (Room Diary, Property Availability,
         búsqueda en consola, detalle de reserva, check-in, facturación, pisos, calendario, dashboard,
@@ -21,7 +21,7 @@
         <!-- Tracks master: install the backend first (cd backend && mvn install -DskipTests).
              This demo uses features newer than the last release. -->
         <mateu.version>0.0.1-MATEU</mateu.version>
-        <mateu.renderer>redwood</mateu.renderer>
+        <mateu.renderer>mateu-redwood</mateu.renderer>
         <java.version>21</java.version>
     </properties>
     <dependencies>
@@ -44,18 +44,18 @@
         <!-- here mateu dependencies -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>annotation-processor-mvc</artifactId>
+            <artifactId>mateu-annotation-processor-mvc</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>mvc-core</artifactId>
+            <artifactId>mateu-mvc</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <!-- exportación a Excel de los listados (Listing.excelExportable) -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>export-excel</artifactId>
+            <artifactId>mateu-export-excel</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <!-- el renderer VB/Redwood empaquetado: sirve la app VB optimizada en la raíz -->
@@ -98,7 +98,7 @@
                                 </path>
                                 <path>
                                     <groupId>io.mateu</groupId>
-                                    <artifactId>annotation-processor-mvc</artifactId>
+                                    <artifactId>mateu-annotation-processor-mvc</artifactId>
                                     <version>${mateu.version}</version>
                                 </path>
                             </annotationProcessorPaths>
@@ -118,7 +118,7 @@
                                 </path>
                                 <path>
                                     <groupId>io.mateu</groupId>
-                                    <artifactId>annotation-processor-mvc</artifactId>
+                                    <artifactId>mateu-annotation-processor-mvc</artifactId>
                                     <version>${mateu.version}</version>
                                 </path>
                             </annotationProcessorPaths>

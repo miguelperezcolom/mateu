@@ -5,7 +5,12 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-/** Created by miguel on 18/1/17. */
+/**
+ * Wires the AI assistant chat panel (and the MCP endpoint it drives) into the app shell.
+ *
+ * <p>Experimental: the AI chat / MCP integration may change in a minor release.
+ */
+@Experimental("AI chat panel and MCP wiring")
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE}) // can use in method only.
 public @interface AI {

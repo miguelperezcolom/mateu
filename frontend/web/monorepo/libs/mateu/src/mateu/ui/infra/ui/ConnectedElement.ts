@@ -235,6 +235,12 @@ export default abstract class ConnectedElement extends LitElement {
             // "navigation happened, and here is its name" signal available to every renderer.
             announce(document.title)
         }
+        if ('Announce' == command.type) {
+            // the backend's announcement (the Redwood `announcement` slot): what just happened,
+            // for a screen-reader user, when nothing on screen takes focus. Draws nothing.
+            const data = command.data as { text?: string, assertive?: boolean } | undefined
+            if (data?.text) announce(data.text, { politeness: data.assertive ? 'assertive' : 'polite' })
+        }
         if ('SetFavicon' == command.type) {
             this.changeFavicon(command.data as string)
         }

@@ -1,5 +1,45 @@
 # Auditoría de cobertura de los page templates de Redwood/VB
 
+> **Actualización 2026-10-10 (rama `feat/pattern-gaps`).** Los 12 deltas que seguían abiertos
+> (§2) se han cerrado o decidido, con paridad Java / .NET / Python y en los cuatro renderers
+> abiertos — Vaadin, Redwood, React Native e IntelliJ —, *patterns sí, estilo de Oracle no*: cada
+> renderer los pinta con su propio sistema de diseño. El estado actual está en §0; el resto del
+> documento se conserva como el histórico que justificó el trabajo.
+
+## 0. Estado actual (2026-10-10)
+
+| # | Delta | Decisión y superficie de autoría | Wire | Estado |
+|---|---|---|---|---|
+| 1 | `displayOptions` | `Toggle {on, off, disabled}` + **un record por arquetipo** devuelto por `display()`: `WizardDisplay(saveDraft, saveAndClose, skip)`, `CrudDisplay(create, delete, saveAndNext, errorBanner)`, `GeneralOverviewDisplay(info, promoteInfoSlot)`. Se consume en servidor al componer (`disabled` = botón deshabilitado y rechazado en servidor; `off` = no viaja). **No** se inventan records para los arquetipos sin affordances que conmutar: sería superficie sin comportamiento. Los gates existentes (`canX`, `@Not*`) siguen decidiendo si la affordance existe | — | ✅ |
+| 2 | Slot `info` de `GeneralOverview` | `info(row, rq)` + `infoWidth()` + `promoteInfoSlot`; compuesto en el `ResponsiveGrid` único (`"main info"`, apila bajo 48rem; promote = info primero en el DOM) | — | ✅ (Redwood: sin promote al apilar) |
+| 3 | Wizard transaccional | `Draftable {saveDraft, closeDraft, resumeStep}` → "Save" / "Save and close" + reanudación; `stepSkippable(step)` → "Skip"; `@WizardCompletionAction(availableFromStep)` | — | ✅ |
+| 4 | Create-edit drawer | `CrudDisplay.saveAndNext` (+ `nextIdAfter(id, rq)`, `saveAndNextLabel()`): reenvía el drawer con el MISMO id (se refresca in situ) para la fila siguiente; `CrudDisplay.errorBanner`: un save fallido reenvía el drawer con un `Notice` danger + lo tecleado + anuncio asertivo | — (contrato "mismo `Drawer.id` refresca in situ", ahora en los 4 renderers) | ✅ |
+| 5 | Foldout `summary` | `FoldoutPanel.summary` + `Foldout.panelSummary(field)` | hijo con slot `summary-N` | ✅ |
+| 6 | DataManagement: paneles acoplados | `DockedPanel(id, title, content, size, open)` vía `endPanel(rq)` / `bottomPanel(rq)`; *reflow* (variante `inner`), toggles en la toolbar, estado en la página. La variante `outer`/overlay = devolver un `Drawer` desde una acción (ya existía) | — | ✅ inner / 🟡 outer |
+| 7 | Switcher genérico | `RecordSwitcherSupplier {switcher(rq), switchTo(value, rq)}` + `RecordSwitcher(options, value, type: object\|context, label, searchable, disabled)` en CUALQUIER página con cabecera. `GeneralOverview` conserva su switcher de cuerpo (compatibilidad) | `PageDto.switcher` + acción `_switchRecord` (`_record`) | ✅ |
+| 8 | Eventos `before*` cancelables | `Wizard.beforeStepNavigate(from, to, rq)`: null = seguir, cualquier otra cosa cancela y es la respuesta (next/back/skip/goToStep/completion) | — | ✅ |
+| 9 | Affordances de sección | `@Section(editAction, addAction, viewMoreAction)` → botones Add/Edit en la fila del título, "View more" bajo el contenido | — | ✅ |
+| 10 | Paleta de tonos del Welcome | `HeroTone` (ocean, pine, lilac, teal, rose, pebble, slate, plum, sienna, auto) vía `Welcome.heroTone()` / `@WelcomeBanner(tone)`; paleta PROPIA de Mateu en los renderers abiertos, `dark-<tone>` en Redwood | `HeroSectionDto.tone` | ✅ |
+| 11 | Slot `announcement` | `UICommand.announce(text)` / `announceAssertive(text)` | comando `Announce {text, assertive}` | ✅ |
+| 12 | Contenido pre-búsqueda | `SmartSearchPage.preSearchContent(rq)` / `Listing.preSearch` | `CrudlDto.preSearch` | ✅ |
+
+Tests: `WizardTransactionalSyncTest`, `CrudDisplaySyncTest`, `PageSlotsSyncTest`,
+`PageAffordancesSyncTest` (Java); `PatternGapsTests` (.NET); `test_pattern_gaps.py` (Python);
+`recordSwitcherModel`/`listingPreSearch`/`heroRenderer`/`mateu-drawer.state` (vitest);
+`poc/test-patterns.mjs` (Redwood); `patternGaps.test.ts` (RN); `PageSlotsTest` +
+`PageSlotsRenderTest` (IntelliJ). Escaparate en el SUT: `mvc-app1` `/patterns/*` +
+`e2e/patterns-shots.mjs`.
+
+Un defecto real salió al conducir el drawer de edición en un navegador (no lo veía ningún test
+en JVM): el formulario de un drawer cliente no tenía `mateu-component` propio, así que su Save
+llegaba al CRUD con solo los campos TOCADOS — sin id — y cada re-render del dueño re-sembraba el
+drawer desde `initialData`, borrando lo tecleado. Arreglado en `mateu-drawer` (sus valores viajan
+como `initiatorState`).
+
+**Lo que queda abierto, a propósito:** variantes `outer` de los paneles de DataManagement como
+slot (se cubren con `Drawer`), `suggestions`/hotspot del hero search, `timer` del
+step-by-step, y los `⚪` de siempre (feedback, version history, content library).
+
 > **Fecha:** 2026-08-12. **Fuente de la superficie real:** `design/vb-page-template-apis.md`
 > (34 componentes extraídos de los loaders de `oj-sp` 2604.1.0 del CDN de Oracle, 2026-07-30).
 > **Pregunta que responde:** ¿entendemos y soportamos los parámetros y slots de *todos* los page
@@ -17,7 +57,7 @@
 | Dimensión | Estado |
 |---|---|
 | **Cobertura de templates** (¿existe el arquetipo?) | ✅ **completa** — 19 familias VB en alcance ↔ 21 arquetipos Mateu |
-| **Cobertura de parámetros y slots** | ❌ **los 14 gaps conocidos siguen abiertos** (ninguno ha aterrizado desde el 30-jul) |
+| **Cobertura de parámetros y slots** | ✅ **2026-10-10: los 14 cerrados o decididos** (§0); en agosto seguían abiertos los 14 |
 | **Cobertura documental** | ✅ **cerrada 2026-08-12** — las 14 guías tienen ya su *Redwood parameter and slot reference* (era el hueco real: antes ninguna la tenía) |
 
 La conclusión práctica es que el problema **no es de soporte sino de superficie declarada**: los
@@ -37,17 +77,17 @@ slots de cada template soporta Mateu y cuáles no.
 | `smart-search-page` (+ smart-filter-search) | `SmartSearchPage` | ✅ |
 | `dashboard-landing-page` (+ grid/panel/scoreboard) | `Dashboard` | ✅ |
 | `guided-process` | `Wizard` + `@WizardProgress(RAIL)` | ✅ |
-| Los 4 (5) drawer templates | `Drawer` + `editInDrawer()` | 🟡 create-edit incompleto |
-| `data-management-page` | `DataManagement` | 🟡 sin paneles acoplables |
+| Los 4 (5) drawer templates | `Drawer` + `editInDrawer()` | ✅ (2026-10-10: save-and-next + error banner) |
+| `data-management-page` | `DataManagement` | ✅ inner / 🟡 outer (2026-10-10: `DockedPanel`) |
 | `task-organizer-page` | `TodoList` | ✅ **cubierto entero** |
-| `calendar` | `CalendarPage` | 🟡 solo vista mes |
-| `foldout-layout` + `foldout-panel` | `Foldout` | 🟡 sin slot `summary` |
+| `calendar` | `CalendarPage` | 🟡 vistas mes/semana/día/lista ✅ (2026-10-10); sin template slots de evento |
+| `foldout-layout` + `foldout-panel` | `Foldout` | ✅ (2026-10-10: `summary`) |
 | `advanced-create-edit` + headers transaccionales | `@Toc`/`@Aside` + header canónico | 🟡 |
 | `collection-container` | `Crud`/`Listing` | ✅ **espejo casi 1:1** |
-| `section` / `detail-panel` | `@Section` / `AutoEditableView` | 🟡 sin affordances de sección |
+| `section` / `detail-panel` | `@Section` / `AutoEditableView` | ✅ (2026-10-10: edit/add/viewMore) |
 | `simple-ui-shell` | app shell + `@PageWidth` | ✅ `PageWidthStyle` 1:1 |
 | `hero-search-page` | `HeroSearch` | 🟡 sin `suggestions` ni hotspot |
-| `step-by-step-page` / `configuration-drawer` | `Wizard` / — | 🟡 sin timer ni finishLater |
+| `step-by-step-page` / `configuration-drawer` | `Wizard` / — | 🟡 finishLater ≈ `Draftable` save-and-close; sin timer |
 | `canvas-page`, `visual-space`, `diagram-builder`… | — | ⚪ fuera de alcance a propósito (§2.19) |
 
 **No falta ningún template.** Todo 🟡 de esta tabla es un gap de *parámetros/slots*, que es la

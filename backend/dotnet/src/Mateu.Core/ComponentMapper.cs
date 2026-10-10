@@ -32,7 +32,11 @@ public static class ComponentMapper
         ContentLayout cl => MapContentLayout(cl),
 
         HeroSection h => Dto(h,
-            new HeroSectionMetadataDto(h.Title, h.Subtitle, h.Image, h.Height, h.Centered),
+            new HeroSectionMetadataDto(h.Title, h.Subtitle, h.Image, h.Height, h.Centered)
+            {
+                // Auto = the default look: nothing on the wire (Java's HeroSectionMapper)
+                Tone = h.Tone == HeroTone.Auto ? null : LowerName(h.Tone),
+            },
             h.Content.Select(Map)),
 
         EmptyState e => Dto(e, new EmptyStateMetadataDto(e.Icon, e.Title, e.Description, e.ActionId, e.ActionLabel)),
@@ -212,7 +216,10 @@ public static class ComponentMapper
 
         Separator sep => Dto(sep, new SeparatorMetadataDto()),
         Anchor a => Dto(a, new AnchorMetadataDto(a.Text, a.Url, a.Target)),
-        Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId) { ButtonStyle = b.Primary ? "primary" : null, Parameters = b.Parameters, Disabled = b.Disabled }),
+        Button b => Dto(b, new ButtonMetadataDto(b.Label, b.ActionId)
+        {
+            ButtonStyle = b.ButtonStyle ?? (b.Primary ? "primary" : null), Disabled = b.Disabled, Parameters = b.Parameters,
+        }),
         Card c => Dto(c, new CardMetadataDto(c.Content is null ? null! : Map(c.Content)) { Title = c.Title }),
         HorizontalLayout hl => Dto(hl, new HorizontalLayoutMetadataDto { Spacing = hl.Spacing }, hl.Content.Select(Map)),
         VerticalLayout vl => Dto(vl, new VerticalLayoutMetadataDto { Spacing = vl.Spacing }, vl.Content.Select(Map)),
@@ -296,6 +303,9 @@ public static class ComponentMapper
             infos.Add(new FoldoutPanelInfoDto(panel.Title, panel.Subtitle, panel.Icon, panel.Open, panel.Width));
             if (panel.Content is not null)
                 children.Add(Map(panel.Content) with { Slot = $"panel-{i}" });
+            // the folded strip's digest (the Redwood foldout-panel summary slot)
+            if (panel.Summary is not null)
+                children.Add(Map(panel.Summary) with { Slot = $"summary-{i}" });
         }
         var meta = new FoldoutLayoutMetadataDto(infos)
         {
@@ -372,6 +382,7 @@ public static class ComponentMapper
             case FoldoutLayout f:
                 if (f.Overview is not null) Collect(f.Overview, ids);
                 foreach (var p in f.Panels.Where(p => p.Content is not null)) Collect(p.Content!, ids);
+                foreach (var p in f.Panels.Where(p => p.Summary is not null)) Collect(p.Summary!, ids);
                 if (f.Navigation is { } nav)
                     foreach (var a in new[] { nav.ParentActionId, nav.PreviousActionId, nav.NextActionId })
                         if (!string.IsNullOrEmpty(a)) ids.Add(a);

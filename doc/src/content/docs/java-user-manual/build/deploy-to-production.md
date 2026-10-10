@@ -10,7 +10,7 @@ what is specific to Mateu.
 
 ## 1. Package
 
-Package exactly as the framework expects; the renderer (`vaadin-lit` or `redwood`) is a jar of static
+Package exactly as the framework expects; the renderer (`mateu-vaadin` or `mateu-redwood`) is a jar of static
 assets on the classpath and travels inside your artifact.
 
 | Runtime | Build | Run |
@@ -25,7 +25,7 @@ Checks before you ship:
 - **Pin `mateu.version`** to a release and keep every `io.mateu` artifact on that same version.
 - The Mateu **annotation processor ran**: the jar contains one generated controller per `@UI` class
   (`*MateuController`). An app whose processor did not run boots fine and answers 404 everywhere.
-- For a multi-module app, the UI modules were compiled with `annotation-processor-indexer` and are on
+- For a multi-module app, the UI modules were compiled with `mateu-annotation-processor-indexer` and are on
   the app's `annotationProcessorPaths` (see [service-owned UI modules](/java-user-manual/real-world/service-owned-ui-modules/)).
 - Helidon MP: the app has a `META-INF/beans.xml` and `jersey-media-json-jackson` on the runtime
   classpath — without them every route answers 404 or the UI renders empty.

@@ -111,6 +111,8 @@ from mateu_dtos import (
 from mateu_uidl import components as fluent
 
 from ..registry import normalize
+from mateu_uidl.patterns import hero_tone_wire
+
 from ._base import MixinBase
 
 
@@ -203,6 +205,11 @@ class ComponentMapperMixin(MixinBase):
                     child = self.map_component(panel.content)
                     child.slot = f"panel-{i}"
                     children.append(child)
+                if panel.summary is not None:
+                    # the folded strip's digest (the Redwood foldout-panel summary slot)
+                    summary = self.map_component(panel.summary)
+                    summary.slot = f"summary-{i}"
+                    children.append(summary)
             return self._fluent_client(
                 FoldoutLayoutMetadata(
                     panels=infos,
@@ -245,7 +252,8 @@ class ComponentMapperMixin(MixinBase):
             )
         if isinstance(c, fluent.HeroSection):
             meta = HeroSectionMetadata(
-                title=c.title, subtitle=c.subtitle, image=c.image, height=c.height, centered=c.centered
+                title=c.title, subtitle=c.subtitle, image=c.image, height=c.height,
+                centered=c.centered, tone=hero_tone_wire(c.tone),
             )
             return self._fluent_client(meta, c, [self.map_component(i) for i in c.content])
         if isinstance(c, fluent.EmptyState):

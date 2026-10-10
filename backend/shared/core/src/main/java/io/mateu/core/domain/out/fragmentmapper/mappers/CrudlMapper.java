@@ -146,6 +146,21 @@ public class CrudlMapper {
                                 initiatorComponentId,
                                 httpRequest))
                     .toList())
+            .preSearch(
+                crudl.preSearch().isEmpty()
+                    ? null
+                    : crudl.preSearch().stream()
+                        .map(
+                            component ->
+                                mapComponentToDto(
+                                    null,
+                                    component,
+                                    baseUrl,
+                                    route,
+                                    consumedRoute,
+                                    initiatorComponentId,
+                                    httpRequest))
+                        .toList())
             .footer(
                 crudl.footer().stream()
                     .map(

@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import java.util.Map;
 
 /**
@@ -25,6 +26,7 @@ import java.util.Map;
  * @param name the environment's name ({@code pre}, {@code pro}…)
  * @param sources source name → what this environment changes about it
  */
+@Experimental("environments (type: Environment)")
 public record Environment(String name, Map<String, Environment.SourceOverride> sources) {
 
   public Environment {

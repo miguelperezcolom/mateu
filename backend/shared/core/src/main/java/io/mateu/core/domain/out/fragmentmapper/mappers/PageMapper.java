@@ -38,6 +38,22 @@ public class PageMapper {
         banner.timeoutSeconds());
   }
 
+  /** The header's record/context switcher, or null. */
+  static io.mateu.dtos.RecordSwitcherDto mapSwitcher(io.mateu.uidl.data.RecordSwitcher switcher) {
+    if (switcher == null) {
+      return null;
+    }
+    return io.mateu.dtos.RecordSwitcherDto.builder()
+        .options(switcher.options().stream().map(FieldMapper::mapOption).toList())
+        .value(switcher.value())
+        .type(switcher.type().name())
+        .label(switcher.label())
+        .searchable(switcher.searchable())
+        .disabled(switcher.disabled())
+        .actionId(io.mateu.uidl.interfaces.RecordSwitcherSupplier.ACTION_ID)
+        .build();
+  }
+
   private static FabDto mapToFabDto(UserTrigger trigger) {
     if (trigger instanceof Button b) {
       return FabDto.builder()
@@ -158,6 +174,7 @@ public class PageMapper {
                         page.peerNav().nextLabel(),
                         page.peerNav().nextRoute())
                     : null)
+            .switcher(mapSwitcher(page.switcher()))
             .pageWidth(PageWidthResolver.toWireName(page.pageWidth()))
             .pageType(PageTypeResolver.toWireName(page.pageType()))
             .build();

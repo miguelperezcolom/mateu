@@ -3548,6 +3548,9 @@
         "content" : {
           "$ref" : "#/$defs/Component"
         },
+        "summary" : {
+          "$ref" : "#/$defs/Component"
+        },
         "style" : {
           "type" : "string"
         },
@@ -4606,6 +4609,9 @@
         "centered" : {
           "type" : "boolean"
         },
+        "tone" : {
+          "$ref" : "#/$defs/HeroTone"
+        },
         "content" : {
           "type" : "array",
           "items" : {
@@ -4635,6 +4641,10 @@
           "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
+    },
+    "HeroTone" : {
+      "type" : "string",
+      "enum" : [ "auto", "ocean", "pine", "lilac", "teal", "rose", "pebble", "slate", "plum", "sienna" ]
     },
     "HorizontalAlignment" : {
       "type" : "string",
@@ -5074,6 +5084,12 @@
           }
         },
         "footer" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
+        },
+        "preSearch" : {
           "type" : "array",
           "items" : {
             "$ref" : "#/$defs/Component"

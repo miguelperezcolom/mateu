@@ -1,6 +1,6 @@
 ---
 name: mateu-scaffold
-description: Scaffold a new Mateu project or module and wire the Maven build correctly — the two-step annotation processing (indexer + framework AP), the renderer dependency, and the Spring Boot main class. Use when starting a new Mateu app, adding a framework-agnostic @UI module, or fixing "my @UI class compiles but no controller is generated / the route 404s / nothing renders". Triggers on new Mateu project, pom.xml, annotationProcessorPaths, annotation-processor-indexer, annotation-processor-mvc, mvc-core, vaadin-lit.
+description: Scaffold a new Mateu project or module and wire the Maven build correctly — the two-step annotation processing (indexer + framework AP), the renderer dependency, and the Spring Boot main class. Use when starting a new Mateu app, adding a framework-agnostic @UI module, or fixing "my @UI class compiles but no controller is generated / the route 404s / nothing renders". Triggers on new Mateu project, pom.xml, annotationProcessorPaths, mateu-annotation-processor-indexer, mateu-annotation-processor-mvc, mateu-mvc, mateu-vaadin.
 ---
 
 # Scaffolding a Mateu project
@@ -26,10 +26,10 @@ Spring (or Quarkus/…) dependency, or when several apps/services reuse them (se
 Annotation processors only see the **sources of the module being compiled**. So:
 
 1. A **framework-agnostic `@UI` module** must run the **indexer** AP
-   (`io.mateu:annotation-processor-indexer`) — it writes `META-INF/mateu/ui-registrations`
+   (`io.mateu:mateu-annotation-processor-indexer`) — it writes `META-INF/mateu/ui-registrations`
    into the jar so downstream apps can discover its screens without the sources.
 2. The **app module** must put, on `annotationProcessorPaths`, **both** the framework AP
-   (`io.mateu:annotation-processor-mvc`) **and** every `@UI` module it consumes — the
+   (`io.mateu:mateu-annotation-processor-mvc`) **and** every `@UI` module it consumes — the
    framework AP reads each module's index off the classpath and generates the controllers
    *in the app*.
 
@@ -38,16 +38,16 @@ Annotation processors only see the **sources of the module being compiled**. So:
 
 ## Runtime + renderer dependencies (app module)
 
-The app needs the runtime (`io.mateu:mvc-core`) and one renderer jar so the UI is served:
+The app needs the runtime (`io.mateu:mateu-mvc`) and one renderer jar so the UI is served:
 
 ```xml
-<dependency><groupId>io.mateu</groupId><artifactId>mvc-core</artifactId><version>${mateu.version}</version></dependency>
-<dependency><groupId>io.mateu</groupId><artifactId>vaadin-lit</artifactId><version>${mateu.version}</version></dependency>
+<dependency><groupId>io.mateu</groupId><artifactId>mateu-mvc</artifactId><version>${mateu.version}</version></dependency>
+<dependency><groupId>io.mateu</groupId><artifactId>mateu-vaadin</artifactId><version>${mateu.version}</version></dependency>
 ```
 
-- `mvc-core` = the Spring MVC runtime (the `/mateu/v3/sync` endpoint, `SpaRedirectFilter`).
-- `vaadin-lit` = the default renderer, served as static resources by Spring Boot (swap for
-  `redwood`, the Redwood/Visual Builder renderer — the sapui5/redhat/slds renderers were retired). See the `run` step below and the
+- `mateu-mvc` = the Spring MVC runtime (the `/mateu/v3/sync` endpoint, `SpaRedirectFilter`).
+- `mateu-vaadin` = the default renderer, served as static resources by Spring Boot (swap for
+  `mateu-redwood`, the Redwood/Visual Builder renderer — the sapui5/redhat/slds renderers were retired). See the `run` step below and the
   standalone/CDN options in `doc/.../mateu-about/standalone-desktop.md`.
 
 Other stacks replace the `mvc` pair: `webflux`, `quarkus`, `micronaut`, `helidon-mp`

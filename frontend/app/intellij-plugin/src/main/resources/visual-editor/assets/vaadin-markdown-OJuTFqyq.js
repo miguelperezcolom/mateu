@@ -1,1 +1,0 @@
-import"./vaadinCanvasRenderer-DTBJ_RnY.js";

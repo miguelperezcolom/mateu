@@ -1,5 +1,7 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
+
 /**
  * The project descriptor ({@code specs/ui/project.yaml}, {@code type: Project}): the settings that
  * are true of the whole PROJECT rather than of one mount or one page — today, the renderer.
@@ -18,6 +20,7 @@ package io.mateu.uidl.data;
  * @param renderer the renderer the project paints with; {@code null} reads as {@link
  *     ProjectRenderer#vaadin}
  */
+@Experimental("the project descriptor (project.yaml)")
 public record ProjectSettings(ProjectRenderer renderer) {
 
   /** The {@code type} discriminator of the descriptor file. */

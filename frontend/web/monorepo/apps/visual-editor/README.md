@@ -55,7 +55,7 @@ with real rows.
 
 **The Redwood canvas** (`canvas/redwood-frame.ts`) is not a component renderer: Redwood's runtime is a
 whole Visual Builder app, so the canvas frames it. `redwood-preview.html` (`src/redwood/previewPage.ts`)
-boots the packaged app of `io.mateu:redwood` (its `_index.html` + `_redwood/`, served under `redwood/`)
+boots the packaged app of `io.mateu:mateu-redwood` (its `_index.html` + `_redwood/`, served under `redwood/`)
 in **editor-preview mode** (`apps/redwood/poc/editorPreview.mjs`). It replays the parked boot scripts
 the way the generated controller does. The canvas computes the increment as usual (`__preview__`,
 or the client-side expander with no backend) and posts it to the frame (`canvas/redwoodProtocol.ts`).

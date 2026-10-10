@@ -7,6 +7,19 @@ namespace Mateu.Dtos;
 /// (Mirrors io.mateu.dtos.PeerNavDto.)</summary>
 public record PeerNavDto(string? PrevLabel, string? PrevRoute, string? NextLabel, string? NextRoute);
 
+/// <summary>The record/context switcher of the page header (the Redwood selectObject/selectContext
+/// element). Picking an option dispatches <see cref="ActionId"/> with the picked value in the
+/// <c>_record</c> parameter. Type: "object" (the record shown) | "context" (what the page is
+/// evaluated in). (Mirrors io.mateu.dtos.RecordSwitcherDto.)</summary>
+public record RecordSwitcherDto(
+    IReadOnlyList<OptionDto> Options,
+    string? Value,
+    string Type,
+    string? Label,
+    bool Searchable,
+    bool Disabled,
+    string ActionId);
+
 public record PageMetadataDto(
     string? Title,
     string? PageTitle,
@@ -40,6 +53,10 @@ public record PageMetadataDto(
     /// <summary>Previous/next peer-object arrows in the page header; null when the page supplies
     /// none. (Mirrors io.mateu.dtos.PageDto.peerNav.)</summary>
     public PeerNavDto? PeerNav { get; init; }
+    /// <summary>The record/context switcher of the header (IRecordSwitcherSupplier); null — and
+    /// omitted — when the page supplies none. (Mirrors io.mateu.dtos.PageDto.switcher.)</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public RecordSwitcherDto? Switcher { get; init; }
     /// <summary>The page's "last updated" timestamp shown in the header (from a [Timestamp]
     /// property); null when the page declares none. (Mirrors io.mateu.dtos.PageDto.timestamp.)</summary>
     public string? Timestamp { get; init; }

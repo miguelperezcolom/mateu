@@ -169,6 +169,8 @@ public final class WireTypes {
           "WidgetSupplier",
           "PageWidthSupplier",
           "PeerNavigationSupplier",
+          "RecordSwitcherSupplier",
+          "Draftable",
           "GroupActions",
           "GroupActionVisibility",
           "CommandSupplier",

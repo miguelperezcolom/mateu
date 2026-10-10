@@ -147,4 +147,18 @@ class ActionHandlerMixin(MixinBase):
                     cmd = cmd.model_copy(update={"target_component_id": self.target(rq)})
                 commands.append(cmd)
             return UIIncrement.of(commands=commands)
+        if isinstance(result, (list, tuple)) and result:
+            # A mixed collection (a message + commands + an overlay...): each element maps on its
+            # own and the increments merge in order (Java's FragmentListMapper + CommandMapper
+            # over an action returning a Collection).
+            merged = UIIncrement.of()
+            for item in result:
+                part = self.map_result(item, rq)
+                merged = merged.model_copy(update={
+                    "commands": list(merged.commands) + list(part.commands),
+                    "messages": list(merged.messages) + list(part.messages),
+                    "fragments": list(merged.fragments) + list(part.fragments),
+                    "banners": list(merged.banners) + list(part.banners),
+                })
+            return merged
         return UIIncrement.of()

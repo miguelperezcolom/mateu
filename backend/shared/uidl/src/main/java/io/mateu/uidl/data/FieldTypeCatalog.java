@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Optional;
@@ -9,6 +10,7 @@ import java.util.Optional;
  * producers feed it exactly like the REST source catalogue: {@code specs/ui/types.yaml} (authored)
  * and {@code FieldTypeCatalogSupplier} beans (code); authored wins, entry by entry.
  */
+@Experimental("field types (types.yaml)")
 public record FieldTypeCatalog(List<FieldTypeEntry> types) {
 
   public FieldTypeCatalog {

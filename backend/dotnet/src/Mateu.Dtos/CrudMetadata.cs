@@ -49,6 +49,12 @@ public record CrudMetadataDto(
     /// (success | warning | danger | info | neutral) tones the whole row. Null = no row tones
     /// (mirrors CrudlDto.rowStatusField).</summary>
     public string? RowStatusField { get; init; }
+
+    /// <summary>Shown in place of the results until the first search has run (the Redwood
+    /// smart-filter-search dashboard slot); null — and omitted — when none (mirrors
+    /// CrudlDto.preSearch).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<ComponentDto>? PreSearch { get; init; }
 }
 
 /// <summary>A column of a listing or grid field. On the wire it is a ClientSide component (Java's

@@ -7,7 +7,7 @@ import {
 import { answerPlayCall, routeOfHash } from '../model/redwoodPlay'
 
 /**
- * Play, in Redwood: the REAL Redwood renderer (the Visual Builder app of io.mateu:redwood) running
+ * Play, in Redwood: the REAL Redwood renderer (the Visual Builder app of io.mateu:mateu-redwood) running
  * the whole mount in an iframe — the same page as the Redwood canvas, in play mode. Unlike the
  * canvas it is not inert: the menu navigates, rows open records, buttons run. Its backend is this
  * element: every `/mateu/v3/…` call the app makes arrives here (`call`) and is answered from the

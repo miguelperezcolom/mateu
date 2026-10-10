@@ -14,6 +14,7 @@ import {reportClientError} from "@infra/http/clientErrorReporter.ts";
 import {StaleResponse} from "@infra/ui/staleViewGuard.ts";
 import { getAuthToken, sessionId } from '@infra/http/authToken.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { observeWireVersion } from '@infra/http/wireVersion.ts'
 
 let abortControllers: AbortController[] = []
 
@@ -319,7 +320,10 @@ export class AxiosMateuApiClient implements MateuApiClient {
         }
         const idempotent = isIdempotentAction(actionId, options.idempotent)
         const send = () => this.post(uri, payload, options.timeoutMillis, options.isStale)
-            .then((response) => response.data as UIIncrement)
+            .then((response) => {
+                observeWireVersion(response.data)
+                return response.data as UIIncrement
+            })
         return await this.wrap<UIIncrement>(
             () => this.sendWithRetry(send, idempotent, options.quiet, options.isStale), initiator, background,
             actionId, options.retry, options.quiet, options.isStale)
