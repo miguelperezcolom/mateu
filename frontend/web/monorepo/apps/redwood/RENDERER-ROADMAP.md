@@ -144,7 +144,6 @@ se cerraron las diferencias con `libs/mateu/.../mateu-chat.ts`.)
 | Proyección de la pantalla para el agente (campos + acciones, como MCP) | ✅ `projectChatScreen` (port de `screenContext.ts`) |
 | `mcpUrl` (`@AI(mcp)`) | ✅ |
 | Adjuntos (`@AI(upload)`): botón, subida con token, chips con ✕ | ✅ `chatAttach` + `uploadChatFiles` |
-| Agente local (companion en 127.0.0.1:8776, `/health`) + insignia | ✅ `probeLocalAgent` + `effectiveChatUrl` |
 | Markdown en las respuestas, enlaces a pantallas dentro de la shell | ✅ `chatMarkdownToHtml` + `chatRouteOfLink` |
 | Fila de estado (fase, herramienta en curso, «Thinking… N s») | ✅ `chatStatusText` |
 | Herramientas del turno (hechas/fallidas/en marcha, con tiempo) | ✅ `chatToolStepsOf` |

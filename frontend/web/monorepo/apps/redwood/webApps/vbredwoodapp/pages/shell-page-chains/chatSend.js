@@ -100,12 +100,7 @@ define([
       let failure = null;
       try {
         accumulated = await bridge.streamChat({
-          // el agente LOCAL si contestó a /health al abrir el panel (sin api key), si no el sseUrl
-          url: bridge.effectiveChatUrl({
-            localAgentAlive: vars.mateuChatLocalAgent,
-            localAgentUrl: bridge.LOCAL_AGENT_URL,
-            sseUrl: vars.mateuChatSseUrl,
-          }),
+          url: vars.mateuChatSseUrl,
           // el agente actúa como quien pregunta: el token de la sesión (el stream no pasa por
           // fetchWithPolicy, que es quien lo pone en el resto del tráfico). Una función, leída en
           // cada envío: tras un 401 se pide reautenticar y el reenvío lleva el token nuevo
