@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.fluent.Component;
 import java.util.List;
 import lombok.Builder;
@@ -17,6 +18,7 @@ import lombok.Builder;
  * parameters}) through the standard action mechanism, like any button.
  */
 @Builder
+@Experimental("action panel (3.0-alpha.409)")
 public record ActionPanel(
     String id,
     String label,

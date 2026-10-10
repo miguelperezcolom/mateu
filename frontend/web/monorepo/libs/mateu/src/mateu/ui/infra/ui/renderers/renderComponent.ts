@@ -4,6 +4,7 @@ import { ComponentType } from "@mateu/shared/apiClients/dtos/ComponentType";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import { componentRenderer } from "@infra/ui/renderers/ComponentRenderer.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
+import { isNodeIdStamping, stampNodeId } from "@infra/ui/renderers/nodeIdStamp.ts";
 
 interface RoutedContainer extends LitElement {
     route: string
@@ -20,7 +21,9 @@ export const renderComponent = (container: LitElement, component: Component, bas
         return html``;
     }
     if (component.type == ComponentType.ClientSide ) {
-        return componentRenderer.get()!.renderClientSideComponent(container, component as ClientSideComponent, baseUrl, state, data, appState, appData, labelAlreadyRendered)
+        const painted = componentRenderer.get()!.renderClientSideComponent(container, component as ClientSideComponent, baseUrl, state, data, appState, appData, labelAlreadyRendered)
+        // the visual editor maps a canvas click back to its node through this id (editor only)
+        return isNodeIdStamping() && component.id ? html`${stampNodeId(component.id, painted)}` : painted
     }
     const route = (container as RoutedContainer).route
     const consumedRoute = (container as RoutedContainer).consumedRoute

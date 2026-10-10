@@ -103,7 +103,10 @@ class MateuBomCompletenessTest {
         String content = Files.readString(pom);
         String header = content.replaceAll("(?s)<parent>.*?</parent>", "");
         boolean aggregator = header.contains("<packaging>pom</packaging>");
-        boolean plugin = header.contains("<packaging>maven-plugin</packaging>");
+        // A Maven plugin or an archetype is never a dependency, so it has no place in a BOM.
+        boolean plugin =
+            header.contains("<packaging>maven-plugin</packaging>")
+                || header.contains("<packaging>maven-archetype</packaging>");
         boolean internal = content.contains("<maven.deploy.skip>true</maven.deploy.skip>");
         if (!aggregator && !plugin && !internal) {
           poms.add(pom);

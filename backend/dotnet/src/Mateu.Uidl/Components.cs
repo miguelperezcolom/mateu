@@ -92,6 +92,7 @@ public sealed record DashboardPanel : ComponentBase
 /// <para>Deprecated (coherence-plan #9): prefer <see cref="ResponsiveGrid"/> — N columns become N
 /// fill tracks (0 → auto-fit), tiles carry their own spans. As of Phase 4 no archetype produces a
 /// DashboardLayout (Dashboard + Welcome compose a ResponsiveGrid); retained for direct authoring.</para></summary>
+[Obsolete("DashboardLayout is deprecated (coherence-plan #9): use ResponsiveGrid instead — N columns become N fill tracks (0 = auto-fit) and the tiles carry their own spans.")]
 public sealed record DashboardLayout : ComponentBase
 {
     public int Columns { get; init; }
@@ -206,6 +207,7 @@ public sealed record FoldoutLayout : ComponentBase
 /// <para>Deprecated (coherence-plan #7/#9): prefer a <see cref="ResponsiveGrid"/> named-slot
 /// template (with StickyAreas for a pinned region) — the same "main aside" grammar on the ONE grid.
 /// As of Phase 4 no archetype/mechanism produces a ContentLayout; retained for direct authoring.</para></summary>
+[Obsolete("ContentLayout is deprecated (coherence-plan #7/#9): use a ResponsiveGrid named-slot template (StickyAreas for a pinned region) instead.")]
 public sealed record ContentLayout : ComponentBase
 {
     public IReadOnlyList<IComponent> Main { get; init; } = [];

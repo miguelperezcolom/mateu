@@ -1,5 +1,6 @@
 package io.mateu.core.infra.declarative.orchestrators.welcome;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.annotations.Panel;
 import io.mateu.uidl.data.Button;
 import io.mateu.uidl.fluent.Component;
@@ -41,6 +42,7 @@ public abstract class Welcome implements ComponentTreeSupplier {
    * io.mateu.uidl.data.HeroTone#auto} (the default) keeps the default look, any other hue paints a
    * dark tinted band with light ink.
    */
+  @Experimental("hero tone (3.0-alpha.409)")
   protected io.mateu.uidl.data.HeroTone heroTone() {
     return io.mateu.uidl.data.HeroTone.auto;
   }

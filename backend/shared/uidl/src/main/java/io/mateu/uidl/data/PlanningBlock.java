@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import java.time.LocalDate;
 import lombok.Builder;
 
@@ -18,9 +19,9 @@ public record PlanningBlock(
     String color,
     String status,
     /** Icon shown before the label (e.g. "vaadin:star" for a VIP); null for none. */
-    String icon,
+    @Experimental("planning board interactions (3.0-alpha.409)") String icon,
     /** What hovering the block shows (several lines separated by \n); null = label + dates. */
-    String summary) {
+    @Experimental("planning board interactions (3.0-alpha.409)") String summary) {
 
   public PlanningBlock(
       String id,

@@ -20,5 +20,8 @@
         <module>quarkus</module>
         <module>micronaut</module>
         <module>helidon-mp</module>
+        <!-- YAML only: served by Spring Boot, and static (a bundle, no server) -->
+        <module>yaml</module>
+        <module>static</module>
     </modules>
 </project>

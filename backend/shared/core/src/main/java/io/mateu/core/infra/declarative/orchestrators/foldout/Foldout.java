@@ -3,6 +3,7 @@ package io.mateu.core.infra.declarative.orchestrators.foldout;
 import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.getLabel;
 
 import io.mateu.core.infra.reflection.MetaAnnotations;
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.annotations.PageWidthStyle;
 import io.mateu.uidl.annotations.Panel;
 import io.mateu.uidl.annotations.Title;
@@ -151,6 +152,7 @@ public abstract class Foldout implements ComponentTreeSupplier, ActionSupplier, 
    * so the user can tell whether it is worth opening. Receives the panel's field name; null (the
    * default) = title only.
    */
+  @Experimental("foldout panel summaries (3.0-alpha.409)")
   protected Component panelSummary(String panelFieldName) {
     return null;
   }

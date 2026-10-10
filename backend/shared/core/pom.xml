@@ -162,12 +162,11 @@
                 <groupId>com.github.siom79.japicmp</groupId>
                 <artifactId>japicmp-maven-plugin</artifactId>
                 <configuration>
-                    <!-- the baseline (3.0-alpha.407) predates the mateu-* rename, hence the old artifactId;
-                         switch it to the mateu-* id once the baseline is a release that has it -->
+                    <!-- the baseline is a release published under the mateu-* ids (3.0-alpha.408+) -->
                     <oldVersion>
                         <dependency>
                             <groupId>io.mateu</groupId>
-                            <artifactId>core</artifactId>
+                            <artifactId>mateu-core</artifactId>
                             <version>${mateu.japicmp.baseline}</version>
                         </dependency>
                     </oldVersion>
@@ -175,6 +174,22 @@
                         <includes>
                             <include>io.mateu.core.infra.declarative.orchestrators.*</include>
                         </includes>
+                        <!-- the machinery behind the archetypes, public only for cross-package use:
+                             not part of the promise (the "Internal" column of the stability page —
+                             keep in sync with ApiStabilityListTest.internal in mateu-uidl) -->
+                        <excludes combine.children="append">
+                            <exclude>io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.*</exclude>
+                            <exclude>io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.*</exclude>
+                            <exclude>io.mateu.core.infra.declarative.orchestrators.dashboard.DashboardComposer</exclude>
+                            <exclude>io.mateu.core.infra.declarative.orchestrators.dashboard.InferredDashboard</exclude>
+                            <exclude>io.mateu.core.infra.declarative.orchestrators.welcome.WelcomeComposer</exclude>
+                            <exclude>io.mateu.core.infra.declarative.orchestrators.welcome.InferredWelcome</exclude>
+                            <exclude>io.mateu.core.infra.declarative.orchestrators.crud.CapabilityCrud</exclude>
+                            <exclude>io.mateu.core.infra.declarative.orchestrators.crud.CrudAdapterHelper</exclude>
+                            <exclude>io.mateu.core.infra.declarative.orchestrators.crud.FilterCriteriaBuilder</exclude>
+                            <exclude>io.mateu.core.infra.declarative.orchestrators.crud.ListingSummarySpec</exclude>
+                            <exclude>io.mateu.core.infra.declarative.orchestrators.crud.SearchableValues</exclude>
+                        </excludes>
                     </parameter>
                 </configuration>
             </plugin>

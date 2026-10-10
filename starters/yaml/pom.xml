@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.5</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.example</groupId>
+    <artifactId>mateu-starter-yaml</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>mateu-starter-yaml</name>
+    <description>Minimal Mateu app authored entirely in YAML (specs/ui), served by Spring Boot: no UI code.</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <!-- The latest Mateu release on Maven Central. To build against your local checkout instead,
+             install the backend (cd backend && mvn install -DskipTests) and pass
+             -Dmateu.version=0.0.1-MATEU -->
+        <mateu.version>3.0-alpha.406</mateu.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webmvc</artifactId>
+        </dependency>
+
+        <!-- Mateu runtime for Spring MVC: it reads the UI from src/main/resources/specs/ui. No
+             annotation processor: there are no @UI classes to process. -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-mvc</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+        <!-- The web renderer (served as static assets by the app) -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-vaadin</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

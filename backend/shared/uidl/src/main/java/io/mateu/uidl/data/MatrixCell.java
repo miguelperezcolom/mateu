@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import lombok.Builder;
 
 /**
@@ -8,6 +9,7 @@ import lombok.Builder;
  * cellActionId.
  */
 @Builder
+@Experimental("matrix grid (3.0-alpha.409)")
 public record MatrixCell(String value, String tone, boolean link) {
 
   public static MatrixCell of(Object value) {

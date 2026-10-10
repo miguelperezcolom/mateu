@@ -36,9 +36,14 @@ public class Article implements Identifiable {
 
 ## Database-backed repositories
 
-The check compares against `store().findById(...)` at save time. If your store enforces its
-own optimistic locking (e.g. JPA `@jakarta.persistence.Version`), you can rely on that instead —
-throw `OptimisticLock.StaleEditException` from `save` to get the same conflict dialog.
+The check compares against `store().findById(...)` at save time. A **store-managed** version — a
+field annotated with JPA's `@jakarta.persistence.Version` (or Spring Data's
+`@org.springframework.data.annotation.Version`) — takes part in that check like Mateu's own
+`@Version`, so a stale save gets the same dialog and *Sobrescribir* adopts the stored version; but
+Mateu does **not** bump it, because the persistence provider increments it itself. For a race the
+check cannot see, throw `OptimisticLock.StaleEditException` from `save` (the
+[Spring Data JPA store](/java-user-manual/build/spring-data/) translates Spring's
+`OptimisticLockingFailureException` for you).
 
 ## Related
 

@@ -2,6 +2,7 @@ import { parse, stringify } from 'yaml'
 import {
     FieldOverride, InferredField, LayoutDelta, applyDelta, deltaBetween, readDelta, writeDelta,
 } from './layoutDelta'
+import { ProjectImage, isImageProp, previewImageSrc } from './projectImages'
 
 /**
  * A single node of a Mateu page layout: a `type` plus arbitrary scalar props and an
@@ -339,6 +340,12 @@ function normalizeSlots(node: any): any {
     if (SINGLE_CONTENT.has(node.type) && node.content != null && !Array.isArray(node.content)) {
         node.content = [node.content] // single child → 1-element array
     }
+    // The other single-component props (a Card's title/header/footer, a Dialog's header…) become
+    // 1-element slots the same way, so they show in Layers and select from the canvas.
+    for (const key of SINGLE_SLOTS[node.type] ?? []) {
+        const v = node[key]
+        if (v && typeof v === 'object' && !Array.isArray(v) && typeof v.type === 'string') node[key] = [v]
+    }
     for (const key of Object.keys(node)) {
         const v = node[key]
         if (Array.isArray(v)) v.forEach((c) => { if (c && typeof c === 'object' && typeof c.type === 'string') normalizeSlots(c) })
@@ -370,13 +377,42 @@ function denormalizeSlots(node: any): any {
         if (!Array.isArray(v)) continue
         out[key] = v.map((c) => (c && typeof c === 'object' && typeof c.type === 'string' ? denormalizeSlots(c) : c))
     }
-    if (Array.isArray(out.content) && SINGLE_CONTENT.has(out.type)) {
-        const children = out.content
-        if (children.length === 0) delete out.content
-        else if (children.length === 1) out.content = children[0]
-        else out.content = { type: 'VerticalLayout', content: children }
+    const singles = [...(SINGLE_CONTENT.has(out.type) ? ['content'] : []), ...(SINGLE_SLOTS[out.type] ?? [])]
+    for (const key of singles) {
+        if (!Array.isArray(out[key])) continue
+        const children = out[key]
+        if (children.length === 0) delete out[key]
+        else if (children.length === 1) out[key] = children[0]
+        else out[key] = { type: 'VerticalLayout', content: children }
     }
     return out
+}
+
+/**
+ * The props OTHER than `content` that hold ONE component (schema `$ref Component`/`UserTrigger`): a
+ * Card's title/header/media/footer, a Dialog's header/footer, a Details' summary… Edited as
+ * 1-element slots (reachable in Layers and from the canvas), written back as a single object.
+ * Pinned to the generated schema by `pageModel.slots.test.ts`.
+ */
+export const SINGLE_SLOTS: Record<string, string[]> = {
+    Card: ['media', 'headerPrefix', 'header', 'title', 'subtitle', 'headerSuffix', 'footer'],
+    ContentLink: ['componentSupplier', 'component'],
+    ContextMenu: ['wrapped'],
+    Details: ['summary'],
+    Dialog: ['header', 'footer'],
+    Drawer: ['header', 'footer'],
+    FieldLink: ['component'],
+    FoldoutLayout: ['overview'],
+    FoldoutPanel: ['summary'],
+    Form: ['avatar'],
+    MasterDetailLayout: ['master', 'detail'],
+    Menu: ['component'],
+    MethodLink: ['component'],
+    Popover: ['wrapped'],
+    RouteLink: ['component'],
+    RuleLink: ['component'],
+    SplitLayout: ['master', 'detail'],
+    Tooltip: ['wrapped'],
 }
 
 /** The node at `path`, or undefined if the path does not resolve. */
@@ -538,12 +574,27 @@ export function idToPath(id: string | null | undefined): NodePath | null {
  * send to `__preview__`. The renderer stamps `id="${component.id}"` on each DOM element, so a
  * click can be mapped straight back to a node path — no structural alignment guesswork.
  */
-export function decorateForPreview(doc: PageDoc): string {
+export function decorateForPreview(doc: PageDoc, images: readonly ProjectImage[] = []): string {
     const clone = structuredClone(doc.layout)
     stamp(clone, [])
+    // A project image (`/img/hero.jpg`) is served by the app, not by whatever renders the canvas:
+    // show it from where the host serves it. The file keeps the authored URL.
+    if (images.length) resolveImages(clone, images)
     // Single-child slots go back to their authored single-object shape: the backend deserializes a
     // Card/Tab `content` as ONE component.
     return stringify(denormalizeSlots(clone))
+}
+
+function resolveImages(node: PageNode, images: readonly ProjectImage[]): void {
+    for (const key of Object.keys(node)) {
+        const v = node[key]
+        if (typeof v === 'string' && isImageProp(key)) {
+            const src = previewImageSrc(images, v)
+            if (src) node[key] = src
+        } else if (Array.isArray(v)) {
+            v.forEach((c) => { if (c && typeof c === 'object' && typeof (c as PageNode).type === 'string') resolveImages(c as PageNode, images) })
+        }
+    }
 }
 
 function stamp(node: PageNode, path: NodePath): void {

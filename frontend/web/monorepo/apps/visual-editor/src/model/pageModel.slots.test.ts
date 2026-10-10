@@ -4,7 +4,7 @@ import { resolve } from 'path'
 import { parse } from 'yaml'
 import {
     parsePage, serializePage, nodeAt, removeAt, reorder, insertAfter, insertIntoSlot, presentSlots,
-    decorateForPreview, idToPath, pathToId, slotSeg, splitSeg, SINGLE_CONTENT,
+    decorateForPreview, idToPath, pathToId, slotSeg, splitSeg, SINGLE_CONTENT, SINGLE_SLOTS,
 } from './pageModel'
 
 const LISTING = `type: Listing
@@ -89,5 +89,47 @@ describe('SINGLE_CONTENT is pinned to the generated schema', () => {
             if (type && def.properties.content?.$ref === '#/$defs/Component') single.push(type)
         }
         expect([...SINGLE_CONTENT].sort()).toEqual(single.sort())
+    })
+})
+
+describe('single-component props other than content (a Card title, a Dialog footer…)', () => {
+    it('SINGLE_SLOTS is pinned to the generated schema', () => {
+        const schemaPath = resolve(__dirname, '../../../../../../../backend/shared/uidl/uidl-schema.json')
+        const schema = JSON.parse(readFileSync(schemaPath, 'utf-8'))
+        const expected: Record<string, string[]> = {}
+        for (const def of Object.values<any>(schema.$defs)) {
+            const type = def?.properties?.type?.const
+            if (!type) continue
+            for (const [prop, propDef] of Object.entries<any>(def.properties)) {
+                if (prop === 'content') continue
+                if (propDef?.$ref === '#/$defs/Component' || propDef?.$ref === '#/$defs/UserTrigger') (expected[type] ??= []).push(prop)
+            }
+        }
+        const norm = (m: Record<string, string[]>) => Object.fromEntries(Object.entries(m).map(([k, v]) => [k, [...v].sort()]).sort())
+        expect(norm(SINGLE_SLOTS)).toEqual(norm(expected))
+    })
+
+    it('a Card title is a selectable node, previewed and written back as one component', () => {
+        const yaml = `type: Card
+title: {type: Text, text: Product}
+content:
+  type: FormLayout
+  content:
+    - {type: FormField, id: sku, label: SKU}
+`
+        const doc = parsePage(yaml)
+        expect(presentSlots(doc.layout)).toContain('title')
+        expect(nodeAt(doc, ['title.0'])?.text).toBe('Product')
+        const preview = parse(decorateForPreview(doc))
+        expect(preview.title).toEqual({ type: 'Text', text: 'Product', id: 've-title.0' })
+        const out = parse(serializePage(doc))
+        expect(out.title).toEqual({ type: 'Text', text: 'Product' })
+        expect(out.content.type).toBe('FormLayout')
+    })
+
+    it('leaves a plain string title alone', () => {
+        const doc = parsePage('type: Card\ntitle: Plain\n')
+        expect(doc.layout.title).toBe('Plain')
+        expect(parse(serializePage(doc)).title).toBe('Plain')
     })
 })

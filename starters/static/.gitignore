@@ -1,0 +1,2 @@
+# The repo-wide .gitignore excludes .mvn; this starter's maven.config is part of it.
+!.mvn/

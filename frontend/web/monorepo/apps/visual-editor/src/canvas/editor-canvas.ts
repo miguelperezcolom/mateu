@@ -9,6 +9,13 @@ import { PageDoc, NodePath, PageNode, decorateForPreview, idToPath, pathToId, no
 import type { CanvasRendererId } from './canvasRenderer'
 import './redwood-frame'
 import type { RedwoodFrame } from './redwood-frame'
+import { setNodeIdStamping } from '@infra/ui/renderers/nodeIdStamp.ts'
+import { nodeIdOf, nodePathOfEventPath } from './canvasSelection'
+import type { ProjectImage } from '../model/projectImages'
+
+// Every component the canvas paints carries its node id (data-node-id), so a click on ANY painted
+// element — a hero, a dashboard panel, a metric card — selects its node (see nodeIdStamp.ts).
+setNodeIdStamping(true)
 
 // Mateu custom events the live renderer fires on interaction. In edit mode the canvas must be
 // inert — swallow them so clicking a button selects it instead of running its action / navigating.
@@ -20,6 +27,20 @@ const INERT_EVENTS = [
     'value-changed',
     'search-requested',
 ]
+
+/**
+ * Pointer/form events that must never reach the rendered page in edit mode: a click on a button, a
+ * link, a checkbox or an input SELECTS it — it does not run it, follow it, toggle it or focus it.
+ * Stopped in the capture phase at the canvas host, before any listener inside the page sees them.
+ */
+const BLOCKED_EVENTS = ['click', 'dblclick', 'auxclick', 'mousedown', 'mouseup', 'pointerdown', 'pointerup',
+    'touchstart', 'touchend', 'submit', 'dragstart']
+/**
+ * The ones whose DEFAULT is cancelled too (a link followed, a box toggled, a field focused). Not the
+ * pointer/touch ones: cancelling a pointerdown suppresses the mousedown/mouseup the canvas's own
+ * drag-to-move listens to.
+ */
+const PREVENTED_EVENTS = new Set(['click', 'dblclick', 'auxclick', 'mousedown', 'submit', 'dragstart'])
 
 const DRAG_THRESHOLD = 4 // px before a mousedown becomes a drag (vs a click-to-select)
 
@@ -98,6 +119,8 @@ export class EditorCanvas extends LitElement {
     @property() theme: 'light' | 'dark' = 'light'
     /** The width the page is framed at (px), or 0 to fill the pane — see model/viewport.ts. */
     @property({ type: Number }) frameWidth = 0
+    /** The project's images: a page naming one shows it from where the host serves it. */
+    @property({ attribute: false }) images: readonly ProjectImage[] = []
 
     @state() private error?: string
     /** A non-error note above the canvas (e.g. "backend unreachable — showing the offline render"). */
@@ -134,8 +157,7 @@ export class EditorCanvas extends LitElement {
         return html`
             ${this.error ? html`<div class="status">Preview error: ${this.error}</div>` : ''}
             ${this.info && !this.error ? html`<div class="status info">${this.info}</div>` : ''}
-            <div class="host ${this.renderer === 'redwood' ? 'redwood' : ''}" style=${this.frameWidth ? `width:${this.frameWidth}px` : ''} @click=${this.onClick} @mousedown=${this.onMouseDown}
-                 @mousemove=${this.onHover} @mouseleave=${this.clearHover}>
+            <div class="host ${this.renderer === 'redwood' ? 'redwood' : ''}" style=${this.frameWidth ? `width:${this.frameWidth}px` : ''} @mousemove=${this.onHover} @mouseleave=${this.clearHover}>
                 <!-- preventNavigation stops mateu-ux from firing its OWN route-load. That load runs on the
                      first updated() (the reactive route/baseurl/instant defaults count as changes) and, with
                      no backend behind the editor, paints a "Not found" fragment that overwrites our render.
@@ -175,7 +197,71 @@ export class EditorCanvas extends LitElement {
         document.removeEventListener('ve-drag-start', this.onPaletteDragStart as EventListener)
         this.removeEventListener('scroll', this.reposition)
         window.removeEventListener('resize', this.reposition)
+        this.resizeObserver?.disconnect()
+        this.settleTimers.forEach((t) => window.clearTimeout(t))
         this.endDrag()
+    }
+
+    private settleTimers: number[] = []
+    private revealPending = false
+
+    /**
+     * Re-locate the selection after a render. The renderer paints asynchronously (Lit updates, custom
+     * elements upgrading, Vaadin's own layout passes), so one frame is not enough: try again as the
+     * page settles. Each pass looks the node up by its id afresh, so the outline follows the node to
+     * wherever the new render put it — and disappears if it is no longer painted.
+     */
+    private settleHighlight() {
+        this.settleTimers.forEach((t) => window.clearTimeout(t))
+        requestAnimationFrame(() => { this.applyHighlight(); this.reveal() })
+        this.settleTimers = [80, 250, 600, 1200].map((ms) => window.setTimeout(() => { this.applyHighlight(); this.reveal() }, ms))
+    }
+
+    /**
+     * A node inside a tab that is not showing (selected from Layers, or by undo) is not painted at
+     * all: bring its tab to the front — the tab strip's own selection, or a collapsed `<details>`
+     * (the DS-neutral tabs/accordion) opened — so it can be outlined. Returns whether anything changed.
+     */
+    private showTabsOf(path: NodePath): boolean {
+        let changed = false
+        for (let i = 1; i <= path.length; i++) {
+            const el = deepQueryById(this.ux, pathToId(path.slice(0, i)))
+            if (!el) continue
+            if (el.localName === 'vaadin-tab') {
+                const tabs = el.closest('vaadin-tabs') as (HTMLElement & { selected?: number }) | null
+                const index = tabs ? Array.prototype.indexOf.call(tabs.querySelectorAll('vaadin-tab'), el) : -1
+                if (tabs && index >= 0 && tabs.selected !== index) { tabs.selected = index; changed = true }
+            } else if (el instanceof HTMLDetailsElement && !el.open && i < path.length) {
+                el.open = true
+                changed = true
+            } else if (el.classList.contains('strip') && i < path.length) {
+                // a folded foldout panel: unfold it with its own control (let that one click through)
+                const control = (el.matches('[role=button]') ? el : el.querySelector('button')) as HTMLElement | null
+                if (control) {
+                    this.passThrough = true
+                    try { control.click() } finally { this.passThrough = false }
+                    changed = true
+                }
+            }
+        }
+        return changed
+    }
+
+    /** Scroll the selected node into the canvas viewport (once per selection), if it is painted. */
+    private reveal() {
+        if (!this.revealPending || !this.selectedPath || this.renderer === 'redwood') return
+        let el = deepQueryById(this.ux, pathToId(this.selectedPath))
+        if (!el || !el.getClientRects().length) {
+            if (this.showTabsOf(this.selectedPath)) { this.settleHighlight(); return }
+            el = null
+        }
+        if (!el) return
+        this.revealPending = false
+        const view = this.getBoundingClientRect()
+        const r = el.getBoundingClientRect()
+        if (r.top >= view.top && r.bottom <= view.bottom) return
+        // nearest: a node already partly visible moves the least; a tall node shows its top
+        this.scrollTop += r.height > view.height ? r.top - view.top - 40 : (r.top < view.top ? r.top - view.top - 40 : r.bottom - view.bottom + 40)
     }
 
     private reposition = () => {
@@ -192,24 +278,69 @@ export class EditorCanvas extends LitElement {
         for (const name of INERT_EVENTS) {
             host?.addEventListener(name, (ev) => { ev.stopPropagation(); ev.preventDefault() }, true)
         }
+        for (const name of BLOCKED_EVENTS) host?.addEventListener(name, this.onCapture, true)
+        // a click on the canvas around the page (its gutters) selects the page root
+        host?.addEventListener('click', (e) => {
+            if (e.composedPath()[0] !== host || this.suppressClick || !this.doc) return
+            this.dispatchEvent(new CustomEvent('node-selected', { detail: { path: [] }, bubbles: true, composed: true }))
+        })
+        // The page reflows on its own (fonts, lazy custom elements, an image arriving): keep the
+        // selection box glued to its node whatever moved it.
+        if (host && typeof ResizeObserver !== 'undefined') {
+            this.resizeObserver = new ResizeObserver(() => this.reposition())
+            this.resizeObserver.observe(host)
+        }
+    }
+
+    private resizeObserver?: ResizeObserver
+
+    /** True when the event happened INSIDE the rendered page (not on the editor's own overlays). */
+    private inPage(e: Event): boolean {
+        return !!this.ux && e.composedPath().includes(this.ux)
+    }
+
+    /**
+     * Capture-phase guard over the rendered page: the canvas is a design surface, so the page never
+     * sees a press. A click selects the innermost node under it; a mousedown may start a move-drag.
+     */
+    /** Set while the canvas itself operates the page (unfolding a panel to show a selection). */
+    private passThrough = false
+
+    private onCapture = (e: Event) => {
+        if (this.passThrough || !this.inPage(e)) return
+        // The tab strip of a TabLayout is the one control that is ALSO a way to look at the page
+        // (the other tab's content is not painted at all): let it switch tabs, and still select.
+        const tabHeader = e.composedPath().some((t) => t instanceof Element && (t.localName === 'vaadin-tab' || t.getAttribute('role') === 'tab'))
+        if (!tabHeader || e.type !== 'click') {
+            e.stopPropagation()
+            if (e.cancelable && PREVENTED_EVENTS.has(e.type)) e.preventDefault()
+        }
+        if (e.type === 'mousedown') this.onMouseDown(e as MouseEvent)
+        else if (e.type === 'click') this.onClick(e as MouseEvent)
     }
 
     updated(changed: PropertyValues) {
         // Re-render against the new backend when the preview source changes, even if the YAML is unchanged.
         if (changed.has('baseUrl') || changed.has('clientRender') || changed.has('renderer')) this.lastYaml = ''
-        if (changed.has('doc') || changed.has('baseUrl') || changed.has('clientRender') || changed.has('renderer')) this.schedulePreview()
-        if (changed.has('selectedPath')) this.applyHighlight()
+        if (changed.has('doc') || changed.has('baseUrl') || changed.has('clientRender') || changed.has('renderer') || changed.has('images')) this.schedulePreview()
+        if (changed.has('selectedPath')) {
+            this.applyHighlight()
+            // Selected from Layers (or by undo, or by adding a node): bring it into view. A node
+            // painted a moment later (the canvas is still rendering) is revealed when it lands.
+            this.revealPending = true
+            this.reveal()
+        }
         if (changed.has('frameWidth')) {
             this.toggleAttribute('framed', this.frameWidth > 0)
             this.clearHover()
             // The page reflows to the new width; the selection box has to follow it.
-            requestAnimationFrame(() => requestAnimationFrame(() => this.applyHighlight()))
+            this.settleHighlight()
         }
     }
 
     private schedulePreview() {
         if (!this.doc) return
-        const yaml = decorateForPreview(this.doc)
+        const yaml = decorateForPreview(this.doc, this.images)
         if (yaml === this.lastYaml) return
         this.lastYaml = yaml
         window.clearTimeout(this.previewTimer)
@@ -259,7 +390,7 @@ export class EditorCanvas extends LitElement {
         }
         this.lastShape = shape
         this.ux?.applyFragment(fragment as never)
-        requestAnimationFrame(() => this.applyHighlight())
+        this.settleHighlight()
     }
 
     private status(kind: 'ok' | 'fallback' | 'error' | 'client', text: string) {
@@ -298,18 +429,16 @@ export class EditorCanvas extends LitElement {
 
     /** A click in the Redwood frame: the node the app painted there (its data-node-id). */
     private onRedwoodClick = (e: CustomEvent<{ id: string | null }>) => {
-        const path = idToPath(e.detail.id)
+        // a click on the page's bare background (no painted component under it) is the page root's
+        const path = e.detail.id ? idToPath(e.detail.id) : []
         if (!path) return
         this.dispatchEvent(new CustomEvent('node-selected', { detail: { path }, bubbles: true, composed: true }))
     }
 
     private onClick(e: MouseEvent) {
         if (this.suppressClick) { this.suppressClick = false; return }
-        const el = firstTaggedElement(e.composedPath())
-        if (!el) return
-        const path = idToPath(el.id)
+        const path = nodePathOfEventPath(e.composedPath())
         if (!path) return
-        e.preventDefault()
         this.dispatchEvent(new CustomEvent('node-selected', { detail: { path }, bubbles: true, composed: true }))
     }
 
@@ -338,7 +467,8 @@ export class EditorCanvas extends LitElement {
     /** A node's rectangle, relative to the scrolling `.host` content box (so overlays stay glued). */
     private boxFor(path: NodePath): IndicatorBox | null {
         const el = deepQueryById(this.ux, pathToId(path))
-        if (!el) return null
+        // not painted, or painted but hidden (an inactive tab, a closed panel): no box to draw
+        if (!el || !el.getClientRects().length) return null
         const host = this.renderRoot.querySelector('.host') as HTMLElement
         const hr = host.getBoundingClientRect()
         const r = el.getBoundingClientRect()
@@ -381,8 +511,7 @@ export class EditorCanvas extends LitElement {
         if (this.drag) { this.clearHover(); return }
         // Use the event's composed path (pierces open shadow roots) — the same reliable mechanism as
         // onClick. document.elementsFromPoint retargets to the shadow host, so it can't see ve- nodes.
-        const el = firstTaggedElement(e.composedPath())
-        const path = el && idToPath(el.id)
+        const path = nodePathOfEventPath(e.composedPath())
         if (!path || (this.selectedPath && samePath(path, this.selectedPath))) { this.clearHover(); return }
         this.hoverBox = this.boxFor(path)
         this.hoverTag = this.doc ? (nodeAt(this.doc, path)?.type ?? '') : ''
@@ -409,8 +538,7 @@ export class EditorCanvas extends LitElement {
     /** Left-button press on a canvas node → potential reposition drag (becomes real past threshold). */
     private onMouseDown(e: MouseEvent) {
         if (e.button !== 0) return
-        const el = firstTaggedElement(e.composedPath())
-        const path = el && idToPath(el.id)
+        const path = nodePathOfEventPath(e.composedPath())
         if (!path || path.length === 0) return // ignore the root / untagged area
         this.startDrag({ kind: 'move', from: path, startX: e.clientX, startY: e.clientY, active: false })
     }
@@ -444,8 +572,13 @@ export class EditorCanvas extends LitElement {
         const drag = this.drag
         const to = this.pendingDrop
         this.endDrag()
+        // the click that ends a real drag is not a selection (nor a click on the page's background)
+        if (drag?.active) {
+            this.suppressClick = true
+            // a drag released where no click follows must not swallow the NEXT real click
+            window.setTimeout(() => { this.suppressClick = false }, 0)
+        }
         if (!drag || !drag.active || !to) return
-        this.suppressClick = true
         if (drag.kind === 'move' && drag.from) {
             this.dispatchEvent(new CustomEvent('node-moved', { detail: { from: drag.from, to }, bubbles: true, composed: true }))
         } else if (drag.kind === 'add' && drag.node) {
@@ -473,7 +606,7 @@ export class EditorCanvas extends LitElement {
             const inside = x >= r.left && x <= r.right && y >= r.top && y <= r.bottom
             return inside ? this.dropIntoContainer([], 'column', x, y) : null // empty canvas → end of root
         }
-        const path = idToPath(el.id)
+        const path = idToPath(nodeIdOf(el))
         if (!path) return null
         // Don't drop a node into itself or its own subtree.
         if (this.drag?.kind === 'move' && this.drag.from && isPrefixPath(this.drag.from, path)) return null
@@ -519,7 +652,7 @@ export class EditorCanvas extends LitElement {
         for (const el of deepCollectTagged(this.ux)) {
             const r = el.getBoundingClientRect()
             if (x < r.left || x > r.right || y < r.top || y > r.bottom) continue
-            const depth = (idToPath(el.id)?.length ?? 0)
+            const depth = (idToPath(nodeIdOf(el))?.length ?? 0)
             const area = r.width * r.height
             if (depth > bestDepth || (depth === bestDepth && area < bestArea)) {
                 best = el; bestDepth = depth; bestArea = area
@@ -565,23 +698,15 @@ function shapeOf(node: unknown): string {
     return parts.join(' ')
 }
 
-/** The first element in a composed event path carrying a `ve-*` id (nearest tagged ancestor). */
-function firstTaggedElement(path: EventTarget[]): HTMLElement | null {
-    for (const t of path) {
-        if (t instanceof HTMLElement && t.id?.startsWith('ve-')) return t
-    }
-    return null
-}
-
-/** Every `ve-`-tagged element under `root`, piercing open shadow roots. */
+/** Every node-tagged element under `root` (data-node-id or a `ve-` id), piercing open shadow roots. */
 function deepCollectTagged(root: Element | undefined): HTMLElement[] {
     const out: HTMLElement[] = []
     const visit = (node: Element) => {
-        if (node instanceof HTMLElement && node.id?.startsWith('ve-')) out.push(node)
+        if (node instanceof HTMLElement && nodeIdOf(node)) out.push(node)
         const scope = node.shadowRoot ?? node
         for (const c of Array.from(scope.querySelectorAll('*'))) {
             if (c.shadowRoot) visit(c)
-            else if (c instanceof HTMLElement && c.id?.startsWith('ve-')) out.push(c)
+            else if (c instanceof HTMLElement && nodeIdOf(c)) out.push(c)
         }
     }
     if (root) visit(root)
@@ -598,15 +723,22 @@ function samePath(a: NodePath, b: NodePath): boolean {
     return a.length === b.length && a.every((v, i) => v === b[i])
 }
 
-/** Find an element by id anywhere under `root`, piercing shadow roots. */
+/**
+ * The element painted for a node id anywhere under `root`, piercing shadow roots: the one stamped
+ * `data-node-id` (every painted component), else the one whose DOM id it is.
+ */
 function deepQueryById(root: Element | undefined, id: string): HTMLElement | null {
+    return deepQuery(root, `[data-node-id="${CSS.escape(id)}"]`) ?? deepQuery(root, `#${CSS.escape(id)}`)
+}
+
+function deepQuery(root: Element | undefined, selector: string): HTMLElement | null {
     if (!root) return null
-    const direct = (root.shadowRoot ?? root).querySelector(`#${CSS.escape(id)}`) as HTMLElement | null
+    const direct = (root.shadowRoot ?? root).querySelector(selector) as HTMLElement | null
     if (direct) return direct
     const walk = (node: Element): HTMLElement | null => {
         const sr = node.shadowRoot
         if (sr) {
-            const hit = sr.querySelector(`#${CSS.escape(id)}`) as HTMLElement | null
+            const hit = sr.querySelector(selector) as HTMLElement | null
             if (hit) return hit
             for (const c of Array.from(sr.querySelectorAll('*'))) {
                 const r = walk(c)

@@ -12,6 +12,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 ## [Unreleased] — towards 3.0 beta
 
 ### Documentation, starters and demos
+- **New Mateu project, everywhere**: IntelliJ **File › New › Project › Mateu**, VS Code **Mateu:
+  New Project…** and the **`io.mateu:mateu-archetype`** Maven archetype (`-Dauthoring=code|yaml|static`)
+  generate the same project from the same templates — the starters — via one description
+  (`starters/generator/new-project.json`): authoring (code, YAML served by a backend, static YAML,
+  code + YAML), runtime, renderer, sample, page templates, coordinates, latest release. Two new
+  starters, `yaml` (no UI code) and `static` (no backend), are built and smoke-tested like the rest.
+  Every starter and generated project ships an `AGENTS.md` plus a `CLAUDE.md` that imports it.
 - **Starters**: `starters/` holds the smallest complete app on every runtime — Spring MVC, Spring
   WebFlux, Quarkus, Micronaut, Helidon MP, ASP.NET Core (C#) and FastAPI (Python). CI compiles the
   Java ones against each commit, boots them and loads their CRUD. The quickstart is the Spring MVC
@@ -35,6 +42,31 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   and `NameCollisionsTest` fails on a new one. Removing the no-op annotations dropped seven of them
   (`HorizontalLayout`, `VerticalLayout`, `SplitLayout`, `Scroller`, `AccordionPanel`, `Option`,
   `State`); the empty `fluent.ActionType` enum went too.
+- **API freeze review** (before the beta; full report in `design/api-freeze-review.md`):
+  - **Deprecated** (still working; each names its replacement — see
+    [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/#deprecated-in-30-alpha410-still-working)):
+    `AppVariant.HAMBURGUER_MENU` → `HAMBURGER_MENU`; the never-read `@GenericClass`,
+    `annotations.ActionType`, the empty `ActionPosition` / `ActionStereotype` / `ActionThemeVariant`
+    enums, `Binding`/`BindingSource`, `ClientSideEvent`, `Destination`, `ListAdapter` (→ `Listing`),
+    `ColumnLayoutSelector`; 28 wire DTOs that no live DTO reaches. .NET marks `DashboardLayout` /
+    `ContentLayout` `[Obsolete]` and Python warns on them, like Java's `@Deprecated`.
+  - **`@Experimental`** now covers the 3.0-alpha.409 pattern-gap and PMS-parity APIs (display options,
+    wizard drafts/hooks, record switcher, docked panels, `@Section` affordances, hero tones,
+    `UICommand.announce`, pre-search content, action panel, matrix grid, map markers, drag rows /
+    drop zones, access keys, card menus, calendar views, popovers/tooltips, row tones, reorderable
+    dashboards, the action catalogue, the not-found page).
+  - The stability page carries a **generated Stable / Experimental / Deprecated / Internal list** by
+    package (`ApiStabilityListTest` fails when it is stale), and defines what the beta promises.
+  - **japicmp** compares against `3.0-alpha.408` under the `mateu-*` ids; `-Dmateu.api.enforce=true`
+    makes it blocking (it passes today); flip the default at the beta tag.
+  - `DeprecationsNameTheirReplacementTest` (Java), `ApiFreezeTests` (.NET) and `test_api_freeze.py`
+    (Python) fail on a deprecation that does not name its replacement.
+  - Parity: .NET `AppVariant` constants and Python `AppVariant` enum (the right spelling travels under
+    the wire name every renderer reads); Python aliases `BadgeInHeader` (= `HeaderBadge`) and
+    `PageWidthStyle` (= `PageWidth`); 15 public Python names that were missing from
+    `mateu_uidl.__all__` added.
+  - `HeroSection` and `FoldoutPanel` regain their 3.0-alpha.408 constructors (alpha.409 had dropped
+    them when adding `tone` / `summary`).
 - **Wire version check** in every first-party renderer (web/Vaadin, Redwood, React Native, IntelliJ):
   a server speaking another wire major gets one clear message instead of a broken screen.
 
@@ -92,6 +124,13 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   split into modules, identity and secrets providers, Excel/PDF exports, embedded islands and more.
 - IDE tooling: New › Mateu for every specs/ui file kind, Add Route…, a settings page and
   authentication in IntelliJ; the same in VS Code ("Mateu: New File…", "Mateu: Add Route…").
+- **`io.mateu:mateu-spring-data`** (optional, `@Experimental`): a ready-made `CrudStore` over a
+  Spring Data JPA repository — `return CrudStores.of(productRepository);` in `store()` and a JPA
+  entity needs no hand-written adapter. Search text, example filters, `between`/`gte`/`lte`/`in`
+  criteria, sorting and paging run in the database (one `Specification`, count + page query); the
+  `@Aggregate`/`@GroupBy` totals too when given an `EntityManager`. A JPA (or Spring Data)
+  `@Version` now joins Mateu's optimistic locking — same conflict dialog, version incremented by the
+  provider, not by Mateu. Guide: Build › Spring Data JPA store.
 
 ### Fixed
 - **Enum values in grid and listing cells** read as their labels ("In house", not `IN_HOUSE`) on

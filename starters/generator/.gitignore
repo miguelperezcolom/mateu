@@ -1,0 +1,2 @@
+# The repo-wide .gitignore excludes any "overlays" directory; these are the generator's templates.
+!overlays/

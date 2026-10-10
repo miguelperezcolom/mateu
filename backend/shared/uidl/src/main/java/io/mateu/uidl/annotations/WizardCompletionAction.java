@@ -14,5 +14,6 @@ public @interface WizardCompletionAction {
    * — so a user with nothing more to add can finish early (the Redwood guided-process {@code
    * availableFromStep}). Empty (the default) = only on the last step before the result.
    */
+  @Experimental("early wizard completion (3.0-alpha.409)")
   String availableFromStep() default "";
 }

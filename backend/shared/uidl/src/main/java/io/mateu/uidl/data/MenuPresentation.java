@@ -1,11 +1,14 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
+
 /**
  * How a menu entry looks, beyond its label: the {@code display} of a group ({@link
  * MenuDisplay#cards} opens a card panel), and the {@code icon} / {@code image} of an entry shown as
  * a card. Declared with {@code @Menu(display, image)} and {@code @Icon} on the {@code @Menu} field,
  * or set fluently with {@code withPresentation}. Null = the plain list entry.
  */
+@Experimental("card menus (3.0-alpha.409)")
 public record MenuPresentation(MenuDisplay display, String icon, String image) {
 
   public static MenuPresentation cards() {

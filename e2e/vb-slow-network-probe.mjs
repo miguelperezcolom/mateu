@@ -67,6 +67,9 @@ const browser = await chromium.launch()
   })
   // the retried read is what makes the app ready, so wait for that (bounded), not for networkidle
   await gotoVbReady(page, VB_URL, { attempts: 1 }).catch(() => {}) // no re-navigation: it would count as a retry
+  // On a slow CDN the shell may not even have sent its first load when "ready" gives up: wait (bounded)
+  // for the retry itself instead of counting at a fixed moment.
+  for (let t = 0; loads < 2 && t < 120; t++) await sleep(500)
   check('una lectura que topa con un 503 se reintenta sola', loads >= 2, `${loads} intento(s)`)
   await ctx.close()
 }

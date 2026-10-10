@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.fluent.Component;
 import java.util.List;
 import lombok.Builder;
@@ -21,12 +22,12 @@ public record Map(
     String id,
     String position,
     String zoom,
-    List<MapMarker> markers,
-    String markerActionId,
+    @Experimental("map markers (3.0-alpha.409)") List<MapMarker> markers,
+    @Experimental("map markers (3.0-alpha.409)") String markerActionId,
     String style,
     String cssClasses,
-    String tileUrl,
-    String attribution)
+    @Experimental("map markers (3.0-alpha.409)") String tileUrl,
+    @Experimental("map markers (3.0-alpha.409)") String attribution)
     implements Component {
 
   public Map(String position, String zoom, String style, String cssClasses) {

@@ -200,6 +200,7 @@ export default defineConfig({
 							label: 'Start Here',
 							items: [
 								{ slug: 'java-user-manual/start-here/quickstart' },
+								{ slug: 'java-user-manual/start-here/quickstart-yaml' },
 								{ slug: 'java-user-manual/start-here/first-app' },
 							],
 						},
@@ -266,6 +267,7 @@ export default defineConfig({
 								{ slug: 'java-user-manual/build/crud-navigation-flow' },
 								{ slug: 'java-user-manual/build/capability-listings' },
 								{ slug: 'java-user-manual/build/auto-orchestrators' },
+								{ slug: 'java-user-manual/build/spring-data', label: 'Spring Data JPA store' },
 								{ slug: 'java-user-manual/build/auto-adapters' },
 								{ slug: 'java-user-manual/build/customizing-crud-and-listings' },
 								{ slug: 'java-user-manual/build/listing-layout' },
@@ -319,6 +321,7 @@ export default defineConfig({
 				{
 					label: 'Create Your Project',
 					items: [
+						{ slug: 'java-create-your-project' },
 						{ slug: 'java-create-your-project/prerequisites' },
 						{ slug: 'java-create-your-project/springboot-mvc' },
 						{ slug: 'java-create-your-project/springboot-webflux' },

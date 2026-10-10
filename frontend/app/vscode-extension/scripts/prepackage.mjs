@@ -4,6 +4,7 @@
 //   - schema/specs-schema.json ← backend/shared/uidl/specs-schema.json (the generated authoring
 //                         schema, contributed through `yamlValidation` for specs/ui/**)
 //   - templates/        ← the New › Mateu catalogue + skeletons (intellij-plugin resources)
+//   - starters/         ← repo starters/ (the New Project templates + starters/generator)
 //   - media/            ← the shared visual-editor web bundle. Built fresh from
 //                         frontend/web/monorepo/apps/visual-editor when that workspace is installed,
 //                         otherwise copied from the bundle committed in the IntelliJ plugin
@@ -33,6 +34,16 @@ const ijResources = join(repo, 'frontend/app/intellij-plugin/src/main/resources'
 rmSync(join(here, 'templates'), { recursive: true, force: true })
 copy(join(ijResources, 'mateu/new-file-kinds.json'), join(here, 'templates/new-file-kinds.json'))
 copy(join(ijResources, 'fileTemplates/internal'), join(here, 'templates/internal'))
+
+// New Project: the starters (the templates — compiled and booted by CI) and the generator's data
+// (starters/generator), without build output.
+rmSync(join(here, 'starters'), { recursive: true, force: true })
+const skip = new Set(['target', 'node_modules', 'bin', 'obj', '__pycache__', '.pytest_cache', '.venv', '.idea', '.DS_Store'])
+cpSync(join(repo, 'starters'), join(here, 'starters'), {
+    recursive: true,
+    filter: (src) => !skip.has(src.split(/[\\/]/).pop()),
+})
+console.log('prepackage: starters -> starters')
 
 const webApp = join(repo, 'frontend/web/monorepo/apps/visual-editor')
 const committedBundle = join(repo, 'frontend/app/intellij-plugin/src/main/resources/visual-editor')

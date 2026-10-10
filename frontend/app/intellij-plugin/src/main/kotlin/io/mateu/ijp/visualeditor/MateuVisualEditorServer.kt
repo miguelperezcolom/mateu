@@ -47,6 +47,7 @@ object MateuVisualEditorServer {
         val s = HttpServer.create(InetSocketAddress("127.0.0.1", 0), 0)
         s.createContext("/mateu") { proxy(it, backendBaseUrl) }
         s.createContext("/sse") { proxy(it, backendBaseUrl) }
+        s.createContext(IMAGES_PREFIX) { serveImage(it) }
         s.createContext("/") { serveStatic(it, backendBaseUrl) }
         s.executor = Executors.newCachedThreadPool()
         s.start()
@@ -54,6 +55,53 @@ object MateuVisualEditorServer {
         startedFor = backendBaseUrl
         port = s.address.port
         return port
+    }
+
+    /** Where the project images are served: `/__mateu-images/<token>/<module-relative path>`. */
+    const val IMAGES_PREFIX = "/__mateu-images/"
+
+    /** The module roots whose images this server answers for, by token. */
+    private val imageRoots = java.util.concurrent.ConcurrentHashMap<String, java.nio.file.Path>()
+
+    /**
+     * Let the editor show a module's images (thumbnails in the picker, the real image on the canvas
+     * and in Play — same origin as the editor, so JCEF and the framed Redwood canvas both load them).
+     * The token is stable per root, so every editor of a module shares it.
+     */
+    fun registerImageRoot(root: java.nio.file.Path): String {
+        val normalized = root.toAbsolutePath().normalize()
+        val token = Integer.toHexString(normalized.toString().hashCode()).padStart(8, '0')
+        imageRoots[token] = normalized
+        return token
+    }
+
+    /** The URL path (same origin as the editor) a registered root's file is served at. */
+    fun imageUrl(token: String, relativePath: String): String =
+        IMAGES_PREFIX + token + "/" + relativePath.split('/').joinToString("/") { java.net.URLEncoder.encode(it, Charsets.UTF_8).replace("+", "%20") }
+
+    /** The file a request names, or null: unknown token, a path escaping the root, not an image. */
+    internal fun imageFileOf(rawPath: String): java.nio.file.Path? {
+        if (!rawPath.startsWith(IMAGES_PREFIX)) return null
+        val rest = rawPath.removePrefix(IMAGES_PREFIX)
+        val token = rest.substringBefore('/')
+        val root = imageRoots[token] ?: return null
+        val rel = runCatching { java.net.URLDecoder.decode(rest.substringAfter('/', ""), Charsets.UTF_8) }.getOrNull() ?: return null
+        if (rel.isBlank() || rel.split('/').any { it == ".." } || !ProjectImages.isImage(rel)) return null
+        val file = root.resolve(rel).normalize()
+        return if (file.startsWith(root) && java.nio.file.Files.isRegularFile(file)) file else null
+    }
+
+    private fun serveImage(ex: HttpExchange) = ex.use {
+        val file = imageFileOf(ex.requestURI.rawPath)
+        if (file == null) {
+            ex.sendResponseHeaders(404, -1)
+            return@use
+        }
+        val bytes = java.nio.file.Files.readAllBytes(file)
+        ex.responseHeaders.add("Content-Type", contentType(file.fileName.toString()))
+        ex.responseHeaders.add("Cache-Control", "no-cache")
+        ex.sendResponseHeaders(200, bytes.size.toLong())
+        ex.responseBody.write(bytes)
     }
 
     private fun serveStatic(ex: HttpExchange, backendBaseUrl: String) = ex.use {
@@ -126,14 +174,18 @@ object MateuVisualEditorServer {
         }
     }
 
-    private fun contentType(path: String): String = when {
+    private fun contentType(name: String): String = name.lowercase().let { path -> when {
         path.endsWith(".html") -> "text/html; charset=utf-8"
         path.endsWith(".js") -> "text/javascript; charset=utf-8"
         path.endsWith(".css") -> "text/css; charset=utf-8"
         path.endsWith(".json") -> "application/json"
         path.endsWith(".svg") -> "image/svg+xml"
         path.endsWith(".png") -> "image/png"
+        path.endsWith(".jpg") || path.endsWith(".jpeg") -> "image/jpeg"
+        path.endsWith(".gif") -> "image/gif"
+        path.endsWith(".webp") -> "image/webp"
+        path.endsWith(".avif") -> "image/avif"
         path.endsWith(".woff2") -> "font/woff2"
         else -> "application/octet-stream"
-    }
+    } }
 }

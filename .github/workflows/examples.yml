@@ -41,7 +41,7 @@ jobs:
           EVENT: ${{ github.event_name }}
           PR: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
-          PATTERN: '^(backend|starters|demo)/|^\.github/workflows/examples\.yml$'
+          PATTERN: '^(backend|starters|demo)/|^frontend/app/vscode-extension/(src/newProject\.ts|scripts/new-project\.mjs)$|^\.github/workflows/examples\.yml$'
         run: scripts/ci-changes.sh
 
   java-starters-and-demos:
@@ -74,11 +74,42 @@ jobs:
             | xargs sed -i 's#<mateu.version>3\.0-alpha[^<]*</mateu.version>#<mateu.version>0.0.1-MATEU</mateu.version>#'
 
       # Starters: compile, package, then boot each one and load its CRUD through the action endpoint.
+      # -Dmateu.bundle.mock=true: the static starter ships its sources' sample data (its own
+      # .mvn/maven.config says so when it is built alone; the aggregator does not read it).
       - name: Build the Java starters against the reactor
-        run: mvn -B package -Dmateu.version=0.0.1-MATEU --file starters/pom.xml
+        run: mvn -B package -Dmateu.version=0.0.1-MATEU -Dmateu.bundle.mock=true --file starters/pom.xml
 
-      - name: Boot every Java starter and load its CRUD
+      - name: Boot every Java starter and load its CRUD (and check the static bundle)
         run: starters/smoke-test.sh
+
+      # The New Project generator (IntelliJ wizard, VS Code command, CLI) turns the starters into
+      # projects. The starters themselves are checked above; this packages what only the generator
+      # produces — the code + YAML flavour, the Empty sample, page templates, renamed packages — so a
+      # starter change that breaks a generated project fails here, not in a user's IDE.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - name: Generate projects with the New Project generator and package them
+        run: |
+          set -euo pipefail
+          cd frontend/app/vscode-extension
+          npm ci --ignore-scripts
+          npm run compile
+          out=$RUNNER_TEMP/generated
+          gen() { node scripts/new-project.mjs --version 0.0.1-MATEU --group com.acme "$@"; }
+          gen --authoring both --runtime spring-mvc --pages form,dashboard --artifact both-mvc --out $out/both-mvc
+          gen --authoring both --runtime quarkus --artifact both-quarkus --out $out/both-quarkus
+          gen --authoring code --runtime micronaut --sample empty --artifact empty-micronaut --out $out/empty-micronaut
+          gen --authoring code --runtime helidon-mp --sample empty --artifact empty-helidon --out $out/empty-helidon
+          gen --authoring code --runtime spring-webflux --sample empty --renderer redwood --artifact redwood-webflux --out $out/redwood-webflux
+          gen --authoring yaml --runtime spring-mvc --pages welcome,calendar --artifact yaml-pages --out $out/yaml-pages
+          gen --authoring static --artifact static-site --out $out/static-site
+          for d in $out/*; do
+            echo "::group::$(basename $d)"
+            (cd $d && mvn -B -q package -DskipTests)
+            echo "::endgroup::"
+          done
+          test -f $out/static-site/target/mateu-bundle/manifest.json
 
       # Demos: compile only (several talk to external services or need a frontend build to RUN).
       # -Dmateu.version overrides the release pinned by the "start here" demos, so they too are

@@ -7112,6 +7112,9 @@
 <!-- Arquetipo WELCOME: banner de bienvenida Redwood (CTAs integrados) + tiles -->
 <oj-bind-if test="[[ !!$application.variables.mateuWelcome ]]">
   <oj-sp-header-welcome-banner id="mateuWelcomeBanner"
+    data-node-bound
+    :data-node-id="[[ $application.variables.mateuWelcome.nodeId || null ]]"
+    :data-node-buttons="[[ $application.variables.mateuWelcome.ctaNodeIds || null ]]"
     themed-image="none"
     illustration-background="[[ $application.variables.mateuWelcomeIlluBg ]]"
     illustration-foreground="[[ $application.variables.mateuWelcomeIllu ]]"
@@ -7122,7 +7125,8 @@
     secondary-action="[[ $application.variables.mateuWelcome.secondaryCta ]]"
     on-sp-primary-action="[[ $listeners.welcomePrimary ]]"
     on-sp-secondary-action="[[ $listeners.welcomeSecondary ]]"></oj-sp-header-welcome-banner>
-  <div class="oj-flex oj-sm-margin-6x-top oj-sm-padding-12x-horizontal">
+  <div class="oj-flex oj-sm-margin-6x-top oj-sm-padding-12x-horizontal"
+       data-node-bound :data-node-id="[[ $application.variables.mateuWelcome.tilesNodeId || null ]]">
     <oj-bind-for-each data="[[ $application.variables.mateuWelcome.tiles ]]">
       <template>
         <div class="oj-flex-item oj-sm-12 oj-md-4">
@@ -7139,9 +7143,9 @@
             </oj-bind-if>
             <oj-bind-if test="[[ !$current.data.isKpi ]]">
               <div class="oj-typography-subheading-sm oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
-              <oj-bind-for-each data="[[ $current.data.texts ]]">
+              <oj-bind-for-each data="[[ $current.data.textNodes ]]">
                 <template>
-                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div>
+                  <div class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></div>
                 </template>
               </oj-bind-for-each>
             </oj-bind-if>
@@ -8782,7 +8786,8 @@
 <oj-bind-if test="[[ !!$application.variables.mateuItemOv ]]">
   <div class="oj-flex oj-sm-padding-12x-horizontal oj-sm-padding-6x-vertical">
     <div class="oj-flex-item oj-sm-12 oj-md-4">
-      <div class="oj-panel oj-sm-margin-2x">
+      <div class="oj-panel oj-sm-margin-2x"
+           data-node-bound :data-node-id="[[ $application.variables.mateuItemOv.keyNodeId || null ]]">
         <!-- el panel de datos clave, como átomos -->
         <oj-bind-for-each data="[[ $application.variables.mateuItemOv.key.items ]]">
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
@@ -10367,7 +10372,8 @@
     </div>
     <div class="oj-flex-item oj-sm-12 oj-md-8">
       <!-- edge=top: sin él la barra se apila en vertical (sólo salían los rótulos uno bajo otro) -->
-      <oj-tab-bar id="mateuItemTabs" edge="top" on-selection-changed="[[ $listeners.itemTabChanged ]]">
+      <oj-tab-bar id="mateuItemTabs" edge="top" on-selection-changed="[[ $listeners.itemTabChanged ]]"
+                  data-node-bound :data-node-id="[[ $application.variables.mateuItemOv.tabsNodeId || null ]]">
         <ul>
           <oj-bind-for-each data="[[ $application.variables.mateuItemOv.tabs ]]">
             <template>

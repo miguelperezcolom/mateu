@@ -1,6 +1,7 @@
 import { LitElement, html, css, nothing, type TemplateResult } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
 import { PageDoc, PageNode, NodePath, pathToId, presentSlots, slotSeg } from '../model/pageModel'
+import { expandedFor } from '../canvas/canvasSelection'
 
 /**
  * The Layers / Outline panel — the navigator every serious visual editor has (Figma, Webflow,
@@ -45,6 +46,24 @@ export class EditorOutline extends LitElement {
 
     @state() private collapsed = new Set<string>()
 
+    /**
+     * A node selected anywhere else (a click on the canvas, undo, a new node) opens its ancestors here,
+     * so its row is never hidden inside a collapsed group, and scrolls into view.
+     */
+    willUpdate(changed: Map<string, unknown>) {
+        if (changed.has('selectedPath') && this.selectedPath) {
+            const next = expandedFor(this.collapsed, this.selectedPath)
+            if (next.size !== this.collapsed.size) this.collapsed = next
+        }
+    }
+
+    updated(changed: Map<string, unknown>) {
+        if (changed.has('selectedPath') && this.selectedPath) {
+            const row = this.renderRoot.querySelector('.row.sel') as HTMLElement | null
+            row?.scrollIntoView?.({ block: 'nearest' })
+        }
+    }
+
     render() {
         const root = this.doc?.layout
         return html`
@@ -67,7 +86,7 @@ export class EditorOutline extends LitElement {
         // Slot items sit one level deeper than their group header.
         const depth = path.length + path.filter((p) => typeof p === 'string').length
         return html`
-            <div class="row ${isSel ? 'sel' : ''}" style="padding-left:${0.4 + depth * 0.85}rem"
+            <div class="row ${isSel ? 'sel' : ''}" data-path=${key} aria-selected=${isSel ? 'true' : 'false'} style="padding-left:${0.4 + depth * 0.85}rem"
                  @click=${(e: Event) => { e.stopPropagation(); this.select(path) }}>
                 <span class="caret ${hasChildren ? '' : 'leaf'}"
                       @click=${(e: Event) => { e.stopPropagation(); this.toggle(key) }}

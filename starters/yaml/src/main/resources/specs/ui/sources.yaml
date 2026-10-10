@@ -1,0 +1,16 @@
+# The REST source catalogue: every endpoint the screens read, named once. Until the API exists the
+# `sample:` answers instead of calling it — only in sample mode (an app run with
+# -Dmateu.sources.mock=true, a bundle built with -Dmateu.bundle.mock=true, and always in the visual
+# editor). Point `url` at your API and drop sample mode to go live.
+# See https://mateu.io/java-ui-definition/rest-source-catalogue/
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/sources-schema.json
+sources:
+  - name: products
+    description: The product catalogue
+    source:
+      url: /api/products
+    sample:
+      - {id: P-001, name: Espresso machine, price: 249.0, status: AVAILABLE}
+      - {id: P-002, name: Coffee grinder, price: 89.5, status: AVAILABLE}
+      - {id: P-003, name: Milk frother, price: 39.9, status: OUT_OF_STOCK}
+      - {id: P-004, name: Pour-over kettle, price: 59.0, status: DISCONTINUED}

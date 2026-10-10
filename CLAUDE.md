@@ -28,6 +28,13 @@ backend/          ← Maven multi-module Java backend
   quarkus/        ← Quarkus adapter
   helidon-mp/     ← Helidon MicroProfile adapter (JAX-RS/CDI/Weld; at full parity — see the
                     Helidon MP adapter note below)
+  spring-data/    ← optional `mateu-spring-data` (@Experimental): `CrudStores.of(jpaRepository)` →
+                    `JpaCrudStore`, a CrudStore whose find/4 (search, example filters, criteria,
+                    sort, paging) is ONE JPA Specification + PageRequest, summaries pushed down when
+                    given an EntityManager (else in memory over the pushed-down rows). JPA/Spring
+                    Data `@Version` is a STORE-MANAGED version for core `OptimisticLock` (matched by
+                    annotation name): checked like Mateu's `@Version`, never bumped by Mateu.
+                    Tests boot H2 + a trimmed TestMateu (`MiniMateu`). Doc: build/spring-data.md.
 
 backend/dotnet/   ← C# server-side (Mateu.NET) — ASP.NET reflection mapper emitting the same
                     /mateu/v3/sync wire model so existing renderers render a C# backend.
@@ -451,6 +458,27 @@ Nine work streams were integrated on `integration/ga` for the first beta/GA. The
   kotlin 8096 — `demo/README.md`). The docs site must pass `npm run verify` (build + link check). A
   servlet context path (`server.servlet.context-path`) is UNSUPPORTED (the page loads `/assets` from the
   host root). CHANGELOG.md, CONTRIBUTING.md (DCO), SECURITY.md (GitHub advisories) exist.
+
+## New Mateu project — one generator, three front doors (2026-10-10)
+
+IntelliJ **File › New › Project › Mateu** (`io.mateu.ijp.newproject`), VS Code **Mateu: New
+Project…** (`src/newProject.ts` + `NewProjectCommand.ts`; `scripts/new-project.mjs` is the CLI CI
+uses) and the **`io.mateu:mateu-archetype`** (`backend/mateu-archetype`, last reactor module) all
+generate FROM THE STARTERS — never from a hand-kept template. `starters/generator/new-project.json`
+is the single description: authoring flavour (`code` | `yaml` = no UI code, served by Spring Boot |
+`static` = specs-only bundle, no backend | `both`), the runtimes each is offered on, renderers,
+samples, overlays (`starters/generator/overlays/`), replacements, and `incompatible` combinations
+(each verified to fail at runtime — Redwood + an AutoCrud at the root; `both` is not offered on
+Micronaut/Helidon, which do not resolve a view model bound only in routes.yaml). Two engines apply it
+(Kotlin `MateuProjectGenerator`, TS `newProject.ts`), kept identical by `starters/generator/cases.json`
+plus a byte-for-byte comparison in `MateuProjectGeneratorTest` when node + the compiled extension are
+present; the archetype's `archetype-post-generate.groovy` applies the same replacements (Spring Boot
+flavours only; its Groovy needs a JDK ≤ 25 to RUN Maven). The IntelliJ plugin bundles the starters via
+the `copyStarters` Gradle task (+ `index.txt`); the .vsix stages them in `prepackage.mjs`. The common
+overlay's `gitignore` is renamed to `.gitignore` at generation (packagers drop dotted ignore files).
+Every starter ships `AGENTS.md` + a `CLAUDE.md` that imports it (`@AGENTS.md`); `yaml`/`static` share
+byte-identical `specs/ui` (pinned by a test). A starter change flows to all three front doors — keep
+`cases.json` green. Version = latest `io.mateu:mateu-bom` on Maven Central, fallback the starters' pin.
 
 ## Backend testing (core integration harness)
 

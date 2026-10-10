@@ -12,6 +12,15 @@ paste here builds. Prefer to clone? Copy that directory and run `mvn spring-boot
 
 You need **Java 21** and **Maven 3.9+**.
 
+:::tip[Generate it instead]
+This exact project is one click away: **File › New › Project… › Mateu** in IntelliJ, **Mateu: New
+Project…** in VS Code, or `mvn archetype:generate -DarchetypeGroupId=io.mateu
+-DarchetypeArtifactId=mateu-archetype -DarchetypeVersion=<release> -DgroupId=com.example
+-DartifactId=my-app` — with your package, the latest Mateu release and an `AGENTS.md`/`CLAUDE.md`
+for AI assistants. See [Create your project](/java-create-your-project/). Prefer no code at all?
+[Quickstart: YAML only](/java-user-manual/start-here/quickstart-yaml/).
+:::
+
 ![The Products CRUD the quickstart builds](/images/docs/first-app/starter-products.png)
 
 ## The project

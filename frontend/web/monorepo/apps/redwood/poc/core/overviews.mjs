@@ -1,5 +1,5 @@
 import { actionsOf, collectFields, collectTexts } from './tree.mjs'
-import { islandContentOf } from './content.mjs'
+import { islandContentOf, editorNodeIds } from './content.mjs'
 import { findByType } from './listing.mjs'
 import { chromeText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): welcome, general/item overview, content tab strips, banners, page style.
@@ -17,6 +17,19 @@ export function findAllByType(tree, type) {
     }
   }
   walk(tree, true)
+  return out
+}
+
+/** The Text components under `node`, as {text, nodeId} — the node id only in editor mode. */
+export function textNodesOf(node, out = []) {
+  if (!node || typeof node !== 'object') return out
+  if (node.metadata && node.metadata.type === 'Text' && node.metadata.text != null) {
+    out.push(editorNodeIds && node.id ? { text: node.metadata.text, nodeId: String(node.id) } : { text: node.metadata.text })
+  }
+  for (const v of Object.values(node)) {
+    if (Array.isArray(v)) v.forEach((x) => textNodesOf(x, out))
+    else if (v && typeof v === 'object') textNodesOf(v, out)
+  }
   return out
 }
 
@@ -120,8 +133,10 @@ export function welcomeOf(ctx) {
     const metric = findByType(panel, 'MetricCard') || findByType(panel, 'Stat')
     const mm = metric ? metric.metadata : null
     return {
+      ...(editorNodeIds && panel.id ? { nodeId: String(panel.id) } : {}),
       title: panel.metadata.title || '',
       texts: collectTexts(panel),
+      textNodes: textNodesOf(panel),
       isKpi: !!mm,
       kpiTitle: mm ? (mm.title || mm.label || '') : '',
       kpiValue: mm ? String(mm.value == null ? '' : mm.value) : '',
@@ -130,6 +145,12 @@ export function welcomeOf(ctx) {
     }
   })
   return {
+    // editor mode: the banner is the hero's node, its CTAs (painted inside the banner, in order)
+    // their Buttons' — the page binds both onto the banner (data-node-id / data-node-buttons)
+    nodeId: editorNodeIds && hero.id ? String(hero.id) : '',
+    ctaNodeIds: editorNodeIds ? ctas.slice(0, 2).map((c) => c.nodeId || '').join(' ') : '',
+    // …and the band of tiles is the DashboardLayout's
+    tilesNodeId: editorNodeIds ? String((findByType(ctx.tree, 'DashboardLayout') || {}).id || '') : '',
     trend,
     // HeroSectionDto.tone: null = the rotating look (welcomeLookOf)
     tone: md.tone || null,
@@ -279,6 +300,7 @@ export function itemOverviewOf(ctx) {
     metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => b.items || [])
   const tabs = (tabLayout.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => ({
     id: 'itab-' + i,
+    ...(editorNodeIds && tab.id ? { nodeId: String(tab.id) } : {}),
     label: tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1),
     texts: collectTexts(tab),
     items: atomsOfNodes(tab.children || []),
@@ -287,6 +309,9 @@ export function itemOverviewOf(ctx) {
   return {
     key: keyCard ? { ...cardOf(keyCard), items: atomsOfNodes(Array.isArray(keyContent) ? keyContent : [keyContent]) } : { title: '', texts: [], items: [] },
     tabs,
+    // editor mode: the key panel is its Card's node, the tab bar its TabLayout's (bound by the page)
+    keyNodeId: editorNodeIds && keyCard && keyCard.id ? String(keyCard.id) : '',
+    tabsNodeId: editorNodeIds && tabLayout.id ? String(tabLayout.id) : '',
   }
 }
 

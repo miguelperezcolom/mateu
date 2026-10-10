@@ -30,5 +30,6 @@ public @interface WelcomeBanner {
   String image() default "";
 
   /** The banner's tone: {@code auto} (default look) or a dark tinted band. */
+  @Experimental("hero tone (3.0-alpha.409)")
   io.mateu.uidl.data.HeroTone tone() default io.mateu.uidl.data.HeroTone.auto;
 }

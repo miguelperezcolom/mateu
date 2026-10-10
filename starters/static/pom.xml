@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- A Mateu UI with NO backend: the UI is data under src/main/resources/specs/ui, and the build
+     (mateu-bundle) writes a folder of static files — target/mateu-bundle/ — to serve from any static
+     host or CDN. No Spring, no server, no Java code. The definitions ship RAW (specsOnly) and the
+     browser expands them; every data call goes from the browser straight to the APIs named in
+     sources.yaml. staticOnly fails the build if a screen still needs a server. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.example</groupId>
+    <artifactId>mateu-starter-static</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>mateu-starter-static</name>
+    <description>Minimal static Mateu UI: YAML specs bundled into plain files for a CDN, no backend.</description>
+
+    <properties>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- The latest Mateu release on Maven Central. To build against your local checkout instead,
+             install the backend (cd backend && mvn install -DskipTests) and pass
+             -Dmateu.version=0.0.1-MATEU -->
+        <mateu.version>3.0-alpha.406</mateu.version>
+    </properties>
+
+    <dependencies>
+        <!-- The web renderer: the bundle copies its static app out of this jar. -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-vaadin</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- mvn package → target/mateu-bundle/: index.html, manifest.json (the screens and the
+                 source catalogue), the renderer's assets/ and a _redirects SPA fallback. -->
+            <plugin>
+                <groupId>io.mateu</groupId>
+                <artifactId>mateu-bundle-maven-plugin</artifactId>
+                <version>${mateu.version}</version>
+                <configuration>
+                    <pageTitle>My app</pageTitle>
+                    <skipParamRoutes>false</skipParamRoutes>
+                    <staticOnly>true</staticOnly>
+                    <specsOnly>true</specsOnly>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>bundle</id>
+                        <goals>
+                            <goal>bundle</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -1,0 +1,9 @@
+# The mount: this app, served at "/", declared as data (the YAML twin of @UI). Mateu discovers it by
+# scanning specs/ui/** for `type: UI`; its screens are the routes of the files listed below, and
+# `home:` is the route the app opens on.
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/mount-schema.json
+type: UI
+basePath: /
+home: products
+routes:
+  - routes.yaml
