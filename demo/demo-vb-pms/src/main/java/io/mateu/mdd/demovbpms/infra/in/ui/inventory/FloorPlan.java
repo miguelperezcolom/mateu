@@ -26,7 +26,38 @@ import java.util.Map;
  */
 @UI("/floor-plan")
 @Title("Floor plan")
-public class FloorPlan implements ComponentTreeSupplier {
+public class FloorPlan implements ComponentTreeSupplier, io.mateu.uidl.fluent.TriggersSupplier {
+
+  /** How often the plan refreshes itself (housekeeping changes room statuses all day long). */
+  static final int REFRESH_MILLIS = 10_000;
+
+  static final java.util.concurrent.atomic.AtomicInteger REFRESHES =
+      new java.util.concurrent.atomic.AtomicInteger();
+
+  /** First refresh after the wait, and each refresh that succeeds schedules the next one. */
+  @Override
+  public List<io.mateu.uidl.fluent.Trigger> triggers(HttpRequest httpRequest) {
+    return List.of(
+        new io.mateu.uidl.fluent.OnLoadTrigger("refreshRooms", REFRESH_MILLIS, 1, null, true),
+        new io.mateu.uidl.fluent.OnSuccessTrigger(
+            "refreshRooms", "refreshRooms", "", REFRESH_MILLIS, true));
+  }
+
+  /** A housekeeping round: a few rooms change status, and the plan re-renders in place. */
+  @Action
+  public Object refreshRooms() {
+    var random = new java.util.Random();
+    var cycle = List.of(Hotel.HousekeepingStatus.DI, Hotel.HousekeepingStatus.PU, Hotel.HousekeepingStatus.CL, Hotel.HousekeepingStatus.IP);
+    for (int i = 0; i < 3; i++) {
+      var room = Hotel.ROOMS.get(random.nextInt(Hotel.ROOMS.size()));
+      if (room.outOfOrder()) continue;
+      var next = cycle.get((cycle.indexOf(room.status()) + 1 + cycle.size()) % cycle.size());
+      Hotel.replaceRoom(new Hotel.Room(room.number(), room.floor(), room.type(), room.typeLabel(), next, false));
+    }
+    REFRESHES.incrementAndGet();
+    return this;
+  }
+
 
   private static final ObjectMapper JSON = new ObjectMapper();
 
@@ -39,7 +70,15 @@ public class FloorPlan implements ComponentTreeSupplier {
     return VerticalLayout.builder()
         .content(
             List.of(
-                new Text("floorHint", "Click a room to see its housekeeping status."),
+                new Text(
+                    "floorHint",
+                    "Click a room to see its housekeeping status. Refreshes every "
+                        + REFRESH_MILLIS / 1000
+                        + " s · last refreshed "
+                        + java.time.LocalTime.now().withNano(0)
+                        + " ("
+                        + REFRESHES.get()
+                        + " refreshes)"),
                 TabLayout.builder().id("floors").tabs(tabs).build()))
         .build();
   }

@@ -3818,7 +3818,8 @@ function isBlank(value) {
 /** Triggers OnLoad del contexto (p.ej. el listing dispara 'search' al cargar). */
 export function onLoadTriggers(ctx) {
   return ((ctx && ctx.tree && ctx.tree.triggers) || [])
-    .filter((t) => t.type === 'OnLoad' && t.actionId)
+    // los que llevan espera (refresco periódico) los programa polling.mjs, no se lanzan ya
+    .filter((t) => t.type === 'OnLoad' && t.actionId && !(t.timeoutMillis > 0))
     .map((t) => t.actionId)
 }
 

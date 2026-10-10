@@ -19,6 +19,8 @@ import { coverageTable } from './coverage.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays } from './calendar.mjs'
 import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf } from './notify.mjs'
+import { startPolling, actionSucceeded, setPollingRunner, timedOnLoadTriggers } from './polling.mjs'
+import { onLoadTriggers } from './reduceContexts.mjs'
 import { dayIndexAtX } from './planning.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
 import { listingOf, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
@@ -914,6 +916,43 @@ test('campana y deshacer: la shell pinta la campana con oj-list-view y su chain;
   assert.match(webApp('pages/shell-page-chains/mateuBell.js'), /_notifications|fetchNotifications/)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.setUndoSink\(runPageAction\)/)
   assert.match(webApp('resources/js/mateu-bridge.js'), /slot', 'detail'/)
+})
+
+// ── P1 #16 refresco periódico (OnLoad con espera + OnSuccess) ────────────────────────────────
+test('polling: los OnLoad con espera se programan (no se lanzan ya) y cada éxito programa la siguiente vuelta', () => {
+  const pending = []
+  const timer = (fn, ms) => { pending.push({ fn, ms }); return pending.length }
+  const ran = []
+  setPollingRunner((actionId, params, opts) => ran.push([actionId, opts.background]))
+  const host = { tree: { serverSideType: 'FloorPlan', triggers: [
+    { type: 'OnLoad', actionId: 'search' },
+    { type: 'OnLoad', actionId: 'refreshRooms', timeoutMillis: 10000, background: true },
+    { type: 'OnSuccess', actionId: 'refreshRooms', calledActionId: 'refreshRooms', timeoutMillis: 10000, background: true },
+  ] } }
+  assert.deepEqual(onLoadTriggers(host), ['search'], 'el inmediato sigue su camino; el de espera, no')
+  assert.deepEqual(timedOnLoadTriggers(host).map((t) => t.actionId), ['refreshRooms'])
+  startPolling(host, timer)
+  assert.equal(pending.length, 1)
+  assert.equal(pending[0].ms, 10000)
+  pending[0].fn()
+  assert.deepEqual(ran, [['refreshRooms', true]])
+  // la vuelta terminó bien → la siguiente
+  assert.equal(actionSucceeded(host, 'refreshRooms', timer), 1)
+  assert.equal(pending.length, 2)
+  // otra acción no reprograma nada; otra pantalla tampoco
+  assert.equal(actionSucceeded(host, 'save', timer), 0)
+  assert.equal(actionSucceeded({ tree: { serverSideType: 'Other', triggers: host.tree.triggers } }, 'refreshRooms', timer), 0)
+  // se navega a otra pantalla: lo programado para la anterior vence sin ejecutarse
+  startPolling({ tree: { serverSideType: 'Dashboard', triggers: [] } }, timer)
+  pending[1].fn()
+  assert.equal(ran.length, 1, 'una pantalla que ya no se ve deja de preguntar')
+  setPollingRunner(null)
+})
+
+test('polling: la shell lo arranca al navegar y el transporte avisa de cada éxito', () => {
+  assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /bridge\.startPolling\(reg\.contexts\[bridge\.HOST_ID\]\)/)
+  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.setPollingRunner\(runPageAction\)/)
+  assert.match(webApp('resources/js/mateu-bridge.js'), /if \(inc\) actionSucceeded\(source, actionId\)/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

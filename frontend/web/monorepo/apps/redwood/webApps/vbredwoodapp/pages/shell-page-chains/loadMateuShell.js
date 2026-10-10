@@ -84,6 +84,8 @@ define([
       bridge.setPlanningRangeSink(runPageAction);
       // toasts con «Undo» (Message.undoable): la acción vuelve a la página de contenido
       bridge.setUndoSink(runPageAction);
+      // refresco periódico (OnLoad con espera + OnSuccess): las vueltas salen por el mismo camino
+      bridge.setPollingRunner(runPageAction);
 
       // Static-bundle (modo sin backend): si hay un mateuBundleUrl configurado, se arranca la carga
       // del manifest AQUÍ, antes del bootstrap. bootstrapShell/loadRoute esperan al fetch en vuelo

@@ -3,6 +3,7 @@
 // sync/{route|_no_route} con actionId '' en las cargas. Fuente ÚNICA: este fichero se
 // testea en Node (capture.mjs) y se empaqueta en AMD para VB (make-amd.mjs).
 
+import { actionSucceeded } from './polling.mjs'
 import { reduceContexts, mediatorOf, HOST_ID, formLookupsOf, markLookupsLoaded, actionTransportOf, splitNestedApps, onLoadTriggers, listingOf, pendingSubresourcesOf } from './reduceContexts.mjs'
 import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isViewStale, staleResponseError } from './resilience.mjs'
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
@@ -130,6 +131,8 @@ export const loadRoute = async (base, route, initiator = '', extra = {}) => {
  *  Los 4 campos de ruta salen del `outbound` que loadRouteInto estampó al cargar el
  *  contexto (un mediador necesita consumedRoute + serverSideType también en las acciones). */
 export function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
+  // los OnSuccess (refresco periódico) se leen del contexto que LANZA la acción
+  const source = ctx
   // la acción va al ServerSide que la DECLARA (la vista, no el mediador que la cargó): también
   // los triggers — el OnLoad «actualizar» de una vista cargada por un crud —, no sólo los botones
   ctx = actionTransportOf(ctx, actionId)
@@ -160,7 +163,11 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
     initiatorComponentId: initiator,
     ...extra,
   }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent })
-    .then((inc) => { release(); return inc }, (e) => { release(); throw e })
+    .then((inc) => {
+      release()
+      if (inc) actionSucceeded(source, actionId)
+      return inc
+    }, (e) => { release(); throw e })
 }
 
 /**

@@ -4360,7 +4360,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** Triggers OnLoad del contexto (p.ej. el listing dispara 'search' al cargar). */
   function onLoadTriggers(ctx) {
     return ((ctx && ctx.tree && ctx.tree.triggers) || [])
-      .filter((t) => t.type === 'OnLoad' && t.actionId)
+      // los que llevan espera (refresco periódico) los programa polling.mjs, no se lanzan ya
+      .filter((t) => t.type === 'OnLoad' && t.actionId && !(t.timeoutMillis > 0))
       .map((t) => t.actionId)
   }
 
@@ -6082,6 +6083,69 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function safeString(v) {
     try { return typeof v === 'string' ? v : JSON.stringify(v) } catch (e) { return String(v) }
   }
+
+
+  // REFRESCO PERIÓDICO (triggers con espera): el patrón del web — un OnLoad con timeoutMillis
+  // arranca la primera vuelta y un OnSuccess(actionId = la misma, calledActionId = la misma,
+  // timeoutMillis) cierra el bucle: cada refresco que termina bien programa el siguiente. Antes
+  // la shell VB disparaba todos los OnLoad al momento, sin espera, y no conocía OnSuccess.
+  //
+  // Una GENERACIÓN por pantalla: navegar arranca una nueva y todo lo programado para la anterior
+  // se descarta al vencer (como el callbackToken del web) — un panel de pisos que se deja de ver
+  // deja de preguntar.
+
+  let runner = null
+  /** Quién ejecuta la acción programada (la shell: el mismo camino que los Element). */
+  function setPollingRunner(fn) { runner = typeof fn === 'function' ? fn : null }
+
+  let generation = 0
+  let screenTree = null
+  const timers = new Set()
+
+  const triggersOf = (ctx) => (ctx && ctx.tree && ctx.tree.triggers) || []
+
+  /** Los OnLoad CON espera (los inmediatos siguen el camino de siempre: onLoadTriggers). */
+  function timedOnLoadTriggers(ctx) {
+    return triggersOf(ctx).filter((t) => t.type === 'OnLoad' && t.actionId && t.timeoutMillis > 0)
+  }
+
+  /** Los OnSuccess que siguen a `actionId`. */
+  function onSuccessTriggers(ctx, actionId) {
+    return triggersOf(ctx).filter((t) => t.type === 'OnSuccess' && t.actionId && t.calledActionId === actionId)
+  }
+
+  const schedule = (trigger, gen, timer = setTimeout) => {
+    const fire = () => {
+      if (gen !== generation || !runner) return
+      runner(trigger.actionId, {}, { background: !!trigger.background, polling: true })
+    }
+    if (!(trigger.timeoutMillis > 0)) { fire(); return }
+    const handle = timer(() => { timers.delete(handle); fire() }, trigger.timeoutMillis)
+    timers.add(handle)
+  }
+
+  /** Pantalla nueva: descarta lo programado y arma sus OnLoad con espera. */
+  function startPolling(hostCtx, timer = setTimeout) {
+    generation++
+    for (const h of timers) clearTimeout(h)
+    timers.clear()
+    screenTree = hostCtx && hostCtx.tree
+    for (const t of timedOnLoadTriggers(hostCtx)) schedule(t, generation, timer)
+    return generation
+  }
+
+  /** Una acción terminó bien (hook del transporte): sus OnSuccess, si son de la pantalla en curso. */
+  function actionSucceeded(ctx, actionId, timer = setTimeout) {
+    if (!ctx || !ctx.tree) return 0
+    // sólo la pantalla en curso (misma clase servidora que la que se armó al navegar): la isla de
+    // otro ServerSide o una respuesta de la pantalla anterior no reprograman nada
+    if (!screenTree || ctx.tree.serverSideType !== screenTree.serverSideType) return 0
+    const next = onSuccessTriggers(ctx, actionId)
+    for (const t of next) schedule(t, generation, timer)
+    return next.length
+  }
+
+  const pollingGeneration = () => generation
 
 
   // Resiliencia del transporte — el mismo contrato que los renderers web (libs/mateu:
@@ -8585,6 +8649,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  Los 4 campos de ruta salen del `outbound` que loadRouteInto estampó al cargar el
    *  contexto (un mediador necesita consumedRoute + serverSideType también en las acciones). */
   function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
+    // los OnSuccess (refresco periódico) se leen del contexto que LANZA la acción
+    const source = ctx
     // la acción va al ServerSide que la DECLARA (la vista, no el mediador que la cargó): también
     // los triggers — el OnLoad «actualizar» de una vista cargada por un crud —, no sólo los botones
     ctx = actionTransportOf(ctx, actionId)
@@ -8615,7 +8681,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       initiatorComponentId: initiator,
       ...extra,
     }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent })
-      .then((inc) => { release(); return inc }, (e) => { release(); throw e })
+      .then((inc) => {
+        release()
+        if (inc) actionSucceeded(source, actionId)
+        return inc
+      }, (e) => { release(); throw e })
   }
 
   /**
@@ -10184,6 +10254,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     installActionPanels,
     installMatrixGrids,
     installCalendars,
+    startPolling,
+    setPollingRunner,
     fetchNotifications,
     notificationsOf,
     setUndoSink,

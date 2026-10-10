@@ -189,6 +189,9 @@ define([
         bridge.applyDomEffects(reg.effects, reg);
       }
 
+      // pantalla nueva: arma su refresco periódico (los OnLoad con espera) y olvida el anterior
+      bridge.startPolling(reg.contexts[bridge.HOST_ID]);
+
       // El chat de IA autoró una pantalla: se corre renderScreen con el YAML sobre el host recién
       // cargado — igual que un trigger OnLoad — y la proyección de más abajo la pinta. Es lo que
       // permite que "abrir el chat → pedir la pantalla → aparece" funcione desde la shell.
