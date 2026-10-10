@@ -355,6 +355,14 @@
                         </oj-bind-for-each>
                       </ul>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRichText ]]">
+                      <div class="oj-sm-margin-2x-bottom">
+                        <oj-bind-if test="[[ !!$current.data.label ]]">
+                          <div class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                        </oj-bind-if>
+                        <div class="mateu-atom-richtext oj-typography-body-md" :data-mateu-html="[[ $current.data.html ]]"></div>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isImage ]]">
                       <img class="mateu-atom-image" :src="[[ $current.data.src ]]" :alt="[[ $current.data.alt ]]" />
                     </oj-bind-if>

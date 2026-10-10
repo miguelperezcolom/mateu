@@ -114,9 +114,16 @@ public class ReservationDetail implements ComponentTreeSupplier {
                     new AccordionPanel(
                         "Payment instructions",
                         text("Window 1: guest, credit card · Window 2: guest, cash")),
+                    // rich text: OPERA's traces and notes carry formatting (bold, lists, quotes)
                     new AccordionPanel(
                         "Traces and notes",
-                        text("Late arrival expected · Feather-free pillows"))))
+                        new io.mateu.uidl.data.Markdown(
+                            "**Late arrival** expected, after 23:00.\n\n"
+                                + "- Feather-free pillows\n"
+                                + "- Extra towels for the *pool*\n\n"
+                                + "> Asked for a quiet room, away from the lift.",
+                            "",
+                            ""))))
             .build();
     var alerts =
         new Details(

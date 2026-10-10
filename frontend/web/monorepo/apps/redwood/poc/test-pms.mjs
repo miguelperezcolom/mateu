@@ -1068,20 +1068,39 @@ test('arrastre: el listado @DragRows da su tipo al oj-table; el DropZone es un �
   assert.match(webApp('flows/main/pages/main-start-page-chains/runMateuAction.js'), /hostNow\.tree\.id !== host\.tree\.id/)
 })
 
-import { markdownBlocksOf, ganttAtomOf, itemOverviewOf, generalOverviewOf } from './reduceContexts.mjs'
+import { ganttAtomOf, itemOverviewOf, generalOverviewOf, isRichAtom } from './reduceContexts.mjs'
+import { sanitizeHtml, markdownToHtml } from './richtext.mjs'
 
-test('Markdown: encabezados, párrafos y listas como átomos, sin marcas en línea ni HTML', () => {
-  assert.deepEqual(markdownBlocksOf('# Title\n\nSome **bold** and `code`,\nsame paragraph.\n\n- one\n- [two](http://x)\n\n## Sub'), [
-    { level: 1, text: 'Title' },
-    { level: 0, text: 'Some bold and code, same paragraph.' },
-    { list: ['one', 'two'] },
-    { level: 2, text: 'Sub' },
-  ])
-  const atoms = atomsOf(node({ type: 'Markdown', markdown: '# H\n\ntext\n\n* a' }))
-  assert.equal(atoms.length, 3)
-  assert.ok(atoms[0].isText && atoms[0].isHeading)
-  assert.ok(atoms[1].isText && !atoms[1].isHeading)
-  assert.deepEqual(atoms[2].items, ['a'])
+test('Markdown: con su formato — HTML saneado que installRichText vuelca en su contenedor', () => {
+  assert.equal(markdownToHtml('# Title\n\nSome **bold**, *it* and `code`,\nsame paragraph.\n\n- one\n- [two](https://x.org)\n\n1. first\n\n> quoted'),
+    '<h1>Title</h1><p>Some <strong>bold</strong>, <em>it</em> and <code>code</code>, same paragraph.</p>'
+    + '<ul><li>one</li><li><a href="https://x.org" target="_blank" rel="noopener noreferrer">two</a></li></ul><ol><li>first</li></ol>'
+    + '<blockquote><p>quoted</p></blockquote>')
+  assert.equal(markdownToHtml('```\n<b>raw</b>\n```'), '<pre><code>&lt;b&gt;raw&lt;/b&gt;</code></pre>')
+  const [md] = atomsOf(node({ type: 'Markdown', markdown: '# H\n\ntext' }))
+  assert.ok(md.isRichText)
+  assert.equal(md.html, '<h1>H</h1><p>text</p>')
+  assert.ok(isRichAtom(md), 'un átomo nuevo va en RICH_ATOM_FLAGS')
+})
+
+test('HTML saneado por lista blanca: sin scripts, manejadores, estilos ni enlaces javascript:', () => {
+  assert.equal(sanitizeHtml('<p onclick="x()" style="color:red">Hi <b>there</b><script>alert(1)</script><style>p{}</style>'
+    + '<a href="javascript:alert(1)">x</a><a href="https://oracle.com?a=1&amp;b=2">o</a><img src=x onerror=alert(1)><iframe src="//e"></iframe></p>'),
+  '<p>Hi <b>there</b><a>x</a><a href="https://oracle.com?a=1&amp;b=2" target="_blank" rel="noopener noreferrer">o</a></p>')
+  assert.equal(sanitizeHtml('<a href="&#106;avascript:alert(1)">x</a> 1 < 2'), '<a>x</a> 1 &lt; 2')
+})
+
+test('campos richText / html / markdown: con formato en sólo lectura; editables, un text area', () => {
+  const ro = atomsOf(node({ type: 'FormLayout' }, [
+    node({ type: 'FormField', fieldId: 'notes', dataType: 'string', stereotype: 'richText', readOnly: true, label: 'Notes' }),
+    node({ type: 'FormField', fieldId: 'policy', dataType: 'string', stereotype: 'markdown', readOnly: true, label: 'Policy' }),
+  ]), { notes: '<p>VIP <b>guest</b><script>x</script></p>', policy: '**No** pets' })
+  assert.deepEqual(ro.map((a) => [a.label, a.html]), [['Notes', '<p>VIP <b>guest</b></p>'], ['Policy', '<p><strong>No</strong> pets</p>']])
+  const [layout] = atomsOf(node({ type: 'FormLayout' }, [node({ type: 'FormField', fieldId: 'notes', dataType: 'string', stereotype: 'richText', label: 'Notes' })]), { notes: '<p>x</p>' })
+  assert.ok(layout.isFormLayout)
+  assert.ok(layout.fields[0].isTextArea, 'JET no trae editor de texto enriquecido')
+  assert.match(webApp('flows/main/pages/main-start-page.html'), /:data-mateu-html="\[\[ \$current\.data\.html \]\]"/)
+  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installRichText\(\)/)
 })
 
 test('Gantt: una fila por tarea sobre oj-gantt, avance 0..1, selección → _clickedTaskId', () => {
@@ -1118,15 +1137,15 @@ test('Item Overview y General Overview: el contenido de tarjetas y pestañas via
     node({ type: 'TabLayout' }, [node({ type: 'Tab', label: 'Specs' }, [node({ type: 'Markdown', markdown: '## Size' })])]),
   ]) })
   assert.equal(io.key.title, 'Chair')
-  assert.deepEqual(io.key.items[0].items, ['4D armrests'])
-  assert.ok(io.tabs[0].items[0].isHeading)
+  assert.equal(io.key.items[0].html, '<ul><li>4D armrests</li></ul>')
+  assert.equal(io.tabs[0].items[0].html, '<h2>Size</h2>')
   const go = generalOverviewOf({ state: {}, data: {}, tree: node({ type: 'VerticalLayout' }, [
     node({ type: 'FormField', fieldId: 'record', dataType: 'string', options: [{ value: '1', label: 'One' }] }),
     node({ type: 'EntityHeader', title: 'One' }),
     node({ type: 'Card', title: node({ type: 'Text', text: 'Notes' }), content: [node({ type: 'Markdown', markdown: 'hello' })] }),
   ]) })
   const card = go.cards.find((c) => c.title === 'Notes')
-  assert.equal(card.items[0].text, 'hello')
+  assert.equal(card.items[0].html, '<p>hello</p>')
 })
 
 import { withInitialValues } from './reduceContexts.mjs'

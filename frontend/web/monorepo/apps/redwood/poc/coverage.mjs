@@ -111,7 +111,7 @@ export const REDWOOD_COVERAGE = {
   AvatarGroup: { status: 'full', note: 'oj-avatar per person, +N beyond maxItemsVisible' },
   Icon: { status: 'none' },
   Image: { status: 'full', note: 'JET has no image component: an <img>; relative sources are served by the backend' },
-  Markdown: { status: 'partial', note: 'headings, paragraphs and bullet lists as Redwood typography; inline emphasis, links and code lose their marks; no tables or raw HTML' },
+  Markdown: { status: 'partial', note: 'formatted (headings, lists, quotes, code, bold, italics, links) as allowlist-sanitized HTML; no tables, and HTML inside the Markdown shows as text' },
   Map: { status: 'none' },
   Breadcrumbs: { status: 'none', note: 'the shell has its own breadcrumbs' },
   Breadcrumb: { status: 'part', note: 'of Breadcrumbs' },

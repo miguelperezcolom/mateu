@@ -77,6 +77,9 @@ define([
         name: 'application:mateuTilesReordered', payload: { scope: scope || '' },
       }));
       bridge.installTileReorder();
+      // texto enriquecido (Markdown, campos richText/html/markdown de sólo lectura): el HTML ya
+      // saneado de cada [data-mateu-html] se vuelca en su contenedor
+      bridge.installRichText();
       // MatrixGrid (oj-data-grid): plegar secciones, editar filas editables, celdas que enlazan
       bridge.installMatrixGrids();
       // Calendar: cambiar de vista en el DOM, eventos y fechas que lanzan su acción

@@ -1380,3 +1380,30 @@ body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-title { 
 [data-mateu-tile]:focus-visible { outline: 2px solid var(--oj-core-focus-border-color, #0572ce); outline-offset: 2px; }
 .mateu-tile-dragging { opacity: .5; }
 .mateu-tile-over > * { outline: 2px dashed var(--oj-core-border-color-brand, #227e9e); outline-offset: 2px; }
+
+/* Texto enriquecido (P2 #23): el HTML saneado de un richText/html/markdown con la tipografía de
+   Redwood — márgenes contenidos, listas sangradas, código y citas con los tokens del tema. */
+.mateu-atom-richtext > :first-child { margin-top: 0; }
+.mateu-atom-richtext > :last-child { margin-bottom: 0; }
+.mateu-atom-richtext p, .mateu-atom-richtext ul, .mateu-atom-richtext ol, .mateu-atom-richtext pre,
+.mateu-atom-richtext blockquote { margin: 0 0 var(--oj-core-spacing-2x, 8px); }
+.mateu-atom-richtext h1, .mateu-atom-richtext h2, .mateu-atom-richtext h3,
+.mateu-atom-richtext h4, .mateu-atom-richtext h5, .mateu-atom-richtext h6 {
+  margin: var(--oj-core-spacing-3x, 12px) 0 var(--oj-core-spacing-2x, 8px);
+  font-weight: 600;
+}
+.mateu-atom-richtext h1 { font-size: var(--oj-typography-heading-sm-font-size, 1.5rem); }
+.mateu-atom-richtext h2 { font-size: var(--oj-typography-subheading-md-font-size, 1.25rem); }
+.mateu-atom-richtext h3 { font-size: var(--oj-typography-subheading-sm-font-size, 1.125rem); }
+.mateu-atom-richtext ul, .mateu-atom-richtext ol { padding-inline-start: 1.5rem; }
+.mateu-atom-richtext code {
+  font-family: var(--oj-core-font-family-mono, monospace);
+  background: var(--oj-core-neutral-contrast, rgba(0,0,0,.05));
+  padding: 0 .25em;
+  border-radius: 3px;
+}
+.mateu-atom-richtext pre { padding: var(--oj-core-spacing-2x, 8px); overflow-x: auto;
+  background: var(--oj-core-neutral-contrast, rgba(0,0,0,.05)); border-radius: 4px; }
+.mateu-atom-richtext pre code { background: none; padding: 0; }
+.mateu-atom-richtext blockquote { padding-inline-start: var(--oj-core-spacing-3x, 12px);
+  border-inline-start: 3px solid var(--oj-core-divider-color, #ddd); color: var(--oj-core-text-color-secondary, #555); }

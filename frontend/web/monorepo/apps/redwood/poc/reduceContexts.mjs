@@ -3,6 +3,7 @@ import { autoTrail } from './breadcrumbs.mjs'
 import { sectionHomeOf, sectionRoutes, isSentinelHome } from './navTree.mjs'
 import { applyColumnPrefs, readTileOrder, orderedTileIndices, tileKeyOf, tileScopeOf } from './prefs.mjs'
 import { elementModuleUrl } from './elements.mjs'
+import { sanitizeHtml, markdownToHtml } from './richtext.mjs'
 // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
 // En la app VB estas funciones serían métodos de app-flow.js; aquí son funciones
 // libres para testearlas en Node.
@@ -719,35 +720,11 @@ export function avatarOf(m) {
   return { name, initials, src: m && m.image ? elementModuleUrl(m.image) : '' }
 }
 
-/** Markdown → bloques: {level, text} (encabezado #… o párrafo) o {list: [items]}. Énfasis, código
- *  en línea y enlaces quedan como texto (sin sus marcas); nada de HTML. */
-export function markdownBlocksOf(md) {
-  const inline = (t) => String(t)
-    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1')
-    .replace(/(\*\*|__)(.+?)\1/g, '$2')
-    .replace(/(\*|_)(.+?)\1/g, '$2')
-    .replace(/`([^`]+)`/g, '$1')
-    .trim()
-  const blocks = []
-  let para = []
-  let list = null
-  const flush = () => {
-    if (para.length) { blocks.push({ level: 0, text: inline(para.join(' ')) }); para = [] }
-    if (list) { blocks.push({ list }); list = null }
-  }
-  for (const raw of String(md || '').split('\n')) {
-    const line = raw.trimEnd()
-    const heading = /^(#{1,6})\s+(.*)$/.exec(line.trim())
-    const item = /^\s*(?:[-*+]|\d+\.)\s+(.*)$/.exec(line)
-    if (!line.trim()) { flush(); continue }
-    if (heading) { flush(); blocks.push({ level: heading[1].length, text: inline(heading[2]) }); continue }
-    if (item) { if (para.length) { blocks.push({ level: 0, text: inline(para.join(' ')) }); para = [] } ; (list = list || []).push(inline(item[1])); continue }
-    if (list) { blocks.push({ list }); list = null }
-    para.push(line.trim())
-  }
-  flush()
-  return blocks.filter((b) => b.list ? b.list.length : b.text)
+/** Texto enriquecido (richText/html/markdown) de un campo o componente → su HTML saneado. */
+const RICH_TEXT_STEREOTYPES = { richText: true, html: true, markdown: true }
+export function richHtmlOf(kind, value) {
+  const text = value == null ? '' : String(value)
+  return kind === 'markdown' ? markdownToHtml(text) : sanitizeHtml(text)
 }
 
 /** «colSpan de N columnas» → la clase oj-flex del bloque (doceavos, nunca más de 12). */
@@ -823,7 +800,7 @@ export const RICH_ATOM_FLAGS = [
   'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
   // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
   // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
-  'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt', 'isImage', 'isAvatar', 'isGallery',
+  'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt', 'isImage', 'isAvatar', 'isGallery', 'isRichText',
 ]
 export function isRichAtom(a) {
   return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -1773,6 +1750,13 @@ export function islandContentOf(ctx, opts = {}) {
         }, container)
         return
       }
+      if (RICH_TEXT_STEREOTYPES[m.stereotype] && m.readOnly) {
+        // richText / html / markdown de SÓLO LECTURA: con su formato (editable: un oj-text-area
+        // en el form layout — JET no trae editor de texto enriquecido)
+        const raw = state[fieldId] != null ? state[fieldId] : (ctx.data || {})[fieldId]
+        atom({ isRichText: true, label: interp(m.label || ''), html: richHtmlOf(m.stereotype, plainValueOf(raw)) }, container)
+        return
+      }
       if (m.stereotype === 'bulletedList') {
         // @BulletedList sobre una List<String>: su rótulo y sus valores como la lista de viñetas
         // de siempre (el componente BulletedList ya era un átomo; el campo caía al vacío)
@@ -2116,15 +2100,10 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'Markdown') {
-      // Markdown sin HTML crudo (VB no estampa HTML de un binding, y así no hay nada que sanear): sus
-      // bloques como los átomos de siempre — encabezados, párrafos, listas —; el énfasis en línea
-      // se queda en el texto sin sus marcas
-      for (const block of markdownBlocksOf(interp(m.markdown || m.text || ''))) {
-        if (block.list) atom({ isBullets: true, items: block.list }, container)
-        else atom({ isText: true, text: block.text, isHeading: block.level > 0,
-          cls: block.level === 1 ? 'oj-typography-heading-sm oj-sm-margin-2x-bottom'
-            : block.level > 1 ? 'oj-typography-subheading-sm oj-sm-margin-2x-bottom' : 'oj-typography-body-md oj-sm-margin-2x-bottom' }, container)
-      }
+      // Markdown CON formato (encabezados, listas, citas, código, negrita, enlaces…): HTML saneado
+      // que installRichText vuelca en su contenedor (VB no estampa HTML desde un binding)
+      const html = richHtmlOf('markdown', interp(m.markdown || m.text || ''))
+      if (html) atom({ isRichText: true, label: '', html }, container)
       return
     }
     if (t === 'Grid') {
@@ -4532,6 +4511,7 @@ const LAYOUT_TYPES = { string: true, integer: true, int: true, long: true, numbe
 export function layoutFieldOf(md, state, data, columns = 1) {
   const fieldId = md.fieldId || md.id
   if (!fieldId || (md.columns || []).length || md.propertyRow
+    || (RICH_TEXT_STEREOTYPES[md.stereotype] && md.readOnly)
     || !(LAYOUT_TYPES[md.dataType] || md.stereotype === 'searchable' || isExtraLayoutField(md))) return null
   const s = state || {}
   const d = data || {}
@@ -4834,7 +4814,7 @@ function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
   const isDate = !isSelect && f.dataType === 'date'
   const isDateTime = !isSelect && f.dataType === 'dateTime'
   const isNumber = !isSelect && !!NUMERIC_TYPES[f.dataType]
-  const isTextArea = !isSelect && f.stereotype === 'textarea'
+  const isTextArea = !isSelect && (f.stereotype === 'textarea' || !!RICH_TEXT_STEREOTYPES[f.stereotype])
   return {
     fieldId: f.fieldId,
     label: f.label || f.fieldId,

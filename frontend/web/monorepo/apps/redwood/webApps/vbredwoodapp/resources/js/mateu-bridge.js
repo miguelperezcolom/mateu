@@ -538,6 +538,139 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+  // TEXTO ENRIQUECIDO (P2 #23): un campo richText/html/markdown de sólo lectura y el componente
+  // Markdown se pintan CON formato. VB no estampa HTML desde un binding, así que el átomo lleva el
+  // HTML YA SANEADO en data-mateu-html y installRichText lo vuelca en su contenedor. El saneado es
+  // por LISTA BLANCA (etiquetas de texto; de atributos sólo el href de un enlace con esquema
+  // seguro): nada de scripts, estilos, manejadores ni iframes. JET no tiene editor de texto
+  // enriquecido: editar un richText es un oj-text-area con su HTML (limitación declarada).
+
+  const ALLOWED = new Set(['p', 'br', 'b', 'strong', 'i', 'em', 'u', 's', 'code', 'pre', 'blockquote',
+    'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a', 'span', 'div', 'hr', 'table', 'thead',
+    'tbody', 'tr', 'th', 'td', 'sub', 'sup'])
+  // su CONTENIDO también se descarta, no sólo la etiqueta
+  const DROP_WITH_CONTENT = new Set(['script', 'style', 'iframe', 'object', 'embed', 'template', 'noscript', 'svg', 'math', 'textarea', 'select'])
+  const VOID = new Set(['br', 'hr'])
+  const SAFE_HREF = /^(https?:|mailto:|tel:|\/|#)/i
+
+  const escapeText = (t) => String(t).replace(/&(?!(#\d+|#x[0-9a-f]+|[a-z]+);)/gi, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  const escapeAttr = (t) => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+
+  /** HTML → HTML saneado por lista blanca. */
+  function sanitizeHtml(html) {
+    const out = []
+    let skipping = null
+    let depth = 0
+    const re = /<!--[\s\S]*?-->|<\/?([a-zA-Z][a-zA-Z0-9]*)\b((?:[^>"']|"[^"]*"|'[^']*')*)>|[^<]+|</g
+    let m
+    const src = String(html == null ? '' : html)
+    while ((m = re.exec(src))) {
+      const token = m[0]
+      if (token.startsWith('<!--')) continue
+      const tag = m[1] ? m[1].toLowerCase() : null
+      const closing = token.startsWith('</')
+      if (skipping) {
+        if (tag === skipping) depth += closing ? -1 : 1
+        if (depth === 0) skipping = null
+        continue
+      }
+      if (!tag) { out.push(escapeText(token)); continue }
+      if (DROP_WITH_CONTENT.has(tag)) {
+        if (!closing && !/\/\s*$/.test(m[2] || '')) { skipping = tag; depth = 1 }
+        continue
+      }
+      if (!ALLOWED.has(tag)) continue
+      if (closing) { if (!VOID.has(tag)) out.push('</' + tag + '>'); continue }
+      let attrs = ''
+      if (tag === 'a') {
+        const href = /\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(m[2] || '')
+        const value = href ? (href[1] ?? href[2] ?? href[3] ?? '').trim().replace(/&amp;/g, '&') : ''
+        if (value && SAFE_HREF.test(value)) {
+          attrs = ' href="' + escapeAttr(value) + '"' + (/^https?:/i.test(value) ? ' target="_blank" rel="noopener noreferrer"' : '')
+        }
+      }
+      out.push('<' + tag + attrs + '>')
+    }
+    return out.join('')
+  }
+
+  /** Markdown → HTML (saneado): encabezados, párrafos, listas, citas, código, y en línea negrita,
+   *  cursiva, código y enlaces. Lo que no reconoce se queda como texto. */
+  function markdownToHtml(md) {
+    const inline = (t) => escapeText(t)
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>')
+      .replace(/(\*\*|__)(.+?)\1/g, '<strong>$2</strong>')
+      .replace(/(^|[^*\w])\*(?!\s)(.+?)\*(?!\w)/g, '$1<em>$2</em>')
+      .replace(/(^|[^_\w])_(?!\s)(.+?)_(?!\w)/g, '$1<em>$2</em>')
+    const lines = String(md == null ? '' : md).replace(/\r\n?/g, '\n').split('\n')
+    const html = []
+    let para = []
+    let list = null // { tag, items }
+    let quote = []
+    const flushPara = () => { if (para.length) { html.push('<p>' + inline(para.join(' ')) + '</p>'); para = [] } }
+    const flushList = () => { if (list) { html.push('<' + list.tag + '>' + list.items.map((i) => '<li>' + inline(i) + '</li>').join('') + '</' + list.tag + '>'); list = null } }
+    const flushQuote = () => { if (quote.length) { html.push('<blockquote><p>' + inline(quote.join(' ')) + '</p></blockquote>'); quote = [] } }
+    const flushAll = () => { flushPara(); flushList(); flushQuote() }
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      if (/^\s*```/.test(line)) {
+        flushAll()
+        const code = []
+        while (++i < lines.length && !/^\s*```/.test(lines[i])) code.push(lines[i])
+        html.push('<pre><code>' + escapeText(code.join('\n')) + '</code></pre>')
+        continue
+      }
+      if (!line.trim()) { flushAll(); continue }
+      const heading = /^\s*(#{1,6})\s+(.*)$/.exec(line)
+      if (heading) { flushAll(); html.push('<h' + heading[1].length + '>' + inline(heading[2].trim()) + '</h' + heading[1].length + '>'); continue }
+      if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) { flushAll(); html.push('<hr>'); continue }
+      const bullet = /^\s*[-*+]\s+(.*)$/.exec(line)
+      const ordered = /^\s*\d+[.)]\s+(.*)$/.exec(line)
+      if (bullet || ordered) {
+        flushPara(); flushQuote()
+        const tag = bullet ? 'ul' : 'ol'
+        if (list && list.tag !== tag) flushList()
+        if (!list) list = { tag, items: [] }
+        list.items.push((bullet || ordered)[1])
+        continue
+      }
+      const quoted = /^\s*>\s?(.*)$/.exec(line)
+      if (quoted) { flushPara(); flushList(); quote.push(quoted[1]); continue }
+      flushList(); flushQuote()
+      para.push(line.trim())
+    }
+    flushAll()
+    return sanitizeHtml(html.join(''))
+  }
+
+  /** Vuelca el HTML saneado de cada [data-mateu-html] en su contenedor (y cuando cambia). */
+  function installRichText(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuRichText || typeof MutationObserver === 'undefined') return
+    doc.__mateuRichText = true
+    const fill = (el) => {
+      const html = el.getAttribute('data-mateu-html') || ''
+      if (el.__mateuHtml === html) return
+      el.__mateuHtml = html
+      // el valor ya viene saneado del bridge; se vuelve a sanear aquí por si alguien escribe el atributo
+      el.innerHTML = sanitizeHtml(html)
+    }
+    const scan = (root) => {
+      if (root.nodeType !== 1) return
+      if (root.hasAttribute('data-mateu-html')) fill(root)
+      for (const el of root.querySelectorAll('[data-mateu-html]')) fill(el)
+    }
+    scan(doc.body || doc.documentElement)
+    new MutationObserver((records) => {
+      for (const r of records) {
+        if (r.type === 'attributes') fill(r.target)
+        else for (const n of r.addedNodes) scan(n)
+      }
+    }).observe(doc.body || doc.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-mateu-html'] })
+  }
+
+
   // Los enlaces HTML corrientes dentro del contenido (`<a href="/journey/bookings/ZUAAKJ">Ver
   // recorrido</a>`, de un Text/Html de la app) navegan DENTRO de la shell, como en Vaadin: allí el
   // cliente de Flow (RouterLinkHandler) se queda con el clic en un enlace a una ruta de la app y
@@ -1307,35 +1440,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { name, initials, src: m && m.image ? elementModuleUrl(m.image) : '' }
   }
 
-  /** Markdown → bloques: {level, text} (encabezado #… o párrafo) o {list: [items]}. Énfasis, código
-   *  en línea y enlaces quedan como texto (sin sus marcas); nada de HTML. */
-  function markdownBlocksOf(md) {
-    const inline = (t) => String(t)
-      .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1')
-      .replace(/(\*\*|__)(.+?)\1/g, '$2')
-      .replace(/(\*|_)(.+?)\1/g, '$2')
-      .replace(/`([^`]+)`/g, '$1')
-      .trim()
-    const blocks = []
-    let para = []
-    let list = null
-    const flush = () => {
-      if (para.length) { blocks.push({ level: 0, text: inline(para.join(' ')) }); para = [] }
-      if (list) { blocks.push({ list }); list = null }
-    }
-    for (const raw of String(md || '').split('\n')) {
-      const line = raw.trimEnd()
-      const heading = /^(#{1,6})\s+(.*)$/.exec(line.trim())
-      const item = /^\s*(?:[-*+]|\d+\.)\s+(.*)$/.exec(line)
-      if (!line.trim()) { flush(); continue }
-      if (heading) { flush(); blocks.push({ level: heading[1].length, text: inline(heading[2]) }); continue }
-      if (item) { if (para.length) { blocks.push({ level: 0, text: inline(para.join(' ')) }); para = [] } ; (list = list || []).push(inline(item[1])); continue }
-      if (list) { blocks.push({ list }); list = null }
-      para.push(line.trim())
-    }
-    flush()
-    return blocks.filter((b) => b.list ? b.list.length : b.text)
+  /** Texto enriquecido (richText/html/markdown) de un campo o componente → su HTML saneado. */
+  const RICH_TEXT_STEREOTYPES = { richText: true, html: true, markdown: true }
+  function richHtmlOf(kind, value) {
+    const text = value == null ? '' : String(value)
+    return kind === 'markdown' ? markdownToHtml(text) : sanitizeHtml(text)
   }
 
   /** «colSpan de N columnas» → la clase oj-flex del bloque (doceavos, nunca más de 12). */
@@ -1411,7 +1520,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
     // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
     // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
-    'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt', 'isImage', 'isAvatar', 'isGallery',
+    'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt', 'isImage', 'isAvatar', 'isGallery', 'isRichText',
   ]
   function isRichAtom(a) {
     return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -2361,6 +2470,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           }, container)
           return
         }
+        if (RICH_TEXT_STEREOTYPES[m.stereotype] && m.readOnly) {
+          // richText / html / markdown de SÓLO LECTURA: con su formato (editable: un oj-text-area
+          // en el form layout — JET no trae editor de texto enriquecido)
+          const raw = state[fieldId] != null ? state[fieldId] : (ctx.data || {})[fieldId]
+          atom({ isRichText: true, label: interp(m.label || ''), html: richHtmlOf(m.stereotype, plainValueOf(raw)) }, container)
+          return
+        }
         if (m.stereotype === 'bulletedList') {
           // @BulletedList sobre una List<String>: su rótulo y sus valores como la lista de viñetas
           // de siempre (el componente BulletedList ya era un átomo; el campo caía al vacío)
@@ -2704,15 +2820,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return
       }
       if (t === 'Markdown') {
-        // Markdown sin HTML crudo (VB no estampa HTML de un binding, y así no hay nada que sanear): sus
-        // bloques como los átomos de siempre — encabezados, párrafos, listas —; el énfasis en línea
-        // se queda en el texto sin sus marcas
-        for (const block of markdownBlocksOf(interp(m.markdown || m.text || ''))) {
-          if (block.list) atom({ isBullets: true, items: block.list }, container)
-          else atom({ isText: true, text: block.text, isHeading: block.level > 0,
-            cls: block.level === 1 ? 'oj-typography-heading-sm oj-sm-margin-2x-bottom'
-              : block.level > 1 ? 'oj-typography-subheading-sm oj-sm-margin-2x-bottom' : 'oj-typography-body-md oj-sm-margin-2x-bottom' }, container)
-        }
+        // Markdown CON formato (encabezados, listas, citas, código, negrita, enlaces…): HTML saneado
+        // que installRichText vuelca en su contenedor (VB no estampa HTML desde un binding)
+        const html = richHtmlOf('markdown', interp(m.markdown || m.text || ''))
+        if (html) atom({ isRichText: true, label: '', html }, container)
         return
       }
       if (t === 'Grid') {
@@ -5120,6 +5231,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function layoutFieldOf(md, state, data, columns = 1) {
     const fieldId = md.fieldId || md.id
     if (!fieldId || (md.columns || []).length || md.propertyRow
+      || (RICH_TEXT_STEREOTYPES[md.stereotype] && md.readOnly)
       || !(LAYOUT_TYPES[md.dataType] || md.stereotype === 'searchable' || isExtraLayoutField(md))) return null
     const s = state || {}
     const d = data || {}
@@ -5422,7 +5534,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const isDate = !isSelect && f.dataType === 'date'
     const isDateTime = !isSelect && f.dataType === 'dateTime'
     const isNumber = !isSelect && !!NUMERIC_TYPES[f.dataType]
-    const isTextArea = !isSelect && f.stereotype === 'textarea'
+    const isTextArea = !isSelect && (f.stereotype === 'textarea' || !!RICH_TEXT_STEREOTYPES[f.stereotype])
     return {
       fieldId: f.fieldId,
       label: f.label || f.fieldId,
@@ -11012,6 +11124,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     setPollingRunner,
     fetchNotifications,
     installTileReorder,
+    installRichText,
     setTileReorderSink,
     bannerNotificationOf,
     notificationsOf,

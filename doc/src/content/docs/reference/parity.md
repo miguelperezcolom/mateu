@@ -333,7 +333,7 @@ children of a container still render).
 | `EmptyState` | 🟡 | page-level empty state only |
 | `Grid` | 🟡 | oj-table (list display) with its columns and rows; no tree, no paging |
 | `HeroSection` | 🟡 | Welcome archetype hero only |
-| `Markdown` | 🟡 | headings, paragraphs and bullet lists as Redwood typography; inline emphasis, links and code lose their marks; no tables or raw HTML |
+| `Markdown` | 🟡 | formatted (headings, lists, quotes, code, bold, italics, links) as allowlist-sanitized HTML; no tables, and HTML inside the Markdown shows as text |
 | `Popover` | 🟡 | trigger + the content as text lines in a shared oj-popup (hover/focus or click); the wrapped component shows as its text |
 | `ProgressBar` | 🟡 | wizard progress only |
 | `ResponsiveGrid` | 🟡 | fixed tracks → oj-flex columns sized by their fr weights and spans; auto-fill/auto-fit grids stack; reorderable tiles drag (and Alt+←/→) |
