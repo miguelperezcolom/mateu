@@ -6001,7 +6001,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // el Gantt (Gantt.onTaskSelectionActionId) recibe la tarea como _clickedTaskId; el tape chart, _blockId
     if (kind === 'select' && atom.selectActionId && taskId) return { actionId: atom.selectActionId, parameters: { [atom.selectParam || '_blockId']: taskId } }
     if (kind === 'range' && atom.rangeSelectActionId && detail && detail.rowId && detail.start && detail.end) {
-      const [a, b] = [day(detail.start), day(detail.end)].sort()
+      const [a, b] = [day(detail.start), day(detail.end)].sort((x, y) => x.localeCompare(y))
       return { actionId: atom.rangeSelectActionId, parameters: { _resourceId: detail.rowId, _start: a, _end: b } }
     }
     return null
@@ -8899,6 +8899,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       doc.body.appendChild(wrap)
       return popup
     }
+    let hoverAnchorSeq = 0
     const open = (el, text) => {
       const p = ensure()
       body.textContent = ''
@@ -8907,7 +8908,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         div.textContent = line
         body.appendChild(div)
       }
-      if (!el.id) el.id = 'mateuHover-' + Math.random().toString(36).slice(2, 9)
+      if (!el.id) el.id = 'mateuHover-' + (++hoverAnchorSeq)
       anchor = el
       el.setAttribute('aria-describedby', 'mateuHoverPopup')
       // un oj-popup recién creado tarda en «actualizarse» (JET lo hace de forma asíncrona): hasta

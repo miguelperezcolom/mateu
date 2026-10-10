@@ -37,6 +37,7 @@ export function installHover(doc = typeof document !== 'undefined' ? document : 
     doc.body.appendChild(wrap)
     return popup
   }
+  let hoverAnchorSeq = 0
   const open = (el, text) => {
     const p = ensure()
     body.textContent = ''
@@ -45,7 +46,7 @@ export function installHover(doc = typeof document !== 'undefined' ? document : 
       div.textContent = line
       body.appendChild(div)
     }
-    if (!el.id) el.id = 'mateuHover-' + Math.random().toString(36).slice(2, 9)
+    if (!el.id) el.id = 'mateuHover-' + (++hoverAnchorSeq)
     anchor = el
     el.setAttribute('aria-describedby', 'mateuHoverPopup')
     // un oj-popup recién creado tarda en «actualizarse» (JET lo hace de forma asíncrona): hasta

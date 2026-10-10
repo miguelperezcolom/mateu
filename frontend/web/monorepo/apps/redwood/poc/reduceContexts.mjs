@@ -5281,7 +5281,7 @@ export function planningActionOf(atom, kind, detail) {
   // el Gantt (Gantt.onTaskSelectionActionId) recibe la tarea como _clickedTaskId; el tape chart, _blockId
   if (kind === 'select' && atom.selectActionId && taskId) return { actionId: atom.selectActionId, parameters: { [atom.selectParam || '_blockId']: taskId } }
   if (kind === 'range' && atom.rangeSelectActionId && detail && detail.rowId && detail.start && detail.end) {
-    const [a, b] = [day(detail.start), day(detail.end)].sort()
+    const [a, b] = [day(detail.start), day(detail.end)].sort((x, y) => x.localeCompare(y))
     return { actionId: atom.rangeSelectActionId, parameters: { _resourceId: detail.rowId, _start: a, _end: b } }
   }
   return null

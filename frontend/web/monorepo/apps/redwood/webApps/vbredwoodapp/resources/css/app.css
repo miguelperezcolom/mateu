@@ -1345,6 +1345,8 @@ body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-title { 
 /* ── Ventana flotante (hover.mjs) y disparador de Popover ── */
 .mateu-hover-content { padding: 0.5rem 0.75rem; max-width: 22rem; font-size: 0.875rem; line-height: 1.4; }
 .mateu-pop-trigger { display: inline-block; cursor: help; border-bottom: 1px dotted currentColor; }
+/* the trigger is a real <button> (keyboard for free); it keeps the look of inline text */
+button.mateu-pop-trigger { background: none; border-top: 0; border-left: 0; border-right: 0; padding: 0; font: inherit; color: inherit; text-align: inherit; }
 .mateu-pop-trigger[data-mateu-pop-click]:not([data-mateu-pop-click=""]) { cursor: pointer; color: var(--oj-core-link-text-color, #227e9e); }
 [data-mateu-hover]:not([data-mateu-hover=""]) { cursor: help; text-decoration: underline dotted; text-underline-offset: 3px; }
 

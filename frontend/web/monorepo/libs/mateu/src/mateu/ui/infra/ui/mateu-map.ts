@@ -56,7 +56,7 @@ export class MateuMap extends LitElement {
     private async createMap() {
         const seq = ++this.renderSeq
         const [
-            { default: Map }, { default: View }, { default: TileLayer }, { default: OSM }, { fromLonLat, transformExtent },
+            { default: OlMapClass }, { default: View }, { default: TileLayer }, { default: OSM }, { fromLonLat, transformExtent },
             { default: VectorLayer }, { default: VectorSource }, { default: Feature }, { default: Point },
             { default: Style }, { default: CircleStyle }, { default: Fill }, { default: Stroke }, { default: Text },
             { default: olCss },
@@ -118,7 +118,7 @@ export class MateuMap extends LitElement {
         const view = plan.kind === 'center'
             ? new View({ center: fromLonLat([plan.center.lon, plan.center.lat]), zoom: plan.zoom })
             : new View({ center: fromLonLat([0, 0]), zoom: 2 })
-        this.map = new Map({
+        this.map = new OlMapClass({
             target: this.mapElement,
             layers: [
                 new TileLayer({ source: new OSM() }),

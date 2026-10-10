@@ -181,7 +181,8 @@ test('Element: el evento viaja al servidor como parámetro `event` con la acció
 })
 
 test('Element: un import relativo se carga del BACKEND (VB alojado/vb-serve son otro origen)', () => {
-  assert.equal(elementModuleUrl('/pms/floor-plan.js', 'http://localhost:9005/'), 'http://localhost:9005/pms/floor-plan.js')
+  // a local dev backend on plain http, as vb-serve uses it
+  assert.equal(elementModuleUrl('/pms/floor-plan.js', 'http://localhost:9005/'), 'http://localhost:9005/pms/floor-plan.js') // NOSONAR
   assert.equal(elementModuleUrl('/pms/floor-plan.js', ''), '/pms/floor-plan.js')
   assert.equal(elementModuleUrl('https://cdn.example/x.js', 'http://b'), 'https://cdn.example/x.js')
 })
