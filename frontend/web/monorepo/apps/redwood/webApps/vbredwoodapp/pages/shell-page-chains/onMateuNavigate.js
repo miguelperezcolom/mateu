@@ -19,6 +19,10 @@ define([
    * estático (el modo lo fija loadMateuShell en el bootstrap). Sólo empuja si cambia.
    */
   function pushRouteToUrl($application, route) {
+    // embedded in a host VB page (<mateu-ui>): the URL is the HOST's — never touched
+    if (bridge.isEmbedded()) {
+      return;
+    }
     if (window.__mateuUrlPathMode) {
       // la home (incluido el sentinel _no_home_route del server) es '/', no un path
       const home = $application.variables.mateuHomeRoute || '';
@@ -155,7 +159,8 @@ define([
       const callBase = (remote && remote.baseUrl) ? remote.baseUrl : base;
       const extra = remote
         ? { appState, consumedRoute: remote.consumedRoute, serverSideType: remote.serverSideType }
-        : { appState };
+        // the state an embedding host seeds its first screen with (<mateu-ui initial-state>): {} otherwise
+        : { appState, ...bridge.takeEmbeddedSeed() };
       let reg;
       try {
         // una ruta del MENÚ local es del app que lo declara: se carga con su serverSideType (sin
@@ -575,7 +580,7 @@ define([
       $application.variables.mateuDirty = false;
 
       if (reg.effects && reg.effects.docTitle) {
-        document.title = reg.effects.docTitle;
+        bridge.setDocTitle(reg.effects.docTitle);
       }
     }
   }

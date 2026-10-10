@@ -32,11 +32,11 @@ const CORE_PIECES = [...readFileSync(join(here, 'reduceContexts.mjs'), 'utf8')
 export const MODULES = [
   'i18n.mjs', 'prefs.mjs', 'navTree.mjs', 'calendar.mjs', 'richtext.mjs', 'links.mjs',
   ...CORE_PIECES,
-  'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'resilience.mjs', 'a11y.mjs', 'elements.mjs',
+  'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'hostHeaders.mjs', 'resilience.mjs', 'a11y.mjs', 'elements.mjs',
   'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'shellFlows.mjs', 'planning.mjs', 'actionPanels.mjs',
   'keys.mjs', 'hover.mjs', 'dnd.mjs', 'matrix.mjs', 'map.mjs', 'tables.mjs', 'fieldTypes.mjs', 'restSources.mjs', 'bundle.mjs',
   'mount.mjs', 'transport.mjs', 'widgets.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs', 'pageProjection.mjs', 'actionPlan.mjs', 'globalSearch.mjs', 'theme.mjs',
-  'editorPreview.mjs',
+  'editorPreview.mjs', 'embedded.mjs',
 ]
 const body = MODULES.map(strip).join('\n\n')
 
@@ -122,6 +122,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
 
   return {
     HOST_ID,
+    // embedded mode (embedded.mjs): the <mateu-ui> component's runtime and boot
+    ...EMBEDDED_API,
     // the renderer's own words (i18n.mjs): chains say them in the interface's language
     chromeText,
     chromeLanguage,

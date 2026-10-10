@@ -633,7 +633,8 @@ define([
         });
       }
       if (effects.docTitle) {
-        document.title = effects.docTitle;
+        // the host page owns its title when embedded (bridge.setDocTitle → the mateuTitle event)
+        bridge.setDocTitle(effects.docTitle);
       }
       // el selector recién abierto: el diálogo y la primera página de su listado (su `search`,
       // contra SU ServerSide — lo que en Vaadin hace el listado al montarse)
