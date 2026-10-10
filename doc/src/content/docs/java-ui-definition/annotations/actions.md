@@ -658,7 +658,7 @@ A `@Fab` on a method of an `@UI`-annotated app class creates a **global** FAB vi
 
 ```java
 @UI("/app")
-@App(AppVariant.HAMBURGUER_MENU)
+@App(AppVariant.HAMBURGER_MENU)
 public class MyApp {
 
     @Fab(icon = "vaadin:plus", label = "New order", order = 0)

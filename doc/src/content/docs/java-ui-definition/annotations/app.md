@@ -73,7 +73,7 @@ those children as its options — the tabs of a record master. See the
 
 | Value | Description |
 |---|---|
-| `HAMBURGUER_MENU` | Collapsible hamburger-style navigation drawer |
+| `HAMBURGER_MENU` | Collapsible hamburger-style navigation drawer. (`HAMBURGUER_MENU`, the old misspelling, still works but is deprecated.) |
 | `MENU_ON_LEFT` | Persistent navigation panel on the left side |
 | `MENU_ON_TOP` | Navigation bar along the top |
 | `TABS` | Tab-based navigation |
@@ -82,7 +82,7 @@ those children as its options — the tabs of a record master. See the
 | `AUTO` | Framework picks the variant from the menu shape (see below) |
 | `MEDIATOR` | Used for nested sub-applications acting as a mediator |
 
-With `AUTO` (the default), the variant is inferred from the menu: if any top-level item has grandchildren (menu depth > 2) → `TILES`; more than 7 top-level items → `HAMBURGUER_MENU`; otherwise `MENU_ON_TOP`. An app with no submenus at all renders as `TABS`. See [Navigation & Menus](/ux-patterns/navigation/) for the full behaviour of each variant.
+With `AUTO` (the default), the variant is inferred from the menu: if any top-level item has grandchildren (menu depth > 2) → `TILES`; more than 7 top-level items → `HAMBURGER_MENU`; otherwise `MENU_ON_TOP`. An app with no submenus at all renders as `TABS`. See [Navigation & Menus](/ux-patterns/navigation/) for the full behaviour of each variant.
 
 **`AppLayout` values:**
 
@@ -93,7 +93,7 @@ With `AUTO` (the default), the variant is inferred from the menu: if any top-lev
 
 ```java
 @UI("/app")
-@App(AppVariant.HAMBURGUER_MENU)
+@App(AppVariant.HAMBURGER_MENU)
 public class ShellApp { ... }
 ```
 
@@ -230,7 +230,7 @@ No attributes. Starts the navigation drawer in the closed (collapsed) state when
 
 ```java
 @UI("/app")
-@App(AppVariant.HAMBURGUER_MENU)
+@App(AppVariant.HAMBURGER_MENU)
 @DrawerClosed
 public class ShellApp implements App { ... }
 ```
