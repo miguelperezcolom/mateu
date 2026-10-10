@@ -45,6 +45,12 @@ export interface ComponentRenderer {
     renderPeerNav?(peerNav: { prevLabel?: string, prevRoute?: string, nextLabel?: string, nextRoute?: string }): TemplateResult
 
     /**
+     * The record/context switcher in the page header (the Redwood selectObject/selectContext
+     * element). Absent → mateu-content-header renders the shared DS-neutral mateu-record-switcher.
+     */
+    renderRecordSwitcher?(switcher: import('@mateu/shared/apiClients/dtos/componentmetadata/RecordSwitcher').default): TemplateResult | undefined
+
+    /**
      * The crud `tree` grid layout (a Selector Listing with gridLayout=tree — e.g. a tree lookup
      * dialog). Absent → mateu-table-crud renders its DS-neutral, always-expanded HTML tree table
      * with plain Select/View buttons. The Vaadin adapter overrides this with a real vaadin-grid +

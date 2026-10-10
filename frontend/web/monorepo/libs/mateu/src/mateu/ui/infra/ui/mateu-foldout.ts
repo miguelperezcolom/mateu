@@ -8,7 +8,8 @@ import { chromeText } from '@infra/ui/chromeTexts.ts'
  * Redwood-style foldout: a fixed overview panel on the left plus lateral fold-out panels.
  * Closed panels render as a narrow vertical strip with the rotated title; clicking folds them
  * out. Open panels sit side by side and the row scrolls horizontally when it overflows.
- * Content arrives through light-DOM slots: slot="overview" and slot="panel-N".
+ * Content arrives through light-DOM slots: slot="overview", slot="panel-N" and — for what a folded
+ * panel's strip shows under its title — slot="summary-N".
  */
 @customElement('mateu-foldout')
 export class MateuFoldout extends LitElement {
@@ -378,6 +379,15 @@ export class MateuFoldout extends LitElement {
             padding: var(--lumo-space-s, .5rem) 0;
             gap: .5rem;
         }
+        .strip-summary {
+            writing-mode: vertical-rl;
+            font-size: var(--lumo-font-size-xs, .75rem);
+            font-weight: 600;
+            color: var(--lumo-body-text-color, #1f2937);
+            max-height: 50%;
+            overflow: hidden;
+        }
+        .strip-summary ::slotted(*) { margin: 0; }
         .strip:hover {
             background: var(--lumo-contrast-10pct, rgba(0,0,0,.06));
         }
@@ -551,6 +561,9 @@ export class MateuFoldout extends LitElement {
                              data-anchor="${this.panelAnchor(panel, index)}" @click="${() => this.toggle(index)}">
                             <button class="fold" tabindex="-1">⟩</button>
                             <span>${panel.title}</span>
+                            <!-- the folded panel's digest (FoldoutPanel.summary, the Redwood foldout-panel
+                                 summary slot): what tells the user whether it is worth opening -->
+                            <div class="strip-summary"><slot name="summary-${index}"></slot></div>
                         </div>
                     `)}
                 </div>

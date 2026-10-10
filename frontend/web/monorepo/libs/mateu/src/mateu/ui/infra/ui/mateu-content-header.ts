@@ -20,6 +20,7 @@ import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMe
 import { linkStyles } from "@infra/ui/linkStyles.ts";
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import '@infra/ui/mateu-record-switcher.ts'
 
 export { possiblyHtml } from './interpolation'
 
@@ -308,6 +309,15 @@ export class MateuContentHeader extends LitElement {
         `
     }
 
+    // The record/context switcher (the Redwood selectObject/selectContext header element): beside
+    // the title, so the user jumps between records without leaving the page. A design-system
+    // renderer may draw its own through the renderRecordSwitcher hook.
+    renderSwitcher = (switcher: NonNullable<Form['switcher']>) => {
+        const custom = componentRenderer.get()?.renderRecordSwitcher?.(switcher)
+        if (custom) return custom
+        return html`<mateu-record-switcher .switcher=${switcher}></mateu-record-switcher>`
+    }
+
     /**
      * The trail above the title: the page's own (`@Breadcrumbs` / `BreadcrumbsSupplier`) when it
      * declares one, else the automatic one (breadcrumbTrail) — only on a top-level page, and not when
@@ -363,7 +373,7 @@ export class MateuContentHeader extends LitElement {
         const hasMainHeader = metadata.avatar || metadata.title || metadata.subtitle
             || overline || titlePlaceholder
             || (metadata.kpis?.length > 0) || (metadata.header?.length > 0) || toolbar.length > 0
-            || !!peerNav
+            || !!peerNav || !!metadata.switcher
         const level = metadata.level ?? 0
         // The `data-nested` attribute drives the :host([data-nested]) CSS rule that drops the
         // top padding so an embedded (level>0) header sits flush with its host card.
@@ -395,7 +405,7 @@ export class MateuContentHeader extends LitElement {
                 <div style="display: flex; gap: var(--lumo-space-m, 1rem); width: 100%; align-items: center; flex-wrap: wrap;" class="form-header">
                     ${backButtons.map(this.renderBackChevron)}
                     ${metadata.avatar ? renderComponent(this, metadata.avatar, this.baseUrl, this.state ?? {}, this.data ?? {}, this.appState, this.appData) : nothing}
-                    <div style="flex: 1; min-width: min(22rem, 100%); overflow: hidden;">
+                    <div style="flex: 1; min-width: min(22rem, 100%); overflow: ${metadata.switcher ? 'visible' : 'hidden'};">
                         ${overline ? html`<div class="page-overline">${safeHtml(possiblyHtml(overline, this.state ?? {}, this.data ?? {}))}</div>` : nothing}
                         ${(metadata?.title || titlePlaceholder) && level == 0?html`
                             <div style="display: flex; align-items: center; gap: var(--lumo-space-s, .5rem); min-width: 0;">
@@ -405,7 +415,10 @@ export class MateuContentHeader extends LitElement {
                                 ${(metadata as any).kpisBelow && metadata.badges?.length
                                     ? metadata.badges.map((b) => renderBadgeMetadata(b, this.state ?? {}, this.data ?? {}, { pill: true }))
                                     : nothing}
+                                ${metadata.switcher ? this.renderSwitcher(metadata.switcher) : nothing}
                             </div>`:nothing}
+                        ${metadata.switcher && !((metadata?.title || titlePlaceholder) && level == 0)
+                            ? this.renderSwitcher(metadata.switcher) : nothing}
                         ${metadata?.title && level == 1?html`<h3 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${safeHtml(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h3>`:nothing}
                         ${metadata?.title && level == 2?html`<h4 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${safeHtml(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h4>`:nothing}
                         ${metadata?.title && level == 3?html`<h5 style="margin: 0; margin-block-end: 0px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%;">${safeHtml(possiblyHtml(metadata?.title, this.state ?? {}, this.data ?? {}))}</h5>`:nothing}

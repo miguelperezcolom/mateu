@@ -1,3 +1,4 @@
+import Component from "@mateu/shared/apiClients/dtos/Component";
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 import Button from "@mateu/shared/apiClients/dtos/componentmetadata/Button.ts";
 import FormField from "@mateu/shared/apiClients/dtos/componentmetadata/FormField.ts";
@@ -29,5 +30,8 @@ export default interface Crud extends Table {
     /** @RestListing: rows fetched CLIENT-SIDE from an arbitrary REST endpoint instead of the
      *  server `search` action. Each JSON item maps to a row keyed by column id. */
     rowsSource?: RestDataSource
+    /** Shown in place of the results until the first search has run (the Redwood smart filter
+     *  search `dashboard` slot). */
+    preSearch?: Component[] | null
 
 }
