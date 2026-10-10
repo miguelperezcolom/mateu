@@ -6,7 +6,9 @@
 // URL (agente local vs sseUrl), aplanar el menú como contexto, discriminar cada payload `data:` y
 // acumular el texto del asistente. Ese núcleo va aquí — probado en Node (poc/test.mjs) — y el bucle
 // de streaming acepta un `fetchImpl` inyectable para no tocar globals. Es la capa "lógica" del
-// roadmap; el panel VB (gate visual) la consume. Sin imports: se concatena en el bundle AMD.
+// roadmap; el panel VB (gate visual) la consume. Se concatena en el bundle AMD (make-amd quita el import).
+
+import { chromeText } from './i18n.mjs'
 
 /** Discrimina un payload `data:` que es un objeto de uso de tokens ({inputTokens|outputTokens|totalTokens}). */
 export function tryParseTokenUsage(payload) {
@@ -93,7 +95,7 @@ export async function uploadChatFiles({ uploadUrl, files, sessionId, headers = {
   for (const f of files || []) form.append('files', f)
   if (sessionId) form.append('sessionId', sessionId)
   const response = await fetchImpl(uploadUrl, { method: 'POST', headers, body: form })
-  if (!response.ok) throw new Error(`Upload failed: ${response.status}`)
+  if (!response.ok) throw new Error(chromeText('chatUploadFailed', { status: response.status }))
   const result = await response.json()
   return ((result && result.files) || []).filter((f) => f && f.path)
 }
@@ -163,7 +165,7 @@ export function classifyChatPayload(payload) {
     if (ev.event === 'agent-delta') return { kind: 'delta', text: typeof detail.text === 'string' ? detail.text : '' }
     if (ev.event === 'agent-status') return { kind: 'status', detail }
     if (ev.event === 'agent-tool') return { kind: 'tool', detail }
-    if (ev.event === 'agent-error') return { kind: 'error', message: String(detail.message || 'Error desconocido del agente') }
+    if (ev.event === 'agent-error') return { kind: 'error', message: String(detail.message || chromeText('chatAgentError')) }
     return { kind: 'event', event: ev.event, detail: ev.detail }
   }
   return { kind: 'text', text: payload ?? '' }
@@ -223,10 +225,10 @@ export function createChatProgress(now = Date.now()) {
       const secs = Math.max(0, Math.floor((at - p.since) / 1000))
       const withSecs = (s) => (secs > 0 ? `${s} ${secs} s` : s)
       const running = p.runningTool()
-      if (running) return withSecs(`Llamando a ${running.name}…`)
-      if (p.answering) return 'Respondiendo…'
+      if (running) return withSecs(chromeText('chatCalling', { name: running.name }))
+      if (p.answering) return chromeText('chatAnswering')
       if (!p.reported) return null
-      return withSecs(p.statusText || 'Pensando…')
+      return withSecs(p.statusText || chromeText('chatThinking'))
     },
   }
   return p
@@ -273,10 +275,10 @@ export async function streamChat({ url, body, headers = {}, reauthenticate, fetc
   }
   if (!response.ok) {
     const errorText = response.text ? await response.text() : ''
-    throw new Error(`Servidor respondió ${response.status}: ${errorText}`)
+    throw new Error(chromeText('chatServerError', { status: response.status, text: errorText }))
   }
   const reader = response.body && response.body.getReader ? response.body.getReader() : null
-  if (!reader) throw new Error('No se pudo obtener el reader del stream.')
+  if (!reader) throw new Error(chromeText('chatNoReader'))
 
   const decoder = new TextDecoder()
   const parser = createSseParser()
@@ -390,9 +392,9 @@ export function chatStatusText({ busy, hasText, elapsedSeconds, progress, now })
   if (!busy) return ''
   const line = progress && progress.line ? progress.line(typeof now === 'number' ? now : Date.now()) : null
   if (line) return line
-  if (hasText) return 'Respondiendo…'
+  if (hasText) return chromeText('chatAnswering')
   const s = Math.max(0, Math.floor(elapsedSeconds || 0))
-  return s > 0 ? `Pensando… ${s} s` : 'Pensando…'
+  return s > 0 ? chromeText('chatThinkingFor', { s }) : chromeText('chatThinking')
 }
 
 /** El constructor del reconocimiento de voz del navegador, o null donde no existe (Firefox). */

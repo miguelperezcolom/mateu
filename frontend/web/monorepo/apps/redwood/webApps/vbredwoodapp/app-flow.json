@@ -692,7 +692,7 @@
     "mateuSmartFilters": {
       "type": "any",
       "defaultValue": {
-        "askHint": "Buscar\u2026",
+        "askHint": "Search\u2026",
         "value": []
       },
       "description": "config smart-filters del header de colecci\u00f3n (bridge.smartFiltersOf): los filtros sin aplicar como sugerencias, los aplicados y el texto como chips, y el editor de cada uno (filtersMetadata). Se proyecta al navegar; las b\u00fasquedas que lanza el propio componente NO la reasignan (cerrar\u00eda su popup)"

@@ -60,7 +60,7 @@
     on-smart-filters-changed="[[ $listeners.smartFiltersChanged ]]"
     on-sp-primary-action="[[ $listeners.listPrimary ]]"
     on-sp-secondary-action="[[ $listeners.listSecondary ]]">
-        <oj-input-search id="mateuSearch" slot="search" placeholder="Buscar…"
+        <oj-input-search id="mateuSearch" slot="search" placeholder="[[ $application.translations.appBundle.search ]]"
           on-oj-value-action="[[ $listeners.mateuSearchAction ]]"></oj-input-search>
       </oj-sp-smart-filter-search>
     </div>
@@ -324,7 +324,7 @@
   </div>
   <div slot="footer">
     <oj-button chroming="outlined" class="oj-sm-margin-1x-start"
-      on-oj-action="[[ $listeners.mateuPickerCancel ]]">Cancel</oj-button>
+      on-oj-action="[[ $listeners.mateuPickerCancel ]]"><oj-bind-text value="[[ $application.translations.appBundle.cancel ]]"></oj-bind-text></oj-button>
     <oj-bind-if test="[[ $variables.mateuPicker.multi ]]">
       <oj-button id="mateuPickerAdd" chroming="callToAction" class="oj-sm-margin-1x-start"
         on-oj-action="[[ $listeners.mateuPickerAdd ]]" label="[[ $variables.mateuPicker.addLabel ]]"></oj-button>
@@ -695,7 +695,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -784,7 +784,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -820,7 +820,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -898,7 +898,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -1298,7 +1298,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -1309,10 +1309,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -1629,7 +1629,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -1718,7 +1718,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -1754,7 +1754,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -1832,7 +1832,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -2232,7 +2232,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -2243,10 +2243,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -2584,7 +2584,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -2673,7 +2673,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -2709,7 +2709,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -2787,7 +2787,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -3187,7 +3187,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -3198,10 +3198,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -3518,7 +3518,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -3607,7 +3607,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -3643,7 +3643,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -3721,7 +3721,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -4121,7 +4121,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -4132,10 +4132,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -4539,7 +4539,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -4628,7 +4628,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -4664,7 +4664,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -4742,7 +4742,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -5142,7 +5142,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -5153,10 +5153,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -5480,7 +5480,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -5569,7 +5569,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -5605,7 +5605,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -5683,7 +5683,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -6083,7 +6083,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -6094,10 +6094,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -6423,7 +6423,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -6512,7 +6512,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -6548,7 +6548,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -6626,7 +6626,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -7026,7 +7026,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -7037,10 +7037,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -7285,7 +7285,7 @@
     on-smart-filters-changed="[[ $listeners.smartFiltersChanged ]]"
     on-sp-primary-action="[[ $listeners.listPrimary ]]"
     on-sp-secondary-action="[[ $listeners.listSecondary ]]">
-      <oj-input-search id="mateuSearchInline" slot="search" placeholder="Buscar…"
+      <oj-input-search id="mateuSearchInline" slot="search" placeholder="[[ $application.translations.appBundle.search ]]"
         on-oj-value-action="[[ $listeners.mateuSearchAction ]]"></oj-input-search>
     </oj-sp-smart-filter-search>
   </oj-bind-if>
@@ -7385,7 +7385,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -7474,7 +7474,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -7510,7 +7510,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -7588,7 +7588,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -7988,7 +7988,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -7999,10 +7999,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -8502,7 +8502,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -8591,7 +8591,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -8627,7 +8627,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -8705,7 +8705,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -9105,7 +9105,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -9116,10 +9116,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -9640,7 +9640,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -9729,7 +9729,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -9765,7 +9765,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -9843,7 +9843,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -10243,7 +10243,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -10254,10 +10254,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -10572,7 +10572,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -10661,7 +10661,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -10697,7 +10697,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -10775,7 +10775,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -11175,7 +11175,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -11186,10 +11186,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -11951,7 +11951,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -12040,7 +12040,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -12076,7 +12076,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.islandBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -12154,7 +12154,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -12554,7 +12554,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -12565,10 +12565,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -12883,7 +12883,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -12972,7 +12972,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -13008,7 +13008,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.islandBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.islandBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -13086,7 +13086,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -13486,7 +13486,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -13497,10 +13497,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -13881,7 +13881,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -13970,7 +13970,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -14006,7 +14006,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -14084,7 +14084,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -14484,7 +14484,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -14495,10 +14495,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -14815,7 +14815,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -14904,7 +14904,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -14940,7 +14940,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -15018,7 +15018,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -15418,7 +15418,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -15429,10 +15429,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -15763,7 +15763,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -15852,7 +15852,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -15888,7 +15888,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -15966,7 +15966,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -16366,7 +16366,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -16377,10 +16377,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -16697,7 +16697,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -16786,7 +16786,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -16822,7 +16822,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -16900,7 +16900,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -17300,7 +17300,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -17311,10 +17311,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -17674,7 +17674,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -17763,7 +17763,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -17799,7 +17799,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -17877,7 +17877,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -18277,7 +18277,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -18288,10 +18288,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -18608,7 +18608,7 @@
                         <oj-bind-for-each data="[[ $current.data.lines ]]">
                           <template><div class="oj-typography-body-md oj-sm-margin-1x-top"><oj-bind-text value="[[ $current.data ]]"></oj-bind-text></div></template>
                         </oj-bind-for-each>
-                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary">Drop here</div>
+                        <div class="mateu-drop-hint oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.dropHere ]]"></oj-bind-text></div>
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isPopover ]]">
@@ -18697,7 +18697,7 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-cal-view mateu-cal-agenda" data-for="list">
-                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x">No events</div></oj-bind-if>
+                          <oj-bind-if test="[[ !$current.data.hasAgenda ]]"><div class="oj-text-color-secondary oj-sm-padding-4x"><oj-bind-text value="[[ $application.translations.appBundle.noEvents ]]"></oj-bind-text></div></oj-bind-if>
                           <oj-bind-for-each data="[[ $current.data.agenda ]]">
                             <template>
                               <div :class="[[ $current.data.cls ]]" :data-cal-date="[[ $current.data.date ]]">
@@ -18733,7 +18733,7 @@
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">
                                 <oj-button chroming="borderless" class="oj-sm-margin-1x-top" :data-action-id="[[ $current.data.actionId ]]"
-                                  on-oj-action="[[ $listeners.hostBlockAction ]]">View</oj-button>
+                                  on-oj-action="[[ $listeners.hostBlockAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.view ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </div>
                           </template>
@@ -18811,7 +18811,7 @@
                           <div slot="body">
                             <oj-bind-if test="[[ $current.data.hideToggle ]]">
                               <div class="oj-sm-margin-4x-bottom">
-                                <oj-switch data-ap-hide="true" label-hint="Hide unpopulated" label-edge="inside"></oj-switch>
+                                <oj-switch data-ap-hide="true" label-hint="[[ $application.translations.appBundle.hideUnpopulated ]]" label-edge="inside"></oj-switch>
                               </div>
                             </oj-bind-if>
                             <div class="mateu-ap-columns">
@@ -19211,7 +19211,7 @@
                           data="[[ $current.data.adp ]]"
                           columns="[[ $current.data.columns ]]">
                           <template slot="noData">
-                            <oj-sp-empty-state primary-text="Sin datos" secondary-text=""></oj-sp-empty-state>
+                            <oj-sp-empty-state primary-text="[[ $application.translations.appBundle.noData ]]" secondary-text=""></oj-sp-empty-state>
                           </template>
                           <template slot="cellStatusBadge">
                             <span :class="[[ ($current.data && $current.data.badgeClass) || '' ]]"><oj-bind-text value="[[ ($current.data && $current.data.message) || $current.data ]]"></oj-bind-text></span>
@@ -19222,10 +19222,10 @@
                             <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-flex-wrap-nowrap">
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__editActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span>Edit</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-edit"></span><oj-bind-text value="[[ $application.translations.appBundle.edit ]]"></oj-bind-text></oj-button>
                               <oj-button display="icons" chroming="borderless"
                                 :data-action-id="[[ $current.row.__removeActionId ]]" :data-row-key="[[ $current.row.__rowKey ]]"
-                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span>Remove</oj-button>
+                                on-oj-action="[[ $listeners.mateuListAction ]]"><span slot="startIcon" class="oj-ux-ico-trash"></span><oj-bind-text value="[[ $application.translations.appBundle.remove ]]"></oj-bind-text></oj-button>
                             </div>
                           </template>
                         </oj-table>
@@ -19836,7 +19836,7 @@
 </div>
 
 <!-- SELECTOR DE COLUMNAS del listado: cuáles se ven y en qué orden (prefs.mjs) -->
-<oj-dialog id="mateuColumnsDialog" dialog-title="Columns" cancel-behavior="icon" on-oj-close="[[ $listeners.columnsCancel ]]">
+<oj-dialog id="mateuColumnsDialog" dialog-title="[[ $application.translations.appBundle.columns ]]" cancel-behavior="icon" on-oj-close="[[ $listeners.columnsCancel ]]">
   <div slot="body">
     <oj-bind-for-each data="[[ $page.variables.mateuColumnsModel ]]">
       <template>
@@ -19855,21 +19855,21 @@
     </oj-bind-for-each>
   </div>
   <div slot="footer">
-    <oj-button chroming="borderless" on-oj-action="[[ $listeners.columnsReset ]]">Reset</oj-button>
-    <oj-button chroming="callToAction" on-oj-action="[[ $listeners.columnsApply ]]">Apply</oj-button>
+    <oj-button chroming="borderless" on-oj-action="[[ $listeners.columnsReset ]]"><oj-bind-text value="[[ $application.translations.appBundle.reset ]]"></oj-bind-text></oj-button>
+    <oj-button chroming="callToAction" on-oj-action="[[ $listeners.columnsApply ]]"><oj-bind-text value="[[ $application.translations.appBundle.apply ]]"></oj-bind-text></oj-button>
   </div>
 </oj-dialog>
 
 <!-- GUARDAR VISTA: nombre + por defecto (la búsqueda y los filtros aplicados ahora) -->
-<oj-dialog id="mateuSaveViewDialog" dialog-title="Save view" cancel-behavior="icon">
+<oj-dialog id="mateuSaveViewDialog" dialog-title="[[ $application.translations.appBundle.saveView ]]" cancel-behavior="icon">
   <div slot="body">
     <oj-form-layout max-columns="1">
-      <oj-input-text label-hint="Name" value="{{ $page.variables.mateuViewName }}"></oj-input-text>
-      <oj-switch label-hint="Open with this view" value="{{ $page.variables.mateuViewDefault }}"></oj-switch>
+      <oj-input-text label-hint="[[ $application.translations.appBundle.name ]]" value="{{ $page.variables.mateuViewName }}"></oj-input-text>
+      <oj-switch label-hint="[[ $application.translations.appBundle.openWithView ]]" value="{{ $page.variables.mateuViewDefault }}"></oj-switch>
     </oj-form-layout>
   </div>
   <div slot="footer">
-    <oj-button chroming="borderless" on-oj-action="[[ $listeners.viewSaveCancel ]]">Cancel</oj-button>
-    <oj-button chroming="callToAction" on-oj-action="[[ $listeners.viewSaveConfirm ]]">Save</oj-button>
+    <oj-button chroming="borderless" on-oj-action="[[ $listeners.viewSaveCancel ]]"><oj-bind-text value="[[ $application.translations.appBundle.cancel ]]"></oj-bind-text></oj-button>
+    <oj-button chroming="callToAction" on-oj-action="[[ $listeners.viewSaveConfirm ]]"><oj-bind-text value="[[ $application.translations.appBundle.save ]]"></oj-bind-text></oj-button>
   </div>
 </oj-dialog>

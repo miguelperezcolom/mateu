@@ -4,9 +4,11 @@
 define([
   'vb/action/actionChain',
   'vb/action/actions',
+  'resources/js/mateu-bridge',
 ], (
   ActionChain,
   Actions,
+  bridge,
 ) => {
   'use strict';
 
@@ -25,7 +27,7 @@ define([
         collect(node.children, deeper, items);
       } else if (node.id) {
         items.push({ label: node.label, route: node.id, trail,
-          icon: node.icon || 'oj-ux-ico-arrow-circle-right', kind: trail || 'Ir a' });
+          icon: node.icon || 'oj-ux-ico-arrow-circle-right', kind: trail || bridge.chromeText('goTo') });
       }
     }
     return items;
@@ -35,7 +37,7 @@ define([
     const items = [];
     const home = $application.variables.mateuHomeRoute;
     if (home) {
-      items.push({ label: 'Inicio', route: home, icon: 'oj-ux-ico-home', kind: 'Ir a' });
+      items.push({ label: bridge.chromeText('home'), route: home, icon: 'oj-ux-ico-home', kind: bridge.chromeText('goTo') });
     }
     collect($application.variables.mateuMenuTree, '', items);
     // vistas rápidas: los filtros de opciones del listado ACTUAL (antes iban tres rutas del
@@ -47,9 +49,9 @@ define([
     for (const quick of (listing.filters || [])) {
       if (!quick.isOptions && !quick.isMulti) continue;
       for (const option of (quick.options || [])) {
-        items.push({ label: (listing.title || 'Listado') + ' — ' + option.label, route,
+        items.push({ label: (listing.title || bridge.chromeText('listing')) + ' — ' + option.label, route,
           quickField: quick.fieldId, quickValue: option.value,
-          icon: 'oj-ux-ico-filter', kind: 'Vista rápida' });
+          icon: 'oj-ux-ico-filter', kind: bridge.chromeText('quickView') });
       }
     }
     const busca = (text || '').trim().toLowerCase();

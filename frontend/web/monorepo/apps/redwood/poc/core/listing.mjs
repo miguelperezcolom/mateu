@@ -4,6 +4,7 @@ import { dragMimeOf } from './atoms.mjs'
 import { columnPrefsReader, islandContentOf } from './content.mjs'
 import { optionsOf } from './rowEditor.mjs'
 import { aggregateFootersOf, groupedRows, toneRows } from './boards.mjs'
+import { chromeText, chromeLanguage } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): listings: the table, paging, sort, selection, filters and the smart search bar.
 
 /** Helper de RENDER: primer nodo del árbol con metadata.type dado. */
@@ -180,15 +181,11 @@ export function listingBaseOf(ctx, opts = {}) {
   }
 }
 
-export const PAGING_TEXTS = {
-  en: { of: 'of', page: 'Page', first: 'First page', prev: 'Previous page', next: 'Next page', last: 'Last page' },
-  es: { of: 'de', page: 'Página', first: 'Primera página', prev: 'Página anterior', next: 'Página siguiente', last: 'Última página' },
-}
-
+// los textos del pie, del catálogo de la interfaz (i18n.mjs)
 export function pagingLangOf(lang) {
-  const raw = lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
-    || (typeof navigator !== 'undefined' && navigator.language) || ''
-  return PAGING_TEXTS[String(raw).toLowerCase().split(/[-_]/)[0]] || PAGING_TEXTS.en
+  const l = chromeLanguage(lang)
+  const t = (key) => chromeText(key, null, l)
+  return { of: t('pagingOf'), page: t('pagingPage'), first: t('pagingFirst'), prev: t('pagingPrev'), next: t('pagingNext'), last: t('pagingLast') }
 }
 
 /**
@@ -682,15 +679,9 @@ export const PAGING_PARAMS = { page: true, size: true, sort: true }
 /** El filtro reservado de la selección por ids (lo aplica el server, ningún listado lo declara). */
 export const IDS_PARAM = 'ids'
 
-export const IDS_TEXTS = {
-  en: { few: 'Selection: ', many: (n) => n + ' selected items' },
-  es: { few: 'Selección: ', many: (n) => n + ' elementos seleccionados' },
-}
-
 export function idsTextsOf(lang) {
-  const raw = lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
-    || (typeof navigator !== 'undefined' && navigator.language) || ''
-  return IDS_TEXTS[String(raw).toLowerCase().split(/[-_]/)[0]] || IDS_TEXTS.en
+  const l = chromeLanguage(lang)
+  return { few: chromeText('idsFew', null, l), many: (n) => chromeText('idsMany', { n }, l) }
 }
 
 /** El rótulo del chip de la selección: los ids si son pocos (≤3), si no cuántos son. */
@@ -1069,7 +1060,7 @@ export function setMetadataProviderFactory(factory) { metadataProviderFactory = 
  * desde 8af850e63): el buscador del listado vuelve a ser una caja con su menú de filtros.
  */
 export async function smartFiltersOf(filters, values, searchText) {
-  const config = { askHint: 'Buscar…', value: smartFilterValueOf(filters, values, searchText) }
+  const config = { askHint: chromeText('search'), value: smartFilterValueOf(filters, values, searchText) }
   const hasIds = !isBlank((values || {})[IDS_PARAM])
   if ((!filters || !filters.length) && !hasIds) return config
   // sin filtros declarados pero con selección por ids: el chip necesita su metadata, no sugerencias

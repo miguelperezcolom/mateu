@@ -19,7 +19,7 @@
           aria-controls="mateuSectionsOverlay"
           on-oj-action="[[ $listeners.hamburgerClicked ]]">
           <span slot="startIcon" :class="[[ $application.variables.mateuNavDrawerOpen ? 'oj-ux-ico-close' : 'oj-ux-ico-menu' ]]"></span>
-          Menu
+          <oj-bind-text value="[[ $application.translations.appBundle.menu ]]"></oj-bind-text>
         </oj-button>
       </oj-bind-if>
       <!-- logo del @App (marca del cliente, p.ej. RIU) delante de la navegación -->
@@ -81,7 +81,7 @@
         <oj-button chroming="borderless" display="icons" class="oj-color-invert oj-sm-margin-3x-end"
           on-oj-action="[[ $listeners.contextDrawerToggle ]]">
           <span slot="startIcon" class="oj-ux-ico-settings"></span>
-          Contexto
+          <oj-bind-text value="[[ $application.translations.appBundle.context ]]"></oj-bind-text>
         </oj-button>
       </oj-bind-if>
       <oj-bind-for-each data="[[ $application.variables.mateuHeaderActions ]]">
@@ -116,7 +116,7 @@
           aria-controls="mateuChatPanel"
           on-oj-action="[[ $listeners.chatToggle ]]">
           <span slot="startIcon" class="oj-ux-ico-chat"></span>
-          Chat
+          <oj-bind-text value="[[ $application.translations.appBundle.chatOpen ]]"></oj-bind-text>
         </oj-button>
       </oj-bind-if>
       <!-- CAMPANA de la bandeja (NotificationsSupplier del App): oj-button con la insignia de no
@@ -127,7 +127,7 @@
             :aria-label="[[ $application.variables.mateuNotifications.label ]]"
             on-oj-action="[[ $listeners.bellClicked ]]">
             <span slot="startIcon" class="oj-ux-ico-notification"></span>
-            Notifications
+            <oj-bind-text value="[[ $application.translations.appBundle.notifications ]]"></oj-bind-text>
           </oj-button>
           <oj-bind-if test="[[ $application.variables.mateuNotifications.hasUnread ]]">
             <span class="mateu-bell-badge oj-badge oj-badge-danger" aria-hidden="true"><oj-bind-text value="[[ $application.variables.mateuNotifications.badge ]]"></oj-bind-text></span>
@@ -136,15 +136,15 @@
         <oj-popup id="mateuBellPopup" class="mateu-widget-popup" position.my.horizontal="end" position.at.horizontal="end" auto-dismiss="focusLoss" modality="modeless">
           <div class="oj-sm-padding-3x mateu-bell-panel">
             <div class="oj-flex oj-sm-justify-content-space-between oj-sm-align-items-center oj-sm-margin-2x-bottom">
-              <span class="oj-typography-subheading-xs">Notifications</span>
+              <span class="oj-typography-subheading-xs"><oj-bind-text value="[[ $application.translations.appBundle.notifications ]]"></oj-bind-text></span>
               <oj-bind-if test="[[ $application.variables.mateuNotifications.hasUnread ]]">
-                <oj-button chroming="borderless" on-oj-action="[[ $listeners.bellMarkAllRead ]]">Mark all read</oj-button>
+                <oj-button chroming="borderless" on-oj-action="[[ $listeners.bellMarkAllRead ]]"><oj-bind-text value="[[ $application.translations.appBundle.markAllRead ]]"></oj-bind-text></oj-button>
               </oj-bind-if>
             </div>
             <oj-bind-if test="[[ $application.variables.mateuNotifications.empty ]]">
-              <div class="oj-text-color-secondary oj-sm-padding-4x-vertical">You're all caught up</div>
+              <div class="oj-text-color-secondary oj-sm-padding-4x-vertical"><oj-bind-text value="[[ $application.translations.appBundle.allCaughtUp ]]"></oj-bind-text></div>
             </oj-bind-if>
-            <oj-list-view id="mateuBellList" aria-label="Notifications" class="mateu-bell-list"
+            <oj-list-view id="mateuBellList" :aria-label="[[ $application.translations.appBundle.notifications ]]" class="mateu-bell-list"
               data="[[ $application.variables.mateuNotifications.provider ]]"
               selection-mode="single" on-oj-item-action="[[ $listeners.bellItemAction ]]">
               <template slot="itemTemplate" data-oj-as="item">
@@ -351,10 +351,10 @@
     <oj-bind-if test="[[ $application.variables.mateuMenuSections ]]">
       <div :class="[[ $application.variables.mateuNavDrawerOpen ? 'mateu-sections-scrim mateu-open' : 'mateu-sections-scrim' ]]"
         aria-hidden="true" on-click="[[ $listeners.sectionsScrimClicked ]]"></div>
-      <div id="mateuSectionsOverlay" role="dialog" aria-label="Secciones"
+      <div id="mateuSectionsOverlay" role="dialog" :aria-label="[[ $application.translations.appBundle.sections ]]"
         :aria-hidden="[[ $application.variables.mateuNavDrawerOpen ? 'false' : 'true' ]]"
         :class="[[ $application.variables.mateuNavDrawerOpen ? 'mateu-sections-overlay mateu-open' : 'mateu-sections-overlay' ]]">
-        <oj-navigation-list id="mateuSectionList" drill-mode="none" aria-label="Secciones"
+        <oj-navigation-list id="mateuSectionList" drill-mode="none" :aria-label="[[ $application.translations.appBundle.sections ]]"
           selection="[[ $functions.sectionListSelection($application.variables.mateuMenuTree, $application.variables.mateuSelectedNavId) ]]"
           on-selection-changed="[[ $listeners.navDrawerSelected ]]">
           <ul>
@@ -380,7 +380,7 @@
              propio botón en la cabecera y su drawer, ver abajo) -->
         <div>
           <oj-input-search id="mateuAskInput" class="oj-form-control-full-width"
-            placeholder="Buscar o ir a…"
+            placeholder="[[ $application.translations.appBundle.searchOrGo ]]"
             on-raw-value-changed="[[ $listeners.askOracleTyped ]]"></oj-input-search>
           <div class="oj-sm-margin-4x-top">
             <oj-bind-for-each data="[[ $variables.mateuAskResults ]]">
@@ -404,7 +404,7 @@
     <!-- drawer de CONTEXTO (@AppContext): los selectores en un panel lateral estándar -->
     <oj-drawer-popup edge="end" opened="{{ $variables.mateuContextDrawerOpen }}">
       <div class="oj-sm-padding-6x" style="width: 320px;">
-        <h2 class="oj-typography-heading-xs oj-sm-margin-4x-bottom">Contexto de trabajo</h2>
+        <h2 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $application.translations.appBundle.workContext ]]"></oj-bind-text></h2>
         <oj-bind-for-each data="[[ $application.variables.mateuContextSelectors ]]">
           <template>
             <div class="oj-sm-margin-4x-bottom">
@@ -435,21 +435,21 @@
     <oj-drawer-layout id="mateuChatDrawer" style="flex: 1 1 auto; min-width: 0"
       start-opened="[[ $application.variables.mateuChatOpen ]]"
       on-oj-before-close="[[ $listeners.chatClose ]]">
-      <div slot="start" id="mateuChatPanel" role="complementary" aria-label="Chat del asistente"
+      <div slot="start" id="mateuChatPanel" role="complementary" :aria-label="[[ $application.translations.appBundle.chatPanel ]]"
         :class="[[ $application.variables.mateuMenuTabs ? 'mateu-chat-panel mateu-over-tabs' : 'mateu-chat-panel' ]]">
         <oj-bind-if test="[[ $application.variables.mateuChatOpen ]]">
           <div class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap-nowrap oj-sm-padding-4x-start oj-sm-padding-2x-end oj-sm-padding-2x-vertical mateu-chat-panel-header">
             <span class="oj-ux-ico-chat oj-ux-icon-size-5x oj-sm-margin-2x-end" aria-hidden="true"></span>
-            <h2 class="oj-typography-heading-xs oj-flex-item oj-sm-margin-0">Asistente</h2>
+            <h2 class="oj-typography-heading-xs oj-flex-item oj-sm-margin-0"><oj-bind-text value="[[ $application.translations.appBundle.chatTitle ]]"></oj-bind-text></h2>
             <oj-button chroming="borderless" display="icons" on-oj-action="[[ $listeners.chatClose ]]">
               <span slot="startIcon" class="oj-ux-ico-close"></span>
-              Cerrar el chat
+              <oj-bind-text value="[[ $application.translations.appBundle.chatClose ]]"></oj-bind-text>
             </oj-button>
           </div>
           <div class="mateu-chat-messages oj-sm-padding-4x-horizontal oj-sm-padding-3x-vertical"
             aria-live="polite">
             <oj-bind-if test="[[ ($application.variables.mateuChatMessages || []).length === 0 ]]">
-              <p class="oj-typography-body-sm oj-text-color-secondary">Pregunta lo que necesites sobre esta pantalla o la aplicación.</p>
+              <p class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $application.translations.appBundle.chatEmpty ]]"></oj-bind-text></p>
             </oj-bind-if>
             <oj-bind-for-each data="[[ $application.variables.mateuChatMessages ]]">
               <template>
@@ -489,15 +489,15 @@
           <!-- tokens de la conversación, sumados respuesta a respuesta -->
           <oj-bind-if test="[[ !!$application.variables.mateuChatTokens ]]">
             <div id="mateuChatTokens" class="oj-flex oj-sm-align-items-center oj-sm-flex-wrap oj-sm-padding-4x-horizontal oj-sm-padding-2x-top">
-              <span class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-2x-end">Tokens</span>
+              <span class="oj-typography-body-xs oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $application.translations.appBundle.chatTokens ]]"></oj-bind-text></span>
               <oj-bind-if test="[[ $application.variables.mateuChatTokens.inputTokens != null ]]">
-                <span class="oj-badge oj-badge-subtle oj-sm-margin-1x-end">entrada <oj-bind-text value="[[ $application.variables.mateuChatTokens.inputTokens ]]"></oj-bind-text></span>
+                <span class="oj-badge oj-badge-subtle oj-sm-margin-1x-end"><oj-bind-text value="[[ $application.translations.appBundle.chatTokensIn ]]"></oj-bind-text> <oj-bind-text value="[[ $application.variables.mateuChatTokens.inputTokens ]]"></oj-bind-text></span>
               </oj-bind-if>
               <oj-bind-if test="[[ $application.variables.mateuChatTokens.outputTokens != null ]]">
-                <span class="oj-badge oj-badge-subtle oj-sm-margin-1x-end">salida <oj-bind-text value="[[ $application.variables.mateuChatTokens.outputTokens ]]"></oj-bind-text></span>
+                <span class="oj-badge oj-badge-subtle oj-sm-margin-1x-end"><oj-bind-text value="[[ $application.translations.appBundle.chatTokensOut ]]"></oj-bind-text> <oj-bind-text value="[[ $application.variables.mateuChatTokens.outputTokens ]]"></oj-bind-text></span>
               </oj-bind-if>
               <oj-bind-if test="[[ $application.variables.mateuChatTokens.totalTokens != null ]]">
-                <span class="oj-badge oj-badge-info oj-badge-subtle">total <oj-bind-text value="[[ $application.variables.mateuChatTokens.totalTokens ]]"></oj-bind-text></span>
+                <span class="oj-badge oj-badge-info oj-badge-subtle"><oj-bind-text value="[[ $application.translations.appBundle.chatTokensTotal ]]"></oj-bind-text> <oj-bind-text value="[[ $application.variables.mateuChatTokens.totalTokens ]]"></oj-bind-text></span>
               </oj-bind-if>
             </div>
           </oj-bind-if>
@@ -512,7 +512,7 @@
                   :disabled="[[ $application.variables.mateuChatBusy ]]"
                   on-oj-action="[[ $listeners.chatMic ]]">
                   <span slot="startIcon" class="oj-ux-ico-mic-on"></span>
-                  Dictar (Ctrl+Shift+M)
+                  <oj-bind-text value="[[ $application.translations.appBundle.chatDictate ]]"></oj-bind-text>
                 </oj-button>
               </oj-bind-if>
               <oj-bind-if test="[[ $application.variables.mateuChatListening ]]">
@@ -521,15 +521,15 @@
                   :disabled="[[ $application.variables.mateuChatBusy ]]"
                   on-oj-action="[[ $listeners.chatMic ]]">
                   <span slot="startIcon" class="oj-ux-ico-mic-on"></span>
-                  Detener dictado (Ctrl+Shift+M)
+                  <oj-bind-text value="[[ $application.translations.appBundle.chatStopDictation ]]"></oj-bind-text>
                 </oj-button>
               </oj-bind-if>
             </oj-bind-if>
-            <oj-input-text id="mateuChatInput" class="oj-flex-item oj-sm-margin-2x-end" placeholder="Escribe un mensaje…"
-              label-hint="Mensaje para el asistente" label-edge="none"
+            <oj-input-text id="mateuChatInput" class="oj-flex-item oj-sm-margin-2x-end" placeholder="[[ $application.translations.appBundle.chatPlaceholder ]]"
+              label-hint="[[ $application.translations.appBundle.chatInputLabel ]]" label-edge="none"
               value="{{ $application.variables.mateuChatInput }}"></oj-input-text>
             <oj-button id="mateuChatSend" chroming="callToAction" on-oj-action="[[ $listeners.chatSend ]]"
-              :disabled="[[ $application.variables.mateuChatBusy ]]">Enviar</oj-button>
+              :disabled="[[ $application.variables.mateuChatBusy ]]"><oj-bind-text value="[[ $application.translations.appBundle.chatSend ]]"></oj-bind-text></oj-button>
           </div>
         </oj-bind-if>
       </div>
@@ -597,11 +597,11 @@
              ganar y un destello sería peor que no mostrar nada. -->
         <oj-bind-if test="[[ $application.variables.mateuOffline ]]">
           <div class="mateu-offline-band" role="status">
-            Sin conexión — los cambios que hagas ahora no se guardarán.
+            <oj-bind-text value="[[ $application.translations.appBundle.offlineBand ]]"></oj-bind-text>
           </div>
         </oj-bind-if>
         <oj-bind-if test="[[ $application.variables.mateuBusy ]]">
-          <div class="mateu-busy-bar" role="status" aria-label="Cargando"></div>
+          <div class="mateu-busy-bar" role="status" :aria-label="[[ $application.translations.appBundle.loading ]]"></div>
         </oj-bind-if>
         <oj-bind-if test="[[ !!$application.variables.mateuLastError ]]">
           <div class="mateu-error-band" role="alert">
@@ -610,9 +610,9 @@
                  ofrece aquí es el caso en que repetir era NUESTRA decisión y decidimos no
                  tomarla: la toma el usuario, que sabe si puede permitirse un duplicado. -->
             <oj-button chroming="callToAction" display="all"
-              on-oj-action="[[ $listeners.retryMateuAction ]]">Reintentar</oj-button>
+              on-oj-action="[[ $listeners.retryMateuAction ]]"><oj-bind-text value="[[ $application.translations.appBundle.retry ]]"></oj-bind-text></oj-button>
             <oj-button chroming="borderless" display="all"
-              on-oj-action="[[ $listeners.dismissMateuError ]]">Cerrar</oj-button>
+              on-oj-action="[[ $listeners.dismissMateuError ]]"><oj-bind-text value="[[ $application.translations.appBundle.close ]]"></oj-bind-text></oj-button>
           </div>
         </oj-bind-if>
 

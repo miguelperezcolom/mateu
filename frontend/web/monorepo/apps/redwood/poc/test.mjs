@@ -34,6 +34,9 @@ import {
   speechRecognitionCtor, transcriptOf, chatMarkdownToHtml, chatRouteOfLink, stickChatToBottom, isChatMicShortcut,
   CHAT_MIC_ARIA_KEYSHORTCUTS,
 } from './chat.mjs'
+import { CHROME_TEXTS, chromeText, chromeLanguage, setChromeLanguage, chromeTextsOf } from './i18n.mjs'
+import { nlsFiles } from './make-nls.mjs'
+import { classifyRequestFailure as i18nClassify } from './resilience.mjs'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers, findByType,
@@ -62,6 +65,8 @@ const empty = () => ({ contexts: {}, stack: [], shell: null })
 const fieldIds = (tree) => [...new Set(collectFields(tree).map((f) => f.fieldId))]
 
 let pass = 0
+// la interfaz del renderer, en inglés salvo que un test pida otro idioma (Node trae navigator.language)
+setChromeLanguage('en')
 const test = (name, fn) => { fn(); console.log(`  ✓ ${name}`); pass++ }
 
 // Los tests del transporte son async y SUSTITUYEN globalThis.fetch por un doble. Tienen que
@@ -1166,7 +1171,7 @@ test('checklist check-in: TaskProgress N-de-M + StatusList con acciones por oper
   const tp = atoms.find((a) => a.isTaskProgress)
   assert.equal(tp.label, 'Operaciones de check-in')
   assert.equal(tp.max, 7)
-  assert.equal(tp.valueText, tp.value + ' de 7')
+  assert.equal(tp.valueText, tp.value + ' of 7')
   assert.match(tp.panelClass, /oj-panel/)
   const ops = atoms.filter((a) => a.isStatusList)
       .find((sl) => sl.items.some((i) => i.title === 'Tarjeta wifi'))
@@ -2091,7 +2096,7 @@ atest('fetchWithPolicy: si el refresco falla, el 401 acaba en "sesión no válid
   globalThis.fetch = async () => { calls++; return { ok: false, status: 401, text: async () => '' } }
   try {
     await assert.rejects(() => fetchWithPolicy('https://x/', {}, { actionId: 'save' }),
-      (e) => e.failure && e.failure.kind === 'unauthorized' && /sesión ya no es válida/.test(e.failure.message))
+      (e) => e.failure && e.failure.kind === 'unauthorized' && /session is no longer valid/.test(e.failure.message))
     assert.equal(calls, 1)
   } finally {
     globalThis.fetch = originalFetch
@@ -2649,7 +2654,7 @@ test('chat: botón en la cabecera y drawer a la izquierda — Ask Oracle ya no l
   assert.match(toggle[0], /chroming="borderless"/)
   assert.match(toggle[0], /oj-ux-ico-chat/)
   assert.match(toggle[0], /aria-controls="mateuChatPanel"/)
-  assert.match(toggle[0], /<span slot="startIcon" class="oj-ux-ico-chat"><\/span>\s*Chat\s*<\/oj-button>/)
+  assert.match(toggle[0], /<span slot="startIcon" class="oj-ux-ico-chat"><\/span>\s*<oj-bind-text value=\"\[\[ \$application\.translations\.appBundle\.chatOpen \]\]\"><\/oj-bind-text>\s*<\/oj-button>/)
   assert.match(toggle[0], /mateuChatOpen \? ' mateu-chat-open' : ''/)
   assert.match(toggle[0], /\$listeners\.chatToggle/)
   assert.match(webApp('resources/css/app.css'), /oj-button\.mateu-chat-toggle\.mateu-chat-open \.oj-button-button \{/)
@@ -2664,7 +2669,7 @@ test('chat: botón en la cabecera y drawer a la izquierda — Ask Oracle ya no l
   assert.equal(/start-display="overlay"/.test(layout), false)
   assert.ok(shell.indexOf('id="mateuChatDrawer"') < shell.indexOf('id="mateuNavDrawer"'), 'envuelve al contenido')
   assert.ok(shell.indexOf('slot="globalHeader"') < shell.indexOf('id="mateuChatDrawer"'), 'la cabecera queda fuera')
-  assert.match(shell, /<div slot="start" id="mateuChatPanel" role="complementary" aria-label="Chat del asistente"/)
+  assert.match(shell, /<div slot="start" id="mateuChatPanel" role="complementary" :aria-label="\[\[ \$application\.translations\.appBundle\.chatPanel \]\]"/)
   assert.match(shell, /id="mateuChatInput"/)
   assert.match(shell, /aria-live="polite"/)
   // cableado: listeners y cadena
@@ -2728,8 +2733,8 @@ test('chat: el panel dice que el asistente trabaja, cuenta los tokens y deja dic
   // tokens: badges de JET, sólo cuando hay alguno
   const tokens = panel.match(/<oj-bind-if test="\[\[ !!\$application\.variables\.mateuChatTokens \]\]">[\s\S]*?id="mateuChatTokens"/)
   assert.ok(tokens, 'la fila de tokens sale sólo con tokens')
-  assert.match(panel, /class="oj-badge oj-badge-subtle[^"]*">entrada/)
-  assert.match(panel, /class="oj-badge oj-badge-subtle[^"]*">salida/)
+  assert.match(panel, /class="oj-badge oj-badge-subtle[^"]*"><oj-bind-text value="\[\[ \$application\.translations\.appBundle\.chatTokensIn/)
+  assert.match(panel, /class="oj-badge oj-badge-subtle[^"]*"><oj-bind-text value="\[\[ \$application\.translations\.appBundle\.chatTokensOut/)
   // micrófono: oj-button de icono Redwood, sólo donde hay reconocimiento de voz, antes del campo
   const mic = panel.match(/<oj-bind-if test="\[\[ \$application\.variables\.mateuChatMicAvailable \]\]">\s*<oj-bind-if test="\[\[ !\$application\.variables\.mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[\s\S]*?<\/oj-button>/)
   assert.ok(mic, 'el botón de dictar depende de mateuChatMicAvailable')
@@ -2895,7 +2900,7 @@ atest('chat: el progreso del agente (fases y herramientas) llega a onProgress y 
       if (p.steps.length && !p.runningTool()) assert.deepEqual(p.steps, [{ name: 'booking_findBookings', server: 'booking', kind: 'mcp', ms: 3100, error: 'timeout', running: false }])
     },
   })
-  assert.deepEqual(lines, ['Conectando con 2 servidores MCP… 3 s', 'Llamando a booking_findBookings… 3 s', 'Conectando con 2 servidores MCP… 3 s', 'Respondiendo…'])
+  assert.deepEqual(lines, ['Conectando con 2 servidores MCP… 3 s', 'Calling booking_findBookings… 3 s', 'Conectando con 2 servidores MCP… 3 s', 'Answering…'])
 })
 
 atest('chat: streamChat despacha eventos personalizados y captura uso de tokens', async () => {
@@ -2971,7 +2976,7 @@ atest('chat: streamChat ante un 401 sin nadie que reautentique falla como siempr
     await assert.rejects(streamChat({
       url: '/sse', body: {}, reauthenticate: askForReauthentication,
       fetchImpl: async () => { calls++; return { ok: false, status: 401, text: async () => '' } },
-    }), /Servidor respondió 401/)
+    }), /The server answered 401/)
     assert.equal(calls, 1)
   } finally {
     globalThis.document = originalDocument
@@ -2983,7 +2988,7 @@ atest('chat: streamChat reenvía UNA sola vez: un segundo 401 falla, sin bucle',
   await assert.rejects(streamChat({
     url: '/sse', body: {}, reauthenticate: async () => true,
     fetchImpl: async () => { calls++; return { ok: false, status: 401, text: async () => '' } },
-  }), /Servidor respondió 401/)
+  }), /The server answered 401/)
   assert.equal(calls, 2)
 })
 
@@ -3876,7 +3881,7 @@ test('chat: el lector SSE ignora comentarios y otros campos, y quita sólo UN es
 
 test('chat: sin progreso del agente, la fila de estado es la de siempre', () => {
   const p = createChatProgress(0)
-  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 4.7, progress: p, now: 4700 }), 'Pensando… 4 s')
+  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 4.7, progress: p, now: 4700 }), 'Thinking… 4 s')
   p.status({ phase: 'thinking', text: 'Pensando…' }, 5000)
   assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 9, progress: p, now: 7000 }), 'Pensando… 2 s')
   assert.equal(chatStatusText({ busy: false, hasText: false, elapsedSeconds: 9, progress: p, now: 7000 }), '')
@@ -3884,9 +3889,9 @@ test('chat: sin progreso del agente, la fila de estado es la de siempre', () => 
 
 test('chat: la fila de estado dice si el asistente piensa o ya responde', () => {
   assert.equal(chatStatusText({ busy: false, hasText: false, elapsedSeconds: 9 }), '')
-  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 0 }), 'Pensando…')
-  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 4.7 }), 'Pensando… 4 s')
-  assert.equal(chatStatusText({ busy: true, hasText: true, elapsedSeconds: 12 }), 'Respondiendo…')
+  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 0 }), 'Thinking…')
+  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 4.7 }), 'Thinking… 4 s')
+  assert.equal(chatStatusText({ busy: true, hasText: true, elapsedSeconds: 12 }), 'Answering…')
 })
 
 test('chat: el dictado usa el reconocimiento del navegador si existe, y el último resultado', () => {
@@ -3925,8 +3930,8 @@ test('chat: Ctrl+Shift+M activa/desactiva el micrófono (también en macOS: Ctrl
   const shell = webApp('pages/shell-page.html')
   assert.match(shell, /aria-keyshortcuts="Control\+Shift\+M"/)
   // un botón por estado (el texto de un oj-button no sigue a un oj-bind-text): el de escuchar resaltado
-  assert.match(shell, /mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[^>]*chroming="callToAction"[\s\S]*?Detener dictado \(Ctrl\+Shift\+M\)\s*<\/oj-button>/)
-  assert.match(shell, /!\$application\.variables\.mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[^>]*chroming="borderless"[\s\S]*?Dictar \(Ctrl\+Shift\+M\)\s*<\/oj-button>/)
+  assert.match(shell, /mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[^>]*chroming="callToAction"[\s\S]*?appBundle\.chatStopDictation \]\]\"><\/oj-bind-text>\s*<\/oj-button>/)
+  assert.match(shell, /!\$application\.variables\.mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[^>]*chroming="borderless"[\s\S]*?appBundle\.chatDictate \]\]\"><\/oj-bind-text>\s*<\/oj-button>/)
 })
 
 // ── gaps de Redwood vistos en la demo de ec-demo1 (3.0-alpha.376) ─────────────────────────
@@ -4621,6 +4626,59 @@ atest('la pantalla en curso sigue recibiendo sus respuestas; las de fondo (quiet
     assert.equal(typeof currentView(), 'number')
   } finally { h.restore() }
 })
+
+// ── i18n: las palabras del propio renderer (i18n.mjs) ──────────────────────────────────────
+test('i18n: inglés por defecto; español por el idioma de la interfaz; huecos en inglés clave a clave', () => {
+  assert.equal(chromeText('retry'), 'Retry')
+  assert.equal(chromeText('retry', null, 'es-ES'), 'Reintentar')
+  assert.equal(chromeText('retry', null, 'ja'), 'Retry')
+  assert.equal(chromeText('selectValue', null, 'fr'), 'Sélectionnez une valeur')
+  assert.equal(chromeText('retry', null, 'fr'), 'Retry')
+  assert.equal(chromeText('progressOf', { done: 2, total: 7 }, 'es'), '2 de 7')
+  assert.equal(chromeText('chatCalling', { name: 'x' }), 'Calling x…')
+  assert.equal(chromeText('no-such-key'), 'no-such-key')
+  assert.equal(chromeLanguage('pt_BR'), 'pt')
+  setChromeLanguage('es')
+  try {
+    assert.equal(chromeLanguage(), 'es')
+    assert.equal(chromeText('close'), 'Cerrar')
+    assert.equal(i18nClassify({ status: 503 }).message, 'El servidor no ha podido completar la petición (error 503). Inténtalo de nuevo.')
+  } finally { setChromeLanguage('en') }
+  assert.equal(i18nClassify({ status: 503 }).message, 'The server could not complete the request (error 503). Try again.')
+  assert.equal(chromeTextsOf('fr').retry, 'Retry')
+})
+
+test('i18n: español e inglés tienen las MISMAS claves (un hueco en español sería inglés en una consola española)', () => {
+  assert.deepEqual(Object.keys(CHROME_TEXTS.es).sort(), Object.keys(CHROME_TEXTS.en).sort())
+  for (const [lang, dict] of Object.entries(CHROME_TEXTS)) {
+    for (const k of Object.keys(dict)) assert.ok(k in CHROME_TEXTS.en, lang + '.' + k + ' no existe en inglés')
+  }
+})
+
+test('i18n: el bundle nls de VB sale del catálogo y está al día; las páginas sólo enlazan claves que existen', () => {
+  const files = nlsFiles()
+  assert.equal(JSON.parse(files['appBundle-strings.json']).root, true)
+  assert.equal(JSON.parse(files['appBundle-strings.json']).es, true)
+  assert.equal(JSON.parse(files['root/appBundle-strings.json']).retry, 'Retry')
+  const nls = join(here, '..', 'webApps', 'vbredwoodapp', 'resources', 'strings', 'appBundle', 'nls')
+  for (const [f, c] of Object.entries(files)) assert.equal(readFileSync(join(nls, f), 'utf8'), c, f + ': npm run bridge')
+  // sin restos del starter de VB
+  assert.doesNotMatch(files['root/appBundle-strings.json'], /Welcome to your First Redwood App|Lorem ipsum/)
+  const pages = ['pages/shell-page.html', 'flows/main/pages/main-start-page.html']
+    .map((rel) => readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', rel), 'utf8')).join('\n')
+  const used = [...pages.matchAll(/translations\.appBundle\.(\w+)/g)].map((m) => m[1])
+  assert.ok(used.length > 10)
+  for (const k of used) assert.ok(k in CHROME_TEXTS.en, 'la página enlaza una clave que no existe: ' + k)
+})
+
+test('i18n: la chrome de las páginas no lleva español escrito a mano', () => {
+  const page = (rel) => readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', rel), 'utf8').replace(/<!--[\s\S]*?-->/g, '')
+  const html = page('pages/shell-page.html') + page('flows/main/pages/main-start-page.html') + readFileSync(join(here, 'templates', 'atoms.html'), 'utf8').replace(/<!--[\s\S]*?-->/g, '')
+  for (const word of ['Buscar', 'Cerrar', 'Reintentar', 'Cargando', 'Sin conexión', 'Sin datos', 'Secciones', 'Asistente', 'Enviar', 'Escribe un mensaje', 'Dictar', 'Contexto']) {
+    assert.ok(!html.includes(word), 'texto en español en una página: ' + word)
+  }
+})
+
 
 await queue
 console.log(`\n${pass} tests OK (contrato de wire real)`)

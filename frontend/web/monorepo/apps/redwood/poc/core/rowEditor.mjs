@@ -2,6 +2,7 @@ import { HOST_ID, collectFields } from './tree.mjs'
 import { RICH_TEXT_STEREOTYPES } from './atoms.mjs'
 import { converterOf, interpolate } from './content.mjs'
 import { ROW_LINES_FIELD, findByType, isBlank, listingOf } from './listing.mjs'
+import { chromeText, chromeLanguage } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): forms: list actions, the modal row editor, field widgets, validation, confirmation, lookups.
 
 // ── EDITOR DE FILAS de una lista del formulario (@DetailFormCustomisation position = modal) ──
@@ -588,16 +589,10 @@ export function overlayTransportOf(reg, actionId) {
 // Los textos genéricos del diálogo de confirmación, en el idioma de la interfaz (el lang del
 // documento, que copy.mjs fija al del navegador — como pagingLangOf): una consola en español no
 // pregunta «Yes / No».
-export const CONFIRMATION_DEFAULTS = {
-  en: { title: 'One moment, please', message: 'Are you sure?', confirmText: 'Yes', denyText: 'No' },
-  es: { title: 'Un momento, por favor', message: '¿Estás seguro?', confirmText: 'Sí', denyText: 'No' },
-}
-
-/** Los textos genéricos del diálogo de confirmación para `lang` (o el idioma de la interfaz). */
 export function confirmationDefaultsOf(lang) {
-  const raw = lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
-    || (typeof navigator !== 'undefined' && navigator.language) || ''
-  return CONFIRMATION_DEFAULTS[String(raw).toLowerCase().split(/[-_]/)[0]] || CONFIRMATION_DEFAULTS.en
+  const l = chromeLanguage(lang)
+  return { title: chromeText('confirmTitle', null, l), message: chromeText('confirmMessage', null, l),
+    confirmText: chromeText('confirmYes', null, l), denyText: chromeText('confirmNo', null, l) }
 }
 
 /**
@@ -670,19 +665,13 @@ export function formErrorsOf(sections, draft, only) {
   return out
 }
 
-export const SELECT_PLACEHOLDERS = {
-  en: 'Select a value', es: 'Seleccione un valor', ca: 'Seleccioneu un valor', fr: 'Sélectionnez une valeur',
-  de: 'Wert auswählen', it: 'Selezionare un valore', pt: 'Selecione um valor', nl: 'Selecteer een waarde',
-}
-
 /**
  * El placeholder de los desplegables en el idioma `lang` (el del navegador; inglés si no se
  * conoce). Hace falta uno: un oj-select-one SIN placeholder elige la primera opción por su
  * cuenta, y un obligatorio vacío pasaba la validación con un valor que nadie había elegido.
  */
 export function selectPlaceholder(lang) {
-  const base = String(lang || '').toLowerCase().split(/[-_]/)[0]
-  return SELECT_PLACEHOLDERS[base] || SELECT_PLACEHOLDERS.en
+  return chromeText('selectValue', null, String(lang || '').split(/[-_]/)[0] || 'en')
 }
 
 /**

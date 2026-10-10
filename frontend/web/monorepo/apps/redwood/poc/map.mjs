@@ -1,3 +1,4 @@
+import { chromeText } from './i18n.mjs'
 // Map sobre Leaflet: JET no tiene mapa de calles (oj-thematic-map pinta geografía GeoJSON, no
 // teselas), así que el átomo `isMap` es un contenedor que esto llena, una vez por documento como el
 // texto enriquecido o el MatrixGrid:
@@ -134,7 +135,7 @@ export function installMaps(doc = typeof document !== 'undefined' ? document : n
       // la especificación pudo cambiar (o el contenedor desaparecer) mientras cargaba
       if (el.__mateuMapSpec === raw && el.isConnected) drawMap(L, el, spec)
     }).catch(() => {
-      el.textContent = 'The map could not be loaded.'
+      el.textContent = chromeText('mapUnavailable')
     })
   }
   const scan = (root) => {

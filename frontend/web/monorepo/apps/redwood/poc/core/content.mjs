@@ -9,6 +9,7 @@ import { findOutsidePanes } from './pageHeader.mjs'
 import { findByType, statusBadgeRows } from './listing.mjs'
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
+import { chromeText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
 
 /** Colores de Chip del wire → clases badge de JET (sistema, Redwood). PRECOMPUTADO (CSP). */
@@ -1052,7 +1053,7 @@ export function islandContentOf(ctx, opts = {}) {
           actionId: m.methodActionId,
           parameters: { _method: method.id },
         })),
-        confirmLabel: m.confirmLabel || 'Confirmar',
+        confirmLabel: m.confirmLabel || chromeText('confirm'),
         confirmActionId: m.actionId,
         confirmParameters: { _method: m.selected },
       }, container)
@@ -1080,7 +1081,7 @@ export function islandContentOf(ctx, opts = {}) {
         label: interp(m.label || ''),
         value: done,
         max: total,
-        valueText: done + ' de ' + total,
+        valueText: chromeText('progressOf', { done, total }),
         panelClass: complete
           ? 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-success-30'
           : 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-neutral-20',

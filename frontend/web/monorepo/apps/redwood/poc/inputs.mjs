@@ -1,3 +1,4 @@
+import { chromeText, chromeLanguage } from './i18n.mjs'
 // Campos de CAPTURA de un formulario (fichero, imagen, firma, cámara) para los que JET/Redwood no
 // trae componente: no hay pad de firma ni cámara en oj-*/oj-sp-*, y oj-file-picker sólo entrega
 // File (el valor de Mateu es un data URI que viaja en el estado, sin endpoint de subida — el mismo
@@ -22,17 +23,12 @@ export function safeImageSrc(value) {
   return v
 }
 
-export const CAPTURE_TEXTS = {
-  en: { clear: 'Clear', accept: 'Accept', signAgain: 'Sign again', remove: 'Remove', take: 'Take photo',
-    retake: 'Retake', upload: 'Upload', replace: 'Replace', noCamera: 'Camera unavailable — choose a file',
-    empty: 'No file', start: 'Open camera', signHere: 'Sign here' },
-  es: { clear: 'Borrar', accept: 'Aceptar', signAgain: 'Volver a firmar', remove: 'Quitar', take: 'Hacer foto',
-    retake: 'Repetir', upload: 'Subir', replace: 'Sustituir', noCamera: 'Cámara no disponible — elige un fichero',
-    empty: 'Sin fichero', start: 'Abrir cámara', signHere: 'Firme aquí' },
-}
+const CAPTURE_KEYS = ['clear', 'accept', 'signAgain', 'remove', 'take', 'retake', 'upload', 'replace', 'noCamera', 'empty', 'start', 'signHere']
 
+/** Los textos de los campos de captura en `lang` (catálogo de la interfaz, i18n.mjs). */
 export function captureTexts(lang) {
-  return String(lang || '').toLowerCase().startsWith('es') ? CAPTURE_TEXTS.es : CAPTURE_TEXTS.en
+  const l = chromeLanguage(lang)
+  return Object.fromEntries(CAPTURE_KEYS.map((k) => [k, chromeText('capture' + k[0].toUpperCase() + k.slice(1), null, l)]))
 }
 
 /** ¿El valor es una imagen que se puede enseñar? (data URI de imagen o URL corriente) */
