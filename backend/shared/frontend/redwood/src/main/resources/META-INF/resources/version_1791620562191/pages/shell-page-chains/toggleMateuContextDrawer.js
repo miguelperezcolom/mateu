@@ -1,2 +1,0 @@
-"use strict";define(["vb/action/actionChain","vb/action/actions"],ActionChain=>{"use strict";return class extends ActionChain{async run(context){const{$page}=context;$page.variables.mateuContextDrawerOpen=!$page.variables.mateuContextDrawerOpen}};});
-//# sourceMappingURL=toggleMateuContextDrawer.js.map

@@ -1,2 +1,0 @@
-"use strict";define(["vb/action/actionChain","vb/action/actions","resources/js/mateu-bridge"],(ActionChain,Actions,bridge)=>{"use strict";return class extends ActionChain{async run(context,{which}){const{$application}=context,listing=$application.variables.mateuListing,target=bridge.targetPageOf(listing&&listing.paging,which);null==target||(await Actions.callChain(context,{chain:"runMateuSearch",params:{searchText:$application.variables.mateuLastSearchText||"",page:target}}))}};});
-//# sourceMappingURL=listingPaged.js.map

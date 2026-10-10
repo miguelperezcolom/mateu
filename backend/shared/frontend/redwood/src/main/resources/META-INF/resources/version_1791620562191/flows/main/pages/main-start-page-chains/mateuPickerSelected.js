@@ -1,2 +1,0 @@
-"use strict";define(["vb/action/actionChain","resources/js/mateu-bridge"],(ActionChain,bridge)=>{"use strict";return class extends ActionChain{async run(context,{event}){const{$page}=context,value=event&&event.detail&&event.detail.value||{};$page.variables.mateuPickerSelection=bridge.selectionOfKeySet(value.row)}};});
-//# sourceMappingURL=mateuPickerSelected.js.map

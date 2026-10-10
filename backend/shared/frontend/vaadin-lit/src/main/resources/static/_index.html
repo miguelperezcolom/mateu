@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html>
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
@@ -9,6 +9,7 @@
       <!-- AQUIJS -->
       <!-- HASTAAQUIJS -->
     <script type="module" crossorigin src="/assets/mateu-vaadin.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/rolldown-runtime.js">
     <link rel="modulepreload" crossorigin href="/assets/vendor-lit.js">
     <link rel="modulepreload" crossorigin href="/assets/vendor.js">
     <link rel="modulepreload" crossorigin href="/assets/vendor-vaadin.js">
@@ -32,14 +33,19 @@
 
   <script>
     (function () {
-      var saved = localStorage.getItem('mateu-theme');
+      // the page language: the browser's until the app shell says the server's (AppDto.locale)
+      if (!document.documentElement.lang) document.documentElement.lang = navigator.language || 'en';
+      var saved = null;
+      try { saved = localStorage.getItem('mateu-theme'); } catch (e) { /* storage blocked */ }
       if (saved) {
         document.documentElement.setAttribute('theme', saved);
       } else if (window.matchMedia) {
         document.documentElement.setAttribute('theme',
           window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function (e) {
-          if (!localStorage.getItem('mateu-theme')) {
+          var stored = null;
+          try { stored = localStorage.getItem('mateu-theme'); } catch (e) { /* storage blocked */ }
+          if (!stored) {
             document.documentElement.setAttribute('theme', e.matches ? 'dark' : 'light');
           }
         });

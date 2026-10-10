@@ -1,2 +1,0 @@
-"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context,{event}){context.$page.variables.messageToast=event.message,await Actions.callComponentMethod(context,{selector:"#messageToast",method:"open"})}};});
-//# sourceMappingURL=showMessageToast.js.map
