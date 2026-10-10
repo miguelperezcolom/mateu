@@ -549,6 +549,10 @@ public class PlanningPage : IComponentTreeSupplier
         OpenActionId = "editBooking",
         RangeSelectActionId = "newBooking",
     };
+
+    // Plain methods: the board referencing them is what advertises them.
+    public object? MoveBooking() => null;
+    public object? OpenBooking() => null;
 }
 
 [UI("aside-page"), Title("Aside page")]
@@ -671,9 +675,12 @@ public class ComponentTests
         Assert.Contains("\"to\":\"2026-08-21\"", json);
         Assert.Contains("\"moveActionId\":\"moveBooking\"", json);
         Assert.Contains("\"selectActionId\":\"openBooking\"", json);
-        // The board's action ids are advertised so the renderer routes them back.
+        // The board's action ids with a handler method are advertised so the renderer routes them
+        // back (the web client only sends advertised actions); one without a handler may be an
+        // ancestor's and is not captured (Java: PlanningBoardSyncTest, Python: same rule).
         Assert.Contains("{\"id\":\"moveBooking\"", json);
         Assert.Contains("{\"id\":\"openBooking\"", json);
+        Assert.DoesNotContain("{\"id\":\"resizeBooking\"", json);
         // The component id travels on the wrapping ClientSide component.
         Assert.Contains("\"id\":\"tape\"", json);
     }
@@ -692,10 +699,10 @@ public class ComponentTests
         Assert.Contains("\"resizeActionId\":\"resizeBooking\"", json);
         Assert.Contains("\"openActionId\":\"editBooking\"", json);
         Assert.Contains("\"rangeSelectActionId\":\"newBooking\"", json);
-        // The new actions are advertised too, so the renderer routes them back.
-        Assert.Contains("{\"id\":\"resizeBooking\"", json);
-        Assert.Contains("{\"id\":\"editBooking\"", json);
-        Assert.Contains("{\"id\":\"newBooking\"", json);
+        // The view has no handler for these, so they are not advertised (an ancestor may own them).
+        Assert.DoesNotContain("{\"id\":\"resizeBooking\"", json);
+        Assert.DoesNotContain("{\"id\":\"editBooking\"", json);
+        Assert.DoesNotContain("{\"id\":\"newBooking\"", json);
     }
 
     [Fact]

@@ -83,6 +83,30 @@ public class OrderForm {
 
 ---
 
+### Actions referenced by components
+
+A component can name an action itself: a `PlanningBoard`'s `moveActionId`, a `MetricCard`'s or a `Button`'s `actionId`, a `Calendar`'s `dayActionId`, and so on. The web client only sends an action to the server when the screen **advertises** it. Any other action bubbles up unclaimed and is lost.
+
+The screen advertises every action id in its component tree that it has a **method** for. A plain method with that name is enough, so `@Action` is only needed for its options (confirmation, `sse`, a shortcut…):
+
+```java
+public class RoomDiary implements ComponentTreeSupplier {
+
+  @Override
+  public Component component(HttpRequest httpRequest) {
+    return PlanningBoard.builder()
+        // …
+        .moveActionId("moveStay")   // advertised: the method below handles it
+        .openActionId("openStay")   // not advertised: no method here
+        .build();
+  }
+
+  Object moveStay(HttpRequest httpRequest) { … }
+}
+```
+
+An id the screen has no method for is left alone, because it may belong to an enclosing component. The same rule holds on the .NET and Python backends.
+
 ## @Button
 
 Marks a field or method as a button rendered at the bottom of the form body.

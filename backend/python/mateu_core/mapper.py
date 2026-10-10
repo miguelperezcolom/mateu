@@ -885,16 +885,18 @@ class ReflectionMapper:
             sizing = getattr(cls, "__mateu_size__", None)
             if is_tree_supplier and sizing and isinstance(children[0], ClientSideComponent):
                 children[0] = children[0].model_copy(update={"sizing": sizing})
-            # A YAML layout_override page collects its buttons' actionIds into the ServerSide's
-            # actions (they route back to the ModelView's methods). A ComponentTreeSupplier does
-            # NOT: Java's ComponentTreeSupplierMapper never harvests action ids from the tree — a
-            # component's own actionId (e.g. an archetype's selectCollectionItem) is dispatched
-            # directly and routed by reflection, so it never appears in ServerSide.actions.
-            if not is_tree_supplier:
-                known = {a.id for a in actions}
-                actions += [
-                    Action(id=a) for a in self.collect_action_ids(tree) if a not in known
-                ]
+            # The tree's action ids are advertised so the web client sends them (it only sends
+            # what the component advertises; anything else bubbles out unclaimed and is lost).
+            # A YAML layout_override page advertises every id its buttons reference (they route
+            # back to the ModelView's methods). A ComponentTreeSupplier advertises the ones it has
+            # a handler method for — an id it cannot handle may be meant for an ancestor component
+            # and must not be captured here (same rule in Java's TreeActionHarvester and .NET).
+            known = {a.id for a in actions}
+            handled = {camel_case(n) for n in dir(instance) if callable(getattr(type(instance), n, None))}
+            for a in self.collect_action_ids(tree):
+                if a not in known and (not is_tree_supplier or a in handled):
+                    known.add(a)
+                    actions.append(Action(id=a))
         else:
             # Compact mode tightens the form: the FormLayout's minimum column width drops to 7em.
             compact_cw = "7em" if class_flag(cls, "__mateu_compact__", False) else None

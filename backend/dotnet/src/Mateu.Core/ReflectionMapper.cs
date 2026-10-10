@@ -458,7 +458,15 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         if (tree is not null)
         {
             content = [ComponentMapper.Map(tree)];
+            // The tree's action ids are advertised so the web client sends them (it only sends what
+            // the component advertises). A tree-supplier view advertises the ones it has a handler
+            // method for — an id it cannot handle may be an ancestor's and must not be captured
+            // here (same rule as Java's TreeActionHarvester and Python's mapper). A YAML layout
+            // override advertises every id its buttons reference.
+            var handled = type.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance)
+                .Select(m => Naming.CamelCase(m.Name)).ToHashSet();
             actions.AddRange(ComponentMapper.CollectActionIds(tree)
+                .Where(a => !treeSupplierView || handled.Contains(a))
                 .Where(a => actions.All(x => x.Id != a)).Select(a => new ActionDto(a)));
         }
         else

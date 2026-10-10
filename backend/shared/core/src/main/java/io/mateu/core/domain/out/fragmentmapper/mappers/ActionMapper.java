@@ -120,7 +120,11 @@ public class ActionMapper {
       actions.add(Action.builder().id(RestDataSupport.RESTFETCH_ACTION_ID).build());
     }
 
-    return actions;
+    // One entry per id: the collectors above overlap (an @Action method is both a field action
+    // and a declared one), and a repeated id only made the wire longer. The FIRST entry wins, so
+    // the flags of the most specific declaration are the ones the client sees.
+    var seen = new java.util.HashSet<String>();
+    return actions.stream().filter(action -> seen.add(action.id())).toList();
   }
 
   private static List<? extends Action> addNestedFormsActions(

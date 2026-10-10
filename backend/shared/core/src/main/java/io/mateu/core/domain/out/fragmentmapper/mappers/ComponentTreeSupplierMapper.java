@@ -48,7 +48,10 @@ public class ComponentTreeSupplierMapper {
         getState(componentTreeSupplier, httpRequest),
         componentTreeSupplier.style(),
         componentTreeSupplier.cssClasses(),
-        ActionMapper.mapActions(componentTreeSupplier, httpRequest),
+        TreeActionHarvester.withTreeActions(
+            ActionMapper.mapActions(componentTreeSupplier, httpRequest),
+            componentTreeSupplier,
+            leaf),
         TriggerMapper.mapTriggers(componentTreeSupplier, httpRequest),
         RuleMapper.mapRules(componentTreeSupplier, httpRequest),
         ValidationMapper.mapValidations(componentTreeSupplier, route, httpRequest),

@@ -102,25 +102,21 @@ public class ReflectionObjectToComponentMapper {
       String consumedRoute,
       String initiatorComponentId,
       HttpRequest httpRequest) {
+    var content =
+        mapComponentToDto(
+            null, component, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     return new UIFragmentDto(
         initiatorComponentId,
         new ServerSideComponentDto(
             UUID.randomUUID().toString(),
             instance.getClass().getName(),
             consumedRoute,
-            List.of(
-                mapComponentToDto(
-                    null,
-                    component,
-                    baseUrl,
-                    route,
-                    consumedRoute,
-                    initiatorComponentId,
-                    httpRequest)),
+            List.of(content),
             instance,
             "",
             "",
-            mapActions(instance, httpRequest),
+            io.mateu.core.domain.out.fragmentmapper.mappers.TreeActionHarvester.withTreeActions(
+                mapActions(instance, httpRequest), instance, content),
             mapTriggers(instance, httpRequest),
             mapRules(instance, httpRequest),
             mapValidations(instance, route, httpRequest),

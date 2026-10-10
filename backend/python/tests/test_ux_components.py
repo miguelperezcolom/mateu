@@ -212,6 +212,13 @@ class PlanningPage(ComponentTreeSupplier):
             range_select_action_id="newBooking",
         )
 
+    # plain methods: the board referencing them is what advertises them
+    def move_booking(self):
+        return None
+
+    def open_booking(self):
+        return None
+
 
 @ui("sprint-board")
 @title("Sprint board")
@@ -931,13 +938,12 @@ def test_dashboard_archetype_emits_scoreboard_panels_and_gantt():
     # Other component fields land on the grid as-is.
     assert note["metadata"]["type"] == "Text"
 
-    # The MetricCard drill-in action rides on the MetricCard's own actionId (openRevenue above),
-    # NOT in the ServerSide.actions list — a ComponentTreeSupplier does not harvest its tree's
-    # action ids into the envelope (Java parity: ComponentTreeSupplierMapper never does). It is
-    # still routed by reflection when dispatched.
+    # The MetricCard drill-in action (openRevenue above) has a handler method on the view, so it
+    # is advertised in the ServerSide.actions list — the web client only sends what the
+    # component advertises (Java: TreeActionHarvester). It is routed by reflection when dispatched.
     component = doc["fragments"][0]["component"]
     action_ids = [a["id"] for a in (component["actions"] or [])]
-    assert "openRevenue" not in action_ids
+    assert "openRevenue" in action_ids
     inc = handler().handle(
         RunActionRq(action_id="openRevenue", server_side_type=type_name(SalesDashboard))
     )
@@ -1309,12 +1315,14 @@ def test_component_tree_supplier_emits_planning_board():
         "openActionId": "editBooking",
         "rangeSelectActionId": "newBooking",
     }
-    # The board's action ids live on the PlanningBoard component (moveActionId/selectActionId
-    # above), NOT in the ServerSide.actions envelope — a ComponentTreeSupplier does not harvest
-    # its tree's action ids (Java parity). The renderer dispatches them off the component itself.
+    # The board's action ids are advertised when the view has a handler method for them (the
+    # web client only sends advertised actions); an id without a handler may be an ancestor's,
+    # so it is left alone (Java: PlanningBoardSyncTest, .NET: same rule).
     action_ids = [a["id"] for a in (doc["fragments"][0]["component"]["actions"] or [])]
-    assert "moveBooking" not in action_ids
-    assert "openBooking" not in action_ids
+    assert "moveBooking" in action_ids
+    assert "openBooking" in action_ids
+    assert "resizeBooking" not in action_ids
+    assert len(action_ids) == len(set(action_ids))
 
 
 def test_planning_board_room_diary_extras_travel():
@@ -1430,13 +1438,11 @@ def test_welcome_archetype_hero_ctas_and_highlight_tiles():
     (skeleton,) = loading_tile["children"]
     assert skeleton["metadata"] == {"type": "Skeleton", "variant": "card", "count": 3}
 
-    # The CTA and EmptyState action ids live on their own components (the HeroSection button and
-    # the EmptyState's actionId above), NOT in the ServerSide.actions envelope — a
-    # ComponentTreeSupplier does not harvest its tree's action ids (Java parity). The CTA still
-    # dispatches to the method, routed by reflection.
+    # The CTA has a handler method (get_started), so it is advertised; the EmptyState's "create"
+    # has none on this view — it may be an ancestor's — so it is not captured here.
     component = doc["fragments"][0]["component"]
     action_ids = [a["id"] for a in (component["actions"] or [])]
-    assert "getStarted" not in action_ids and "create" not in action_ids
+    assert "getStarted" in action_ids and "create" not in action_ids
     inc = handler().handle(
         RunActionRq(action_id="getStarted", server_side_type=type_name(WelcomeDemo))
     )

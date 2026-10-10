@@ -1,0 +1,94 @@
+package io.mateu.core.domain.out.fragmentmapper.mappers;
+
+import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
+
+import io.mateu.dtos.ActionDto;
+import io.mateu.dtos.ClientSideComponentDto;
+import io.mateu.dtos.ComponentDto;
+import io.mateu.dtos.ServerSideComponentDto;
+import java.lang.reflect.Method;
+import java.lang.reflect.RecordComponent;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+/**
+ * The action ids a component tree references (a board's moveActionId, a tile's actionId, a
+ * button's…) that the view supplying it has a method for. The web client only sends an action the
+ * component advertises, so a click on a tree element whose handler is a plain method used to bubble
+ * out unclaimed and be lost unless the method repeated the id with {@code @Action}.
+ *
+ * <p>Only ids with a handler method on the view are harvested: an id the view cannot handle may be
+ * meant for an ancestor component, and advertising it here would capture it. Nested server side
+ * components are not walked — an island advertises its own actions.
+ */
+public final class TreeActionHarvester {
+
+  public static List<ActionDto> withTreeActions(
+      List<ActionDto> declared, Object view, ComponentDto tree) {
+    var referenced = new LinkedHashSet<String>();
+    collect(tree, referenced, new java.util.IdentityHashMap<>());
+    if (referenced.isEmpty()) {
+      return declared;
+    }
+    Set<String> handled =
+        getAllMethods(view.getClass()).stream().map(Method::getName).collect(Collectors.toSet());
+    var known = declared.stream().map(ActionDto::id).collect(Collectors.toSet());
+    var all = new ArrayList<>(declared);
+    for (var id : referenced) {
+      if (handled.contains(id) && known.add(id)) {
+        all.add(ActionDto.builder().id(id).build());
+      }
+    }
+    return all;
+  }
+
+  private static void collect(Object node, Set<String> ids, Map<Object, Boolean> visited) {
+    if (node == null || visited.put(node, Boolean.TRUE) != null) {
+      return;
+    }
+    // an island advertises its own actions; a FAB dispatches its own and is never advertised
+    if (node instanceof ServerSideComponentDto || node instanceof io.mateu.dtos.FabDto) {
+      return;
+    }
+    if (node instanceof Collection<?> items) {
+      items.forEach(item -> collect(item, ids, visited));
+      return;
+    }
+    if (node instanceof Map<?, ?> map) {
+      map.values().forEach(value -> collect(value, ids, visited));
+      return;
+    }
+    if (node instanceof ClientSideComponentDto client) {
+      collect(client.metadata(), ids, visited);
+      collect(client.children(), ids, visited);
+      return;
+    }
+    var type = node.getClass();
+    if (!type.isRecord() || !type.getPackageName().startsWith("io.mateu.dtos")) {
+      return;
+    }
+    for (RecordComponent component : type.getRecordComponents()) {
+      Object value;
+      try {
+        value = component.getAccessor().invoke(node);
+      } catch (ReflectiveOperationException e) {
+        continue;
+      }
+      var name = component.getName();
+      if (value instanceof String id
+          && !id.isBlank()
+          && (name.equals("actionId") || name.endsWith("ActionId"))) {
+        ids.add(id);
+      } else if (!(value instanceof String)) {
+        collect(value, ids, visited);
+      }
+    }
+  }
+
+  private TreeActionHarvester() {}
+}

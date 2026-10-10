@@ -16,6 +16,7 @@ import io.mateu.core.domain.out.componentmapper.ViewTypeClassifier;
 import io.mateu.core.domain.out.fragmentmapper.mappers.ActionMapper;
 import io.mateu.core.domain.out.fragmentmapper.mappers.EmitsMapper;
 import io.mateu.core.domain.out.fragmentmapper.mappers.RuleMapper;
+import io.mateu.core.domain.out.fragmentmapper.mappers.TreeActionHarvester;
 import io.mateu.core.domain.out.fragmentmapper.mappers.TriggerMapper;
 import io.mateu.core.domain.out.fragmentmapper.mappers.ValidationMapper;
 import io.mateu.core.infra.declarative.orchestrators.wizard.Wizard;
@@ -179,7 +180,8 @@ public final class ComponentToFragmentDtoMapper {
           io.mateu.core.application.runaction.ComponentStateHelper.getState(view, httpRequest),
           "",
           "",
-          ActionMapper.mapActions(view, httpRequest),
+          TreeActionHarvester.withTreeActions(
+              ActionMapper.mapActions(view, httpRequest), view, page),
           TriggerMapper.mapTriggers(view, httpRequest),
           RuleMapper.mapRules(view, httpRequest),
           ValidationMapper.mapValidations(view, route, httpRequest),

@@ -82,6 +82,15 @@ class PlanningBoardSyncTest {
                 .openActionId("editBooking")
                 .rangeSelectActionId("newBooking")
                 .build();
+
+    // plain methods, no @Action: the board referencing them is what advertises them
+    Object moveBooking() {
+      return null;
+    }
+
+    Object openBooking() {
+      return null;
+    }
   }
 
   static TestMateu mateu;
@@ -158,5 +167,19 @@ class PlanningBoardSyncTest {
     assertThat(board.resizeActionId()).isEqualTo("resizeBooking");
     assertThat(board.openActionId()).isEqualTo("editBooking");
     assertThat(board.rangeSelectActionId()).isEqualTo("newBooking");
+  }
+
+  @Test
+  void theBoardsActionIdsWithAHandlerMethodAreAdvertisedOnceEach() {
+    var component =
+        (io.mateu.dtos.ServerSideComponentDto)
+            mateu.sync("/planning").fragments().get(0).component();
+    var ids = component.actions().stream().map(io.mateu.dtos.ActionDto::id).toList();
+
+    // the web client only sends an action its component advertises
+    assertThat(ids).contains("moveBooking", "openBooking");
+    // no handler on the view: maybe an ancestor's, so it is not captured here
+    assertThat(ids).doesNotContain("resizeBooking", "editBooking", "newBooking");
+    assertThat(ids).doesNotHaveDuplicates();
   }
 }
