@@ -44,10 +44,8 @@ server = ["uvicorn>=0.27"]
 jwt = ["PyJWT>=2.8"]
 # Excel (openpyxl, MIT) and PDF (reportlab, BSD) listing exporters.
 export = ["openpyxl>=3.1", "reportlab>=4.0"]
-# Async proxy fetches for `__restfetch__` (falls back to urllib in a worker thread without it).
-http = ["httpx>=0.27"]
-all = ["mateu-ui[server,jwt,export,http]"]
-dev = ["pytest>=8", "httpx>=0.27", "mypy>=1.10", "types-PyYAML", "build>=1.2"]
+all = ["mateu-ui[server,jwt,export]"]
+dev = ["pytest>=8", "httpx>=0.27", "PyJWT>=2.8", "mypy>=1.10", "types-PyYAML", "build>=1.2"]
 
 [project.urls]
 Homepage = "https://mateu.io"

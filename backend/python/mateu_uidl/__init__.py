@@ -29,6 +29,16 @@ T = TypeVar("T")
 
 
 # ── User-facing data types ─────────────────────────────────────────────────────
+class UserFacingError(Exception):
+    """An error whose message is written FOR the user. Raised from an action, its text is shown
+    in the error toast as is — unlike any other exception, which the error boundary answers with a
+    generic text and a correlation id (the detail goes to the log). ``title`` heads the toast."""
+
+    def __init__(self, message: str, title: str = "Error"):
+        super().__init__(message)
+        self.title = title
+
+
 class MessageVariant(Enum):
     SUCCESS = "success"
     INFO = "info"
@@ -1824,6 +1834,7 @@ class Welcome(ComponentTreeSupplier):
 
 
 __all__ = [
+    "UserFacingError",
     "MenuDisplay",
     "MenuLook",
     "menu_group",

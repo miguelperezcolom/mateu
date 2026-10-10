@@ -3,8 +3,11 @@ Mirrors the C# MateuRegistry."""
 
 from __future__ import annotations
 
+import logging
 import inspect
 from types import ModuleType
+
+_log = logging.getLogger("mateu.registry")
 
 
 def type_name(cls: type) -> str:
@@ -57,8 +60,8 @@ class MateuRegistry:
             entries = cls().routes()
             if entries:
                 self.supplied_routes.extend(flatten(entries))
-        except Exception:
-            pass
+        except Exception as e:  # noqa: BLE001 - logged, not fatal
+            _log.warning("_register_route_supplier failed, falling back (%s)", e)
 
     def resolve(self, server_side_type: str | None, route: str | None) -> type | None:
         if server_side_type and server_side_type in self._by_name:

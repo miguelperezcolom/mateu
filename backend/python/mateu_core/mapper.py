@@ -3,6 +3,7 @@ The Python port of C#'s ReflectionMapper."""
 
 from __future__ import annotations
 
+import logging
 import dataclasses
 
 import uuid
@@ -228,6 +229,8 @@ from .page_type_inference import page_type_of
 from . import page_inference
 from .reflection import class_flag, methods_with, view_fields
 from .registry import normalize, type_name
+
+_log = logging.getLogger("mateu.mapper")
 
 # The audience projection active for the request being handled (the appState value under
 # "audience", i.e. the @app_context selector named audience); None → no projection. A ContextVar
@@ -716,7 +719,8 @@ class ReflectionMapper:
             options: list[Option] = []
             try:
                 return_type = get_type_hints(fn).get("return")
-            except Exception:
+            except Exception as e:  # noqa: BLE001 - logged, not fatal
+                _log.warning("map_context_selectors failed, falling back (%s)", e)
                 return_type = None
             if isinstance(return_type, type) and issubclass(return_type, Enum):
                 options = [
@@ -732,7 +736,8 @@ class ReflectionMapper:
                             options.append(Option(value=str(item[0]), label=str(item[1])))
                         elif hasattr(item, "value") and hasattr(item, "label"):
                             options.append(Option(value=str(item.value), label=str(item.label)))
-                except Exception:
+                except Exception as e:  # noqa: BLE001 - logged, not fatal
+                    _log.warning("map_context_selectors failed, falling back (%s)", e)
                     options = []
             selectors.append(
                 AppContextSelector(field_name=name, label=label, options=options)
@@ -769,7 +774,8 @@ class ReflectionMapper:
     def map_menu_item(self, name: str, fn) -> MenuItem:
         try:
             view_type = get_type_hints(fn).get("return")
-        except Exception:
+        except Exception as e:  # noqa: BLE001 - logged, not fatal
+            _log.warning("map_menu_item failed, falling back (%s)", e)
             view_type = fn.__annotations__.get("return")
         marker = getattr(fn, "__mateu_menu_item__")
         # A menu leaf is one of two primitives: a route or a rule. A @menu_item returning a Rule
@@ -812,7 +818,8 @@ class ReflectionMapper:
             return None
         try:
             result = fn(self._owner_of(fn)())
-        except Exception:
+        except Exception as e:  # noqa: BLE001 - logged, not fatal
+            _log.warning("_menu_rule_leaf failed, falling back (%s)", e)
             result = None
         if isinstance(result, Rule):
             result = [result]
@@ -2313,7 +2320,8 @@ class ReflectionMapper:
             return False
         try:
             return bool(hook() if instance is not None else hook(cls()))
-        except Exception:  # noqa: BLE001 - a crud that cannot be built offers no export
+        except Exception as e:  # noqa: BLE001 - logged, not fatal
+            _log.warning("_csv_exportable: a crud that cannot be built offers no export (%s)", e)
             return False
 
     def map_crud(self, cls, element, route: str, instance=None) -> ServerSideComponent:
@@ -3466,7 +3474,8 @@ class ReflectionMapper:
             return []
         try:
             raw = supplier(field_id) or []
-        except Exception:
+        except Exception as e:  # noqa: BLE001 - logged, not fatal
+            _log.warning("_supplied_options failed, falling back (%s)", e)
             return []
         return [o for o in (self._as_option(item) for item in raw) if o is not None]
 

@@ -146,7 +146,8 @@ def advertised_ids(mapper, type_, instance, layout_override=None) -> set[str]:
     ids: set[str] = set()
     try:
         fields = view_fields(type_)
-    except Exception:
+    except Exception as e:  # noqa: BLE001 - logged, not fatal
+        log.warning("advertised_ids failed, falling back (%s)", e)
         fields = []
     for f in fields:
         on_row = f.marker(OnRowSelected)
@@ -164,7 +165,8 @@ def advertised_ids(mapper, type_, instance, layout_override=None) -> set[str]:
     def collect(source: Callable[[], Any]) -> None:
         try:
             root = source()
-        except Exception:
+        except Exception as e:  # noqa: BLE001 - logged, not fatal
+            log.warning("collect failed, falling back (%s)", e)
             return
         _walk(root, ids, seen, 0)
 

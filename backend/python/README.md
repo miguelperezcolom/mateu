@@ -65,12 +65,23 @@ for the sibling implementation.
 | `samples/demo` | A runnable FastAPI app |
 | `tests` | Golden-JSON tests asserting wire compatibility with the Java/C# backends |
 
+## Install
+
+```bash
+pip install "mateu-ui[server]"          # the package + uvicorn
+pip install "mateu-ui[all]"             # + PyJWT (identity), openpyxl/reportlab (Excel/PDF export)
+```
+
+The distribution is **`mateu-ui`** (the PyPI name `mateu` belongs to an unrelated project); the
+import names are `mateu_uidl`, `mateu_dtos`, `mateu_core` and `mateu_fastapi`. Versions move in
+lockstep with the Java artifacts: the `v3.0-alpha.N` release publishes `3.0.0aN`.
+
 ## Run
 
 ```bash
 cd backend/python
 python3 -m venv .venv && . .venv/bin/activate
-pip install -r requirements.txt
+pip install -e ".[dev,all]"
 uvicorn samples.demo.main:app --host 0.0.0.0 --port 8594   # serves the sync API
 pytest                                                     # golden tests
 ```
@@ -78,6 +89,49 @@ pytest                                                     # golden tests
 Point any Mateu renderer at it — e.g. set the Compose app's `mateu.baseUrl=http://localhost:8594`.
 The server binds to `0.0.0.0`, so the iOS simulator (`localhost:8594`) and Android emulator
 (`10.0.2.2:8594`) reach it too.
+
+## Serving: `add_mateu`
+
+```python
+from fastapi import FastAPI
+from mateu_fastapi import add_mateu
+from mateu_core.identity import jwt_identity_provider
+
+app = FastAPI()
+add_mateu(
+    app, views,
+    cors_origins=["https://app.example.com"],            # CORS is OFF unless you list origins
+    identity_provider=jwt_identity_provider(key=PUBLIC_KEY, algorithms=["RS256"]),
+    secrets_provider=lambda key: vault.read(key),        # ${secret.KEY} in proxied REST sources
+)
+```
+
+- **Identity.** `EyesOnly` / `ReadOnlyUnless` / `DisabledUnless` (and `disabled_unless`) match the
+  caller's `Identity(roles, groups, scopes, permissions)`. The provider is **parameterless** (the
+  port's idiom); it reads the request in flight from a per-request `ContextVar`:
+  `mateu_core.request_context.current_request()` (headers, base url, correlation id) or
+  `bearer_token()`. The default is `jwt_identity_provider()`, which maps the Bearer JWT's claims
+  exactly like Java's `Authorizer` (Keycloak `realm_access`/`resource_access` roles + `roles`,
+  `groups`, `scope`/`scp`, `permissions`). **Without a `key` it reads the claims unverified** —
+  as Java does, assuming a gateway/middleware verified the token; pass `key=` to verify here. It
+  needs the `jwt` extra; without PyJWT no identity is resolved and every gate denies.
+- **Secrets.** `secrets_provider(key) -> str | None` resolves `${secret.KEY}`; unset → the
+  same-named environment variable. Only the proxy channel (`__restfetch__`) ever sees them.
+- **CORS (breaking).** `add_mateu` used to install `allow_origins=["*"]` by default. CORS is now
+  off unless `cors_origins=[...]` lists the allowed origins (`["*"]` still works if you mean it);
+  `cors=True` without origins raises. A renderer served by the same app needs no CORS.
+- **Errors.** An unhandled exception answers an error toast, never a raw 500: a generic text
+  carrying a correlation id (also in the `X-Mateu-Correlation-Id` header and in the logged
+  traceback). `dev=True` (or `MATEU_DEV=true`) shows the exception class and message instead, like
+  Java; raise `mateu_uidl.UserFacingError("…", title="…")` for a message written for the user,
+  which is always shown. A denied action still answers 403.
+- **Concurrency.** The handler runs in Starlette's threadpool, so a slow proxied upstream
+  (`proxy_timeout_seconds`, default 30) never blocks the event loop; per-request state (the
+  request, the matched route seed, the audience) lives in `ContextVar`s, never on the shared
+  handler.
+- **Audience is a projection, not security.** `Audience()` / `@audience` read the client-controlled
+  `appState["audience"]`; any caller can send any value. Use it to tailor a screen to a persona, and
+  `EyesOnly` (identity) for anything that must stay hidden.
 
 ## Define views
 

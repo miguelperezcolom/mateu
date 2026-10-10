@@ -12,12 +12,15 @@ server class behind it at all — which is what a statically deployed screen is.
 
 from __future__ import annotations
 
+import logging
 import os
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any
 
 import yaml
+
+_log = logging.getLogger("mateu.route_registry")
 
 
 def _normalize(route: str | None) -> str:
@@ -350,7 +353,8 @@ class RouteRegistry:
                 continue
             try:
                 root = yaml.safe_load(file.read_text())
-            except Exception:
+            except Exception as e:  # noqa: BLE001 - logged, not fatal
+                _log.warning("Skipping unreadable UI descriptor %s (%s)", file, e)
                 continue  # a broken descriptor must not take app enumeration down
             if not isinstance(root, dict) or root.get("type") != "UI":
                 continue
@@ -375,7 +379,8 @@ class RouteRegistry:
                 continue
             try:
                 root = yaml.safe_load(path.read_text())
-            except Exception:
+            except Exception as e:  # noqa: BLE001 - logged, not fatal
+                _log.warning("Skipping unreadable route file %s (%s)", path, e)
                 continue
             nodes = root.get("routes") if isinstance(root, dict) else root
             if not isinstance(nodes, list):
@@ -396,7 +401,8 @@ class RouteRegistry:
             return RouteTable()
         try:
             root = yaml.safe_load(path.read_text())
-        except Exception:
+        except Exception as e:  # noqa: BLE001 - logged, not fatal
+            _log.warning("Ignoring unreadable %s: only the code-declared routes apply (%s)", path, e)
             # A broken routes.yaml must not take the app down: the decorator-declared routes still
             # work, and the failure is loud in the log rather than fatal at boot.
             return RouteTable()

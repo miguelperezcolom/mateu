@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import base64
+import logging
+from contextvars import ContextVar
 import hashlib
 import inspect
 import json
@@ -139,10 +141,26 @@ class RunActionRq(BaseModel):
 # search (mirrors Java's Crud.SAVED_IN_DRAWER_EVENT).
 SAVED_IN_DRAWER_EVENT = "mateu-crud:saved-in-drawer"
 
+log = logging.getLogger("mateu.sync")
+
+#: The routes.yaml entry matched for the request in flight. Per REQUEST, so it lives in a
+#: ContextVar rather than on the (shared, singleton) handler: two concurrent requests must never
+#: read each other's route seed.
+_route_seed: ContextVar[Any] = ContextVar("mateu_route_seed", default=None)
+
 
 class SyncHandler:
-    def __init__(self, registry: MateuRegistry, translator=None, identity_provider=None, secrets_provider=None):
+    def __init__(
+        self,
+        registry: MateuRegistry,
+        translator=None,
+        identity_provider=None,
+        secrets_provider=None,
+        proxy_timeout_seconds: float = 30.0,
+    ):
         self.registry = registry
+        #: Upper bound for a proxied (__restfetch__) upstream call.
+        self.proxy_timeout_seconds = proxy_timeout_seconds
         self.mapper = ReflectionMapper(translator, identity_provider)
         #: resolves ${secret.X} for proxy mode; None → same-named env var fallback.
         self._secrets = secrets_provider
@@ -151,20 +169,17 @@ class SyncHandler:
         #: Shared with the spec loader so both see one table.
         self.routes = RouteRegistry(supplied=getattr(registry, "supplied_routes", None))
         self.yaml_specs = YamlSpecLoader(registry=self.routes)
-        #: The route entry matched for the request in flight, whose appState/data/appData seeds are
-        #: applied on the response side (mirrors Java's HttpRequest _route* attributes).
-        self._route_seed = None
 
     def handle(self, rq: RunActionRq, request_base_url: str | None = None) -> UIIncrement:
         # A route (routes.yaml) may seed state/appState/data/appData. `state` folds into the
         # component state at resolution (see below), but the other three are applied on the
         # RESPONSE side, so the matched entry is stashed for this request and read back when the
         # increment is built (mirrors Java's HttpRequest.setAttribute("_routeAppState"/…)).
-        self._route_seed = self.routes.match(rq.route)
+        token = _route_seed.set(self.routes.match(rq.route))
         try:
             return self._seed_increment(self._handle_inner(rq, request_base_url), rq)
         finally:
-            self._route_seed = None
+            _route_seed.reset(token)
 
     def _seed_increment(self, inc: UIIncrement, rq: RunActionRq) -> UIIncrement:
         """Apply a matched route's `appState`/`appData` seeds onto the response (component `data`
@@ -172,7 +187,7 @@ class SyncHandler:
         component state at resolution). appState is merged UNDER the client's app state so the
         route's values are defaults and the persisted @app_context still wins; appData is emitted
         on the app metadata (mirrors ReflectionUiIncrementMapper.mapToAppState + AppDto.appDataSource)."""
-        seed = self._route_seed
+        seed = _route_seed.get()
         if seed is None:
             return inc
         entry = seed.entry
@@ -1693,6 +1708,10 @@ class SyncHandler:
         any non-2xx or transport error."""
         try:
             url = self._interpolate(source.url, state)
+            if not url.lower().startswith(("http://", "https://")):
+                # urllib also opens file:// and ftp:// — a proxy source is an HTTP endpoint only.
+                log.warning("Proxy fetch refused: %r is not an http(s) url", url)
+                return {}
             method = (source.method or "GET").upper()
             data = None
             if method not in ("GET", "HEAD") and source.body:
@@ -1701,11 +1720,12 @@ class SyncHandler:
             req.add_header("Accept", "application/json")
             for name, value in (source.headers or {}).items():
                 req.add_header(name, self._interpolate(value, state))
-            with urllib.request.urlopen(req, timeout=60) as resp:
+            with urllib.request.urlopen(req, timeout=self.proxy_timeout_seconds) as resp:
                 if resp.status >= 400:
                     return {}
                 return json.loads(resp.read().decode())
-        except (urllib.error.URLError, ValueError, OSError):
+        except (urllib.error.URLError, ValueError, OSError) as e:
+            log.warning("Proxy fetch failed for %s: %s", getattr(source, "url", "?"), e)
             return {}
 
     def _resolve_secret(self, key: str) -> str | None:
@@ -1780,7 +1800,8 @@ class SyncHandler:
         for name in getattr(type(md), "model_fields", {}):
             try:
                 value = getattr(md, name)
-            except Exception:
+            except Exception as e:  # noqa: BLE001 - logged, not fatal
+                log.warning("_walk_metadata failed, falling back (%s)", e)
                 continue
             if isinstance(value, (ClientSideComponent, ServerSideComponent)):
                 self._collect_fields(value, fields, seen)
@@ -2083,5 +2104,6 @@ class SyncHandler:
                 except KeyError:
                     return target(raw)
             return raw
-        except Exception:
+        except Exception as e:  # noqa: BLE001 - logged, not fatal
+            log.warning("convert_value failed, falling back (%s)", e)
             return None
