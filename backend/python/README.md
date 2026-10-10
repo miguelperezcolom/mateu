@@ -133,11 +133,14 @@ add_mateu(
   caller's `Identity(roles, groups, scopes, permissions)`. The provider is **parameterless** (the
   port's idiom); it reads the request in flight from a per-request `ContextVar`:
   `mateu_core.request_context.current_request()` (headers, base url, correlation id) or
-  `bearer_token()`. The default is `jwt_identity_provider()`, which maps the Bearer JWT's claims
-  exactly like Java's `Authorizer` (Keycloak `realm_access`/`resource_access` roles + `roles`,
-  `groups`, `scope`/`scp`, `permissions`). **Without a `key` it reads the claims unverified** —
-  as Java does, assuming a gateway/middleware verified the token; pass `key=` to verify here. It
-  needs the `jwt` extra; without PyJWT no identity is resolved and every gate denies.
+  `bearer_token()`. The default is `jwt_identity_provider()`: the principal Starlette's
+  `AuthenticationMiddleware` authenticated, else the Bearer JWT **verified** (`key=`/`jwks_uri=`, or
+  the `MATEU_SECURITY_JWT_JWKS_URI` / `MATEU_SECURITY_JWT_SECRET` env vars, plus `_ISSUER` /
+  `_AUDIENCE`; `exp` required), its claims mapped exactly like Java's `CallerIdentities`
+  (Keycloak `realm_access`/`resource_access` roles + `roles`, `groups`, `scope`/`scp`,
+  `permissions`). With nothing to verify against, a token is **ignored** — every gate denies — unless
+  `MATEU_SECURITY_TRUST_UNVERIFIED_TOKENS=true` (local development only). Verification needs the
+  `jwt` extra.
 - **Secrets.** `secrets_provider(key) -> str | None` resolves `${secret.KEY}`; unset → the
   environment variable `MATEU_SECRET_<KEY>` (never an arbitrary one). Only the proxy channel (`__restfetch__`) ever sees them.
 - **CORS (breaking).** `add_mateu` used to install `allow_origins=["*"]` by default. CORS is now

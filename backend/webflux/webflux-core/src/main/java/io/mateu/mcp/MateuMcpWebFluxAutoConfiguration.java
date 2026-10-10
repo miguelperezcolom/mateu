@@ -34,19 +34,28 @@ public class MateuMcpWebFluxAutoConfiguration {
   }
 
   private static Mono<ServerResponse> handle(ServerRequest request, McpEndpoint mcp) {
-    return request
-        .bodyToMono(String.class)
-        .defaultIfEmpty("")
+    // the authenticated principal (Spring Security) is resolved reactively, before the body
+    var principal =
+        request
+            .exchange()
+            .getPrincipal()
+            .map(java.util.Optional::<java.security.Principal>of)
+            .defaultIfEmpty(java.util.Optional.empty());
+    return principal
+        .zipWith(request.bodyToMono(String.class).defaultIfEmpty(""))
         // McpService blocks on the screens it runs: keep it off the event loop.
         .publishOn(Schedulers.boundedElastic())
         .map(
-            body -> {
+            principalAndBody -> {
+              var body = principalAndBody.getT2();
+              var caller = principalAndBody.getT1().orElse(null);
               try {
                 var response =
                     mcp.handle(
                         body,
                         rq ->
                             new SpringHttpRequest(request.exchange().getRequest())
+                                .withPrincipal(caller)
                                 .storeRunActionRqDto(rq));
                 return java.util.Optional.ofNullable(response);
               } catch (Exception e) {

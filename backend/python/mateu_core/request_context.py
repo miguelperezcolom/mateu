@@ -20,6 +20,10 @@ from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from mateu_uidl import Identity
 
 
 @dataclass(frozen=True)
@@ -30,6 +34,9 @@ class MateuRequest:
     base_url: str | None = None
     #: A per-request id, echoed in error messages and logs so a user report can be traced.
     correlation_id: str | None = None
+    #: The identity the hosting framework AUTHENTICATED (e.g. Starlette's AuthenticationMiddleware),
+    #: or None. Trusted as is — never fill it from anything the client can forge.
+    principal: Identity | None = None
 
     def header(self, name: str) -> str | None:
         return self.headers.get(name.lower())

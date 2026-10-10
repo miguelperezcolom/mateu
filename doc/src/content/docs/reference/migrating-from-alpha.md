@@ -97,6 +97,9 @@ These compile unchanged and **behave differently**. Check each against your scre
 | Listings without interaction capabilities | opened empty | **search on opening** (`Listing.searchesOnOpening()` defaults to `true`) | override `searchesOnOpening()` to return `false` |
 | `@Section(columns = …)` | default `1`, and an explicit `1` was ignored | default `0` = inherit from `@FormLayout`; an explicit `columns = 1` is honoured | remove an explicit `columns = 1` you did not mean |
 | CORS | the generated controllers carried `@CrossOrigin` (any origin; Micronaut also with credentials) | **off**: same-origin only | set `mateu.cors.allowed-origins` (comma-separated; optionally `mateu.cors.allow-credentials=true`, never with `*`) — Python: `add_mateu(app, cors_origins=[...])` |
+| Roles for `@EyesOnly` / `@ReadOnlyUnless` / `@DisabledUnless` / YAML `access:` | read from the Bearer token's payload **without verifying its signature** — anyone could forge them | only from a trusted source: the principal your framework authenticated (Spring Security, Quarkus/Micronaut/Helidon security), a `PrincipalResolver` bean, or a token **verified** by `mateu.security.jwt.jwks-uri` / `.secret` (+ `issuer`, `audience`; `exp` required) or a `TokenVerifier` bean. Nothing configured → restricted UI is hidden for everyone and a WARN at startup says why | configure a verifier (see [Security](/java-user-manual/advanced/security/#how-authorization-works)); `mateu.security.trust-unverified-tokens=true` restores the old reading for **local development only**. Python: `MATEU_SECURITY_JWT_*` / `MATEU_SECURITY_TRUST_UNVERIFIED_TOKENS`; .NET already used only `HttpContext.User` |
+| `@EyesOnly` fields in the state | hidden in the form but their value travelled in the component state | left out of the state for callers who may not see them | — |
+| `mateu.*` settings in `application.properties` | most were read only as JVM system properties / environment variables | also read from the framework's configuration (Spring `Environment`, MicroProfile Config, Micronaut) | — (a key you left in `application.properties` that was silently ignored now applies) |
 | MCP endpoint (`POST /mateu/mcp`) | on | **off** | `mateu.mcp.enabled=true` |
 | `${secret.X}` in proxied REST sources | fell back to ANY environment variable named `X` | a `SecretsProvider` bean first, then only the env var `MATEU_SECRET_X` | rename the variable to `MATEU_SECRET_X` |
 | Unexpected exceptions in actions | the exception class and message in the toast | "Something went wrong — An unexpected error occurred. Reference: …", the details in the server log under that reference | throw `io.mateu.uidl.UserFacingException(title, message)` for messages meant for the user; `MATEU_ERRORS_DETAILED=true` restores the raw text in development |
@@ -121,7 +124,9 @@ These compile unchanged and **behave differently**. Check each against your scre
 3. Click through each listing: search box present where you want it, layout as expected, Delete
    where it should be.
 4. Check forms with enums (labels) and rich text (stored format).
-5. Read the beta release notes for the security defaults (CORS, MCP).
+5. Read the beta release notes for the security defaults (CORS, MCP) — and if any screen uses
+   `@EyesOnly` / `@ReadOnlyUnless` / `@DisabledUnless` / `access:`, configure how tokens are
+   verified, or that UI is hidden for everyone.
 
 ## Related
 

@@ -32,8 +32,19 @@ public class QuarkusCDIProducer {
    * search threw "MateuInstanceFactory has not been initialized". Spring instantiates singletons
    * eagerly, hiding the gap. Force the bean to be built at startup here.
    */
+  @Inject Instance<QuarkusBeanProvider> beanProvider;
+
   void eagerlyInitStaticFactories(@Observes StartupEvent ev) {
     instanceFactory.get().toString();
+    beanProvider.get().toString();
+    // mateu.* settings (security, remote, errors…) also come from MicroProfile Config
+    // (application.properties / microprofile-config.properties)
+    io.mateu.core.infra.MateuSettings.setSource(
+        key ->
+            org.eclipse.microprofile.config.ConfigProvider.getConfig()
+                .getOptionalValue(key, String.class)
+                .orElse(null));
+    io.mateu.core.infra.security.IdentityResolver.warnOnStartup();
   }
 
   @Produces

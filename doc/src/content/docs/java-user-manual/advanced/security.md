@@ -66,7 +66,71 @@ public class App {
 
 ## How authorization works
 
-Mateu reads the JWT Bearer token from the `Authorization` request header. It decodes the payload and checks the claims. Signature verification is expected to happen at the API gateway before the request reaches Mateu.
+Every restricted element asks one question: *who is the caller?* Mateu answers it **only from a
+trusted source** — never from the unverified payload of a token, which anyone can write. The
+sources, first match wins:
+
+1. a **`PrincipalResolver`** bean your application registers (`io.mateu.uidl.security`) — for an
+   identity Mateu cannot see by itself (a session, a header set by a gateway you trust);
+2. the **principal your framework authenticated**: Spring Security's `Authentication` (servlet and
+   WebFlux), a Micronaut Security `Authentication`, Quarkus' `SecurityIdentity` (quarkus-oidc,
+   smallrye-jwt), the JAX-RS `SecurityContext` principal on Helidon MP (MicroProfile JWT);
+3. the **Bearer token, verified**: by a `TokenVerifier` bean, or by Mateu's built-in JWT verifier
+   when it is configured (below). A token whose signature, expiry (`exp` is required), `nbf`,
+   issuer or audience does not check out is no identity at all;
+4. otherwise the caller is **anonymous**: every `@EyesOnly`, `@ReadOnlyUnless`, `@DisabledUnless`
+   and YAML `access:` element is hidden or denied.
+
+### Configuring the built-in JWT verifier
+
+```properties
+# RS256/384/512, ES256/384/512 — keys fetched from the identity provider and cached
+mateu.security.jwt.jwks-uri=https://idp.example.com/realms/acme/protocol/openid-connect/certs
+# recommended
+mateu.security.jwt.issuer=https://idp.example.com/realms/acme
+# optional
+mateu.security.jwt.audience=my-app
+# the default
+mateu.security.jwt.clock-skew-seconds=30
+
+# HS256/384/512 with a shared secret — development and tests
+mateu.security.jwt.secret=change-me-to-at-least-32-random-bytes
+```
+
+The keys are read from the framework's configuration (`application.properties`/`.yml` on Spring and
+Micronaut, MicroProfile Config on Quarkus and Helidon), a JVM system property, or the environment
+(`MATEU_SECURITY_JWT_JWKS_URI`, …). The algorithm is never chosen by the token alone: HMAC tokens
+are accepted only with a `secret`, RSA/ECDSA ones only with a `jwks-uri` — so `alg: none` and the
+RS→HS confusion attack get nowhere.
+
+If your framework already authenticates the request — e.g. a Spring Boot resource server
+(`spring-boot-starter-oauth2-resource-server` + `spring.security.oauth2.resourceserver.jwt.*`) — you
+need none of this: Mateu reads the verified `Authentication` (its token claims and its authorities:
+`ROLE_x` → role `x`, `SCOPE_x` → scope `x`, anything else → role and permission).
+
+### The default, and the development opt-out
+
+With **no** verifier configured and no authenticated principal, a Bearer token is **ignored**:
+restricted UI stays hidden for everyone, and the server logs a WARN box at startup saying so. For a
+local experiment with hand-written tokens only:
+
+```properties
+# NEVER in a deployed profile
+mateu.security.trust-unverified-tokens=true
+```
+
+which reads the claims unverified and logs a WARN box at startup. Before 3.0 beta this was the
+behaviour by default; see [Migrating from alpha](/reference/migrating-from-alpha/#defaults-that-changed).
+
+The C# and Python backends follow the same rule: .NET reads only the claims of
+`HttpContext.User` — what ASP.NET Core's authentication (JwtBearer, cookies…) verified — and never
+decodes the header itself; Python's default `jwt_identity_provider()` uses the principal
+Starlette's `AuthenticationMiddleware` authenticated, else verifies the token against
+`MATEU_SECURITY_JWT_JWKS_URI` / `MATEU_SECURITY_JWT_SECRET` (+ `_ISSUER`, `_AUDIENCE`), and
+ignores it otherwise (`MATEU_SECURITY_TRUST_UNVERIFIED_TOKENS=true` is the same dev-only opt-out).
+
+A field `@EyesOnly` hides is also left out of the component's state: its value never reaches a
+caller who may not see it.
 
 Authorization is **provider-agnostic** — it works with Keycloak, Okta, Azure AD, Auth0 or any OIDC issuer, reading each dimension from the conventional claim shapes:
 
@@ -207,14 +271,18 @@ there is now a toast instead of a framework HTTP 500.
 
 ## Typical deployment setup
 
-In a distributed system, an API gateway (Nginx, Envoy, Kong, etc.) validates the JWT signature and token expiry. Mateu trusts the token but does not re-validate the signature:
+An API gateway (Nginx, Envoy, Kong, etc.) may validate the token at the edge, but Mateu does not
+trust a token just because a request reached it — a backend is often reachable by more than one
+path. Configure the verifier (or your framework's resource server) on the backend too:
 
 ```
 Browser → API Gateway (validates JWT signature + expiry)
-        → Mateu backend (reads claims from Bearer token, enforces @EyesOnly)
+        → Mateu backend (verifies the token — jwks-uri or the framework's resource server —
+                         then enforces @EyesOnly on its claims)
 ```
 
-For common cases, the gateway can also inject identity headers (`X-User-Id`, `X-User-Email`) that action handlers read directly.
+If the gateway injects identity headers (`X-User-Id`, `X-User-Roles`) and the backend is reachable
+ONLY through it, a `PrincipalResolver` bean can turn them into the caller's identity.
 
 ---
 
@@ -247,17 +315,19 @@ Leave `text/event-stream` out of the list: a compressed stream is buffered, and 
 
 ## Reading the current user in actions
 
-Inside action handlers, read the JWT or injected headers from the `HttpRequest`:
+Inside action handlers, ask your framework for the authenticated user, or read the principal it
+put on the request:
 
 ```java
 @Override
 public Object handleAction(String actionId, HttpRequest httpRequest) {
-    String authHeader = httpRequest.getHeaderValue("Authorization");
-    // parse the Bearer token to extract user identity, or read injected headers:
-    String userId = httpRequest.getHeaderValue("X-User-Id");
+    java.security.Principal user = httpRequest.getUserPrincipal(); // null when nobody is authenticated
     return null;
 }
 ```
+
+Never take authorization decisions from a value you decoded from the `Authorization` header
+yourself — it is the client's to write.
 
 ---
 

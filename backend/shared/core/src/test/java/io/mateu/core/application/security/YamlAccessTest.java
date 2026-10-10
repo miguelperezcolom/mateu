@@ -8,8 +8,6 @@ import io.mateu.core.domain.Authorizer;
 import io.mateu.core.testutil.FakeHttpRequest;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.uidl.data.Access;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -19,12 +17,13 @@ class YamlAccessTest {
   private static final ObjectMapper YAML = new ObjectMapper(new YAMLFactory());
 
   private static FakeHttpRequest withClaims(String claimsJson) {
-    var enc = Base64.getUrlEncoder().withoutPadding();
-    var token =
-        enc.encodeToString("{}".getBytes(StandardCharsets.UTF_8))
-            + "."
-            + enc.encodeToString(claimsJson.getBytes(StandardCharsets.UTF_8))
-            + ".sig";
+    java.util.Map<String, Object> claims;
+    try {
+      claims = new ObjectMapper().readValue(claimsJson, java.util.Map.class);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    var token = io.mateu.core.testutil.TestTokens.signed(claims);
     return new FakeHttpRequest(RunActionRqDto.builder().build())
         .withHeader("Authorization", "Bearer " + token);
   }

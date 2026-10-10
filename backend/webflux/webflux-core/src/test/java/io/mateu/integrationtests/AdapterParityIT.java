@@ -37,6 +37,11 @@ class AdapterParityIT {
     }
 
     @Test
+    void aForgedBearerTokenRevealsNothing() {
+      contract.aForgedBearerTokenRevealsNothing();
+    }
+
+    @Test
     void resolvesAPlainUiThroughItsGeneratedRouteResolver() {
       contract.resolvesAPlainUiThroughItsGeneratedRouteResolver();
     }

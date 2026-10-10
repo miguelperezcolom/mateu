@@ -75,6 +75,35 @@ public class AdapterParityITFoundation {
         .body(containsString("Plain form"));
   }
 
+  /**
+   * An UNSIGNED Bearer token claiming {@code roles: [admin]} reveals nothing restricted: with no
+   * verifier configured (the test apps configure none) Mateu ignores the token's claims. The
+   * fixture is {@code @UI("/restricted")} with a public {@code visibleField} and an
+   * {@code @EyesOnly(roles = "admin") adminOnlyField}.
+   */
+  public void aForgedBearerTokenRevealsNothing() {
+    var enc = java.util.Base64.getUrlEncoder().withoutPadding();
+    var forged =
+        enc.encodeToString("{\"alg\":\"none\"}".getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            + "."
+            + enc.encodeToString(
+                "{\"sub\":\"mallory\",\"roles\":[\"admin\"],\"realm_access\":{\"roles\":[\"admin\"]}}"
+                    .getBytes(java.nio.charset.StandardCharsets.UTF_8))
+            + ".";
+    given()
+        .contentType(ContentType.JSON)
+        .header("Authorization", "Bearer " + forged)
+        .body(
+            "{\"route\": \"\", \"consumedRoute\": \"_empty\", \"actionId\": \"\","
+                + " \"componentState\": {}, \"parameters\": {}, \"appState\": {}}")
+        .when()
+        .post("/restricted/mateu/v3/sync/_no_route")
+        .then()
+        .statusCode(200)
+        .body(containsString("visibleField"))
+        .body(not(containsString("adminOnlyField")));
+  }
+
   /** The plain sync endpoint keeps answering one JSON body. */
   public void answersSyncWithJson() {
     given()

@@ -4,7 +4,9 @@ import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.uidl.di.MateuBeanProvider;
 import java.util.Collection;
 import java.util.List;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,6 +17,15 @@ public class SpringBeanProvider implements BeanProvider {
   public SpringBeanProvider(ApplicationContext applicationContext) {
     this.applicationContext = applicationContext;
     MateuBeanProvider.setBeanProvider(this);
+    // mateu.* settings (security, remote, errors…) also come from application.properties/yml
+    var environment = applicationContext.getEnvironment();
+    io.mateu.core.infra.MateuSettings.setSource(environment::getProperty);
+  }
+
+  /** Says, once, what the security configuration means for restricted UI. */
+  @EventListener(ApplicationReadyEvent.class)
+  public void warnAboutSecurity() {
+    io.mateu.core.infra.security.IdentityResolver.warnOnStartup();
   }
 
   @Override

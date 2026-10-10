@@ -15,6 +15,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.StreamingOutput;
+import jakarta.ws.rs.core.SecurityContext;
 import jakarta.ws.rs.core.UriInfo;
 import java.nio.charset.StandardCharsets;
 
@@ -51,10 +52,13 @@ public class ${simpleClassName}MateuController implements MateuController {
             @PathParam("ignored") String ignored,
             RunActionRqDto rq,
             @Context HttpHeaders headers,
-            @Context UriInfo uriInfo)
+            @Context UriInfo uriInfo,
+            @Context SecurityContext securityContext)
             throws Throwable {
         var httpRequest =
-                new HelidonMPHttpRequest(headers, uriInfo).storeRunActionRqDto(rq);
+                new HelidonMPHttpRequest(headers, uriInfo)
+                        .withPrincipal(securityContext != null ? securityContext.getUserPrincipal() : null)
+                        .storeRunActionRqDto(rq);
         httpRequest.setAttribute("uiId", uiId);
         httpRequest.setAttribute("baseUrl", baseUrl);
         return service.runAction(uiId, rq, baseUrl, httpRequest).blockFirst();
@@ -70,10 +74,13 @@ public class ${simpleClassName}MateuController implements MateuController {
             @PathParam("ignored") String ignored,
             RunActionRqDto rq,
             @Context HttpHeaders headers,
-            @Context UriInfo uriInfo)
+            @Context UriInfo uriInfo,
+            @Context SecurityContext securityContext)
             throws Throwable {
         var httpRequest =
-                new HelidonMPHttpRequest(headers, uriInfo).storeRunActionRqDto(rq);
+                new HelidonMPHttpRequest(headers, uriInfo)
+                        .withPrincipal(securityContext != null ? securityContext.getUserPrincipal() : null)
+                        .storeRunActionRqDto(rq);
         httpRequest.setAttribute("uiId", uiId);
         httpRequest.setAttribute("baseUrl", baseUrl);
         var increments = service.runAction(uiId, rq, baseUrl, httpRequest);

@@ -87,11 +87,74 @@ def test_without_a_token_an_eyes_only_field_is_hidden():
     assert "everyone" in body and "100k" not in body
 
 
-def test_the_default_identity_reads_the_bearer_jwt_claims():
-    pytest.importorskip("jwt")
+@pytest.fixture(autouse=True)
+def _no_security_env(monkeypatch):
+    for name in (
+        "MATEU_SECURITY_JWT_SECRET",
+        "MATEU_SECURITY_JWT_JWKS_URI",
+        "MATEU_SECURITY_JWT_ISSUER",
+        "MATEU_SECURITY_JWT_AUDIENCE",
+        "MATEU_SECURITY_TRUST_UNVERIFIED_TOKENS",
+    ):
+        monkeypatch.delenv(name, raising=False)
+
+
+def test_the_default_identity_ignores_an_unverified_token():
+    # nothing configured to verify it → the claims are not trusted
+    token = unsigned_jwt({"sub": "ann", "realm_access": {"roles": ["hr"]}})
+    body = load(client(), "adapter-gated", {"Authorization": f"Bearer {token}"}).text
+    assert "100k" not in body
+
+
+def test_the_development_opt_out_reads_unverified_claims(monkeypatch):
+    monkeypatch.setenv("MATEU_SECURITY_TRUST_UNVERIFIED_TOKENS", "true")
     token = unsigned_jwt({"sub": "ann", "realm_access": {"roles": ["hr"]}})
     body = load(client(), "adapter-gated", {"Authorization": f"Bearer {token}"}).text
     assert "100k" in body
+
+
+def test_the_default_identity_verifies_against_the_configured_secret(monkeypatch):
+    jwt = pytest.importorskip("jwt")
+    import time
+
+    secret = "the-configured-secret-of-32-bytes!"
+    monkeypatch.setenv("MATEU_SECURITY_JWT_SECRET", secret)
+    c = client()
+    good = jwt.encode({"sub": "ann", "roles": ["hr"], "exp": int(time.time()) + 600}, secret, algorithm="HS256")
+    assert "100k" in load(c, "adapter-gated", {"Authorization": f"Bearer {good}"}).text
+    forged = jwt.encode(
+        {"sub": "mallory", "roles": ["hr"], "exp": int(time.time()) + 600},
+        "an-attacker-secret-of-32-bytes!!",
+        algorithm="HS256",
+    )
+    assert "100k" not in load(c, "adapter-gated", {"Authorization": f"Bearer {forged}"}).text
+    expired = jwt.encode({"sub": "ann", "roles": ["hr"], "exp": int(time.time()) - 3600}, secret, algorithm="HS256")
+    assert "100k" not in load(c, "adapter-gated", {"Authorization": f"Bearer {expired}"}).text
+    eternal = jwt.encode({"sub": "ann", "roles": ["hr"]}, secret, algorithm="HS256")
+    assert "100k" not in load(c, "adapter-gated", {"Authorization": f"Bearer {eternal}"}).text
+    unsigned = unsigned_jwt({"sub": "mallory", "roles": ["hr"], "exp": int(time.time()) + 600})
+    assert "100k" not in load(c, "adapter-gated", {"Authorization": f"Bearer {unsigned}"}).text
+
+
+def test_the_principal_authenticated_by_the_app_is_trusted():
+    from starlette.authentication import AuthCredentials, AuthenticationBackend, SimpleUser
+    from starlette.middleware.authentication import AuthenticationMiddleware
+
+    class HrUser(SimpleUser):
+        roles = ("hr",)
+
+    class HeaderBackend(AuthenticationBackend):
+        async def authenticate(self, conn):
+            if conn.headers.get("x-session") == "valid":
+                return AuthCredentials(["read"]), HrUser("ann")
+            return None
+
+    app = fastapi.FastAPI()
+    add_mateu(app, MODULE)
+    app.add_middleware(AuthenticationMiddleware, backend=HeaderBackend())
+    c = TestClient(app)
+    assert "100k" in load(c, "adapter-gated", {"X-Session": "valid"}).text
+    assert "100k" not in load(c, "adapter-gated", {"X-Session": "nope"}).text
 
 
 def test_a_jwt_without_the_role_still_hides_the_field():
@@ -110,7 +173,13 @@ def test_a_verifying_provider_rejects_a_forged_token():
 
 def test_a_verifying_provider_accepts_a_signed_token():
     jwt = pytest.importorskip("jwt")
-    token = jwt.encode({"sub": "ann", "roles": ["hr"]}, "the-real-secret-key-of-32-bytes!", algorithm="HS256")
+    import time
+
+    token = jwt.encode(
+        {"sub": "ann", "roles": ["hr"], "exp": int(time.time()) + 600},
+        "the-real-secret-key-of-32-bytes!",
+        algorithm="HS256",
+    )
     c = client(
         identity_provider=jwt_identity_provider(key="the-real-secret-key-of-32-bytes!", algorithms=["HS256"])
     )

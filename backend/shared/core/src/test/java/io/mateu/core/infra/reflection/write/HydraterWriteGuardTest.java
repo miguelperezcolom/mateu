@@ -9,7 +9,6 @@ import io.mateu.core.domain.ports.InstanceFactory;
 import io.mateu.uidl.annotations.EyesOnly;
 import io.mateu.uidl.annotations.ReadOnlyUnless;
 import io.mateu.uidl.interfaces.HttpRequest;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -36,13 +35,7 @@ class HydraterWriteGuardTest {
   }
 
   private static String jwt(Map<String, Object> claims) {
-    try {
-      String enc =
-          Base64.getUrlEncoder().withoutPadding().encodeToString(MAPPER.writeValueAsBytes(claims));
-      return "header." + enc + ".sig";
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    return io.mateu.core.testutil.TestTokens.signed(claims);
   }
 
   private static HttpRequest requestWithRoles(String... roles) {

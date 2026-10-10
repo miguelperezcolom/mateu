@@ -49,6 +49,18 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   replacement in the migration guide. `@BusinessComponent` now works (it was also unread): a
   field / no-arg method of a registered class holding a `Component` joins the business-component
   catalogue.
+- **Roles no longer come from unverified tokens** (security). `@EyesOnly`, `@ReadOnlyUnless`,
+  `@DisabledUnless`, YAML `access:` and menu visibility used to read the Bearer token's payload
+  without checking its signature, so anyone could forge roles. The caller's identity now comes only
+  from the principal the framework authenticated (Spring Security, Quarkus/Micronaut/Helidon
+  security), a `PrincipalResolver` bean, or a token verified by `mateu.security.jwt.jwks-uri` /
+  `mateu.security.jwt.secret` (+ `issuer`, `audience`; `exp` required) or a `TokenVerifier` bean.
+  With none of those, restricted UI is hidden for everyone and a WARN at startup says so;
+  `mateu.security.trust-unverified-tokens=true` is a local-development opt-out. Python mirrors it
+  (`MATEU_SECURITY_JWT_*`, Starlette's `AuthenticationMiddleware`); .NET already read only
+  `HttpContext.User`. A field hidden by `@EyesOnly` is also left out of the component state.
+- **`mateu.*` settings are read from the framework's configuration** (`application.properties`/`.yml`,
+  MicroProfile Config) as well as system properties and environment variables.
 - **CORS is off by default** on every adapter; allow origins with `mateu.cors.allowed-origins`.
 - **The MCP endpoint is off by default**; `mateu.mcp.enabled=true`.
 - **`${secret.X}`** falls back only to the env var `MATEU_SECRET_X` (Java, .NET, Python).

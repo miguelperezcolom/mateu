@@ -33,8 +33,19 @@ public class HelidonCDIProducer {
    * Force the bean to be built when the application scope is initialized — the Helidon MP / CDI
    * equivalent of Quarkus' {@code StartupEvent} observer.
    */
+  @Inject Instance<HelidonMPBeanProvider> beanProvider;
+
   void eagerlyInitStaticFactories(@Observes @Initialized(ApplicationScoped.class) Object event) {
     instanceFactory.get().toString();
+    beanProvider.get().toString();
+    // mateu.* settings (security, remote, errors…) also come from MicroProfile Config
+    // (application.properties / microprofile-config.properties)
+    io.mateu.core.infra.MateuSettings.setSource(
+        key ->
+            org.eclipse.microprofile.config.ConfigProvider.getConfig()
+                .getOptionalValue(key, String.class)
+                .orElse(null));
+    io.mateu.core.infra.security.IdentityResolver.warnOnStartup();
   }
 
   @Produces

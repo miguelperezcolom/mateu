@@ -215,4 +215,14 @@ public interface HttpRequest {
   }
 
   List<String> getParameterNames();
+
+  /**
+   * The principal the HOSTING FRAMEWORK authenticated for this request (Spring Security's {@code
+   * Authentication}, a Micronaut {@code Authentication}, a JAX-RS / MicroProfile JWT principal…),
+   * or null when it authenticated nobody — or the adapter cannot tell. Mateu derives the caller's
+   * roles from it before looking at any Bearer token, because the framework already verified it.
+   */
+  default java.security.Principal getUserPrincipal() {
+    return null;
+  }
 }

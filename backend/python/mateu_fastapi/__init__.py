@@ -25,7 +25,7 @@ from starlette.concurrency import run_in_threadpool
 
 from mateu_core import MateuForbiddenException, MateuRegistry, RunActionRq, SyncHandler
 from mateu_core.errors import dev_mode_from_env, error_increment, new_correlation_id
-from mateu_core.identity import jwt_identity_provider
+from mateu_core.identity import jwt_identity_provider, warn_on_startup
 from mateu_core import dev_specs
 from mateu_core.mcp import handle_jsonrpc
 from mateu_core.request_context import MateuRequest, bound_request, normalise_headers
@@ -41,6 +41,35 @@ _FORBIDDEN_BODY = {
         {"variant": "error", "position": "middle", "title": "", "text": "Forbidden", "duration": 5000}
     ]
 }
+
+
+def authenticated_principal(request: Request) -> Identity | None:
+    """The identity the app's own authentication established — Starlette's
+    ``AuthenticationMiddleware`` (``request.user`` + ``request.auth.scopes``) — or None.
+
+    Roles, groups and permissions are read from the user object's ``roles`` / ``groups`` /
+    ``permissions`` attributes when it has them. Trusted as is: the middleware authenticated it."""
+    if "user" not in request.scope:
+        return None  # no AuthenticationMiddleware installed
+    user = request.scope.get("user")
+    if user is None or not getattr(user, "is_authenticated", False):
+        return None
+    auth = request.scope.get("auth")
+
+    def values(source: Any, name: str) -> tuple[str, ...]:
+        raw = getattr(source, name, None) if source is not None else None
+        if raw is None:
+            return ()
+        if isinstance(raw, str):
+            return tuple(v for v in raw.split(" ") if v)
+        return tuple(str(v) for v in raw)
+
+    return Identity(
+        roles=values(user, "roles"),
+        groups=values(user, "groups"),
+        scopes=values(auth, "scopes"),
+        permissions=values(user, "permissions"),
+    )
 
 
 def add_mateu(
@@ -65,9 +94,12 @@ def add_mateu(
     - ``identity_provider`` — parameterless; returns the caller's ``Identity`` (roles, groups,
       scopes, permissions) that ``EyesOnly``/``ReadOnlyUnless``/``DisabledUnless`` match against.
       Read the request in flight with ``mateu_core.request_context.current_request()`` /
-      ``bearer_token()``. Default: ``jwt_identity_provider()`` — the Bearer JWT's claims, read
-      UNVERIFIED like Java's ``Authorizer`` (put a verifier in front, or pass
-      ``jwt_identity_provider(key=...)`` to verify here). Requires the ``jwt`` extra.
+      ``bearer_token()``. Default: ``jwt_identity_provider()`` — the principal Starlette's
+      ``AuthenticationMiddleware`` authenticated, else the Bearer JWT VERIFIED against
+      ``MATEU_SECURITY_JWT_JWKS_URI`` / ``MATEU_SECURITY_JWT_SECRET`` (exp required; issuer and
+      audience checked when ``MATEU_SECURITY_JWT_ISSUER`` / ``_AUDIENCE`` are set). With none of
+      those a token is NOT trusted (``MATEU_SECURITY_TRUST_UNVERIFIED_TOKENS=true`` reads it
+      unverified — local development only). Verification requires the ``jwt`` extra.
     - ``secrets_provider`` — ``key -> value`` for ``${secret.KEY}`` in proxied REST sources; None →
       the environment variable ``MATEU_SECRET_<KEY>`` (never an arbitrary one).
     - ``environment`` — the deployment environment whose ``type: Environment`` overrides re-point
@@ -86,6 +118,8 @@ def add_mateu(
             "add_mateu(cors=True) no longer allows every origin: pass the allowed origins "
             "explicitly, e.g. add_mateu(app, ..., cors_origins=['https://app.example.com'])"
         )
+    if identity_provider is None:
+        warn_on_startup()
     registry = MateuRegistry(*sources)
     handler = SyncHandler(
         registry,
@@ -116,6 +150,7 @@ def add_mateu(
             headers=normalise_headers(request.headers.items()),
             base_url=request_base_url,
             correlation_id=new_correlation_id(),
+            principal=authenticated_principal(request),
         )
 
     def run_bound(mateu_request: MateuRequest, fn: Callable[[], Any]) -> Any:
