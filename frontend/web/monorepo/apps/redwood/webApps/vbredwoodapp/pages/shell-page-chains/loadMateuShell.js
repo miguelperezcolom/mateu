@@ -71,6 +71,8 @@ define([
       bridge.installPlanningRange();
       // tonos de fila (@RowStatus) y filas de grupo (@GroupBy) del oj-table del listado
       bridge.installRowTones();
+      // la ficha de un registro: su cabecera queda fija y se compacta al hacer scroll
+      bridge.installStickyHeader();
       bridge.setPlanningRangeSink(runPageAction);
 
       // Static-bundle (modo sin backend): si hay un mateuBundleUrl configurado, se arranca la carga

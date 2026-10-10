@@ -621,6 +621,9 @@ define([
       const backBtn = bridge.backToolbarButton(hostToolbar);
       const parentCrumbNav = backBtn ? undefined : bridge.parentCrumb(summary.trail);
       $application.variables.mateuPageHeader = {
+        // con EntityHeader (la ficha de un registro) la banda queda FIJA al hacer scroll y se
+        // compacta (la «business card» de OPERA): ver bridge.installStickyHeader + app.css
+        bandClass: hostEntity ? 'oj-bg-neutral-30 oj-sm-padding-10x-bottom mateu-sticky-header' : 'oj-bg-neutral-30 oj-sm-padding-10x-bottom',
         // con EntityHeader en el host (la 360), el header de PANTALLA muestra al huésped
         title: hostEntity ? hostEntity.title : (summary.title || ''),
         subtitle: hostEntity ? hostEntity.subtitle : bridge.pageSubtitleOf(host),

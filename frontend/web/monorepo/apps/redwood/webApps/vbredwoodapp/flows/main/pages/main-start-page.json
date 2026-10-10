@@ -809,6 +809,18 @@
         }
       ]
     },
+    "panelToggled": {
+      "chains": [
+        {
+          "chain": "panelToggled",
+          "parameters": {
+            "key": "{{ $event.target.dataset.collapsibleKey }}",
+            "expanded": "{{ $event.detail.value }}",
+            "updatedFrom": "{{ $event.detail.updatedFrom }}"
+          }
+        }
+      ]
+    },
     "application:mateuElementEvent": {
       "chains": [
         {
@@ -1047,6 +1059,9 @@
       },
       "oj-dialog": {
         "path": "ojs/ojdialog"
+      },
+      "oj-collapsible": {
+        "path": "ojs/ojcollapsible"
       },
       "oj-gantt": {
         "path": "ojs/ojgantt"

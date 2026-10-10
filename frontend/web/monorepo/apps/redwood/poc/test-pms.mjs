@@ -8,7 +8,8 @@ import assert from 'node:assert/strict'
 import { readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { planningAtomOf, planningActionOf, overlayOf } from './reduceContexts.mjs'
+import { planningAtomOf, planningActionOf, overlayOf, panelExpanded, setPanelExpanded } from './reduceContexts.mjs'
+import { installStickyHeader } from './tables.mjs'
 import { dayIndexAtX } from './planning.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
 import { listingOf, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
@@ -541,6 +542,75 @@ test('listado: menú de vistas con refresh, diálogos de columnas/vista y vista 
   assert.match(webApp('flows/main/pages/main-start-page-chains/listingViews.js'), /menu\.refresh\(\)/)
   assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /bridge\.defaultView\(bridge\.listingScope\(\)\)/)
   assert.match(webApp('flows/main/pages/main-start-page-chains/mateuRowClicked.js'), /row\._group/)
+})
+
+// ── #6 paneles plegables, foldout dentro de pestaña, cabecera fija ───────────────────────────
+const ctext = (t) => node({ type: 'Text', text: t })
+test('AccordionLayout y Details se aplanan en átomos isCollapsible; plegar es estado de cliente', () => {
+  const acc = { type: 'ClientSide', id: 'acc1', metadata: { type: 'AccordionLayout' }, children: [
+    node({ type: 'AccordionPanel', label: 'Stay details', active: true }, [ctext('stay body')]),
+    node({ type: 'AccordionPanel', label: 'Guest profile' }, [ctext('profile body')]),
+  ] }
+  let atoms = atomsOf(acc)
+  const heads = atoms.filter((a) => a.isCollapsible)
+  assert.deepEqual(heads.map((h) => [h.title, h.expanded]), [['Stay details', true], ['Guest profile', false]])
+  assert.ok(atoms.some((a) => a.text === 'stay body'))
+  assert.ok(!atoms.some((a) => a.text === 'profile body'), 'un panel cerrado no pinta su contenido')
+  setPanelExpanded(heads[1].collapsibleKey, true)
+  atoms = atomsOf(acc)
+  assert.ok(atoms.some((a) => a.text === 'profile body'), 'abrirlo re-proyecta sin servidor')
+  assert.equal(panelExpanded(heads[1].collapsibleKey, false), true)
+  setPanelExpanded(heads[1].collapsibleKey, false)
+  const det = node({ type: 'Details', summary: ctext('Alerts (1)'), content: ctext('VIP arriving'), opened: false })
+  const d = atomsOf(det)
+  assert.equal(d[0].isCollapsible, true)
+  assert.equal(d[0].title, 'Alerts (1)')
+  assert.ok(!d.some((a) => a.text === 'VIP arriving'))
+})
+
+test('FoldoutLayout dentro de una pestaña: overview en su sitio y paneles plegables (open respetado)', () => {
+  const foldout = { type: 'ClientSide', id: 'windows', metadata: { type: 'FoldoutLayout', panels: [
+    { title: 'Window 1 · Guest', open: true }, { title: 'Window 2 · Cash', open: false }] }, children: [
+    { ...ctext('Folio balance'), slot: 'overview' },
+    { ...ctext('w1 charges'), slot: 'panel-0' },
+    { ...ctext('w2 charges'), slot: 'panel-1' },
+  ] }
+  const tree = { type: 'ClientSide', id: '_tabs', metadata: { type: 'TabLayout' }, children: [
+    node({ type: 'Tab', label: 'Overview' }, [ctext('ov')]),
+    node({ type: 'Tab', label: 'Billing', active: true }, [foldout]),
+  ] }
+  const atoms = atomsOf(tree)
+  assert.ok(atoms.some((a) => a.text === 'Folio balance'))
+  assert.deepEqual(atoms.filter((a) => a.isCollapsible).map((a) => [a.title, a.expanded]),
+    [['Window 1 · Guest', true], ['Window 2 · Cash', false]])
+  assert.ok(atoms.some((a) => a.text === 'w1 charges'))
+  assert.ok(!atoms.some((a) => a.text === 'w2 charges'))
+})
+
+test('re-proyecciones del host (pestaña, panel) quitan el EntityHeader que ya pinta la banda', () => {
+  for (const chain of ['contentTabSelected.js', 'panelToggled.js']) {
+    assert.match(webApp('flows/main/pages/main-start-page-chains/' + chain), /dropEntityHeader: !!bridge\.entityHeaderOf\(host\)/, chain)
+  }
+  const page = webApp('flows/main/pages/main-start-page.html')
+  assert.match(page, /oj-collapsible/)
+  assert.match(page, /mateuPageHeader\.bandClass/)
+  assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /mateu-sticky-header/)
+})
+
+test('cabecera fija: body.mateu-scrolled al dejar atrás la cabecera, y sólo cuando cambia', () => {
+  const listeners = {}
+  const classes = new Set()
+  let toggles = 0
+  const win = { scrollY: 0, addEventListener: (n, f) => { listeners[n] = f },
+    document: { body: { classList: { toggle: (c, on) => { toggles++; on ? classes.add(c) : classes.delete(c) } } } } }
+  installStickyHeader(win)
+  installStickyHeader(win)
+  win.scrollY = 100; listeners.scroll()
+  assert.ok(classes.has('mateu-scrolled'))
+  win.scrollY = 120; listeners.scroll()
+  assert.equal(toggles, 1)
+  win.scrollY = 0; listeners.scroll()
+  assert.ok(!classes.has('mateu-scrolled'))
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

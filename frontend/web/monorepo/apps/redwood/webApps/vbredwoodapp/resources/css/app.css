@@ -1244,3 +1244,20 @@ oj-gantt.mateu-planning { width: 100%; height: 34rem; }
 }
 /* una fila de grupo es sólo presentación: sin casilla de selección */
 #mateuTable tr.mateu-row-tone-group oj-selector, #mateuTable tr.mateu-row-tone-group .oj-selectorbox { visibility: hidden; }
+
+/* ── paneles plegables (AccordionPanel / Details → oj-collapsible): separador como el acordeón Redwood ── */
+oj-collapsible.mateu-collapsible { display: block; border-top: 1px solid var(--oj-core-divider-color, rgba(22,21,19,.12)); margin-top: .5rem; }
+oj-collapsible.mateu-collapsible h3 { margin: 0; }
+
+/* ── cabecera de FICHA fija al hacer scroll (business card): bandClass + installStickyHeader ── */
+.mateu-sticky-header { position: sticky; top: 0; z-index: 20; transition: padding .15s ease, box-shadow .15s ease; }
+body.mateu-scrolled .mateu-sticky-header { padding-bottom: 0 !important; box-shadow: 0 2px 8px rgba(22, 21, 19, .12); }
+body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-outer-padding-vertical { padding-top: .5rem; padding-bottom: .5rem; }
+body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-header-strip { display: none; }
+body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-title { font-size: 1.25rem; }
+@media (prefers-reduced-motion: reduce) { .mateu-sticky-header { transition: none; } }
+/* el oj-drawer-layout de la shell pone overflow:auto en contenedores que NO desplazan (desplaza la
+   ventana): sticky se ata a ellos y nunca se activa. clip no crea contenedor de scroll; sólo en
+   una página con cabecera fija */
+.oj-drawer-layout-main-content:has(.mateu-sticky-header),
+.oj-drawer-layout-middle-section:has(.mateu-sticky-header) { overflow: clip; }

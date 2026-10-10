@@ -66,6 +66,16 @@
                         </template>
                       </oj-gantt>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isCollapsible ]]">
+                      <!-- cabecera de un panel plegable (AccordionPanel / Details): su contenido va detrás,
+                           como átomos, si está abierto; plegar re-proyecta (panelToggled) -->
+                      <oj-collapsible class="mateu-collapsible" expanded="[[ $current.data.expanded ]]"
+                        disabled="[[ $current.data.disabled ]]"
+                        :data-collapsible-key="[[ $current.data.collapsibleKey ]]"
+                        on-expanded-changed="[[ $listeners.panelToggled ]]">
+                        <h3 slot="header" class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                      </oj-collapsible>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isProgress ]]">
                       <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
                     </oj-bind-if>

@@ -11,6 +11,8 @@ public class BookingsMenu {
 
   @Menu NewReservation newReservation;
 
+  @Menu ReservationDetail reservation;
+
   @Menu(display = io.mateu.uidl.data.MenuDisplay.cards)
   QuickAccess quickAccess;
 }

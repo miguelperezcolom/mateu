@@ -45,3 +45,16 @@ export function installRowTones(doc = typeof document !== 'undefined' ? document
     requestAnimationFrame(() => { pending = false; applyRowTones(doc) })
   }).observe(doc.body, { childList: true, subtree: true })
 }
+
+// ── cabecera de ficha FIJA y compacta al hacer scroll (la «business card» de OPERA) ─────────────
+/** Marca el body con mateu-scrolled en cuanto la página deja la cabecera atrás: app.css pinta la
+ *  banda .mateu-sticky-header compacta (menos aire, sin tira, con sombra). */
+export function installStickyHeader(win = typeof window !== 'undefined' ? window : null) {
+  if (!win || win.__mateuStickyHeader) return
+  win.__mateuStickyHeader = true
+  let on = false
+  win.addEventListener('scroll', () => {
+    const now = win.scrollY > 48
+    if (now !== on) { on = now; win.document.body.classList.toggle('mateu-scrolled', now) }
+  }, { passive: true })
+}

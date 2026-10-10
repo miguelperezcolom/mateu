@@ -781,7 +781,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
    *  StatusList, botones, inputs, notices…) — el markup pinta blocks y deja texts solo
    *  como forma legada para tests/fixtures. */
   function foldoutOf(ctx) {
-    const node = ctx && ctx.tree ? findByType(ctx.tree, 'FoldoutLayout') : null
+    // el foldout de PÁGINA: uno metido en una pestaña (o en un panel de consola) es contenido de esa
+    // pestaña — visit() lo pinta allí, con sus paneles plegables — y no se adueña de la pantalla
+    const node = ctx && ctx.tree ? findOutside(ctx.tree, 'FoldoutLayout', { ...PANE_TYPES, TabLayout: true }) : null
     if (!node) return null
     const md = node.metadata
     const children = node.children || []
@@ -920,7 +922,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
     'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
     // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
     // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
-    'isAnchor', 'isQueue', 'isPlanning',
+    'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible',
   ]
   function isRichAtom(a) {
     return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -1595,6 +1597,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
   let columnPrefsReader = null
   function setColumnPrefsReader(fn) { columnPrefsReader = typeof fn === 'function' ? fn : null }
 
+  /** Paneles plegables abiertos/cerrados por el usuario (clave → bool); lo no tocado, como manda
+   *  el wire (AccordionPanel.active, Details.opened). Estado de cliente, como la pestaña activa. */
+  const panelState = {}
+  function setPanelExpanded(key, expanded) { panelState[key] = !!expanded }
+  function panelExpanded(key, fallback) { return key in panelState ? panelState[key] : !!fallback }
+
   let converterFactory = null
   function setConverterFactory(factory) { converterFactory = factory }
   function converterOf(spec) {
@@ -1990,6 +1998,44 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
             rel: target === '_blank' ? 'noopener noreferrer' : '',
           }, container)
         }
+        return
+      }
+      // FOLDOUT DENTRO DE UNA PESTAÑA (el de página lo pinta oj-sp-foldout-layout, foldoutOf): el
+      // overview en su sitio y cada panel como un panel plegable — su título y, abierto, su
+      // contenido; los paneles abiertos por defecto (open) se respetan
+      if (t === 'FoldoutLayout' && tabScope) {
+        const bySlot = {}
+        for (const child of node.children || []) bySlot[child.slot || ''] = child
+        if (bySlot.overview) visit(bySlot.overview, container)
+        ;(m.panels || []).forEach((panel, i) => {
+          const key = 'fold:' + (node.id || 'foldout') + ':' + i
+          const expanded = panelExpanded(key, panel.open !== false)
+          atom({ isCollapsible: true, collapsibleKey: key, title: interp(panel.title || ''), expanded, disabled: false }, container)
+          const content = bySlot['panel-' + i]
+          if (expanded && content) visit(content, container)
+        })
+        return
+      }
+      // PANELES PLEGABLES (AccordionLayout de AccordionPanel, Details): como las pestañas, se
+      // APLANAN — la cabecera es un átomo isCollapsible (un oj-collapsible de JET) y el contenido
+      // del panel va detrás, como átomos normales, sólo si está abierto. Abierto/cerrado es estado
+      // del CLIENTE (panelExpanded, por clave): plegar re-proyecta sin preguntar al servidor.
+      if (t === 'AccordionLayout') {
+        kidsOf(node).forEach((panel, i) => {
+          const pm = panel.metadata || {}
+          const key = 'acc:' + (node.id || 'accordion') + ':' + i
+          const expanded = panelExpanded(key, !!pm.active)
+          atom({ isCollapsible: true, collapsibleKey: key, title: interp(pm.label || ''), expanded, disabled: !!pm.disabled }, container)
+          if (expanded) for (const child of kidsOf(panel)) visit(child, container)
+        })
+        return
+      }
+      if (t === 'Details') {
+        const summaryTexts = m.summary ? collectTexts(m.summary) : []
+        const key = 'det:' + (node.id && node.id !== 'fieldId' ? node.id : (summaryTexts[0] || 'details'))
+        const expanded = panelExpanded(key, !!m.opened)
+        atom({ isCollapsible: true, collapsibleKey: key, title: interp(summaryTexts.join(' ')), expanded, disabled: false }, container)
+        if (expanded && m.content) visit(m.content, container)
         return
       }
       // TAPE CHART (PlanningBoard → oj-gantt de JET): filas = recursos (con sus columnas de
@@ -2498,12 +2544,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
   /** findByType, pero sin entrar en los paneles de una consola (MasterDetailLayout/SplitLayout): lo
    *  que hay dentro es contenido de un panel, no una pieza de la PÁGINA (su cabecera, su cola). */
   function findOutsidePanes(tree, type) {
+    return findOutside(tree, type, PANE_TYPES)
+  }
+
+  /** findByType sin bajar a los tipos de `stops`. */
+  function findOutside(tree, type, stops) {
     let found = null
     const walk = (n) => {
       if (found || !n || typeof n !== 'object') return
       const t = n.metadata && n.metadata.type
       if (t === type) { found = n; return }
-      if (t && PANE_TYPES[t]) return
+      if (t && stops[t]) return
       for (const c of n.children || []) walk(c)
       const inner = n.metadata && n.metadata.content
       if (Array.isArray(inner)) inner.forEach(walk)
@@ -7434,6 +7485,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
     }).observe(doc.body, { childList: true, subtree: true })
   }
 
+  // ── cabecera de ficha FIJA y compacta al hacer scroll (la «business card» de OPERA) ─────────────
+  /** Marca el body con mateu-scrolled en cuanto la página deja la cabecera atrás: app.css pinta la
+   *  banda .mateu-sticky-header compacta (menos aire, sin tira, con sombra). */
+  function installStickyHeader(win = typeof window !== 'undefined' ? window : null) {
+    if (!win || win.__mateuStickyHeader) return
+    win.__mateuStickyHeader = true
+    let on = false
+    win.addEventListener('scroll', () => {
+      const now = win.scrollY > 48
+      if (now !== on) { on = now; win.document.body.classList.toggle('mateu-scrolled', now) }
+    }, { passive: true })
+  }
+
 
   // Static-bundle "no backend" mode for the VB/Redwood renderer — the same contract as the web
   // renderers' libs/mateu (bundleStore.ts), rewritten for THIS core (which shares nothing with them:
@@ -9315,6 +9379,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
     planningActionOf,
     applyDomEffects,
     installRules,
+    setPanelExpanded,
+    panelExpanded,
     setColumnPrefsReader,
     readColumnPrefs,
     writeColumnPrefs,
@@ -9330,6 +9396,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
     viewsMenuOf,
     listingScope,
     installRowTones,
+    installStickyHeader,
     installPlanningRange,
     setPlanningRangeSink,
     rulesDebug,
