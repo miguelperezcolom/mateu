@@ -207,7 +207,7 @@ describe('boardEdits: deleting and retargeting arrows', () => {
         expect(fileAfter(users, 'app.yaml')).toBe(APP.replace('          - {type: RouteLink, label: Users, route: users}\n', '').replace('        submenu:\n', '        submenu: []\n'))
         expect(graphAfter(fs, users).edges.some((e) => e.to === 'users')).toBe(false)
         const back = deleteEdge(fs, g, edge('orders/:id', 'orders', 'link'))
-        expect(fileAfter(back, 'order.yaml')).toBe(ORDER.replace(/buttons:\n(  .*\n|    .*\n)+?(?=actions:)/, 'buttons: []\n'))
+        expect(fileAfter(back, 'order.yaml')).toBe(ORDER.replace(/buttons:\n(?: {2}[^\n]*\n)+?(?=actions:)/, 'buttons: []\n'))
         expect(fileAfter(deleteEdge(fs, g, edge('orders', 'orders/:id', 'row')), 'orders.yaml')).not.toContain('rowRoute')
         expect(fileAfter(deleteEdge(fs, g, edge('orders/:id', 'orders', 'save')), 'order.yaml')).toContain('restAction: {method: PUT}')
         expect(fileAfter(deleteEdge(fs, g, edge('orders/:id', 'help', 'flow')), 'order.yaml')).toContain('    steps: []\n')
