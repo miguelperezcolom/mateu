@@ -61,7 +61,9 @@ public record CrudlDto(
     String gridLayout,
     String groupBy,
     List<ButtonDto> groupActions,
-    RestDataSourceDto rowsSource)
+    RestDataSourceDto rowsSource,
+    // the row field whose value (success | warning | danger | info | neutral) tones the row
+    String rowStatusField)
     implements ComponentMetadataDto {
 
   public CrudlDto {

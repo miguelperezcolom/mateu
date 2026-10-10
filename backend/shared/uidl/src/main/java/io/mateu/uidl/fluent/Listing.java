@@ -62,7 +62,9 @@ public record Listing(
     GridLayout gridLayout,
     String groupBy,
     @Singular("groupAction") List<UserTrigger> groupActions,
-    io.mateu.uidl.data.RestDataSource rowsSource)
+    io.mateu.uidl.data.RestDataSource rowsSource,
+    /** The row field whose value tones the whole row (@RowStatus); null = no row tones. */
+    String rowStatusField)
     implements Component, PageMainContent {
 
   public Boolean autoFocusOnSearchText() {

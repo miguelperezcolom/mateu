@@ -181,6 +181,7 @@ public class CrudlMapper {
                     ? crudl.groupActions().stream().map(FormMapper::mapToButtonDto).toList()
                     : null)
             .rowsSource(mapRestDataSource(crudl.rowsSource()))
+            .rowStatusField(crudl.rowStatusField())
             .build();
     return new ClientSideComponentDto(
         crudlDto,

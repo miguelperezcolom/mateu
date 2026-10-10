@@ -49,6 +49,12 @@
             <artifactId>mvc-core</artifactId>
             <version>0.0.1-MATEU</version>
         </dependency>
+        <!-- exportación a Excel de los listados (Listing.excelExportable) -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>export-excel</artifactId>
+            <version>0.0.1-MATEU</version>
+        </dependency>
         <!-- el renderer VB/Redwood empaquetado: sirve la app VB optimizada en la raíz -->
         <dependency>
             <groupId>io.mateu</groupId>

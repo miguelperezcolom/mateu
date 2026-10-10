@@ -64,6 +64,9 @@ public class PageListingBuilder {
                 io.mateu.core.infra.declarative.orchestrators.crud.ListingSummarySpec.of(
                         getRowClass(instance))
                     .groupBy())
+            .rowStatusField(
+                io.mateu.core.infra.declarative.orchestrators.crud.ListingSummarySpec
+                    .rowStatusFieldOf(getRowClass(instance)))
             .filters(filters)
             .columns(
                 withViewOnFirstColumnIfNavigable(

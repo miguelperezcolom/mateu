@@ -20,6 +20,8 @@ export default interface Crud extends Table {
     gridLayout: 'auto' | 'table' | 'list' | 'cards' | 'masterDetail' | 'tree'
     /** Row field id the listing is grouped by; rows arrive pre-sorted so groups are contiguous. */
     groupBy?: string
+    // the row field whose value tones the whole row (@RowStatus): success | warning | danger | info | neutral
+    rowStatusField?: string | null
     /** @GroupAction buttons rendered on every group header row (actionId = listing method name). */
     groupActions?: Button[]
     /** @RestListing: rows fetched CLIENT-SIDE from an arbitrary REST endpoint instead of the
