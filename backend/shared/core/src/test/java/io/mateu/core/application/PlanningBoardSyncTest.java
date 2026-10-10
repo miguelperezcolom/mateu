@@ -83,12 +83,12 @@ class PlanningBoardSyncTest {
                 .rangeSelectActionId("newBooking")
                 .build();
 
-    // plain methods, no @Action: the board referencing them is what advertises them
-    Object moveBooking() {
+    // plain public methods, no @Action: the board referencing them is what advertises them
+    public Object moveBooking() {
       return null;
     }
 
-    Object openBooking() {
+    public Object openBooking() {
       return null;
     }
   }

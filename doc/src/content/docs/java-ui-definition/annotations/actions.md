@@ -87,7 +87,7 @@ public class OrderForm {
 
 A component can name an action itself: a `PlanningBoard`'s `moveActionId`, a `MetricCard`'s or a `Button`'s `actionId`, a `Calendar`'s `dayActionId`, and so on. The web client only sends an action to the server when the screen **advertises** it. Any other action bubbles up unclaimed and is lost.
 
-The screen advertises every action id in its component tree that it has a **method** for. A plain method with that name is enough, so `@Action` is only needed for its options (confirmation, `sse`, a shortcut…):
+The screen advertises every action id in its component tree that it has an **action method** for: a public method with that name, or a non-public one marked `@Action` (the same rule the server applies before running it). So `@Action` is only needed for its options (confirmation, `sse`, a shortcut…) or on a non-public method:
 
 ```java
 public class RoomDiary implements ComponentTreeSupplier {
@@ -101,7 +101,7 @@ public class RoomDiary implements ComponentTreeSupplier {
         .build();
   }
 
-  Object moveStay(HttpRequest httpRequest) { … }
+  public Object moveStay(HttpRequest httpRequest) { … }
 }
 ```
 

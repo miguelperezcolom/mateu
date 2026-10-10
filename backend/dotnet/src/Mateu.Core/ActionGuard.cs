@@ -97,6 +97,12 @@ internal static class ActionGuard
         return null;
     }
 
+    /// <summary>Whether a tree-referenced <paramref name="actionId"/> has a method on the view that
+    /// <see cref="ResolveAction"/> would run once the id is advertised: a marked method, or a public
+    /// one of the view itself (not the framework's).</summary>
+    internal static bool HandlesTreeAction(Type type, string actionId) =>
+        Candidates(type, actionId).Any(m => HasActionMarker(m) || !IsFrameworkMethod(m));
+
     /// <summary>The [ListToolbarButton] method a bulk <c>action-on-row-{name}</c> may invoke, or null.</summary>
     internal static MethodInfo? ResolveRowAction(Type type, string name) =>
         Candidates(type, name).FirstOrDefault(m => m.Find<ListToolbarButtonAttribute>() != null);

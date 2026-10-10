@@ -218,6 +218,7 @@ from mateu_uidl import (
 from mateu_uidl import components as fluent
 
 from . import capabilities, labels_aside_inference, layout_inference
+from .action_guard import resolve_action
 from .naming import camel_case, humanize
 from .page_type_inference import page_type_of
 from . import page_inference
@@ -892,9 +893,11 @@ class ReflectionMapper:
             # a handler method for — an id it cannot handle may be meant for an ancestor component
             # and must not be captured here (same rule in Java's TreeActionHarvester and .NET).
             known = {a.id for a in actions}
-            handled = {camel_case(n) for n in dir(instance) if callable(getattr(type(instance), n, None))}
-            for a in self.collect_action_ids(tree):
-                if a not in known and (not is_tree_supplier or a in handled):
+            tree_ids = self.collect_action_ids(tree)
+            for a in tree_ids:
+                # handled = the method the action guard would let this id run
+                handled = resolve_action(cls, a, lambda: set(tree_ids)) is not None
+                if a not in known and (not is_tree_supplier or handled):
                     known.add(a)
                     actions.append(Action(id=a))
         else:

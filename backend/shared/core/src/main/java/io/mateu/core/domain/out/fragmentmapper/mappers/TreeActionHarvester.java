@@ -2,6 +2,7 @@ package io.mateu.core.domain.out.fragmentmapper.mappers;
 
 import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 
+import io.mateu.core.application.security.ActionMethods;
 import io.mateu.dtos.ActionDto;
 import io.mateu.dtos.ClientSideComponentDto;
 import io.mateu.dtos.ComponentDto;
@@ -18,9 +19,10 @@ import java.util.stream.Collectors;
 
 /**
  * The action ids a component tree references (a board's moveActionId, a tile's actionId, a
- * button's…) that the view supplying it has a method for. The web client only sends an action the
- * component advertises, so a click on a tree element whose handler is a plain method used to bubble
- * out unclaimed and be lost unless the method repeated the id with {@code @Action}.
+ * button's…) that the view supplying it has an action method for (public, or marked as an action —
+ * the rule {@link ActionMethods} enforces). The web client only sends an action the component
+ * advertises, so a click on a tree element whose handler is a plain method used to bubble out
+ * unclaimed and be lost unless the method repeated the id with {@code @Action}.
  *
  * <p>Only ids with a handler method on the view are harvested: an id the view cannot handle may be
  * meant for an ancestor component, and advertising it here would capture it. Nested server side
@@ -35,8 +37,13 @@ public final class TreeActionHarvester {
     if (referenced.isEmpty()) {
       return declared;
     }
+    // exactly the methods the server lets an actionId run (ActionMethods), so what is advertised
+    // is what will be accepted: a public method of the view, or one marked as an action
     Set<String> handled =
-        getAllMethods(view.getClass()).stream().map(Method::getName).collect(Collectors.toSet());
+        getAllMethods(view.getClass()).stream()
+            .filter(method -> ActionMethods.isInvocable(method, view.getClass()))
+            .map(Method::getName)
+            .collect(Collectors.toSet());
     var known = declared.stream().map(ActionDto::id).collect(Collectors.toSet());
     var all = new ArrayList<>(declared);
     for (var id : referenced) {
