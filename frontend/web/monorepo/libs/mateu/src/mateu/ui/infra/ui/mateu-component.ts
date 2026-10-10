@@ -416,7 +416,7 @@ export class MateuComponent extends ComponentElement {
                 continue
             }
             if ((node as Element).localName === 'mateu-component') {
-                const actions = ((node as any).component as ServerSideComponent | undefined)?.actions
+                const actions = ((node as unknown as { component?: ServerSideComponent }).component)?.actions
                 if (actions?.some(a => a.id == actionId
                     || (a.id.endsWith('*') && actionId.startsWith(a.id.slice(0, -1))))) return true
             }
