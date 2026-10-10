@@ -1,6 +1,5 @@
 package io.mateu.uidl.data;
 
-import io.mateu.dtos.*;
 import io.mateu.uidl.fluent.Action;
 import io.mateu.uidl.fluent.Component;
 import io.mateu.uidl.fluent.Trigger;

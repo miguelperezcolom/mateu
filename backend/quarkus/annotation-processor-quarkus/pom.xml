@@ -5,18 +5,18 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.mateu</groupId>
-        <artifactId>quarkus</artifactId>
+        <artifactId>mateu-quarkus-parent</artifactId>
         <version>0.0.1-MATEU</version>
     </parent>
 
-    <artifactId>annotation-processor-quarkus</artifactId>
+    <artifactId>mateu-annotation-processor-quarkus</artifactId>
     <name>Mateu annotation processor for Quarkus</name>
     <description>Generates the Quarkus REST controllers of the @UI classes at compile time. Put it on the annotationProcessorPaths only, never on the runtime classpath.</description>
 
     <dependencies>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>annotation-processor-core</artifactId>
+            <artifactId>mateu-annotation-processor-core</artifactId>
             <version>0.0.1-MATEU</version>
             <exclusions>
                 <exclusion>

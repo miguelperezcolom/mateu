@@ -12,7 +12,7 @@ open.
 
 Because the UI is *declared* and the look lives in the renderer, branding is **CSS custom properties**,
 not per-screen work. Set them once and every generated screen is on-brand at once — no screen is
-touched. Mateu's production `vaadin-lit` renderer themes through **Lumo variables** (`--lumo-*`), and
+touched. Mateu's production `mateu-vaadin` renderer themes through **Lumo variables** (`--lumo-*`), and
 Mateu's own components read those variables (with fallbacks), so a corporate theme is a set of Lumo
 overrides driven by your tokens.
 
@@ -23,7 +23,7 @@ themes a demo to a fictitious brand ("Acme") — a red `#D2232A` and a gold `#CA
 :root {
   /* 1 · brand tokens (once) */
   --brand-red: #d2232a; --brand-gold: #ca9c4e; --brand-ink: #1f1a17; /* … */
-  /* 2 · map to Lumo → themes the production vaadin-lit renderer */
+  /* 2 · map to Lumo → themes the production mateu-vaadin renderer */
   --lumo-primary-color: var(--brand-red);
   --lumo-primary-text-color: #8f1418;
   --lumo-error-color: var(--brand-red);

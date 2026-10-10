@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.mateu</groupId>
+    <artifactId>mateu-relocations</artifactId>
+    <version>0.0.1-MATEU</version>
+  </parent>
+
+  <artifactId>core</artifactId>
+  <packaging>pom</packaging>
+
+  <name>Mateu core (relocated to mateu-core)</name>
+  <description>Relocated: io.mateu:core is now io.mateu:mateu-core.</description>
+
+  <distributionManagement>
+    <relocation>
+      <groupId>io.mateu</groupId>
+      <artifactId>mateu-core</artifactId>
+      <message>io.mateu:core was renamed to io.mateu:mateu-core — update the dependency (see https://mateu.io/reference/migrating-from-alpha/).</message>
+    </relocation>
+  </distributionManagement>
+</project>

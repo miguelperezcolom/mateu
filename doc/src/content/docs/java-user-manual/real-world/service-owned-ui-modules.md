@@ -145,12 +145,12 @@ no `RemoteMenu` or HTTP federation required.
 
 ### 1. Create the UI library module
 
-The library only needs `io.mateu:uidl` — no framework dependency:
+The library only needs `io.mateu:mateu-uidl` — no framework dependency:
 
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>uidl</artifactId>
+    <artifactId>mateu-uidl</artifactId>
     <version>${mateu.version}</version>
 </dependency>
 ```
@@ -161,7 +161,7 @@ by downstream modules at compile time:
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>annotation-processor-indexer</artifactId>
+    <artifactId>mateu-annotation-processor-indexer</artifactId>
     <version>${mateu.version}</version>
     <scope>provided</scope>
 </dependency>
@@ -177,7 +177,7 @@ And configure it in the compiler plugin:
         <annotationProcessorPaths>
             <path>
                 <groupId>io.mateu</groupId>
-                <artifactId>annotation-processor-indexer</artifactId>
+                <artifactId>mateu-annotation-processor-indexer</artifactId>
                 <version>${mateu.version}</version>
             </path>
         </annotationProcessorPaths>
@@ -211,7 +211,7 @@ the framework-specific processor can read the manifest at compile time:
             <path><!-- lombok --></path>
             <path>
                 <groupId>io.mateu</groupId>
-                <artifactId>annotation-processor-mvc</artifactId>
+                <artifactId>mateu-annotation-processor-mvc</artifactId>
                 <version>${mateu.version}</version>
             </path>
             <!-- also put the UI library here so the processor can read

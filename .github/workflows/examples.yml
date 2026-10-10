@@ -39,6 +39,15 @@ jobs:
       - name: Install the backend reactor (0.0.1-MATEU)
         run: mvn -B -q install -Dmaven.test.skip -Dgpg.skip=true --file backend/pom.xml
 
+      # The starters and the "start here" demos pin the last release in <mateu.version>. A -D on
+      # the command line is NOT enough: Quarkus' bootstrap resolver reads the pom's own property and
+      # resolved the PUBLISHED release (silently testing yesterday's Mateu, and failing outright
+      # once artifacts are renamed before they are released). Rewrite the pin to the reactor.
+      - name: Point the pinned examples at the reactor
+        run: |
+          grep -rl --include=pom.xml '<mateu.version>3\.0-alpha' starters demo \
+            | xargs sed -i 's#<mateu.version>3\.0-alpha[^<]*</mateu.version>#<mateu.version>0.0.1-MATEU</mateu.version>#'
+
       # Starters: compile, package, then boot each one and load its CRUD through the action endpoint.
       - name: Build the Java starters against the reactor
         run: mvn -B package -Dmateu.version=0.0.1-MATEU --file starters/pom.xml

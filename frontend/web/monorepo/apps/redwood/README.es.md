@@ -76,12 +76,12 @@ npm run copy           # → backend/shared/frontend/redwood/src/main/resources/
 # commit de los recursos + mvn install en backend/shared/frontend/redwood
 ```
 
-Cualquier app Java lo consume añadiendo la dependencia (en lugar de `vaadin-lit`):
+Cualquier app Java lo consume añadiendo la dependencia (en lugar de `mateu-vaadin`):
 
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>redwood</artifactId>
+    <artifactId>mateu-redwood</artifactId>
     <version>0.0.1-MATEU</version>
 </dependency>
 ```

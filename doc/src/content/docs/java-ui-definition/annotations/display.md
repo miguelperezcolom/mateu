@@ -190,40 +190,6 @@ public class OrderForm {
 
 ---
 
-## @State
-
-**Target:** `FIELD`
-
-Marks a field as part of the tracked component state. State fields can be referenced in `@Rule` conditions and `@Trigger` expressions without triggering a full server round-trip.
-
-```java
-@Target(ElementType.FIELD)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface State {
-    String value();
-}
-```
-
-### Attributes
-
-| Attribute | Type | Description |
-|---|---|---|
-| `value` | `String` | State identifier used in rule and trigger expressions |
-
-### Example
-
-```java
-public class WizardForm {
-    @State("currentStep")
-    int step = 1;
-
-    String firstName;
-    String lastName;
-}
-```
-
----
-
 ## @Status
 
 **Target:** `FIELD`

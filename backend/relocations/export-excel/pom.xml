@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.mateu</groupId>
+    <artifactId>mateu-relocations</artifactId>
+    <version>0.0.1-MATEU</version>
+  </parent>
+
+  <artifactId>export-excel</artifactId>
+  <packaging>pom</packaging>
+
+  <name>Mateu export-excel (relocated to mateu-export-excel)</name>
+  <description>Relocated: io.mateu:export-excel is now io.mateu:mateu-export-excel.</description>
+
+  <distributionManagement>
+    <relocation>
+      <groupId>io.mateu</groupId>
+      <artifactId>mateu-export-excel</artifactId>
+      <message>io.mateu:export-excel was renamed to io.mateu:mateu-export-excel — update the dependency (see https://mateu.io/reference/migrating-from-alpha/).</message>
+    </relocation>
+  </distributionManagement>
+</project>

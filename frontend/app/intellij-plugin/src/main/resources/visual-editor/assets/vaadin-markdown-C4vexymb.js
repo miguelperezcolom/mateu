@@ -1,0 +1,1 @@
+import"./vaadinCanvasRenderer-4Hw-mPSe.js";

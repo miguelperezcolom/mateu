@@ -18,7 +18,7 @@ repository root):
   application JSON descriptors, `resources/css/app.css` (the app's own, minimal style sheet) and
   `resources/js/mateu-bridge.js` (generated from `poc/` by `make-amd.mjs`).
 
-### The renderer jar (`io.mateu:redwood`)
+### The renderer jar (`io.mateu:mateu-redwood`)
 
 The Maven module `backend/shared/frontend/redwood` packages as static resources the **optimised
 build of this VB app** (`build/optimized/webApps/vbredwoodapp`, copied by `scripts/copy.mjs` into
@@ -91,7 +91,7 @@ renderer uses, is not used here: its licence is not a permissive one.)
 
 This renderer is designed for Oracle Visual Builder applications **hosted by Oracle** (VB Studio /
 Visual Builder / Oracle Integration / Fusion Apps extensions) and also runs self-hosted as the
-`io.mateu:redwood` jar. Either way the components and the runtime load from Oracle's CDN; in
+`io.mateu:mateu-redwood` jar. Either way the components and the runtime load from Oracle's CDN; in
 production, the use of Visual Builder and of the Spectra components is subject to the terms of
 the corresponding Oracle service (the Visual Builder entitlement the user already has through
 their subscription). Think of this renderer as a connector: the code is free; the service it

@@ -173,7 +173,7 @@ kit + point at a Mateu → screen with native Redwood look, zero code of your ow
   `fixtures/real/*.json`, and `test.mjs` (11 tests) validates the reducer **against that real wire** (the
   synthetic fixtures were deleted). To regenerate: start demo-vb (`mvn spring-boot:run`) + `node capture.mjs`.
 - The old renderers `apps/redwood` and `apps/redwood-spectra` (+ their `-lit` modules) were DELETED
-  on this branch; demo-admin-panel and explorer go back to vaadin-lit. Project rule: **zero own HTML/CSS
+  on this branch; demo-admin-panel and explorer go back to mateu-vaadin. Project rule: **zero own HTML/CSS
   — always authentic VB/Redwood components**.
 - Resolved from the original plan: "Replace with unknown target falls to HOST_ID" no longer applies (routing
   is by initiator echo + fallback by `tree.id`); `PushStateToHistory` and `DispatchEvent` are already
@@ -1500,7 +1500,7 @@ asks for ONLY the pending ones.
 ## Federated menus: navigation had to go back to the pod (2026-09-03)
 
 Failure observed on `rw.ec1.mateu.io` (`ec-demo1/shell-redwood`, the SAME shell as the Vaadin one at
-`ec1.mateu.io` with `io.mateu:redwood` instead of `vaadin-lit`): **the menu painted in full and
+`ec1.mateu.io` with `io.mateu:mateu-redwood` instead of `mateu-vaadin`): **the menu painted in full and
 no crud opened**. `Booking → Bookings` answered a red `Text` "Not found.".
 
 Three things broken, in a chain. All three are about NAVIGATION, not about menu expansion: asking each

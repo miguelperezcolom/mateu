@@ -7,7 +7,6 @@ import lombok.Setter;
 
 @UI("/tabs")
 @Title("Tabs Form")
-@Tabs
 @Getter
 @Setter
 public class TabsForm {

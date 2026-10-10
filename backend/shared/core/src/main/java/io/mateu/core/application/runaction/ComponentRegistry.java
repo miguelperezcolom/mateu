@@ -1,6 +1,9 @@
 package io.mateu.core.application.runaction;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.mateu.core.application.export.RouteRegistrations;
+import io.mateu.core.infra.reflection.MetaAnnotations;
+import io.mateu.uidl.annotations.BusinessComponent;
 import io.mateu.uidl.data.ComponentCatalog;
 import io.mateu.uidl.data.ComponentEntry;
 import io.mateu.uidl.di.MateuBeanProvider;
@@ -9,6 +12,9 @@ import io.mateu.uidl.interfaces.ComponentCatalogSupplier;
 import jakarta.inject.Named;
 import jakarta.inject.Singleton;
 import java.io.InputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -26,11 +32,11 @@ import lombok.extern.slf4j.Slf4j;
  * runtime; the AUTHORED half is a {@code specs/ui/components.yaml}, merged on top. <b>Authored
  * wins.</b>
  *
- * <p>(The {@code @BusinessComponent} annotation on a field/method holding the composition is a
- * third producer — code-first — but reading its VALUE needs an instance of the routed class, unlike
- * a {@code @RestSource} whose whole descriptor lives in annotation attributes; it is wired in a
- * dedicated follow-up. The supplier + YAML producers already make a business component first-class
- * in DATA, which is the point of #13.)
+ * <p>The {@code @BusinessComponent} annotation on a field / no-arg method of a registered routed
+ * class is the code-first producer, part of the derived half (supplier beans win over it). Unlike a
+ * {@code @RestSource}, whose whole descriptor lives in annotation attributes, its VALUE lives in
+ * the member — a static member is read directly, an instance member through a fresh instance built
+ * with the class's no-arg constructor (no DI: a composition is data, it should not need a service).
  */
 @Named
 @Singleton
@@ -81,13 +87,115 @@ public class ComponentRegistry {
     return merged;
   }
 
-  /** The derived half: whatever {@link ComponentCatalogSupplier} beans contribute. */
+  /**
+   * The derived half: the {@code @BusinessComponent} members of every registered routed class, then
+   * whatever {@link ComponentCatalogSupplier} beans contribute (a bean wins over an annotation of
+   * the same name).
+   */
   ComponentCatalog derivedFrom(ClassLoader classLoader) {
     var byName = new LinkedHashMap<String, ComponentEntry>();
+    var cl = classLoader == null ? ComponentRegistry.class.getClassLoader() : classLoader;
+    for (var className : RouteRegistrations.classes(cl)) {
+      Class<?> viewClass;
+      try {
+        viewClass = Class.forName(className, false, cl);
+      } catch (Throwable t) {
+        log.debug("Component catalogue: skipping {} ({})", className, t.toString());
+        continue;
+      }
+      for (var entry : annotatedOn(viewClass)) {
+        byName.put(entry.name(), entry);
+      }
+    }
     for (var entry : fromSupplierBeans()) {
       byName.put(entry.name(), entry);
     }
     return new ComponentCatalog(List.copyOf(byName.values()));
+  }
+
+  /**
+   * The {@code @BusinessComponent} members of one class, as catalogue entries. A member whose value
+   * is not a {@link Component} (or null, or unreadable) contributes nothing and is logged — a
+   * broken entry must not take the whole catalogue down.
+   */
+  static List<ComponentEntry> annotatedOn(Class<?> type) {
+    var entries = new ArrayList<ComponentEntry>();
+    Object[] instance = {null};
+    boolean[] instantiated = {false};
+    java.util.function.Supplier<Object> target =
+        () -> {
+          if (!instantiated[0]) {
+            instantiated[0] = true;
+            try {
+              var constructor = type.getDeclaredConstructor();
+              constructor.setAccessible(true);
+              instance[0] = constructor.newInstance();
+            } catch (Throwable t) {
+              log.warn(
+                  "Component catalogue: cannot instantiate {} to read its @BusinessComponent"
+                      + " members ({}) — give it a no-arg constructor or make the member static",
+                  type.getName(),
+                  t.toString());
+            }
+          }
+          return instance[0];
+        };
+    for (Class<?> c = type; c != null && c != Object.class; c = c.getSuperclass()) {
+      for (Field field : c.getDeclaredFields()) {
+        var declared = MetaAnnotations.find(field, BusinessComponent.class);
+        if (declared == null) {
+          continue;
+        }
+        try {
+          field.setAccessible(true);
+          var owner = Modifier.isStatic(field.getModifiers()) ? null : target.get();
+          if (owner == null && !Modifier.isStatic(field.getModifiers())) {
+            continue;
+          }
+          add(entries, declared, field.get(owner), type, field.getName());
+        } catch (Throwable t) {
+          log.warn("Component catalogue: cannot read {}.{} ({})", type.getName(), field, t);
+        }
+      }
+      for (Method method : c.getDeclaredMethods()) {
+        var declared = MetaAnnotations.find(method, BusinessComponent.class);
+        if (declared == null || method.getParameterCount() > 0) {
+          continue;
+        }
+        try {
+          method.setAccessible(true);
+          var owner = Modifier.isStatic(method.getModifiers()) ? null : target.get();
+          if (owner == null && !Modifier.isStatic(method.getModifiers())) {
+            continue;
+          }
+          add(entries, declared, method.invoke(owner), type, method.getName());
+        } catch (Throwable t) {
+          log.warn("Component catalogue: cannot invoke {}.{} ({})", type.getName(), method, t);
+        }
+      }
+    }
+    return entries;
+  }
+
+  private static void add(
+      List<ComponentEntry> entries,
+      BusinessComponent declared,
+      Object value,
+      Class<?> type,
+      String member) {
+    if (declared.value() == null || declared.value().isBlank()) {
+      return;
+    }
+    if (value instanceof Component component) {
+      entries.add(new ComponentEntry(declared.value(), component));
+    } else {
+      log.warn(
+          "Component catalogue: @BusinessComponent(\"{}\") on {}.{} is not a Component ({})",
+          declared.value(),
+          type.getName(),
+          member,
+          value == null ? "null" : value.getClass().getName());
+    }
   }
 
   private List<ComponentEntry> fromSupplierBeans() {

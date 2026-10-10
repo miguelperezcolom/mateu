@@ -5,18 +5,18 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.mateu</groupId>
-        <artifactId>micronaut</artifactId>
+        <artifactId>mateu-micronaut-parent</artifactId>
         <version>0.0.1-MATEU</version>
     </parent>
 
-    <artifactId>annotation-processor-micronaut</artifactId>
+    <artifactId>mateu-annotation-processor-micronaut</artifactId>
     <name>Mateu annotation processor for Micronaut</name>
     <description>Generates the Micronaut controllers of the @UI classes at compile time. Put it on the annotationProcessorPaths only, never on the runtime classpath.</description>
 
     <dependencies>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>annotation-processor-core</artifactId>
+            <artifactId>mateu-annotation-processor-core</artifactId>
             <version>0.0.1-MATEU</version>
             <exclusions>
                 <exclusion>

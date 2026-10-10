@@ -25,7 +25,30 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - `CONTRIBUTING.md`, `SECURITY.md` (private reporting through GitHub Security Advisories), a pull
   request template and `CODEOWNERS`.
 
+### Public API
+- **`@Experimental`** (`io.mateu.uidl.annotations`) marks API outside the stability promise — it may
+  change in a minor release. Marked today: the AI assistant (`@AI`, `Chat`, the MCP wiring); the
+  Figma contract is documented as experimental.
+
+- **Name collisions pinned**: the simple names shared by two uidl packages (annotation ⇄ record
+  pairs such as `@Badge`/`Badge`) are listed on the stability page with the explicit-import rule,
+  and `NameCollisionsTest` fails on a new one. Removing the no-op annotations dropped seven of them
+  (`HorizontalLayout`, `VerticalLayout`, `SplitLayout`, `Scroller`, `AccordionPanel`, `Option`,
+  `State`); the empty `fluent.ActionType` enum went too.
+- **Wire version check** in every first-party renderer (web/Vaadin, Redwood, React Native, IntelliJ):
+  a server speaking another wire major gets one clear message instead of a broken screen.
+
 ### Breaking (read [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/))
+- **Maven artifacts renamed to `mateu-*`**: `io.mateu:mvc-core` → `io.mateu:mateu-mvc`, `uidl` →
+  `mateu-uidl`, `vaadin-lit` → `mateu-vaadin`, `annotation-processor-mvc` →
+  `mateu-annotation-processor-mvc`… (full table in the migration guide). The old coordinates are
+  published as relocation poms, so existing builds keep resolving with a warning.
+- **No-op annotations removed** from `io.mateu.uidl.annotations` — nothing ever read them:
+  `@Accordion`, `@AccordionPanel`, `@BaseRoute`, `@H1`…`@H5`, `@HorizontalLayout`, `@VerticalLayout`,
+  `@SplitLayout`, `@Scroller`, `@Option`, `@RowAction`, `@State`, `@Tabs`. Each has a one-line
+  replacement in the migration guide. `@BusinessComponent` now works (it was also unread): a
+  field / no-arg method of a registered class holding a `Component` joins the business-component
+  catalogue.
 - **CORS is off by default** on every adapter; allow origins with `mateu.cors.allowed-origins`.
 - **The MCP endpoint is off by default**; `mateu.mcp.enabled=true`.
 - **`${secret.X}`** falls back only to the env var `MATEU_SECRET_X` (Java, .NET, Python).

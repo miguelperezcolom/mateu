@@ -55,13 +55,13 @@
         <!-- Mateu runtime for Helidon MP -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>helidon-mp-core</artifactId>
+            <artifactId>mateu-helidon-mp</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <!-- The web renderer (served as static assets by the app) -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>vaadin-lit</artifactId>
+            <artifactId>mateu-vaadin</artifactId>
             <version>${mateu.version}</version>
         </dependency>
         <!-- The generated controllers use Lombok -->
@@ -107,7 +107,7 @@
                         </path>
                         <path>
                             <groupId>io.mateu</groupId>
-                            <artifactId>annotation-processor-helidon-mp</artifactId>
+                            <artifactId>mateu-annotation-processor-helidon-mp</artifactId>
                             <version>${mateu.version}</version>
                         </path>
                     </annotationProcessorPaths>

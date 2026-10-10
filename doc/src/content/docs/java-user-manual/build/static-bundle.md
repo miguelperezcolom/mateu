@@ -48,7 +48,7 @@ directly):
     <!-- Optional: the base URL stamped into the page; "" = same-origin static host -->
     <baseUrl></baseUrl>
     <!-- Optional: where the renderer assets (_index.html + assets/) live; defaults to the
-         vaadin-lit resources on the classpath when they are an exploded directory -->
+         mateu-vaadin resources on the classpath when they are an exploded directory -->
     <assetsFrom>${project.basedir}/../../backend/shared/frontend/vaadin-lit/src/main/resources/static</assetsFrom>
   </configuration>
   <executions>
@@ -79,7 +79,7 @@ not render (see the boundaries below) is logged and skipped — it stays backend
 | `basePackages` | inferred from the `@UI` classes | app packages to component-scan for the `@Service`/`@Component` beans your ViewModels inject |
 | `routes` | all discovered static routes | optional allowlist |
 | `skipParamRoutes` | `true` | `true` skips `:param` routes; `false` bundles them as [templates](#param-route-templates) |
-| `assetsFrom` | vaadin-lit resources | directory holding `_index.html` + `assets/` |
+| `assetsFrom` | mateu-vaadin resources | directory holding `_index.html` + `assets/` |
 | `pageTitle` | `Mateu` | `<title>` of the static page |
 | `failOnEmpty` | `false` | fail the build if zero routes rendered |
 | `failOnSkipped` | `false` | fail the build if **any** route could not be bundled — turn it on once your bundled set is stable, so a route dropping out stops being a silent regression |

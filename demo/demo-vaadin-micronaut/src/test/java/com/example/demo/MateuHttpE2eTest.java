@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * Boots the real server and exercises mateu over HTTP, to prove that the zero-configuration
  * onboarding works: the application carries no @Import/@SerdeImport, so every mateu bean,
- * introspection and serde must come from the io.mateu:micronaut-core jar.
+ * introspection and serde must come from the io.mateu:mateu-micronaut jar.
  */
 class MateuHttpE2eTest {
 

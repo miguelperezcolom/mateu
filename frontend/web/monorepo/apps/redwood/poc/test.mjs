@@ -10,6 +10,7 @@ import { foldoutElementAtomsOf } from './elements.mjs'
 import { guidedProcessMediaQuery, guidedProcessWheelIsNative, focusIsInChat } from './a11y.mjs'
 import { activeSectionOf, sectionHomeOf, sectionOf } from './navTree.mjs'
 import { inAppRouteOfLink } from './links.mjs'
+import { checkWireVersion, observeWireVersion, setWireMismatchListener, resetWireVersionCheck, wireMismatchMessage } from './wireVersion.mjs'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
@@ -5446,3 +5447,37 @@ test('navegar: lo que la chain asigna (foldout, wizard, cola) se lee de constant
     assert.match(src, /queue: queueNow, foldout: foldoutNow/, rel)
   }
 })
+
+test('wireVersion: mismo major vale; otro major se avisa UNA vez, en claro; sin campo se acepta', () => {
+  assert.deepEqual(checkWireVersion('3.0'), { ok: true })
+  assert.deepEqual(checkWireVersion('3.9'), { ok: true })
+  assert.deepEqual(checkWireVersion(undefined), { ok: true })
+  assert.deepEqual(checkWireVersion('banana'), { ok: true })
+  assert.equal(checkWireVersion('4.0').ok, false)
+  assert.equal(checkWireVersion('2.1').serverMajor, 2)
+  const msg = wireMismatchMessage(4, 3, 'en')
+  assert.match(msg, /4\.x/)
+  assert.match(msg, /3\.x/)
+  const seen = []
+  resetWireVersionCheck()
+  setWireMismatchListener((m) => seen.push(m))
+  const quietConsole = console.error
+  console.error = () => {}
+  try {
+    observeWireVersion({ wireVersion: '3.0' })
+    observeWireVersion({ fragments: [] })
+    assert.equal(seen.length, 0)
+    assert.equal(observeWireVersion({ wireVersion: '4.0' }).ok, false)
+    observeWireVersion({ wireVersion: '4.0' })
+    assert.equal(seen.length, 1)
+  } finally {
+    console.error = quietConsole
+    setWireMismatchListener(null)
+    resetWireVersionCheck()
+  }
+  // la shell lo cablea a la banda de error
+  const shell = webApp('pages/shell-page-chains/loadMateuShell.js')
+  assert.match(shell, /bridge\.setWireMismatchListener\(/)
+  assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /'wireVersion\.mjs'/)
+})
+

@@ -30,5 +30,5 @@ Fluent variant: build `FoldoutLayout.builder().overview(c).panels(List.of(Foldou
 .title("…").open(false).content(c2).build()))` from `ComponentTreeSupplier`.
 
 Choose `Foldout` for one-object workspaces (reservations, contracts, patient records);
-`@Tabs` when categories are mutually exclusive; `MasterDetailView` when panels are alternative
+`@Tab` when categories are mutually exclusive; `MasterDetailView` when panels are alternative
 detail parts of a master form.

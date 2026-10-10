@@ -1,6 +1,6 @@
 # UI module pom (framework-agnostic `@UI` classes)
 
-A plain jar that depends **only** on `io.mateu:uidl` and runs the **indexer** AP. No
+A plain jar that depends **only** on `io.mateu:mateu-uidl` and runs the **indexer** AP. No
 Spring / Quarkus / framework dependency. On build it writes `META-INF/mateu/ui-registrations`
 (and `route-registrations`) into the jar so consuming apps can generate controllers without
 the sources.
@@ -30,14 +30,14 @@ Model on `e2e/sut/modules/sample1/pom.xml`.
     <!-- the ONLY Mateu dependency needed to write @UI classes -->
     <dependency>
       <groupId>io.mateu</groupId>
-      <artifactId>uidl</artifactId>
+      <artifactId>mateu-uidl</artifactId>
       <version>${mateu.version}</version>
     </dependency>
 
     <!-- indexer: also on annotationProcessorPaths below -->
     <dependency>
       <groupId>io.mateu</groupId>
-      <artifactId>annotation-processor-indexer</artifactId>
+      <artifactId>mateu-annotation-processor-indexer</artifactId>
       <version>${mateu.version}</version>
       <scope>provided</scope>
     </dependency>
@@ -74,7 +74,7 @@ Model on `e2e/sut/modules/sample1/pom.xml`.
             <!-- THIS is what writes META-INF/mateu/ui-registrations -->
             <path>
               <groupId>io.mateu</groupId>
-              <artifactId>annotation-processor-indexer</artifactId>
+              <artifactId>mateu-annotation-processor-indexer</artifactId>
               <version>${mateu.version}</version>
             </path>
           </annotationProcessorPaths>

@@ -91,12 +91,4 @@ prefix.
 
 ---
 
-## @BaseRoute
-
-`io.mateu.uidl.annotations.BaseRoute` still exists in `uidl`, but nothing in the runtime or the
-annotation processors reads it — annotating a class with it has **no effect**. To give a set of
-routes a base path, tag their route file with `basePath:` (see above).
-
----
-
 See the [route registry](/java-ui-definition/route-registry/) for the full format.

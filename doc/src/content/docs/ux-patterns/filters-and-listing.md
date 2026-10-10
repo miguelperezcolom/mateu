@@ -15,7 +15,7 @@ A listing without live filters, row actions, and bulk actions forces users to na
 
 ## Solution
 
-Use `@List` for the collection class, `@Filterable` on filter fields, `@RowAction` for per-row actions, and `@ListToolbarButton` for bulk actions. Column display is controlled with `@ColumnWidth` and `@HiddenInList`.
+Use `@List` for the collection class, `@Filterable` on filter fields, a `ColumnActionGroup` column on the row for per-row actions, and `@ListToolbarButton` for bulk actions. Column display is controlled with `@ColumnWidth` and `@HiddenInList`.
 
 ```java
 @UI("/products")
@@ -195,7 +195,7 @@ CSV export works out of the box. Excel and PDF require adding the corresponding 
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>export-excel</artifactId>
+    <artifactId>mateu-export-excel</artifactId>
     <version>${mateu.version}</version>
 </dependency>
 ```
@@ -205,7 +205,7 @@ CSV export works out of the box. Excel and PDF require adding the corresponding 
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
-    <artifactId>export-pdf</artifactId>
+    <artifactId>mateu-export-pdf</artifactId>
     <version>${mateu.version}</version>
 </dependency>
 ```

@@ -51,102 +51,102 @@
       <!-- the UI-declaration API and the wire -->
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>uidl</artifactId>
+        <artifactId>mateu-uidl</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>dtos</artifactId>
+        <artifactId>mateu-dtos</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>core</artifactId>
+        <artifactId>mateu-core</artifactId>
         <version>${project.version}</version>
       </dependency>
       <!-- annotation processors: put them on the annotationProcessorPaths, never on the runtime
            classpath -->
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>annotation-processor-core</artifactId>
+        <artifactId>mateu-annotation-processor-core</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>annotation-processor-indexer</artifactId>
+        <artifactId>mateu-annotation-processor-indexer</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>annotation-processor-mvc</artifactId>
+        <artifactId>mateu-annotation-processor-mvc</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>annotation-processor-webflux</artifactId>
+        <artifactId>mateu-annotation-processor-webflux</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>annotation-processor-micronaut</artifactId>
+        <artifactId>mateu-annotation-processor-micronaut</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>annotation-processor-quarkus</artifactId>
+        <artifactId>mateu-annotation-processor-quarkus</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>annotation-processor-helidon-mp</artifactId>
+        <artifactId>mateu-annotation-processor-helidon-mp</artifactId>
         <version>${project.version}</version>
       </dependency>
       <!-- framework adapters -->
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>mvc-core</artifactId>
+        <artifactId>mateu-mvc</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>webflux-core</artifactId>
+        <artifactId>mateu-webflux</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>micronaut-core</artifactId>
+        <artifactId>mateu-micronaut</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>quarkus-core</artifactId>
+        <artifactId>mateu-quarkus</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>helidon-mp-core</artifactId>
+        <artifactId>mateu-helidon-mp</artifactId>
         <version>${project.version}</version>
       </dependency>
       <!-- web renderers (choose one) -->
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>vaadin-lit</artifactId>
+        <artifactId>mateu-vaadin</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>redwood</artifactId>
+        <artifactId>mateu-redwood</artifactId>
         <version>${project.version}</version>
       </dependency>
       <!-- optional exporters -->
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>export-excel</artifactId>
+        <artifactId>mateu-export-excel</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
         <groupId>io.mateu</groupId>
-        <artifactId>export-pdf</artifactId>
+        <artifactId>mateu-export-pdf</artifactId>
         <version>${project.version}</version>
       </dependency>
     </dependencies>

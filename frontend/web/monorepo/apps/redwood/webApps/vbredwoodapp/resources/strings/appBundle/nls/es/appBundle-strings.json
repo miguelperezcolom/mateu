@@ -77,6 +77,7 @@
   "errOffline": "Sin conexión. Tus cambios no se han enviado — revisa la red e inténtalo de nuevo.",
   "errTimeout": "El servidor tarda demasiado en responder. Puede que tus cambios no se hayan guardado.",
   "errServer": "El servidor no ha podido completar la petición. Inténtalo de nuevo.",
+  "wireVersionMismatch": "El servidor de esta aplicación habla el protocolo Mateu {server}; este renderizador admite {supported}. Puede que algunas pantallas no se vean bien: actualiza el renderizador o el servidor para que coincidan.",
   "errServerStatus": "El servidor no ha podido completar la petición (error {status}). Inténtalo de nuevo.",
   "errUnauthorized": "Tu sesión ya no es válida. Vuelve a iniciar sesión.",
   "errForbidden": "No tienes permiso para hacer esto.",

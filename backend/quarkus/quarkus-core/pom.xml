@@ -4,12 +4,12 @@
 
     <parent>
         <groupId>io.mateu</groupId>
-        <artifactId>backend</artifactId>
+        <artifactId>mateu-parent</artifactId>
         <version>0.0.1-MATEU</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
 
-    <artifactId>quarkus-core</artifactId>
+    <artifactId>mateu-quarkus</artifactId>
     <packaging>jar</packaging>
 
     <name>Mateu Quarkus adapter</name>
@@ -38,7 +38,7 @@
     <dependencies>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>core</artifactId>
+            <artifactId>mateu-core</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>
@@ -67,13 +67,13 @@
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>integration-tests</artifactId>
+            <artifactId>mateu-integration-tests</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>annotation-processor-quarkus</artifactId>
+            <artifactId>mateu-annotation-processor-quarkus</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
@@ -107,7 +107,7 @@
                         <!-- for the test sources only (main has no @UI) -->
                         <path>
                             <groupId>io.mateu</groupId>
-                            <artifactId>annotation-processor-quarkus</artifactId>
+                            <artifactId>mateu-annotation-processor-quarkus</artifactId>
                             <version>${project.version}</version>
                         </path>
                     </annotationProcessorPaths>
