@@ -16,6 +16,7 @@
  */
 import { chromium } from 'playwright'
 import { AxeBuilder } from '@axe-core/playwright'
+import { gotoVbReady, waitForVbReady } from './vb-ready.mjs'
 const VB_URL = process.env.VB_URL || 'http://localhost:9006/'
 
 const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
@@ -37,10 +38,17 @@ const browser = await chromium.launch()
 const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } })
 const page = await ctx.newPage()
 
+// Waits on the app's own ready signal (vb-ready.mjs), not on networkidle: the Oracle CDN can keep
+// the network busy past any navigation timeout while the app is already usable.
 const boot = async (nav) => {
-  await page.goto(VB_URL, { waitUntil: 'networkidle' })
-  await sleep(5000)
-  if (nav) { await page.getByText(nav, { exact: true }).first().click().catch(() => {}); await sleep(4000) }
+  await gotoVbReady(page, VB_URL)
+  await sleep(1500)
+  if (nav) {
+    await page.getByText(nav, { exact: true }).first().click().catch(() => {})
+    await sleep(1000)
+    await waitForVbReady(page)
+    await sleep(2000)
+  }
 }
 
 // ── marcado ──────────────────────────────────────────────────────────────────────────────
