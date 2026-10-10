@@ -28,13 +28,6 @@ backend/          ← Maven multi-module Java backend
   quarkus/        ← Quarkus adapter
   helidon-mp/     ← Helidon MicroProfile adapter (JAX-RS/CDI/Weld; at full parity — see the
                     Helidon MP adapter note below)
-  spring-data/    ← optional `mateu-spring-data` (@Experimental): `CrudStores.of(jpaRepository)` →
-                    `JpaCrudStore`, a CrudStore whose find/4 (search, example filters, criteria,
-                    sort, paging) is ONE JPA Specification + PageRequest, summaries pushed down when
-                    given an EntityManager (else in memory over the pushed-down rows). JPA/Spring
-                    Data `@Version` is a STORE-MANAGED version for core `OptimisticLock` (matched by
-                    annotation name): checked like Mateu's `@Version`, never bumped by Mateu.
-                    Tests boot H2 + a trimmed TestMateu (`MiniMateu`). Doc: build/spring-data.md.
 
 backend/dotnet/   ← C# server-side (Mateu.NET) — ASP.NET reflection mapper emitting the same
                     /mateu/v3/sync wire model so existing renderers render a C# backend.
