@@ -8,6 +8,8 @@ import assert from 'node:assert/strict'
 import { readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { planningAtomOf, planningActionOf } from './reduceContexts.mjs'
+import { dayIndexAtX } from './planning.mjs'
 import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, entityHeaderOf, taskQueueOf, formSectionsOf, layoutFieldOf, HOST_ID } from './reduceContexts.mjs'
 import { localMenuOptionOf, isSentinelHome } from './navTree.mjs'
 import { loadMenuRouteInto, terminalMenuRouteOf } from './transport.mjs'
@@ -400,6 +402,62 @@ test('menú de tarjetas: el grupo se proyecta como tarjetas con su popup; las en
   assert.match(shell, /\$current\.data\.hasChildren && !\$current\.data\.isCards/)
   assert.match(shell, /oj-popup :id="\[\[ \$current\.data\.popupId \]\]" class="mateu-card-popup"/)
   assert.ok(JSON.parse(webApp('pages/shell-page.json')).eventListeners.cardMenuToggle)
+})
+
+// ── P0 #1: Room Diary (PlanningBoard → oj-gantt) ──────────────────────────────────────────────
+
+test('Room Diary real: filas con sus atributos, estancias con color, ★ VIP, resumen y fin pintado al día siguiente', () => {
+  const reg = reduceContexts(empty(), fixture('room-diary'))
+  const atom = hostContentOf(reg.contexts[HOST_ID], null, {}).flatMap((b) => b.items || []).find((a) => a.isPlanning)
+  assert.ok(atom, 'el tape chart no se proyectó')
+  assert.equal(atom.rows.length, 40)
+  assert.match(atom.rows[0].label, /^101 · STD · (CL|IP|DI|PU|OS|OO)$/)
+  assert.deepEqual([atom.dndMove, atom.taskResizable], ['enabled', 'enabled'])
+  assert.deepEqual([atom.moveActionId, atom.resizeActionId, atom.openActionId, atom.rangeSelectActionId],
+    ['moveStay', 'resizeStay', 'openStay', 'newStay'])
+  const block = fixture('room-diary').fragments[0].component
+  const task = atom.rows.flatMap((r) => r.tasks).find((t) => t.label.startsWith('★'))
+  assert.ok(task, 'ninguna estancia VIP marcada')
+  assert.match(task.shortDesc, /VIP/)
+  assert.ok(task.svgStyle && task.svgStyle.fill)
+  void block
+  // el día de fin (inclusivo en Mateu) se pinta hasta el día siguiente
+  const m = { resources: [{ id: '101', label: '101' }], blocks: [{ id: 'b', resourceId: '101', start: '2026-10-12', end: '2026-10-13' }], from: '2026-10-11', to: '2026-10-24' }
+  const one = planningAtomOf(m, 'x').rows[0].tasks[0]
+  assert.deepEqual([one.start, one.end], ['2026-10-12T00:00:00', '2026-10-14T00:00:00'])
+  assert.equal(planningAtomOf(m, 'x').end, '2026-10-25T00:00:00')
+})
+
+test('Room Diary: los eventos de oj-gantt se traducen a la acción de Mateu (días locales, fin inclusivo)', () => {
+  const atom = planningAtomOf({ moveActionId: 'move', resizeActionId: 'resize', openActionId: 'open', rangeSelectActionId: 'range', resources: [], blocks: [] }, 'x')
+  const local = (y, mo, d, h) => new Date(y, mo - 1, d, h).toISOString()
+  // ojMove: start/end = nuevos límites (value = instante bajo el puntero, se ignora); se redondea al día
+  assert.deepEqual(planningActionOf(atom, 'move', {
+    taskContexts: [{ data: { id: 'R1' } }], rowContext: { rowData: { id: '104' } },
+    value: local(2026, 10, 16, 9), start: local(2026, 10, 13, 9), end: local(2026, 10, 19, 9) }),
+  { actionId: 'move', parameters: { _blockId: 'R1', _resourceId: '104', _start: '2026-10-13', _end: '2026-10-18' } })
+  assert.deepEqual(planningActionOf(atom, 'resize', {
+    taskContexts: [{ data: { id: 'R2' }, rowData: { id: '102' } }], start: local(2026, 10, 15, 0), end: local(2026, 10, 21, 1) }),
+  { actionId: 'resize', parameters: { _blockId: 'R2', _resourceId: '102', _start: '2026-10-15', _end: '2026-10-20' } })
+  assert.deepEqual(planningActionOf(atom, 'open', { taskId: 'R3' }), { actionId: 'open', parameters: { _blockId: 'R3' } })
+  // sin la acción declarada, nada
+  assert.equal(planningActionOf(planningAtomOf({ resources: [], blocks: [] }, 'y'), 'move', { taskContexts: [{ data: { id: 'R1' } }] }), null)
+})
+
+test('Room Diary: el día bajo el puntero sale de las etiquetas reales del eje (zoom y scroll incluidos)', () => {
+  const centers = [{ x: 240, index: 0 }, { x: 322, index: 1 }, { x: 404, index: 2 }]
+  assert.equal(dayIndexAtX(240, centers), 0)
+  assert.equal(dayIndexAtX(280, centers), 0)
+  assert.equal(dayIndexAtX(285, centers), 1)
+  assert.equal(dayIndexAtX(1060, centers), 10) // más allá de las etiquetas medidas: extrapola
+  assert.equal(dayIndexAtX(10, []), null)
+  const tpl = readFileSync(join(here, 'templates', 'atoms.html'), 'utf8')
+  assert.match(tpl, /<oj-gantt class="mateu-planning/)
+  assert.match(tpl, /row-axis\.rendered="on"/)
+  const page = JSON.parse(webApp('flows/main/pages/main-start-page.json'))
+  for (const l of ['planningMoved', 'planningResized', 'planningDblClick']) assert.ok(page.eventListeners[l], l)
+  assert.ok(page.imports.components['oj-gantt'])
+  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installPlanningRange\(\)/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

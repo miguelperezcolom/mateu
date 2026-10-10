@@ -43,6 +43,29 @@
                       </oj-bind-for-each>
                       </div>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isPlanning ]]">
+                      <!-- tape chart (Room Diary): oj-gantt de JET; mover/redimensionar/doble clic → planningGanttEvent -->
+                      <oj-gantt class="mateu-planning oj-sm-margin-2x-bottom"
+                        :data-planning-id="[[ $current.data.planningId ]]"
+                        :data-range-action="[[ $current.data.rangeAction ]]"
+                        :data-start="[[ $current.data.startDay ]]" :data-end="[[ $current.data.endDay ]]"
+                        :data-row-ids="[[ $current.data.rowIds ]]" :data-row-labels="[[ $current.data.rowLabels ]]"
+                        start="[[ $current.data.start ]]" end="[[ $current.data.end ]]"
+                        major-axis.scale="weeks" minor-axis.scale="days"
+                        row-axis.rendered="on" row-axis.max-width="30%"
+                        gridlines.horizontal="visible" gridlines.vertical="visible"
+                        selection-mode="single"
+                        dnd.move.tasks="[[ $current.data.dndMove ]]"
+                        task-defaults.resizable="[[ $current.data.taskResizable ]]"
+                        row-data="[[ $current.data.rowsProvider ]]"
+                        on-oj-move="[[ $listeners.planningMoved ]]"
+                        on-oj-resize="[[ $listeners.planningResized ]]"
+                        on-dblclick="[[ $listeners.planningDblClick ]]">
+                        <template slot="rowTemplate" data-oj-as="row">
+                          <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
+                        </template>
+                      </oj-gantt>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isProgress ]]">
                       <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
                     </oj-bind-if>

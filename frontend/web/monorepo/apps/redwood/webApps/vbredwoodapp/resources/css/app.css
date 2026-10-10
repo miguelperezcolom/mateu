@@ -1221,3 +1221,10 @@ mateu-capture-field { display: block; }
 .mateu-menu-card-image { width: 2.5rem; height: 2.5rem; object-fit: cover; border-radius: var(--oj-core-border-radius-md, 6px); }
 .mateu-menu-card-group { margin: 0; }
 .mateu-menu-card-actions { display: flex; flex-wrap: wrap; gap: 0 0.25rem; margin-top: 0.25rem; margin-inline-start: -0.5rem; }
+
+/* ── tape chart (PlanningBoard → oj-gantt) ── */
+oj-gantt.mateu-planning { width: 100%; height: 34rem; }
+.mateu-planning-range {
+  position: absolute; display: none; pointer-events: none; z-index: 10; box-sizing: border-box;
+  background: rgba(34, 126, 158, .14); border: 1px solid rgba(34, 126, 158, .6); border-radius: 4px;
+}

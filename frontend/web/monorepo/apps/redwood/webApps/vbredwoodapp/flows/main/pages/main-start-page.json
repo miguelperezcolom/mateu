@@ -635,6 +635,42 @@
         }
       ]
     },
+    "planningMoved": {
+      "chains": [
+        {
+          "chain": "planningGanttEvent",
+          "parameters": {
+            "kind": "move",
+            "event": "{{ $event }}",
+            "atom": "{{ $current.data }}"
+          }
+        }
+      ]
+    },
+    "planningResized": {
+      "chains": [
+        {
+          "chain": "planningGanttEvent",
+          "parameters": {
+            "kind": "resize",
+            "event": "{{ $event }}",
+            "atom": "{{ $current.data }}"
+          }
+        }
+      ]
+    },
+    "planningDblClick": {
+      "chains": [
+        {
+          "chain": "planningGanttEvent",
+          "parameters": {
+            "kind": "open",
+            "event": "{{ $event }}",
+            "atom": "{{ $current.data }}"
+          }
+        }
+      ]
+    },
     "application:mateuElementEvent": {
       "chains": [
         {
@@ -864,6 +900,9 @@
       },
       "oj-select-many": {
         "path": "ojs/ojselectcombobox"
+      },
+      "oj-gantt": {
+        "path": "ojs/ojgantt"
       },
       "oj-radioset": {
         "path": "ojs/ojradioset"

@@ -517,7 +517,7 @@ export const RICH_ATOM_FLAGS = [
   'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
   // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
   // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
-  'isAnchor', 'isQueue',
+  'isAnchor', 'isQueue', 'isPlanning',
 ]
 export function isRichAtom(a) {
   return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -1582,6 +1582,13 @@ export function islandContentOf(ctx, opts = {}) {
           rel: target === '_blank' ? 'noopener noreferrer' : '',
         }, container)
       }
+      return
+    }
+    // TAPE CHART (PlanningBoard → oj-gantt de JET): filas = recursos (con sus columnas de
+    // atributos en la etiqueta), tareas = bloques. Proyección en planningAtomOf (pura, testeada);
+    // los eventos de JET (ojMove, ojResize, doble clic, rango) los traduce planningActionOf.
+    if (t === 'PlanningBoard') {
+      atom(planningAtomOf(m, node.id), container)
       return
     }
     // COLA como pieza de contenido (la lista de una consola maestro-detalle): las mismas tarjetas
@@ -4460,6 +4467,115 @@ export function rowEditorOf(reg, opts = {}) {
       buttons: buttons.slice().reverse(),
       fields: rowFieldsOf(ctx, opts.rowDraft, opts.errors),
     }
+  }
+  return null
+}
+
+
+// ── PlanningBoard (Room Diary) sobre oj-gantt ─────────────────────────────────────────────────
+//
+// oj-gantt es el tape chart de JET: filas con tareas, arrastrar para mover (dnd.move) y bordes para
+// redimensionar (task-defaults.resizable), tooltip propio (shortDesc). Mateu manda los bloques con
+// el fin INCLUSIVO (la última noche); el gantt pinta [start, end) en tiempo, así que el fin se
+// pinta como el día siguiente y se devuelve restando uno.
+
+const DAY_MS = 86400000
+const isoDay = (d) => {
+  const pad = (n) => String(n).padStart(2, '0')
+  return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate())
+}
+const plusDays = (iso, n) => isoDay(new Date(Date.parse(iso + 'T00:00:00Z') + n * DAY_MS))
+
+export function planningAtomOf(m, id) {
+  const columns = m.attributeColumns || []
+  const blocks = m.blocks || []
+  const from = m.from || (blocks.length ? blocks.map((b) => b.start).sort()[0] : isoDay(new Date()))
+  const to = m.to || (blocks.length ? blocks.map((b) => b.end).sort().slice(-1)[0] : from)
+  const rows = (m.resources || []).map((r, i) => {
+    const attrs = columns.map((c, k) => ({ label: c, value: (r.attributes || [])[k] || '' }))
+    return {
+      _rowNumber: i,
+      id: r.id,
+      // la etiqueta de la fila lleva los atributos: el eje de filas de oj-gantt sólo pinta texto
+      label: [r.label].concat(attrs.map((a) => a.value).filter(Boolean)).join(' · '),
+      group: r.group || '',
+      iconClass: r.icon ? ojIconOrGenericOf(r.icon) : '',
+      tasks: blocks.filter((b) => b.resourceId === r.id && b.start && b.end).map((b) => ({
+        id: b.id,
+        start: b.start + 'T00:00:00',
+        end: plusDays(b.end, 1) + 'T00:00:00',
+        label: (b.icon ? '★ ' : '') + (b.label || ''),
+        shortDesc: b.summary || ((b.label || '') + ' · ' + b.start + ' → ' + b.end + (b.status ? ' · ' + b.status : '')),
+        svgStyle: b.color ? { fill: b.color, stroke: b.color } : undefined,
+        // dentro de la barra o nada: fuera, el texto blanco sobre el fondo no se lee (y el resumen
+        // completo sigue en el tooltip)
+        labelPosition: ['innerCenter', 'innerStart', 'none'],
+        labelStyle: { fill: '#ffffff' },
+      })),
+    }
+  })
+  return {
+    isPlanning: true,
+    planningId: id || 'planning',
+    attributeColumns: columns,
+    start: from + 'T00:00:00',
+    end: plusDays(to, 1) + 'T00:00:00',
+    rows,
+    rowsProvider: dataProviderFactory ? dataProviderFactory(rows) : null,
+    movable: !!m.moveActionId,
+    resizable: !!m.resizeActionId,
+    moveActionId: m.moveActionId || '',
+    resizeActionId: m.resizeActionId || '',
+    openActionId: m.openActionId || '',
+    selectActionId: m.selectActionId || '',
+    rangeSelectActionId: m.rangeSelectActionId || '',
+    // para la selección de rango (poc/planning.mjs lee estos data-* del oj-gantt)
+    rangeAction: m.rangeSelectActionId || '',
+    startDay: from,
+    endDay: plusDays(to, 1),
+    rowIds: rows.map((r) => r.id).join('\u001f'),
+    rowLabels: rows.map((r) => r.label).join('\u001f'),
+    dndMove: m.moveActionId ? 'enabled' : 'disabled',
+    taskResizable: m.resizeActionId ? 'enabled' : 'disabled',
+  }
+}
+
+/**
+ * Un evento del oj-gantt → { actionId, parameters } de Mateu, o null si no hay acción. Fechas a
+ * días (fin inclusivo). `kind`: 'move' | 'resize' | 'open' | 'select' | 'range'.
+ */
+export function planningActionOf(atom, kind, detail) {
+  if (!atom) return null
+  // el gantt devuelve instantes (el punto exacto donde se soltó, en UTC): se redondean al día
+  // LOCAL más cercano — una estancia empieza y acaba en días, no a las 09:38
+  const day = (v) => {
+    if (!v) return null
+    const text = String(v)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text
+    const d = new Date(text)
+    return isoDay(new Date(Math.round((d.getTime() - d.getTimezoneOffset() * 60000) / DAY_MS) * DAY_MS))
+  }
+  const lastNight = (v) => (v ? plusDays(day(v), -1) : null)
+  const task = detail && detail.taskContexts && detail.taskContexts[0]
+  const taskId = (task && (task.data ? task.data.id : task.id)) || (detail && detail.taskId)
+  if (kind === 'move' && atom.moveActionId && taskId) {
+    const rowId = detail.rowContext && detail.rowContext.rowData ? detail.rowContext.rowData.id
+      : (detail.rowContext && detail.rowContext.data && detail.rowContext.data.id) || detail.rowId
+    return { actionId: atom.moveActionId, parameters: {
+      // start/end: los nuevos límites de la barra (value es el instante bajo el puntero)
+      _blockId: taskId, _resourceId: rowId, _start: day(detail.start || detail.value), _end: lastNight(detail.end) } }
+  }
+  if (kind === 'resize' && atom.resizeActionId && taskId) {
+    const rowId = detail.rowId || (task && task.rowData && task.rowData.id)
+      || (task && task.rowContext && task.rowContext.rowData && task.rowContext.rowData.id)
+    return { actionId: atom.resizeActionId, parameters: {
+      _blockId: taskId, _resourceId: rowId, _start: day(detail.start), _end: lastNight(detail.end) } }
+  }
+  if (kind === 'open' && atom.openActionId && taskId) return { actionId: atom.openActionId, parameters: { _blockId: taskId } }
+  if (kind === 'select' && atom.selectActionId && taskId) return { actionId: atom.selectActionId, parameters: { _blockId: taskId } }
+  if (kind === 'range' && atom.rangeSelectActionId && detail && detail.rowId && detail.start && detail.end) {
+    const [a, b] = [day(detail.start), day(detail.end)].sort()
+    return { actionId: atom.rangeSelectActionId, parameters: { _resourceId: detail.rowId, _start: a, _end: b } }
   }
   return null
 }

@@ -779,7 +779,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
     'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
     // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
     // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
-    'isAnchor', 'isQueue',
+    'isAnchor', 'isQueue', 'isPlanning',
   ]
   function isRichAtom(a) {
     return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -1844,6 +1844,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
             rel: target === '_blank' ? 'noopener noreferrer' : '',
           }, container)
         }
+        return
+      }
+      // TAPE CHART (PlanningBoard → oj-gantt de JET): filas = recursos (con sus columnas de
+      // atributos en la etiqueta), tareas = bloques. Proyección en planningAtomOf (pura, testeada);
+      // los eventos de JET (ojMove, ojResize, doble clic, rango) los traduce planningActionOf.
+      if (t === 'PlanningBoard') {
+        atom(planningAtomOf(m, node.id), container)
         return
       }
       // COLA como pieza de contenido (la lista de una consola maestro-detalle): las mismas tarjetas
@@ -4727,6 +4734,115 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
   }
 
 
+  // ── PlanningBoard (Room Diary) sobre oj-gantt ─────────────────────────────────────────────────
+  //
+  // oj-gantt es el tape chart de JET: filas con tareas, arrastrar para mover (dnd.move) y bordes para
+  // redimensionar (task-defaults.resizable), tooltip propio (shortDesc). Mateu manda los bloques con
+  // el fin INCLUSIVO (la última noche); el gantt pinta [start, end) en tiempo, así que el fin se
+  // pinta como el día siguiente y se devuelve restando uno.
+
+  const DAY_MS = 86400000
+  const isoDay = (d) => {
+    const pad = (n) => String(n).padStart(2, '0')
+    return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate())
+  }
+  const plusDays = (iso, n) => isoDay(new Date(Date.parse(iso + 'T00:00:00Z') + n * DAY_MS))
+
+  function planningAtomOf(m, id) {
+    const columns = m.attributeColumns || []
+    const blocks = m.blocks || []
+    const from = m.from || (blocks.length ? blocks.map((b) => b.start).sort()[0] : isoDay(new Date()))
+    const to = m.to || (blocks.length ? blocks.map((b) => b.end).sort().slice(-1)[0] : from)
+    const rows = (m.resources || []).map((r, i) => {
+      const attrs = columns.map((c, k) => ({ label: c, value: (r.attributes || [])[k] || '' }))
+      return {
+        _rowNumber: i,
+        id: r.id,
+        // la etiqueta de la fila lleva los atributos: el eje de filas de oj-gantt sólo pinta texto
+        label: [r.label].concat(attrs.map((a) => a.value).filter(Boolean)).join(' · '),
+        group: r.group || '',
+        iconClass: r.icon ? ojIconOrGenericOf(r.icon) : '',
+        tasks: blocks.filter((b) => b.resourceId === r.id && b.start && b.end).map((b) => ({
+          id: b.id,
+          start: b.start + 'T00:00:00',
+          end: plusDays(b.end, 1) + 'T00:00:00',
+          label: (b.icon ? '★ ' : '') + (b.label || ''),
+          shortDesc: b.summary || ((b.label || '') + ' · ' + b.start + ' → ' + b.end + (b.status ? ' · ' + b.status : '')),
+          svgStyle: b.color ? { fill: b.color, stroke: b.color } : undefined,
+          // dentro de la barra o nada: fuera, el texto blanco sobre el fondo no se lee (y el resumen
+          // completo sigue en el tooltip)
+          labelPosition: ['innerCenter', 'innerStart', 'none'],
+          labelStyle: { fill: '#ffffff' },
+        })),
+      }
+    })
+    return {
+      isPlanning: true,
+      planningId: id || 'planning',
+      attributeColumns: columns,
+      start: from + 'T00:00:00',
+      end: plusDays(to, 1) + 'T00:00:00',
+      rows,
+      rowsProvider: dataProviderFactory ? dataProviderFactory(rows) : null,
+      movable: !!m.moveActionId,
+      resizable: !!m.resizeActionId,
+      moveActionId: m.moveActionId || '',
+      resizeActionId: m.resizeActionId || '',
+      openActionId: m.openActionId || '',
+      selectActionId: m.selectActionId || '',
+      rangeSelectActionId: m.rangeSelectActionId || '',
+      // para la selección de rango (poc/planning.mjs lee estos data-* del oj-gantt)
+      rangeAction: m.rangeSelectActionId || '',
+      startDay: from,
+      endDay: plusDays(to, 1),
+      rowIds: rows.map((r) => r.id).join('\u001f'),
+      rowLabels: rows.map((r) => r.label).join('\u001f'),
+      dndMove: m.moveActionId ? 'enabled' : 'disabled',
+      taskResizable: m.resizeActionId ? 'enabled' : 'disabled',
+    }
+  }
+
+  /**
+   * Un evento del oj-gantt → { actionId, parameters } de Mateu, o null si no hay acción. Fechas a
+   * días (fin inclusivo). `kind`: 'move' | 'resize' | 'open' | 'select' | 'range'.
+   */
+  function planningActionOf(atom, kind, detail) {
+    if (!atom) return null
+    // el gantt devuelve instantes (el punto exacto donde se soltó, en UTC): se redondean al día
+    // LOCAL más cercano — una estancia empieza y acaba en días, no a las 09:38
+    const day = (v) => {
+      if (!v) return null
+      const text = String(v)
+      if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text
+      const d = new Date(text)
+      return isoDay(new Date(Math.round((d.getTime() - d.getTimezoneOffset() * 60000) / DAY_MS) * DAY_MS))
+    }
+    const lastNight = (v) => (v ? plusDays(day(v), -1) : null)
+    const task = detail && detail.taskContexts && detail.taskContexts[0]
+    const taskId = (task && (task.data ? task.data.id : task.id)) || (detail && detail.taskId)
+    if (kind === 'move' && atom.moveActionId && taskId) {
+      const rowId = detail.rowContext && detail.rowContext.rowData ? detail.rowContext.rowData.id
+        : (detail.rowContext && detail.rowContext.data && detail.rowContext.data.id) || detail.rowId
+      return { actionId: atom.moveActionId, parameters: {
+        // start/end: los nuevos límites de la barra (value es el instante bajo el puntero)
+        _blockId: taskId, _resourceId: rowId, _start: day(detail.start || detail.value), _end: lastNight(detail.end) } }
+    }
+    if (kind === 'resize' && atom.resizeActionId && taskId) {
+      const rowId = detail.rowId || (task && task.rowData && task.rowData.id)
+        || (task && task.rowContext && task.rowContext.rowData && task.rowContext.rowData.id)
+      return { actionId: atom.resizeActionId, parameters: {
+        _blockId: taskId, _resourceId: rowId, _start: day(detail.start), _end: lastNight(detail.end) } }
+    }
+    if (kind === 'open' && atom.openActionId && taskId) return { actionId: atom.openActionId, parameters: { _blockId: taskId } }
+    if (kind === 'select' && atom.selectActionId && taskId) return { actionId: atom.selectActionId, parameters: { _blockId: taskId } }
+    if (kind === 'range' && atom.rangeSelectActionId && detail && detail.rowId && detail.start && detail.end) {
+      const [a, b] = [day(detail.start), day(detail.end)].sort()
+      return { actionId: atom.rangeSelectActionId, parameters: { _resourceId: detail.rowId, _start: a, _end: b } }
+    }
+    return null
+  }
+
+
   // El rastro automático de una pantalla — la MISMA regla que el renderer web
   // (libs/mateu/.../breadcrumbTrail.ts): el camino de menús hasta la ruta (grupos y la entrada que
   // la muestra, secciones de un pod incluidas) y, pasada la entrada, el nivel del CRUD — el registro
@@ -6907,6 +7023,126 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
   }
 
 
+  // Selección de RANGO en el tape chart (PlanningBoard → oj-gantt): arrastrar por celdas VACÍAS de
+  // una fila lanza rangeSelectActionId con { _resourceId, _start, _end } (el «clic en la celda de
+  // inicio y en la de fin» del Room Diary de OPERA → I Want To: reserva, walk-in, fuera de servicio).
+  // oj-gantt no lo trae: mueve y redimensiona tareas, pero no selecciona tiempo vacío. Así que una
+  // capa fina por encima, sin sustituir al componente:
+  //   - la fila, del propio gantt (getContextByNode → rowIndex);
+  //   - el día, de las posiciones REALES de las etiquetas del eje de días (respeta zoom y scroll);
+  //   - mientras se arrastra, una banda translúcida; al soltar, la acción por el canal de la página.
+  // Lo puro (x → día) está exportado y probado en Node.
+
+  /** Día (índice) bajo `x` a partir de los centros de las etiquetas del eje de días. */
+  function dayIndexAtX(x, centers) {
+    if (!centers || !centers.length) return null
+    if (centers.length === 1) return centers[0].index
+    const sorted = [...centers].sort((a, b) => a.x - b.x)
+    const width = (sorted[sorted.length - 1].x - sorted[0].x) / (sorted[sorted.length - 1].index - sorted[0].index)
+    if (!(width > 0)) return sorted[0].index
+    // el día i ocupa [centro_i - w/2, centro_i + w/2)
+    return Math.round((x - sorted[0].x) / width) + sorted[0].index
+  }
+
+  const DAY = 86400000
+  const isoUtc = (ms) => new Date(ms).toISOString().slice(0, 10)
+
+  let rangeSink = null
+  /** Quién ejecuta la acción (la shell reutiliza el sumidero de los Element). */
+  function setPlanningRangeSink(fn) { rangeSink = typeof fn === "function" ? fn : null }
+
+  /** Los centros (x en pantalla) de las etiquetas de días del eje menor de un gantt. */
+  function dayCenters(gantt, startIso, days) {
+    const labels = [...gantt.querySelectorAll('text')]
+    const out = []
+    // las etiquetas del eje menor tienen el formato del locale ("10/14", "14/10"…): se casan por
+    // orden con los días de la ventana, quedándose con la fila de etiquetas más baja del eje
+    const rows = {}
+    for (const t of labels) {
+      const r = t.getBoundingClientRect()
+      if (!/\d/.test(t.textContent || '')) continue
+      const key = Math.round(r.top)
+      ;(rows[key] = rows[key] || []).push({ t, r })
+    }
+    const axisRows = Object.keys(rows).map(Number).sort((a, b) => a - b)
+    // el eje menor: la fila con más etiquetas entre las primeras (la cabecera), no las barras
+    const minor = axisRows.slice(0, 3).map((k) => rows[k]).sort((a, b) => b.length - a.length)[0] || []
+    minor.sort((a, b) => a.r.left - b.r.left).forEach((e, i) => {
+      if (i < days) out.push({ x: e.r.left + e.r.width / 2, index: i })
+    })
+    return out
+  }
+
+  /** Instala (una vez) el arrastre de rango sobre cualquier oj-gantt.mateu-planning del documento. */
+  function installPlanningRange(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuPlanningRange) return
+    doc.__mateuPlanningRange = true
+    let drag = null
+    const band = () => {
+      let el = doc.getElementById('mateuPlanningRangeBand')
+      if (!el) {
+        el = doc.createElement('div')
+        el.id = 'mateuPlanningRangeBand'
+        el.className = 'mateu-planning-range'
+        doc.body.appendChild(el)
+      }
+      return el
+    }
+    doc.addEventListener('pointerdown', (e) => {
+      const gantt = e.target && e.target.closest && e.target.closest('oj-gantt.mateu-planning')
+      if (!gantt || !gantt.dataset.rangeAction || e.button > 0) return
+      // sólo tiempo VACÍO de una fila (el fondo de la fila, rect.oj-gantt-row): una tarea se mueve y
+      // redimensiona como siempre. getContextByNode no da contexto para ese fondo, así que la fila
+      // sale de la etiqueta del eje de filas más cercana en vertical (vale también con scroll)
+      const cls = (e.target.getAttribute && e.target.getAttribute('class')) || ''
+      if (!/(^|\s)oj-gantt-row(\s|$)/.test(cls)) return
+      const labels = (gantt.dataset.rowLabels || '').split('\u001f')
+      let best = null
+      for (const t of gantt.querySelectorAll('text')) {
+        const i = labels.indexOf(t.textContent)
+        if (i < 0) continue
+        const r = t.getBoundingClientRect()
+        const dist = Math.abs(r.top + r.height / 2 - e.clientY)
+        if (!best || dist < best.dist) best = { i, dist }
+      }
+      if (!best) return
+      const ctx = { rowIndex: best.i }
+      const start = gantt.dataset.start
+      const days = Math.round((Date.parse(gantt.dataset.end + 'Z') - Date.parse(start + 'Z')) / DAY)
+      const centers = dayCenters(gantt, start, days)
+      const anchor = dayIndexAtX(e.clientX, centers)
+      if (anchor == null) return
+      const rowRect = e.target.getBoundingClientRect()
+      drag = { gantt, ctx, centers, anchor, current: anchor, start, top: rowRect.top, height: rowRect.height }
+    }, true)
+    doc.addEventListener('pointermove', (e) => {
+      if (!drag) return
+      const i = dayIndexAtX(e.clientX, drag.centers)
+      if (i == null) return
+      drag.current = i
+      const [a, b] = [Math.min(drag.anchor, i), Math.max(drag.anchor, i)]
+      const w = drag.centers.length > 1 ? Math.abs(drag.centers[1].x - drag.centers[0].x) : 40
+      const el = band()
+      const left = drag.centers[0].x + (a - drag.centers[0].index) * w - w / 2
+      Object.assign(el.style, { display: 'block', left: left + window.scrollX + 'px', width: (b - a + 1) * w + 'px',
+        top: drag.top + window.scrollY + 'px', height: drag.height + 'px' })
+    }, true)
+    doc.addEventListener('pointerup', () => {
+      const d = drag
+      drag = null
+      const el = doc.getElementById('mateuPlanningRangeBand')
+      if (el) el.style.display = 'none'
+      if (!d || !rangeSink) return
+      const ids = (d.gantt.dataset.rowIds || '').split('\u001f')
+      const rowId = ids[d.ctx.rowIndex]
+      if (!rowId) return
+      const [a, b] = [Math.min(d.anchor, d.current), Math.max(d.anchor, d.current)]
+      const base = Date.parse(d.start + 'Z')
+      rangeSink(d.gantt.dataset.rangeAction, { _resourceId: rowId, _start: isoUtc(base + a * DAY), _end: isoUtc(base + b * DAY) }, {})
+    }, true)
+  }
+
+
   // Static-bundle "no backend" mode for the VB/Redwood renderer — the same contract as the web
   // renderers' libs/mateu (bundleStore.ts), rewritten for THIS core (which shares nothing with them:
   // here the transport is `fetch` in transport.mjs, not axios). A build-time exporter (Mateu's
@@ -8777,8 +9013,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number'], (requir
     elementAtomsOf,
     foldoutElementAtomsOf,
     reduceContexts,
+    planningActionOf,
     applyDomEffects,
     installRules,
+    installPlanningRange,
+    setPlanningRangeSink,
     rulesDebug,
     setRulesContext,
     setRuleActionSink,
