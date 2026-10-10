@@ -18,7 +18,9 @@
       },
       "package": "io.mateu.mobile",
       "permissions": [
-        "android.permission.CAMERA",
+        "android.permission.CAMERA"
+      ],
+      "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
       ]
     },
@@ -28,14 +30,16 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "The app captures photos for @PhotoCapture fields."
+          "cameraPermission": "The app captures photos for @PhotoCapture fields.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
         }
       ],
       [
         "expo-build-properties",
         {
           "android": {
-            "usesCleartextTraffic": true
+            "usesCleartextTraffic": false
           }
         }
       ],
@@ -64,6 +68,11 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "owner": "miguelperezcolom"
+    "owner": "miguelperezcolom",
+    "updates": {
+      "url": "https://u.expo.dev/9f9dc6c1-4b4c-4524-9188-f9ab05f0bf50",
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    }
   }
 }
