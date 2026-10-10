@@ -67,6 +67,9 @@ class AppMetadata(Wire):
     #: @app(chromeless=True): drop the nav chrome; the command center is the only navigation
     #: (implies command_center_enabled). Mirrors AppDto.chromeless.
     chromeless: bool = False
+    #: @app(access_keys=True): keyboard access-keys mode — holding Alt shows a key next to every
+    #: visible button and tab and Alt+key activates it. Mirrors AppDto.accessKeys.
+    access_keys: bool = False
     #: A route may seed APP-SCOPE data by referencing a named source (routes.yaml ``appData``):
     #: the shell fetches it once into the app-data store (mirrors AppDto.appDataSource). None when
     #: no route under the mount declares one.
@@ -303,6 +306,13 @@ class CrudMetadata(Wire):
     #: renderer maps each JSON item into a row keyed by column id instead of dispatching the server
     #: search. None on server-backed listings (mirrors CrudlDto.rowsSource).
     rows_source: "RestDataSource | None" = None
+    #: Rows can be dragged onto a DropZone accepting this type (@drag_rows); None = not draggable
+    #: (mirrors CrudlDto.dragType).
+    drag_type: str | None = None
+    #: The RowStatus() field of the row class (camelCase field id): its value (success | warning
+    #: | danger | info | neutral) tones the whole row. None = no row tones (mirrors
+    #: CrudlDto.rowStatusField).
+    row_status_field: str | None = None
 
 
 class ProgressBarMetadata(Wire):
@@ -465,6 +475,7 @@ class ResponsiveGridMetadata(Wire):
     stack_below: str | None = None
     grid_template_areas: str | None = None
     sticky_areas: list[str] | None = None
+    reorderable: bool = False
 
 
 class FoldoutPanelInfo(Wire):
@@ -576,6 +587,8 @@ class PlanningResourceRecord(Wire):
     id: str | None = None
     label: str | None = None
     group: str | None = None
+    attributes: list[str] = Field(default_factory=list)
+    icon: str | None = None
 
 
 class PlanningBlockRecord(Wire):
@@ -589,6 +602,9 @@ class PlanningBlockRecord(Wire):
     label: str | None = None
     color: str | None = None
     status: str | None = None
+    #: icon before the label and the hover text (lines separated by \n)
+    icon: str | None = None
+    summary: str | None = None
 
 
 class PlanningBoardMetadata(Wire):
@@ -602,6 +618,10 @@ class PlanningBoardMetadata(Wire):
     to: str | None = None
     move_action_id: str | None = None
     select_action_id: str | None = None
+    attribute_columns: list[str] = Field(default_factory=list)
+    resize_action_id: str | None = None
+    open_action_id: str | None = None
+    range_select_action_id: str | None = None
 
 
 class KanbanCardRecord(Wire):
@@ -682,21 +702,39 @@ class StatMetadata(Wire):
 
 
 class CalendarEventRecord(Wire):
-    """One calendar event; ``date`` is ISO-8601; ``action_id`` makes the chip clickable."""
+    """One calendar event (mirrors ``CalendarEventDto``); ``date``/``end_date`` are ISO-8601,
+    ``start_time``/``end_time`` "HH:mm"; ``action_id`` makes the chip clickable."""
 
     id: str | None = None
     title: str | None = None
     date: str | None = None
+    end_date: str | None = None
+    start_time: str | None = None
+    end_time: str | None = None
     color: str | None = None
     action_id: str | None = None
 
 
+class CalendarDayRecord(Wire):
+    """One date's cell of a calendar (mirrors ``CalendarDayDto``): ISO date, label and tone."""
+
+    date: str | None = None
+    label: str | None = None
+    tone: str | None = None
+
+
 class CalendarMetadata(Wire):
-    """Month-grid calendar metadata (mirrors ``CalendarDto``); dates are ISO-8601."""
+    """Calendar metadata (mirrors ``CalendarDto``); dates are ISO-8601. ``view`` is
+    month|week|day|list (default month), ``views`` the switchable ones, ``days`` the per-date
+    cells and ``day_action_id`` makes those cells clickable."""
 
     type: Literal["Calendar"] = "Calendar"
     month: str | None = None
     events: list[CalendarEventRecord] = Field(default_factory=list)
+    view: str = "month"
+    views: list[str] = Field(default_factory=list)
+    days: list[CalendarDayRecord] = Field(default_factory=list)
+    day_action_id: str | None = None
 
 
 class PricingPlanRecord(Wire):
@@ -987,6 +1025,116 @@ class BulletedListMetadata(Wire):
     items: list[str] = Field(default_factory=list)
 
 
+class ActionPanelItemRecord(Wire):
+    """One action of an action panel (mirrors ``ActionPanelItemDto``)."""
+
+    label: str | None = None
+    action_id: str | None = None
+    parameters: dict[str, object] | None = None
+    count: int | None = None
+    populated: bool = False
+    disabled: bool = False
+
+
+class ActionPanelCategoryRecord(Wire):
+    """A column of an action panel (mirrors ``ActionPanelCategoryDto``)."""
+
+    title: str | None = None
+    actions: list[ActionPanelItemRecord] = Field(default_factory=list)
+
+
+class ActionPanelMetadata(Wire):
+    """Categorised action panel ("I want to…") (mirrors ``ActionPanelDto``)."""
+
+    type: Literal["ActionPanel"] = "ActionPanel"
+    label: str = "I want to…"
+    shortcut: str | None = None
+    categories: list[ActionPanelCategoryRecord] = Field(default_factory=list)
+    max_per_category: int = 10
+    hide_unpopulated_toggle: bool = False
+
+
+class MatrixColumnRecord(Wire):
+    """A matrix-grid column (mirrors ``MatrixColumnDto``)."""
+
+    id: str | None = None
+    label: str | None = None
+    group: str | None = None
+    tone: str | None = None
+
+
+class MatrixCellRecord(Wire):
+    """A matrix-grid cell (mirrors ``MatrixCellDto``)."""
+
+    value: str = ""
+    tone: str | None = None
+    link: bool = False
+
+
+class MatrixRowRecord(Wire):
+    """A matrix-grid row (mirrors ``MatrixRowDto``)."""
+
+    id: str | None = None
+    label: str | None = None
+    cells: list[MatrixCellRecord] = Field(default_factory=list)
+    editable: bool = False
+    emphasis: bool = False
+
+
+class MatrixSectionRecord(Wire):
+    """A collapsible matrix-grid section (mirrors ``MatrixSectionDto``)."""
+
+    id: str | None = None
+    title: str | None = None
+    collapsed: bool = False
+    rows: list[MatrixRowRecord] = Field(default_factory=list)
+
+
+class MatrixGridMetadata(Wire):
+    """Matrix grid: rows × columns in collapsible sections (mirrors ``MatrixGridDto``)."""
+
+    type: Literal["MatrixGrid"] = "MatrixGrid"
+    row_header_label: str | None = None
+    columns: list[MatrixColumnRecord] = Field(default_factory=list)
+    sections: list[MatrixSectionRecord] = Field(default_factory=list)
+    cell_action_id: str | None = None
+    edit_action_id: str | None = None
+
+
+class MapMarkerRecord(Wire):
+    """One point on a map (mirrors ``MapMarkerDto``)."""
+
+    id: str | None = None
+    latitude: float = 0.0
+    longitude: float = 0.0
+    label: str | None = None
+    description: str | None = None
+    color: str | None = None
+
+
+class MapMetadata(Wire):
+    """Street map: centre (``"lat, lon"``), zoom, markers and the action a marker click runs with
+    ``{"_markerId"}`` (mirrors ``MapDto``)."""
+
+    type: Literal["Map"] = "Map"
+    position: str | None = None
+    zoom: str | None = None
+    markers: list[MapMarkerRecord] = Field(default_factory=list)
+    marker_action_id: str | None = None
+
+
+class DropZoneMetadata(Wire):
+    """A drop target for dragged listing rows; its content travels as the component's children
+    (mirrors ``DropZoneDto``)."""
+
+    type: Literal["DropZone"] = "DropZone"
+    accept: str | None = None
+    action_id: str | None = None
+    parameters: dict[str, Any] = Field(default_factory=dict)
+    title: str | None = None
+    subtitle: str | None = None
+
+
 class QueueItemRecord(Wire):
     """One task-queue card (mirrors ``QueueItemDto``)."""
 
@@ -1139,6 +1287,16 @@ class ProcessMonitorMetadata(Wire):
     items: list[ProcessItemRecord] = Field(default_factory=list)
 
 
+class PopoverMetadata(Wire):
+    """A popover (mirrors ``io.mateu.dtos.PopoverDto``): the wrapped component and the content of
+    its floating panel, opened on ``click`` (default) or ``hover``."""
+
+    type: Literal["Popover"] = "Popover"
+    content: "Component | None" = None
+    wrapped: "Component | None" = None
+    trigger: str = "click"
+
+
 class DrawerMetadata(Wire):
     """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
     edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
@@ -1258,6 +1416,10 @@ ComponentMetadata = Annotated[
         TaskProgressMetadata,
         StatusListMetadata,
         BulletedListMetadata,
+        ActionPanelMetadata,
+        MatrixGridMetadata,
+        MapMetadata,
+        DropZoneMetadata,
         SeparatorMetadata,
         CustomComponentMetadata,
         AnchorMetadata,
@@ -1270,6 +1432,7 @@ ComponentMetadata = Annotated[
         PaymentPickerMetadata,
         ProcessMonitorMetadata,
         DrawerMetadata,
+        PopoverMetadata,
         DialogMetadata,
         MicroFrontendMetadata,
     ],
@@ -1388,6 +1551,9 @@ class GridColumnMeta(Wire):
     #: Action dispatched when the cell is clicked — "view" on the first column of a
     #: Navigable/Editable listing makes its rows clickable (mirrors GridColumnDto.actionId).
     action_id: str | None = None
+    #: The row field whose text the cell shows on hover (Tooltip("other_field") on the row field);
+    #: None when the column declares none (mirrors GridColumnDto.tooltipPath).
+    tooltip_path: str | None = None
 
 
 class GridColumn(Wire):
@@ -1418,6 +1584,17 @@ class MenuItem(Wire):
     #: clicked instead of navigating. Non-empty only for a Rule / list[Rule] menu entry; a route
     #: leaf leaves it empty.
     rules: list["RuleRecord"] = Field(default_factory=list)
+    #: The entry's icon (e.g. "vaadin:calendar"), shown on its card (mirrors MenuOptionDto.icon).
+    icon: str | None = None
+    #: The entry's description — the text of a card (mirrors MenuOptionDto.description).
+    description: str | None = None
+    #: A GROUP that opens as a panel of cards ("cards") instead of the usual list (None). Its
+    #: entries are the cards; each entry's own submenus are the card's actions (mirrors
+    #: MenuOptionDto.display).
+    display: str | None = None
+    #: The image of an entry shown as a card (a URL or a data URI); None for none (mirrors
+    #: MenuOptionDto.image).
+    image: str | None = None
 
 
 class Kpi(Wire):

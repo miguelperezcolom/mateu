@@ -21,6 +21,11 @@ public class PlanningBoardMapper {
                                     .id(resource.id())
                                     .label(resource.label())
                                     .group(resource.group())
+                                    .attributes(
+                                        resource.attributes() != null
+                                            ? resource.attributes()
+                                            : List.of())
+                                    .icon(resource.icon())
                                     .build())
                         .toList()
                     : List.of())
@@ -37,6 +42,8 @@ public class PlanningBoardMapper {
                                     .label(block.label())
                                     .color(block.color())
                                     .status(block.status())
+                                    .icon(block.icon())
+                                    .summary(block.summary())
                                     .build())
                         .toList()
                     : List.of())
@@ -44,6 +51,13 @@ public class PlanningBoardMapper {
             .to(planningBoard.to() != null ? planningBoard.to().toString() : null)
             .moveActionId(planningBoard.moveActionId())
             .selectActionId(planningBoard.selectActionId())
+            .attributeColumns(
+                planningBoard.attributeColumns() != null
+                    ? planningBoard.attributeColumns()
+                    : List.of())
+            .resizeActionId(planningBoard.resizeActionId())
+            .openActionId(planningBoard.openActionId())
+            .rangeSelectActionId(planningBoard.rangeSelectActionId())
             .build(),
         planningBoard.id(),
         List.of(),

@@ -43,7 +43,12 @@ for the sibling implementation.
   `MetricCardDto`…`GanttDto`) — `MetricCard` (+ `MetricTrend`), `Scoreboard`, `DashboardPanel`,
   `DashboardLayout`, `FoldoutPanel`/`FoldoutLayout` (overview slotted `overview`, panel contents
   slotted `panel-N`), `HeroSection`, `EmptyState`, `Skeleton` (+ `SkeletonVariant`), `Gantt` /
-  `GanttTask`, plus fluent `Text` and `Button`.
+  `GanttTask`, plus fluent `Text` and `Button`. `PlanningBoard` (tape chart: `PlanningResource`
+  rows × days, `PlanningBlock`s) also carries the OPERA Room Diary extras — `attribute_columns`
+  + per-resource `attributes`/`icon`, block `icon`/`summary` (hover text), and
+  `resize_action_id` / `open_action_id` (double click) / `range_select_action_id` (drag across
+  empty cells) next to `move_action_id`/`select_action_id`. `Map` / `MapMarker` (street map: `position`
+  "lat, lon", `zoom`, `markers`; a marker click runs `marker_action_id` with `_markerId`).
 - **Declarative archetypes** — subclass `Dashboard` / `Foldout` / `ItemOverview` / `Welcome` and
   declare type-hinted fields holding components; `Panel(title, subtitle, col_span, row_span, icon,
   open)` in `Annotated[...]` marks titled panels/tabs/tiles (the analogue of Java's `@Panel`).
@@ -78,7 +83,7 @@ The server binds to `0.0.0.0`, so the iOS simulator (`localhost:8594`) and Andro
 
 ```python
 from typing import Annotated
-from mateu_uidl import ui, title, section, button, Required, Section, Message, app, menu_item, Crud
+from mateu_uidl import ui, title, section, button, Required, Section, Message, app, menu_item, menu_group, MenuDisplay, Crud
 
 @ui("person")
 @title("Person")
@@ -99,6 +104,21 @@ class Reservations(Crud[Reservation]):
 class DemoApp:
     @menu_item("Person")
     def person(self) -> Person: return Person()
+
+# A card menu (like the product dropdowns of a docs site): @menu_group(display="cards") opens a
+# folder as a panel of cards; @menu_item(description=, icon=, image=) / @menu_group on a nested
+# folder ("Bookings/Reservations") give each card its look, and a nested folder's entries are its
+# actions. Code-authored menus (MenuSupplier / AppSupplier) set MenuItem.display/description/icon/image.
+@app("PMS")
+@menu_group("Bookings", display=MenuDisplay.cards)
+@menu_group("Bookings/Reservations", description="Search, create and modify",
+            icon="vaadin:calendar", image="/img/res.png")
+class PmsApp:
+    @menu_item("Search", group="Bookings/Reservations")
+    def search(self) -> Reservations: return Reservations()
+
+    @menu_item("Room diary", group="Bookings", description="Rooms by day")
+    def diary(self) -> Person: return Person()
 ```
 
 Dashboards, foldouts and Gantt charts use the fluent components + archetypes:

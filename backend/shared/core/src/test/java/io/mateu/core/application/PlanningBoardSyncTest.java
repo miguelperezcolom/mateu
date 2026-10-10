@@ -42,6 +42,8 @@ class PlanningBoardSyncTest {
                             .id("101")
                             .label("Room 101")
                             .group("Floor 1")
+                            .attributes(List.of("STD", "Clean"))
+                            .icon("vaadin:star")
                             .build(),
                         PlanningResource.builder()
                             .id("102")
@@ -63,6 +65,8 @@ class PlanningBoardSyncTest {
                             .label("Ada Lovelace")
                             .color("#3b82f6")
                             .status("confirmed")
+                            .icon("vaadin:star")
+                            .summary("Ada Lovelace\n3 → 7 Aug · BAR")
                             .build(),
                         PlanningBlock.builder()
                             .id("b2")
@@ -73,7 +77,20 @@ class PlanningBoardSyncTest {
                             .build()))
                 .moveActionId("moveBooking")
                 .selectActionId("openBooking")
+                .attributeColumns(List.of("Type", "Status"))
+                .resizeActionId("resizeBooking")
+                .openActionId("editBooking")
+                .rangeSelectActionId("newBooking")
                 .build();
+
+    // plain public methods, no @Action: the board referencing them is what advertises them
+    public Object moveBooking() {
+      return null;
+    }
+
+    public Object openBooking() {
+      return null;
+    }
   }
 
   static TestMateu mateu;
@@ -131,5 +148,38 @@ class PlanningBoardSyncTest {
             .get(0);
     assertThat(board.moveActionId()).isEqualTo("moveBooking");
     assertThat(board.selectActionId()).isEqualTo("openBooking");
+  }
+
+  @Test
+  void roomDiaryExtrasTravel() {
+    // the OPERA Room Diary: attribute columns per room, icons, a hover summary, and the
+    // resize / double-click / range-selection actions
+    var board =
+        FieldKindsSyncTest.collect(
+                mateu.sync("/planning").fragments().get(0).component(), PlanningBoardDto.class)
+            .get(0);
+    assertThat(board.attributeColumns()).containsExactly("Type", "Status");
+    assertThat(board.resources().get(0).attributes()).containsExactly("STD", "Clean");
+    assertThat(board.resources().get(0).icon()).isEqualTo("vaadin:star");
+    assertThat(board.resources().get(1).attributes()).isEmpty();
+    assertThat(board.blocks().get(0).icon()).isEqualTo("vaadin:star");
+    assertThat(board.blocks().get(0).summary()).isEqualTo("Ada Lovelace\n3 → 7 Aug · BAR");
+    assertThat(board.resizeActionId()).isEqualTo("resizeBooking");
+    assertThat(board.openActionId()).isEqualTo("editBooking");
+    assertThat(board.rangeSelectActionId()).isEqualTo("newBooking");
+  }
+
+  @Test
+  void theBoardsActionIdsWithAHandlerMethodAreAdvertisedOnceEach() {
+    var component =
+        (io.mateu.dtos.ServerSideComponentDto)
+            mateu.sync("/planning").fragments().get(0).component();
+    var ids = component.actions().stream().map(io.mateu.dtos.ActionDto::id).toList();
+
+    // the web client only sends an action its component advertises
+    assertThat(ids).contains("moveBooking", "openBooking");
+    // no handler on the view: maybe an ancestor's, so it is not captured here
+    assertThat(ids).doesNotContain("resizeBooking", "editBooking", "newBooking");
+    assertThat(ids).doesNotHaveDuplicates();
   }
 }

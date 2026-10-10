@@ -173,3 +173,32 @@ export function sectionOf(sections, current) {
   const id = activeSectionOf(sections, current)
   return id == null ? null : ((sections || []).find((section) => section.id === id) || null)
 }
+
+/** Las rutas centinela del servidor que significan «no hay home declarada»: la shell abre entonces
+ *  la primera pantalla del menú (en profundidad), como la home de una sección. */
+export function isSentinelHome(route) {
+  const r = String(route || '')
+  return !r || /(^|\/)_no_home_route$/.test(r) || /(^|\/)_page$/.test(r)
+}
+
+/**
+ * La opción LOCAL del menú (no remota) que cubre una ruta —la de prefijo más largo, por tramos—,
+ * o null. Una ruta de menú (`/inventory/floorPlan`) es del APP: el servidor sólo la resuelve si la
+ * petición lleva el serverSideType del app que declara ese menú; sin él contesta «Not found.»
+ * (en demo-vb no se notaba porque cada @Menu se llamaba como la ruta @UI de su clase).
+ */
+export function localMenuOptionOf(menu, route) {
+  const path = String(route || '').split('?')[0]
+  if (!path) return null
+  let best = null
+  const visit = (options) => {
+    for (const o of options || []) {
+      if (!o || o.remote || o.baseUrl) continue
+      const r = o.route || o.path
+      if (r && routeCovers(r, path) && (!best || r.length > (best.route || best.path).length)) best = o
+      visit(o.submenus || o.submenu)
+    }
+  }
+  visit(menu)
+  return best
+}

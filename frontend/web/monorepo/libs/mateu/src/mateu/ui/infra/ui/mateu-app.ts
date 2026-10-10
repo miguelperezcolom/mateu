@@ -7,6 +7,7 @@ import { announceCapabilityMismatch } from '../capabilities/capabilities.ts'
 import { fetchExternalJson } from '../http/externalOptions.ts'
 import { appData } from "@domain/state"
 import { syncCommandCenter } from "@infra/ui/commandCenterMount.ts";
+import { syncAccessKeys } from "@infra/a11y/accessKeys.ts";
 import { fabStyles } from "@infra/ui/layout/fabRail.ts";
 import "./mateu-ux"
 import './mateu-api-caller'
@@ -667,6 +668,12 @@ export class MateuApp extends ComponentElement {
                         uriPrefix: option.uriPrefix,
                         actionId: option.actionId,
                         selected: filter || this.isActiveOption(option),
+                        // card menus: the group opens as cards; title/description/icon/image of
+                        // a card that has its own children (its actions)
+                        display: option.display ?? undefined,
+                        description: option.description,
+                        icon: option.icon,
+                        image: option.image ?? undefined,
                         children
                     }
                 }
@@ -696,6 +703,9 @@ export class MateuApp extends ComponentElement {
                     uriPrefix: option.uriPrefix,
                     actionId: option.actionId,
                     selected: filter || this.isActiveOption(option),
+                    description: option.unavailable ? undefined : option.description,
+                    icon: option.icon,
+                    image: option.image ?? undefined,
                 }
             } else return undefined
         }) as Array<MenuBarItem | undefined>).filter((option): option is MenuBarItem => option != null)
@@ -839,6 +849,8 @@ export class MateuApp extends ComponentElement {
             const metadata = clientSideComponent.metadata
             if (metadata) {
                 const app = metadata as App
+                // @App(accessKeys): holding Alt shows the keys of the visible buttons and tabs
+                syncAccessKeys(!!app.accessKeys)
                 // The menu the automatic breadcrumb trail walks (breadcrumbTrail): published again
                 // when the remote sections have been fetched and the menu grows.
                 // The whole tree (navMenu): hidden sections are not drawn, but a page under one

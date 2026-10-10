@@ -138,6 +138,22 @@ const SAMPLES: Record<string, Sample> = {
     NotFound: { type: 'NotFound', title: 'Page not found', message: 'The page you asked for does not exist.', backRoute: '/', backLabel: 'Go home' },
     OfferCard: { type: 'OfferCard', tag: 'Best value', title: 'Premium room', subtitle: 'Sea view · 32 m²', features: ['Breakfast', 'Late check-out'], priceLabel: '€180 / night', actionLabel: 'Upgrade', actionId: 'go' },
     OrgChart: { type: 'OrgChart', root: { id: '1', title: 'Ada', subtitle: 'CEO', children: [{ id: '2', title: 'Alan', subtitle: 'CTO' }, { id: '3', title: 'Grace', subtitle: 'COO' }] } },
+    ActionPanel: { type: 'ActionPanel', label: 'I want to…', categories: [
+        { title: 'Booking', actions: [{ label: 'Change dates', actionId: 'a', populated: true }, { label: 'Add a guest', actionId: 'b' }] },
+        { title: 'Billing', actions: [{ label: 'Post a charge', actionId: 'c', count: 3 }, { label: 'Split the folio', actionId: 'd' }] },
+    ] },
+    DropZone: { type: 'DropZone', accept: 'charges', actionId: 'move', title: 'Window 2', subtitle: 'Drop charges here' },
+    Map: { type: 'Map', markers: [
+        { id: 'a', latitude: 39.5715, longitude: 2.649, label: 'Palma Centre', color: '#508223' },
+        { id: 'b', latitude: 39.5627, longitude: 2.6302, label: 'Paseo Marítimo', color: '#ac630c' },
+        { id: 'c', latitude: 39.558, longitude: 2.6735, label: 'Portixol', color: '#c74634' },
+    ], style: 'height: 16rem;' },
+    MatrixGrid: { type: 'MatrixGrid', rowHeaderLabel: 'Room type', columns: [
+        { id: 'd1', label: 'Sat 10', group: 'Oct' }, { id: 'd2', label: 'Sun 11', group: 'Oct' }, { id: 'd3', label: 'Mon 12', group: 'Oct' },
+    ], sections: [{ title: 'Occupancy', rows: [
+        { id: 'avail', label: 'Available', emphasis: true, cells: [{ value: '12' }, { value: '-1', tone: 'danger' }, { value: '4' }] },
+        { id: 'occ', label: 'Occupancy %', cells: [{ value: '88' }, { value: '101' }, { value: '94' }] },
+    ] }] },
     PlanningBoard: { type: 'PlanningBoard', from: '2026-10-05', to: '2026-10-11',
         resources: [{ id: '101', label: 'Room 101' }, { id: '102', label: 'Room 102' }, { id: '103', label: 'Room 103' }],
         blocks: [{ id: 'a', resourceId: '101', start: '2026-10-05', end: '2026-10-08', label: 'Smith' }, { id: 'b', resourceId: '103', start: '2026-10-07', end: '2026-10-10', label: 'Garcia', color: '#16a34a' }] },

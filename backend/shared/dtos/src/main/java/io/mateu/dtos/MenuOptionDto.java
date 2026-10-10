@@ -44,7 +44,13 @@ public record MenuOptionDto(
     boolean shellLabel,
     // The entry opens a listing: how to narrow it from its URL (declared filters, the free-text
     // search and the reserved id-set filter). Null for any other screen.
-    ListingDescriptorDto listing) {
+    ListingDescriptorDto listing,
+    // A GROUP that opens as a panel of cards ("cards") instead of the usual list (null). Its
+    // entries are the cards: label = title, description = text, icon / image, and each entry's
+    // own submenus = the card's actions.
+    String display,
+    // The image of an entry shown as a card (a URL or a data URI); null for none.
+    String image) {
 
   public MenuOptionDto {
     submenus = Collections.unmodifiableList(submenus != null ? submenus : Collections.emptyList());

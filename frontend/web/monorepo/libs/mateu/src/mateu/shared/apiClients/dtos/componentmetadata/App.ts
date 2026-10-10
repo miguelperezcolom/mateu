@@ -48,6 +48,8 @@ export default interface App extends ComponentMetadata {
     globalSearchEnabled?: boolean
     commandCenterEnabled?: boolean
     chromeless?: boolean
+    /** @App(accessKeys): holding Alt shows a key next to every visible button and tab */
+    accessKeys?: boolean
     /** `@NoBreadcrumbs` on the shell: no automatic breadcrumb trail on its pages. */
     noBreadcrumbs?: boolean
     /** @App(askLabel): the brand of the shell's "ask" entry; absent = the renderer's own */

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Image, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useViewController } from './MateuViewHost';
 import { ComponentRenderer } from './ComponentRenderer';
-import { AddOn, CalendarEvent, ChecklistItem, Chip, Comment, EmptyState, EntityHeader, Fact, FaqItem, Feature, FileItem, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, LedgerLine, Meter, OfferCard, OrgNode, PaymentMethod, PricingPlan, ProcessItem, QueueGroup, ResourceItem, Skeleton, Stat, StatusItem, Step, Testimonial, TimelineItem } from '../api/metadata';
+import { AddOn, ChecklistItem, Chip, Comment, EmptyState, EntityHeader, Fact, FaqItem, Feature, FileItem, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, LedgerLine, Meter, OfferCard, OrgNode, PaymentMethod, PricingPlan, ProcessItem, QueueGroup, ResourceItem, Skeleton, Stat, StatusItem, Step, Testimonial, TimelineItem } from '../api/metadata';
 import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 
@@ -356,43 +356,8 @@ export function StatRenderer({ component }: { component: unknown }) {
   ) : tile;
 }
 
-// ── Calendar (mobile: an agenda list of events grouped by day) ────────────────
-export function CalendarRenderer({ component }: { component: unknown }) {
-  const controller = useViewController();
-  const m = meta(component);
-  const month = m['month'] as string | undefined;
-  const events = ((m['events'] as CalendarEvent[]) ?? [])
-    .filter((e) => !!e.date)
-    .slice()
-    .sort((a, b) => (a.date! < b.date! ? -1 : 1));
-  const monthLabel = month
-    ? new Date(month + 'T00:00:00').toLocaleDateString(undefined, { month: 'long', year: 'numeric' })
-    : '';
-  return (
-    <View style={styles.agenda}>
-      {!!monthLabel && <Text style={styles.agendaMonth}>{monthLabel}</Text>}
-      {events.map((e, i) => {
-        const day = e.date ? new Date(e.date + 'T00:00:00') : null;
-        const row = (
-          <View style={styles.agendaRow}>
-            <View style={styles.agendaDate}>
-              <Text style={styles.agendaDay}>{day ? day.getDate() : ''}</Text>
-              <Text style={styles.agendaDow}>{day ? day.toLocaleDateString(undefined, { weekday: 'short' }) : ''}</Text>
-            </View>
-            <View style={[styles.agendaChip, { borderLeftColor: e.color ?? theme.primary }]}>
-              <Text style={styles.agendaTitle}>{e.title ?? ''}</Text>
-            </View>
-          </View>
-        );
-        return e.actionId ? (
-          <TouchableOpacity {...buttonA11y()} key={e.id ?? i} onPress={() => void controller.runAction(e.actionId!)}>{row}</TouchableOpacity>
-        ) : (
-          <View key={e.id ?? i}>{row}</View>
-        );
-      })}
-    </View>
-  );
-}
+// ── Calendar: month / week / day / list views — see CalendarRenderer.tsx ─────────
+export { CalendarRenderer } from './CalendarRenderer';
 
 // ── PricingTable (mobile: stacked plan cards) ─────────────────────────────────
 export function PricingTableRenderer({ component }: { component: unknown }) {
@@ -1351,15 +1316,6 @@ const styles = StyleSheet.create({
   statDelta: { fontSize: 12, fontWeight: '600' },
   statSpark: { flexDirection: 'row', alignItems: 'flex-end', gap: 2, height: 26 },
   statBar: { width: 4, borderRadius: 1 },
-  // Calendar (agenda)
-  agenda: { gap: 8 },
-  agendaMonth: { fontWeight: '700', fontSize: 16, color: theme.ink, marginBottom: 4 },
-  agendaRow: { flexDirection: 'row', gap: 10, alignItems: 'stretch' },
-  agendaDate: { width: 44, alignItems: 'center' },
-  agendaDay: { fontWeight: '700', fontSize: 18, color: theme.ink },
-  agendaDow: { fontSize: 11, color: theme.faint, textTransform: 'uppercase' },
-  agendaChip: { flex: 1, borderLeftWidth: 3, backgroundColor: theme.background, borderRadius: theme.radiusSm, paddingHorizontal: 10, paddingVertical: 8, justifyContent: 'center' },
-  agendaTitle: { fontWeight: '600', color: theme.ink },
   // PricingTable
   pricing: { gap: 12 },
   planCard: { padding: 18, borderWidth: 1, borderColor: theme.border, borderRadius: 14, backgroundColor: theme.white, gap: 6 },

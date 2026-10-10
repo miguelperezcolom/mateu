@@ -129,6 +129,20 @@ class SalesDashboard(Dashboard):
         return Message("Drilling into revenue")
 
 
+@ui("reorderable-dashboard")
+class ReorderableDashboard(Dashboard):
+    arrivals: Annotated[Text, Panel("Arrivals")] = Text(text="12", id="arr")
+    departures: Annotated[Text, Panel("Departures")] = Text(text="9", id="dep")
+
+    def reorderable(self) -> bool:
+        return True
+
+
+@ui("fixed-dashboard")
+class FixedDashboard(Dashboard):
+    arrivals: Annotated[Text, Panel("Arrivals")] = Text(text="12", id="arr")
+
+
 @ui("project-plan")
 @title("Project plan")
 class ProjectPlan(ComponentTreeSupplier):
@@ -160,7 +174,13 @@ class PlanningPage(ComponentTreeSupplier):
             from_=date(2026, 8, 1),
             to=date(2026, 8, 21),
             resources=(
-                PlanningResource(id="101", label="Room 101", group="Floor 1"),
+                PlanningResource(
+                    id="101",
+                    label="Room 101",
+                    group="Floor 1",
+                    attributes=("STD", "Clean"),
+                    icon="vaadin:star",
+                ),
                 PlanningResource(id="102", label="Room 102", group="Floor 1"),
                 PlanningResource(id="201", label="Room 201", group="Floor 2"),
             ),
@@ -173,6 +193,8 @@ class PlanningPage(ComponentTreeSupplier):
                     label="Ada Lovelace",
                     color="#3b82f6",
                     status="confirmed",
+                    icon="vaadin:star",
+                    summary="Ada Lovelace\n3 → 7 Aug · BAR",
                 ),
                 PlanningBlock(
                     id="b2",
@@ -184,7 +206,18 @@ class PlanningPage(ComponentTreeSupplier):
             ),
             move_action_id="moveBooking",
             select_action_id="openBooking",
+            attribute_columns=("Type", "Status"),
+            resize_action_id="resizeBooking",
+            open_action_id="editBooking",
+            range_select_action_id="newBooking",
         )
+
+    # plain methods: the board referencing them is what advertises them
+    def move_booking(self):
+        return None
+
+    def open_booking(self):
+        return None
 
 
 @ui("sprint-board")
@@ -856,7 +889,7 @@ def find(children, meta_type):
 def test_dashboard_archetype_emits_scoreboard_panels_and_gantt():
     doc = render(SalesDashboard)
     (layout,) = page_children(doc)
-    assert layout["metadata"] == {"type": "ResponsiveGrid", "gridTemplateColumns": None, "gap": None, "colSpans": None, "stackBelow": None, "gridTemplateAreas": None, "stickyAreas": None}
+    assert layout["metadata"] == {"type": "ResponsiveGrid", "gridTemplateColumns": None, "gap": None, "colSpans": None, "stackBelow": None, "gridTemplateAreas": None, "stickyAreas": None, "reorderable": False}
 
     scoreboard, panel, note = layout["children"]
 
@@ -905,17 +938,25 @@ def test_dashboard_archetype_emits_scoreboard_panels_and_gantt():
     # Other component fields land on the grid as-is.
     assert note["metadata"]["type"] == "Text"
 
-    # The MetricCard drill-in action rides on the MetricCard's own actionId (openRevenue above),
-    # NOT in the ServerSide.actions list — a ComponentTreeSupplier does not harvest its tree's
-    # action ids into the envelope (Java parity: ComponentTreeSupplierMapper never does). It is
-    # still routed by reflection when dispatched.
+    # The MetricCard drill-in action (openRevenue above) has a handler method on the view, so it
+    # is advertised in the ServerSide.actions list — the web client only sends what the
+    # component advertises (Java: TreeActionHarvester). It is routed by reflection when dispatched.
     component = doc["fragments"][0]["component"]
     action_ids = [a["id"] for a in (component["actions"] or [])]
-    assert "openRevenue" not in action_ids
+    assert "openRevenue" in action_ids
     inc = handler().handle(
         RunActionRq(action_id="openRevenue", server_side_type=type_name(SalesDashboard))
     )
     assert inc.messages[0].text == "Drilling into revenue"
+
+
+def test_a_dashboard_can_let_the_viewer_reorder_its_tiles_keyed_by_their_ids():
+    (grid,) = page_children(render(ReorderableDashboard))
+    assert grid["metadata"]["reorderable"] is True
+    # the tiles carry their field names as ids: the key the viewer's order is kept by
+    assert [c["id"] for c in grid["children"]] == ["arrivals", "departures"]
+    (fixed,) = page_children(render(FixedDashboard))
+    assert fixed["metadata"]["reorderable"] is False
 
 
 def test_component_tree_supplier_emits_kanban():
@@ -1231,9 +1272,15 @@ def test_component_tree_supplier_emits_planning_board():
     assert board["metadata"] == {
         "type": "PlanningBoard",
         "resources": [
-            {"id": "101", "label": "Room 101", "group": "Floor 1"},
-            {"id": "102", "label": "Room 102", "group": "Floor 1"},
-            {"id": "201", "label": "Room 201", "group": "Floor 2"},
+            {
+                "id": "101",
+                "label": "Room 101",
+                "group": "Floor 1",
+                "attributes": ["STD", "Clean"],
+                "icon": "vaadin:star",
+            },
+            {"id": "102", "label": "Room 102", "group": "Floor 1", "attributes": [], "icon": None},
+            {"id": "201", "label": "Room 201", "group": "Floor 2", "attributes": [], "icon": None},
         ],
         "blocks": [
             {
@@ -1244,6 +1291,8 @@ def test_component_tree_supplier_emits_planning_board():
                 "label": "Ada Lovelace",
                 "color": "#3b82f6",
                 "status": "confirmed",
+                "icon": "vaadin:star",
+                "summary": "Ada Lovelace\n3 → 7 Aug · BAR",
             },
             {
                 "id": "b2",
@@ -1253,19 +1302,44 @@ def test_component_tree_supplier_emits_planning_board():
                 "label": "Grace Hopper",
                 "color": None,
                 "status": None,
+                "icon": None,
+                "summary": None,
             },
         ],
         "from": "2026-08-01",
         "to": "2026-08-21",
         "moveActionId": "moveBooking",
         "selectActionId": "openBooking",
+        "attributeColumns": ["Type", "Status"],
+        "resizeActionId": "resizeBooking",
+        "openActionId": "editBooking",
+        "rangeSelectActionId": "newBooking",
     }
-    # The board's action ids live on the PlanningBoard component (moveActionId/selectActionId
-    # above), NOT in the ServerSide.actions envelope — a ComponentTreeSupplier does not harvest
-    # its tree's action ids (Java parity). The renderer dispatches them off the component itself.
+    # The board's action ids are advertised when the view has a handler method for them (the
+    # web client only sends advertised actions); an id without a handler may be an ancestor's,
+    # so it is left alone (Java: PlanningBoardSyncTest, .NET: same rule).
     action_ids = [a["id"] for a in (doc["fragments"][0]["component"]["actions"] or [])]
-    assert "moveBooking" not in action_ids
-    assert "openBooking" not in action_ids
+    assert "moveBooking" in action_ids
+    assert "openBooking" in action_ids
+    assert "resizeBooking" not in action_ids
+    assert len(action_ids) == len(set(action_ids))
+
+
+def test_planning_board_room_diary_extras_travel():
+    # Java: PlanningBoardSyncTest.roomDiaryExtrasTravel — the OPERA Room Diary: attribute
+    # columns per room, icons, a hover summary, and the resize / double-click / range actions.
+    doc = render(PlanningPage)
+    (board,) = page_children(doc)
+    meta = board["metadata"]
+    assert meta["attributeColumns"] == ["Type", "Status"]
+    assert meta["resources"][0]["attributes"] == ["STD", "Clean"]
+    assert meta["resources"][0]["icon"] == "vaadin:star"
+    assert meta["resources"][1]["attributes"] == []
+    assert meta["blocks"][0]["icon"] == "vaadin:star"
+    assert meta["blocks"][0]["summary"] == "Ada Lovelace\n3 → 7 Aug · BAR"
+    assert meta["resizeActionId"] == "resizeBooking"
+    assert meta["openActionId"] == "editBooking"
+    assert meta["rangeSelectActionId"] == "newBooking"
 
 
 def test_foldout_archetype_slots_overview_and_panels():
@@ -1364,13 +1438,11 @@ def test_welcome_archetype_hero_ctas_and_highlight_tiles():
     (skeleton,) = loading_tile["children"]
     assert skeleton["metadata"] == {"type": "Skeleton", "variant": "card", "count": 3}
 
-    # The CTA and EmptyState action ids live on their own components (the HeroSection button and
-    # the EmptyState's actionId above), NOT in the ServerSide.actions envelope — a
-    # ComponentTreeSupplier does not harvest its tree's action ids (Java parity). The CTA still
-    # dispatches to the method, routed by reflection.
+    # The CTA has a handler method (get_started), so it is advertised; the EmptyState's "create"
+    # has none on this view — it may be an ancestor's — so it is not captured here.
     component = doc["fragments"][0]["component"]
     action_ids = [a["id"] for a in (component["actions"] or [])]
-    assert "getStarted" not in action_ids and "create" not in action_ids
+    assert "getStarted" in action_ids and "create" not in action_ids
     inc = handler().handle(
         RunActionRq(action_id="getStarted", server_side_type=type_name(WelcomeDemo))
     )

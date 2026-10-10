@@ -30,7 +30,7 @@ define([
       }
       const selected = item.tabs.find((tab) => tab.id === detail.value);
       if (selected) {
-        $application.variables.mateuItemTabTexts = selected.texts;
+        $application.variables.mateuItemTabTexts = selected.items; // átomos de la pestaña
       }
     }
   }

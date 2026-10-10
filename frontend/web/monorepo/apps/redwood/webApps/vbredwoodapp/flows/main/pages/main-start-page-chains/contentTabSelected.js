@@ -62,6 +62,8 @@ define([
       const projected = bridge.hostContentOf(host, null, {
         title: $application.variables.mateuHostTitle || '',
         activeTabs: $application.variables.mateuActiveTabs,
+        // la banda del header ya pinta el EntityHeader del host: sin esto reaparecía en el contenido
+        dropEntityHeader: !!bridge.entityHeaderOf(host),
       }) || [];
       // la pestaña ya se ve; sus @Subresource (lazy: se cargan al abrirla) llegan después
       $application.variables.mateuHostContent = bridge.withSubresources(projected, reg.contexts);

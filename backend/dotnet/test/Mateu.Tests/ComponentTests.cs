@@ -431,6 +431,23 @@ public class Dash : Dashboard
     public Message Refresh() => new("refreshed");
 }
 
+public class ReorderableDash : Dashboard
+{
+    protected override bool Reorderable => true;
+
+    [Panel(Title = "Arrivals")]
+    public IComponent Arrivals { get; } = new Text("12") { Id = "arr" };
+
+    [Panel(Title = "Departures")]
+    public IComponent Departures { get; } = new Text("9") { Id = "dep" };
+}
+
+public class FixedDash : Dashboard
+{
+    [Panel(Title = "Arrivals")]
+    public IComponent Arrivals { get; } = new Text("12") { Id = "arr" };
+}
+
 [UI("fold"), Title("Fold")]
 public class Fold : Foldout
 {
@@ -502,7 +519,11 @@ public class PlanningPage : IComponentTreeSupplier
         To = new DateOnly(2026, 8, 21),
         Resources =
         [
-            new PlanningResource { Id = "101", Label = "Room 101", Group = "Floor 1" },
+            new PlanningResource
+            {
+                Id = "101", Label = "Room 101", Group = "Floor 1",
+                Attributes = ["STD", "Clean"], Icon = "vaadin:star",
+            },
             new PlanningResource { Id = "102", Label = "Room 102", Group = "Floor 1" },
             new PlanningResource { Id = "201", Label = "Room 201", Group = "Floor 2" },
         ],
@@ -513,6 +534,7 @@ public class PlanningPage : IComponentTreeSupplier
                 Id = "b1", ResourceId = "101", Start = new DateOnly(2026, 8, 3),
                 End = new DateOnly(2026, 8, 7), Label = "Ada Lovelace",
                 Color = "#3b82f6", Status = "confirmed",
+                Icon = "vaadin:star", Summary = "Ada Lovelace\n3 → 7 Aug · BAR",
             },
             new PlanningBlock
             {
@@ -522,7 +544,15 @@ public class PlanningPage : IComponentTreeSupplier
         ],
         MoveActionId = "moveBooking",
         SelectActionId = "openBooking",
+        AttributeColumns = ["Type", "Status"],
+        ResizeActionId = "resizeBooking",
+        OpenActionId = "editBooking",
+        RangeSelectActionId = "newBooking",
     };
+
+    // Plain methods: the board referencing them is what advertises them.
+    public object? MoveBooking() => null;
+    public object? OpenBooking() => null;
 }
 
 [UI("aside-page"), Title("Aside page")]
@@ -593,6 +623,18 @@ public class ComponentTests
     }
 
     [Fact]
+    public void A_dashboard_can_let_the_viewer_reorder_its_tiles_keyed_by_their_ids()
+    {
+        var grid = (ClientSideComponentDto)ComponentMapper.Map(new ReorderableDash().Component());
+        Assert.True(((ResponsiveGridMetadataDto)grid.Metadata).Reorderable);
+        // the tiles carry their property names as ids: the key the viewer's order is kept by
+        Assert.Equal(["arrivals", "departures"],
+            grid.Children.Select(c => ((ClientSideComponentDto)c).Id).ToList());
+        var fixedGrid = (ClientSideComponentDto)ComponentMapper.Map(new FixedDash().Component());
+        Assert.False(((ResponsiveGridMetadataDto)fixedGrid.Metadata).Reorderable);
+    }
+
+    [Fact]
     public void Gantt_emits_tasks_with_iso_dates_and_progress()
     {
         var json = RenderView(typeof(Dash));
@@ -616,26 +658,51 @@ public class ComponentTests
         Assert.Contains("\"type\":\"PlanningBoard\"", json);
         Assert.Contains(
             "\"resources\":[" +
-            "{\"id\":\"101\",\"label\":\"Room 101\",\"group\":\"Floor 1\"}," +
-            "{\"id\":\"102\",\"label\":\"Room 102\",\"group\":\"Floor 1\"}," +
-            "{\"id\":\"201\",\"label\":\"Room 201\",\"group\":\"Floor 2\"}]",
+            "{\"id\":\"101\",\"label\":\"Room 101\",\"group\":\"Floor 1\"," +
+            "\"attributes\":[\"STD\",\"Clean\"],\"icon\":\"vaadin:star\"}," +
+            "{\"id\":\"102\",\"label\":\"Room 102\",\"group\":\"Floor 1\",\"attributes\":[],\"icon\":null}," +
+            "{\"id\":\"201\",\"label\":\"Room 201\",\"group\":\"Floor 2\",\"attributes\":[],\"icon\":null}]",
             json);
         Assert.Contains(
             "\"blocks\":[" +
             "{\"id\":\"b1\",\"resourceId\":\"101\",\"start\":\"2026-08-03\",\"end\":\"2026-08-07\"," +
-            "\"label\":\"Ada Lovelace\",\"color\":\"#3b82f6\",\"status\":\"confirmed\"}," +
+            "\"label\":\"Ada Lovelace\",\"color\":\"#3b82f6\",\"status\":\"confirmed\"," +
+            "\"icon\":\"vaadin:star\",\"summary\":\"Ada Lovelace\\n3 → 7 Aug · BAR\"}," +
             "{\"id\":\"b2\",\"resourceId\":\"201\",\"start\":\"2026-08-05\",\"end\":\"2026-08-12\"," +
-            "\"label\":\"Grace Hopper\",\"color\":null,\"status\":null}]",
+            "\"label\":\"Grace Hopper\",\"color\":null,\"status\":null,\"icon\":null,\"summary\":null}]",
             json);
         Assert.Contains("\"from\":\"2026-08-01\"", json);
         Assert.Contains("\"to\":\"2026-08-21\"", json);
         Assert.Contains("\"moveActionId\":\"moveBooking\"", json);
         Assert.Contains("\"selectActionId\":\"openBooking\"", json);
-        // The board's action ids are advertised so the renderer routes them back.
+        // The board's action ids with a handler method are advertised so the renderer routes them
+        // back (the web client only sends advertised actions); one without a handler may be an
+        // ancestor's and is not captured (Java: PlanningBoardSyncTest, Python: same rule).
         Assert.Contains("{\"id\":\"moveBooking\"", json);
         Assert.Contains("{\"id\":\"openBooking\"", json);
+        Assert.DoesNotContain("{\"id\":\"resizeBooking\"", json);
         // The component id travels on the wrapping ClientSide component.
         Assert.Contains("\"id\":\"tape\"", json);
+    }
+
+    [Fact]
+    public void PlanningBoard_room_diary_extras_travel()
+    {
+        // Java: PlanningBoardSyncTest.roomDiaryExtrasTravel — the OPERA Room Diary: attribute
+        // columns per room, icons, a hover summary, and the resize / double-click / range actions.
+        var json = RenderView(typeof(PlanningPage));
+
+        Assert.Contains("\"attributeColumns\":[\"Type\",\"Status\"]", json);
+        Assert.Contains("\"attributes\":[\"STD\",\"Clean\"],\"icon\":\"vaadin:star\"", json);
+        Assert.Contains("\"group\":\"Floor 1\",\"attributes\":[],\"icon\":null", json);
+        Assert.Contains("\"icon\":\"vaadin:star\",\"summary\":\"Ada Lovelace\\n3 → 7 Aug · BAR\"", json);
+        Assert.Contains("\"resizeActionId\":\"resizeBooking\"", json);
+        Assert.Contains("\"openActionId\":\"editBooking\"", json);
+        Assert.Contains("\"rangeSelectActionId\":\"newBooking\"", json);
+        // The view has no handler for these, so they are not advertised (an ancestor may own them).
+        Assert.DoesNotContain("{\"id\":\"resizeBooking\"", json);
+        Assert.DoesNotContain("{\"id\":\"editBooking\"", json);
+        Assert.DoesNotContain("{\"id\":\"newBooking\"", json);
     }
 
     [Fact]

@@ -73,6 +73,8 @@ fun renderTabs(r: ComponentRenderer, component: JsonNode, state: JsonNode, data:
             tabs.addTab(label, body)
         }
     }
+    // Access keys: switching tab changes which buttons are showing — re-assign the screen's letters.
+    if (r.ctx.session.accessKeys) tabs.addChangeListener { AccessKeys.scheduleRefreshFrom(tabs) }
     return tabs
 }
 

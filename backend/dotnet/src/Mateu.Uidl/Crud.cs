@@ -50,6 +50,12 @@ public abstract class Crud<T> :
     /// <summary>Width of the create/edit drawer when <see cref="EditInDrawer"/> is on.</summary>
     public virtual string EditDrawerWidth => "36rem";
 
+    /// <summary>When true the listing toolbar offers "Export CSV" (action export-csv), which
+    /// downloads the WHOLE filtered result set (search text + smart-search-bar filters) as a CSV
+    /// file, one column per visible entity property. (C# analogue of Java's
+    /// Listing.csvExportable on an AutoCrud; Excel/PDF exports have no exporter in this port.)</summary>
+    public virtual bool CsvExportable => false;
+
     // ── The capability model over the classic Crud surface ─────────────────────
     // A Crud declares every capability; these hooks narrow them per crud (consulted by the
     // framework when building the listing's buttons/columns — mirrors Java's Crud.canView & co).

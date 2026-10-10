@@ -171,6 +171,23 @@ class FieldMetadataExtractorTest {
         FieldMetadataExtractor.getOptions(field("color"), new Object(), httpRequest());
 
     assertThat(options).extracting(Option::value).containsExactly("RED", "GREEN");
-    assertThat(options).extracting(Option::label).containsExactly("Rojo", "GREEN");
+    assertThat(options).extracting(Option::label).containsExactly("Rojo", "Green");
+  }
+
+  enum Room {
+    DOUBLE_DELUXE,
+    JUNIOR_SUITE {
+      @Override
+      public String toString() {
+        return "Junior suite (sea view)";
+      }
+    }
+  }
+
+  @Test
+  void anEnumConstantIsCalledByItsLabelThenItsToStringThenItsNameHumanized() {
+    assertThat(FieldMetadataExtractor.enumLabel(Room.DOUBLE_DELUXE)).isEqualTo("Double deluxe");
+    assertThat(FieldMetadataExtractor.enumLabel(Room.JUNIOR_SUITE))
+        .isEqualTo("Junior suite (sea view)");
   }
 }

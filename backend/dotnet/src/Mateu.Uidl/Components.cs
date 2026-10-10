@@ -137,6 +137,10 @@ public sealed record ResponsiveGrid : ComponentBase
     /// <summary>Named areas pinned with position:sticky while the rest of the grid scrolls (coherence
     /// -plan #7): a child whose slot is listed here gets a sticky wrapper. Null/empty = none.</summary>
     public IReadOnlyList<string>? StickyAreas { get; init; }
+    /// <summary>The viewer may rearrange the tiles by dragging them. The order is the viewer's own,
+    /// kept by the renderer per screen, keyed by each child's id (its index when it has none); the
+    /// server's order stays the default. False = fixed order.</summary>
+    public bool Reorderable { get; init; }
 
     /// <summary>The CSS grid-template-columns resolved from the tracks (e.g. "auto 1fr 15rem").</summary>
     public string? GridTemplateColumns() =>
@@ -285,6 +289,10 @@ public sealed record PlanningResource
     public string? Id { get; init; }
     public string? Label { get; init; }
     public string? Group { get; init; }
+    /// <summary>Values of the board's attribute columns, in order (e.g. "SUP", "Clean").</summary>
+    public IReadOnlyList<string> Attributes { get; init; } = [];
+    /// <summary>Icon shown before the label (icon name, e.g. "vaadin:star"); null for none.</summary>
+    public string? Icon { get; init; }
 }
 
 /// <summary>One block of a <see cref="PlanningBoard"/>: a booking/assignment spanning Start to End
@@ -299,6 +307,10 @@ public sealed record PlanningBlock
     public string? Label { get; init; }
     public string? Color { get; init; }
     public string? Status { get; init; }
+    /// <summary>Icon shown before the label (e.g. "vaadin:star" for a VIP); null for none.</summary>
+    public string? Icon { get; init; }
+    /// <summary>What hovering the block shows (lines separated by \n); null = label + dates.</summary>
+    public string? Summary { get; init; }
 }
 
 /// <summary>A planning board / tape chart: one row per <see cref="PlanningResource"/>, one column
@@ -315,6 +327,17 @@ public sealed record PlanningBoard : ComponentBase
     public DateOnly? To { get; init; }
     public string? MoveActionId { get; init; }
     public string? SelectActionId { get; init; }
+    /// <summary>Headers of the attribute columns shown next to each resource's label (e.g. "Type",
+    /// "Status"); each resource carries its values in <see cref="PlanningResource.Attributes"/>.</summary>
+    public IReadOnlyList<string> AttributeColumns { get; init; } = [];
+    /// <summary>Action run when a block's start/end edge is dragged: _blockId, _resourceId, _start,
+    /// _end (ISO dates, end inclusive). Null = not resizable.</summary>
+    public string? ResizeActionId { get; init; }
+    /// <summary>Action run on double click on a block: _blockId.</summary>
+    public string? OpenActionId { get; init; }
+    /// <summary>Action run when the user drags across EMPTY cells of a resource: _resourceId,
+    /// _start, _end (end inclusive). Null = no range selection.</summary>
+    public string? RangeSelectActionId { get; init; }
 }
 
 /// <summary>One card on a <see cref="KanbanColumn"/>. A card with an ActionId is clickable.</summary>
@@ -392,22 +415,51 @@ public sealed record Stat : ComponentBase
     public string? ActionId { get; init; }
 }
 
-/// <summary>One event on a <see cref="Calendar"/>: a title on a Date, with an optional color and
-/// an ActionId that makes the chip clickable.</summary>
+/// <summary>One event on a <see cref="Calendar"/>: a title on a Date — through EndDate (inclusive)
+/// when it spans several days —, optionally between StartTime and EndTime ("HH:mm", shown in the
+/// week, day and list views), with an optional color and an ActionId that makes the chip
+/// clickable.</summary>
 public sealed record CalendarEvent
 {
     public string? Id { get; init; }
     public string? Title { get; init; }
     public DateOnly? Date { get; init; }
+    public DateOnly? EndDate { get; init; }
+    public string? StartTime { get; init; }
+    public string? EndTime { get; init; }
     public string? Color { get; init; }
     public string? ActionId { get; init; }
 }
 
-/// <summary>A read-only month-grid calendar with events. Month is any day in the month to show.</summary>
+/// <summary>How a <see cref="Calendar"/> shows its period: the Month grid, the Week (Monday to
+/// Sunday around the anchor date), a single Day, or a List — the agenda of the month, grouped by
+/// date. Travels in lowercase (month|week|day|list), like Java's CalendarView.</summary>
+public enum CalendarView
+{
+    Month,
+    Week,
+    Day,
+    List,
+}
+
+/// <summary>What a <see cref="Calendar"/> shows IN a date's cell, besides its events: a short
+/// Label (e.g. the availability of a hotel's Property Calendar) and a Tone (info, success,
+/// warning, danger, neutral) that tints the cell.</summary>
+public sealed record CalendarDay(DateOnly? Date, string? Label, string? Tone = null);
+
+/// <summary>A calendar with events. Month is the ANCHOR date: any day of the month to show in the
+/// month and list views, the day of the day view, a day of the week in the week view. View picks
+/// how the period is shown (default month) and Views, when it lists more than one, lets the user
+/// switch between them in place. Days put a label and a tone in each date's cell, and DayActionId
+/// makes the cells clickable (the action receives the date as <c>_date</c>).</summary>
 public sealed record Calendar : ComponentBase
 {
     public DateOnly? Month { get; init; }
     public IReadOnlyList<CalendarEvent> Events { get; init; } = [];
+    public CalendarView? View { get; init; }
+    public IReadOnlyList<CalendarView> Views { get; init; } = [];
+    public IReadOnlyList<CalendarDay> Days { get; init; } = [];
+    public string? DayActionId { get; init; }
 }
 
 /// <summary>One plan of a <see cref="PricingTable"/>: name, price + period, features and a CTA.
@@ -696,6 +748,124 @@ public sealed record StatusList : ComponentBase
 public sealed record BulletedList : ComponentBase
 {
     public IReadOnlyList<string> Items { get; init; } = [];
+}
+
+/// <summary>An action of an <see cref="ActionPanel"/>. Populated marks an action with data behind
+/// it (listed first and emphasised); a Count greater than zero implies it and is shown next to the
+/// label ("Traces (3)").</summary>
+public sealed record ActionPanelItem(string Label, string ActionId)
+{
+    public IReadOnlyDictionary<string, object?>? Parameters { get; init; }
+    public int? Count { get; init; }
+    public bool Populated { get; init; }
+    public bool Disabled { get; init; }
+}
+
+/// <summary>A column of an <see cref="ActionPanel"/>: a title and its actions.</summary>
+public sealed record ActionPanelCategory(string Title)
+{
+    public IReadOnlyList<ActionPanelItem> Actions { get; init; } = [];
+}
+
+/// <summary>A categorised ACTION PANEL: a trigger button opening a layer with the record's actions
+/// grouped in columns, one per category — the "I want to…" menu of back-office suites. Each column
+/// shows up to MaxPerCategory actions (0 = 10) and a "Show more"; HideUnpopulatedToggle offers to
+/// hide the actions without data. Shortcut (e.g. "ctrl+i") opens it from the keyboard.</summary>
+public sealed record ActionPanel : ComponentBase
+{
+    public string? Label { get; init; }
+    public string? Shortcut { get; init; }
+    public IReadOnlyList<ActionPanelCategory> Categories { get; init; } = [];
+    public int MaxPerCategory { get; init; }
+    public bool HideUnpopulatedToggle { get; init; }
+}
+
+/// <summary>A column of a <see cref="MatrixGrid"/>. Consecutive columns sharing a Group (e.g. the
+/// month) get a spanning header above theirs; Tone (info, success, warning, danger, neutral) tints
+/// the whole column — weekends, a special event.</summary>
+public sealed record MatrixColumn(string Id, string Label)
+{
+    public string? Group { get; init; }
+    public string? Tone { get; init; }
+}
+
+/// <summary>A cell of a <see cref="MatrixGrid"/>: its displayed Value, an optional Tone and whether
+/// it is a Link that runs the grid's CellActionId.</summary>
+public sealed record MatrixCell(string? Value)
+{
+    public string? Tone { get; init; }
+    public bool Link { get; init; }
+
+    public static MatrixCell Of(object? value) => new(value is null ? "" : Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture));
+}
+
+/// <summary>A row of a <see cref="MatrixGrid"/>: one cell per column, in column order. Editable lets
+/// its cells be edited in place; Emphasis marks a total or key row.</summary>
+public sealed record MatrixRow(string Id, string Label)
+{
+    public IReadOnlyList<MatrixCell> Cells { get; init; } = [];
+    public bool Editable { get; init; }
+    public bool Emphasis { get; init; }
+}
+
+/// <summary>A collapsible group of rows of a <see cref="MatrixGrid"/>; Collapsed is its initial
+/// state. A blank Id gets "section&lt;index&gt;" on the wire.</summary>
+public sealed record MatrixSection
+{
+    public string? Id { get; init; }
+    public string? Title { get; init; }
+    public bool Collapsed { get; init; }
+    public IReadOnlyList<MatrixRow> Rows { get; init; } = [];
+}
+
+/// <summary>A MATRIX of values by column — typically metrics or types (rows) by dates (columns), the
+/// shape of an availability or forecast grid. A Link cell dispatches CellActionId on click; a cell of
+/// an Editable row commits through EditActionId. Both receive { _rowId, _columnId, _value } as action
+/// parameters.</summary>
+public sealed record MatrixGrid : ComponentBase
+{
+    public string? RowHeaderLabel { get; init; }
+    public IReadOnlyList<MatrixColumn> Columns { get; init; } = [];
+    public IReadOnlyList<MatrixSection> Sections { get; init; } = [];
+    public string? CellActionId { get; init; }
+    public string? EditActionId { get; init; }
+}
+
+/// <summary>One point on a <see cref="Map"/> (mirrors Java's MapMarker): a pin at Latitude/Longitude
+/// with an optional label (shown on hover/popup), description and color.</summary>
+public sealed record MapMarker
+{
+    public string? Id { get; init; }
+    public double Latitude { get; init; }
+    public double Longitude { get; init; }
+    public string? Label { get; init; }
+    public string? Description { get; init; }
+    public string? Color { get; init; }
+}
+
+/// <summary>A street map (mirrors Java's io.mateu.uidl.data.Map): Position is the centre as
+/// "lat, lon" (free string), Zoom the zoom level as a string. When MarkerActionId is set, clicking
+/// a marker runs that action with the marker's id in parameters._markerId.</summary>
+public sealed record Map : ComponentBase
+{
+    public string? Position { get; init; }
+    public string? Zoom { get; init; }
+    public IReadOnlyList<MapMarker> Markers { get; init; } = [];
+    public string? MarkerActionId { get; init; }
+}
+
+/// <summary>A place to DROP dragged listing rows (a listing decorated [DragRows(type)]): a titled
+/// area wrapping any <see cref="Content"/>. When rows of the <see cref="Accept"/>ed type are dropped
+/// on it, it runs <see cref="ActionId"/> with its <see cref="Parameters"/> plus _draggedIds (the
+/// dragged rows' ids) and _dragType (mirrors Java's DropZone).</summary>
+public sealed record DropZone : ComponentBase
+{
+    public string? Accept { get; init; }
+    public string? ActionId { get; init; }
+    public IReadOnlyDictionary<string, object?> Parameters { get; init; } = new Dictionary<string, object?>();
+    public string? Title { get; init; }
+    public string? Subtitle { get; init; }
+    public IReadOnlyList<IComponent> Content { get; init; } = [];
 }
 
 /// <summary>A compact inline banner: a theme-tinted strip with a severity icon and one line of
@@ -988,6 +1158,24 @@ public sealed record MicroFrontend(string BaseUrl, string Route = "") : Componen
 {
     /// <summary>Extra app state seeded into the island's requests.</summary>
     public object? AppState { get; init; }
+}
+
+// ── Popover ────────────────────────────────────────────────────────────────────
+
+/// <summary>What opens a <see cref="Popover"/>: a click on the wrapped component (the default), or
+/// hover — pointing at it, or focusing it from the keyboard — for read-only details.
+/// (C# analogue of io.mateu.uidl.data.PopoverTrigger.)</summary>
+public enum PopoverTrigger { Click, Hover }
+
+/// <summary>A popover: the <see cref="Wrapped"/> component, and the <see cref="Content"/> shown in
+/// a small floating panel next to it — on click by default, or on hover/focus with
+/// <c>Trigger = PopoverTrigger.Hover</c> (a rate breakdown, a reservation summary). The wire
+/// component id is <see cref="ComponentBase.Id"/> when set. (C# analogue of io.mateu.uidl.data.Popover.)</summary>
+public sealed record Popover : ComponentBase
+{
+    public IComponent? Content { get; init; }
+    public IComponent? Wrapped { get; init; }
+    public PopoverTrigger Trigger { get; init; } = PopoverTrigger.Click;
 }
 
 // ── Overlays ───────────────────────────────────────────────────────────────────

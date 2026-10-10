@@ -244,6 +244,9 @@ public class FieldMetadataExtractor {
     if (field.getType().isEnum()) {
       return enumOptions(field.getType());
     }
+    if (ChoiceCollections.isChoiceCollection(field)) {
+      return enumOptions(ChoiceCollections.elementEnum(field));
+    }
     if (MetaAnnotations.isPresent(field, Lookup.class)
         && SHOWS_EVERY_OPTION.contains(
             FieldTypeMapper.getStereotype(field, instance, httpRequest))) {
@@ -289,14 +292,35 @@ public class FieldMetadataExtractor {
     return new ArrayList<>(found.page().content());
   }
 
+  /**
+   * What an enum constant is called on screen: its {@code @Label}; else its {@code toString()} when
+   * the enum overrides it (a display name the developer already wrote); else its name humanized
+   * ({@code CHECK_OUT} → "Check out"). Showing the raw constant made a @Label necessary on every
+   * constant of every enum — the biggest single source of annotations in the demo corpus.
+   */
+  public static String enumLabel(Object constant) {
+    var e = (Enum<?>) constant;
+    try {
+      var label = MetaAnnotations.find(e.getDeclaringClass().getField(e.name()), Label.class);
+      if (label != null) {
+        return TranslatorContext.translate(label.value());
+      }
+    } catch (NoSuchFieldException ignored) {
+      // not reachable for a real constant
+    }
+    if (!e.name().equals(e.toString())) {
+      return TranslatorContext.translate(e.toString());
+    }
+    return TranslatorContext.translate(io.mateu.uidl.Humanizer.toUpperCaseFirst(e.name()));
+  }
+
   /** One option per constant of {@code enumType}, honouring per-constant @Label/@Icon. */
   static List<Option> enumOptions(Class<?> enumType) {
     List<Option> options = new ArrayList<>();
     for (Object enumConstant : enumType.getEnumConstants()) {
       try {
-        Field enumField = enumType.getField(enumConstant.toString());
-        Label label = MetaAnnotations.find(enumField, Label.class);
-        String labelValue = label != null ? label.value() : enumConstant.toString();
+        Field enumField = enumType.getField(((Enum<?>) enumConstant).name());
+        String labelValue = enumLabel(enumConstant);
         Icon icon = MetaAnnotations.find(enumField, Icon.class);
         options.add(
             Option.builder()

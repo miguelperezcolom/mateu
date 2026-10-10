@@ -1,5 +1,9 @@
+import { calendarAtomOf } from './calendar.mjs'
 import { autoTrail } from './breadcrumbs.mjs'
-import { sectionHomeOf, sectionRoutes } from './navTree.mjs'
+import { sectionHomeOf, sectionRoutes, isSentinelHome } from './navTree.mjs'
+import { applyColumnPrefs, readTileOrder, orderedTileIndices, tileKeyOf, tileScopeOf } from './prefs.mjs'
+import { elementModuleUrl } from './elements.mjs'
+import { sanitizeHtml, markdownToHtml } from './richtext.mjs'
 // Renderer de Mateu sobre VB — el NÚCLEO, en JS puro y testeable sin VB.
 // En la app VB estas funciones serían métodos de app-flow.js; aquí son funciones
 // libres para testearlas en Node.
@@ -95,7 +99,8 @@ export function dynFormMetadataOf(tree) {
     if (!f.dataType || metadata[f.fieldId]) continue // duplicados = referencias de FormRow
     // una LISTA (grid de formulario) no es un campo de texto: la pinta el contenido como tabla
     // (un @Searchable de varios ids sí es un campo: sus chips)
-    if ((f.dataType === 'array' && f.stereotype !== 'searchable') || (f.columns || []).length) continue
+    // una lista es una tabla (no un campo) salvo @Searchable y las de elección múltiple
+    if ((f.dataType === 'array' && f.stereotype !== 'searchable' && !isExtraLayoutField(f)) || (f.columns || []).length) continue
     metadata[f.fieldId] = {
       type: NUMERIC.indexOf(f.dataType) >= 0 ? 'number'
         : f.dataType === 'bool' || f.dataType === 'boolean' ? 'boolean' : 'string',
@@ -143,16 +148,18 @@ export function fieldListOf(tree, state, data) {
   for (const f of collectFields(tree)) {
     if (!f.dataType || seen[f.fieldId]) continue
     seen[f.fieldId] = true
-    if ((f.dataType === 'array' && f.stereotype !== 'searchable') || (f.columns || []).length) continue
+    // una lista es una tabla (no un campo) salvo @Searchable y las de elección múltiple
+    if ((f.dataType === 'array' && f.stereotype !== 'searchable' && !isExtraLayoutField(f)) || (f.columns || []).length) continue
     // la vista de detalle de un @Searchable llega como `<campo>-label`: su texto viaja en data
     const raw = s[f.fieldId] == null && f.stereotype === 'searchable' && data ? data[f.fieldId] : s[f.fieldId]
     // un lookup REMOTO es un desplegable también aquí: sus opciones las carga la chain
     // (bridge.loadLookups) al abrir la pantalla, como las del editor de fila
     const widget = fieldWidgetOf(f, data, { lookups: true, value: raw, textWhenEmpty: true })
-    out.push({
-      ...widget,
-      value: raw == null ? null : (widget.isSelect ? plainValueOf(raw) : raw),
-    })
+    let value = raw == null ? null : (widget.isSelect ? plainValueOf(raw) : raw)
+    if (widget.isMultiSelect || widget.isCheckboxSet)
+      value = Array.isArray(raw) ? raw.map(plainValueOf) : (raw == null || raw === '' ? [] : String(raw).split(','))
+    else if (widget.isMoney) value = raw == null || raw === '' || Number.isNaN(Number(raw)) ? null : Number(raw)
+    out.push({ ...widget, value })
   }
   return out
 }
@@ -292,6 +299,8 @@ export function overlayOf(reg) {
   return {
     id,
     title: ctx.title || '',
+    // el subtítulo del Drawer (General Drawer: «Room 102 · 12 oct → 14 oct») bajo el título
+    subtitle: ctx.subtitle || '',
     position: ctx.position || 'end',
     width: ctx.width,
     state: ctx.state || {},
@@ -375,7 +384,9 @@ export function collectTexts(node, out = []) {
  *  StatusList, botones, inputs, notices…) — el markup pinta blocks y deja texts solo
  *  como forma legada para tests/fixtures. */
 export function foldoutOf(ctx) {
-  const node = ctx && ctx.tree ? findByType(ctx.tree, 'FoldoutLayout') : null
+  // el foldout de PÁGINA: uno metido en una pestaña (o en un panel de consola) es contenido de esa
+  // pestaña — visit() lo pinta allí, con sus paneles plegables — y no se adueña de la pantalla
+  const node = ctx && ctx.tree ? findOutside(ctx.tree, 'FoldoutLayout', { ...PANE_TYPES, TabLayout: true }) : null
   if (!node) return null
   const md = node.metadata
   const children = node.children || []
@@ -446,6 +457,9 @@ export function foldoutOf(ctx) {
  *  derecha); STEPS manda uno HORIZONTAL, y eso es un tren de pasos ARRIBA (horizontal: true →
  *  oj-train sobre el contenido, y en pantallas estrechas la lista de pasos en vertical, que un
  *  tren de 4-5 rótulos no cabe en un móvil). */
+/** Id del paso virtual que el guided process enseña cuando el wizard ya terminó. */
+export const WIZARD_DONE_STEP = '_completed'
+
 export function wizardOf(ctx) {
   const node = ctx && ctx.tree ? findByType(ctx.tree, 'ProgressSteps') : null
   if (!node) return null
@@ -465,7 +479,15 @@ export function wizardOf(ctx) {
     display: 'on',
     status: statusOf(s, i) === 'done' ? 'success' : 'none',
   }))
-  const currentStep = currentId
+  // RESULTADO: con todos los pasos hechos (el wire no trae el paso de resultado, que no es un
+  // paso del proceso) el guided process se quedaba en el último paso — su título y su pie
+  // Cancel/Done. Se añade un paso final «Completed», hecho y actual: el título dice que terminó y
+  // el pie se oculta (completed → clase mateu-wizard-completed en la página)
+  const completed = wire.length > 0 && wire.every((s, i) => statusOf(s, i) === 'done')
+  if (completed) {
+    steps.push({ id: WIZARD_DONE_STEP, label: 'Completed', title: 'Completed', display: 'on', status: 'success' })
+  }
+  const currentStep = completed ? WIZARD_DONE_STEP : currentId
   // el título del proceso (el h2 del wizard) y su subtítulo (@Subtitle): el overview del
   // guided process los pinta arriba a la izquierda, sobre las columnas de los pasos
   const heading = ctx.tree ? findFirst(ctx.tree, (n) => n.metadata && n.metadata.type === 'Text'
@@ -476,12 +498,13 @@ export function wizardOf(ctx) {
     title: heading ? String(heading.metadata.text) : '',
     subtitle: subtitleNode ? String(subtitleNode.metadata.text || '') : '',
     // Start del overview: el primer paso; con el wizard ya empezado, «Reanudar» en el suyo
-    resumeStepId: currentIndex > 0 && currentId ? currentId : '',
+    resumeStepId: !completed && currentIndex > 0 && currentId ? currentId : '',
     steps,
     currentStep,
+    completed,
     horizontal: !md.vertical,
-    currentIndex,
-    currentLabel: steps.length ? steps[currentIndex].label : '',
+    currentIndex: completed ? steps.length - 1 : currentIndex,
+    currentLabel: steps.length ? steps[completed ? steps.length - 1 : currentIndex].label : '',
     total: steps.length,
     // el tren (oj-train): los hechos se pueden VISITAR (volver atrás), los que faltan no —
     // se avanza con el botón del paso, que valida
@@ -507,11 +530,314 @@ export function wizardOf(ctx) {
   }
 }
 
+// ── MatrixGrid → oj-data-grid ────────────────────────────────────────────────────────────────
+// La matriz (filas × fechas, secciones plegables, celdas que enlazan y filas editables) la pinta
+// el oj-data-grid de JET sobre un RowDataGridProvider de un FlattenedTreeDataProviderView: las
+// secciones son nodos del árbol (el disclosure lo pinta JET), las columnas c0..cN. Aquí se arma
+// la especificación PURA (probada en Node); el provider lo crea la fábrica del bridge.
+let matrixProviderFactory = null
+export function setMatrixProviderFactory(factory) { matrixProviderFactory = factory }
+
+const MATRIX_TONES = { info: 1, success: 1, warning: 1, danger: 1, neutral: 1 }
+const toneClass = (tone) => (tone && MATRIX_TONES[tone] ? 'mateu-matrix-' + tone : '')
+
+/** Clave del estado plegado de una sección (el mismo almacén que los paneles plegables). */
+export const matrixSectionKey = (gridId, sectionId) => 'matrix:' + gridId + ':' + sectionId
+
+export function matrixSpecOf(m, id) {
+  const gridId = String(id || 'matrix').replace(/[^A-Za-z0-9_-]/g, '_')
+  const columns = m.columns || []
+  const columnKeys = columns.map((c, i) => 'c' + i)
+  const cellsOf = (row, sectionId) => {
+    const out = { id: sectionId + '/' + row.id, label: row.label || '', _rowId: row.id, _editable: !!row.editable,
+      _emphasis: !!row.emphasis }
+    columns.forEach((col, i) => {
+      const cell = (row.cells || [])[i] || { value: '' }
+      const cls = ['mateu-matrix-cell', toneClass(cell.tone) || toneClass(col.tone),
+        row.emphasis ? 'mateu-matrix-emphasis' : '', cell.link && m.cellActionId ? 'mateu-matrix-link' : '',
+        row.editable && m.editActionId ? 'mateu-matrix-editable' : ''].filter(Boolean).join(' ')
+      out['c' + i] = { v: cell.value == null ? '' : String(cell.value), cls, link: !!(cell.link && m.cellActionId),
+        editable: !!(row.editable && m.editActionId), rowId: row.id, columnId: col.id }
+    })
+    return out
+  }
+  const data = []
+  const expanded = []
+  for (const section of m.sections || []) {
+    const rows = (section.rows || []).map((r) => cellsOf(r, section.id))
+    if (section.title) {
+      const key = '§' + section.id
+      const blank = {}
+      columnKeys.forEach((k) => { blank[k] = { v: '', cls: 'mateu-matrix-cell mateu-matrix-section-cell', link: false } })
+      data.push({ id: key, label: section.title, _section: section.id, ...blank, children: rows })
+      if (panelExpanded(matrixSectionKey(gridId, section.id), !section.collapsed)) expanded.push(key)
+    } else {
+      data.push(...rows)
+    }
+  }
+  // cabeceras: si hay grupos (el mes), dos niveles — el grupo abarca sus columnas consecutivas
+  const hasGroups = columns.some((c) => c.group)
+  const columnHeaders = []
+  if (!hasGroups) columns.forEach((c) => columnHeaders.push(c.label || c.id))
+  else {
+    for (const c of columns) {
+      const last = columnHeaders[columnHeaders.length - 1]
+      if (c.group && last && last.group === c.group) last.children.push({ data: c.label || c.id })
+      else if (c.group) columnHeaders.push({ data: c.group, group: c.group, children: [{ data: c.label || c.id }] })
+      else columnHeaders.push({ data: c.label || c.id, depth: 2 })
+    }
+  }
+  return { gridId, data, expanded, columnKeys, columnHeaders: hasGroups ? columnHeaders.map(({ group, ...h }) => h) : columnHeaders,
+    rowHeaderLabel: m.rowHeaderLabel || '' }
+}
+
+/** La altura que el wire pide para el mapa (su `style`), o 25rem como el <mateu-map> del web. */
+export function mapHeightOf(style) {
+  const m = /(?:^|;)\s*height\s*:\s*([^;]+)/i.exec(style || '')
+  return m ? m[1].trim() : '25rem'
+}
+
+/** Map: JET no tiene mapa de calles (oj-thematic-map pide geografía GeoJSON), así que el átomo
+ *  es un contenedor que installMaps (poc/map.mjs) llena con Leaflet y teselas de OpenStreetMap.
+ *  La especificación viaja serializada en un data-attribute, como el HTML del texto enriquecido. */
+export function mapAtomOf(m, id, style) {
+  const markers = (m.markers || []).map((k) => ({
+    id: k.id, latitude: k.latitude, longitude: k.longitude,
+    label: k.label || '', description: k.description || '', color: k.color || '',
+  }))
+  return {
+    isMap: true,
+    mapId: 'mateuMap-' + (id || 'map'),
+    mapSpec: JSON.stringify({ position: m.position || '', zoom: m.zoom || '', markers, markerActionId: m.markerActionId || '' }),
+    mapStyle: { width: '100%', height: mapHeightOf(style) },
+  }
+}
+
+export function matrixAtomOf(m, id, interp = (x) => x) {
+  const spec = matrixSpecOf({ ...m, rowHeaderLabel: interp(m.rowHeaderLabel || '') }, id)
+  const rows = spec.data.reduce((n, r) => n + 1 + (r.children && spec.expanded.includes(r.id) ? r.children.length : 0), 0)
+  return {
+    isMatrix: true,
+    gridId: 'mateuMatrix-' + spec.gridId,
+    matrixId: spec.gridId,
+    cellActionId: m.cellActionId || '',
+    editActionId: m.editActionId || '',
+    // alto a la medida (cabecera(s) + filas visibles), con techo: el grid hace scroll dentro
+    // (un OBJETO: el :style de JET no acepta la cadena CSS)
+    gridStyle: { width: '100%', height: Math.min(36, 3 + (spec.columnHeaders.some((h) => h && h.children) ? 2.25 : 0) + rows * 2.375) + 'rem' },
+    provider: matrixProviderFactory ? matrixProviderFactory(spec) : null,
+    // el tono va en la CELDA del grid (no en el texto): JET pide la clase por contexto
+    cellClassName: (ctx) => {
+      // en el callback de clase el valor viene en ctx.data.data (en la plantilla, en cell.item)
+      const d = (ctx && ctx.data && ctx.data.data) || (ctx && ctx.item && ctx.item.data && ctx.item.data.data)
+      return 'oj-helper-justify-content-right ' + ((d && d.cls) || '')
+    },
+    // qué celdas se editan lo decide JET (cell.editable): las demás quedan read-only nativas
+    cellEditable: (ctx) => {
+      const d = (ctx && ctx.data && ctx.data.data) || (ctx && ctx.item && ctx.item.data && ctx.item.data.data)
+      return d && d.editable ? 'enable' : 'disable'
+    },
+    columnHeaderClassName: (ctx) => {
+      const col = (m.columns || [])[ctx && ctx.index]
+      return (ctx && ctx.level === 0 && (m.columns || []).some((c) => c.group)) ? '' : toneClass(col && col.tone)
+    },
+    spec,
+  }
+}
+
+/** «ctrl+i» → «Ctrl+I», para el rótulo del disparador. */
+export function shortcutHintOf(shortcut) {
+  if (!shortcut) return ''
+  return String(shortcut).split('+').map((k) => k.trim()).filter(Boolean)
+    .map((k) => (k.length === 1 ? k.toUpperCase() : k.charAt(0).toUpperCase() + k.slice(1))).join('+')
+}
+
+/** PANEL DE ACCIONES por categorías («I want to…»): columnas por categoría, las acciones CON
+ *  datos primero (y en negrita), hasta maxPerCategory visibles y el resto tras «Show more».
+ *  Mostrar más / ocultar las vacías / abrir y cerrar es estado del DOM (installActionPanels):
+ *  sin ida y vuelta al servidor y sin re-proyectar. */
+export function actionPanelAtomOf(m, id, interp = (x) => x) {
+  const max = m.maxPerCategory > 0 ? m.maxPerCategory : 10
+  const panelId = 'mateuActionPanel-' + String(id || m.label || 'actions').replace(/[^A-Za-z0-9_-]/g, '_')
+  const categories = (m.categories || []).map((c, ci) => {
+    const actions = (c.actions || [])
+      .map((a, i) => ({ a, i }))
+      .sort((x, y) => (Number(!!y.a.populated) - Number(!!x.a.populated)) || (x.i - y.i))
+      .map(({ a }, i) => ({
+        label: interp(a.label || '') + (a.count > 0 ? ' (' + (a.count > 25 ? '25+' : a.count) + ')' : ''),
+        actionId: a.actionId || '',
+        parameters: a.parameters || {},
+        disabled: !!a.disabled,
+        itemClass: 'mateu-ap-item' + (a.populated ? ' mateu-ap-populated' : ' mateu-ap-unpopulated') + (i >= max ? ' mateu-ap-extra' : ''),
+      }))
+    const extra = Math.max(0, actions.length - max)
+    // con «ocultar vacías» una columna sin acciones con datos sobra entera, y el «mostrar más»
+    // también cuando lo que esconde son sólo vacías (los poblados van primero: si alguno queda
+    // fuera del corte, todo lo que hay antes también es poblado)
+    const populated = (c.actions || []).filter((a) => a.populated).length
+    return {
+      key: panelId + ':' + ci, title: interp(c.title || ''), actions, hasMore: extra > 0,
+      moreLabel: 'Show more (' + extra + ')',
+      columnClass: 'mateu-ap-column' + (populated ? '' : ' mateu-ap-column-unpopulated'),
+      moreClass: 'mateu-ap-more' + (populated > max ? '' : ' mateu-ap-unpopulated'),
+    }
+  }).filter((c) => c.actions.length)
+  return {
+    isActionPanel: true,
+    panelId,
+    label: interp(m.label || 'I want to…'),
+    shortcut: String(m.shortcut || '').toLowerCase(),
+    title: interp(m.label || 'I want to…') + (m.shortcut ? '  (' + shortcutHintOf(m.shortcut) + ')' : ''),
+    hideToggle: !!m.hideUnpopulatedToggle,
+    categories,
+  }
+}
+
+/** Las pistas de un grid-template-columns como PESOS: repeat(N, x) se expande, «Nfr», «N%» y
+ *  minmax(…, Nfr) pesan N, lo demás (px, rem, auto, min-content…) pesa 1 — una aproximación: el
+ *  flex de JET reparte en doceavos, no en pistas. */
+export function gridTrackWeights(template) {
+  const src = String(template || '').trim()
+  if (!src) return []
+  // trocea por espacios de primer nivel (no dentro de paréntesis)
+  const tokens = []
+  let depth = 0, cur = ''
+  for (const ch of src) {
+    if (ch === '(') depth++
+    if (ch === ')') depth--
+    if (/\s/.test(ch) && depth === 0) { if (cur) tokens.push(cur); cur = '' } else cur += ch
+  }
+  if (cur) tokens.push(cur)
+  const weightOf = (tok) => {
+    const fr = /(\d*\.?\d+)(fr|%)\)?$/.exec(tok)
+    return fr ? Number(fr[1]) : 1
+  }
+  const out = []
+  for (const tok of tokens) {
+    const rep = /^repeat\(\s*(\d+)\s*,\s*(.+)\)$/.exec(tok)
+    if (rep) {
+      const inner = gridTrackWeights(rep[2])
+      for (let i = 0; i < Number(rep[1]); i++) out.push(...inner)
+    } else if (/^repeat\(/.test(tok)) return [] // auto-fill/auto-fit: lo decide el ancho, no se sabe aquí
+    else out.push(weightOf(tok))
+  }
+  return out
+}
+
+/** Clase oj-flex de cada hijo de una rejilla (auto-colocación CSS: en orden, saltando de fila
+ *  cuando el span no cabe). null si la rejilla es de una pista (o no se sabe): se apila. */
+export function gridColClasses(template, colSpans, count) {
+  const weights = gridTrackWeights(template)
+  if (weights.length < 2) return null
+  const total = weights.reduce((a, b) => a + b, 0)
+  const classes = []
+  let cursor = 0
+  for (let i = 0; i < count; i++) {
+    const span = Math.max(1, Math.min(weights.length, (colSpans && colSpans[i]) || 1))
+    if (cursor + span > weights.length) cursor = 0
+    const share = weights.slice(cursor, cursor + span).reduce((a, b) => a + b, 0) / total
+    const twelfths = Math.max(1, Math.min(12, Math.round(12 * share)))
+    classes.push('oj-flex-item oj-sm-12 oj-md-' + twelfths + (twelfths < 12 ? ' oj-sm-padding-2x-end' : ''))
+    cursor = (cursor + span) % weights.length
+  }
+  return classes
+}
+
+/** El tipo MIME de un tipo de arrastre: así el destino sabe, mientras se arrastra (cuando aún no
+ *  puede leer los datos), si lo que viene es suyo. */
+export const dragMimeOf = (type) => (type ? 'application/x-mateu-' + String(type).toLowerCase().replace(/[^a-z0-9.+-]/g, '-') : '')
+
+/** Un Avatar del wire → lo que pinta oj-avatar: iniciales (las dadas o las del nombre) e imagen. */
+export function avatarOf(m) {
+  const name = String((m && m.name) || '')
+  const initials = (m && m.abbreviation) || name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('')
+  return { name, initials, src: m && m.image ? elementModuleUrl(m.image) : '' }
+}
+
+/** Texto enriquecido (richText/html/markdown) de un campo o componente → su HTML saneado. */
+const RICH_TEXT_STEREOTYPES = { richText: true, html: true, markdown: true }
+export function richHtmlOf(kind, value) {
+  const text = value == null ? '' : String(value)
+  return kind === 'markdown' ? markdownToHtml(text) : sanitizeHtml(text)
+}
+
+/** «colSpan de N columnas» → la clase oj-flex del bloque (doceavos, nunca más de 12). */
+export function panelColClass(colSpan, columns) {
+  const span = Math.max(1, Math.min(columns, colSpan > 0 ? colSpan : 1))
+  const twelfths = Math.max(1, Math.min(12, Math.round((12 * span) / columns)))
+  return 'oj-flex-item oj-sm-12 oj-md-' + twelfths + ' oj-sm-padding-2x-end'
+}
+
+const TREND_TEXT = { up: '▲', down: '▼', neutral: '■' }
+/** Un MetricCard (KPI) listo para la plantilla: valor grande, tendencia con color, y si lleva
+ *  actionId, un botón que lanza la acción (p.ej. la búsqueda filtrada que lo explica). */
+export function metricOf(m, interp = (x) => x) {
+  const trend = m.trend || ''
+  return {
+    title: interp(m.title || ''),
+    value: String(m.value == null ? '' : m.value),
+    unit: m.unit || '',
+    trendText: trend ? (TREND_TEXT[trend] || '') + (m.trendLabel ? ' ' + interp(m.trendLabel) : '') : (m.trendLabel ? interp(m.trendLabel) : ''),
+    trendClass: 'oj-typography-body-sm ' + (trend === 'up' ? 'mateu-trend-up' : trend === 'down' ? 'mateu-trend-down' : 'oj-text-color-secondary'),
+    description: interp(m.description || ''),
+    actionId: m.actionId || '',
+    parameters: {},
+  }
+}
+
+// Chart.js (el vocabulario del wire) → oj-chart de JET
+const CHART_TYPES = {
+  bar: { type: 'bar' }, line: { type: 'line' }, pie: { type: 'pie' }, doughnut: { type: 'pie', innerRadius: 0.55 },
+  radar: { type: 'line', polar: true }, polarArea: { type: 'bar', polar: true },
+  scatter: { type: 'line', markersOnly: true }, bubble: { type: 'line', markersOnly: true },
+}
+/** Un Chart (series × etiquetas) o un TrendChart (una serie) → átomo de oj-chart: los ITEMS
+ *  precomputados ({series, group, value}); en una tarta cada etiqueta es una serie (una porción). */
+export function chartAtomOf(m, t, interp = (x) => x) {
+  const trend = t === 'TrendChart'
+  const labels = (trend ? m.labels : m.chartData && m.chartData.labels) || []
+  const datasets = trend
+    ? [{ label: m.title || '', data: m.values || [] }]
+    : ((m.chartData && m.chartData.datasets) || [])
+  const spec = trend ? { type: m.area ? 'area' : 'line' } : (CHART_TYPES[m.chartType] || CHART_TYPES.bar)
+  const pie = spec.type === 'pie'
+  const items = []
+  datasets.forEach((d, si) => (d.data || []).forEach((value, i) => {
+    const label = labels[i] != null ? String(labels[i]) : String(i + 1)
+    items.push({
+      _rowNumber: items.length,
+      id: si + ':' + i,
+      value: value == null ? null : Number(value),
+      series: pie ? label : (d.label || 'Series ' + (si + 1)),
+      group: pie ? (d.label || 'Total') : label,
+    })
+  }))
+  return {
+    isChart: true,
+    title: trend ? interp(m.title || '') : '',
+    chartType: spec.type,
+    coordinateSystem: spec.polar ? 'polar' : 'cartesian',
+    innerRadius: spec.innerRadius || 0,
+    lineType: spec.markersOnly ? 'none' : 'auto',
+    markerDisplayed: spec.markersOnly ? 'on' : 'auto',
+    legend: datasets.length > 1 || pie ? 'on' : 'off',
+    chartStyle: { width: '100%', height: pie ? '18rem' : '16rem' },
+    items,
+    provider: dataProviderFactory ? dataProviderFactory(items) : null,
+  }
+}
+
 /** ¿Es un átomo RICO (display de verdad, no un campo suelto)? Cuando el contenido de una pantalla
  *  los trae, el formulario genérico sobra: sus campos ya se ven en ellos. */
+export const RICH_ATOM_FLAGS = [
+  'isEntityHeader', 'isTaskProgress', 'isMeter', 'isStatusList', 'isLedger', 'isPayment',
+  'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
+  // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
+  // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
+  'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt', 'isImage', 'isAvatar', 'isGallery', 'isRichText', 'isMap',
+]
 export function isRichAtom(a) {
-  return !!(a && (a.isEntityHeader || a.isTaskProgress || a.isMeter || a.isStatusList || a.isLedger
-    || a.isPayment || a.isResourceGrid || a.isAddOns || a.isStat || a.isNotice || a.isPropertyRow))
+  return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
 }
 
 /** ¿Es este bloque de botones el PIE del wizard (Back / Next / la acción de completar)? */
@@ -718,7 +1044,15 @@ export function generalOverviewOf(ctx) {
   const facts = (md.facts || []).map((f) => ({ label: f.label, value: f.value }))
   if (md.metricLabel) facts.push({ label: md.metricLabel, value: md.metricValue })
   const cards = findAllByType(ctx.tree, 'Card')
-    .map(cardOf)
+    .map((node) => {
+      const card = cardOf(node)
+      // el contenido de la tarjeta como ÁTOMOS (no sólo sus textos): una StatusList, una tabla…
+      // se pintaban vacías porque sólo se recogía el texto
+      const content = (node.metadata && node.metadata.content) || []
+      const blocks = islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_overviewCard', metadata: { type: 'VerticalLayout' },
+        children: Array.isArray(content) ? content : [content] } }) || []
+      return { ...card, items: blocks.flatMap((b) => b.items || []) }
+    })
     .filter((card) => card.title) // los Card sin título son wrappers de sección/estructura
   return {
     title: md.title || '',
@@ -780,13 +1114,18 @@ export function itemOverviewOf(ctx) {
   if (!keyCard) return null
   // solo las pestañas de la barra EXTERIOR: las de una barra anidada son contenido de su
   // pestaña (sus textos van en los de ella), no hermanas de la lista
+  // el contenido como ÁTOMOS (un Markdown, un Chart, una StatusList…): antes solo sus textos sueltos
+  const atomsOfNodes = (nodes) => (islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_itemOverview',
+    metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => b.items || [])
   const tabs = (tabLayout.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => ({
     id: 'itab-' + i,
     label: tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1),
     texts: collectTexts(tab),
+    items: atomsOfNodes(tab.children || []),
   }))
+  const keyContent = keyCard ? ((keyCard.metadata && keyCard.metadata.content) || []) : []
   return {
-    key: keyCard ? cardOf(keyCard) : { title: '', texts: [] },
+    key: keyCard ? { ...cardOf(keyCard), items: atomsOfNodes(Array.isArray(keyContent) ? keyContent : [keyContent]) } : { title: '', texts: [], items: [] },
     tabs,
   }
 }
@@ -825,8 +1164,9 @@ export function pageStyleOf(ctx) {
 }
 
 /** Proyección de NAVEGACIÓN de la shell: items de primer nivel + grupos con sus hijos.
- *  Un grupo (submenus en el wire) NO resuelve por sync — sus hijos navegan por la ruta
- *  TERMINAL (la compuesta /gestion/person da "Not found."; se recorta el prefijo del padre).
+ *  Los hijos de un grupo navegan por su ruta COMPUESTA (/gestion/person) con el serverSideType
+ *  del app (como Vaadin); un RouteLink dentro de un grupo no resuelve así y se carga por su
+ *  ruta TERMINAL (loadMenuRouteInto, en transport.mjs).
  *  Selectores de contexto y acciones de cabecera salen listos para bindings simples. */
 // Iconos de menú: el wire trae nombres NEUTRALES (convención Mateu: set de Vaadin,
 // p.ej. "vaadin:calendar-user") — cada renderer los traduce a su set; aquí, al icon
@@ -905,9 +1245,12 @@ export function ojIconOrGenericOf(icon) {
  */
 function navNodeOf(option, parentRoute) {
   const raw = option.route || option.path || ''
-  const id = !option.baseUrl && parentRoute && raw.indexOf(parentRoute + '/') === 0
-    ? raw.slice(parentRoute.length)
-    : raw
+  // la ruta COMPUESTA (/gestion/person), como en Vaadin: es un camino de menú que el backend
+  // resuelve con el serverSideType del app (onMateuNavigate lo añade vía localMenuOptionOf).
+  // Recortarla a la terminal (/person) sólo funcionaba si el campo @Menu se llamaba como la ruta
+  // @UI de su clase; con `@Menu FloorPlan floorPlan` + @UI("/floor-plan") quedaba sin dueño.
+  void parentRoute
+  const id = raw
   // una entrada OCULTA (@Menu @Hidden, visible:false) no se dibuja a ninguna profundidad: su ruta
   // sigue resolviendo (la registra el transporte), pero el menú no la enseña
   const children = (option.submenus || option.submenu || []).filter((child) => child.visible !== false)
@@ -921,6 +1264,37 @@ function navNodeOf(option, parentRoute) {
     hasChildren: children.length > 0,
     // el padre de un nieto es la ruta CRUDA del hijo, no su id ya recortado
     children: children.map((child) => navNodeOf(child, raw)),
+    // MENÚ DE TARJETAS (@Menu(display = cards) en un grupo): en vez de un oj-menu, un oj-popup
+    // con una rejilla de oj-action-card — título, descripción, icono/imagen y, si la entrada tiene
+    // hijos, esos hijos como acciones de la tarjeta. Los ids del popup y de su lanzador van
+    // precalculados (el CSP de VB no concatena en las plantillas).
+    ...cardsOf(option, children, raw),
+  }
+}
+
+function cardsOf(option, children, raw) {
+  const isCards = option.display === 'cards' && children.length > 0
+  if (!isCards) return { isCards: false, cards: [], popupId: '', anchorId: '' }
+  const key = String(raw || option.label || 'cards').replace(/[^A-Za-z0-9_-]/g, '_')
+  return {
+    isCards: true,
+    popupId: 'mateuCards_' + key,
+    anchorId: 'mateuCardsBtn_' + key,
+    cards: children.filter((c) => !c.separator).map((child) => {
+      const node = navNodeOf(child, raw)
+      return {
+        id: node.id,
+        label: node.label,
+        description: child.description || '',
+        // un icono declarado sin equivalente Redwood toma el genérico: las tarjetas quedan alineadas
+        iconClass: child.icon ? ojIconOrGenericOf(child.icon) : '',
+        image: child.image || '',
+        hasImage: !!child.image,
+        hasIcon: !child.image && !!child.icon,
+        navigable: !node.hasChildren,
+        actions: node.children.filter((a) => !a.hasChildren).map((a) => ({ id: a.id, label: a.label })),
+      }
+    }),
   }
 }
 
@@ -988,7 +1362,12 @@ export function shellNavOf(reg) {
       children: (a.children || []).map((c) => ({ actionId: c.actionId, label: c.label })),
     })),
     serverSideType: shell.serverSideType,
-    homeRoute: shell.homeRoute || '',
+    // sin home declarada (centinela del servidor) → la primera pantalla del menú EN PROFUNDIDAD:
+    // con secciones (HAMBURGER_SECTIONS) el primer nivel son grupos y la home de la sección es su
+    // primera entrada; el centinela se cargaba tal cual y la app arrancaba en «Not found.»
+    homeRoute: isSentinelHome(shell.homeRoute)
+      ? ((menuTree.find((node) => node.home) || {}).home || '')
+      : shell.homeRoute,
   }
 }
 
@@ -1009,9 +1388,15 @@ const BADGE_CLASSES = {
  *  (contrato del renderer web compartido: mateu-task-queue.ts). Los datos viajan
  *  INLINE en la metadata — no hay eje data ni triggers. */
 export function taskQueueOf(tree) {
-  const node = findByType(tree, 'TaskQueue')
+  // una cola DENTRO de un panel de consola es la lista de esa consola (átomo isQueue del
+  // dispatcher), no el modo «cola de trabajo + isla» de página completa
+  const node = findOutsidePanes(tree, 'TaskQueue')
   if (!node) return null
-  const md = node.metadata
+  return queueProjectionOf(node.metadata)
+}
+
+/** Los grupos de tarjetas de una TaskQueue, listos para pintar (modo página y átomo isQueue). */
+export function queueProjectionOf(md) {
   return {
     actionId: md.actionId,
     groups: (md.groups || []).map((group) => ({
@@ -1129,6 +1514,26 @@ const NOTICE_CLASSES = {
 let dataProviderFactory = null
 export function setDataProviderFactory(factory) { dataProviderFactory = factory }
 
+/** Fábrica de conversores de JET (oj-input-number de un importe): JET 18 ya no acepta el
+ *  conversor como JSON, quiere una instancia de IntlNumberConverter. En Node se queda la
+ *  especificación, que es lo que los tests comprueban. */
+/** Quién lee las preferencias de columnas del listado en pantalla (la app: localStorage por
+ *  ruta). En Node, nadie: las columnas salen tal cual. */
+let columnPrefsReader = null
+export function setColumnPrefsReader(fn) { columnPrefsReader = typeof fn === 'function' ? fn : null }
+
+/** Paneles plegables abiertos/cerrados por el usuario (clave → bool); lo no tocado, como manda
+ *  el wire (AccordionPanel.active, Details.opened). Estado de cliente, como la pestaña activa. */
+const panelState = {}
+export function setPanelExpanded(key, expanded) { panelState[key] = !!expanded }
+export function panelExpanded(key, fallback) { return key in panelState ? panelState[key] : !!fallback }
+
+let converterFactory = null
+export function setConverterFactory(factory) { converterFactory = factory }
+function converterOf(spec) {
+  return converterFactory ? converterFactory(spec) : spec
+}
+
 export function islandContentOf(ctx, opts = {}) {
   if (!ctx || !ctx.tree) return null
   // La pestaña activa es POR BARRA: un mapa {clave de barra: id de pestaña} (opts.activeTabs).
@@ -1162,6 +1567,7 @@ export function islandContentOf(ctx, opts = {}) {
   }
   const blocks = []
   let plain = null
+  let elementOrdinal = 0
   const atom = (a, container) => {
     if (container) { container.items.push(a); return }
     if (!plain) { plain = { isPlain: true, items: [] }; blocks.push(plain) }
@@ -1180,6 +1586,69 @@ export function islandContentOf(ctx, opts = {}) {
     if (node.metadata && node.metadata.type === 'Button') { out.push(buttonOf(node.metadata)); return out }
     for (const child of kidsOf(node)) collectButtons(child, out)
     return out
+  }
+  // Proyecta hijos como BLOQUES-COLUMNA de la rejilla oj-flex (colClass oj-md-(NN→doceavos)): las
+  // zonas de @Zones y los dos paneles de un maestro-detalle. Si una columna genera varios bloques
+  // se FUSIONAN en uno (un flex no puede apilar dos items en la misma celda de fila).
+  const projectColumns = (children, percents, extraClass) => {
+    children.forEach((child, i) => {
+      const col = Math.min(11, Math.max(1, Math.round(percents[i] * 12 / 100)))
+      // las cssClasses del wire de la COLUMNA viajan al bloque (p.ej. la banda
+      // neutra de la info secundaria del general overview: oj-panel + oj-bg-*)
+      const colClass = 'oj-flex-item oj-sm-12 oj-md-' + col + ' oj-sm-padding-4x-end'
+        + (extraClass ? ' ' + extraClass : '')
+        + (child.cssClasses ? ' ' + child.cssClasses : '')
+      const before = blocks.length
+      plain = null
+      visit(child, null)
+      plain = null
+      const created = blocks.splice(before)
+      if (created.length === 1) {
+        created[0].colClass = colClass
+        blocks.push(created[0])
+      } else if (created.length > 1) {
+        blocks.push({ isPlain: true, colClass, items: created.flatMap((b) => b.items) })
+      }
+    })
+  }
+  // hijos con su clase de columna YA calculada (rejillas: ResponsiveGrid, DashboardLayout)
+  // Devuelve false (y no deja nada) si alguna columna genera bloques que no se pueden fusionar en
+  // una celda: una isla anidada (el hoisting convierte su bloque entero en la isla) o un bloque
+  // especial sin átomos — entonces el llamante apila los hijos como antes.
+  const projectSized = (children, colClasses, tags = null) => {
+    const start = blocks.length
+    const out = []
+    for (let i = 0; i < children.length; i++) {
+      const child = children[i]
+      const before = blocks.length
+      plain = null
+      if (child && child.metadata && child.metadata.type === 'DashboardPanel') visitDashboardPanel(child, null)
+      else visit(child, null)
+      plain = null
+      const created = blocks.splice(before)
+      const tag = tags ? tags[i] : null
+      if (created.length === 1) out.push({ ...created[0], colClass: colClasses[i], ...tag })
+      else if (created.length > 1) {
+        if (created.some((b) => !Array.isArray(b.items) || b.items.some((a) => a && a.isNested))) {
+          blocks.splice(start)
+          return false
+        }
+        out.push({ isPlain: true, colClass: colClasses[i], items: created.flatMap((b) => b.items), ...tag })
+      }
+    }
+    blocks.push(...out)
+    return true
+  }
+  // un DashboardPanel = una tarjeta-bloque (título + subtítulo + su contenido) con su ancho
+  const visitDashboardPanel = (panel, colClass) => {
+    const pm = panel.metadata || {}
+    const card = { isCard: true, items: [], ...(colClass ? { colClass } : {}) }
+    blocks.push(card)
+    plain = null
+    if (pm.title) card.items.push({ isText: true, text: interp(pm.title), cls: 'oj-typography-subheading-xs' })
+    if (pm.subtitle) card.items.push({ isText: true, text: interp(pm.subtitle), cls: 'oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-bottom' })
+    for (const child of kidsOf(panel)) visit(child, card)
+    plain = null
   }
   const visit = (node, container) => {
     if (!node || typeof node !== 'object') return
@@ -1201,27 +1670,23 @@ export function islandContentOf(ctx, opts = {}) {
       const zoneMatches = (node.children || []).map(
         (ch) => String(ch.style || '').match(/flex:\s*1 1 calc\((\d+(?:\.\d+)?)%/))
       if (zoneMatches.length >= 2 && zoneMatches.every(Boolean)) {
-        node.children.forEach((zoneChild, i) => {
-          const pct = parseFloat(zoneMatches[i][1])
-          const col = Math.min(11, Math.max(1, Math.round(pct * 12 / 100)))
-          // las cssClasses del wire de la COLUMNA viajan al bloque (p.ej. la banda
-          // neutra de la info secundaria del general overview: oj-panel + oj-bg-*)
-          const colClass = 'oj-flex-item oj-sm-12 oj-md-' + col + ' oj-sm-padding-4x-end'
-            + (zoneChild.cssClasses ? ' ' + zoneChild.cssClasses : '')
-          const before = blocks.length
-          plain = null
-          visit(zoneChild, null)
-          plain = null
-          const created = blocks.splice(before)
-          if (created.length === 1) {
-            created[0].colClass = colClass
-            blocks.push(created[0])
-          } else if (created.length > 1) {
-            blocks.push({ isPlain: true, colClass, items: created.flatMap((b) => b.items) })
-          }
-        })
+        projectColumns(node.children, node.children.map((_, i) => parseFloat(zoneMatches[i][1])))
         return
       }
+    }
+    // CONSOLA / MAESTRO-DETALLE (MasterDetailLayout, SplitLayout): children = [maestro, detalle].
+    // Misma proyección que las zonas: dos bloques-columna de la rejilla oj-flex (lista a la
+    // izquierda, detalle a la derecha, 5/12 + 7/12), que bajo md se apilan — como la vista
+    // Console de OPERA. Vertical (SplitLayout orientation vertical) → uno debajo del otro. Dentro
+    // de otro bloque no hay columnas que repartir: se proyecta en su sitio, en orden.
+    if ((t === 'MasterDetailLayout' || t === 'SplitLayout') && !container) {
+      const kids = (node.children || []).filter(Boolean)
+      if (kids.length >= 2 && String(m.orientation || '').toLowerCase() !== 'vertical') {
+        projectColumns(kids.slice(0, 2), [41.7, 58.3], 'mateu-split-pane')
+        return
+      }
+      for (const kid of kids) visit(kid, container)
+      return
     }
     if (t === 'App') {
       // isla ANIDADA (p.ej. el documento del check-in): marcador de posición — el
@@ -1319,6 +1784,22 @@ export function islandContentOf(ctx, opts = {}) {
         }, container)
         return
       }
+      if (RICH_TEXT_STEREOTYPES[m.stereotype] && m.readOnly) {
+        // richText / html / markdown de SÓLO LECTURA: con su formato (editable: un oj-text-area
+        // en el form layout — JET no trae editor de texto enriquecido)
+        const raw = state[fieldId] != null ? state[fieldId] : (ctx.data || {})[fieldId]
+        atom({ isRichText: true, label: interp(m.label || ''), html: richHtmlOf(m.stereotype, plainValueOf(raw)) }, container)
+        return
+      }
+      if (m.stereotype === 'bulletedList') {
+        // @BulletedList sobre una List<String>: su rótulo y sus valores como la lista de viñetas
+        // de siempre (el componente BulletedList ya era un átomo; el campo caía al vacío)
+        const raw = state[fieldId] != null ? state[fieldId] : (ctx.data || {})[fieldId]
+        const items = (Array.isArray(raw) ? raw : raw == null || raw === '' ? [] : [raw]).map((v) => String(plainValueOf(v)))
+        if (m.label) atom({ isText: true, text: interp(m.label), cls: 'oj-typography-body-sm oj-text-color-secondary oj-sm-margin-1x-bottom' }, container)
+        atom({ isBullets: true, items }, container)
+        return
+      }
       if (m.propertyRow) {
         // un lookup de sólo lectura viaja como el campo '<campo>-label', con su ETIQUETA en
         // data['<campo>-label'] (no en el state); un campo normal puede traer su etiqueta igual
@@ -1379,6 +1860,8 @@ export function islandContentOf(ctx, opts = {}) {
             + (tab.metadata.badge ? ' (' + tab.metadata.badge + ')' : ''),
           // @Tab(key): seleccionarla empuja su URL (ver contentTabSelected)
           routeKey: tab.metadata.routeKey || '',
+          // @Tab(shortcut): la selecciona por teclado (keys.mjs)
+          shortcut: String(tab.metadata.shortcut || '').toLowerCase(),
         })),
       }, container)
       const outerScope = tabScope
@@ -1391,10 +1874,10 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'CustomField') {
-      // envoltorio: lo que importa es lo que lleva dentro (metadata.content)
-      const inner = m.content
-      if (Array.isArray(inner)) inner.forEach((c) => visit(c, container))
-      else if (inner && typeof inner === 'object') visit(inner, container)
+      // envoltorio: lo que importa es lo que lleva dentro — en metadata.content o, para un
+      // campo que guarda un componente (un Anchor, un Chart… declarado como campo del form),
+      // en children: mirando solo content esos campos desaparecían sin dejar rastro
+      for (const child of kidsOf(node)) visit(child, container)
       return
     }
     if (t === 'Element') {
@@ -1406,7 +1889,11 @@ export function islandContentOf(ctx, opts = {}) {
       for (const key of Object.keys(m.attributes || {})) attributes[key] = interp(m.attributes[key])
       atom({
         isElement: true,
-        elementId: node.id || m.name,
+        // el servidor manda un id de relleno ("fieldId") a TODOS los Element (un record sin id):
+        // dos en la misma pantalla (un plano por planta, dos tablas en un foldout) compartían
+        // hueco y se pisaban. Sin id propio, nombre + ordinal: estable mientras la estructura
+        // de la pantalla no cambie
+        elementId: node.id && node.id !== 'fieldId' ? node.id : m.name + '#' + (elementOrdinal++),
         name: m.name,
         importUrl: (m.attributes || {}).import || '',
         attributes,
@@ -1414,15 +1901,72 @@ export function islandContentOf(ctx, opts = {}) {
         cssClasses: node.cssClasses || '',
         content: interp(m.content || ''),
         asHtml: !!m.html,
+        // el contenido llevaba `${…}` → ha entrado DATO en el marcado: se sanea al montarlo
+        dataInContent: String(m.content || '').indexOf('${') >= 0,
         on: m.on || null,
       }, container)
+      return
+    }
+    // ── DASHBOARD en cualquier página: rejilla de paneles (cada DashboardPanel, una tarjeta con su
+    // ancho en columnas), banda de KPIs (Scoreboard/MetricCard) y gráficos (oj-chart) ──
+    // ResponsiveGrid (la rejilla general): sus pistas (grid-template-columns) y los colSpans de
+    // cada hijo → bloques-columna oj-flex de su ancho. Dentro de una tarjeta, apilado.
+    if (t === 'ResponsiveGrid' && !container) {
+      // el span de cada hijo: el del wire (colSpans) o el que el hijo lleva consigo — un
+      // DashboardPanel su colSpan, la banda de KPIs (Scoreboard) la fila entera
+      const serverKids = kidsOf(node)
+      const serverSpans = serverKids.map((k, i) => (m.colSpans && m.colSpans[i])
+        || (k && k.metadata && k.metadata.type === 'DashboardPanel' ? k.metadata.colSpan
+          : k && k.metadata && k.metadata.type === 'Scoreboard' ? 999 : 1))
+      // REORDENABLE (ResponsiveGrid.reorderable): los tiles en el orden guardado del usuario, cada
+      // bloque marcado con su clave y su ámbito — installTileReorder los arrastra y re-proyecta
+      let order = serverKids.map((_, i) => i)
+      let tags = null
+      if (m.reorderable) {
+        const scope = tileScopeOf(node.id)
+        const keys = serverKids.map((k, i) => tileKeyOf(k, i))
+        order = orderedTileIndices(keys, readTileOrder(scope))
+        tags = order.map((i) => ({ tileKey: keys[i], tileScope: scope }))
+      }
+      const kids = order.map((i) => serverKids[i])
+      const spans = order.map((i) => serverSpans[i])
+      const classes = gridColClasses(m.gridTemplateColumns, spans, kids.length)
+      if (classes && projectSized(kids, classes, tags)) return
+    }
+    if (t === 'DashboardLayout') {
+      const columns = m.columns > 0 ? m.columns : 3
+      const kids = kidsOf(node)
+      if (projectSized(kids, kids.map((k) => panelColClass(k && k.metadata && k.metadata.colSpan, columns)))) return
+      for (const child of kids) visit(child, container)
+      return
+    }
+    if (t === 'DashboardPanel') {
+      visitDashboardPanel(node, null)
+      return
+    }
+    if (t === 'Scoreboard') {
+      const metrics = findAllByType(node, 'MetricCard').map((n) => metricOf(n.metadata, interp))
+      if (metrics.length) atom({ isScoreboard: true, metrics }, container)
+      return
+    }
+    if (t === 'MetricCard') {
+      // consecutivos se juntan en la misma banda (como los botones)
+      const target = container || plain
+      const last = target && target.items.length ? target.items[target.items.length - 1] : null
+      if (last && last.isScoreboard) last.metrics.push(metricOf(m, interp))
+      else atom({ isScoreboard: true, metrics: [metricOf(m, interp)] }, container)
+      return
+    }
+    if (t === 'Chart' || t === 'TrendChart') {
+      atom(chartAtomOf(m, t, interp), container)
       return
     }
     if (t === 'Card') {
       const card = { isCard: true, items: [] }
       blocks.push(card)
       plain = null
-      const title = m.title && (m.title.text || (typeof m.title === 'string' ? m.title : ''))
+      // el título de un Card fluido es un COMPONENTE (un Text): sus textos, como en cardOf
+      const title = m.title && (typeof m.title === 'string' ? m.title : (m.title.text || collectTexts(m.title)[0] || ''))
       if (title) card.items.push({ isText: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-2x-bottom' })
       for (const child of node.children || []) visit(child, card)
       const cardInner = m.content
@@ -1476,6 +2020,88 @@ export function islandContentOf(ctx, opts = {}) {
       }
       return
     }
+    // ENLACE (Anchor): un <a> de verdad — el tema Redwood lo pinta como enlace, el manejador
+    // global de links.mjs navega DENTRO de la shell si es una ruta de la app, y target=_blank
+    // (una URL externa, un PDF) abre otra pestaña sin pasar por el servidor
+    if (t === 'Anchor') {
+      const href = interp(m.url)
+      if (href) {
+        const target = m.target ? String(m.target) : ''
+        atom({
+          isAnchor: true,
+          text: interp(m.text) || href,
+          href,
+          target: target || '_self',
+          rel: target === '_blank' ? 'noopener noreferrer' : '',
+        }, container)
+      }
+      return
+    }
+    // FOLDOUT DENTRO DE UNA PESTAÑA (el de página lo pinta oj-sp-foldout-layout, foldoutOf): el
+    // overview en su sitio y cada panel como un panel plegable — su título y, abierto, su
+    // contenido; los paneles abiertos por defecto (open) se respetan
+    if (t === 'FoldoutLayout' && tabScope) {
+      const bySlot = {}
+      for (const child of node.children || []) bySlot[child.slot || ''] = child
+      if (bySlot.overview) visit(bySlot.overview, container)
+      ;(m.panels || []).forEach((panel, i) => {
+        const key = 'fold:' + (node.id || 'foldout') + ':' + i
+        const expanded = panelExpanded(key, panel.open !== false)
+        atom({ isCollapsible: true, collapsibleKey: key, title: interp(panel.title || ''), expanded, disabled: false }, container)
+        const content = bySlot['panel-' + i]
+        if (expanded && content) visit(content, container)
+      })
+      return
+    }
+    // PANELES PLEGABLES (AccordionLayout de AccordionPanel, Details): como las pestañas, se
+    // APLANAN — la cabecera es un átomo isCollapsible (un oj-collapsible de JET) y el contenido
+    // del panel va detrás, como átomos normales, sólo si está abierto. Abierto/cerrado es estado
+    // del CLIENTE (panelExpanded, por clave): plegar re-proyecta sin preguntar al servidor.
+    if (t === 'AccordionLayout') {
+      kidsOf(node).forEach((panel, i) => {
+        const pm = panel.metadata || {}
+        const key = 'acc:' + (node.id || 'accordion') + ':' + i
+        const expanded = panelExpanded(key, !!pm.active)
+        atom({ isCollapsible: true, collapsibleKey: key, title: interp(pm.label || ''), expanded, disabled: !!pm.disabled }, container)
+        if (expanded) for (const child of kidsOf(panel)) visit(child, container)
+      })
+      return
+    }
+    if (t === 'Details') {
+      const summaryTexts = m.summary ? collectTexts(m.summary) : []
+      const key = 'det:' + (node.id && node.id !== 'fieldId' ? node.id : (summaryTexts[0] || 'details'))
+      const expanded = panelExpanded(key, !!m.opened)
+      atom({ isCollapsible: true, collapsibleKey: key, title: interp(summaryTexts.join(' ')), expanded, disabled: false }, container)
+      if (expanded && m.content) visit(m.content, container)
+      return
+    }
+    // TAPE CHART (PlanningBoard → oj-gantt de JET): filas = recursos (con sus columnas de
+    // atributos en la etiqueta), tareas = bloques. Proyección en planningAtomOf (pura, testeada);
+    // los eventos de JET (ojMove, ojResize, doble clic, rango) los traduce planningActionOf.
+    if (t === 'PlanningBoard') {
+      atom(planningAtomOf(m, node.id), container)
+      return
+    }
+    // COLA como pieza de contenido (la lista de una consola maestro-detalle): las mismas tarjetas
+    // oj-action-card del modo cola; cada una lleva su acción (la de la cola, con {_item}) para
+    // que el despachador genérico de bloques la ejecute, y la opción de línea va DEBAJO de la
+    // tarjeta (dentro, su clic sería también el de la tarjeta)
+    if (t === 'TaskQueue') {
+      const q = queueProjectionOf(m)
+      atom({
+        isQueue: true,
+        groups: q.groups.map((g) => ({
+          label: g.label,
+          items: g.items.map((it) => ({
+            ...it,
+            actionId: q.actionId,
+            parameters: { _item: it.id },
+            lineActions: it.hasAction ? [{ actionId: it.actionId, label: it.actionLabel, parameters: it.parameters }] : [],
+          })),
+        })),
+      }, container)
+      return
+    }
     if (t === 'ProgressSteps') {
       const steps = (m.steps || []).map((step) => ({ id: step.id, label: step.title || step.label || step.id }))
       const current = (m.steps || []).find((step) => step.status === 'current')
@@ -1507,10 +2133,125 @@ export function islandContentOf(ctx, opts = {}) {
       }, container)
       return
     }
+    if (t === 'Markdown') {
+      // Markdown CON formato (encabezados, listas, citas, código, negrita, enlaces…): HTML saneado
+      // que installRichText vuelca en su contenedor (VB no estampa HTML desde un binding)
+      const html = richHtmlOf('markdown', interp(m.markdown || m.text || ''))
+      if (html) atom({ isRichText: true, label: '', html }, container)
+      return
+    }
+    if (t === 'Grid') {
+      // un Grid fluido (columnas en content, filas en page.content): la misma tabla embebida que
+      // un campo de tipo lista — oj-table en modo lista; los grupos de columnas se aplanan
+      const leafColumns = []
+      const walkCols = (n) => {
+        const cm = n && (n.metadata || n)
+        if (!cm) return
+        if (cm.type === 'GridGroupColumn') { kidsOf(n).forEach(walkCols); (cm.columns || []).forEach(walkCols); return }
+        if (cm.type === 'GridColumn' || cm.id) leafColumns.push(cm)
+      }
+      ;(m.content || []).forEach(walkCols)
+      const rows = ((m.page && m.page.content) || []).map((r, i) => ({ ...r, _rowNumber: r._rowNumber == null ? i : r._rowNumber }))
+      const columns = leafColumns.map((c) => ({ headerText: interp(c.label || c.id), field: c.id }))
+      atom({
+        isGrid: true,
+        fieldId: node.id || 'grid',
+        label: '',
+        columns,
+        rows,
+        adp: dataProviderFactory ? dataProviderFactory(rows) : null,
+        isEmpty: rows.length === 0,
+        rowEditable: false,
+        addActionId: '',
+        addLabel: 'Add',
+      }, container)
+      return
+    }
+    if (t === 'Gantt') {
+      atom(ganttAtomOf(m, node.id), container)
+      return
+    }
+    if (t === 'DropZone') {
+      // un destino donde soltar filas arrastradas (@DragRows): título, subtítulo y su contenido como
+      // líneas de texto; dnd.mjs lo resalta mientras se arrastra su tipo y lanza su acción al soltar
+      const lines = kidsOf(node).flatMap((k) => collectTexts(k)).map(interp).filter(Boolean)
+      atom({
+        isDropZone: true,
+        title: interp(m.title || ''),
+        subtitle: interp(m.subtitle || ''),
+        lines,
+        accept: dragMimeOf(m.accept || ''),
+        actionId: m.actionId || '',
+        params: JSON.stringify(m.parameters || {}),
+        ariaLabel: (m.title || '') + (m.subtitle ? ', ' + m.subtitle : '') + ' — drop target',
+      }, container)
+      return
+    }
+    if (t === 'Popover') {
+      // lo envuelto se pinta como un disparador con su texto; el contenido, como líneas en la
+      // ventana flotante compartida (hover.mjs) — al pasar/enfocar (hover) o al pulsar (click)
+      const wrappedTexts = m.wrapped ? collectTexts(m.wrapped).map(interp).filter(Boolean) : []
+      const label = wrappedTexts.join(' ') || (m.wrapped && m.wrapped.metadata && m.wrapped.metadata.label) || 'Details'
+      const lines = m.content ? collectTexts(m.content).map(interp).filter(Boolean) : []
+      const text = lines.join('\n')
+      atom({
+        isPopover: true,
+        label: interp(label),
+        hoverText: m.trigger === 'hover' ? text : '',
+        clickText: m.trigger === 'hover' ? '' : text,
+      }, container)
+      return
+    }
+    if (t === 'Calendar') {
+      atom(calendarAtomOf(m, node.id), container)
+      return
+    }
+    if (t === 'MatrixGrid') {
+      atom(matrixAtomOf(m, node.id, interp), container)
+      return
+    }
+    if (t === 'Map') {
+      atom(mapAtomOf(m, node.id, node.style), container)
+      return
+    }
+    if (t === 'ActionPanel') {
+      atom(actionPanelAtomOf(m, node.id, interp), container)
+      return
+    }
     if (t === 'BulletedList') {
       atom({ isBullets: true, items: (m.items || []).map(interp) }, container)
       return
     }
+    if (t === 'Image') {
+      // JET no tiene componente de imagen: un <img> con el ancho de su contenedor como tope
+      // una ruta RELATIVA la sirve el backend (como el módulo de un Element), no la app VB
+      if (m.src) atom({ isImage: true, src: elementModuleUrl(interp(m.src)), alt: interp(m.alt || '') }, container)
+      return
+    }
+    if (t === 'Avatar') {
+      atom({ isAvatar: true, avatars: [avatarOf(m)], overflow: '' }, container)
+      return
+    }
+    if (t === 'AvatarGroup') {
+      // oj-avatar por persona hasta maxItemsVisible, y «+N» con las que no caben
+      const all = (m.avatars || []).map(avatarOf)
+      const max = m.maxItemsVisible > 0 ? m.maxItemsVisible : all.length
+      atom({ isAvatar: true, avatars: all.slice(0, max), overflow: all.length > max ? '+' + (all.length - max) : '' }, container)
+      return
+    }
+    if (t === 'CarouselLayout') {
+      // una GALERÍA (todas las diapositivas son imágenes) → oj-film-strip de JET, con sus flechas
+      // y su paginación; un carrusel de contenido arbitrario sigue apilando sus diapositivas
+      const slides = kidsOf(node)
+      const images = slides.map((n) => (n && n.metadata && n.metadata.type === 'Image' && n.metadata.src ? n.metadata : null))
+      if (slides.length && images.every(Boolean)) {
+        atom({ isGallery: true, id: node.id || 'gallery',
+          images: images.map((im, i) => ({ key: String(i), src: elementModuleUrl(interp(im.src)), alt: interp(im.alt || '') })),
+          looping: m.loop ? 'page' : 'off' }, container)
+        return
+      }
+    }
+
     if (t === 'Separator') {
       atom({ isSeparator: true }, container)
       return
@@ -1901,8 +2642,16 @@ export function hostContentOf(ctx, islandBlocks, opts = {}) {
         }
         if (opts.forWizard) {
           if (atom.isProgress) return false
+          // el contador «2 | 3» del RAIL (@WizardProgress(RAIL)): el oj-sp del proceso guiado
+          // ya pinta el suyo en su raíl, uno más en el contenido es un duplicado
+          if (atom.isText && /^\d+ \| \d+$/.test(String(atom.text || '').trim())) return false
           if (!opts.keepWizardNav && atom.isButtons && atom.buttons.length
               && atom.buttons.every((b) => b.actionId === 'next' || b.actionId === 'back')) return false
+          // el pie del ÚLTIMO paso: Back + la acción de completar (@WizardCompletionAction) — el
+          // pie del proceso guiado ya los pinta (wizardForwardOf), aquí salían duplicados
+          if (!opts.keepWizardNav && atom.isButtons && atom.buttons.length === 2
+              && atom.buttons.some((b) => b.actionId === 'back')
+              && !atom.buttons.some((b) => b.actionId === 'next')) return false
         }
         return true
       }),
@@ -1945,8 +2694,38 @@ export function wizardForwardOf(ctx) {
 /** El EntityHeader del host (p.ej. el huésped de la Reserva 360) proyectado al HEADER de
  *  pantalla: título = el nombre, subtítulo = subtitle + badges, facts (+métrica) →
  *  contextualInfo del oj-sp-header-general-overview. */
+// Paneles cuyo contenido es de UN elemento de una colección (el detalle de una consola): un
+// EntityHeader ahí dentro es la ficha del elegido, no la entidad de la PÁGINA — subirlo a la
+// cabecera vaciaba el panel de detalle y ponía el nombre del huésped como título de la pantalla.
+const PANE_TYPES = { MasterDetailLayout: true, SplitLayout: true }
+function pageEntityHeaderNode(tree) {
+  return findOutsidePanes(tree, 'EntityHeader')
+}
+/** findByType, pero sin entrar en los paneles de una consola (MasterDetailLayout/SplitLayout): lo
+ *  que hay dentro es contenido de un panel, no una pieza de la PÁGINA (su cabecera, su cola). */
+export function findOutsidePanes(tree, type) {
+  return findOutside(tree, type, PANE_TYPES)
+}
+
+/** findByType sin bajar a los tipos de `stops`. */
+export function findOutside(tree, type, stops) {
+  let found = null
+  const walk = (n) => {
+    if (found || !n || typeof n !== 'object') return
+    const t = n.metadata && n.metadata.type
+    if (t === type) { found = n; return }
+    if (t && stops[t]) return
+    for (const c of n.children || []) walk(c)
+    const inner = n.metadata && n.metadata.content
+    if (Array.isArray(inner)) inner.forEach(walk)
+    else if (inner && typeof inner === 'object') walk(inner)
+  }
+  walk(tree)
+  return found
+}
+
 export function entityHeaderOf(ctx) {
-  const node = ctx && ctx.tree ? findByType(ctx.tree, 'EntityHeader') : null
+  const node = ctx && ctx.tree ? pageEntityHeaderNode(ctx.tree) : null
   if (!node) return null
   const m = node.metadata
   const state = ctx.state || {}
@@ -2202,7 +2981,30 @@ function findFirst(tree, test) {
 /** Proyección del LISTING (componente Crud): columnas + filas (del eje data) + búsqueda.
  *  null si el contexto no contiene un Crud. Las filas llegan por la acción 'search'
  *  (trigger OnLoad) como fragmento data-only: data.crud.page.content. */
+/**
+ * El listado del host listo para pintar. `allColumns` son todas las del wire (de ahí parte el
+ * diálogo de columnas) y `columns` las que se pintan, con las preferencias del usuario aplicadas
+ * (prefs.mjs: ocultas fuera, en su orden) — leídas por columnPrefsReader (localStorage por ruta).
+ */
 export function listingOf(ctx, opts = {}) {
+  const listing = listingBaseOf(ctx, opts)
+  if (!listing) return listing
+  const prefs = columnPrefsReader ? columnPrefsReader() : null
+  return { ...listing, allColumns: listing.columns, columns: applyColumnPrefs(listing.columns, prefs),
+    headerBlocks: listingHeaderBlocksOf(ctx) }
+}
+
+/** Los componentes de CABECERA de la página del listado (HeaderSupplier → Page.metadata.header)
+ *  como bloques de átomos: el listado no tiene contenido propio donde ponerlos. */
+export function listingHeaderBlocksOf(ctx) {
+  const pageNode = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+  const header = pageNode && pageNode.metadata && Array.isArray(pageNode.metadata.header) ? pageNode.metadata.header : []
+  if (!header.length) return []
+  const blocks = islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_listingHeader', metadata: { type: 'VerticalLayout' }, children: header } }) || []
+  return blocks.map((b) => ({ ...b, blockClass: b.colClass || 'oj-flex-item oj-sm-12' }))
+}
+
+function listingBaseOf(ctx, opts = {}) {
   const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
   if (!crudNode) return null
   const md = crudNode.metadata
@@ -2243,6 +3045,8 @@ export function listingOf(ctx, opts = {}) {
       // la clave de la columna = el id del wire: el ojSort la devuelve y es lo que el server
       // ordena (la celda puede leer otro campo, p.ej. el UUID abreviado)
       def.id = c.id
+      // pie de totales (@Aggregate): la plantilla footerTotal lee totals[columnKey]
+      if (aggregateFootersOf(md, (ctx.data || {}).crud)) def.footerTemplate = 'footerTotal'
       // ESTADO como badge (@Status): el valor de la celda es {type, message} — la clase
       // JET del badge se precomputa en las filas (statusBadgeRows, CSP sin ternarios)
       if (c.dataType === 'status') {
@@ -2298,7 +3102,16 @@ export function listingOf(ctx, opts = {}) {
     // (las acciones declaradas del ServerSide host, no los botones)
     selectionRequired: ((ctx.tree && ctx.tree.actions) || [])
       .filter((a) => a.rowsSelectedRequired).map((a) => a.id),
-    rows: rowLinesRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), lines.extra),
+    // @RowStatus: cada fila lleva su tono (_tone) — lo pinta tables.mjs sobre los tr del oj-table;
+    // @GroupBy: filas de grupo intercaladas (valor (n) + subtotales), sólo presentación
+    rows: groupedRows(toneRows(rowLinesRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), lines.extra), md.rowStatusField), md, (ctx.data || {}).crud),
+    // @Aggregate: los totales del conjunto filtrado, por columna (pie del oj-table)
+    totals: aggregateFootersOf(md, (ctx.data || {}).crud),
+    hasTotals: !!aggregateFootersOf(md, (ctx.data || {}).crud),
+    rowStatusField: md.rowStatusField || '',
+    // @DragRows: las filas se arrastran (JET oj-table dnd) con este tipo MIME — dnd.mjs
+    dragType: md.dragType || '',
+    dragTypes: md.dragType ? [dragMimeOf(md.dragType)] : [],
     // la propiedad por la que ordena el server cada columna (GridColumn.sortingProperty o su id)
     sortFields: Object.fromEntries((md.columns || []).map((col) => col.metadata || col)
       .map((c) => [c.id, c.sortingProperty || c.id])),
@@ -2610,9 +3423,13 @@ function clipCellRows(rows, columns) {
     const out = { ...row }
     for (const c of cols) {
       const shown = text(row[c.id])
-      const tip = c.tooltipPath ? text(row[c.tooltipPath]) : ''
+      // tooltipPath a OTRO campo (@Tooltip): un detalle → la ventana flotante; a sí mismo (un ancho
+      // fijo que corta): el texto entero en el title de siempre
+      const tip = c.tooltipPath && c.tooltipPath !== c.id ? text(row[c.tooltipPath]) : ''
       // solo la columna de ancho fijo se corta; con tooltipPath y sin ancho, el texto sigue entero
-      out[c.id + CLIP_CELL_SUFFIX] = { text: shown, title: tip || shown, cls: columnWidthOf(c).maxWidth ? 'mateu-cell-clip' : '' }
+      // con @Tooltip(otro campo) el detalle sale en la ventana flotante (hover.mjs), no en el title
+      // del navegador: varias líneas y estilo Redwood; sin él, el title enseña lo que se corta
+      out[c.id + CLIP_CELL_SUFFIX] = { text: shown, title: tip ? '' : shown, hover: tip, cls: columnWidthOf(c).maxWidth ? 'mateu-cell-clip' : '' }
     }
     return out
   })
@@ -3229,7 +4046,8 @@ function isBlank(value) {
 /** Triggers OnLoad del contexto (p.ej. el listing dispara 'search' al cargar). */
 export function onLoadTriggers(ctx) {
   return ((ctx && ctx.tree && ctx.tree.triggers) || [])
-    .filter((t) => t.type === 'OnLoad' && t.actionId)
+    // los que llevan espera (refresco periódico) los programa polling.mjs, no se lanzan ya
+    .filter((t) => t.type === 'OnLoad' && t.actionId && !(t.timeoutMillis > 0))
     .map((t) => t.actionId)
 }
 
@@ -3332,6 +4150,18 @@ export function mediatorOf(ctx) {
 
 const metaOf = (fr) => fr.component?.metadata || {}
 
+/** El estado de una superficie con los VALORES INICIALES de sus campos (FormField.initialValue) que
+ *  aún no tienen valor: el renderer web cae a ese valor cuando el estado no trae la clave, y aquí
+ *  se siembra en el estado para que se pinte Y viaje en la siguiente acción. */
+export function withInitialValues(tree, state) {
+  const out = { ...(state || {}) }
+  if (!tree) return out
+  for (const f of collectFields(tree)) {
+    if (f.initialValue != null && !(f.fieldId in out)) out[f.fieldId] = f.initialValue
+  }
+  return out
+}
+
 let overlaySeq = 0
 /** Construye un contexto de overlay (drawer/dialog) a partir de un fragmento Add. */
 export function buildOverlay(fr, opener) {
@@ -3348,7 +4178,7 @@ export function buildOverlay(fr, opener) {
     kind: 'drawer',
     tree: fr.component, // el árbol completo — md.content lleva el contenido (patrón Card)
     surface,
-    state: filled(md.initialData) || filled(fr.state) || (surface && filled(surface.initialData)) || {},
+    state: withInitialValues(surface || fr.component, filled(md.initialData) || filled(fr.state) || (surface && filled(surface.initialData)) || {}),
     title: md.headerTitle || md.title || (surfacePage && surfacePage.metadata.title) || '',
     subtitle: md.subtitle,
     position: md.position || 'end',
@@ -3386,13 +4216,18 @@ export function reduceContexts(reg, increment, opts = {}) {
     navigate: null,
     urlPush: null,
     download: null,
+    downloads: [], // todos los DownloadFile del increment (download = el último, compat)
     runActions: [],
     docTitle: null,
     events: [], // bus @SubscribeTo: [{ name, detail }]
   }
 
   for (const m of increment.messages || [])
-    effects.toasts.push({ text: m.text || m.title, variant: m.variant || 'info' })
+    effects.toasts.push({
+      text: m.text || m.title, variant: m.variant || 'info',
+      // Message.undoable: el toast lleva su «Undo» (notify.mjs lo pinta con oj-message)
+      ...(m.undoActionId ? { undoActionId: m.undoActionId, undoLabel: m.undoLabel || 'Undo', undoParameters: m.undoParameters || {} } : {}),
+    })
 
   // ── fragmentos → shell | superficies ──────────────────────────────────────
   for (const fr of increment.fragments || []) {
@@ -3409,6 +4244,10 @@ export function reduceContexts(reg, increment, opts = {}) {
         appContext: md.contextSelectors || [],
         headerActions: md.contextActions || [],
         themeToggle: md.themeToggle,
+        // @App(accessKeys): mantener Alt enseña las teclas de acceso (keys.mjs)
+        accessKeys: !!md.accessKeys,
+        // NotificationsSupplier del App → la campana de la cabecera (notify.mjs)
+        notificationsEnabled: !!md.notificationsEnabled,
         // el logo del @App (@Logo, p.ej. /images/riu.svg — relativo al backend)
         logo: md.logo || '',
         // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la
@@ -3445,9 +4284,9 @@ export function reduceContexts(reg, increment, opts = {}) {
       pageWidth: ss?.pageWidth ?? (fr.component ? undefined : prev.pageWidth),
       state: !fr.component
         ? { ...prev.state, ...(fr.state || {}) } // State-only: MERGE (no borrar la isla)
-        : fr.action === 'ReplaceKeepData'
+        : withInitialValues(fr.component, fr.action === 'ReplaceKeepData'
           ? { ...prev.state, ...(fr.state || md.initialData || {}) }
-          : (fr.state ?? md.initialData ?? prev.state),
+          : (fr.state ?? md.initialData ?? prev.state)),
       // data = eje de DATOS calculados por el server (p.ej. las filas del listing, keyed
       // por id de componente: {crud: {page: …}}); un fragmento data-only MERGEA
       data: !fr.component
@@ -3505,6 +4344,7 @@ export function reduceContexts(reg, increment, opts = {}) {
       }
       case 'DownloadFile':
         effects.download = c.data
+        effects.downloads.push(c.data)
         break
       case 'RunAction':
         effects.runActions.push(c.data)
@@ -3709,7 +4549,8 @@ const LAYOUT_TYPES = { string: true, integer: true, int: true, long: true, numbe
 export function layoutFieldOf(md, state, data, columns = 1) {
   const fieldId = md.fieldId || md.id
   if (!fieldId || (md.columns || []).length || md.propertyRow
-    || !(LAYOUT_TYPES[md.dataType] || md.stereotype === 'searchable')) return null
+    || (RICH_TEXT_STEREOTYPES[md.stereotype] && md.readOnly)
+    || !(LAYOUT_TYPES[md.dataType] || md.stereotype === 'searchable' || isExtraLayoutField(md))) return null
   const s = state || {}
   const d = data || {}
   const raw = s[fieldId] != null ? s[fieldId] : d[fieldId]
@@ -3717,7 +4558,8 @@ export function layoutFieldOf(md, state, data, columns = 1) {
   let value = raw == null || raw === '' ? null : raw
   if (widget.isBoolean) value = !!raw
   else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
-  else if (widget.isNumber) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
+  else if (widget.isNumber || widget.isMoney) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
+  else if (widget.isMultiSelect || widget.isCheckboxSet) value = Array.isArray(raw) ? raw.map(plainValueOf) : (raw == null || raw === '' ? [] : String(raw).split(','))
   else if (value != null && typeof value === 'object') value = plainValueOf(value)
   return {
     ...widget,
@@ -3939,8 +4781,59 @@ export function withSearchableIds(projection, fieldId, ids) {
  * select si trae opciones (estáticas, o las que trajo su búsqueda) — o, con lookups, si es un
  * lookup remoto —, fecha, fecha-hora, número, booleano, área de texto o texto.
  */
+// Estereotipos de campo con widget propio más allá del texto/número/fecha/booleano/select (reto
+// PMS): radio, selección múltiple, importe y los de captura. Cada familia es un flag is* de la
+// plantilla (ver poc/templates/fields-extra.html).
+const MULTI_SELECT_STEREOTYPES = { multiSelect: true, combobox: true, listBox: true }
+const CHECKBOX_SET_STEREOTYPES = { checkbox: true, choice: true }
+const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', image: 'image', signature: 'signature', camera: 'camera' }
+
+/** El widget de un estereotipo «extra», o null si el campo es de los de siempre. */
+export function extraWidgetOf(f, options) {
+  const st = f.stereotype
+  if (st === 'radio' && options.length) return { isRadio: true }
+  if (f.dataType === 'array' && options.length && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
+  if (f.dataType === 'array' && options.length && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
+    return { isCheckboxSet: true }
+  if (st === 'money' || f.dataType === 'money') {
+    const currency = (f.attributes || []).find && ((f.attributes || []).find((a) => a && a.key === 'currency') || {}).value
+    return {
+      isMoney: true,
+      // conversor de JET (oj-input-number): número con 2 decimales y su símbolo de moneda
+      converter: converterOf({ type: 'number', options: { style: 'currency', currency: currency || 'EUR', minimumFractionDigits: 2 } }),
+    }
+  }
+  if (CAPTURE_MODES[st]) return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || '' }
+  return null
+}
+
+/** ¿Lo pinta el oj-form-layout? (además de los LAYOUT_TYPES de siempre) */
+function isExtraLayoutField(md) {
+  return !!(md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
+    || CAPTURE_MODES[md.stereotype]
+    || (md.dataType === 'array' && (md.options || []).length
+      && (MULTI_SELECT_STEREOTYPES[md.stereotype] || CHECKBOX_SET_STEREOTYPES[md.stereotype])))
+}
+
 function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
   if (isSearchableField(f)) return searchableWidgetOf(f, data, value)
+  const extra = extraWidgetOf(f, optionsOf(f, data))
+  if (extra) {
+    const flags = { isSelect: false, isBoolean: false, isDate: false, isDateTime: false, isNumber: false, isTextArea: false, isText: false }
+    return {
+      fieldId: f.fieldId,
+      label: f.label || f.fieldId,
+      required: !!f.required,
+      readonly: !!f.readOnly,
+      isLookup: false,
+      lookupActionId: '',
+      options: (extra.isRadio || extra.isMultiSelect || extra.isCheckboxSet) ? optionsOf(f, data) : [],
+      ...flags,
+      isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
+      converter: null, captureMode: '', accept: '',
+      ...extra,
+    }
+  }
   const lookupActionId = (f.remoteCoordinates && f.remoteCoordinates.action) || ''
   let options = optionsOf(f, data)
   // Un lookup con valor que aún no está entre sus opciones (no han llegado, o sólo llegó la
@@ -3959,7 +4852,7 @@ function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
   const isDate = !isSelect && f.dataType === 'date'
   const isDateTime = !isSelect && f.dataType === 'dateTime'
   const isNumber = !isSelect && !!NUMERIC_TYPES[f.dataType]
-  const isTextArea = !isSelect && f.stereotype === 'textarea'
+  const isTextArea = !isSelect && (f.stereotype === 'textarea' || !!RICH_TEXT_STEREOTYPES[f.stereotype])
   return {
     fieldId: f.fieldId,
     label: f.label || f.fieldId,
@@ -3975,6 +4868,8 @@ function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
     isNumber,
     isTextArea,
     isText: !isSelect && !isBoolean && !isDate && !isDateTime && !isNumber && !isTextArea,
+    isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
+    converter: null, captureMode: '', accept: '',
   }
 }
 
@@ -4253,4 +5148,218 @@ export function rowEditorOf(reg, opts = {}) {
     }
   }
   return null
+}
+
+
+// ── PlanningBoard (Room Diary) sobre oj-gantt ─────────────────────────────────────────────────
+//
+// oj-gantt es el tape chart de JET: filas con tareas, arrastrar para mover (dnd.move) y bordes para
+// redimensionar (task-defaults.resizable), tooltip propio (shortDesc). Mateu manda los bloques con
+// el fin INCLUSIVO (la última noche); el gantt pinta [start, end) en tiempo, así que el fin se
+// pinta como el día siguiente y se devuelve restando uno.
+
+const DAY_MS = 86400000
+const isoDay = (d) => {
+  const pad = (n) => String(n).padStart(2, '0')
+  return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate())
+}
+const plusDays = (iso, n) => isoDay(new Date(Date.parse(iso + 'T00:00:00Z') + n * DAY_MS))
+
+export function planningAtomOf(m, id) {
+  const columns = m.attributeColumns || []
+  const blocks = m.blocks || []
+  const from = m.from || (blocks.length ? blocks.map((b) => b.start).sort()[0] : isoDay(new Date()))
+  const to = m.to || (blocks.length ? blocks.map((b) => b.end).sort().slice(-1)[0] : from)
+  const rows = (m.resources || []).map((r, i) => {
+    const attrs = columns.map((c, k) => ({ label: c, value: (r.attributes || [])[k] || '' }))
+    return {
+      _rowNumber: i,
+      id: r.id,
+      // la etiqueta de la fila lleva los atributos: el eje de filas de oj-gantt sólo pinta texto
+      label: [r.label].concat(attrs.map((a) => a.value).filter(Boolean)).join(' · '),
+      group: r.group || '',
+      iconClass: r.icon ? ojIconOrGenericOf(r.icon) : '',
+      tasks: blocks.filter((b) => b.resourceId === r.id && b.start && b.end).map((b) => ({
+        id: b.id,
+        start: b.start + 'T00:00:00',
+        end: plusDays(b.end, 1) + 'T00:00:00',
+        label: (b.icon ? '★ ' : '') + (b.label || ''),
+        shortDesc: b.summary || ((b.label || '') + ' · ' + b.start + ' → ' + b.end + (b.status ? ' · ' + b.status : '')),
+        svgStyle: b.color ? { fill: b.color, stroke: b.color } : undefined,
+        // dentro de la barra o nada: fuera, el texto blanco sobre el fondo no se lee (y el resumen
+        // completo sigue en el tooltip)
+        labelPosition: ['innerCenter', 'innerStart', 'none'],
+        labelStyle: { fill: '#ffffff' },
+      })),
+    }
+  })
+  return {
+    isPlanning: true,
+    planningId: id || 'planning',
+    attributeColumns: columns,
+    start: from + 'T00:00:00',
+    end: plusDays(to, 1) + 'T00:00:00',
+    rows,
+    rowsProvider: dataProviderFactory ? dataProviderFactory(rows) : null,
+    movable: !!m.moveActionId,
+    resizable: !!m.resizeActionId,
+    moveActionId: m.moveActionId || '',
+    resizeActionId: m.resizeActionId || '',
+    openActionId: m.openActionId || '',
+    selectActionId: m.selectActionId || '',
+    rangeSelectActionId: m.rangeSelectActionId || '',
+    // para la selección de rango (poc/planning.mjs lee estos data-* del oj-gantt)
+    rangeAction: m.rangeSelectActionId || '',
+    startDay: from,
+    endDay: plusDays(to, 1),
+    rowIds: rows.map((r) => r.id).join('\u001f'),
+    rowLabels: rows.map((r) => r.label).join('\u001f'),
+    dndMove: m.moveActionId ? 'enabled' : 'disabled',
+    taskResizable: m.resizeActionId ? 'enabled' : 'disabled',
+  }
+}
+
+/** Un GANTT de tareas (Gantt: título, inicio, fin, avance, color) sobre el mismo oj-gantt que el
+ *  tape chart: una fila por tarea con su barra, el avance como el relleno de progreso de JET, y la
+ *  tarea pulsada → onTaskSelectionActionId con _clickedTaskId (el contrato del renderer web). */
+export function ganttAtomOf(m, id) {
+  const tasks = (m.tasks || []).filter((t) => t && t.start && t.end)
+  const atom = planningAtomOf({
+    resources: tasks.map((t) => ({ id: t.id, label: t.title || t.id })),
+    blocks: tasks.map((t) => ({
+      id: t.id, resourceId: t.id, start: t.start, end: t.end, label: t.title || '', color: t.color,
+      summary: (t.title || '') + ' · ' + t.start + ' → ' + t.end + ' · ' + Math.round(t.progress || 0) + '%',
+    })),
+    selectActionId: m.onTaskSelectionActionId || '',
+  }, id || 'gantt')
+  const progress = {}
+  for (const t of tasks) progress[t.id] = Math.max(0, Math.min(100, Number(t.progress) || 0)) / 100
+  for (const row of atom.rows) for (const task of row.tasks) task.progress = { value: progress[task.id] || 0 }
+  const days = Math.round((Date.parse(atom.endDay) - Date.parse(atom.startDay)) / DAY_MS)
+  return {
+    ...atom,
+    isGantt: true,
+    selectParam: '_clickedTaskId',
+    // escala a la medida del plan: un proyecto de meses se lee por meses/semanas
+    majorScale: days > 60 ? 'months' : 'weeks',
+    minorScale: days > 60 ? 'weeks' : 'days',
+  }
+}
+
+/**
+ * Un evento del oj-gantt → { actionId, parameters } de Mateu, o null si no hay acción. Fechas a
+ * días (fin inclusivo). `kind`: 'move' | 'resize' | 'open' | 'select' | 'range'.
+ */
+export function planningActionOf(atom, kind, detail) {
+  if (!atom) return null
+  // el gantt devuelve instantes (el punto exacto donde se soltó, en UTC): se redondean al día
+  // LOCAL más cercano — una estancia empieza y acaba en días, no a las 09:38
+  const day = (v) => {
+    if (!v) return null
+    const text = String(v)
+    if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text
+    const d = new Date(text)
+    return isoDay(new Date(Math.round((d.getTime() - d.getTimezoneOffset() * 60000) / DAY_MS) * DAY_MS))
+  }
+  const lastNight = (v) => (v ? plusDays(day(v), -1) : null)
+  const task = detail && detail.taskContexts && detail.taskContexts[0]
+  const taskId = (task && (task.data ? task.data.id : task.id)) || (detail && detail.taskId)
+  if (kind === 'move' && atom.moveActionId && taskId) {
+    const rowId = detail.rowContext && detail.rowContext.rowData ? detail.rowContext.rowData.id
+      : (detail.rowContext && detail.rowContext.data && detail.rowContext.data.id) || detail.rowId
+    return { actionId: atom.moveActionId, parameters: {
+      // start/end: los nuevos límites de la barra (value es el instante bajo el puntero)
+      _blockId: taskId, _resourceId: rowId, _start: day(detail.start || detail.value), _end: lastNight(detail.end) } }
+  }
+  if (kind === 'resize' && atom.resizeActionId && taskId) {
+    const rowId = detail.rowId || (task && task.rowData && task.rowData.id)
+      || (task && task.rowContext && task.rowContext.rowData && task.rowContext.rowData.id)
+    return { actionId: atom.resizeActionId, parameters: {
+      _blockId: taskId, _resourceId: rowId, _start: day(detail.start), _end: lastNight(detail.end) } }
+  }
+  if (kind === 'open' && atom.openActionId && taskId) return { actionId: atom.openActionId, parameters: { _blockId: taskId } }
+  // el Gantt (Gantt.onTaskSelectionActionId) recibe la tarea como _clickedTaskId; el tape chart, _blockId
+  if (kind === 'select' && atom.selectActionId && taskId) return { actionId: atom.selectActionId, parameters: { [atom.selectParam || '_blockId']: taskId } }
+  if (kind === 'range' && atom.rangeSelectActionId && detail && detail.rowId && detail.start && detail.end) {
+    const [a, b] = [day(detail.start), day(detail.end)].sort((x, y) => x.localeCompare(y))
+    return { actionId: atom.rangeSelectActionId, parameters: { _resourceId: detail.rowId, _start: a, _end: b } }
+  }
+  return null
+}
+
+
+// ── listados: tonos de fila (@RowStatus) y grupos/totales (@GroupBy/@Aggregate) ───────────────
+// Mismo contrato que libs/mateu listingGroups.ts / rowTone.ts (el renderer web): el crud trae
+// groupBy y rowStatusField; las columnas, `aggregate`; la búsqueda (data.crud), `aggregates` (del
+// conjunto filtrado) y `groups` (por grupo, en orden).
+
+const ROW_TONES = { success: 'success', warning: 'warning', danger: 'danger', error: 'danger', info: 'info', neutral: 'neutral', none: 'neutral' }
+
+export function rowToneOf(row, field) {
+  if (!row || !field) return null
+  let v = row[field]
+  if (v && typeof v === 'object') v = v.type != null ? v.type : v.value
+  return v == null ? null : (ROW_TONES[String(v).toLowerCase()] || null)
+}
+
+function toneRows(rows, field) {
+  if (!field) return rows
+  return rows.map((r) => {
+    const tone = rowToneOf(r, field)
+    return tone ? { ...r, _tone: tone } : r
+  })
+}
+
+function formatAggregate(value, col) {
+  if (value == null) return ''
+  if (col.dataType === 'money' || col.stereotype === 'money')
+    return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)
+  if (col.aggregate === 'count') return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(Math.round(value))
+  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value)
+}
+
+function aggregatableColumns(md) {
+  return (md.columns || []).map((c) => c.metadata || c).filter((c) => c && c.id)
+}
+
+/** Los totales por columna (texto) o null si no hay nada que totalizar. */
+export function aggregateFootersOf(md, listing) {
+  const aggregates = listing && listing.aggregates
+  const cols = aggregatableColumns(md)
+  if (!aggregates || !cols.some((c) => c.aggregate)) return null
+  const out = {}
+  for (const c of cols) if (c.aggregate && aggregates[c.id] != null) out[c.id] = formatAggregate(aggregates[c.id], c)
+  const first = cols[0]
+  if (first && out[first.id] == null) {
+    const total = listing.page && listing.page.totalElements
+    out[first.id] = md.groupBy && first.id === md.groupBy && total != null ? 'Total (' + total + ')' : 'Total'
+  }
+  return out
+}
+
+/** Filas de GRUPO intercaladas donde cambia el valor de groupBy (las filas llegan ordenadas). */
+export function groupedRows(rows, md, listing) {
+  const groupBy = md.groupBy
+  const groups = (listing && listing.groups) || []
+  if (!groupBy || !groups.length) return rows
+  const cols = aggregatableColumns(md)
+  const labelCol = cols.some((c) => c.id === groupBy) ? groupBy : (cols[0] && cols[0].id)
+  const out = []
+  let last
+  rows.forEach((row, i) => {
+    const key = String(row[groupBy] == null ? '' : row[groupBy])
+    if (i === 0 || key !== last) {
+      const g = groups.find((x) => String(x.value) === key)
+        || { value: key, count: rows.filter((r) => String(r[groupBy]) === key).length, aggregates: {} }
+      const groupRow = { _rowNumber: '__mateuGroup:' + i + ':' + key, _group: true, _tone: 'group' }
+      for (const c of cols) {
+        groupRow[c.id] = c.id === labelCol ? g.value + ' (' + g.count + ')'
+          : c.aggregate ? formatAggregate((g.aggregates || {})[c.id], c) : ''
+      }
+      out.push(groupRow)
+      last = key
+    }
+    out.push(row)
+  })
+  return out
 }

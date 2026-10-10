@@ -96,6 +96,19 @@ public class DemoApp
     [MenuItem("Person")] public Person Person() => new();
 }
 
+// A card menu (like the product dropdowns of a docs site): [MenuGroup(Display = "cards")] opens a
+// folder as a panel of cards; [MenuItem(Description, Icon, Image)] / [MenuGroup] on a nested folder
+// ("Bookings/Reservations") give each card its look, and a nested folder's entries are its actions.
+// Code-authored menus (IMenuSupplier / IAppSupplier) set MenuItemDto.Display/Description/Icon/Image.
+[App("PMS")]
+[MenuGroup("Bookings", Display = MenuDisplay.Cards)]
+[MenuGroup("Bookings/Reservations", Description = "Search, create and modify", Icon = "vaadin:calendar", Image = "/img/res.png")]
+public class PmsApp
+{
+    [MenuItem("Search", Group = "Bookings/Reservations")] public Reservations Search() => new();
+    [MenuItem("Room diary", Group = "Bookings", Description = "Rooms by day")] public Person Diary() => new();
+}
+
 // A declarative dashboard: consecutive MetricCard properties form a Scoreboard KPI band,
 // [Panel] component properties become titled tiles on a responsive grid.
 [UI("dashboard"), Title("Sales dashboard")]
@@ -127,8 +140,13 @@ public class BookingFoldout : Foldout
 Beyond reflected forms, any view can implement `IComponentTreeSupplier` and return a fluent
 component tree (`Mateu.Uidl` records). Supported types: `MetricCard`, `Scoreboard`,
 `DashboardPanel`, `DashboardLayout`, `FoldoutLayout`/`FoldoutPanel`, `HeroSection`, `EmptyState`,
-`Skeleton`, `Gantt`/`GanttTask`, plus the generic `Text`, `Button`, `Card`, `HorizontalLayout`,
-`VerticalLayout` and `TabLayout`/`TabPanel`. They serialize to the exact wire shape of the Java
+`Skeleton`, `Gantt`/`GanttTask`, `PlanningBoard`/`PlanningResource`/`PlanningBlock` (tape chart;
+with the OPERA Room Diary extras — `AttributeColumns` + per-resource `Attributes`/`Icon`, block
+`Icon`/`Summary` hover text, and `ResizeActionId` / `OpenActionId` (double click) /
+`RangeSelectActionId` (drag across empty cells) next to `MoveActionId`/`SelectActionId`), `Map`/`MapMarker`
+(street map: `Position` "lat, lon", `Zoom`, `Markers`; a marker click runs `MarkerActionId` with
+`_markerId`), plus the
+generic `Text`, `Button`, `Card`, `HorizontalLayout`, `VerticalLayout` and `TabLayout`/`TabPanel`. They serialize to the exact wire shape of the Java
 DTOs (same `type` discriminators, field names and `slot`s), so every renderer that supports them
 renders the C# output unchanged. `MetricCard.ActionId` / `EmptyState.ActionId` / `Button.ActionId`
 dispatch the method of the same name on the view (drill-in navigation, CTAs).

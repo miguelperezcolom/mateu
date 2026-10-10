@@ -291,6 +291,32 @@ public final class StaticSafetyCheck {
                         + "' has neither a route nor a restAction in `actions:`, so it would be"
                         + " dispatched to a server"));
           }
+          // any other component that names an action — a map's markerActionId, a board's
+          // moveActionId, a tile's actionId — dispatches it to a server just the same (triggers are
+          // checked on their own, see checkTriggers)
+          var type = node.path("type").asText("");
+          if (!type.isBlank() && !"Button".equals(type) && !"triggers".equals(key)) {
+            node.fields()
+                .forEachRemaining(
+                    field -> {
+                      var name = field.getKey();
+                      var id = field.getValue().isTextual() ? field.getValue().asText() : "";
+                      if ((name.equals("actionId") || name.endsWith("ActionId"))
+                          && !id.isBlank()
+                          && !restActions.contains(id)) {
+                        out.add(
+                            new Violation(
+                                route,
+                                type
+                                    + " runs action '"
+                                    + id
+                                    + "' ("
+                                    + name
+                                    + ") with no restAction in `actions:`, so it would be"
+                                    + " dispatched to a server"));
+                      }
+                    });
+          }
           return true;
         });
     return out;

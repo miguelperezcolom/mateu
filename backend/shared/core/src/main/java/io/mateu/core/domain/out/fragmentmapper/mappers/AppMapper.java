@@ -91,6 +91,7 @@ public final class AppMapper {
             .globalSearchEnabled(isGlobalSearchEnabled(app))
             .commandCenterEnabled(getCommandCenter(app))
             .chromeless(getChromeless(app))
+            .accessKeys(getAccessKeys(app))
             .noBreadcrumbs(getNoBreadcrumbs(app) || backLinkParent(app))
             .backRoute(backLinkParent(app) ? parentLink(appRoute, httpRequest)[0] : null)
             .backLabel(backLinkParent(app) ? parentLink(appRoute, httpRequest)[1] : null)
@@ -240,7 +241,8 @@ public final class AppMapper {
               constant ->
                   new OptionDto(
                       ((Enum<?>) constant).name(),
-                      io.mateu.uidl.Humanizer.toUpperCaseFirst(((Enum<?>) constant).name()),
+                      io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.enumLabel(
+                          constant),
                       null,
                       null,
                       null,
@@ -452,6 +454,16 @@ public final class AppMapper {
     if (MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
       var a = MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class);
       return a.commandCenter() || a.chromeless();
+    }
+    return false;
+  }
+
+  /** Access keys mode: {@code @App(accessKeys = true)} on the app class. */
+  private static boolean getAccessKeys(AppShell app) {
+    if (app.serverSideType() == null) return false;
+    var appClass = forName(app.serverSideType());
+    if (MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
+      return MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class).accessKeys();
     }
     return false;
   }

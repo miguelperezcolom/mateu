@@ -89,6 +89,11 @@ Read this before generating; each line is a trap and its fix.
   `@Stereotype(FieldStereotype.textarea)` over a colspan'd single-line input — it says what
   the field is AND gets the full row for free.
 
+- **An `actionId` set on a component needs an action method on the view.** A board's
+  `moveActionId`, a tile's or button's `actionId`, a map's `markerActionId`… are advertised to
+  the client (which only sends advertised actions) when the view has a method of that name that
+  the server accepts as an action: **public**, or marked `@Action`. A package-private plain
+  method is neither advertised nor runnable — the click does nothing.
 - **Mark THE primary action.** `@Button(buttonStyle = ButtonStyle.primary)` renders the
   screen's main action (Sell, Save, Confirm) as a filled primary button; leaving every button
   tertiary buries the action hierarchy. One primary per screen.

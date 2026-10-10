@@ -72,6 +72,21 @@ Object openPending() {
 }
 ```
 
+### Tiles the viewer can rearrange
+
+Override `reorderable()` to let each viewer drag the tiles into their own order, the way OPERA Cloud's dashboard works:
+
+```java
+@Override
+protected boolean reorderable() {
+    return true;
+}
+```
+
+The viewer drops a tile on another to put it there. From the keyboard, focus a tile and press **Alt+←** or **Alt+→** to move it one place. The order belongs to the viewer: it is kept in the browser for that screen, keyed by each tile's id (the field name), and the declaration order stays the default. A tile you add later shows up after the ones the viewer has already placed. Nothing goes to the server, so a viewer who changes browser starts from the declared order.
+
+The flag lives on the grid the archetype composes (`ResponsiveGrid.reorderable`; fluent: `grid.asReorderable()`), so any responsive grid of tiles can offer it. It works on the Vaadin and Redwood renderers. The native renderers keep the declared order.
+
 ### Fluent variant
 
 Everything is also available as fluent components for `ComponentTreeSupplier` pages: build a `DashboardLayout` with `Scoreboard`, `DashboardPanel` and `MetricCard` items directly when the layout is data-dependent.
@@ -107,7 +122,8 @@ every template are documented once in [Page templates](/ux-patterns/page-templat
 | `displayOptions.scoreboardSticky` | — the band scrolls with the page | — |
 | `displayOptions.density: standard \| compact` | `@Compact`, set on the view rather than as a template option | 🟡 |
 | `selectContext` / `selectObject` + `displayOptions.switcherSearch` | — the record switcher is only available inside `GeneralOverview`, not as a header element here | — |
-| `editLayoutMode`, `contentLibraryData`, `editLayoutOptions {share, properties, contentLibraryFilters}` | ⚪ end-user-editable dashboards (drag tiles, content library) are a Fusion Apps concern, out of scope by decision | ⚪ |
+| `editLayoutMode` (drag tiles) | `reorderable()`: each viewer drags the tiles into their own order, kept in their browser | 🟡 |
+| `contentLibraryData`, `editLayoutOptions {share, properties, contentLibraryFilters}` | ⚪ adding tiles from a content library and sharing layouts are a Fusion Apps concern, out of scope by decision | ⚪ |
 | `spRestoreDefaults`, `spShare` | ⚪ part of the same edit-layout feature | ⚪ |
 
 ## When to use it

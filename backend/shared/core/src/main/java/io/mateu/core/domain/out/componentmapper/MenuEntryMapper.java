@@ -42,12 +42,34 @@ final class MenuEntryMapper {
 
   static Actionable mapToMenu(
       String appRoute, Field field, Object instance, String route, HttpRequest httpRequest) {
-    var entry = mapFieldToMenu(appRoute, field, instance, route, httpRequest);
+    var entry = presented(mapFieldToMenu(appRoute, field, instance, route, httpRequest), field);
     // @Hidden on any @Menu field: out of the menu, its route still resolving — a page reached from
     // a button, a section reached from a header widget.
     return MetaAnnotations.isPresent(field, io.mateu.uidl.annotations.Hidden.class)
         ? hidden(entry)
         : entry;
+  }
+
+  /**
+   * The card look of an entry: {@code @Menu(display = cards)} on a group, {@code @Menu(image)} and
+   * {@code @Icon} on an entry shown as a card. Untouched (null presentation) when none is declared,
+   * so a plain menu travels exactly as before.
+   */
+  static Actionable presented(Actionable entry, Field field) {
+    var menu = MetaAnnotations.find(field, io.mateu.uidl.annotations.Menu.class);
+    var icon = MetaAnnotations.find(field, io.mateu.uidl.annotations.Icon.class);
+    var display =
+        menu != null && menu.display() == io.mateu.uidl.data.MenuDisplay.cards
+            ? io.mateu.uidl.data.MenuDisplay.cards
+            : null;
+    var image = menu != null && !menu.image().isBlank() ? menu.image() : null;
+    var iconName = icon != null ? icon.value().iconName : null;
+    if (display == null && image == null && iconName == null) return entry;
+    var presentation = new io.mateu.uidl.data.MenuPresentation(display, iconName, image);
+    if (entry instanceof Menu m) return m.withPresentation(presentation);
+    if (entry instanceof FieldLink f) return f.withPresentation(presentation);
+    if (entry instanceof RouteLink r) return r.withPresentation(presentation);
+    return entry;
   }
 
   static Actionable hidden(Actionable entry) {

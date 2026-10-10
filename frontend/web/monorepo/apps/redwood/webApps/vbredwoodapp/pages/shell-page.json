@@ -181,6 +181,17 @@
         }
       ]
     },
+    "cardMenuToggle": {
+      "chains": [
+        {
+          "chain": "toggleMateuWidgetPopup",
+          "parameters": {
+            "popupId": "{{ $event.currentTarget.dataset.popupId }}",
+            "anchorId": "{{ $event.currentTarget.id }}"
+          }
+        }
+      ]
+    },
     "topbarNavClicked": {
       "chains": [
         {
@@ -315,6 +326,37 @@
           "chain": "chatMic"
         }
       ]
+    },
+    "bellClicked": {
+      "chains": [
+        {
+          "chain": "mateuBell",
+          "parameters": {
+            "op": "toggle"
+          }
+        }
+      ]
+    },
+    "bellMarkAllRead": {
+      "chains": [
+        {
+          "chain": "mateuBell",
+          "parameters": {
+            "op": "readAll"
+          }
+        }
+      ]
+    },
+    "bellItemAction": {
+      "chains": [
+        {
+          "chain": "mateuBell",
+          "parameters": {
+            "op": "open",
+            "item": "{{ $event.detail.context.data }}"
+          }
+        }
+      ]
     }
   },
   "imports": {
@@ -381,6 +423,12 @@
       },
       "oj-bind-dom": {
         "path": "ojs/ojbinddom"
+      },
+      "oj-list-view": {
+        "path": "ojs/ojlistview"
+      },
+      "oj-list-item-layout": {
+        "path": "ojs/ojlistitemlayout"
       }
     }
   },

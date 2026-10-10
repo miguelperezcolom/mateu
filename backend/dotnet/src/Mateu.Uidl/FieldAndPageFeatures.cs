@@ -118,6 +118,17 @@ public sealed class HiddenAttribute(string value) : Attribute
     public string Value { get; } = value;
 }
 
+/// <summary>On a listing row's property: hovering the property's CELL shows the text of another
+/// property of the same row — e.g. <c>[Tooltip("rateBreakdown")] decimal Rate</c> shows the
+/// per-night breakdown on the rate cell. Line breaks in that text are kept. (C# analogue of Java's
+/// @Tooltip; the column's wire tooltipPath.)</summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
+public sealed class TooltipAttribute(string value) : Attribute
+{
+    /// <summary>The row property (camelCase wire name) whose text is shown.</summary>
+    public string Value { get; } = value;
+}
+
 /// <summary>Renders the field permanently disabled (visible but not editable).
 /// (C# analogue of Java's @Disabled.)</summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
@@ -389,6 +400,16 @@ public sealed class InlineEditingAttribute : Attribute;
 /// (C# analogue of Java's @Version.)</summary>
 [AttributeUsage(AttributeTargets.Property | AttributeTargets.Class)]
 public sealed class VersionAttribute : Attribute;
+
+/// <summary>The rows of the decorated listing (an IListing / Crud / Listing) can be DRAGGED onto a
+/// <see cref="DropZone"/> accepting <see cref="Type"/> — the selected rows, or the one under the
+/// pointer. The drop runs the zone's action with _draggedIds and _dragType. (C# analogue of Java's
+/// @DragRows.)</summary>
+[AttributeUsage(AttributeTargets.Class)]
+public sealed class DragRowsAttribute(string type) : Attribute
+{
+    public string Type { get; } = type;
+}
 
 /// <summary>Adds a toolbar button to the crud LISTING that runs the decorated method as a BULK
 /// action over the rows selected in the grid. The frontend keeps the selection in the

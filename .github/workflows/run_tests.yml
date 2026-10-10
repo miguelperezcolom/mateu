@@ -101,7 +101,13 @@ jobs:
           node-version: 24
 
       - name: Redwood core contract tests
-        run: cd frontend/web/monorepo/apps/redwood/poc && node test.mjs
+        run: cd frontend/web/monorepo/apps/redwood/poc && node test.mjs && node test-pms.mjs
+
+      - name: Redwood atom template is expanded in every surface
+        run: cd frontend/web/monorepo/apps/redwood/poc && node make-html.mjs --check
+
+      - name: parity.md tells the truth about Redwood (coverage vs wire catalogue vs renderer code)
+        run: cd frontend/web/monorepo/apps/redwood/poc && node parity-check.mjs
 
       - name: MCP server tests
         run: cd frontend/mcp-server && node --test

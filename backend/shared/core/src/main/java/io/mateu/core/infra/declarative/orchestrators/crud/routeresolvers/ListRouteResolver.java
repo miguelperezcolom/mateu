@@ -71,6 +71,17 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
     return 0;
   }
 
+  /**
+   * An exporter of that kind is registered (the toolbar is built before ExporterContext is set).
+   */
+  private static boolean exporterAvailable(Class<?> exporter) {
+    try {
+      return !io.mateu.uidl.di.MateuBeanProvider.getBeans(exporter).isEmpty();
+    } catch (RuntimeException notInitialised) {
+      return false;
+    }
+  }
+
   private Component createListComponent(HttpRequest httpRequest, Crud orchestrator) {
     var toolbar = new ArrayList<UserTrigger>();
     orchestrator.addButtonsToList(toolbar);
@@ -79,6 +90,20 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
     }
     if (orchestrator.behaviourSource() instanceof Auditable) {
       toolbar.add(new Button(orchestrator.historyLabel(), "history"));
+    }
+    // exportar el listado (Listing.csvExportable/excelExportable/pdfExportable): un AutoCrud es un
+    // Listing y ExportActionRunner ya lo atiende, pero sus botones no salían en el toolbar
+    if (orchestrator.csvExportable()
+        && exporterAvailable(io.mateu.uidl.interfaces.CsvExporter.class)) {
+      toolbar.add(new Button("Export CSV", "export-csv"));
+    }
+    if (orchestrator.excelExportable()
+        && exporterAvailable(io.mateu.uidl.interfaces.ExcelExporter.class)) {
+      toolbar.add(new Button("Export Excel", "export-excel"));
+    }
+    if (orchestrator.pdfExportable()
+        && exporterAvailable(io.mateu.uidl.interfaces.PdfExporter.class)) {
+      toolbar.add(new Button("Export PDF", "export-pdf"));
     }
     if (!notCreatable(orchestrator) && orchestrator.canCreate()) {
       toolbar.add(new Button(orchestrator.newLabel(), "new"));
@@ -140,6 +165,12 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
                         io.mateu.core.infra.declarative.orchestrators.crud.ListingSummarySpec.of(
                                 orchestrator.rowClass())
                             .groupBy())
+                    .rowStatusField(
+                        io.mateu.core.infra.declarative.orchestrators.crud.ListingSummarySpec
+                            .rowStatusFieldOf(orchestrator.rowClass()))
+                    .dragType(
+                        io.mateu.core.infra.declarative.orchestrators.crud.ListingSummarySpec
+                            .dragTypeOf(orchestrator.metadataSource()))
                     .columns(columns)
                     .detailPath(
                         io.mateu.core.domain.out.componentmapper.PageListingBuilder.getDetailPath(

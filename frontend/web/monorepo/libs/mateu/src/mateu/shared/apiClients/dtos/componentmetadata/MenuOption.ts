@@ -41,6 +41,13 @@ export default interface MenuOption {
     uriPrefix: string | undefined
     description: string | undefined
 
+    // A GROUP that opens as a panel of CARDS ('cards') instead of a list. Its entries are the
+    // cards (label = title, description = text, icon / image); a card's own submenus are its
+    // actions. Absent on a plain menu and from older servers.
+    display?: 'cards' | null
+    // The image of an entry shown as a card (URL relative to the app, or a data URI).
+    image?: string | null
+
     // The entry opens a listing: how to narrow it from its URL — its declared filters, the search
     // and the reserved id set (?ids=…). Absent for any other screen and from older servers.
     listing?: ListingDescriptor

@@ -1,6 +1,6 @@
 package io.mateu.core.domain.out.componentmapper;
 
-final class ExporterContext {
+public final class ExporterContext {
 
   private static final ThreadLocal<Boolean> EXCEL = new ThreadLocal<>();
   private static final ThreadLocal<Boolean> PDF = new ThreadLocal<>();
@@ -18,15 +18,15 @@ final class ExporterContext {
     CSV.remove();
   }
 
-  static boolean isExcelAvailable() {
+  public static boolean isExcelAvailable() {
     return Boolean.TRUE.equals(EXCEL.get());
   }
 
-  static boolean isPdfAvailable() {
+  public static boolean isPdfAvailable() {
     return Boolean.TRUE.equals(PDF.get());
   }
 
-  static boolean isCsvAvailable() {
+  public static boolean isCsvAvailable() {
     return Boolean.TRUE.equals(CSV.get());
   }
 }

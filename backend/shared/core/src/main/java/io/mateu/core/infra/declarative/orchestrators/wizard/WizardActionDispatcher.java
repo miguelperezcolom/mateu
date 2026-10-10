@@ -6,11 +6,15 @@ import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.uidl.annotations.WizardCompletionAction;
 import io.mateu.uidl.data.Message;
+import io.mateu.uidl.data.NotificationVariant;
 import io.mateu.uidl.di.MateuBeanProvider;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.InstanceFactory;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.util.concurrent.atomic.AtomicBoolean;
+import org.reactivestreams.Publisher;
+import reactor.core.publisher.Flux;
 
 final class WizardActionDispatcher {
 
@@ -111,6 +115,30 @@ final class WizardActionDispatcher {
           method.setAccessible(true);
         }
         var result = method.invoke(wizard);
+        if (result instanceof Publisher<?> stream) {
+          // A streamed completion (a LongTask's progress) is not the answer, it is the way to it:
+          // once the stream is over the wizard lands on its result step, as with a null return.
+          // Deferred so the result step reflects whatever the work set while it ran. A stream that
+          // reports an error stays on the step, as a returned Message.error does.
+          var failed = new AtomicBoolean();
+          return Flux.concat(
+              Flux.from(stream)
+                  .doOnNext(
+                      item -> {
+                        if (item instanceof Message message
+                            && message.variant() == NotificationVariant.error) {
+                          failed.set(true);
+                        }
+                      }),
+              Flux.defer(
+                  () -> {
+                    if (failed.get()) {
+                      return Flux.empty();
+                    }
+                    wizard.position = wizard.numberOfSteps() - 1;
+                    return Flux.just(wizard);
+                  }));
+        }
         if (result != null) {
           return result;
         }

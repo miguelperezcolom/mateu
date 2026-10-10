@@ -247,6 +247,10 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(TaskProgressMetadataDto), "TaskProgress")]
 [JsonDerivedType(typeof(StatusListMetadataDto), "StatusList")]
 [JsonDerivedType(typeof(BulletedListMetadataDto), "BulletedList")]
+[JsonDerivedType(typeof(ActionPanelMetadataDto), "ActionPanel")]
+[JsonDerivedType(typeof(MatrixGridMetadataDto), "MatrixGrid")]
+[JsonDerivedType(typeof(MapMetadataDto), "Map")]
+[JsonDerivedType(typeof(DropZoneMetadataDto), "DropZone")]
 [JsonDerivedType(typeof(SeparatorMetadataDto), "Separator")]
 [JsonDerivedType(typeof(CustomComponentMetadataDto), "CustomComponent")]
 [JsonDerivedType(typeof(AnchorMetadataDto), "Anchor")]
@@ -259,6 +263,7 @@ public record CustomTriggerDto(string Event, string ActionId)
 [JsonDerivedType(typeof(PaymentPickerMetadataDto), "PaymentPicker")]
 [JsonDerivedType(typeof(ProcessMonitorMetadataDto), "ProcessMonitor")]
 [JsonDerivedType(typeof(DrawerMetadataDto), "Drawer")]
+[JsonDerivedType(typeof(PopoverMetadataDto), "Popover")]
 [JsonDerivedType(typeof(DialogMetadataDto), "Dialog")]
 [JsonDerivedType(typeof(MicroFrontendMetadataDto), "MicroFrontend")]
 public abstract record ComponentMetadataDto;
@@ -289,7 +294,7 @@ public record DashboardLayoutMetadataDto(int Columns) : ComponentMetadataDto;
 /// <summary>One responsive grid — THE general layout foundation (coherence-plan #9). Carries the
 /// resolved CSS grid-template-columns (from the tracks' hug/fixed/fill intent) and the gap; children
 /// travel as the component's children.</summary>
-public record ResponsiveGridMetadataDto(string? GridTemplateColumns, string? Gap, IReadOnlyList<int>? ColSpans = null, string? StackBelow = null, string? GridTemplateAreas = null, IReadOnlyList<string>? StickyAreas = null) : ComponentMetadataDto;
+public record ResponsiveGridMetadataDto(string? GridTemplateColumns, string? Gap, IReadOnlyList<int>? ColSpans = null, string? StackBelow = null, string? GridTemplateAreas = null, IReadOnlyList<string>? StickyAreas = null, bool Reorderable = false) : ComponentMetadataDto;
 
 /// <summary>Redwood-style foldout layout. The overview travels as the child slotted "overview";
 /// each panel's content as the child slotted "panel-N" matching the panels list order.</summary>
@@ -361,14 +366,22 @@ public record PlanningBoardMetadataDto(
     string? From,
     string? To,
     string? MoveActionId,
-    string? SelectActionId) : ComponentMetadataDto;
+    string? SelectActionId,
+    IReadOnlyList<string>? AttributeColumns = null,
+    string? ResizeActionId = null,
+    string? OpenActionId = null,
+    string? RangeSelectActionId = null) : ComponentMetadataDto;
 
-/// <summary>One planning board row; group is an optional swimlane caption.</summary>
-public record PlanningResourceDto(string? Id, string? Label, string? Group);
+/// <summary>One planning board row; group is an optional swimlane caption, attributes the values
+/// of the board's attribute columns, icon an optional icon name before the label.</summary>
+public record PlanningResourceDto(
+    string? Id, string? Label, string? Group, IReadOnlyList<string>? Attributes = null, string? Icon = null);
 
-/// <summary>One planning board block; start/end are ISO-8601 dates (inclusive).</summary>
+/// <summary>One planning board block; start/end are ISO-8601 dates (inclusive); icon before the
+/// label and summary = the hover text (lines separated by \n).</summary>
 public record PlanningBlockDto(
-    string? Id, string? ResourceId, string? Start, string? End, string? Label, string? Color, string? Status);
+    string? Id, string? ResourceId, string? Start, string? End, string? Label, string? Color, string? Status,
+    string? Icon = null, string? Summary = null);
 
 /// <summary>Kanban board metadata: columns of cards.</summary>
 public record KanbanMetadataDto(IReadOnlyList<KanbanColumnDto> Columns) : ComponentMetadataDto;
@@ -396,11 +409,20 @@ public record StepDto(string? Id, string? Title, string? Description, string? St
 /// <summary>KPI stat metadata: value/unit, delta, trend (up|down|flat) and a sparkline.</summary>
 public record StatMetadataDto(string? Label, string? Value, string? Unit, string? Delta, string? Trend, IReadOnlyList<double> Spark, string? ActionId) : ComponentMetadataDto;
 
-/// <summary>Month-grid calendar metadata; Month/Event dates are ISO-8601 (yyyy-MM-dd).</summary>
-public record CalendarMetadataDto(string? Month, IReadOnlyList<CalendarEventDto> Events) : ComponentMetadataDto;
+/// <summary>Calendar metadata; Month (the anchor) and every date are ISO-8601 (yyyy-MM-dd). View is
+/// month|week|day|list (default month), Views the switchable ones, Days the per-date cells and
+/// DayActionId makes those cells clickable.</summary>
+public record CalendarMetadataDto(string? Month, IReadOnlyList<CalendarEventDto> Events,
+    string View, IReadOnlyList<string> Views, IReadOnlyList<CalendarDayDto> Days, string? DayActionId)
+    : ComponentMetadataDto;
 
-/// <summary>One calendar event; Date is ISO-8601; ActionId makes the chip clickable.</summary>
-public record CalendarEventDto(string? Id, string? Title, string? Date, string? Color, string? ActionId);
+/// <summary>One calendar event; Date/EndDate are ISO-8601, Start/EndTime "HH:mm"; ActionId makes
+/// the chip clickable.</summary>
+public record CalendarEventDto(string? Id, string? Title, string? Date, string? EndDate,
+    string? StartTime, string? EndTime, string? Color, string? ActionId);
+
+/// <summary>One date's cell of a calendar: ISO date, a short label and a tone.</summary>
+public record CalendarDayDto(string? Date, string? Label, string? Tone);
 
 /// <summary>Pricing-table metadata: plan cards.</summary>
 public record PricingTableMetadataDto(IReadOnlyList<PricingPlanDto> Plans) : ComponentMetadataDto;
@@ -516,6 +538,62 @@ public record StatusListMetadataDto(
     : ComponentMetadataDto;
 
 public record BulletedListMetadataDto(IReadOnlyList<string> Items) : ComponentMetadataDto;
+
+/// <summary>Categorised action panel ("I want to…"): categories in order, each with its actions.</summary>
+public record ActionPanelMetadataDto(
+    string Label,
+    string? Shortcut,
+    IReadOnlyList<ActionPanelCategoryDto> Categories,
+    int MaxPerCategory,
+    bool HideUnpopulatedToggle) : ComponentMetadataDto;
+
+public record ActionPanelCategoryDto(string? Title, IReadOnlyList<ActionPanelItemDto> Actions);
+
+public record ActionPanelItemDto(
+    string? Label,
+    string? ActionId,
+    IReadOnlyDictionary<string, object?>? Parameters,
+    int? Count,
+    bool Populated,
+    bool Disabled);
+
+/// <summary>A drop target for dragged listing rows; its content travels as the component's
+/// children (mirrors Java's DropZoneDto).</summary>
+public record DropZoneMetadataDto(
+    string? Accept,
+    string? ActionId,
+    IReadOnlyDictionary<string, object?> Parameters,
+    string? Title,
+    string? Subtitle) : ComponentMetadataDto;
+
+/// <summary>Matrix grid: rows × columns in collapsible sections; every row carries exactly one cell
+/// per column (mirrors Java's MatrixGridDto).</summary>
+public record MatrixGridMetadataDto(
+    string? RowHeaderLabel,
+    IReadOnlyList<MatrixColumnDto> Columns,
+    IReadOnlyList<MatrixSectionDto> Sections,
+    string? CellActionId,
+    string? EditActionId) : ComponentMetadataDto;
+
+public record MatrixColumnDto(string? Id, string? Label, string? Group, string? Tone);
+
+public record MatrixSectionDto(string Id, string? Title, bool Collapsed, IReadOnlyList<MatrixRowDto> Rows);
+
+public record MatrixRowDto(string? Id, string? Label, IReadOnlyList<MatrixCellDto> Cells, bool Editable, bool Emphasis);
+
+public record MatrixCellDto(string Value, string? Tone, bool Link);
+
+/// <summary>Street map: centre ("lat, lon"), zoom, markers and the action a marker click runs
+/// (with { _markerId }) — mirrors Java's MapDto.</summary>
+public record MapMetadataDto(
+    string? Position,
+    string? Zoom,
+    IReadOnlyList<MapMarkerDto> Markers,
+    string? MarkerActionId) : ComponentMetadataDto;
+
+/// <summary>One point on a map (mirrors Java's MapMarkerDto).</summary>
+public record MapMarkerDto(
+    string? Id, double Latitude, double Longitude, string? Label, string? Description, string? Color);
 
 /// <summary>One status-list row; the action dispatches ActionId with { _item: Id }.</summary>
 public record StatusItemDto(
@@ -771,6 +849,15 @@ public record CrudMetadataDto(
     /// ([RestListing]); the renderer maps each JSON item into a row keyed by column id instead of
     /// dispatching the server search. Null on server-backed listings (mirrors CrudlDto.rowsSource).</summary>
     public RestDataSourceDto? RowsSource { get; init; }
+
+    /// <summary>Rows can be dragged onto a DropZone accepting this type ([DragRows]); null = not
+    /// draggable (mirrors CrudlDto.dragType).</summary>
+    public string? DragType { get; init; }
+
+    /// <summary>The [RowStatus] property of the row class (camelCase field id): its value
+    /// (success | warning | danger | info | neutral) tones the whole row. Null = no row tones
+    /// (mirrors CrudlDto.rowStatusField).</summary>
+    public string? RowStatusField { get; init; }
 }
 
 public record GridColumnDto(GridColumnMetaDto Metadata);
@@ -810,6 +897,10 @@ public record GridColumnMetaDto(string Id, string Label)
     /// "view" when rows are clickable (navigable/editable listings); null on plain columns
     /// (mirrors GridColumnDto.actionId).</summary>
     public string? ActionId { get; init; }
+
+    /// <summary>The row field whose text the cell shows on hover ([Tooltip("otherField")] on the
+    /// row property); null when the column declares none (mirrors GridColumnDto.tooltipPath).</summary>
+    public string? TooltipPath { get; init; }
 }
 
 public record TriggerDto(string Type, string ActionId);
@@ -869,6 +960,10 @@ public record AppMetadataDto(
     /// navigation (implies CommandCenterEnabled).</summary>
     public bool Chromeless { get; init; }
 
+    /// <summary>[App(AccessKeys=true)] — keyboard access-keys mode: holding Alt shows a key next to
+    /// every visible button and tab and Alt+key activates it. (Mirrors AppDto.accessKeys.)</summary>
+    public bool AccessKeys { get; init; }
+
     /// <summary>The app-scope data source seeded by a route entry's <c>appData</c> — the shell
     /// fetches it once into the app-data store, shared across routes. Null when no route on this
     /// mount declares app data. (Mirrors io.mateu.dtos.AppDto.appDataSource.)</summary>
@@ -923,6 +1018,23 @@ public record MenuItemDto(string Label, string Route, string ServerSideType)
     /// method typed Rule / IReadOnlyList&lt;Rule&gt; is a rule leaf, not a route. Empty on a normal
     /// (navigating) entry. (Mirrors io.mateu.dtos.MenuOptionDto.rules / RuleLink.)</summary>
     public IReadOnlyList<RuleDto> Rules { get; init; } = [];
+
+    /// <summary>The entry's icon (an icon name like "vaadin:calendar"); null for none. Shown on a
+    /// card. (Mirrors io.mateu.dtos.MenuOptionDto.icon.)</summary>
+    public string? Icon { get; init; }
+
+    /// <summary>The entry's description — the text of a card. (Mirrors
+    /// io.mateu.dtos.MenuOptionDto.description.)</summary>
+    public string? Description { get; init; }
+
+    /// <summary>A GROUP that opens as a panel of cards ("cards") instead of the usual list (null).
+    /// Its entries are the cards; each entry's own Submenus are the card's actions. (Mirrors
+    /// io.mateu.dtos.MenuOptionDto.display.)</summary>
+    public string? Display { get; init; }
+
+    /// <summary>The image of an entry shown as a card (a URL or a data URI); null for none.
+    /// (Mirrors io.mateu.dtos.MenuOptionDto.image.)</summary>
+    public string? Image { get; init; }
 }
 
 /// <summary>Lateral navigation across peer objects — the previous/next arrows in the page header
@@ -1122,6 +1234,10 @@ public record RestDataSourceDto(string Url)
     /// shorthand (empty Url, Ref set).</summary>
     public static RestDataSourceDto FromRef(string name) => new("") { Ref = name };
 }
+
+/// <summary>A popover (mirrors io.mateu.dtos.PopoverDto): the wrapped component and the content of
+/// its floating panel, opened on <c>click</c> (default) or <c>hover</c>.</summary>
+public record PopoverMetadataDto(ComponentDto? Content, ComponentDto? Wrapped, string Trigger = "click") : ComponentMetadataDto;
 
 /// <summary>A drawer overlay (mirrors io.mateu.dtos.DrawerDto): a panel sliding in from a
 /// viewport edge whose content travels in the Content field. Emitted as an Add fragment so it

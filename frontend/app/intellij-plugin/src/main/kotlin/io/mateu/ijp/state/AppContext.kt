@@ -273,6 +273,27 @@ class AppContext(val session: AppSession) {
     /** @AutoSave: debounced action fired after edits. */
     private var autoSaveActionId: String? = null
     private var autoSaveTimer: javax.swing.Timer? = null
+
+    /** Periodic refresh: timed OnLoad + OnSuccess triggers, tied to the screen (generation). */
+    private val polling = PollingScheduler(
+        runner = { actionId, _ ->
+            // Like every trigger, silent (a failure logs, never a dialog); runAction shows no busy
+            // indicator, so `background` needs no extra handling here.
+            if (actionId == "search") seedSearchState()
+            runAction(actionId, null, silent = true)
+        },
+        conditionHolds = { evalCondition(it, currentComponentState) },
+    )
+
+    /** Set by navigations: the next ServerSide render is a NEW screen even if it looks the same. */
+    private var freshScreen = true
+
+    /** The view was closed: pending periodic refreshes and event subscriptions die with it. */
+    fun dispose() {
+        polling.stop()
+        autoSaveTimer?.stop()
+        session.unsubscribeAll(this)
+    }
     private var currentFormChildren: JsonNode? = null
     private var currentFormContainer: JComponent? = null
 
@@ -312,6 +333,12 @@ class AppContext(val session: AppSession) {
         }
         target.revalidate()
         target.repaint()
+        refreshAccessKeys(target)
+    }
+
+    /** `@App(accessKeys = true)`: re-assign the screen's Alt+letter mnemonics after a (re)render. */
+    private fun refreshAccessKeys(slot: JComponent) {
+        if (session.accessKeys) io.mateu.ijp.ui.AccessKeys.scheduleRefresh(contentPane ?: slot)
     }
 
     /** Render [children] into [container]: one child fills (BorderLayout), several stack vertically. */
@@ -331,6 +358,7 @@ class AppContext(val session: AppSession) {
         }
         container.revalidate()
         container.repaint()
+        refreshAccessKeys(container)
     }
 
     fun registerComponent(id: String?, pane: JComponent) {
@@ -358,6 +386,7 @@ class AppContext(val session: AppSession) {
             work = { apiClient.initialLoad(route, appState) },
             onOk = { increment ->
                 currentRoute = route ?: ""
+                freshScreen = true
                 applyIncrement(increment)
             },
             onErr = { showError("Load failed: ${it.message}") },
@@ -385,6 +414,7 @@ class AppContext(val session: AppSession) {
                 currentServerSideType = serverSideType ?: ""
                 navigationServerSideType = serverSideType ?: ""
                 currentComponentState = HashMap()
+                freshScreen = true
                 applyIncrement(increment)
                 // If the response carried no component for the content slot (e.g. a backend error
                 // with only a message), drop the spinner instead of leaving it stuck on "Loading…".
@@ -474,6 +504,7 @@ class AppContext(val session: AppSession) {
         }
 
         val serverSideType = resolveActionTarget(actionId)
+        val generation = polling.generation
         background(
             work = {
                 apiClient.runAction(
@@ -484,6 +515,8 @@ class AppContext(val session: AppSession) {
             onOk = { increment ->
                 currentComponentState = HashMap()
                 applyIncrement(increment)
+                // OnSuccess triggers (the polling loop) — only if still on the screen that dispatched it
+                polling.actionSucceeded(generation, actionId)
             },
             onErr = {
                 if (silent) println("[Mateu] action '$actionId' failed: ${it.message}")
@@ -1135,6 +1168,11 @@ class AppContext(val session: AppSession) {
                 currentFormChildren = children
                 currentFormContainer = container
                 currentFieldErrors.clear()
+                // timed OnLoad/OnSuccess: armed on a NEW screen only — a same-screen re-render (what
+                // a refresh answers) must not re-arm the OnLoads, or every round would add a loop
+                val fresh = freshScreen
+                freshScreen = false
+                polling.enterScreen("${serverSideType.ifBlank { currentServerSideType }}|${route.ifBlank { currentRoute }}", triggers, fresh)
                 SwingUtilities.invokeLater {
                     putChildren(container, ComponentRenderer(this), children, state, state)
                     if (triggers.isArray) fireOnLoadTriggers(triggers)
@@ -1190,20 +1228,23 @@ class AppContext(val session: AppSession) {
     private fun fireOnLoadTriggers(triggers: JsonNode) {
         for (trigger in triggers) {
             if (trigger.text("type").equals("OnLoad", ignoreCase = true)) {
+                if (PollingScheduler.isTimedOnLoad(trigger)) continue // delayed: the polling scheduler owns it
                 val actionId = trigger.text("actionId")
                 if (actionId.isNotBlank()) {
-                    if (actionId == "search") {
-                        currentComponentState.putIfAbsent("page", 0)
-                        currentComponentState.putIfAbsent("size", 10)
-                        currentComponentState.putIfAbsent("sort", emptyList<Any>())
-                        currentComponentState.putIfAbsent("searchText", "")
-                    }
+                    if (actionId == "search") seedSearchState()
                     // OnLoad triggers are background hydration/search — a failure logs, never a dialog.
                     runAction(actionId, null, silent = true)
                 }
             }
         }
         registerCustomEventTriggers(triggers)
+    }
+
+    private fun seedSearchState() {
+        currentComponentState.putIfAbsent("page", 0)
+        currentComponentState.putIfAbsent("size", 10)
+        currentComponentState.putIfAbsent("sort", emptyList<Any>())
+        currentComponentState.putIfAbsent("searchText", "")
     }
 
     /** `@SubscribeTo` / OnCustomEvent triggers → the session event bus: when the named event fires

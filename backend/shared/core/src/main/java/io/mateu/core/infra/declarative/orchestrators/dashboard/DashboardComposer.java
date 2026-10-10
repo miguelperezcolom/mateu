@@ -26,6 +26,11 @@ import java.util.List;
 public final class DashboardComposer {
 
   public static Component compose(Object host, String id, int columns) {
+    return compose(host, id, columns, false);
+  }
+
+  /** As {@link #compose(Object, String, int)}, with the tiles reorderable by the viewer. */
+  public static Component compose(Object host, String id, int columns, boolean reorderable) {
     List<Component> items = new ArrayList<>();
     List<MetricCard> pendingMetrics = new ArrayList<>();
     for (Field field : host.getClass().getDeclaredFields()) {
@@ -70,7 +75,8 @@ public final class DashboardComposer {
     // align-items:stretch keeps the tiles equal-height, matching the former DashboardLayout.
     List<GridTrack> tracks =
         columns > 0 ? Collections.nCopies(columns, GridTrack.fill()) : List.of();
-    return new ResponsiveGrid(id, tracks, null, items, null, "align-items: stretch;");
+    var grid = new ResponsiveGrid(id, tracks, null, items, null, "align-items: stretch;");
+    return reorderable ? grid.asReorderable() : grid;
   }
 
   private static void flushMetrics(List<MetricCard> pendingMetrics, List<Component> items) {

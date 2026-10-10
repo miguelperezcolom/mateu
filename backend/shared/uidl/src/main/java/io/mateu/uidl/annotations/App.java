@@ -37,6 +37,13 @@ public @interface App {
   boolean chromeless() default false;
 
   /**
+   * Keyboard ACCESS KEYS (back-office suites' "hold the key to see the keys"): holding Alt shows a
+   * key next to every visible button and tab — the declared shortcut when there is one, otherwise a
+   * letter of its label assigned automatically — and Alt+that letter activates it. Opt-in.
+   */
+  boolean accessKeys() default false;
+
+  /**
    * The label of the shell's own "ask" FAB — the always-present button that opens the destination
    * search (the Ask-Oracle pattern). It is the button's accessible name, its tooltip and the title
    * of the palette it opens. Blank (the default) keeps the renderer's own brand: on Redwood, "Ask

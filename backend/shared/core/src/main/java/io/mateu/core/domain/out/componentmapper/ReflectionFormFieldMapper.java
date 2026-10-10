@@ -142,6 +142,7 @@ public class ReflectionFormFieldMapper {
         && !MetaAnnotations.isPresent(field, Lookup.class)
         && !MetaAnnotations.isPresent(field, Searchable.class)
         && !MetaAnnotations.isPresent(field, Composition.class)
+        && !ChoiceCollections.isChoiceCollection(field)
         && !isBasic(getGenericClass(field, List.class, "E"))) {
       return createCrudForField(
           field,
@@ -153,6 +154,8 @@ public class ReflectionFormFieldMapper {
     if (!isBasic(fieldType)
         // a @Searchable holds ids (a UUID, a Set or an array of them…), never a nested form
         && !MetaAnnotations.isPresent(field, Searchable.class)
+        // a List/Set of enum constants shown as a multi-choice widget is a field, not a form
+        && !ChoiceCollections.isChoiceCollection(field)
         && !fieldType.isEnum()
         && !List.class.isAssignableFrom(fieldType)
         && !Map.class.isAssignableFrom(fieldType)

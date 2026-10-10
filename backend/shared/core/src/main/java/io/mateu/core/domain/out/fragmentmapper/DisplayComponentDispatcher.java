@@ -175,6 +175,14 @@ final class DisplayComponentDispatcher {
     if (component instanceof StatusList statusList) {
       return mapStatusListToDto(statusList);
     }
+    if (component instanceof io.mateu.uidl.data.MatrixGrid matrixGrid) {
+      return io.mateu.core.domain.out.fragmentmapper.mappers.MatrixGridMapper.mapMatrixGridToDto(
+          matrixGrid);
+    }
+    if (component instanceof io.mateu.uidl.data.ActionPanel actionPanel) {
+      return io.mateu.core.domain.out.fragmentmapper.mappers.ActionPanelMapper.mapActionPanelToDto(
+          actionPanel);
+    }
     if (component instanceof BulletedList bulletedList) {
       return mapBulletedListToDto(bulletedList);
     }
@@ -184,6 +192,10 @@ final class DisplayComponentDispatcher {
     if (component instanceof CustomComponent customComponent) {
       return mapCustomComponentToDto(
           customComponent, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
+    }
+    if (component instanceof io.mateu.uidl.data.DropZone dropZone) {
+      return io.mateu.core.domain.out.fragmentmapper.mappers.DropZoneMapper.mapDropZoneToDto(
+          dropZone, baseUrl, route, consumedRoute, initiatorComponentId, httpRequest);
     }
     if (component instanceof Notice notice) {
       return mapNoticeToDto(

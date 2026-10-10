@@ -1369,6 +1369,125 @@
       ]
     },
     {
+      "name": "Mateu/Display/PlanningBoard",
+      "kind": "planningBoard",
+      "java": "PlanningBoard(from,to,resources,blocks,moveActionId,…)",
+      "csharp": "PlanningBoard",
+      "python": "fluent.PlanningBoard(...)",
+      "props": {
+        "moveActionId": "TEXT",
+        "selectActionId": "TEXT",
+        "resizeActionId": "TEXT",
+        "openActionId": "TEXT",
+        "rangeSelectActionId": "TEXT"
+      },
+      "sketch": [
+        {
+          "t": "table",
+          "cols": 7,
+          "rows": 4,
+          "gantt": true
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/MatrixGrid",
+      "kind": "matrixGrid",
+      "java": "MatrixGrid(rowHeaderLabel,columns,sections,cellActionId,editActionId)",
+      "csharp": "MatrixGrid",
+      "python": "fluent.MatrixGrid(...)",
+      "props": {
+        "cellActionId": "TEXT",
+        "editActionId": "TEXT"
+      },
+      "texts": {
+        "RowHeader": "rowHeaderLabel"
+      },
+      "sketch": [
+        {
+          "t": "label",
+          "text": "RowHeader"
+        },
+        {
+          "t": "table",
+          "cols": 7,
+          "rows": 4
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/ActionPanel",
+      "kind": "actionPanel",
+      "java": "ActionPanel(label,shortcut,categories)",
+      "csharp": "ActionPanel",
+      "python": "fluent.ActionPanel(...)",
+      "props": {
+        "shortcut": "TEXT"
+      },
+      "texts": {
+        "Label": "label"
+      },
+      "sketch": [
+        {
+          "t": "button",
+          "text": "Label"
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/DropZone",
+      "kind": "dropZone",
+      "java": "DropZone(accept,actionId,title,subtitle,content)",
+      "csharp": "DropZone",
+      "python": "fluent.DropZone(...)",
+      "props": {
+        "accept": "TEXT",
+        "actionId": "TEXT"
+      },
+      "texts": {
+        "Title": "title",
+        "Subtitle": "subtitle"
+      },
+      "container": true,
+      "sketch": [
+        {
+          "t": "col",
+          "center": true,
+          "pad": 16,
+          "items": [
+            {
+              "t": "title",
+              "text": "Title",
+              "size": 14
+            },
+            {
+              "t": "label",
+              "text": "Subtitle"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Mateu/Display/Map",
+      "kind": "map",
+      "java": "Map(position,zoom,markers,markerActionId)",
+      "csharp": "Map",
+      "python": "fluent.Map(...)",
+      "props": {
+        "position": "TEXT",
+        "zoom": "TEXT",
+        "markerActionId": "TEXT"
+      },
+      "sketch": [
+        {
+          "t": "imagebox",
+          "h": 140,
+          "label": "🗺"
+        }
+      ]
+    },
+    {
       "name": "Mateu/Display/Calendar",
       "kind": "calendar",
       "java": "Calendar(month,events)",

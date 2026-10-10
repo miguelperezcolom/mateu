@@ -97,6 +97,21 @@ internal static class ActionGuard
         return null;
     }
 
+    /// <summary>Whether a tree-referenced <paramref name="actionId"/> has a method on the view that
+    /// <see cref="ResolveAction"/> would run once the id is advertised: a marked method, or a public
+    /// one of the view itself (not the framework's).</summary>
+    /// <summary>Every <c>*ActionId</c> a component tree references, in tree order — generic, like
+    /// Java's TreeActionHarvester, so a component that names an action needs no case anywhere.</summary>
+    internal static List<string> TreeActionIds(object? root)
+    {
+        var ids = new List<string>();
+        Walk(root, ids, new HashSet<object>(ReferenceEqualityComparer.Instance), 0);
+        return ids;
+    }
+
+    internal static bool HandlesTreeAction(Type type, string actionId) =>
+        Candidates(type, actionId).Any(m => HasActionMarker(m) || !IsFrameworkMethod(m));
+
     /// <summary>The [ListToolbarButton] method a bulk <c>action-on-row-{name}</c> may invoke, or null.</summary>
     internal static MethodInfo? ResolveRowAction(Type type, string name) =>
         Candidates(type, name).FirstOrDefault(m => m.Find<ListToolbarButtonAttribute>() != null);
@@ -165,7 +180,7 @@ internal static class ActionGuard
     /// <summary>Walks a fluent component tree (or any framework record graph) collecting the value
     /// of every string property whose name ends in "ActionId" (Button.ActionId, MetricCard.ActionId,
     /// PlanningBoard.MoveActionId, Rule.ActionId, AppHeaderAction.ActionId…).</summary>
-    private static void Walk(object? node, HashSet<string> ids, HashSet<object> seen, int depth)
+    private static void Walk(object? node, ICollection<string> ids, HashSet<object> seen, int depth)
     {
         if (node is null or string || depth > 64) return;
         var t = node.GetType();
@@ -185,7 +200,7 @@ internal static class ActionGuard
             catch { continue; }
             if (value is string s)
             {
-                if (s.Length > 0 && p.Name.EndsWith("ActionId", StringComparison.Ordinal)) ids.Add(s);
+                if (s.Length > 0 && p.Name.EndsWith("ActionId", StringComparison.Ordinal) && !ids.Contains(s)) ids.Add(s);
             }
             else Walk(value, ids, seen, depth + 1);
         }

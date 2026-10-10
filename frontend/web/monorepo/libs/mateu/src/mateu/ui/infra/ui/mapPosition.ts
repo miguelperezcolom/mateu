@@ -41,3 +41,40 @@ export const parseZoom = (zoom: string | undefined | null): number => {
     const parsed = Number(zoom)
     return Number.isFinite(parsed) ? parsed : DEFAULT_ZOOM
 }
+
+/** What the map shows first: an explicit position wins; else the markers (one is centred, several
+ *  are fitted with `fit`); else the world view. */
+export type MapViewPlan =
+    | { kind: 'center', center: LonLat, zoom: number }
+    | { kind: 'fit', min: LonLat, max: LonLat }
+
+/** The zoom a single marker is shown at when the wire gives none. */
+export const SINGLE_MARKER_ZOOM = 15
+
+export const planMapView = (
+    position: string | undefined | null,
+    zoom: string | undefined | null,
+    markers: { latitude: number, longitude: number }[] | undefined | null,
+): MapViewPlan => {
+    const center = parsePosition(position)
+    if (center) {
+        return { kind: 'center', center, zoom: parseZoom(zoom) }
+    }
+    const points = (markers ?? []).filter(m => Number.isFinite(m.latitude) && Number.isFinite(m.longitude))
+    if (points.length === 1) {
+        const hasZoom = zoom != null && zoom.trim() !== ''
+        return {
+            kind: 'center',
+            center: { lat: points[0].latitude, lon: points[0].longitude },
+            zoom: hasZoom ? parseZoom(zoom) : SINGLE_MARKER_ZOOM,
+        }
+    }
+    if (points.length > 1) {
+        return {
+            kind: 'fit',
+            min: { lat: Math.min(...points.map(p => p.latitude)), lon: Math.min(...points.map(p => p.longitude)) },
+            max: { lat: Math.max(...points.map(p => p.latitude)), lon: Math.max(...points.map(p => p.longitude)) },
+        }
+    }
+    return { kind: 'center', center: DEFAULT_CENTER, zoom: parseZoom(zoom) }
+}

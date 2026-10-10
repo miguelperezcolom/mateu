@@ -55,6 +55,12 @@ public class BackofficeApp implements NotificationsSupplier {
 `Data{_notifications: [{id, title, text, route, unread, when}]}` — same contract from the Java,
 .NET and Python servers.
 
+## Where it works
+
+Every renderer. On **Redwood** the bell sits in the global header (badge with the unread count) and
+opens an `oj-popup` holding JET's `oj-list-view`; activating an entry marks it read and navigates to
+its route. Demo: `demo-vb-pms` (`PmsHome` implements `NotificationsSupplier`).
+
 ## Related
 
 - [Push notifications](/ux-patterns/notifications/) — the transient sibling

@@ -8,7 +8,8 @@ seat map, a bespoke visualization. It is the deliberate, relegated **escape hatc
 only when nothing in the catalog fits and no composition of existing pieces will do.
 
 It is the opposite of a [business component](/java-ui-definition/component-catalogue/) in one
-decisive way. A business component composes pieces every renderer already paints, so it **ports for
+decisive way. A business component composes pieces every renderer already paints (on Redwood, see its
+[component coverage](/reference/parity/#redwood-component-coverage)), so it **ports for
 free** and **runs with no backend**. A custom component is a **new rendering**, so it does **not**
 port for free: each renderer must register a renderer for it, and a renderer that has none degrades
 to a visible `<mateu-unsupported>` placeholder rather than breaking the screen.

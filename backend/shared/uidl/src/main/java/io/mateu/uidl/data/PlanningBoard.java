@@ -25,5 +25,49 @@ public record PlanningBoard(
     String moveActionId,
     String selectActionId,
     String style,
-    String cssClasses)
-    implements Component {}
+    String cssClasses,
+    /**
+     * Headers of the attribute columns shown next to each resource's label (e.g. "Type", "Status");
+     * each resource carries its values in {@link PlanningResource#attributes()}.
+     */
+    List<String> attributeColumns,
+    /**
+     * Action run when a block's start or end edge is dragged: parameters {@code _blockId,
+     * _resourceId, _start, _end} (ISO dates, end inclusive like the block). Null = not resizable.
+     */
+    String resizeActionId,
+    /** Action run on double click on a block: parameter {@code _blockId}. */
+    String openActionId,
+    /**
+     * Action run when the user drags across EMPTY cells of a resource: parameters {@code
+     * _resourceId, _start, _end} (the selected days, end inclusive). Null = no range selection.
+     */
+    String rangeSelectActionId)
+    implements Component {
+
+  public PlanningBoard(
+      String id,
+      List<PlanningResource> resources,
+      List<PlanningBlock> blocks,
+      LocalDate from,
+      LocalDate to,
+      String moveActionId,
+      String selectActionId,
+      String style,
+      String cssClasses) {
+    this(
+        id,
+        resources,
+        blocks,
+        from,
+        to,
+        moveActionId,
+        selectActionId,
+        style,
+        cssClasses,
+        null,
+        null,
+        null,
+        null);
+  }
+}

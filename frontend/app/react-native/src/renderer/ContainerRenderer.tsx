@@ -5,6 +5,7 @@ import { interpolate } from '../core/expressions';
 import { useViewController } from './MateuViewHost';
 import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
+import { popoverOpensOnPress } from './hoverDetails';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -160,6 +161,34 @@ export function DialogRenderer({ component, state }: { component: unknown; state
   );
 }
 
+// ── Popover ───────────────────────────────────────────────────────────────────
+/**
+ * A popover: the wrapped component, and its content in a small floating panel shown under it.
+ * `trigger: "hover"` has no meaning on a touch screen (no pointer to hover with), so a hover
+ * popover opens on PRESS exactly like a click one; pressing again closes it.
+ */
+export function PopoverRenderer({ component, state }: { component: unknown; state: Dict }) {
+  const m = meta(component);
+  const [open, setOpen] = useState(false);
+  const opensOnPress = popoverOpensOnPress(m['trigger']);
+  return (
+    <View style={styles.popoverHost}>
+      <TouchableOpacity
+        {...buttonA11y({ expanded: open, hint: open ? 'Hides the details' : 'Shows the details' })}
+        disabled={!opensOnPress}
+        onPress={() => setOpen(!open)}
+      >
+        {!!m['wrapped'] && typeof m['wrapped'] === 'object' && <ComponentRenderer component={m['wrapped']} state={state} />}
+      </TouchableOpacity>
+      {open && !!m['content'] && typeof m['content'] === 'object' && (
+        <View style={styles.popoverPanel} accessibilityLiveRegion="polite">
+          <ComponentRenderer component={m['content']} state={state} />
+        </View>
+      )}
+    </View>
+  );
+}
+
 export function ConfirmDialogRenderer({ metadata, state }: { metadata: Dict; state: Dict }) {
   const controller = useViewController();
   const runAction = (actionId: string) => void controller.runAction(actionId);
@@ -209,6 +238,12 @@ const styles = StyleSheet.create({
   progressFill: { height: 8, backgroundColor: theme.primary },
   dialog: { backgroundColor: theme.white, borderColor: theme.faint, borderWidth: 1, borderRadius: 8, padding: 20, gap: 12, marginVertical: 12 },
   dialogTitle: { fontSize: 18, fontWeight: '700' },
+  popoverHost: { alignSelf: 'flex-start' },
+  popoverPanel: {
+    backgroundColor: theme.white, borderColor: theme.border, borderWidth: 1, borderRadius: theme.radiusSm,
+    padding: 10, marginTop: 4, shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 }, elevation: 3,
+  },
   dialogFooter: { flexDirection: 'row', gap: 8 },
   btnPrimary: { backgroundColor: theme.primary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: theme.radiusSm },
   btnPrimaryText: { color: theme.white },

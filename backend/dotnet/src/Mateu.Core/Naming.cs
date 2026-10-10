@@ -21,4 +21,18 @@ internal static class Naming
         }
         return sb.ToString();
     }
+
+    /// <summary>An identifier as Java's <c>Humanizer.toUpperCaseFirst</c> shows it — used for enum
+    /// members so every backend calls them the same: '.', '_' and '-' are spaces, words split at
+    /// case and letter/non-letter boundaries, then lower case with the first letter upper
+    /// (CHECK_OUT → "Check out", CheckOut → "Check out", ROOM1 → "Room 1").</summary>
+    public static string HumanizeConstant(string s)
+    {
+        if (string.IsNullOrEmpty(s)) return s;
+        s = s.Replace('.', ' ').Replace('_', ' ').Replace('-', ' ');
+        s = System.Text.RegularExpressions.Regex.Replace(
+            s, "(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])", " ").ToLowerInvariant();
+        s = System.Text.RegularExpressions.Regex.Replace(s, " +", " ");
+        return s.Length > 1 ? char.ToUpperInvariant(s[0]) + s[1..] : s;
+    }
 }

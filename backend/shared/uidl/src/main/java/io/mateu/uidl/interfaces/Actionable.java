@@ -39,6 +39,14 @@ public interface Actionable {
     return false;
   }
 
+  /**
+   * How the entry looks beyond its label (a group opening as cards, a card's icon/image); null = a
+   * plain list entry.
+   */
+  default io.mateu.uidl.data.MenuPresentation presentation() {
+    return null;
+  }
+
   /** Optional description for AI assistants. Implementations may return null. */
   default String description() {
     return null;

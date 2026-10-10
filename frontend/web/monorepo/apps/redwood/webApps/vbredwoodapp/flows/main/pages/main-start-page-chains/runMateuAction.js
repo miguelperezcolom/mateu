@@ -192,6 +192,7 @@ define([
       const applyInc = (inc) => {
         lastIncrement = inc;
         reg = bridge.reduceContexts(reg, inc);
+        bridge.applyDomEffects(reg.effects, reg);
         if (touchesHost(inc)) hostRepainted = true;
         allEvents.push.apply(allEvents, reg.effects.events || []);
         allToasts.push.apply(allToasts, reg.effects.toasts || []);
@@ -237,6 +238,28 @@ define([
         applyInc(await bridge.runMateuAction(
           base, transportCtx, route, id, componentState,
           { ...transportExtra, parameters: parameters || {}, appState }));
+      }
+      // RE-RENDER del host por la acción (devolvió la página: un componente nuevo, con otro id):
+      // como en el web (applyFragment → triggerOnLoad), lo que acaba de llegar pide su carga
+      // OnLoad — sin esto un listado que se repinta (p.ej. tras soltar filas en un DropZone)
+      // volvía VACÍO, con sus columnas y sin una fila. Se reduce aparte: lastIncrement es el de la
+      // acción, que el route-flip de abajo lee.
+      {
+        const hostNow = reg.contexts[bridge.HOST_ID];
+        const reRendered = !!(lastIncrement && (lastIncrement.fragments || [])
+          .some((f) => f.component && f.action !== 'Add'))
+          && !!(hostNow && hostNow.tree && host && host.tree && hostNow.tree.id !== host.tree.id);
+        if (reRendered) {
+          for (const triggerActionId of bridge.onLoadTriggers(hostNow)) {
+            const listingNow = bridge.listingOf(hostNow);
+            const loaded = await bridge.runMateuAction(base, hostNow, route, triggerActionId,
+              Object.assign({}, hostNow.state, { page: 0, size: (listingNow && listingNow.pageSize) || 20 }),
+              { appState });
+            reg = bridge.reduceContexts(reg, loaded);
+            bridge.applyDomEffects(reg.effects, reg);
+            hostRepainted = true;
+          }
+        }
       }
       // ROUTE-FLIP del mediador del HOST: un crud de PÁGINA no contesta el detalle, contesta
       // un fragmento solo-estado cuyo `_route` apunta a él (clic de fila → /2CSXZN, New →
@@ -299,6 +322,7 @@ define([
             { appState, parameters: busEvent.detail || {} },
           );
           reg = bridge.reduceContexts(reg, refresh);
+          bridge.applyDomEffects(reg.effects, reg);
           if (touchesHost(refresh)) hostRepainted = true;
           allToasts.push.apply(allToasts, reg.effects.toasts || []);
         }
@@ -327,6 +351,9 @@ define([
         && !(lastIncrement.commands || []).length;
       if (onlyMessages) {
         for (const toast of allToasts) {
+          // un error o aviso va al banner de mensajes de la shell (el toast de Redwood sólo confirma)
+          const notification = bridge.bannerNotificationOf(toast);
+          if (notification) { await Actions.fireNotificationEvent(context, notification); continue; }
           $page.variables.mateuToastText = toast.text;
           await Actions.callComponentMethod(context, { selector: '#mateuToast', method: 'open' });
         }
@@ -536,7 +563,7 @@ define([
       $application.variables.mateuOverviewOptions = overviewProjection ? overviewProjection.switcherOptions : [];
       $application.variables.mateuItemOv = itemProjection;
       $application.variables.mateuItemTabTexts = itemProjection && itemProjection.tabs.length
-        ? itemProjection.tabs[0].texts : [];
+        ? itemProjection.tabs[0].items : []; // los ÁTOMOS de la pestaña (no sólo sus textos)
       if (welcome || overviewProjection || itemProjection) {
         // sus campos/botones los pintan las ramas del arquetipo (o los paneles del foldout:
         // la vista @FoldoutDetail de un crud), no el form genérico
@@ -641,6 +668,9 @@ define([
       const backBtnA = bridge.backToolbarButton(hostToolbarA);
       const parentCrumbA = backBtnA ? undefined : bridge.parentCrumb(summary.trail);
       $application.variables.mateuPageHeader = {
+        // con EntityHeader (la ficha de un registro) la banda queda FIJA al hacer scroll y se
+        // compacta (la «business card» de OPERA): ver bridge.installStickyHeader + app.css
+        bandClass: hostEntity2 ? 'oj-bg-neutral-30 oj-sm-padding-10x-bottom mateu-sticky-header' : 'oj-bg-neutral-30 oj-sm-padding-10x-bottom',
         // con EntityHeader en el host (la 360), el header de PANTALLA muestra al huésped
         title: hostEntity2 ? hostEntity2.title : (summary.title || ''),
         subtitle: hostEntity2 ? hostEntity2.subtitle : bridge.pageSubtitleOf(hostAfter),
@@ -726,7 +756,7 @@ define([
               : null;
           }));
           for (const inc of found) {
-            if (inc) reg = bridge.reduceContexts(reg, inc);
+            if (inc) { reg = bridge.reduceContexts(reg, inc); bridge.applyDomEffects(reg.effects, reg); }
           }
           $application.variables.mateuRegistry = reg;
           rowEditorNow = bridge.rowEditorOf(reg);
@@ -758,6 +788,9 @@ define([
 
       // toast con el patrón del starter: variable + open() del oj-sp-messages-toast local
       for (const toast of allToasts) {
+        // un error o aviso va al banner de mensajes de la shell (el toast de Redwood sólo confirma)
+        const notification = bridge.bannerNotificationOf(toast);
+        if (notification) { await Actions.fireNotificationEvent(context, notification); continue; }
         $page.variables.mateuToastText = toast.text;
         await Actions.callComponentMethod(context, {
           selector: '#mateuToast',

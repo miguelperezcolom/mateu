@@ -370,6 +370,11 @@
       "defaultValue": [],
       "description": "widgets de cabecera del App (WidgetSupplier) para la zona de acciones: HTML, MicroFrontend vivo, Popover"
     },
+    "mateuNotifications": {
+      "type": "any",
+      "defaultValue": {"enabled": false, "unread": 0, "badge": "", "hasUnread": false, "label": "Notifications", "empty": true, "items": [], "provider": null},
+      "description": "bandeja de notificaciones (NotificationsSupplier del App): la campana de la cabecera"
+    },
     "mateuUserWidget": {
       "type": "any",
       "defaultValue": null,
@@ -836,6 +841,20 @@
       "payloadType": {
         "actionId": "string",
         "parameters": "any"
+      }
+    },
+    "mateuTilesReordered": {
+      "description": "el usuario reordeno los tiles de una rejilla reordenable (orden ya guardado): la pagina de contenido re-proyecta el host",
+      "payloadType": {
+        "scope": "string"
+      }
+    },
+    "mateuElementEvent": {
+      "description": "evento de un Element (componente web) con accion en Element.on: la shell lo reenvia a la pagina de contenido, que sabe en que superficie ejecutarla",
+      "payloadType": {
+        "actionId": "string",
+        "parameters": "any",
+        "fromNested": "boolean"
       }
     }
   }

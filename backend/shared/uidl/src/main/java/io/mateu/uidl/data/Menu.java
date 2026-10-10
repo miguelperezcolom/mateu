@@ -20,8 +20,36 @@ public record Menu(
     boolean disabledOnClick,
     Object itemData,
     String description,
-    boolean hidden)
+    boolean hidden,
+    MenuPresentation presentation)
     implements Actionable {
+  /** The entry without presentation (a plain list entry). */
+  public Menu(
+      String path,
+      String label,
+      List<Actionable> submenu,
+      boolean selected,
+      Component component,
+      String className,
+      boolean disabled,
+      boolean disabledOnClick,
+      Object itemData,
+      String description,
+      boolean hidden) {
+    this(
+        path,
+        label,
+        submenu,
+        selected,
+        component,
+        className,
+        disabled,
+        disabledOnClick,
+        itemData,
+        description,
+        hidden,
+        null);
+  }
 
   /**
    * An entry the menu does not draw, still resolving its route (deep links, reloads, navigation
@@ -80,6 +108,7 @@ public record Menu(
         disabledOnClick,
         itemData,
         description,
-        hidden);
+        hidden,
+        presentation);
   }
 }

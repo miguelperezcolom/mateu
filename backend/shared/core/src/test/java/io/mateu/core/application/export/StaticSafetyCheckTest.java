@@ -216,6 +216,25 @@ class StaticSafetyCheckTest {
         .satisfies(v -> assertThat(v.reason()).contains("'approve'"));
   }
 
+  @Test
+  void anyComponentNamingAnActionNeedsARestActionToo() throws Exception {
+    var def =
+        JSON.readTree(
+            """
+            {"type":"VerticalLayout",
+             "content":[
+               {"type":"Map","markerActionId":"openProperty","markers":[]},
+               {"type":"MetricCard","actionId":"drill"},
+               {"type":"PlanningBoard","moveActionId":"move","selectActionId":""}],
+             "actions":[{"id":"drill","restAction":{"source":{"ref":"fine"}}}]}
+            """);
+    assertThat(StaticSafetyCheck.checkDefinition("/x", def, catalog()))
+        .extracting(StaticSafetyCheck.Violation::reason)
+        .hasSize(2)
+        .anySatisfy(r -> assertThat(r).contains("Map runs action 'openProperty'"))
+        .anySatisfy(r -> assertThat(r).contains("PlanningBoard runs action 'move'"));
+  }
+
   // ── end to end through the exporter ────────────────────────────────────────────────────────────
 
   @UI("")

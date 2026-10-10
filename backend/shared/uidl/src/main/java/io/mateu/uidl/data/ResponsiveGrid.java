@@ -46,8 +46,53 @@ public record ResponsiveGrid(
      * ContentLayout.
      */
     List<String> stickyAreas,
+    /**
+     * The viewer may rearrange the tiles by dragging them (OPERA's dashboard: tiles that can be
+     * dragged). The order is the viewer's own, kept by the renderer per screen (like the column
+     * chooser), keyed by each child's id (its index when it has none); the server's order stays the
+     * default. False = fixed order.
+     */
+    boolean reorderable,
     String style)
     implements Component {
+
+  public ResponsiveGrid(
+      String id,
+      List<GridTrack> columns,
+      String gap,
+      List<Component> content,
+      List<Integer> colSpans,
+      String stackBelow,
+      String gridTemplateAreas,
+      List<String> stickyAreas,
+      String style) {
+    this(
+        id,
+        columns,
+        gap,
+        content,
+        colSpans,
+        stackBelow,
+        gridTemplateAreas,
+        stickyAreas,
+        false,
+        style);
+  }
+
+  /** This grid with its tiles reorderable by the viewer. */
+  public ResponsiveGrid asReorderable() {
+    return new ResponsiveGrid(
+        id,
+        columns,
+        gap,
+        content,
+        colSpans,
+        stackBelow,
+        gridTemplateAreas,
+        stickyAreas,
+        true,
+        style);
+  }
 
   public ResponsiveGrid(String id, List<GridTrack> columns, List<Component> content) {
     this(id, columns, null, content, null, null, null, null, null);

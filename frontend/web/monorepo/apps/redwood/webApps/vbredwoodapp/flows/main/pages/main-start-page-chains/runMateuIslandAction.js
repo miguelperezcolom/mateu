@@ -59,6 +59,7 @@ define([
       const allToasts = [];
       const apply = (increment) => {
         reg = bridge.reduceContexts(reg, increment);
+        bridge.applyDomEffects(reg.effects, reg);
         allEvents.push.apply(allEvents, reg.effects.events || []);
         allToasts.push.apply(allToasts, reg.effects.toasts || []);
       };
@@ -223,10 +224,20 @@ define([
           { title: $application.variables.mateuHostTitle, dropEntityHeader: !!hostEntityNow }) || [];
       }
 
+      // los Element (componentes web, HTML del servidor) del host, del paso del wizard y de la
+      // isla se vuelven a montar: tras una acción de la isla sus huecos se repintan vacíos
+      bridge.mountElementsSoon([].concat(
+        bridge.elementAtomsOf($application.variables.mateuHostContent),
+        bridge.elementAtomsOf($application.variables.mateuWizardContent),
+        bridge.elementAtomsOf(($application.variables.mateuIsland || {}).content)));
+
       $page.variables.mateuIslandDraft = {};
       $application.variables.mateuDirty = false;
 
       for (const toast of allToasts) {
+        // un error o aviso va al banner de mensajes de la shell (el toast de Redwood sólo confirma)
+        const notification = bridge.bannerNotificationOf(toast);
+        if (notification) { await Actions.fireNotificationEvent(context, notification); continue; }
         $page.variables.mateuToastText = toast.text;
         await Actions.callComponentMethod(context, {
           selector: '#mateuToast',

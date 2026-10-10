@@ -3,6 +3,8 @@ The Python port of C#'s ReflectionMapper."""
 
 from __future__ import annotations
 
+import dataclasses
+
 import uuid
 from contextvars import ContextVar
 from datetime import date, datetime
@@ -33,6 +35,7 @@ from mateu_dtos import (
     DialogMetadata,
     DivMetadata,
     DrawerMetadata,
+    PopoverMetadata,
     EmptyStateMetadata,
     Fab,
     FoldoutLayoutMetadata,
@@ -58,6 +61,7 @@ from mateu_dtos import (
     StatMetadata,
     CalendarMetadata,
     CalendarEventRecord,
+    CalendarDayRecord,
     PricingTableMetadata,
     PricingPlanRecord,
     OrgChartMetadata,
@@ -89,6 +93,17 @@ from mateu_dtos import (
     StatusItemRecord,
     StatusListMetadata,
     BulletedListMetadata,
+    ActionPanelMetadata,
+    ActionPanelCategoryRecord,
+    ActionPanelItemRecord,
+    MatrixGridMetadata,
+    MapMetadata,
+    MapMarkerRecord,
+    DropZoneMetadata,
+    MatrixColumnRecord,
+    MatrixSectionRecord,
+    MatrixRowRecord,
+    MatrixCellRecord,
     SeparatorMetadata,
     CustomComponentMetadata,
     NoticeMetadata,
@@ -137,6 +152,7 @@ from mateu_dtos import (
 from mateu_uidl import (
     Aggregate,
     PrimaryColumn,
+    Tooltip,
     AppActionsSupplier,
     AppSupplier,
     Aside,
@@ -162,6 +178,7 @@ from mateu_uidl import (
     GlobalSearchSupplier,
     MenuSupplier,
     GroupBy,
+    RowStatus,
     HeaderBadge,
     HeroSearch,
     Hidden,
@@ -205,7 +222,8 @@ from mateu_uidl import (
 from mateu_uidl import components as fluent
 
 from . import capabilities, labels_aside_inference, layout_inference
-from .naming import camel_case, humanize
+from .action_guard import resolve_action
+from .naming import camel_case, humanize, humanize_constant
 from .page_type_inference import page_type_of
 from . import page_inference
 from .reflection import class_flag, methods_with, view_fields
@@ -251,6 +269,16 @@ def for_current_audience(gate: Audience | None) -> bool:
 
 def _id() -> str:
     return str(uuid.uuid4())
+
+
+def enum_label(member) -> str:
+    """What an enum member is called on screen: its own ``__str__`` when the enum class defines one
+    (a display name the developer already wrote), else its name humanized (``CHECK_OUT`` → "Check
+    out"). Same rule as Java's ``FieldMetadataExtractor.enumLabel`` and .NET's ``EnumLabel``."""
+    own = type(member).__dict__.get("__str__")
+    if own is not None and getattr(own, "__qualname__", "").split(".")[0] == type(member).__name__:
+        return str(member)
+    return humanize_constant(member.name)
 
 
 def is_enum(t) -> bool:
@@ -455,22 +483,35 @@ class ReflectionMapper:
             items = list(cls().menu() or [])
         else:
             # menu_item(group=...) entries sharing a group nest as that folder's submenu (the
-            # folder appears where its first entry was declared); ungrouped entries stay leaves.
+            # folder appears where its first entry was declared); ungrouped entries stay leaves. A
+            # "/" in the group nests folders ("Bookings/Reservations" = the Reservations folder
+            # inside Bookings) — how a card of a @menu_group(display="cards") gets its actions.
             items = []
             folders: dict[str, MenuItem] = {}
+            looks = getattr(cls, "__mateu_menu_groups__", {})
+
+            def folder_of(path: str) -> MenuItem:
+                if path in folders:
+                    return folders[path]
+                parent, _, name = path.rpartition("/")
+                folder = self._presented(
+                    MenuItem(label=self.T(name), route="", server_side_type=""), looks.get(path)
+                )
+                folders[path] = folder
+                (folder_of(parent).submenus if parent else items).append(folder)
+                return folder
+
             for n, f in methods_with(cls, "__mateu_menu_item__"):
                 if not for_current_audience(getattr(f, "__mateu_audience__", None)):
                     continue
-                entry = self.map_menu_item(n, f)
-                group = getattr(f, "__mateu_menu_group__", "")
+                entry = self._presented(
+                    self.map_menu_item(n, f), getattr(f, "__mateu_menu_look__", None)
+                )
+                group = getattr(f, "__mateu_menu_group__", "").strip("/")
                 if not group:
                     items.append(entry)
-                elif group in folders:
-                    folders[group].submenus.append(entry)
                 else:
-                    folder = MenuItem(label=self.T(group), route="", server_side_type="", submenus=[entry])
-                    folders[group] = folder
-                    items.append(folder)
+                    folder_of(group).submenus.append(entry)
             # @remote_menu entries: federated options — the frontend fetches the remote backend's
             # menu itself and mounts its views (no server-side proxying).
             for label, base_url, route, explode in getattr(cls, "__mateu_remote_menus__", []):
@@ -534,6 +575,8 @@ class ReflectionMapper:
             # Command center (Ask-Oracle): the FAB + full-screen palette; chromeless implies it.
             command_center_enabled=command_center_enabled,
             chromeless=bool(getattr(cls, "__mateu_app_chromeless__", False)),
+            # Keyboard access keys (hold Alt to see them): opt-in, mirrors AppDto.accessKeys.
+            access_keys=bool(getattr(cls, "__mateu_app_access_keys__", False)),
             # The capability tokens this app requires from its host renderer: derived from the
             # app-scoped features it declares plus whatever @app(requires=[...]) adds. app-data /
             # rest-sources are not carried by this port at build time (app_data_source is applied
@@ -677,7 +720,7 @@ class ReflectionMapper:
                 return_type = None
             if isinstance(return_type, type) and issubclass(return_type, Enum):
                 options = [
-                    Option(value=member.name, label=humanize(member.name))
+                    Option(value=member.name, label=enum_label(member))
                     for member in return_type
                 ]
             else:
@@ -710,6 +753,18 @@ class ReflectionMapper:
                 return "TILES"
             return "HAMBURGUER_MENU" if len(items) > 7 else "MENU_ON_TOP"
         return "TABS"
+
+    def _presented(self, entry: MenuItem, look) -> MenuItem:
+        """The card look of a menu entry: display "cards" on a group, description/icon/image on an
+        entry. Blank values stay None, so a plain menu travels exactly as before (mirrors Java's
+        MenuEntryMapper.presented + AppMenuDtoBuilder)."""
+        if look is None:
+            return entry
+        entry.display = "cards" if (look.display or "").lower() == "cards" else None
+        entry.description = self.T(look.description) if look.description else None
+        entry.icon = look.icon or None
+        entry.image = look.image or None
+        return entry
 
     def map_menu_item(self, name: str, fn) -> MenuItem:
         try:
@@ -845,16 +900,20 @@ class ReflectionMapper:
             sizing = getattr(cls, "__mateu_size__", None)
             if is_tree_supplier and sizing and isinstance(children[0], ClientSideComponent):
                 children[0] = children[0].model_copy(update={"sizing": sizing})
-            # A YAML layout_override page collects its buttons' actionIds into the ServerSide's
-            # actions (they route back to the ModelView's methods). A ComponentTreeSupplier does
-            # NOT: Java's ComponentTreeSupplierMapper never harvests action ids from the tree — a
-            # component's own actionId (e.g. an archetype's selectCollectionItem) is dispatched
-            # directly and routed by reflection, so it never appears in ServerSide.actions.
-            if not is_tree_supplier:
-                known = {a.id for a in actions}
-                actions += [
-                    Action(id=a) for a in self.collect_action_ids(tree) if a not in known
-                ]
+            # The tree's action ids are advertised so the web client sends them (it only sends
+            # what the component advertises; anything else bubbles out unclaimed and is lost).
+            # A YAML layout_override page advertises every id its buttons reference (they route
+            # back to the ModelView's methods). A ComponentTreeSupplier advertises the ones it has
+            # a handler method for — an id it cannot handle may be meant for an ancestor component
+            # and must not be captured here (same rule in Java's TreeActionHarvester and .NET).
+            known = {a.id for a in actions}
+            tree_ids = self.collect_action_ids(tree)
+            for a in tree_ids:
+                # handled = the method the action guard would let this id run
+                handled = resolve_action(cls, a, lambda: set(tree_ids)) is not None
+                if a not in known and (not is_tree_supplier or handled):
+                    known.add(a)
+                    actions.append(Action(id=a))
         else:
             # Compact mode tightens the form: the FormLayout's minimum column width drops to 7em.
             compact_cw = "7em" if class_flag(cls, "__mateu_compact__", False) else None
@@ -1037,12 +1096,16 @@ class ReflectionMapper:
         flush()
         # A Dashboard subclass configures its columns; an @auto_page plain class keeps auto-fit.
         columns = instance.columns() if isinstance(instance, Dashboard) else 0
+        reorderable = instance.reorderable() if isinstance(instance, Dashboard) else False
         # Consolidated onto the one responsive grid (coherence-plan #9): N columns → N fill tracks;
         # 0 → auto-fit. The tiles and the scoreboard band carry their own grid-column span, so the
         # grid needs no per-child spans; align-items:stretch keeps the tiles equal-height.
         tracks = tuple(fluent.GridTrack.fill() for _ in range(columns)) if columns > 0 else ()
         return fluent.ResponsiveGrid(
-            columns=tracks, content=tuple(items), style="align-items: stretch;"
+            columns=tracks,
+            content=tuple(items),
+            reorderable=reorderable,
+            style="align-items: stretch;",
         )
 
     def compose_foldout(self, instance: Foldout) -> fluent.FoldoutLayout:
@@ -1213,6 +1276,7 @@ class ReflectionMapper:
                     stack_below=c.stack_below,
                     grid_template_areas=c.grid_template_areas,
                     sticky_areas=list(c.sticky_areas) or None,
+                    reorderable=c.reorderable,
                 ),
                 c,
                 children,
@@ -1314,7 +1378,13 @@ class ReflectionMapper:
         if isinstance(c, fluent.PlanningBoard):
             meta = PlanningBoardMetadata(
                 resources=[
-                    PlanningResourceRecord(id=r.id, label=r.label, group=r.group)
+                    PlanningResourceRecord(
+                        id=r.id,
+                        label=r.label,
+                        group=r.group,
+                        attributes=list(r.attributes or ()),
+                        icon=r.icon,
+                    )
                     for r in c.resources
                 ],
                 blocks=[
@@ -1326,6 +1396,8 @@ class ReflectionMapper:
                         label=b.label,
                         color=b.color,
                         status=b.status,
+                        icon=b.icon,
+                        summary=b.summary,
                     )
                     for b in c.blocks
                 ],
@@ -1333,6 +1405,10 @@ class ReflectionMapper:
                 to=c.to.isoformat() if c.to is not None else None,
                 move_action_id=c.move_action_id,
                 select_action_id=c.select_action_id,
+                attribute_columns=list(c.attribute_columns or ()),
+                resize_action_id=c.resize_action_id,
+                open_action_id=c.open_action_id,
+                range_select_action_id=c.range_select_action_id,
             )
             return self._fluent_client(meta, c)
         if isinstance(c, fluent.Kanban):
@@ -1417,6 +1493,9 @@ class ReflectionMapper:
                     id=e.id,
                     title=e.title,
                     date=e.date.isoformat() if e.date is not None else None,
+                    end_date=e.end_date.isoformat() if e.end_date is not None else None,
+                    start_time=e.start_time,
+                    end_time=e.end_time,
                     color=e.color,
                     action_id=e.action_id,
                 )
@@ -1424,7 +1503,19 @@ class ReflectionMapper:
             ]
             return self._fluent_client(
                 CalendarMetadata(
-                    month=c.month.isoformat() if c.month is not None else None, events=events
+                    month=c.month.isoformat() if c.month is not None else None,
+                    events=events,
+                    view=c.view.value if c.view is not None else "month",
+                    views=[v.value for v in c.views],
+                    days=[
+                        CalendarDayRecord(
+                            date=d.date.isoformat() if d.date is not None else None,
+                            label=d.label,
+                            tone=d.tone,
+                        )
+                        for d in c.days
+                    ],
+                    day_action_id=c.day_action_id,
                 ),
                 c,
             )
@@ -1597,6 +1688,106 @@ class ReflectionMapper:
             )
         if isinstance(c, fluent.BulletedList):
             return self._fluent_client(BulletedListMetadata(items=list(c.items)), c)
+        if isinstance(c, fluent.ActionPanel):
+            return self._fluent_client(
+                ActionPanelMetadata(
+                    label=c.label if c.label and c.label.strip() else "I want to…",
+                    shortcut=c.shortcut,
+                    categories=[
+                        ActionPanelCategoryRecord(
+                            title=cat.title,
+                            actions=[
+                                ActionPanelItemRecord(
+                                    label=it.label,
+                                    action_id=it.action_id,
+                                    parameters=it.parameters,
+                                    count=it.count,
+                                    populated=it.populated or (it.count is not None and it.count > 0),
+                                    disabled=it.disabled,
+                                )
+                                for it in cat.actions
+                            ],
+                        )
+                        for cat in c.categories
+                    ],
+                    max_per_category=c.max_per_category if c.max_per_category > 0 else 10,
+                    hide_unpopulated_toggle=c.hide_unpopulated_toggle,
+                ),
+                c,
+            )
+        if isinstance(c, fluent.Map):
+            # the ClientSide id defaults to "map" (mirrors Java's MapComponentMapper)
+            return ClientSideComponent(
+                metadata=MapMetadata(
+                    position=c.position,
+                    zoom=c.zoom,
+                    markers=[
+                        MapMarkerRecord(
+                            id=m.id,
+                            latitude=m.latitude,
+                            longitude=m.longitude,
+                            label=m.label,
+                            description=m.description,
+                            color=m.color,
+                        )
+                        for m in c.markers
+                    ],
+                    marker_action_id=c.marker_action_id,
+                ),
+                id=c.id or "map",
+                children=[],
+                style=c.style,
+                css_classes=c.css_classes,
+            )
+        if isinstance(c, fluent.MatrixGrid):
+            n_cols = len(c.columns)
+
+            def matrix_cell(row, i):
+                # one cell per column, always: a short row is padded with blanks, a long one cut
+                cell = row.cells[i] if i < len(row.cells) else None
+                if cell is None:
+                    return MatrixCellRecord(value="", tone=None, link=False)
+                return MatrixCellRecord(
+                    value="" if cell.value is None else cell.value, tone=cell.tone, link=cell.link
+                )
+
+            return self._fluent_client(
+                MatrixGridMetadata(
+                    row_header_label=c.row_header_label,
+                    columns=[
+                        MatrixColumnRecord(id=col.id, label=col.label, group=col.group, tone=col.tone)
+                        for col in c.columns
+                    ],
+                    sections=[
+                        MatrixSectionRecord(
+                            id=sec.id if sec.id and sec.id.strip() else f"section{i}",
+                            title=sec.title,
+                            collapsed=sec.collapsed,
+                            rows=[
+                                MatrixRowRecord(
+                                    id=r.id,
+                                    label=r.label,
+                                    cells=[matrix_cell(r, ci) for ci in range(n_cols)],
+                                    editable=r.editable,
+                                    emphasis=r.emphasis,
+                                )
+                                for r in sec.rows
+                            ],
+                        )
+                        for i, sec in enumerate(c.sections)
+                    ],
+                    cell_action_id=c.cell_action_id,
+                    edit_action_id=c.edit_action_id,
+                ),
+                c,
+            )
+        if isinstance(c, fluent.DropZone):
+            return self._fluent_client(
+                DropZoneMetadata(
+                    accept=c.accept, action_id=c.action_id, parameters=dict(c.parameters or {}),
+                    title=self.T(c.title) if c.title else c.title,
+                    subtitle=self.T(c.subtitle) if c.subtitle else c.subtitle,
+                ), c, [self.map_component(child) for child in c.content])
         if isinstance(c, fluent.Notice):
             return self._fluent_client(
                 NoticeMetadata(
@@ -1796,6 +1987,19 @@ class ReflectionMapper:
                 modeless=c.modeless,
             )
             return self._fluent_client(meta, c)
+        # Popover: both halves travel in the metadata; the id falls back to Java's "fieldId".
+        if isinstance(c, fluent.Popover):
+            meta = PopoverMetadata(
+                content=self.map_component(c.content) if c.content is not None else None,
+                wrapped=self.map_component(c.wrapped) if c.wrapped is not None else None,
+                trigger=c.trigger.value,
+            )
+            return ClientSideComponent(
+                metadata=meta,
+                id=c.id if c.id and c.id.strip() else "fieldId",
+                style=c.style,
+                css_classes=c.css_classes,
+            )
         if isinstance(c, fluent.Dialog):
             meta = DialogMetadata(
                 id=c.id,
@@ -1861,53 +2065,47 @@ class ReflectionMapper:
         )
 
     def collect_action_ids(self, c) -> list[str]:
-        """Action ids referenced anywhere in a fluent tree (for the component's actions list)."""
+        """Action ids referenced anywhere in a fluent tree (for the component's actions list):
+        every ``action_id`` / ``*_action_id`` string, in tree order — generic, like Java's
+        TreeActionHarvester, so a new component that names an action needs no case here. Nested
+        server-side islands advertise their own actions and are not walked."""
         out: list[str] = []
+        seen: set[int] = set()
 
-        def walk(node):
-            if node is None:
+        def names_of(node):
+            if dataclasses.is_dataclass(node):
+                return [f.name for f in dataclasses.fields(node)]
+            model_fields = getattr(type(node), "model_fields", None)
+            if isinstance(model_fields, dict):
+                return list(model_fields)
+            return []
+
+        def walk(node, depth=0):
+            if node is None or depth > 64 or isinstance(node, (str, bytes, int, float, bool)):
                 return
-            if isinstance(node, ClientSideComponent):
-                aid = getattr(node.metadata, "action_id", None)
-                if aid:
-                    out.append(aid)
-                walk(getattr(node.metadata, "content", None))
-                for child in node.children:
-                    walk(child)
+            if id(node) in seen:
                 return
-            if not isinstance(node, fluent.Component):
+            seen.add(id(node))
+            if isinstance(node, (list, tuple)):
+                for item in node:
+                    walk(item, depth + 1)
                 return
-            aid = getattr(node, "action_id", None)
-            if aid:
-                out.append(aid)
-            # Planning boards reference their actions as move/select action ids.
-            for attr in ("move_action_id", "select_action_id"):
-                v = getattr(node, attr, None)
-                if v:
-                    out.append(v)
-            # A Calendar's events (not fluent Components themselves) carry the click action id.
-            for ev in getattr(node, "events", None) or ():
-                aid = getattr(ev, "action_id", None)
-                if aid:
-                    out.append(aid)
-            # Foldout Navigation Header references parent/prev/next action ids.
-            nav = getattr(node, "navigation", None)
-            if nav is not None:
-                for attr in ("parent_action_id", "previous_action_id", "next_action_id"):
-                    v = getattr(nav, attr, None)
-                    if v:
+            if isinstance(node, dict):
+                for v in node.values():
+                    walk(v, depth + 1)
+                return
+            if type(node).__name__ == "ServerSideComponent":
+                return
+            module = (getattr(type(node), "__module__", "") or "").split(".")[0]
+            if module not in {"mateu_uidl", "mateu_dtos", "mateu_core"}:
+                return
+            for name in names_of(node):
+                v = getattr(node, name, None)
+                if isinstance(v, str):
+                    if v and (name == "action_id" or name.endswith("_action_id")):
                         out.append(v)
-            # Foldout overview Edit affordance references an action id.
-            edit = getattr(node, "overview_edit_action_id", None)
-            if edit:
-                out.append(edit)
-            for attr in ("content", "overview", "items", "metrics", "panels"):
-                v = getattr(node, attr, None)
-                if isinstance(v, (fluent.Component, ClientSideComponent)):
-                    walk(v)
-                elif isinstance(v, (list, tuple)):
-                    for i in v:
-                        walk(i)
+                else:
+                    walk(v, depth + 1)
 
         walk(c)
         return list(dict.fromkeys(out))
@@ -2107,6 +2305,17 @@ class ReflectionMapper:
         )
 
     # ── CRUD ───────────────────────────────────────────────────────────────────
+    @staticmethod
+    def _csv_exportable(cls, instance=None) -> bool:
+        """Whether a crud answers export-csv (its ``csv_exportable()`` hook, default False)."""
+        hook = getattr(instance if instance is not None else cls, "csv_exportable", None)
+        if hook is None:
+            return False
+        try:
+            return bool(hook() if instance is not None else hook(cls()))
+        except Exception:  # noqa: BLE001 - a crud that cannot be built offers no export
+            return False
+
     def map_crud(self, cls, element, route: str, instance=None) -> ServerSideComponent:
         title = getattr(cls, "__mateu_title__", humanize(cls.__name__))
         # HeroSearch: a centered hero header over the listing, results as cards, no auto-search.
@@ -2127,15 +2336,22 @@ class ReflectionMapper:
                 editable=editable,
                 editor_type=self.editor_type_of(f) if editable else None,
                 editor_options=(
-                    [Option(value=m.name, label=str(m.name)) for m in f.type]
+                    [Option(value=m.name, label=enum_label(m)) for m in f.type]
                     if editable and is_enum(f.type) else None
                 ),
                 aggregate=self.aggregate_of(f),
                 stereotype=self.column_stereotype_of(f),
                 caption_path=self.caption_path_of(f),
                 leading_path=self.leading_path_of(f),
+                tooltip_path=self.tooltip_path_of(f),
             )))
         toolbar = [Button(label="New", action_id="new"), Button(label="Delete", action_id="delete")]
+        # Export the listing (Crud.csv_exportable): the whole filtered set as a CSV download
+        # (mirrors Java's ListRouteResolver export buttons; the port's built-in CSV writer is the
+        # exporter, and Excel/PDF have none here).
+        csv_exportable = self._csv_exportable(cls, instance)
+        if csv_exportable:
+            toolbar.insert(0, Button(label="Export CSV", action_id="export-csv"))
         # @list_toolbar_button methods: BULK list actions — a listing toolbar button dispatching
         # action-on-row-<method> over the grid's selected rows; the action advertises the
         # confirmation/selection-required flags the frontend enforces (mirrors Java's
@@ -2160,6 +2376,8 @@ class ReflectionMapper:
                 filters=self.crud_filters(element),
                 crudl_type="cards" if hero is not None else "table",
                 group_by=self.group_by_of(element),
+                row_status_field=self.row_status_field_of(element),
+                drag_type=self.drag_type_of(cls),
                 # a full Crud has all the capabilities: delete needs row selection
                 rows_selection_enabled=True,
             ),
@@ -2180,6 +2398,8 @@ class ReflectionMapper:
         page_children.append(crud)
         page = self.client(PageMetadata(page_type=page_type_of(cls)), None, page_children)
         actions = [Action(id="search"), Action(id="new"), Action(id="delete")]
+        if csv_exportable:
+            actions.append(Action(id="export-csv", validation_required=False))
         if inline:
             actions.append(Action(id="update-row"))
         actions.extend(bulk_actions)
@@ -2211,9 +2431,42 @@ class ReflectionMapper:
         return marker.caption if marker is not None and marker.caption else None
 
     @staticmethod
+    def tooltip_path_of(f) -> str | None:
+        """Tooltip("other_field"): hovering the cell shows another field of the row (mirrors
+        Java's ListingColumnBuilder.tooltipPathOf; the ports have no fixed column widths, so
+        there is no own-name fallback). Camel-cased like the column ids it points at."""
+        marker = f.marker(Tooltip)
+        return camel_case(marker.value) if marker is not None and marker.value.strip() else None
+
+    @staticmethod
     def leading_path_of(f) -> str | None:
         marker = f.marker(PrimaryColumn)
         return marker.leading if marker is not None and marker.leading else None
+
+    @staticmethod
+    def drag_type_of(listing_cls) -> str | None:
+        """The drag type of a listing whose rows can be dragged (@drag_rows on its class); None =
+        none (mirrors Java's ListingSummarySpec.dragTypeOf)."""
+        t = getattr(listing_cls, "__mateu_drag_rows__", None)
+        return t if isinstance(t, str) and t.strip() else None
+
+    @staticmethod
+    def row_status_field_of(row_type) -> str | None:
+        """The RowStatus() field of a row class (camelCase field id) — its value tones the row;
+        first declared wins, None when none (mirrors Java's ListingSummarySpec.rowStatusFieldOf)."""
+        for f in view_fields(row_type):
+            if f.has(RowStatus):
+                return camel_case(f.name)
+        return None
+
+    def export_columns(self, element) -> list[tuple[str, str]]:
+        """The columns of a crud export: (field name, column label) for every visible entity field
+        (mirrors Java's ExportActionRunner.buildExportColumns)."""
+        return [
+            (f.name, f.marker(Label).value if f.has(Label) else humanize(f.name))
+            for f in view_fields(element)
+            if self.visible(f)
+        ]
 
     @staticmethod
     def group_by_of(row_type) -> str | None:
@@ -2278,6 +2531,7 @@ class ReflectionMapper:
                 stereotype=self.column_stereotype_of(f),
                 caption_path=self.caption_path_of(f),
                 leading_path=self.leading_path_of(f),
+                tooltip_path=self.tooltip_path_of(f),
                 # the first column of a Navigable/Editable listing opens the record
                 action_id="view" if rows_clickable and not columns else None,
             )))
@@ -2328,8 +2582,11 @@ class ReflectionMapper:
                          filters=self.listing_filters(filters_type) if filters_type is not None else [],
                          grid_layout=cls().grid_layout(),
                          group_by=self.group_by_of(row_type) if row_type is not None else None,
+                         row_status_field=(self.row_status_field_of(row_type)
+                                           if row_type is not None else None),
                          # @rest_listing: rows fetched client-side from an arbitrary REST endpoint.
-                         rows_source=self._rest_listing(cls)),
+                         rows_source=self._rest_listing(cls),
+                         drag_type=self.drag_type_of(cls)),
             "crud",
             [],
         )
@@ -2368,12 +2625,12 @@ class ReflectionMapper:
                 el = enum_set_element_type(t)
                 out.append(FormFieldMetadata(
                     field_id=fid, data_type="string", label=label, stereotype="multiSelect",
-                    options=[Option(value=m.name, label=humanize(m.name)) for m in el],
+                    options=[Option(value=m.name, label=enum_label(m)) for m in el],
                 ))
             elif is_enum(t):
                 out.append(FormFieldMetadata(
                     field_id=fid, data_type="string", label=label, stereotype="select",
-                    options=[Option(value=m.name, label=humanize(m.name)) for m in t],
+                    options=[Option(value=m.name, label=enum_label(m)) for m in t],
                 ))
             else:
                 out.append(FormFieldMetadata(field_id=fid, data_type=self.infer_data_type(t, f), label=label))
@@ -2393,7 +2650,7 @@ class ReflectionMapper:
             options: list[Option] = []
             if is_enum(t):
                 stereotype = "multiSelect"
-                options = [Option(value=m.name, label=humanize(m.name)) for m in t]
+                options = [Option(value=m.name, label=enum_label(m)) for m in t]
             elif t in (date, datetime):
                 stereotype = "dateRange"
             elif t in (int, float, Decimal) and f.has(RangeFilter):
@@ -2975,7 +3232,7 @@ class ReflectionMapper:
                     if editable else None
                 ),
                 editor_options=(
-                    (supplied or ([Option(value=m.name, label=str(m.name)) for m in c.type]
+                    (supplied or ([Option(value=m.name, label=enum_label(m)) for m in c.type]
                                   if is_enum(c.type) else None))
                     if editable else None
                 ),
@@ -3010,10 +3267,9 @@ class ReflectionMapper:
         # selects); enums keep contributing their constants
         options = self._supplied_options(instance, field_id)
         if not options:
-            # Enum options: value AND label are the member name (Java's OptionsBuilder uses the
-            # constant name for both, not a humanized label).
+            # Enum options: value = the member name, label = enum_label (Java's enumLabel rule).
             options = (
-                [Option(value=m.name, label=m.name) for m in t] if is_enum(t) else []
+                [Option(value=m.name, label=enum_label(m)) for m in t] if is_enum(t) else []
             )
         value = getattr(instance, f.name, None)
 

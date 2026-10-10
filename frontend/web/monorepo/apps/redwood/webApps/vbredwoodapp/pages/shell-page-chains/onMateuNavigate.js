@@ -152,8 +152,14 @@ define([
         : { appState };
       let reg;
       try {
-        reg = await bridge.loadRouteInto(
-          callBase, $application.variables.mateuRegistry, route, '', extra);
+        // una ruta del MENÚ local es del app que lo declara: se carga con su serverSideType (sin
+        // él el servidor contesta «Not found.»), y un RouteLink de grupo cae a su ruta terminal
+        reg = remote
+          ? await bridge.loadRouteInto(callBase, $application.variables.mateuRegistry, route, '', extra)
+          : await bridge.loadMenuRouteInto(callBase, $application.variables.mateuRegistry, route, '', extra);
+        // la carga reduce dentro del transporte: aquí se aplican sus efectos de DOM y se fija el
+        // contexto de las reglas del cliente (sin esto, una pantalla recién abierta no las tenía)
+        bridge.applyDomEffects(null, reg);
       } catch (e) {
         // superada por otra navegación mientras cargaba: nada que reintentar ni que pintar
         if (bridge.isStaleResponse(e)) return;
@@ -162,6 +168,11 @@ define([
         registerRetry();
         return;
       }
+
+      // pantalla nueva: arma su refresco periódico (los OnLoad con espera) y olvida el anterior —
+      // ANTES de sus OnLoad inmediatos: si no, el éxito del primer 'search' de un listado se
+      // comparaba con la pantalla ANTERIOR y su OnSuccess (el bucle de refresco) nunca arrancaba
+      bridge.startPolling(reg.contexts[bridge.HOST_ID]);
 
       // triggers OnLoad del host (p.ej. el listing pide 'search' al cargar → llegan las filas)
       const loaded = reg.contexts[bridge.HOST_ID];
@@ -180,7 +191,9 @@ define([
         const increment = await bridge.runMateuAction(
           callBase, loaded, route, triggerActionId, componentState, { appState });
         reg = bridge.reduceContexts(reg, increment);
+        bridge.applyDomEffects(reg.effects, reg);
       }
+
 
       // El chat de IA autoró una pantalla: se corre renderScreen con el YAML sobre el host recién
       // cargado — igual que un trigger OnLoad — y la proyección de más abajo la pinta. Es lo que
@@ -191,6 +204,7 @@ define([
           callBase, rh, route, 'renderScreen', (rh && rh.state) || {},
           { parameters: { yaml: detail.renderYaml }, appState });
         reg = bridge.reduceContexts(reg, inc);
+        bridge.applyDomEffects(reg.effects, reg);
       }
 
       // islas embebidas: cada frontera ServerSide del host se carga como superficie
@@ -247,6 +261,18 @@ define([
       const listingSummary = bridge.listingOf(host);
       $application.variables.mateuListing = listingSummary;
       $application.variables.mateuListingRows = listingSummary ? listingSummary.rows : [];
+      // VISTA POR DEFECTO (★ en el menú de vistas): un listado que se abre sin filtros en la URL
+      // se abre con ella — vía la misma ruta con su query, el camino de los filtros por URL
+      if (listingSummary && String(route).indexOf('?') < 0) {
+        const preferred = bridge.defaultView(bridge.listingScope());
+        if (preferred) {
+          await Actions.fireEvent(context, {
+            name: 'application:mateuNavigate',
+            payload: { route: bridge.viewRouteOf(bridge.listingScope(), preferred.values), force: true },
+          });
+          return;
+        }
+      }
       // otra pantalla, otra tabla: la selección de la anterior no se hereda
       $application.variables.mateuListingSelection = { all: false, keys: [], except: [] };
       // ni el orden que se pidió en su cabecera (la carga ya llegó sin él, en la primera página)
@@ -405,7 +431,7 @@ define([
       $application.variables.mateuOverviewOptions = overviewProjection ? overviewProjection.switcherOptions : [];
       $application.variables.mateuItemOv = itemProjection;
       $application.variables.mateuItemTabTexts = itemProjection && itemProjection.tabs.length
-        ? itemProjection.tabs[0].texts : [];
+        ? itemProjection.tabs[0].items : []; // los ÁTOMOS de la pestaña (no sólo sus textos)
       if (itemProjection) {
         try {
           await Actions.callComponentMethod(context, { selector: '#mateuItemTabs', method: 'refresh' });
@@ -601,6 +627,9 @@ define([
       const backBtn = bridge.backToolbarButton(hostToolbar);
       const parentCrumbNav = backBtn ? undefined : bridge.parentCrumb(summary.trail);
       $application.variables.mateuPageHeader = {
+        // con EntityHeader (la ficha de un registro) la banda queda FIJA al hacer scroll y se
+        // compacta (la «business card» de OPERA): ver bridge.installStickyHeader + app.css
+        bandClass: hostEntity ? 'oj-bg-neutral-30 oj-sm-padding-10x-bottom mateu-sticky-header' : 'oj-bg-neutral-30 oj-sm-padding-10x-bottom',
         // con EntityHeader en el host (la 360), el header de PANTALLA muestra al huésped
         title: hostEntity ? hostEntity.title : (summary.title || ''),
         subtitle: hostEntity ? hostEntity.subtitle : bridge.pageSubtitleOf(host),

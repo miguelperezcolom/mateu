@@ -47,7 +47,9 @@ public class RuleMapper {
                         .action(RuleAction.SetDataValue)
                         .fieldName(field.getName())
                         .fieldAttribute(RuleFieldAttribute.disabled)
-                        .expression("true")
+                        // @Disabled("state.x != 'Y'") disables while the expression holds; a bare
+                        // @Disabled always does. The expression used to be dropped (always "true").
+                        .expression(disabledExpression(MetaAnnotations.find(field, Disabled.class)))
                         .result(RuleResult.Continue)
                         .build()));
     getAllFields(viewClass).stream()
@@ -133,6 +135,10 @@ public class RuleMapper {
               .toList());
     }
     return rules;
+  }
+
+  static String disabledExpression(Disabled disabled) {
+    return disabled == null || disabled.value().isBlank() ? "true" : disabled.value();
   }
 
   public static io.mateu.uidl.data.Rule mapToRule(Rule annotation) {

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import hashlib
 import inspect
 import json
@@ -384,7 +385,9 @@ class SyncHandler:
             if rq.action_id in ("filterCollection", "switchRecord"):
                 return self.render(type_, instance, rq)
         # 4c. A CalendarPage's built-in actions: the toolbar chevrons/Today move the displayed
-        # month and re-render (re-running events for the new month); an event click ACTS on the
+        # period (a month, week or day by the view) and the view buttons (parameters._view)
+        # switch the view, both re-rendering; a date cell click (parameters._date) runs
+        # action_on_day; an event click ACTS on the
         # event — the frontend sends it as parameters._clickedEvent = {id, title, date, color}
         # and the archetype finds it back by id, its action_on result mapping as a regular
         # action result (a route string → NavigateTo); "+ Create" runs create_action. Unknown
@@ -403,6 +406,16 @@ class SyncHandler:
             if rq.action_id == "goCalendarToday":
                 instance.go_calendar_today()
                 return self.render(type_, instance, rq)
+            if rq.action_id == "switchCalendarView":
+                instance.switch_calendar_view((rq.parameters or {}).get("_view"))
+                return self.render(type_, instance, rq)
+            if rq.action_id == "openCalendarDay":
+                opened_day = instance.open_calendar_day((rq.parameters or {}).get("_date"))
+                return (
+                    self.map_result(opened_day, rq)
+                    if opened_day is not None
+                    else self.render(type_, instance, rq)
+                )
             if rq.action_id == "createCalendarEvent":
                 created = instance.create_calendar_event()
                 return self.map_result(created, rq) if created is not None else self.render(type_, instance, rq)
@@ -721,6 +734,9 @@ class SyncHandler:
             return self.update_row(crud, element, rq)
         if aid == "delete":
             return self.navigate(base_route, None if id_ is None else self.delete(crud, id_), rq)
+        # Crud.csv_exportable: only an exportable crud answers export-csv (the id is wire input).
+        if aid == "export-csv" and self.mapper._csv_exportable(crud_type, crud):
+            return self.export_csv(crud, element, rq)
         # edit_in_drawer (the Redwood "Create and Edit - Drawer" template): New and row clicks
         # open the crud form in a Drawer over the listing instead of navigating; cancels just
         # close it. Route-based /new — /{id}/edit deep links keep working unchanged.
@@ -752,6 +768,34 @@ class SyncHandler:
         if aid.startswith("action-on-row-"):
             return self.action_on_rows(crud, crud_type, element, rq)
         return self.error(f"Action not found: {aid}")
+
+    def export_csv(self, crud, element, rq: RunActionRq) -> UIIncrement:
+        """export-csv on a ``csv_exportable()`` crud: the WHOLE filtered result set (search text +
+        smart search bar filters, the same rows the listing pages through) as a CSV file, one
+        column per visible entity field, answered as a DownloadFile command (mirrors Java's
+        ExportActionRunner + DefaultCsvExporter)."""
+        rows = self._filtered_rows(crud, view_fields(element), rq)
+        columns = self.mapper.export_columns(element)
+
+        def escape(value) -> str:
+            if value is None:
+                return ""
+            if isinstance(value, Enum):
+                value = value.name
+            text = str(value)
+            if any(c in text for c in ',"\n'):
+                return '"' + text.replace('"', '""') + '"'
+            return text
+
+        lines = [",".join(escape(label) for _, label in columns)]
+        for row in rows:
+            lines.append(",".join(escape(getattr(row, name, None)) for name, _ in columns))
+        content = base64.b64encode(("\n".join(lines) + "\n").encode("utf-8")).decode("ascii")
+        return UIIncrement(commands=[UICommand(
+            target_component_id=self.target(rq),
+            type="DownloadFile",
+            data={"filename": "export.csv", "mimeType": "text/csv", "base64Content": content},
+        )])
 
     def action_on_rows(self, crud, crud_type, element, rq: RunActionRq) -> UIIncrement:
         """A @list_toolbar_button bulk action: runs the named method on the crud with the grid's

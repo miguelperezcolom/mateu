@@ -18,6 +18,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import math
 import pathlib
 import re
 import sys
@@ -80,8 +81,13 @@ def main() -> int:
     if "--check" not in sys.argv:
         print(f"\n(record this as the ceiling with: scripts/annotation-density.py --write)")
         if "--write" in sys.argv:
-            CEILING_FILE.write_text(json.dumps({"ceiling": round(average, 2)}, indent=2) + "\n")
-            print(f"wrote ceiling {average:.2f} to {CEILING_FILE.name}")
+            # keep the file's recorded reasons: only the ceiling changes (rounded UP, or the very
+            # average it was set from fails --check by a rounding hair)
+            recorded = json.loads(CEILING_FILE.read_text()) if CEILING_FILE.exists() else {}
+            recorded["ceiling"] = math.ceil(average * 100) / 100
+            # NOSONAR: CEILING_FILE is a constant path inside the repo, not user input
+            CEILING_FILE.write_text(json.dumps(recorded, indent=2, ensure_ascii=False) + "\n")  # NOSONAR
+            print(f"wrote ceiling {recorded['ceiling']:.2f} to {CEILING_FILE.name}")
         return 0
 
     if not CEILING_FILE.exists():

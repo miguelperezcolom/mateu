@@ -76,6 +76,84 @@
         }
       }
     },
+    "ActionPanel" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "ActionPanel"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "shortcut" : {
+          "type" : "string"
+        },
+        "categories" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ActionPanelCategory"
+          }
+        },
+        "maxPerCategory" : {
+          "type" : "integer"
+        },
+        "hideUnpopulatedToggle" : {
+          "type" : "boolean"
+        },
+        "style" : {
+          "type" : "string"
+        },
+        "cssClasses" : {
+          "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        }
+      }
+    },
+    "ActionPanelCategory" : {
+      "type" : "object",
+      "properties" : {
+        "title" : {
+          "type" : "string"
+        },
+        "actions" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/ActionPanelItem"
+          }
+        }
+      }
+    },
+    "ActionPanelItem" : {
+      "type" : "object",
+      "properties" : {
+        "label" : {
+          "type" : "string"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "parameters" : {
+          "type" : "object"
+        },
+        "count" : {
+          "type" : "integer"
+        },
+        "populated" : {
+          "type" : "boolean"
+        },
+        "disabled" : {
+          "type" : "boolean"
+        }
+      }
+    },
     "Actionable" : {
       "description" : "One of the Actionable implementations.",
       "oneOf" : [ {
@@ -757,6 +835,24 @@
             "$ref" : "#/$defs/CalendarEvent"
           }
         },
+        "view" : {
+          "$ref" : "#/$defs/CalendarView"
+        },
+        "views" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/CalendarView"
+          }
+        },
+        "days" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/CalendarDay"
+          }
+        },
+        "dayActionId" : {
+          "type" : "string"
+        },
         "style" : {
           "type" : "string"
         },
@@ -766,6 +862,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        }
+      }
+    },
+    "CalendarDay" : {
+      "type" : "object",
+      "properties" : {
+        "date" : { },
+        "label" : {
+          "type" : "string"
+        },
+        "tone" : {
+          "type" : "string"
         }
       }
     },
@@ -779,6 +887,13 @@
           "type" : "string"
         },
         "date" : { },
+        "endDate" : { },
+        "startTime" : {
+          "type" : "string"
+        },
+        "endTime" : {
+          "type" : "string"
+        },
         "color" : {
           "type" : "string"
         },
@@ -786,6 +901,10 @@
           "type" : "string"
         }
       }
+    },
+    "CalendarView" : {
+      "type" : "string",
+      "enum" : [ "month", "week", "day", "list" ]
     },
     "CalloutCard" : {
       "type" : "object",
@@ -1246,6 +1365,8 @@
       }, {
         "$ref" : "#/$defs/AccordionPanel"
       }, {
+        "$ref" : "#/$defs/ActionPanel"
+      }, {
         "$ref" : "#/$defs/AddOnPicker"
       }, {
         "$ref" : "#/$defs/Anchor"
@@ -1328,6 +1449,8 @@
       }, {
         "$ref" : "#/$defs/Drawer"
       }, {
+        "$ref" : "#/$defs/DropZone"
+      }, {
         "$ref" : "#/$defs/Element"
       }, {
         "$ref" : "#/$defs/EmbeddedView"
@@ -1399,6 +1522,8 @@
         "$ref" : "#/$defs/Markdown"
       }, {
         "$ref" : "#/$defs/MasterDetailLayout"
+      }, {
+        "$ref" : "#/$defs/MatrixGrid"
       }, {
         "$ref" : "#/$defs/MenuBar"
       }, {
@@ -2115,6 +2240,50 @@
       "type" : "string",
       "enum" : [ "s", "m", "l", "xl" ]
     },
+    "DropZone" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "DropZone"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "accept" : {
+          "type" : "string"
+        },
+        "actionId" : {
+          "type" : "string"
+        },
+        "parameters" : {
+          "type" : "object"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "subtitle" : {
+          "type" : "string"
+        },
+        "content" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Component"
+          }
+        },
+        "style" : {
+          "type" : "string"
+        },
+        "cssClasses" : {
+          "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        }
+      }
+    },
     "Element" : {
       "type" : "object",
       "required" : [ "type" ],
@@ -2401,6 +2570,9 @@
         },
         "hidden" : {
           "type" : "boolean"
+        },
+        "presentation" : {
+          "$ref" : "#/$defs/MenuPresentation"
         }
       }
     },
@@ -3856,6 +4028,12 @@
         "rowsSource" : {
           "$ref" : "#/$defs/RestDataSource"
         },
+        "rowStatusField" : {
+          "type" : "string"
+        },
+        "dragType" : {
+          "type" : "string"
+        },
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
@@ -3874,10 +4052,22 @@
           "type" : "string",
           "const" : "Map"
         },
+        "id" : {
+          "type" : "string"
+        },
         "position" : {
           "type" : "string"
         },
         "zoom" : {
+          "type" : "string"
+        },
+        "markers" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MapMarker"
+          }
+        },
+        "markerActionId" : {
           "type" : "string"
         },
         "style" : {
@@ -3889,6 +4079,29 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        }
+      }
+    },
+    "MapMarker" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "latitude" : {
+          "type" : "number"
+        },
+        "longitude" : {
+          "type" : "number"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "description" : {
+          "type" : "string"
+        },
+        "color" : {
+          "type" : "string"
         }
       }
     },
@@ -3950,6 +4163,124 @@
         }
       }
     },
+    "MatrixCell" : {
+      "type" : "object",
+      "properties" : {
+        "value" : {
+          "type" : "string"
+        },
+        "tone" : {
+          "type" : "string"
+        },
+        "link" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "MatrixColumn" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "group" : {
+          "type" : "string"
+        },
+        "tone" : {
+          "type" : "string"
+        }
+      }
+    },
+    "MatrixGrid" : {
+      "type" : "object",
+      "required" : [ "type" ],
+      "properties" : {
+        "type" : {
+          "type" : "string",
+          "const" : "MatrixGrid"
+        },
+        "id" : {
+          "type" : "string"
+        },
+        "rowHeaderLabel" : {
+          "type" : "string"
+        },
+        "columns" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MatrixColumn"
+          }
+        },
+        "sections" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MatrixSection"
+          }
+        },
+        "cellActionId" : {
+          "type" : "string"
+        },
+        "editActionId" : {
+          "type" : "string"
+        },
+        "style" : {
+          "type" : "string"
+        },
+        "cssClasses" : {
+          "type" : "string"
+        },
+        "note" : {
+          "type" : "string",
+          "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        }
+      }
+    },
+    "MatrixRow" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "label" : {
+          "type" : "string"
+        },
+        "cells" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MatrixCell"
+          }
+        },
+        "editable" : {
+          "type" : "boolean"
+        },
+        "emphasis" : {
+          "type" : "boolean"
+        }
+      }
+    },
+    "MatrixSection" : {
+      "type" : "object",
+      "properties" : {
+        "id" : {
+          "type" : "string"
+        },
+        "title" : {
+          "type" : "string"
+        },
+        "collapsed" : {
+          "type" : "boolean"
+        },
+        "rows" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/MatrixRow"
+          }
+        }
+      }
+    },
     "Menu" : {
       "type" : "object",
       "required" : [ "type" ],
@@ -3991,6 +4322,9 @@
         },
         "hidden" : {
           "type" : "boolean"
+        },
+        "presentation" : {
+          "$ref" : "#/$defs/MenuPresentation"
         }
       }
     },
@@ -4017,6 +4351,24 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        }
+      }
+    },
+    "MenuDisplay" : {
+      "type" : "string",
+      "enum" : [ "list", "cards" ]
+    },
+    "MenuPresentation" : {
+      "type" : "object",
+      "properties" : {
+        "display" : {
+          "$ref" : "#/$defs/MenuDisplay"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "image" : {
+          "type" : "string"
         }
       }
     },
@@ -4810,6 +5162,12 @@
         },
         "status" : {
           "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "summary" : {
+          "type" : "string"
         }
       }
     },
@@ -4850,6 +5208,21 @@
         "cssClasses" : {
           "type" : "string"
         },
+        "attributeColumns" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "resizeActionId" : {
+          "type" : "string"
+        },
+        "openActionId" : {
+          "type" : "string"
+        },
+        "rangeSelectActionId" : {
+          "type" : "string"
+        },
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
@@ -4867,6 +5240,15 @@
         },
         "group" : {
           "type" : "string"
+        },
+        "attributes" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "icon" : {
+          "type" : "string"
         }
       }
     },
@@ -4878,11 +5260,17 @@
           "type" : "string",
           "const" : "Popover"
         },
+        "id" : {
+          "type" : "string"
+        },
         "content" : {
           "$ref" : "#/$defs/Component"
         },
         "wrapped" : {
           "$ref" : "#/$defs/Component"
+        },
+        "trigger" : {
+          "$ref" : "#/$defs/PopoverTrigger"
         },
         "style" : {
           "type" : "string"
@@ -4895,6 +5283,10 @@
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
         }
       }
+    },
+    "PopoverTrigger" : {
+      "type" : "string",
+      "enum" : [ "click", "hover" ]
     },
     "PricingPlan" : {
       "type" : "object",
@@ -5311,6 +5703,9 @@
             "type" : "string"
           }
         },
+        "reorderable" : {
+          "type" : "boolean"
+        },
         "style" : {
           "type" : "string"
         },
@@ -5402,6 +5797,9 @@
         },
         "hidden" : {
           "type" : "boolean"
+        },
+        "presentation" : {
+          "$ref" : "#/$defs/MenuPresentation"
         }
       }
     },

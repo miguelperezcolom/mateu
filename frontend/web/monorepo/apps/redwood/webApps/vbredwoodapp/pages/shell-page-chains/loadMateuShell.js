@@ -51,6 +51,61 @@ define([
       const { $application } = context;
 
       const base = $application.constants.mateuBaseUrl;
+      // Element (componentes web): su módulo `import` relativo lo sirve el BACKEND (otro origen en
+      // vb-serve / VB alojado), y sus eventos (Element.on) ejecutan acciones de la página de
+      // contenido, así que viajan como evento de aplicación (el camino del Reintentar). Antes de
+      // la primera navegación: el contenido inicial ya puede traer Elements.
+      bridge.setElementModuleBase(base);
+      const runPageAction = (actionId, parameters, atom) => {
+        Actions.fireEvent(window.__mateuShellContext || context, {
+          name: 'application:mateuElementEvent',
+          payload: { actionId, parameters, fromNested: !!(atom && atom.fromNested) },
+        });
+      };
+      bridge.setElementEventSink(runPageAction);
+      // reglas del cliente (@Hidden/@Disabled con expresión, RuleSupplier): escuchan los cambios de
+      // campo de todo el documento; una RunAction de regla sale por el mismo camino
+      bridge.installRules();
+      bridge.setRuleActionSink(runPageAction);
+      // tape chart: arrastrar por celdas vacías → rangeSelectActionId (oj-gantt no lo trae)
+      bridge.installPlanningRange();
+      // «I want to…» (ActionPanel): abrir con su atajo, mostrar más, ocultar vacías, cerrar al elegir
+      bridge.installActionPanels();
+      // dashboard con tiles reordenables (ResponsiveGrid.reorderable): arrastrar o Alt+←/→; el
+      // orden se guarda y la página de contenido re-proyecta el host
+      bridge.setTileReorderSink((scope) => Actions.fireEvent(window.__mateuShellContext || context, {
+        name: 'application:mateuTilesReordered', payload: { scope: scope || '' },
+      }));
+      bridge.installTileReorder();
+      // texto enriquecido (Markdown, campos richText/html/markdown de sólo lectura): el HTML ya
+      // saneado de cada [data-mateu-html] se vuelca en su contenedor
+      bridge.installRichText();
+      // MatrixGrid (oj-data-grid): plegar secciones, editar filas editables, celdas que enlazan
+      bridge.installMatrixGrids();
+      // Calendar: cambiar de vista en el DOM, eventos y fechas que lanzan su acción
+      bridge.installCalendars();
+      bridge.setCalendarActionSink(runPageAction);
+      bridge.setMatrixActionSink(runPageAction);
+      // Map: JET no trae mapa de calles → Leaflet (cdnjs) + teselas OSM; un marcador lanza su acción
+      bridge.installMaps();
+      bridge.setMapActionSink(runPageAction);
+      // tonos de fila (@RowStatus) y filas de grupo (@GroupBy) del oj-table del listado
+      bridge.installRowTones();
+      // la ficha de un registro: su cabecera queda fija y se compacta al hacer scroll
+      bridge.installStickyHeader();
+      bridge.setPlanningRangeSink(runPageAction);
+      // toasts con «Undo» (Message.undoable): la acción vuelve a la página de contenido
+      bridge.setUndoSink(runPageAction);
+      // refresco periódico (OnLoad con espera + OnSuccess): las vueltas salen por el mismo camino
+      bridge.setPollingRunner(runPageAction);
+      // atajos de teclado (@Action/@Tab shortcut) y teclas de acceso (@App(accessKeys))
+      bridge.installKeys();
+      // ventanas flotantes al pasar el ratón (celdas con @Tooltip, Popover)
+      bridge.installHover();
+      // arrastrar filas (@DragRows) a un DropZone: su acción con origen y destino
+      bridge.installDragAndDrop();
+      bridge.setDropSink(runPageAction);
+      bridge.setKeysActionSink(runPageAction);
 
       // Static-bundle (modo sin backend): si hay un mateuBundleUrl configurado, se arranca la carga
       // del manifest AQUÍ, antes del bootstrap. bootstrapShell/loadRoute esperan al fetch en vuelo
@@ -145,6 +200,13 @@ define([
         }
       }
       $application.variables.mateuShellSST = nav.serverSideType || '';
+      bridge.setAccessKeysEnabled(!!(reg.shell && reg.shell.accessKeys));
+      // la campana (NotificationsSupplier del App): la lista se pide al arrancar y al abrirla
+      if (reg.shell && reg.shell.notificationsEnabled) {
+        bridge.fetchNotifications(base, $application.variables.mateuShellSST, $application.variables.mateuAppState || {})
+          .then((model) => { $application.variables.mateuNotifications = model; })
+          .catch(() => { /* sin bandeja: la cabecera sigue sin campana */ });
+      }
       // logo del @App (URL relativa al backend Mateu) → imagen de marca en el header
       $application.variables.mateuShellLogo = reg.shell && reg.shell.logo
         ? base + reg.shell.logo : '';

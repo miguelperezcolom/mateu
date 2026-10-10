@@ -123,6 +123,15 @@ class MateuViewManager(private val project: Project, private val session: AppSes
         ctx.titleConsumer = { t -> content.displayName = t }
         ctx.lastWindowTitle?.let { content.displayName = it }
         tw.contentManager.addContent(content)
+        // Tab closed: the view's periodic refreshes / subscriptions must not outlive it.
+        tw.contentManager.addContentManagerListener(object : com.intellij.ui.content.ContentManagerListener {
+            override fun contentRemoved(event: com.intellij.ui.content.ContentManagerEvent) {
+                if (event.content === content) {
+                    ctx.dispose()
+                    tw.contentManager.removeContentManagerListener(this)
+                }
+            }
+        })
         tw.contentManager.setSelectedContent(content)
         tw.activate(null)
         return {

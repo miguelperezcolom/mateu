@@ -4,6 +4,63 @@ import { html, LitElement, nothing } from "lit";
 import { renderComponent } from "@infra/ui/renderers/renderComponent.ts";
 import { ComponentState, ComponentData } from "@infra/ui/renderers/types.ts";
 import { gridCell } from "@infra/ui/renderers/gridPrimitive.ts";
+import { moveTile, moveTileBy, orderedTileIndices, readTileOrder, tileGridStyle, tileKeyOf, writeTileOrder } from "@infra/tileOrderStore.ts";
+
+const TILE_MIME = 'application/x-mateu-tile'
+
+/**
+ * A REORDERABLE grid (OPERA's dashboard: tiles that can be dragged): each tile in a draggable
+ * wrapper that takes over its grid placement, painted in the viewer's saved order. Drop a tile on
+ * another to put it there; with the keyboard, Alt+←/→ on a focused tile moves it one place. The
+ * order is kept per screen + grid (tileOrderStore) and the grid re-renders in place — no round trip.
+ */
+const reorderableChildren = (
+    container: LitElement,
+    component: ClientSideComponent,
+    render: (index: number) => unknown,
+    spans: number[],
+) => {
+    const children = component.children ?? []
+    const scope = (typeof location !== 'undefined' ? location.pathname : '') + '#' + (component.id ?? 'grid')
+    const keys = children.map((child, i) => tileKeyOf(child as { id?: string }, i))
+    const indices = orderedTileIndices(keys, readTileOrder(scope))
+    const order = indices.map(i => keys[i])
+    const save = (next: string[]) => {
+        if (next === order) return
+        writeTileOrder(scope, next)
+        container.requestUpdate()
+    }
+    return indices.map(i => {
+        const key = keys[i]
+        const metadata = (children[i] as ClientSideComponent).metadata as { type?: string, colSpan?: number, rowSpan?: number }
+        return html`<div class="mateu-tile" draggable="true" tabindex="0" data-tile-key="${key}"
+                         aria-roledescription="draggable tile"
+                         title="Drag to rearrange (Alt+← / Alt+→)"
+                         style="min-width: 0; cursor: grab; ${tileGridStyle(metadata, spans[i])}"
+                         @dragstart=${(e: DragEvent) => {
+                             e.dataTransfer?.setData(TILE_MIME, scope + '\n' + key)
+                             if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move'
+                         }}
+                         @dragover=${(e: DragEvent) => {
+                             if (e.dataTransfer?.types.includes(TILE_MIME)) e.preventDefault()
+                         }}
+                         @drop=${(e: DragEvent) => {
+                             const [fromScope, moved] = (e.dataTransfer?.getData(TILE_MIME) ?? '').split('\n')
+                             if (fromScope !== scope || !moved) return
+                             e.preventDefault()
+                             save(moveTile(order, moved, key))
+                         }}
+                         @keydown=${(e: KeyboardEvent) => {
+                             if (!e.altKey || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return
+                             if (e.target !== e.currentTarget) return
+                             e.preventDefault()
+                             save(moveTileBy(order, key, e.key === 'ArrowLeft' ? -1 : 1))
+                             const host = e.currentTarget as HTMLElement
+                             requestAnimationFrame(() => (host.parentElement?.querySelector(`[data-tile-key="${CSS.escape(key)}"]`) as HTMLElement | null)?.focus())
+                         }}
+        >${render(i)}</div>`
+    })
+}
 
 /**
  * One responsive grid — THE general layout foundation (coherence-plan #9). Paints a CSS grid whose
@@ -40,7 +97,11 @@ export const renderResponsiveGrid = (
     const colStyle = columns ? ` grid-template-columns: ${columns};` : ''
     const areaStyle = areas && areas.trim().length ? ` grid-template-areas: ${areas};` : ''
     const gridStyle = `display: grid;${colStyle} gap: ${gap}; align-items: start;${areaStyle} ${component.style ?? ''}`
-    const children = component.children?.map((child, i) => {
+    const reorderable = !!metadata.reorderable && !(areas && areas.trim().length)
+    const children = reorderable
+        ? reorderableChildren(container, component,
+            (i) => renderComponent(container, component.children![i], baseUrl, state, data, appState, appData), spans)
+        : component.children?.map((child, i) => {
         const rendered = renderComponent(container, child, baseUrl, state, data, appState, appData)
         // Named-slot template (coherence-plan #7): a child whose slot matches a grid area is placed
         // there; a child with no slot flows into the implicit overflow. Otherwise the shared

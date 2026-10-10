@@ -1,8 +1,194 @@
 /* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
  * (tests de contrato: cd poc && node test.mjs). */
-define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
+define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/ojarraytreedataprovider', 'ojs/ojflattenedtreedataproviderview', 'ojs/ojrowdatagridprovider', 'ojs/ojkeyset'], (require, ArrayDataProvider, NumberConverter, ArrayTreeDataProvider, FlattenedTreeDataProviderView, RowDataGridProvider, KeySet) => {
   'use strict';
+  // PERSONALIZACIÓN DE LISTADOS en el navegador: el SELECTOR DE COLUMNAS (cuáles se ven y en qué
+  // orden) y las VISTAS GUARDADAS (una combinación con nombre de búsqueda + filtros, con una por
+  // defecto). Mismo formato y mismas claves de localStorage que el renderer web (libs/mateu
+  // columnPrefsStore.ts / savedViewsStore.ts), así que un usuario que cambie de renderer conserva
+  // lo suyo. El ámbito es la ruta del listado. Sin cambios de wire: el servidor sigue mandando todas
+  // las columnas y aquí se filtran antes de pintar.
+
+  const COLUMNS_KEY = 'mateu-column-prefs'
+  const VIEWS_KEY = 'mateu-saved-views'
+  const TILES_KEY = 'mateu-tile-order'
+
+  const storageOf = (storage) => storage || (typeof localStorage !== 'undefined' ? localStorage : null)
+  const readAll = (key, storage) => {
+    try {
+      const s = storageOf(storage)
+      return s ? JSON.parse(s.getItem(key) || '{}') || {} : {}
+    } catch (e) { return {} }
+  }
+  const writeAll = (key, value, storage) => {
+    try { const s = storageOf(storage); if (s) s.setItem(key, JSON.stringify(value)) } catch (e) { /* lleno o bloqueado */ }
+  }
+
+  // columnas que no se ocultan ni se reordenan: las técnicas (selección, acciones, líneas)
+  const PROTECTED = (c) => !c || !c.field || c.field === '_select' || c.template === 'cellRowActions'
+    || c.field === '__rowLines' || c.id === '__rowLines'
+
+  /** Las preferencias de columnas de un ámbito: { hidden: [], order: [] } o null. */
+  function readColumnPrefs(scope, storage) {
+    const p = readAll(COLUMNS_KEY, storage)[scope]
+    if (!p || typeof p !== 'object') return null
+    return { hidden: Array.isArray(p.hidden) ? p.hidden : [], order: Array.isArray(p.order) ? p.order : [] }
+  }
+
+  function writeColumnPrefs(scope, prefs, storage) {
+    const all = readAll(COLUMNS_KEY, storage)
+    if (!prefs || (!(prefs.hidden || []).length && !(prefs.order || []).length)) delete all[scope]
+    else all[scope] = { hidden: prefs.hidden || [], order: prefs.order || [] }
+    writeAll(COLUMNS_KEY, all, storage)
+  }
+
+  /** Las columnas del oj-table con las preferencias aplicadas: sin las ocultas, en el orden pedido
+   *  (las no mencionadas, detrás, en su orden). Las técnicas no se tocan. */
+  function applyColumnPrefs(columns, prefs) {
+    if (!prefs) return columns
+    const hidden = new Set(prefs.hidden || [])
+    const order = prefs.order || []
+    const rank = (c) => { const i = order.indexOf(c.field || c.id); return i < 0 ? order.length : i }
+    const movable = columns.filter((c) => !PROTECTED(c) && !hidden.has(c.field || c.id))
+    const sorted = movable.map((c, i) => ({ c, i })).sort((a, b) => (rank(a.c) - rank(b.c)) || (a.i - b.i)).map((x) => x.c)
+    // las técnicas conservan su sitio relativo: delante las de selección, detrás acciones/líneas
+    const lead = columns.filter((c) => PROTECTED(c) && c.field === '_select')
+    const tail = columns.filter((c) => PROTECTED(c) && c.field !== '_select')
+    return lead.concat(sorted, tail)
+  }
+
+  /** El modelo del diálogo de columnas: [{ id, label, visible }] en el orden actual. */
+  function columnChooserOf(columns, prefs) {
+    const hidden = new Set((prefs && prefs.hidden) || [])
+    const order = (prefs && prefs.order) || []
+    const items = columns.filter((c) => !PROTECTED(c)).map((c, i) => ({ id: c.field || c.id, label: c.headerText || c.field, visible: !hidden.has(c.field || c.id), i }))
+    const rank = (x) => { const k = order.indexOf(x.id); return k < 0 ? order.length : k }
+    return items.sort((a, b) => (rank(a) - rank(b)) || (a.i - b.i)).map(({ id, label, visible }) => ({ id, label, visible }))
+  }
+
+  /** Del modelo del diálogo a preferencias. */
+  function prefsFromChooser(items) {
+    return { hidden: items.filter((x) => !x.visible).map((x) => x.id), order: items.map((x) => x.id) }
+  }
+
+  /** Mover un elemento del diálogo arriba (-1) o abajo (+1). */
+  function moveChooserItem(items, id, delta) {
+    const i = items.findIndex((x) => x.id === id)
+    const j = i + delta
+    if (i < 0 || j < 0 || j >= items.length) return items
+    const out = [...items]
+    ;[out[i], out[j]] = [out[j], out[i]]
+    return out
+  }
+
+  // ── vistas guardadas ──────────────────────────────────────────────────────────────────────────
+
+  function listSavedViews(scope, storage) {
+    const v = readAll(VIEWS_KEY, storage)[scope]
+    return Array.isArray(v) ? v : []
+  }
+
+  function saveView(scope, view, storage) {
+    const all = readAll(VIEWS_KEY, storage)
+    const views = (all[scope] || []).filter((x) => x.name !== view.name)
+      .map((x) => (view.isDefault ? { ...x, isDefault: false } : x))
+    views.push({ name: view.name, values: view.values || {}, isDefault: !!view.isDefault })
+    all[scope] = views
+    writeAll(VIEWS_KEY, all, storage)
+  }
+
+  function deleteView(scope, name, storage) {
+    const all = readAll(VIEWS_KEY, storage)
+    const views = (all[scope] || []).filter((x) => x.name !== name)
+    if (views.length) all[scope] = views
+    else delete all[scope]
+    writeAll(VIEWS_KEY, all, storage)
+  }
+
+  function defaultView(scope, storage) {
+    return listSavedViews(scope, storage).find((v) => v.isDefault) || null
+  }
+
+  /** La ruta que aplica una vista: el listado con sus filtros en la query (el camino de los
+   *  filtros por URL, que ya pone los chips y relanza la búsqueda). */
+  function viewRouteOf(route, values) {
+    const path = String(route || '').split('?')[0]
+    const q = Object.keys(values || {})
+      .filter((k) => values[k] != null && values[k] !== '' && !(Array.isArray(values[k]) && !values[k].length))
+      .map((k) => encodeURIComponent(k) + '=' + encodeURIComponent(Array.isArray(values[k]) ? values[k].join(',') : String(values[k])))
+    return q.length ? path + '?' + q.join('&') : path
+  }
+
+  /** Lo que se guarda de la búsqueda actual: el texto libre y los filtros aplicados. */
+  function currentViewValues(filterValues, searchText) {
+    const values = { ...(filterValues || {}) }
+    if (searchText) values.searchText = searchText
+    return values
+  }
+
+  /** Las opciones del menú de vistas (oj-menu): las guardadas (★ la de por defecto) + acciones. */
+  function viewsMenuOf(scope, storage) {
+    const views = listSavedViews(scope, storage).map((v) => ({ value: 'view:' + v.name, label: (v.isDefault ? '★ ' : '') + v.name }))
+    return views.concat([{ value: 'save', label: 'Save current view…' }])
+      .concat(views.length ? [{ value: 'clear', label: 'Clear filters' }] : [])
+  }
+
+  /** El ámbito de las preferencias: la ruta del listado en pantalla, sin query (en modo hash, lo
+   *  que va detrás de #). */
+  function listingScope(loc = typeof window !== 'undefined' ? window.location : null) {
+    if (!loc) return ''
+    const raw = loc.hash && loc.hash.startsWith('#/') ? loc.hash.slice(1) : loc.pathname
+    return String(raw || '').split('?')[0]
+  }
+
+  // ── ORDEN DE LOS TILES de una rejilla reordenable (ResponsiveGrid.reorderable: el dashboard de
+  // OPERA, cuyos tiles se arrastran). Misma clave y forma que el web (tileOrderStore.ts): {ámbito:
+  // [claves]}, ámbito = ruta + '#' + id de la rejilla, clave = id del hijo (o '#índice').
+
+  const tileKeyOf = (child, index) => (child && child.id ? String(child.id) : '#' + index)
+
+  function readTileOrder(scope, storage) {
+    const saved = readAll(TILES_KEY, storage)[scope]
+    return Array.isArray(saved) ? saved.filter((k) => typeof k === 'string') : null
+  }
+
+  function writeTileOrder(scope, keys, storage) {
+    const all = readAll(TILES_KEY, storage)
+    all[scope] = keys
+    writeAll(TILES_KEY, all, storage)
+  }
+
+  /** Las posiciones en las que pintar: primero las guardadas en su orden, luego las nunca colocadas. */
+  function orderedTileIndices(keys, saved) {
+    if (!saved || !saved.length) return keys.map((_, i) => i)
+    const placed = saved.map((k) => keys.indexOf(k)).filter((i) => i >= 0)
+    const seen = new Set(placed)
+    return [...placed, ...keys.map((_, i) => i).filter((i) => !seen.has(i))]
+  }
+
+  /** El orden tras soltar `moved` donde está `target`. */
+  function moveTile(order, moved, target) {
+    const from = order.indexOf(moved)
+    const to = order.indexOf(target)
+    if (from < 0 || to < 0 || from === to) return order
+    const next = order.filter((k) => k !== moved)
+    next.splice(to, 0, moved)
+    return next
+  }
+
+  /** El orden tras mover `moved` un puesto atrás (-1) o adelante (+1): arrastrar con el teclado. */
+  function moveTileBy(order, moved, delta) {
+    const from = order.indexOf(moved)
+    const to = from + delta
+    if (from < 0 || to < 0 || to >= order.length) return order
+    return moveTile(order, moved, order[to])
+  }
+
+  const tileScopeOf = (gridId, loc = typeof window !== 'undefined' ? window.location : null) =>
+    ((loc && loc.pathname) || '') + '#' + (gridId || 'grid')
+
+
   // El árbol de navegación: las reglas de libs/mateu/.../navTree.ts que necesita este renderer,
   // PORTADAS (no compartidas): el bridge se construye concatenando estos .mjs (make-amd.mjs) y no
   // puede importar TypeScript. Mismas reglas, mismos casos en test.mjs; si cambia una, cambian las dos.
@@ -179,6 +365,311 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return id == null ? null : ((sections || []).find((section) => section.id === id) || null)
   }
 
+  /** Las rutas centinela del servidor que significan «no hay home declarada»: la shell abre entonces
+   *  la primera pantalla del menú (en profundidad), como la home de una sección. */
+  function isSentinelHome(route) {
+    const r = String(route || '')
+    return !r || /(^|\/)_no_home_route$/.test(r) || /(^|\/)_page$/.test(r)
+  }
+
+  /**
+   * La opción LOCAL del menú (no remota) que cubre una ruta —la de prefijo más largo, por tramos—,
+   * o null. Una ruta de menú (`/inventory/floorPlan`) es del APP: el servidor sólo la resuelve si la
+   * petición lleva el serverSideType del app que declara ese menú; sin él contesta «Not found.»
+   * (en demo-vb no se notaba porque cada @Menu se llamaba como la ruta @UI de su clase).
+   */
+  function localMenuOptionOf(menu, route) {
+    const path = String(route || '').split('?')[0]
+    if (!path) return null
+    let best = null
+    const visit = (options) => {
+      for (const o of options || []) {
+        if (!o || o.remote || o.baseUrl) continue
+        const r = o.route || o.path
+        if (r && routeCovers(r, path) && (!best || r.length > (best.route || best.path).length)) best = o
+        visit(o.submenus || o.submenu)
+      }
+    }
+    visit(menu)
+    return best
+  }
+
+
+  // CALENDARIO (Calendar → átomo isCalendar). JET no trae un calendario: la rejilla se dibuja con los
+  // tokens de Redwood; el selector de vista es el oj-buttonset-one de JET y los eventos, enlaces.
+  // TODAS las vistas (mes, semana, día, lista) van precomputadas en el átomo — el CSP de VB no
+  // calcula fechas — y cambiar de vista es estado del DOM (installCalendars): sin re-proyectar ni
+  // preguntar al servidor. Mismas reglas que libs/mateu calendarModel.ts (fechas ISO en UTC, para
+  // que ningún huso mueva un día; el evento de varios días en todos sus días; por hora de inicio).
+
+  const toUtc = (iso) => { const [y, m, d] = iso.split('-').map(Number); return Date.UTC(y, m - 1, d) }
+  const fromUtc = (ms) => new Date(ms).toISOString().slice(0, 10)
+  const calAddDays = (iso, n) => fromUtc(toUtc(iso) + n * 86400000)
+  /** 0 = lunes … 6 = domingo */
+  const calWeekday = (iso) => (new Date(toUtc(iso)).getUTCDay() + 6) % 7
+  const firstOfMonth = (iso) => iso.slice(0, 8) + '01'
+  const lastOfMonth = (iso) => { const [y, m] = iso.split('-').map(Number); return fromUtc(Date.UTC(y, m, 0)) }
+  const datesBetween = (from, to) => { const out = []; for (let d = from; d <= to; d = calAddDays(d, 1)) out.push(d); return out }
+
+  function calPeriod(view, anchor) {
+    if (view === 'day') return { from: anchor, to: anchor }
+    if (view === 'week') { const monday = calAddDays(anchor, -calWeekday(anchor)); return { from: monday, to: calAddDays(monday, 6) } }
+    return { from: firstOfMonth(anchor), to: lastOfMonth(anchor) }
+  }
+
+  const calEventsOn = (events, date) => (events || [])
+    .filter((e) => e.date && e.date <= date && (e.endDate || e.date) >= date)
+    .map((e, i) => ({ e, i }))
+    .sort((a, b) => (a.e.startTime || '').localeCompare(b.e.startTime || '') || a.i - b.i)
+    .map(({ e }) => e)
+
+  const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+  const DOWS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+  const DOWS_LONG = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+  const TONES = { info: 1, success: 1, warning: 1, danger: 1, neutral: 1 }
+  const dayNum = (iso) => Number(iso.slice(8))
+  const monthName = (iso) => MONTHS[Number(iso.slice(5, 7)) - 1]
+  const longDate = (iso) => DOWS_LONG[calWeekday(iso)] + ', ' + monthName(iso) + ' ' + dayNum(iso)
+
+  /** El átomo del calendario, con las cuatro vistas precomputadas. */
+  function calendarAtomOf(m, id, today = new Date().toISOString().slice(0, 10)) {
+    const anchor = m.month || today
+    const events = m.events || []
+    const days = {}
+    for (const d of m.days || []) if (d && d.date) days[d.date] = d
+    const dayAction = m.dayActionId || ''
+    const chipOf = (e, withTime) => {
+      const time = withTime && e.startTime ? e.startTime + (e.endTime ? '–' + e.endTime : '') : ''
+      return {
+        id: e.id || '', title: e.title || '', date: e.date || '', time,
+        text: (time ? time + ' ' : '') + (e.title || ''),
+        actionId: e.actionId || '',
+        clickable: e.actionId ? 'true' : 'false',
+        // un OBJETO: el :style de JET no aplica una cadena CSS
+        style: e.color ? { borderLeftColor: e.color } : {},
+      }
+    }
+    const cellOf = (date, withTime) => {
+      const info = days[date] || {}
+      const evs = calEventsOn(events, date)
+      return {
+        date, num: String(dayNum(date)), blank: false,
+        label: info.label || '',
+        cls: 'mateu-cal-cell' + (info.tone && TONES[info.tone] ? ' mateu-cal-' + info.tone : '')
+          + (date === today ? ' mateu-cal-today' : '') + (dayAction ? ' mateu-cal-clickable' : ''),
+        ariaLabel: longDate(date) + (info.label ? ', ' + info.label : '') + (evs.length ? ', ' + evs.length + (evs.length > 1 ? ' events' : ' event') : ''),
+        events: evs.map((e) => chipOf(e, withTime)),
+      }
+    }
+    // mes: celdas de lunes a domingo, en blanco fuera del mes
+    const month = calPeriod('month', anchor)
+    const monthCells = Array.from({ length: calWeekday(month.from) }, () => ({ blank: true, cls: 'mateu-cal-cell mateu-cal-blank', events: [], label: '', num: '', date: '' }))
+    monthCells.push(...datesBetween(month.from, month.to).map((d) => cellOf(d, false)))
+    while (monthCells.length % 7) monthCells.push({ blank: true, cls: 'mateu-cal-cell mateu-cal-blank', events: [], label: '', num: '', date: '' })
+    const week = calPeriod('week', anchor)
+    const weekDates = datesBetween(week.from, week.to)
+    const agenda = datesBetween(month.from, month.to)
+      .map((date) => ({ date, cell: cellOf(date, true) }))
+      .filter((x) => x.cell.events.length)
+      .map(({ date, cell }) => ({ date, dateLabel: longDate(date), label: cell.label, cls: cell.cls.replace('mateu-cal-cell', 'mateu-cal-agenda-date'), events: cell.events }))
+    const view = ['month', 'week', 'day', 'list'].includes(m.view) ? m.view : 'month'
+    const views = (m.views || []).filter((v) => ['month', 'week', 'day', 'list'].includes(v))
+    return {
+      isCalendar: true,
+      calId: 'mateuCal-' + String(id || 'calendar').replace(/[^A-Za-z0-9_-]/g, '_'),
+      view,
+      dayActionId: dayAction,
+      hasSwitcher: views.length > 1,
+      viewOptions: views.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) })),
+      titles: {
+        month: monthName(anchor) + ' ' + anchor.slice(0, 4),
+        week: monthName(week.from).slice(0, 3) + ' ' + dayNum(week.from) + ' – ' + monthName(week.to).slice(0, 3) + ' ' + dayNum(week.to) + ', ' + week.to.slice(0, 4),
+        day: longDate(anchor) + ', ' + anchor.slice(0, 4),
+        list: monthName(anchor) + ' ' + anchor.slice(0, 4),
+      },
+      dows: DOWS,
+      monthCells,
+      weekHeads: weekDates.map((d) => DOWS[calWeekday(d)] + ' ' + dayNum(d)),
+      weekCells: weekDates.map((d) => cellOf(d, true)),
+      dayHead: longDate(anchor),
+      dayCells: [cellOf(anchor, true)],
+      agenda,
+      hasAgenda: agenda.length > 0,
+    }
+  }
+
+  // ── comportamiento del DOM (una vez por documento) ────────────────────────────────────────────
+  let calendarSink = null
+  function setCalendarActionSink(fn) { calendarSink = typeof fn === 'function' ? fn : null }
+
+  function installCalendars(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuCalendars) return
+    doc.__mateuCalendars = true
+    // cambiar de vista: el oj-buttonset-one NO burbujea valueChanged; la captura sí lo ve
+    doc.addEventListener('valueChanged', (e) => {
+      const set = e.target
+      if (!set || !set.hasAttribute || !set.hasAttribute('data-cal-switch')) return
+      const cal = set.closest('.mateu-cal')
+      if (cal && e.detail && e.detail.value) cal.setAttribute('data-cal-shown', e.detail.value)
+    }, true)
+    const run = (target) => {
+      const chip = target.closest('[data-cal-event]')
+      const cal = target.closest('.mateu-cal')
+      if (!cal || !calendarSink) return false
+      if (chip) {
+        if (chip.getAttribute('data-cal-clickable') !== 'true') return false
+        calendarSink(chip.getAttribute('data-cal-action'), {
+          _clickedEvent: { id: chip.getAttribute('data-cal-event'), title: chip.getAttribute('data-cal-title'), date: chip.getAttribute('data-cal-date') },
+        }, {})
+        return true
+      }
+      const cell = target.closest('[data-cal-date]')
+      const action = cal.getAttribute('data-day-action')
+      if (cell && action && cell.getAttribute('data-cal-date')) {
+        calendarSink(action, { _date: cell.getAttribute('data-cal-date') }, {})
+        return true
+      }
+      return false
+    }
+    doc.addEventListener('click', (e) => { if (e.target && e.target.closest && run(e.target)) e.stopPropagation() }, true)
+    doc.addEventListener('keydown', (e) => {
+      if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.closest && e.target.closest('.mateu-cal') && run(e.target)) e.preventDefault()
+    }, true)
+  }
+
+
+  // TEXTO ENRIQUECIDO (P2 #23): un campo richText/html/markdown de sólo lectura y el componente
+  // Markdown se pintan CON formato. VB no estampa HTML desde un binding, así que el átomo lleva el
+  // HTML YA SANEADO en data-mateu-html y installRichText lo vuelca en su contenedor. El saneado es
+  // por LISTA BLANCA (etiquetas de texto; de atributos sólo el href de un enlace con esquema
+  // seguro): nada de scripts, estilos, manejadores ni iframes. JET no tiene editor de texto
+  // enriquecido: editar un richText es un oj-text-area con su HTML (limitación declarada).
+
+  const ALLOWED = new Set(['p', 'br', 'b', 'strong', 'i', 'em', 'u', 's', 'code', 'pre', 'blockquote',
+    'ul', 'ol', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a', 'span', 'div', 'hr', 'table', 'thead',
+    'tbody', 'tr', 'th', 'td', 'sub', 'sup'])
+  // su CONTENIDO también se descarta, no sólo la etiqueta
+  const DROP_WITH_CONTENT = new Set(['script', 'style', 'iframe', 'object', 'embed', 'template', 'noscript', 'svg', 'math', 'textarea', 'select'])
+  const VOID = new Set(['br', 'hr'])
+  const SAFE_HREF = /^(https?:|mailto:|tel:|\/|#)/i
+
+  const escapeText = (t) => String(t).replace(/&(?!(#\d+|#x[0-9a-f]+|[a-z]+);)/gi, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  const escapeAttr = (t) => String(t).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')
+
+  /** HTML → HTML saneado por lista blanca. */
+  function sanitizeHtml(html) {
+    const out = []
+    let skipping = null
+    let depth = 0
+    const re = /<!--[\s\S]*?-->|<\/?([a-zA-Z][a-zA-Z0-9]*)\b((?:[^>"']|"[^"]*"|'[^']*')*)>|[^<]+|</g
+    let m
+    const src = String(html == null ? '' : html)
+    while ((m = re.exec(src))) {
+      const token = m[0]
+      if (token.startsWith('<!--')) continue
+      const tag = m[1] ? m[1].toLowerCase() : null
+      const closing = token.startsWith('</')
+      if (skipping) {
+        if (tag === skipping) depth += closing ? -1 : 1
+        if (depth === 0) skipping = null
+        continue
+      }
+      if (!tag) { out.push(escapeText(token)); continue }
+      if (DROP_WITH_CONTENT.has(tag)) {
+        if (!closing && !/\/\s*$/.test(m[2] || '')) { skipping = tag; depth = 1 }
+        continue
+      }
+      if (!ALLOWED.has(tag)) continue
+      if (closing) { if (!VOID.has(tag)) out.push('</' + tag + '>'); continue }
+      let attrs = ''
+      if (tag === 'a') {
+        const href = /\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(m[2] || '')
+        const value = href ? (href[1] ?? href[2] ?? href[3] ?? '').trim().replace(/&amp;/g, '&') : ''
+        if (value && SAFE_HREF.test(value)) {
+          attrs = ' href="' + escapeAttr(value) + '"' + (/^https?:/i.test(value) ? ' target="_blank" rel="noopener noreferrer"' : '')
+        }
+      }
+      out.push('<' + tag + attrs + '>')
+    }
+    return out.join('')
+  }
+
+  /** Markdown → HTML (saneado): encabezados, párrafos, listas, citas, código, y en línea negrita,
+   *  cursiva, código y enlaces. Lo que no reconoce se queda como texto. */
+  function markdownToHtml(md) {
+    const inline = (t) => escapeText(t)
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>')
+      .replace(/(\*\*|__)(.+?)\1/g, '<strong>$2</strong>')
+      .replace(/(^|[^*\w])\*(?!\s)(.+?)\*(?!\w)/g, '$1<em>$2</em>')
+      .replace(/(^|[^_\w])_(?!\s)(.+?)_(?!\w)/g, '$1<em>$2</em>')
+    const lines = String(md == null ? '' : md).replace(/\r\n?/g, '\n').split('\n')
+    const html = []
+    let para = []
+    let list = null // { tag, items }
+    let quote = []
+    const flushPara = () => { if (para.length) { html.push('<p>' + inline(para.join(' ')) + '</p>'); para = [] } }
+    const flushList = () => { if (list) { html.push('<' + list.tag + '>' + list.items.map((i) => '<li>' + inline(i) + '</li>').join('') + '</' + list.tag + '>'); list = null } }
+    const flushQuote = () => { if (quote.length) { html.push('<blockquote><p>' + inline(quote.join(' ')) + '</p></blockquote>'); quote = [] } }
+    const flushAll = () => { flushPara(); flushList(); flushQuote() }
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i]
+      if (/^\s*```/.test(line)) {
+        flushAll()
+        const code = []
+        while (++i < lines.length && !/^\s*```/.test(lines[i])) code.push(lines[i])
+        html.push('<pre><code>' + escapeText(code.join('\n')) + '</code></pre>')
+        continue
+      }
+      if (!line.trim()) { flushAll(); continue }
+      const heading = /^\s*(#{1,6})\s+(.*)$/.exec(line)
+      if (heading) { flushAll(); html.push('<h' + heading[1].length + '>' + inline(heading[2].trim()) + '</h' + heading[1].length + '>'); continue }
+      if (/^\s*([-*_])(\s*\1){2,}\s*$/.test(line)) { flushAll(); html.push('<hr>'); continue }
+      const bullet = /^\s*[-*+]\s+(.*)$/.exec(line)
+      const ordered = /^\s*\d+[.)]\s+(.*)$/.exec(line)
+      if (bullet || ordered) {
+        flushPara(); flushQuote()
+        const tag = bullet ? 'ul' : 'ol'
+        if (list && list.tag !== tag) flushList()
+        if (!list) list = { tag, items: [] }
+        list.items.push((bullet || ordered)[1])
+        continue
+      }
+      const quoted = /^\s*>\s?(.*)$/.exec(line)
+      if (quoted) { flushPara(); flushList(); quote.push(quoted[1]); continue }
+      flushList(); flushQuote()
+      para.push(line.trim())
+    }
+    flushAll()
+    return sanitizeHtml(html.join(''))
+  }
+
+  /** Vuelca el HTML saneado de cada [data-mateu-html] en su contenedor (y cuando cambia). */
+  function installRichText(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuRichText || typeof MutationObserver === 'undefined') return
+    doc.__mateuRichText = true
+    const fill = (el) => {
+      const html = el.getAttribute('data-mateu-html') || ''
+      if (el.__mateuHtml === html) return
+      el.__mateuHtml = html
+      // el valor ya viene saneado del bridge; se vuelve a sanear aquí por si alguien escribe el atributo
+      el.innerHTML = sanitizeHtml(html)
+    }
+    const scan = (root) => {
+      if (root.nodeType !== 1) return
+      if (root.hasAttribute('data-mateu-html')) fill(root)
+      for (const el of root.querySelectorAll('[data-mateu-html]')) fill(el)
+    }
+    scan(doc.body || doc.documentElement)
+    new MutationObserver((records) => {
+      for (const r of records) {
+        if (r.type === 'attributes') fill(r.target)
+        else for (const n of r.addedNodes) scan(n)
+      }
+    }).observe(doc.body || doc.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-mateu-html'] })
+  }
+
 
   // Los enlaces HTML corrientes dentro del contenido (`<a href="/journey/bookings/ZUAAKJ">Ver
   // recorrido</a>`, de un Text/Html de la app) navegan DENTRO de la shell, como en Vaadin: allí el
@@ -328,7 +819,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       if (!f.dataType || metadata[f.fieldId]) continue // duplicados = referencias de FormRow
       // una LISTA (grid de formulario) no es un campo de texto: la pinta el contenido como tabla
       // (un @Searchable de varios ids sí es un campo: sus chips)
-      if ((f.dataType === 'array' && f.stereotype !== 'searchable') || (f.columns || []).length) continue
+      // una lista es una tabla (no un campo) salvo @Searchable y las de elección múltiple
+      if ((f.dataType === 'array' && f.stereotype !== 'searchable' && !isExtraLayoutField(f)) || (f.columns || []).length) continue
       metadata[f.fieldId] = {
         type: NUMERIC.indexOf(f.dataType) >= 0 ? 'number'
           : f.dataType === 'bool' || f.dataType === 'boolean' ? 'boolean' : 'string',
@@ -376,16 +868,18 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     for (const f of collectFields(tree)) {
       if (!f.dataType || seen[f.fieldId]) continue
       seen[f.fieldId] = true
-      if ((f.dataType === 'array' && f.stereotype !== 'searchable') || (f.columns || []).length) continue
+      // una lista es una tabla (no un campo) salvo @Searchable y las de elección múltiple
+      if ((f.dataType === 'array' && f.stereotype !== 'searchable' && !isExtraLayoutField(f)) || (f.columns || []).length) continue
       // la vista de detalle de un @Searchable llega como `<campo>-label`: su texto viaja en data
       const raw = s[f.fieldId] == null && f.stereotype === 'searchable' && data ? data[f.fieldId] : s[f.fieldId]
       // un lookup REMOTO es un desplegable también aquí: sus opciones las carga la chain
       // (bridge.loadLookups) al abrir la pantalla, como las del editor de fila
       const widget = fieldWidgetOf(f, data, { lookups: true, value: raw, textWhenEmpty: true })
-      out.push({
-        ...widget,
-        value: raw == null ? null : (widget.isSelect ? plainValueOf(raw) : raw),
-      })
+      let value = raw == null ? null : (widget.isSelect ? plainValueOf(raw) : raw)
+      if (widget.isMultiSelect || widget.isCheckboxSet)
+        value = Array.isArray(raw) ? raw.map(plainValueOf) : (raw == null || raw === '' ? [] : String(raw).split(','))
+      else if (widget.isMoney) value = raw == null || raw === '' || Number.isNaN(Number(raw)) ? null : Number(raw)
+      out.push({ ...widget, value })
     }
     return out
   }
@@ -525,6 +1019,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return {
       id,
       title: ctx.title || '',
+      // el subtítulo del Drawer (General Drawer: «Room 102 · 12 oct → 14 oct») bajo el título
+      subtitle: ctx.subtitle || '',
       position: ctx.position || 'end',
       width: ctx.width,
       state: ctx.state || {},
@@ -608,7 +1104,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    *  StatusList, botones, inputs, notices…) — el markup pinta blocks y deja texts solo
    *  como forma legada para tests/fixtures. */
   function foldoutOf(ctx) {
-    const node = ctx && ctx.tree ? findByType(ctx.tree, 'FoldoutLayout') : null
+    // el foldout de PÁGINA: uno metido en una pestaña (o en un panel de consola) es contenido de esa
+    // pestaña — visit() lo pinta allí, con sus paneles plegables — y no se adueña de la pantalla
+    const node = ctx && ctx.tree ? findOutside(ctx.tree, 'FoldoutLayout', { ...PANE_TYPES, TabLayout: true }) : null
     if (!node) return null
     const md = node.metadata
     const children = node.children || []
@@ -679,6 +1177,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    *  derecha); STEPS manda uno HORIZONTAL, y eso es un tren de pasos ARRIBA (horizontal: true →
    *  oj-train sobre el contenido, y en pantallas estrechas la lista de pasos en vertical, que un
    *  tren de 4-5 rótulos no cabe en un móvil). */
+  /** Id del paso virtual que el guided process enseña cuando el wizard ya terminó. */
+  const WIZARD_DONE_STEP = '_completed'
+
   function wizardOf(ctx) {
     const node = ctx && ctx.tree ? findByType(ctx.tree, 'ProgressSteps') : null
     if (!node) return null
@@ -698,7 +1199,15 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       display: 'on',
       status: statusOf(s, i) === 'done' ? 'success' : 'none',
     }))
-    const currentStep = currentId
+    // RESULTADO: con todos los pasos hechos (el wire no trae el paso de resultado, que no es un
+    // paso del proceso) el guided process se quedaba en el último paso — su título y su pie
+    // Cancel/Done. Se añade un paso final «Completed», hecho y actual: el título dice que terminó y
+    // el pie se oculta (completed → clase mateu-wizard-completed en la página)
+    const completed = wire.length > 0 && wire.every((s, i) => statusOf(s, i) === 'done')
+    if (completed) {
+      steps.push({ id: WIZARD_DONE_STEP, label: 'Completed', title: 'Completed', display: 'on', status: 'success' })
+    }
+    const currentStep = completed ? WIZARD_DONE_STEP : currentId
     // el título del proceso (el h2 del wizard) y su subtítulo (@Subtitle): el overview del
     // guided process los pinta arriba a la izquierda, sobre las columnas de los pasos
     const heading = ctx.tree ? findFirst(ctx.tree, (n) => n.metadata && n.metadata.type === 'Text'
@@ -709,12 +1218,13 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       title: heading ? String(heading.metadata.text) : '',
       subtitle: subtitleNode ? String(subtitleNode.metadata.text || '') : '',
       // Start del overview: el primer paso; con el wizard ya empezado, «Reanudar» en el suyo
-      resumeStepId: currentIndex > 0 && currentId ? currentId : '',
+      resumeStepId: !completed && currentIndex > 0 && currentId ? currentId : '',
       steps,
       currentStep,
+      completed,
       horizontal: !md.vertical,
-      currentIndex,
-      currentLabel: steps.length ? steps[currentIndex].label : '',
+      currentIndex: completed ? steps.length - 1 : currentIndex,
+      currentLabel: steps.length ? steps[completed ? steps.length - 1 : currentIndex].label : '',
       total: steps.length,
       // el tren (oj-train): los hechos se pueden VISITAR (volver atrás), los que faltan no —
       // se avanza con el botón del paso, que valida
@@ -740,11 +1250,314 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     }
   }
 
+  // ── MatrixGrid → oj-data-grid ────────────────────────────────────────────────────────────────
+  // La matriz (filas × fechas, secciones plegables, celdas que enlazan y filas editables) la pinta
+  // el oj-data-grid de JET sobre un RowDataGridProvider de un FlattenedTreeDataProviderView: las
+  // secciones son nodos del árbol (el disclosure lo pinta JET), las columnas c0..cN. Aquí se arma
+  // la especificación PURA (probada en Node); el provider lo crea la fábrica del bridge.
+  let matrixProviderFactory = null
+  function setMatrixProviderFactory(factory) { matrixProviderFactory = factory }
+
+  const MATRIX_TONES = { info: 1, success: 1, warning: 1, danger: 1, neutral: 1 }
+  const toneClass = (tone) => (tone && MATRIX_TONES[tone] ? 'mateu-matrix-' + tone : '')
+
+  /** Clave del estado plegado de una sección (el mismo almacén que los paneles plegables). */
+  const matrixSectionKey = (gridId, sectionId) => 'matrix:' + gridId + ':' + sectionId
+
+  function matrixSpecOf(m, id) {
+    const gridId = String(id || 'matrix').replace(/[^A-Za-z0-9_-]/g, '_')
+    const columns = m.columns || []
+    const columnKeys = columns.map((c, i) => 'c' + i)
+    const cellsOf = (row, sectionId) => {
+      const out = { id: sectionId + '/' + row.id, label: row.label || '', _rowId: row.id, _editable: !!row.editable,
+        _emphasis: !!row.emphasis }
+      columns.forEach((col, i) => {
+        const cell = (row.cells || [])[i] || { value: '' }
+        const cls = ['mateu-matrix-cell', toneClass(cell.tone) || toneClass(col.tone),
+          row.emphasis ? 'mateu-matrix-emphasis' : '', cell.link && m.cellActionId ? 'mateu-matrix-link' : '',
+          row.editable && m.editActionId ? 'mateu-matrix-editable' : ''].filter(Boolean).join(' ')
+        out['c' + i] = { v: cell.value == null ? '' : String(cell.value), cls, link: !!(cell.link && m.cellActionId),
+          editable: !!(row.editable && m.editActionId), rowId: row.id, columnId: col.id }
+      })
+      return out
+    }
+    const data = []
+    const expanded = []
+    for (const section of m.sections || []) {
+      const rows = (section.rows || []).map((r) => cellsOf(r, section.id))
+      if (section.title) {
+        const key = '§' + section.id
+        const blank = {}
+        columnKeys.forEach((k) => { blank[k] = { v: '', cls: 'mateu-matrix-cell mateu-matrix-section-cell', link: false } })
+        data.push({ id: key, label: section.title, _section: section.id, ...blank, children: rows })
+        if (panelExpanded(matrixSectionKey(gridId, section.id), !section.collapsed)) expanded.push(key)
+      } else {
+        data.push(...rows)
+      }
+    }
+    // cabeceras: si hay grupos (el mes), dos niveles — el grupo abarca sus columnas consecutivas
+    const hasGroups = columns.some((c) => c.group)
+    const columnHeaders = []
+    if (!hasGroups) columns.forEach((c) => columnHeaders.push(c.label || c.id))
+    else {
+      for (const c of columns) {
+        const last = columnHeaders[columnHeaders.length - 1]
+        if (c.group && last && last.group === c.group) last.children.push({ data: c.label || c.id })
+        else if (c.group) columnHeaders.push({ data: c.group, group: c.group, children: [{ data: c.label || c.id }] })
+        else columnHeaders.push({ data: c.label || c.id, depth: 2 })
+      }
+    }
+    return { gridId, data, expanded, columnKeys, columnHeaders: hasGroups ? columnHeaders.map(({ group, ...h }) => h) : columnHeaders,
+      rowHeaderLabel: m.rowHeaderLabel || '' }
+  }
+
+  /** La altura que el wire pide para el mapa (su `style`), o 25rem como el <mateu-map> del web. */
+  function mapHeightOf(style) {
+    const m = /(?:^|;)\s*height\s*:\s*([^;]+)/i.exec(style || '')
+    return m ? m[1].trim() : '25rem'
+  }
+
+  /** Map: JET no tiene mapa de calles (oj-thematic-map pide geografía GeoJSON), así que el átomo
+   *  es un contenedor que installMaps (poc/map.mjs) llena con Leaflet y teselas de OpenStreetMap.
+   *  La especificación viaja serializada en un data-attribute, como el HTML del texto enriquecido. */
+  function mapAtomOf(m, id, style) {
+    const markers = (m.markers || []).map((k) => ({
+      id: k.id, latitude: k.latitude, longitude: k.longitude,
+      label: k.label || '', description: k.description || '', color: k.color || '',
+    }))
+    return {
+      isMap: true,
+      mapId: 'mateuMap-' + (id || 'map'),
+      mapSpec: JSON.stringify({ position: m.position || '', zoom: m.zoom || '', markers, markerActionId: m.markerActionId || '' }),
+      mapStyle: { width: '100%', height: mapHeightOf(style) },
+    }
+  }
+
+  function matrixAtomOf(m, id, interp = (x) => x) {
+    const spec = matrixSpecOf({ ...m, rowHeaderLabel: interp(m.rowHeaderLabel || '') }, id)
+    const rows = spec.data.reduce((n, r) => n + 1 + (r.children && spec.expanded.includes(r.id) ? r.children.length : 0), 0)
+    return {
+      isMatrix: true,
+      gridId: 'mateuMatrix-' + spec.gridId,
+      matrixId: spec.gridId,
+      cellActionId: m.cellActionId || '',
+      editActionId: m.editActionId || '',
+      // alto a la medida (cabecera(s) + filas visibles), con techo: el grid hace scroll dentro
+      // (un OBJETO: el :style de JET no acepta la cadena CSS)
+      gridStyle: { width: '100%', height: Math.min(36, 3 + (spec.columnHeaders.some((h) => h && h.children) ? 2.25 : 0) + rows * 2.375) + 'rem' },
+      provider: matrixProviderFactory ? matrixProviderFactory(spec) : null,
+      // el tono va en la CELDA del grid (no en el texto): JET pide la clase por contexto
+      cellClassName: (ctx) => {
+        // en el callback de clase el valor viene en ctx.data.data (en la plantilla, en cell.item)
+        const d = (ctx && ctx.data && ctx.data.data) || (ctx && ctx.item && ctx.item.data && ctx.item.data.data)
+        return 'oj-helper-justify-content-right ' + ((d && d.cls) || '')
+      },
+      // qué celdas se editan lo decide JET (cell.editable): las demás quedan read-only nativas
+      cellEditable: (ctx) => {
+        const d = (ctx && ctx.data && ctx.data.data) || (ctx && ctx.item && ctx.item.data && ctx.item.data.data)
+        return d && d.editable ? 'enable' : 'disable'
+      },
+      columnHeaderClassName: (ctx) => {
+        const col = (m.columns || [])[ctx && ctx.index]
+        return (ctx && ctx.level === 0 && (m.columns || []).some((c) => c.group)) ? '' : toneClass(col && col.tone)
+      },
+      spec,
+    }
+  }
+
+  /** «ctrl+i» → «Ctrl+I», para el rótulo del disparador. */
+  function shortcutHintOf(shortcut) {
+    if (!shortcut) return ''
+    return String(shortcut).split('+').map((k) => k.trim()).filter(Boolean)
+      .map((k) => (k.length === 1 ? k.toUpperCase() : k.charAt(0).toUpperCase() + k.slice(1))).join('+')
+  }
+
+  /** PANEL DE ACCIONES por categorías («I want to…»): columnas por categoría, las acciones CON
+   *  datos primero (y en negrita), hasta maxPerCategory visibles y el resto tras «Show more».
+   *  Mostrar más / ocultar las vacías / abrir y cerrar es estado del DOM (installActionPanels):
+   *  sin ida y vuelta al servidor y sin re-proyectar. */
+  function actionPanelAtomOf(m, id, interp = (x) => x) {
+    const max = m.maxPerCategory > 0 ? m.maxPerCategory : 10
+    const panelId = 'mateuActionPanel-' + String(id || m.label || 'actions').replace(/[^A-Za-z0-9_-]/g, '_')
+    const categories = (m.categories || []).map((c, ci) => {
+      const actions = (c.actions || [])
+        .map((a, i) => ({ a, i }))
+        .sort((x, y) => (Number(!!y.a.populated) - Number(!!x.a.populated)) || (x.i - y.i))
+        .map(({ a }, i) => ({
+          label: interp(a.label || '') + (a.count > 0 ? ' (' + (a.count > 25 ? '25+' : a.count) + ')' : ''),
+          actionId: a.actionId || '',
+          parameters: a.parameters || {},
+          disabled: !!a.disabled,
+          itemClass: 'mateu-ap-item' + (a.populated ? ' mateu-ap-populated' : ' mateu-ap-unpopulated') + (i >= max ? ' mateu-ap-extra' : ''),
+        }))
+      const extra = Math.max(0, actions.length - max)
+      // con «ocultar vacías» una columna sin acciones con datos sobra entera, y el «mostrar más»
+      // también cuando lo que esconde son sólo vacías (los poblados van primero: si alguno queda
+      // fuera del corte, todo lo que hay antes también es poblado)
+      const populated = (c.actions || []).filter((a) => a.populated).length
+      return {
+        key: panelId + ':' + ci, title: interp(c.title || ''), actions, hasMore: extra > 0,
+        moreLabel: 'Show more (' + extra + ')',
+        columnClass: 'mateu-ap-column' + (populated ? '' : ' mateu-ap-column-unpopulated'),
+        moreClass: 'mateu-ap-more' + (populated > max ? '' : ' mateu-ap-unpopulated'),
+      }
+    }).filter((c) => c.actions.length)
+    return {
+      isActionPanel: true,
+      panelId,
+      label: interp(m.label || 'I want to…'),
+      shortcut: String(m.shortcut || '').toLowerCase(),
+      title: interp(m.label || 'I want to…') + (m.shortcut ? '  (' + shortcutHintOf(m.shortcut) + ')' : ''),
+      hideToggle: !!m.hideUnpopulatedToggle,
+      categories,
+    }
+  }
+
+  /** Las pistas de un grid-template-columns como PESOS: repeat(N, x) se expande, «Nfr», «N%» y
+   *  minmax(…, Nfr) pesan N, lo demás (px, rem, auto, min-content…) pesa 1 — una aproximación: el
+   *  flex de JET reparte en doceavos, no en pistas. */
+  function gridTrackWeights(template) {
+    const src = String(template || '').trim()
+    if (!src) return []
+    // trocea por espacios de primer nivel (no dentro de paréntesis)
+    const tokens = []
+    let depth = 0, cur = ''
+    for (const ch of src) {
+      if (ch === '(') depth++
+      if (ch === ')') depth--
+      if (/\s/.test(ch) && depth === 0) { if (cur) tokens.push(cur); cur = '' } else cur += ch
+    }
+    if (cur) tokens.push(cur)
+    const weightOf = (tok) => {
+      const fr = /(\d*\.?\d+)(fr|%)\)?$/.exec(tok)
+      return fr ? Number(fr[1]) : 1
+    }
+    const out = []
+    for (const tok of tokens) {
+      const rep = /^repeat\(\s*(\d+)\s*,\s*(.+)\)$/.exec(tok)
+      if (rep) {
+        const inner = gridTrackWeights(rep[2])
+        for (let i = 0; i < Number(rep[1]); i++) out.push(...inner)
+      } else if (/^repeat\(/.test(tok)) return [] // auto-fill/auto-fit: lo decide el ancho, no se sabe aquí
+      else out.push(weightOf(tok))
+    }
+    return out
+  }
+
+  /** Clase oj-flex de cada hijo de una rejilla (auto-colocación CSS: en orden, saltando de fila
+   *  cuando el span no cabe). null si la rejilla es de una pista (o no se sabe): se apila. */
+  function gridColClasses(template, colSpans, count) {
+    const weights = gridTrackWeights(template)
+    if (weights.length < 2) return null
+    const total = weights.reduce((a, b) => a + b, 0)
+    const classes = []
+    let cursor = 0
+    for (let i = 0; i < count; i++) {
+      const span = Math.max(1, Math.min(weights.length, (colSpans && colSpans[i]) || 1))
+      if (cursor + span > weights.length) cursor = 0
+      const share = weights.slice(cursor, cursor + span).reduce((a, b) => a + b, 0) / total
+      const twelfths = Math.max(1, Math.min(12, Math.round(12 * share)))
+      classes.push('oj-flex-item oj-sm-12 oj-md-' + twelfths + (twelfths < 12 ? ' oj-sm-padding-2x-end' : ''))
+      cursor = (cursor + span) % weights.length
+    }
+    return classes
+  }
+
+  /** El tipo MIME de un tipo de arrastre: así el destino sabe, mientras se arrastra (cuando aún no
+   *  puede leer los datos), si lo que viene es suyo. */
+  const dragMimeOf = (type) => (type ? 'application/x-mateu-' + String(type).toLowerCase().replace(/[^a-z0-9.+-]/g, '-') : '')
+
+  /** Un Avatar del wire → lo que pinta oj-avatar: iniciales (las dadas o las del nombre) e imagen. */
+  function avatarOf(m) {
+    const name = String((m && m.name) || '')
+    const initials = (m && m.abbreviation) || name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0].toUpperCase()).join('')
+    return { name, initials, src: m && m.image ? elementModuleUrl(m.image) : '' }
+  }
+
+  /** Texto enriquecido (richText/html/markdown) de un campo o componente → su HTML saneado. */
+  const RICH_TEXT_STEREOTYPES = { richText: true, html: true, markdown: true }
+  function richHtmlOf(kind, value) {
+    const text = value == null ? '' : String(value)
+    return kind === 'markdown' ? markdownToHtml(text) : sanitizeHtml(text)
+  }
+
+  /** «colSpan de N columnas» → la clase oj-flex del bloque (doceavos, nunca más de 12). */
+  function panelColClass(colSpan, columns) {
+    const span = Math.max(1, Math.min(columns, colSpan > 0 ? colSpan : 1))
+    const twelfths = Math.max(1, Math.min(12, Math.round((12 * span) / columns)))
+    return 'oj-flex-item oj-sm-12 oj-md-' + twelfths + ' oj-sm-padding-2x-end'
+  }
+
+  const TREND_TEXT = { up: '▲', down: '▼', neutral: '■' }
+  /** Un MetricCard (KPI) listo para la plantilla: valor grande, tendencia con color, y si lleva
+   *  actionId, un botón que lanza la acción (p.ej. la búsqueda filtrada que lo explica). */
+  function metricOf(m, interp = (x) => x) {
+    const trend = m.trend || ''
+    return {
+      title: interp(m.title || ''),
+      value: String(m.value == null ? '' : m.value),
+      unit: m.unit || '',
+      trendText: trend ? (TREND_TEXT[trend] || '') + (m.trendLabel ? ' ' + interp(m.trendLabel) : '') : (m.trendLabel ? interp(m.trendLabel) : ''),
+      trendClass: 'oj-typography-body-sm ' + (trend === 'up' ? 'mateu-trend-up' : trend === 'down' ? 'mateu-trend-down' : 'oj-text-color-secondary'),
+      description: interp(m.description || ''),
+      actionId: m.actionId || '',
+      parameters: {},
+    }
+  }
+
+  // Chart.js (el vocabulario del wire) → oj-chart de JET
+  const CHART_TYPES = {
+    bar: { type: 'bar' }, line: { type: 'line' }, pie: { type: 'pie' }, doughnut: { type: 'pie', innerRadius: 0.55 },
+    radar: { type: 'line', polar: true }, polarArea: { type: 'bar', polar: true },
+    scatter: { type: 'line', markersOnly: true }, bubble: { type: 'line', markersOnly: true },
+  }
+  /** Un Chart (series × etiquetas) o un TrendChart (una serie) → átomo de oj-chart: los ITEMS
+   *  precomputados ({series, group, value}); en una tarta cada etiqueta es una serie (una porción). */
+  function chartAtomOf(m, t, interp = (x) => x) {
+    const trend = t === 'TrendChart'
+    const labels = (trend ? m.labels : m.chartData && m.chartData.labels) || []
+    const datasets = trend
+      ? [{ label: m.title || '', data: m.values || [] }]
+      : ((m.chartData && m.chartData.datasets) || [])
+    const spec = trend ? { type: m.area ? 'area' : 'line' } : (CHART_TYPES[m.chartType] || CHART_TYPES.bar)
+    const pie = spec.type === 'pie'
+    const items = []
+    datasets.forEach((d, si) => (d.data || []).forEach((value, i) => {
+      const label = labels[i] != null ? String(labels[i]) : String(i + 1)
+      items.push({
+        _rowNumber: items.length,
+        id: si + ':' + i,
+        value: value == null ? null : Number(value),
+        series: pie ? label : (d.label || 'Series ' + (si + 1)),
+        group: pie ? (d.label || 'Total') : label,
+      })
+    }))
+    return {
+      isChart: true,
+      title: trend ? interp(m.title || '') : '',
+      chartType: spec.type,
+      coordinateSystem: spec.polar ? 'polar' : 'cartesian',
+      innerRadius: spec.innerRadius || 0,
+      lineType: spec.markersOnly ? 'none' : 'auto',
+      markerDisplayed: spec.markersOnly ? 'on' : 'auto',
+      legend: datasets.length > 1 || pie ? 'on' : 'off',
+      chartStyle: { width: '100%', height: pie ? '18rem' : '16rem' },
+      items,
+      provider: dataProviderFactory ? dataProviderFactory(items) : null,
+    }
+  }
+
   /** ¿Es un átomo RICO (display de verdad, no un campo suelto)? Cuando el contenido de una pantalla
    *  los trae, el formulario genérico sobra: sus campos ya se ven en ellos. */
+  const RICH_ATOM_FLAGS = [
+    'isEntityHeader', 'isTaskProgress', 'isMeter', 'isStatusList', 'isLedger', 'isPayment',
+    'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
+    // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
+    // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
+    'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt', 'isImage', 'isAvatar', 'isGallery', 'isRichText', 'isMap',
+  ]
   function isRichAtom(a) {
-    return !!(a && (a.isEntityHeader || a.isTaskProgress || a.isMeter || a.isStatusList || a.isLedger
-      || a.isPayment || a.isResourceGrid || a.isAddOns || a.isStat || a.isNotice || a.isPropertyRow))
+    return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
   }
 
   /** ¿Es este bloque de botones el PIE del wizard (Back / Next / la acción de completar)? */
@@ -951,7 +1764,15 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     const facts = (md.facts || []).map((f) => ({ label: f.label, value: f.value }))
     if (md.metricLabel) facts.push({ label: md.metricLabel, value: md.metricValue })
     const cards = findAllByType(ctx.tree, 'Card')
-      .map(cardOf)
+      .map((node) => {
+        const card = cardOf(node)
+        // el contenido de la tarjeta como ÁTOMOS (no sólo sus textos): una StatusList, una tabla…
+        // se pintaban vacías porque sólo se recogía el texto
+        const content = (node.metadata && node.metadata.content) || []
+        const blocks = islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_overviewCard', metadata: { type: 'VerticalLayout' },
+          children: Array.isArray(content) ? content : [content] } }) || []
+        return { ...card, items: blocks.flatMap((b) => b.items || []) }
+      })
       .filter((card) => card.title) // los Card sin título son wrappers de sección/estructura
     return {
       title: md.title || '',
@@ -1013,13 +1834,18 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     if (!keyCard) return null
     // solo las pestañas de la barra EXTERIOR: las de una barra anidada son contenido de su
     // pestaña (sus textos van en los de ella), no hermanas de la lista
+    // el contenido como ÁTOMOS (un Markdown, un Chart, una StatusList…): antes solo sus textos sueltos
+    const atomsOfNodes = (nodes) => (islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_itemOverview',
+      metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => b.items || [])
     const tabs = (tabLayout.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => ({
       id: 'itab-' + i,
       label: tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1),
       texts: collectTexts(tab),
+      items: atomsOfNodes(tab.children || []),
     }))
+    const keyContent = keyCard ? ((keyCard.metadata && keyCard.metadata.content) || []) : []
     return {
-      key: keyCard ? cardOf(keyCard) : { title: '', texts: [] },
+      key: keyCard ? { ...cardOf(keyCard), items: atomsOfNodes(Array.isArray(keyContent) ? keyContent : [keyContent]) } : { title: '', texts: [], items: [] },
       tabs,
     }
   }
@@ -1058,8 +1884,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   }
 
   /** Proyección de NAVEGACIÓN de la shell: items de primer nivel + grupos con sus hijos.
-   *  Un grupo (submenus en el wire) NO resuelve por sync — sus hijos navegan por la ruta
-   *  TERMINAL (la compuesta /gestion/person da "Not found."; se recorta el prefijo del padre).
+   *  Los hijos de un grupo navegan por su ruta COMPUESTA (/gestion/person) con el serverSideType
+   *  del app (como Vaadin); un RouteLink dentro de un grupo no resuelve así y se carga por su
+   *  ruta TERMINAL (loadMenuRouteInto, en transport.mjs).
    *  Selectores de contexto y acciones de cabecera salen listos para bindings simples. */
   // Iconos de menú: el wire trae nombres NEUTRALES (convención Mateu: set de Vaadin,
   // p.ej. "vaadin:calendar-user") — cada renderer los traduce a su set; aquí, al icon
@@ -1138,9 +1965,12 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    */
   function navNodeOf(option, parentRoute) {
     const raw = option.route || option.path || ''
-    const id = !option.baseUrl && parentRoute && raw.indexOf(parentRoute + '/') === 0
-      ? raw.slice(parentRoute.length)
-      : raw
+    // la ruta COMPUESTA (/gestion/person), como en Vaadin: es un camino de menú que el backend
+    // resuelve con el serverSideType del app (onMateuNavigate lo añade vía localMenuOptionOf).
+    // Recortarla a la terminal (/person) sólo funcionaba si el campo @Menu se llamaba como la ruta
+    // @UI de su clase; con `@Menu FloorPlan floorPlan` + @UI("/floor-plan") quedaba sin dueño.
+    void parentRoute
+    const id = raw
     // una entrada OCULTA (@Menu @Hidden, visible:false) no se dibuja a ninguna profundidad: su ruta
     // sigue resolviendo (la registra el transporte), pero el menú no la enseña
     const children = (option.submenus || option.submenu || []).filter((child) => child.visible !== false)
@@ -1154,6 +1984,37 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       hasChildren: children.length > 0,
       // el padre de un nieto es la ruta CRUDA del hijo, no su id ya recortado
       children: children.map((child) => navNodeOf(child, raw)),
+      // MENÚ DE TARJETAS (@Menu(display = cards) en un grupo): en vez de un oj-menu, un oj-popup
+      // con una rejilla de oj-action-card — título, descripción, icono/imagen y, si la entrada tiene
+      // hijos, esos hijos como acciones de la tarjeta. Los ids del popup y de su lanzador van
+      // precalculados (el CSP de VB no concatena en las plantillas).
+      ...cardsOf(option, children, raw),
+    }
+  }
+
+  function cardsOf(option, children, raw) {
+    const isCards = option.display === 'cards' && children.length > 0
+    if (!isCards) return { isCards: false, cards: [], popupId: '', anchorId: '' }
+    const key = String(raw || option.label || 'cards').replace(/[^A-Za-z0-9_-]/g, '_')
+    return {
+      isCards: true,
+      popupId: 'mateuCards_' + key,
+      anchorId: 'mateuCardsBtn_' + key,
+      cards: children.filter((c) => !c.separator).map((child) => {
+        const node = navNodeOf(child, raw)
+        return {
+          id: node.id,
+          label: node.label,
+          description: child.description || '',
+          // un icono declarado sin equivalente Redwood toma el genérico: las tarjetas quedan alineadas
+          iconClass: child.icon ? ojIconOrGenericOf(child.icon) : '',
+          image: child.image || '',
+          hasImage: !!child.image,
+          hasIcon: !child.image && !!child.icon,
+          navigable: !node.hasChildren,
+          actions: node.children.filter((a) => !a.hasChildren).map((a) => ({ id: a.id, label: a.label })),
+        }
+      }),
     }
   }
 
@@ -1221,7 +2082,12 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         children: (a.children || []).map((c) => ({ actionId: c.actionId, label: c.label })),
       })),
       serverSideType: shell.serverSideType,
-      homeRoute: shell.homeRoute || '',
+      // sin home declarada (centinela del servidor) → la primera pantalla del menú EN PROFUNDIDAD:
+      // con secciones (HAMBURGER_SECTIONS) el primer nivel son grupos y la home de la sección es su
+      // primera entrada; el centinela se cargaba tal cual y la app arrancaba en «Not found.»
+      homeRoute: isSentinelHome(shell.homeRoute)
+        ? ((menuTree.find((node) => node.home) || {}).home || '')
+        : shell.homeRoute,
     }
   }
 
@@ -1242,9 +2108,15 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    *  (contrato del renderer web compartido: mateu-task-queue.ts). Los datos viajan
    *  INLINE en la metadata — no hay eje data ni triggers. */
   function taskQueueOf(tree) {
-    const node = findByType(tree, 'TaskQueue')
+    // una cola DENTRO de un panel de consola es la lista de esa consola (átomo isQueue del
+    // dispatcher), no el modo «cola de trabajo + isla» de página completa
+    const node = findOutsidePanes(tree, 'TaskQueue')
     if (!node) return null
-    const md = node.metadata
+    return queueProjectionOf(node.metadata)
+  }
+
+  /** Los grupos de tarjetas de una TaskQueue, listos para pintar (modo página y átomo isQueue). */
+  function queueProjectionOf(md) {
     return {
       actionId: md.actionId,
       groups: (md.groups || []).map((group) => ({
@@ -1362,6 +2234,26 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   let dataProviderFactory = null
   function setDataProviderFactory(factory) { dataProviderFactory = factory }
 
+  /** Fábrica de conversores de JET (oj-input-number de un importe): JET 18 ya no acepta el
+   *  conversor como JSON, quiere una instancia de IntlNumberConverter. En Node se queda la
+   *  especificación, que es lo que los tests comprueban. */
+  /** Quién lee las preferencias de columnas del listado en pantalla (la app: localStorage por
+   *  ruta). En Node, nadie: las columnas salen tal cual. */
+  let columnPrefsReader = null
+  function setColumnPrefsReader(fn) { columnPrefsReader = typeof fn === 'function' ? fn : null }
+
+  /** Paneles plegables abiertos/cerrados por el usuario (clave → bool); lo no tocado, como manda
+   *  el wire (AccordionPanel.active, Details.opened). Estado de cliente, como la pestaña activa. */
+  const panelState = {}
+  function setPanelExpanded(key, expanded) { panelState[key] = !!expanded }
+  function panelExpanded(key, fallback) { return key in panelState ? panelState[key] : !!fallback }
+
+  let converterFactory = null
+  function setConverterFactory(factory) { converterFactory = factory }
+  function converterOf(spec) {
+    return converterFactory ? converterFactory(spec) : spec
+  }
+
   function islandContentOf(ctx, opts = {}) {
     if (!ctx || !ctx.tree) return null
     // La pestaña activa es POR BARRA: un mapa {clave de barra: id de pestaña} (opts.activeTabs).
@@ -1395,6 +2287,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     }
     const blocks = []
     let plain = null
+    let elementOrdinal = 0
     const atom = (a, container) => {
       if (container) { container.items.push(a); return }
       if (!plain) { plain = { isPlain: true, items: [] }; blocks.push(plain) }
@@ -1413,6 +2306,69 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       if (node.metadata && node.metadata.type === 'Button') { out.push(buttonOf(node.metadata)); return out }
       for (const child of kidsOf(node)) collectButtons(child, out)
       return out
+    }
+    // Proyecta hijos como BLOQUES-COLUMNA de la rejilla oj-flex (colClass oj-md-(NN→doceavos)): las
+    // zonas de @Zones y los dos paneles de un maestro-detalle. Si una columna genera varios bloques
+    // se FUSIONAN en uno (un flex no puede apilar dos items en la misma celda de fila).
+    const projectColumns = (children, percents, extraClass) => {
+      children.forEach((child, i) => {
+        const col = Math.min(11, Math.max(1, Math.round(percents[i] * 12 / 100)))
+        // las cssClasses del wire de la COLUMNA viajan al bloque (p.ej. la banda
+        // neutra de la info secundaria del general overview: oj-panel + oj-bg-*)
+        const colClass = 'oj-flex-item oj-sm-12 oj-md-' + col + ' oj-sm-padding-4x-end'
+          + (extraClass ? ' ' + extraClass : '')
+          + (child.cssClasses ? ' ' + child.cssClasses : '')
+        const before = blocks.length
+        plain = null
+        visit(child, null)
+        plain = null
+        const created = blocks.splice(before)
+        if (created.length === 1) {
+          created[0].colClass = colClass
+          blocks.push(created[0])
+        } else if (created.length > 1) {
+          blocks.push({ isPlain: true, colClass, items: created.flatMap((b) => b.items) })
+        }
+      })
+    }
+    // hijos con su clase de columna YA calculada (rejillas: ResponsiveGrid, DashboardLayout)
+    // Devuelve false (y no deja nada) si alguna columna genera bloques que no se pueden fusionar en
+    // una celda: una isla anidada (el hoisting convierte su bloque entero en la isla) o un bloque
+    // especial sin átomos — entonces el llamante apila los hijos como antes.
+    const projectSized = (children, colClasses, tags = null) => {
+      const start = blocks.length
+      const out = []
+      for (let i = 0; i < children.length; i++) {
+        const child = children[i]
+        const before = blocks.length
+        plain = null
+        if (child && child.metadata && child.metadata.type === 'DashboardPanel') visitDashboardPanel(child, null)
+        else visit(child, null)
+        plain = null
+        const created = blocks.splice(before)
+        const tag = tags ? tags[i] : null
+        if (created.length === 1) out.push({ ...created[0], colClass: colClasses[i], ...tag })
+        else if (created.length > 1) {
+          if (created.some((b) => !Array.isArray(b.items) || b.items.some((a) => a && a.isNested))) {
+            blocks.splice(start)
+            return false
+          }
+          out.push({ isPlain: true, colClass: colClasses[i], items: created.flatMap((b) => b.items), ...tag })
+        }
+      }
+      blocks.push(...out)
+      return true
+    }
+    // un DashboardPanel = una tarjeta-bloque (título + subtítulo + su contenido) con su ancho
+    const visitDashboardPanel = (panel, colClass) => {
+      const pm = panel.metadata || {}
+      const card = { isCard: true, items: [], ...(colClass ? { colClass } : {}) }
+      blocks.push(card)
+      plain = null
+      if (pm.title) card.items.push({ isText: true, text: interp(pm.title), cls: 'oj-typography-subheading-xs' })
+      if (pm.subtitle) card.items.push({ isText: true, text: interp(pm.subtitle), cls: 'oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-bottom' })
+      for (const child of kidsOf(panel)) visit(child, card)
+      plain = null
     }
     const visit = (node, container) => {
       if (!node || typeof node !== 'object') return
@@ -1434,27 +2390,23 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         const zoneMatches = (node.children || []).map(
           (ch) => String(ch.style || '').match(/flex:\s*1 1 calc\((\d+(?:\.\d+)?)%/))
         if (zoneMatches.length >= 2 && zoneMatches.every(Boolean)) {
-          node.children.forEach((zoneChild, i) => {
-            const pct = parseFloat(zoneMatches[i][1])
-            const col = Math.min(11, Math.max(1, Math.round(pct * 12 / 100)))
-            // las cssClasses del wire de la COLUMNA viajan al bloque (p.ej. la banda
-            // neutra de la info secundaria del general overview: oj-panel + oj-bg-*)
-            const colClass = 'oj-flex-item oj-sm-12 oj-md-' + col + ' oj-sm-padding-4x-end'
-              + (zoneChild.cssClasses ? ' ' + zoneChild.cssClasses : '')
-            const before = blocks.length
-            plain = null
-            visit(zoneChild, null)
-            plain = null
-            const created = blocks.splice(before)
-            if (created.length === 1) {
-              created[0].colClass = colClass
-              blocks.push(created[0])
-            } else if (created.length > 1) {
-              blocks.push({ isPlain: true, colClass, items: created.flatMap((b) => b.items) })
-            }
-          })
+          projectColumns(node.children, node.children.map((_, i) => parseFloat(zoneMatches[i][1])))
           return
         }
+      }
+      // CONSOLA / MAESTRO-DETALLE (MasterDetailLayout, SplitLayout): children = [maestro, detalle].
+      // Misma proyección que las zonas: dos bloques-columna de la rejilla oj-flex (lista a la
+      // izquierda, detalle a la derecha, 5/12 + 7/12), que bajo md se apilan — como la vista
+      // Console de OPERA. Vertical (SplitLayout orientation vertical) → uno debajo del otro. Dentro
+      // de otro bloque no hay columnas que repartir: se proyecta en su sitio, en orden.
+      if ((t === 'MasterDetailLayout' || t === 'SplitLayout') && !container) {
+        const kids = (node.children || []).filter(Boolean)
+        if (kids.length >= 2 && String(m.orientation || '').toLowerCase() !== 'vertical') {
+          projectColumns(kids.slice(0, 2), [41.7, 58.3], 'mateu-split-pane')
+          return
+        }
+        for (const kid of kids) visit(kid, container)
+        return
       }
       if (t === 'App') {
         // isla ANIDADA (p.ej. el documento del check-in): marcador de posición — el
@@ -1552,6 +2504,22 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           }, container)
           return
         }
+        if (RICH_TEXT_STEREOTYPES[m.stereotype] && m.readOnly) {
+          // richText / html / markdown de SÓLO LECTURA: con su formato (editable: un oj-text-area
+          // en el form layout — JET no trae editor de texto enriquecido)
+          const raw = state[fieldId] != null ? state[fieldId] : (ctx.data || {})[fieldId]
+          atom({ isRichText: true, label: interp(m.label || ''), html: richHtmlOf(m.stereotype, plainValueOf(raw)) }, container)
+          return
+        }
+        if (m.stereotype === 'bulletedList') {
+          // @BulletedList sobre una List<String>: su rótulo y sus valores como la lista de viñetas
+          // de siempre (el componente BulletedList ya era un átomo; el campo caía al vacío)
+          const raw = state[fieldId] != null ? state[fieldId] : (ctx.data || {})[fieldId]
+          const items = (Array.isArray(raw) ? raw : raw == null || raw === '' ? [] : [raw]).map((v) => String(plainValueOf(v)))
+          if (m.label) atom({ isText: true, text: interp(m.label), cls: 'oj-typography-body-sm oj-text-color-secondary oj-sm-margin-1x-bottom' }, container)
+          atom({ isBullets: true, items }, container)
+          return
+        }
         if (m.propertyRow) {
           // un lookup de sólo lectura viaja como el campo '<campo>-label', con su ETIQUETA en
           // data['<campo>-label'] (no en el state); un campo normal puede traer su etiqueta igual
@@ -1612,6 +2580,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
               + (tab.metadata.badge ? ' (' + tab.metadata.badge + ')' : ''),
             // @Tab(key): seleccionarla empuja su URL (ver contentTabSelected)
             routeKey: tab.metadata.routeKey || '',
+            // @Tab(shortcut): la selecciona por teclado (keys.mjs)
+            shortcut: String(tab.metadata.shortcut || '').toLowerCase(),
           })),
         }, container)
         const outerScope = tabScope
@@ -1624,10 +2594,10 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         return
       }
       if (t === 'CustomField') {
-        // envoltorio: lo que importa es lo que lleva dentro (metadata.content)
-        const inner = m.content
-        if (Array.isArray(inner)) inner.forEach((c) => visit(c, container))
-        else if (inner && typeof inner === 'object') visit(inner, container)
+        // envoltorio: lo que importa es lo que lleva dentro — en metadata.content o, para un
+        // campo que guarda un componente (un Anchor, un Chart… declarado como campo del form),
+        // en children: mirando solo content esos campos desaparecían sin dejar rastro
+        for (const child of kidsOf(node)) visit(child, container)
         return
       }
       if (t === 'Element') {
@@ -1639,7 +2609,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         for (const key of Object.keys(m.attributes || {})) attributes[key] = interp(m.attributes[key])
         atom({
           isElement: true,
-          elementId: node.id || m.name,
+          // el servidor manda un id de relleno ("fieldId") a TODOS los Element (un record sin id):
+          // dos en la misma pantalla (un plano por planta, dos tablas en un foldout) compartían
+          // hueco y se pisaban. Sin id propio, nombre + ordinal: estable mientras la estructura
+          // de la pantalla no cambie
+          elementId: node.id && node.id !== 'fieldId' ? node.id : m.name + '#' + (elementOrdinal++),
           name: m.name,
           importUrl: (m.attributes || {}).import || '',
           attributes,
@@ -1647,15 +2621,72 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           cssClasses: node.cssClasses || '',
           content: interp(m.content || ''),
           asHtml: !!m.html,
+          // el contenido llevaba `${…}` → ha entrado DATO en el marcado: se sanea al montarlo
+          dataInContent: String(m.content || '').indexOf('${') >= 0,
           on: m.on || null,
         }, container)
+        return
+      }
+      // ── DASHBOARD en cualquier página: rejilla de paneles (cada DashboardPanel, una tarjeta con su
+      // ancho en columnas), banda de KPIs (Scoreboard/MetricCard) y gráficos (oj-chart) ──
+      // ResponsiveGrid (la rejilla general): sus pistas (grid-template-columns) y los colSpans de
+      // cada hijo → bloques-columna oj-flex de su ancho. Dentro de una tarjeta, apilado.
+      if (t === 'ResponsiveGrid' && !container) {
+        // el span de cada hijo: el del wire (colSpans) o el que el hijo lleva consigo — un
+        // DashboardPanel su colSpan, la banda de KPIs (Scoreboard) la fila entera
+        const serverKids = kidsOf(node)
+        const serverSpans = serverKids.map((k, i) => (m.colSpans && m.colSpans[i])
+          || (k && k.metadata && k.metadata.type === 'DashboardPanel' ? k.metadata.colSpan
+            : k && k.metadata && k.metadata.type === 'Scoreboard' ? 999 : 1))
+        // REORDENABLE (ResponsiveGrid.reorderable): los tiles en el orden guardado del usuario, cada
+        // bloque marcado con su clave y su ámbito — installTileReorder los arrastra y re-proyecta
+        let order = serverKids.map((_, i) => i)
+        let tags = null
+        if (m.reorderable) {
+          const scope = tileScopeOf(node.id)
+          const keys = serverKids.map((k, i) => tileKeyOf(k, i))
+          order = orderedTileIndices(keys, readTileOrder(scope))
+          tags = order.map((i) => ({ tileKey: keys[i], tileScope: scope }))
+        }
+        const kids = order.map((i) => serverKids[i])
+        const spans = order.map((i) => serverSpans[i])
+        const classes = gridColClasses(m.gridTemplateColumns, spans, kids.length)
+        if (classes && projectSized(kids, classes, tags)) return
+      }
+      if (t === 'DashboardLayout') {
+        const columns = m.columns > 0 ? m.columns : 3
+        const kids = kidsOf(node)
+        if (projectSized(kids, kids.map((k) => panelColClass(k && k.metadata && k.metadata.colSpan, columns)))) return
+        for (const child of kids) visit(child, container)
+        return
+      }
+      if (t === 'DashboardPanel') {
+        visitDashboardPanel(node, null)
+        return
+      }
+      if (t === 'Scoreboard') {
+        const metrics = findAllByType(node, 'MetricCard').map((n) => metricOf(n.metadata, interp))
+        if (metrics.length) atom({ isScoreboard: true, metrics }, container)
+        return
+      }
+      if (t === 'MetricCard') {
+        // consecutivos se juntan en la misma banda (como los botones)
+        const target = container || plain
+        const last = target && target.items.length ? target.items[target.items.length - 1] : null
+        if (last && last.isScoreboard) last.metrics.push(metricOf(m, interp))
+        else atom({ isScoreboard: true, metrics: [metricOf(m, interp)] }, container)
+        return
+      }
+      if (t === 'Chart' || t === 'TrendChart') {
+        atom(chartAtomOf(m, t, interp), container)
         return
       }
       if (t === 'Card') {
         const card = { isCard: true, items: [] }
         blocks.push(card)
         plain = null
-        const title = m.title && (m.title.text || (typeof m.title === 'string' ? m.title : ''))
+        // el título de un Card fluido es un COMPONENTE (un Text): sus textos, como en cardOf
+        const title = m.title && (typeof m.title === 'string' ? m.title : (m.title.text || collectTexts(m.title)[0] || ''))
         if (title) card.items.push({ isText: true, text: interp(title), cls: 'oj-typography-subheading-xs oj-sm-margin-2x-bottom' })
         for (const child of node.children || []) visit(child, card)
         const cardInner = m.content
@@ -1709,6 +2740,88 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         }
         return
       }
+      // ENLACE (Anchor): un <a> de verdad — el tema Redwood lo pinta como enlace, el manejador
+      // global de links.mjs navega DENTRO de la shell si es una ruta de la app, y target=_blank
+      // (una URL externa, un PDF) abre otra pestaña sin pasar por el servidor
+      if (t === 'Anchor') {
+        const href = interp(m.url)
+        if (href) {
+          const target = m.target ? String(m.target) : ''
+          atom({
+            isAnchor: true,
+            text: interp(m.text) || href,
+            href,
+            target: target || '_self',
+            rel: target === '_blank' ? 'noopener noreferrer' : '',
+          }, container)
+        }
+        return
+      }
+      // FOLDOUT DENTRO DE UNA PESTAÑA (el de página lo pinta oj-sp-foldout-layout, foldoutOf): el
+      // overview en su sitio y cada panel como un panel plegable — su título y, abierto, su
+      // contenido; los paneles abiertos por defecto (open) se respetan
+      if (t === 'FoldoutLayout' && tabScope) {
+        const bySlot = {}
+        for (const child of node.children || []) bySlot[child.slot || ''] = child
+        if (bySlot.overview) visit(bySlot.overview, container)
+        ;(m.panels || []).forEach((panel, i) => {
+          const key = 'fold:' + (node.id || 'foldout') + ':' + i
+          const expanded = panelExpanded(key, panel.open !== false)
+          atom({ isCollapsible: true, collapsibleKey: key, title: interp(panel.title || ''), expanded, disabled: false }, container)
+          const content = bySlot['panel-' + i]
+          if (expanded && content) visit(content, container)
+        })
+        return
+      }
+      // PANELES PLEGABLES (AccordionLayout de AccordionPanel, Details): como las pestañas, se
+      // APLANAN — la cabecera es un átomo isCollapsible (un oj-collapsible de JET) y el contenido
+      // del panel va detrás, como átomos normales, sólo si está abierto. Abierto/cerrado es estado
+      // del CLIENTE (panelExpanded, por clave): plegar re-proyecta sin preguntar al servidor.
+      if (t === 'AccordionLayout') {
+        kidsOf(node).forEach((panel, i) => {
+          const pm = panel.metadata || {}
+          const key = 'acc:' + (node.id || 'accordion') + ':' + i
+          const expanded = panelExpanded(key, !!pm.active)
+          atom({ isCollapsible: true, collapsibleKey: key, title: interp(pm.label || ''), expanded, disabled: !!pm.disabled }, container)
+          if (expanded) for (const child of kidsOf(panel)) visit(child, container)
+        })
+        return
+      }
+      if (t === 'Details') {
+        const summaryTexts = m.summary ? collectTexts(m.summary) : []
+        const key = 'det:' + (node.id && node.id !== 'fieldId' ? node.id : (summaryTexts[0] || 'details'))
+        const expanded = panelExpanded(key, !!m.opened)
+        atom({ isCollapsible: true, collapsibleKey: key, title: interp(summaryTexts.join(' ')), expanded, disabled: false }, container)
+        if (expanded && m.content) visit(m.content, container)
+        return
+      }
+      // TAPE CHART (PlanningBoard → oj-gantt de JET): filas = recursos (con sus columnas de
+      // atributos en la etiqueta), tareas = bloques. Proyección en planningAtomOf (pura, testeada);
+      // los eventos de JET (ojMove, ojResize, doble clic, rango) los traduce planningActionOf.
+      if (t === 'PlanningBoard') {
+        atom(planningAtomOf(m, node.id), container)
+        return
+      }
+      // COLA como pieza de contenido (la lista de una consola maestro-detalle): las mismas tarjetas
+      // oj-action-card del modo cola; cada una lleva su acción (la de la cola, con {_item}) para
+      // que el despachador genérico de bloques la ejecute, y la opción de línea va DEBAJO de la
+      // tarjeta (dentro, su clic sería también el de la tarjeta)
+      if (t === 'TaskQueue') {
+        const q = queueProjectionOf(m)
+        atom({
+          isQueue: true,
+          groups: q.groups.map((g) => ({
+            label: g.label,
+            items: g.items.map((it) => ({
+              ...it,
+              actionId: q.actionId,
+              parameters: { _item: it.id },
+              lineActions: it.hasAction ? [{ actionId: it.actionId, label: it.actionLabel, parameters: it.parameters }] : [],
+            })),
+          })),
+        }, container)
+        return
+      }
       if (t === 'ProgressSteps') {
         const steps = (m.steps || []).map((step) => ({ id: step.id, label: step.title || step.label || step.id }))
         const current = (m.steps || []).find((step) => step.status === 'current')
@@ -1740,10 +2853,125 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         }, container)
         return
       }
+      if (t === 'Markdown') {
+        // Markdown CON formato (encabezados, listas, citas, código, negrita, enlaces…): HTML saneado
+        // que installRichText vuelca en su contenedor (VB no estampa HTML desde un binding)
+        const html = richHtmlOf('markdown', interp(m.markdown || m.text || ''))
+        if (html) atom({ isRichText: true, label: '', html }, container)
+        return
+      }
+      if (t === 'Grid') {
+        // un Grid fluido (columnas en content, filas en page.content): la misma tabla embebida que
+        // un campo de tipo lista — oj-table en modo lista; los grupos de columnas se aplanan
+        const leafColumns = []
+        const walkCols = (n) => {
+          const cm = n && (n.metadata || n)
+          if (!cm) return
+          if (cm.type === 'GridGroupColumn') { kidsOf(n).forEach(walkCols); (cm.columns || []).forEach(walkCols); return }
+          if (cm.type === 'GridColumn' || cm.id) leafColumns.push(cm)
+        }
+        ;(m.content || []).forEach(walkCols)
+        const rows = ((m.page && m.page.content) || []).map((r, i) => ({ ...r, _rowNumber: r._rowNumber == null ? i : r._rowNumber }))
+        const columns = leafColumns.map((c) => ({ headerText: interp(c.label || c.id), field: c.id }))
+        atom({
+          isGrid: true,
+          fieldId: node.id || 'grid',
+          label: '',
+          columns,
+          rows,
+          adp: dataProviderFactory ? dataProviderFactory(rows) : null,
+          isEmpty: rows.length === 0,
+          rowEditable: false,
+          addActionId: '',
+          addLabel: 'Add',
+        }, container)
+        return
+      }
+      if (t === 'Gantt') {
+        atom(ganttAtomOf(m, node.id), container)
+        return
+      }
+      if (t === 'DropZone') {
+        // un destino donde soltar filas arrastradas (@DragRows): título, subtítulo y su contenido como
+        // líneas de texto; dnd.mjs lo resalta mientras se arrastra su tipo y lanza su acción al soltar
+        const lines = kidsOf(node).flatMap((k) => collectTexts(k)).map(interp).filter(Boolean)
+        atom({
+          isDropZone: true,
+          title: interp(m.title || ''),
+          subtitle: interp(m.subtitle || ''),
+          lines,
+          accept: dragMimeOf(m.accept || ''),
+          actionId: m.actionId || '',
+          params: JSON.stringify(m.parameters || {}),
+          ariaLabel: (m.title || '') + (m.subtitle ? ', ' + m.subtitle : '') + ' — drop target',
+        }, container)
+        return
+      }
+      if (t === 'Popover') {
+        // lo envuelto se pinta como un disparador con su texto; el contenido, como líneas en la
+        // ventana flotante compartida (hover.mjs) — al pasar/enfocar (hover) o al pulsar (click)
+        const wrappedTexts = m.wrapped ? collectTexts(m.wrapped).map(interp).filter(Boolean) : []
+        const label = wrappedTexts.join(' ') || (m.wrapped && m.wrapped.metadata && m.wrapped.metadata.label) || 'Details'
+        const lines = m.content ? collectTexts(m.content).map(interp).filter(Boolean) : []
+        const text = lines.join('\n')
+        atom({
+          isPopover: true,
+          label: interp(label),
+          hoverText: m.trigger === 'hover' ? text : '',
+          clickText: m.trigger === 'hover' ? '' : text,
+        }, container)
+        return
+      }
+      if (t === 'Calendar') {
+        atom(calendarAtomOf(m, node.id), container)
+        return
+      }
+      if (t === 'MatrixGrid') {
+        atom(matrixAtomOf(m, node.id, interp), container)
+        return
+      }
+      if (t === 'Map') {
+        atom(mapAtomOf(m, node.id, node.style), container)
+        return
+      }
+      if (t === 'ActionPanel') {
+        atom(actionPanelAtomOf(m, node.id, interp), container)
+        return
+      }
       if (t === 'BulletedList') {
         atom({ isBullets: true, items: (m.items || []).map(interp) }, container)
         return
       }
+      if (t === 'Image') {
+        // JET no tiene componente de imagen: un <img> con el ancho de su contenedor como tope
+        // una ruta RELATIVA la sirve el backend (como el módulo de un Element), no la app VB
+        if (m.src) atom({ isImage: true, src: elementModuleUrl(interp(m.src)), alt: interp(m.alt || '') }, container)
+        return
+      }
+      if (t === 'Avatar') {
+        atom({ isAvatar: true, avatars: [avatarOf(m)], overflow: '' }, container)
+        return
+      }
+      if (t === 'AvatarGroup') {
+        // oj-avatar por persona hasta maxItemsVisible, y «+N» con las que no caben
+        const all = (m.avatars || []).map(avatarOf)
+        const max = m.maxItemsVisible > 0 ? m.maxItemsVisible : all.length
+        atom({ isAvatar: true, avatars: all.slice(0, max), overflow: all.length > max ? '+' + (all.length - max) : '' }, container)
+        return
+      }
+      if (t === 'CarouselLayout') {
+        // una GALERÍA (todas las diapositivas son imágenes) → oj-film-strip de JET, con sus flechas
+        // y su paginación; un carrusel de contenido arbitrario sigue apilando sus diapositivas
+        const slides = kidsOf(node)
+        const images = slides.map((n) => (n && n.metadata && n.metadata.type === 'Image' && n.metadata.src ? n.metadata : null))
+        if (slides.length && images.every(Boolean)) {
+          atom({ isGallery: true, id: node.id || 'gallery',
+            images: images.map((im, i) => ({ key: String(i), src: elementModuleUrl(interp(im.src)), alt: interp(im.alt || '') })),
+            looping: m.loop ? 'page' : 'off' }, container)
+          return
+        }
+      }
+
       if (t === 'Separator') {
         atom({ isSeparator: true }, container)
         return
@@ -2134,8 +3362,16 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           }
           if (opts.forWizard) {
             if (atom.isProgress) return false
+            // el contador «2 | 3» del RAIL (@WizardProgress(RAIL)): el oj-sp del proceso guiado
+            // ya pinta el suyo en su raíl, uno más en el contenido es un duplicado
+            if (atom.isText && /^\d+ \| \d+$/.test(String(atom.text || '').trim())) return false
             if (!opts.keepWizardNav && atom.isButtons && atom.buttons.length
                 && atom.buttons.every((b) => b.actionId === 'next' || b.actionId === 'back')) return false
+            // el pie del ÚLTIMO paso: Back + la acción de completar (@WizardCompletionAction) — el
+            // pie del proceso guiado ya los pinta (wizardForwardOf), aquí salían duplicados
+            if (!opts.keepWizardNav && atom.isButtons && atom.buttons.length === 2
+                && atom.buttons.some((b) => b.actionId === 'back')
+                && !atom.buttons.some((b) => b.actionId === 'next')) return false
           }
           return true
         }),
@@ -2178,8 +3414,38 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   /** El EntityHeader del host (p.ej. el huésped de la Reserva 360) proyectado al HEADER de
    *  pantalla: título = el nombre, subtítulo = subtitle + badges, facts (+métrica) →
    *  contextualInfo del oj-sp-header-general-overview. */
+  // Paneles cuyo contenido es de UN elemento de una colección (el detalle de una consola): un
+  // EntityHeader ahí dentro es la ficha del elegido, no la entidad de la PÁGINA — subirlo a la
+  // cabecera vaciaba el panel de detalle y ponía el nombre del huésped como título de la pantalla.
+  const PANE_TYPES = { MasterDetailLayout: true, SplitLayout: true }
+  function pageEntityHeaderNode(tree) {
+    return findOutsidePanes(tree, 'EntityHeader')
+  }
+  /** findByType, pero sin entrar en los paneles de una consola (MasterDetailLayout/SplitLayout): lo
+   *  que hay dentro es contenido de un panel, no una pieza de la PÁGINA (su cabecera, su cola). */
+  function findOutsidePanes(tree, type) {
+    return findOutside(tree, type, PANE_TYPES)
+  }
+
+  /** findByType sin bajar a los tipos de `stops`. */
+  function findOutside(tree, type, stops) {
+    let found = null
+    const walk = (n) => {
+      if (found || !n || typeof n !== 'object') return
+      const t = n.metadata && n.metadata.type
+      if (t === type) { found = n; return }
+      if (t && stops[t]) return
+      for (const c of n.children || []) walk(c)
+      const inner = n.metadata && n.metadata.content
+      if (Array.isArray(inner)) inner.forEach(walk)
+      else if (inner && typeof inner === 'object') walk(inner)
+    }
+    walk(tree)
+    return found
+  }
+
   function entityHeaderOf(ctx) {
-    const node = ctx && ctx.tree ? findByType(ctx.tree, 'EntityHeader') : null
+    const node = ctx && ctx.tree ? pageEntityHeaderNode(ctx.tree) : null
     if (!node) return null
     const m = node.metadata
     const state = ctx.state || {}
@@ -2435,7 +3701,30 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   /** Proyección del LISTING (componente Crud): columnas + filas (del eje data) + búsqueda.
    *  null si el contexto no contiene un Crud. Las filas llegan por la acción 'search'
    *  (trigger OnLoad) como fragmento data-only: data.crud.page.content. */
+  /**
+   * El listado del host listo para pintar. `allColumns` son todas las del wire (de ahí parte el
+   * diálogo de columnas) y `columns` las que se pintan, con las preferencias del usuario aplicadas
+   * (prefs.mjs: ocultas fuera, en su orden) — leídas por columnPrefsReader (localStorage por ruta).
+   */
   function listingOf(ctx, opts = {}) {
+    const listing = listingBaseOf(ctx, opts)
+    if (!listing) return listing
+    const prefs = columnPrefsReader ? columnPrefsReader() : null
+    return { ...listing, allColumns: listing.columns, columns: applyColumnPrefs(listing.columns, prefs),
+      headerBlocks: listingHeaderBlocksOf(ctx) }
+  }
+
+  /** Los componentes de CABECERA de la página del listado (HeaderSupplier → Page.metadata.header)
+   *  como bloques de átomos: el listado no tiene contenido propio donde ponerlos. */
+  function listingHeaderBlocksOf(ctx) {
+    const pageNode = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+    const header = pageNode && pageNode.metadata && Array.isArray(pageNode.metadata.header) ? pageNode.metadata.header : []
+    if (!header.length) return []
+    const blocks = islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_listingHeader', metadata: { type: 'VerticalLayout' }, children: header } }) || []
+    return blocks.map((b) => ({ ...b, blockClass: b.colClass || 'oj-flex-item oj-sm-12' }))
+  }
+
+  function listingBaseOf(ctx, opts = {}) {
     const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
     if (!crudNode) return null
     const md = crudNode.metadata
@@ -2476,6 +3765,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         // la clave de la columna = el id del wire: el ojSort la devuelve y es lo que el server
         // ordena (la celda puede leer otro campo, p.ej. el UUID abreviado)
         def.id = c.id
+        // pie de totales (@Aggregate): la plantilla footerTotal lee totals[columnKey]
+        if (aggregateFootersOf(md, (ctx.data || {}).crud)) def.footerTemplate = 'footerTotal'
         // ESTADO como badge (@Status): el valor de la celda es {type, message} — la clase
         // JET del badge se precomputa en las filas (statusBadgeRows, CSP sin ternarios)
         if (c.dataType === 'status') {
@@ -2531,7 +3822,16 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       // (las acciones declaradas del ServerSide host, no los botones)
       selectionRequired: ((ctx.tree && ctx.tree.actions) || [])
         .filter((a) => a.rowsSelectedRequired).map((a) => a.id),
-      rows: rowLinesRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), lines.extra),
+      // @RowStatus: cada fila lleva su tono (_tone) — lo pinta tables.mjs sobre los tr del oj-table;
+      // @GroupBy: filas de grupo intercaladas (valor (n) + subtotales), sólo presentación
+      rows: groupedRows(toneRows(rowLinesRows(clipCellRows(primaryCellRows(uuidCellRows(statusBadgeRows(page.content || [], md.columns || []), md.columns || []), md.columns || []), md.columns || []), lines.extra), md.rowStatusField), md, (ctx.data || {}).crud),
+      // @Aggregate: los totales del conjunto filtrado, por columna (pie del oj-table)
+      totals: aggregateFootersOf(md, (ctx.data || {}).crud),
+      hasTotals: !!aggregateFootersOf(md, (ctx.data || {}).crud),
+      rowStatusField: md.rowStatusField || '',
+      // @DragRows: las filas se arrastran (JET oj-table dnd) con este tipo MIME — dnd.mjs
+      dragType: md.dragType || '',
+      dragTypes: md.dragType ? [dragMimeOf(md.dragType)] : [],
       // la propiedad por la que ordena el server cada columna (GridColumn.sortingProperty o su id)
       sortFields: Object.fromEntries((md.columns || []).map((col) => col.metadata || col)
         .map((c) => [c.id, c.sortingProperty || c.id])),
@@ -2843,9 +4143,13 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       const out = { ...row }
       for (const c of cols) {
         const shown = text(row[c.id])
-        const tip = c.tooltipPath ? text(row[c.tooltipPath]) : ''
+        // tooltipPath a OTRO campo (@Tooltip): un detalle → la ventana flotante; a sí mismo (un ancho
+        // fijo que corta): el texto entero en el title de siempre
+        const tip = c.tooltipPath && c.tooltipPath !== c.id ? text(row[c.tooltipPath]) : ''
         // solo la columna de ancho fijo se corta; con tooltipPath y sin ancho, el texto sigue entero
-        out[c.id + CLIP_CELL_SUFFIX] = { text: shown, title: tip || shown, cls: columnWidthOf(c).maxWidth ? 'mateu-cell-clip' : '' }
+        // con @Tooltip(otro campo) el detalle sale en la ventana flotante (hover.mjs), no en el title
+        // del navegador: varias líneas y estilo Redwood; sin él, el title enseña lo que se corta
+        out[c.id + CLIP_CELL_SUFFIX] = { text: shown, title: tip ? '' : shown, hover: tip, cls: columnWidthOf(c).maxWidth ? 'mateu-cell-clip' : '' }
       }
       return out
     })
@@ -3462,7 +4766,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   /** Triggers OnLoad del contexto (p.ej. el listing dispara 'search' al cargar). */
   function onLoadTriggers(ctx) {
     return ((ctx && ctx.tree && ctx.tree.triggers) || [])
-      .filter((t) => t.type === 'OnLoad' && t.actionId)
+      // los que llevan espera (refresco periódico) los programa polling.mjs, no se lanzan ya
+      .filter((t) => t.type === 'OnLoad' && t.actionId && !(t.timeoutMillis > 0))
       .map((t) => t.actionId)
   }
 
@@ -3565,6 +4870,18 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
 
   const metaOf = (fr) => fr.component?.metadata || {}
 
+  /** El estado de una superficie con los VALORES INICIALES de sus campos (FormField.initialValue) que
+   *  aún no tienen valor: el renderer web cae a ese valor cuando el estado no trae la clave, y aquí
+   *  se siembra en el estado para que se pinte Y viaje en la siguiente acción. */
+  function withInitialValues(tree, state) {
+    const out = { ...(state || {}) }
+    if (!tree) return out
+    for (const f of collectFields(tree)) {
+      if (f.initialValue != null && !(f.fieldId in out)) out[f.fieldId] = f.initialValue
+    }
+    return out
+  }
+
   let overlaySeq = 0
   /** Construye un contexto de overlay (drawer/dialog) a partir de un fragmento Add. */
   function buildOverlay(fr, opener) {
@@ -3581,7 +4898,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       kind: 'drawer',
       tree: fr.component, // el árbol completo — md.content lleva el contenido (patrón Card)
       surface,
-      state: filled(md.initialData) || filled(fr.state) || (surface && filled(surface.initialData)) || {},
+      state: withInitialValues(surface || fr.component, filled(md.initialData) || filled(fr.state) || (surface && filled(surface.initialData)) || {}),
       title: md.headerTitle || md.title || (surfacePage && surfacePage.metadata.title) || '',
       subtitle: md.subtitle,
       position: md.position || 'end',
@@ -3619,13 +4936,18 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       navigate: null,
       urlPush: null,
       download: null,
+      downloads: [], // todos los DownloadFile del increment (download = el último, compat)
       runActions: [],
       docTitle: null,
       events: [], // bus @SubscribeTo: [{ name, detail }]
     }
 
     for (const m of increment.messages || [])
-      effects.toasts.push({ text: m.text || m.title, variant: m.variant || 'info' })
+      effects.toasts.push({
+        text: m.text || m.title, variant: m.variant || 'info',
+        // Message.undoable: el toast lleva su «Undo» (notify.mjs lo pinta con oj-message)
+        ...(m.undoActionId ? { undoActionId: m.undoActionId, undoLabel: m.undoLabel || 'Undo', undoParameters: m.undoParameters || {} } : {}),
+      })
 
     // ── fragmentos → shell | superficies ──────────────────────────────────────
     for (const fr of increment.fragments || []) {
@@ -3642,6 +4964,10 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
           appContext: md.contextSelectors || [],
           headerActions: md.contextActions || [],
           themeToggle: md.themeToggle,
+          // @App(accessKeys): mantener Alt enseña las teclas de acceso (keys.mjs)
+          accessKeys: !!md.accessKeys,
+          // NotificationsSupplier del App → la campana de la cabecera (notify.mjs)
+          notificationsEnabled: !!md.notificationsEnabled,
           // el logo del @App (@Logo, p.ej. /images/riu.svg — relativo al backend)
           logo: md.logo || '',
           // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la
@@ -3678,9 +5004,9 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         pageWidth: ss?.pageWidth ?? (fr.component ? undefined : prev.pageWidth),
         state: !fr.component
           ? { ...prev.state, ...(fr.state || {}) } // State-only: MERGE (no borrar la isla)
-          : fr.action === 'ReplaceKeepData'
+          : withInitialValues(fr.component, fr.action === 'ReplaceKeepData'
             ? { ...prev.state, ...(fr.state || md.initialData || {}) }
-            : (fr.state ?? md.initialData ?? prev.state),
+            : (fr.state ?? md.initialData ?? prev.state)),
         // data = eje de DATOS calculados por el server (p.ej. las filas del listing, keyed
         // por id de componente: {crud: {page: …}}); un fragmento data-only MERGEA
         data: !fr.component
@@ -3738,6 +5064,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
         }
         case 'DownloadFile':
           effects.download = c.data
+          effects.downloads.push(c.data)
           break
         case 'RunAction':
           effects.runActions.push(c.data)
@@ -3942,7 +5269,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   function layoutFieldOf(md, state, data, columns = 1) {
     const fieldId = md.fieldId || md.id
     if (!fieldId || (md.columns || []).length || md.propertyRow
-      || !(LAYOUT_TYPES[md.dataType] || md.stereotype === 'searchable')) return null
+      || (RICH_TEXT_STEREOTYPES[md.stereotype] && md.readOnly)
+      || !(LAYOUT_TYPES[md.dataType] || md.stereotype === 'searchable' || isExtraLayoutField(md))) return null
     const s = state || {}
     const d = data || {}
     const raw = s[fieldId] != null ? s[fieldId] : d[fieldId]
@@ -3950,7 +5278,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     let value = raw == null || raw === '' ? null : raw
     if (widget.isBoolean) value = !!raw
     else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
-    else if (widget.isNumber) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
+    else if (widget.isNumber || widget.isMoney) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
+    else if (widget.isMultiSelect || widget.isCheckboxSet) value = Array.isArray(raw) ? raw.map(plainValueOf) : (raw == null || raw === '' ? [] : String(raw).split(','))
     else if (value != null && typeof value === 'object') value = plainValueOf(value)
     return {
       ...widget,
@@ -4172,8 +5501,59 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    * select si trae opciones (estáticas, o las que trajo su búsqueda) — o, con lookups, si es un
    * lookup remoto —, fecha, fecha-hora, número, booleano, área de texto o texto.
    */
+  // Estereotipos de campo con widget propio más allá del texto/número/fecha/booleano/select (reto
+  // PMS): radio, selección múltiple, importe y los de captura. Cada familia es un flag is* de la
+  // plantilla (ver poc/templates/fields-extra.html).
+  const MULTI_SELECT_STEREOTYPES = { multiSelect: true, combobox: true, listBox: true }
+  const CHECKBOX_SET_STEREOTYPES = { checkbox: true, choice: true }
+  const CAPTURE_MODES = { fileUpload: 'file', uploadableImage: 'image', image: 'image', signature: 'signature', camera: 'camera' }
+
+  /** El widget de un estereotipo «extra», o null si el campo es de los de siempre. */
+  function extraWidgetOf(f, options) {
+    const st = f.stereotype
+    if (st === 'radio' && options.length) return { isRadio: true }
+    if (f.dataType === 'array' && options.length && MULTI_SELECT_STEREOTYPES[st]) return { isMultiSelect: true }
+    if (f.dataType === 'array' && options.length && (CHECKBOX_SET_STEREOTYPES[st] || !st || st === 'regular'))
+      return { isCheckboxSet: true }
+    if (st === 'money' || f.dataType === 'money') {
+      const currency = (f.attributes || []).find && ((f.attributes || []).find((a) => a && a.key === 'currency') || {}).value
+      return {
+        isMoney: true,
+        // conversor de JET (oj-input-number): número con 2 decimales y su símbolo de moneda
+        converter: converterOf({ type: 'number', options: { style: 'currency', currency: currency || 'EUR', minimumFractionDigits: 2 } }),
+      }
+    }
+    if (CAPTURE_MODES[st]) return { isCapture: true, captureMode: CAPTURE_MODES[st], accept: f.accept || '' }
+    return null
+  }
+
+  /** ¿Lo pinta el oj-form-layout? (además de los LAYOUT_TYPES de siempre) */
+  function isExtraLayoutField(md) {
+    return !!(md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
+      || CAPTURE_MODES[md.stereotype]
+      || (md.dataType === 'array' && (md.options || []).length
+        && (MULTI_SELECT_STEREOTYPES[md.stereotype] || CHECKBOX_SET_STEREOTYPES[md.stereotype])))
+  }
+
   function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
     if (isSearchableField(f)) return searchableWidgetOf(f, data, value)
+    const extra = extraWidgetOf(f, optionsOf(f, data))
+    if (extra) {
+      const flags = { isSelect: false, isBoolean: false, isDate: false, isDateTime: false, isNumber: false, isTextArea: false, isText: false }
+      return {
+        fieldId: f.fieldId,
+        label: f.label || f.fieldId,
+        required: !!f.required,
+        readonly: !!f.readOnly,
+        isLookup: false,
+        lookupActionId: '',
+        options: (extra.isRadio || extra.isMultiSelect || extra.isCheckboxSet) ? optionsOf(f, data) : [],
+        ...flags,
+        isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
+        converter: null, captureMode: '', accept: '',
+        ...extra,
+      }
+    }
     const lookupActionId = (f.remoteCoordinates && f.remoteCoordinates.action) || ''
     let options = optionsOf(f, data)
     // Un lookup con valor que aún no está entre sus opciones (no han llegado, o sólo llegó la
@@ -4192,7 +5572,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     const isDate = !isSelect && f.dataType === 'date'
     const isDateTime = !isSelect && f.dataType === 'dateTime'
     const isNumber = !isSelect && !!NUMERIC_TYPES[f.dataType]
-    const isTextArea = !isSelect && f.stereotype === 'textarea'
+    const isTextArea = !isSelect && (f.stereotype === 'textarea' || !!RICH_TEXT_STEREOTYPES[f.stereotype])
     return {
       fieldId: f.fieldId,
       label: f.label || f.fieldId,
@@ -4208,6 +5588,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       isNumber,
       isTextArea,
       isText: !isSelect && !isBoolean && !isDate && !isDateTime && !isNumber && !isTextArea,
+      isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
+      converter: null, captureMode: '', accept: '',
     }
   }
 
@@ -4486,6 +5868,220 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       }
     }
     return null
+  }
+
+
+  // ── PlanningBoard (Room Diary) sobre oj-gantt ─────────────────────────────────────────────────
+  //
+  // oj-gantt es el tape chart de JET: filas con tareas, arrastrar para mover (dnd.move) y bordes para
+  // redimensionar (task-defaults.resizable), tooltip propio (shortDesc). Mateu manda los bloques con
+  // el fin INCLUSIVO (la última noche); el gantt pinta [start, end) en tiempo, así que el fin se
+  // pinta como el día siguiente y se devuelve restando uno.
+
+  const DAY_MS = 86400000
+  const isoDay = (d) => {
+    const pad = (n) => String(n).padStart(2, '0')
+    return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate())
+  }
+  const plusDays = (iso, n) => isoDay(new Date(Date.parse(iso + 'T00:00:00Z') + n * DAY_MS))
+
+  function planningAtomOf(m, id) {
+    const columns = m.attributeColumns || []
+    const blocks = m.blocks || []
+    const from = m.from || (blocks.length ? blocks.map((b) => b.start).sort()[0] : isoDay(new Date()))
+    const to = m.to || (blocks.length ? blocks.map((b) => b.end).sort().slice(-1)[0] : from)
+    const rows = (m.resources || []).map((r, i) => {
+      const attrs = columns.map((c, k) => ({ label: c, value: (r.attributes || [])[k] || '' }))
+      return {
+        _rowNumber: i,
+        id: r.id,
+        // la etiqueta de la fila lleva los atributos: el eje de filas de oj-gantt sólo pinta texto
+        label: [r.label].concat(attrs.map((a) => a.value).filter(Boolean)).join(' · '),
+        group: r.group || '',
+        iconClass: r.icon ? ojIconOrGenericOf(r.icon) : '',
+        tasks: blocks.filter((b) => b.resourceId === r.id && b.start && b.end).map((b) => ({
+          id: b.id,
+          start: b.start + 'T00:00:00',
+          end: plusDays(b.end, 1) + 'T00:00:00',
+          label: (b.icon ? '★ ' : '') + (b.label || ''),
+          shortDesc: b.summary || ((b.label || '') + ' · ' + b.start + ' → ' + b.end + (b.status ? ' · ' + b.status : '')),
+          svgStyle: b.color ? { fill: b.color, stroke: b.color } : undefined,
+          // dentro de la barra o nada: fuera, el texto blanco sobre el fondo no se lee (y el resumen
+          // completo sigue en el tooltip)
+          labelPosition: ['innerCenter', 'innerStart', 'none'],
+          labelStyle: { fill: '#ffffff' },
+        })),
+      }
+    })
+    return {
+      isPlanning: true,
+      planningId: id || 'planning',
+      attributeColumns: columns,
+      start: from + 'T00:00:00',
+      end: plusDays(to, 1) + 'T00:00:00',
+      rows,
+      rowsProvider: dataProviderFactory ? dataProviderFactory(rows) : null,
+      movable: !!m.moveActionId,
+      resizable: !!m.resizeActionId,
+      moveActionId: m.moveActionId || '',
+      resizeActionId: m.resizeActionId || '',
+      openActionId: m.openActionId || '',
+      selectActionId: m.selectActionId || '',
+      rangeSelectActionId: m.rangeSelectActionId || '',
+      // para la selección de rango (poc/planning.mjs lee estos data-* del oj-gantt)
+      rangeAction: m.rangeSelectActionId || '',
+      startDay: from,
+      endDay: plusDays(to, 1),
+      rowIds: rows.map((r) => r.id).join('\u001f'),
+      rowLabels: rows.map((r) => r.label).join('\u001f'),
+      dndMove: m.moveActionId ? 'enabled' : 'disabled',
+      taskResizable: m.resizeActionId ? 'enabled' : 'disabled',
+    }
+  }
+
+  /** Un GANTT de tareas (Gantt: título, inicio, fin, avance, color) sobre el mismo oj-gantt que el
+   *  tape chart: una fila por tarea con su barra, el avance como el relleno de progreso de JET, y la
+   *  tarea pulsada → onTaskSelectionActionId con _clickedTaskId (el contrato del renderer web). */
+  function ganttAtomOf(m, id) {
+    const tasks = (m.tasks || []).filter((t) => t && t.start && t.end)
+    const atom = planningAtomOf({
+      resources: tasks.map((t) => ({ id: t.id, label: t.title || t.id })),
+      blocks: tasks.map((t) => ({
+        id: t.id, resourceId: t.id, start: t.start, end: t.end, label: t.title || '', color: t.color,
+        summary: (t.title || '') + ' · ' + t.start + ' → ' + t.end + ' · ' + Math.round(t.progress || 0) + '%',
+      })),
+      selectActionId: m.onTaskSelectionActionId || '',
+    }, id || 'gantt')
+    const progress = {}
+    for (const t of tasks) progress[t.id] = Math.max(0, Math.min(100, Number(t.progress) || 0)) / 100
+    for (const row of atom.rows) for (const task of row.tasks) task.progress = { value: progress[task.id] || 0 }
+    const days = Math.round((Date.parse(atom.endDay) - Date.parse(atom.startDay)) / DAY_MS)
+    return {
+      ...atom,
+      isGantt: true,
+      selectParam: '_clickedTaskId',
+      // escala a la medida del plan: un proyecto de meses se lee por meses/semanas
+      majorScale: days > 60 ? 'months' : 'weeks',
+      minorScale: days > 60 ? 'weeks' : 'days',
+    }
+  }
+
+  /**
+   * Un evento del oj-gantt → { actionId, parameters } de Mateu, o null si no hay acción. Fechas a
+   * días (fin inclusivo). `kind`: 'move' | 'resize' | 'open' | 'select' | 'range'.
+   */
+  function planningActionOf(atom, kind, detail) {
+    if (!atom) return null
+    // el gantt devuelve instantes (el punto exacto donde se soltó, en UTC): se redondean al día
+    // LOCAL más cercano — una estancia empieza y acaba en días, no a las 09:38
+    const day = (v) => {
+      if (!v) return null
+      const text = String(v)
+      if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text
+      const d = new Date(text)
+      return isoDay(new Date(Math.round((d.getTime() - d.getTimezoneOffset() * 60000) / DAY_MS) * DAY_MS))
+    }
+    const lastNight = (v) => (v ? plusDays(day(v), -1) : null)
+    const task = detail && detail.taskContexts && detail.taskContexts[0]
+    const taskId = (task && (task.data ? task.data.id : task.id)) || (detail && detail.taskId)
+    if (kind === 'move' && atom.moveActionId && taskId) {
+      const rowId = detail.rowContext && detail.rowContext.rowData ? detail.rowContext.rowData.id
+        : (detail.rowContext && detail.rowContext.data && detail.rowContext.data.id) || detail.rowId
+      return { actionId: atom.moveActionId, parameters: {
+        // start/end: los nuevos límites de la barra (value es el instante bajo el puntero)
+        _blockId: taskId, _resourceId: rowId, _start: day(detail.start || detail.value), _end: lastNight(detail.end) } }
+    }
+    if (kind === 'resize' && atom.resizeActionId && taskId) {
+      const rowId = detail.rowId || (task && task.rowData && task.rowData.id)
+        || (task && task.rowContext && task.rowContext.rowData && task.rowContext.rowData.id)
+      return { actionId: atom.resizeActionId, parameters: {
+        _blockId: taskId, _resourceId: rowId, _start: day(detail.start), _end: lastNight(detail.end) } }
+    }
+    if (kind === 'open' && atom.openActionId && taskId) return { actionId: atom.openActionId, parameters: { _blockId: taskId } }
+    // el Gantt (Gantt.onTaskSelectionActionId) recibe la tarea como _clickedTaskId; el tape chart, _blockId
+    if (kind === 'select' && atom.selectActionId && taskId) return { actionId: atom.selectActionId, parameters: { [atom.selectParam || '_blockId']: taskId } }
+    if (kind === 'range' && atom.rangeSelectActionId && detail && detail.rowId && detail.start && detail.end) {
+      const [a, b] = [day(detail.start), day(detail.end)].sort((x, y) => x.localeCompare(y))
+      return { actionId: atom.rangeSelectActionId, parameters: { _resourceId: detail.rowId, _start: a, _end: b } }
+    }
+    return null
+  }
+
+
+  // ── listados: tonos de fila (@RowStatus) y grupos/totales (@GroupBy/@Aggregate) ───────────────
+  // Mismo contrato que libs/mateu listingGroups.ts / rowTone.ts (el renderer web): el crud trae
+  // groupBy y rowStatusField; las columnas, `aggregate`; la búsqueda (data.crud), `aggregates` (del
+  // conjunto filtrado) y `groups` (por grupo, en orden).
+
+  const ROW_TONES = { success: 'success', warning: 'warning', danger: 'danger', error: 'danger', info: 'info', neutral: 'neutral', none: 'neutral' }
+
+  function rowToneOf(row, field) {
+    if (!row || !field) return null
+    let v = row[field]
+    if (v && typeof v === 'object') v = v.type != null ? v.type : v.value
+    return v == null ? null : (ROW_TONES[String(v).toLowerCase()] || null)
+  }
+
+  function toneRows(rows, field) {
+    if (!field) return rows
+    return rows.map((r) => {
+      const tone = rowToneOf(r, field)
+      return tone ? { ...r, _tone: tone } : r
+    })
+  }
+
+  function formatAggregate(value, col) {
+    if (value == null) return ''
+    if (col.dataType === 'money' || col.stereotype === 'money')
+      return new Intl.NumberFormat('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value)
+    if (col.aggregate === 'count') return new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(Math.round(value))
+    return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value)
+  }
+
+  function aggregatableColumns(md) {
+    return (md.columns || []).map((c) => c.metadata || c).filter((c) => c && c.id)
+  }
+
+  /** Los totales por columna (texto) o null si no hay nada que totalizar. */
+  function aggregateFootersOf(md, listing) {
+    const aggregates = listing && listing.aggregates
+    const cols = aggregatableColumns(md)
+    if (!aggregates || !cols.some((c) => c.aggregate)) return null
+    const out = {}
+    for (const c of cols) if (c.aggregate && aggregates[c.id] != null) out[c.id] = formatAggregate(aggregates[c.id], c)
+    const first = cols[0]
+    if (first && out[first.id] == null) {
+      const total = listing.page && listing.page.totalElements
+      out[first.id] = md.groupBy && first.id === md.groupBy && total != null ? 'Total (' + total + ')' : 'Total'
+    }
+    return out
+  }
+
+  /** Filas de GRUPO intercaladas donde cambia el valor de groupBy (las filas llegan ordenadas). */
+  function groupedRows(rows, md, listing) {
+    const groupBy = md.groupBy
+    const groups = (listing && listing.groups) || []
+    if (!groupBy || !groups.length) return rows
+    const cols = aggregatableColumns(md)
+    const labelCol = cols.some((c) => c.id === groupBy) ? groupBy : (cols[0] && cols[0].id)
+    const out = []
+    let last
+    rows.forEach((row, i) => {
+      const key = String(row[groupBy] == null ? '' : row[groupBy])
+      if (i === 0 || key !== last) {
+        const g = groups.find((x) => String(x.value) === key)
+          || { value: key, count: rows.filter((r) => String(r[groupBy]) === key).length, aggregates: {} }
+        const groupRow = { _rowNumber: '__mateuGroup:' + i + ':' + key, _group: true, _tone: 'group' }
+        for (const c of cols) {
+          groupRow[c.id] = c.id === labelCol ? g.value + ' (' + g.count + ')'
+            : c.aggregate ? formatAggregate((g.aggregates || {})[c.id], c) : ''
+        }
+        out.push(groupRow)
+        last = key
+      }
+      out.push(row)
+    })
+    return out
   }
 
 
@@ -4936,6 +6532,87 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   function safeString(v) {
     try { return typeof v === 'string' ? v : JSON.stringify(v) } catch (e) { return String(v) }
   }
+
+
+  // REFRESCO PERIÓDICO (triggers con espera): el patrón del web — un OnLoad con timeoutMillis
+  // arranca la primera vuelta y un OnSuccess(actionId = la misma, calledActionId = la misma,
+  // timeoutMillis) cierra el bucle: cada refresco que termina bien programa el siguiente. Antes
+  // la shell VB disparaba todos los OnLoad al momento, sin espera, y no conocía OnSuccess.
+  //
+  // Una GENERACIÓN por pantalla: navegar arranca una nueva y todo lo programado para la anterior
+  // se descarta al vencer (como el callbackToken del web) — un panel de pisos que se deja de ver
+  // deja de preguntar.
+
+  let runner = null
+  /** Quién ejecuta la acción programada (la shell: el mismo camino que los Element). */
+  function setPollingRunner(fn) { runner = typeof fn === 'function' ? fn : null }
+
+  let generation = 0
+  let screenTree = null
+  const timers = new Set()
+
+  const triggersOf = (ctx) => (ctx && ctx.tree && ctx.tree.triggers) || []
+
+  /** Los OnLoad CON espera (los inmediatos siguen el camino de siempre: onLoadTriggers). */
+  function timedOnLoadTriggers(ctx) {
+    return triggersOf(ctx).filter((t) => t.type === 'OnLoad' && t.actionId && t.timeoutMillis > 0)
+  }
+
+  /** Los OnSuccess que siguen a `actionId`. */
+  function onSuccessTriggers(ctx, actionId) {
+    return triggersOf(ctx).filter((t) => t.type === 'OnSuccess' && t.actionId && t.calledActionId === actionId)
+  }
+
+  // UNA vuelta pendiente por trigger: si el refresco repinta el host y eso relanza sus OnLoad (otro
+  // 'search' que también termina bien), un segundo éxito no debe armar un segundo bucle en paralelo
+  // — se reprograma el mismo (los bucles se multiplicaban: 14 búsquedas en 47 s con 15 s de espera)
+  const pendingByTrigger = new Map()
+  const triggerKey = (t) => t.type + ':' + t.actionId + ':' + (t.calledActionId || '')
+
+  const schedule = (trigger, gen, timer = setTimeout, clear = clearTimeout) => {
+    const fire = () => {
+      if (gen !== generation || !runner) return
+      runner(trigger.actionId, {}, { background: !!trigger.background, polling: true })
+    }
+    if (!(trigger.timeoutMillis > 0)) { fire(); return }
+    const key = triggerKey(trigger)
+    const previous = pendingByTrigger.get(key)
+    if (previous !== undefined) { clear(previous); timers.delete(previous) }
+    // la vuelta sólo corre si sigue siendo LA pendiente de su trigger (una reemplazada vence sin
+    // efecto aunque su temporizador no se pudiera cancelar)
+    const handle = timer(() => {
+      timers.delete(handle)
+      if (pendingByTrigger.get(key) !== handle) return
+      pendingByTrigger.delete(key)
+      fire()
+    }, trigger.timeoutMillis)
+    timers.add(handle)
+    pendingByTrigger.set(key, handle)
+  }
+
+  /** Pantalla nueva: descarta lo programado y arma sus OnLoad con espera. */
+  function startPolling(hostCtx, timer = setTimeout) {
+    generation++
+    for (const h of timers) clearTimeout(h)
+    timers.clear()
+    pendingByTrigger.clear()
+    screenTree = hostCtx && hostCtx.tree
+    for (const t of timedOnLoadTriggers(hostCtx)) schedule(t, generation, timer)
+    return generation
+  }
+
+  /** Una acción terminó bien (hook del transporte): sus OnSuccess, si son de la pantalla en curso. */
+  function actionSucceeded(ctx, actionId, timer = setTimeout) {
+    if (!ctx || !ctx.tree) return 0
+    // sólo la pantalla en curso (misma clase servidora que la que se armó al navegar): la isla de
+    // otro ServerSide o una respuesta de la pantalla anterior no reprograman nada
+    if (!screenTree || ctx.tree.serverSideType !== screenTree.serverSideType) return 0
+    const next = onSuccessTriggers(ctx, actionId)
+    for (const t of next) schedule(t, generation, timer)
+    return next.length
+  }
+
+  const pollingGeneration = () => generation
 
 
   // Resiliencia del transporte — el mismo contrato que los renderers web (libs/mateu:
@@ -5892,6 +7569,95 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
 
   const loaded = {}
 
+  // ── eventos del componente → acción en el servidor ─────────────────────────────────────────────
+  // `Element.on` = { nombreDeEvento: actionId }. Es la vía de escape oficial (un grafo, un editor,
+  // un plano de planta de terceros), así que su ida y vuelta tiene que funcionar entera: el evento
+  // viaja como parámetro `event` de la acción, igual que en el renderer web compartido —el
+  // `detail` de un CustomEvent, o las propiedades primitivas de cualquier otro evento—. La app
+  // registra un sumidero (setElementEventSink) que sabe en qué superficie se ejecuta la acción;
+  // sin sumidero (Node, tests) los eventos se ignoran.
+
+  let sink = null
+  let moduleBase = ''
+
+  /** Base del backend Mateu (la constante mateuBaseUrl): un `import` RELATIVO lo sirve el backend,
+   *  no la app VB — en VB alojado en Oracle o en vb-serve son orígenes distintos. '' = mismo origen. */
+  function setElementModuleBase(base) {
+    moduleBase = String(base || '').replace(/\/$/, '')
+  }
+
+  /** La URL de la que se carga el módulo de un Element. */
+  function elementModuleUrl(importUrl, base = moduleBase) {
+    if (!importUrl) return ''
+    if (/^[a-z][a-z0-9+.-]*:/i.test(importUrl) || importUrl.startsWith('//')) return importUrl
+    const root = String(base || '').replace(/\/+$/, '')
+    return root ? root + (importUrl.startsWith('/') ? '' : '/') + importUrl : importUrl
+  }
+
+  /** La app VB registra aquí quién ejecuta la acción de un evento: (actionId, parameters, atom). */
+  function setElementEventSink(fn) {
+    sink = typeof fn === 'function' ? fn : null
+  }
+
+  /** El evento tal como viaja al servidor (mismo criterio que libs/mateu elementRenderer). */
+  function serializeElementEvent(e) {
+    if (e == null) return null
+    if (typeof CustomEvent !== 'undefined' && e instanceof CustomEvent) return e.detail
+    if (e.detail !== undefined && e.constructor && e.constructor.name === 'CustomEvent') return e.detail
+    const out = {}
+    for (const k in e) {
+      const v = e[k]
+      if (typeof v === 'number' || typeof v === 'string' || typeof v === 'boolean') out[k] = v
+    }
+    return out
+  }
+
+  /** Engancha UNA vez cada evento declarado; la acción se lee al dispararse (la del último render),
+   *  así un re-render que cambia `on` no duplica listeners ni deja el actionId viejo. */
+  function wireElementEvents(element, atom) {
+    element.__mateuAtom = atom
+    const wired = element.__mateuWired || (element.__mateuWired = {})
+    for (const eventName of Object.keys(atom.on || {})) {
+      if (wired[eventName]) continue
+      wired[eventName] = true
+      element.addEventListener(eventName, (e) => {
+        const current = element.__mateuAtom || {}
+        const actionId = (current.on || {})[eventName]
+        if (!actionId || !sink) return
+        sink(actionId, { event: serializeElementEvent(e) }, current)
+      })
+    }
+  }
+
+  // ── HTML con DATOS: saneado ────────────────────────────────────────────────────────────────────
+  // El contenido escrito en la definición se confía tal cual; en cuanto `${…}` ha metido datos en
+  // él se sanea (sin scripts, sin manejadores on…, sin URLs javascript:) — XSS almacenado. El
+  // renderer web lo hace con DOMPurify; aquí no hay dependencias, así que un saneado por DOM con
+  // las mismas reglas.
+  const DROP_TAGS = /^(script|iframe|object|embed|link|meta|base|frame|frameset|noscript)$/i
+  const URL_ATTRS = /^(href|src|xlink:href|action|formaction|background|poster)$/i
+
+  function sanitizeElementHtml(html, doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || html == null) return html == null ? '' : String(html)
+    const tpl = doc.createElement('template')
+    tpl.innerHTML = String(html)
+    const walk = (root) => {
+      for (const el of [...root.querySelectorAll('*')]) {
+        if (DROP_TAGS.test(el.tagName)) { el.remove(); continue }
+        for (const attr of [...el.attributes]) {
+          const name = attr.name
+          const value = String(attr.value || '').replace(/[\s\u0000-\u001f]/g, '').toLowerCase()
+          if (/^on/i.test(name)
+            || (URL_ATTRS.test(name) && (value.startsWith('javascript:') || value.startsWith('vbscript:')
+              || (value.startsWith('data:') && !value.startsWith('data:image/'))))
+            || (name === 'srcdoc')) el.removeAttribute(name)
+        }
+      }
+    }
+    walk(tpl.content)
+    return tpl.innerHTML
+  }
+
   /**
    * Carga el módulo que define la etiqueta, una sola vez. El elemento se puede crear antes: los
    * componentes web se "actualizan" solos en cuanto su definición llega.
@@ -5925,9 +7691,10 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     if (atom.style) element.setAttribute('style', atom.style)
     if (atom.cssClasses) element.setAttribute('class', atom.cssClasses)
     if (atom.content) {
-      if (atom.asHtml) element.innerHTML = atom.content
+      if (atom.asHtml) element.innerHTML = atom.dataInContent ? sanitizeElementHtml(atom.content) : atom.content
       else element.textContent = atom.content
     }
+    wireElementEvents(element, atom)
   }
 
   /** Hidrata los huecos `.mateu-element` que haya en el documento. Devuelve cuántos quedaron
@@ -5941,7 +7708,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     for (const hole of holes) {
       const atom = byId[hole.getAttribute('data-element-id')]
       if (!atom) continue
-      ensureDefined(atom.name, atom.importUrl)
+      ensureDefined(atom.name, elementModuleUrl(atom.importUrl))
       let element = hole.firstElementChild
       if (!element || element.tagName.toLowerCase() !== atom.name.toLowerCase()) {
         hole.textContent = ''
@@ -5986,6 +7753,1653 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     const out = elementAtomsOf((content.overview || {}).blocks)
     for (const panel of content.panels || []) out.push(...elementAtomsOf(panel && panel.blocks))
     return out
+  }
+
+
+  // BANDEJA DE NOTIFICACIONES y TOASTS CON DESHACER en la shell VB.
+  //
+  // Bandeja (NotificationsSupplier del App): la campana de la cabecera con el número de no leídas
+  // abre un oj-popup con un oj-list-view; activar una entrada la marca leída y navega a su ruta, y
+  // «Mark all read» las marca todas. Habla con las acciones app-level de siempre
+  // (_notifications-list / _notifications-read, route '' + serverSideType del App).
+  //
+  // Deshacer (Message.undoable → MessageDto.undo*): oj-sp-messages-toast no admite acciones, así que
+  // esos mensajes salen por el oj-messages de JET (display="notification") con un oj-message cuyo
+  // slot «detail» — el que JET reserva para enlaces y botones — lleva el oj-button «Undo». Se monta
+  // desde applyDomEffects (fuera de Knockout: data-oj-binding-provider="none") y se quita de la
+  // lista de toasts normales, así que ninguna chain lo pinta dos veces.
+
+  /** La lista _notifications de la respuesta (Data del servidor), o null. */
+  function notificationListOf(increment) {
+    for (const fr of (increment && increment.fragments) || []) {
+      if (fr && fr.data && Array.isArray(fr.data._notifications)) return fr.data._notifications
+    }
+    return null
+  }
+
+  let notificationsProviderFactory = null
+  function setNotificationsProviderFactory(f) { notificationsProviderFactory = f }
+
+  /** El modelo de la campana: no leídas (y su insignia), y las entradas listas para la lista. */
+  function notificationsOf(list) {
+    const items = (list || []).map((n, i) => ({
+      _rowNumber: i,
+      id: String(n.id),
+      title: n.title || '',
+      text: n.text || '',
+      when: n.when || '',
+      route: n.route || '',
+      unread: n.unread !== false,
+      titleClass: 'oj-typography-body-md' + (n.unread !== false ? ' oj-typography-bold' : ''),
+    }))
+    const unread = items.filter((n) => n.unread).length
+    return {
+      enabled: true,
+      unread,
+      badge: unread > 9 ? '9+' : String(unread),
+      hasUnread: unread > 0,
+      label: unread ? 'Notifications, ' + unread + ' unread' : 'Notifications',
+      empty: items.length === 0,
+      items,
+      provider: notificationsProviderFactory ? notificationsProviderFactory(items) : null,
+    }
+  }
+
+  /** Pide la lista (o marca leídas `ids` — una lista, o 'all' — y pide la lista). */
+  async function fetchNotifications(base, serverSideType, appState, ids) {
+    const increment = await callMateu(base, {
+      route: '',
+      actionId: ids ? '_notifications-read' : '_notifications-list',
+      componentState: {},
+      parameters: ids ? { ids } : {},
+      serverSideType: serverSideType || undefined,
+      appState: appState || {},
+    })
+    return notificationsOf(notificationListOf(increment) || [])
+  }
+
+  // ── toasts con «Undo» ─────────────────────────────────────────────────────────────────────────
+  let undoSink = null
+  function setUndoSink(fn) { undoSink = typeof fn === 'function' ? fn : null }
+
+  /** Separa de los toasts los que se pueden deshacer (in situ: las chains leen la misma lista). */
+  function takeUndoToasts(effects) {
+    if (!effects || !Array.isArray(effects.toasts)) return []
+    const undo = effects.toasts.filter((t) => t && t.undoActionId)
+    if (undo.length) {
+      const rest = effects.toasts.filter((t) => !(t && t.undoActionId))
+      effects.toasts.splice(0, effects.toasts.length, ...rest)
+    }
+    return undo
+  }
+
+  /** Un Message de error o aviso NO es un toast en Redwood: oj-sp-messages-toast sólo admite
+   *  type="acknowledgement" (confirmaciones). Va al oj-sp-messages-banner de la shell como
+   *  notificación de VB (Actions.fireNotificationEvent → vbNotification → showNotificationMessage),
+   *  persistente hasta que se cierra. null para el resto, que siguen siendo toasts. */
+  function bannerNotificationOf(toast) {
+    if (!toast || (toast.variant !== 'error' && toast.variant !== 'warning')) return null
+    return { summary: toast.text || '', type: toast.variant, displayMode: 'persist' }
+  }
+
+  /** El objeto message de oj-message para un toast con deshacer. */
+  function undoMessageOf(toast) {
+    return {
+      severity: toast.variant === 'error' ? 'error' : toast.variant === 'warning' ? 'warning' : 'confirmation',
+      summary: toast.text || '',
+      autoTimeout: 10000,
+      closeAffordance: 'defaults',
+    }
+  }
+
+  function showUndoToasts(toasts, doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || !toasts || !toasts.length) return
+    let host = doc.getElementById('mateuUndoMessages')
+    if (!host) {
+      const wrap = doc.createElement('div')
+      wrap.setAttribute('data-oj-binding-provider', 'none')
+      host = doc.createElement('oj-messages')
+      host.id = 'mateuUndoMessages'
+      host.setAttribute('display', 'notification')
+      host.setAttribute('position', '{"my": {"vertical": "bottom", "horizontal": "center"}, "at": {"vertical": "bottom", "horizontal": "center"}, "of": "window"}')
+      wrap.appendChild(host)
+      doc.body.appendChild(wrap)
+    }
+    for (const toast of toasts) {
+      const msg = doc.createElement('oj-message')
+      msg.message = undoMessageOf(toast)
+      const detail = doc.createElement('div')
+      detail.setAttribute('slot', 'detail')
+      const button = doc.createElement('oj-button')
+      button.setAttribute('chroming', 'borderless')
+      button.className = 'mateu-undo-button'
+      button.textContent = toast.undoLabel || 'Undo'
+      button.addEventListener('ojAction', () => {
+        if (undoSink) undoSink(toast.undoActionId, toast.undoParameters || {}, {})
+        if (typeof msg.close === 'function') msg.close()
+      })
+      detail.appendChild(button)
+      msg.appendChild(detail)
+      // cerrado (por el usuario o por tiempo), fuera del DOM
+      msg.addEventListener('ojClose', () => { if (msg.parentNode) msg.parentNode.removeChild(msg) })
+      host.appendChild(msg)
+    }
+  }
+
+
+  // Efectos de DOM que el reducer (puro) solo DESCRIBE: descargar un fichero y abrir una URL en
+  // otra pestaña. Antes `effects.download` se calculaba y nadie lo leía — el CSV de un listado o
+  // el PDF de un folio llegaban al navegador y se perdían. Cada chain que reduce un increment
+  // llama a applyDomEffects(reg.effects) justo después: es el ÚNICO sitio donde estos efectos
+  // tocan el documento.
+  //
+  // `env` (window por defecto) se inyecta para poder probarlo en Node sin DOM.
+
+  /** DownloadFile del wire → { filename, mimeType, base64Content } o null si no hay contenido. */
+  function fileDownloadOf(data) {
+    if (!data || typeof data !== 'object' || !data.base64Content) return null
+    return {
+      filename: data.filename || 'export',
+      mimeType: data.mimeType || 'application/octet-stream',
+      base64Content: String(data.base64Content),
+    }
+  }
+
+  function base64ToBytes(b64, atobFn = globalThis.atob) {
+    const bin = atobFn(b64)
+    const bytes = new Uint8Array(bin.length)
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i)
+    return bytes
+  }
+
+  /** Descarga un DownloadFile: Blob + <a download> anclado al body (Safari/Firefox ignoran el
+   *  click de un enlace suelto) y el object URL se libera DESPUÉS (revocarlo en el mismo tick
+   *  cancela la descarga en Firefox). */
+  function triggerDownload(data, env = globalThis) {
+    const file = fileDownloadOf(data)
+    if (!file || !env.document) return false
+    const blob = new env.Blob([base64ToBytes(file.base64Content, env.atob)], { type: file.mimeType })
+    const url = env.URL.createObjectURL(blob)
+    const a = env.document.createElement('a')
+    a.href = url
+    a.download = file.filename
+    a.rel = 'noopener'
+    a.style.display = 'none'
+    env.document.body.appendChild(a)
+    a.click()
+    a.remove()
+    env.setTimeout(() => env.URL.revokeObjectURL(url), 1000)
+    return true
+  }
+
+  // lo que la app quiere hacer con el registro recién reducido (las reglas del cliente toman de ahí
+  // su contexto: reglas + estado del host)
+  let afterReduce = null
+  function setAfterReduceHook(fn) { afterReduce = typeof fn === 'function' ? fn : null }
+
+  /** Aplica los efectos de DOM de una reducción. Devuelve cuántas descargas ha lanzado. */
+  function applyDomEffects(effects, reg, env = globalThis) {
+    if (reg && reg.contexts && afterReduce) afterReduce(reg)
+    if (!effects) return 0
+    let n = 0
+    for (const d of effects.downloads || (effects.download ? [effects.download] : []))
+      if (triggerDownload(d, env)) n++
+    // los toasts con «Undo» salen por el oj-message de JET (notify.mjs), no por el toast normal
+    const undo = takeUndoToasts(effects)
+    if (undo.length && env && env.document) showUndoToasts(undo, env.document)
+    return n
+  }
+
+
+  // Campos de CAPTURA de un formulario (fichero, imagen, firma, cámara) para los que JET/Redwood no
+  // trae componente: no hay pad de firma ni cámara en oj-*/oj-sp-*, y oj-file-picker sólo entrega
+  // File (el valor de Mateu es un data URI que viaja en el estado, sin endpoint de subida — el mismo
+  // contrato que el renderer web). Así que un elemento PROPIO y mínimo, `<mateu-capture-field>`:
+  // los botones son oj-button de verdad, el lienzo/vídeo/imagen van con los tokens de Redwood, y el
+  // valor sale como `valueChanged` con { value, updatedFrom: 'internal' } — la forma del evento de
+  // un componente JET, así que las chains de cambio de campo (hostInputChanged, mateuFieldEdited…)
+  // lo tratan como uno más.
+  //
+  //   <mateu-capture-field mode="signature|camera|file|image" accept="…" readonly value="data:…">
+  //
+  // Lo puro (cómo se lee un fichero, qué texto enseña) está exportado y probado en Node; lo de DOM
+  // se define una vez por documento (defineCaptureField).
+
+  /** Only what an <img> may load: a data:image URI (what capture fields store), http(s) or a relative
+   *  path. Anything else (javascript:, other data: types…) shows nothing. */
+  function safeImageSrc(value) {
+    const v = String(value || '').trim()
+    if (/^data:image\/[a-z0-9.+-]+[;,]/i.test(v)) return v
+    if (/^https?:\/\//i.test(v)) return v
+    if (/^[a-z][a-z0-9+.-]*:/i.test(v)) return ''
+    return v
+  }
+
+  const CAPTURE_TEXTS = {
+    en: { clear: 'Clear', accept: 'Accept', signAgain: 'Sign again', remove: 'Remove', take: 'Take photo',
+      retake: 'Retake', upload: 'Upload', replace: 'Replace', noCamera: 'Camera unavailable — choose a file',
+      empty: 'No file', start: 'Open camera', signHere: 'Sign here' },
+    es: { clear: 'Borrar', accept: 'Aceptar', signAgain: 'Volver a firmar', remove: 'Quitar', take: 'Hacer foto',
+      retake: 'Repetir', upload: 'Subir', replace: 'Sustituir', noCamera: 'Cámara no disponible — elige un fichero',
+      empty: 'Sin fichero', start: 'Abrir cámara', signHere: 'Firme aquí' },
+  }
+
+  function captureTexts(lang) {
+    return String(lang || '').toLowerCase().startsWith('es') ? CAPTURE_TEXTS.es : CAPTURE_TEXTS.en
+  }
+
+  /** ¿El valor es una imagen que se puede enseñar? (data URI de imagen o URL corriente) */
+  function isImageValue(value) {
+    const v = String(value || '')
+    return /^data:image\//i.test(v) || /^(https?:)?\/\/|^\//.test(v)
+  }
+
+  /** Un nombre legible para un data URI de fichero (no lo lleva: se enseña el tipo y el tamaño). */
+  function describeFileValue(value) {
+    const v = String(value || '')
+    const m = v.match(/^data:([^;,]+)?(;base64)?,(.*)$/i)
+    if (!m) return v ? v.split('/').pop() : ''
+    const bytes = m[2] ? Math.floor((m[3].length * 3) / 4) : decodeURIComponent(m[3]).length
+    const kb = bytes < 1024 ? bytes + ' B' : (bytes / 1024).toFixed(bytes < 10240 ? 1 : 0) + ' KB'
+    return (m[1] || 'file') + ' · ' + kb
+  }
+
+  /** Define `<mateu-capture-field>` en `win` (una vez). */
+  function defineCaptureField(win = typeof window !== 'undefined' ? window : null) {
+    if (!win || !win.customElements || win.customElements.get('mateu-capture-field')) return
+    const doc = win.document
+    const lang = (doc.documentElement.getAttribute('lang') || win.navigator.language || 'en')
+    const t = captureTexts(lang)
+
+    const button = (label, chroming, onAction) => {
+      const b = doc.createElement('oj-button')
+      // un componente JET creado fuera de Knockout espera un «binding provider» que nunca llega y
+      // se queda oculto (visibility:hidden hasta oj-complete): `none` le dice que no lo hay
+      b.setAttribute('data-oj-binding-provider', 'none')
+      b.setAttribute('chroming', chroming || 'outlined')
+      b.className = 'oj-button-sm oj-sm-margin-2x-end'
+      b.textContent = label
+      b.addEventListener('ojAction', (e) => { e.stopPropagation(); onAction() })
+      return b
+    }
+    const readFile = (file) => new Promise((resolve, reject) => {
+      const reader = new win.FileReader()
+      reader.onload = () => resolve(String(reader.result))
+      reader.onerror = () => reject(reader.error)
+      reader.readAsDataURL(file)
+    })
+
+    class MateuCaptureField extends win.HTMLElement {
+      static get observedAttributes() { return ['value', 'readonly', 'mode', 'accept'] }
+      connectedCallback() { this.render() }
+      disconnectedCallback() { this.stopCamera() }
+      attributeChangedCallback() { if (this.isConnected && !this.busy) this.render() }
+      get value() { return this.getAttribute('value') || '' }
+      set value(v) { if (v == null || v === '') this.removeAttribute('value'); else this.setAttribute('value', String(v)) }
+
+      emit(value) {
+        this.busy = true
+        this.value = value
+        this.busy = false
+        this.dispatchEvent(new win.CustomEvent('valueChanged', {
+          detail: { value: value || null, previousValue: null, updatedFrom: 'internal' }, bubbles: true }))
+        this.render()
+      }
+
+      stopCamera() {
+        if (this.stream) { this.stream.getTracks().forEach((track) => track.stop()); this.stream = null }
+      }
+
+      pickFile(capture) {
+        const input = doc.createElement('input')
+        input.type = 'file'
+        const mode = this.getAttribute('mode')
+        input.accept = this.getAttribute('accept') || (mode === 'file' ? '' : 'image/*')
+        if (capture) input.setAttribute('capture', 'environment')
+        input.addEventListener('change', async () => {
+          const file = input.files && input.files[0]
+          if (file) this.emit(await readFile(file))
+        })
+        input.click()
+      }
+
+      render() {
+        const mode = this.getAttribute('mode') || 'file'
+        const readonly = this.hasAttribute('readonly') && this.getAttribute('readonly') !== 'false'
+        const value = this.value
+        this.stopCamera()
+        this.textContent = ''
+        this.classList.add('mateu-capture-field')
+        const box = doc.createElement('div')
+        box.className = 'mateu-capture-box'
+        const actions = doc.createElement('div')
+        actions.className = 'oj-sm-margin-2x-top'
+
+        if (value && (mode !== 'file' || isImageValue(value))) {
+          const img = doc.createElement('img')
+          // the guard inline, where the value is assigned: only data:image, http(s) or a path with no
+          // scheme reach the src (javascript:, other data: types show nothing) — see safeImageSrc
+          const src = String(value).trim()
+          if (/^data:image\/[a-z0-9.+-]+[;,]/i.test(src) || /^https?:\/\//i.test(src) || !/^[a-z][a-z0-9+.-]*:/i.test(src)) {
+            img.src = src
+          }
+          img.alt = ''
+          img.className = 'mateu-capture-preview' + (mode === 'signature' ? ' mateu-capture-signature' : '')
+          box.appendChild(img)
+        } else if (value) {
+          const span = doc.createElement('span')
+          span.className = 'oj-typography-body-md'
+          span.textContent = describeFileValue(value)
+          box.appendChild(span)
+        }
+
+        if (!readonly) {
+          if (mode === 'signature' && !value) {
+            this.renderPad(box, actions)
+          } else if (mode === 'camera' && !value) {
+            actions.appendChild(button(t.start, 'callToAction', () => this.openCamera(box, actions)))
+            actions.appendChild(button(t.upload, 'outlined', () => this.pickFile(true)))
+          } else if (!value) {
+            const empty = doc.createElement('span')
+            empty.className = 'oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end'
+            empty.textContent = t.empty
+            box.appendChild(empty)
+            actions.appendChild(button(t.upload, 'outlined', () => this.pickFile(false)))
+          } else {
+            const again = mode === 'signature' ? t.signAgain : mode === 'camera' ? t.retake : t.replace
+            actions.appendChild(button(again, 'outlined', () => {
+              if (mode === 'signature' || mode === 'camera') this.emit(null)
+              else this.pickFile(false)
+            }))
+            actions.appendChild(button(t.remove, 'borderless', () => this.emit(null)))
+          }
+        } else if (!value) {
+          const dash = doc.createElement('span')
+          dash.textContent = '—'
+          box.appendChild(dash)
+        }
+        this.appendChild(box)
+        if (actions.childNodes.length) this.appendChild(actions)
+      }
+
+      renderPad(box, actions) {
+        const canvas = doc.createElement('canvas')
+        canvas.className = 'mateu-capture-pad'
+        canvas.width = 560
+        canvas.height = 180
+        canvas.setAttribute('aria-label', t.signHere)
+        canvas.setAttribute('role', 'img')
+        const ctx = canvas.getContext('2d')
+        ctx.lineWidth = 2.2
+        ctx.lineCap = 'round'
+        ctx.strokeStyle = '#161513'
+        let drawing = false
+        let inked = false
+        const at = (e) => {
+          const r = canvas.getBoundingClientRect()
+          return [(e.clientX - r.left) * (canvas.width / r.width), (e.clientY - r.top) * (canvas.height / r.height)]
+        }
+        canvas.addEventListener('pointerdown', (e) => {
+          drawing = true; inked = true
+          canvas.setPointerCapture(e.pointerId)
+          const [x, y] = at(e); ctx.beginPath(); ctx.moveTo(x, y)
+        })
+        canvas.addEventListener('pointermove', (e) => {
+          if (!drawing) return
+          const [x, y] = at(e); ctx.lineTo(x, y); ctx.stroke()
+        })
+        const stop = () => { drawing = false }
+        canvas.addEventListener('pointerup', stop)
+        canvas.addEventListener('pointercancel', stop)
+        box.appendChild(canvas)
+        actions.appendChild(button(t.accept, 'callToAction', () => { if (inked) this.emit(canvas.toDataURL('image/png')) }))
+        actions.appendChild(button(t.clear, 'outlined', () => { ctx.clearRect(0, 0, canvas.width, canvas.height); inked = false }))
+      }
+
+      async openCamera(box, actions) {
+        const media = win.navigator.mediaDevices
+        if (!media || !media.getUserMedia) { this.pickFile(true); return }
+        try {
+          this.stream = await media.getUserMedia({ video: { facingMode: 'environment' } })
+        } catch (e) {
+          box.textContent = t.noCamera
+          return
+        }
+        const video = doc.createElement('video')
+        video.className = 'mateu-capture-preview'
+        video.autoplay = true
+        video.playsInline = true
+        video.muted = true
+        video.srcObject = this.stream
+        box.textContent = ''
+        box.appendChild(video)
+        actions.textContent = ''
+        actions.appendChild(button(t.take, 'callToAction', () => {
+          const canvas = doc.createElement('canvas')
+          canvas.width = video.videoWidth || 640
+          canvas.height = video.videoHeight || 480
+          canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height)
+          this.stopCamera()
+          this.emit(canvas.toDataURL('image/jpeg', 0.85))
+        }))
+      }
+    }
+    win.customElements.define('mateu-capture-field', MateuCaptureField)
+  }
+
+
+  // REGLAS DEL CLIENTE (@Hidden(expr), @Disabled(expr), RuleSupplier, @Rule) y campos dependientes
+  // en el navegador: sin ida y vuelta al servidor, un campo se oculta, se deshabilita o cambia de
+  // valor según otro. Mismo contrato que el renderer web (libs/mateu mateu-component.applyRules):
+  // cada regla tiene un `filter` (expresión); si se cumple, su acción escribe en el estado
+  // (SetStateValue) o en data (SetDataValue: `campo.hidden`, `campo.disabled`, `campo.required`…),
+  // lanza una acción (RunAction) o para (result Stop).
+  //
+  // Por qué un evaluador propio: el web usa `new Function`, y VB alojado en Oracle corre con una CSP
+  // sin 'unsafe-eval' (es la razón de que todo el bridge precalcule flags). Así que un parser de
+  // expresiones de JS pequeño y SIN eval: literales, state/data/appState/appData, acceso a
+  // propiedad, ! - + * / % < <= > >= == != === !== && || ?: y unos pocos métodos de string/array.
+  // Lo que no entiende devuelve undefined (la regla no se cumple) en vez de romper la pantalla.
+
+  const METHODS = {
+    includes: (t, a) => (t != null && t.includes ? t.includes(a[0]) : false),
+    startsWith: (t, a) => String(t == null ? '' : t).startsWith(a[0]),
+    endsWith: (t, a) => String(t == null ? '' : t).endsWith(a[0]),
+    indexOf: (t, a) => (t != null && t.indexOf ? t.indexOf(a[0]) : -1),
+    toLowerCase: (t) => String(t == null ? '' : t).toLowerCase(),
+    toUpperCase: (t) => String(t == null ? '' : t).toUpperCase(),
+    trim: (t) => String(t == null ? '' : t).trim(),
+    toString: (t) => String(t),
+  }
+
+  function tokenize(src) {
+    const tokens = []
+    let i = 0
+    while (i < src.length) {
+      const c = src[i]
+      if (/\s/.test(c)) { i++; continue }
+      if (/[0-9]/.test(c) || (c === '.' && /[0-9]/.test(src[i + 1]))) {
+        let j = i
+        while (j < src.length && /[0-9.]/.test(src[j])) j++
+        tokens.push({ t: 'num', v: Number(src.slice(i, j)) }); i = j; continue
+      }
+      if (c === '"' || c === "'") {
+        let j = i + 1; let s = ''
+        while (j < src.length && src[j] !== c) { if (src[j] === '\\') { s += src[j + 1]; j += 2 } else s += src[j++] }
+        tokens.push({ t: 'str', v: s }); i = j + 1; continue
+      }
+      if (/[A-Za-z_$]/.test(c)) {
+        let j = i
+        while (j < src.length && /[A-Za-z0-9_$]/.test(src[j])) j++
+        tokens.push({ t: 'id', v: src.slice(i, j) }); i = j; continue
+      }
+      const three = src.slice(i, i + 3); const two = src.slice(i, i + 2)
+      if (three === '===' || three === '!==') { tokens.push({ t: 'op', v: three }); i += 3; continue }
+      if (['==', '!=', '<=', '>=', '&&', '||'].includes(two)) { tokens.push({ t: 'op', v: two }); i += 2; continue }
+      if ('+-*/%<>!?:.,()[]'.includes(c)) { tokens.push({ t: 'op', v: c }); i++; continue }
+      throw new Error('carácter inesperado ' + c)
+    }
+    return tokens
+  }
+
+  /** Evalúa una expresión de regla contra `scope` ({ state, data, appState, appData, component }). */
+  function evaluateExpression(expr, scope = {}) {
+    if (expr == null) return undefined
+    const src = String(expr).trim()
+    if (src === '') return undefined
+    let tokens
+    try { tokens = tokenize(src) } catch (e) { return undefined }
+    let p = 0
+    const peek = (v) => tokens[p] && tokens[p].v === v && tokens[p].t === 'op'
+    const take = (v) => { if (peek(v)) { p++; return true } return false }
+    const ternary = () => {
+      const c = or()
+      if (take('?')) { const a = ternary(); take(':'); const b = ternary(); return c ? a : b }
+      return c
+    }
+    const or = () => { let l = and(); while (take('||')) { const r = and(); l = l || r } return l }
+    const and = () => { let l = eq(); while (take('&&')) { const r = eq(); l = l && r } return l }
+    const eq = () => {
+      let l = rel()
+      for (;;) {
+        // eslint-disable-next-line eqeqeq
+        if (take('===')) l = l === rel(); else if (take('!==')) l = l !== rel()
+        // eslint-disable-next-line eqeqeq
+        else if (take('==')) l = l == rel(); else if (take('!=')) l = l != rel()
+        else return l
+      }
+    }
+    const rel = () => {
+      let l = add()
+      for (;;) {
+        if (take('<=')) l = l <= add(); else if (take('>=')) l = l >= add()
+        else if (take('<')) l = l < add(); else if (take('>')) l = l > add()
+        else return l
+      }
+    }
+    const add = () => {
+      let l = mul()
+      for (;;) { if (take('+')) l = l + mul(); else if (take('-')) l = l - mul(); else return l }
+    }
+    const mul = () => {
+      let l = unary()
+      for (;;) {
+        if (take('*')) l = l * unary(); else if (take('/')) l = l / unary(); else if (take('%')) l = l % unary()
+        else return l
+      }
+    }
+    const unary = () => {
+      if (take('!')) return !unary()
+      if (take('-')) return -unary()
+      if (take('+')) return +unary()
+      return postfix()
+    }
+    const postfix = () => {
+      let v = primary()
+      for (;;) {
+        if (take('.')) {
+          const tok = tokens[p++]
+          const name = tok && tok.v
+          if (peek('(')) {
+            take('(')
+            const args = []
+            while (!peek(')') && p < tokens.length) { args.push(ternary()); take(',') }
+            take(')')
+            // sólo métodos conocidos de string/array: nada de llamar a lo que traiga el estado
+            v = Object.prototype.hasOwnProperty.call(METHODS, name) ? METHODS[name](v, args) : undefined
+          } else {
+            v = v == null ? undefined : v[name]
+          }
+        } else if (take('[')) {
+          const k = ternary(); take(']'); v = v == null ? undefined : v[k]
+        } else return v
+      }
+    }
+    const primary = () => {
+      const tok = tokens[p++]
+      if (!tok) return undefined
+      if (tok.t === 'num' || tok.t === 'str') return tok.v
+      if (tok.t === 'op' && tok.v === '(') { const v = ternary(); take(')'); return v }
+      if (tok.t === 'op' && tok.v === '[') {
+        const arr = []
+        while (!peek(']') && p < tokens.length) { arr.push(ternary()); take(',') }
+        take(']'); return arr
+      }
+      if (tok.t === 'id') {
+        if (tok.v === 'true') return true
+        if (tok.v === 'false') return false
+        if (tok.v === 'null') return null
+        if (tok.v === 'undefined') return undefined
+        return scope[tok.v]
+      }
+      return undefined
+    }
+    try {
+      const v = ternary()
+      return p === tokens.length ? v : undefined
+    } catch (e) {
+      return undefined
+    }
+  }
+
+  /** Una plantilla `${…}`: si es UNA expresión entera devuelve su valor con tipo; si mezcla texto,
+   *  el texto con cada `${…}` sustituido; sin `${` es una expresión. */
+  function evaluateTemplate(tmpl, scope = {}) {
+    const s = String(tmpl == null ? '' : tmpl)
+    if (s.indexOf('${') < 0) return evaluateExpression(s, scope)
+    const whole = s.match(/^\$\{([^}]*)\}$/)
+    if (whole) return evaluateExpression(whole[1], scope)
+    return s.replace(/\$\{([^}]*)\}/g, (_, e) => { const v = evaluateExpression(e, scope); return v == null ? '' : String(v) })
+  }
+
+  /**
+   * Ejecuta las reglas sobre `scope` → { state, data, actions }: los VALORES que cada regla deja en
+   * el estado / en data (`campo` o `campo.atributo`) y las acciones a lanzar. Puro: no toca nada.
+   */
+  function computeRules(rules, scope = {}) {
+    const state = {}
+    const data = {}
+    const actions = []
+    const view = () => ({ ...scope, state: { ...(scope.state || {}), ...state }, data: { ...(scope.data || {}), ...data } })
+    for (const rule of rules || []) {
+      if (!rule) continue
+      const filter = rule.filter == null || rule.filter === '' ? true : evaluateExpression(rule.filter, view())
+      if (!filter) continue
+      const action = rule.action
+      if (action === 'SetStateValue' || action === 'SetDataValue') {
+        const target = action === 'SetStateValue' ? state : data
+        const value = rule.expression ? evaluateTemplate(rule.expression, view()) : rule.value
+        for (const name of String(rule.fieldName || '').split(',').map((x) => x.trim()).filter(Boolean)) {
+          const attr = rule.fieldAttribute && rule.fieldAttribute !== 'none' ? rule.fieldAttribute : null
+          target[attr ? name + '.' + attr : name] = value
+        }
+      } else if (action === 'RunAction' && rule.actionId) {
+        actions.push(rule.actionId)
+      }
+      if (rule.result === 'Stop') break
+    }
+    return { state, data, actions }
+  }
+
+  /** Los atributos de campo que la plantilla tiene que reflejar: { fieldId: { hidden, disabled… } }. */
+  function fieldFlagsOf(data) {
+    const out = {}
+    for (const key of Object.keys(data || {})) {
+      const m = key.match(/^(.+)\.(hidden|disabled|required|readonly|readOnly)$/)
+      if (!m) continue
+      const attr = m[2] === 'readOnly' ? 'readonly' : m[2]
+      out[m[1]] = { ...(out[m[1]] || {}), [attr]: !!data[key] }
+    }
+    return out
+  }
+
+  /** La acción que dispara cambiar `fieldId` (@Trigger OnValueChange con su condición), o null. */
+  function valueChangeActionOf(ctx, fieldId, state) {
+    const triggers = (ctx && ctx.tree && ctx.tree.triggers) || []
+    const t = triggers.find((x) => x && x.type === 'OnValueChange' && x.actionId
+      && (!x.propertyName || x.propertyName === fieldId))
+    if (!t) return null
+    if (t.condition && !evaluateExpression(t.condition, { state: state || {}, data: (ctx && ctx.data) || {} })) return null
+    return t.actionId
+  }
+
+  // ── en el navegador: aplicar las reglas a los campos pintados ────────────────────────────────
+  //
+  // Los campos se pintan desde 22 copias de plantilla (átomos, formulario genérico, drawer, isla…):
+  // en vez de un flag más en cada una, las reglas actúan sobre el DOM por `data-field-id`, que
+  // todas llevan. El contexto (reglas + estado) lo fija cada reducción (setRulesContext); los
+  // cambios de campo (`valueChanged` de JET, interno) actualizan el estado vivo y re-evalúan; y,
+  // como VB re-pinta de forma asíncrona, se re-aplica unos frames después de cada render.
+
+  let rulesCtx = null
+  let liveState = {}
+  let runActionSink = null
+
+  /** Quién ejecuta una RunAction de regla (la shell reusa el sumidero de los Element). */
+  function setRuleActionSink(fn) { runActionSink = typeof fn === 'function' ? fn : null }
+
+  function setRulesContext(ctx, appState) {
+    rulesCtx = ctx && ctx.tree && (ctx.tree.rules || []).length ? { ctx, appState: appState || {} } : null
+    liveState = { ...((ctx && ctx.state) || {}) }
+    applyRulesSoon()
+  }
+
+  // Lo que se oculta de un campo: el control mismo — en Redwood su etiqueta va DENTRO (label-edge
+  // inside) — o, para los que la llevan fuera (captura, @Searchable), su oj-label-value. Subir hasta
+  // el hijo del oj-form-layout no vale: JET envuelve los campos en sus propios contenedores y se
+  // ocultaba la sección entera.
+  function formItemOf(el) {
+    return (el.closest && el.closest('oj-label-value')) || el
+  }
+
+  /** A value safe inside a quoted attribute selector: CSS.escape when the browser has it, else the
+   *  backslash and the quote escaped (the backslash FIRST, or the quote's escape gets doubled). */
+  function attrSelectorValue(value) {
+    const s = String(value)
+    if (typeof CSS !== 'undefined' && CSS && typeof CSS.escape === 'function') return CSS.escape(s)
+    return s.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+  }
+
+  function applyRulesNow(doc = typeof document !== 'undefined' ? document : null) {
+    if (!rulesCtx || !doc) return 0
+    const { ctx, appState } = rulesCtx
+    const result = computeRules(ctx.tree.rules, { state: liveState, data: ctx.data || {}, appState, appData: {}, component: ctx.tree })
+    let touched = 0
+    const flags = fieldFlagsOf(result.data)
+    for (const fieldId of Object.keys(flags)) {
+      for (const el of doc.querySelectorAll('[data-field-id="' + attrSelectorValue(fieldId) + '"]')) {
+        const f = flags[fieldId]
+        if ('hidden' in f) {
+          const item = formItemOf(el)
+          item.style.display = f.hidden ? 'none' : ''
+        }
+        if ('disabled' in f && el.disabled !== f.disabled) el.disabled = f.disabled
+        if ('required' in f && el.required !== f.required) el.required = f.required
+        if ('readonly' in f && el.readonly !== f.readonly) el.readonly = f.readonly
+        touched++
+      }
+    }
+    // un SetStateValue cambia el valor de otro campo: se le pone al control y se emite el mismo
+    // valueChanged INTERNO que si lo hubiese tecleado el usuario (así entra en el borrador que
+    // viaja con la siguiente acción)
+    for (const fieldId of Object.keys(result.state)) {
+      if (fieldId.indexOf('.') >= 0) continue
+      const value = result.state[fieldId]
+      if (liveState[fieldId] === value) continue
+      liveState[fieldId] = value
+      for (const el of doc.querySelectorAll('[data-field-id="' + fieldId + '"]')) {
+        el.value = value
+        el.dispatchEvent(new CustomEvent('valueChanged', { detail: { value, updatedFrom: 'internal' }, bubbles: true }))
+      }
+    }
+    for (const actionId of result.actions) if (runActionSink) runActionSink(actionId, {}, {})
+    return touched
+  }
+
+  function applyRulesSoon(frames = 12) {
+    if (typeof requestAnimationFrame === 'undefined') return
+    let left = frames
+    const tick = () => { applyRulesNow(); left -= 1; if (left > 0) requestAnimationFrame(tick) }
+    requestAnimationFrame(tick)
+  }
+
+  /** Escucha los cambios de campo del documento (una vez): actualiza el estado vivo y re-evalúa. */
+  function installRules(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuRulesInstalled) return
+    doc.__mateuRulesInstalled = true
+    doc.addEventListener('valueChanged', (e) => {
+      const el = e.target
+      const fieldId = el && el.getAttribute && el.getAttribute('data-field-id')
+      const detail = e.detail || {}
+      if (!fieldId || (detail.updatedFrom && detail.updatedFrom !== 'internal')) return
+      liveState[fieldId] = detail.value
+      applyRulesNow(doc)
+    }, true)
+  }
+
+  /** Para diagnosticar desde la consola: las reglas en vigor y el estado vivo. */
+  function rulesDebug() {
+    return { rules: rulesCtx ? (rulesCtx.ctx.tree.rules || []).length : 0, state: { ...liveState } }
+  }
+
+
+  // Selección de RANGO en el tape chart (PlanningBoard → oj-gantt): arrastrar por celdas VACÍAS de
+  // una fila lanza rangeSelectActionId con { _resourceId, _start, _end } (el «clic en la celda de
+  // inicio y en la de fin» del Room Diary de OPERA → I Want To: reserva, walk-in, fuera de servicio).
+  // oj-gantt no lo trae: mueve y redimensiona tareas, pero no selecciona tiempo vacío. Así que una
+  // capa fina por encima, sin sustituir al componente:
+  //   - la fila, del propio gantt (getContextByNode → rowIndex);
+  //   - el día, de las posiciones REALES de las etiquetas del eje de días (respeta zoom y scroll);
+  //   - mientras se arrastra, una banda translúcida; al soltar, la acción por el canal de la página.
+  // Lo puro (x → día) está exportado y probado en Node.
+
+  /** Día (índice) bajo `x` a partir de los centros de las etiquetas del eje de días. */
+  function dayIndexAtX(x, centers) {
+    if (!centers || !centers.length) return null
+    if (centers.length === 1) return centers[0].index
+    const sorted = [...centers].sort((a, b) => a.x - b.x)
+    const width = (sorted[sorted.length - 1].x - sorted[0].x) / (sorted[sorted.length - 1].index - sorted[0].index)
+    if (!(width > 0)) return sorted[0].index
+    // el día i ocupa [centro_i - w/2, centro_i + w/2)
+    return Math.round((x - sorted[0].x) / width) + sorted[0].index
+  }
+
+  const DAY = 86400000
+  const isoUtc = (ms) => new Date(ms).toISOString().slice(0, 10)
+
+  let rangeSink = null
+  /** Quién ejecuta la acción (la shell reutiliza el sumidero de los Element). */
+  function setPlanningRangeSink(fn) { rangeSink = typeof fn === "function" ? fn : null }
+
+  /** Los centros (x en pantalla) de las etiquetas de días del eje menor de un gantt. */
+  function dayCenters(gantt, startIso, days) {
+    const labels = [...gantt.querySelectorAll('text')]
+    const out = []
+    // las etiquetas del eje menor tienen el formato del locale ("10/14", "14/10"…): se casan por
+    // orden con los días de la ventana, quedándose con la fila de etiquetas más baja del eje
+    const rows = {}
+    for (const t of labels) {
+      const r = t.getBoundingClientRect()
+      if (!/\d/.test(t.textContent || '')) continue
+      const key = Math.round(r.top)
+      ;(rows[key] = rows[key] || []).push({ t, r })
+    }
+    const axisRows = Object.keys(rows).map(Number).sort((a, b) => a - b)
+    // el eje menor: la fila con más etiquetas entre las primeras (la cabecera), no las barras
+    const minor = axisRows.slice(0, 3).map((k) => rows[k]).sort((a, b) => b.length - a.length)[0] || []
+    minor.sort((a, b) => a.r.left - b.r.left).forEach((e, i) => {
+      if (i < days) out.push({ x: e.r.left + e.r.width / 2, index: i })
+    })
+    return out
+  }
+
+  /** Instala (una vez) el arrastre de rango sobre cualquier oj-gantt.mateu-planning del documento. */
+  function installPlanningRange(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuPlanningRange) return
+    doc.__mateuPlanningRange = true
+    let drag = null
+    const band = () => {
+      let el = doc.getElementById('mateuPlanningRangeBand')
+      if (!el) {
+        el = doc.createElement('div')
+        el.id = 'mateuPlanningRangeBand'
+        el.className = 'mateu-planning-range'
+        doc.body.appendChild(el)
+      }
+      return el
+    }
+    doc.addEventListener('pointerdown', (e) => {
+      const gantt = e.target && e.target.closest && e.target.closest('oj-gantt.mateu-planning')
+      if (!gantt || !gantt.dataset.rangeAction || e.button > 0) return
+      // sólo tiempo VACÍO de una fila (el fondo de la fila, rect.oj-gantt-row): una tarea se mueve y
+      // redimensiona como siempre. getContextByNode no da contexto para ese fondo, así que la fila
+      // sale de la etiqueta del eje de filas más cercana en vertical (vale también con scroll)
+      const cls = (e.target.getAttribute && e.target.getAttribute('class')) || ''
+      if (!/(^|\s)oj-gantt-row(\s|$)/.test(cls)) return
+      const labels = (gantt.dataset.rowLabels || '').split('\u001f')
+      let best = null
+      for (const t of gantt.querySelectorAll('text')) {
+        const i = labels.indexOf(t.textContent)
+        if (i < 0) continue
+        const r = t.getBoundingClientRect()
+        const dist = Math.abs(r.top + r.height / 2 - e.clientY)
+        if (!best || dist < best.dist) best = { i, dist }
+      }
+      if (!best) return
+      const ctx = { rowIndex: best.i }
+      const start = gantt.dataset.start
+      const days = Math.round((Date.parse(gantt.dataset.end + 'Z') - Date.parse(start + 'Z')) / DAY)
+      const centers = dayCenters(gantt, start, days)
+      const anchor = dayIndexAtX(e.clientX, centers)
+      if (anchor == null) return
+      const rowRect = e.target.getBoundingClientRect()
+      drag = { gantt, ctx, centers, anchor, current: anchor, start, top: rowRect.top, height: rowRect.height }
+    }, true)
+    doc.addEventListener('pointermove', (e) => {
+      if (!drag) return
+      const i = dayIndexAtX(e.clientX, drag.centers)
+      if (i == null) return
+      drag.current = i
+      const [a, b] = [Math.min(drag.anchor, i), Math.max(drag.anchor, i)]
+      const w = drag.centers.length > 1 ? Math.abs(drag.centers[1].x - drag.centers[0].x) : 40
+      const el = band()
+      const left = drag.centers[0].x + (a - drag.centers[0].index) * w - w / 2
+      Object.assign(el.style, { display: 'block', left: left + window.scrollX + 'px', width: (b - a + 1) * w + 'px',
+        top: drag.top + window.scrollY + 'px', height: drag.height + 'px' })
+    }, true)
+    doc.addEventListener('pointerup', () => {
+      const d = drag
+      drag = null
+      const el = doc.getElementById('mateuPlanningRangeBand')
+      if (el) el.style.display = 'none'
+      if (!d || !rangeSink) return
+      const ids = (d.gantt.dataset.rowIds || '').split('\u001f')
+      const rowId = ids[d.ctx.rowIndex]
+      if (!rowId) return
+      const [a, b] = [Math.min(d.anchor, d.current), Math.max(d.anchor, d.current)]
+      const base = Date.parse(d.start + 'Z')
+      rangeSink(d.gantt.dataset.rangeAction, { _resourceId: rowId, _start: isoUtc(base + a * DAY), _end: isoUtc(base + b * DAY) }, {})
+    }, true)
+  }
+
+
+  // PANEL DE ACCIONES por categorías («I want to…», ActionPanel): el disparador es un oj-button y la
+  // capa un oj-dialog de JET; el estado de la capa (abierta, «mostrar más» de una columna, ocultar
+  // las acciones sin datos) vive en el DOM — clases sobre el diálogo y sus columnas —, así que nada
+  // pregunta al servidor ni re-proyecta. Elegir una acción cierra el diálogo y la acción sale por el
+  // canal normal de los botones (blockAction). Un listener por documento, instalado una vez.
+
+  /** «ctrl+shift+i» → { ctrl, alt, shift, meta, key } */
+  function parseShortcut(shortcut) {
+    const parts = String(shortcut || '').toLowerCase().split('+').map((p) => p.trim()).filter(Boolean)
+    if (!parts.length) return null
+    const mods = { ctrl: false, alt: false, shift: false, meta: false }
+    let key = ''
+    for (const p of parts) {
+      if (p === 'ctrl' || p === 'control') mods.ctrl = true
+      else if (p === 'alt' || p === 'option') mods.alt = true
+      else if (p === 'shift') mods.shift = true
+      else if (p === 'meta' || p === 'cmd') mods.meta = true
+      else key = p
+    }
+    return key ? { ...mods, key } : null
+  }
+
+  /** ¿La tecla pulsada es el atajo? Por e.key o por e.code (KeyI / Digit1 / Numpad1), como los
+   *  atajos del renderer web: independiente de la distribución del teclado. */
+  function shortcutMatches(shortcut, e) {
+    const s = typeof shortcut === 'string' ? parseShortcut(shortcut) : shortcut
+    if (!s || !e) return false
+    if (!!e.ctrlKey !== s.ctrl || !!e.altKey !== s.alt || !!e.shiftKey !== s.shift || !!e.metaKey !== s.meta) return false
+    const k = s.key
+    const key = String(e.key || '').toLowerCase()
+    const code = String(e.code || '')
+    return key === k || code === 'Key' + k.toUpperCase() || code === 'Digit' + k || code === 'Numpad' + k
+  }
+
+  const visible = (el) => !!(el && (el.offsetParent || (el.getClientRects && el.getClientRects().length)))
+
+  /** Instala (una vez) el comportamiento de los paneles de acciones del documento. */
+  function installActionPanels(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuActionPanels) return
+    doc.__mateuActionPanels = true
+    const dialogOf = (id) => (id ? doc.getElementById(id) : null)
+    const open = (id) => {
+      const d = dialogOf(id)
+      if (d && typeof d.open === 'function' && !(d.isOpen && d.isOpen())) d.open()
+    }
+    doc.addEventListener('click', (e) => {
+      const t = e.target && e.target.closest ? e.target : null
+      if (!t) return
+      const trigger = t.closest('[data-ap-open]')
+      if (trigger) { open(trigger.getAttribute('data-ap-open')); return }
+      const more = t.closest('[data-ap-more]')
+      if (more) {
+        const col = more.closest('.mateu-ap-column')
+        if (col) col.classList.add('mateu-ap-showall')
+        return
+      }
+    }, true)
+    // elegir una acción cierra la capa; el oj-button sigue y su blockAction lanza la acción
+    doc.addEventListener('ojAction', (e) => {
+      const item = e.target && e.target.closest && e.target.closest('.mateu-ap-item')
+      const dialog = item && item.closest('oj-dialog')
+      if (dialog && typeof dialog.close === 'function') dialog.close()
+    }, true)
+    // ocultar las vacías: el oj-switch NO burbujea valueChanged, pero la fase de captura sí lo ve
+    doc.addEventListener('valueChanged', (e) => {
+      const sw = e.target
+      if (!sw || !sw.hasAttribute || !sw.hasAttribute('data-ap-hide')) return
+      const dialog = sw.closest('oj-dialog')
+      if (dialog) dialog.classList.toggle('mateu-ap-hide-unpopulated', !!(e.detail && e.detail.value))
+    }, true)
+    doc.addEventListener('keydown', (e) => {
+      if (!e.ctrlKey && !e.altKey && !e.metaKey) return
+      for (const trigger of doc.querySelectorAll('[data-ap-shortcut]')) {
+        const sc = trigger.getAttribute('data-ap-shortcut')
+        if (sc && visible(trigger) && shortcutMatches(sc, e)) {
+          e.preventDefault()
+          e.stopPropagation()
+          open(trigger.getAttribute('data-ap-open'))
+          return
+        }
+      }
+    }, true)
+  }
+
+
+  // TECLADO de la shell VB: los atajos declarados y las TECLAS DE ACCESO.
+  //  - @Action(shortcut) de la pantalla en curso: el atajo lanza la acción (por el canal de los
+  //    Element), como en el renderer web; sólo combinaciones con Ctrl/Alt/Meta — una tecla suelta
+  //    es del campo donde se escribe.
+  //  - @Tab(shortcut): selecciona la pestaña (el li del oj-tab-bar lleva data-shortcut).
+  //  - @App(accessKeys): mantener Alt enseña una tecla junto a cada botón y pestaña visibles — su
+  //    atajo si lo declara, si no una letra de su etiqueta asignada sin repetir — y Alt+letra lo
+  //    pulsa. Lo de OPERA con su tecla de acceso. Lo puro (qué letra toca a quién) se prueba en Node.
+
+  /** Las letras de acceso para unas etiquetas: primero las iniciales de sus palabras, luego cualquier
+   *  letra de la etiqueta, luego cifras; sin repetir y saltando las reservadas. '' si no queda. */
+  function assignAccessKeys(labels, reserved = []) {
+    const used = new Set(reserved.map((k) => String(k).toLowerCase()))
+    return labels.map((label) => {
+      const text = String(label || '').toLowerCase()
+      const initials = text.split(/[^a-z0-9áéíóúñ]+/i).map((w) => w.charAt(0))
+      const letters = [...text]
+      for (const c of [...initials, ...letters, ...'1234567890']) {
+        if (/^[a-z0-9]$/.test(c) && !used.has(c)) { used.add(c); return c }
+      }
+      return ''
+    })
+  }
+
+  /** Etiqueta legible de un atajo: «ctrl+shift+s» → «Ctrl+Shift+S». */
+  const keyHint = (shortcut) => String(shortcut || '').split('+').filter(Boolean)
+    .map((k) => (k.length === 1 ? k.toUpperCase() : k.charAt(0).toUpperCase() + k.slice(1))).join('+')
+
+  // ── atajos de acción de la pantalla en curso ──────────────────────────────────────────────────
+  let shortcutActions = []
+  /** La pantalla en curso (afterReduce): sus acciones con atajo con modificador. */
+  function setShortcutContext(hostCtx) {
+    const actions = (hostCtx && hostCtx.tree && hostCtx.tree.actions) || []
+    shortcutActions = actions
+      .filter((a) => a && a.id && a.shortcut && /(^|\+)(ctrl|control|alt|meta|cmd)(\+|$)/i.test(a.shortcut))
+      .map((a) => ({ id: a.id, shortcut: String(a.shortcut).toLowerCase() }))
+  }
+  const currentShortcutActions = () => shortcutActions
+
+  let keysSink = null
+  function setKeysActionSink(fn) { keysSink = typeof fn === 'function' ? fn : null }
+
+  let accessKeysOn = false
+  function setAccessKeysEnabled(on) { accessKeysOn = !!on }
+
+  // ── DOM ────────────────────────────────────────────────────────────────────────────────────────
+  const keyTargetVisible = (el) => {
+    if (!el || !el.getClientRects || !el.getClientRects().length) return false
+    const r = el.getBoundingClientRect()
+    return r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < (el.ownerDocument.defaultView.innerHeight || 1e6)
+  }
+  const labelOf = (el) => (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim()
+
+  /** Lo que se puede pulsar con una tecla de acceso: botones (no deshabilitados) y pestañas. */
+  function accessCandidates(doc) {
+    const out = []
+    for (const el of doc.querySelectorAll('oj-button, oj-menu-button, oj-tab-bar li')) {
+      if (!keyTargetVisible(el) || el.hasAttribute('disabled') || el.closest('[aria-hidden="true"], .mateu-access-keys')) continue
+      const label = labelOf(el)
+      if (!label) continue
+      const actionId = el.getAttribute('data-action-id')
+      const declared = el.getAttribute('data-shortcut')
+        || (actionId && (shortcutActions.find((a) => a.id === actionId) || {}).shortcut) || ''
+      out.push({ el, label, declared })
+    }
+    return out
+  }
+
+  const activate = (el) => {
+    const inner = el.querySelector && el.querySelector('button')
+    if (inner) inner.click()
+    else el.click()
+  }
+
+  const reservedAltLetters = () => shortcutActions
+    .map((a) => /^alt\+([a-z0-9])$/.exec(a.shortcut)).filter(Boolean).map((m) => m[1])
+
+  function showAccessKeys(doc) {
+    hideAccessKeys(doc)
+    const candidates = accessCandidates(doc)
+    const free = candidates.filter((c) => !c.declared)
+    const letters = assignAccessKeys(free.map((c) => c.label), reservedAltLetters())
+    free.forEach((c, i) => { c.letter = letters[i] })
+    const layer = doc.createElement('div')
+    layer.className = 'mateu-access-keys'
+    layer.setAttribute('aria-hidden', 'true')
+    for (const c of candidates) {
+      const text = c.declared ? keyHint(c.declared) : (c.letter ? c.letter.toUpperCase() : '')
+      if (!text) continue
+      const r = c.el.getBoundingClientRect()
+      const badge = doc.createElement('span')
+      badge.className = 'mateu-access-key'
+      badge.textContent = text
+      badge.style.left = Math.max(0, r.left - 4) + 'px'
+      badge.style.top = Math.max(0, r.top - 8) + 'px'
+      layer.appendChild(badge)
+    }
+    doc.body.appendChild(layer)
+    doc.__mateuAccessMap = candidates.filter((c) => c.letter).map((c) => ({ letter: c.letter, el: c.el }))
+  }
+
+  function hideAccessKeys(doc) {
+    for (const l of doc.querySelectorAll('.mateu-access-keys')) l.remove()
+  }
+
+  const matches = (shortcut, e) => (typeof shortcutMatches === 'function' ? shortcutMatches(shortcut, e) : false)
+
+  function installKeys(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuKeys) return
+    doc.__mateuKeys = true
+    let holdTimer = null
+    doc.addEventListener('keydown', (e) => {
+      // mantener Alt (sola): aparecen las teclas
+      if (e.key === 'Alt' && accessKeysOn && !e.ctrlKey && !e.metaKey && !e.shiftKey) {
+        if (!holdTimer) holdTimer = setTimeout(() => showAccessKeys(doc), 250)
+        return
+      }
+      if (holdTimer) { clearTimeout(holdTimer); holdTimer = null }
+      if (!e.ctrlKey && !e.altKey && !e.metaKey) return
+      // 1. una acción de la pantalla
+      const action = shortcutActions.find((a) => matches(a.shortcut, e))
+      if (action && keysSink) {
+        e.preventDefault(); e.stopPropagation()
+        keysSink(action.id, {}, {})
+        return
+      }
+      // 2. una pestaña
+      for (const li of doc.querySelectorAll('oj-tab-bar li[data-shortcut]')) {
+        const sc = li.getAttribute('data-shortcut')
+        if (sc && keyTargetVisible(li) && matches(sc, e)) { e.preventDefault(); e.stopPropagation(); activate(li); return }
+      }
+      // 3. una tecla de acceso (Alt+letra, por el código físico: en Mac Alt cambia e.key)
+      if (accessKeysOn && e.altKey && !e.ctrlKey && !e.metaKey) {
+        const m = /^(Key([A-Z])|Digit([0-9]))$/.exec(e.code || '')
+        const letter = m ? (m[2] || m[3]).toLowerCase() : ''
+        if (!letter) return
+        if (!doc.querySelector('.mateu-access-keys')) showAccessKeys(doc)
+        const hit = (doc.__mateuAccessMap || []).find((x) => x.letter === letter)
+        if (hit) { e.preventDefault(); e.stopPropagation(); hideAccessKeys(doc); activate(hit.el) }
+      }
+    }, true)
+    doc.addEventListener('keyup', (e) => {
+      if (e.key === 'Alt') {
+        if (holdTimer) { clearTimeout(holdTimer); holdTimer = null }
+        hideAccessKeys(doc)
+      }
+    }, true)
+    const view = doc.defaultView
+    if (view) view.addEventListener('blur', () => hideAccessKeys(doc))
+  }
+
+
+  // VENTANAS FLOTANTES al pasar el ratón (y al enfocar con el teclado): el resumen de una tarifa, el
+  // detalle de una celda. UNA oj-popup de JET compartida, creada fuera de Knockout, a la que se
+  // le cambia el contenido: cualquier elemento con data-mateu-hover (texto, líneas con \n) la abre
+  // al pasar o enfocar y la cierra al salir; uno con data-mateu-pop-click, al pulsar. Las celdas
+  // de un listado con @Tooltip(otro campo) y los Popover (trigger hover/click) pasan por aquí.
+
+  /** Las líneas del contenido (puro). */
+  const hoverLinesOf = (text) => String(text || '').split('\n').map((l) => l.trim()).filter(Boolean)
+
+  function installHover(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuHover) return
+    doc.__mateuHover = true
+    let popup = null
+    let body = null
+    let anchor = null
+    let openTimer = null
+    let closeTimer = null
+    const ensure = () => {
+      if (popup) return popup
+      const wrap = doc.createElement('div')
+      wrap.setAttribute('data-oj-binding-provider', 'none')
+      popup = doc.createElement('oj-popup')
+      popup.id = 'mateuHoverPopup'
+      popup.className = 'mateu-hover-popup'
+      popup.setAttribute('modality', 'modeless')
+      popup.setAttribute('auto-dismiss', 'none')
+      popup.setAttribute('tail', 'simple')
+      popup.setAttribute('initial-focus', 'none')
+      popup.setAttribute('position', '{"my":{"horizontal":"start","vertical":"top"},"at":{"horizontal":"start","vertical":"bottom"},"collision":"flipfit"}')
+      body = doc.createElement('div')
+      body.className = 'mateu-hover-content'
+      body.setAttribute('role', 'tooltip')
+      popup.appendChild(body)
+      popup.addEventListener('mouseenter', () => { if (closeTimer) { clearTimeout(closeTimer); closeTimer = null } })
+      popup.addEventListener('mouseleave', () => scheduleClose())
+      wrap.appendChild(popup)
+      doc.body.appendChild(wrap)
+      return popup
+    }
+    let hoverAnchorSeq = 0
+    const open = (el, text) => {
+      const p = ensure()
+      body.textContent = ''
+      for (const line of hoverLinesOf(text)) {
+        const div = doc.createElement('div')
+        div.textContent = line
+        body.appendChild(div)
+      }
+      if (!el.id) el.id = 'mateuHover-' + (++hoverAnchorSeq)
+      anchor = el
+      el.setAttribute('aria-describedby', 'mateuHoverPopup')
+      // un oj-popup recién creado tarda en «actualizarse» (JET lo hace de forma asíncrona): hasta
+      // entonces sus métodos lanzan — se reintenta unos frames
+      const tryOpen = (left) => {
+        if (anchor !== el) return
+        try {
+          if (p.isOpen()) p.close()
+          p.open('#' + el.id)
+        } catch (err) {
+          if (left > 0) requestAnimationFrame(() => tryOpen(left - 1))
+        }
+      }
+      tryOpen(30)
+    }
+    const close = () => {
+      if (openTimer) { clearTimeout(openTimer); openTimer = null }
+      if (anchor) anchor.removeAttribute('aria-describedby')
+      anchor = null
+      try { if (popup && popup.isOpen()) popup.close() } catch (err) { /* aún sin actualizar */ }
+    }
+    const scheduleClose = () => {
+      if (closeTimer) clearTimeout(closeTimer)
+      closeTimer = setTimeout(() => { closeTimer = null; close() }, 200)
+    }
+    const hoverTarget = (node) => {
+      const el = node && node.closest ? node.closest('[data-mateu-hover]') : null
+      return el && el.getAttribute('data-mateu-hover') ? el : null
+    }
+    const show = (el) => {
+      if (closeTimer) { clearTimeout(closeTimer); closeTimer = null }
+      if (anchor === el) return
+      if (openTimer) clearTimeout(openTimer)
+      openTimer = setTimeout(() => { openTimer = null; open(el, el.getAttribute('data-mateu-hover')) }, 300)
+    }
+    // se crea ya: cuando llegue el primer hover JET habrá tenido tiempo de actualizarlo
+    if (doc.body) ensure()
+    doc.addEventListener('mouseover', (e) => { const el = hoverTarget(e.target); if (el) show(el) }, true)
+    doc.addEventListener('mouseout', (e) => {
+      const el = hoverTarget(e.target)
+      if (el && !(e.relatedTarget && el.contains(e.relatedTarget))) {
+        if (openTimer && anchor !== el) { clearTimeout(openTimer); openTimer = null }
+        scheduleClose()
+      }
+    }, true)
+    doc.addEventListener('focusin', (e) => { const el = hoverTarget(e.target); if (el) show(el) }, true)
+    doc.addEventListener('focusout', (e) => { if (hoverTarget(e.target)) scheduleClose() }, true)
+    doc.addEventListener('click', (e) => {
+      const el = e.target && e.target.closest ? e.target.closest('[data-mateu-pop-click]') : null
+      if (!el || !el.getAttribute('data-mateu-pop-click')) return
+      if (anchor === el) close()
+      else open(el, el.getAttribute('data-mateu-pop-click'))
+    }, true)
+    doc.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && anchor) { close(); return }
+      if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.getAttribute && e.target.getAttribute('data-mateu-pop-click')) {
+        e.preventDefault()
+        e.target.click()
+      }
+    }, true)
+  }
+
+
+  // ARRASTRAR FILAS A UN DESTINO: las filas de un listado @DragRows(tipo) se arrastran con el dnd
+  // del propio oj-table de JET (dnd.drag.rows.data-types = el tipo MIME del tipo); un DropZone
+  // (atom isDropZone) acepta ese tipo MIME — se resalta mientras pasa por encima algo suyo — y al
+  // soltar lanza su acción con sus parámetros más _draggedIds y _dragType: origen y destino.
+
+  /** Los ids de lo que trae el arrastre: el JSON que JET pone por tipo (filas, o {data,key}). */
+  function draggedIdsOf(json) {
+    let rows
+    try { rows = JSON.parse(json) } catch (e) { return [] }
+    if (!Array.isArray(rows)) rows = [rows]
+    return rows.map((r) => {
+      if (r == null) return null
+      if (typeof r !== 'object') return String(r)
+      const d = r.data && typeof r.data === 'object' ? r.data : r
+      const id = d.id != null ? d.id : (r.key != null ? r.key : null)
+      return id == null ? null : String(id)
+    }).filter((id) => id != null)
+  }
+
+  /** El tipo «charge» de un MIME «application/x-mateu-charge». */
+  const dragTypeOfMime = (mime) => String(mime || '').replace(/^application\/x-mateu-/, '')
+
+  let dropSink = null
+  function setDropSink(fn) { dropSink = typeof fn === 'function' ? fn : null }
+
+  // ── TILES REORDENABLES (ResponsiveGrid.reorderable): el bloque de cada tile lleva data-mateu-tile
+  // (su clave) y data-mateu-tile-scope; arrastrar uno sobre otro lo coloca ahí, y Alt+←/→ con el
+  // tile enfocado lo mueve un puesto. El orden se guarda (prefs: el mismo almacén que el web) y la
+  // página re-proyecta el host sin ir al servidor (tileSink).
+  const TILE_MIME = 'application/x-mateu-tile'
+  let tileSink = null
+  function setTileReorderSink(fn) { tileSink = typeof fn === 'function' ? fn : null }
+
+  /** Las claves de los tiles de un ámbito, en el orden en que están pintados. */
+  function paintedTileOrder(doc, scope) {
+    return Array.from(doc.querySelectorAll('[data-mateu-tile]'))
+      .filter((el) => el.getAttribute('data-mateu-tile-scope') === scope)
+      .map((el) => el.getAttribute('data-mateu-tile'))
+  }
+
+  function installTileReorder(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuTiles) return
+    doc.__mateuTiles = true
+    const tileOf = (t) => (t && t.closest ? t.closest('[data-mateu-tile]') : null)
+    const commit = (scope, next, focusKey) => {
+      writeTileOrder(scope, next)
+      if (tileSink) tileSink(scope)
+      if (focusKey) {
+        // tras re-proyectar, el foco vuelve al tile movido (VB repinta de forma asíncrona)
+        let tries = 0
+        const refocus = () => {
+          const el = Array.from(doc.querySelectorAll('[data-mateu-tile]'))
+            .find((n) => n.getAttribute('data-mateu-tile') === focusKey && n.getAttribute('data-mateu-tile-scope') === scope)
+          const painted = paintedTileOrder(doc, scope)
+          if (el && painted.join('|') === next.join('|')) { el.focus(); return }
+          if (++tries < 20) setTimeout(refocus, 50)
+        }
+        setTimeout(refocus, 0)
+      }
+    }
+    // el atributo draggable se pone al empezar el gesto (el bloque lo pinta la plantilla sin él)
+    doc.addEventListener('mousedown', (e) => { const tile = tileOf(e.target); if (tile) tile.draggable = true }, true)
+    doc.addEventListener('dragstart', (e) => {
+      const tile = tileOf(e.target)
+      if (!tile || !e.dataTransfer) return
+      e.dataTransfer.setData(TILE_MIME, tile.getAttribute('data-mateu-tile-scope') + '\n' + tile.getAttribute('data-mateu-tile'))
+      e.dataTransfer.effectAllowed = 'move'
+      tile.classList.add('mateu-tile-dragging')
+    }, true)
+    doc.addEventListener('dragend', () => {
+      for (const t of doc.querySelectorAll('.mateu-tile-dragging, .mateu-tile-over')) t.classList.remove('mateu-tile-dragging', 'mateu-tile-over')
+    }, true)
+    doc.addEventListener('dragover', (e) => {
+      const tile = tileOf(e.target)
+      const types = (e.dataTransfer && e.dataTransfer.types) ? Array.from(e.dataTransfer.types) : []
+      if (!tile || !types.includes(TILE_MIME)) return
+      e.preventDefault()
+      tile.classList.add('mateu-tile-over')
+    }, true)
+    doc.addEventListener('dragleave', (e) => {
+      const tile = tileOf(e.target)
+      if (tile && !(e.relatedTarget && tile.contains(e.relatedTarget))) tile.classList.remove('mateu-tile-over')
+    }, true)
+    doc.addEventListener('drop', (e) => {
+      const tile = tileOf(e.target)
+      const raw = tile && e.dataTransfer ? e.dataTransfer.getData(TILE_MIME) : ''
+      if (!raw) return
+      const [scope, moved] = raw.split('\n')
+      if (scope !== tile.getAttribute('data-mateu-tile-scope')) return
+      e.preventDefault()
+      const order = paintedTileOrder(doc, scope)
+      const next = moveTile(order, moved, tile.getAttribute('data-mateu-tile'))
+      if (next !== order) commit(scope, next, null)
+    }, true)
+    doc.addEventListener('keydown', (e) => {
+      if (!e.altKey || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return
+      const tile = e.target && e.target.hasAttribute && e.target.hasAttribute('data-mateu-tile') ? e.target : null
+      if (!tile) return
+      e.preventDefault()
+      const scope = tile.getAttribute('data-mateu-tile-scope')
+      const key = tile.getAttribute('data-mateu-tile')
+      const order = paintedTileOrder(doc, scope)
+      const next = moveTileBy(order, key, e.key === 'ArrowLeft' ? -1 : 1)
+      if (next !== order) commit(scope, next, key)
+    }, true)
+  }
+
+  function installDragAndDrop(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuDnd) return
+    doc.__mateuDnd = true
+    const zoneOf = (target, e) => {
+      const zone = target && target.closest ? target.closest('.mateu-drop-zone[data-drop-accept]') : null
+      if (!zone) return null
+      const accept = zone.getAttribute('data-drop-accept')
+      const types = (e.dataTransfer && e.dataTransfer.types) ? Array.from(e.dataTransfer.types) : []
+      return accept && types.includes(accept) ? zone : null
+    }
+    doc.addEventListener('dragover', (e) => {
+      const zone = zoneOf(e.target, e)
+      if (!zone) return
+      e.preventDefault()
+      if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
+      zone.classList.add('mateu-drop-over')
+    }, true)
+    doc.addEventListener('dragleave', (e) => {
+      const zone = e.target && e.target.closest ? e.target.closest('.mateu-drop-zone') : null
+      if (zone && !(e.relatedTarget && zone.contains(e.relatedTarget))) zone.classList.remove('mateu-drop-over')
+    }, true)
+    // mientras se arrastra algo con tipo, los destinos que lo aceptan se ofrecen (borde punteado)
+    doc.addEventListener('dragstart', (e) => {
+      const types = (e.dataTransfer && e.dataTransfer.types) ? Array.from(e.dataTransfer.types) : []
+      setTimeout(() => {
+        const live = (e.dataTransfer && e.dataTransfer.types) ? Array.from(e.dataTransfer.types) : types
+        for (const z of doc.querySelectorAll('.mateu-drop-zone[data-drop-accept]')) {
+          if (live.includes(z.getAttribute('data-drop-accept'))) z.classList.add('mateu-drop-ready')
+        }
+      })
+    }, true)
+    const clear = () => {
+      for (const z of doc.querySelectorAll('.mateu-drop-zone')) z.classList.remove('mateu-drop-ready', 'mateu-drop-over')
+    }
+    doc.addEventListener('dragend', clear, true)
+    doc.addEventListener('drop', (e) => {
+      const zone = zoneOf(e.target, e)
+      if (!zone) return
+      e.preventDefault()
+      clear()
+      const mime = zone.getAttribute('data-drop-accept')
+      const ids = draggedIdsOf(e.dataTransfer.getData(mime))
+      if (!ids.length || !dropSink) return
+      let params = {}
+      try { params = JSON.parse(zone.getAttribute('data-drop-params') || '{}') } catch (err) { params = {} }
+      dropSink(zone.getAttribute('data-drop-action'), { ...params, _draggedIds: ids, _dragType: dragTypeOfMime(mime) }, {})
+    }, true)
+  }
+
+
+  // MatrixGrid sobre oj-data-grid: el comportamiento que JET deja a la aplicación, instalado una
+  // vez por documento (como el rango del tape chart o los paneles de acciones):
+  //   - plegar/desplegar una sección: el grid pide (ojExpandRequest/ojCollapseRequest) y aquí se
+  //     cambia el KeySet del FlattenedTreeDataProviderView; el estado se guarda en el almacén de
+  //     paneles para que sobreviva a una re-proyección;
+  //   - editar: qué celdas se editan lo dice cell.editable (matrixAtomOf); al terminar
+  //     (ojBeforeEditEnd) el valor nuevo, si cambió, sale por editActionId;
+  //   - una celda que enlaza: clic → cellActionId. Ambas con { _rowId, _columnId, _value }.
+
+  let matrixSink = null
+  /** Quién ejecuta la acción (la shell reutiliza el sumidero de los Element). */
+  function setMatrixActionSink(fn) { matrixSink = typeof fn === 'function' ? fn : null }
+
+  /** Los parámetros de la acción de una celda. */
+  const matrixCellParams = (rowId, columnId, value) => ({ _rowId: rowId, _columnId: columnId, _value: value })
+
+  /** ¿Hay que lanzar la edición? Sólo si cambió (un Enter sin tocar nada no es una edición). */
+  const matrixEditChanged = (before, after) => String(before ?? '') !== String(after ?? '')
+
+  const gridOf = (el) => (el && el.closest ? el.closest('oj-data-grid.mateu-matrix') : null)
+  const rowKeyOf = (detail) => detail && detail.item && detail.item.metadata && detail.item.metadata.rowItem
+    && detail.item.metadata.rowItem.metadata && detail.item.metadata.rowItem.metadata.key
+
+  function installMatrixGrids(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuMatrixGrids) return
+    doc.__mateuMatrixGrids = true
+    const toggle = (expand) => (e) => {
+      const grid = gridOf(e.target)
+      const state = grid && grid.data && grid.data.__mateu
+      const key = rowKeyOf(e.detail)
+      if (!state || key == null) return
+      state.expanded = expand ? state.expanded.add([key]) : state.expanded.delete([key])
+      state.flat.setExpanded(state.expanded)
+      if (String(key).startsWith('§')) setPanelExpanded(matrixSectionKey(grid.dataset.matrixId, String(key).slice(1)), expand)
+    }
+    doc.addEventListener('ojExpandRequest', toggle(true), true)
+    doc.addEventListener('ojCollapseRequest', toggle(false), true)
+    doc.addEventListener('ojBeforeEditEnd', (e) => {
+      const grid = gridOf(e.target)
+      if (!grid || (e.detail && e.detail.cancelEdit)) return
+      const input = grid.querySelector('oj-input-text[data-mx-row]')
+      if (!input || !matrixSink || !grid.dataset.editAction) return
+      const before = input.getAttribute('data-mx-value')
+      const after = input.value
+      if (!matrixEditChanged(before, after)) return
+      matrixSink(grid.dataset.editAction, matrixCellParams(input.getAttribute('data-mx-row'), input.getAttribute('data-mx-col'), after), {})
+    }, true)
+    doc.addEventListener('click', (e) => {
+      const link = e.target && e.target.closest ? e.target.closest('[data-mx-link="true"]') : null
+      const grid = gridOf(link)
+      if (!link || !grid || !matrixSink || !grid.dataset.cellAction) return
+      matrixSink(grid.dataset.cellAction, matrixCellParams(link.getAttribute('data-mx-row'), link.getAttribute('data-mx-col'), link.textContent), {})
+    }, true)
+  }
+
+  void panelExpanded
+
+
+  // Map sobre Leaflet: JET no tiene mapa de calles (oj-thematic-map pinta geografía GeoJSON, no
+  // teselas), así que el átomo `isMap` es un contenedor que esto llena, una vez por documento como el
+  // texto enriquecido o el MatrixGrid:
+  //   - Leaflet (1.9.4) y su CSS se cargan del CDN de cdnjs al pintarse el primer mapa — nada se
+  //     vendoriza; con requirejs presente (VB) se pide por require, porque un <script> UMD con
+  //     requirejs cargado choca con su define anónimo;
+  //   - teselas de OpenStreetMap, como el <mateu-map> del web;
+  //   - un marcador = un círculo de su color con la etiqueta al lado (y la descripción al pasar);
+  //     pulsarlo lanza markerActionId con { _markerId };
+  //   - con marcadores y sin posición, la vista los encuadra (mapViewPlanOf, la misma regla que
+  //     planMapView en libs/mateu).
+
+  const LEAFLET_JS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js'
+  const LEAFLET_CSS = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css'
+  const OSM_TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+  const DEFAULT_PIN = '#c74634'
+  const DEFAULT_ZOOM = 3
+  const SINGLE_MARKER_ZOOM = 15
+
+  let mapSink = null
+  /** Quién ejecuta la acción de un marcador (la shell reutiliza el sumidero de los Element). */
+  function setMapActionSink(fn) { mapSink = typeof fn === 'function' ? fn : null }
+
+  /** "lat, lon" → { lat, lon }, o null si no son dos números. */
+  function parseMapPosition(position) {
+    if (!position) return null
+    const parts = String(position).split(',').map((p) => p.trim())
+    if (parts.length !== 2 || parts[0] === '' || parts[1] === '') return null
+    const lat = Number(parts[0])
+    const lon = Number(parts[1])
+    return Number.isFinite(lat) && Number.isFinite(lon) ? { lat, lon } : null
+  }
+
+  function parseMapZoom(zoom) {
+    if (zoom == null || String(zoom).trim() === '') return DEFAULT_ZOOM
+    const z = Number(zoom)
+    return Number.isFinite(z) ? z : DEFAULT_ZOOM
+  }
+
+  /** Qué enseña el mapa al abrirse: la posición explícita manda; si no, los marcadores (uno se
+   *  centra, varios se encuadran); si no, el mundo. Misma regla que planMapView (libs/mateu). */
+  function mapViewPlanOf(spec) {
+    const center = parseMapPosition(spec.position)
+    if (center) return { kind: 'center', center, zoom: parseMapZoom(spec.zoom) }
+    const points = (spec.markers || []).filter((m) => Number.isFinite(m.latitude) && Number.isFinite(m.longitude))
+    if (points.length === 1) {
+      const hasZoom = spec.zoom != null && String(spec.zoom).trim() !== ''
+      return { kind: 'center', center: { lat: points[0].latitude, lon: points[0].longitude },
+        zoom: hasZoom ? parseMapZoom(spec.zoom) : SINGLE_MARKER_ZOOM }
+    }
+    if (points.length > 1) {
+      return {
+        kind: 'fit',
+        min: { lat: Math.min(...points.map((p) => p.latitude)), lon: Math.min(...points.map((p) => p.longitude)) },
+        max: { lat: Math.max(...points.map((p) => p.latitude)), lon: Math.max(...points.map((p) => p.longitude)) },
+      }
+    }
+    return { kind: 'center', center: { lat: 0, lon: 0 }, zoom: parseMapZoom(spec.zoom) }
+  }
+
+  /** Los parámetros de la acción de un marcador. */
+  const mapMarkerParams = (markerId) => ({ _markerId: markerId })
+
+  let leafletPromise = null
+  function loadLeaflet(doc) {
+    if (typeof window !== 'undefined' && window.L && window.L.map) return Promise.resolve(window.L)
+    if (leafletPromise) return leafletPromise
+    if (!doc.querySelector('link[data-mateu-leaflet]')) {
+      const link = doc.createElement('link')
+      link.rel = 'stylesheet'
+      link.href = LEAFLET_CSS
+      link.setAttribute('data-mateu-leaflet', '')
+      doc.head.appendChild(link)
+    }
+    leafletPromise = new Promise((resolve, reject) => {
+      const amd = typeof window !== 'undefined' && typeof window.require === 'function'
+        && typeof window.define === 'function' && window.define.amd
+      if (amd) {
+        window.require([LEAFLET_JS], (L) => resolve(L || window.L), reject)
+        return
+      }
+      const script = doc.createElement('script')
+      script.src = LEAFLET_JS
+      script.onload = () => resolve(window.L)
+      script.onerror = reject
+      doc.head.appendChild(script)
+    }).catch((e) => { leafletPromise = null; throw e })
+    return leafletPromise
+  }
+
+  function drawMap(L, el, spec) {
+    if (el.__mateuMap) { el.__mateuMap.remove(); el.__mateuMap = null }
+    const map = L.map(el, { scrollWheelZoom: true })
+    L.tileLayer(OSM_TILES, {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map)
+    for (const m of spec.markers || []) {
+      const pin = L.circleMarker([m.latitude, m.longitude], {
+        radius: 8, color: '#ffffff', weight: 2, fillColor: m.color || DEFAULT_PIN, fillOpacity: 1,
+        bubblingMouseEvents: false,
+      }).addTo(map)
+      if (m.label) pin.bindTooltip(m.label, { permanent: true, direction: 'right', offset: [8, 0], className: 'mateu-map-label' })
+      const hover = [m.label, m.description].filter(Boolean).join(' · ')
+      if (hover && pin.getElement && pin.getElement()) pin.getElement().setAttribute('aria-label', hover)
+      if (spec.markerActionId) {
+        pin.on('click', () => { if (mapSink) mapSink(spec.markerActionId, mapMarkerParams(m.id), {}) })
+        if (pin.getElement && pin.getElement()) pin.getElement().style.cursor = 'pointer'
+      }
+      if (m.description) pin.on('mouseover', () => { el.title = hover }).on('mouseout', () => { el.title = '' })
+    }
+    const plan = mapViewPlanOf(spec)
+    if (plan.kind === 'fit') {
+      map.fitBounds([[plan.min.lat, plan.min.lon], [plan.max.lat, plan.max.lon]],
+        { paddingTopLeft: [48, 48], paddingBottomRight: [160, 48], maxZoom: 16 })
+    } else {
+      map.setView([plan.center.lat, plan.center.lon], plan.zoom)
+    }
+    el.__mateuMap = map
+    // el contenedor puede haber cambiado de tamaño al asentarse la página (VB pinta por pasos)
+    setTimeout(() => map.invalidateSize(), 300)
+  }
+
+  function installMaps(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuMaps || typeof MutationObserver === 'undefined') return
+    doc.__mateuMaps = true
+    const fill = (el) => {
+      const raw = el.getAttribute('data-map-spec') || ''
+      if (!raw || el.__mateuMapSpec === raw) return
+      el.__mateuMapSpec = raw
+      let spec
+      try { spec = JSON.parse(raw) } catch (e) { return }
+      loadLeaflet(doc).then((L) => {
+        // la especificación pudo cambiar (o el contenedor desaparecer) mientras cargaba
+        if (el.__mateuMapSpec === raw && el.isConnected) drawMap(L, el, spec)
+      }).catch(() => {
+        el.textContent = 'The map could not be loaded.'
+      })
+    }
+    const scan = (root) => {
+      if (root.nodeType !== 1) return
+      if (root.hasAttribute('data-map-spec')) fill(root)
+      for (const el of root.querySelectorAll('[data-map-spec]')) fill(el)
+    }
+    scan(doc.body || doc.documentElement)
+    new MutationObserver((records) => {
+      for (const r of records) {
+        if (r.type === 'attributes') fill(r.target)
+        else for (const n of r.addedNodes) scan(n)
+      }
+    }).observe(doc.body || doc.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ['data-map-spec'] })
+  }
+
+
+  // TONOS DE FILA del listado (@RowStatus) y filas de GRUPO (@GroupBy) sobre el oj-table de JET.
+  // oj-table no tiene clase por fila (sólo plantillas de celda o una plantilla de fila entera que
+  // obligaría a repintar todas las columnas a mano), así que una pasada mínima por el DOM: cada `tr`
+  // del cuerpo de #mateuTable recibe la clase de su fila (misma posición: la página se pinta entera,
+  // sin virtualizar). Un MutationObserver la repite cuando JET repinta (orden, página, refresco).
+
+  let tones = []
+
+  /** Los tonos de las filas en pantalla, en orden (de listingOf(...).rows: _tone de cada una). */
+  function setListingTones(rows) {
+    tones = (rows || []).map((r) => (r && r._tone) || '')
+    applyRowTonesSoon()
+  }
+
+  const toneClassOf = (tone) => (tone ? 'mateu-row-tone-' + tone : '')
+
+  function applyRowTones(doc) {
+    const table = doc.getElementById('mateuTable')
+    if (!table) return 0
+    const trs = table.querySelectorAll('tbody tr')
+    let n = 0
+    trs.forEach((tr, i) => {
+      const want = toneClassOf(tones[i])
+      for (const c of [...tr.classList]) if (c.startsWith('mateu-row-tone-') && c !== want) tr.classList.remove(c)
+      if (want && !tr.classList.contains(want)) { tr.classList.add(want); n++ }
+    })
+    return n
+  }
+
+  function applyRowTonesSoon(frames = 10) {
+    if (typeof requestAnimationFrame === 'undefined' || typeof document === 'undefined') return
+    let left = frames
+    const tick = () => { applyRowTones(document); if (--left > 0) requestAnimationFrame(tick) }
+    requestAnimationFrame(tick)
+  }
+
+  /** Vigila (una vez) los repintados del oj-table para volver a poner los tonos. */
+  function installRowTones(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuRowTones || typeof MutationObserver === 'undefined') return
+    doc.__mateuRowTones = true
+    let pending = false
+    new MutationObserver(() => {
+      if (pending || !tones.some(Boolean)) return
+      pending = true
+      requestAnimationFrame(() => { pending = false; applyRowTones(doc) })
+    }).observe(doc.body, { childList: true, subtree: true })
+  }
+
+  // ── cabecera de ficha FIJA y compacta al hacer scroll (la «business card» de OPERA) ─────────────
+  /** Marca el body con mateu-scrolled en cuanto la página deja la cabecera atrás: app.css pinta la
+   *  banda .mateu-sticky-header compacta (menos aire, sin tira, con sombra). */
+  function installStickyHeader(win = typeof window !== 'undefined' ? window : null) {
+    if (!win || win.__mateuStickyHeader) return
+    win.__mateuStickyHeader = true
+    let on = false
+    win.addEventListener('scroll', () => {
+      const now = win.scrollY > 48
+      if (now !== on) { on = now; win.document.body.classList.toggle('mateu-scrolled', now) }
+    }, { passive: true })
   }
 
 
@@ -6309,6 +9723,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
    *  Los 4 campos de ruta salen del `outbound` que loadRouteInto estampó al cargar el
    *  contexto (un mediador necesita consumedRoute + serverSideType también en las acciones). */
   function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
+    // los OnSuccess (refresco periódico) se leen del contexto que LANZA la acción
+    const source = ctx
     // la acción va al ServerSide que la DECLARA (la vista, no el mediador que la cargó): también
     // los triggers — el OnLoad «actualizar» de una vista cargada por un crud —, no sólo los botones
     ctx = actionTransportOf(ctx, actionId)
@@ -6339,7 +9755,11 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       initiatorComponentId: initiator,
       ...extra,
     }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent })
-      .then((inc) => { release(); return inc }, (e) => { release(); throw e })
+      .then((inc) => {
+        release()
+        if (inc) actionSucceeded(source, actionId)
+        return inc
+      }, (e) => { release(); throw e })
   }
 
   /**
@@ -6460,6 +9880,49 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
       }
     }
     return null
+  }
+
+  /** ¿La carga contestó el «Not found.» del servidor (un Text suelto, sin ServerSide)? */
+  function isServerNotFound(ctx) {
+    const t = ctx && ctx.tree
+    return !!(t && t.type === 'ClientSide' && t.metadata && t.metadata.type === 'Text'
+      && /^not found\.?$/i.test(String(t.metadata.text || '').trim()))
+  }
+
+  /** La ruta TERMINAL de una entrada de menú dentro de un grupo (/gestion/island-host → /island-host),
+   *  o null si no cuelga de ningún grupo. */
+  function terminalMenuRouteOf(menu, route) {
+    const path = String(route || '').split('?')[0]
+    const query = String(route || '').slice(path.length)
+    let found = null
+    const visit = (options, parent) => {
+      for (const o of options || []) {
+        const r = o && (o.route || o.path)
+        if (!r) continue
+        if (parent && r === path && r.indexOf(parent + '/') === 0) found = r.slice(parent.length) + query
+        visit(o.submenus || o.submenu, r)
+      }
+    }
+    visit(menu, '')
+    return found
+  }
+
+  /**
+   * Carga una ruta del MENÚ LOCAL: la compuesta con el serverSideType del app que la declara (lo
+   * que hace Vaadin al elegir la opción); si el servidor no la reconoce —un RouteLink metido en un
+   * grupo apunta a una ruta absoluta que no es camino de menú— se reintenta por la terminal.
+   * Una ruta que no es del menú se carga tal cual.
+   */
+  async function loadMenuRouteInto(base, reg, route, targetId = '', extra = {}) {
+    const shell = (reg && reg.shell) || {}
+    const option = localMenuOptionOf(shell.menu, route)
+    if (!option) return loadRouteInto(base, reg, route, targetId, extra)
+    const next = await loadRouteInto(base, reg, route, targetId,
+      { ...extra, serverSideType: option.serverSideType || shell.serverSideType })
+    const terminal = terminalMenuRouteOf(shell.menu, route)
+    if (terminal && isServerNotFound(next.contexts[targetId === '' ? HOST_ID : targetId]))
+      return loadRouteInto(base, reg, terminal, targetId, extra)
+    return next
   }
 
   /**
@@ -7791,6 +11254,38 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     return () => { observer.disconnect(); el.removeEventListener('scroll', onScroll) }
   }
 
+  // el importe de un campo money: IntlNumberConverter con estilo moneda (un objeto JSON ya no vale)
+  setConverterFactory((spec) => new NumberConverter.IntlNumberConverter(spec.options));
+  // reglas del cliente: cada reducción fija su contexto (las del host, con su estado)
+  // el selector de columnas: listingOf aplica las preferencias de la ruta en pantalla
+  setColumnPrefsReader(() => readColumnPrefs(listingScope()));
+  setAfterReduceHook((reg) => {
+    setRulesContext(reg.contexts[HOST_ID]);
+    // los @Action(shortcut) de la pantalla en curso (keys.mjs)
+    setShortcutContext(reg.contexts[HOST_ID]);
+    // los tonos de fila (@RowStatus) y las filas de grupo del listado del host
+    const listing = listingOf(reg.contexts[HOST_ID]);
+    setListingTones(listing ? listing.rows : []);
+  });
+  // MatrixGrid: oj-data-grid sobre un RowDataGridProvider de una vista aplanada del árbol (las
+  // secciones plegables las pinta JET); __mateu guarda lo que installMatrixGrids necesita
+  setMatrixProviderFactory((spec) => {
+    const tree = new ArrayTreeDataProvider(spec.data, { keyAttributes: 'id', childrenAttribute: 'children' });
+    const expanded = new KeySet.KeySetImpl(spec.expanded);
+    const flat = new FlattenedTreeDataProviderView(tree, { expanded });
+    const provider = new RowDataGridProvider.RowDataGridProvider(flat, {
+      columns: { rowHeader: ['label'], databody: spec.columnKeys },
+      columnHeaders: { column: spec.columnHeaders },
+      headerLabels: spec.rowHeaderLabel ? { row: [spec.rowHeaderLabel] } : undefined,
+      expandedObservable: flat.getExpandedObservable(),
+    });
+    provider.__mateu = { flat, expanded };
+    return provider;
+  });
+  // la lista de la campana: un ArrayDataProvider para el oj-list-view del popup
+  setNotificationsProviderFactory((items) => new ArrayDataProvider(items || [], { keyAttributes: 'id' }));
+  // campos de captura (fichero, imagen, firma, cámara): JET no los trae
+  defineCaptureField();
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
   setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));
   // el editor de cada filtro del buscador (smartFilters.filtersMetadata): oj-dynamic se carga
@@ -7804,10 +11299,65 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
   return {
     HOST_ID,
     mountElements,
+    setElementEventSink,
+    setElementModuleBase,
     mountElementsSoon,
     elementAtomsOf,
     foldoutElementAtomsOf,
     reduceContexts,
+    planningActionOf,
+    applyDomEffects,
+    installRules,
+    setPanelExpanded,
+    panelExpanded,
+    setColumnPrefsReader,
+    readColumnPrefs,
+    writeColumnPrefs,
+    columnChooserOf,
+    prefsFromChooser,
+    moveChooserItem,
+    listSavedViews,
+    saveView,
+    deleteView,
+    defaultView,
+    viewRouteOf,
+    currentViewValues,
+    viewsMenuOf,
+    listingScope,
+    installRowTones,
+    installStickyHeader,
+    installPlanningRange,
+    installActionPanels,
+    installMatrixGrids,
+    installMaps,
+    mapViewPlanOf,
+    installCalendars,
+    installKeys,
+    installHover,
+    installDragAndDrop,
+    setDropSink,
+    setKeysActionSink,
+    setAccessKeysEnabled,
+    startPolling,
+    setPollingRunner,
+    fetchNotifications,
+    installTileReorder,
+    installRichText,
+    setTileReorderSink,
+    bannerNotificationOf,
+    notificationsOf,
+    setUndoSink,
+    setCalendarActionSink,
+    setMatrixActionSink,
+    setMapActionSink,
+    actionPanelAtomOf,
+    shortcutMatches,
+    setPlanningRangeSink,
+    rulesDebug,
+    setRulesContext,
+    setRuleActionSink,
+    valueChangeActionOf,
+    triggerDownload,
     autoTrail,
     parentCrumb,
     collectFields,
@@ -7894,6 +11444,8 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     shellNavOf,
     // la subcabecera MENU_ON_TOP: la sección en pantalla y el acento de marca del App
     activeSectionOf,
+    localMenuOptionOf,
+    isSentinelHome,
     sectionOf,
     sectionHomeOf,
     ojIconOf,
@@ -7931,6 +11483,7 @@ define(['require', 'ojs/ojarraydataprovider'], (require, ArrayDataProvider) => {
     bootstrapShell,
     loadRoute,
     loadRouteInto,
+    loadMenuRouteInto,
     composeInnerRoute,
     mediatorBaseOf,
     routeFlipOf,

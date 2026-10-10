@@ -65,6 +65,32 @@ public class OnboardingWizard extends Wizard {
 
 The last step is instantiated automatically with its default field values if it is `null` when `@WizardCompletionAction` returns — or the wizard can set it explicitly inside the completion method.
 
+The completion method's return value decides where the wizard goes:
+
+| Returns | Result |
+|---|---|
+| `null` | The result step. |
+| `Message.error(...)` (or any other object) | That answer, and the wizard stays on the step. |
+| A `Flux` — typically a [`LongTask`](/ux-patterns/long-running-jobs/) | The progress streams live, then the result step. If the stream emits a `Message.error`, the wizard stays on the step instead. |
+
+A completion method declared to return a `Flux` is advertised as an SSE action, so the client receives the progress as it is produced:
+
+```java
+@WizardCompletionAction
+@Label("Run end of day")
+Flux<?> run() {
+  if (!cashiers.closeAll) {
+    return Flux.just(Message.error("Close the open cashiers first."));
+  }
+  return LongTask.create("Running end of day")
+      .withProgressBar()
+      .run(progress -> Flux.fromIterable(procedures)
+          .map(p -> progress.step(p.run(), p.index() / (double) procedures.size())));
+}
+```
+
+The result step is built once the stream is over, so whatever the work set on the wizard while it ran (here, the status of each procedure) is on the result screen. Streamed completions are Java-only: the .NET and Python ports have no `LongTask`.
+
 The wizard **title** is derived in order: `@Title` annotation → `TitleSupplier.title()` → class name.
 
 ![Registration wizard — step 1 with progress bar and Next button](/images/docs/ux-patterns/wizard.png)

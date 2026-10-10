@@ -31,6 +31,8 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         session.homeRoute = metadata.text("homeRoute").ifBlank { null }
         session.homeConsumedRoute = metadata.text("homeConsumedRoute")
         session.homeServerSideType = metadata.text("homeServerSideType")
+        // Keyboard access keys: views assign Alt+letter mnemonics to their buttons and tabs.
+        session.accessKeys = metadata.bool("accessKeys")
         session.onAppMenuChanged?.invoke()
         com.intellij.ide.ActivityTracker.getInstance().inc()
     }
@@ -109,25 +111,139 @@ private fun addMenuItems(session: AppSession, panel: javax.swing.JPanel, menu: J
         }
         val label = item.text("label")
         val submenus = item.path("submenus")
-        if (submenus.isArray && !submenus.isEmpty) {
+        if (MenuCards.isCardsGroup(item)) {
+            addMenuCards(session, panel, item, depth)
+        } else if (submenus.isArray && !submenus.isEmpty) {
             val header = JBLabel(if (depth == 0) label.uppercase() else label)
             header.font = header.font.deriveFont(Font.BOLD)
             header.border = JBUI.Borders.empty(6, depth * 12, 2, 0)
             panel.addStacked(header, 2)
             addMenuItems(session, panel, submenus, depth + 1)
         } else {
-            val link = ActionLink(label) {
-                session.openViewHandler?.invoke(
-                    label,
-                    item.text("route"),
-                    item.text("consumedRoute"),
-                    item.text("serverSideType"),
-                    item.text("actionId"),
-                )
-            }
+            val link = ActionLink(label) { openMenuEntry(session, item) }
             link.border = JBUI.Borders.emptyLeft(depth * 12)
             panel.addStacked(link, 2)
         }
+    }
+}
+
+/** Opens a menu leaf exactly like a click on its navigator link. */
+private fun openMenuEntry(session: AppSession, item: JsonNode) {
+    session.openViewHandler?.invoke(
+        item.text("label"),
+        item.text("route"),
+        item.text("consumedRoute"),
+        item.text("serverSideType"),
+        item.text("actionId"),
+    )
+}
+
+/** Side of the square reserved for a card's icon/image, so a late image load never resizes the row. */
+private const val CARD_ICON_SIZE = 32
+
+/**
+ * A `display: "cards"` group: its header as usual, then one bordered card per entry — icon/image
+ * on the left, the bold title (a link when the entry is navigable) over the secondary description,
+ * and, for an entry with submenus, its actions as a row of small links under the text.
+ */
+private fun addMenuCards(session: AppSession, panel: javax.swing.JPanel, group: JsonNode, depth: Int) {
+    val groupLabel = group.text("label")
+    if (groupLabel.isNotBlank()) {
+        val header = JBLabel(if (depth == 0) groupLabel.uppercase() else groupLabel)
+        header.font = header.font.deriveFont(Font.BOLD)
+        header.border = JBUI.Borders.empty(6, depth * 12, 2, 0)
+        panel.addStacked(header, 2)
+    }
+    for (card in MenuCards.cardsOf(group, session.baseUrl)) {
+        panel.addStacked(menuCard(session, card, depth), 4)
+    }
+}
+
+private fun menuCard(session: AppSession, card: MenuCards.Card, depth: Int): JComponent {
+    val box = javax.swing.JPanel(java.awt.BorderLayout(JBUI.scale(8), 0))
+    box.isOpaque = false
+    box.border = JBUI.Borders.compound(
+        JBUI.Borders.emptyLeft(depth * 12),
+        JBUI.Borders.compound(JBUI.Borders.customLine(com.intellij.ui.JBColor.border(), 1), JBUI.Borders.empty(8)),
+    )
+
+    menuCardVisual(card)?.let { box.add(it, java.awt.BorderLayout.WEST) }
+
+    val text = verticalPanel(0)
+    val title: JComponent = if (card.target != null) {
+        ActionLink(card.title) { openMenuEntry(session, card.target) }
+    } else {
+        JBLabel(card.title)
+    }
+    title.font = title.font.deriveFont(Font.BOLD)
+    title.accessibleName(card.title).accessibleDescription(card.description)
+    text.addStacked(title, 2)
+    card.description?.let { description ->
+        val secondary = JBLabel(description)
+        secondary.foreground = com.intellij.util.ui.UIUtil.getContextHelpForeground()
+        secondary.font = JBUI.Fonts.smallFont()
+        text.addStacked(secondary, 2)
+    }
+    if (card.actions.isNotEmpty()) {
+        val actions = javax.swing.JPanel(java.awt.FlowLayout(java.awt.FlowLayout.LEFT, JBUI.scale(8), 0))
+        actions.isOpaque = false
+        for (action in card.actions) {
+            val actionLabel = action.text("label")
+            val link = ActionLink(actionLabel) { openMenuEntry(session, action) }
+            link.font = JBUI.Fonts.smallFont()
+            // the action label alone ("New", "List") is ambiguous out of the card's visual context
+            link.accessibleName("${card.title}: $actionLabel")
+            actions.add(link)
+        }
+        text.addStacked(actions, 0)
+    }
+    box.add(text, java.awt.BorderLayout.CENTER)
+
+    // the whole card is clickable for a navigable entry (the title link stays the keyboard target)
+    if (card.target != null) {
+        box.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
+        box.addMouseListener(object : java.awt.event.MouseAdapter() {
+            override fun mouseClicked(e: java.awt.event.MouseEvent) = openMenuEntry(session, card.target)
+        })
+    }
+    box.accessibleName(card.title).accessibleDescription(card.description)
+    return box
+}
+
+/** The card's image (loaded off the EDT, scaled into a fixed square) or icon; null for neither. */
+private fun menuCardVisual(card: MenuCards.Card): JComponent? {
+    val size = JBUI.scale(CARD_ICON_SIZE)
+    val uri = card.imageUri
+    if (uri != null) {
+        val label = JBLabel()
+        label.preferredSize = java.awt.Dimension(size, size)
+        label.verticalAlignment = javax.swing.SwingConstants.TOP
+        com.intellij.openapi.application.ApplicationManager.getApplication().executeOnPooledThread {
+            val img = runCatching {
+                if (uri.startsWith("data:")) {
+                    val base64 = uri.substringAfter("base64,", "")
+                    if (base64.isNotBlank()) javax.imageio.ImageIO.read(java.util.Base64.getDecoder().decode(base64).inputStream()) else null
+                } else {
+                    javax.imageio.ImageIO.read(java.net.URI.create(uri).toURL())
+                }
+            }.getOrNull() ?: return@executeOnPooledThread
+            val scale = minOf(size.toDouble() / img.width, size.toDouble() / img.height)
+            val icon = javax.swing.ImageIcon(img.getScaledInstance(
+                (img.width * scale).toInt().coerceAtLeast(1), (img.height * scale).toInt().coerceAtLeast(1), java.awt.Image.SCALE_SMOOTH))
+            javax.swing.SwingUtilities.invokeLater { label.icon = icon }
+        }
+        return label
+    }
+    val name = card.icon ?: return null
+    val ideIcon = uxActionIcon(name)
+    return when {
+        ideIcon != null -> JBLabel(ideIcon).apply { verticalAlignment = javax.swing.SwingConstants.TOP }
+        // a glyph (emoji) is shown as text; an unmapped design-system name (`vaadin:…`) is dropped
+        !name.contains(':') -> JBLabel(name).apply {
+            font = font.deriveFont(font.size2D * 1.5f)
+            verticalAlignment = javax.swing.SwingConstants.TOP
+        }
+        else -> null
     }
 }
 

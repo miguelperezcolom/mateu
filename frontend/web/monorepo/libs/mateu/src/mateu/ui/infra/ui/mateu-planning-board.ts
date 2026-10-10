@@ -2,6 +2,7 @@ import { css, html, LitElement, nothing } from "lit";
 import { customElement, property, state } from 'lit/decorators.js';
 import PlanningResource from "@mateu/shared/apiClients/dtos/componentmetadata/PlanningResource";
 import PlanningBlock from "@mateu/shared/apiClients/dtos/componentmetadata/PlanningBlock";
+import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 
 interface DragState {
     blockId: string
@@ -13,6 +14,34 @@ interface DragState {
     targetStartIdx: number
     moved: boolean              // pointer moved beyond the click threshold
 }
+
+/** Dragging one EDGE of a block (resizeActionId): the other edge stays put. */
+interface ResizeState {
+    blockId: string
+    resourceId: string
+    edge: 'start' | 'end'
+    startIdx: number
+    endIdx: number
+    originStartIdx: number
+    originEndIdx: number
+}
+
+/** Dragging across EMPTY cells of a resource (rangeSelectActionId): a new stay, an OOO period. */
+interface RangeState {
+    resourceId: string
+    anchorIdx: number
+    currentIdx: number
+}
+
+/** The days of a range selection, whatever direction the pointer went (pure; tested). */
+export const rangeOf = (anchorIdx: number, currentIdx: number): { startIdx: number, endIdx: number } =>
+    ({ startIdx: Math.min(anchorIdx, currentIdx), endIdx: Math.max(anchorIdx, currentIdx) })
+
+/** A resized block's new days: the dragged edge moves, never past the other one (pure; tested). */
+export const resizedDays = (edge: 'start' | 'end', originStartIdx: number, originEndIdx: number, day: number) =>
+    edge === 'start'
+        ? { startIdx: Math.min(day, originEndIdx), endIdx: originEndIdx }
+        : { startIdx: originStartIdx, endIdx: Math.max(day, originStartIdx) }
 
 /**
  * Dependency-free planning board / tape chart: rows = resources (with optional group swimlane
@@ -41,6 +70,28 @@ export class MateuPlanningBoard extends LitElement {
 
     @property()
     selectActionId: string | undefined
+
+    /** headers of the attribute columns next to each resource (values in resource.attributes) */
+    @property({ type: Array })
+    attributeColumns: string[] = []
+
+    /** drag a block's edge → {_blockId, _resourceId, _start, _end} */
+    @property()
+    resizeActionId: string | undefined
+
+    /** double click on a block → {_blockId} */
+    @property()
+    openActionId: string | undefined
+
+    /** drag across empty cells of a resource → {_resourceId, _start, _end} */
+    @property()
+    rangeSelectActionId: string | undefined
+
+    @state()
+    private resize: ResizeState | null = null
+
+    @state()
+    private range: RangeState | null = null
 
     @state()
     private drag: DragState | null = null
@@ -174,6 +225,28 @@ export class MateuPlanningBoard extends LitElement {
         .block.dragging {
             opacity: .35;
             cursor: grabbing;
+        }
+        .label { display: flex; align-items: center; gap: .5rem; }
+        .label .res-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; display: inline-flex; align-items: center; gap: .3rem; }
+        .label .attr, .corner .attr {
+            flex: 0 0 4rem; overflow: hidden; text-overflow: ellipsis; color: var(--lumo-secondary-text-color, #666);
+            font-size: .85em;
+        }
+        .corner { display: flex; align-items: center; gap: .5rem; }
+        .corner .res-name { flex: 1 1 auto; }
+        .block vaadin-icon, .label vaadin-icon { width: .9rem; height: .9rem; vertical-align: -2px; margin-right: .2rem; }
+        .handle {
+            position: absolute; top: 0; bottom: 0; width: 6px; cursor: ew-resize; z-index: 1;
+        }
+        .handle.start { left: 0; }
+        .handle.end { right: 0; }
+        .handle:hover { background: rgba(255,255,255,.35); }
+        .cells.selectable { cursor: crosshair; }
+        .range {
+            position: absolute; top: 15%; bottom: 15%;
+            background: var(--lumo-primary-color-10pct, rgba(26,115,232,.12));
+            border: 1px solid var(--lumo-primary-color-50pct, rgba(26,115,232,.5));
+            border-radius: .35rem; pointer-events: none; z-index: 1;
         }
         .ghost {
             position: absolute;
@@ -349,14 +422,97 @@ export class MateuPlanningBoard extends LitElement {
     }
 
     private onDragKeydown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape' && this.drag) {
+        if (e.key === 'Escape' && (this.drag || this.resize || this.range)) {
             e.stopPropagation()
             this.endDrag()
         }
     }
 
+    private emit(actionId: string, parameters: Record<string, unknown>) {
+        this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: { actionId, parameters },
+            bubbles: true,
+            composed: true
+        }))
+    }
+
+    private measureLanes() {
+        this.laneRects = [...this.renderRoot.querySelectorAll<HTMLElement>('.lane[data-resource-id]')]
+            .map(lane => ({ resourceId: lane.dataset.resourceId!, rect: lane.getBoundingClientRect() }))
+    }
+
+    // --- resize: drag one edge ---------------------------------------------------------------
+
+    private onHandlePointerDown(e: PointerEvent, block: PlanningBlock, edge: 'start' | 'end', startIdx: number, endIdx: number) {
+        if (!this.resizeActionId) return
+        e.preventDefault()
+        e.stopPropagation()
+        ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+        this.measureLanes()
+        this.resize = { blockId: block.id!, resourceId: block.resourceId!, edge, startIdx, endIdx, originStartIdx: startIdx, originEndIdx: endIdx }
+        window.addEventListener('keydown', this.onDragKeydown)
+    }
+
+    private onHandlePointerMove(e: PointerEvent) {
+        if (!this.resize) return
+        e.stopPropagation()
+        const day = this.dayAt(this.resize.resourceId, e.clientX)
+        if (day == null) return
+        this.resize = { ...this.resize, ...resizedDays(this.resize.edge, this.resize.originStartIdx, this.resize.originEndIdx, day) }
+    }
+
+    private onHandlePointerUp(e: PointerEvent) {
+        e.stopPropagation()
+        const r = this.resize
+        this.endDrag()
+        const win = this.window()
+        if (!r || !win || !this.resizeActionId) return
+        if (r.startIdx === r.originStartIdx && r.endIdx === r.originEndIdx) return
+        // no optimistic change: the server answers with the board (or rejects with a message)
+        this.emit(this.resizeActionId, {
+            _blockId: r.blockId,
+            _resourceId: r.resourceId,
+            _start: MateuPlanningBoard.iso(MateuPlanningBoard.addDays(win.from, r.startIdx)),
+            _end: MateuPlanningBoard.iso(MateuPlanningBoard.addDays(win.from, r.endIdx)),
+        })
+    }
+
+    // --- range selection on empty cells --------------------------------------------------------
+
+    private onCellsPointerDown(e: PointerEvent, resourceId: string) {
+        if (!this.rangeSelectActionId || e.button > 0) return
+        e.preventDefault()
+        ;(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)
+        this.measureLanes()
+        const day = this.dayAt(resourceId, e.clientX)
+        if (day == null) return
+        this.range = { resourceId, anchorIdx: day, currentIdx: day }
+        window.addEventListener('keydown', this.onDragKeydown)
+    }
+
+    private onCellsPointerMove(e: PointerEvent) {
+        if (!this.range) return
+        const day = this.dayAt(this.range.resourceId, e.clientX)
+        if (day != null && day !== this.range.currentIdx) this.range = { ...this.range, currentIdx: day }
+    }
+
+    private onCellsPointerUp() {
+        const r = this.range
+        this.endDrag()
+        const win = this.window()
+        if (!r || !win || !this.rangeSelectActionId) return
+        const { startIdx, endIdx } = rangeOf(r.anchorIdx, r.currentIdx)
+        this.emit(this.rangeSelectActionId, {
+            _resourceId: r.resourceId,
+            _start: MateuPlanningBoard.iso(MateuPlanningBoard.addDays(win.from, startIdx)),
+            _end: MateuPlanningBoard.iso(MateuPlanningBoard.addDays(win.from, endIdx)),
+        })
+    }
+
     private endDrag() {
         this.drag = null
+        this.resize = null
+        this.range = null
         window.removeEventListener('keydown', this.onDragKeydown)
     }
 
@@ -387,8 +543,8 @@ export class MateuPlanningBoard extends LitElement {
             rows.push(this.renderRow(resource, win, days, todayVisible ? todayIdx : null))
         })
         return html`
-            <div class="frame" style="grid-template-columns: minmax(8rem, 12rem) repeat(${win.days}, minmax(2.2rem, 1fr));">
-                <div class="corner">Resource</div>
+            <div class="frame" style="grid-template-columns: minmax(${8 + 4.5 * this.attributeColumns.length}rem, ${12 + 4.5 * this.attributeColumns.length}rem) repeat(${win.days}, minmax(2.2rem, 1fr));">
+                <div class="corner"><span class="res-name">Resource</span>${this.attributeColumns.map(c => html`<span class="attr">${c}</span>`)}</div>
                 ${days.map((day, i) => html`
                     <div class="day-head ${this.isWeekend(day) ? 'weekend' : ''} ${i === todayIdx ? 'today' : ''}">
                         <span class="dow">${day.toLocaleDateString(undefined, { weekday: 'short' })}</span>
@@ -409,9 +565,16 @@ export class MateuPlanningBoard extends LitElement {
         const blocks = this.blocks.filter(b => b.resourceId === resource.id && b.start && b.end)
         const ghost = this.drag?.moved && this.drag.targetResourceId === resource.id ? this.drag : null
         return html`
-            <div class="label" title="${resource.label ?? ''}">${resource.label}</div>
+            <div class="label" title="${resource.label ?? ''}">
+                <span class="res-name">${resource.icon ? icon(resource.icon) : nothing}${resource.label}</span>
+                ${this.attributeColumns.map((_, i) => html`<span class="attr">${(resource.attributes ?? [])[i] ?? ''}</span>`)}
+            </div>
             <div class="lane" data-resource-id="${resource.id}">
-                <div class="cells">
+                <div class="cells ${this.rangeSelectActionId ? 'selectable' : ''}"
+                     @pointerdown="${(e: PointerEvent) => this.onCellsPointerDown(e, resource.id!)}"
+                     @pointermove="${(e: PointerEvent) => this.onCellsPointerMove(e)}"
+                     @pointerup="${() => this.onCellsPointerUp()}"
+                     @pointercancel="${() => this.endDrag()}">
                     ${days.map(day => html`<div class="cell ${this.isWeekend(day) ? 'weekend' : ''}"></div>`)}
                 </div>
                 ${todayIdx != null ? html`<div class="today-line" style="left: ${(todayIdx + .5) * pctPerDay}%;"></div>` : nothing}
@@ -424,17 +587,33 @@ export class MateuPlanningBoard extends LitElement {
                     const visibleStart = Math.max(0, startIdx)
                     const visibleEnd = Math.min(win.days - 1, endIdx)
                     const dragging = this.drag?.moved && this.drag.blockId === block.id
+                    const resizing = this.resize?.blockId === block.id ? this.resize : null
+                    const shownStart = resizing ? Math.max(0, resizing.startIdx) : visibleStart
+                    const shownEnd = resizing ? Math.min(win.days - 1, resizing.endIdx) : visibleEnd
+                    const tooltip = block.summary
+                        ?? `${block.label ?? ''} · ${block.start} → ${block.end}${block.status ? ` · ${block.status}` : ''}`
                     return html`
                         <div class="block ${this.selectActionId ? 'clickable' : ''} ${this.moveActionId ? 'draggable' : ''} ${dragging ? 'dragging' : ''}"
-                             title="${block.label ?? ''} · ${block.start} → ${block.end}${block.status ? ` · ${block.status}` : ''}"
-                             style="left: ${visibleStart * pctPerDay}%; width: ${(visibleEnd - visibleStart + 1) * pctPerDay}%; ${block.color ? `--mateu-planning-block: ${block.color};` : ''}"
+                             title="${tooltip}"
+                             style="left: ${shownStart * pctPerDay}%; width: ${(shownEnd - shownStart + 1) * pctPerDay}%; ${block.color ? `--mateu-planning-block: ${block.color};` : ''}"
+                             @dblclick="${this.openActionId ? () => this.emit(this.openActionId!, { _blockId: block.id }) : nothing}"
                              @pointerdown="${(e: PointerEvent) => this.onBlockPointerDown(e, block, startIdx)}"
                              @pointermove="${(e: PointerEvent) => this.onBlockPointerMove(e)}"
                              @pointerup="${() => this.onBlockPointerUp(block)}"
                              @pointercancel="${() => this.endDrag()}"
-                        >${block.label}</div>
+                        >${this.resizeActionId ? html`<span class="handle start"
+                                @pointerdown="${(e: PointerEvent) => this.onHandlePointerDown(e, block, 'start', startIdx, endIdx)}"
+                                @pointermove="${(e: PointerEvent) => this.onHandlePointerMove(e)}"
+                                @pointerup="${(e: PointerEvent) => this.onHandlePointerUp(e)}"></span>` : nothing}${block.icon ? icon(block.icon) : nothing}${block.label}${this.resizeActionId ? html`<span class="handle end"
+                                @pointerdown="${(e: PointerEvent) => this.onHandlePointerDown(e, block, 'end', startIdx, endIdx)}"
+                                @pointermove="${(e: PointerEvent) => this.onHandlePointerMove(e)}"
+                                @pointerup="${(e: PointerEvent) => this.onHandlePointerUp(e)}"></span>` : nothing}</div>
                     `
                 })}
+                ${this.range && this.range.resourceId === resource.id ? (() => {
+                    const { startIdx, endIdx } = rangeOf(this.range!.anchorIdx, this.range!.currentIdx)
+                    return html`<div class="range" style="left: ${startIdx * pctPerDay}%; width: ${(endIdx - startIdx + 1) * pctPerDay}%;"></div>`
+                })() : nothing}
                 ${ghost ? html`
                     <div class="ghost"
                          style="left: ${ghost.targetStartIdx * pctPerDay}%; width: ${Math.min(ghost.duration, win.days - ghost.targetStartIdx) * pctPerDay}%;"></div>

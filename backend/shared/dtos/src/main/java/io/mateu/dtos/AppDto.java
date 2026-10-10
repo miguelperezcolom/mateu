@@ -44,6 +44,7 @@ public record AppDto(
     boolean globalSearchEnabled,
     boolean commandCenterEnabled,
     boolean chromeless,
+    boolean accessKeys,
     /** {@code @NoBreadcrumbs} on the shell: no automatic breadcrumb trail on any of its pages. */
     boolean noBreadcrumbs,
     /**

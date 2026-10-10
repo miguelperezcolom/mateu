@@ -9,6 +9,61 @@ import java.util.Map;
 
 final class FieldValueConverter {
 
+  /**
+   * A List/Set (or array) of enum constants receives what the client sends for a multi-choice
+   * widget — a list of names, or a comma-joined string after a URL restore — and needs the
+   * CONSTANTS in the collection type the field declares. Without this a Set field could not be
+   * filled from a list at all (the conversion threw, hydration swallowed it and the field kept its
+   * initializer) and a List field ended up holding raw strings. Anything else is left untouched.
+   */
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  static Object convertEnumCollection(java.lang.reflect.Field field, Object value) {
+    if (value == null) return null;
+    Class<?> type = field.getType();
+    Class<?> element = null;
+    if (type.isArray() && type.getComponentType().isEnum()) element = type.getComponentType();
+    else if (java.util.Collection.class.isAssignableFrom(type)
+        && field.getGenericType() instanceof java.lang.reflect.ParameterizedType p
+        && p.getActualTypeArguments().length == 1
+        && p.getActualTypeArguments()[0] instanceof Class<?> c
+        && c.isEnum()) element = c;
+    if (element == null) return value;
+    java.util.Collection<?> raw;
+    if (value instanceof java.util.Collection<?> collection) raw = collection;
+    else if (value instanceof String string)
+      raw = string.isBlank() ? List.of() : java.util.Arrays.asList(string.split(","));
+    else if (value.getClass().isArray()) raw = java.util.Arrays.asList((Object[]) value);
+    else return value;
+    var constants = new java.util.ArrayList<Object>();
+    for (Object item : raw) {
+      if (item == null) continue;
+      if (element.isInstance(item)) {
+        constants.add(item);
+        continue;
+      }
+      try {
+        constants.add(Enum.valueOf((Class<Enum>) element, String.valueOf(item).trim()));
+      } catch (IllegalArgumentException staleConstant) {
+        // a constant that no longer exists (an old saved view, a renamed value) is dropped
+      }
+    }
+    if (type.isArray()) {
+      Object array = java.lang.reflect.Array.newInstance(element, constants.size());
+      for (int i = 0; i < constants.size(); i++)
+        java.lang.reflect.Array.set(array, i, constants.get(i));
+      return array;
+    }
+    if (java.util.Set.class.isAssignableFrom(type)) {
+      if (java.util.EnumSet.class.isAssignableFrom(type)) {
+        var set = java.util.EnumSet.noneOf((Class<Enum>) element);
+        constants.forEach(c -> set.add((Enum) c));
+        return set;
+      }
+      return new java.util.LinkedHashSet<>(constants);
+    }
+    return constants;
+  }
+
   static Object convert(Object value, Class<?> targetType) throws Exception {
     if (value == null) {
       return null;

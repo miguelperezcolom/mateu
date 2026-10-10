@@ -139,28 +139,34 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         else
         {
             // [MenuItem(Group = "…")] entries sharing a Group nest as that folder's submenu (the
-            // folder appears where its first entry was declared); ungrouped entries stay leaves.
+            // folder appears where its first entry was declared); ungrouped entries stay leaves. A
+            // "/" in the Group nests folders ("Bookings/Reservations" = the Reservations folder
+            // inside Bookings) — how a card of a [MenuGroup(Display = "cards")] gets its actions.
             items = new List<MenuItemDto>();
             var folders = new Dictionary<string, List<MenuItemDto>>();
+            var groupLooks = appType.GetCustomAttributes<MenuGroupAttribute>()
+                .GroupBy(g => g.Group.Trim('/')).ToDictionary(g => g.Key, g => g.First());
+            List<MenuItemDto> FolderOf(string path)
+            {
+                if (folders.TryGetValue(path, out var existing)) return existing;
+                var slash = path.LastIndexOf('/');
+                var parent = slash < 0 ? items : FolderOf(path[..slash]);
+                var submenus = new List<MenuItemDto>();
+                folders[path] = submenus;
+                var look = groupLooks.GetValueOrDefault(path);
+                parent.Add(Presented(new MenuItemDto(T(slash < 0 ? path : path[(slash + 1)..]), "", "")
+                    { Submenus = submenus },
+                    look?.Display, look?.Description, look?.Icon, look?.Image));
+                return submenus;
+            }
             foreach (var m in appType.GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly)
                          .Where(m => m.Find<MenuItemAttribute>() != null && ForCurrentAudience(m)))
             {
-                var entry = MapMenuItem(m);
-                var group = m.Find<MenuItemAttribute>()!.Group;
-                if (group.Length == 0)
-                {
-                    items.Add(entry);
-                }
-                else if (folders.TryGetValue(group, out var submenu))
-                {
-                    submenu.Add(entry);
-                }
-                else
-                {
-                    var submenus = new List<MenuItemDto> { entry };
-                    folders[group] = submenus;
-                    items.Add(new MenuItemDto(T(group), "", "") { Submenus = submenus });
-                }
+                var attribute = m.Find<MenuItemAttribute>()!;
+                var entry = Presented(MapMenuItem(m), null, attribute.Description, attribute.Icon, attribute.Image);
+                var group = attribute.Group.Trim('/');
+                if (group.Length == 0) items.Add(entry);
+                else FolderOf(group).Add(entry);
             }
             // [RemoteMenu] entries: federated options — the frontend fetches the remote backend's
             // menu itself and mounts its views (no server-side proxying).
@@ -218,6 +224,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             // Command center (Ask-Oracle): the FAB + full-screen palette; chromeless implies it.
             CommandCenterEnabled = app.CommandCenter || app.Chromeless,
             Chromeless = app.Chromeless,
+            // Keyboard access keys (hold Alt to see them): opt-in, mirrors AppDto.accessKeys.
+            AccessKeys = app.AccessKeys,
         };
         return new ClientSideComponentDto(meta with { RequiredCapabilities = RequiredCapabilities(app, meta) }, "ux_main_app", [], null, null, null);
     }
@@ -312,7 +320,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             var attribute = property.Find<AppContextAttribute>();
             if (attribute is null || !property.PropertyType.IsEnum) continue;
             var options = Enum.GetNames(property.PropertyType)
-                .Select(name => new OptionDto(name, Naming.Humanize(name)))
+                .Select(name => new OptionDto(name, EnumLabel(property.PropertyType, name)))
                 .ToList();
             selectors.Add(new AppContextSelectorDto(
                 Naming.CamelCase(property.Name),
@@ -340,6 +348,18 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         }
         return selectors;
     }
+
+    /// <summary>The card look of a menu entry: Display "cards" on a group, description/icon/image on
+    /// an entry. Blank values stay null, so a plain menu travels exactly as before. (Mirrors Java's
+    /// MenuEntryMapper.presented + AppMenuDtoBuilder.)</summary>
+    private MenuItemDto Presented(MenuItemDto entry, string? display, string? description, string? icon, string? image) =>
+        entry with
+        {
+            Display = string.Equals(display, MenuDisplay.Cards, StringComparison.OrdinalIgnoreCase) ? MenuDisplay.Cards : null,
+            Description = string.IsNullOrWhiteSpace(description) ? null : T(description),
+            Icon = string.IsNullOrWhiteSpace(icon) ? null : icon,
+            Image = string.IsNullOrWhiteSpace(image) ? null : image,
+        };
 
     private MenuItemDto MapMenuItem(MethodInfo m)
     {
@@ -438,7 +458,15 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         if (tree is not null)
         {
             content = [ComponentMapper.Map(tree)];
-            actions.AddRange(ComponentMapper.CollectActionIds(tree)
+            // The tree's action ids are advertised so the web client sends them (it only sends what
+            // the component advertises). A tree-supplier view advertises the ones it has a handler
+            // method for — an id it cannot handle may be an ancestor's and must not be captured
+            // here (same rule as Java's TreeActionHarvester and Python's mapper). A YAML layout
+            // override advertises every id its buttons reference.
+            var referenced = treeSupplierView
+                ? ActionGuard.TreeActionIds(tree).Where(a => ActionGuard.HandlesTreeAction(type, a))
+                : ComponentMapper.CollectActionIds(tree);
+            actions.AddRange(referenced
                 .Where(a => actions.All(x => x.Id != a)).Select(a => new ActionDto(a)));
         }
         else
@@ -1108,6 +1136,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                 Stereotype = ColumnStereotypeOf(p),
                 CaptionPath = CaptionPathOf(p),
                 LeadingPath = LeadingPathOf(p),
+                TooltipPath = TooltipPathOf(p),
             }))
             .ToList();
         var actions = new List<ActionDto> { new("search") };
@@ -1130,6 +1159,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             Filters = MapListingFilters(filters),
             GridLayout = gridLayout,
             GroupBy = GroupByOf(row),
+            RowStatusField = RowStatusFieldOf(row),
+            DragType = DragTypeOf(viewType),
             // [RestListing]: rows fetched client-side from an arbitrary REST endpoint.
             RowsSource = RestListingOf(viewType),
             // A listing fills the space its parent leaves and scrolls internally (coherence-plan #8).
@@ -1175,13 +1206,13 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                     return new FormFieldMetadataDto(id, "string", label)
                     {
                         Stereotype = "multiSelect",
-                        Options = Enum.GetNames(el).Select(n => new OptionDto(n, Naming.Humanize(n))).ToList(),
+                        Options = Enum.GetNames(el).Select(n => new OptionDto(n, EnumLabel(el, n))).ToList(),
                     };
                 if (t.IsEnum)
                     return new FormFieldMetadataDto(id, "string", label)
                     {
                         Stereotype = "select",
-                        Options = Enum.GetNames(t).Select(n => new OptionDto(n, Naming.Humanize(n))).ToList(),
+                        Options = Enum.GetNames(t).Select(n => new OptionDto(n, EnumLabel(t, n))).ToList(),
                     };
                 return new FormFieldMetadataDto(id, InferDataType(t, p), label);
             })
@@ -1197,6 +1228,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         // remove the matching chrome — no New without CanCreate, no selection/Delete without
         // CanDelete, no clickable rows without CanView/CanEdit (mirrors Java's Crud switches).
         bool Hook(string name) => viewType.GetProperty(name)?.GetValue(crud) as bool? ?? true;
+        bool Hook0(string name) => viewType.GetProperty(name)?.GetValue(crud) as bool? ?? false;
         var canView = Hook("CanView");
         var canEdit = Hook("CanEdit");
         var canCreate = Hook("CanCreate");
@@ -1221,6 +1253,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                     Stereotype = ColumnStereotypeOf(p),
                     CaptionPath = CaptionPathOf(p),
                     LeadingPath = LeadingPathOf(p),
+                    TooltipPath = TooltipPathOf(p),
                     // The first column is the row-open affordance (mirrors the Java crud wire).
                     ActionId = rowsClickable && index == 0 ? "view" : null,
                 });
@@ -1232,6 +1265,14 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         {
             toolbar.Add(new ButtonDto("New", "new"));
             actions.Add(new ActionDto("new"));
+        }
+        // Export the listing (Crud.CsvExportable): the whole filtered set as a CSV download
+        // (mirrors Java's ListRouteResolver export buttons; the port's built-in CSV writer is the
+        // exporter, and Excel/PDF have none here).
+        if (Hook0("CsvExportable"))
+        {
+            toolbar.Insert(0, new ButtonDto("Export CSV", "export-csv"));
+            actions.Add(new ActionDto("export-csv", ValidationRequired: false));
         }
         if (canDelete)
         {
@@ -1260,6 +1301,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             Filters = MapCrudFilters(element),
             CrudlType = hero is not null ? "cards" : "table",
             GroupBy = GroupByOf(element),
+            RowStatusField = RowStatusFieldOf(element),
+            DragType = DragTypeOf(viewType),
             RowsSelectionEnabled = canDelete,
         }, "crud", []) with { Sizing = "fill" };
         var pageChildren = new List<ComponentDto>();
@@ -1301,6 +1344,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                 Stereotype = ColumnStereotypeOf(p),
                 CaptionPath = CaptionPathOf(p),
                 LeadingPath = LeadingPathOf(p),
+                TooltipPath = TooltipPathOf(p),
                 // Rows open through their first column: the read-only detail when navigable, the
                 // edit drawer when editable-without-navigable (both dispatch "view").
                 ActionId = rowsClickable && index == 0 ? "view" : null,
@@ -1347,6 +1391,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             Filters = profile.FiltersType is { } filtersType ? MapListingFilters(filtersType) : [],
             GridLayout = gridLayout,
             GroupBy = GroupByOf(profile.RowType),
+            RowStatusField = RowStatusFieldOf(profile.RowType),
+            DragType = DragTypeOf(viewType),
             RowsSelectionEnabled = profile.CanDelete,
         }, "crud", []) with { Sizing = "fill" };
         var page = Client(new PageMetadataDto(null, null, null, [], []), null, [crud]);
@@ -1397,6 +1443,12 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
 
     internal static string? CaptionPathOf(PropertyInfo p) =>
         p.Find<PrimaryColumnAttribute>()?.Caption is { Length: > 0 } c ? c : null;
+
+    /// <summary>[Tooltip("otherField")]: hovering the cell shows another field of the row (mirrors
+    /// Java's ListingColumnBuilder.tooltipPathOf; the ports have no fixed column widths, so there
+    /// is no own-name fallback).</summary>
+    internal static string? TooltipPathOf(PropertyInfo p) =>
+        p.Find<TooltipAttribute>()?.Value is { Length: > 0 } t && !string.IsNullOrWhiteSpace(t) ? t : null;
 
     internal static string? LeadingPathOf(PropertyInfo p) =>
         p.Find<PrimaryColumnAttribute>()?.Leading is { Length: > 0 } l ? l : null;
@@ -1513,12 +1565,32 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         return false;
     }
 
+    /// <summary>The drag type of a listing whose rows can be dragged ([DragRows] on its class);
+    /// null = none (mirrors ListingSummarySpec.dragTypeOf).</summary>
+    internal static string? DragTypeOf(Type listing) =>
+        listing.Find<DragRowsAttribute>() is { Type: { } t } && !string.IsNullOrWhiteSpace(t) ? t : null;
+
     /// <summary>The [GroupBy] column of a row class (camelCase field id); one per row class —
     /// first declared wins. Null when the class declares none (mirrors ListingSummarySpec).</summary>
     internal static string? GroupByOf(Type row) =>
         EditableProperties(row).FirstOrDefault(p => p.Find<GroupByAttribute>() != null) is { } group
             ? Naming.CamelCase(group.Name)
             : null;
+
+    /// <summary>The [RowStatus] property of a row class (camelCase field id) — its value tones the
+    /// row; first declared wins, null when none (mirrors ListingSummarySpec.rowStatusFieldOf).</summary>
+    internal static string? RowStatusFieldOf(Type row) =>
+        EditableProperties(row).FirstOrDefault(p => p.Find<RowStatusAttribute>() != null) is { } status
+            ? Naming.CamelCase(status.Name)
+            : null;
+
+    /// <summary>The columns of a crud export: the listing's visible entity properties with their
+    /// column labels (mirrors Java's ExportActionRunner.buildExportColumns).</summary>
+    internal List<(PropertyInfo Property, string Label)> ExportColumns(Type element) =>
+        EditableProperties(element)
+            .Where(Visible)
+            .Select(p => (p, p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name)))
+            .ToList();
 
     /// <summary>The smart search bar's filters for a Crud entity (mirrors the Java AutoCrud
     /// semantics): every basic property and every enum becomes a filter — enums upgrade to
@@ -1539,7 +1611,7 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                     : IsNumeric(x.Type) && x.Property.Find<RangeFilterAttribute>() != null ? "numberRange"
                     : "regular";
                 var options = x.Type.IsEnum
-                    ? Enum.GetNames(x.Type).Select(n => new OptionDto(n, Naming.Humanize(n))).ToList()
+                    ? Enum.GetNames(x.Type).Select(n => new OptionDto(n, EnumLabel(x.Type, n))).ToList()
                     : new List<OptionDto>();
                 return new FormFieldMetadataDto(
                     Naming.CamelCase(x.Property.Name), InferDataType(x.Type, x.Property), label)
@@ -1567,11 +1639,18 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
         return "text";
     }
 
+    /// <summary>What an enum member is called on screen: its [Label], else its name humanized
+    /// (CHECK_OUT / CheckOut → "Check out"). Same rule as Java's FieldMetadataExtractor.enumLabel.</summary>
+    internal static string EnumLabel(Type enumType, string name) =>
+        enumType.GetField(name)?.GetCustomAttribute<LabelAttribute>()?.Value is { Length: > 0 } label
+            ? label
+            : Naming.HumanizeConstant(name);
+
     private static List<OptionDto>? EditorOptionsOf(PropertyInfo p)
     {
         var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
         return t.IsEnum
-            ? Enum.GetNames(t).Select(n => new OptionDto(n, n)).ToList()
+            ? Enum.GetNames(t).Select(n => new OptionDto(n, EnumLabel(t, n))).ToList()
             : null;
     }
 
@@ -1680,9 +1759,9 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
                       && supplier.Options(fieldId) is { Count: > 0 } supplied
             ? supplied.Select(MapOption).ToList()
             : t.IsEnum
-                // value AND label are the constant name (Java's OptionsBuilder uses the enum
-                // constant name for both, not a humanized label).
-                ? Enum.GetNames(t).Select(n => new OptionDto(n, n)).ToList()
+                // value = the constant name; label = its [Label], else the name humanized
+                // (Java: FieldMetadataExtractor.enumLabel)
+                ? Enum.GetNames(t).Select(n => new OptionDto(n, EnumLabel(t, n))).ToList()
                 : new List<OptionDto>();
         // A [PlainText] field — or any field of a [PlainText] class — renders as read-only text.
         var plainText = p.Find<PlainTextAttribute>() != null

@@ -7,7 +7,7 @@ Enterprise design systems (Oracle Redwood's RDS toolkit is the canonical example
 components — they standardize **full-page templates**: the record overview, the collection with a
 detail pane, the guided process, the create-and-edit drawer. Mateu covers these templates from the
 backend: you extend an archetype or set a flag, and the page comes out with the template's anatomy
-on every renderer.
+on every renderer that paints its components (see the Redwood column).
 
 This page is the map. Each row names the template (RDS naming), the Mateu piece that builds it,
 and where to see it running. **The normal way to build a UI starts here**: list the screens your
@@ -15,33 +15,37 @@ app needs, decide the template for each one, then declare the data — choosing 
 your call per screen (Mateu only composes it for you in two fully-derivable cases; see
 [Choosing a page template](/ux-patterns/choosing-a-page-template/), the decision guide).
 
-| Template | Mateu piece | Demo route | Guide |
-|---|---|---|---|
-| **Smart Filter and Search** | Every CRUD/`Listing` — the smart search bar with typed filters, chips and saved views is the default listing UX | `/products` | [Filters & listing](/ux-patterns/filters-and-listing/) |
-| **Smart Search page** | `SmartSearchPage<Filters, Row>` archetype — a standalone, search-first page: intro line + smart search bar with typed facets + results; starts empty | `/smart-search-demo` | [Smart search](/ux-patterns/smart-search/) |
-| **To-do list** | `TodoList<Row>` archetype — pending work as counted buckets of actionable cards; clicking a task acts on it | `/todo-list-demo` | [To-do list](/ux-patterns/to-do-list/) |
-| **Create and Edit — Simple** | `AutoCrud<T>` — routed `/new` and `/{id}/edit` forms with validation, optimistic locking and dirty guard | `/products` | [Create and edit](/ux-patterns/create-and-edit/) |
-| **Create and Edit — Advanced** | a sectioned transactional form with a canonical header (save/cancel, `@Timestamp`, `@KPI` facts, peer-nav) and either `@Toc` (section index) or `@Aside` (detail slot) | — | [Advanced create & edit](/ux-patterns/advanced-create-and-edit/) |
-| **Create and Edit — Drawer** | `editInDrawer()` on the crud — the form slides over the listing, which never unmounts | `/drawer-crud-demo` | [Drawer](/ux-patterns/drawer/#crud-editing-in-a-drawer-editindrawer) |
-| **Waterfall detail** | Composition — a `VerticalLayout` of `EntityHeader` + full-width `Card`/property-list panels telling the record top-to-bottom | — | [Waterfall detail](/ux-patterns/waterfall-detail/) |
-| **Step-by-step** | `Wizard` + `@WizardProgress(STEPS)` — the classic numbered-step stepper with done/current/upcoming states | `/branching-wizard` | [Wizard](/ux-patterns/wizard/) |
-| **Collection Detail** | `CollectionDetail<Row>` archetype — searchable card list + in-place detail pane | `/collection-detail-demo` | [Collection detail](/ux-patterns/collection-detail/) |
-| **General Overview** | `GeneralOverview<Row>` archetype — record context switcher + `EntityHeader` metadata strip over property cards | `/general-overview-demo` | [General overview](/ux-patterns/general-overview/) |
-| **Guided Process** | `Wizard` + `@WizardProgress(RAIL)` — step form with the sticky lateral rail (`current \| total` counter over the vertical step list) | `/branching-wizard` | [Wizard](/ux-patterns/wizard/) |
-| **Item Overview** | `ItemOverview` archetype — sticky key-info panel + tabbed detail | `/product-overview` | [Item overview](/ux-patterns/item-overview/) |
-| **Foldout Layout** | `Foldout` archetype — fixed overview + lateral fold-out panels | `/foldout-demo` | [Foldout](/ux-patterns/foldout/) |
-| **Dashboard** | `Dashboard` archetype — KPI scoreboard band + responsive tile grid | `/dashboard-demo` | [Dashboard](/ux-patterns/dashboard/) |
-| **Welcome Page** | `Welcome` archetype — hero with CTAs + highlight tiles | `/welcome-demo` | [Welcome page](/ux-patterns/welcome-page/) |
-| **Empty States** | `EmptyState` component — used by every listing and archetype automatically | `/empty-skeleton-demo` | [Empty states & skeletons](/ux-patterns/empty-states-and-skeletons/) |
-| **Data Management** (grid ⇄ Gantt) | `DataManagement` archetype — the same data as a grid and a Gantt with a toolbar switcher (full-width). Dense editable grids use `@InlineEditing` + `@Compact` | `/data-management-demo` | [Data management](/ux-patterns/data-management/) |
-| **Gantt page** | `GanttPage` archetype — edge-to-edge Gantt canvas + docked detail; clicking a bar opens the task in a drawer | `/gantt-page-demo` | [Gantt](/ux-patterns/gantt/#gantt-page-template-ganttpage-archetype) |
-| **Calendar** | `CalendarPage` archetype — the full page: calendar toolbar (‹/Today/›, optional *+ Create*) over the month grid, per-month event fetching, event click actions (week/day/list views not built in yet) | `/calendar-demo` | [Calendar](/ux-patterns/calendar/) |
+| Template | Mateu piece | Demo route | Guide | Redwood |
+|---|---|---|---|---|
+| **Smart Filter and Search** | Every CRUD/`Listing` — the smart search bar with typed filters, chips and saved views is the default listing UX | `/products` | [Filters & listing](/ux-patterns/filters-and-listing/) | ✅ |
+| **Smart Search page** | `SmartSearchPage<Filters, Row>` archetype — a standalone, search-first page: intro line + smart search bar with typed facets + results; starts empty | `/smart-search-demo` | [Smart search](/ux-patterns/smart-search/) | ✅ |
+| **To-do list** | `TodoList<Row>` archetype — pending work as counted buckets of actionable cards; clicking a task acts on it | `/todo-list-demo` | [To-do list](/ux-patterns/to-do-list/) | ✅ |
+| **Create and Edit — Simple** | `AutoCrud<T>` — routed `/new` and `/{id}/edit` forms with validation, optimistic locking and dirty guard | `/products` | [Create and edit](/ux-patterns/create-and-edit/) | ✅ |
+| **Create and Edit — Advanced** | a sectioned transactional form with a canonical header (save/cancel, `@Timestamp`, `@KPI` facts, peer-nav) and either `@Toc` (section index) or `@Aside` (detail slot) | — | [Advanced create & edit](/ux-patterns/advanced-create-and-edit/) | 🟡 no `@Toc` index |
+| **Create and Edit — Drawer** | `editInDrawer()` on the crud — the form slides over the listing, which never unmounts | `/drawer-crud-demo` | [Drawer](/ux-patterns/drawer/#crud-editing-in-a-drawer-editindrawer) | ✅ |
+| **Waterfall detail** | Composition — a `VerticalLayout` of `EntityHeader` + full-width `Card`/property-list panels telling the record top-to-bottom | — | [Waterfall detail](/ux-patterns/waterfall-detail/) | ✅ |
+| **Step-by-step** | `Wizard` + `@WizardProgress(STEPS)` — the classic numbered-step stepper with done/current/upcoming states | `/branching-wizard` | [Wizard](/ux-patterns/wizard/) | ✅ `oj-train` |
+| **Collection Detail** | `CollectionDetail<Row>` archetype — searchable card list + in-place detail pane | `/collection-detail-demo` | [Collection detail](/ux-patterns/collection-detail/) | ✅ |
+| **General Overview** | `GeneralOverview<Row>` archetype — record context switcher + `EntityHeader` metadata strip over property cards | `/general-overview-demo` | [General overview](/ux-patterns/general-overview/) | ✅ card contents render as atoms (a `Grid` is an `oj-table`) |
+| **Guided Process** | `Wizard` + `@WizardProgress(RAIL)` — step form with the sticky lateral rail (`current \| total` counter over the vertical step list) | `/branching-wizard` | [Wizard](/ux-patterns/wizard/) | ✅ |
+| **Item Overview** | `ItemOverview` archetype — sticky key-info panel + tabbed detail | `/product-overview` | [Item overview](/ux-patterns/item-overview/) | ✅ key panel and tabs render their components (Markdown, charts, lists…) |
+| **Foldout Layout** | `Foldout` archetype — fixed overview + lateral fold-out panels | `/foldout-demo` | [Foldout](/ux-patterns/foldout/) | ✅ `oj-sp-foldout-layout` |
+| **Dashboard** | `Dashboard` archetype — KPI scoreboard band + responsive tile grid | `/dashboard-demo` | [Dashboard](/ux-patterns/dashboard/) | ✅ KPI band + `oj-chart` tiles |
+| **Welcome Page** | `Welcome` archetype — hero with CTAs + highlight tiles | `/welcome-demo` | [Welcome page](/ux-patterns/welcome-page/) | ✅ |
+| **Empty States** | `EmptyState` component — used by every listing and archetype automatically | `/empty-skeleton-demo` | [Empty states & skeletons](/ux-patterns/empty-states-and-skeletons/) | ✅ (`Skeleton` —) |
+| **Data Management** (grid ⇄ Gantt) | `DataManagement` archetype — the same data as a grid and a Gantt with a toolbar switcher (full-width). Dense editable grids use `@InlineEditing` + `@Compact` | `/data-management-demo` | [Data management](/ux-patterns/data-management/) | ✅ grid as `oj-table`, Gantt as `oj-gantt` |
+| **Gantt page** | `GanttPage` archetype — edge-to-edge Gantt canvas + docked detail; clicking a bar opens the task in a drawer | `/gantt-page-demo` | [Gantt](/ux-patterns/gantt/#gantt-page-template-ganttpage-archetype) | ✅ `oj-gantt`; a bar click opens the task drawer |
+| **Calendar** | `CalendarPage` archetype — the full page: calendar toolbar (‹/Today/›, optional *+ Create*) over the calendar, per-month event fetching, event click actions, month/week/day/list views, per-date labels and clickable dates | `/calendar-demo` | [Calendar](/ux-patterns/calendar/) | ✅ |
 
 Three notes on how to read the table:
 
-- **Templates are backend-side.** An archetype composes existing wire components, so it renders on
-  every web renderer (Vaadin, Redwood) and on the native ones (React
-  Native, IntelliJ) without renderer work. Styling follows each design system's tokens.
+- **Templates are backend-side.** An archetype composes existing wire components, so it renders
+  wherever those components render — on Vaadin and the native renderers (React Native, IntelliJ)
+  without renderer work. **Redwood is the exception to watch**: it paints a curated set of
+  components with Oracle's own, and drops the ones it has no branch for — the last column says
+  what each template looks like there, and the
+  [Redwood component coverage](/reference/parity/#redwood-component-coverage) table (checked in CI)
+  says why. Styling follows each design system's tokens.
 - **Page width is a template parameter.** `@PageWidth(FIXED | FULL_WIDTH | EDGE_TO_EDGE)` (or the
   `PageWidthSupplier` hook — `Foldout` declares edge-to-edge) decides how the content column is
   sized: capped and centered, fluid with side margins, or touching the viewport edges. When
@@ -95,8 +99,8 @@ Three notes on how to read the table:
   (`ItemOverview` — key-info panel + tabs; `CollectionDetail` — searchable list + detail pane)
   compose a single `ContentLayout` with named regions — `main`, `aside` (which side via
   `asidePosition`, width via `asideWidth`, optionally `asideSticky`) and a full-width `footer` —
-  instead of each reinventing a bespoke layout. Every renderer paints it with one responsive
-  grammar: the aside sits beside the main region on wide viewports and stacks under it when narrow.
+  instead of each reinventing a bespoke layout. Vaadin and the native renderers paint it with one
+  responsive grammar (Redwood stacks the regions): the aside sits beside the main region on wide viewports and stacks under it when narrow.
   It is a wire component like `DashboardLayout`/`FoldoutLayout`, so you can also compose it directly
   in a custom view. Ported to .NET and Python (`ContentLayout`).
 - **`@Aside` — content-page from a plain form.** The minimal way to get the content-page grammar

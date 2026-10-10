@@ -22,7 +22,7 @@ public static class ComponentMapper
         DashboardLayout d => Dto(d, new DashboardLayoutMetadataDto(d.Columns), d.Items.Select(Map)),
 
         ResponsiveGrid g => Dto(g,
-            new ResponsiveGridMetadataDto(g.GridTemplateColumns(), g.Gap, g.ColSpans, g.StackBelow, g.GridTemplateAreas, g.StickyAreas),
+            new ResponsiveGridMetadataDto(g.GridTemplateColumns(), g.Gap, g.ColSpans, g.StackBelow, g.GridTemplateAreas, g.StickyAreas, g.Reorderable),
             g.Content.Select(Map)),
 
         Slotted sl => Map(sl.SlotContent) with { Slot = sl.Slot },
@@ -46,10 +46,13 @@ public static class ComponentMapper
         }),
 
         PlanningBoard pb => Dto(pb, new PlanningBoardMetadataDto(
-            pb.Resources.Select(r => new PlanningResourceDto(r.Id, r.Label, r.Group)).ToList(),
+            pb.Resources.Select(r => new PlanningResourceDto(
+                r.Id, r.Label, r.Group, r.Attributes ?? [], r.Icon)).ToList(),
             pb.Blocks.Select(b => new PlanningBlockDto(
-                b.Id, b.ResourceId, Iso(b.Start), Iso(b.End), b.Label, b.Color, b.Status)).ToList(),
-            Iso(pb.From), Iso(pb.To), pb.MoveActionId, pb.SelectActionId)),
+                b.Id, b.ResourceId, Iso(b.Start), Iso(b.End), b.Label, b.Color, b.Status,
+                b.Icon, b.Summary)).ToList(),
+            Iso(pb.From), Iso(pb.To), pb.MoveActionId, pb.SelectActionId,
+            pb.AttributeColumns ?? [], pb.ResizeActionId, pb.OpenActionId, pb.RangeSelectActionId)),
 
         Kanban k => Dto(k, new KanbanMetadataDto(k.Columns.Select(col => new KanbanColumnDto(
             col.Id, col.Title, col.Color, col.Cards.Select(c => new KanbanCardDto(
@@ -74,7 +77,12 @@ public static class ComponentMapper
             st.Label, st.Value, st.Unit, st.Delta, st.Trend, st.Spark, st.ActionId)),
 
         Calendar cal => Dto(cal, new CalendarMetadataDto(Iso(cal.Month), cal.Events.Select(e =>
-            new CalendarEventDto(e.Id, e.Title, Iso(e.Date), e.Color, e.ActionId)).ToList())),
+                new CalendarEventDto(e.Id, e.Title, Iso(e.Date), Iso(e.EndDate), e.StartTime, e.EndTime,
+                    e.Color, e.ActionId)).ToList(),
+            CalendarViewName(cal.View ?? CalendarView.Month),
+            cal.Views.Select(CalendarViewName).ToList(),
+            cal.Days.Select(d => new CalendarDayDto(Iso(d.Date), d.Label, d.Tone)).ToList(),
+            cal.DayActionId)),
 
         PricingTable pt => Dto(pt, new PricingTableMetadataDto(pt.Plans.Select(p => new PricingPlanDto(
             p.Id, p.Name, p.Price, p.Period, p.Featured, p.Features, p.CtaLabel, p.ActionId)).ToList())),
@@ -127,6 +135,41 @@ public static class ComponentMapper
 
         BulletedList bl => Dto(bl, new BulletedListMetadataDto(bl.Items.ToList())),
 
+        ActionPanel ap => Dto(ap, new ActionPanelMetadataDto(
+            string.IsNullOrWhiteSpace(ap.Label) ? "I want to…" : ap.Label,
+            ap.Shortcut,
+            ap.Categories.Select(c => new ActionPanelCategoryDto(c.Title, c.Actions.Select(i =>
+                new ActionPanelItemDto(i.Label, i.ActionId, i.Parameters, i.Count,
+                    i.Populated || i.Count is > 0, i.Disabled)).ToList())).ToList(),
+            ap.MaxPerCategory > 0 ? ap.MaxPerCategory : 10,
+            ap.HideUnpopulatedToggle)),
+
+        MatrixGrid mg => Dto(mg, new MatrixGridMetadataDto(
+            mg.RowHeaderLabel,
+            mg.Columns.Select(c => new MatrixColumnDto(c.Id, c.Label, c.Group, c.Tone)).ToList(),
+            mg.Sections.Select((s, i) => new MatrixSectionDto(
+                string.IsNullOrWhiteSpace(s.Id) ? "section" + i : s.Id!,
+                s.Title,
+                s.Collapsed,
+                s.Rows.Select(r => new MatrixRowDto(r.Id, r.Label,
+                    // one cell per column, always: a short row is padded with blanks, a long one cut
+                    Enumerable.Range(0, mg.Columns.Count).Select(ci => ci < r.Cells.Count && r.Cells[ci] is { } cell
+                        ? new MatrixCellDto(cell.Value ?? "", cell.Tone, cell.Link)
+                        : new MatrixCellDto("", null, false)).ToList(),
+                    r.Editable, r.Emphasis)).ToList())).ToList(),
+            mg.CellActionId,
+            mg.EditActionId)),
+
+        // the ClientSide id defaults to "map" (mirrors Java's MapComponentMapper)
+        Mateu.Uidl.Map m => Dto(m with { Id = m.Id ?? "map" }, new MapMetadataDto(
+            m.Position,
+            m.Zoom,
+            (m.Markers ?? []).Select(k => new MapMarkerDto(
+                k.Id, k.Latitude, k.Longitude, k.Label, k.Description, k.Color)).ToList(),
+            m.MarkerActionId)),
+
+        DropZone dz => Dto(dz, new DropZoneMetadataDto(dz.Accept, dz.ActionId, dz.Parameters, dz.Title, dz.Subtitle),
+            dz.Content.Select(Map)),
         Notice n => Dto(n, new NoticeMetadataDto(n.Text, n.Theme, n.Icon, n.ActionLabel, n.ActionId, n.Slim, n.FullWidth, n.NoIcon, n.Status, n.InlineContent), n.Content.Select(Map)),
         CustomComponent cc => Dto(cc, new CustomComponentMetadataDto(cc.Name, cc.Props), cc.Content.Select(Map)),
 
@@ -182,6 +225,14 @@ public static class ComponentMapper
             CssClasses = mf.CssClasses,
             AppState = mf.AppState,
         }),
+
+        // Popover: both halves travel in the metadata; the id falls back to Java's "fieldId".
+        Popover po => new ClientSideComponentDto(
+            new PopoverMetadataDto(
+                po.Content is null ? null : MapContent(po.Content),
+                po.Wrapped is null ? null : MapContent(po.Wrapped),
+                LowerName(po.Trigger)),
+            string.IsNullOrWhiteSpace(po.Id) ? "fieldId" : po.Id, [], po.Style, po.CssClasses, null),
 
         // Overlays — returned from actions; SyncHandler emits them as Add fragments.
         Drawer dr => Dto(dr, new DrawerMetadataDto(dr.Id, dr.HeaderTitle, dr.Content is null ? null : MapContent(dr.Content))
@@ -296,7 +347,11 @@ public static class ComponentMapper
             case PlanningBoard pb:
                 if (!string.IsNullOrEmpty(pb.MoveActionId)) ids.Add(pb.MoveActionId);
                 if (!string.IsNullOrEmpty(pb.SelectActionId)) ids.Add(pb.SelectActionId);
+                if (!string.IsNullOrEmpty(pb.ResizeActionId)) ids.Add(pb.ResizeActionId);
+                if (!string.IsNullOrEmpty(pb.OpenActionId)) ids.Add(pb.OpenActionId);
+                if (!string.IsNullOrEmpty(pb.RangeSelectActionId)) ids.Add(pb.RangeSelectActionId);
                 break;
+            case Mateu.Uidl.Map mp when !string.IsNullOrEmpty(mp.MarkerActionId): ids.Add(mp.MarkerActionId); break;
             case Button b when !string.IsNullOrEmpty(b.ActionId): ids.Add(b.ActionId); break;
             case Scoreboard s: foreach (var m in s.Metrics) Collect(m, ids); break;
             case DashboardPanel p when p.Content is not null: Collect(p.Content, ids); break;
@@ -334,6 +389,9 @@ public static class ComponentMapper
         value.ToString().ToLowerInvariant();
 
     private static string? Iso(DateOnly? d) => d?.ToString("yyyy-MM-dd");
+
+    /// <summary>A CalendarView's wire name: lowercase, exactly Java's enum constant names.</summary>
+    internal static string CalendarViewName(CalendarView view) => view.ToString().ToLowerInvariant();
 
     private static OrgNodeDto? MapOrgNode(OrgNode? n) =>
         n is null ? null : new OrgNodeDto(n.Id, n.Title, n.Subtitle, n.Avatar, n.Color, n.ActionId,

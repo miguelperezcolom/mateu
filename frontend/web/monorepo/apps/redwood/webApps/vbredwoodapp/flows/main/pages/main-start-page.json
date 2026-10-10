@@ -2,6 +2,26 @@
   "title": "",
   "description": "Contenido alimentado por Mateu: t\u00edtulo + form / listado + drawer del crud; la carga la orquesta la shell",
   "variables": {
+    "mateuColumnsModel": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "diálogo de columnas del listado: [{id, label, visible}] en el orden elegido"
+    },
+    "mateuViewsMenu": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "menú de vistas guardadas del listado: [{value, label}]"
+    },
+    "mateuViewName": {
+      "type": "string",
+      "defaultValue": "",
+      "description": "nombre de la vista que se va a guardar"
+    },
+    "mateuViewDefault": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "la vista que se guarda será la de por defecto"
+    },
     "listingADP": {
       "type": "vb/ArrayDataProvider2",
       "defaultValue": {
@@ -624,7 +644,14 @@
         }
       ]
     },
-    "mateuRetryAction": {
+    "application:mateuTilesReordered": {
+      "chains": [
+        {
+          "chain": "tilesReordered"
+        }
+      ]
+    },
+    "application:mateuRetryAction": {
       "chains": [
         {
           "parameters": {
@@ -632,6 +659,196 @@
             "parameters": "{{ $event.parameters }}"
           },
           "chain": "runMateuAction"
+        }
+      ]
+    },
+    "planningMoved": {
+      "chains": [
+        {
+          "chain": "planningGanttEvent",
+          "parameters": {
+            "kind": "move",
+            "event": "{{ $event }}",
+            "atom": "{{ $current.data }}"
+          }
+        }
+      ]
+    },
+    "planningResized": {
+      "chains": [
+        {
+          "chain": "planningGanttEvent",
+          "parameters": {
+            "kind": "resize",
+            "event": "{{ $event }}",
+            "atom": "{{ $current.data }}"
+          }
+        }
+      ]
+    },
+    "planningSelected": {
+      "chains": [
+        {
+          "chain": "planningGanttEvent",
+          "parameters": {
+            "kind": "select",
+            "event": "{{ $event }}",
+            "atom": "{{ $current.data }}"
+          }
+        }
+      ]
+    },
+    "planningDblClick": {
+      "chains": [
+        {
+          "chain": "planningGanttEvent",
+          "parameters": {
+            "kind": "open",
+            "event": "{{ $event }}",
+            "atom": "{{ $current.data }}"
+          }
+        }
+      ]
+    },
+    "columnsOpen": {
+      "chains": [
+        {
+          "chain": "listingColumns",
+          "parameters": {
+            "op": "open"
+          }
+        }
+      ]
+    },
+    "columnsToggle": {
+      "chains": [
+        {
+          "chain": "listingColumns",
+          "parameters": {
+            "op": "toggle",
+            "id": "{{ $event.target.dataset.columnId }}",
+            "value": "{{ $event.detail.value }}",
+            "updatedFrom": "{{ $event.detail.updatedFrom }}"
+          }
+        }
+      ]
+    },
+    "columnsUp": {
+      "chains": [
+        {
+          "chain": "listingColumns",
+          "parameters": {
+            "op": "move",
+            "id": "{{ $event.currentTarget.dataset.columnId }}",
+            "delta": -1
+          }
+        }
+      ]
+    },
+    "columnsDown": {
+      "chains": [
+        {
+          "chain": "listingColumns",
+          "parameters": {
+            "op": "move",
+            "id": "{{ $event.currentTarget.dataset.columnId }}",
+            "delta": 1
+          }
+        }
+      ]
+    },
+    "columnsApply": {
+      "chains": [
+        {
+          "chain": "listingColumns",
+          "parameters": {
+            "op": "apply"
+          }
+        }
+      ]
+    },
+    "columnsReset": {
+      "chains": [
+        {
+          "chain": "listingColumns",
+          "parameters": {
+            "op": "reset"
+          }
+        }
+      ]
+    },
+    "columnsCancel": {
+      "chains": [
+        {
+          "chain": "listingColumns",
+          "parameters": {
+            "op": "cancel"
+          }
+        }
+      ]
+    },
+    "viewsBeforeOpen": {
+      "chains": [
+        {
+          "chain": "listingViews",
+          "parameters": {
+            "op": "menu"
+          }
+        }
+      ]
+    },
+    "viewsAction": {
+      "chains": [
+        {
+          "chain": "listingViews",
+          "parameters": {
+            "op": "action",
+            "value": "{{ $event.detail.selectedValue }}"
+          }
+        }
+      ]
+    },
+    "viewSaveConfirm": {
+      "chains": [
+        {
+          "chain": "listingViews",
+          "parameters": {
+            "op": "save"
+          }
+        }
+      ]
+    },
+    "viewSaveCancel": {
+      "chains": [
+        {
+          "chain": "listingViews",
+          "parameters": {
+            "op": "cancelSave"
+          }
+        }
+      ]
+    },
+    "panelToggled": {
+      "chains": [
+        {
+          "chain": "panelToggled",
+          "parameters": {
+            "key": "{{ $event.target.dataset.collapsibleKey }}",
+            "expanded": "{{ $event.detail.value }}",
+            "updatedFrom": "{{ $event.detail.updatedFrom }}"
+          }
+        }
+      ]
+    },
+    "application:mateuElementEvent": {
+      "chains": [
+        {
+          "parameters": {
+            "actionId": "{{ $event.actionId }}",
+            "parameters": "{{ $event.parameters }}",
+            "fromNested": "{{ $event.fromNested }}"
+          },
+          "chain": "dispatchHostBlockAction"
         }
       ]
     },
@@ -832,6 +1049,9 @@
       "oj-avatar": {
         "path": "ojs/ojavatar"
       },
+      "oj-film-strip": {
+        "path": "ojs/ojfilmstrip"
+      },
       "oj-progress-bar": {
         "path": "ojs/ojprogress"
       },
@@ -849,6 +1069,39 @@
       },
       "oj-select-one": {
         "path": "ojs/ojselectcombobox"
+      },
+      "oj-select-many": {
+        "path": "ojs/ojselectcombobox"
+      },
+      "oj-menu-button": {
+        "path": "ojs/ojbutton"
+      },
+      "oj-menu": {
+        "path": "ojs/ojmenu"
+      },
+      "oj-dialog": {
+        "path": "ojs/ojdialog"
+      },
+      "oj-collapsible": {
+        "path": "ojs/ojcollapsible"
+      },
+      "oj-gantt": {
+        "path": "ojs/ojgantt"
+      },
+      "oj-data-grid": {
+        "path": "ojs/ojdatagrid"
+      },
+      "oj-buttonset-one": {
+        "path": "ojs/ojbutton"
+      },
+      "oj-radioset": {
+        "path": "ojs/ojradioset"
+      },
+      "oj-checkboxset": {
+        "path": "ojs/ojcheckboxset"
+      },
+      "oj-option": {
+        "path": "ojs/ojoption"
       },
       "oj-input-date": {
         "path": "ojs/ojdatetimepicker"

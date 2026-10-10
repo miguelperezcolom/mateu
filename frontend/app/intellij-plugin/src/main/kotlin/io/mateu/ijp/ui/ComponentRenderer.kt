@@ -43,6 +43,9 @@ class ComponentRenderer(val ctx: AppContext) {
             "FormRow" -> renderFormRow(this, component, metadata, state, data)
             "HorizontalLayout" -> renderHBox(this, component, metadata, state, data)
             "Button" -> renderButton(ctx, metadata)
+            "ActionPanel" -> renderActionPanel(ctx, metadata)
+            "MatrixGrid" -> renderMatrixGrid(ctx, metadata)
+            "Map" -> renderMap(ctx, metadata)
             "Text" -> JBLabel(metadata.text("text")).also { label ->
                 // Text size: xl/l/s/xs enlarge or reduce the font; m (or absent) applies nothing.
                 when (metadata.text("size")) {
@@ -79,7 +82,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "Timeline" -> renderTimeline(this, metadata)
             "ProgressSteps" -> renderProgressSteps(metadata)
             "Stat" -> renderStat(this, metadata)
-            "Calendar" -> renderCalendar(this, metadata)
+            "Calendar" -> renderCalendar(ctx, metadata)
             "PricingTable" -> renderPricingTable(this, metadata)
             "OrgChart" -> renderOrgChart(this, metadata)
             "Heatmap" -> renderHeatmap(metadata)
@@ -99,6 +102,10 @@ class ComponentRenderer(val ctx: AppContext) {
             "StatusList" -> renderStatusList(this, metadata)
             "BulletedList" -> renderBulletedList(metadata)
             "Notice" -> renderNotice(this, component, metadata, state, data)
+            // DropZone: a titled panel accepting drops of dragged listing rows of its type.
+            "DropZone" -> renderDropZone(this, component, metadata, state, data)
+            // Popover: click (default) or hover/focus opens the content under the wrapped component.
+            "Popover" -> renderPopover(this, metadata, state, data)
             "TaskQueue" -> renderTaskQueue(this, metadata)
             "ResourceGrid" -> renderResourceGrid(this, metadata)
             "OfferCard" -> renderOfferCard(this, metadata)

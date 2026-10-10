@@ -150,14 +150,27 @@ export interface CalendarEvent {
   id?: string;
   title?: string;
   date?: string; // ISO date, YYYY-MM-DD
+  endDate?: string; // inclusive, for multi-day events
+  startTime?: string; // HH:mm
+  endTime?: string; // HH:mm
   color?: string;
   actionId?: string;
 }
 
+export interface CalendarDay {
+  date?: string; // ISO date
+  label?: string;
+  tone?: string; // info | success | warning | danger | neutral
+}
+
 export interface Calendar {
   type?: 'Calendar';
-  month?: string; // any day in the month, ISO date
+  month?: string; // the anchor date, ISO
   events?: CalendarEvent[];
+  view?: 'month' | 'week' | 'day' | 'list';
+  views?: string[];
+  days?: CalendarDay[];
+  dayActionId?: string;
 }
 
 export interface PricingPlan {

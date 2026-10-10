@@ -222,6 +222,16 @@ class Aggregate:
         self.function = function
 
 
+class Tooltip:
+    """On a listing row's field: hovering the field's CELL shows the text of another field of the
+    same row — e.g. ``rate: Annotated[float, Tooltip("rate_breakdown")]`` shows the per-night
+    breakdown on the rate cell. Line breaks in that text are kept. The Python analogue of Java's
+    ``@Tooltip`` (the column's wire ``tooltip_path``, camelCased like every column id)."""
+
+    def __init__(self, value: str):
+        self.value = value
+
+
 class PrimaryColumn:
     """Marks a listing/CRUD row field as the rich "primary" column (coherence-plan #6): its value is
     the cell title, with an optional secondary caption line (``caption`` — another field's name) and
@@ -240,6 +250,16 @@ class GroupBy:
     the value changes — showing the group value, its row count over the WHOLE filtered set, and
     the per-group value of every ``Aggregate()`` column. One ``GroupBy()`` column per row class.
     The Python analogue of Java's ``@GroupBy``."""
+
+
+@dataclass(frozen=True)
+class RowStatus:
+    """Marks the field of a listing ROW whose value tones the whole row — a reservation due out,
+    a room out of order, a charge in dispute. The value names the tone: ``success``,
+    ``warning``, ``danger`` (also ``error``), ``info`` or ``neutral``; for an enum its member
+    name (lower-cased) is used, so an enum whose members are those tones works as is. Any other
+    value leaves the row untoned. One per row class — first declared wins. Travels as
+    ``CrudMetadata.row_status_field``. The Python analogue of Java's ``@RowStatus``."""
 
 
 class TreeSelect:
@@ -936,6 +956,7 @@ def app(
     variant: str = "",
     command_center: bool = False,
     chromeless: bool = False,
+    access_keys: bool = False,
     requires: list[str] | None = None,
     route: str = "",
 ) -> Callable[[type], type]:
@@ -950,6 +971,10 @@ def app(
     ``chromeless=True`` additionally drops the nav chrome — the command center becomes the only
     navigation, so it implies ``command_center``.
 
+    ``access_keys=True`` turns on the keyboard access-keys mode: holding Alt shows a key next to
+    every visible button and tab (the declared shortcut, else a letter of its label assigned
+    automatically) and Alt+that letter activates it. Mirrors Java's ``@App(accessKeys = true)``.
+
     ``requires`` DECLARES extra capability tokens the app needs from its host renderer, for
     anything the derivation cannot see (most tokens are derived from the app's own metadata). They
     ride, sorted+deduped with the derived ones, on ``AppMetadata.requiredCapabilities`` — the
@@ -960,6 +985,7 @@ def app(
         cls.__mateu_app_variant__ = variant
         cls.__mateu_app_command_center__ = command_center
         cls.__mateu_app_chromeless__ = chromeless
+        cls.__mateu_app_access_keys__ = access_keys
         cls.__mateu_app_requires__ = list(requires) if requires else []
         # coherence-plan #5: @app(route="/x") declares BOTH that the class is an app AND its route —
         # the single decorator, equivalent to @ui("/x") @app(...). Blank = the route comes from a
@@ -1218,19 +1244,72 @@ def action(arg=None):
     return _maybe_bare(arg, "__mateu_action__", lambda _: True)
 
 
-def menu_item(arg=None, group: str = ""):
+def menu_item(
+    arg=None,
+    group: str = "",
+    description: str = "",
+    icon: str = "",
+    image: str = "",
+):
     """A menu entry. ``group`` nests the entry under that folder (entries sharing a group become
-    its submenu); empty = a top-level leaf entry."""
-    if group:
+    its submenu); empty = a top-level leaf entry. A ``/`` in the group nests folders
+    (``"Bookings/Reservations"`` = the Reservations folder inside Bookings). ``description``,
+    ``icon`` and ``image`` are the entry's look when it shows as a card (its group is a
+    ``@menu_group(..., display="cards")``)."""
+    if group or description or icon or image:
         label = arg if isinstance(arg, str) else None
 
         def deco(fn):
             fn.__mateu_menu_item__ = label or True
             fn.__mateu_menu_group__ = group
+            fn.__mateu_menu_look__ = MenuLook(description=description, icon=icon, image=image)
             return fn
 
         return deco
     return _maybe_bare(arg, "__mateu_menu_item__", lambda label: label or True)
+
+
+class MenuDisplay:
+    """How a menu group shows its entries (the values of ``@menu_group(display=...)``). The
+    Python analogue of Java's ``MenuDisplay``."""
+
+    list = "list"
+    cards = "cards"
+
+
+@dataclass(frozen=True)
+class MenuLook:
+    """The card look of a menu entry or folder: ``display`` ("cards" on a group), and the
+    ``description``/``icon``/``image`` of an entry shown as a card. The Python analogue of Java's
+    ``MenuPresentation``."""
+
+    display: str = ""
+    description: str = ""
+    icon: str = ""
+    image: str = ""
+
+
+def menu_group(
+    group: str, display: str = "", description: str = "", icon: str = "", image: str = ""
+) -> Callable[[type], type]:
+    """The look of a menu folder declared through ``@menu_item(group=...)``, on the ``@app`` class.
+    ``display="cards"`` opens the folder as a panel of CARDS (title, description, icon/image, and
+    each entry's own children as the card's actions) instead of the usual list — like the product
+    menus of a docs site. ``description``/``icon``/``image`` style the folder itself when it is a
+    card of an enclosing cards group (``"Bookings/Reservations"`` addresses a nested folder).
+    Repeatable. The Python analogue of Java's ``@Menu(display, description, image)`` + ``@Icon``
+    on a group field."""
+
+    def deco(cls: type) -> type:
+        looks = dict(getattr(cls, "__mateu_menu_groups__", {}))
+        looks.setdefault(
+            group.strip("/"),
+            MenuLook(display=display, description=description, icon=icon, image=image),
+        )
+        cls.__mateu_menu_groups__ = looks
+        return cls
+
+    return deco
 
 
 class kpi:
@@ -1288,6 +1367,19 @@ def shortcut(keys: str):
     def deco(fn):
         fn.__mateu_shortcut__ = keys
         return fn
+
+    return deco
+
+
+def drag_rows(drag_type: str) -> Callable[[type], type]:
+    """Class-level: the rows of the decorated listing (a ``Listing[Row]`` / Crud) can be DRAGGED
+    onto a :class:`~mateu_uidl.components.DropZone` accepting ``drag_type`` — the selected rows, or
+    the one under the pointer. The drop runs the zone's action with ``_draggedIds`` and
+    ``_dragType``. Python analogue of Java's @DragRows."""
+
+    def deco(cls: type) -> type:
+        cls.__mateu_drag_rows__ = drag_type
+        return cls
 
     return deco
 
@@ -1363,6 +1455,14 @@ class Crud(Generic[T]):
 
     def delete(self, id: str) -> None:  # override to store
         ...
+
+    def csv_exportable(self) -> bool:
+        """Override to return True and the listing toolbar offers "Export CSV" (action
+        ``export-csv``), which downloads the WHOLE filtered result set (search text + smart
+        search bar filters) as a CSV file, one column per visible entity field. The analogue of
+        Java's ``Listing.csvExportable`` on an AutoCrud (Excel/PDF have no exporter in this
+        port)."""
+        return False
 
     @staticmethod
     def id_of(entity) -> str | None:
@@ -1653,6 +1753,11 @@ class Dashboard(ComponentTreeSupplier):
     def columns(self) -> int:
         return 0
 
+    def reorderable(self) -> bool:
+        """Whether the viewer may drag the tiles into their own order. The order is kept per viewer
+        by the renderer; the field order stays the default. Default: False."""
+        return False
+
 
 class Foldout(ComponentTreeSupplier):
     """Declarative Redwood-style foldout page: the first component field without ``Panel`` is the
@@ -1719,13 +1824,16 @@ class Welcome(ComponentTreeSupplier):
 
 
 __all__ = [
+    "MenuDisplay",
+    "MenuLook",
+    "menu_group",
     "Message", "MessageVariant", "BannerTheme", "PageBanner", "PageWidth", "PageType",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
-    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "RestOptions", "Hidden", "Disabled", "OnRowSelected", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel", "SizeMode", "size", "FlowStep", "Navigate", "Emit", "CloseOverlay", "RunAction", "MarkClean", "MarkDirty",
+    "Money", "PlainText", "ReadOnly", "Version", "Lookup", "RestOptions", "Hidden", "Disabled", "OnRowSelected", "Tooltip", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "RowStatus", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel", "SizeMode", "size", "FlowStep", "Navigate", "Emit", "CloseOverlay", "RunAction", "MarkClean", "MarkDirty",
     "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
     "static_view",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
-    "plain_text", "emits", "subscribe_to", "secured", "welcome_banner", "rest_listing", "rest_action", "rest_data",
+    "plain_text", "emits", "subscribe_to", "secured", "welcome_banner", "rest_listing", "drag_rows", "rest_action", "rest_data",
     "button", "action", "menu_item", "kpi", "fab", "banner", "shortcut", "list_toolbar_button",
     "Crud", "HeroSearch", "Listing", "SearchRequest", "ListingData", "Filterable", "Navigable", "Editable", "Creatable", "Deletable", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "DataManagement", "Foldout", "GanttPage", "ItemOverview", "Welcome", "TodoList",
@@ -1979,25 +2087,31 @@ class TodoList(ComponentTreeSupplier):
 
 class CalendarPage(ComponentTreeSupplier):
     """Calendar page (the Redwood "Calendar" template, the Python analogue of Java's
-    CalendarPage archetype): a full month-grid ``Calendar`` under the page's calendar toolbar —
-    previous/next month chevrons, a *Today* button and an optional primary *+ Create* button —
-    where clicking an event ACTS on it (typically navigating to its detail). Month navigation
-    re-runs :meth:`events` with the newly displayed month, so events can be fetched per month
-    from the backend. Implement :meth:`events` and :meth:`action_on`; :meth:`initial_month`
-    defaults to the current month, :meth:`show_create`/:meth:`create_action` enable the create
-    flow."""
+    CalendarPage archetype): a full ``Calendar`` under the page's calendar toolbar —
+    previous/next chevrons, a *Today* button, the view switcher and an optional primary
+    *+ Create* button — where clicking an event ACTS on it (typically navigating to its detail).
+    Navigation re-runs :meth:`events` for the newly displayed period (once per month it
+    touches), so events can be fetched per month from the backend. Implement :meth:`events` and
+    :meth:`action_on`; :meth:`initial_month` defaults to the current month,
+    :meth:`show_create`/:meth:`create_action` enable the create flow, :meth:`views` enables the
+    week/day/list views (the chevrons then step by the view's period), :meth:`days` puts a label
+    and a tone in each date's cell and :meth:`days_clickable` + :meth:`action_on_day` make the
+    cells themselves act."""
 
-    #: The displayed month (any day of it, ISO-8601; bound from componentState).
+    #: The displayed anchor date (ISO-8601; bound from componentState).
     month: str | None = None
     #: The last clicked event's id (bound from componentState; set by the event click).
     event_id: str | None = None
+    #: The current view (month|week|day|list; bound from componentState). No underscore, like
+    #: ``month``: underscore fields are excluded from initialData seeding.
+    view: str | None = None
 
     #: The inbound request of the current render/action (the port's analogue of Java's
     #: HttpRequest injection) — set by the sync handler on every request.
     http_request = None
 
     def events(self, month: date, http_request):
-        """The events of the displayed month (any day of it, for the grid to place them)."""
+        """The events of a month (any day of it, for the grid to place them)."""
         raise NotImplementedError
 
     def action_on(self, event, http_request):
@@ -2017,10 +2131,31 @@ class CalendarPage(ComponentTreeSupplier):
         """What the "+ Create" button does (required when :meth:`show_create` is true)."""
         return None
 
+    def views(self):
+        """The views the user can switch between (``CalendarView``s); the first one is the
+        initial view. Default: the month view only (no switcher)."""
+        from mateu_uidl.components import CalendarView
+
+        return [CalendarView.month]
+
+    def days(self, date_from: date, date_to: date, http_request):
+        """A label and a tone (``CalendarDay``s) for each date's cell, from ``date_from`` to
+        ``date_to`` (inclusive)."""
+        return []
+
+    def days_clickable(self) -> bool:
+        """Whether the date cells themselves are clickable (:meth:`action_on_day`). Default:
+        False."""
+        return False
+
+    def action_on_day(self, day: date, http_request):
+        """What clicking a date's cell does — e.g. open that day's availability."""
+        return None
+
     # ── Wiring ────────────────────────────────────────────────────────────────
 
     def current_month(self) -> date:
-        """The displayed month: the bound ``month`` state when it parses, else
+        """The displayed anchor date: the bound ``month`` state when it parses, else
         :meth:`initial_month`."""
         if self.month:
             try:
@@ -2029,27 +2164,92 @@ class CalendarPage(ComponentTreeSupplier):
                 pass  # a stale/unparseable state falls back to the initial month
         return self.initial_month()
 
+    def current_view(self):
+        """The bound ``view`` when it is one of :meth:`views`, else the first of them."""
+        from mateu_uidl.components import CalendarView
+
+        allowed = list(self.views()) or [CalendarView.month]
+        if self.view is not None:
+            for option in allowed:
+                if option.value == self.view:
+                    return option
+        return allowed[0]
+
+    @staticmethod
+    def _period(view, anchor: date) -> tuple[date, date]:
+        """The first and last date of the period ``view`` shows around ``anchor``."""
+        from datetime import timedelta
+
+        from mateu_uidl.components import CalendarView
+
+        if view == CalendarView.day:
+            return anchor, anchor
+        if view == CalendarView.week:
+            monday = anchor - timedelta(days=anchor.weekday())
+            return monday, monday + timedelta(days=6)
+        first = anchor.replace(day=1)
+        return first, CalendarPage._add_months(first, 1) - timedelta(days=1)
+
+    def _events_of(self, date_from: date, date_to: date) -> list:
+        """The events of the period: one :meth:`events` call per month it touches,
+        deduplicated by id (or ``title@date`` when there is none)."""
+        by_key: dict = {}
+        month = date_from.replace(day=1)
+        while month <= date_to:
+            for event in self.events(month, self.http_request):
+                key = event.id if event.id is not None else f"{event.title}@{event.date}"
+                by_key.setdefault(key, event)
+            month = self._add_months(month, 1)
+        return list(by_key.values())
+
+    def _step(self, anchor: date, direction: int) -> date:
+        """One step of the current view: a month, a week or a day (the list view steps by
+        month)."""
+        from datetime import timedelta
+
+        from mateu_uidl.components import CalendarView
+
+        view = self.current_view()
+        if view == CalendarView.week:
+            return anchor + timedelta(weeks=direction)
+        if view == CalendarView.day:
+            return anchor + timedelta(days=direction)
+        return self._add_months(anchor, direction)
+
     def previous_calendar_month(self):
-        """``previousCalendarMonth``: moves the displayed month one month back (re-render)."""
-        self.month = self._shift_month(self.current_month(), -1).isoformat()
+        """``previousCalendarMonth``: moves the displayed period one step back (re-render)."""
+        self.month = self._step(self.current_month(), -1).isoformat()
 
     def next_calendar_month(self):
-        """``nextCalendarMonth``: moves the displayed month one month forward (re-render)."""
-        self.month = self._shift_month(self.current_month(), 1).isoformat()
+        """``nextCalendarMonth``: moves the displayed period one step forward (re-render)."""
+        self.month = self._step(self.current_month(), 1).isoformat()
 
     def go_calendar_today(self):
-        """``goCalendarToday``: moves the displayed month back to the current one (re-render)."""
+        """``goCalendarToday``: moves the displayed period back to today (re-render)."""
         self.month = date.today().isoformat()
 
+    def switch_calendar_view(self, requested):
+        """``switchCalendarView``: switches to the requested view (re-render); None is ignored."""
+        if requested is not None:
+            self.view = str(requested)
+
     def open_calendar_event(self, event_id):
-        """``openCalendarEvent``: finds the clicked event by id among the displayed month's and
+        """``openCalendarEvent``: finds the clicked event by id among the displayed period's and
         returns its :meth:`action_on` result; None (unknown event) re-renders the page (the
         analogue of Java returning ``this``)."""
         self.event_id = event_id
-        for event in self.events(self.current_month(), self.http_request):
+        date_from, date_to = self._period(self.current_view(), self.current_month())
+        for event in self._events_of(date_from, date_to):
             if event.id == event_id:
                 return self.action_on(event, self.http_request)
         return None
+
+    def open_calendar_day(self, raw_date):
+        """``openCalendarDay``: runs :meth:`action_on_day` for the clicked date (ISO); None
+        re-renders the page."""
+        if raw_date is None:
+            return None
+        return self.action_on_day(date.fromisoformat(str(raw_date)), self.http_request)
 
     def create_calendar_event(self):
         """``createCalendarEvent``: runs :meth:`create_action`; a None result re-renders the
@@ -2057,27 +2257,47 @@ class CalendarPage(ComponentTreeSupplier):
         return self.create_action(self.http_request)
 
     @staticmethod
-    def _shift_month(month: date, delta: int) -> date:
-        """The first day of the month ``delta`` months away from ``month`` (any day of a month
-        identifies it for the grid)."""
-        m = month.month - 1 + delta
-        return date(month.year + m // 12, m % 12 + 1, 1)
+    def _add_months(day: date, delta: int) -> date:
+        """``day`` moved ``delta`` months, clamped to the target month's length (Java's
+        ``LocalDate.plusMonths``)."""
+        import calendar as _calendar
+
+        m = day.month - 1 + delta
+        year, month = day.year + m // 12, m % 12 + 1
+        return date(year, month, min(day.day, _calendar.monthrange(year, month)[1]))
+
+    @staticmethod
+    def _view_label(view) -> str:
+        return {"month": "Month", "week": "Week", "day": "Day", "list": "List"}[view.value]
 
     def component(self):
         from mateu_uidl import components as fluent
 
-        month = self.current_month()
+        anchor = self.current_month()
+        view = self.current_view()
+        date_from, date_to = self._period(view, anchor)
         # Every event chip dispatches the same uniform actionId; the clicked event travels in
         # the action's parameters (_clickedEvent) and the archetype finds it back by id.
         events = tuple(
             replace(e, action_id="openCalendarEvent")
-            for e in self.events(month, self.http_request)
+            for e in self._events_of(date_from, date_to)
         )
         buttons = [
             fluent.Button(label="‹", action_id="previousCalendarMonth"),
             fluent.Button(label="Today", action_id="goCalendarToday"),
             fluent.Button(label="›", action_id="nextCalendarMonth"),
         ]
+        views = list(self.views())
+        if len(views) > 1:
+            for option in views:
+                buttons.append(
+                    fluent.Button(
+                        label=self._view_label(option),
+                        action_id="switchCalendarView",
+                        parameters={"_view": option.value},
+                        button_style="primary" if option == view else None,
+                    )
+                )
         if self.show_create():
             buttons.append(
                 fluent.Button(label="+ Create", action_id="createCalendarEvent",
@@ -2089,7 +2309,13 @@ class CalendarPage(ComponentTreeSupplier):
                 fluent.HorizontalLayout(
                     spacing=True, style="align-items: center;", content=tuple(buttons)
                 ),
-                fluent.Calendar(month=month, events=events),
+                fluent.Calendar(
+                    month=anchor,
+                    events=events,
+                    view=view,
+                    days=tuple(self.days(date_from, date_to, self.http_request)),
+                    day_action_id="openCalendarDay" if self.days_clickable() else None,
+                ),
             ),
         )
 

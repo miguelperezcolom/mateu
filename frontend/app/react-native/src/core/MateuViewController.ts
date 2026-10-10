@@ -2,6 +2,7 @@ import { evaluateExpression, interpolate } from './expressions';
 import { MateuSession, NavTarget } from './MateuSession';
 import { externalAuthHeaders, registerRestSources } from './restFetch';
 import { announce } from '../a11y/a11y';
+import { isTimedOnLoad, PollingScheduler } from './polling';
 
 type Json = Record<string, any>;
 
@@ -97,8 +98,28 @@ export class MateuViewController {
   private fieldDataHandlers: Record<string, (data: unknown) => void> = {};
   private view: RenderedView = { component: null, state: {}, data: null, loading: false, error: null, version: 0 };
 
+  /** Periodic refresh: timed OnLoad + OnSuccess triggers, tied to the screen (generation). */
+  private readonly polling = new PollingScheduler(
+    (actionId) => {
+      if (actionId === 'search') this.seedSearchState();
+      // Like every trigger, silent: a failure logs, never a toast. runAction shows no busy
+      // indicator here, so `background` needs no extra handling on this renderer.
+      void this.runAction(actionId, undefined, true);
+    },
+    undefined,
+    (condition) => this.evalValidationCondition(condition),
+  );
+  /** Set by navigations/mounts: the next ServerSide render is a NEW screen even if it looks the same. */
+  private freshScreen = true;
+
   constructor(session: MateuSession) {
     this.session = session;
+  }
+
+  /** The host unmounted this view: pending timed triggers must not fire. */
+  dispose(): void {
+    this.polling.stop();
+    if (this.autoSaveTimer) clearTimeout(this.autoSaveTimer);
   }
 
   get rendered(): RenderedView {
@@ -124,6 +145,7 @@ export class MateuViewController {
     try {
       const increment = await this.session.api.initialLoad(route, this.session.appState);
       this.currentRoute = route ?? '';
+      this.freshScreen = true;
       this.applyIncrement(increment as Json);
     } catch (e) {
       this.publish({ ...this.view, loading: false, error: errorText(e) });
@@ -140,6 +162,7 @@ export class MateuViewController {
       this.navigationServerSideType = serverSideType ?? '';
       this.currentComponentState = {};
       this.actionBanners = []; // action banners don't survive page navigations
+      this.freshScreen = true;
       this.applyIncrement(increment as Json);
       if (this.view.loading) this.publish({ ...this.view, loading: false });
     } catch (e) {
@@ -196,6 +219,7 @@ export class MateuViewController {
       return;
     }
 
+    const generation = this.polling.currentGeneration;
     try {
       const increment = await this.session.api.runAction({
         route: this.currentRoute,
@@ -208,6 +232,8 @@ export class MateuViewController {
         parameters: parameters ?? {},
       });
       this.applyIncrement(increment as Json);
+      // OnSuccess triggers (the polling loop) — only if we are still on the screen that dispatched it
+      this.polling.actionSucceeded(generation, actionId);
     } catch (e) {
       if (silent || this.silentErrors) console.log('[Mateu] action failed:', actionId, errorText(e));
       else this.session.notify(null, `Action failed: ${errorText(e)}`, 'error');
@@ -654,6 +680,7 @@ export class MateuViewController {
     this.currentRoute = str(node['route']) || this.currentRoute;
     this.currentServerSideType = str(node['serverSideType']) || this.currentServerSideType;
     this.navigationServerSideType = this.currentServerSideType;
+    this.freshScreen = true;
     this.renderComponentFragment(node, (node['initialData'] as Json) ?? {}, null);
   }
 
@@ -713,7 +740,13 @@ export class MateuViewController {
           error: null,
           version: this.view.version + 1,
         });
-        this.fireOnLoadTriggers(asArray(component['triggers']));
+        const triggers = asArray(component['triggers']);
+        const fresh = this.freshScreen;
+        this.freshScreen = false;
+        // timed OnLoad/OnSuccess: armed on a NEW screen only — a same-screen re-render (what a
+        // refresh answers) must not re-arm the OnLoads, or every round would add another loop
+        this.polling.enterScreen(`${sst || this.currentServerSideType}|${route || this.currentRoute}`, triggers, fresh);
+        this.fireOnLoadTriggers(triggers);
         return;
       }
 
@@ -757,6 +790,7 @@ export class MateuViewController {
   private fireOnLoadTriggers(triggers: Json[]): void {
     for (const trigger of triggers) {
       if (String(trigger['type']).toLowerCase() !== 'onload') continue;
+      if (isTimedOnLoad(trigger)) continue; // delayed: the polling scheduler owns it
       const actionId = str(trigger['actionId']);
       if (!actionId) continue;
       if (actionId === 'search') this.seedSearchState();

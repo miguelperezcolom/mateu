@@ -190,6 +190,10 @@ class ResponsiveGrid(Component):
     #: Named areas pinned with position:sticky while the rest of the grid scrolls (coherence-plan
     #: #7): a child whose slot is listed here gets a sticky wrapper. Empty = none.
     sticky_areas: tuple[str, ...] = ()
+    #: The viewer may rearrange the tiles by dragging them. The order is the viewer's own, kept by
+    #: the renderer per screen, keyed by each child's id (its index when it has none); the server's
+    #: order stays the default. False = fixed order.
+    reorderable: bool = False
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
@@ -377,6 +381,10 @@ class PlanningResource:
     id: str | None = None
     label: str | None = None
     group: str | None = None
+    #: Values of the board's attribute columns, in order (e.g. "SUP", "Clean").
+    attributes: tuple[str, ...] = ()
+    #: Icon shown before the label (icon name, e.g. "vaadin:star"); None for none.
+    icon: str | None = None
 
 
 @dataclass(frozen=True)
@@ -392,6 +400,10 @@ class PlanningBlock:
     label: str | None = None
     color: str | None = None
     status: str | None = None
+    #: Icon shown before the label (e.g. "vaadin:star" for a VIP); None for none.
+    icon: str | None = None
+    #: What hovering the block shows (lines separated by \n); None = label + dates.
+    summary: str | None = None
 
 
 @dataclass(frozen=True)
@@ -400,7 +412,9 @@ class PlanningBoard(Component):
     between ``from_`` and ``to``, and colored :class:`PlanningBlock` s spanning their date ranges
     on their resource's row — the rooms × days grid every hotel/rental/staffing back-office
     needs. ``select_action_id`` runs on block click (``parameters._blockId``);
-    ``move_action_id`` runs on drag-drop (``_blockId``, ``_resourceId``, ``_start``, ``_end``)."""
+    ``move_action_id`` runs on drag-drop (``_blockId``, ``_resourceId``, ``_start``, ``_end``);
+    ``resize_action_id`` on edge drag, ``open_action_id`` on double click and
+    ``range_select_action_id`` on a drag across empty cells (the OPERA Room Diary extras)."""
 
     resources: tuple[PlanningResource, ...] = ()
     blocks: tuple[PlanningBlock, ...] = ()
@@ -411,10 +425,22 @@ class PlanningBoard(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    #: Headers of the attribute columns shown next to each resource's label (e.g. "Type",
+    #: "Status"); each resource carries its values in ``PlanningResource.attributes``.
+    attribute_columns: tuple[str, ...] = ()
+    #: Run when a block's start/end edge is dragged: ``_blockId``, ``_resourceId``, ``_start``,
+    #: ``_end`` (ISO dates, end inclusive). None = not resizable.
+    resize_action_id: str | None = None
+    #: Run on double click on a block: ``_blockId``.
+    open_action_id: str | None = None
+    #: Run when the user drags across EMPTY cells of a resource: ``_resourceId``, ``_start``,
+    #: ``_end`` (end inclusive). None = no range selection.
+    range_select_action_id: str | None = None
 
     def __post_init__(self):
         object.__setattr__(self, "resources", tuple(self.resources))
         object.__setattr__(self, "blocks", tuple(self.blocks))
+        object.__setattr__(self, "attribute_columns", tuple(self.attribute_columns or ()))
 
 
 @dataclass(frozen=True)
@@ -571,27 +597,65 @@ class Stat(Component):
 
 @dataclass(frozen=True)
 class CalendarEvent:
-    """One event on a :class:`Calendar`: a title on a ``date``, optional color and ``action_id``."""
+    """One event on a :class:`Calendar`: a title on a ``date`` — through ``end_date`` (inclusive)
+    when it spans several days —, optionally between ``start_time`` and ``end_time`` ("HH:mm",
+    shown in the week, day and list views), with an optional color and an ``action_id`` that
+    makes the chip clickable."""
 
     id: str | None = None
     title: str | None = None
     date: date | None = None
     color: str | None = None
     action_id: str | None = None
+    end_date: date | None = None
+    start_time: str | None = None
+    end_time: str | None = None
+
+
+class CalendarView(Enum):
+    """How a :class:`Calendar` shows its period: the ``month`` grid, the ``week`` (Monday to
+    Sunday around the anchor date), a single ``day``, or a ``list`` — the agenda of the month,
+    grouped by date. The Python analogue of ``io.mateu.uidl.data.CalendarView``."""
+
+    month = "month"
+    week = "week"
+    day = "day"
+    list = "list"
+
+
+@dataclass(frozen=True)
+class CalendarDay:
+    """What a :class:`Calendar` shows IN a date's cell, besides its events: a short ``label``
+    (e.g. the availability of a hotel's Property Calendar) and a ``tone`` (info, success,
+    warning, danger, neutral) that tints the cell."""
+
+    date: date | None = None
+    label: str | None = None
+    tone: str | None = None
 
 
 @dataclass(frozen=True)
 class Calendar(Component):
-    """A read-only month-grid calendar with events. ``month`` is any day in the month to show."""
+    """A calendar with events. ``month`` is the ANCHOR date: any day of the month to show in the
+    month and list views, the day of the day view, a day of the week in the week view. ``view``
+    picks how the period is shown (default month) and ``views``, when it lists more than one,
+    lets the user switch between them in place. ``days`` put a label and a tone in each date's
+    cell, and ``day_action_id`` makes the cells clickable (the action receives ``_date``)."""
 
     month: date | None = None
     events: tuple[CalendarEvent, ...] = ()
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    view: CalendarView | None = None
+    views: tuple[CalendarView, ...] = ()
+    days: tuple[CalendarDay, ...] = ()
+    day_action_id: str | None = None
 
     def __post_init__(self):
         object.__setattr__(self, "events", tuple(self.events))
+        object.__setattr__(self, "views", tuple(self.views))
+        object.__setattr__(self, "days", tuple(self.days))
 
 
 @dataclass(frozen=True)
@@ -997,6 +1061,27 @@ class StatusList(Component):
 
 
 @dataclass(frozen=True)
+class DropZone(Component):
+    """A place to DROP dragged listing rows (a listing decorated ``@drag_rows(type)``): a titled
+    area wrapping any ``content``. When rows of the ``accept``ed type are dropped on it, it runs
+    ``action_id`` with its ``parameters`` plus ``_draggedIds`` (the dragged rows' ids) and
+    ``_dragType`` (mirrors Java's DropZone)."""
+
+    accept: str | None = None
+    action_id: str | None = None
+    parameters: dict[str, object] | None = None
+    title: str | None = None
+    subtitle: str | None = None
+    content: tuple[Component, ...] = ()
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "content", tuple(self.content))
+
+
+@dataclass(frozen=True)
 class Notice(Component):
     """A compact inline banner: a theme-tinted strip with a severity icon and one line of text
     (e.g. "2 quejas pendientes"), plus an optional right-aligned action. ``theme``: "info" |
@@ -1061,6 +1146,160 @@ class BulletedList(Component):
 
     def __post_init__(self):
         object.__setattr__(self, "items", tuple(self.items))
+
+
+@dataclass(frozen=True)
+class ActionPanelItem:
+    """An action of an :class:`ActionPanel`. ``populated`` marks an action with data behind it
+    (listed first and emphasised); a ``count`` greater than zero implies it and is shown next to the
+    label ("Traces (3)")."""
+
+    label: str | None = None
+    action_id: str | None = None
+    parameters: dict[str, object] | None = None
+    count: int | None = None
+    populated: bool = False
+    disabled: bool = False
+
+
+@dataclass(frozen=True)
+class ActionPanelCategory:
+    """A column of an :class:`ActionPanel`: a title and its actions."""
+
+    title: str | None = None
+    actions: tuple[ActionPanelItem, ...] = ()
+
+    def __post_init__(self):
+        object.__setattr__(self, "actions", tuple(self.actions))
+
+
+@dataclass(frozen=True)
+class ActionPanel(Component):
+    """A categorised ACTION PANEL: a trigger button opening a layer with the record's actions
+    grouped in columns, one per category — the "I want to…" menu of back-office suites. Each column
+    shows up to ``max_per_category`` actions (0 = 10) and a "Show more"; ``hide_unpopulated_toggle``
+    offers to hide the actions without data. ``shortcut`` (e.g. ``"ctrl+i"``) opens it from the
+    keyboard; each action dispatches its ``action_id`` with its ``parameters``."""
+
+    label: str | None = None
+    shortcut: str | None = None
+    categories: tuple[ActionPanelCategory, ...] = ()
+    max_per_category: int = 0
+    hide_unpopulated_toggle: bool = False
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "categories", tuple(self.categories))
+
+
+@dataclass(frozen=True)
+class MatrixColumn:
+    """A column of a :class:`MatrixGrid`. Consecutive columns sharing a ``group`` (e.g. the month)
+    get a spanning header above theirs; ``tone`` (info, success, warning, danger, neutral) tints the
+    whole column — weekends, a special event."""
+
+    id: str | None = None
+    label: str | None = None
+    group: str | None = None
+    tone: str | None = None
+
+
+@dataclass(frozen=True)
+class MatrixCell:
+    """A cell of a :class:`MatrixGrid`: its displayed ``value``, an optional ``tone`` and whether it
+    is a ``link`` that runs the grid's ``cell_action_id``."""
+
+    value: str | None = None
+    tone: str | None = None
+    link: bool = False
+
+    @staticmethod
+    def of(value) -> "MatrixCell":
+        return MatrixCell("" if value is None else str(value))
+
+
+@dataclass(frozen=True)
+class MatrixRow:
+    """A row of a :class:`MatrixGrid`: one cell per column, in column order. ``editable`` lets its
+    cells be edited in place; ``emphasis`` marks a total or key row."""
+
+    id: str | None = None
+    label: str | None = None
+    cells: tuple[MatrixCell, ...] = ()
+    editable: bool = False
+    emphasis: bool = False
+
+    def __post_init__(self):
+        object.__setattr__(self, "cells", tuple(self.cells))
+
+
+@dataclass(frozen=True)
+class MatrixSection:
+    """A collapsible group of rows of a :class:`MatrixGrid`; ``collapsed`` is its initial state. A
+    blank ``id`` gets ``section<index>`` on the wire."""
+
+    id: str | None = None
+    title: str | None = None
+    collapsed: bool = False
+    rows: tuple[MatrixRow, ...] = ()
+
+    def __post_init__(self):
+        object.__setattr__(self, "rows", tuple(self.rows))
+
+
+@dataclass(frozen=True)
+class MatrixGrid(Component):
+    """A MATRIX of values by column — typically metrics or types (rows) by dates (columns), the
+    shape of an availability or forecast grid. A ``link`` cell dispatches ``cell_action_id`` on
+    click; a cell of an ``editable`` row commits through ``edit_action_id``. Both receive
+    ``{"_rowId", "_columnId", "_value"}`` as action parameters."""
+
+    row_header_label: str | None = None
+    columns: tuple[MatrixColumn, ...] = ()
+    sections: tuple[MatrixSection, ...] = ()
+    cell_action_id: str | None = None
+    edit_action_id: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "columns", tuple(self.columns))
+        object.__setattr__(self, "sections", tuple(self.sections))
+
+
+@dataclass(frozen=True)
+class MapMarker:
+    """One point on a :class:`Map` (mirrors Java's ``MapMarker``): a pin at ``latitude`` /
+    ``longitude`` with an optional ``label``, ``description`` and ``color``."""
+
+    id: str | None = None
+    latitude: float = 0.0
+    longitude: float = 0.0
+    label: str | None = None
+    description: str | None = None
+    color: str | None = None
+
+
+@dataclass(frozen=True)
+class Map(Component):
+    """A street map (mirrors Java's ``io.mateu.uidl.data.Map``): ``position`` is the centre as
+    ``"lat, lon"`` (free string), ``zoom`` the zoom level as a string. When ``marker_action_id``
+    is set, clicking a marker runs that action with ``{"_markerId": <marker id>}``. A missing
+    ``id`` travels as ``"map"``."""
+
+    position: str | None = None
+    zoom: str | None = None
+    markers: tuple[MapMarker, ...] = ()
+    marker_action_id: str | None = None
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+    def __post_init__(self):
+        object.__setattr__(self, "markers", tuple(self.markers or ()))
 
 
 @dataclass(frozen=True)
@@ -1297,6 +1536,30 @@ class MicroFrontend(Component):
     css_classes: str | None = None
 
 
+class PopoverTrigger(Enum):
+    """What opens a :class:`Popover`: a ``click`` on the wrapped component (the default), or
+    ``hover`` — pointing at it, or focusing it from the keyboard — for read-only details. The
+    Python analogue of ``io.mateu.uidl.data.PopoverTrigger``."""
+
+    click = "click"
+    hover = "hover"
+
+
+@dataclass(frozen=True)
+class Popover(Component):
+    """A popover: the ``wrapped`` component, and the ``content`` shown in a small floating panel
+    next to it — on click by default, or on hover/focus with ``trigger=PopoverTrigger.hover`` (a
+    rate breakdown, a reservation summary). The wire component id is ``id`` when set. The Python
+    analogue of ``io.mateu.uidl.data.Popover``."""
+
+    content: Component | None = None
+    wrapped: Component | None = None
+    trigger: PopoverTrigger = PopoverTrigger.click
+    id: str | None = None
+    style: str | None = None
+    css_classes: str | None = None
+
+
 class DrawerPosition(Enum):
     start = "start"
     end = "end"
@@ -1416,6 +1679,8 @@ __all__ = [
     "ProgressSteps",
     "Stat",
     "CalendarEvent",
+    "CalendarView",
+    "CalendarDay",
     "Calendar",
     "PricingPlan",
     "PricingTable",
@@ -1447,6 +1712,17 @@ __all__ = [
     "TaskProgress",
     "StatusItem",
     "StatusList",
+    "ActionPanelItem",
+    "ActionPanelCategory",
+    "ActionPanel",
+    "MatrixColumn",
+    "MatrixCell",
+    "MatrixRow",
+    "MatrixSection",
+    "MatrixGrid",
+    "MapMarker",
+    "Map",
+    "DropZone",
     "QueueItem",
     "QueueGroup",
     "TaskQueue",

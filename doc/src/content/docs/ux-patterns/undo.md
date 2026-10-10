@@ -44,3 +44,12 @@ public Message restore(HttpRequest httpRequest) {
 
 - [Bulk actions](/ux-patterns/bulk-actions/) — the operations most worth undoing
 - [Concurrent edit conflicts](/ux-patterns/optimistic-locking/) — the other recoverability guard
+
+## On Redwood
+
+Oracle's `oj-sp-messages-toast` carries no actions, so an undoable message is shown with JET's own
+notification — an `oj-messages` (display `notification`) whose `oj-message` puts the Undo
+`oj-button` in its `detail` slot, the slot JET reserves for links and buttons. Pressing it runs the
+undo action on the page that produced the message and closes the notification. Demo: moving or
+resizing a stay on the Room Diary of `demo-vb-pms`.
+

@@ -12,7 +12,15 @@ public record PlanningBoardDto(
     String from,
     String to,
     String moveActionId,
-    String selectActionId)
+    String selectActionId,
+    // headers of the attribute columns next to each resource (values in PlanningResourceDto)
+    List<String> attributeColumns,
+    // drag a block's edge → {_blockId, _resourceId, _start, _end}
+    String resizeActionId,
+    // double click on a block → {_blockId}
+    String openActionId,
+    // drag across empty cells of a resource → {_resourceId, _start, _end}
+    String rangeSelectActionId)
     implements ComponentMetadataDto {
 
   public PlanningBoardDto {

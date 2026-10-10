@@ -367,9 +367,10 @@ class FieldKindsSyncTest {
     assertThat(field.options())
         .extracting(o -> o.value(), o -> o.label())
         .containsExactly(
-            org.assertj.core.groups.Tuple.tuple("RED", "RED"),
+            // no @Label → the constant humanized; @Label wins
+            org.assertj.core.groups.Tuple.tuple("RED", "Red"),
             org.assertj.core.groups.Tuple.tuple("GREEN", "Verde"),
-            org.assertj.core.groups.Tuple.tuple("BLUE", "BLUE"));
+            org.assertj.core.groups.Tuple.tuple("BLUE", "Blue"));
   }
 
   @Test

@@ -186,7 +186,10 @@ public class GridColumnBuilder {
   static java.util.List<io.mateu.uidl.data.Option> getEditorOptions(Field columnField) {
     if (columnField.getType().isEnum()) {
       return java.util.Arrays.stream(columnField.getType().getEnumConstants())
-          .map(c -> new io.mateu.uidl.data.Option(((Enum<?>) c).name(), c.toString()))
+          .map(
+              c ->
+                  new io.mateu.uidl.data.Option(
+                      ((Enum<?>) c).name(), FieldMetadataExtractor.enumLabel(c)))
           .toList();
     }
     return null;

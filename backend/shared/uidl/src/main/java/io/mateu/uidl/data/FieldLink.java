@@ -19,8 +19,38 @@ public record FieldLink(
     boolean disabledOnClick,
     Object itemData,
     String description,
-    boolean hidden)
+    boolean hidden,
+    MenuPresentation presentation)
     implements Actionable {
+  /** The entry without presentation (a plain list entry). */
+  public FieldLink(
+      String path,
+      String label,
+      String serverSideType,
+      String fieldName,
+      boolean selected,
+      Component component,
+      String className,
+      boolean disabled,
+      boolean disabledOnClick,
+      Object itemData,
+      String description,
+      boolean hidden) {
+    this(
+        path,
+        label,
+        serverSideType,
+        fieldName,
+        selected,
+        component,
+        className,
+        disabled,
+        disabledOnClick,
+        itemData,
+        description,
+        hidden,
+        null);
+  }
 
   /**
    * An entry the menu does not draw, still resolving its route (deep links, reloads, navigation

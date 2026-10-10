@@ -1,0 +1,67 @@
+<oj-bind-if test="[[ $current.data.isRadio ]]">
+  <oj-radioset
+      label-hint="[[ $current.data.label ]]"
+      value="[[ $current.data.value ]]"
+      required="[[ $current.data.required ]]"
+      readonly="[[ $current.data.readonly ]]"
+      class="oj-choice-direction-row"
+      :data-field-id="[[ $current.data.fieldId ]]"
+      on-value-changed="[[ $listeners.{{change}} ]]">
+    <oj-bind-for-each data="[[ $current.data.options ]]">
+      <template>
+        <oj-option :value="[[ $current.data.value ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+      </template>
+    </oj-bind-for-each>
+  </oj-radioset>
+</oj-bind-if>
+<oj-bind-if test="[[ $current.data.isMultiSelect ]]">
+  <oj-select-many
+      options="[[ $current.data.options ]]"
+      label-hint="[[ $current.data.label ]]"
+      value="[[ $current.data.value ]]"
+      required="[[ $current.data.required ]]"
+      readonly="[[ $current.data.readonly ]]"
+      :data-field-id="[[ $current.data.fieldId ]]"
+      on-value-changed="[[ $listeners.{{change}} ]]"></oj-select-many>
+</oj-bind-if>
+<oj-bind-if test="[[ $current.data.isCheckboxSet ]]">
+  <oj-checkboxset
+      label-hint="[[ $current.data.label ]]"
+      value="[[ $current.data.value ]]"
+      required="[[ $current.data.required ]]"
+      readonly="[[ $current.data.readonly ]]"
+      class="oj-choice-direction-row"
+      :data-field-id="[[ $current.data.fieldId ]]"
+      on-value-changed="[[ $listeners.{{change}} ]]">
+    <oj-bind-for-each data="[[ $current.data.options ]]">
+      <template>
+        <oj-option :value="[[ $current.data.value ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-option>
+      </template>
+    </oj-bind-for-each>
+  </oj-checkboxset>
+</oj-bind-if>
+<oj-bind-if test="[[ $current.data.isMoney ]]">
+  <oj-input-number
+      label-hint="[[ $current.data.label ]]"
+      value="[[ $current.data.value ]]"
+      converter="[[ $current.data.converter ]]"
+      required="[[ $current.data.required ]]"
+      readonly="[[ $current.data.readonly ]]"
+      :data-field-id="[[ $current.data.fieldId ]]"
+      on-value-changed="[[ $listeners.{{change}} ]]"></oj-input-number>
+</oj-bind-if>
+<!-- fichero / imagen / firma / cámara: JET no tiene componente — mateu-capture-field (poc/inputs.mjs) -->
+<oj-bind-if test="[[ $current.data.isCapture ]]">
+  <oj-label-value label-edge="top">
+    <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
+    <div slot="value">
+      <mateu-capture-field
+          :mode="[[ $current.data.captureMode ]]"
+          :accept="[[ $current.data.accept ]]"
+          :value="[[ $current.data.value ]]"
+          :readonly="[[ $current.data.readonly ]]"
+          :data-field-id="[[ $current.data.fieldId ]]"
+          on-value-changed="[[ $listeners.{{change}} ]]"></mateu-capture-field>
+    </div>
+  </oj-label-value>
+</oj-bind-if>

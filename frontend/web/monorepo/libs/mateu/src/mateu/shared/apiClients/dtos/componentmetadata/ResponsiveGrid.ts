@@ -18,4 +18,6 @@ export default interface ResponsiveGrid {
     /** Named areas pinned with position:sticky while the rest of the grid scrolls (coherence-plan
      *  #7): a child whose slot is listed here gets a sticky wrapper. Absent/empty = none. */
     stickyAreas?: string[] | undefined
+    /** The viewer may drag the tiles into their own order (kept per viewer, keyed by child id). */
+    reorderable?: boolean | undefined
 }

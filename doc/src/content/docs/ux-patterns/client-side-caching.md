@@ -70,7 +70,7 @@ Layers 1 and 2 need **no code and no annotation**. Every declared screen already
 - paints its real structure instantly on a return visit, and
 - revalidates with a small, data-only response when its structure hasn't changed.
 
-It all lives in the shared frontend, so it applies identically on every renderer (Vaadin, the Redwood/Visual Builder line, and the other shells).
+It all lives in the shared frontend (`libs/mateu`), so it applies to every renderer built on it — Vaadin. **The Redwood/Visual Builder line does not use that frontend** (its transport is its own core) and has **no screen cache**: every navigation there waits on the backend.
 
 ## Other languages
 

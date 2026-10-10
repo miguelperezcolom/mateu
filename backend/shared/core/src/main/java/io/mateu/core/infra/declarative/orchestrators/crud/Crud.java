@@ -62,6 +62,17 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
         route + " not supported by " + getClass().getSimpleName());
   }
 
+  /**
+   * Everything but the listing exports: {@code export-csv/-excel/-pdf} belong to
+   * ExportActionRunner, which exports any Listing (a crud is one). Claiming them here sent them to
+   * the crud's own handlers, which do not know them.
+   */
+  @Override
+  public boolean supportsAction(String actionId) {
+    if (actionId != null && actionId.startsWith("export-")) return false;
+    return super.supportsAction(actionId);
+  }
+
   @Override
   public Object handleAction(String actionId, HttpRequest httpRequest) {
     for (CrudOrchestratorActionHandler actionHandler : actionHandlers) {

@@ -21,6 +21,8 @@ import '@vaadin/grid/vaadin-grid-filter-column.js';
 import '@vaadin/grid/vaadin-grid-selection-column.js';
 import Table from "@mateu/shared/apiClients/dtos/componentmetadata/Table";
 import Crud from "@mateu/shared/apiClients/dtos/componentmetadata/Crud";
+import { dragMimeOf } from "@infra/ui/dragAndDrop.ts";
+import { rowToneOf } from "@infra/ui/rowTone.ts";
 import GridColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridColumn";
 import GridGroupColumn from "@mateu/shared/apiClients/dtos/componentmetadata/GridGroupColumn.ts";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType.ts";
@@ -141,6 +143,17 @@ export class MateuTable extends LitElement {
         }
     }
 
+    /** @DragRows: the dragged rows (the selection, or the row under the pointer) travel as their ids
+     *  under the drag type's MIME type, which a mateu-drop-zone accepting that type reads. */
+    private onRowsDragStart = (e: CustomEvent) => {
+        const dragType = (this.metadata as Crud | undefined)?.dragType
+        if (!dragType) return
+        const idField = this.identifierFieldName ?? 'id'
+        const rows = ((e.detail?.draggedItems ?? []) as any[]).filter((r) => !isGroupRow(r))
+        e.detail.setDragData(dragMimeOf(dragType), JSON.stringify(rows.map((r) => r?.[idField]).filter((id) => id != null)))
+        e.detail.setDraggedItemsCount?.(rows.length)
+    }
+
     private get identifierFieldName(): string | undefined {
         const annotated = this.metadata?.columns?.find(col => (col.metadata as GridColumn)?.identifier)
         if (annotated) return (annotated.metadata as GridColumn)?.id
@@ -154,12 +167,17 @@ export class MateuTable extends LitElement {
         const idField = this.identifierFieldName
         const selectedId = this.state?._selectedId ?? this.appState?._splitDetailId
         const grouped = !!(this.metadata as Crud | undefined)?.groupBy
-        if ((idField && selectedId !== undefined) || grouped) {
+        // @RowStatus: the row field whose value tones the whole row
+        const toneField = (this.metadata as Crud | undefined)?.rowStatusField ?? undefined
+        if ((idField && selectedId !== undefined) || grouped || toneField) {
             this.grid.cellPartNameGenerator = (_col, model) => {
                 const item = model.item as any
                 if (isGroupRow(item)) return 'mateu-group-row'
-                return (idField && selectedId !== undefined && String(item[idField]) === String(selectedId))
-                    ? 'selected-row' : ''
+                const parts = []
+                if (idField && selectedId !== undefined && String(item[idField]) === String(selectedId)) parts.push('selected-row')
+                const tone = rowToneOf(item, toneField)
+                if (tone) parts.push('mateu-row-' + tone)
+                return parts.join(' ')
             }
         } else {
             this.grid.cellPartNameGenerator = null
@@ -338,6 +356,8 @@ export class MateuTable extends LitElement {
                     .dataProvider="${this.metadata?.infiniteScrolling ? this.dataProvider : undefined}"
                     page-size="${this.metadata?.pageSize}"
                     multi-sort-on-shift-click
+                    ?rows-draggable="${!!(this.metadata as Crud | undefined)?.dragType}"
+                    @grid-dragstart="${this.onRowsDragStart}"
                     @selected-items-changed="${(e: GridSelectedItemsChangedEvent<any>) => {
                         // group marker rows are presentation-only — never let them into the
                         // selection the server contract sees
@@ -533,6 +553,16 @@ export class MateuTable extends LitElement {
         .row-line-value > span {
             display: inline !important;
         }
+        /* @RowStatus tones: a coloured left edge + a light wash of the tone on every cell */
+        vaadin-grid::part(mateu-row-success) { background-color: var(--lumo-success-color-10pct, rgba(43,160,90,.10)); }
+        vaadin-grid::part(mateu-row-warning) { background-color: var(--mateu-warning-10pct, rgba(255,191,0,.14)); }
+        vaadin-grid::part(mateu-row-danger) { background-color: var(--lumo-error-color-10pct, rgba(231,24,24,.10)); }
+        vaadin-grid::part(mateu-row-info) { background-color: var(--lumo-primary-color-10pct, rgba(0,108,226,.10)); }
+        vaadin-grid::part(mateu-row-neutral) { background-color: var(--lumo-contrast-5pct, rgba(0,0,0,.04)); }
+        vaadin-grid::part(first-column-cell mateu-row-success) { box-shadow: inset 3px 0 0 var(--lumo-success-color, #2ba05a); }
+        vaadin-grid::part(first-column-cell mateu-row-warning) { box-shadow: inset 3px 0 0 #e5a400; }
+        vaadin-grid::part(first-column-cell mateu-row-danger) { box-shadow: inset 3px 0 0 var(--lumo-error-color, #e71818); }
+        vaadin-grid::part(first-column-cell mateu-row-info) { box-shadow: inset 3px 0 0 var(--lumo-primary-color, #006ce2); }
         vaadin-grid::part(mateu-group-row) {
             background-color: var(--lumo-contrast-5pct, rgba(0, 0, 0, 0.04));
             font-weight: 600;

@@ -82,13 +82,13 @@
                         "fieldId" : "colour",
                         "label" : "Colour",
                         "options" : [ {
-                          "label" : "red",
+                          "label" : "Red",
                           "value" : "red"
                         }, {
-                          "label" : "green",
+                          "label" : "Green",
                           "value" : "green"
                         }, {
-                          "label" : "blue",
+                          "label" : "Blue",
                           "value" : "blue"
                         } ],
                         "optionsColumns" : 1,

@@ -21,13 +21,13 @@
                         "fieldId" : "size",
                         "label" : "Size",
                         "options" : [ {
-                          "label" : "SMALL",
+                          "label" : "Small",
                           "value" : "SMALL"
                         }, {
-                          "label" : "MEDIUM",
+                          "label" : "Medium",
                           "value" : "MEDIUM"
                         }, {
-                          "label" : "LARGE",
+                          "label" : "Large",
                           "value" : "LARGE"
                         } ],
                         "optionsColumns" : 1,

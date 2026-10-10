@@ -1,0 +1,2 @@
+"use strict";define(["vb/action/actionChain","vb/action/actions"],(ActionChain,Actions)=>{"use strict";return class extends ActionChain{async run(context,{event}){const route=event&&event.target&&event.target.dataset&&event.target.dataset.route;if(route){for(const popup of document.querySelectorAll("oj-popup.mateu-card-popup"))popup.isOpen&&popup.isOpen()&&popup.close();await Actions.callChain(context,{chain:"onMateuNavigate",params:{event:{detail:{currentId:route}}}})}}};});
+//# sourceMappingURL=onMateuTopbarNav.js.map

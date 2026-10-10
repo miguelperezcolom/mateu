@@ -16,6 +16,7 @@ import { test, expect, type Page } from '@playwright/test';
 const API = process.env.STATIC_VCN_API ?? 'http://localhost:8790';
 
 // One API, mutated by the delete test: run in order, in one worker, never stopping at a failure.
+// The Java and YAML projects share it too, so playwright.config.ts runs them one after the other.
 test.describe.configure({ mode: 'default' });
 
 test.beforeEach(async ({ page, request }) => {

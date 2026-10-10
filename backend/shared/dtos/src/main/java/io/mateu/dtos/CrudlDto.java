@@ -61,7 +61,11 @@ public record CrudlDto(
     String gridLayout,
     String groupBy,
     List<ButtonDto> groupActions,
-    RestDataSourceDto rowsSource)
+    RestDataSourceDto rowsSource,
+    // the row field whose value (success | warning | danger | info | neutral) tones the row
+    String rowStatusField,
+    // rows can be dragged onto a DropZone accepting this type (@DragRows)
+    String dragType)
     implements ComponentMetadataDto {
 
   public CrudlDto {

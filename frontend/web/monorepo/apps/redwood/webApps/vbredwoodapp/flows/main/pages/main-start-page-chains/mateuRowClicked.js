@@ -51,8 +51,8 @@ define([
         const rows = $application.variables.mateuListingRows || [];
         row = rows.find((r) => r._rowNumber === rowContext.key);
       }
-      if (!row) {
-        return;
+      if (!row || row._group) {
+        return; // una fila de GRUPO (@GroupBy) es sólo presentación: ni se abre ni se navega
       }
       // DETALLE de fila (@Details) en un listado de consulta: el clic lo abre en su panel en vez
       // de pedir un 'view' que no lleva a ninguna parte. Una fila navegable sigue abriendo el registro.

@@ -12,6 +12,7 @@ import { PageRenderer } from './PageRenderer';
 import {
   SectionRenderer, SubSectionRenderer, CardRenderer, TabsRenderer, AccordionRenderer,
   SplitRenderer, BadgeRenderer, AnchorRenderer, ProgressBarRenderer, DialogRenderer, ConfirmDialogRenderer,
+  PopoverRenderer,
 } from './ContainerRenderer';
 import {
   MetricCardRenderer, ScoreboardRenderer, DashboardPanelRenderer, DashboardLayoutRenderer,
@@ -28,6 +29,10 @@ import {
   ProcessMonitorRenderer,
 } from './DisplayRenderer';
 import { PlanningBoardRenderer } from './PlanningBoardRenderer';
+import { ActionPanelRenderer } from './ActionPanelRenderer';
+import { MatrixGridRenderer } from './MatrixGridRenderer';
+import { MapRenderer } from './MapRenderer';
+import { DropZoneRenderer } from './DropZoneRenderer';
 import { EmptyState, MetricCard, PlanningBoard, Skeleton } from '../api/metadata';
 import { useAppContext } from '../context/AppContext';
 import { MateuViewHost, useViewController } from './MateuViewHost';
@@ -196,6 +201,9 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <DialogRenderer component={component} state={state} />;
     case 'ConfirmDialog':
       return <ConfirmDialogRenderer metadata={metadata} state={state} />;
+    // Popover: on touch both triggers open on press (no hover) — see PopoverRenderer.
+    case 'Popover':
+      return <PopoverRenderer component={component} state={state} />;
 
     case 'MetricCard':
       return <MetricCardRenderer metadata={metadata as unknown as MetricCard} />;
@@ -279,6 +287,14 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       return <PaymentPickerRenderer component={component} />;
     case 'ProcessMonitor':
       return <ProcessMonitorRenderer component={component} />;
+    case 'ActionPanel':
+      return <ActionPanelRenderer metadata={metadata} state={state} />;
+    case 'MatrixGrid':
+      return <MatrixGridRenderer metadata={metadata} />;
+    case 'Map':
+      return <MapRenderer metadata={metadata} />;
+    case 'DropZone':
+      return <DropZoneRenderer component={component} state={state} renderComponent={renderComponent} />;
     case 'PlanningBoard':
       return <PlanningBoardRenderer metadata={metadata as unknown as PlanningBoard} />;
 

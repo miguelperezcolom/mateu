@@ -1191,3 +1191,228 @@ body:has(.mateu-subheader:not(.mateu-subheader-empty)) .mateu-chat-panel {
   font-size: var(--oj-typography-body-md-font-size, 1rem);
   color: var(--oj-core-text-color-secondary, #6f6c6b);
 }
+
+/* ── campos de captura (fichero, imagen, firma, cámara): mateu-capture-field, poc/inputs.mjs ──
+   JET no trae componente para esto; el marco y la previsualización usan los tokens de Redwood */
+mateu-capture-field { display: block; }
+.mateu-capture-box {
+  display: flex; align-items: center; gap: 0.5rem; min-height: 2.75rem;
+}
+.mateu-capture-preview {
+  max-width: 100%; max-height: 14rem; border-radius: var(--oj-core-border-radius-md, 6px);
+  border: 1px solid var(--oj-core-divider-color, rgba(22,21,19,.12));
+  background: var(--oj-core-bg-color-content, #fff);
+}
+.mateu-capture-signature { max-height: 9rem; background: #fff; }
+.mateu-capture-pad {
+  width: 100%; max-width: 35rem; height: 11.25rem; touch-action: none; cursor: crosshair;
+  background: #fff; border: 1px dashed var(--oj-core-neutral-contrast, #6f6b66);
+  border-radius: var(--oj-core-border-radius-md, 6px);
+}
+
+/* ── menú de tarjetas (@Menu(display = cards)): rejilla de oj-action-card en un oj-popup ── */
+.mateu-card-popup .mateu-card-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 0.5rem;
+  width: min(44rem, calc(100vw - 2rem)); padding: 0.75rem; box-sizing: border-box;
+}
+.mateu-menu-card { display: block; width: 100%; }
+.mateu-menu-card-body { display: flex; gap: 0.75rem; align-items: flex-start; padding: 0.75rem; text-align: start; }
+.mateu-menu-card-icon { font-size: 1.5rem; color: var(--oj-core-brand-color, #227e9e); }
+.mateu-menu-card-image { width: 2.5rem; height: 2.5rem; object-fit: cover; border-radius: var(--oj-core-border-radius-md, 6px); }
+.mateu-menu-card-group { margin: 0; }
+.mateu-menu-card-actions { display: flex; flex-wrap: wrap; gap: 0 0.25rem; margin-top: 0.25rem; margin-inline-start: -0.5rem; }
+
+/* ── tape chart (PlanningBoard → oj-gantt) ── */
+oj-gantt.mateu-planning { width: 100%; height: 34rem; }
+.mateu-planning-range {
+  position: absolute; display: none; pointer-events: none; z-index: 10; box-sizing: border-box;
+  background: rgba(34, 126, 158, .14); border: 1px solid rgba(34, 126, 158, .6); border-radius: 4px;
+}
+
+/* ── tonos de fila (@RowStatus) y filas de grupo (@GroupBy) del oj-table: poc/tables.mjs ── */
+#mateuTable tr.mateu-row-tone-success > td { background: rgba(80, 130, 50, .09); }
+#mateuTable tr.mateu-row-tone-warning > td { background: rgba(250, 195, 70, .18); }
+#mateuTable tr.mateu-row-tone-danger > td { background: rgba(200, 60, 40, .10); }
+#mateuTable tr.mateu-row-tone-info > td { background: rgba(34, 126, 158, .10); }
+#mateuTable tr.mateu-row-tone-neutral > td { background: rgba(22, 21, 19, .04); }
+#mateuTable tr.mateu-row-tone-success > td:first-child { box-shadow: inset 3px 0 0 #508232; }
+#mateuTable tr.mateu-row-tone-warning > td:first-child { box-shadow: inset 3px 0 0 #ac630c; }
+#mateuTable tr.mateu-row-tone-danger > td:first-child { box-shadow: inset 3px 0 0 #c74634; }
+#mateuTable tr.mateu-row-tone-info > td:first-child { box-shadow: inset 3px 0 0 #227e9e; }
+#mateuTable tr.mateu-row-tone-group > td {
+  background: var(--oj-core-bg-color-hover, rgba(22, 21, 19, .05)); font-weight: 600; cursor: default;
+}
+/* una fila de grupo es sólo presentación: sin casilla de selección */
+#mateuTable tr.mateu-row-tone-group oj-selector, #mateuTable tr.mateu-row-tone-group .oj-selectorbox { visibility: hidden; }
+
+/* ── paneles plegables (AccordionPanel / Details → oj-collapsible): separador como el acordeón Redwood ── */
+oj-collapsible.mateu-collapsible { display: block; border-top: 1px solid var(--oj-core-divider-color, rgba(22,21,19,.12)); margin-top: .5rem; }
+oj-collapsible.mateu-collapsible h3 { margin: 0; }
+
+/* ── cabecera de FICHA fija al hacer scroll (business card): bandClass + installStickyHeader ── */
+.mateu-sticky-header { position: sticky; top: 0; z-index: 20; transition: padding .15s ease, box-shadow .15s ease; }
+body.mateu-scrolled .mateu-sticky-header { padding-bottom: 0 !important; box-shadow: 0 2px 8px rgba(22, 21, 19, .12); }
+body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-outer-padding-vertical { padding-top: .5rem; padding-bottom: .5rem; }
+body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-header-strip { display: none; }
+body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-title { font-size: 1.25rem; }
+@media (prefers-reduced-motion: reduce) { .mateu-sticky-header { transition: none; } }
+/* el oj-drawer-layout de la shell pone overflow:auto en contenedores que NO desplazan (desplaza la
+   ventana): sticky se ata a ellos y nunca se activa. clip no crea contenedor de scroll; sólo en
+   una página con cabecera fija */
+.oj-drawer-layout-main-content:has(.mateu-sticky-header),
+.oj-drawer-layout-middle-section:has(.mateu-sticky-header) { overflow: clip; }
+
+/* ── ActionPanel («I want to…»): columnas por categoría dentro de un oj-dialog ── */
+.mateu-ap-dialog { width: min(64rem, calc(100vw - 2rem)); max-width: none; }
+.mateu-ap-columns { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.5rem 1.5rem; }
+.mateu-ap-column { display: flex; flex-direction: column; align-items: flex-start; }
+.mateu-ap-column oj-button { --oj-button-height: 2rem; }
+.mateu-action-panel { display: flex; justify-content: flex-end; }
+.mateu-ap-populated, .mateu-ap-populated .oj-button-text { font-weight: 700; }
+.mateu-ap-column:not(.mateu-ap-showall) .mateu-ap-extra { display: none; }
+.mateu-ap-column.mateu-ap-showall .mateu-ap-more { display: none; }
+.mateu-ap-hide-unpopulated .mateu-ap-unpopulated,
+.mateu-ap-hide-unpopulated .mateu-ap-column-unpopulated { display: none; }
+
+/* ── MatrixGrid (oj-data-grid): tonos de celda/columna, filas destacadas, celdas que enlazan ── */
+.mateu-matrix .mateu-matrix-info { background-color: rgba(0, 110, 200, 0.08); }
+.mateu-matrix .mateu-matrix-success { background-color: rgba(30, 140, 60, 0.10); }
+.mateu-matrix .mateu-matrix-warning { background-color: rgba(220, 140, 0, 0.16); }
+.mateu-matrix .mateu-matrix-danger { background-color: rgba(200, 40, 30, 0.10); color: #b3261e; }
+/* (las variables --oj-core-neutral-N de Redwood son grises medios: tinte explícito y suave) */
+.mateu-matrix .mateu-matrix-neutral { background-color: rgba(0, 0, 0, 0.035); }
+.mateu-matrix .mateu-matrix-emphasis { font-weight: 700; }
+.mateu-matrix .mateu-matrix-section-cell { background-color: rgba(0, 0, 0, 0.02); }
+.mateu-matrix .mateu-matrix-link .mateu-matrix-value { color: var(--oj-core-link-text-color, #0b6bcb); text-decoration: underline; cursor: pointer; }
+.mateu-matrix .mateu-matrix-editable { box-shadow: inset 0 -2px 0 var(--oj-core-border-color, #d6d3cf); }
+
+/* ── KPIs (Scoreboard / MetricCard) ── */
+.mateu-scoreboard .mateu-metric { min-width: 12rem; }
+.mateu-trend-up { color: var(--oj-core-success-3, #2e7d32); }
+.mateu-trend-down { color: var(--oj-core-danger-3, #b3261e); }
+
+/* ── Calendar (JET no trae calendario: rejilla con los tokens de Redwood) ── */
+.mateu-cal-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 0.5rem; }
+.mateu-cal .mateu-cal-title, .mateu-cal .mateu-cal-view { display: none; }
+.mateu-cal[data-cal-shown="month"] [data-for="month"], .mateu-cal[data-cal-shown="week"] [data-for="week"],
+.mateu-cal[data-cal-shown="day"] [data-for="day"], .mateu-cal[data-cal-shown="list"] [data-for="list"] { display: block; }
+.mateu-cal[data-cal-shown="month"] .mateu-cal-view[data-for="month"], .mateu-cal[data-cal-shown="week"] .mateu-cal-view[data-for="week"],
+.mateu-cal[data-cal-shown="day"] .mateu-cal-view[data-for="day"] { display: grid; }
+.mateu-cal-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--oj-core-divider-color, #e5e1dc);
+  border: 1px solid var(--oj-core-divider-color, #e5e1dc); border-radius: var(--oj-core-border-radius-md, 6px); overflow: hidden; }
+.mateu-cal-day { grid-template-columns: minmax(0, 1fr); }
+.mateu-cal-dow { background: var(--oj-core-bg-color-content, #fbf9f8); padding: 0.4rem 0.5rem; font-size: 0.75rem; font-weight: 600;
+  text-transform: uppercase; text-align: center; color: var(--oj-core-text-color-secondary, #6f6a66); }
+.mateu-cal-cell { background: var(--oj-core-bg-color-content, #fff); min-height: 5rem; padding: 0.3rem; display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+.mateu-cal-week .mateu-cal-cell { min-height: 12rem; }
+.mateu-cal-day .mateu-cal-cell { min-height: 10rem; }
+.mateu-cal-blank { background: var(--oj-core-neutral-contrast, #f5f4f2); }
+.mateu-cal-clickable { cursor: pointer; }
+.mateu-cal-clickable:hover { box-shadow: inset 0 0 0 2px var(--oj-core-focus-border-color, #227e9e); }
+.mateu-cal-top { display: flex; justify-content: space-between; gap: 0.25rem; }
+.mateu-cal-label { font-size: 0.75rem; font-weight: 600; color: var(--oj-core-text-color-secondary, #6f6a66); }
+.mateu-cal-num { margin-left: auto; font-size: 0.75rem; color: var(--oj-core-text-color-secondary, #6f6a66); }
+.mateu-cal-today .mateu-cal-num { background: var(--oj-core-text-color-primary, #161513); color: #fff; border-radius: 50%; width: 1.3rem; height: 1.3rem;
+  display: inline-flex; align-items: center; justify-content: center; }
+.mateu-cal-chip { display: block; font-size: 0.75rem; padding: 0.1rem 0.35rem; border-radius: 4px; border-left: 3px solid #227e9e;
+  background: rgba(34, 126, 158, 0.10); color: var(--oj-core-text-color-primary, #161513); text-decoration: none;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mateu-cal-week .mateu-cal-chip, .mateu-cal-day .mateu-cal-chip, .mateu-cal-agenda .mateu-cal-chip { white-space: normal; }
+.mateu-cal-chip[data-cal-clickable="true"]:hover { text-decoration: underline; }
+.mateu-cal-agenda { border: 1px solid var(--oj-core-divider-color, #e5e1dc); border-radius: var(--oj-core-border-radius-md, 6px); }
+.mateu-cal-agenda-date { display: flex; justify-content: space-between; padding: 0.5rem 0.75rem; font-weight: 600;
+  background: var(--oj-core-neutral-contrast, #f5f4f2); }
+.mateu-cal-agenda-entries { padding: 0.4rem 0.75rem; display: flex; flex-direction: column; gap: 0.3rem; }
+.mateu-cal-info { background-color: rgba(0, 110, 200, 0.08); }
+.mateu-cal-success { background-color: rgba(30, 140, 60, 0.10); }
+.mateu-cal-warning { background-color: rgba(220, 140, 0, 0.16); }
+.mateu-cal-danger { background-color: rgba(200, 40, 30, 0.10); }
+.mateu-cal-danger .mateu-cal-label { color: #b3261e; }
+.mateu-cal-neutral { background-color: rgba(0, 0, 0, 0.035); }
+
+/* ── Campana de la bandeja ── */
+.mateu-bell { position: relative; display: inline-flex; }
+.mateu-bell-badge { position: absolute; top: -4px; right: -6px; transform: scale(0.85); pointer-events: none; min-width: 1.1rem; text-align: center; }
+.mateu-bell-panel { width: 22rem; max-width: 90vw; }
+.mateu-bell-list { max-height: 24rem; }
+.mateu-undo-button { margin-top: 0.25rem; }
+
+/* ── Teclas de acceso (@App(accessKeys)): la capa que aparece al mantener Alt ── */
+.mateu-access-keys { position: fixed; inset: 0; pointer-events: none; z-index: 10000; }
+.mateu-access-key { position: absolute; padding: 0 0.3rem; border-radius: 3px; font: 600 0.7rem/1.2rem var(--oj-typography-font-family, sans-serif);
+  background: #fcd34d; color: #161513; box-shadow: 0 1px 3px rgba(0,0,0,.35); text-transform: none; }
+
+/* ── Ventana flotante (hover.mjs) y disparador de Popover ── */
+.mateu-hover-content { padding: 0.5rem 0.75rem; max-width: 22rem; font-size: 0.875rem; line-height: 1.4; }
+.mateu-pop-trigger { display: inline-block; cursor: help; border-bottom: 1px dotted currentColor; }
+/* the trigger is a real <button> (keyboard for free); it keeps the look of inline text */
+button.mateu-pop-trigger { background: none; border-top: 0; border-left: 0; border-right: 0; padding: 0; font: inherit; color: inherit; text-align: inherit; }
+.mateu-pop-trigger[data-mateu-pop-click]:not([data-mateu-pop-click=""]) { cursor: pointer; color: var(--oj-core-link-text-color, #227e9e); }
+[data-mateu-hover]:not([data-mateu-hover=""]) { cursor: help; text-decoration: underline dotted; text-underline-offset: 3px; }
+
+/* ── DropZone (@DragRows → soltar aquí) ── */
+.mateu-drop-zone { border: 1px solid var(--oj-core-divider-color, #e5e1dc); transition: border-color .15s, background-color .15s; }
+.mateu-drop-zone .mateu-drop-hint { display: none; margin-top: 0.5rem; }
+.mateu-drop-zone.mateu-drop-ready { border: 2px dashed var(--oj-core-focus-border-color, #227e9e); }
+.mateu-drop-zone.mateu-drop-ready .mateu-drop-hint { display: block; }
+.mateu-drop-zone.mateu-drop-over { background-color: rgba(34, 126, 158, 0.10); }
+
+/* Image / galería (P2 #20): JET no tiene componente de imagen; el <img> nunca desborda su
+   contenedor. La galería es un oj-film-strip, que necesita items de tamaño FIJO (con un ancho en
+   % los mide a 0 y se queda sin páginas: "Invalid 'page' set: 0"); pagina tantas como quepan. */
+.mateu-atom-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--oj-core-border-radius-lg, 6px);
+  margin-bottom: var(--oj-core-spacing-2x, 8px);
+}
+.mateu-atom-gallery { width: 100%; }
+.mateu-atom-gallery-slide { width: 24rem; height: 13.5rem; padding: 0 var(--oj-core-spacing-1x, 4px); box-sizing: border-box; }
+.mateu-atom-gallery-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: var(--oj-core-border-radius-lg, 6px);
+}
+
+/* Tiles reordenables (P2 #22, ResponsiveGrid.reorderable): se arrastran por su bloque; el destino
+   se marca mientras pasa uno por encima. */
+[data-mateu-tile] { cursor: grab; }
+[data-mateu-tile]:focus-visible { outline: 2px solid var(--oj-core-focus-border-color, #0572ce); outline-offset: 2px; }
+.mateu-tile-dragging { opacity: .5; }
+.mateu-tile-over > * { outline: 2px dashed var(--oj-core-border-color-brand, #227e9e); outline-offset: 2px; }
+
+/* Texto enriquecido (P2 #23): el HTML saneado de un richText/html/markdown con la tipografía de
+   Redwood — márgenes contenidos, listas sangradas, código y citas con los tokens del tema. */
+.mateu-atom-richtext > :first-child { margin-top: 0; }
+.mateu-atom-richtext > :last-child { margin-bottom: 0; }
+.mateu-atom-richtext p, .mateu-atom-richtext ul, .mateu-atom-richtext ol, .mateu-atom-richtext pre,
+.mateu-atom-richtext blockquote { margin: 0 0 var(--oj-core-spacing-2x, 8px); }
+.mateu-atom-richtext h1, .mateu-atom-richtext h2, .mateu-atom-richtext h3,
+.mateu-atom-richtext h4, .mateu-atom-richtext h5, .mateu-atom-richtext h6 {
+  margin: var(--oj-core-spacing-3x, 12px) 0 var(--oj-core-spacing-2x, 8px);
+  font-weight: 600;
+}
+.mateu-atom-richtext h1 { font-size: var(--oj-typography-heading-sm-font-size, 1.5rem); }
+.mateu-atom-richtext h2 { font-size: var(--oj-typography-subheading-md-font-size, 1.25rem); }
+.mateu-atom-richtext h3 { font-size: var(--oj-typography-subheading-sm-font-size, 1.125rem); }
+.mateu-atom-richtext ul, .mateu-atom-richtext ol { padding-inline-start: 1.5rem; }
+.mateu-atom-richtext code {
+  font-family: var(--oj-core-font-family-mono, monospace);
+  background: var(--oj-core-neutral-contrast, rgba(0,0,0,.05));
+  padding: 0 .25em;
+  border-radius: 3px;
+}
+.mateu-atom-richtext pre { padding: var(--oj-core-spacing-2x, 8px); overflow-x: auto;
+  background: var(--oj-core-neutral-contrast, rgba(0,0,0,.05)); border-radius: 4px; }
+.mateu-atom-richtext pre code { background: none; padding: 0; }
+.mateu-atom-richtext blockquote { padding-inline-start: var(--oj-core-spacing-3x, 12px);
+  border-inline-start: 3px solid var(--oj-core-divider-color, #ddd); color: var(--oj-core-text-color-secondary, #555); }
+
+/* Wizard finished (the result step): the guided process template still draws its own footer —
+   Cancel and a disabled Done — which mean nothing once the process is over. Hidden; the content's
+   own buttons (in .mateu-wizard-slot) stay. */
+oj-sp-guided-process.mateu-wizard-completed button:not(.mateu-wizard-slot button) {
+  display: none;
+}
