@@ -9,6 +9,7 @@ import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isVie
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf } from './navTree.mjs'
 import { currentMount, pathOfRoute } from './mount.mjs'
+import { restAnswerOf, loadRestOptions, adoptAppSources } from './restSources.mjs'
 
 /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction).
  *  Sale ATADA a la pantalla en curso (resilience.currentView): si cuando contesta ya hay otra, la
@@ -51,7 +52,8 @@ export async function bootstrapShell(base, initiator = 'shell') {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
     }, { actionId: '__load__' })
-    return res.json()
+    // the App carries the REST source catalogue (restSources) and the sample-mode opt-in
+    return adoptAppSources(await res.json())
   } catch (e) {
     if (hasBundle()) {
       const bundled = bundledIncrementFor('', initiator)
@@ -162,6 +164,17 @@ export const loadRoute = async (base, route, initiator = '', extra = {}) => {
  *  Los 4 campos de ruta salen del `outbound` que loadRouteInto estampó al cargar el
  *  contexto (un mediador necesita consumedRoute + serverSideType también en las acciones). */
 export function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
+  // A REST-backed action never reaches the Mateu server as itself: the `search` of a listing with a
+  // rowsSource, and any action declaring a restAction (the route's `__restdata__` load included),
+  // are answered here — direct with fetch, or proxied through the reserved `__restfetch__` action
+  // (restSources.mjs). The increment is shaped like the server's, so the chains do not know.
+  const restAnswer = restAnswerOf(ctx, actionId, componentState, {
+    route,
+    appState: (extra && extra.appState) || {},
+    server: (parameters, idempotent) => runMateuAction(base, ctx, route, '__restfetch__', componentState,
+      { ...extra, parameters, idempotent: !!idempotent }),
+  })
+  if (restAnswer) return restAnswer
   // los OnSuccess (refresco periódico) se leen del contexto que LANZA la acción
   const source = ctx
   // la acción va al ServerSide que la DECLARA (la vista, no el mediador que la cargó): también
@@ -210,6 +223,16 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
  * fallan, para no repetirlas en cada acción. Devuelve el registro nuevo.
  */
 export async function loadLookups(base, reg, ctxId = HOST_ID, opts = {}) {
+  // the options of the fields backed by a REST source (optionsSource) — direct, or proxied
+  reg = await loadRestOptions(reg, ctxId, {
+    draft: opts.draft,
+    appState: opts.appState || {},
+    server: (parameters, idempotent) => {
+      const owner = reg.contexts[ctxId]
+      return runMateuAction(base, owner, opts.route || '', '__restfetch__', { ...(owner.state || {}), ...(opts.draft || {}) },
+        { parameters, appState: opts.appState || {}, idempotent: !!idempotent })
+    },
+  })
   const ctx = reg && reg.contexts && reg.contexts[ctxId]
   const pending = formLookupsOf(ctx)
   if (!pending.length) return reg
