@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>io.mateu</groupId>
+        <artifactId>mateu-parent</artifactId>
+        <version>0.0.1-MATEU</version>
+    </parent>
+
+    <artifactId>mateu-spring-data</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Mateu Spring Data JPA store</name>
+    <description>Optional: a ready-made CrudStore over a Spring Data JPA repository — search, filters,
+        range/list criteria, sorting, paging and listing totals pushed down to the database, and
+        JPA @Version conflicts mapped to Mateu's optimistic-lock dialog.</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <!-- the application brings its own JPA stack (spring-boot-starter-data-jpa) -->
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-jpa</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.persistence</groupId>
+            <artifactId>jakarta.persistence-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+</project>

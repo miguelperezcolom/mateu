@@ -12,6 +12,15 @@ import java.util.Optional;
  * saved in between (unless the request carries {@code _forceOverwrite}, the conflict dialog's
  * explicit override), and {@link #bump} increments the version before persisting. Both are no-ops
  * for entities without a {@code @Version} field.
+ *
+ * <p>A <em>store-managed</em> version — a field carrying JPA's {@code jakarta.persistence.Version}
+ * (or {@code javax.persistence.Version}, or Spring Data's {@code
+ * org.springframework.data.annotation.Version}) — takes part in {@link #check} exactly like Mateu's
+ * own {@code @Version}, so a stale save opens the same conflict dialog and the overwrite button
+ * adopts the stored version; but {@link #bump} leaves it alone, because the persistence provider
+ * increments it itself (bumping it here would make the provider see a version that is not the
+ * stored one and reject every save). The annotations are matched by name, so core needs no JPA
+ * dependency.
  */
 public final class OptimisticLock {
 
@@ -20,7 +29,19 @@ public final class OptimisticLock {
     public StaleEditException() {
       super("The record was modified by someone else while you were editing it");
     }
+
+    /** Same, translating the persistence provider's own optimistic-lock failure. */
+    public StaleEditException(Throwable cause) {
+      super("The record was modified by someone else while you were editing it", cause);
+    }
   }
+
+  /** Version annotations whose field the persistence provider increments by itself. */
+  private static final java.util.Set<String> STORE_MANAGED_VERSIONS =
+      java.util.Set.of(
+          "jakarta.persistence.Version",
+          "javax.persistence.Version",
+          "org.springframework.data.annotation.Version");
 
   private OptimisticLock() {}
 
@@ -29,13 +50,26 @@ public final class OptimisticLock {
         current != null && current != Object.class;
         current = current.getSuperclass()) {
       for (Field field : current.getDeclaredFields()) {
-        if (MetaAnnotations.isPresent(field, Version.class)) {
+        if (MetaAnnotations.isPresent(field, Version.class) || isStoreManaged(field)) {
           field.setAccessible(true);
           return Optional.of(field);
         }
       }
     }
     return Optional.empty();
+  }
+
+  /**
+   * Whether the version field is incremented by the persistence provider (JPA / Spring Data
+   * {@code @Version}) rather than by Mateu.
+   */
+  public static boolean isStoreManaged(Field field) {
+    for (var annotation : field.getAnnotations()) {
+      if (STORE_MANAGED_VERSIONS.contains(annotation.annotationType().getName())) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public static <T> void check(T incoming, Optional<T> stored, HttpRequest httpRequest) {
@@ -55,9 +89,13 @@ public final class OptimisticLock {
         field.get().set(incoming, field.get().get(stored.get()));
         return;
       }
-      long incomingVersion = ((Number) field.get().get(incoming)).longValue();
-      long storedVersion = ((Number) field.get().get(stored.get())).longValue();
-      if (storedVersion > incomingVersion) {
+      Object incomingVersion = field.get().get(incoming);
+      Object storedVersion = field.get().get(stored.get());
+      if (incomingVersion == null || storedVersion == null) {
+        // the form did not carry the version (or the row has none yet): nothing to compare
+        return;
+      }
+      if (isNewer(storedVersion, incomingVersion)) {
         throw new StaleEditException();
       }
     } catch (IllegalAccessException e) {
@@ -65,13 +103,29 @@ public final class OptimisticLock {
     }
   }
 
+  /** Numbers compare numerically whatever their type; JPA timestamp versions as Comparables. */
+  @SuppressWarnings({"unchecked", "rawtypes"})
+  private static boolean isNewer(Object stored, Object incoming) {
+    if (stored instanceof Number storedNumber && incoming instanceof Number incomingNumber) {
+      return storedNumber.longValue() > incomingNumber.longValue();
+    }
+    if (stored instanceof Comparable comparable && stored.getClass().isInstance(incoming)) {
+      return comparable.compareTo(incoming) > 0;
+    }
+    return !stored.equals(incoming);
+  }
+
   public static <T> void bump(T entity) {
     var field = versionField(entity.getClass());
-    if (field.isEmpty()) {
+    if (field.isEmpty() || isStoreManaged(field.get())) {
       return;
     }
     try {
-      long version = ((Number) field.get().get(entity)).longValue();
+      Object current = field.get().get(entity);
+      if (!(current instanceof Number number)) {
+        return;
+      }
+      long version = number.longValue();
       if (field.get().getType() == int.class || field.get().getType() == Integer.class) {
         field.get().set(entity, (int) (version + 1));
       } else {

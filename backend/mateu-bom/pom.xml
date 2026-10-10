@@ -149,6 +149,12 @@
         <artifactId>mateu-export-pdf</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <!-- optional data-access adapters -->
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>mateu-spring-data</artifactId>
+        <version>${project.version}</version>
+      </dependency>
       <!-- the PRE-RENAME ids (backend/relocations), pinned to this version too. A library built on
            an older Mateu (a workflow engine with its own Mateu UI, say) still depends on
            io.mateu:mvc-core / uidl / core... at ITS version: those are other artifact ids, so Maven
