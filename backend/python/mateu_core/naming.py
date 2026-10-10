@@ -13,6 +13,16 @@ def camel_case(s: str) -> str:
     return head + "".join(p[:1].upper() + p[1:] for p in rest)
 
 
+def snake_case(s: str) -> str:
+    """``camelCase`` -> ``snake_case``; ``"firstName" -> "first_name"``, ``"name" -> "name"``."""
+    out = []
+    for i, ch in enumerate(s or ""):
+        if ch.isupper() and i > 0:
+            out.append("_")
+        out.append(ch.lower())
+    return "".join(out)
+
+
 def humanize(s: str) -> str:
     """``first_name`` / ``firstName`` -> ``"First name"`` (matches C# Naming.Humanize)."""
     if not s:

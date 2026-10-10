@@ -10,6 +10,11 @@
 > radios — the port of the Java `LayoutInference` decision table; `TabLayout` metadata carries
 > `groupRelationship`/`adaptable` on the wire like `TabLayoutDto`).
 > The golden-JSON tests pass; the live `showcase` view is byte-identical to the C# reference.
+> Since 2026-10-10 the port is a fully supported producer (PyPI `mateu-ui`): the shared wire-
+> conformance corpus is a hard gate, and every server row of the parity matrix is ✅ (see
+> `doc/src/content/docs/reference/parity.md`). The engine is split by concern: `mateu_core/mapper/`
+> and `mateu_core/sync_handler/` are packages of mixins composed into `ReflectionMapper` /
+> `SyncHandler`; `mateu_uidl` and `mateu_dtos` are modules re-exported from their package roots.
 
 ## 1. Guiding principle: the renderers are backend-agnostic
 

@@ -16,10 +16,10 @@ An ``actionId`` arrives from the wire, so it must only ever reach a method DECLA
 
 Bulk row actions (``action-on-row-*``) only reach ``@list_toolbar_button`` methods
 (:func:`resolve_row_action`). Once resolved, :func:`ensure_may_invoke` enforces the access
-decorators at invocation (``disabled_unless``, ``audience``); a denied invocation raises
-:class:`MateuForbiddenException` (HTTP 403 at the FastAPI edge) and the method never runs. (The
-port has no method- or class-level ``EyesOnly``: ``EyesOnly`` is a field marker, enforced on
-render and — see :func:`may_write` — on binding.)
+decorators at invocation (``eyes_only``, ``disabled_unless``, ``audience``); a denied invocation
+raises :class:`MateuForbiddenException` (HTTP 403 at the FastAPI edge) and the method never runs.
+A class-level ``@eyes_only`` refuses the whole type (:func:`ensure_class_access`). The field marker
+``EyesOnly`` is enforced on render and — see :func:`may_write` — on binding.
 """
 
 from __future__ import annotations
@@ -104,28 +104,58 @@ def resolve_action(type_, action_id: str | None, advertised: Callable[[], set[st
     return None
 
 
+GROUP_ACTION_MARKER = "__mateu_group_action__"
+
+
 def resolve_row_action(type_, name: str | None):
-    """The ``@list_toolbar_button`` function a bulk ``action-on-row-{name}`` may invoke, or None."""
+    """The ``@list_toolbar_button`` (bulk) or ``@group_action`` (group header) function an
+    ``action-on-row-{name}`` may invoke, or None."""
     if not name or name.startswith("_"):
         return None
     for member, val, _klass in _members(type_):
-        if camel_case(member) == name and inspect.isfunction(val) and hasattr(val, ROW_ACTION_MARKER):
+        if (
+            camel_case(member) == name
+            and inspect.isfunction(val)
+            and (hasattr(val, ROW_ACTION_MARKER) or hasattr(val, GROUP_ACTION_MARKER))
+        ):
             return val
     return None
 
 
-def ensure_may_invoke(mapper, type_, fn, action_id: str) -> None:
+def ensure_may_invoke(mapper, type_, fn, action_id: str | None) -> None:
     """Enforces the access decorators of a resolved action at invocation: the render path only
     disables/hides the button, the wire can still name the action."""
     from .mapper import for_current_audience
 
     reason = None
-    if not mapper.authorized(getattr(fn, "__mateu_disabled_unless__", None)):
+    if not mapper.authorized(getattr(fn, "__mateu_eyes_only__", None)):
+        reason = "eyes_only"
+    elif not class_access_granted(mapper, type_):
+        reason = "class-level eyes_only"
+    elif not mapper.authorized(getattr(fn, "__mateu_disabled_unless__", None)):
         reason = "disabled_unless"
     elif not for_current_audience(getattr(fn, "__mateu_audience__", None)):
         reason = "audience"
     if reason is not None:
         deny(f"action '{action_id}' on {type_.__module__}.{type_.__qualname__} denied by {reason}")
+
+
+def class_access_granted(mapper, type_) -> bool:
+    """Whether the caller passes every class-level ``@eyes_only`` of ``type_`` and of its bases
+    (Java's ``WireTypePolicy.classLevelAccessGranted``)."""
+    if not isinstance(type_, type):
+        return True
+    for klass in type_.__mro__:
+        gate = klass.__dict__.get("__mateu_eyes_only__")
+        if gate is not None and not mapper.authorized(gate):
+            return False
+    return True
+
+
+def ensure_class_access(mapper, type_, what: str = "request") -> None:
+    """Refuses (403) a request that names a type the caller may not see."""
+    if type_ is not None and not class_access_granted(mapper, type_):
+        deny(f"{what} for {type_.__module__}.{type_.__qualname__}: class-level eyes_only not satisfied")
 
 
 def deny(what: str) -> None:
@@ -146,7 +176,8 @@ def advertised_ids(mapper, type_, instance, layout_override=None) -> set[str]:
     ids: set[str] = set()
     try:
         fields = view_fields(type_)
-    except Exception:
+    except Exception as e:  # noqa: BLE001 - logged, not fatal
+        log.warning("advertised_ids failed, falling back (%s)", e)
         fields = []
     for f in fields:
         on_row = f.marker(OnRowSelected)
@@ -164,7 +195,8 @@ def advertised_ids(mapper, type_, instance, layout_override=None) -> set[str]:
     def collect(source: Callable[[], Any]) -> None:
         try:
             root = source()
-        except Exception:
+        except Exception as e:  # noqa: BLE001 - logged, not fatal
+            log.warning("collect failed, falling back (%s)", e)
             return
         _walk(root, ids, seen, 0)
 
@@ -203,6 +235,7 @@ def _walk(node, ids: set[str], seen: set[int], depth: int) -> None:
         return
     if not _is_walkable(node):
         return
+    items: Any
     if dataclasses.is_dataclass(node):
         items = ((f.name, getattr(node, f.name, None)) for f in dataclasses.fields(node))
     elif hasattr(type(node), "model_fields"):

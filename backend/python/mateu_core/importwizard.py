@@ -2,13 +2,15 @@
 
 Upload (or paste) a CSV, map its columns onto the row class's fields (auto-mapped by name
 similarity, adjustable in an inline-editable grid whose target-field cell is a select fed by the
-wizard's ``options()`` supplier), review a validation report (conversion failures + ``Required()``
-violations per line), then import the valid rows through :meth:`ImportWizard.import_rows`. The
-result step shows imported/skipped counts.
+wizard's ``options()`` supplier), review a validation report (conversion failures and the row
+class's declared constraints — ``Required()``, ``Min``/``Max``/``Size``/``Pattern`` — per line),
+then import the valid rows through :meth:`ImportWizard.import_rows`. The result step shows
+imported/skipped counts.
 
 Steps: 1 upload → 2 mapping → 3 validation → 4 result. Moving forward computes the next step's
-content (:meth:`ImportWizard.on_next`); the import itself runs on the validation step's Next —
-the port's wizards have no completion-action button, Next/Finish is the driver.
+content (:meth:`ImportWizard.on_next`); the import itself is the wizard's completion action
+(``@wizard_completion_action("Import")`` on the validation step, as Java's ``doImport``), after
+which the read-only result step shows the counts.
 """
 
 from __future__ import annotations
@@ -32,6 +34,7 @@ from mateu_uidl import (
     Step,
     Stereotype,
     Wizard,
+    wizard_completion_action,
 )
 
 from .naming import camel_case
@@ -88,17 +91,17 @@ class ImportWizard(Wizard, Generic[Row]):
     pasted: Annotated[str | None, Step(1), Stereotype("textarea"),
                       Label("...or paste the CSV")] = None
     mappings: Annotated[list[ColumnMapping], Step(2), InlineEditing(),
-                        Label("Column mapping")] = ()
+                        Label("Column mapping")] = ()  # type: ignore[assignment]
     valid_rows: Annotated[int, Step(3), PlainText(), Label("Valid rows")] = 0
     invalid_rows: Annotated[int, Step(3), PlainText(), Label("Rows with problems")] = 0
-    issues: Annotated[list[RowIssue], Step(3), ReadOnly(), Label("Issues")] = ()
+    issues: Annotated[list[RowIssue], Step(3), ReadOnly(), Label("Issues")] = ()  # type: ignore[assignment]
     imported: Annotated[int, Step(4), PlainText(), Label("Imported")] = 0
     skipped: Annotated[int, Step(4), PlainText(), Label("Skipped")] = 0
 
     # ── the developer's surface ─────────────────────────────────────────────────
     def import_rows(self, rows: list[Row]) -> None:
-        """Receives the valid typed rows when the user confirms the import (Next on the
-        validation step)."""
+        """Receives the valid typed rows when the user confirms the import (the Import button on
+        the validation step)."""
         raise NotImplementedError
 
     def row_class(self) -> type:
@@ -116,6 +119,16 @@ class ImportWizard(Wizard, Generic[Row]):
     def complete(self) -> Message:
         return Message(f"Imported {self.imported} rows ({self.skipped} skipped)")
 
+    @wizard_completion_action("Import")
+    def do_import(self) -> Message:
+        """The completion action: imports exactly the valid rows, then the result step shows the
+        counts (Java's ``ImportWizard.doImport``)."""
+        valid, _, invalid_count = self._assemble()
+        self.import_rows(valid)
+        self.imported = len(valid)
+        self.skipped = invalid_count
+        return self.complete()
+
     def on_next(self, from_step: int, to_step: int) -> None:
         if from_step == 1 and to_step == 2:
             self._populate_mappings()
@@ -124,11 +137,6 @@ class ImportWizard(Wizard, Generic[Row]):
             self.valid_rows = len(valid)
             self.invalid_rows = invalid_count
             self.issues = issues
-        if from_step == 3 and to_step == 4:
-            valid, _, invalid_count = self._assemble()
-            self.import_rows(valid)
-            self.imported = len(valid)
-            self.skipped = invalid_count
 
     def options(self, field_name: str):
         """The mapping grid's target-field select options: "— skip —" plus the row class's
@@ -269,17 +277,25 @@ def _coerce(t, raw: str):
 
 
 def _validate_required(row_class: type, row, line: int, mappings) -> list[RowIssue]:
-    """``Required()`` fields must end up non-None and non-blank — the Python port's validation
-    surface (it has no Min/Max markers)."""
+    """The row's declared constraints — ``Required()`` (non-None, non-blank) and the
+    ``Min``/``Max``/``Size``/``Pattern`` markers — the port's server-side validation surface, the
+    same one a saved form is checked against (Java runs Bean Validation over each typed row)."""
+    from .validation import field_violations
+
     issues: list[RowIssue] = []
     for f in _assignable_fields(row_class):
-        if not f.has(Required):
-            continue
         value = getattr(row, f.name, None)
-        if value is None or (isinstance(value, str) and not value.strip()):
-            field_id = camel_case(f.name)
-            column = next((m.csv_column for m in mappings if m.target_field == field_id), field_id)
-            issues.append(RowIssue(line, column, "", "Must not be empty"))
+        problems = field_violations(f, value)
+        if not problems:
+            continue
+        field_id = camel_case(f.name)
+        column = next((m.csv_column for m in mappings if m.target_field == field_id), field_id)
+        shown = "" if value is None else str(value)
+        for problem in problems:
+            if problem == "Cannot be empty":
+                issues.append(RowIssue(line, column, "", "Must not be empty"))
+            else:
+                issues.append(RowIssue(line, column, shown, problem))
     return issues
 
 

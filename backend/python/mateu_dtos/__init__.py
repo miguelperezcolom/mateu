@@ -6,1776 +6,197 @@ polymorphic ``type`` discriminators on the component tree and the metadata tree.
 
 from __future__ import annotations
 
-from typing import Annotated, Any, Literal, Union
-
-from pydantic import BaseModel, ConfigDict, Field
-from pydantic.alias_generators import to_camel
-
-
-class Wire(BaseModel):
-    """Base for every wire model: camelCase aliases, populate by field name too, keep nulls."""
-
-    model_config = ConfigDict(populate_by_name=True, alias_generator=to_camel)
-
-
-# Current wire protocol version. Bumped only on a breaking (major) wire change; additions within a
-# major are backward compatible and do not change it. Mirrors io.mateu.dtos.UIIncrementDto.WIRE_VERSION.
-WIRE_VERSION = "3.0"
-
-
-# ── Component metadata (discriminated on "type") ───────────────────────────────
-class AppMetadata(Wire):
-    type: Literal["App"] = "App"
-    title: str
-    variant: str
-    menu: list["MenuItem"] = Field(default_factory=list)
-    layout: str = "SINGLE_SLOT"
-    #: The app's own mount route (mirrors AppDto.route). A reflected (@Menu-field) app carries it;
-    #: an AppSupplier shell that does not set one leaves it None.
-    route: str | None = None
-    home_route: str = ""
-    home_consumed_route: str = ""
-    #: The backend's public base URL — the shell loads its home content against it (mirrors
-    #: AppDto.homeBaseUrl; without it the first auto-load fires page-relative).
-    home_base_url: str = ""
-    home_server_side_type: str = ""
-    server_side_type: str = ""
-    root_route: str = ""
-    #: The number of menu options across the whole (flattened) menu tree (mirrors
-    #: AppDto.totalMenuOptions).
-    total_menu_options: int = 0
-    subtitle: str | None = None
-    login_url: str | None = None
-    logout_url: str | None = None
-    #: SSE chat endpoint (@ai); when set the renderer shows the floating AI chat.
-    sse_url: str | None = None
-    context_selectors: list["AppContextSelector"] = Field(default_factory=list)
-    #: Header action buttons next to the context selectors (the app class implements
-    #: AppActionsSupplier); an entry with children renders as a dropdown.
-    context_actions: list["AppHeaderAction"] = Field(default_factory=list)
-    #: True when the app class implements NotificationsSupplier: the shell shows the inbox bell,
-    #: whose panel fetches through the _notifications-list / _notifications-read app-level
-    #: actions (mirrors AppDto.notificationsEnabled).
-    notifications_enabled: bool = False
-    #: True when the app class implements GlobalSearchSupplier: the command palette also
-    #: searches ENTITIES through the _globalsearch app-level action (mirrors
-    #: AppDto.globalSearchEnabled).
-    global_search_enabled: bool = False
-    #: @app(command_center=True): the always-present command-center FAB + full-screen palette
-    #: (the Ask-Oracle pattern). Implied by chromeless. Mirrors AppDto.commandCenterEnabled.
-    command_center_enabled: bool = False
-    #: @app(chromeless=True): drop the nav chrome; the command center is the only navigation
-    #: (implies command_center_enabled). Mirrors AppDto.chromeless.
-    chromeless: bool = False
-    #: @app(access_keys=True): keyboard access-keys mode — holding Alt shows a key next to every
-    #: visible button and tab and Alt+key activates it. Mirrors AppDto.accessKeys.
-    access_keys: bool = False
-    #: A route may seed APP-SCOPE data by referencing a named source (routes.yaml ``appData``):
-    #: the shell fetches it once into the app-data store (mirrors AppDto.appDataSource). None when
-    #: no route under the mount declares one.
-    app_data_source: "RestDataSource | None" = None
-    #: The capability tokens this app REQUIRES from its host renderer — the app-scoped features it
-    #: declares (derived from this metadata) plus whatever ``@app(requires=[...])`` adds. The host
-    #: compares them against what it PROVIDES and reports the difference: compatibility by
-    #: capability, not by version. Sorted + deduped (mirrors AppDto.requiredCapabilities).
-    required_capabilities: list[str] = Field(default_factory=list)
-    #: The UI language, a BCP 47 tag (``Translator.locale()``); None = let the browser decide. The
-    #: web client sets it on ``<html lang>`` and draws its chrome in it (mirrors AppDto.locale).
-    locale: str | None = None
-
-
-class AppContextSelector(Wire):
-    """An application-level context selector shown on the app header: fixes a value for every
-    screen (the active hotel, the company…). The picked value lives in the app state under
-    field_name and travels with every request."""
-
-    field_name: str
-    label: str
-    options: list["Option"] = Field(default_factory=list)
-
-
-class AppHeaderAction(Wire):
-    """An action button on the app header, next to the app-context selectors. An entry with
-    children renders as a dropdown menu: only the children dispatch."""
-
-    action_id: str | None = None
-    label: str = ""
-    icon: str | None = None
-    children: list["AppHeaderAction"] | None = None
-
-
-class PageMetadata(Wire):
-    type: Literal["Page"] = "Page"
-    title: str | None = None
-    page_title: str | None = None
-    subtitle: str | None = None
-    toolbar: list["Button"] = Field(default_factory=list)
-    buttons: list["Button"] = Field(default_factory=list)
-    level: int = 0
-    read_only: bool = False
-    actions: Any | None = None
-    #: Sticky sections index: None = renderer decides (auto), True = force, False = off.
-    toc: bool | None = None
-    badges: list["Badge"] = Field(default_factory=list)
-    kpis: list["Kpi"] = Field(default_factory=list)
-    banners: list["Banner"] = Field(default_factory=list)
-    fabs: list["Fab"] = Field(default_factory=list)
-    #: The coarse page type (the family of Redwood page templates; mirrors PageDto.pageType).
-    page_type: str | None = None
-    #: Previous/next peer-object arrows in the page header; None when the page supplies none.
-    peer_nav: "PeerNav | None" = None
-    #: The page's "last updated" timestamp shown in the header; None when the page declares none.
-    timestamp: str | None = None
-    #: The small line of text shown ABOVE the title (the Redwood overlineText header element);
-    #: None when the page declares none.
-    overline: str | None = None
-    #: What the header shows while ``title`` is still empty (the Redwood pageTitlePlaceholder
-    #: header element). A placeholder, NOT a default: renderers must ignore it once a title exists.
-    title_placeholder: str | None = None
-
-
-class CardMetadata(Wire):
-    type: Literal["Card"] = "Card"
-    content: "Component"
-    title: str | None = None
-    variants: list[str] = Field(default_factory=lambda: ["outlined"])
-
-
-class DivMetadata(Wire):
-    type: Literal["Div"] = "Div"
-    content: Any | None = None
-
-
-class VerticalLayoutMetadata(Wire):
-    type: Literal["VerticalLayout"] = "VerticalLayout"
-    spacing: bool = False
-
-
-class HorizontalLayoutMetadata(Wire):
-    type: Literal["HorizontalLayout"] = "HorizontalLayout"
-    spacing: bool = True
-    #: Lets the row's items wrap to the next line (responsive zone stacking).
-    wrap: bool = False
-
-
-class FormLayoutMetadata(Wire):
-    type: Literal["FormLayout"] = "FormLayout"
-    max_columns: int = 2
-    auto_responsive: bool = True
-    #: Whether fields expand to fill the column width (Java's FormLayoutDto.expandColumns).
-    expand_columns: bool = True
-    #: The minimum responsive column width (Java's FormLayoutDto.columnWidth); "7em" in compact
-    #: mode, None (renderer default) otherwise.
-    column_width: str | None = None
-    #: Where the field labels sit: True = a label column aside (left of) each field row instead
-    #: of labels on top (mirrors FormLayoutDto.labelsAside). An explicit
-    #: ``@form_layout(labels_aside=...)`` wins; otherwise inferred from the form's shape.
-    labels_aside: bool = False
-
-
-class FormRowMetadata(Wire):
-    type: Literal["FormRow"] = "FormRow"
-
-
-class FormSectionMetadata(Wire):
-    type: Literal["FormSection"] = "FormSection"
-    title: str
-
-
-class FormFieldMetadata(Wire):
-    type: Literal["FormField"] = "FormField"
-    field_id: str
-    data_type: str
-    label: str
-    stereotype: str = "regular"
-    tree_leaves_only: bool = False
-    required: bool = False
-    read_only: bool = False
-    colspan: int = 1
-    #: Number of columns the option list lays out in (Java's FormFieldDto.optionsColumns, always 1
-    #: here); emitted so the normalised wire matches the reference.
-    options_columns: int = 1
-    #: Slider stereotype upper bound (Java's FormFieldDto.sliderMax, default 100).
-    slider_max: int = 100
-    #: Whether an integer field shows the +/- step buttons (Java's FormFieldDto.stepButtonsVisible).
-    step_buttons_visible: bool = False
-    #: A per-field initial value. Reflected forms do NOT set this (their values ride in the
-    #: component initialData / fragment state, Java parity); only a fluent FormField may carry one.
-    initial_value: Any | None = None
-    options: list["Option"] = Field(default_factory=list)
-    multiline: bool = False
-    #: Property-list sections (Section(property_list=True)): render as a read-only row with the
-    #: label aligned left and the plain-text value aligned right, divider between rows.
-    property_row: bool = False
-    #: Navigation link rendered as an icon at the right side of this field; None = no link.
-    link: "NavLinkRecord | None" = None
-    #: Where a lookup (remote combo) field searches its options: the renderer fires ``action``
-    #: with {searchText, page, size} and expects a page of options back. None on other fields.
-    remote_coordinates: "RemoteCoordinates | None" = None
-    #: Options fetched CLIENT-SIDE from an arbitrary (non-Mateu) REST endpoint (``RestOptions()``):
-    #: the renderer calls the URL directly and maps the JSON into the select's options. None on
-    #: fields without an external source.
-    options_source: "RestDataSource | None" = None
-    #: Grid (list-of-rows) fields: one GridColumn per row-type field. None on non-grid fields.
-    columns: "list[GridColumn] | None" = None
-    #: Grid fields: the row-identity path ("_rowNumber" — rows are identified by position).
-    item_id_path: str | None = None
-    #: Grid fields: action dispatched when the user selects (clicks) a row, carrying the row as
-    #: the _clickedRow parameter (OnRowSelected()).
-    on_item_selection_action_id: str | None = None
-    #: Grid fields: keyboard base combo for selecting a row by position.
-    row_selection_shortcut: str | None = None
-    #: Generic field attributes (mirrors ``FormFieldDto.attributes``, a list of key/value
-    #: pairs) — e.g. the ``FileUpload`` accept filter travels as {"key": "accept", "value": ".csv"}.
-    attributes: list["PairRecord"] = Field(default_factory=list)
-
-
-class PairRecord(Wire):
-    """A generic key/value pair (mirrors ``io.mateu.dtos.PairDto``)."""
-
-    key: str
-    value: Any | None = None
-
-
-class RemoteCoordinates(Wire):
-    """Coordinates of a remote data source (mirrors ``io.mateu.dtos.RemoteCoordinatesDto``);
-    only ``action`` is set for same-backend lookups."""
-
-    action: str
-    base_url: str | None = None
-    route: str | None = None
-    params: dict[str, Any] | None = None
-
-
-class RestDataSource(Wire):
-    """Descriptor for consuming an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE (mirrors
-    ``io.mateu.dtos.RestDataSourceDto``): the renderer fetches ``url`` directly, navigates
-    ``items_path`` to the response array and maps each item via ``value_path``/``label_path``.
-    ``url``/``headers``/``body`` support ``${state.x}`` interpolation.
-
-    A descriptor points at an endpoint in one of two ways, and they are alternatives: **by
-    reference** — ``ref`` names an entry of ``sources.yaml`` (the ``data: countries`` shorthand),
-    so the URL is declared once and re-pointable — or **inline** with ``url`` + mapping paths."""
-
-    #: The name of a catalogue entry (sources.yaml) to take the endpoint from; blank means this
-    #: descriptor is inline (mirrors RestDataSourceDto.ref). The paths declared HERE still win.
-    ref: str | None = None
-    url: str | None = None
-    method: str | None = None
-    headers: dict[str, str] | None = None
-    body: str | None = None
-    items_path: str | None = None
-    value_path: str | None = None
-    label_path: str | None = None
-    #: fetch through the Mateu server (no CORS, ${secret.X} injected server-side); default False
-    proxy: bool = False
-
-
-class NavLinkRecord(Wire):
-    """Navigation link on a form field (mirrors ``io.mateu.dtos.NavLinkDto``; "Record" suffix to
-    avoid clashing with ``mateu_uidl.NavLink``, like ``GanttTaskRecord``). ``href``/``title``
-    travel as raw ``${...}`` templates — the renderer interpolates them against the live state."""
-
-    href: str
-    icon: str | None = None
-    title: str | None = None
-    target: str | None = None
-
-
-class CrudMetadata(Wire):
-    type: Literal["Crud"] = "Crud"
-    title: str | None = None
-    columns: list["GridColumn"] = Field(default_factory=list)
-    toolbar: list["Button"] = Field(default_factory=list)
-    subtitle: str | None = None
-    searchable: bool = True
-    can_edit: bool = False
-    detail_path: str | None = None
-    crudl_type: str = "table"
-    #: The renderer's grid layout: auto (renderer decides) | table | list | cards | masterDetail
-    #: | tree (hierarchical rows carrying a self-referential children list — never auto-selected).
-    grid_layout: str = "auto"
-    # the smart search bar's filters, one FormField per filterable entity field (enums as
-    # multi-selects, temporals as date ranges, RangeFilter numerics as min-max)
-    filters: list["FormFieldMetadata"] = Field(default_factory=list)
-    #: The GroupBy() column of the row class (camelCase field id): the listing groups its rows
-    #: by it — implicit primary sort + a group subtotal row whenever the value changes. None
-    #: when the row class declares no GroupBy() column (mirrors CrudlDto.groupBy).
-    group_by: str | None = None
-    #: Row selection checkboxes on (a Deletable listing / a full crud); mirrors
-    #: CrudlDto.rowsSelectionEnabled.
-    rows_selection_enabled: bool = False
-    #: Rows fetched CLIENT-SIDE from an arbitrary (non-Mateu) REST endpoint (@rest_listing): the
-    #: renderer maps each JSON item into a row keyed by column id instead of dispatching the server
-    #: search. None on server-backed listings (mirrors CrudlDto.rowsSource).
-    rows_source: "RestDataSource | None" = None
-    #: Rows can be dragged onto a DropZone accepting this type (@drag_rows); None = not draggable
-    #: (mirrors CrudlDto.dragType).
-    drag_type: str | None = None
-    #: The RowStatus() field of the row class (camelCase field id): its value (success | warning
-    #: | danger | info | neutral) tones the whole row. None = no row tones (mirrors
-    #: CrudlDto.rowStatusField).
-    row_status_field: str | None = None
-
-
-class ProgressBarMetadata(Wire):
-    type: Literal["ProgressBar"] = "ProgressBar"
-    value: float
-    min: float = 0
-    max: float = 1
-
-
-class TextMetadata(Wire):
-    type: Literal["Text"] = "Text"
-    text: str
-    #: The HTML container element the text renders in (e.g. "h3" for a section title, "p" for a
-    #: paragraph); None lets the renderer pick (mirrors TextDto.container).
-    container: str | None = None
-    #: Font size: xl | l | m | s | xs. m (or None) applies nothing.
-    size: str | None = None
-    #: Drops the container's block margins (margin-block-start/end: 0).
-    no_margins: bool = False
-
-
-class NoticeMetadata(Wire):
-    """A compact inline banner: theme-tinted strip with a severity icon, one line of text and an
-    optional right-aligned action (mirrors ``NoticeDto``)."""
-
-    type: Literal["Notice"] = "Notice"
-    text: str | None = None
-    theme: str | None = None
-    icon: str | None = None
-    no_icon: bool = False
-    action_label: str | None = None
-    action_id: str | None = None
-    status: str | None = None
-    slim: bool = False
-    full_width: bool = False
-    inline_content: bool = False
-
-
-class SeparatorMetadata(Wire):
-    """A horizontal divider line (``<hr>``); ``data-colspan`` in attributes makes it span the
-    full form row (mirrors ``SeparatorDto``)."""
-
-    type: Literal["Separator"] = "Separator"
-    attributes: dict[str, str] = Field(default_factory=dict)
-
-
-class CustomComponentMetadata(Wire):
-    """A custom component (coherence-plan #14): a type ``name`` a renderer registers against + a
-    ``props`` bag it reads. Slotted children ride on the client-side component's children (mirrors
-    ``CustomComponentDto``)."""
-
-    type: Literal["CustomComponent"] = "CustomComponent"
-    name: str = ""
-    props: dict[str, object] = Field(default_factory=dict)
-
-
-class AnchorMetadata(Wire):
-    """A hyperlink (mirrors ``AnchorDto``); target "_blank" is rendered with rel=noopener."""
-
-    type: Literal["Anchor"] = "Anchor"
-    text: str
-    url: str
-    target: str | None = None
-
-
-class ButtonMetadata(Wire):
-    type: Literal["Button"] = "Button"
-    label: str
-    action_id: str
-    disabled: bool = False
-    button_style: str | None = None
-    #: Extra parameters merged into the dispatched action request (e.g. the optimistic-lock
-    #: conflict dialog's _forceOverwrite; mirrors ButtonDto.parameters).
-    parameters: Any | None = None
-
-
-class TabLayoutMetadata(Wire):
-    """Mirrors ``TabLayoutDto``: ``group_relationship`` carries the semantic relationship between
-    the tabbed groups ("alternative" | "sequential" | "simultaneous"); ``adaptable`` tells
-    renderers they may swap the concrete widget (e.g. degrade tabs to an accordion on narrow
-    viewports) as long as the disclosure semantics are preserved."""
-
-    type: Literal["TabLayout"] = "TabLayout"
-    group_relationship: str | None = None
-    adaptable: bool = False
-
-
-class TabMetadata(Wire):
-    type: Literal["Tab"] = "Tab"
-    label: str
-    active: bool = False
-    shortcut: str | None = None
-
-
-class AccordionLayoutMetadata(Wire):
-    """Mirrors ``AccordionLayoutDto``. Like the Java wire, ``panels`` is empty on the wire — the
-    panels travel as component children carrying :class:`AccordionPanelMetadata`."""
-
-    type: Literal["AccordionLayout"] = "AccordionLayout"
-    panels: list[Any] = Field(default_factory=list)
-    variant: str | None = None
-
-
-class AccordionPanelMetadata(Wire):
-    """Mirrors ``AccordionPanelDto``; the panel content travels as the component's children."""
-
-    type: Literal["AccordionPanel"] = "AccordionPanel"
-    id: str | None = None
-    active: bool = False
-    disabled: bool = False
-    label: str
-
-
-class MetricCardMetadata(Wire):
-    """KPI tile metadata for dashboards (mirrors ``MetricCardDto``)."""
-
-    type: Literal["MetricCard"] = "MetricCard"
-    title: str | None = None
-    value: str | None = None
-    unit: str | None = None
-    trend: str | None = None  # "up" | "down" | "neutral"
-    trend_label: str | None = None
-    icon: str | None = None
-    description: str | None = None
-    action_id: str | None = None
-
-
-class ScoreboardMetadata(Wire):
-    """Horizontal band of metric cards; the metric cards travel as component children."""
-
-    type: Literal["Scoreboard"] = "Scoreboard"
-
-
-class DashboardPanelMetadata(Wire):
-    """Titled dashboard tile; the wrapped component travels as the component's single child."""
-
-    type: Literal["DashboardPanel"] = "DashboardPanel"
-    title: str | None = None
-    subtitle: str | None = None
-    col_span: int = 1
-    row_span: int = 1
-
-
-class DashboardLayoutMetadata(Wire):
-    """Responsive dashboard grid; tiles travel as component children. 0 columns = auto-fit."""
-
-    type: Literal["DashboardLayout"] = "DashboardLayout"
-    columns: int = 0
-
-
-class ResponsiveGridMetadata(Wire):
-    """One responsive grid — THE general layout foundation (coherence-plan #9). Carries the resolved
-    CSS grid-template-columns (from the tracks' hug/fixed/fill intent) and the gap; children travel
-    as the component's children."""
-
-    type: Literal["ResponsiveGrid"] = "ResponsiveGrid"
-    grid_template_columns: str | None = None
-    gap: str | None = None
-    col_spans: list[int] | None = None
-    stack_below: str | None = None
-    grid_template_areas: str | None = None
-    sticky_areas: list[str] | None = None
-    reorderable: bool = False
-
-
-class FoldoutPanelInfo(Wire):
-    """Header info for one foldout panel (mirrors ``FoldoutPanelInfoDto``)."""
-
-    title: str | None = None
-    subtitle: str | None = None
-    icon: str | None = None
-    open: bool = True
-    #: Optional CSS length for the expanded panel (e.g. "40rem"); None = renderer default.
-    width: str | None = None
-
-
-class FoldoutNavigation(Wire):
-    """Navigation Header of a foldout: prev/next between objects of the same type + go-to-parent.
-    A null/blank actionId hides the corresponding control."""
-
-    title: str | None = None
-    parentLabel: str | None = None
-    parentActionId: str | None = None
-    previousActionId: str | None = None
-    nextActionId: str | None = None
-
-
-class FoldoutLayoutMetadata(Wire):
-    """Redwood-style foldout. Overview travels as the child slotted ``overview``; each panel's
-    content as the child slotted ``panel-N`` matching the panels list order."""
-
-    type: Literal["FoldoutLayout"] = "FoldoutLayout"
-    panels: list[FoldoutPanelInfo] = Field(default_factory=list)
-    #: Big heading of the optional header band above the columns (RDS "overview title").
-    headerTitle: str | None = None
-    #: Label/Value chips under the header title (flattened to text on the wire).
-    badges: list[str] = Field(default_factory=list)
-    #: Overview orientation: "vertical" (left) or "horizontal" (top).
-    orientation: str = "vertical"
-    #: Navigation Header (prev/next + go-to-parent); None hides the bar.
-    navigation: "FoldoutNavigation | None" = None
-    #: ActionId dispatched by the overview's Edit affordance; None = no Edit button.
-    overviewEditActionId: str | None = None
-
-
-class ContentLayoutMetadata(Wire):
-    """Redwood-style content page layout. The regions travel as slotted children: the primary region
-    as ``main-N``, the contextual secondary region as ``aside-N``, and the full-width footer as
-    ``footer-N`` (each matching the source list order)."""
-
-    type: Literal["ContentLayout"] = "ContentLayout"
-    #: Which side the aside sits on: "start" or "end".
-    asidePosition: str = "end"
-    asideWidth: str | None = None
-    asideSticky: bool = False
-
-
-class HeroSectionMetadata(Wire):
-    """Page hero header; slotted content travels as component children."""
-
-    type: Literal["HeroSection"] = "HeroSection"
-    title: str | None = None
-    subtitle: str | None = None
-    image: str | None = None
-    height: str | None = None
-    centered: bool = False
-
-
-class EmptyStateMetadata(Wire):
-    """Friendly empty-state placeholder (mirrors ``EmptyStateDto``)."""
-
-    type: Literal["EmptyState"] = "EmptyState"
-    icon: str | None = None
-    title: str | None = None
-    description: str | None = None
-    action_id: str | None = None
-    action_label: str | None = None
-
-
-class SkeletonMetadata(Wire):
-    """Shimmering loading placeholder (mirrors ``SkeletonDto``)."""
-
-    type: Literal["Skeleton"] = "Skeleton"
-    variant: str = "text"  # "text" | "card" | "grid" | "form"
-    count: int = 0
-
-
-class GanttTaskRecord(Wire):
-    """One Gantt bar; start/end are ISO-8601 dates (mirrors ``GanttTaskDto``)."""
-
-    id: str | None = None
-    title: str | None = None
-    start: str | None = None
-    end: str | None = None
-    progress: float = 0
-    color: str | None = None
-
-
-class GanttMetadata(Wire):
-    """Gantt/timeline chart metadata (mirrors ``GanttDto``)."""
-
-    type: Literal["Gantt"] = "Gantt"
-    tasks: list[GanttTaskRecord] = Field(default_factory=list)
-    #: When set, clicking a bar dispatches this action with the clicked task id as _clickedTaskId.
-    on_task_selection_action_id: str | None = None
-
-
-class PlanningResourceRecord(Wire):
-    """One planning board row; ``group`` is an optional swimlane caption (mirrors
-    ``PlanningResourceDto``)."""
-
-    id: str | None = None
-    label: str | None = None
-    group: str | None = None
-    attributes: list[str] = Field(default_factory=list)
-    icon: str | None = None
-
-
-class PlanningBlockRecord(Wire):
-    """One planning board block; start/end are ISO-8601 dates, inclusive (mirrors
-    ``PlanningBlockDto``)."""
-
-    id: str | None = None
-    resource_id: str | None = None
-    start: str | None = None
-    end: str | None = None
-    label: str | None = None
-    color: str | None = None
-    status: str | None = None
-    #: icon before the label and the hover text (lines separated by \n)
-    icon: str | None = None
-    summary: str | None = None
-
-
-class PlanningBoardMetadata(Wire):
-    """Planning board / tape chart metadata (mirrors ``PlanningBoardDto``); from/to are ISO-8601
-    dates. ``from_`` serializes as ``from`` (reserved word)."""
-
-    type: Literal["PlanningBoard"] = "PlanningBoard"
-    resources: list[PlanningResourceRecord] = Field(default_factory=list)
-    blocks: list[PlanningBlockRecord] = Field(default_factory=list)
-    from_: str | None = Field(default=None, alias="from")
-    to: str | None = None
-    move_action_id: str | None = None
-    select_action_id: str | None = None
-    attribute_columns: list[str] = Field(default_factory=list)
-    resize_action_id: str | None = None
-    open_action_id: str | None = None
-    range_select_action_id: str | None = None
-
-
-class KanbanCardRecord(Wire):
-    """One kanban card; ``action_id`` — when set — makes the card clickable."""
-
-    id: str | None = None
-    title: str | None = None
-    description: str | None = None
-    badge: str | None = None
-    color: str | None = None
-    action_id: str | None = None
-
-
-class KanbanColumnRecord(Wire):
-    """One kanban column with its cards (mirrors ``KanbanColumnDto``)."""
-
-    id: str | None = None
-    title: str | None = None
-    color: str | None = None
-    cards: list[KanbanCardRecord] = Field(default_factory=list)
-
-
-class KanbanMetadata(Wire):
-    """Kanban board metadata: columns of cards (mirrors ``KanbanDto``)."""
-
-    type: Literal["Kanban"] = "Kanban"
-    columns: list[KanbanColumnRecord] = Field(default_factory=list)
-
-
-class TimelineItemRecord(Wire):
-    """One timeline entry; ``action_id`` — when set — makes it clickable."""
-
-    id: str | None = None
-    title: str | None = None
-    description: str | None = None
-    timestamp: str | None = None
-    icon: str | None = None
-    color: str | None = None
-    action_id: str | None = None
-
-
-class TimelineMetadata(Wire):
-    """Timeline / activity-feed metadata (mirrors ``TimelineDto``)."""
-
-    type: Literal["Timeline"] = "Timeline"
-    items: list[TimelineItemRecord] = Field(default_factory=list)
-
-
-class StepRecord(Wire):
-    """One progress step; ``status`` is done|current|upcoming (mirrors ``StepDto``)."""
-
-    id: str | None = None
-    title: str | None = None
-    description: str | None = None
-    status: str | None = None
-
-
-class ProgressStepsMetadata(Wire):
-    """Progress-indicator metadata (mirrors ``ProgressStepsDto``): a horizontal row by default,
-    a stacked column when ``vertical`` (the wizard RAIL mode)."""
-
-    type: Literal["ProgressSteps"] = "ProgressSteps"
-    steps: list[StepRecord] = Field(default_factory=list)
-    vertical: bool = False
-
-
-class StatMetadata(Wire):
-    """KPI stat metadata: value/unit, delta, trend and a sparkline (mirrors ``StatDto``)."""
-
-    type: Literal["Stat"] = "Stat"
-    label: str | None = None
-    value: str | None = None
-    unit: str | None = None
-    delta: str | None = None
-    trend: str | None = None
-    spark: list[float] = Field(default_factory=list)
-    action_id: str | None = None
-
-
-class CalendarEventRecord(Wire):
-    """One calendar event (mirrors ``CalendarEventDto``); ``date``/``end_date`` are ISO-8601,
-    ``start_time``/``end_time`` "HH:mm"; ``action_id`` makes the chip clickable."""
-
-    id: str | None = None
-    title: str | None = None
-    date: str | None = None
-    end_date: str | None = None
-    start_time: str | None = None
-    end_time: str | None = None
-    color: str | None = None
-    action_id: str | None = None
-
-
-class CalendarDayRecord(Wire):
-    """One date's cell of a calendar (mirrors ``CalendarDayDto``): ISO date, label and tone."""
-
-    date: str | None = None
-    label: str | None = None
-    tone: str | None = None
-
-
-class CalendarMetadata(Wire):
-    """Calendar metadata (mirrors ``CalendarDto``); dates are ISO-8601. ``view`` is
-    month|week|day|list (default month), ``views`` the switchable ones, ``days`` the per-date
-    cells and ``day_action_id`` makes those cells clickable."""
-
-    type: Literal["Calendar"] = "Calendar"
-    month: str | None = None
-    events: list[CalendarEventRecord] = Field(default_factory=list)
-    view: str = "month"
-    views: list[str] = Field(default_factory=list)
-    days: list[CalendarDayRecord] = Field(default_factory=list)
-    day_action_id: str | None = None
-
-
-class PricingPlanRecord(Wire):
-    """One pricing plan; ``featured`` marks the recommended one (mirrors ``PricingPlanDto``)."""
-
-    id: str | None = None
-    name: str | None = None
-    price: str | None = None
-    period: str | None = None
-    featured: bool = False
-    features: list[str] = Field(default_factory=list)
-    cta_label: str | None = None
-    action_id: str | None = None
-
-
-class PricingTableMetadata(Wire):
-    """Pricing-table metadata: plan cards (mirrors ``PricingTableDto``)."""
-
-    type: Literal["PricingTable"] = "PricingTable"
-    plans: list[PricingPlanRecord] = Field(default_factory=list)
-
-
-class OrgNodeRecord(Wire):
-    """One org-chart node; ``children`` nest recursively (mirrors ``OrgNodeDto``)."""
-
-    id: str | None = None
-    title: str | None = None
-    subtitle: str | None = None
-    avatar: str | None = None
-    color: str | None = None
-    action_id: str | None = None
-    children: list["OrgNodeRecord"] = Field(default_factory=list)
-
-
-class OrgChartMetadata(Wire):
-    """Org-chart metadata: a root node with recursive children (mirrors ``OrgChartDto``)."""
-
-    type: Literal["OrgChart"] = "OrgChart"
-    root: OrgNodeRecord | None = None
-
-
-class HeatCellRecord(Wire):
-    """One heatmap cell; ``date`` is ISO-8601; ``value`` drives color intensity."""
-
-    date: str | None = None
-    value: float = 0
-    label: str | None = None
-
-
-class HeatmapMetadata(Wire):
-    """Calendar-heatmap metadata: one cell per day (mirrors ``HeatmapDto``)."""
-
-    type: Literal["Heatmap"] = "Heatmap"
-    cells: list[HeatCellRecord] = Field(default_factory=list)
-
-
-class FunnelStageRecord(Wire):
-    """One funnel stage (mirrors ``FunnelStageDto``)."""
-
-    label: str | None = None
-    value: float = 0
-    color: str | None = None
-
-
-class FunnelMetadata(Wire):
-    """Conversion-funnel metadata: ordered stages (mirrors ``FunnelDto``)."""
-
-    type: Literal["Funnel"] = "Funnel"
-    stages: list[FunnelStageRecord] = Field(default_factory=list)
-
-
-class TrendChartMetadata(Wire):
-    """Lightweight line/area-chart metadata: a single series (mirrors ``TrendChartDto``)."""
-
-    type: Literal["TrendChart"] = "TrendChart"
-    title: str | None = None
-    values: list[float] = Field(default_factory=list)
-    labels: list[str] = Field(default_factory=list)
-    color: str | None = None
-    area: bool = False
-
-
-class FeatureRecord(Wire):
-    """One feature card (mirrors ``FeatureDto``)."""
-
-    icon: str | None = None
-    title: str | None = None
-    description: str | None = None
-    action_id: str | None = None
-
-
-class FeatureGridMetadata(Wire):
-    """Feature-grid metadata: cards of icon + title + description (mirrors ``FeatureGridDto``)."""
-
-    type: Literal["FeatureGrid"] = "FeatureGrid"
-    features: list[FeatureRecord] = Field(default_factory=list)
-    columns: int = 0
-
-
-class TestimonialRecord(Wire):
-    """One testimonial card; ``rating`` is 0–5 stars (mirrors ``TestimonialDto``)."""
-
-    quote: str | None = None
-    author: str | None = None
-    role: str | None = None
-    avatar: str | None = None
-    rating: int = 0
-
-
-class TestimonialsMetadata(Wire):
-    """Testimonials metadata: quote cards (mirrors ``TestimonialsDto``)."""
-
-    type: Literal["Testimonials"] = "Testimonials"
-    items: list[TestimonialRecord] = Field(default_factory=list)
-
-
-class FaqItemRecord(Wire):
-    """One FAQ row; ``open`` makes it start expanded (mirrors ``FaqItemDto``)."""
-
-    question: str | None = None
-    answer: str | None = None
-    open: bool = False
-
-
-class FaqMetadata(Wire):
-    """FAQ metadata: collapsible question/answer rows (mirrors ``FaqDto``)."""
-
-    type: Literal["Faq"] = "Faq"
-    items: list[FaqItemRecord] = Field(default_factory=list)
-
-
-class CalloutCardMetadata(Wire):
-    """Callout-card metadata: a themed call-to-action block (mirrors ``CalloutCardDto``)."""
-
-    type: Literal["CalloutCard"] = "CalloutCard"
-    title: str | None = None
-    description: str | None = None
-    icon: str | None = None
-    cta_label: str | None = None
-    action_id: str | None = None
-    theme: str | None = None
-
-
-class CommentRecord(Wire):
-    """One comment; ``replies`` nest recursively (mirrors ``CommentDto``)."""
-
-    id: str | None = None
-    author: str | None = None
-    avatar: str | None = None
-    text: str | None = None
-    timestamp: str | None = None
-    replies: list["CommentRecord"] = Field(default_factory=list)
-
-
-class CommentThreadMetadata(Wire):
-    """Comment-thread metadata: comments with recursive replies (mirrors ``CommentThreadDto``)."""
-
-    type: Literal["CommentThread"] = "CommentThread"
-    comments: list[CommentRecord] = Field(default_factory=list)
-
-
-class FileItemRecord(Wire):
-    """One file entry (mirrors ``FileItemDto``)."""
-
-    name: str | None = None
-    size: str | None = None
-    type: str | None = None
-    url: str | None = None
-    action_id: str | None = None
-
-
-class FileListMetadata(Wire):
-    """File-list metadata: attached files (mirrors ``FileListDto``)."""
-
-    type: Literal["FileList"] = "FileList"
-    files: list[FileItemRecord] = Field(default_factory=list)
-
-
-class ChecklistItemRecord(Wire):
-    """One checklist item (mirrors ``ChecklistItemDto``)."""
-
-    id: str | None = None
-    label: str | None = None
-    done: bool = False
-    action_id: str | None = None
-
-
-class ChecklistMetadata(Wire):
-    """Checklist metadata with a progress bar (mirrors ``ChecklistDto``)."""
-
-    type: Literal["Checklist"] = "Checklist"
-    title: str | None = None
-    items: list[ChecklistItemRecord] = Field(default_factory=list)
-
-
-class ComparisonCardMetadata(Wire):
-    """Two-value comparison metadata (mirrors ``ComparisonCardDto``)."""
-
-    type: Literal["ComparisonCard"] = "ComparisonCard"
-    title: str | None = None
-    left_label: str | None = None
-    left_value: str | None = None
-    right_label: str | None = None
-    right_value: str | None = None
-    delta: str | None = None
-    trend: str | None = None
-
-
-class ChipRecord(Wire):
-    """A small colored chip (mirrors ``ChipDto``); badge palette colors."""
-
-    label: str | None = None
-    color: str | None = None
-
-
-class FactRecord(Wire):
-    """A label-over-value pair (mirrors ``FactDto``)."""
-
-    label: str | None = None
-    value: str | None = None
-
-
-class EntityHeaderMetadata(Wire):
-    """Entity-header metadata: identity + facts + highlighted metric (mirrors ``EntityHeaderDto``)."""
-
-    type: Literal["EntityHeader"] = "EntityHeader"
-    title: str | None = None
-    badges: list[ChipRecord] = Field(default_factory=list)
-    subtitle: str | None = None
-    facts: list[FactRecord] = Field(default_factory=list)
-    metric_label: str | None = None
-    metric_value: str | None = None
-    metric_caption: str | None = None
-
-
-class MeterMetadata(Wire):
-    """Meter metadata: consumption vs limit with thresholds (mirrors ``MeterDto``)."""
-
-    type: Literal["Meter"] = "Meter"
-    label: str | None = None
-    value: float | None = None
-    max: float | None = None
-    unit: str | None = None
-    caption: str | None = None
-    warn_at: float | None = None
-    danger_at: float | None = None
-
-
-class TaskProgressMetadata(Wire):
-    """Task-progress metadata: done/total pills + CTA (mirrors ``TaskProgressDto``)."""
-
-    type: Literal["TaskProgress"] = "TaskProgress"
-    label: str | None = None
-    total: int = 0
-    done: int = 0
-    action_label: str | None = None
-    action_id: str | None = None
-
-
-class StatusItemRecord(Wire):
-    """One status-list row (mirrors ``StatusItemDto``)."""
-
-    id: str | None = None
-    icon: str | None = None
-    avatar: str | None = None
-    title: str | None = None
-    description: str | None = None
-    status: str | None = None
-    status_color: str | None = None
-    action_label: str | None = None
-    action_id: str | None = None
-
-
-class StatusListMetadata(Wire):
-    """Status-list metadata: icon/text rows with status chip or action (mirrors ``StatusListDto``)."""
-
-    type: Literal["StatusList"] = "StatusList"
-    items: list[StatusItemRecord] = Field(default_factory=list)
-    compact: bool = False
-    frameless: bool = False
-    row_action_id: str | None = None
-
-
-class BulletedListMetadata(Wire):
-    """Plain bulleted list (``<ul>``) of text items (mirrors ``BulletedListDto``)."""
-
-    type: Literal["BulletedList"] = "BulletedList"
-    items: list[str] = Field(default_factory=list)
-
-
-class ActionPanelItemRecord(Wire):
-    """One action of an action panel (mirrors ``ActionPanelItemDto``)."""
-
-    label: str | None = None
-    action_id: str | None = None
-    parameters: dict[str, object] | None = None
-    count: int | None = None
-    populated: bool = False
-    disabled: bool = False
-
-
-class ActionPanelCategoryRecord(Wire):
-    """A column of an action panel (mirrors ``ActionPanelCategoryDto``)."""
-
-    title: str | None = None
-    actions: list[ActionPanelItemRecord] = Field(default_factory=list)
-
-
-class ActionPanelMetadata(Wire):
-    """Categorised action panel ("I want to…") (mirrors ``ActionPanelDto``)."""
-
-    type: Literal["ActionPanel"] = "ActionPanel"
-    label: str = "I want to…"
-    shortcut: str | None = None
-    categories: list[ActionPanelCategoryRecord] = Field(default_factory=list)
-    max_per_category: int = 10
-    hide_unpopulated_toggle: bool = False
-
-
-class MatrixColumnRecord(Wire):
-    """A matrix-grid column (mirrors ``MatrixColumnDto``)."""
-
-    id: str | None = None
-    label: str | None = None
-    group: str | None = None
-    tone: str | None = None
-
-
-class MatrixCellRecord(Wire):
-    """A matrix-grid cell (mirrors ``MatrixCellDto``)."""
-
-    value: str = ""
-    tone: str | None = None
-    link: bool = False
-
-
-class MatrixRowRecord(Wire):
-    """A matrix-grid row (mirrors ``MatrixRowDto``)."""
-
-    id: str | None = None
-    label: str | None = None
-    cells: list[MatrixCellRecord] = Field(default_factory=list)
-    editable: bool = False
-    emphasis: bool = False
-
-
-class MatrixSectionRecord(Wire):
-    """A collapsible matrix-grid section (mirrors ``MatrixSectionDto``)."""
-
-    id: str | None = None
-    title: str | None = None
-    collapsed: bool = False
-    rows: list[MatrixRowRecord] = Field(default_factory=list)
-
-
-class MatrixGridMetadata(Wire):
-    """Matrix grid: rows × columns in collapsible sections (mirrors ``MatrixGridDto``)."""
-
-    type: Literal["MatrixGrid"] = "MatrixGrid"
-    row_header_label: str | None = None
-    columns: list[MatrixColumnRecord] = Field(default_factory=list)
-    sections: list[MatrixSectionRecord] = Field(default_factory=list)
-    cell_action_id: str | None = None
-    edit_action_id: str | None = None
-
-
-class MapMarkerRecord(Wire):
-    """One point on a map (mirrors ``MapMarkerDto``)."""
-
-    id: str | None = None
-    latitude: float = 0.0
-    longitude: float = 0.0
-    label: str | None = None
-    description: str | None = None
-    color: str | None = None
-
-
-class MapMetadata(Wire):
-    """Street map: centre (``"lat, lon"``), zoom, markers and the action a marker click runs with
-    ``{"_markerId"}`` (mirrors ``MapDto``)."""
-
-    type: Literal["Map"] = "Map"
-    position: str | None = None
-    zoom: str | None = None
-    markers: list[MapMarkerRecord] = Field(default_factory=list)
-    marker_action_id: str | None = None
-
-
-class DropZoneMetadata(Wire):
-    """A drop target for dragged listing rows; its content travels as the component's children
-    (mirrors ``DropZoneDto``)."""
-
-    type: Literal["DropZone"] = "DropZone"
-    accept: str | None = None
-    action_id: str | None = None
-    parameters: dict[str, Any] = Field(default_factory=dict)
-    title: str | None = None
-    subtitle: str | None = None
-
-
-class QueueItemRecord(Wire):
-    """One task-queue card (mirrors ``QueueItemDto``)."""
-
-    id: str | None = None
-    title: str | None = None
-    caption: str | None = None
-    badges: list[ChipRecord] = Field(default_factory=list)
-    selected: bool = False
-
-
-class QueueGroupRecord(Wire):
-    """A labeled task-queue group (mirrors ``QueueGroupDto``)."""
-
-    label: str | None = None
-    items: list[QueueItemRecord] = Field(default_factory=list)
-
-
-class TaskQueueMetadata(Wire):
-    """Task-queue metadata: grouped work-queue rail (mirrors ``TaskQueueDto``)."""
-
-    type: Literal["TaskQueue"] = "TaskQueue"
-    action_id: str | None = None
-    groups: list[QueueGroupRecord] = Field(default_factory=list)
-
-
-class ResourceItemRecord(Wire):
-    """One resource-grid cell (mirrors ``ResourceItemDto``)."""
-
-    id: str | None = None
-    title: str | None = None
-    subtitle: str | None = None
-    status_label: str | None = None
-    status_color: str | None = None
-    note: str | None = None
-    note_color: str | None = None
-    disabled: bool = False
-    recommended: bool = False
-    selected: bool = False
-
-
-class ResourceGridMetadata(Wire):
-    """Resource-grid metadata: availability/selection grid (mirrors ``ResourceGridDto``)."""
-
-    type: Literal["ResourceGrid"] = "ResourceGrid"
-    action_id: str | None = None
-    columns: int = 0
-    recommended_label: str | None = None
-    items: list[ResourceItemRecord] = Field(default_factory=list)
-
-
-class OfferCardMetadata(Wire):
-    """Offer-card metadata: current vs upgrade offer (mirrors ``OfferCardDto``)."""
-
-    type: Literal["OfferCard"] = "OfferCard"
-    tag: str | None = None
-    title: str | None = None
-    subtitle: str | None = None
-    image: str | None = None
-    features: list[str] = Field(default_factory=list)
-    price_label: str | None = None
-    action_label: str | None = None
-    action_id: str | None = None
-    current: bool = False
-    current_label: str | None = None
-    added: bool = False
-    added_label: str | None = None
-
-
-class AddOnRecord(Wire):
-    """One priced extra (mirrors ``AddOnDto``)."""
-
-    id: str | None = None
-    icon: str | None = None
-    title: str | None = None
-    description: str | None = None
-    price: float | None = None
-    unit: str | None = None
-    included_label: str | None = None
-    added: bool = False
-
-
-class AddOnPickerMetadata(Wire):
-    """Add-on-picker metadata: priced extras with running total (mirrors ``AddOnPickerDto``)."""
-
-    type: Literal["AddOnPicker"] = "AddOnPicker"
-    total_label: str | None = None
-    currency: str | None = None
-    action_id: str | None = None
-    items: list[AddOnRecord] = Field(default_factory=list)
-
-
-class LedgerLineRecord(Wire):
-    """One folio line (mirrors ``LedgerLineDto``)."""
-
-    concept: str | None = None
-    amount: float | None = None
-    included: bool = False
-    included_label: str | None = None
-
-
-class LedgerMetadata(Wire):
-    """Ledger metadata: folio breakdown with total (mirrors ``LedgerDto``)."""
-
-    type: Literal["Ledger"] = "Ledger"
-    currency: str | None = None
-    total_label: str | None = None
-    lines: list[LedgerLineRecord] = Field(default_factory=list)
-    total: float | None = None
-
-
-class PaymentMethodRecord(Wire):
-    """One payment method (mirrors ``PaymentMethodDto``)."""
-
-    id: str | None = None
-    label: str | None = None
-
-
-class PaymentPickerMetadata(Wire):
-    """Payment-picker metadata: method + context + confirm CTA (mirrors ``PaymentPickerDto``)."""
-
-    type: Literal["PaymentPicker"] = "PaymentPicker"
-    action_id: str | None = None
-    method_action_id: str | None = None
-    methods: list[PaymentMethodRecord] = Field(default_factory=list)
-    selected: str | None = None
-    context_label: str | None = None
-    context_value: str | None = None
-    confirm_label: str | None = None
-
-
-class ProcessItemRecord(Wire):
-    """One monitored process (mirrors ``ProcessItemDto``); ``status``: ok|warning|error."""
-
-    id: str | None = None
-    name: str | None = None
-    systems: list[str] = Field(default_factory=list)
-    ok: int = 0
-    warnings: int = 0
-    errors: int = 0
-    status: str | None = None
-    action_label: str | None = None
-    action_id: str | None = None
-
-
-class ProcessMonitorMetadata(Wire):
-    """Process-monitor metadata: automation processes with health + fix action (mirrors
-    ``ProcessMonitorDto``)."""
-
-    type: Literal["ProcessMonitor"] = "ProcessMonitor"
-    items: list[ProcessItemRecord] = Field(default_factory=list)
-
-
-class PopoverMetadata(Wire):
-    """A popover (mirrors ``io.mateu.dtos.PopoverDto``): the wrapped component and the content of
-    its floating panel, opened on ``click`` (default) or ``hover``."""
-
-    type: Literal["Popover"] = "Popover"
-    content: "Component | None" = None
-    wrapped: "Component | None" = None
-    trigger: str = "click"
-
-
-class DrawerMetadata(Wire):
-    """A drawer overlay (mirrors ``io.mateu.dtos.DrawerDto``): a panel sliding in from a viewport
-    edge whose content travels in the ``content`` field. Emitted as an Add fragment so it stacks
-    on the page instead of replacing it."""
-
-    type: Literal["Drawer"] = "Drawer"
-    id: str | None = None
-    header_title: str | None = None
-    subtitle: str | None = None
-    header: "Component | None" = None
-    content: "Component | None" = None
-    footer: "Component | None" = None
-    #: start|end (the viewport edge the drawer slides from).
-    position: str = "end"
-    width: str | None = None
-    #: Standard drawer size ("s"|"m"|"l"|"xl"); width overrides it.
-    size: str | None = None
-    #: When true, the header shows a maximize button that bumps the drawer a size up.
-    maximizable: bool = False
-    #: Bottom drawer only: a handle collapses the drawer to its header strip and back.
-    collapsible: bool = False
-    #: Push (layout) mode: the drawer docks to its edge and pushes page content aside instead of
-    #: overlaying it (implies non-modal). Mirrors ``io.mateu.dtos.DrawerDto.layout``.
-    layout: bool = False
-    #: Previous/next peer-object arrows in the drawer header; None when none.
-    peer_nav: "PeerNav | None" = None
-    no_padding: bool = False
-    modeless: bool = False
-    initial_data: Any | None = None
-
-
-class MicroFrontendMetadata(Wire):
-    """A remote Mateu UI embedded as an island inside this page (mirrors
-    ``io.mateu.dtos.MicroFrontendDto``): the renderer mounts a mateu-ux against
-    ``base_url``/``route`` and the island runs its own sync loop against the remote backend."""
-
-    type: Literal["MicroFrontend"] = "MicroFrontend"
-    base_url: str
-    route: str = ""
-    consumed_route: str = "_empty"
-    style: str | None = None
-    css_classes: str | None = None
-    server_side_type: str = ""
-    app_state: Any | None = None
-    action_id: str | None = None
-
-
-class DialogMetadata(Wire):
-    """A modal dialog overlay (mirrors ``io.mateu.dtos.DialogDto``)."""
-
-    type: Literal["Dialog"] = "Dialog"
-    id: str | None = None
-    header_title: str | None = None
-    header: "Component | None" = None
-    content: "Component | None" = None
-    footer: "Component | None" = None
-    no_padding: bool = False
-    modeless: bool = False
-    width: str | None = None
-    height: str | None = None
-    close_button_on_header: bool = True
-    initial_data: Any | None = None
-
-
-ComponentMetadata = Annotated[
-    Union[
-        AppMetadata,
-        PageMetadata,
-        CardMetadata,
-        DivMetadata,
-        VerticalLayoutMetadata,
-        HorizontalLayoutMetadata,
-        FormLayoutMetadata,
-        FormRowMetadata,
-        FormSectionMetadata,
-        FormFieldMetadata,
-        CrudMetadata,
-        ProgressBarMetadata,
-        TextMetadata,
-        ButtonMetadata,
-        TabLayoutMetadata,
-        TabMetadata,
-        AccordionLayoutMetadata,
-        AccordionPanelMetadata,
-        MetricCardMetadata,
-        ScoreboardMetadata,
-        DashboardPanelMetadata,
-        DashboardLayoutMetadata,
-        ResponsiveGridMetadata,
-        FoldoutLayoutMetadata,
-        ContentLayoutMetadata,
-        HeroSectionMetadata,
-        EmptyStateMetadata,
-        SkeletonMetadata,
-        GanttMetadata,
-        PlanningBoardMetadata,
-        KanbanMetadata,
-        TimelineMetadata,
-        ProgressStepsMetadata,
-        StatMetadata,
-        CalendarMetadata,
-        PricingTableMetadata,
-        OrgChartMetadata,
-        HeatmapMetadata,
-        FunnelMetadata,
-        TrendChartMetadata,
-        FeatureGridMetadata,
-        TestimonialsMetadata,
-        FaqMetadata,
-        CalloutCardMetadata,
-        CommentThreadMetadata,
-        FileListMetadata,
-        ChecklistMetadata,
-        ComparisonCardMetadata,
-        EntityHeaderMetadata,
-        MeterMetadata,
-        TaskProgressMetadata,
-        StatusListMetadata,
-        BulletedListMetadata,
-        ActionPanelMetadata,
-        MatrixGridMetadata,
-        MapMetadata,
-        DropZoneMetadata,
-        SeparatorMetadata,
-        CustomComponentMetadata,
-        AnchorMetadata,
-        NoticeMetadata,
-        TaskQueueMetadata,
-        ResourceGridMetadata,
-        OfferCardMetadata,
-        AddOnPickerMetadata,
-        LedgerMetadata,
-        PaymentPickerMetadata,
-        ProcessMonitorMetadata,
-        DrawerMetadata,
-        PopoverMetadata,
-        DialogMetadata,
-        MicroFrontendMetadata,
-    ],
-    Field(discriminator="type"),
-]
-
-
-# ── Component tree (discriminated on "type") ───────────────────────────────────
-class ClientSideComponent(Wire):
-    type: Literal["ClientSide"] = "ClientSide"
-    metadata: ComponentMetadata
-    id: str | None = None
-    children: list["Component"] = Field(default_factory=list)
-    style: str | None = None
-    css_classes: str | None = None
-    slot: str | None = None
-    #: The sizing intent (coherence-plan #8): "hug" | "fill" | "fixed:<len>". None = unset (default
-    #: flow). Portable intent-as-data; the web maps it to flex on the component host.
-    sizing: str | None = None
-
-
-class ServerSideComponent(Wire):
-    type: Literal["ServerSide"] = "ServerSide"
-    id: str
-    server_side_type: str
-    route: str
-    children: list["Component"] = Field(default_factory=list)
-    initial_data: Any = Field(default_factory=dict)
-    actions: list["Action"] = Field(default_factory=list)
-    triggers: list[Any] = Field(default_factory=list)
-    style: str | None = None
-    css_classes: str | None = None
-    slot: str | None = None
-    emits_name: str | None = None
-    confirm_on_navigation_if_dirty: bool = False
-    #: Client-side rules (Hidden()/Disabled() fields, RuleSupplier): the renderer's no-eval
-    #: engine re-evaluates them on every state change.
-    rules: list["RuleRecord"] = Field(default_factory=list)
-    #: Redwood page width ("fixed"|"fullWidth"|"edgeToEdge") declared on the view; None = the
-    #: renderer infers it from the page content (mirrors ServerSideComponentDto.pageWidth).
-    page_width: str | None = None
-    #: The coarse page type ("landing"|"collection"|"detail"|"form"|"process"|"dashboard") —
-    #: the family of Redwood page templates the view belongs to; never None on the wire
-    #: (mirrors ServerSideComponentDto.pageType).
-    page_type: str | None = None
-    #: The view is declared @static_view: its full response never varies, so the client caches it
-    #: for the session and skips the round-trip on return visits (mirrors
-    #: ServerSideComponentDto.staticView). A developer promise; False unless declared.
-    static_view: bool = False
-    #: Stable content hash (ETag) of this component's structure (phase b of the client structure
-    #: cache). The client stores it next to the cached structure and echoes it back as
-    #: RunActionRq.known_structure_hash; when it still matches, the server omits the component and
-    #: the client reuses its cache (mirrors ServerSideComponentDto.structureHash).
-    structure_hash: str | None = None
-
-
-class RuleRecord(Wire):
-    """A client-side rule (mirrors ``io.mateu.dtos.RuleDto``): while ``filter`` is truthy the
-    renderer applies ``action`` — most commonly SetDataValue of ``field_attribute`` (hidden,
-    disabled, required…) to the value of ``expression``, both evaluated against the live state."""
-
-    filter: str
-    action: str
-    field_name: str | None = None
-    field_attribute: str | None = None
-    value: Any | None = None
-    expression: str | None = None
-    result: str = "Continue"
-    action_id: str | None = None
-
-
-Component = Annotated[
-    Union[ClientSideComponent, ServerSideComponent], Field(discriminator="type")
-]
-
-
-# ── Flat helper records (not part of the polymorphic unions) ────────────────────
-class Button(Wire):
-    label: str
-    action_id: str
-    type: str = "Button"
-    disabled: bool = False
-    button_style: str | None = None
-    shortcut: str | None = None
-
-
-class Option(Wire):
-    value: str
-    label: str
-    # sub-options of a hierarchical option set (tree selects); empty on flat lists
-    children: list["Option"] = Field(default_factory=list)
-
-
-class GridColumnMeta(Wire):
-    id: str
-    label: str
-    type: str = "GridColumn"
-    #: The column's value type (string|integer|number|boolean|date|money) — drives the renderer's
-    #: cell formatting. None on legacy crud columns.
-    data_type: str | None = None
-    stereotype: str | None = None
-    #: Rich "primary" column (coherence-plan #6): the row field for the secondary caption line, and
-    #: the one for the leading avatar/icon. Set only when stereotype == "primary".
-    caption_path: str | None = None
-    leading_path: str | None = None
-    # Inline editing (class-level @inline_editing on the crud): the cell renders an in-place
-    # editor (select|boolean|integer|number|date|datetime|text) and each commit dispatches the
-    # crud's update-row action. editor_options carries a select editor's enum constants.
-    editable: bool = False
-    editor_type: str | None = None
-    editor_options: list[Option] | None = None
-    #: The Aggregate() function of the column — sum|avg|min|max|count — computed over the WHOLE
-    #: filtered result set and shown in the listing's totals footer (and per group). None on
-    #: non-aggregated columns (mirrors GridColumnDto.aggregate).
-    aggregate: str | None = None
-    #: Action dispatched when the cell is clicked — "view" on the first column of a
-    #: Navigable/Editable listing makes its rows clickable (mirrors GridColumnDto.actionId).
-    action_id: str | None = None
-    #: The row field whose text the cell shows on hover (Tooltip("other_field") on the row field);
-    #: None when the column declares none (mirrors GridColumnDto.tooltipPath).
-    tooltip_path: str | None = None
-
-
-class GridColumn(Wire):
-    metadata: GridColumnMeta
-
-
-class MenuItem(Wire):
-    label: str
-    route: str
-    server_side_type: str
-    consumed_route: str = ""
-    #: The bare route relative to the mount (what the app declared, e.g. "/a"); ``route`` is the
-    #: absolute route (mount + path). Mirrors MenuOptionDto.path.
-    path: str = ""
-    #: The mount base path this option lives under (mirrors MenuOptionDto.uriPrefix).
-    uri_prefix: str = ""
-    action_id: str | None = None
-    separator: bool = False
-    visible: bool = True
-    submenus: list["MenuItem"] = Field(default_factory=list)
-    #: Federated entry (@remote_menu): the frontend fetches the remote backend's menu from
-    #: base_url and mounts its views under this option.
-    remote: bool = False
-    base_url: str | None = None
-    #: Inline the remote entries at this level instead of nesting under label.
-    explode: bool = False
-    #: A rule leaf (mirrors MenuOptionDto.rules): a menu entry that RUNS client-side rules when
-    #: clicked instead of navigating. Non-empty only for a Rule / list[Rule] menu entry; a route
-    #: leaf leaves it empty.
-    rules: list["RuleRecord"] = Field(default_factory=list)
-    #: The entry's icon (e.g. "vaadin:calendar"), shown on its card (mirrors MenuOptionDto.icon).
-    icon: str | None = None
-    #: The entry's description — the text of a card (mirrors MenuOptionDto.description).
-    description: str | None = None
-    #: A GROUP that opens as a panel of cards ("cards") instead of the usual list (None). Its
-    #: entries are the cards; each entry's own submenus are the card's actions (mirrors
-    #: MenuOptionDto.display).
-    display: str | None = None
-    #: The image of an entry shown as a card (a URL or a data URI); None for none (mirrors
-    #: MenuOptionDto.image).
-    image: str | None = None
-
-
-class Kpi(Wire):
-    # The wire discriminator is "KPIDto" and the value member is "text" (mirrors Java's KPIDto).
-    type: Literal["KPIDto"] = "KPIDto"
-    title: str
-    text: str
-    icon: str | None = None
-    color: str | None = None
-
-
-class Fab(Wire):
-    icon: str
-    action_id: str
-    label: str | None = None
-    order: int = 0
-    #: The button emphasis (Java's FabDto.buttonStyle, "primary" for a FAB).
-    button_style: str = "primary"
-
-
-class PeerNav(Wire):
-    #: Lateral navigation across peer objects — the previous/next arrows in the page header (the
-    #: Oracle Redwood "next/previous object" element). A None route on a side hides that arrow.
-    prev_label: str | None = None
-    prev_route: str | None = None
-    next_label: str | None = None
-    next_route: str | None = None
-
-
-class Banner(Wire):
-    theme: str
-    title: str | None = None
-    description: str | None = None
-    has_icon: bool = True
-    has_close_button: bool = False
-    timeout_seconds: int = 0
-
-
-class Badge(Wire):
-    text: str
-    color: str
-    primary: bool = False
-    small: bool = False
-    pill: bool = True
-
-
-class Action(Wire):
-    id: str
-    validation_required: bool = True
-    # Field names mirror io.mateu.dtos.ActionDto: the frontend blocks a rows_selected_required
-    # action while the grid selection is empty, and bubble lets the event reach the enclosing
-    # crud component.
-    confirmation_required: bool = False
-    rows_selected_required: bool = False
-    bubble: bool = False
-    # Client-side request ceiling in ms; 0 keeps the client default (60s). One global timeout
-    # cannot serve both a type-ahead lookup and a report export.
-    timeout_millis: int = 0
-    # Declares that re-sending this action cannot apply the same change twice, so the client may
-    # retry it by itself after a transient failure. Only for reads or naturally idempotent
-    # writes: after a timeout the client cannot know whether the server processed the request.
-    idempotent: bool = False
-    #: Makes this action call an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE instead of
-    #: dispatching to the Mateu server (@rest_action); None for normal actions (mirrors
-    #: io.mateu.dtos.ActionDto.restAction).
-    rest_action: "RestAction | None" = None
-
-
-class RestAction(Wire):
-    """Descriptor for a button that calls an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE
-    (mirrors ``io.mateu.dtos.RestActionDto``): the renderer fetches ``source`` directly, shows
-    ``success_message`` as a toast on a 2xx response and — when ``result_path`` is set — merges the
-    object at that path in the JSON response into the form state."""
-
-    source: "RestDataSource"
-    success_message: str | None = None
-    result_path: str | None = None
-
-
-class Trigger(Wire):
-    type: str
-    action_id: str
-
-
-class CustomTrigger(Wire):
-    event: str
-    action_id: str
-    type: str = "OnCustomEvent"
-
-
-# ── Top-level envelope ─────────────────────────────────────────────────────────
-class UICommand(Wire):
-    target_component_id: str
-    type: str
-    data: Any | None = None
-
-    @staticmethod
-    def close_modal(event_name: str | None = None, detail: Any | None = None) -> "UICommand":
-        """Closes the topmost open overlay (dialog or drawer). With ``event_name`` it also emits
-        that event (carrying ``detail``) through the custom-event bus so the host page can react —
-        refresh itself or receive the overlay's result (mirrors Java's UICommand.closeModal)."""
-        data = None if event_name is None else CustomEventRecord(event_name=event_name, detail=detail)
-        return UICommand(target_component_id="ux_main", type="CloseModal", data=data)
-
-    @staticmethod
-    def dispatch_event(event_name: str, detail: Any | None = None) -> "UICommand":
-        """Emits a named custom event from the current component (mirrors Java's
-        UICommand.dispatchEvent) — @subscribe_to counterparts react to it."""
-        return UICommand(
-            target_component_id="ux_main",
-            type="DispatchEvent",
-            data=CustomEventRecord(event_name=event_name, detail=detail),
-        )
-
-
-class CustomEventRecord(Wire):
-    """A named custom event riding on a CloseModal/DispatchEvent command (mirrors
-    ``io.mateu.uidl.fluent.CustomEvent``)."""
-
-    event_name: str
-    detail: Any | None = None
-
-
-class Message(Wire):
-    variant: str
-    position: str
-    title: str
-    text: str
-    duration: int
-    #: The undoable-toast fields (mirrors MessageDto.undoLabel/undoActionId/undoParameters):
-    #: when set, the toast renders an Undo button dispatching undo_action_id with
-    #: undo_parameters as action parameters on the initiator component.
-    undo_label: str | None = None
-    undo_action_id: str | None = None
-    undo_parameters: dict[str, Any] | None = None
-
-
-class UIFragment(Wire):
-    target_component_id: str
-    component: Component | None = None
-    state: Any | None = None
-    data: Any | None = None
-    action: str
-    container_id: str | None = None
-
-
-class UIIncrement(Wire):
-    commands: list[UICommand] = Field(default_factory=list)
-    messages: list[Message] = Field(default_factory=list)
-    fragments: list[UIFragment] = Field(default_factory=list)
-    banners: list[Any] = Field(default_factory=list)
-    append_banners: bool = False
-    app_data: Any | None = None
-    app_state: Any | None = None
-    # Version of the wire protocol this payload conforms to (e.g. "3.0"). Additive within a major
-    # version; a consumer may read it to guard against a mismatched producer. Defaults so every
-    # response carries it (serialized as "wireVersion" by the camelCase alias generator).
-    wire_version: str = WIRE_VERSION
-
-    @staticmethod
-    def of(commands=None, messages=None, fragments=None, banners=None, append_banners=False) -> "UIIncrement":
-        return UIIncrement(
-            commands=commands or [],
-            messages=messages or [],
-            fragments=fragments or [],
-            banners=banners or [],
-            append_banners=append_banners,
-        )
-
-
-# Resolve the forward references / recursive models.
-for _m in (
+from .base import (  # noqa: F401
+    WIRE_VERSION,
+    Wire,
+)
+from .app import (  # noqa: F401
+    AppContextSelector,
+    AppHeaderAction,
     AppMetadata,
-    PageMetadata,
+)
+from .layout import (  # noqa: F401
     CardMetadata,
-    ClientSideComponent,
-    ServerSideComponent,
-    UIFragment,
+    CustomFieldMetadata,
+    DivMetadata,
+    FormLayoutMetadata,
+    FormMetadata,
+    FormRowMetadata,
+    FormSectionMetadata,
+    HorizontalLayoutMetadata,
+    PageMetadata,
+    VerticalLayoutMetadata,
+)
+from .fields import (  # noqa: F401
+    ComponentEntryRecord,
+    CrudMetadata,
     FormFieldMetadata,
-):
-    _m.model_rebuild()
+    NavLinkRecord,
+    PairRecord,
+    RemoteCoordinates,
+    RestDataSource,
+    RestSourceEntryRecord,
+)
+from .basic import (  # noqa: F401
+    AccordionLayoutMetadata,
+    AccordionPanelMetadata,
+    AnchorMetadata,
+    ButtonMetadata,
+    CustomComponentMetadata,
+    NoticeMetadata,
+    ProgressBarMetadata,
+    SeparatorMetadata,
+    TabLayoutMetadata,
+    TabMetadata,
+    TextMetadata,
+)
+from .dashboard import (  # noqa: F401
+    ContentLayoutMetadata,
+    DashboardLayoutMetadata,
+    DashboardPanelMetadata,
+    EmptyStateMetadata,
+    FoldoutLayoutMetadata,
+    FoldoutNavigation,
+    FoldoutPanelInfo,
+    GanttMetadata,
+    GanttTaskRecord,
+    HeroSectionMetadata,
+    MetricCardMetadata,
+    PlanningBlockRecord,
+    PlanningBoardMetadata,
+    PlanningResourceRecord,
+    ResponsiveGridMetadata,
+    ScoreboardMetadata,
+    SkeletonMetadata,
+)
+from .ux import (  # noqa: F401
+    CalendarDayRecord,
+    CalendarEventRecord,
+    CalendarMetadata,
+    CalloutCardMetadata,
+    ChecklistItemRecord,
+    ChecklistMetadata,
+    CommentRecord,
+    CommentThreadMetadata,
+    ComparisonCardMetadata,
+    FaqItemRecord,
+    FaqMetadata,
+    FeatureGridMetadata,
+    FeatureRecord,
+    FileItemRecord,
+    FileListMetadata,
+    FunnelMetadata,
+    FunnelStageRecord,
+    HeatCellRecord,
+    HeatmapMetadata,
+    KanbanCardRecord,
+    KanbanColumnRecord,
+    KanbanMetadata,
+    OrgChartMetadata,
+    OrgNodeRecord,
+    PricingPlanRecord,
+    PricingTableMetadata,
+    ProgressStepsMetadata,
+    StatMetadata,
+    StepRecord,
+    TestimonialRecord,
+    TestimonialsMetadata,
+    TimelineItemRecord,
+    TimelineMetadata,
+    TrendChartMetadata,
+)
+from .front_office import (  # noqa: F401
+    ActionPanelCategoryRecord,
+    ActionPanelItemRecord,
+    ActionPanelMetadata,
+    AddOnPickerMetadata,
+    AddOnRecord,
+    BulletedListMetadata,
+    ChipRecord,
+    DropZoneMetadata,
+    EntityHeaderMetadata,
+    FactRecord,
+    LedgerLineRecord,
+    LedgerMetadata,
+    MapMarkerRecord,
+    MapMetadata,
+    MatrixCellRecord,
+    MatrixColumnRecord,
+    MatrixGridMetadata,
+    MatrixRowRecord,
+    MatrixSectionRecord,
+    MeterMetadata,
+    OfferCardMetadata,
+    PaymentMethodRecord,
+    PaymentPickerMetadata,
+    ProcessItemRecord,
+    ProcessMonitorMetadata,
+    QueueGroupRecord,
+    QueueItemRecord,
+    ResourceGridMetadata,
+    ResourceItemRecord,
+    StatusItemRecord,
+    StatusListMetadata,
+    TaskProgressMetadata,
+    TaskQueueMetadata,
+)
+from .overlays import (  # noqa: F401
+    DialogMetadata,
+    DrawerMetadata,
+    MicroFrontendMetadata,
+    PopoverMetadata,
+)
+from .components import (  # noqa: F401
+    ClientSideComponent,
+    Component,
+    ComponentMetadata,
+    RuleRecord,
+    ServerSideComponent,
+    ValidationRecord,
+)
+from .records import (  # noqa: F401
+    Action,
+    Badge,
+    Banner,
+    Button,
+    CustomTrigger,
+    Fab,
+    GridColumn,
+    GridColumnMeta,
+    Kpi,
+    MenuItem,
+    Option,
+    PeerNav,
+    RestAction,
+    Trigger,
+)
+from .envelope import (  # noqa: F401
+    CustomEventRecord,
+    Message,
+    UICommand,
+    UIFragment,
+    UIIncrement,
+)
+
+
+def _rebuild_all() -> None:
+    """Resolve the forward references across modules.
+
+    The wire model is split by concern, and its models reference each other in both directions
+    (an App's menu holds MenuItems, a component's children hold Components). Each model is built in
+    its own module, where a reference to a LATER module cannot resolve yet; rebuilding every model
+    against the package's full namespace — once everything is imported — completes them all.
+    """
+    from pydantic import BaseModel
+
+    namespace = dict(globals())
+    for value in list(namespace.values()):
+        if (
+            isinstance(value, type)
+            and issubclass(value, BaseModel)
+            and value.__module__.startswith(__name__ + ".")
+        ):
+            value.model_rebuild(force=True, _types_namespace=namespace)
+
+
+_rebuild_all()

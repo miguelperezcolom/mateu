@@ -10,7 +10,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import date
+from datetime import date as _date
+from typing import TYPE_CHECKING
 from enum import Enum
+
+
+if TYPE_CHECKING:
+    from .suppliers import PeerNav
 
 
 class Component:
@@ -604,10 +610,10 @@ class CalendarEvent:
 
     id: str | None = None
     title: str | None = None
-    date: date | None = None
+    date: _date | None = None
     color: str | None = None
     action_id: str | None = None
-    end_date: date | None = None
+    end_date: _date | None = None
     start_time: str | None = None
     end_time: str | None = None
 
@@ -1110,6 +1116,17 @@ class Notice(Component):
 
     def __post_init__(self):
         object.__setattr__(self, "content", tuple(self.content))
+
+
+@dataclass(frozen=True)
+class ComponentRef(Component):
+    """A reference to a named BUSINESS component of the app's catalogue (Java's ``ComponentRef``):
+    a reusable bound composition declared once (``@business_component``, a
+    ``ComponentCatalogSupplier`` or ``specs/ui/components.yaml``) and referenced by name wherever a
+    component goes. The server substitutes the composition while rendering, so the reference never
+    reaches the wire; an unknown name renders a visible placeholder, never an error."""
+
+    ref: str = ""
 
 
 @dataclass(frozen=True)
@@ -1644,6 +1661,7 @@ class Dialog(Component):
 
 
 __all__ = [
+    "ComponentRef",
     "Component",
     "MetricTrend",
     "SkeletonVariant",

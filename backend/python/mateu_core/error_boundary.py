@@ -13,6 +13,8 @@ import logging
 import os
 import uuid
 
+from pydantic import ValidationError
+
 from mateu_uidl import UserFacingException
 
 log = logging.getLogger("mateu.errors")
@@ -35,17 +37,18 @@ def _message(title: str, text: str) -> dict:
     return {"variant": "error", "position": "middle", "title": title, "text": text, "duration": 0}
 
 
-def describe(error: BaseException, action_id: str | None = None, detailed: bool | None = None) -> dict:
+def describe(
+    error: BaseException,
+    action_id: str | None = None,
+    detailed: bool | None = None,
+    reference: str | None = None,
+) -> dict:
     """The error toast (wire ``Message`` dict) for ``error``, logging it when it is a bug."""
     for e in _chain(error):
         if isinstance(e, UserFacingException):
             return _message(e.title or "Error", e.message)
-    try:
-        from pydantic import ValidationError
-    except ImportError:  # pragma: no cover - pydantic is a hard dependency
-        ValidationError = ()  # type: ignore[assignment]
     for e in _chain(error):
-        if ValidationError and isinstance(e, ValidationError):
+        if isinstance(e, ValidationError):
             text = "\n".join(
                 sorted(
                     (".".join(str(p) for p in err.get("loc", ())) + ": " if err.get("loc") else "")
@@ -54,7 +57,8 @@ def describe(error: BaseException, action_id: str | None = None, detailed: bool 
                 )
             )
             return _message("Validation error", text)
-    reference = uuid.uuid4().hex[:12]
+    # the request's correlation id when the adapter has one (also in X-Mateu-Correlation-Id)
+    reference = reference or uuid.uuid4().hex[:12]
     log.error("Error handling action %s [ref %s]", action_id, reference, exc_info=error)
     show = detailed if detailed is not None else os.environ.get(DETAILED_ENV, "").lower() == "true"
     if show:

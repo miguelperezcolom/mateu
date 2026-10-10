@@ -221,8 +221,7 @@ An existing `layout:` page migrates by itself: open it in the editor, rearrange,
 is a flat run of the model's own fields the next save comes back as a delta.
 
 :::note
-`layoutDelta:` is served by the **Java** server. The .NET and Python ports parse the key and decline
-the page rather than rendering it wrongly.
+`layoutDelta:` is served by the **Java**, **.NET** and **Python** servers (same three rules).
 :::
 
 ## Hybrid: YAML layout + Java logic with `@UISpec`
