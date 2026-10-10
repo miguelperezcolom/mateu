@@ -105,6 +105,10 @@ export default defineConfig({
         baseURL: 'http://localhost:8792',
       },
       testMatch: '**/static/**/*.spec.ts',
+      // Both static sites call the SAME external API (:8790), which each test resets
+      // (`/__reset`) and mutates (delete): run in parallel, one project wiped or deleted the
+      // other's data mid-test. Running after the Java one keeps them from overlapping.
+      dependencies: ['static-vcn-java'],
     },
     ]),
     // A `renderer-vb` project (baseURL :8090, an mvc-app-vb SUT with the io.mateu:redwood frontend)
