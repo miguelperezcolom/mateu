@@ -20,7 +20,7 @@ namespace Mateu.Core;
 /// <para>Unlike the Java server, a ref here cannot name a class: the ports carry the declarative
 /// form only, as with <c>@Overline</c>.</para>
 /// </remarks>
-public sealed class PartialRegistry
+public sealed class PartialRegistry : ISpecsCache
 {
     /// <summary>The registry the YAML builder uses when a caller does not supply one.</summary>
     public static PartialRegistry Default { get; } = new();
@@ -35,7 +35,11 @@ public sealed class PartialRegistry
     {
         _dir = dir ?? Environment.GetEnvironmentVariable("MATEU_SPECS_DIR")
                    ?? Path.Combine("specs", "ui");
+        DevSpecs.Register(this);
     }
+
+    /// <summary>Dev mode: a spec changed — the YAML partials are read again (code registrations stay).</summary>
+    public void InvalidateSpecs() => _byRef.Clear();
 
     /// <summary>Contribute a partial programmatically. A registration wins over a file of the same
     /// name — the same precedence a route registration has over the route convention.</summary>
