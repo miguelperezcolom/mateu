@@ -457,6 +457,9 @@ export function foldoutOf(ctx) {
  *  derecha); STEPS manda uno HORIZONTAL, y eso es un tren de pasos ARRIBA (horizontal: true →
  *  oj-train sobre el contenido, y en pantallas estrechas la lista de pasos en vertical, que un
  *  tren de 4-5 rótulos no cabe en un móvil). */
+/** Id del paso virtual que el guided process enseña cuando el wizard ya terminó. */
+export const WIZARD_DONE_STEP = '_completed'
+
 export function wizardOf(ctx) {
   const node = ctx && ctx.tree ? findByType(ctx.tree, 'ProgressSteps') : null
   if (!node) return null
@@ -476,7 +479,15 @@ export function wizardOf(ctx) {
     display: 'on',
     status: statusOf(s, i) === 'done' ? 'success' : 'none',
   }))
-  const currentStep = currentId
+  // RESULTADO: con todos los pasos hechos (el wire no trae el paso de resultado, que no es un
+  // paso del proceso) el guided process se quedaba en el último paso — su título y su pie
+  // Cancel/Done. Se añade un paso final «Completed», hecho y actual: el título dice que terminó y
+  // el pie se oculta (completed → clase mateu-wizard-completed en la página)
+  const completed = wire.length > 0 && wire.every((s, i) => statusOf(s, i) === 'done')
+  if (completed) {
+    steps.push({ id: WIZARD_DONE_STEP, label: 'Completed', title: 'Completed', display: 'on', status: 'success' })
+  }
+  const currentStep = completed ? WIZARD_DONE_STEP : currentId
   // el título del proceso (el h2 del wizard) y su subtítulo (@Subtitle): el overview del
   // guided process los pinta arriba a la izquierda, sobre las columnas de los pasos
   const heading = ctx.tree ? findFirst(ctx.tree, (n) => n.metadata && n.metadata.type === 'Text'
@@ -487,12 +498,13 @@ export function wizardOf(ctx) {
     title: heading ? String(heading.metadata.text) : '',
     subtitle: subtitleNode ? String(subtitleNode.metadata.text || '') : '',
     // Start del overview: el primer paso; con el wizard ya empezado, «Reanudar» en el suyo
-    resumeStepId: currentIndex > 0 && currentId ? currentId : '',
+    resumeStepId: !completed && currentIndex > 0 && currentId ? currentId : '',
     steps,
     currentStep,
+    completed,
     horizontal: !md.vertical,
-    currentIndex,
-    currentLabel: steps.length ? steps[currentIndex].label : '',
+    currentIndex: completed ? steps.length - 1 : currentIndex,
+    currentLabel: steps.length ? steps[completed ? steps.length - 1 : currentIndex].label : '',
     total: steps.length,
     // el tren (oj-train): los hechos se pueden VISITAR (volver atrás), los que faltan no —
     // se avanza con el botón del paso, que valida

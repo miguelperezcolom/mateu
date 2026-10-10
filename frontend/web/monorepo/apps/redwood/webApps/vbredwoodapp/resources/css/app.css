@@ -1407,3 +1407,10 @@ body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-title { 
 .mateu-atom-richtext pre code { background: none; padding: 0; }
 .mateu-atom-richtext blockquote { padding-inline-start: var(--oj-core-spacing-3x, 12px);
   border-inline-start: 3px solid var(--oj-core-divider-color, #ddd); color: var(--oj-core-text-color-secondary, #555); }
+
+/* Wizard finished (the result step): the guided process template still draws its own footer —
+   Cancel and a disabled Done — which mean nothing once the process is over. Hidden; the content's
+   own buttons (in .mateu-wizard-slot) stay. */
+oj-sp-guided-process.mateu-wizard-completed button:not(.mateu-wizard-slot button) {
+  display: none;
+}

@@ -19,6 +19,7 @@ import { coverageTable } from './coverage.mjs'
 import { mapAtomOf, mapHeightOf } from './reduceContexts.mjs'
 import { mapViewPlanOf, mapMarkerParams, SINGLE_MARKER_ZOOM } from './map.mjs'
 import { attrSelectorValue } from './rules.mjs'
+import { wizardOf, WIZARD_DONE_STEP } from './reduceContexts.mjs'
 import { safeImageSrc } from './inputs.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays } from './calendar.mjs'
@@ -1280,6 +1281,24 @@ test('seguridad: el selector de una regla escapa comillas y barras; una imagen s
   assert.equal(safeImageSrc('/img/a.png'), '/img/a.png')
   assert.equal(safeImageSrc('javascript:alert(1)'), '')
   assert.equal(safeImageSrc('data:text/html,<b>x</b>'), '')
+})
+
+test('proceso guiado terminado: un paso final «Completed» actual (título correcto) y la marca completed (sin pie)', () => {
+  const tree = (statuses) => ({ type: 'ClientSide', id: 'w', metadata: { type: 'VerticalLayout' }, children: [
+    { type: 'ClientSide', id: 'p', metadata: { type: 'ProgressSteps', vertical: true,
+      steps: statuses.map((st, i) => ({ id: 's' + i, title: 'Step ' + i, status: st })) }, children: [] }] })
+  const running = wizardOf({ tree: tree(['done', 'current', 'upcoming']) })
+  assert.equal(running.completed, false)
+  assert.equal(running.currentStep, 's1')
+  assert.equal(running.steps.length, 3)
+  const done = wizardOf({ tree: tree(['done', 'done', 'done']) })
+  assert.equal(done.completed, true)
+  assert.equal(done.currentStep, WIZARD_DONE_STEP)
+  assert.equal(done.currentLabel, 'Completed')
+  assert.equal(done.steps.length, 4)
+  assert.ok(done.steps.every((st) => st.status === 'success'))
+  assert.equal(done.resumeStepId, '')
+  assert.match(webApp('flows/main/pages/main-start-page.html'), /mateuWizard\.completed \? 'mateu-wizard-completed'/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

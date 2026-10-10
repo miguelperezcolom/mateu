@@ -9538,6 +9538,7 @@
      del host: mateuWizardStep -->
 <oj-bind-if test="[[ !!$application.variables.mateuWizard && !$application.variables.mateuWizard.horizontal ]]">
   <oj-sp-guided-process id="mateuWizardEl"
+    :class="[[ $application.variables.mateuWizard.completed ? 'mateu-wizard-completed' : '' ]]"
     process-title="[[ $application.variables.mateuWizard.title || $application.variables.mateuHostTitle ]]"
     process-subtitle="[[ $application.variables.mateuWizard.subtitle ]]"
     resume-step-id="[[ $application.variables.mateuWizard.resumeStepId ]]"
@@ -9548,7 +9549,7 @@
     on-sp-before-next="[[ $listeners.mateuWizardContinue ]]"
     on-sp-before-step-navigate="[[ $listeners.mateuWizardStepNavigate ]]"
     on-sp-cancel="[[ $listeners.mateuWizardCancel ]]">
-    <div class="oj-sm-padding-4x">
+    <div class="oj-sm-padding-4x mateu-wizard-slot">
       <!-- contenido display del paso (wizard standalone): EntityHeader, Notice con
            selector de pax, documento (isla fusionada fromNested), grid de habitaciones,
            extras… — sin título/rail/back-next (los aporta el guided process) -->

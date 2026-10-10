@@ -124,7 +124,12 @@ export function defineCaptureField(win = typeof window !== 'undefined' ? window 
 
       if (value && (mode !== 'file' || isImageValue(value))) {
         const img = doc.createElement('img')
-        img.src = safeImageSrc(value)
+        // the guard inline, where the value is assigned: only data:image, http(s) or a path with no
+        // scheme reach the src (javascript:, other data: types show nothing) — see safeImageSrc
+        const src = String(value).trim()
+        if (/^data:image\/[a-z0-9.+-]+[;,]/i.test(src) || /^https?:\/\//i.test(src) || !/^[a-z][a-z0-9+.-]*:/i.test(src)) {
+          img.src = src
+        }
         img.alt = ''
         img.className = 'mateu-capture-preview' + (mode === 'signature' ? ' mateu-capture-signature' : '')
         box.appendChild(img)
