@@ -87,7 +87,7 @@ public class RunActionUseCase {
   // ── Main entry point ──────────────────────────────────────────────────────
 
   public Flux<UIIncrementDto> handle(RunActionCommand command) {
-    log.info("run action {}", command.actionId());
+    log.debug("run action {}", command.actionId());
     // The client names the server-side type it is talking to; only types the application exposes
     // may be resolved (C1). Refused here, before anything loads, instantiates or asks the
     // container for the class — every path below (contract, preview, rest proxy, actions) and
@@ -134,7 +134,7 @@ public class RunActionUseCase {
               var notFound = missingOnLoad(e, command);
               if (notFound != null) {
                 // not an application error: the route names something that is not there
-                log.info("Not found: route {} — {}", command.route(), notFound.getMessage());
+                log.debug("Not found: route {} — {}", command.route(), notFound.getMessage());
                 return;
               }
               log.error("Error handling action {}", command.actionId(), e);

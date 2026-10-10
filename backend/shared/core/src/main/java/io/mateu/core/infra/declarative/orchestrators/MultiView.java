@@ -54,7 +54,7 @@ public abstract class MultiView
 
   @Override
   public Object handleRoute(String route, HttpRequest httpRequest) {
-    log.info("route is {}, action is {}", route, httpRequest.runActionRq().actionId());
+    log.debug("route is {}, action is {}", route, httpRequest.runActionRq().actionId());
     try {
 
       if (route.contains("?")) {

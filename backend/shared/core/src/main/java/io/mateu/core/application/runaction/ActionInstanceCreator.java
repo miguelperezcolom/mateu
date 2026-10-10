@@ -32,7 +32,7 @@ public class ActionInstanceCreator {
   private final io.mateu.core.application.RoutedClassResolver routedClassResolver;
 
   Mono<?> createInstance(RunActionCommand command) {
-    log.info("createInstance {}", command);
+    log.debug("createInstance {}", command);
 
     try {
       var adjusted = crudNavigationAdjuster.adjust(command);
