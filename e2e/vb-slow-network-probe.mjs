@@ -15,6 +15,7 @@
  * Sale con código distinto de cero si falla alguna comprobación.
  */
 import { chromium } from 'playwright'
+import { gotoVbReady } from './vb-ready.mjs'
 const VB_URL = process.env.VB_URL || 'http://localhost:9006/'
 const sleep = (ms) => new Promise(r => setTimeout(r, ms))
 const results = []
@@ -26,8 +27,8 @@ const browser = await chromium.launch()
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 } })
   const page = await ctx.newPage()
-  await page.goto(VB_URL, { waitUntil: 'networkidle' })
-  await sleep(6000)
+  await gotoVbReady(page, VB_URL)
+  await sleep(1500)
   await page.route(SYNC, async r => { await sleep(3000); await r.continue() })
   page.getByText('Products', { exact: true }).first().click().catch(()=>{})
   await sleep(1200)
@@ -40,8 +41,8 @@ const browser = await chromium.launch()
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 } })
   const page = await ctx.newPage()
-  await page.goto(VB_URL, { waitUntil: 'networkidle' })
-  await sleep(6000)
+  await gotoVbReady(page, VB_URL)
+  await sleep(1500)
   await page.route(SYNC, r => r.abort('failed'))
   page.getByText('Products', { exact: true }).first().click().catch(()=>{})
   await sleep(3000)
@@ -64,8 +65,8 @@ const browser = await chromium.launch()
     if (body.includes('"actionId":""')) { loads++; if (loads === 1) return r.fulfill({ status: 503, body: 'no' }) }
     await r.continue()
   })
-  await page.goto(VB_URL, { waitUntil: 'networkidle' })
-  await sleep(7000)
+  // the retried read is what makes the app ready, so wait for that (bounded), not for networkidle
+  await gotoVbReady(page, VB_URL, { attempts: 1 }).catch(() => {}) // no re-navigation: it would count as a retry
   check('una lectura que topa con un 503 se reintenta sola', loads >= 2, `${loads} intento(s)`)
   await ctx.close()
 }
@@ -74,10 +75,19 @@ const browser = await chromium.launch()
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 } })
   const page = await ctx.newPage()
-  await page.route(SYNC, async r => { await sleep(4000); await r.continue() })
+  // The shell's own load goes through; the content load after it is held long enough that the
+  // skeleton MUST be on screen while it is pending, and the probe polls for it. A fixed "delay every
+  // load 4s, look at 6s" raced both ways: with a slow CDN the shell had not even booted at 6s, with
+  // a fast one the delayed content load had already landed.
+  let syncs = 0
+  await page.route(SYNC, async r => {
+    if (++syncs > 1) await sleep(30000)
+    await r.continue().catch(()=>{})
+  })
   page.goto(VB_URL).catch(()=>{})
-  await sleep(6000)
-  check('una carga sin contenido aún enseña un esqueleto', await page.locator('.mateu-skeleton').count() > 0)
+  const skeleton = await page.locator('.mateu-skeleton').first()
+    .waitFor({ state: 'attached', timeout: 28000 }).then(() => true, () => false)
+  check('una carga sin contenido aún enseña un esqueleto', skeleton)
   await page.screenshot({ path: '/tmp/vb-skeleton.png' })
   await ctx.close()
 }
@@ -86,8 +96,8 @@ const browser = await chromium.launch()
 {
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 860 } })
   const page = await ctx.newPage()
-  await page.goto(VB_URL, { waitUntil: 'networkidle' })
-  await sleep(6000)
+  await gotoVbReady(page, VB_URL)
+  await sleep(1500)
   await page.getByText('Products', { exact: true }).first().click().catch(()=>{})
   await sleep(4000)
 
