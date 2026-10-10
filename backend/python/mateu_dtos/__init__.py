@@ -67,6 +67,9 @@ class AppMetadata(Wire):
     #: @app(chromeless=True): drop the nav chrome; the command center is the only navigation
     #: (implies command_center_enabled). Mirrors AppDto.chromeless.
     chromeless: bool = False
+    #: @app(access_keys=True): keyboard access-keys mode — holding Alt shows a key next to every
+    #: visible button and tab and Alt+key activates it. Mirrors AppDto.accessKeys.
+    access_keys: bool = False
     #: A route may seed APP-SCOPE data by referencing a named source (routes.yaml ``appData``):
     #: the shell fetches it once into the app-data store (mirrors AppDto.appDataSource). None when
     #: no route under the mount declares one.

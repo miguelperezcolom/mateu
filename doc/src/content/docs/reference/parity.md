@@ -41,6 +41,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | `ActionPanel` (categorised "I want to…" actions) | ✅ | ✅ | ✅ |
 | `MatrixGrid` (rows × dates, collapsible sections, link/editable cells) | ✅ | ✅ | ✅ |
 | Calendar views (`Calendar.view`/`views`: month, week, day, list), per-date cells (`days`), clickable dates (`dayActionId`); `CalendarPage` `views()`/`days()`/`actionOnDay()` | ✅ | ✅ | ✅ |
+| Access keys mode (`@App(accessKeys)` → `AppDto.accessKeys`) | ✅ | ✅ | ✅ |
 | Row tones (`@RowStatus` → `CrudlDto.rowStatusField`) and listing export buttons on `AutoCrud` | ✅ | — | — |
 | i18n, events (emit/subscribe), security scaffolding | ✅ | ✅ | ✅ |
 | Application context selector (`@AppContext`) | ✅ | ✅ | ✅ |
@@ -217,7 +218,8 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Page banners (@Banner + action-returned) | ✅ | ✅ | ✅ | ✅ |
 | FABs, header badges, KPIs, charts | ✅ | 🟡 header badges, KPIs, `MetricCard`/`Scoreboard` tiles and charts on any page (`oj-chart`: bar, line, area, pie, doughnut, polar, several series); **no** FABs | ✅ (FABs as header buttons) | ✅ |
 | @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | ✅ | ✅ | ✅ |
-| Periodic refresh (`OnLoad` with `timeoutMillis` + `OnSuccess` loop, `background`) | ✅ | ✅ (stops when the screen changes) | — (timed OnLoad fires at once; no OnSuccess) | — (timed OnLoad fires at once; no OnSuccess) |
+| Periodic refresh (`OnLoad` with `timeoutMillis` + `OnSuccess` loop, `background`) | ✅ | ✅ (stops when the screen changes) | ✅ (stops when the view changes or its tab closes) | ✅ (stops when the screen changes or unmounts) |
+| Keyboard shortcuts (`@Action(shortcut)`, `@Tab(shortcut)`) + access keys mode (`@App(accessKeys)`: hold Alt, Alt+letter) | ✅ | ✅ | ✅ (Swing mnemonics) | — (no hardware-key model) |
 | AI chat (sseUrl) / theme toggle | ✅ | 🟡 AI chat (the shell chat FAB's Ask Oracle palette has a 💬 Chat mode — a streaming panel wired to the shared transport core); the `themeToggle` flag is read but **no toggle is drawn** | ✅ chat (theme = the IDE's own) | ✅ |
 | App context selector | ✅ | ✅ | ✅ (navigator combos) | ✅ |
 | — searchable picker w/ remote search | ✅ | ✅ | 🟡 loaded options only | ✅ |

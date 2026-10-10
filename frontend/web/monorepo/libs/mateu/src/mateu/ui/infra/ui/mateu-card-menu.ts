@@ -89,7 +89,7 @@ export class MateuCardMenu extends LitElement {
         if (!item) return nothing
         const cards = cardsOf(item)
         return html`
-            <button class="trigger ${item.selected ? 'active' : ''}" type="button"
+            <button class="trigger ${item.selected ? 'active' : ''}" type="button" data-access-key-target
                     aria-haspopup="true" aria-expanded="${this.open ? 'true' : 'false'}"
                     @click="${() => { this.open = !this.open }}">
                 ${item.text}<span class="chevron" aria-hidden="true">▾</span>

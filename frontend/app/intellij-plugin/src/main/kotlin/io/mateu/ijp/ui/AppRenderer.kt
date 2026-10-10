@@ -31,6 +31,8 @@ fun renderApp(r: ComponentRenderer, component: JsonNode, metadata: JsonNode): JC
         session.homeRoute = metadata.text("homeRoute").ifBlank { null }
         session.homeConsumedRoute = metadata.text("homeConsumedRoute")
         session.homeServerSideType = metadata.text("homeServerSideType")
+        // Keyboard access keys: views assign Alt+letter mnemonics to their buttons and tabs.
+        session.accessKeys = metadata.bool("accessKeys")
         session.onAppMenuChanged?.invoke()
         com.intellij.ide.ActivityTracker.getInstance().inc()
     }

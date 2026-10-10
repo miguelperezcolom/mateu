@@ -32,6 +32,7 @@ export const renderButton = (component: ClientSideComponent, state?: ComponentSt
             class="${component.cssClasses}"
             theme="${theme}"
             ?disabled="${metadata.disabled}"
+            data-shortcut="${metadata.shortcut ?? nothing}"
             title="${metadata.shortcut ? `${label} (${formatShortcut(metadata.shortcut)})` : nothing}"
             slot="${component.slot??nothing}"
     >${metadata.iconOnLeft?html`<vaadin-icon icon="${metadata.iconOnLeft}"></vaadin-icon>`:nothing}${label}${metadata.iconOnRight?html`<vaadin-icon icon="${metadata.iconOnRight}"></vaadin-icon>`:nothing}</vaadin-button>`

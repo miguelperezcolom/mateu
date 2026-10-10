@@ -21,6 +21,7 @@ import { calendarAtomOf, calPeriod, calEventsOn, calAddDays } from './calendar.m
 import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf } from './notify.mjs'
 import { startPolling, actionSucceeded, setPollingRunner, timedOnLoadTriggers } from './polling.mjs'
 import { onLoadTriggers } from './reduceContexts.mjs'
+import { assignAccessKeys, keyHint, setShortcutContext, currentShortcutActions } from './keys.mjs'
 import { dayIndexAtX } from './planning.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
 import { listingOf, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
@@ -953,6 +954,35 @@ test('polling: la shell lo arranca al navegar y el transporte avisa de cada éxi
   assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /bridge\.startPolling\(reg\.contexts\[bridge\.HOST_ID\]\)/)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.setPollingRunner\(runPageAction\)/)
   assert.match(webApp('resources/js/mateu-bridge.js'), /if \(inc\) actionSucceeded\(source, actionId\)/)
+})
+
+// ── P1 #15 atajos y teclas de acceso ─────────────────────────────────────────────────────────
+test('teclas de acceso: iniciales primero, sin repetir, saltando las reservadas; luego letras y cifras', () => {
+  assert.deepEqual(assignAccessKeys(['Reservations', 'Room diary', 'Property availability', 'New reservation'], ['n']), ['r', 'd', 'p', 'e'])
+  assert.deepEqual(assignAccessKeys(['aa', 'a', 'a']), ['a', '1', '2'])
+  assert.equal(assignAccessKeys(Array.from({ length: 40 }, () => 'x')).filter(Boolean).length, 11)
+  assert.equal(keyHint('ctrl+alt+7'), 'Ctrl+Alt+7')
+})
+
+test('atajos: sólo las acciones de la pantalla con modificador; las pestañas llevan el suyo al DOM', () => {
+  setShortcutContext({ tree: { actions: [
+    { id: 'days7', shortcut: 'ctrl+alt+7' }, { id: 'search', shortcut: 'enter' }, { id: 'save', shortcut: 'Ctrl+S' }, { id: 'x' },
+  ] } })
+  assert.deepEqual(currentShortcutActions(), [{ id: 'days7', shortcut: 'ctrl+alt+7' }, { id: 'save', shortcut: 'ctrl+s' }])
+  setShortcutContext(null)
+  assert.deepEqual(currentShortcutActions(), [])
+  const tabs = { type: 'ClientSide', id: '_tabs', metadata: { type: 'TabLayout' }, children: [
+    node({ type: 'Tab', label: 'Overview', shortcut: 'Alt+1' }, [node({ type: 'Text', text: 'a' })]),
+    node({ type: 'Tab', label: 'Billing', shortcut: 'alt+2' }, [node({ type: 'Text', text: 'b' })]),
+  ] }
+  const bar = atomsOf(tabs).find((a) => a.isTabs)
+  assert.deepEqual(bar.tabs.map((t) => t.shortcut), ['alt+1', 'alt+2'])
+  const page = webApp('flows/main/pages/main-start-page.html')
+  assert.match(page, /<li :id="\[\[ \$current\.data\.id \]\]" :data-shortcut="\[\[ \$current\.data\.shortcut \]\]">/)
+  const shell = webApp('pages/shell-page-chains/loadMateuShell.js')
+  assert.match(shell, /bridge\.installKeys\(\)/)
+  assert.match(shell, /bridge\.setAccessKeysEnabled\(/)
+  assert.match(webApp('resources/js/mateu-bridge.js'), /setShortcutContext\(reg\.contexts\[HOST_ID\]\)/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

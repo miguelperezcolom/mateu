@@ -9,7 +9,7 @@
  *   node vb-shot.mjs --route /room-diary --steps '[{"hover":".oj-gantt-task"},{"wait":800}]' --out …
  *
  * Pasos (JSON, en orden): {click:"texto visible"} · {clickSel:"css"} · {dblclickSel:"css"} ·
- * {hover:"css"} · {press:"Control+i"} · {fill:["css","valor"]} · {drag:["css origen","css destino"]}
+ * {hover:"css"} · {press:"Control+i"} · {down:"Alt"} · {up:"Alt"} (mantener una tecla) · {fill:["css","valor"]} · {drag:["css origen","css destino"]}
  * · {dragBy:["css",dx,dy]} · {wait:ms} · {download:"texto del botón", expect:"trozo del nombre"} · {element:"css"} (la
  * captura se recorta a ese elemento) · {eval:"expresión JS"} (imprime su resultado, para depurar).
  * Opciones: --base (http://localhost:9006) --width 1440 --height 900 --settle 6000 --full
@@ -49,6 +49,8 @@ try {
     else if (s.dblclickSel) await page.locator(s.dblclickSel).first().dblclick()
     else if (s.hover) await page.locator(s.hover).first().hover()
     else if (s.press) await page.keyboard.press(s.press)
+    else if (s.down) await page.keyboard.down(s.down)
+    else if (s.up) await page.keyboard.up(s.up)
     else if (s.fill) await page.locator(s.fill[0]).first().fill(String(s.fill[1]))
     else if (s.drag) await page.locator(s.drag[0]).first().dragTo(page.locator(s.drag[1]).first())
     else if (s.dragBy) {

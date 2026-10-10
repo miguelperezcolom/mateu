@@ -37,5 +37,8 @@ class MateuFileEditor(
     override fun removePropertyChangeListener(listener: PropertyChangeListener) {
         listeners.remove(listener)
     }
-    override fun dispose() {}
+    /** Tab closed: the view's periodic refreshes / subscriptions must not outlive it. */
+    override fun dispose() {
+        file.ctx?.dispose()
+    }
 }

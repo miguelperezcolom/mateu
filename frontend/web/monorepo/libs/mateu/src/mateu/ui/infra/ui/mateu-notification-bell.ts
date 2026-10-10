@@ -182,7 +182,7 @@ export class MateuNotificationBell extends LitElement {
         const unread = this.unreadCount()
         return html`
             <div class="root">
-                <button class="bell-button" title="Notifications" aria-label="Notifications"
+                <button class="bell-button" data-access-key-target title="Notifications" aria-label="Notifications"
                         @click="${() => this.opened ? this.closePanel() : this.openPanel()}">
                     <svg class="bell-icon" viewBox="0 0 24 24" aria-hidden="true"
                          fill="none" stroke="currentColor" stroke-width="1.8"

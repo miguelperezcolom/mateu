@@ -7,6 +7,7 @@ import { announceCapabilityMismatch } from '../capabilities/capabilities.ts'
 import { fetchExternalJson } from '../http/externalOptions.ts'
 import { appData } from "@domain/state"
 import { syncCommandCenter } from "@infra/ui/commandCenterMount.ts";
+import { syncAccessKeys } from "@infra/a11y/accessKeys.ts";
 import { fabStyles } from "@infra/ui/layout/fabRail.ts";
 import "./mateu-ux"
 import './mateu-api-caller'
@@ -848,6 +849,8 @@ export class MateuApp extends ComponentElement {
             const metadata = clientSideComponent.metadata
             if (metadata) {
                 const app = metadata as App
+                // @App(accessKeys): holding Alt shows the keys of the visible buttons and tabs
+                syncAccessKeys(!!app.accessKeys)
                 // The menu the automatic breadcrumb trail walks (breadcrumbTrail): published again
                 // when the remote sections have been fetched and the menu grows.
                 // The whole tree (navMenu): hidden sections are not drawn, but a page under one

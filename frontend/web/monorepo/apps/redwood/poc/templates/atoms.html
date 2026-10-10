@@ -605,7 +605,7 @@
                         <ul>
                           <oj-bind-for-each data="[[ $current.data.tabs ]]">
                             <template>
-                              <li :id="[[ $current.data.id ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
+                              <li :id="[[ $current.data.id ]]" :data-shortcut="[[ $current.data.shortcut ]]"><a href="#"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></a></li>
                             </template>
                           </oj-bind-for-each>
                         </ul>

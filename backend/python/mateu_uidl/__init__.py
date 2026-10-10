@@ -936,6 +936,7 @@ def app(
     variant: str = "",
     command_center: bool = False,
     chromeless: bool = False,
+    access_keys: bool = False,
     requires: list[str] | None = None,
     route: str = "",
 ) -> Callable[[type], type]:
@@ -950,6 +951,10 @@ def app(
     ``chromeless=True`` additionally drops the nav chrome — the command center becomes the only
     navigation, so it implies ``command_center``.
 
+    ``access_keys=True`` turns on the keyboard access-keys mode: holding Alt shows a key next to
+    every visible button and tab (the declared shortcut, else a letter of its label assigned
+    automatically) and Alt+that letter activates it. Mirrors Java's ``@App(accessKeys = true)``.
+
     ``requires`` DECLARES extra capability tokens the app needs from its host renderer, for
     anything the derivation cannot see (most tokens are derived from the app's own metadata). They
     ride, sorted+deduped with the derived ones, on ``AppMetadata.requiredCapabilities`` — the
@@ -960,6 +965,7 @@ def app(
         cls.__mateu_app_variant__ = variant
         cls.__mateu_app_command_center__ = command_center
         cls.__mateu_app_chromeless__ = chromeless
+        cls.__mateu_app_access_keys__ = access_keys
         cls.__mateu_app_requires__ = list(requires) if requires else []
         # coherence-plan #5: @app(route="/x") declares BOTH that the class is an app AND its route —
         # the single decorator, equivalent to @ui("/x") @app(...). Blank = the route comes from a

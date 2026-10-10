@@ -132,6 +132,31 @@ Consistent conventions across the application reinforce the *Consistency* princi
 | Delete | `Ctrl+Delete` |
 | Search / Filter | `Enter` (via `@Trigger`) |
 
+## Access keys mode (`@App(accessKeys = true)`)
+
+Back-office suites let the user **hold a key to see the keys** (OPERA Cloud with its access key):
+annotate the app class with `@App(accessKeys = true)` and holding **Alt** shows a small badge next to
+every visible button and tab —
+
+- the **declared shortcut** when the button's `@Action(shortcut)` (or a `@Tab(shortcut)`) has one;
+- otherwise a **letter of its label**, assigned automatically without repeats (word initials first,
+  then any letter, then digits; letters taken by `alt+<letter>` shortcuts are skipped).
+
+**Alt + that letter** presses it; letting go of Alt hides the badges. The letter is matched by
+physical key, so it works on macOS (where Alt changes the character) and any keyboard layout.
+
+```java
+@App(value = AppVariant.HAMBURGER_SECTIONS, accessKeys = true)
+public class PmsHome { … }
+```
+
+Works on Vaadin and Redwood; the IntelliJ plugin maps it to Swing **mnemonics** (its native
+access keys); React Native has no hardware-key model, so the flag is ignored there. .NET:
+`[App(AccessKeys = true)]`; Python: `@app(access_keys=True)`.
+
+On **Redwood**, `@Action(shortcut)` (combinations with Ctrl, Alt or Meta) and `@Tab(shortcut)` work
+the same as on Vaadin.
+
 ## Principles served
 
 - **Keyboard-first** — frequent tasks require no mouse gesture

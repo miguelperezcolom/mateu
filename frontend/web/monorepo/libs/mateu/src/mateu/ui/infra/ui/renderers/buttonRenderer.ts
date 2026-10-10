@@ -85,6 +85,7 @@ export const renderButton = (component: ClientSideComponent, state?: ComponentSt
             style="${themeStyle(metadata)}${component.style}"
             class="${component.cssClasses}"
             ?disabled="${metadata.disabled}"
+            data-shortcut="${metadata.shortcut ?? nothing}"
             title="${metadata.shortcut ? `${label} (${formatShortcut(metadata.shortcut)})` : nothing}"
             slot="${component.slot??nothing}"
     >${metadata.iconOnLeft?icon(metadata.iconOnLeft):nothing}${label}${metadata.iconOnRight?icon(metadata.iconOnRight):nothing}</button>`

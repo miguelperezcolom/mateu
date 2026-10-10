@@ -17,7 +17,7 @@ import io.mateu.uidl.fluent.AppVariant;
  */
 @UI("")
 @Title("OPERA PMS · demo")
-@App(AppVariant.HAMBURGER_SECTIONS)
+@App(value = AppVariant.HAMBURGER_SECTIONS, accessKeys = true)
 public class PmsHome implements io.mateu.uidl.interfaces.NotificationsSupplier {
 
   /** The front desk's inbox (in memory, like the rest of the demo): the ids already read. */

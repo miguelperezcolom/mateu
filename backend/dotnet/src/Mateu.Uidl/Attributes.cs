@@ -241,6 +241,12 @@ public sealed class AppAttribute(string title) : Attribute
     /// viewport and the only way to move around is the command-center FAB. Implies CommandCenter.</summary>
     public bool Chromeless { get; set; }
 
+    /// <summary>Keyboard ACCESS KEYS: holding Alt shows a key next to every visible button and tab
+    /// (the declared shortcut when there is one, otherwise a letter of its label assigned
+    /// automatically) and Alt+that letter activates it. Opt-in. (C# analogue of Java's
+    /// @App(accessKeys=true).)</summary>
+    public bool AccessKeys { get; set; }
+
     /// <summary>Extra capability tokens this app REQUIRES from its host renderer, beyond the ones
     /// derived from the app's own metadata — for anything the derivation cannot see. They are added
     /// to AppMetadataDto.RequiredCapabilities (sorted + deduped) so a host can check it PROVIDES

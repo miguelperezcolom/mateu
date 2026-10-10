@@ -22,6 +22,9 @@ fun renderButton(ctx: AppContext, metadata: JsonNode): JComponent {
     // the wire label makes every Mateu button announce what it does, whatever it looks like.
     button.accessibleName(label)
     button.isEnabled = !metadata.bool("disabled")
+    // A declared shortcut (`@Action(shortcut=…)`): an `alt+<letter>` one IS the button's access key
+    // and reserves that letter; any other keeps its binding and takes no automatic letter.
+    metadata.text("shortcut").takeIf { it.isNotBlank() }?.let { button.putClientProperty(AccessKeys.SHORTCUT_PROPERTY, it) }
     if (metadata.text("buttonStyle").equals("Primary", ignoreCase = true)) {
         button.putClientProperty("gotItButton", true)
         button.putClientProperty("JButton.buttonType", "default")

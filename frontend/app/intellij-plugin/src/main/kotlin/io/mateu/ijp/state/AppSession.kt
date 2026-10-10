@@ -43,6 +43,10 @@ class AppSession(
     var homeConsumedRoute: String? = null
     var homeServerSideType: String? = null
 
+    /** `@App(accessKeys = true)` (App metadata `accessKeys`): every view gives its showing buttons
+     *  and tabs Alt+letter mnemonics (see `io.mateu.ijp.ui.AccessKeys`). */
+    var accessKeys: Boolean = false
+
     /** Fired after [appMenu]/[appTitle] are (re)published, so the host syncs menu-derived actions. */
     var onAppMenuChanged: (() -> Unit)? = null
 

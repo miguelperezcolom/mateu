@@ -224,6 +224,8 @@ public sealed class ReflectionMapper(ITranslator? translator = null, Func<Identi
             // Command center (Ask-Oracle): the FAB + full-screen palette; chromeless implies it.
             CommandCenterEnabled = app.CommandCenter || app.Chromeless,
             Chromeless = app.Chromeless,
+            // Keyboard access keys (hold Alt to see them): opt-in, mirrors AppDto.accessKeys.
+            AccessKeys = app.AccessKeys,
         };
         return new ClientSideComponentDto(meta with { RequiredCapabilities = RequiredCapabilities(app, meta) }, "ux_main_app", [], null, null, null);
     }

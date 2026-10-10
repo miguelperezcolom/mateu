@@ -86,6 +86,9 @@ define([
       bridge.setUndoSink(runPageAction);
       // refresco periódico (OnLoad con espera + OnSuccess): las vueltas salen por el mismo camino
       bridge.setPollingRunner(runPageAction);
+      // atajos de teclado (@Action/@Tab shortcut) y teclas de acceso (@App(accessKeys))
+      bridge.installKeys();
+      bridge.setKeysActionSink(runPageAction);
 
       // Static-bundle (modo sin backend): si hay un mateuBundleUrl configurado, se arranca la carga
       // del manifest AQUÍ, antes del bootstrap. bootstrapShell/loadRoute esperan al fetch en vuelo
@@ -180,6 +183,7 @@ define([
         }
       }
       $application.variables.mateuShellSST = nav.serverSideType || '';
+      bridge.setAccessKeysEnabled(!!(reg.shell && reg.shell.accessKeys));
       // la campana (NotificationsSupplier del App): la lista se pide al arrancar y al abrirla
       if (reg.shell && reg.shell.notificationsEnabled) {
         bridge.fetchNotifications(base, $application.variables.mateuShellSST, $application.variables.mateuAppState || {})

@@ -923,6 +923,10 @@ public record AppMetadataDto(
     /// navigation (implies CommandCenterEnabled).</summary>
     public bool Chromeless { get; init; }
 
+    /// <summary>[App(AccessKeys=true)] — keyboard access-keys mode: holding Alt shows a key next to
+    /// every visible button and tab and Alt+key activates it. (Mirrors AppDto.accessKeys.)</summary>
+    public bool AccessKeys { get; init; }
+
     /// <summary>The app-scope data source seeded by a route entry's <c>appData</c> — the shell
     /// fetches it once into the app-data store, shared across routes. Null when no route on this
     /// mount declares app data. (Mirrors io.mateu.dtos.AppDto.appDataSource.)</summary>

@@ -1336,3 +1336,8 @@ body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-title { 
 .mateu-bell-panel { width: 22rem; max-width: 90vw; }
 .mateu-bell-list { max-height: 24rem; }
 .mateu-undo-button { margin-top: 0.25rem; }
+
+/* ── Teclas de acceso (@App(accessKeys)): la capa que aparece al mantener Alt ── */
+.mateu-access-keys { position: fixed; inset: 0; pointer-events: none; z-index: 10000; }
+.mateu-access-key { position: absolute; padding: 0 0.3rem; border-radius: 3px; font: 600 0.7rem/1.2rem var(--oj-typography-font-family, sans-serif);
+  background: #fcd34d; color: #161513; box-shadow: 0 1px 3px rgba(0,0,0,.35); text-transform: none; }

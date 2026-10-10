@@ -1776,6 +1776,8 @@ export function islandContentOf(ctx, opts = {}) {
             + (tab.metadata.badge ? ' (' + tab.metadata.badge + ')' : ''),
           // @Tab(key): seleccionarla empuja su URL (ver contentTabSelected)
           routeKey: tab.metadata.routeKey || '',
+          // @Tab(shortcut): la selecciona por teclado (keys.mjs)
+          shortcut: String(tab.metadata.shortcut || '').toLowerCase(),
         })),
       }, container)
       const outerScope = tabScope
@@ -4004,6 +4006,8 @@ export function reduceContexts(reg, increment, opts = {}) {
         appContext: md.contextSelectors || [],
         headerActions: md.contextActions || [],
         themeToggle: md.themeToggle,
+        // @App(accessKeys): mantener Alt enseña las teclas de acceso (keys.mjs)
+        accessKeys: !!md.accessKeys,
         // NotificationsSupplier del App → la campana de la cabecera (notify.mjs)
         notificationsEnabled: !!md.notificationsEnabled,
         // el logo del @App (@Logo, p.ej. /images/riu.svg — relativo al backend)

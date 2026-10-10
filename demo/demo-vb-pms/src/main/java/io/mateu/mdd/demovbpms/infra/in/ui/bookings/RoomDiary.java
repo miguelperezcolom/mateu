@@ -139,13 +139,13 @@ public class RoomDiary implements ComponentTreeSupplier {
     return this;
   }
 
-  @Action
+  @Action(shortcut = "ctrl+alt+7")
   public Object days7() {
     days = 7;
     return this;
   }
 
-  @Action
+  @Action(shortcut = "ctrl+alt+4")
   public Object days14() {
     days = 14;
     return this;

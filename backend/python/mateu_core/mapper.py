@@ -556,6 +556,8 @@ class ReflectionMapper:
             # Command center (Ask-Oracle): the FAB + full-screen palette; chromeless implies it.
             command_center_enabled=command_center_enabled,
             chromeless=bool(getattr(cls, "__mateu_app_chromeless__", False)),
+            # Keyboard access keys (hold Alt to see them): opt-in, mirrors AppDto.accessKeys.
+            access_keys=bool(getattr(cls, "__mateu_app_access_keys__", False)),
             # The capability tokens this app requires from its host renderer: derived from the
             # app-scoped features it declares plus whatever @app(requires=[...]) adds. app-data /
             # rest-sources are not carried by this port at build time (app_data_source is applied

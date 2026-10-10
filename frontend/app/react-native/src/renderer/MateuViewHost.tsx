@@ -62,6 +62,7 @@ export function MateuViewHost({ session, target, serverSideNode, overlayOpener, 
     return () => {
       controller.onRender = () => {};
       controller.session.unsubscribeAll(controller);
+      controller.dispose(); // pending periodic refreshes die with the screen
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [controller]);

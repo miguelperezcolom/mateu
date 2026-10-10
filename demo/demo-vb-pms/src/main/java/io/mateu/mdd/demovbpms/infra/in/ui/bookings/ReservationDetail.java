@@ -110,7 +110,7 @@ public class ReservationDetail implements ComponentTreeSupplier {
             .id("detailTabs")
             .tabs(
                 List.of(
-                    new Tab("Overview", VerticalLayout.builder().content(List.of(overview, alerts)).build()),
+                    new Tab("Overview", VerticalLayout.builder().content(List.of(overview, alerts)).build(), "", "", "alt+1", false, null, null),
                     // a FOLDOUT inside a tab: the windows of the folio as panels (8 in OPERA)
                     new Tab(
                         "Billing",
@@ -131,8 +131,22 @@ public class ReservationDetail implements ComponentTreeSupplier {
                                         .open(false)
                                         .content(text("Minibar charges"))
                                         .build()))
-                            .build()),
-                    new Tab("Changes log", text("Created by WEB · Room assigned by FRONTDESK"))))
+                            .build(),
+                        "",
+                        "",
+                        "alt+2",
+                        false,
+                        null,
+                        null),
+                    new Tab(
+                        "Changes log",
+                        text("Created by WEB · Room assigned by FRONTDESK"),
+                        "",
+                        "",
+                        "alt+3",
+                        false,
+                        null,
+                        null)))
             .build();
     return VerticalLayout.builder().content(List.of(actionPanelOf(r), header, tabs)).build();
   }

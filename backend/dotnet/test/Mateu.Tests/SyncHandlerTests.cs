@@ -780,6 +780,13 @@ public class ChromelessApp
     [MenuItem("Things")] public Things Home() => new();
 }
 
+// Keyboard access keys (hold Alt to see them): opt-in, mirrors Java's AccessKeysSyncTest.
+[App("Access Keys App", AccessKeys = true)]
+public class AccessKeysApp
+{
+    [MenuItem("Things")] public Things Home() => new();
+}
+
 // A menu with a RULE LEAF: a [MenuItem] method typed Rule / IReadOnlyList<Rule> RUNS client-side
 // rules when clicked instead of navigating (mirrors Java's @Menu Rule/List<Rule> → MenuOptionDto.rules).
 [App("Rule Menu App")]
@@ -1309,6 +1316,15 @@ public class SyncHandlerTests
         var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(CommandCenterApp).FullName }));
         Assert.Contains("\"commandCenterEnabled\":true", json);
         Assert.Contains("\"chromeless\":false", json);
+    }
+
+    [Fact]
+    public void Access_keys_are_opt_in()
+    {
+        var plain = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(CommandCenterApp).FullName }));
+        Assert.Contains("\"accessKeys\":false", plain);
+        var on = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(AccessKeysApp).FullName }));
+        Assert.Contains("\"accessKeys\":true", on);
     }
 
     [Fact]
