@@ -97,7 +97,7 @@ internal static class ActionGuard
         return null;
     }
 
-    /// <summary>Whether a tree-referenced <paramref name="actionId"/> has a method on the view that
+    /// <summary>Whether a tree-referenced action id has a method on the view that
     /// <see cref="ResolveAction"/> would run once the id is advertised: a marked method, or a public
     /// one of the view itself (not the framework's).</summary>
     /// <summary>Every <c>*ActionId</c> a component tree references, in tree order — generic, like

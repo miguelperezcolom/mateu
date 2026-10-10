@@ -113,6 +113,7 @@ public class WireConformanceTests
     [Theory, MemberData(nameof(Cases))]
     public void The_corpus_exists_for_every_case(string @case, Type view)
     {
+        Assert.NotNull(view);
         Assert.True(
             File.Exists(Path.Combine(Corpus, @case, "expected.json")),
             $"no golden for '{@case}' — generate it from the Java reference (conformance/README.md)");

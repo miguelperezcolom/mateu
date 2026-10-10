@@ -1,8 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <PackageId>Mateu.Uidl</PackageId>
+    <Description>Mateu public API for .NET: the attributes ([UI], [Section], [Button]…), fluent components, archetypes and capability interfaces you annotate C# view models with. The only package a framework-agnostic UI module needs.</Description>
+    <IsPackable>true</IsPackable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Public API docs are welcome but not yet complete: a missing XML comment must not fail the build. -->
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
     <RootNamespace>Mateu.Uidl</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="../../PACKAGE.md" Pack="true" PackagePath="README.md" Visible="false" />
+  </ItemGroup>
 </Project>

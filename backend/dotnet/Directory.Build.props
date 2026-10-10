@@ -1,12 +1,48 @@
 <Project>
-  <!-- Shared package metadata for every Mateu.NET project. Declares the license once (Apache-2.0),
-       mirroring the repository LICENSE.txt / NOTICE and the Java poms' <licenses> and Python's
-       pyproject license. Applied via Directory.Build.props so a new project inherits it automatically. -->
+  <!-- Shared build + package metadata for every Mateu.NET project. Declares the license once
+       (Apache-2.0), mirroring the repository LICENSE.txt / NOTICE and the Java poms' <licenses> and
+       Python's pyproject license. Applied via Directory.Build.props so a new project inherits it
+       automatically. -->
+
+  <!-- ONE version for the four packages, in lockstep with the Maven artifacts. Local builds carry the
+       -dev suffix; the release workflow overrides it from the tag (v3.0-alpha.N → 3.0.0-alpha.N) with
+       `dotnet pack -p:MateuVersion=…` (a global property, so it wins over this default). -->
+  <PropertyGroup>
+    <MateuVersion Condition="'$(MateuVersion)' == ''">3.0.0-dev</MateuVersion>
+    <Version>$(MateuVersion)</Version>
+  </PropertyGroup>
+
+  <!-- Both supported LTS runtimes: net8.0 (support ends 2026-11-10) and net10.0. -->
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
   <PropertyGroup>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <Authors>Miguel Pérez Colom</Authors>
     <Company>Mateu</Company>
     <Copyright>Copyright 2016-2026 Miguel Pérez Colom</Copyright>
     <PackageProjectUrl>https://mateu.io</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/miguelperezcolom/mateu</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>mateu;ui;model-driven;low-code;aspnetcore;server-driven-ui</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!-- Libraries are not packable by default; the four src projects opt in. -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <!-- SourceLink (built into the .NET 8+ SDK for GitHub): step into Mateu's sources from a NuGet
+       reference. Deterministic CI builds so the PDB paths are the repository's, not the runner's. -->
+  <PropertyGroup>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
 </Project>

@@ -76,9 +76,9 @@ public class MatrixGridTests
         var root = JsonSerializer.SerializeToElement(
             Handler().Handle(new RunActionRqDto { ServerSideType = typeof(MatrixGridView).FullName }), Json);
 
-        var grid = Assert.Single(Objects(root)
-            .Where(o => o.TryGetProperty("type", out var t) && t.ValueKind == JsonValueKind.String
-                        && t.GetString() == "MatrixGrid"));
+        var grid = Assert.Single(Objects(root),
+            o => o.TryGetProperty("type", out var t) && t.ValueKind == JsonValueKind.String
+                        && t.GetString() == "MatrixGrid");
         Assert.Equal("Room type", grid.GetProperty("rowHeaderLabel").GetString());
         Assert.Equal("openCell", grid.GetProperty("cellActionId").GetString());
         Assert.Equal("setOverbooking", grid.GetProperty("editActionId").GetString());
