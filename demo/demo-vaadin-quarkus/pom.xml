@@ -7,6 +7,9 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
+        <!-- Latest Mateu release on Maven Central. Build against your checkout instead with
+             -Dmateu.version=0.0.1-MATEU after installing the backend (see demo/README.md). -->
+        <mateu.version>3.0-alpha.405</mateu.version>
         <compiler-plugin.version>3.13.0</compiler-plugin.version>
         <maven.compiler.release>17</maven.compiler.release>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -53,17 +56,17 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>quarkus-core</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>annotation-processor-quarkus</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>vaadin-lit</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
         </dependency>
 
     </dependencies>

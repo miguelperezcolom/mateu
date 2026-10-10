@@ -14,6 +14,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <properties>
+        <!-- Latest Mateu release on Maven Central. Build against your checkout instead with
+             -Dmateu.version=0.0.1-MATEU after installing the backend (see demo/README.md). -->
+        <mateu.version>3.0-alpha.405</mateu.version>
         <packaging>jar</packaging>
         <jdk.version>17</jdk.version>
         <release.version>17</release.version>
@@ -87,12 +90,12 @@
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>micronaut-core</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
         </dependency>
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>vaadin-lit</artifactId>
-            <version>0.0.1-MATEU</version>
+            <version>${mateu.version}</version>
         </dependency>
 
         <dependency>
@@ -157,7 +160,7 @@
                         <path>
                             <groupId>io.mateu</groupId>
                             <artifactId>annotation-processor-micronaut</artifactId>
-                            <version>0.0.1-MATEU</version>
+                            <version>${mateu.version}</version>
                         </path>
                         <path>
                             <groupId>io.micronaut.openapi</groupId>
