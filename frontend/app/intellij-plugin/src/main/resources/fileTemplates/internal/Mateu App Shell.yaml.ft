@@ -1,0 +1,21 @@
+# The app shell: the chrome around every screen — title, menu, home. Bind it to the mount root
+# ("") in routes.yaml. Menu entries route to entries of the route registry.
+type: AppShell
+title: __TITLE__
+subtitle: A Mateu app
+variant: AUTO
+homeRoute: home
+menu:
+  - type: RouteLink
+    label: Home
+    route: home
+    icon: vaadin:home
+  - type: Menu
+    label: Sales
+    submenu:
+      - type: RouteLink
+        label: Orders
+        route: orders
+      - type: RouteLink
+        label: Customers
+        route: customers

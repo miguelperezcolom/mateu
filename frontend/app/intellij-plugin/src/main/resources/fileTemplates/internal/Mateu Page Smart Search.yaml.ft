@@ -1,0 +1,20 @@
+# Smart Search: search-first. Starts empty (no OnLoad trigger); the keyword search and the
+# filters are the smart search bar.
+type: VerticalLayout
+__PAGE_WIDTH__
+content:
+  - {type: Text, text: __TITLE__, container: h2}
+  - {type: Text, id: page-subtitle, text: Search by keyword or narrow down with filters., size: s}
+  - type: Listing
+    searchable: true
+    searchOnEnter: true
+    rowsSource:
+      ref: orders
+    filters:
+      - {type: FormField, id: status, label: Status, dataType: string, stereotype: select,
+         options: [{value: open, label: Open}, {value: closed, label: Closed}]}
+      - {type: FormField, id: created, label: Created, dataType: date, stereotype: dateRange}
+    columns:
+      - {type: GridColumn, id: id, label: Id, identifier: true}
+      - {type: GridColumn, id: customerName, label: Customer}
+      - {type: GridColumn, id: status, label: Status, dataType: status}

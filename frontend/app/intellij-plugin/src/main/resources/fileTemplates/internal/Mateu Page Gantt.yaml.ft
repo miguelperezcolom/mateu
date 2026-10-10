@@ -1,0 +1,11 @@
+# Gantt page: a title over the timeline. onTaskSelectionActionId makes bars clickable.
+type: VerticalLayout
+__PAGE_WIDTH__
+content:
+  - {type: Text, text: __TITLE__, container: h2}
+  - type: Gantt
+    onTaskSelectionActionId: selectGanttTask
+    tasks:
+      - {id: t1, title: Analysis, start: "2026-01-05", end: "2026-01-16", progress: 100}
+      - {id: t2, title: Build, start: "2026-01-19", end: "2026-02-13", progress: 40}
+      - {id: t3, title: Rollout, start: "2026-02-16", end: "2026-02-27", progress: 0, color: "#8e24aa"}

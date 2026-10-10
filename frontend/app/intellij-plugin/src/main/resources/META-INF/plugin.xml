@@ -56,6 +56,30 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
         <projectConfigurable parentId="tools" id="io.mateu.settings" displayName="Mateu"
                              instance="io.mateu.ijp.plugin.MateuConfigurable"/>
         <notificationGroup id="Mateu" displayType="BALLOON"/>
+        <!-- New | Mateu skeletons (customisable in Settings | Editor | File and Code Templates). Listed in
+             /mateu/new-file-kinds.json; NewMateuFileSkeletonsTest keeps the three in sync. -->
+        <internalFileTemplate name="Mateu App Shell"/>
+        <internalFileTemplate name="Mateu Page Blank"/>
+        <internalFileTemplate name="Mateu Page Calendar"/>
+        <internalFileTemplate name="Mateu Page Collection Detail"/>
+        <internalFileTemplate name="Mateu Page Dashboard"/>
+        <internalFileTemplate name="Mateu Page Data Management"/>
+        <internalFileTemplate name="Mateu Page Foldout"/>
+        <internalFileTemplate name="Mateu Page Form"/>
+        <internalFileTemplate name="Mateu Page Gantt"/>
+        <internalFileTemplate name="Mateu Page General Overview"/>
+        <internalFileTemplate name="Mateu Page Hero Search"/>
+        <internalFileTemplate name="Mateu Page Item Overview"/>
+        <internalFileTemplate name="Mateu Page Listing"/>
+        <internalFileTemplate name="Mateu Page Matrix Grid"/>
+        <internalFileTemplate name="Mateu Page Planning Board"/>
+        <internalFileTemplate name="Mateu Page Smart Search"/>
+        <internalFileTemplate name="Mateu Page Todo List"/>
+        <internalFileTemplate name="Mateu Page Welcome"/>
+        <internalFileTemplate name="Mateu Page Wizard"/>
+        <internalFileTemplate name="Mateu Routes"/>
+        <internalFileTemplate name="Mateu Sources"/>
+        <internalFileTemplate name="Mateu UI Mount"/>
     </extensions>
 
     <!-- Applies the unified Mateu authoring schema to every specs/ui/**.yaml in the text editor. -->
@@ -70,5 +94,9 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
                 text="Mateu" description="Mateu application menu">
             <add-to-group group-id="MainToolbarLeft" anchor="last"/>
         </action>
+        <!-- New | Mateu: one entry per specs/ui file kind (UI mount, routes, app shell, sources, page). -->
+        <group id="io.mateu.NewGroup" class="io.mateu.ijp.newfile.MateuNewFileGroup">
+            <add-to-group group-id="NewGroup" anchor="last"/>
+        </group>
     </actions>
 </idea-plugin>

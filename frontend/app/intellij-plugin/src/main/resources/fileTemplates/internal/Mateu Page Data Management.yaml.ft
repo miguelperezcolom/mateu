@@ -1,0 +1,23 @@
+# Data management: the same records as a grid or as a Gantt, switched with tabs.
+type: VerticalLayout
+__PAGE_WIDTH__
+content:
+  - {type: Text, text: __TITLE__, container: h2}
+  - type: TabLayout
+    tabs:
+      - type: Tab
+        label: Grid
+        active: true
+        content:
+          type: Listing
+          rowsSource:
+            ref: orders
+          columns:
+            - {type: GridColumn, id: id, label: Id, identifier: true}
+            - {type: GridColumn, id: title, label: Title}
+      - type: Tab
+        label: Gantt
+        content:
+          type: Gantt
+          tasks:
+            - {id: t1, title: First task, start: "2026-01-05", end: "2026-01-16", progress: 50}

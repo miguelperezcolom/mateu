@@ -1,0 +1,15 @@
+# To-do list: pending work as counted buckets; clicking a card runs actionId with the item id.
+type: VerticalLayout
+__PAGE_WIDTH__
+content:
+  - {type: Text, text: __TITLE__, container: h2}
+  - type: TaskQueue
+    actionId: openTodoItem
+    groups:
+      - label: Today (2)
+        items:
+          - {id: "1", title: Approve purchase order PO-1042, caption: Requested by Ana, badges: [{label: Urgent, color: error}]}
+          - {id: "2", title: Review contract renewal, caption: ACME Corp}
+      - label: This week (1)
+        items:
+          - {id: "3", title: Prepare quarterly report, caption: Finance}

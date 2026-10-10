@@ -1,0 +1,18 @@
+# Collection detail: the list on the left, the selected item's detail on the right.
+type: HorizontalLayout
+__PAGE_WIDTH__
+content:
+  - type: VerticalLayout
+    style: "flex: 0 0 22rem;"
+    content:
+      - {type: Text, text: __TITLE__, container: h2}
+      - type: TaskQueue
+        actionId: selectCollectionItem
+        groups:
+          - label: Items
+            items:
+              - {id: "1", title: First item, caption: A short caption}
+              - {id: "2", title: Second item, caption: Another caption}
+  - type: VerticalLayout
+    content:
+      - {type: EmptyState, icon: "👈", title: Nothing selected, description: Pick an item on the left to see its detail.}

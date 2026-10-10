@@ -1,0 +1,20 @@
+# Matrix grid: metric rows in sections against date columns; editable rows run editActionId.
+type: MatrixGrid
+__PAGE_WIDTH__
+rowHeaderLabel: __TITLE__
+editActionId: editCell
+columns:
+  - {id: d1, label: Mon 5, group: January}
+  - {id: d2, label: Tue 6, group: January}
+  - {id: d3, label: Wed 7, group: January, tone: muted}
+sections:
+  - id: rooms
+    title: Rooms
+    rows:
+      - id: available
+        label: Available
+        cells: [{value: "12"}, {value: "9"}, {value: "4", tone: warning}]
+      - id: price
+        label: Price
+        editable: true
+        cells: [{value: "120"}, {value: "120"}, {value: "150"}]

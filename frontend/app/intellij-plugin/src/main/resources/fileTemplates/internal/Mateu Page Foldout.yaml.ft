@@ -1,0 +1,12 @@
+# Foldout: an always-visible overview with lateral panels that fold out.
+type: FoldoutLayout
+headerTitle: __TITLE__
+__PAGE_WIDTH__
+overview:
+  type: VerticalLayout
+  content:
+    - {type: Text, text: Overview, container: h3}
+    - {type: Text, text: The always-visible summary of the record.}
+panels:
+  - {type: FoldoutPanel, title: Operations, open: true, width: 30rem, content: {type: Text, text: Operations go here}}
+  - {type: FoldoutPanel, title: Profile, open: false, content: {type: Text, text: Profile goes here}}
