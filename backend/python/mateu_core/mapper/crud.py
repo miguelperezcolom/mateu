@@ -141,7 +141,16 @@ class CrudMapperMixin(MixinBase):
                 leading_path=self.leading_path_of(f),
                 tooltip_path=self.tooltip_path_of(f),
             )))
-        toolbar = [Button(label="New", action_id="new"), Button(label="Delete", action_id="delete")]
+        # Crud.display() (CrudDisplay): New / Delete on | off | disabled — a disabled affordance
+        # travels as a disabled button, an off one does not travel (Java's ListRouteResolver).
+        display = self._crud_display(cls, instance)
+        toolbar = []
+        if display.create.shown():
+            toolbar.append(Button(label="New", action_id="new", disabled=not display.create.enabled()))
+        if display.delete.shown():
+            toolbar.append(
+                Button(label="Delete", action_id="delete", disabled=not display.delete.enabled())
+            )
         # Export the listing (Crud.csv/excel/pdf_exportable): the whole filtered set as a file
         # download (mirrors Java's ListRouteResolver export buttons).
         exports = self.export_action_ids(cls, instance)
@@ -297,6 +306,18 @@ class CrudMapperMixin(MixinBase):
             return "datetime"
         return "text"
 
+    @staticmethod
+    def _crud_display(cls, instance=None):
+        """The crud's ``display()`` (a CrudDisplay); the defaults when it cannot be built."""
+        from mateu_uidl import CrudDisplay
+
+        try:
+            target = instance if instance is not None else cls()
+            display = target.display()
+        except Exception:  # noqa: BLE001 - a crud without a no-arg constructor: defaults
+            return CrudDisplay.defaults()
+        return display if isinstance(display, CrudDisplay) else CrudDisplay.defaults()
+
     def map_listing(self, cls, route: str) -> ServerSideComponent:
         """A capability Listing view: columns from the Row type, and every further feature only
         because the class DECLARES the capability (mirrors Java's ``CapabilityCrud``) —
@@ -397,6 +418,13 @@ class CrudMapperMixin(MixinBase):
             if subtitle is not None:
                 page_children.append(
                     self.client(TextMetadata(text=subtitle), "page-subtitle", []))
+            # What the page shows BEFORE the first search (the smart-filter-search dashboard
+            # slot) rides on the listing (mirrors Java's SmartSearchPage → CrudlDto.preSearch).
+            pre_search = cls().pre_search_content()
+            if pre_search is not None:
+                crud = crud.model_copy(update={"metadata": crud.metadata.model_copy(
+                    update={"pre_search": [self.map_component(pre_search)]}
+                )})
         page_children.append(crud)
         page = self.client(PageMetadata(page_type=page_type_of(cls)), None, page_children)
         return ServerSideComponent(
@@ -468,6 +496,7 @@ class CrudMapperMixin(MixinBase):
     def map_entity_form(
         self, crud_type, element, entity, mode: str, route: str,
         can_edit: bool = True, can_create: bool = True, save_action_id: str = "create",
+        save_and_next: Button | None = None,
     ) -> ServerSideComponent:
         """The detail/edit/create form of a crud or capability listing. ``can_edit`` /
         ``can_create`` trim the view-mode toolbar to the declared capabilities;
@@ -485,6 +514,9 @@ class CrudMapperMixin(MixinBase):
                 Button(label="Cancel", action_id="cancel-edit"),
                 Button(label="Save", action_id=save_action_id, button_style="primary"),
             ]
+            if save_and_next is not None:
+                # the edit drawer's "Save and next" (CrudDisplay.save_and_next), before Save
+                toolbar.insert(len(toolbar) - 1, save_and_next)
         else:  # new
             toolbar = [
                 Button(label="Cancel", action_id="cancel-new"),

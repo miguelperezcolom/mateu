@@ -31,6 +31,14 @@ class Section:
     #: bare on the page. For bands whose content brings its own chrome. (Python analogue of
     #: Java's @Section(frameless=true).)
     frameless: bool = False
+    #: Section affordances (the Redwood section edit / add / view-more actions): the NAME of an
+    #: action method of the form. ``edit_action`` / ``add_action`` render as small tertiary "Edit"
+    #: / "Add" buttons on the section's title row, ``view_more_action`` as "View more" under its
+    #: content. Empty = none. (Python analogue of Java's @Section(editAction, addAction,
+    #: viewMoreAction).)
+    edit_action: str = ""
+    add_action: str = ""
+    view_more_action: str = ""
 
 
 @dataclass(frozen=True)

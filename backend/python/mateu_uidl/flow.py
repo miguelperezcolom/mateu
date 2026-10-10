@@ -85,3 +85,23 @@ class MarkDirty(FlowStep):
         from mateu_dtos import UICommand
 
         return UICommand(target_component_id="ux_main", type="MarkAsDirty", data=None)
+
+
+@dataclass(frozen=True)
+class Announce(FlowStep):
+    """Tell assistive technology what happened (the Redwood ``announcement`` slot) through the
+    page's polite live region — or the ASSERTIVE one when ``assertive`` (interrupts: errors only).
+    Nothing is drawn. Lowers to the ``Announce`` command (Java's ``UICommand.announce`` /
+    ``announceAssertive``)."""
+
+    text: str
+    assertive: bool = False
+
+    def to_command(self):
+        from mateu_dtos import UICommand
+
+        return (
+            UICommand.announce_assertive(self.text)
+            if self.assertive
+            else UICommand.announce(self.text)
+        )

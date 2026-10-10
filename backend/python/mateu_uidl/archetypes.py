@@ -60,6 +60,12 @@ class Foldout(ComponentTreeSupplier):
         the Edit button; the method typically returns a Dialog (vertical) or navigates (horizontal)."""
         return None
 
+    def panel_summary(self, panel_field_name: str):
+        """What a fold-out panel shows while FOLDED (the Redwood foldout-panel ``summary`` slot) —
+        a compact digest drawn in the collapsed strip under the rotated title ("3 open", "€1,240
+        due"). Receives the panel's field name; None (the default) = title only."""
+        return None
+
 
 class ItemOverview(ComponentTreeSupplier):
     """Item overview page: the first component field without ``Panel`` is the key-info panel
@@ -89,6 +95,13 @@ class Welcome(ComponentTreeSupplier):
 
     def hero_image(self) -> str | None:
         return None
+
+    def hero_tone(self):
+        """The hero band's tone (a ``HeroTone``): ``auto`` (the default) keeps the default look,
+        any other hue paints a dark tinted band with light ink."""
+        from .patterns import HeroTone
+
+        return HeroTone.auto
 
 
 class CollectionDetail(ComponentTreeSupplier):
@@ -213,6 +226,46 @@ class GeneralOverview(ComponentTreeSupplier):
             icon="🗂", title="Select a record", description="Pick a record in the switcher above."
         )
 
+    def info(self, row):
+        """The contextual ``info`` panel (the Redwood general-overview ``info`` slot): secondary,
+        read-only context about the record, beside the overview on wide pages and stacked with it
+        on narrow ones (above it when ``display().promote_info_slot`` is on). None (default) =
+        no info panel."""
+        return None
+
+    def info_width(self) -> str:
+        """The info panel's width on wide pages (a CSS length)."""
+        return "20rem"
+
+    def display(self):
+        """This page's built-in affordances (see :class:`GeneralOverviewDisplay`)."""
+        from .patterns import GeneralOverviewDisplay
+
+        return GeneralOverviewDisplay.defaults()
+
+    def _overview_with_info(self, row):
+        from mateu_uidl import components as fluent
+
+        main = self.overview(row)
+        display = self.display()
+        info = self.info(row) if display.info.shown() else None
+        if info is None:
+            return main
+        # main + info on the one responsive grid: side by side on wide pages, stacked below 48rem.
+        # The stacked order is the child order, which promote_info_slot flips (info first = on top).
+        slots = (
+            (fluent.Slotted(slot="info", content=info), fluent.Slotted(slot="main", content=main))
+            if display.promote_info_slot.enabled()
+            else (fluent.Slotted(slot="main", content=main), fluent.Slotted(slot="info", content=info))
+        )
+        return fluent.ResponsiveGrid(
+            id="general-overview",
+            columns=(fluent.GridTrack.fill(), fluent.GridTrack.fixed(self.info_width())),
+            stack_below="48rem",
+            grid_template_areas='"main info"',
+            content=slots,
+        )
+
     def component(self):
         from mateu_uidl import components as fluent
 
@@ -224,6 +277,6 @@ class GeneralOverview(ComponentTreeSupplier):
             spacing=True,
             content=(
                 fluent.FormField(field_id="record", label="", options=tuple(options)),
-                self.overview(row) if row is not None else self.empty_overview(),
+                self._overview_with_info(row) if row is not None else self.empty_overview(),
             ),
         )

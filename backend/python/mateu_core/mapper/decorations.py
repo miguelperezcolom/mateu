@@ -10,12 +10,15 @@ from mateu_dtos import (
     CustomTrigger,
     Fab,
     Kpi,
+    Option,
     PeerNav,
+    RecordSwitcherRecord,
 )
 from mateu_uidl import (
     HeaderBadge,
     kpi as KpiMarker,
     PeerNavigationSupplier,
+    RecordSwitcherSupplier,
     Timestamp,
 )
 
@@ -84,6 +87,42 @@ class DecorationMapperMixin(MixinBase):
             next_label=p.next_label,
             next_route=p.next_route,
         )
+
+    def record_switcher(self, instance) -> "RecordSwitcherRecord | None":
+        """The header's record/context switcher (the Redwood selectObject/selectContext element)
+        from a ``RecordSwitcherSupplier``; None when the page supplies none (mirrors Java's
+        PageMapper.mapSwitcher)."""
+        if not isinstance(instance, RecordSwitcherSupplier):
+            return None
+        sw = instance.switcher()
+        if sw is None:
+            return None
+        sw_type = getattr(sw.type, "value", sw.type) or "object"
+        return RecordSwitcherRecord(
+            options=[self._switcher_option(o) for o in sw.options],
+            value=None if sw.value is None else str(sw.value),
+            type=str(sw_type),
+            label=self._opt_t(sw.label),
+            searchable=bool(sw.searchable),
+            disabled=bool(sw.disabled),
+            action_id=RecordSwitcherSupplier.ACTION_ID,
+        )
+
+    @staticmethod
+    def _switcher_option(o) -> Option:
+        """A switcher entry: a ``(value, label)`` pair, an ``Option`` or anything with
+        ``value``/``label`` (attributes or dict keys)."""
+        if isinstance(o, Option):
+            return o
+        if isinstance(o, (tuple, list)):
+            value = o[0]
+            label = o[1] if len(o) > 1 else o[0]
+        elif isinstance(o, dict):
+            value, label = o.get("value"), o.get("label", o.get("value"))
+        else:
+            value = getattr(o, "value", o)
+            label = getattr(o, "label", value)
+        return Option(value=str(value), label=str(label))
 
     def timestamp_of(self, cls, instance) -> str | None:
         """The page's "last updated" timestamp from the first ``Timestamp()`` field (an optional

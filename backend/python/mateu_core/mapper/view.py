@@ -13,7 +13,9 @@ from mateu_uidl import (
     components as fluent,
     ComponentTreeSupplier,
     OnRowSelected,
+    RecordSwitcherSupplier,
 )
+from mateu_uidl.patterns import hero_tone_wire
 
 from ..action_guard import resolve_action
 from ..islands import is_inline_request
@@ -32,6 +34,7 @@ from ..reflection import (
 )
 from ..registry import type_name
 from ._base import MixinBase
+from .layout import section_affordance_ids
 from ._common import (
     _id,
     COMPACT_STYLE,
@@ -74,6 +77,18 @@ class ViewMapperMixin(MixinBase):
         # advertised), Lookup() searches, Searchable() code lookups — then the @button methods.
         field_actions = self.field_actions(cls)
         actions = field_actions + [a for a in actions if all(a.id != b.id for b in field_actions)]
+        # @Section(add_action / edit_action / view_more_action): the section affordance buttons
+        # dispatch the named methods — advertised so the client sends them (Java's
+        # SectionAffordances buttons are claimed by the page's component).
+        for aid in section_affordance_ids(cls):
+            if all(a.id != aid for a in actions):
+                actions.append(with_action_options(Action(id=aid), cls, aid))
+        # The header's record switcher dispatches _switchRecord when the user picks an entry
+        # (Java's ActionMapper advertises RecordSwitcherSupplier.ACTION_ID).
+        if isinstance(instance, RecordSwitcherSupplier):
+            actions.append(
+                Action(id=RecordSwitcherSupplier.ACTION_ID, validation_required=False)
+            )
 
         # @rest_data: fetch the screen's initial data client-side on load — a synthetic
         # __restdata__ action carrying the REST descriptor (fired by the OnLoad trigger added
@@ -135,6 +150,7 @@ class ViewMapperMixin(MixinBase):
                         subtitle=self._opt_t(banner_subtitle or None),
                         image=banner_image or None,
                         centered=True,
+                        tone=hero_tone_wire(getattr(cls, "__mateu_welcome_banner_tone__", None)),
                     )
                 )
             ] + children
@@ -160,6 +176,7 @@ class ViewMapperMixin(MixinBase):
             fabs=fabs,
             page_type=page_type,
             peer_nav=self.peer_nav(instance),
+            switcher=self.record_switcher(instance),
             timestamp=self.timestamp_of(cls, instance),
             overline=self._opt_t(class_flag(cls, "__mateu_overline__", None)),
             title_placeholder=self._opt_t(

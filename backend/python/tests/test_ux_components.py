@@ -1414,6 +1414,8 @@ def test_welcome_archetype_hero_ctas_and_highlight_tiles():
         "image": "https://example.com/hero.png",
         "height": None,
         "centered": True,
+        # the hero tone (HeroSectionDto.tone): None = the default look
+        "tone": None,
     }
     assert hero["id"] == "hero"
     (cta,) = hero["children"]

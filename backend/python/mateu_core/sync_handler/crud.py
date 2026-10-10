@@ -12,6 +12,7 @@ from typing import (
 )
 
 from mateu_dtos import (
+    Button as ButtonRecord,
     ButtonMetadata,
     ClientSideComponent,
     DialogMetadata,
@@ -25,6 +26,8 @@ from mateu_dtos import (
     VerticalLayoutMetadata,
 )
 
+from mateu_uidl import components as fluent
+
 from .. import action_guard
 from ..naming import camel_case
 from ..reflection import view_fields
@@ -36,6 +39,11 @@ from ._common import (
     SAVED_IN_DRAWER_EVENT,
     version_field,
 )
+
+
+#: The edit drawer's "Save and next" action (the Redwood create-edit-drawer
+#: spPrimaryActionAndNext; Java's PersistActionHandler.SAVE_AND_NEXT).
+SAVE_AND_NEXT = "save-and-next"
 
 
 class CrudHandlerMixin(MixinBase):
@@ -53,7 +61,15 @@ class CrudHandlerMixin(MixinBase):
 
         if aid == "search":
             return self.crud_search(crud, element, rq)
-        if aid in ("create", "save"):
+        # Crud.display(): a disabled (or off) New / Delete cannot be forced from the client either
+        display = self.mapper._crud_display(crud_type, crud)
+        if (aid == "new" and not display.create.enabled()) or (
+            aid == "delete" and not display.delete.enabled()
+        ):
+            return UIIncrement.of()
+        if aid in ("create", "save", SAVE_AND_NEXT):
+            if aid == SAVE_AND_NEXT and not display.save_and_next.enabled():
+                return UIIncrement.of()
             return self.crud_save(crud, element, id_, rq, base_route)
         if aid == "update-row":
             return self.update_row(crud, element, rq)
@@ -190,18 +206,50 @@ class CrudHandlerMixin(MixinBase):
 
     def crud_drawer(
         self, crud_type, element, entity, mode, route, rq: RunActionRq,
-        save_action_id: str = "create",
+        save_action_id: str = "create", error_message: str | None = None,
     ) -> UIIncrement:
         """The edit_in_drawer create/edit form: the same entity form the /new — /{id}/edit routes
         render, wrapped in a Drawer emitted as an Add fragment over the listing."""
-        form = self.mapper.map_entity_form(
-            crud_type, element, entity, mode, route, save_action_id=save_action_id
+        crud = crud_type()
+        display = self.mapper._crud_display(crud_type, crud)
+        # the edit drawer's "Save and next" (CrudDisplay.save_and_next, the Redwood
+        # spPrimaryActionAndNext): saves and moves the drawer on to the next row
+        save_and_next = (
+            ButtonRecord(
+                label=crud.save_and_next_label(),
+                action_id=SAVE_AND_NEXT,
+                disabled=not display.save_and_next.enabled(),
+            )
+            if mode == "edit" and display.save_and_next.shown()
+            else None
         )
+        form = self.mapper.map_entity_form(
+            crud_type, element, entity, mode, route, save_action_id=save_action_id,
+            save_and_next=save_and_next,
+        )
+        content = form
+        if error_message is not None:
+            # the Redwood create-edit-drawer error banner: a danger Notice over the form
+            content = ClientSideComponent(
+                metadata=VerticalLayoutMetadata(),
+                children=[
+                    self.mapper.map_component(
+                        fluent.Notice(
+                            id="crud-drawer-error", text=error_message, theme="danger",
+                            full_width=True,
+                        )
+                    ),
+                    form,
+                ],
+                style="width: 100%;",
+            )
+        # Always the same id: re-sending it while it is open refreshes it in place (the "same
+        # Drawer.id" contract of an Add fragment) — Save and next and the error banner use it.
         drawer = ClientSideComponent(
             metadata=DrawerMetadata(
                 id="crud-edit-drawer",
                 header_title="New" if mode == "new" else "Edit",
-                content=form,
+                content=content,
                 width="36rem",
             ),
             id="crud-edit-drawer",
@@ -271,8 +319,60 @@ class CrudHandlerMixin(MixinBase):
                 # so the bump below moves it forward instead of resurrecting the stale one
                 setattr(entity, version.name, stored_version)
             setattr(entity, version.name, self._version_of(entity, version) + 1)
-        crud.save(entity)
-        if getattr(type(crud), "__mateu_edit_in_drawer__", False):
+        in_drawer = getattr(type(crud), "__mateu_edit_in_drawer__", False)
+        try:
+            crud.save(entity)
+        except Exception as failure:  # noqa: BLE001 - shown in the drawer, else re-raised
+            # drawer mode: a failed save keeps the drawer open and shows WHY inside it (the
+            # Redwood create-edit-drawer error banner), with the values the user typed — and is
+            # announced, since nothing takes focus (mirrors Java's PersistActionHandler).
+            if in_drawer and self.mapper._crud_display(type(crud), crud).error_banner.shown():
+                message = (
+                    getattr(failure, "message", None) or str(failure)
+                    or "The record could not be saved"
+                )
+                base = base_route.rstrip("/")
+                route = f"{base}/new" if id_ is None else f"{base}/{id_}/edit"
+                banner = self.crud_drawer(
+                    type(crud), element, entity, "new" if id_ is None else "edit", route, rq,
+                    error_message=message,
+                )
+                return banner.model_copy(update={"commands": [
+                    UICommand.announce_assertive(message).model_copy(
+                        update={"target_component_id": self.target(rq)}
+                    )
+                ]})
+            raise
+        if in_drawer and rq.action_id == SAVE_AND_NEXT and id_ is not None:
+            next_id = crud.next_id_after(id_)
+            if next_id is not None:
+                # the drawer stays open and is re-sent with the same id for the next row (the Add
+                # fragment of an open overlay refreshes it in place) while the listing refreshes:
+                # the saved event (Java parity) + the search re-run (the port's listing refresh)
+                base = base_route.rstrip("/")
+                nxt = self.crud_drawer(
+                    type(crud), element, self.get_or_new(crud, element, str(next_id)), "edit",
+                    f"{base}/{next_id}/edit", rq,
+                )
+                target = self.target(rq)
+                return nxt.model_copy(update={
+                    "messages": [MessageDto(
+                        variant="success", position="middle", title="", text="Saved",
+                        duration=3000,
+                    )],
+                    "commands": [
+                        UICommand(target_component_id=target, type="MarkAsClean", data=None),
+                        UICommand.dispatch_event(SAVED_IN_DRAWER_EVENT).model_copy(
+                            update={"target_component_id": target}
+                        ),
+                        UICommand(
+                            target_component_id=target,
+                            type="RunAction",
+                            data={"actionId": "search", "targetComponentId": target},
+                        ),
+                    ],
+                })
+        if in_drawer:
             # drawer mode: no navigation — close the drawer emitting the saved event and re-run
             # the listing's search in place so the new/edited row shows up.
             close = UICommand.close_modal(SAVED_IN_DRAWER_EVENT)

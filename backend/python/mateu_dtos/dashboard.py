@@ -85,7 +85,8 @@ class FoldoutNavigation(Wire):
 
 class FoldoutLayoutMetadata(Wire):
     """Redwood-style foldout. Overview travels as the child slotted ``overview``; each panel's
-    content as the child slotted ``panel-N`` matching the panels list order."""
+    content as the child slotted ``panel-N`` matching the panels list order, and a panel's
+    optional folded-strip digest (its ``summary``) as the child slotted ``summary-N``."""
 
     type: Literal["FoldoutLayout"] = "FoldoutLayout"
     panels: list[FoldoutPanelInfo] = Field(default_factory=list)
@@ -122,6 +123,9 @@ class HeroSectionMetadata(Wire):
     image: str | None = None
     height: str | None = None
     centered: bool = False
+    #: The band's tone: None = default look; otherwise ocean|pine|lilac|teal|rose|pebble|slate|
+    #: plum|sienna — a dark tinted band with light ink (mirrors HeroSectionDto.tone).
+    tone: str | None = None
 
 
 class EmptyStateMetadata(Wire):

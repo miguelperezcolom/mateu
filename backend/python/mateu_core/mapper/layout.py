@@ -13,6 +13,7 @@ from mateu_dtos import CustomFieldMetadata, ServerSideComponent
 from mateu_dtos import (
     AccordionLayoutMetadata,
     AccordionPanelMetadata,
+    ButtonMetadata,
     CardMetadata,
     ClientSideComponent,
     ContentLayoutMetadata,
@@ -50,6 +51,30 @@ from ..reflection import (
 from ..islands import EMBEDDED_MARKER
 from ._base import MixinBase
 from ._common import _row_cell
+
+
+def _has_affordances(section: "Section | None") -> bool:
+    return section is not None and bool(
+        section.add_action or section.edit_action or section.view_more_action
+    )
+
+
+def section_affordance_ids(cls) -> list[str]:
+    """The action ids every ``Section(add_action=, edit_action=, view_more_action=)`` of a view
+    dispatches (camelCase of the method names), in declaration order, deduplicated."""
+    out: list[str] = []
+    try:
+        fields = view_fields(cls)
+    except Exception:  # noqa: BLE001 - a view whose hints do not resolve has no affordances
+        return out
+    for f in fields:
+        sec = f.marker(Section)
+        if sec is None:
+            continue
+        for name in (sec.add_action, sec.edit_action, sec.view_more_action):
+            if name and camel_case(name) not in out:
+                out.append(camel_case(name))
+    return out
 
 
 class LayoutMapperMixin(MixinBase):
@@ -408,6 +433,12 @@ class LayoutMapperMixin(MixinBase):
                 None,
                 self.form_rows(fields, max_columns),
             )
+        # Section(add_action / edit_action / view_more_action): "Add"/"Edit" on the title row and
+        # "View more" under the content (mirrors Java's SectionAffordances). The title row then
+        # carries the section title itself, so the card is not titled again below.
+        if section is not None and _has_affordances(section):
+            body = self._with_affordances(section, title, body)
+            titled = False
         # Section(frameless=True): no card wrapper, no padding — the content sits bare (mirrors
         # Java's @Section(frameless=true)).
         if section is not None and section.frameless:
@@ -421,6 +452,54 @@ class LayoutMapperMixin(MixinBase):
         if titled and title:
             return self._titled_section_card(title, body)
         return self._section_card_wrapper(body)
+
+    def _affordance_button(self, kind: str, method: str, label: str) -> ClientSideComponent:
+        action_id = camel_case(method)
+        return ClientSideComponent(
+            metadata=ButtonMetadata(
+                label=self.T(label), action_id=action_id, button_style="tertiary", size="small"
+            ),
+            id=f"{kind}-{action_id}",
+            children=[],
+        )
+
+    def _with_affordances(
+        self, section: Section, title: str | None, body: ClientSideComponent
+    ) -> ClientSideComponent:
+        """The section body with its affordances: a title row (the title — possibly blank — plus
+        "Add" and "Edit", in that order) above it and a right-aligned "View more" under it."""
+        top = []
+        if section.add_action:
+            top.append(self._affordance_button("section-add", section.add_action, "Add"))
+        if section.edit_action:
+            top.append(self._affordance_button("section-edit", section.edit_action, "Edit"))
+        children: list = []
+        if top:
+            heading = ClientSideComponent(
+                metadata=TextMetadata(text=self.T(title) if title else "", container="h3"),
+                style=" flex: 1; margin: 0;",
+            )
+            children.append(ClientSideComponent(
+                metadata=HorizontalLayoutMetadata(),
+                children=[heading, *top],
+                style="align-items: center; width: 100%;",
+            ))
+        elif title:
+            children.append(ClientSideComponent(
+                metadata=TextMetadata(text=self.T(title), container="h3"),
+                style=" flex: 1; margin: 0;",
+            ))
+        children.append(body)
+        if section.view_more_action:
+            children.append(ClientSideComponent(
+                metadata=HorizontalLayoutMetadata(),
+                children=[self._affordance_button(
+                    "section-view-more", section.view_more_action, "View more")],
+                style="justify-content: flex-end; width: 100%;",
+            ))
+        return ClientSideComponent(
+            metadata=VerticalLayoutMetadata(), children=children, style="width: 100%;"
+        )
 
     def _titled_section_card(self, title: str, body: ClientSideComponent) -> ClientSideComponent:
         # Card(mateu-section, flex style) → VerticalLayout → [Text h3 title, VerticalLayout(width

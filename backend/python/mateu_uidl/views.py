@@ -49,12 +49,43 @@ class SmartSearchPage(Listing[R], Filterable[F], Searchable, Generic[F, R]):
         """Optional intro line rendered under the page title, above the smart search bar."""
         return None
 
+    def pre_search_content(self):
+        """What the page shows BEFORE the first search (the Redwood smart-filter-search
+        ``dashboard`` slot): a dashboard, recent items, tips… — replaced by the results as soon as
+        the user searches (wire ``CrudMetadata.pre_search``). None (default) = the usual empty
+        listing."""
+        return None
+
 
 class Wizard:
-    """A multi-step form; fields carry ``Step(n)`` and ``complete()`` runs on the last step."""
+    """A multi-step form; fields carry ``Step(n)`` and ``complete()`` runs on the last step.
+
+    Steps are identified by their 1-based ``Step(n)`` number in every hook. Implement
+    :class:`mateu_uidl.Draftable` for "Save" / "Save and close" + resume."""
 
     def complete(self) -> Message:
         raise NotImplementedError
+
+    def display(self):
+        """This wizard's built-in affordances (the Redwood guided-process ``displayOptions``): the
+        draft buttons of a ``Draftable`` wizard and the "Skip" button of skippable steps — each
+        ``on``, ``off`` or ``disabled`` (see :class:`mateu_uidl.WizardDisplay`)."""
+        from .patterns import WizardDisplay
+
+        return WizardDisplay.defaults()
+
+    def step_skippable(self, step: int) -> bool:
+        """Whether the user may SKIP step ``step`` (1-based; the Redwood ``spSkip``): a "Skip"
+        button moves on without requiring the step. Default: no step is skippable."""
+        return False
+
+    def before_step_navigate(self, from_step: int, to_step: int):
+        """Cancelable hook run BEFORE the wizard moves between steps (1-based numbers): Next,
+        Back, Skip, a jump to a visited step and the completion action (whose ``to_step`` is the
+        result step) all pass through it, with the state already bound. Return None to let the
+        move happen; anything else cancels it and becomes the response (typically an error
+        ``Message``). Default: never cancels."""
+        return None
 
     def on_next(self, from_step: int, to_step: int) -> None:
         """Runs when the user moves FORWARD from ``from_step`` to ``to_step`` (both 1-based),
