@@ -75,7 +75,7 @@ function MicroFrontendIsland({ metadata }: { metadata: Record<string, unknown> }
   const { session } = useAppContext();
   const baseUrl = (metadata['baseUrl'] as string) ?? '';
   const remoteSession = React.useMemo(
-    () => (baseUrl && baseUrl !== session.api.baseUrl ? new MateuSession(baseUrl, 'microfrontend', { ...session.appState }) : session),
+    () => (baseUrl && baseUrl !== session.api.baseUrl ? new MateuSession(baseUrl, session.api.sessionId, { ...session.appState }) : session),
     [baseUrl, session],
   );
   return (

@@ -24,7 +24,7 @@ const devLog = (...args: unknown[]): void => {
 
 export class MateuApiClient {
   readonly baseUrl: string;
-  private readonly sessionId: string;
+  readonly sessionId: string;
   /** Host hook: told ONCE when the server's wireVersion is outside what this build supports. */
   onWireMismatch: (message: string) => void = () => {};
   private wireChecked = false;

@@ -29,6 +29,10 @@ export interface RegistryEntry {
   requiredRendererVersion?: string;
   /** Store fallback when the renderer cannot self-update over the air. */
   storeUrl?: { android?: string; ios?: string };
+  /** Sign-in for a secured backend: an OIDC provider the app logs in against (Authorization Code +
+   *  PKCE); its access token travels as `Authorization: Bearer` on every Mateu request. See
+   *  src/core/oidcConfig.ts for the accepted keys. Absent → requests go out without a token. */
+  auth?: { type?: 'oidc'; issuer: string; clientId: string; scopes?: string[] | string; audience?: string; loginOnStart?: boolean };
   /** Desktop (IntelliJ plugin) requirements — ignored by this renderer, documented for the contract. */
   intellij?: { requiredPluginVersion?: string; requiredIdeBuild?: string; downloadUrl?: string };
 }

@@ -48,6 +48,28 @@ export async function authHeaders(): Promise<Record<string, string>> {
   }
 }
 
+const signedOutListeners = new Set<() => void>();
+
+/** Called after `signOut()` — the host shows its sign-in screen again. Returns an unsubscriber. */
+export function onSignedOut(listener: () => void): () => void {
+  signedOutListeners.add(listener);
+  return () => signedOutListeners.delete(listener);
+}
+
+/** True when the registered provider can sign out (the shell then offers a "Sign out" entry). */
+export function canSignOut(): boolean {
+  return !!provider?.logout;
+}
+
+/** Drop the provider's tokens and tell the host. */
+export async function signOut(): Promise<void> {
+  try {
+    await provider?.logout?.();
+  } finally {
+    for (const l of [...signedOutListeners]) l();
+  }
+}
+
 /**
  * The provider's half of the 401 contract: silent refresh, then (when allowed) an interactive
  * login. Returns true when a request retried now would carry a fresh token.

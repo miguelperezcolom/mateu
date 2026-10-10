@@ -2,6 +2,7 @@
   "expo": {
     "name": "Mateu Native",
     "slug": "mateu-native",
+    "scheme": "mateu",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -46,7 +47,9 @@
           "backgroundColor": "#ffffff",
           "imageWidth": 200
         }
-      ]
+      ],
+      "expo-web-browser",
+      "expo-secure-store"
     ],
     "extra": {
       "mateuRegistryUrl": "",

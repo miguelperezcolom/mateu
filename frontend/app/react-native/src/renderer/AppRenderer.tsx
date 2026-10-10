@@ -11,6 +11,7 @@ import { MateuViewHost } from './MateuViewHost';
 import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
 import { cardsOf, isCardsGroup } from './menuCards';
+import { canSignOut, signOut } from '../core/auth';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
@@ -564,6 +565,11 @@ function SidebarContent({ appMeta, onNavigate, onContextChanged }: { appMeta: Ap
       {appMeta.notificationsEnabled === true && <NotificationBell appMeta={appMeta} onNavigate={onNavigate} />}
       <ContextSelectors selectors={appMeta.contextSelectors ?? []} appMeta={appMeta} onChanged={onContextChanged} />
       {renderItems(appMeta.menu ?? [])}
+      {canSignOut() && (
+        <TouchableOpacity {...buttonA11y({ label: 'Sign out' })} style={[styles.menuItem, { paddingLeft: 20 }]} onPress={() => void signOut()}>
+          <Text style={styles.menuItemText}>Sign out</Text>
+        </TouchableOpacity>
+      )}
     </DrawerContentScrollView>
   );
 }
