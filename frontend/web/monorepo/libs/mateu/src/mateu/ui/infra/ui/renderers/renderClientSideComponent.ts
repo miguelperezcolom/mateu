@@ -1,4 +1,5 @@
 import { html, LitElement, nothing, TemplateResult } from "lit";
+import { buttonId } from "@infra/ui/renderers/nodeIdStamp.ts";
 import ClientSideComponent from "@mateu/shared/apiClients/dtos/ClientSideComponent";
 import Element from "@mateu/shared/apiClients/dtos/componentmetadata/Element";
 import { ComponentMetadataType } from "@mateu/shared/apiClients/dtos/ComponentMetadataType";
@@ -210,7 +211,7 @@ const RENDERERS: Partial<Record<ComponentMetadataType, (c: RenderContext) => Tem
                 ${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}
             ${metadata?.buttons?.map(button => html`
                ${renderComponent(container, {
-            id: button.actionId,
+            id: buttonId(button),
             metadata: button,
             type: ComponentType.ClientSide,
                slot: 'buttons'

@@ -21,8 +21,12 @@ could not run in VSCode.
 - **Canvas** reuses the shared `libs/mateu` renderer (`mateu-ux`) for a faithful render. It POSTs the
   current layout to the reserved **`__preview__`** sync action and applies the returned fragment.
 - **DOM ↔ node mapping**: before preview, every layout node is stamped with a synthetic `id="ve-<path>"`
-  (`decorateForPreview`). The renderer stamps `id=` on each DOM element, so a click maps straight back to
-  a node path — no structural-alignment guesswork. Layout edits go through the `PageDoc` model, which
+  (`decorateForPreview`). In the editor, `libs/mateu`'s `renderComponent` tags the root element of
+  every component it paints with `data-node-id` (`nodeIdStamp.ts`, OFF in production); renderers that
+  paint a child themselves (tab headers, accordion/foldout panels, page/toolbar buttons) tag it with
+  `nodeIdAttr`/`stampButton`. A click maps the composed event path to the innermost tagged element
+  (`canvas/canvasSelection.ts`). `canvas/nodeReachability.test.ts` paints every page template and
+  fails if a definition node cannot be reached by a click. Layout edits go through the `PageDoc` model, which
   serializes back to YAML.
 - **Model of truth**: the YAML page file (`modelView` + `layout`). Behaviour/data stay in the Java
   ModelView. This editor edits *layout only*.

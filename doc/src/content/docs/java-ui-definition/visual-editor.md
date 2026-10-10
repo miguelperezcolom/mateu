@@ -193,6 +193,30 @@ Two references start on a page:
   for a `Button`'s `actionId`, both fetched from the model's `__contract__` — so you pick a member
   instead of matching names by hand.
 
+#### Selecting components
+
+The canvas, **Layers** and **Properties** always show the same selection.
+
+- **Click anything painted on the canvas** and the innermost component under the pointer is
+  selected: a hero, a button inside the hero, a dashboard panel, the text inside that panel, a
+  metric card, a card's title, a tab, a foldout panel. **Layers** opens the groups above it,
+  highlights its row and scrolls it into view. **Properties** shows it.
+- **The canvas is a design surface.** A click on a button, a link, a checkbox or an input selects
+  it. It does not run the action, follow the link, toggle the box or focus the field. One control
+  still works: a tab header shows its tab, so the other tab's contents can be seen and selected.
+- **Click a row in Layers** to outline the component on the canvas and scroll it into view. A
+  component inside a tab that is not showing brings its tab forward. A component inside a folded
+  foldout panel unfolds it.
+- **`Esc`** selects the parent. On the page root, `Esc` clears the selection. A click on the canvas
+  around the page selects the page root.
+- **The outline stays on its component.** It moves with the component after you edit a property,
+  undo, change the canvas width, scroll, switch between the Vaadin and Redwood canvases, or when the
+  file changes on disk. If the component no longer exists, the selection is cleared.
+
+Grid columns and listing filters are selected from **Layers**. Their `id` is the field they bind,
+so the canvas cannot mark them. A layout whose children fill it completely, such as a dashboard
+grid, has no spot of its own to click. Click one of its children, then press `Esc`.
+
 ### 5. A partial — `specs/ui/partials/address-block.yaml`
 
 A partial is a reusable fragment: a rootless `content:` list, inlined wherever a page's `Partial ref`
@@ -276,7 +300,9 @@ A backend that depends on `io.mateu:redwood` serves it at its root (`/_index.htm
 **What it does not do yet.** You can drag a component from the palette onto the Redwood canvas, but
 it lands at the end of the page. Use the Vaadin canvas or **Layers** to place it exactly. Layout
 containers that Redwood does not paint as a box of their own, such as a `FormLayout` shown as the
-page's form or the root layout, are selected from **Layers** or with `←` (parent). The board's
+page's form or the dashboard grid of a dashboard page, are selected from **Layers** or with `Esc`
+(parent). A click on the page's empty background selects the page root. Tabs are not switched
+inside the Redwood canvas, so a component in another tab is selected from **Layers**. The board's
 miniatures stay Vaadin.
 
 ## Tidy

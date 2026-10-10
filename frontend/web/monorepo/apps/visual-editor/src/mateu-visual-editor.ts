@@ -50,6 +50,7 @@ import { withEdited } from './model/playManifest'
 import { buildMountGraph } from './model/mountGraph'
 import { VIEWPORTS, ViewportId, parseViewport, viewportWidth } from './model/viewport'
 import { collectNotes, buildViewModelPrompt } from './model/notes'
+import { parentSelection, surviving } from './canvas/canvasSelection'
 import { tidyFindings, applyTidy, TIDY_RULES, TidyRule } from './model/tidy'
 import { resolveHost, HostBridge } from './host/hostBridge'
 import { watchHostTheme, Theme } from './host/theme'
@@ -354,8 +355,8 @@ export class MateuVisualEditor extends LitElement {
             if (yaml === this.lastText) return // our own write echoed back
             this.history.push(yaml)
             this.historyTick++
+            // the selection survives the reload when its node is still there (see willUpdate)
             this.load(yaml)
-            this.selectedPath = null
         })
         // Load the whole mount (if the host exposes it) to power the reference pickers and the canvas's
         // REST source catalogue — the editor stays fully usable without it.
@@ -419,7 +420,7 @@ export class MateuVisualEditor extends LitElement {
 
     /**
      * Editor keyboard shortcuts, active only on the page canvas and never while typing in a field:
-     * Delete/Backspace removes, Cmd/Ctrl+D duplicates, Escape deselects, and the arrows walk the tree
+     * Delete/Backspace removes, Cmd/Ctrl+D duplicates, Escape selects the parent (on the root it deselects), and the arrows walk the tree
      * (←parent, →first child, ↑/↓ previous/next sibling) — the tree navigation every pro editor has.
      */
     private onKeydown = (e: KeyboardEvent) => {
@@ -435,7 +436,7 @@ export class MateuVisualEditor extends LitElement {
         const sel = this.selectedPath
         if ((e.key === 'Delete' || e.key === 'Backspace') && sel) { e.preventDefault(); this.onDelete() }
         else if ((e.metaKey || e.ctrlKey) && (e.key === 'd' || e.key === 'D') && sel) { e.preventDefault(); this.onDuplicate() }
-        else if (e.key === 'Escape') { this.selectedPath = null }
+        else if (e.key === 'Escape') { e.preventDefault(); this.selectedPath = parentSelection(sel) }
         else if (e.key === 'ArrowLeft' && sel && sel.length) { e.preventDefault(); this.selectedPath = sel.slice(0, -1) }
         else if (e.key === 'ArrowRight' && sel) { e.preventDefault(); this.selectRelative('child') }
         else if (e.key === 'ArrowUp' && sel && sel.length) { e.preventDefault(); this.selectRelative('prev') }
@@ -482,6 +483,19 @@ export class MateuVisualEditor extends LitElement {
         this.lastText = text
         this.historyTick++
         this.host.onContentChanged?.(text)
+    }
+
+    /**
+     * The selection is a path into the CURRENT document. Whatever replaced the document — an edit, an
+     * undo, the file changing on disk — the selection stays on the same node while it still exists
+     * there and is cleared when it does not, so the Properties panel and the canvas outline never point
+     * at a node that is gone.
+     */
+    willUpdate(changed: Map<string, unknown>) {
+        if ((changed.has('doc') || changed.has('selectedPath')) && this.selectedPath && this.doc) {
+            const kept = surviving(this.doc, this.selectedPath)
+            if (kept !== this.selectedPath) this.selectedPath = kept
+        }
     }
 
     render() {
@@ -1050,7 +1064,7 @@ export class MateuVisualEditor extends LitElement {
     /** Clickable path from the root to the selected node — jump to any ancestor (pairs with the layers panel). */
     private renderBreadcrumb() {
         if (!this.doc || !this.selectedPath) {
-            return html`<div class="breadcrumb"><span class="empty">Click a component on the canvas or in Layers to select it · ⌘Z undo · Delete removes · arrows walk the tree</span></div>`
+            return html`<div class="breadcrumb"><span class="empty">Click a component on the canvas or in Layers to select it · Esc selects the parent · ⌘Z undo · Delete removes · arrows walk the tree</span></div>`
         }
         const segs: { path: NodePath; label: string; slot?: string }[] = [{ path: [], label: this.doc.layout.type }]
         let node: PageNode | undefined = this.doc.layout

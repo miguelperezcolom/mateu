@@ -29,6 +29,7 @@ import type Component from '@mateu/shared/apiClients/dtos/Component'
 import type ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
 import { ComponentType } from '@mateu/shared/apiClients/dtos/ComponentType'
 import { resolveComponent } from '@infra/http/componentCatalogue'
+import { isNodeIdStamping } from '@infra/ui/renderers/nodeIdStamp.ts'
 
 /** An authored fluent node: a `type` discriminator plus arbitrary type-specific fields, with child
  *  content under `content` or `children`. This is what `js-yaml`/`JSON.parse` yields from a
@@ -235,6 +236,8 @@ function expandFoldout(node: FluentNode): Component {
             icon: panel.icon,
             open: Boolean(panel.open),
             width: panel.width,
+            // the editor selects a panel from the canvas by its node id (editor preview only)
+            id: isNodeIdStamping() && typeof panel.id === 'string' ? panel.id : undefined,
         }).filter(([, v]) => v !== undefined))
     })
     if (Array.isArray(badges)) {
