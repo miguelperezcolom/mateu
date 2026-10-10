@@ -61,7 +61,7 @@ Igual que el renderer Vaadin (`apps/vaadin` → `backend/shared/frontend/vaadin-
 
 ```bash
 npm run build          # si hay cambios en la app VB / bridge
-npm run copy           # → backend/shared/frontend/redwood/src/main/resources/{static,META-INF/resources}
+npm run copy           # → backend/shared/frontend/redwood/src/main/resources/static
 # commit de los recursos + mvn install en backend/shared/frontend/redwood
 ```
 
@@ -75,16 +75,37 @@ Cualquier app Java lo consume añadiendo la dependencia (en lugar de `vaadin-lit
 </dependency>
 ```
 
-El controller generado por el AP sirve `_index.html` en la ruta del `@UI` y la app VB llama a
-`/mateu/v3/...` del MISMO origen (el copy sustituye `mateuBaseUrl` por `''`). Las rutas de Mateu
-van **por path, sin hash** (`/products`, deep-links y back/forward incluidos): el
-`SpaRedirectFilter` reenvía cualquier path al index, el copy inyecta `vbInitConfig.BASE_URL =
-'/version_<ts>/'` (la base de módulos del visual-runtime ignora `<base href>` — ver
-DESIGN-NOTES) y los chains detectan el modo por el `<mateu-ui>` oculto que inyecta el controller;
-en serving estático (`vb-serve`, VB hosteado) siguen usando hash (`#/ruta`). App de referencia:
-`demo/demo-vb` (:9005). Limitación v1: la app VB empaquetada asume el `@UI` en la ruta raíz `""`
-(el `<mateu-ui>` oculto transporta el baseUrl para cuando el bridge quiera soportar UIs anidadas
-en otra ruta).
+El controller generado por el AP sirve `_index.html` en la ruta del `@UI` e inyecta un
+`<mateu-ui baseUrl="/ruta">` oculto. El bridge lo lee al arrancar (`poc/mount.mjs`): la API es la
+de ESE montaje (`/ruta/mateu/v3/...`) y la ruta del propio montaje es la home de la UI — el home
+del menú si el `@UI` es un App; la propia página o crud si no lo es. Así que **un `@UI` en
+cualquier ruta funciona** (`@UI("")`, `@UI("/console")`, `@UI("/products")` sobre un crud…), sin
+necesitar un `@UI` en la raíz. Las rutas de Mateu van **por path, sin hash** (`/products`,
+deep-links y back/forward incluidos; el espacio de rutas del servidor es global y ya incluye la
+ruta del `@UI`): el `SpaRedirectFilter` reenvía cualquier path al index del montaje y los chains
+detectan el modo por ese mismo `<mateu-ui>`; en serving estático (`vb-serve`, VB hosteado) siguen
+usando hash (`#/ruta`). Imágenes, logo, módulos de componentes web y el `sseUrl` se piden a la
+RAÍZ del backend, como en el renderer Vaadin. App de referencia: `demo/demo-vb` (:9005), que
+monta además páginas sueltas (`/hello`, `/welcome`) y un crud (`/products`).
+
+### Qué lleva el jar (y por qué no cambia en cada build)
+
+- `static/_index.html` — la página que sirve el controller (`indexHtmlPath` por defecto).
+- `static/_redwood/` — la app VB, en UN sitio y con nombre ESTABLE. Spring Boot, Micronaut
+  (`classpath:static`) y Helidon (`/static`) la sirven de ahí; el pom del módulo la copia además a
+  `META-INF/resources/_redwood` al empaquetar, para Quarkus (git guarda una copia, el jar dos).
+  Sin `bundles/plain` (el bundle sin minificar, sólo alcanzable con `?vb.bundles=plain`) ni
+  source maps.
+- `static/mateu-build-info.json` — `{ sourceHash }`, el hash de las fuentes de las que se
+  construyó (`scripts/source-hash.mjs`: `webApps/` + `poc/` sin tests, fixtures, capturas ni
+  generadores). `scripts/check-bundle-freshness.sh` lo recalcula en CI y falla si no coincide.
+- La caché no depende ya del nombre del directorio: todo módulo que carga require.js desde la app
+  (y `app.css`) lleva `?v=<sourceHash>`, y los handlers de Mateu sirven `/_redwood/**` con
+  `no-cache` + ETag. Mismas fuentes → salida idéntica byte a byte (la marca de tiempo del build se
+  quita), así que regenerar sin cambios no ensucia el diff.
+
+Comprobaciones: `node poc/make-amd.mjs --check` (el bridge commiteado es el que genera `poc/`) y
+`node poc/make-html.mjs --check` (la plantilla de átomos está expandida); ambas en CI.
 
 Los componentes JET/oj-sp y el visual-runtime se cargan del CDN de Oracle en runtime: el jar no
 vendoriza nada de `static.oracle.com` (ver `NOTICE.md`) y el navegador necesita acceso al CDN.

@@ -111,6 +111,11 @@ jobs:
       - name: Redwood atom template is expanded in every surface
         run: cd frontend/web/monorepo/apps/redwood/poc && node make-html.mjs --check
 
+      # The committed AMD bridge (webApps/.../mateu-bridge.js) is what the app loads; poc/ is what the
+      # tests above exercise. A poc/ change without `npm run bridge` passed CI and shipped old code.
+      - name: Redwood bridge is regenerated from poc/
+        run: cd frontend/web/monorepo/apps/redwood/poc && node make-amd.mjs --check
+
       - name: parity.md tells the truth about Redwood (coverage vs wire catalogue vs renderer code)
         run: cd frontend/web/monorepo/apps/redwood/poc && node parity-check.mjs
 
