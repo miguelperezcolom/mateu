@@ -32,7 +32,7 @@ export const MODULES = [
   'i18n.mjs', 'prefs.mjs', 'navTree.mjs', 'calendar.mjs', 'richtext.mjs', 'links.mjs',
   ...CORE_PIECES,
   'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'resilience.mjs', 'a11y.mjs', 'elements.mjs',
-  'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'planning.mjs', 'actionPanels.mjs',
+  'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'shellFlows.mjs', 'planning.mjs', 'actionPanels.mjs',
   'keys.mjs', 'hover.mjs', 'dnd.mjs', 'matrix.mjs', 'map.mjs', 'tables.mjs', 'bundle.mjs',
   'mount.mjs', 'transport.mjs', 'widgets.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs', 'pageProjection.mjs', 'actionPlan.mjs', 'globalSearch.mjs', 'theme.mjs',
 ]
@@ -253,6 +253,10 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     ROW_VALIDATING_VERBS,
     overlayOf,
     eventTriggersOf,
+    // the shell's FLOWS: a menu RuleLink running a declared flow client-side (shellFlows.mjs)
+    isMenuRuleId,
+    menuRulesOf,
+    menuRulePlanOf,
     dismissOverlay,
     // @Searchable: el selector en su diálogo, y los chips del campo
     searchPickerOf,
