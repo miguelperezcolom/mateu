@@ -95,6 +95,19 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   authentication in IntelliJ; the same in VS Code ("Mateu: New File…", "Mateu: Add Route…").
 
 ### Fixed
+- **Enum values in grid and listing cells** read as their labels ("In house", not `IN_HOUSE`) on
+  every renderer — the same `@Label` > `toString()` > humanized rule the form options use, carried
+  as `GridColumn.valueLabels`. Rows keep the raw value (sorting, filtering, selection, editing).
+  Java, .NET and Python; Vaadin, Redwood, React Native and IntelliJ.
+- **`@NotNavigable` cruds no longer serve their record page** to a typed or bookmarked
+  `/{id}` URL; it answers the not-found page.
+- **`@Compact` on Redwood** (and on cruds/listings everywhere): dense `display="grid"` tables and
+  Redwood's small-control density tokens; a `@Compact` crud now sets `CrudlDto.compact` and the
+  high-density preset on its pages (Java, .NET, Python).
+- **A crud mounted at the root (`@UI("")`) on Redwood** loaded "Not found": the shell's
+  `__load__` bootstrap reached the crud as an action ("`__load__` not supported", logged as an
+  ERROR) and the content load consumed `/` instead of `""`. `__load__` is now the route load for
+  every view, a consumed `/` is the mount root, and the Redwood shell sends `""`.
 - .NET and Python primary buttons were sent as `"Primary"` and rendered as plain buttons.
 - A nested `@Text`/`@Notice` read its state with an expression that evaluated as a subtraction.
 - A dashboard `@Panel` holding a `Text` advertised twelve list actions nothing could trigger.
