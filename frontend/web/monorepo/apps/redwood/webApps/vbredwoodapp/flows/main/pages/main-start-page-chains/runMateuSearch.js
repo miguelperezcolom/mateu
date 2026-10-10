@@ -48,6 +48,7 @@ define([
       const route = $application.variables.mateuSelectedRoute;
       const increment = await bridge.runMateuAction(base, host, route, 'search', componentState, { appState: $application.variables.mateuAppState || {} });
       const reg = bridge.reduceContexts(before, increment);
+      bridge.applyDomEffects(reg.effects);
       $application.variables.mateuRegistry = reg;
 
       const refreshed = bridge.listingOf(reg.contexts[bridge.HOST_ID]);

@@ -180,6 +180,7 @@ define([
         const increment = await bridge.runMateuAction(
           callBase, loaded, route, triggerActionId, componentState, { appState });
         reg = bridge.reduceContexts(reg, increment);
+        bridge.applyDomEffects(reg.effects);
       }
 
       // El chat de IA autoró una pantalla: se corre renderScreen con el YAML sobre el host recién
@@ -191,6 +192,7 @@ define([
           callBase, rh, route, 'renderScreen', (rh && rh.state) || {},
           { parameters: { yaml: detail.renderYaml }, appState });
         reg = bridge.reduceContexts(reg, inc);
+        bridge.applyDomEffects(reg.effects);
       }
 
       // islas embebidas: cada frontera ServerSide del host se carga como superficie

@@ -1476,6 +1476,23 @@ export function islandContentOf(ctx, opts = {}) {
       }
       return
     }
+    // ENLACE (Anchor): un <a> de verdad — el tema Redwood lo pinta como enlace, el manejador
+    // global de links.mjs navega DENTRO de la shell si es una ruta de la app, y target=_blank
+    // (una URL externa, un PDF) abre otra pestaña sin pasar por el servidor
+    if (t === 'Anchor') {
+      const href = interp(m.url)
+      if (href) {
+        const target = m.target ? String(m.target) : ''
+        atom({
+          isAnchor: true,
+          text: interp(m.text) || href,
+          href,
+          target: target || '_self',
+          rel: target === '_blank' ? 'noopener noreferrer' : '',
+        }, container)
+      }
+      return
+    }
     if (t === 'ProgressSteps') {
       const steps = (m.steps || []).map((step) => ({ id: step.id, label: step.title || step.label || step.id }))
       const current = (m.steps || []).find((step) => step.status === 'current')
@@ -3386,6 +3403,7 @@ export function reduceContexts(reg, increment, opts = {}) {
     navigate: null,
     urlPush: null,
     download: null,
+    downloads: [], // todos los DownloadFile del increment (download = el último, compat)
     runActions: [],
     docTitle: null,
     events: [], // bus @SubscribeTo: [{ name, detail }]
@@ -3505,6 +3523,7 @@ export function reduceContexts(reg, increment, opts = {}) {
       }
       case 'DownloadFile':
         effects.download = c.data
+        effects.downloads.push(c.data)
         break
       case 'RunAction':
         effects.runActions.push(c.data)

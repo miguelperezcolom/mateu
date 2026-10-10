@@ -5,7 +5,7 @@
     "description": "Mateu renderer sobre Oracle Visual Builder / Redwood (app VB + bridge)",
     "scripts": {
         "bridge": "node poc/make-amd.mjs && node poc/make-html.mjs",
-        "test": "cd poc && node test.mjs",
+        "test": "cd poc && node test.mjs && node test-pms.mjs",
         "build": "grunt vb-build --no-optimize=true --force",
         "serve": "grunt vb-serve --port=9006",
         "copy": "node scripts/copy.mjs"
