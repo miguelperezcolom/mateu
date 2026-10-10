@@ -274,7 +274,7 @@ export function defineColorField(win = typeof window !== 'undefined' ? window : 
       swatch.className = 'mateu-color-swatch'
       swatch.value = hex || '#000000'
       swatch.disabled = readonly
-      swatch.setAttribute('aria-label', (this.getAttribute('aria-label') || 'Colour') + ' — picker')
+      swatch.setAttribute('aria-label', chromeText('colourPicker', { label: this.getAttribute('aria-label') || '' }))
       swatch.addEventListener('change', () => this.emit(swatch.value))
       const code = doc.createElement('span')
       code.className = 'oj-typography-body-md mateu-color-code'

@@ -15,7 +15,7 @@ import {
   messageSendOf, chatAtomOf, resultAtomOf, cookieConsentAtomOf, hasConsentCookie, confirmOpenOf, confirmDialogAtomOf,
   breadcrumbsAtomOf, workflowAtomOf, workflowOrderOf, formEditorFieldsOf, bpmnDiagramOf, bpmnAtomOf, componentHtmlOf,
   flattenTreeRows, gridPageOf, autoFitColClass, unsupportedAtomOf, VISITOR_PASS_THROUGH, safeHref, toneOf, cssColorOf,
-  setUiValue, setPanelExpanded, microFrontendOf, tagSurfaceActions, heroAtomOf, emptyStateAtomOf, progressBarAtomOf,
+  setUiValue, setPanelExpanded, carouselPagerAtomOf, microFrontendOf, tagSurfaceActions, heroAtomOf, emptyStateAtomOf, progressBarAtomOf,
   registerCustomComponent, customComponentRegistered, layoutFieldOf, HOST_ID,
 } from './reduceContexts.mjs'
 import { markdownToHtml, deltaOps, deltaToHtml, richTextHtml, richTextValueOf, sanitizeHtml } from './richtext.mjs'
@@ -23,6 +23,7 @@ import { hexColorOf } from './inputs.mjs'
 import { reprojectedContentOf } from './reproject.mjs'
 import { chatTurnsOf } from './displayDom.mjs'
 import { REDWOOD_COVERAGE } from './coverage.mjs'
+import { setChromeLanguage, CHROME_TEXTS } from './i18n.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let passed = 0
@@ -475,6 +476,17 @@ test('HeroSection, EmptyState, ProgressBar and custom components in the content'
   assert.ok(customComponentRegistered('acme-gauge'))
   const [slot] = atomsOf(cc)
   assert.deepEqual([slot.isCustomSlot, slot.name, slot.props], [true, 'acme-gauge', '{"v":1}'])
+})
+
+test('display chrome in the interface language (English by default)', () => {
+  assert.equal(carouselPagerAtomOf('k', 0, 2, false).dots[1].label, 'Slide 2')
+  setChromeLanguage('es')
+  try {
+    assert.equal(carouselPagerAtomOf('k', 0, 2, false).dots[1].label, 'Diapositiva 2')
+    assert.match(unsupportedAtomOf('X').text, /^Componente no soportado/)
+    assert.equal(gridPageOf([1, 2], 10, 0).rangeText, '1–2 de 2')
+  } finally { setChromeLanguage('') }
+  for (const k of Object.keys(CHROME_TEXTS.en)) assert.ok(k in CHROME_TEXTS.es, 'es lacks ' + k)
 })
 
 console.log(`\n${passed} display tests OK`)

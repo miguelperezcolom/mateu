@@ -1,3 +1,4 @@
+import { chromeText } from '../i18n.mjs'
 import { elementModuleUrl } from '../elements.mjs'
 import { sanitizeHtml, markdownToHtml } from '../richtext.mjs'
 import { collectTexts } from './tree.mjs'
@@ -121,7 +122,7 @@ export function pricingAtomOf(m, interp = (x) => x) {
       featured: !!p.featured,
       cardClass: 'oj-panel oj-sm-padding-6x mateu-pricing-plan' + (p.featured ? ' mateu-pricing-featured' : ''),
       hasCta: !!p.actionId,
-      ctaLabel: interp(str(p.ctaLabel)) || 'Choose',
+      ctaLabel: interp(str(p.ctaLabel)) || chromeText('choose'),
       chroming: p.featured ? 'callToAction' : 'outlined',
       colClass: 'oj-flex-item oj-sm-12 oj-md-' + Math.max(3, Math.floor(12 / Math.max(1, Math.min(4, plans.length)))),
       actionId: p.actionId || '',
@@ -266,7 +267,7 @@ export function calloutAtomOf(m, interp = (x) => x) {
     glyph: glyphOf(m.icon),
     panelClass: CALLOUT_CLASSES[toneOf(m.theme)] || CALLOUT_CLASSES.neutral,
     hasCta: !!m.actionId,
-    ctaLabel: interp(str(m.ctaLabel)) || 'Learn more',
+    ctaLabel: interp(str(m.ctaLabel)) || chromeText('learnMore'),
     actionId: m.actionId || '',
     parameters: {},
   }
@@ -483,7 +484,7 @@ export function menuBarAtomOf(m, interp = (x) => x) {
   }
 }
 export function contextMenuAtomOf(m, interp = (x) => x) {
-  return { isContextMenu: true, label: 'More actions', menuItems: menuItemsOf(m.menu, interp), rightClick: !m.activateOnLeftClick }
+  return { isContextMenu: true, label: chromeText('moreActions'), menuItems: menuItemsOf(m.menu, interp), rightClick: !m.activateOnLeftClick }
 }
 /** Directory: each top-level entry a column with its title and its links (submenus flattened). */
 export function directoryAtomOf(m, interp = (x) => x) {
@@ -524,8 +525,8 @@ export function messageInputAtomOf(m, id) {
     isMessageInput: true,
     inputId: 'mateuMsg-' + str(id || 'input').replace(/[^\w-]/g, '_'),
     actionId: m.actionId || '',
-    placeholder: 'Message',
-    sendLabel: 'Send',
+    placeholder: chromeText('message'),
+    sendLabel: chromeText('messageSend'),
   }
 }
 /** What sending a message does (null when there is nothing to send or nowhere to send it). */
@@ -593,9 +594,9 @@ export function cookieConsentAtomOf(m, interp = (x) => x) {
   return {
     isCookieConsent: true,
     cookieName: str(m.cookieName) || 'cookieconsent_status',
-    message: interp(str(m.message)) || 'This website uses cookies to ensure you get the best experience on our website.',
-    dismiss: interp(str(m.dismiss)) || 'Got it',
-    learnMore: interp(str(m.learnMore)) || 'Learn more',
+    message: interp(str(m.message)) || chromeText('cookieMessage'),
+    dismiss: interp(str(m.dismiss)) || chromeText('cookieDismiss'),
+    learnMore: interp(str(m.learnMore)) || chromeText('learnMore'),
     learnMoreLink: safeHref(m.learnMoreLink),
     hasLearnMore: !!safeHref(m.learnMoreLink),
     bandClass: 'mateu-cookie-consent oj-panel oj-sm-padding-4x' + (position.indexOf('top') >= 0 ? ' mateu-cookie-top' : ' mateu-cookie-bottom'),
@@ -643,9 +644,9 @@ export function confirmOpenOf(condition, state) {
 }
 export function confirmDialogAtomOf(m, id, state, interp = (x) => x, lines = []) {
   const buttons = []
-  if (m.canCancel) buttons.push({ key: 'cancel', label: m.rejectText && !m.canReject ? interp(m.rejectText) : 'Cancel', chroming: 'outlined', actionId: m.cancelActionId || '', parameters: {} })
-  if (m.canReject) buttons.push({ key: 'reject', label: interp(str(m.rejectText)) || 'No', chroming: 'outlined', actionId: m.rejectActionId || '', parameters: {} })
-  buttons.push({ key: 'confirm', label: interp(str(m.confirmText)) || 'OK', chroming: 'callToAction', actionId: m.confirmActionId || '', parameters: {} })
+  if (m.canCancel) buttons.push({ key: 'cancel', label: m.rejectText && !m.canReject ? interp(m.rejectText) : chromeText('cancel'), chroming: 'outlined', actionId: m.cancelActionId || '', parameters: {} })
+  if (m.canReject) buttons.push({ key: 'reject', label: interp(str(m.rejectText)) || chromeText('confirmNo'), chroming: 'outlined', actionId: m.rejectActionId || '', parameters: {} })
+  buttons.push({ key: 'confirm', label: interp(str(m.confirmText)) || chromeText('ok'), chroming: 'callToAction', actionId: m.confirmActionId || '', parameters: {} })
   const opened = confirmOpenOf(m.openedCondition, state)
   return {
     // painted only while open: the oj-dialog opens itself (initial-visibility) when it appears
@@ -680,8 +681,8 @@ export function notificationAtomOf(m, interp = (x) => x) {
 
 // ── Workflow: the definition as a flow of steps (the web's designer is an editor; Redwood shows it) ─
 const STEP_LOOKS = {
-  ACTION: ['oj-ux-ico-play', 'Action'], JOIN: ['oj-ux-ico-merge', 'Join'], FORK: ['oj-ux-ico-split', 'Fork'],
-  END: ['oj-ux-ico-stop', 'End'], USER_TASK: ['oj-ux-ico-user', 'User task'], PROCESS: ['oj-ux-ico-settings', 'Process'],
+  ACTION: ['oj-ux-ico-play', 'stepAction'], JOIN: ['oj-ux-ico-merge', 'stepJoin'], FORK: ['oj-ux-ico-split', 'stepFork'],
+  END: ['oj-ux-ico-stop', 'stepEnd'], USER_TASK: ['oj-ux-ico-user', 'stepUserTask'], PROCESS: ['oj-ux-ico-settings', 'stepProcess'],
 }
 export function workflowOrderOf(steps) {
   const byId = new Map(steps.map((s) => [s.id, s]))
@@ -700,7 +701,7 @@ export function workflowOrderOf(steps) {
 export function workflowAtomOf(m) {
   let wf
   try { wf = JSON.parse(str(m.value) || '{}') } catch (e) { wf = null }
-  if (!wf || typeof wf !== 'object') return { isNotice: true, text: 'Workflow: the definition is not valid JSON', noticeClass: NOTICE_CLASSES.warning, buttons: [] }
+  if (!wf || typeof wf !== 'object') return { isNotice: true, text: chromeText('workflowInvalid'), noticeClass: NOTICE_CLASSES.warning, buttons: [] }
   const steps = Array.isArray(wf.steps) ? wf.steps.filter((s) => s && s.id) : []
   const names = new Map(steps.map((s) => [s.id, s.name || s.id]))
   return {
@@ -715,11 +716,11 @@ export function workflowAtomOf(m) {
       return {
         number: String(i + 1),
         name: str(s.name) || s.id,
-        typeLabel: look[1] + (s.parallel ? ' · parallel' : ''),
+        typeLabel: chromeText(look[1]) + (s.parallel ? ' · ' + chromeText('parallel') : ''),
         iconClass: look[0],
         description: str(s.description),
-        after: s.preconditionStepId ? 'After ' + (names.get(s.preconditionStepId) || s.preconditionStepId)
-          + (s.preconditionExpression ? ' when ' + s.preconditionExpression : '') : '',
+        after: s.preconditionStepId ? chromeText('afterStep', { name: names.get(s.preconditionStepId) || s.preconditionStepId })
+          + (s.preconditionExpression ? chromeText('whenCondition', { condition: s.preconditionExpression }) : '') : '',
       }
     })),
     isEmpty: !steps.length,
@@ -853,7 +854,7 @@ export function bpmnAtomOf(m, id) {
     bpmnId: 'mateuBpmn-' + str(id || 'bpmn').replace(/[^\w-]/g, '_'),
     spec: JSON.stringify(diagram),
     isEmpty: !diagram.nodes.length,
-    ariaLabel: 'Process diagram: ' + diagram.nodes.filter((n) => n.label).map((n) => n.label).join(', '),
+    ariaLabel: chromeText('processDiagram', { names: diagram.nodes.filter((n) => n.label).map((n) => n.label).join(', ') }),
   }
 }
 
@@ -920,7 +921,7 @@ export function gridPageOf(rows, size, page) {
     paged: total > pageSize,
     page: current,
     pages,
-    rangeText: total ? (from + 1) + '–' + (from + shown.length) + ' of ' + total : '0 of 0',
+    rangeText: (total ? (from + 1) + '–' + (from + shown.length) : '0') + ' ' + chromeText('pagingOf') + ' ' + total,
     hasPrev: current > 0,
     hasNext: current < pages - 1,
     prevDisabled: current <= 0,
@@ -1036,7 +1037,7 @@ export function tagSurfaceActions(value, surfaceId) {
 export function unsupportedAtomOf(type, id) {
   return {
     isNotice: true,
-    text: 'Unsupported component "' + str(type) + '"' + (id && id !== 'fieldId' ? ' (' + id + ')' : '') + ' — the Redwood renderer has no view for it',
+    text: chromeText('unsupportedComponent', { type: str(type), id: id && id !== 'fieldId' ? ' (' + id + ')' : '' }),
     noticeClass: NOTICE_CLASSES.warning,
     buttons: [],
     isUnsupported: true,
@@ -1045,7 +1046,7 @@ export function unsupportedAtomOf(type, id) {
 
 /** The ‹ › buttons of a client-side pager: each carries the key and the value it sets
  *  (the uiValueChanged listener reads them from the button's own $current). */
-export function pagerButtonsOf(key, prevValue, nextValue, prevDisabled, nextDisabled, prevLabel = 'Previous page', nextLabel = 'Next page') {
+export function pagerButtonsOf(key, prevValue, nextValue, prevDisabled, nextDisabled, prevLabel = chromeText('pagingPrev'), nextLabel = chromeText('pagingNext')) {
   return [
     { key: 'prev', uiKey: key, uiValue: prevValue, label: prevLabel, icon: 'oj-ux-ico-chevron-left', disabled: !!prevDisabled },
     { key: 'next', uiKey: key, uiValue: nextValue, label: nextLabel, icon: 'oj-ux-ico-chevron-right', disabled: !!nextDisabled },
@@ -1059,11 +1060,11 @@ export function carouselPagerAtomOf(key, current, count, loop) {
   return {
     isCarouselPager: true,
     positionText: (current + 1) + ' / ' + count,
-    nav: pagerButtonsOf(key, prev, next, !loop && current === 0, !loop && current === count - 1, 'Previous slide', 'Next slide'),
+    nav: pagerButtonsOf(key, prev, next, !loop && current === 0, !loop && current === count - 1, chromeText('previousSlide'), chromeText('nextSlide')),
     dots: keyed(Array.from({ length: count }, (_, i) => ({
       uiKey: key,
       uiValue: i,
-      label: 'Slide ' + (i + 1),
+      label: chromeText('slideN', { n: i + 1 }),
       current: i === current,
       chroming: i === current ? 'callToAction' : 'borderless',
     }))),

@@ -147,6 +147,45 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatLocalAgentHint: 'Talking to your local CLI (the companion agent) — no API key',
       chatExpand: 'Widen the assistant',
       chatRestore: 'Restore the width',
+      // ── display components (core/display.mjs) ──
+      recommended: 'Recommended',
+      choose: 'Choose',
+      learnMore: 'Learn more',
+      less: 'Less',
+      more: 'More',
+      open: 'Open',
+      ok: 'OK',
+      message: 'Message',
+      messageSend: 'Send',
+      moreActions: 'More actions',
+      moreInformation: 'More information',
+      previousSlide: 'Previous slide',
+      nextSlide: 'Next slide',
+      slideN: 'Slide {n}',
+      slides: 'Slides',
+      pages: 'Pages',
+      breadcrumb: 'Breadcrumb',
+      directory: 'Directory',
+      heatmap: 'Heatmap',
+      processDiagram: 'Process diagram: {names}',
+      emptyProcess: 'Empty process',
+      cookieConsent: 'Cookie consent',
+      cookieMessage: 'This website uses cookies to ensure you get the best experience on our website.',
+      cookieDismiss: 'Got it',
+      afterStep: 'After {name}',
+      whenCondition: ' when {condition}',
+      parallel: 'parallel',
+      stepAction: 'Action', stepJoin: 'Join', stepFork: 'Fork', stepEnd: 'End', stepUserTask: 'User task', stepProcess: 'Process',
+      workflowInvalid: 'Workflow: the definition is not valid JSON',
+      unsupportedComponent: 'Unsupported component "{type}"{id} — the Redwood renderer has no view for it',
+      customFailed: 'Custom component failed: {message}',
+      askSomething: 'Ask something…',
+      assistantFailed: 'The assistant could not answer: {message}',
+      formatting: 'Formatting',
+      rteBold: 'Bold', rteItalic: 'Italic', rteUnderline: 'Underline', rteBullets: 'Bulleted list', rteNumbers: 'Numbered list',
+      rteLink: 'Link', rteClear: 'Clear formatting', rteLinkPrompt: 'Link URL',
+      colourPicker: '{label} — picker',
+      loadingContent: 'Loading',
     },
     es: {
       close: 'Cerrar',
@@ -268,6 +307,45 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatLocalAgentHint: 'Hablando con tu CLI local (el agente companion) — sin API key',
       chatExpand: 'Ampliar el asistente',
       chatRestore: 'Ancho normal',
+      // ── componentes display (core/display.mjs) ──
+      recommended: 'Recomendado',
+      choose: 'Elegir',
+      learnMore: 'Más información',
+      less: 'Menos',
+      more: 'Más',
+      open: 'Abrir',
+      ok: 'Aceptar',
+      message: 'Mensaje',
+      messageSend: 'Enviar',
+      moreActions: 'Más acciones',
+      moreInformation: 'Más información',
+      previousSlide: 'Diapositiva anterior',
+      nextSlide: 'Diapositiva siguiente',
+      slideN: 'Diapositiva {n}',
+      slides: 'Diapositivas',
+      pages: 'Páginas',
+      breadcrumb: 'Ruta de navegación',
+      directory: 'Directorio',
+      heatmap: 'Mapa de calor',
+      processDiagram: 'Diagrama del proceso: {names}',
+      emptyProcess: 'Proceso vacío',
+      cookieConsent: 'Consentimiento de cookies',
+      cookieMessage: 'Este sitio usa cookies para ofrecerte la mejor experiencia.',
+      cookieDismiss: 'Entendido',
+      afterStep: 'Después de {name}',
+      whenCondition: ' cuando {condition}',
+      parallel: 'en paralelo',
+      stepAction: 'Acción', stepJoin: 'Unión', stepFork: 'Bifurcación', stepEnd: 'Fin', stepUserTask: 'Tarea de usuario', stepProcess: 'Proceso',
+      workflowInvalid: 'Workflow: la definición no es un JSON válido',
+      unsupportedComponent: 'Componente no soportado "{type}"{id} — el renderer Redwood no tiene vista para él',
+      customFailed: 'El componente propio ha fallado: {message}',
+      askSomething: 'Pregunta lo que quieras…',
+      assistantFailed: 'El asistente no ha podido responder: {message}',
+      formatting: 'Formato',
+      rteBold: 'Negrita', rteItalic: 'Cursiva', rteUnderline: 'Subrayado', rteBullets: 'Lista con viñetas', rteNumbers: 'Lista numerada',
+      rteLink: 'Enlace', rteClear: 'Quitar formato', rteLinkPrompt: 'URL del enlace',
+      colourPicker: '{label} — selector',
+      loadingContent: 'Cargando',
     },
     // partial languages: only the words they have (the rest falls back to English)
     ca: { selectValue: 'Seleccioneu un valor' },
@@ -1071,13 +1149,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** The toolbar of the editor: each command and its accessible label. */
   const RICH_TEXT_COMMANDS = [
-    { cmd: 'bold', icon: 'oj-ux-ico-bold', label: 'Bold', key: 'b' },
-    { cmd: 'italic', icon: 'oj-ux-ico-italic', label: 'Italic', key: 'i' },
-    { cmd: 'underline', icon: 'oj-ux-ico-underline', label: 'Underline', key: 'u' },
-    { cmd: 'insertUnorderedList', icon: 'oj-ux-ico-bullet-list', label: 'Bulleted list' },
-    { cmd: 'insertOrderedList', icon: 'oj-ux-ico-numbered-list', label: 'Numbered list' },
-    { cmd: 'createLink', icon: 'oj-ux-ico-link', label: 'Link' },
-    { cmd: 'removeFormat', icon: 'oj-ux-ico-clear', label: 'Clear formatting' },
+    { cmd: 'bold', icon: 'oj-ux-ico-bold', label: 'rteBold', key: 'b' },
+    { cmd: 'italic', icon: 'oj-ux-ico-italic', label: 'rteItalic', key: 'i' },
+    { cmd: 'underline', icon: 'oj-ux-ico-underline', label: 'rteUnderline', key: 'u' },
+    { cmd: 'insertUnorderedList', icon: 'oj-ux-ico-bullet-list', label: 'rteBullets' },
+    { cmd: 'insertOrderedList', icon: 'oj-ux-ico-numbered-list', label: 'rteNumbers' },
+    { cmd: 'createLink', icon: 'oj-ux-ico-link', label: 'rteLink' },
+    { cmd: 'removeFormat', icon: 'oj-ux-ico-clear', label: 'rteClear' },
   ]
 
   /**
@@ -1123,7 +1201,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const bar = doc.createElement('div')
         bar.className = 'mateu-rte-toolbar'
         bar.setAttribute('role', 'toolbar')
-        bar.setAttribute('aria-label', 'Formatting')
+        bar.setAttribute('aria-label', chromeText('formatting'))
         const area = doc.createElement('div')
         area.className = 'mateu-rte-area oj-typography-body-md'
         area.setAttribute('contenteditable', 'true')
@@ -1141,14 +1219,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           icon.setAttribute('slot', 'startIcon')
           icon.className = c.icon
           b.appendChild(icon)
-          b.appendChild(doc.createTextNode(c.label))
+          b.appendChild(doc.createTextNode(chromeText(c.label)))
           // keep the selection in the editor when the button takes the click
           b.addEventListener('mousedown', (e) => e.preventDefault())
           b.addEventListener('ojAction', (e) => {
             e.stopPropagation()
             area.focus()
             if (c.cmd === 'createLink') {
-              const url = win.prompt('Link URL', 'https://')
+              const url = win.prompt(chromeText('rteLinkPrompt'), 'https://')
               if (url && deltaHref(url)) doc.execCommand('createLink', false, url)
             } else doc.execCommand(c.cmd, false, null)
             this.commit()
@@ -6918,7 +6996,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         featured: !!p.featured,
         cardClass: 'oj-panel oj-sm-padding-6x mateu-pricing-plan' + (p.featured ? ' mateu-pricing-featured' : ''),
         hasCta: !!p.actionId,
-        ctaLabel: interp(str(p.ctaLabel)) || 'Choose',
+        ctaLabel: interp(str(p.ctaLabel)) || chromeText('choose'),
         chroming: p.featured ? 'callToAction' : 'outlined',
         colClass: 'oj-flex-item oj-sm-12 oj-md-' + Math.max(3, Math.floor(12 / Math.max(1, Math.min(4, plans.length)))),
         actionId: p.actionId || '',
@@ -7063,7 +7141,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       glyph: glyphOf(m.icon),
       panelClass: CALLOUT_CLASSES[toneOf(m.theme)] || CALLOUT_CLASSES.neutral,
       hasCta: !!m.actionId,
-      ctaLabel: interp(str(m.ctaLabel)) || 'Learn more',
+      ctaLabel: interp(str(m.ctaLabel)) || chromeText('learnMore'),
       actionId: m.actionId || '',
       parameters: {},
     }
@@ -7280,7 +7358,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
   function contextMenuAtomOf(m, interp = (x) => x) {
-    return { isContextMenu: true, label: 'More actions', menuItems: menuItemsOf(m.menu, interp), rightClick: !m.activateOnLeftClick }
+    return { isContextMenu: true, label: chromeText('moreActions'), menuItems: menuItemsOf(m.menu, interp), rightClick: !m.activateOnLeftClick }
   }
   /** Directory: each top-level entry a column with its title and its links (submenus flattened). */
   function directoryAtomOf(m, interp = (x) => x) {
@@ -7321,8 +7399,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       isMessageInput: true,
       inputId: 'mateuMsg-' + str(id || 'input').replace(/[^\w-]/g, '_'),
       actionId: m.actionId || '',
-      placeholder: 'Message',
-      sendLabel: 'Send',
+      placeholder: chromeText('message'),
+      sendLabel: chromeText('messageSend'),
     }
   }
   /** What sending a message does (null when there is nothing to send or nowhere to send it). */
@@ -7390,9 +7468,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return {
       isCookieConsent: true,
       cookieName: str(m.cookieName) || 'cookieconsent_status',
-      message: interp(str(m.message)) || 'This website uses cookies to ensure you get the best experience on our website.',
-      dismiss: interp(str(m.dismiss)) || 'Got it',
-      learnMore: interp(str(m.learnMore)) || 'Learn more',
+      message: interp(str(m.message)) || chromeText('cookieMessage'),
+      dismiss: interp(str(m.dismiss)) || chromeText('cookieDismiss'),
+      learnMore: interp(str(m.learnMore)) || chromeText('learnMore'),
       learnMoreLink: safeHref(m.learnMoreLink),
       hasLearnMore: !!safeHref(m.learnMoreLink),
       bandClass: 'mateu-cookie-consent oj-panel oj-sm-padding-4x' + (position.indexOf('top') >= 0 ? ' mateu-cookie-top' : ' mateu-cookie-bottom'),
@@ -7440,9 +7518,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
   function confirmDialogAtomOf(m, id, state, interp = (x) => x, lines = []) {
     const buttons = []
-    if (m.canCancel) buttons.push({ key: 'cancel', label: m.rejectText && !m.canReject ? interp(m.rejectText) : 'Cancel', chroming: 'outlined', actionId: m.cancelActionId || '', parameters: {} })
-    if (m.canReject) buttons.push({ key: 'reject', label: interp(str(m.rejectText)) || 'No', chroming: 'outlined', actionId: m.rejectActionId || '', parameters: {} })
-    buttons.push({ key: 'confirm', label: interp(str(m.confirmText)) || 'OK', chroming: 'callToAction', actionId: m.confirmActionId || '', parameters: {} })
+    if (m.canCancel) buttons.push({ key: 'cancel', label: m.rejectText && !m.canReject ? interp(m.rejectText) : chromeText('cancel'), chroming: 'outlined', actionId: m.cancelActionId || '', parameters: {} })
+    if (m.canReject) buttons.push({ key: 'reject', label: interp(str(m.rejectText)) || chromeText('confirmNo'), chroming: 'outlined', actionId: m.rejectActionId || '', parameters: {} })
+    buttons.push({ key: 'confirm', label: interp(str(m.confirmText)) || chromeText('ok'), chroming: 'callToAction', actionId: m.confirmActionId || '', parameters: {} })
     const opened = confirmOpenOf(m.openedCondition, state)
     return {
       // painted only while open: the oj-dialog opens itself (initial-visibility) when it appears
@@ -7477,8 +7555,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // ── Workflow: the definition as a flow of steps (the web's designer is an editor; Redwood shows it) ─
   const STEP_LOOKS = {
-    ACTION: ['oj-ux-ico-play', 'Action'], JOIN: ['oj-ux-ico-merge', 'Join'], FORK: ['oj-ux-ico-split', 'Fork'],
-    END: ['oj-ux-ico-stop', 'End'], USER_TASK: ['oj-ux-ico-user', 'User task'], PROCESS: ['oj-ux-ico-settings', 'Process'],
+    ACTION: ['oj-ux-ico-play', 'stepAction'], JOIN: ['oj-ux-ico-merge', 'stepJoin'], FORK: ['oj-ux-ico-split', 'stepFork'],
+    END: ['oj-ux-ico-stop', 'stepEnd'], USER_TASK: ['oj-ux-ico-user', 'stepUserTask'], PROCESS: ['oj-ux-ico-settings', 'stepProcess'],
   }
   function workflowOrderOf(steps) {
     const byId = new Map(steps.map((s) => [s.id, s]))
@@ -7497,7 +7575,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function workflowAtomOf(m) {
     let wf
     try { wf = JSON.parse(str(m.value) || '{}') } catch (e) { wf = null }
-    if (!wf || typeof wf !== 'object') return { isNotice: true, text: 'Workflow: the definition is not valid JSON', noticeClass: NOTICE_CLASSES.warning, buttons: [] }
+    if (!wf || typeof wf !== 'object') return { isNotice: true, text: chromeText('workflowInvalid'), noticeClass: NOTICE_CLASSES.warning, buttons: [] }
     const steps = Array.isArray(wf.steps) ? wf.steps.filter((s) => s && s.id) : []
     const names = new Map(steps.map((s) => [s.id, s.name || s.id]))
     return {
@@ -7512,11 +7590,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return {
           number: String(i + 1),
           name: str(s.name) || s.id,
-          typeLabel: look[1] + (s.parallel ? ' · parallel' : ''),
+          typeLabel: chromeText(look[1]) + (s.parallel ? ' · ' + chromeText('parallel') : ''),
           iconClass: look[0],
           description: str(s.description),
-          after: s.preconditionStepId ? 'After ' + (names.get(s.preconditionStepId) || s.preconditionStepId)
-            + (s.preconditionExpression ? ' when ' + s.preconditionExpression : '') : '',
+          after: s.preconditionStepId ? chromeText('afterStep', { name: names.get(s.preconditionStepId) || s.preconditionStepId })
+            + (s.preconditionExpression ? chromeText('whenCondition', { condition: s.preconditionExpression }) : '') : '',
         }
       })),
       isEmpty: !steps.length,
@@ -7650,7 +7728,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       bpmnId: 'mateuBpmn-' + str(id || 'bpmn').replace(/[^\w-]/g, '_'),
       spec: JSON.stringify(diagram),
       isEmpty: !diagram.nodes.length,
-      ariaLabel: 'Process diagram: ' + diagram.nodes.filter((n) => n.label).map((n) => n.label).join(', '),
+      ariaLabel: chromeText('processDiagram', { names: diagram.nodes.filter((n) => n.label).map((n) => n.label).join(', ') }),
     }
   }
 
@@ -7717,7 +7795,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       paged: total > pageSize,
       page: current,
       pages,
-      rangeText: total ? (from + 1) + '–' + (from + shown.length) + ' of ' + total : '0 of 0',
+      rangeText: (total ? (from + 1) + '–' + (from + shown.length) : '0') + ' ' + chromeText('pagingOf') + ' ' + total,
       hasPrev: current > 0,
       hasNext: current < pages - 1,
       prevDisabled: current <= 0,
@@ -7833,7 +7911,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function unsupportedAtomOf(type, id) {
     return {
       isNotice: true,
-      text: 'Unsupported component "' + str(type) + '"' + (id && id !== 'fieldId' ? ' (' + id + ')' : '') + ' — the Redwood renderer has no view for it',
+      text: chromeText('unsupportedComponent', { type: str(type), id: id && id !== 'fieldId' ? ' (' + id + ')' : '' }),
       noticeClass: NOTICE_CLASSES.warning,
       buttons: [],
       isUnsupported: true,
@@ -7842,7 +7920,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** The ‹ › buttons of a client-side pager: each carries the key and the value it sets
    *  (the uiValueChanged listener reads them from the button's own $current). */
-  function pagerButtonsOf(key, prevValue, nextValue, prevDisabled, nextDisabled, prevLabel = 'Previous page', nextLabel = 'Next page') {
+  function pagerButtonsOf(key, prevValue, nextValue, prevDisabled, nextDisabled, prevLabel = chromeText('pagingPrev'), nextLabel = chromeText('pagingNext')) {
     return [
       { key: 'prev', uiKey: key, uiValue: prevValue, label: prevLabel, icon: 'oj-ux-ico-chevron-left', disabled: !!prevDisabled },
       { key: 'next', uiKey: key, uiValue: nextValue, label: nextLabel, icon: 'oj-ux-ico-chevron-right', disabled: !!nextDisabled },
@@ -7856,11 +7934,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return {
       isCarouselPager: true,
       positionText: (current + 1) + ' / ' + count,
-      nav: pagerButtonsOf(key, prev, next, !loop && current === 0, !loop && current === count - 1, 'Previous slide', 'Next slide'),
+      nav: pagerButtonsOf(key, prev, next, !loop && current === 0, !loop && current === count - 1, chromeText('previousSlide'), chromeText('nextSlide')),
       dots: keyed(Array.from({ length: count }, (_, i) => ({
         uiKey: key,
         uiValue: i,
-        label: 'Slide ' + (i + 1),
+        label: chromeText('slideN', { n: i + 1 }),
         current: i === current,
         chroming: i === current ? 'callToAction' : 'borderless',
       }))),
@@ -10023,7 +10101,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         swatch.className = 'mateu-color-swatch'
         swatch.value = hex || '#000000'
         swatch.disabled = readonly
-        swatch.setAttribute('aria-label', (this.getAttribute('aria-label') || 'Colour') + ' — picker')
+        swatch.setAttribute('aria-label', chromeText('colourPicker', { label: this.getAttribute('aria-label') || '' }))
         swatch.addEventListener('change', () => this.emit(swatch.value))
         const code = doc.createElement('span')
         code.className = 'oj-typography-body-md mateu-color-code'
@@ -13459,7 +13537,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       el.__mateuBpmn = raw
       let spec
       try { spec = JSON.parse(raw) } catch (e) { return }
-      if (!spec || !(spec.nodes || []).length) { el.textContent = 'Empty process'; return }
+      if (!spec || !(spec.nodes || []).length) { el.textContent = chromeText('emptyProcess'); return }
       drawBpmn(el, spec, doc)
     })
   }
@@ -13514,7 +13592,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       el.textContent = ''
       let parsed = {}
       try { parsed = JSON.parse(props) } catch (e) { parsed = {} }
-      try { el.__mateuCustomCleanup = mount(el, parsed) } catch (e) { el.textContent = 'Custom component failed: ' + (e && e.message) }
+      try { el.__mateuCustomCleanup = mount(el, parsed) } catch (e) { el.textContent = chromeText('customFailed', { message: e && e.message }) }
     })
   }
 
@@ -13550,12 +13628,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const input = doc.createElement('textarea')
       input.className = 'mateu-chat-input oj-typography-body-md'
       input.rows = 2
-      input.setAttribute('aria-label', 'Message')
-      input.placeholder = 'Ask something…'
+      input.setAttribute('aria-label', chromeText('chatInputLabel'))
+      input.placeholder = chromeText('askSomething')
       const send = doc.createElement('oj-button')
       send.setAttribute('data-oj-binding-provider', 'none')
       send.setAttribute('chroming', 'callToAction')
-      send.textContent = 'Send'
+      send.textContent = chromeText('chatSend')
       form.appendChild(input)
       form.appendChild(send)
       el.appendChild(log)
@@ -13588,7 +13666,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           })
         } catch (err) {
           answer.error = true
-          answer.text = 'The assistant could not answer: ' + (err && err.message ? err.message : err)
+          answer.text = chromeText('assistantFailed', { message: err && err.message ? err.message : String(err) })
         } finally {
           conv.busy = false
           paint()

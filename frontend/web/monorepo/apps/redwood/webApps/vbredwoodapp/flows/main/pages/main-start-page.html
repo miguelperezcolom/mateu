@@ -1434,7 +1434,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -1790,7 +1790,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -1841,7 +1841,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -1857,11 +1857,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -1969,7 +1969,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -2038,7 +2038,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -2050,7 +2050,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -2102,7 +2102,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -2206,7 +2206,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -2232,7 +2232,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -2280,7 +2280,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -3018,7 +3018,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -3374,7 +3374,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -3425,7 +3425,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -3441,11 +3441,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -3553,7 +3553,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -3622,7 +3622,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -3634,7 +3634,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -3686,7 +3686,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -3790,7 +3790,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -3816,7 +3816,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -3864,7 +3864,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -4623,7 +4623,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -4979,7 +4979,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -5030,7 +5030,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -5046,11 +5046,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -5158,7 +5158,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -5227,7 +5227,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -5239,7 +5239,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -5291,7 +5291,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -5395,7 +5395,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -5421,7 +5421,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -5469,7 +5469,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -6207,7 +6207,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -6563,7 +6563,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -6614,7 +6614,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -6630,11 +6630,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -6742,7 +6742,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -6811,7 +6811,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -6823,7 +6823,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -6875,7 +6875,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -6979,7 +6979,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -7005,7 +7005,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -7053,7 +7053,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -7878,7 +7878,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -8234,7 +8234,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -8285,7 +8285,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -8301,11 +8301,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -8413,7 +8413,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -8482,7 +8482,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -8494,7 +8494,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -8546,7 +8546,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -8650,7 +8650,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -8676,7 +8676,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -8724,7 +8724,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -9469,7 +9469,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -9825,7 +9825,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -9876,7 +9876,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -9892,11 +9892,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -10004,7 +10004,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -10073,7 +10073,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -10085,7 +10085,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -10137,7 +10137,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -10241,7 +10241,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -10267,7 +10267,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -10315,7 +10315,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -11062,7 +11062,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -11418,7 +11418,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -11469,7 +11469,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -11485,11 +11485,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -11597,7 +11597,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -11666,7 +11666,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -11678,7 +11678,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -11730,7 +11730,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -11834,7 +11834,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -11860,7 +11860,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -11908,7 +11908,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -12674,7 +12674,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -13030,7 +13030,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -13081,7 +13081,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -13097,11 +13097,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -13209,7 +13209,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -13278,7 +13278,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -13290,7 +13290,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -13342,7 +13342,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -13446,7 +13446,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -13472,7 +13472,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -13520,7 +13520,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -14441,7 +14441,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -14797,7 +14797,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -14848,7 +14848,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -14864,11 +14864,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -14976,7 +14976,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -15045,7 +15045,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -15057,7 +15057,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -15109,7 +15109,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -15213,7 +15213,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -15239,7 +15239,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -15287,7 +15287,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -16282,7 +16282,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -16638,7 +16638,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -16689,7 +16689,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -16705,11 +16705,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -16817,7 +16817,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -16886,7 +16886,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -16898,7 +16898,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -16950,7 +16950,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -17054,7 +17054,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -17080,7 +17080,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -17128,7 +17128,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -17864,7 +17864,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -18220,7 +18220,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -18271,7 +18271,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -18287,11 +18287,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -18399,7 +18399,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -18468,7 +18468,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -18480,7 +18480,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -18532,7 +18532,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -18636,7 +18636,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -18662,7 +18662,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -18710,7 +18710,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -19999,7 +19999,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -20355,7 +20355,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -20406,7 +20406,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -20422,11 +20422,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -20534,7 +20534,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.islandBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.islandBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -20603,7 +20603,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -20615,7 +20615,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -20667,7 +20667,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -20771,7 +20771,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -20797,7 +20797,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -20845,7 +20845,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -21581,7 +21581,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -21937,7 +21937,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -21988,7 +21988,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -22004,11 +22004,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -22116,7 +22116,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.islandBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.islandBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -22185,7 +22185,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -22197,7 +22197,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -22249,7 +22249,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -22353,7 +22353,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -22379,7 +22379,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -22427,7 +22427,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -23229,7 +23229,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -23585,7 +23585,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -23636,7 +23636,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -23652,11 +23652,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -23764,7 +23764,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -23833,7 +23833,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -23845,7 +23845,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -23897,7 +23897,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -24001,7 +24001,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -24027,7 +24027,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -24075,7 +24075,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -24813,7 +24813,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -25169,7 +25169,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -25220,7 +25220,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -25236,11 +25236,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -25348,7 +25348,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -25417,7 +25417,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -25429,7 +25429,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -25481,7 +25481,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -25585,7 +25585,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -25611,7 +25611,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -25659,7 +25659,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -26411,7 +26411,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -26767,7 +26767,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -26818,7 +26818,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -26834,11 +26834,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -26946,7 +26946,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -27015,7 +27015,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -27027,7 +27027,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -27079,7 +27079,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -27183,7 +27183,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -27209,7 +27209,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -27257,7 +27257,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -27995,7 +27995,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -28351,7 +28351,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -28402,7 +28402,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -28418,11 +28418,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -28530,7 +28530,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -28599,7 +28599,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -28611,7 +28611,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -28663,7 +28663,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -28767,7 +28767,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -28793,7 +28793,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -28841,7 +28841,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -29622,7 +29622,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -29978,7 +29978,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -30029,7 +30029,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -30045,11 +30045,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -30157,7 +30157,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -30226,7 +30226,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -30238,7 +30238,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -30290,7 +30290,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -30394,7 +30394,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -30420,7 +30420,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -30468,7 +30468,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
@@ -31206,7 +31206,7 @@
                           </template>
                         </oj-table>
                         <oj-bind-if test="[[ $current.data.paged ]]">
-                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" aria-label="Pages">
+                          <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-flex-end mateu-grid-pager" role="group" :aria-label="[[ $application.translations.appBundle.pages ]]">
                             <span class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-2x-end"><oj-bind-text value="[[ $current.data.pageText ]]"></oj-bind-text></span>
                             <oj-bind-for-each data="[[ $current.data.pager ]]">
                               <template>
@@ -31562,7 +31562,7 @@
                             <div :class="[[ $current.data.colClass ]]">
                               <div :class="[[ $current.data.cardClass ]]">
                                 <oj-bind-if test="[[ $current.data.featured ]]">
-                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag">Recommended</span>
+                                  <span class="oj-badge oj-badge-info oj-badge-subtle mateu-pricing-flag"><oj-bind-text value="[[ $application.translations.appBundle.recommended ]]"></oj-bind-text></span>
                                 </oj-bind-if>
                                 <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.name ]]"></oj-bind-text></h3>
                                 <div class="oj-sm-margin-2x-vertical">
@@ -31613,7 +31613,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isHeatmap ]]">
                       <!-- Heatmap: JET has none — a calendar heatmap (a column per week) with Redwood tones -->
-                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" role="img" aria-label="Heatmap">
+                      <div class="mateu-heatmap oj-sm-margin-2x-bottom" :aria-label="[[ $application.translations.appBundle.heatmap ]]" role="img">
                         <div class="mateu-heat-weeks">
                           <oj-bind-for-each data="[[ $current.data.weeks ]]">
                             <template>
@@ -31629,11 +31629,11 @@
                           </oj-bind-for-each>
                         </div>
                         <div class="mateu-heat-legend oj-typography-body-xs oj-text-color-secondary">
-                          <span>Less</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.less ]]"></oj-bind-text></span>
                           <oj-bind-for-each data="[[ $current.data.legend ]]">
                             <template><span :class="[[ $current.data.cls ]]"></span></template>
                           </oj-bind-for-each>
-                          <span>More</span>
+                          <span><oj-bind-text value="[[ $application.translations.appBundle.more ]]"></oj-bind-text></span>
                         </div>
                       </div>
                     </oj-bind-if>
@@ -31741,7 +31741,7 @@
                                 <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.meta ]]"></oj-bind-text></div>
                               </div>
                               <oj-bind-if test="[[ $current.data.clickable ]]">
-                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span>Open</oj-button>
+                                <oj-button display="icons" chroming="borderless" on-oj-action="[[ $listeners.hostBlockAction ]]"><span slot="startIcon" class="oj-ux-ico-download"></span><oj-bind-text value="[[ $application.translations.appBundle.open ]]"></oj-bind-text></oj-button>
                               </oj-bind-if>
                             </li>
                           </template>
@@ -31810,7 +31810,7 @@
                       </ul>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isSkeleton ]]">
-                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" aria-label="Loading">
+                      <div class="mateu-skeleton-atom oj-sm-margin-2x-bottom" aria-busy="true" :aria-label="[[ $application.translations.appBundle.loading ]]">
                         <oj-bind-for-each data="[[ $current.data.shapes ]]">
                           <template><div :class="[[ $current.data.cls ]]"></div></template>
                         </oj-bind-for-each>
@@ -31822,7 +31822,7 @@
                     <oj-bind-if test="[[ $current.data.isTooltip ]]">
                       <span class="mateu-tooltip-target oj-sm-margin-2x-bottom" tabindex="0" :data-mateu-hover="[[ $current.data.text ]]">
                         <oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text>
-                        <span class="oj-ux-ico-information mateu-tooltip-icon" role="img" aria-label="More information"></span>
+                        <span class="oj-ux-ico-information mateu-tooltip-icon" :aria-label="[[ $application.translations.appBundle.moreInformation ]]" role="img"></span>
                       </span>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isContextMenu ]]">
@@ -31874,7 +31874,7 @@
                       </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isDirectory ]]">
-                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" aria-label="Directory">
+                      <nav class="oj-flex oj-sm-margin-2x-bottom mateu-directory" :aria-label="[[ $application.translations.appBundle.directory ]]">
                         <oj-bind-for-each data="[[ $current.data.groups ]]">
                           <template>
                             <div :class="[[ $current.data.colClass ]]">
@@ -31978,7 +31978,7 @@
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCookieConsent ]]">
                       <!-- CookieConsent: installCookieConsent hides it once its cookie exists and sets it on «dismiss» -->
-                      <div :class="[[ $current.data.bandClass ]]" role="region" aria-label="Cookie consent" :data-mateu-cookie="[[ $current.data.cookieName ]]">
+                      <div :class="[[ $current.data.bandClass ]]" role="region" :aria-label="[[ $application.translations.appBundle.cookieConsent ]]" :data-mateu-cookie="[[ $current.data.cookieName ]]">
                         <span class="oj-typography-body-md"><oj-bind-text value="[[ $current.data.message ]]"></oj-bind-text></span>
                         <oj-bind-if test="[[ $current.data.hasLearnMore ]]">
                           <a class="oj-sm-margin-2x-start" :href="[[ $current.data.learnMoreLink ]]" target="_blank" rel="noopener noreferrer"><oj-bind-text value="[[ $current.data.learnMore ]]"></oj-bind-text></a>
@@ -32004,7 +32004,7 @@
                       </oj-dialog>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isBreadcrumbs ]]">
-                      <nav aria-label="Breadcrumb" class="oj-sm-margin-2x-bottom">
+                      <nav :aria-label="[[ $application.translations.appBundle.breadcrumb ]]" class="oj-sm-margin-2x-bottom">
                         <ol class="mateu-breadcrumbs oj-typography-body-sm">
                           <oj-bind-for-each data="[[ $current.data.crumbs ]]">
                             <template>
@@ -32052,7 +32052,7 @@
                         :data-mateu-custom="[[ $current.data.name ]]" :data-mateu-custom-props="[[ $current.data.props ]]"></div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isCarouselPager ]]">
-                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" aria-label="Slides">
+                      <div class="oj-flex oj-sm-align-items-center oj-sm-justify-content-center mateu-carousel-pager oj-sm-margin-2x-bottom" role="group" :aria-label="[[ $application.translations.appBundle.slides ]]">
                         <oj-bind-for-each data="[[ $current.data.nav ]]">
                           <template>
                             <oj-button display="icons" chroming="borderless" disabled="[[ $current.data.disabled ]]" on-oj-action="[[ $listeners.uiValueChanged ]]"><span slot="startIcon" :class="[[ $current.data.icon ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>

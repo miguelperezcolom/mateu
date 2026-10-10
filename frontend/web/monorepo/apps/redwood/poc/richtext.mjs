@@ -1,3 +1,4 @@
+import { chromeText } from './i18n.mjs'
 // TEXTO ENRIQUECIDO (P2 #23): un campo richText/html/markdown de sólo lectura y el componente
 // Markdown se pintan CON formato. VB no estampa HTML desde un binding, así que el átomo lleva el
 // HTML YA SANEADO en data-mateu-html y installRichText lo vuelca en su contenedor. El saneado es
@@ -229,13 +230,13 @@ export function richTextValueOf(html) {
 
 /** The toolbar of the editor: each command and its accessible label. */
 export const RICH_TEXT_COMMANDS = [
-  { cmd: 'bold', icon: 'oj-ux-ico-bold', label: 'Bold', key: 'b' },
-  { cmd: 'italic', icon: 'oj-ux-ico-italic', label: 'Italic', key: 'i' },
-  { cmd: 'underline', icon: 'oj-ux-ico-underline', label: 'Underline', key: 'u' },
-  { cmd: 'insertUnorderedList', icon: 'oj-ux-ico-bullet-list', label: 'Bulleted list' },
-  { cmd: 'insertOrderedList', icon: 'oj-ux-ico-numbered-list', label: 'Numbered list' },
-  { cmd: 'createLink', icon: 'oj-ux-ico-link', label: 'Link' },
-  { cmd: 'removeFormat', icon: 'oj-ux-ico-clear', label: 'Clear formatting' },
+  { cmd: 'bold', icon: 'oj-ux-ico-bold', label: 'rteBold', key: 'b' },
+  { cmd: 'italic', icon: 'oj-ux-ico-italic', label: 'rteItalic', key: 'i' },
+  { cmd: 'underline', icon: 'oj-ux-ico-underline', label: 'rteUnderline', key: 'u' },
+  { cmd: 'insertUnorderedList', icon: 'oj-ux-ico-bullet-list', label: 'rteBullets' },
+  { cmd: 'insertOrderedList', icon: 'oj-ux-ico-numbered-list', label: 'rteNumbers' },
+  { cmd: 'createLink', icon: 'oj-ux-ico-link', label: 'rteLink' },
+  { cmd: 'removeFormat', icon: 'oj-ux-ico-clear', label: 'rteClear' },
 ]
 
 /**
@@ -281,7 +282,7 @@ export function defineRichTextField(win = typeof window !== 'undefined' ? window
       const bar = doc.createElement('div')
       bar.className = 'mateu-rte-toolbar'
       bar.setAttribute('role', 'toolbar')
-      bar.setAttribute('aria-label', 'Formatting')
+      bar.setAttribute('aria-label', chromeText('formatting'))
       const area = doc.createElement('div')
       area.className = 'mateu-rte-area oj-typography-body-md'
       area.setAttribute('contenteditable', 'true')
@@ -299,14 +300,14 @@ export function defineRichTextField(win = typeof window !== 'undefined' ? window
         icon.setAttribute('slot', 'startIcon')
         icon.className = c.icon
         b.appendChild(icon)
-        b.appendChild(doc.createTextNode(c.label))
+        b.appendChild(doc.createTextNode(chromeText(c.label)))
         // keep the selection in the editor when the button takes the click
         b.addEventListener('mousedown', (e) => e.preventDefault())
         b.addEventListener('ojAction', (e) => {
           e.stopPropagation()
           area.focus()
           if (c.cmd === 'createLink') {
-            const url = win.prompt('Link URL', 'https://')
+            const url = win.prompt(chromeText('rteLinkPrompt'), 'https://')
             if (url && deltaHref(url)) doc.execCommand('createLink', false, url)
           } else doc.execCommand(c.cmd, false, null)
           this.commit()

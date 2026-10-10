@@ -1,3 +1,4 @@
+import { chromeText } from './i18n.mjs'
 import { streamChat, buildChatBody, chatMarkdownToHtml } from './chat.mjs'
 import { sanitizeHtml } from './richtext.mjs'
 import { authHeadersOf } from './resilience.mjs'
@@ -100,7 +101,7 @@ export function installBpmn(doc = typeof document !== 'undefined' ? document : n
     el.__mateuBpmn = raw
     let spec
     try { spec = JSON.parse(raw) } catch (e) { return }
-    if (!spec || !(spec.nodes || []).length) { el.textContent = 'Empty process'; return }
+    if (!spec || !(spec.nodes || []).length) { el.textContent = chromeText('emptyProcess'); return }
     drawBpmn(el, spec, doc)
   })
 }
@@ -155,7 +156,7 @@ export function installCustomComponents(doc = typeof document !== 'undefined' ? 
     el.textContent = ''
     let parsed = {}
     try { parsed = JSON.parse(props) } catch (e) { parsed = {} }
-    try { el.__mateuCustomCleanup = mount(el, parsed) } catch (e) { el.textContent = 'Custom component failed: ' + (e && e.message) }
+    try { el.__mateuCustomCleanup = mount(el, parsed) } catch (e) { el.textContent = chromeText('customFailed', { message: e && e.message }) }
   })
 }
 
@@ -191,12 +192,12 @@ export function installChatComponents(doc = typeof document !== 'undefined' ? do
     const input = doc.createElement('textarea')
     input.className = 'mateu-chat-input oj-typography-body-md'
     input.rows = 2
-    input.setAttribute('aria-label', 'Message')
-    input.placeholder = 'Ask something…'
+    input.setAttribute('aria-label', chromeText('chatInputLabel'))
+    input.placeholder = chromeText('askSomething')
     const send = doc.createElement('oj-button')
     send.setAttribute('data-oj-binding-provider', 'none')
     send.setAttribute('chroming', 'callToAction')
-    send.textContent = 'Send'
+    send.textContent = chromeText('chatSend')
     form.appendChild(input)
     form.appendChild(send)
     el.appendChild(log)
@@ -229,7 +230,7 @@ export function installChatComponents(doc = typeof document !== 'undefined' ? do
         })
       } catch (err) {
         answer.error = true
-        answer.text = 'The assistant could not answer: ' + (err && err.message ? err.message : err)
+        answer.text = chromeText('assistantFailed', { message: err && err.message ? err.message : String(err) })
       } finally {
         conv.busy = false
         paint()
