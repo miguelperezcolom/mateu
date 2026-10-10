@@ -28,8 +28,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0 # the check compares commit ancestry, so it needs the history
 
       - name: Bundles are not older than their source
@@ -55,9 +56,11 @@ jobs:
     timeout-minutes: 15
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
           cache: npm
@@ -116,9 +119,11 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
 
@@ -165,7 +170,7 @@ jobs:
           npm run compile
           npm test
           npm run package < /dev/null
-          rm -f *.vsix
+          rm -f ./*.vsix
 
       # The Figma plugin draws the library from design/figma/contract.json: its test fails when a
       # sketch primitive used by the contract has no case in renderItem (the `tile` gap).
@@ -178,37 +183,63 @@ jobs:
 
   # The IntelliJ plugin's suite (settings/auth, New | Mateu skeletons validated against the specs
   # schema, wire-type parity, headless rendering of every component type, the YAML binding
-  # annotator) only ran on a developer's machine. The platform download is cached by setup-gradle.
+  # annotator) only ran on a developer's machine. setup-gradle only WRITES its cache on master, where
+  # this workflow does not run, so the IDE (~1 GB) is downloaded on every PR run; only the small layout
+  # index is shared (warm-caches.yml).
   intellij-plugin:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           java-version: 21
           distribution: zulu
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@ed408507eac070d1f99cc633dbcf757c94c7933a # v4.4.3
         with:
           cache-read-only: ${{ github.ref != 'refs/heads/master' }}
 
+      # The IDE layout index (~150 KB) is what the flaky "Could not find bundled plugin with ID:
+      # 'com.intellij.java'" is computed into: building it from a fresh IDE races inside the IntelliJ
+      # Platform Gradle Plugin (scripts/intellij-gradle.sh explains), a warm one never does. It is
+      # keyed on the build script, which pins both the IDE version and the plugin version; the
+      # master-scoped entry every PR can read is written by warm-caches.yml.
+      - name: Restore the IntelliJ layout index
+        id: layout-index
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: frontend/app/intellij-plugin/.intellijPlatform/layoutIndex
+          key: intellij-layout-index-${{ hashFiles('frontend/app/intellij-plugin/build.gradle.kts') }}
+
       # copyVisualEditor is skipped (with a warning) because the web monorepo is not installed: the
       # tests run against the committed visual-editor bundle, which bundle-freshness guards.
+      # The wrapper discards an incomplete index and retries ONCE on that one failure signature.
       - name: IntelliJ plugin tests
-        run: cd frontend/app/intellij-plugin && ./gradlew test --console=plain
+        run: scripts/intellij-gradle.sh test --console=plain
+
+      - name: Save the IntelliJ layout index (only a complete one)
+        if: success() && steps.layout-index.outputs.cache-hit != 'true' && hashFiles('frontend/app/intellij-plugin/.intellijPlatform/layoutIndex/*.json') != ''
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: frontend/app/intellij-plugin/.intellijPlatform/layoutIndex
+          key: intellij-layout-index-${{ hashFiles('frontend/app/intellij-plugin/build.gradle.kts') }}
 
   e2e:
     runs-on: ubuntu-latest
     timeout-minutes: 40
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           java-version: 21
           distribution: zulu
@@ -266,19 +297,21 @@ jobs:
             tail -n 60 "$f"
           done
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
 
+      # --ignore-scripts: nothing in e2e/ needs an install hook (the lockfile's only one is fsevents,
+      # macOS-only); the browsers come from the explicit `playwright install` below.
       - name: Install npm dependencies
-        run: cd e2e && npm ci
+        run: cd e2e && npm ci --ignore-scripts
 
       # The browser download is the one step of this job that reaches outside GitHub and npm, and
       # it has no timeout of its own: on 2026-08-19 it hung a release run and a PR run for ~50
       # minutes each without ever failing, blocking the publish to Maven Central. The binaries
       # only change when @playwright/test does, so key the cache on the lockfile that pins it.
       - name: Cache Playwright browsers
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('e2e/package-lock.json') }}
@@ -295,7 +328,7 @@ jobs:
 
       - name: Upload Playwright report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report
           path: e2e/playwright-report/
@@ -313,8 +346,10 @@ jobs:
       matrix:
         python-version: ['3.11', '3.12', '3.13']
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install the package
@@ -336,11 +371,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: '3.11'
-      - uses: astral-sh/setup-uv@v6
+      - uses: astral-sh/setup-uv@d0cc045d04ccac9d8b7881df0226f9e82c39688e # v6.8.0
       - name: Install the package at its lowest direct dependencies
         run: |
           uv venv /tmp/lowest --python 3.11
@@ -360,15 +397,17 @@ jobs:
     timeout-minutes: 45
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           java-version: 21
           distribution: zulu
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
 
@@ -376,9 +415,11 @@ jobs:
         run: mvn -B install -DskipTests -Dgpg.skip=true --file backend/pom.xml
 
       # Only the redwood workspace: its devDependencies are Oracle's grunt tooling (tarballs from
-      # static.oracle.com, pinned in package.json / package-lock.json).
+      # static.oracle.com, pinned in package.json / package-lock.json). --ignore-scripts: none of that
+      # tooling declares an install hook (package-lock.json `hasInstallScript` lists only esbuild,
+      # core-js, fsevents and @vaadin/vaadin-usage-statistics, none of which vb-build needs).
       - name: Install the Redwood renderer's build tooling
-        run: cd frontend/web/monorepo && npm ci --workspace mateu-redwood
+        run: cd frontend/web/monorepo && npm ci --workspace mateu-redwood --ignore-scripts
 
       # vb-build's exit code is unreliable (it can fail in a network subtask after writing the
       # output), so the artifact is what is checked; copy.mjs then lays it out as the jar resources.
@@ -412,11 +453,13 @@ jobs:
             echo "$url is ready"
           done
 
+      # --ignore-scripts: nothing in e2e/ needs an install hook (the lockfile's only one is fsevents,
+      # macOS-only); the browsers come from the explicit `playwright install` below.
       - name: Install npm dependencies
-        run: cd e2e && npm ci
+        run: cd e2e && npm ci --ignore-scripts
 
       - name: Cache Playwright browsers
-        uses: actions/cache@v6
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ hashFiles('e2e/package-lock.json') }}
@@ -447,7 +490,7 @@ jobs:
 
       - name: Upload Redwood screenshots and Playwright report
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: renderer-vb
           path: |
@@ -466,10 +509,12 @@ jobs:
     timeout-minutes: 25
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           java-version: 21
           distribution: zulu
@@ -510,7 +555,7 @@ jobs:
 
       - name: Upload API compatibility reports
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: japicmp-reports
           path: backend/shared/*/target/japicmp/
@@ -520,7 +565,7 @@ jobs:
       # support, and net10.0): the 10 SDK builds both, the 8 runtime runs the net8.0 leg. `dotnet test`
       # runs the suite once per target framework, so both legs (and the conformance gate) are tested.
       - name: Set up .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
         with:
           dotnet-version: |
             8.0.x
@@ -532,3 +577,34 @@ jobs:
       - name: .NET packages build
         run: cd backend/dotnet && for p in src/*/*.csproj; do dotnet pack "$p" -c Release -o /tmp/nupkgs; done
 
+  # The ONE check branch protection should require (design/ci-required-checks.md). Requiring each
+  # job by name breaks whenever a job is added, renamed or split (every matrix leg is its own check:
+  # "python (3.11)"), and a required check that never reports blocks the PR forever. This job always
+  # runs and always reports: green only when every job it needs succeeded or was legitimately
+  # skipped, red when one failed or was cancelled. ADD EVERY NEW JOB OF THIS WORKFLOW TO `needs`.
+  ci-ok:
+    if: always()
+    needs:
+      - bundle-freshness
+      - frontend-lib
+      - tooling-tests
+      - intellij-plugin
+      - e2e
+      - python
+      - python-lowest-deps
+      - renderer-vb
+      - backend-tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Every job passed or was legitimately skipped
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+        # No checkout: the verdict is computed from the `needs` context alone.
+        run: |
+          echo "$NEEDS" | jq -r 'to_entries[] | "\(.value.result)\t\(.key)"'
+          bad=$(echo "$NEEDS" | jq '[to_entries[] | select(.value.result != "success" and .value.result != "skipped")] | length')
+          if [ "$bad" != 0 ]; then
+            echo "::error::$bad job(s) failed or were cancelled — see the list above."
+            exit 1
+          fi
