@@ -45,17 +45,28 @@ internal static class ActionGuard
     /// <summary>Whether the caller passes <paramref name="gate"/> — the same rule as the mapper
     /// (Java's Authorizer): AND across declared dimensions, OR within each; nothing declared →
     /// unrestricted; no identity → unauthorized.</summary>
-    internal static bool Authorized(IdentityGatedAttribute? gate)
-    {
-        if (gate is null) return true;
-        if (gate.Roles.Length + gate.Groups.Length + gate.Scopes.Length + gate.Permissions.Length == 0)
-            return true;
-        if (IdentitySource.Value?.Invoke() is not { } id) return false;
-        return Matches(gate.Roles, id.Roles) && Matches(gate.Groups, id.Groups)
-               && Matches(gate.Scopes, id.Scopes) && Matches(gate.Permissions, id.Permissions);
+    internal static bool Authorized(IdentityGatedAttribute? gate) =>
+        gate is null || Satisfies(gate.Roles, gate.Groups, gate.Scopes, gate.Permissions, IdentitySource.Value?.Invoke());
 
-        static bool Matches(string[] declared, IReadOnlyList<string>? held) =>
-            declared.Length == 0 || (held is not null && declared.Any(held.Contains));
+    /// <summary>Whether the caller satisfies an <see cref="Access"/> authored as data (YAML
+    /// <c>access:</c> / <c>eyesOnly:</c> / <c>readOnlyUnless:</c> / <c>disabledUnless:</c>) — the SAME
+    /// predicate as the attributes: one rule, two spellings.</summary>
+    internal static bool Authorized(Access? access) =>
+        access is null || Satisfies(access.RolesOrEmpty, access.GroupsOrEmpty, access.ScopesOrEmpty,
+            access.PermissionsOrEmpty, IdentitySource.Value?.Invoke());
+
+    /// <summary>The identity predicate shared by every gate: AND across declared dimensions, OR
+    /// within each; nothing declared → true; no identity → false.</summary>
+    internal static bool Satisfies(IReadOnlyList<string> roles, IReadOnlyList<string> groups,
+        IReadOnlyList<string> scopes, IReadOnlyList<string> permissions, Identity? id)
+    {
+        if (roles.Count + groups.Count + scopes.Count + permissions.Count == 0) return true;
+        if (id is null) return false;
+        return Matches(roles, id.Roles) && Matches(groups, id.Groups)
+               && Matches(scopes, id.Scopes) && Matches(permissions, id.Permissions);
+
+        static bool Matches(IReadOnlyList<string> declared, IReadOnlyList<string>? held) =>
+            declared.Count == 0 || (held is not null && declared.Any(held.Contains));
     }
 
     /// <summary>Whether the wire may WRITE this property: an [EyesOnly] field the caller cannot see
@@ -138,7 +149,7 @@ internal static class ActionGuard
             Deny($"view {type.FullName} denied by class-level [EyesOnly]");
     }
 
-    private static void Deny(string what)
+    internal static void Deny(string what)
     {
         Console.Error.WriteLine($"[mateu] security: {what} — the request was rejected (403)");
         throw new MateuForbiddenException($"Forbidden: {what}");

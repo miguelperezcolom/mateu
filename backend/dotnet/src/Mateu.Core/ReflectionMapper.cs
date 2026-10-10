@@ -15,18 +15,8 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
     /// <summary>Whether the caller passes <paramref name="gate"/> (mirrors Java's Authorizer):
     /// AND across declared dimensions, OR within each; nothing declared → unrestricted; no
     /// identity → unauthorized.</summary>
-    private bool Authorized(IdentityGatedAttribute? gate)
-    {
-        if (gate is null) return true;
-        if (gate.Roles.Length + gate.Groups.Length + gate.Scopes.Length + gate.Permissions.Length == 0)
-            return true;
-        if (identity?.Invoke() is not { } id) return false;
-        return Matches(gate.Roles, id.Roles) && Matches(gate.Groups, id.Groups)
-               && Matches(gate.Scopes, id.Scopes) && Matches(gate.Permissions, id.Permissions);
-
-        static bool Matches(string[] declared, IReadOnlyList<string>? held) =>
-            declared.Length == 0 || (held is not null && declared.Any(held.Contains));
-    }
+    private bool Authorized(IdentityGatedAttribute? gate) =>
+        gate is null || ActionGuard.Satisfies(gate.Roles, gate.Groups, gate.Scopes, gate.Permissions, identity?.Invoke());
 
     /// <summary>[Compact] high-density style — the exact CSS-var payload Java's StyleConstants.COMPACT
     /// carries (tighter form/card spacing + Lumo sizes), ending with the --mateu-compact:1 marker.</summary>

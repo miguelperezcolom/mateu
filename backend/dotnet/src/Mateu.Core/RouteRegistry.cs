@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Mateu.Dtos;
 using YamlDotNet.Serialization;
+using Access = Mateu.Uidl.Access;
 
 namespace Mateu.Core;
 
@@ -33,6 +34,9 @@ namespace Mateu.Core;
 /// is no literal data channel, data is always sourced. Resolved when the route loads.</param>
 /// <param name="AppData">The route's app data, a reference to a named data source resolved once at
 /// app scope (shared across routes).</param>
+/// <param name="Access">Who may reach this route (<c>access:</c> in routes.yaml): a caller who does
+/// not satisfy it gets 403 for the route and every route nested under it — the same as a
+/// class-level [EyesOnly] view. Null = anybody. (Mirrors Java's RouteEntry.access.)</param>
 public sealed record RouteEntry(
     string Route,
     string? Definition,
@@ -44,8 +48,13 @@ public sealed record RouteEntry(
     IReadOnlyDictionary<string, object?>? State = null,
     IReadOnlyDictionary<string, object?>? AppState = null,
     RestDataSourceDto? Data = null,
-    RestDataSourceDto? AppData = null)
+    RestDataSourceDto? AppData = null,
+    Access? Access = null)
 {
+    /// <summary>Whether this route declares an identity restriction (<c>access:</c>): a caller who
+    /// does not satisfy it is refused this route and every route nested under it (403).</summary>
+    public bool RestrictsAccess() => Access is { } a && a.Restricts();
+
     public static RouteEntry Of(string route, string? viewModel) =>
         new(route, null, viewModel, EmptyParams, EmptyParams);
 
@@ -229,6 +238,40 @@ public sealed class RouteRegistry
 
     public RouteMatch? Match(string? path) => Authored().Match(path);
 
+    /// <summary>The authored entry whose <c>access:</c> refuses <paramref name="path"/> to a caller
+    /// for whom <paramref name="granted"/> says no, or null when it is reachable. The deepest entry
+    /// answering the path or a prefix of it (a crud's <c>/new</c> is still that crud's route) and
+    /// all its <c>Parent</c> ancestors must be granted; the root entry only guards the root path.
+    /// (Mirrors Java's RouteRegistry.refusingEntry.)</summary>
+    public RouteEntry? RefusingEntry(string? path, Func<Access?, bool> granted)
+    {
+        var table = Authored();
+        if (!table.Routes.Any(r => r.RestrictsAccess())) return null;
+        var p = path ?? "";
+        var q = p.IndexOf('?');
+        if (q >= 0) p = p[..q];
+        var normalized = Normalize(p);
+        var segments = normalized.Length == 0 ? [] : normalized.Split('/');
+        for (var n = segments.Length; n >= (segments.Length == 0 ? 0 : 1); n--)
+        {
+            var prefix = string.Join('/', segments.Take(n));
+            if (table.Match(prefix) is not { } match) continue;
+            var entry = match.Entry;
+            for (var guard = 0; entry is not null && guard < 32; guard++)
+            {
+                if (entry.Access is { } access && !granted(access)) return entry;
+                entry = entry.HasParent()
+                    ? table.Routes.FirstOrDefault(r => Normalize(r.Route) == Normalize(entry.Parent))
+                    : null;
+            }
+            return null; // the deepest answering entry decides
+        }
+        return null;
+    }
+
+    /// <summary>Whether a caller may reach <paramref name="path"/> (see <see cref="RefusingEntry"/>).</summary>
+    public bool IsReachable(string? path, Func<Access?, bool> granted) => RefusingEntry(path, granted) is null;
+
     /// <summary>An app a deployment contributes: a mount root, with the class that backs it (null for
     /// a purely-DSL app) and the definition it renders (null for a class-based app). (Mirrors Java's
     /// RouteRegistry.AppRef and Python's AppRef.)</summary>
@@ -408,7 +451,8 @@ public sealed class RouteRegistry
             Params(node, "state", "state"),
             Params(node, "appState", "app_state"),
             DataSourceOf(node, "data"),
-            DataSourceOf(node, "appData", "app_data")));
+            DataSourceOf(node, "appData", "app_data"),
+            YamlAccess.AccessOf(node.TryGetValue("access", out var access) ? access : null)));
         if (node.TryGetValue("children", out var raw) && raw is IEnumerable<object> children)
             foreach (var child in children)
                 if (child is IDictionary<object, object> childNode)

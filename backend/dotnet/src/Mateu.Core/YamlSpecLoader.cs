@@ -25,6 +25,18 @@ public sealed class YamlSpecLoader
     public sealed record Spec(string? ModelView, IComponent? Layout)
     {
         public LayoutDelta Delta { get; init; } = LayoutDelta.Empty;
+
+        /// <summary>The deserialised source tree, kept only when the spec depends on WHO asks
+        /// (access keys) or in which LANGUAGE (<c>${i18n.…}</c>) — it is re-derived per request.</summary>
+        public object? Source { get; init; }
+
+        /// <summary>Ids of declared <c>actions:</c> the caller may not run (403 if invoked).</summary>
+        public IReadOnlySet<string> RefusedActions { get; init; } = new HashSet<string>();
+
+        /// <summary>Ids of fields hidden or read-only for the caller: their client values are dropped.</summary>
+        public IReadOnlySet<string> LockedFields { get; init; } = new HashSet<string>();
+
+        public bool DependsOnRequest => Source is not null;
     }
 
     private static readonly Spec None = new(null, null);
@@ -40,12 +52,50 @@ public sealed class YamlSpecLoader
     /// definition can reuse a piece rather than repeat it.</summary>
     private readonly PartialRegistry _partials;
 
-    public YamlSpecLoader(string? dir = null, RouteRegistry? registry = null, PartialRegistry? partials = null)
+    /// <summary>The catalogue <c>${i18n.…}</c> expressions resolve against.</summary>
+    private readonly TranslationRegistry _translations;
+
+    public YamlSpecLoader(string? dir = null, RouteRegistry? registry = null, PartialRegistry? partials = null,
+        TranslationRegistry? translations = null)
     {
         _dir = dir ?? Environment.GetEnvironmentVariable("MATEU_SPECS_DIR")
                    ?? Path.Combine("specs", "ui");
         _registry = registry ?? new RouteRegistry(_dir);
         _partials = partials ?? new PartialRegistry(_dir);
+        _translations = translations ?? new TranslationRegistry(dir: _dir);
+    }
+
+    /// <summary>The route registry this loader resolves definitions through.</summary>
+    public RouteRegistry Routes => _registry;
+
+    /// <summary>The spec for a route AS THIS REQUEST SEES IT: one that declares access keys or
+    /// <c>${i18n.…}</c> is re-derived from its source for the caller (<paramref name="granted"/>)
+    /// and <paramref name="locale"/> — on the server, so the wire already carries what this caller
+    /// may see, in their language. (Mirrors Java's YamlUidlLoader.loadSpec(route, httpRequest).)</summary>
+    public Spec? LoadSpec(string? route, Func<Access?, bool> granted, string? locale)
+    {
+        var spec = LoadSpec(route);
+        if (spec is not { DependsOnRequest: true }) return spec;
+        try
+        {
+            var tree = spec.Source;
+            IReadOnlySet<string> refused = new HashSet<string>(), locked = new HashSet<string>();
+            if (YamlAccess.DeclaresAccess(tree))
+            {
+                var applied = YamlAccess.Apply(tree, granted, path => _registry.IsReachable(path, granted));
+                (tree, refused, locked) = (applied.Tree, applied.RefusedActions, applied.LockedFields);
+            }
+            else tree = YamlAccess.DeepCopy(tree);
+            if (tree is null) return null;
+            tree = _translations.TranslateTree(tree, locale);
+            var (_, layout, delta) = YamlComponentBuilder.ParsePageNode(tree, _partials);
+            return spec with { Layout = layout, Delta = delta, Source = null, RefusedActions = refused, LockedFields = locked };
+        }
+        catch (Exception e)
+        {
+            MateuLogging.For("Mateu.Yaml").LogWarning(e, "Failed to personalise the YAML spec for {Route}: {Error}", route, e.Message);
+            return spec;
+        }
     }
 
     /// <summary>The partial registry this loader resolves refs against. Tests register in code.</summary>
@@ -66,14 +116,18 @@ public sealed class YamlSpecLoader
         if (!File.Exists(path)) return None;
         try
         {
-            var (modelView, layout, delta) = YamlComponentBuilder.ParsePage(File.ReadAllText(path), _partials);
+            var root = YamlComponentBuilder.Deserialize(File.ReadAllText(path));
+            var (modelView, layout, delta) = YamlComponentBuilder.ParsePageNode(root, _partials);
             if (layout is null && delta.IsEmpty) return None;
+            // A spec that depends on who asks or in which language keeps its source tree, so it can
+            // be re-derived per request; everything else is shared as-is.
+            var dependsOnRequest = YamlAccess.DeclaresAccess(root) || TranslationRegistry.MentionsI18n(root);
             // The definition is layout; the binding to a view model belongs to the route entry. A
             // YAML that still declares modelView: keeps working and wins — but a definition shared
             // by several routes must NOT name one, or it could only ever serve the class it names.
             if (string.IsNullOrWhiteSpace(modelView) && !string.IsNullOrWhiteSpace(entry?.ViewModel))
                 modelView = entry!.ViewModel;
-            return new Spec(modelView, layout) { Delta = delta };
+            return new Spec(modelView, layout) { Delta = delta, Source = dependsOnRequest ? root : null };
         }
         catch (Exception e)
         {

@@ -28,6 +28,12 @@ public sealed class MateuOptions
 
     /// <summary>The client proxied REST fetches use (null → a shared client with a 60 s timeout).</summary>
     public HttpClient? HttpClient { get; set; }
+
+    /// <summary>The deployment environment whose <c>type: Environment</c> file is overlaid on the REST
+    /// source catalogue (re-pointing base urls / urls / headers / proxy without editing
+    /// sources.yaml). Null (the default) reads MATEU_ENVIRONMENT; none → the catalogue as authored.
+    /// Never put a secret in an environment file — use <c>${secret.X}</c>.</summary>
+    public string? Environment { get; set; }
 }
 
 /// <summary>The default claims → <see cref="Identity"/> mapping. Claim names vary by issuer, so

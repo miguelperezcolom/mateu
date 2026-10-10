@@ -30,10 +30,14 @@ public sealed class RestSourceRegistry
 
     /// <param name="registry">Where the registered classes and the supplier assemblies come from.</param>
     /// <param name="dir">The specs directory (default: MATEU_SPECS_DIR, else specs/ui).</param>
-    public RestSourceRegistry(MateuRegistry registry, string? dir = null)
+    /// <param name="environment">The deployment environment whose overrides are overlaid on the
+    /// merged catalogue (default: MATEU_ENVIRONMENT; none → as authored). See <see cref="Environments"/>.</param>
+    public RestSourceRegistry(MateuRegistry registry, string? dir = null, string? environment = null)
     {
         var specs = dir ?? Environment.GetEnvironmentVariable("MATEU_SPECS_DIR") ?? Path.Combine("specs", "ui");
-        _load = () => AuthoredFrom(specs).MergedOver(DerivedFrom(registry.RegisteredTypes, registry.ScannedTypes));
+        _load = () => Environments.OverlayActive(
+            AuthoredFrom(specs).MergedOver(DerivedFrom(registry.RegisteredTypes, registry.ScannedTypes)),
+            specs, environment);
     }
 
     /// <summary>A registry over a fixed catalogue (tests, hosts that build it themselves).</summary>
