@@ -52,6 +52,16 @@ the packaged copy (e.g. running from source before `npm run stage`), point a `$s
 The extension activates only in workspaces containing `specs/ui/**/*.yaml|yml` files, or when the
 Mateu visual editor is opened.
 
+## New project (Mateu: New Project…)
+
+Quick picks for the authoring flavour (code, YAML served by a backend, static YAML, code + YAML),
+the runtime, renderer, sample and page templates, then the coordinates and a folder; the project is
+written and opened. The generator (`src/newProject.ts`, unit-tested) applies the repository's
+starters and `starters/generator/new-project.json` — staged into `starters/` at packaging — exactly
+like the IntelliJ wizard (`MateuProjectGenerator.kt`); the shared cases in
+`starters/generator/cases.json` keep the two engines identical. `scripts/new-project.mjs` is the
+same generator on the command line (CI uses it).
+
 ## New file (Mateu: New File…)
 
 Right-click a folder in the Explorer (or run **Mateu: New File…** from the command palette) to create

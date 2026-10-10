@@ -448,6 +448,27 @@ Nine work streams were integrated on `integration/ga` for the first beta/GA. The
   servlet context path (`server.servlet.context-path`) is UNSUPPORTED (the page loads `/assets` from the
   host root). CHANGELOG.md, CONTRIBUTING.md (DCO), SECURITY.md (GitHub advisories) exist.
 
+## New Mateu project — one generator, three front doors (2026-10-10)
+
+IntelliJ **File › New › Project › Mateu** (`io.mateu.ijp.newproject`), VS Code **Mateu: New
+Project…** (`src/newProject.ts` + `NewProjectCommand.ts`; `scripts/new-project.mjs` is the CLI CI
+uses) and the **`io.mateu:mateu-archetype`** (`backend/mateu-archetype`, last reactor module) all
+generate FROM THE STARTERS — never from a hand-kept template. `starters/generator/new-project.json`
+is the single description: authoring flavour (`code` | `yaml` = no UI code, served by Spring Boot |
+`static` = specs-only bundle, no backend | `both`), the runtimes each is offered on, renderers,
+samples, overlays (`starters/generator/overlays/`), replacements, and `incompatible` combinations
+(each verified to fail at runtime — Redwood + an AutoCrud at the root; `both` is not offered on
+Micronaut/Helidon, which do not resolve a view model bound only in routes.yaml). Two engines apply it
+(Kotlin `MateuProjectGenerator`, TS `newProject.ts`), kept identical by `starters/generator/cases.json`
+plus a byte-for-byte comparison in `MateuProjectGeneratorTest` when node + the compiled extension are
+present; the archetype's `archetype-post-generate.groovy` applies the same replacements (Spring Boot
+flavours only; its Groovy needs a JDK ≤ 25 to RUN Maven). The IntelliJ plugin bundles the starters via
+the `copyStarters` Gradle task (+ `index.txt`); the .vsix stages them in `prepackage.mjs`. The common
+overlay's `gitignore` is renamed to `.gitignore` at generation (packagers drop dotted ignore files).
+Every starter ships `AGENTS.md` + a `CLAUDE.md` that imports it (`@AGENTS.md`); `yaml`/`static` share
+byte-identical `specs/ui` (pinned by a test). A starter change flows to all three front doors — keep
+`cases.json` green. Version = latest `io.mateu:mateu-bom` on Maven Central, fallback the starters' pin.
+
 ## Backend testing (core integration harness)
 
 `backend/shared/core/src/test/.../testutil/TestMateu.java` boots the ENTIRE core bean graph in-JVM (Spring test context understands the framework's jakarta.inject annotations), registers fixture classes exactly like the annotation processor's generated `RoutedClassProvider`s, provides the platform beans adapters normally contribute (BeanProvider→MateuBeanProvider, ObjectMapper, "baseUrl" request attribute; extra beans via `withUisAndBeans`, e.g. fake Excel/Pdf exporters), and calls the same `MateuService` entry point the generated controllers call. One `mateu.sync("/route")` exercises route resolution → instance creation → reflective mapping → wire DTOs; `mateu.run(RunActionRqDto...)` drives any action. Feature suites live in `core/src/test/.../application/*SyncTest.java` (fields, layout, app/menu, crud lifecycle, wizards, archetypes, actions/commands/triggers, editable grid fields, validation, nested state). Wire-shape gotchas the suites document: fragment state lives on UIFragmentDto (not the component); grid columns nest inside CrudlDto metadata; Card title/content and form fields nest inside METADATA records (walkers must descend reflectively); AccordionLayoutDto.panels is empty on the wire (panels are children); filtered/sorted listing rows come back as maps; in-JVM the search Data still carries the typed ListingData. Coverage: plain `mvn verify` on backend/shared/core now runs JaCoCo end to end (agent → report at `target/site/jacoco/` → **check gate**: BUNDLE line coverage ≥ `${jacoco.min.bundle.coverage}`, set to 70% in core's pom — ratchet it up as suites grow; other modules default to 0%). Core's surefire argLine composes via `@{argLine}` — don't overwrite it or JaCoCo silently records nothing. **Exclusions** (backend/pom.xml jacoco config): `DefaultMateuHttpClient` and `RemoteMenuHandler` — thin wrappers over live HTTP that cannot run in-JVM (federated menus are fetched by the frontend in normal operation); they're exercised by the e2e suites. Repo-root `lombok.config` sets `addLombokGeneratedAnnotation` so lombok-generated members don't count. Line coverage as of 2026-07-05: 77.8% measured / gate at 75% (was 11%). The residual to 80% is dominated by catch/defensive branches and sub-20-line variant tails across mappers/converters — ratchet the gate as suites grow rather than writing noise tests against exception handlers.
