@@ -584,12 +584,15 @@ public record MatrixRowDto(string? Id, string? Label, IReadOnlyList<MatrixCellDt
 public record MatrixCellDto(string Value, string? Tone, bool Link);
 
 /// <summary>Street map: centre ("lat, lon"), zoom, markers and the action a marker click runs
-/// (with { _markerId }) — mirrors Java's MapDto.</summary>
+/// (with { _markerId }) and, optionally, the tile provider (TileUrl template + Attribution; null =
+/// OpenStreetMap) — mirrors Java's MapDto.</summary>
 public record MapMetadataDto(
     string? Position,
     string? Zoom,
     IReadOnlyList<MapMarkerDto> Markers,
-    string? MarkerActionId) : ComponentMetadataDto;
+    string? MarkerActionId,
+    string? TileUrl = null,
+    string? Attribution = null) : ComponentMetadataDto;
 
 /// <summary>One point on a map (mirrors Java's MapMarkerDto).</summary>
 public record MapMarkerDto(

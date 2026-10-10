@@ -166,7 +166,9 @@ public static class ComponentMapper
             m.Zoom,
             (m.Markers ?? []).Select(k => new MapMarkerDto(
                 k.Id, k.Latitude, k.Longitude, k.Label, k.Description, k.Color)).ToList(),
-            m.MarkerActionId)),
+            m.MarkerActionId,
+            m.TileUrl,
+            m.Attribution)),
 
         DropZone dz => Dto(dz, new DropZoneMetadataDto(dz.Accept, dz.ActionId, dz.Parameters, dz.Title, dz.Subtitle),
             dz.Content.Select(Map)),
