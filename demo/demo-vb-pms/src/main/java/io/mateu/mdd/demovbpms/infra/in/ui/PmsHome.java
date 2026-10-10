@@ -1,6 +1,7 @@
 package io.mateu.mdd.demovbpms.infra.in.ui;
 
 import io.mateu.mdd.demovbpms.infra.in.ui.financials.FinancialsMenu;
+import io.mateu.mdd.demovbpms.infra.in.ui.frontdesk.FrontDeskMenu;
 import io.mateu.mdd.demovbpms.infra.in.ui.inventory.InventoryMenu;
 import io.mateu.uidl.annotations.App;
 import io.mateu.uidl.annotations.Menu;
@@ -17,6 +18,8 @@ import io.mateu.uidl.fluent.AppVariant;
 @Title("OPERA PMS · demo")
 @App(AppVariant.HAMBURGER_SECTIONS)
 public class PmsHome {
+
+  @Menu FrontDeskMenu frontDesk;
 
   @Menu InventoryMenu inventory;
 

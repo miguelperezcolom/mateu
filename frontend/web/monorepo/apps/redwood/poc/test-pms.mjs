@@ -8,7 +8,7 @@ import assert from 'node:assert/strict'
 import { readFileSync, existsSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, HOST_ID } from './reduceContexts.mjs'
+import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, entityHeaderOf, taskQueueOf, HOST_ID } from './reduceContexts.mjs'
 import { localMenuOptionOf, isSentinelHome } from './navTree.mjs'
 import { loadMenuRouteInto, terminalMenuRouteOf } from './transport.mjs'
 import { fileDownloadOf, triggerDownload, applyDomEffects } from './files.mjs'
@@ -234,6 +234,35 @@ atest('loadMenuRouteInto: compuesta + SST del app; un RouteLink de grupo cae a s
     assert.equal(b.contexts[HOST_ID].tree.serverSideType, 'app.Island')
     assert.deepEqual(sent.map((x) => [x.route, x.sst]), [['/gestion/island-host', 'app.Home'], ['/island-host', undefined]])
   } finally { globalThis.fetch = original }
+})
+
+// ── P0 #9: consola / maestro-detalle ─────────────────────────────────────────────────────────
+
+test('MasterDetailLayout real (consola de la operadora): lista 5/12 a la izquierda, ficha 7/12 a la derecha', () => {
+  const reg = reduceContexts(empty(), fixture('telephone-console'))
+  const host = reg.contexts[HOST_ID]
+  // ni la cola es el «modo cola» de página, ni la ficha del elegido es la cabecera de la página
+  assert.equal(taskQueueOf(host.tree), null)
+  assert.equal(entityHeaderOf(host), null)
+  const blocks = hostContentOf(host, null, {})
+  assert.equal(blocks.length, 2)
+  assert.match(blocks[0].colClass, /oj-md-5 .*mateu-split-pane/)
+  assert.match(blocks[1].colClass, /oj-md-7 .*mateu-split-pane/)
+  const queue = blocks[0].items.find((a) => a.isQueue)
+  const card = queue.groups[0].items[0]
+  assert.equal(card.actionId, 'selectGuest')
+  assert.deepEqual(card.parameters, { _item: card.id })
+  assert.equal(queue.groups[0].items.filter((i) => i.selected).length, 1)
+  assert.ok(blocks[1].items.some((a) => a.isEntityHeader))
+  assert.equal(hostContentShown(blocks, summarizeHost(reg)), true)
+})
+
+test('SplitLayout vertical o anidado: se proyecta en su sitio, sin columnas', () => {
+  const pane = (text) => node({ type: 'Text', text })
+  const atoms = atomsOf(node({ type: 'Page' }, [
+    node({ type: 'SplitLayout', orientation: 'vertical' }, [pane('arriba'), pane('abajo')]),
+  ]))
+  assert.deepEqual(atoms.filter((a) => a.isText).map((a) => a.text), ['arriba', 'abajo'])
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

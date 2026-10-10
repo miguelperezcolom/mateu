@@ -8,6 +8,41 @@
                     <oj-bind-if test="[[ $current.data.isAnchor ]]">
                       <div class="oj-sm-margin-1x-bottom oj-typography-body-md"><a :href="[[ $current.data.href ]]" :target="[[ $current.data.target ]]" :rel="[[ $current.data.rel ]]"><oj-bind-text value="[[ $current.data.text ]]"></oj-bind-text></a></div>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isQueue ]]">
+                      <div class="mateu-atom-queue">
+                      <oj-bind-for-each data="[[ $current.data.groups ]]">
+                        <template>
+                          <div class="oj-typography-subheading-xs oj-sm-margin-2x-vertical"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></div>
+                          <oj-bind-for-each data="[[ $current.data.items ]]">
+                            <template>
+                              <oj-action-card :class="[[ $current.data.cardClass ]]" style="width:100%"
+                                :data-item-id="[[ $current.data.id ]]"
+                                on-oj-action="[[ $listeners.{{blockAction}} ]]">
+                                <div class="oj-sm-padding-3x">
+                                  <div class="oj-typography-body-md oj-typography-bold"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+                                  <div class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-1x-bottom"><oj-bind-text value="[[ $current.data.caption ]]"></oj-bind-text></div>
+                                  <oj-bind-for-each data="[[ $current.data.badges ]]">
+                                    <template>
+                                      <span class="oj-sm-margin-1x-end" :class="[[ $current.data.badgeClass ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></span>
+                                    </template>
+                                  </oj-bind-for-each>
+                                </div>
+                              </oj-action-card>
+                              <oj-bind-for-each data="[[ $current.data.lineActions ]]">
+                                <template>
+                                  <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-margin-2x-bottom">
+                                    <oj-button class="oj-button-sm" chroming="outlined"
+                                      :data-action-id="[[ $current.data.actionId ]]"
+                                      on-oj-action="[[ $listeners.{{blockAction}} ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                            </template>
+                          </oj-bind-for-each>
+                        </template>
+                      </oj-bind-for-each>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isProgress ]]">
                       <oj-train class="oj-sm-margin-4x-bottom" steps="[[ $current.data.steps ]]" selected-step="[[ $current.data.selectedId ]]"></oj-train>
                     </oj-bind-if>

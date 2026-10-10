@@ -514,7 +514,7 @@ export const RICH_ATOM_FLAGS = [
   'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
   // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
   // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
-  'isAnchor',
+  'isAnchor', 'isQueue',
 ]
 export function isRichAtom(a) {
   return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -1024,9 +1024,15 @@ const BADGE_CLASSES = {
  *  (contrato del renderer web compartido: mateu-task-queue.ts). Los datos viajan
  *  INLINE en la metadata — no hay eje data ni triggers. */
 export function taskQueueOf(tree) {
-  const node = findByType(tree, 'TaskQueue')
+  // una cola DENTRO de un panel de consola es la lista de esa consola (átomo isQueue del
+  // dispatcher), no el modo «cola de trabajo + isla» de página completa
+  const node = findOutsidePanes(tree, 'TaskQueue')
   if (!node) return null
-  const md = node.metadata
+  return queueProjectionOf(node.metadata)
+}
+
+/** Los grupos de tarjetas de una TaskQueue, listos para pintar (modo página y átomo isQueue). */
+export function queueProjectionOf(md) {
   return {
     actionId: md.actionId,
     groups: (md.groups || []).map((group) => ({
@@ -1197,6 +1203,30 @@ export function islandContentOf(ctx, opts = {}) {
     for (const child of kidsOf(node)) collectButtons(child, out)
     return out
   }
+  // Proyecta hijos como BLOQUES-COLUMNA de la rejilla oj-flex (colClass oj-md-(NN→doceavos)): las
+  // zonas de @Zones y los dos paneles de un maestro-detalle. Si una columna genera varios bloques
+  // se FUSIONAN en uno (un flex no puede apilar dos items en la misma celda de fila).
+  const projectColumns = (children, percents, extraClass) => {
+    children.forEach((child, i) => {
+      const col = Math.min(11, Math.max(1, Math.round(percents[i] * 12 / 100)))
+      // las cssClasses del wire de la COLUMNA viajan al bloque (p.ej. la banda
+      // neutra de la info secundaria del general overview: oj-panel + oj-bg-*)
+      const colClass = 'oj-flex-item oj-sm-12 oj-md-' + col + ' oj-sm-padding-4x-end'
+        + (extraClass ? ' ' + extraClass : '')
+        + (child.cssClasses ? ' ' + child.cssClasses : '')
+      const before = blocks.length
+      plain = null
+      visit(child, null)
+      plain = null
+      const created = blocks.splice(before)
+      if (created.length === 1) {
+        created[0].colClass = colClass
+        blocks.push(created[0])
+      } else if (created.length > 1) {
+        blocks.push({ isPlain: true, colClass, items: created.flatMap((b) => b.items) })
+      }
+    })
+  }
   const visit = (node, container) => {
     if (!node || typeof node !== 'object') return
     // @Subresource: el listado embebido es OTRA superficie (su ServerSide). Deja un hueco que
@@ -1217,27 +1247,23 @@ export function islandContentOf(ctx, opts = {}) {
       const zoneMatches = (node.children || []).map(
         (ch) => String(ch.style || '').match(/flex:\s*1 1 calc\((\d+(?:\.\d+)?)%/))
       if (zoneMatches.length >= 2 && zoneMatches.every(Boolean)) {
-        node.children.forEach((zoneChild, i) => {
-          const pct = parseFloat(zoneMatches[i][1])
-          const col = Math.min(11, Math.max(1, Math.round(pct * 12 / 100)))
-          // las cssClasses del wire de la COLUMNA viajan al bloque (p.ej. la banda
-          // neutra de la info secundaria del general overview: oj-panel + oj-bg-*)
-          const colClass = 'oj-flex-item oj-sm-12 oj-md-' + col + ' oj-sm-padding-4x-end'
-            + (zoneChild.cssClasses ? ' ' + zoneChild.cssClasses : '')
-          const before = blocks.length
-          plain = null
-          visit(zoneChild, null)
-          plain = null
-          const created = blocks.splice(before)
-          if (created.length === 1) {
-            created[0].colClass = colClass
-            blocks.push(created[0])
-          } else if (created.length > 1) {
-            blocks.push({ isPlain: true, colClass, items: created.flatMap((b) => b.items) })
-          }
-        })
+        projectColumns(node.children, node.children.map((_, i) => parseFloat(zoneMatches[i][1])))
         return
       }
+    }
+    // CONSOLA / MAESTRO-DETALLE (MasterDetailLayout, SplitLayout): children = [maestro, detalle].
+    // Misma proyección que las zonas: dos bloques-columna de la rejilla oj-flex (lista a la
+    // izquierda, detalle a la derecha, 5/12 + 7/12), que bajo md se apilan — como la vista
+    // Console de OPERA. Vertical (SplitLayout orientation vertical) → uno debajo del otro. Dentro
+    // de otro bloque no hay columnas que repartir: se proyecta en su sitio, en orden.
+    if ((t === 'MasterDetailLayout' || t === 'SplitLayout') && !container) {
+      const kids = (node.children || []).filter(Boolean)
+      if (kids.length >= 2 && String(m.orientation || '').toLowerCase() !== 'vertical') {
+        projectColumns(kids.slice(0, 2), [41.7, 58.3], 'mateu-split-pane')
+        return
+      }
+      for (const kid of kids) visit(kid, container)
+      return
     }
     if (t === 'App') {
       // isla ANIDADA (p.ej. el documento del check-in): marcador de posición — el
@@ -1513,6 +1539,26 @@ export function islandContentOf(ctx, opts = {}) {
           rel: target === '_blank' ? 'noopener noreferrer' : '',
         }, container)
       }
+      return
+    }
+    // COLA como pieza de contenido (la lista de una consola maestro-detalle): las mismas tarjetas
+    // oj-action-card del modo cola; cada una lleva su acción (la de la cola, con {_item}) para
+    // que el despachador genérico de bloques la ejecute, y la opción de línea va DEBAJO de la
+    // tarjeta (dentro, su clic sería también el de la tarjeta)
+    if (t === 'TaskQueue') {
+      const q = queueProjectionOf(m)
+      atom({
+        isQueue: true,
+        groups: q.groups.map((g) => ({
+          label: g.label,
+          items: g.items.map((it) => ({
+            ...it,
+            actionId: q.actionId,
+            parameters: { _item: it.id },
+            lineActions: it.hasAction ? [{ actionId: it.actionId, label: it.actionLabel, parameters: it.parameters }] : [],
+          })),
+        })),
+      }, container)
       return
     }
     if (t === 'ProgressSteps') {
@@ -1984,8 +2030,33 @@ export function wizardForwardOf(ctx) {
 /** El EntityHeader del host (p.ej. el huésped de la Reserva 360) proyectado al HEADER de
  *  pantalla: título = el nombre, subtítulo = subtitle + badges, facts (+métrica) →
  *  contextualInfo del oj-sp-header-general-overview. */
+// Paneles cuyo contenido es de UN elemento de una colección (el detalle de una consola): un
+// EntityHeader ahí dentro es la ficha del elegido, no la entidad de la PÁGINA — subirlo a la
+// cabecera vaciaba el panel de detalle y ponía el nombre del huésped como título de la pantalla.
+const PANE_TYPES = { MasterDetailLayout: true, SplitLayout: true }
+function pageEntityHeaderNode(tree) {
+  return findOutsidePanes(tree, 'EntityHeader')
+}
+/** findByType, pero sin entrar en los paneles de una consola (MasterDetailLayout/SplitLayout): lo
+ *  que hay dentro es contenido de un panel, no una pieza de la PÁGINA (su cabecera, su cola). */
+export function findOutsidePanes(tree, type) {
+  let found = null
+  const walk = (n) => {
+    if (found || !n || typeof n !== 'object') return
+    const t = n.metadata && n.metadata.type
+    if (t === type) { found = n; return }
+    if (t && PANE_TYPES[t]) return
+    for (const c of n.children || []) walk(c)
+    const inner = n.metadata && n.metadata.content
+    if (Array.isArray(inner)) inner.forEach(walk)
+    else if (inner && typeof inner === 'object') walk(inner)
+  }
+  walk(tree)
+  return found
+}
+
 export function entityHeaderOf(ctx) {
-  const node = ctx && ctx.tree ? findByType(ctx.tree, 'EntityHeader') : null
+  const node = ctx && ctx.tree ? pageEntityHeaderNode(ctx.tree) : null
   if (!node) return null
   const m = node.metadata
   const state = ctx.state || {}
