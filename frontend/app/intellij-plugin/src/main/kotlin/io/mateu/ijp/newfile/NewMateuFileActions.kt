@@ -58,6 +58,11 @@ class NewMateuFileAction(private val kind: MateuNewFiles.FileKind) :
 
     override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
 
+    override fun update(e: AnActionEvent) {
+        // the project descriptor is one per project: offered only while there is none
+        e.presentation.isEnabledAndVisible = !kind.singleton || e.project?.let { !ProjectRenderer.hasDescriptor(it) } ?: false
+    }
+
     override fun actionPerformed(e: AnActionEvent) {
         val project = e.project ?: return
         val view = e.getData(LangDataKeys.IDE_VIEW) ?: return

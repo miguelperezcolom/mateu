@@ -12,6 +12,8 @@ import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.ui.layout.selectedValueIs
 import io.mateu.ijp.auth.MateuAuthService
+import io.mateu.ijp.newfile.ProjectDescriptor
+import io.mateu.ijp.newfile.ProjectRenderer
 import io.mateu.ijp.plugin.MateuSettings.AuthMode
 import javax.swing.JComboBox
 
@@ -39,11 +41,28 @@ class MateuConfigurable(private val project: Project) :
     }
     private lateinit var authCombo: JComboBox<AuthMode>
 
+    /**
+     * The renderer as on screen. Not a persisted setting: specs/ui/project.yaml is the truth — it is
+     * read on [reset] and written on [apply].
+     */
+    private val rendererCombo = JComboBox(ProjectDescriptor.Renderer.entries.toTypedArray())
+    private var rendererOnDisk: ProjectDescriptor.Renderer = ProjectDescriptor.Renderer.VAADIN
+
     override fun createPanel(): DialogPanel = panel {
         val overrides = systemOverrides()
         if (overrides.isNotEmpty()) {
             row {
                 comment("Overridden by JVM system properties: ${overrides.joinToString { "-D$it" }}")
+            }
+        }
+        group("Project") {
+            row("Renderer:") {
+                cell(rendererCombo).comment(
+                    "Saved in <code>specs/ui/project.yaml</code> (<code>type: Project</code>), the project's truth: the visual " +
+                        "editor and Play open in it and the static bundle ships it. A served app renders with its Maven " +
+                        "dependency (${ProjectDescriptor.Renderer.entries.joinToString(" / ") { it.coordinates }}); " +
+                        "the server warns at startup when the two disagree.",
+                )
             }
         }
         group("Backend") {
@@ -98,17 +117,26 @@ class MateuConfigurable(private val project: Project) :
 
     override fun reset() {
         super.reset()
+        rendererOnDisk = ProjectRenderer.rendererOf(project)
+        rendererCombo.selectedItem = rendererOnDisk
         resetting = true
         tokenField.text = if (auth.isSignedIn() && settings.authMode == AuthMode.TOKEN) TOKEN_MASK else ""
         resetting = false
         tokenDirty = false
     }
 
-    override fun isModified(): Boolean = super.isModified() || tokenDirty
+    override fun isModified(): Boolean = super.isModified() || tokenDirty || selectedRenderer() != rendererOnDisk
+
+    private fun selectedRenderer() = rendererCombo.selectedItem as? ProjectDescriptor.Renderer ?: ProjectDescriptor.Renderer.VAADIN
 
     override fun apply() {
         val wasConfigured = loadMateuConfig(project).configured
         super.apply()
+        val renderer = selectedRenderer()
+        if (renderer != rendererOnDisk) {
+            ProjectRenderer.setRenderer(project, renderer)?.let { throw com.intellij.openapi.options.ConfigurationException(it) }
+            rendererOnDisk = renderer
+        }
         if (tokenDirty) {
             val typed = String(tokenField.password)
             if (typed != TOKEN_MASK) auth.setManualToken(typed)

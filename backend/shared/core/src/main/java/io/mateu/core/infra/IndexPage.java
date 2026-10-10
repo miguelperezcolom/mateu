@@ -68,6 +68,8 @@ public final class IndexPage {
 
   /** Reads {@code indexHtmlPath} off the classpath (relative to {@code anchor}) and renders it. */
   public static String render(Class<?> anchor, String indexHtmlPath, Spec spec) {
+    // Where the served renderer is resolved: warn (once) when it is not the project's declared one.
+    ProjectRendererCheck.warnOnce(Thread.currentThread().getContextClassLoader());
     return render(InputStreamReader.readFromClasspath(anchor, indexHtmlPath), spec);
   }
 

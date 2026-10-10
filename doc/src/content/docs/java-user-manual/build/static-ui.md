@@ -74,8 +74,39 @@ browser can expand (`AppShell`, `Listing`/`Crudl`, `Form`, the layouts, `Card`) 
 definition**, and the client-side expander turns it into the wire at runtime. Nothing is
 pre-rendered; edit a definition in `manifest.json`, refresh, see it.
 
-Either way the output is `target/mateu-bundle/`: `index.html`, `manifest.json`, `assets/` and a
-`_redirects` SPA fallback.
+Either way the output is `target/mateu-bundle/`: `index.html`, `manifest.json`, the renderer's
+static app (`assets/` for Vaadin, `_redwood/` for Redwood) and a `_redirects` SPA fallback.
+
+## Choosing the renderer
+
+The bundle ships the **project's renderer**, the one `specs/ui/project.yaml` names (see
+[project settings](/java-ui-definition/project-settings)). The goal chooses it in this order:
+
+1. `<renderer>vaadin|redwood</renderer>` (`-Dmateu.bundle.renderer`), when set;
+2. otherwise `renderer:` in `project.yaml`;
+3. otherwise the renderer jar on the app's classpath; otherwise Vaadin.
+
+The renderer's static app is copied straight out of its jar on the app's classpath
+(`io.mateu:vaadin-lit` or `io.mateu:redwood`; `<assetsFrom>` still overrides it with a folder). When
+both jars are present, the one that matches is used. When the chosen one is missing, the build fails
+and names the artifact to add.
+
+**A Redwood bundle** is the Oracle Visual Builder app of `io.mateu:redwood` (its `_redwood/` folder)
+booting from `manifest.json` with no backend. The menu, routes and deep links work through the
+`_redirects` fallback, and a route under an app shell paints its own screen inside the shell. Things to
+know:
+
+- **Everything is pre-rendered.** The Redwood renderer has no client-side expander, so
+  `<specsOnly>` is ignored for it, with a warning, and every route is rendered at build time.
+- **Oracle's CDN.** JET, the Spectra components and the Visual Builder runtime load from
+  `static.oracle.com` at run time, as in every Redwood app.
+- **Serve it at the root of its host.** Its assets are addressed from `/_redwood/`.
+
+**From the visual editor**, **Export** writes a `manifest.json` for the project's renderer. For a
+Redwood project it adds the pre-rendered entries the Redwood renderer reads. They are expanded in the
+browser with the same runtime as Play. Put the manifest next to the Redwood static app, whose
+`index.html` names it with `<mateu-ui bundleUrl="/manifest.json">`. Letting `mateu-bundle:bundle`
+write the whole site does that for you.
 
 ## The static-safety report
 
@@ -158,6 +189,6 @@ not yet do without a server, is on the roadmap:
 - **Editable forms in the expander** (S3) — the YAML path expands read-only record pages; editable
   forms with validators (and `layoutDelta`) are pre-rendered from Java only. Routed tabs (P1) and
   client i18n (`t()`, catalogues) too.
-- **Redwood** (S4) — its bundle mode reads pre-rendered entries only: no `contentJson`, raw
-  definitions, source catalogue or `restAction` yet.
+- **Redwood** (S4) — its bundle mode reads pre-rendered entries only (with `contentJson` under an
+  app shell): no raw definitions (specs mode), source catalogue or `restAction` yet.
 - **Auth** (S4) — no built-in OIDC/PKCE client; bring your own provider.

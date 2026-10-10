@@ -29,6 +29,7 @@ an explicit `type:` at its root, and the editor opens it in the matching mode:
 | **Routes** | `Routes` | Pure routing: each URL bound to a **definition** and an optional **view model**. | `routes` (table) |
 | **Page** | any component (e.g. `VerticalLayout`) | A component tree — the layout of one screen. | `page` (WYSIWYG canvas) |
 | **Partial** | a bare `content:` list | A reusable, rootless fragment inlined wherever a page names it. | `page` (canvas, "partial" chip) |
+| **Project** | `Project` | The project's settings — the renderer, chosen once ([project settings](/java-ui-definition/project-settings)). | `project` (form) |
 
 The editor picks the mode automatically from the file's `type:` — there are no tabs to switch. A
 `type: UI` file opens the mount form; `type: AppShell` opens the app form; a routes file opens the
@@ -220,10 +221,22 @@ view model, the editor saves the smallest thing that expresses your change — a
 your edits are a re-ordering/relabelling of the model's fields, a full **snapshot** only when the tree
 holds something a delta cannot.
 
+## The project's renderer
+
+The canvas paints with the **project's renderer**, the one `specs/ui/project.yaml` names
+(`renderer: vaadin | redwood`; Vaadin when the project has no descriptor, see
+[project settings](/java-ui-definition/project-settings)). The renderer selector in the toolbar
+marks the project's choice with **· project**. Picking another renderer there is a **peek** for this
+session: the toolbar shows **preview — project: …** next to it, and **↺** goes back. A peek never
+changes the file, and Play and Export keep using the project's renderer. To change the project's
+renderer, open `project.yaml`. The editor shows it as a small settings form, and choosing a renderer
+there rewrites only its `renderer:` line, so comments are kept. You can also use the IDE settings
+([IDE tooling](/native/ide-tooling#the-projects-renderer-projectyaml)).
+
 ## The Redwood canvas
 
-The canvas paints with the **Vaadin** renderer by default. The renderer selector in the toolbar
-switches it to **Redwood (Oracle)**, which paints the page with the real Redwood renderer: the
+With `renderer: redwood`, or with the toolbar switched to **Redwood (Oracle)**, the canvas paints
+the page with the real Redwood renderer: the
 Oracle Visual Builder app that the `io.mateu:redwood` jar ships, running inside the canvas. You see
 what a Redwood app shows, at the canvas's width, and the page is still editable:
 
@@ -350,7 +363,16 @@ the app. The menu (including menu entries that run a shell flow), row clicks, bu
 address bar with back and forward follows along. A mount that is only YAML needs no backend: play
 expands each screen in the browser, the same way a statically deployed bundle does. A route served
 by a view model goes to the preview backend, if you have one. The width selector shows the app on a
-tablet or a phone, starting at the canvas's width. Play starts on the screen you are editing; a card's **Play** starts on that card.
+tablet or a phone, starting at the canvas's width.
+
+Play always runs in the **project's renderer** (a badge in its bar names it), whatever the canvas
+is peeking at. With `renderer: redwood` the whole mount runs in the real Redwood app, framed like
+the Redwood canvas but live. Its menu navigates, rows and links open their screens, and Play's
+address bar, back and forward move it. The editor is that app's backend. Every call the app makes
+comes to the editor, which answers it from the files as you have edited them, using the same
+in-browser expansion Play uses for Vaadin. A shell boots as the app shell, and a route loads its
+screen. An action that needs a server goes to the preview backend, and with no backend it shows a
+toast saying so. Like the Redwood canvas, it needs Oracle's CDN. Play starts on the screen you are editing; a card's **Play** starts on that card.
 **Close** (or `Esc`) brings you back.
 
 ## Recognising components in the palette

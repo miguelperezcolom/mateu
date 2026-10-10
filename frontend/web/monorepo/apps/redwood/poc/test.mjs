@@ -23,6 +23,7 @@ import {
   bundledIncrementFor, __setBundleForTests, applyRouteParams, getRouteEntry,
   setBundleLocale, pickBundleLocale,
 } from './bundle.mjs'
+import { bundleUrlOf } from './mount.mjs'
 import {
   classifyRequestFailure, isIdempotentAction, shouldRetry, retryDelayMs, MAX_RETRIES,
   connectivity, pendingActions, fetchWithPolicy, setTransportHooks,
@@ -2363,6 +2364,54 @@ atest('bundle: loadRoute responde desde el bundle SIN tocar la red', async () =>
   }
 })
 
+atest('bundle: under an app shell a route load INTO the shell takes contentJson, the bootstrap keeps json', async () => {
+  const shell = { fragments: [{ component: { metadata: { type: 'App' } } }] }
+  const screen = { fragments: [{ component: { metadata: { type: 'Page' } } }] }
+  const manifest = { entries: [
+    { syncPath: '_no_route', ok: true, json: JSON.stringify(shell) },
+    { syncPath: 'orders', ok: true, json: JSON.stringify(shell), contentJson: JSON.stringify(screen) },
+  ] }
+  await loadBundleManifest('x', async () => ({ ok: true, json: async () => manifest }))
+  try {
+    // the shell's content slot: the screen, never the shell again (#557, nested shells)
+    assert.equal(bundledIncrementFor('/orders', 'c', { content: true }).fragments[0].component.metadata.type, 'Page')
+    assert.equal((await loadRoute('https://x', '/orders', 'c')).fragments[0].component.metadata.type, 'Page')
+    // a fresh load keeps the exported json (the shell aimed at the route)
+    assert.equal((await loadRoute('https://x', '/orders', 'c', { consumedRoute: '_empty' })).fragments[0].component.metadata.type, 'App')
+    // the bootstrap: the root shell
+    assert.equal(bundledIncrementFor('', 'shell').fragments[0].component.metadata.type, 'App')
+  } finally {
+    __setBundleForTests(undefined)
+  }
+})
+
+test('bundle: the manifest URL comes from <mateu-ui bundleUrl>, as on the web renderers', () => {
+  const doc = (attrs) => ({ querySelector: (sel) => (sel === 'mateu-ui' && attrs ? { getAttribute: (n) => (n in attrs ? attrs[n] : null) } : null) })
+  assert.equal(bundleUrlOf(doc({ bundleUrl: '/manifest.json' })), '/manifest.json')
+  assert.equal(bundleUrlOf(doc({ baseUrl: '' })), '')
+  assert.equal(bundleUrlOf(doc(null)), '')
+})
+
+atest('bundle: on a static host the backend is only probed — its absence shows no error band', async () => {
+  __setBundleForTests(new Map([['_no_route', { fragments: [{ targetComponentId: null, component: { menu: [] } }] }]]))
+  connectivity.reset()
+  const failures = []
+  setTransportHooks({ onSettle: ({ failure }) => { if (failure) failures.push(failure) } })
+  const original = globalThis.fetch
+  globalThis.fetch = async () => ({ ok: false, status: 405, json: async () => ({}), text: async () => '' })
+  try {
+    const inc = await bootstrapShell('', 'shell')
+    assert.ok(inc && inc.fragments, 'the shell boots from the bundle')
+    assert.deepEqual(failures, [], 'a static host answering 405 is not news')
+    assert.equal(connectivity.isOnline(), true)
+  } finally {
+    globalThis.fetch = original
+    setTransportHooks(null)
+    connectivity.reset()
+    __setBundleForTests(undefined)
+  }
+})
+
 atest('bundle: bootstrapShell cae a la ruta raíz bundleada si el backend NO está', async () => {
   __setBundleForTests(new Map([['_no_route', { fragments: [{ targetComponentId: null, component: { menu: [] } }] }]]))
   connectivity.reset()
@@ -3193,7 +3242,7 @@ atest('widgets: las peticiones quiet no avisan a los ganchos de ocupado/error', 
     assert.deepEqual(seen, ['start', 'settle'])
   } finally {
     globalThis.fetch = realFetch
-    setTransportHooks({})
+    setTransportHooks(null)
   }
 })
 

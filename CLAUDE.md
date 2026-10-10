@@ -243,6 +243,39 @@ environment without a rebuild.
 - Tests: `RestSourceRegistryTest` (12), `restSourceCatalogue.test.ts` (12). User docs:
   `doc/.../java-ui-definition/rest-source-catalogue.md`.
 
+### More authored kinds under `specs/ui/` (2026-10-10)
+
+Each file kind is a `type:` branch of `specs-schema.json` and a New › Mateu file kind in IntelliJ/
+VS Code; YAML wins over the code supplier, like routes and sources. All but project settings are
+ported to .NET/Python.
+
+- **Action catalogue** — `actions.yaml` / any `type: Actions` file + `ActionCatalogSupplier`: named
+  client-runnable actions (flows, `restAction`) a page or the shell runs by id, resolved OWNER FIRST
+  (the page/shell's own actions win). Wire `AppDto.actionCatalogue`, bundle `manifest.actions`.
+  Docs `java-ui-definition/action-catalogue.md`.
+- **Access keys in YAML** — `access:` on routes, `eyesOnly`/`readOnlyUnless`/`disabledUnless` on
+  components and catalogue actions, applied SERVER-side per request (refused route/action → 403,
+  locked fields dropped from state); cosmetic (shown unrestricted) in Play and static bundles.
+  Docs `yaml-security.md`.
+- **Translations** — `type: Translations` / `translations/<locale>.yaml` + `TranslationsSupplier`;
+  `${i18n.key}` in any YAML text, resolved per request locale (the bundle ships the catalogue and the
+  browser resolves it). Docs `yaml-i18n.md`.
+- **Environments** — `type: Environment` / `environments/<name>.yaml`: per-source overrides
+  (`baseUrl`/`url`/`headers`/`proxy`, never secrets) for `MATEU_ENVIRONMENT` / `-Dmateu.environment`
+  / `-Dmateu.bundle.environment`. An overlay keeps the source's sample data. Docs `environments.md`.
+- **Field types** — `types.yaml` (`type: Types`) + `FieldTypeCatalogSupplier`: a `FormField`/
+  `GridColumn` names one by `fieldType:` and takes its attributes (incl. status `tones`) as defaults,
+  its own winning; resolved by the YAML loader and by the browser expander. Docs `field-types.md`.
+- **Sample data on sources** — `sample:` / `sampleFile:` on a `sources.yaml` entry (or an inline
+  source): answered INSTEAD of calling the endpoint only in sample mode — always in the visual
+  editor, a bundle built with `-Dmateu.bundle.mock=true`, an app run with `mateu.sources.mock=true` /
+  `MATEU_SOURCES_MOCK=true` (`AppDto.mockSources`); writes succeed without persisting. Never
+  otherwise, and outside sample mode the samples do not travel.
+- **Project settings** — `specs/ui/project.yaml` (`type: Project`): `renderer: vaadin|redwood`,
+  chosen once for the editor canvas, Play, `mateu-bundle:bundle` (`-Dmateu.bundle.renderer`
+  overrides) and the IDEs; the server warns at startup when the classpath serves another renderer.
+  Docs `project-settings.md`.
+
 ### Response shaping: what a source can and cannot normalise (2026-09-08)
 
 A `RestDataSource` gives **selection, not transformation**: `itemsPath`, `totalPath`, `fields`

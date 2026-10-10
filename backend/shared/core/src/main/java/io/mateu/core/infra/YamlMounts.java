@@ -89,6 +89,7 @@ public final class YamlMounts {
    * {@code /{basePath}/mateu/v3/**} and the YAML-defined mount answers.
    */
   public static String indexHtml(String basePath, String title) {
+    ProjectRendererCheck.warnOnce(Thread.currentThread().getContextClassLoader());
     String html = InputStreamReader.readFromClasspath(YamlMounts.class, "/static/_index.html");
     html = html.replace("<!-- AQUIFAVICON -->", "");
     // replace, not replaceAll: the title is authored text, and a "$" in it ("Costs in $") is a

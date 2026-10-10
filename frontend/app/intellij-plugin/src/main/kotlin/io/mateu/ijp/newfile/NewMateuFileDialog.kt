@@ -36,6 +36,9 @@ class NewMateuFileDialog(
     data class PageRoute(val routesFile: String, val route: String, val makeHome: Boolean)
 
     private val nameField = JBTextField(kind.fileName, 24)
+
+    /** The project's renderer (specs/ui/project.yaml), shown by the mount wizard. */
+    private val renderer = ProjectRenderer.rendererOf(project)
     private val templateCombo = JComboBox(DefaultComboBoxModel(catalogue.pageTemplates.toTypedArray()))
     private val widthCombo = JComboBox(DefaultComboBoxModel(catalogue.pageWidths.toTypedArray()))
     private val templateDescription = JBLabel().apply {
@@ -148,9 +151,16 @@ class NewMateuFileDialog(
         }
         row("File name:") { cell(nameField).align(AlignX.FILL).focused() }
         when {
-            kind.id == "mount" -> row("Home page route:") {
-                cell(homeField).align(AlignX.FILL)
-                    .comment("Optional: a route of this mount (relative). Usually empty now — set it later from Add Route….")
+            kind.id == "mount" -> {
+                row("Home page route:") {
+                    cell(homeField).align(AlignX.FILL)
+                        .comment("Optional: a route of this mount (relative). Usually empty now — set it later from Add Route….")
+                }
+                row("Renderer:") {
+                    val r = renderer
+                    comment("${r.label} — from <code>specs/ui/project.yaml</code> (change it in Settings | Tools | Mateu). " +
+                        "To serve this mount, the app depends on <code>${r.coordinates}</code>.")
+                }
             }
             kind.id == "routes" -> {
                 row("Mount:") {

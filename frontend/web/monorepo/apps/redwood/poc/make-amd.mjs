@@ -374,6 +374,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     DEFAULT_TIMEOUT_MS,
     // static bundle: la shell carga el manifest al arrancar; loadRoute responde desde él sin backend
     loadBundleManifest,
+    bundleUrlOf,
     hasBundle,
     awaitBundle,
     // the IDE's visual editor paints with this app in an iframe (editorPreview.mjs): it hands the

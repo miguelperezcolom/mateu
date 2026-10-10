@@ -346,6 +346,7 @@ export default defineConfig({
 						{ slug: 'java-ui-definition/yaml-security', label: 'Permissions in YAML' },
 						{ slug: 'java-ui-definition/yaml-i18n', label: 'Translations in YAML' },
 						{ slug: 'java-ui-definition/field-types' },
+						{ slug: 'java-ui-definition/project-settings', label: 'Project Settings (Renderer)' },
 						{ slug: 'java-ui-definition/yaml-app-shell', label: 'App Shell as Data' },
 						{ slug: 'java-ui-definition/partials' },
 						{ slug: 'java-ui-definition/visual-editor', label: 'Authoring with the Visual Editor' },

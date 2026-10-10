@@ -13,6 +13,8 @@ export interface FileKind {
     fileName: string
     template?: string
     page: boolean
+    /** One per project (the project descriptor): offered only while the project has none. */
+    singleton: boolean
 }
 
 export interface PageWidth {
@@ -61,6 +63,7 @@ export function loadCatalogue(catalogueFile: string): Catalogue {
             fileName: String(f.fileName),
             template: typeof f.template === 'string' ? f.template : undefined,
             page: f.page === true,
+            singleton: f.singleton === true,
         })),
         pageWidths: (root.pageWidths ?? []).map((w: any) => ({
             id: String(w.id),

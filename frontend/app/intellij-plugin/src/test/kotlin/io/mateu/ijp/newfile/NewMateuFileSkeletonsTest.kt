@@ -52,7 +52,7 @@ class NewMateuFileSkeletonsTest : TestCase() {
 
     fun testCatalogueCoversEverySchemaFileKind() {
         val consts = schema.path("oneOf").mapNotNull { it.path("properties").path("type").path("const").asText(null) }
-        assertEquals(setOf("UI", "Routes", "Sources", "Actions", "Translations", "Environment", "Types"), consts.toSet())
+        assertEquals(setOf("UI", "Routes", "Sources", "Actions", "Translations", "Environment", "Types", "Project"), consts.toSet())
         val covered = catalogueJson().path("files").map { it.path("schemaType").asText() }.toSet()
         // The component branch is covered twice: the app shell, and pages (any other component).
         for (k in consts + "AppShell") assertTrue("no New | Mateu entry for type $k", k in covered)

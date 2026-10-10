@@ -46,19 +46,19 @@ export async function callMateu(base, body, options = {}) {
  *  la app arranque igual. Sólo en el fallo — el camino feliz no cambia. */
 export async function bootstrapShell(base, initiator = 'shell') {
   await awaitBundle()
+  // with a bundle that can boot the shell by itself, the backend is only PROBED: on a static host
+  // its absence is the normal case, not an error band nor a sign of being offline
+  const fallback = hasBundle() ? bundledIncrementFor('', initiator) : undefined
   try {
     const res = await fetchWithPolicy(`${base}/mateu/v3/components/_/action`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
-    }, { actionId: '__load__' })
+    }, fallback ? { actionId: '__load__', quiet: true, isolated: true } : { actionId: '__load__' })
     // the App carries the REST source catalogue (restSources) and the sample-mode opt-in
     return adoptAppSources(await res.json())
   } catch (e) {
-    if (hasBundle()) {
-      const bundled = bundledIncrementFor('', initiator)
-      if (bundled) return bundled
-    }
+    if (fallback) return fallback
     throw e
   }
 }
@@ -154,7 +154,9 @@ export const loadRoute = async (base, route, initiator = '', extra = {}) => {
   }
   await awaitBundle()
   if (hasBundle()) {
-    const bundled = bundledIncrementFor(route, initiator)
+    // a load INTO the shell (any but the fresh '_empty' one) gets the route's content, never the
+    // shell aimed at it
+    const bundled = bundledIncrementFor(route, initiator, { content: extra.consumedRoute !== '_empty' })
     if (bundled) return bundled
   }
   return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })

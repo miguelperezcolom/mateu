@@ -5,6 +5,7 @@ import { hasAppShell } from './appModel'
 import { environmentName, parseTranslationsFile, type TranslationsFile } from './translationsModel'
 import { isActionsYaml, parseActionCatalogue, type CatalogueAction } from './actionsModel'
 import type { ComboOption } from '../widgets/comboModel'
+import { isProjectYaml, parseProjectSettings, DEFAULT_PROJECT_SETTINGS, type ProjectSettings } from './projectSettings'
 
 /**
  * A file of the mount as the host hands it over: a path relative to `specs/ui/` plus its raw YAML.
@@ -47,6 +48,8 @@ export interface ProjectIndex {
     /** The field type catalogue (`types.yaml`): the domain vocabulary a field / column names by
      *  `fieldType:`, as authored. */
     types: FieldTypeEntry[]
+    /** The project descriptor (`project.yaml`, `type: Project`): the renderer, chosen once. */
+    project: ProjectSettings
 }
 
 /** One field type of the catalogue (`types.yaml`) — the shape the expander's catalogue takes. */
@@ -132,12 +135,15 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
         .flatMap((f) => parseSources(f.content))
         .map((e) => (typeof e.sampleFile === 'string' ? normalize(e.sampleFile) : ''))
         .filter(Boolean))
+    let project: ProjectSettings | undefined
 
     for (const f of files ?? []) {
         const path = normalize(f.path)
         const content = f.content ?? ''
         if (!path || sampleFiles.has(path)) continue
         if (isMountYaml(content)) continue // the mount descriptor is not itself a reference target
+        // the project descriptor: settings, not a reference target (the first one wins)
+        if (isProjectYaml(content)) { project ??= { ...parseProjectSettings(content), path }; continue }
         const catalogue = parseTranslationsFile(path, content)
         if (catalogue) { translations.push(catalogue); continue }
         const environment = environmentName(path, content)
@@ -171,6 +177,7 @@ export function buildIndex(files: ProjectFile[]): ProjectIndex {
         ...(environments.length ? { environments: dedupe(environments) } : {}),
         actions: [...actions.values()],
         types,
+        project: project ?? { ...DEFAULT_PROJECT_SETTINGS },
     }
 }
 

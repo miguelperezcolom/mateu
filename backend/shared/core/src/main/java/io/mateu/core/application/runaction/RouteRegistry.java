@@ -402,6 +402,9 @@ public class RouteRegistry {
 
   RouteTable load(ClassLoader classLoader) {
     var cl = classLoader == null ? RouteRegistry.class.getClassLoader() : classLoader;
+    // The registry loads at startup (or on the first request): the moment to say, once, that the
+    // project's declared renderer is not the one this classpath serves.
+    io.mateu.core.infra.ProjectRendererCheck.warnOnce(cl);
     var derived = derivedFrom(cl);
     var supplied = suppliedFrom(cl);
     var authoredTable = authoredFrom(cl);

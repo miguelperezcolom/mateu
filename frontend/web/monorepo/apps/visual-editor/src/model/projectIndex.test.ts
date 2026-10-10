@@ -50,7 +50,7 @@ describe('buildIndex', () => {
     })
 
     it('is empty for no files', () => {
-        expect(buildIndex([])).toEqual({ routes: [], pages: [], partials: [], appShells: [], viewModels: [], sources: [], actions: [], types: [] })
+        expect(buildIndex([])).toEqual({ routes: [], pages: [], partials: [], appShells: [], viewModels: [], sources: [], actions: [], types: [], project: { renderer: 'vaadin' } })
     })
 })
 

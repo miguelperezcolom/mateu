@@ -64,7 +64,7 @@ export function buildPlayManifest(files: ProjectFile[], generatedAt = new Date()
         if (catalogue) { catalogues.push(catalogue); continue }
         if (environmentName(f.path, f.content)) continue
         const obj = parseObject(f.content)
-        if (!obj || obj.type === 'UI') continue // unreadable, or the mount descriptor
+        if (!obj || obj.type === 'UI' || obj.type === 'Project') continue // unreadable, the mount or the project descriptor
         if (obj.type === 'Sources' || (!obj.type && Array.isArray(obj.sources))) sources.push(...withSampleFiles(parseSources(f.content), files))
         else if (obj.type === 'Types' || (!obj.type && Array.isArray(obj.types))) types.push(...parseTypes(f.content))
         else if (obj.type === 'Actions') actions.push(...((obj.actions as unknown[]) ?? []))

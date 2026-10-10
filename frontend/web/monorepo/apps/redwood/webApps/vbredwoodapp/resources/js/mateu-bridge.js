@@ -12507,6 +12507,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   // syncPath → parsed increment, for the routes that exported OK. undefined = no bundle loaded.
   let increments
+  // syncPath → the route's CONTENT load, for the routes under an app shell: under a mount whose root
+  // is an app shell the exporter's `json` is the SHELL aimed at the route (the fresh load of a deep
+  // link) and `contentJson` the route's own screen. This core always loads a route INTO the shell it
+  // already booted, so answering that with `json` would paint a shell inside the shell (#557).
+  let contents = new Map()
   // :param route TEMPLATES: a compiled matcher + param names + the pre-rendered structure.
   let templates = []
   // The in-flight manifest load (if any), so a route load can await it before hitting the backend.
@@ -12598,21 +12603,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         if (!res || !res.ok) return
         const manifest = await res.json()
         const map = new Map()
+        const contentMap = new Map()
         const tpls = []
         for (const e of (manifest.entries || [])) {
           if (!e.ok || !e.json) continue
           try {
             const inc = JSON.parse(e.json)
+            const content = e.contentJson ? JSON.parse(e.contentJson) : undefined
             if (e.routePattern) {
-              tpls.push({ regex: new RegExp(e.routePattern), paramNames: e.paramNames || [], increment: inc })
+              tpls.push({ regex: new RegExp(e.routePattern), paramNames: e.paramNames || [], increment: content || inc })
             } else {
               map.set(e.syncPath, inc)
+              if (content) contentMap.set(e.syncPath, content)
             }
           } catch (err) {
             // skip a malformed entry, keep the rest
           }
         }
         increments = map
+        contents = contentMap
         templates = tpls
         routeEntries = (manifest.routes && manifest.routes.routes) || []
         bundleTranslations = manifest.translations || {}
@@ -12636,8 +12645,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** The pre-rendered increment for a route's sync path, or undefined (→ fall back to the backend).
    *  The registry's parameters are applied on the way out, so a statically served route behaves like
    *  the same route served by the backend. */
-  const getBundledIncrement = (syncPath) => {
-    const inc = increments ? increments.get(syncPath) : undefined
+  const getBundledIncrement = (syncPath, content = false) => {
+    const own = content ? contents.get(syncPath) : undefined
+    const inc = own !== undefined ? own : (increments ? increments.get(syncPath) : undefined)
     return inc === undefined ? undefined : applyRouteParams(syncPath, inc)
   }
 
@@ -12669,9 +12679,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  fragments land on the loading surface: the exporter had no initiator, so a fragment's
    *  targetComponentId is null — reduceContexts routes null → HOST, but a load INTO an island must
    *  target that island, so stamp the initiator (matches the web intercept). undefined = not bundled. */
-  function bundledIncrementFor(route, initiator) {
+  function bundledIncrementFor(route, initiator, options = {}) {
     const syncPath = toSyncPath(route)
-    const inc = localizeBundled(getBundledIncrement(syncPath) || matchBundledTemplate(syncPath))
+    // a route load INTO the booted shell takes the route's content (see `contents`); the shell's own
+    // bootstrap (and a fresh load of a mount without an App) keeps the exported `json`
+    const inc = localizeBundled(getBundledIncrement(syncPath, !!options.content) || matchBundledTemplate(syncPath))
     if (!inc) return undefined
     return {
       ...inc,
@@ -12746,10 +12758,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /** Test hook: seed/clear the in-memory bundle directly. */
-  function __setBundleForTests(m, t, r, tr) {
+  function __setBundleForTests(m, t, r, tr, c) {
     bundleTranslations = tr || {}
     bundleLocaleOverride = undefined
     increments = m
+    contents = c || new Map()
     templates = t || []
     routeEntries = r || []
     pending = undefined
@@ -12832,6 +12845,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const el = doc && typeof doc.querySelector === 'function' ? doc.querySelector('mateu-ui') : null
     mountPath = el ? baseUrlOf({ baseUrl: el.getAttribute('baseUrl') }, '') : null
     return mountPath
+  }
+
+  /** The static bundle's manifest URL, when the page's <mateu-ui> names one (`bundleUrl`, stamped
+   *  by the mateu-bundle goal's index.html — the same attribute the web renderers read). '' = none. */
+  function bundleUrlOf(doc) {
+    const el = doc && typeof doc.querySelector === 'function' ? doc.querySelector('mateu-ui') : null
+    const url = el ? el.getAttribute('bundleUrl') || el.getAttribute('bundleurl') : null
+    return url || ''
   }
 
   /** Test hook / explicit setting: null = hash mode. */
@@ -12925,19 +12946,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  la app arranque igual. Sólo en el fallo — el camino feliz no cambia. */
   async function bootstrapShell(base, initiator = 'shell') {
     await awaitBundle()
+    // with a bundle that can boot the shell by itself, the backend is only PROBED: on a static host
+    // its absence is the normal case, not an error band nor a sign of being offline
+    const fallback = hasBundle() ? bundledIncrementFor('', initiator) : undefined
     try {
       const res = await fetchWithPolicy(`${base}/mateu/v3/components/_/action`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
-      }, { actionId: '__load__' })
+      }, fallback ? { actionId: '__load__', quiet: true, isolated: true } : { actionId: '__load__' })
       // the App carries the REST source catalogue (restSources) and the sample-mode opt-in
       return adoptAppSources(await res.json())
     } catch (e) {
-      if (hasBundle()) {
-        const bundled = bundledIncrementFor('', initiator)
-        if (bundled) return bundled
-      }
+      if (fallback) return fallback
       throw e
     }
   }
@@ -13033,7 +13054,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     await awaitBundle()
     if (hasBundle()) {
-      const bundled = bundledIncrementFor(route, initiator)
+      // a load INTO the shell (any but the fresh '_empty' one) gets the route's content, never the
+      // shell aimed at it
+      const bundled = bundledIncrementFor(route, initiator, { content: extra.consumedRoute !== '_empty' })
       if (bundled) return bundled
     }
     return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
@@ -16170,6 +16193,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     DEFAULT_TIMEOUT_MS,
     // static bundle: la shell carga el manifest al arrancar; loadRoute responde desde él sin backend
     loadBundleManifest,
+    bundleUrlOf,
     hasBundle,
     awaitBundle,
     // the IDE's visual editor paints with this app in an iframe (editorPreview.mjs): it hands the

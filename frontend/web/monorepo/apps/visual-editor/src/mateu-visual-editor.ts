@@ -33,13 +33,18 @@ import { diffAgainstContract, isInSync } from './model/viewModelSync'
 import { buildScaffoldPrompt, validateScaffoldYaml, stripFences } from './model/aiScaffold'
 import { buildAgentInstruction, decodeShared, encodeShareLink, type SharedDesign } from './model/shareLink'
 import { STEP_TYPES, stepParam, actionSteps, setActionSteps, removeAction, FlowStep } from './model/flowEditor'
-import { buildBundleManifest, clientRenderableRouteCount } from './model/exportBundle'
+import { buildBundleManifest, clientRenderableRouteCount, renderedEntries } from './model/exportBundle'
+import { buildPlayManifest } from './model/playManifest'
+import { loadBundleManifest, resolveBundledLoad } from '@infra/http/bundleStore.ts'
 import { SCHEMA } from './model/schemaCatalog'
 import { InferredField } from './model/layoutDelta'
 import { isRoutesYaml } from './model/routesModel'
 import { hasAppShell } from './model/appModel'
 import { isMountYaml } from './model/mountModel'
 import { environmentName, parseTranslationsFile } from './model/translationsModel'
+import {
+    isProjectYaml, parseProjectSettings, PROJECT_RENDERER_LABELS, RENDERER_ARTIFACTS, type ProjectRendererId,
+} from './model/projectSettings'
 import { buildIndex, ProjectIndex, ProjectFile } from './model/projectIndex'
 import { withEdited } from './model/playManifest'
 import { buildMountGraph } from './model/mountGraph'
@@ -58,6 +63,7 @@ import './mount/mount-editor'
 import './sources/sources-editor'
 import './actions/actions-editor'
 import './types/types-editor'
+import './project/project-editor'
 import './board/mount-board'
 import './play/mount-play'
 import './widgets/ve-combo'
@@ -75,7 +81,11 @@ const DOCK_TABS: { id: DockTab; label: string; title: string }[] = [
     { id: 'yaml', label: 'YAML', title: 'The file as it will be saved' },
 ]
 
-const RENDERER_KEY = 'mateu-visual-editor-renderer'
+/**
+ * The canvas renderer the author PEEKS at for this session — never the project setting, which lives
+ * in project.yaml. Session storage, so it survives a reload of the tab and dies with it.
+ */
+const RENDERER_PEEK_KEY = 'mateu-visual-editor-renderer-peek'
 
 const ICON_UNDO = html`<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M5.5 3.5 2.5 6.5l3 3"/><path d="M2.5 6.5h7a4 4 0 0 1 0 8H7"/></svg>`
 const ICON_REDO = html`<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="m10.5 3.5 3 3-3 3"/><path d="M13.5 6.5h-7a4 4 0 0 0 0 8H9"/></svg>`
@@ -86,8 +96,18 @@ function loadViewportChoice(): ViewportId {
     try { return parseViewport(localStorage.getItem(VIEWPORT_KEY)) } catch { return 'fill' }
 }
 
-function loadRendererChoice(): CanvasRendererId {
-    try { return parseCanvasRenderer(localStorage.getItem(RENDERER_KEY)) } catch { return 'vaadin' }
+function loadRendererPeek(): CanvasRendererId | undefined {
+    try {
+        const v = sessionStorage.getItem(RENDERER_PEEK_KEY)
+        return v ? parseCanvasRenderer(v) : undefined
+    } catch { return undefined }
+}
+
+function saveRendererPeek(peek: CanvasRendererId | undefined) {
+    try {
+        if (peek) sessionStorage.setItem(RENDERER_PEEK_KEY, peek)
+        else sessionStorage.removeItem(RENDERER_PEEK_KEY)
+    } catch { /* private mode */ }
 }
 
 /** The simple name of a ModelView FQN (last dotted segment), for compact fixture labels. */
@@ -256,8 +276,15 @@ export class MateuVisualEditor extends LitElement {
     @state() private dock: DockTab | null = null
     @state() private aiMsg?: string
     @state() private flowActionId?: string
-    /** Which design system the canvas paints with (persisted per browser). */
-    @state() private renderer: CanvasRendererId = loadRendererChoice()
+    /**
+     * Which design system the canvas paints with: the PROJECT's renderer (project.yaml), unless the
+     * author is peeking at another one for this session (`rendererPeek`).
+     */
+    @state() private renderer: CanvasRendererId = loadRendererPeek() ?? 'vaadin'
+    /** The project's renderer, from its descriptor (absent: vaadin). Play and Export use it. */
+    @state() private projectRenderer: ProjectRendererId = 'vaadin'
+    /** A session-only peek at another renderer on the canvas — clearly not the project setting. */
+    @state() private rendererPeek?: CanvasRendererId = loadRendererPeek()
     /** What the canvas last reported about its render (ok / offline fallback / error). */
     @state() private previewStatus?: { kind: 'ok' | 'fallback' | 'error' | 'client'; text: string }
     /** Whether the "open a share link" bar is showing under the toolbar. */
@@ -274,7 +301,7 @@ export class MateuVisualEditor extends LitElement {
      * (page/partial); `mount` = a `type: UI` descriptor; `app` = a `type: AppShell` definition;
      * `routes` = a pure route file. Each is its OWN file — no mixing.
      */
-    @state() private mode: 'page' | 'mount' | 'app' | 'routes' | 'sources' | 'actions' | 'types' | 'data' = 'page'
+    @state() private mode: 'page' | 'mount' | 'app' | 'routes' | 'sources' | 'actions' | 'types' | 'data' | 'project' = 'page'
     @state() private structuredYaml = ''
     /** The field type catalogue last published to the expander (JSON), to repaint when it changes. */
     private lastTypes?: string
@@ -353,6 +380,7 @@ export class MateuVisualEditor extends LitElement {
         if (!files?.length) return
         this.projectFiles = files
         this.project = buildIndex(files)
+        this.applyProjectRenderer(this.project.project.renderer)
         // The canvas resolves `rowsSource: {ref}` / `optionsSource: {ref}` against the app's
         // catalogue, exactly as the running app does — so a listing shows its rows here too.
         setRestSourceCatalogue(this.project.sources as never)
@@ -477,6 +505,7 @@ export class MateuVisualEditor extends LitElement {
                  @sources-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
                  @actions-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
                  @types-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
+                 @project-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
                  @board-open=${(e: CustomEvent) => this.openFile(e.detail.path)}
                  @board-play=${(e: CustomEvent) => this.play(e.detail.route)}
                  @play-close=${() => (this.view = this.playReturn)}>
@@ -489,7 +518,7 @@ export class MateuVisualEditor extends LitElement {
                                         ?canOpen=${!!this.host.openFile}></mount-board>`
                     : this.view === 'play'
                     ? html`<mount-play .files=${this.mountFiles()} .start=${this.playStart} .baseUrl=${renderBaseUrl(this.previewSource)}
-                                       .theme=${this.theme} .viewport=${this.viewport}
+                                       .theme=${this.theme} .viewport=${this.viewport} .renderer=${this.projectRenderer}
                                        .editorSources=${this.project?.sources ?? []}></mount-play>`
                     : this.mode === 'mount'
                     ? html`<mount-editor .yaml=${this.structuredYaml}></mount-editor>`
@@ -505,6 +534,8 @@ export class MateuVisualEditor extends LitElement {
                     ? this.renderDataFile()
                     : this.mode === 'types'
                     ? html`<types-editor .yaml=${this.structuredYaml}></types-editor>`
+                    : this.mode === 'project'
+                    ? html`<project-editor .yaml=${this.structuredYaml}></project-editor>`
                     : html`
                 <div class="work">
                     <div style="display:grid; grid-template-rows:auto 1fr; min-height:0">
@@ -560,9 +591,13 @@ export class MateuVisualEditor extends LitElement {
                 ${page ? html`
                     <span class="group">
                         ${this.renderPreviewSelector()}
-                        <select class="renderer" title="The design system the canvas paints with" @change=${this.onRendererChange}>
-                            ${CANVAS_RENDERERS.map((r) => html`<option value=${r} ?selected=${r === this.renderer}>${CANVAS_RENDERER_LABELS[r]}</option>`)}
+                        <select class="renderer" title=${`The design system the canvas paints with. The project's renderer (project.yaml) is ${PROJECT_RENDERER_LABELS[this.projectRenderer]}; picking another one is a preview for this session, not the project setting.`}
+                                @change=${this.onRendererChange}>
+                            ${CANVAS_RENDERERS.map((r) => html`<option value=${r} ?selected=${r === this.renderer}>${CANVAS_RENDERER_LABELS[r]}${r === this.projectRenderer ? ' · project' : ''}</option>`)}
                         </select>
+                        ${this.rendererPeek && this.rendererPeek !== this.projectRenderer ? html`
+                            <span class="status warn peek" title=${`A preview for this session only — the project renders with ${PROJECT_RENDERER_LABELS[this.projectRenderer]} (project.yaml). Play and Export use the project's.`}>preview — project: ${PROJECT_RENDERER_LABELS[this.projectRenderer]}</span>
+                            <button class="ghost" title="Back to the project's renderer" @click=${this.clearRendererPeek}>↺</button>` : ''}
                         <select class="viewport" title="The width the page is shown at — check how it adapts" @change=${this.onViewportChange}>
                             ${VIEWPORTS.map((v) => html`<option value=${v.id} ?selected=${v.id === this.viewport}>${v.label}</option>`)}
                         </select>
@@ -573,7 +608,7 @@ export class MateuVisualEditor extends LitElement {
                     <button class="ghost" @click=${this.copyShareLink} title="Copy a link that opens this file in the editor — the design travels inside the link, nothing is uploaded">Share</button>
                     <button class="ghost" @click=${() => (this.shareOpen = !this.shareOpen)} title="Open a share link (e.g. one an AI agent answered with)">Open…</button>
                 </span>
-                <button @click=${this.exportBundle} title="Download a static bundle manifest (specs mode) — deploy it to any free static host, no backend (€0)">Export</button>
+                <button @click=${this.exportBundle} title=${`Download a static bundle manifest for the project's renderer (${PROJECT_RENDERER_LABELS[this.projectRenderer]}) — deploy it to any free static host, no backend (€0)`}>Export</button>
             </div>`
     }
 
@@ -659,10 +694,27 @@ export class MateuVisualEditor extends LitElement {
         try { localStorage.setItem(VIEWPORT_KEY, this.viewport) } catch { /* private mode */ }
     }
 
+    /** The toolbar switch: a PEEK for this session (the project's own renderer clears it). */
     private async onRendererChange(e: Event) {
         const wanted = (e.target as HTMLSelectElement).value as CanvasRendererId
-        try { localStorage.setItem(RENDERER_KEY, wanted) } catch { /* private mode */ }
+        this.rendererPeek = wanted === this.projectRenderer ? undefined : wanted
+        saveRendererPeek(this.rendererPeek)
         this.renderer = await useCanvasRenderer(wanted)
+    }
+
+    private clearRendererPeek = async () => {
+        this.rendererPeek = undefined
+        saveRendererPeek(undefined)
+        this.renderer = await useCanvasRenderer(this.projectRenderer)
+    }
+
+    /** The project's descriptor said (or now says) this renderer: the canvas follows, unless peeking. */
+    private applyProjectRenderer(renderer: ProjectRendererId) {
+        this.projectRenderer = renderer
+        if (this.rendererPeek === renderer) { this.rendererPeek = undefined; saveRendererPeek(undefined) }
+        if (this.rendererPeek || this.renderer === renderer) return
+        this.renderer = renderer
+        useCanvasRenderer(renderer).then((r) => { if (this.renderer === renderer) this.renderer = r })
     }
 
     // --- edit handlers: mutate the model, then re-render + persist ---
@@ -817,6 +869,12 @@ export class MateuVisualEditor extends LitElement {
         if (isTypesYaml(yaml)) {
             this.mode = 'types'
             this.structuredYaml = yaml
+            return
+        }
+        if (isProjectYaml(yaml)) {
+            this.mode = 'project'
+            this.structuredYaml = yaml
+            this.applyProjectRenderer(parseProjectSettings(yaml).renderer)
             return
         }
         if (isMountYaml(yaml)) {
@@ -1018,6 +1076,7 @@ export class MateuVisualEditor extends LitElement {
         if (this.mode === 'actions') return html`<span class="shape actions" title="The action catalogue — named client-runnable actions (flows, REST calls) run by id from the menu and any page.">actions</span>`
         if (this.mode === 'data') return html`<span class="shape sources" title="A Translations catalogue or an Environment — plain YAML, validated by the specs schema.">data</span>`
         if (this.mode === 'types') return html`<span class="shape sources" title="The field type catalogue — the domain vocabulary, named once and referenced by fieldType.">types</span>`
+        if (this.mode === 'project') return html`<span class="shape sources" title="The project descriptor (type: Project) — the renderer the whole project paints with.">project</span>`
         if (this.mode === 'sources') return html`<span class="shape sources" title="The REST source catalogue — each external endpoint named once, referenced by name.">sources</span>`
         if (this.mode === 'page' && this.doc?.fragment) return html`<span class="shape partial" title="A reusable partial — a rootless content: list, inlined wherever a Partial ref names it.">partial</span>`
         return ''
@@ -1029,6 +1088,7 @@ export class MateuVisualEditor extends LitElement {
         this.notifyChanged()
         if (this.mode === 'sources') setRestSourceCatalogue(parseSourcesFromText(this.lastText) as never)
         if (this.mode === 'types') setFieldTypeCatalogue(parseTypes(this.lastText) as never)
+        if (this.mode === 'project') this.applyProjectRenderer(parseProjectSettings(yaml).renderer)
     }
 
     /** A page edit — re-render (new doc reference) and notify the host. */
@@ -1411,6 +1471,10 @@ export class MateuVisualEditor extends LitElement {
         // No project files (e.g. a standalone browser draft) → export just the current definition.
         const project = files.length ? files : [{ path: this.currentPath ?? 'page.yaml', content: this.currentYaml() }]
         const manifest = buildBundleManifest(project, new Date().toISOString())
+        // A Redwood project: the Redwood renderer has no client-side expander, it answers route loads
+        // only from PRE-RENDERED increments — render every static route here, with Play's runtime.
+        const redwood = this.projectRenderer === 'redwood'
+        if (redwood) manifest.entries = await this.preRender(project)
         const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' })
         const url = URL.createObjectURL(blob)
         const a = document.createElement('a')
@@ -1420,7 +1484,26 @@ export class MateuVisualEditor extends LitElement {
         URL.revokeObjectURL(url)
         const routes = clientRenderableRouteCount(manifest)
         const defs = Object.keys(manifest.definitions).length
+        if (redwood) {
+            const ok = manifest.entries?.filter((e) => e.ok).length ?? 0
+            window.alert(`Exported manifest.json for Redwood — ${ok} route(s) pre-rendered, ${defs} definition(s). Serve it beside the Redwood renderer's static app (${RENDERER_ARTIFACTS.redwood}, static/), with <mateu-ui bundleUrl="/manifest.json"> in its index.html — or let the mateu-bundle:bundle Maven goal write the whole site.`)
+            return
+        }
         window.alert(`Exported manifest.json — ${defs} definition(s), ${routes} route(s) render with no backend. Serve it beside the Mateu renderer (specs mode) on any static host.`)
+    }
+
+    /** Every static route pre-rendered by the in-browser runtime (the bundle store Play uses). */
+    private async preRender(files: ProjectFile[]) {
+        const json = JSON.stringify(buildPlayManifest(files))
+        const from = (body: string) => (() => Promise.resolve(new Response(body, { headers: { 'content-type': 'application/json' } }))) as unknown as typeof fetch
+        await loadBundleManifest('mateu-export-manifest.json', from(json))
+        try {
+            const routes = buildPlayManifest(files).routes.routes.map((r) => r.route)
+            return renderedEntries(routes, resolveBundledLoad)
+        } finally {
+            // Play runs on the same store: leave it loaded while playing, empty otherwise
+            if (this.view !== 'play') await loadBundleManifest('mateu-export-manifest.json', from('{}'))
+        }
     }
 
     // --- Actions (Phase 3 + 4): what a button does — a REST call with a toast, or a flow of steps ---
