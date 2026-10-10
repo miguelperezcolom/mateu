@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import java.time.LocalDate;
 import lombok.Builder;
 
@@ -9,4 +10,5 @@ import lombok.Builder;
  * success, warning, danger, neutral) that tints the cell.
  */
 @Builder
+@Experimental("calendar views (3.0-alpha.409)")
 public record CalendarDay(LocalDate date, String label, String tone) {}

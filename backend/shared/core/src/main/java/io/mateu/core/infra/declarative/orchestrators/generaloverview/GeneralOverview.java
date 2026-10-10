@@ -1,6 +1,7 @@
 package io.mateu.core.infra.declarative.orchestrators.generaloverview;
 
 import io.mateu.uidl.annotations.Colspan;
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.data.EmptyState;
 import io.mateu.uidl.data.GeneralOverviewDisplay;
@@ -56,16 +57,19 @@ public abstract class GeneralOverview<Row> implements TriggersSupplier, OptionsS
    * the overview on wide pages and stacked with it on narrow ones (above it when {@link
    * GeneralOverviewDisplay#promoteInfoSlot()} is on). Null (the default) = no info panel.
    */
+  @Experimental("general overview info panel (3.0-alpha.409)")
   protected Component info(Row row, HttpRequest httpRequest) {
     return null;
   }
 
   /** The info panel's width on wide pages (a CSS length). */
+  @Experimental("general overview info panel (3.0-alpha.409)")
   protected String infoWidth() {
     return "20rem";
   }
 
   /** This page's built-in affordances (see {@link GeneralOverviewDisplay}). */
+  @Experimental("archetype display options (3.0-alpha.409)")
   protected GeneralOverviewDisplay display() {
     return GeneralOverviewDisplay.defaults();
   }

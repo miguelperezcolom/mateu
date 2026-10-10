@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import java.time.LocalDate;
 import lombok.Builder;
 
@@ -14,9 +15,9 @@ public record CalendarEvent(
     String id,
     String title,
     LocalDate date,
-    LocalDate endDate,
-    String startTime,
-    String endTime,
+    @Experimental("calendar views (3.0-alpha.409)") LocalDate endDate,
+    @Experimental("calendar views (3.0-alpha.409)") String startTime,
+    @Experimental("calendar views (3.0-alpha.409)") String endTime,
     String color,
     String actionId) {
 

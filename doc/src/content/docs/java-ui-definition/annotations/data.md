@@ -188,9 +188,15 @@ public class InvoiceNumberGenerator implements ValueGenerator {
 
 ## @GenericClass
 
+:::caution[Deprecated]
+`@GenericClass` is deprecated (since `3.0-alpha.410`) and will be removed: nothing ever read it.
+Mateu resolves type arguments from the declared generic type, so declare the field with its type
+argument instead — `List<MyDto> items`.
+:::
+
 **Target:** `FIELD`, `PARAMETER`
 
-Provides the concrete generic type when Java type erasure hides it at runtime. Mateu uses this hint to correctly introspect parameterised fields.
+Meant to provide the concrete generic type when Java type erasure hides it at runtime.
 
 ```java
 public @interface GenericClass {

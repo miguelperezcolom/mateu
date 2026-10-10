@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
@@ -18,6 +19,7 @@ import lombok.Builder;
  * @param backLabel the text of the way back
  */
 @Builder
+@Experimental("not-found page (3.0-alpha.40x)")
 public record NotFound(
     String id,
     String title,

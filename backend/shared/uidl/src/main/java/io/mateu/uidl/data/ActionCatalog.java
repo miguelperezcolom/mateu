@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.fluent.Action;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.Optional;
  * An OWNER's own action (a page's {@code actions:}, the shell's {@code actions:}, a Java method)
  * always wins over a catalogue entry of the same id: the catalogue fills gaps, it never overrides.
  */
+@Experimental("action catalogue (specs/ui/actions.yaml, 3.0-alpha.409)")
 public record ActionCatalog(List<Action> actions) {
 
   public ActionCatalog {

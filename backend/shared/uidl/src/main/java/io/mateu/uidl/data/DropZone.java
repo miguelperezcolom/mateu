@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.fluent.Component;
 import java.util.List;
 import java.util.Map;
@@ -13,6 +14,7 @@ import lombok.Builder;
  * origin and the destination.
  */
 @Builder
+@Experimental("drag rows to a destination (3.0-alpha.409)")
 public record DropZone(
     String id,
     String accept,

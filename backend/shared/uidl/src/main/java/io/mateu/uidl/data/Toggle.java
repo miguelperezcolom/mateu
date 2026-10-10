@@ -1,5 +1,7 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
+
 /**
  * The tri-state switch of an affordance an archetype brings built in (the Oracle Redwood {@code
  * displayOptions} grammar): {@code on} — shown and usable; {@code off} — not shown; {@code
@@ -11,6 +13,7 @@ package io.mateu.uidl.data;
  * consumed server-side while composing: a {@code disabled} affordance travels as a disabled button,
  * an {@code off} one does not travel at all, so no renderer needs to know about them.
  */
+@Experimental("archetype display options (3.0-alpha.409)")
 public enum Toggle {
   on,
   off,
