@@ -1,6 +1,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>io.mateu</groupId>
         <artifactId>backend</artifactId>
@@ -11,15 +12,30 @@
     <artifactId>quarkus-core</artifactId>
     <packaging>jar</packaging>
 
-    <name>quarkus-core</name>
-    <url>http://maven.apache.org</url>
+    <name>Mateu Quarkus adapter</name>
+    <description>Runtime of the Mateu adapter for Quarkus (Quarkus REST + Vert.x routes).</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- The Quarkus line the adapter is built and tested against. Every Quarkus artifact below
+             comes from this ONE BOM (they used to mix 3.38.0 and 3.15.7), and all of them are
+             `provided`: the application brings its own Quarkus platform. -->
+        <quarkus.version>3.38.0</quarkus.version>
     </properties>
 
-    <dependencies>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-bom</artifactId>
+                <version>${quarkus.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
+    <dependencies>
         <dependency>
             <groupId>io.mateu</groupId>
             <artifactId>core</artifactId>
@@ -31,86 +47,36 @@
                 </exclusion>
             </exclusions>
         </dependency>
-
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-rest</artifactId>
-            <version>3.38.0</version>
+            <artifactId>quarkus-rest-jackson</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-arc</artifactId>
             <scope>provided</scope>
         </dependency>
 
+        <!-- adapter parity tests: @QuarkusTest boots the controllers generated (by this adapter's
+             own annotation processor) for a test @UI, driven by AdapterParityITFoundation -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
-            <version>3.15.7</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>io.quarkus</groupId>
-                    <artifactId>quarkus-rest</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.quarkus</groupId>
-                    <artifactId>quarkus-rest-common</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.quarkus</groupId>
-                    <artifactId>quarkus-arc</artifactId>
-                </exclusion>
-
-                <exclusion>
-                    <groupId>io.quarkus</groupId>
-                    <artifactId>quarkus-core</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.eclipse.parsson</groupId>
-                    <artifactId>parsson</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.quarkus.resteasy.reactive</groupId>
-                    <artifactId>resteasy-reactive-common</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-spring-di</artifactId>
-            <version>3.38.0</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>io.smallrye.common</groupId>
-                    <artifactId>smallrye-common-expression</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.smallrye.common</groupId>
-                    <artifactId>smallrye-common-os</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.smallrye.common</groupId>
-                    <artifactId>smallrye-common-cpu</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.smallrye.common</groupId>
-                    <artifactId>smallrye-common-constraint</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.smallrye.common</groupId>
-                    <artifactId>smallrye-common-annotation</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.wildfly.common</groupId>
-                    <artifactId>wildfly-common</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>3.8.1</version>
+            <artifactId>quarkus-junit5</artifactId>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>integration-tests</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>annotation-processor-quarkus</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -127,6 +93,34 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>1.18.46</version>
+                        </path>
+                        <!-- for the test sources only (main has no @UI) -->
+                        <path>
+                            <groupId>io.mateu</groupId>
+                            <artifactId>annotation-processor-quarkus</artifactId>
+                            <version>${project.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                    </systemPropertyVariables>
+                </configuration>
             </plugin>
         </plugins>
     </build>

@@ -3,7 +3,7 @@ title: Client errors in the server log
 description: The errors a renderer shows or hits are posted to the backend and written as one structured log line each, so they can be found later.
 ---
 
-**Status:** ✅ Implemented (Vaadin and Redwood renderers; Spring MVC and WebFlux backends)
+**Status:** ✅ Implemented (Vaadin and Redwood renderers; every Java backend: Spring MVC, WebFlux, Micronaut, Quarkus, Helidon MP)
 
 ## Intent
 
@@ -75,11 +75,13 @@ Narrow it down by parsing the JSON after the prefix:
 
 ## Backends
 
-The endpoint is a servlet filter (Spring MVC) / `WebFilter` (WebFlux) on any path ending in
-`/mateu/v3/client-log`, ordered after Spring Security's chain, so it is secured like the other
-Mateu calls. Quarkus, Micronaut and Helidon do not expose it yet: there the report lands on the
-generic `/mateu/v3/**` controller, and the renderers read its answer (a 404, a 400, a non-204 2xx, a
-500) as "no endpoint here" and stop reporting for the page.
+Every Java adapter serves it on any path ending in `/mateu/v3/client-log`, with the same
+framework-neutral handling (`io.mateu.core.infra.ClientErrorLog`): a servlet filter on Spring MVC
+and a `WebFilter` on WebFlux (both ordered after Spring Security's chain, so it is secured like the
+other Mateu calls), a dedicated route of the generated controller on Micronaut, and a route on the
+Vert.x router (Quarkus) or the Helidon routing (Helidon MP). Turn it off with
+`mateu.client-log.enabled=false`; the endpoint then answers 404, which the renderers read as "no
+endpoint here" and stop reporting for the page.
 
 ## Related
 

@@ -10,7 +10,8 @@
     </parent>
 
     <artifactId>annotation-processor-webflux</artifactId>
-    <name>Annotation processor for springboot webflux</name>
+    <name>Mateu annotation processor for Spring WebFlux</name>
+    <description>Generates the Spring WebFlux controllers of the @UI classes at compile time. Put it on the annotationProcessorPaths only, never on the runtime classpath.</description>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>

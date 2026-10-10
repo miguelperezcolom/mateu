@@ -10,7 +10,8 @@
     </parent>
 
     <artifactId>annotation-processor-mvc</artifactId>
-    <name>Annotation processor for springboot mvc</name>
+    <name>Mateu annotation processor for Spring MVC</name>
+    <description>Generates the Spring MVC controllers of the @UI classes at compile time. Put it on the annotationProcessorPaths only, never on the runtime classpath.</description>
 
     <dependencies>
         <dependency>

@@ -10,8 +10,8 @@
   <artifactId>webflux</artifactId>
   <packaging>pom</packaging>
 
-  <name>Webflux</name>
-  <description>parent project</description>
+  <name>Mateu Spring WebFlux adapter (parent)</name>
+  <description>Parent of the Mateu adapter for Spring WebFlux.</description>
 
   <modules>
     <module>annotation-processor-webflux</module>

@@ -10,10 +10,13 @@
     <artifactId>integration-tests</artifactId>
     <packaging>jar</packaging>
 
-    <name>integration-tests</name>
-    <url>http://maven.apache.org</url>
+    <name>Mateu adapter contract tests</name>
+    <description>HTTP contract every Mateu adapter is tested against. Internal: not published.</description>
 
     <properties>
+
+        <!-- internal: built and tested with the rest, never published to Maven Central -->
+        <maven.deploy.skip>true</maven.deploy.skip>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 

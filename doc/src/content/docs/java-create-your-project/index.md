@@ -17,13 +17,20 @@ Add Mateu to an existing Java project or start a new one. The setup is a Maven d
 
 ## Common setup pattern
 
-All integrations follow the same three steps:
+All integrations follow the same steps:
 
-1. Add the framework-specific Mateu core dependency
-2. Add the annotation processor for your build tool
-3. Add a renderer dependency (choose your design system)
+1. Import `io.mateu:mateu-bom` (so no Mateu artifact needs its own version)
+2. Add the framework-specific Mateu core dependency
+3. Add the annotation processor to the compiler's **processor path** (never as a regular dependency)
+4. Add a renderer dependency (choose your design system)
 
 The annotation processor generates the framework-specific controllers and routes from your `@UI` classes at compile time. You do not write controllers by hand.
+
+All five adapters serve the same HTTP contract — the UI endpoints, streamed actions (Server-Sent
+Events, e.g. a `LongTask`), the SPA deep-link fallback, the renderers' error log, asset caching,
+YAML-defined mounts and the optional MCP endpoint — and read the same
+[configuration properties](/java-create-your-project/configuration/). Cross-origin access and MCP
+are **off** until you turn them on.
 
 ## Choose a renderer
 

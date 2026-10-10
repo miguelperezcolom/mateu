@@ -9,10 +9,12 @@ import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.core.infra.declarative.orchestrators.wizard.Wizard;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.util.List;
 import reactor.core.publisher.Flux;
 
 @Named
+@Singleton
 public class FieldCrudActionRunner implements ActionRunner {
 
   @Override

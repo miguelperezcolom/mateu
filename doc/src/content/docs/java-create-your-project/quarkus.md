@@ -8,52 +8,85 @@ Obviously you need a valid Quarkus project.
 
 ## Step 2: Add Mateu dependencies
 
-In case you are using maven:
+Import Mateu's BOM once, so no Mateu artifact needs a version of its own:
+
+```xml
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>mateu-bom</artifactId>
+            <version>MATEU_VERSION</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+Then the runtime dependencies:
 
 ```xml
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>quarkus-core</artifactId>
-    <version>MATEU_VERSION</version>
 </dependency>
-<dependency>
-    <groupId>io.mateu</groupId>
-    <artifactId>annotation-processor-quarkus</artifactId>
-    <version>MATEU_VERSION</version>
-</dependency>
-  <!-- you need the one below if you want to also serve the static content -->
+<!-- serves the built-in frontend; choose one: vaadin-lit (Vaadin), redwood (Oracle Redwood / Visual Builder) -->
 <dependency>
     <groupId>io.mateu</groupId>
     <artifactId>vaadin-lit</artifactId>
-<!--
-available artifacts are: vaadin-lit (Vaadin) and redwood (Oracle Redwood / Visual Builder)
--->
-    <version>MATEU_VERSION</version>
 </dependency>
-
+<!-- the Mateu wire is Jackson: quarkus-core uses Quarkus REST with Jackson, and declares both
+     `provided` so the versions are the ones of YOUR Quarkus platform -->
+<dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-rest-jackson</artifactId>
+</dependency>
 ```
 
-Since JDK 23 javac no longer runs annotation processors found on the compile classpath by default,
-so with maven you also need to enable annotation processing explicitly:
+And the annotation processor, on the processor path:
 
 ```xml
 <plugin>
+    <groupId>org.apache.maven.plugins</groupId>
     <artifactId>maven-compiler-plugin</artifactId>
     <configuration>
-        <proc>full</proc>
+        <annotationProcessorPaths>
+            <!-- list Lombok, MapStruct… here too if you use them -->
+            <path>
+                <groupId>io.mateu</groupId>
+                <artifactId>annotation-processor-quarkus</artifactId>
+                <version>MATEU_VERSION</version>
+            </path>
+        </annotationProcessorPaths>
     </configuration>
 </plugin>
 ```
 
-Or, in case you are using Gradle:
+> The annotation processor (`annotation-processor-quarkus`) goes on the **annotation processor path only** — never as a
+> regular `<dependency>`: it is a compile-time code generator, and as a dependency it would ship its
+> own libraries (FreeMarker, Guava) inside your application. Its jar declares itself to Gradle as an
+> incremental (aggregating) processor.
+
+Or, with Gradle:
 
 ```kotlin
-    implementation("io.mateu:quarkus-core:MATEU_VERSION")
-    implementation("io.mateu:vaadin-lit:MATEU_VERSION")
-    annotationProcessor("io.mateu:annotation-processor-quarkus:MATEU_VERSION")
+implementation(platform("io.mateu:mateu-bom:MATEU_VERSION"))
+annotationProcessor(platform("io.mateu:mateu-bom:MATEU_VERSION"))
+implementation("io.mateu:quarkus-core")
+implementation("io.mateu:vaadin-lit")
+annotationProcessor("io.mateu:annotation-processor-quarkus")
+implementation("io.quarkus:quarkus-rest-jackson")
 ```
 
+> **Upgrading from `v3.0-alpha.406` or older:** `quarkus-core` no longer brings
+> `quarkus-resteasy-reactive-jackson` and `quarkus-spring-di` along (they came in at fixed, mismatched
+> versions). Declare `quarkus-rest-jackson` as above. Mateu itself no longer needs Spring-DI support;
+> add `quarkus-spring-di` yourself only if YOUR beans use Spring annotations or are `@Named` without a
+> scope.
 
+See [Configuration properties](/java-create-your-project/configuration/) for what you can tune —
+notably cross-origin access (off unless you list the origins) and the MCP endpoint (off unless enabled).
 
 ## Step 3: Create your Mateu UI
 

@@ -5,14 +5,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { sseService } from './SSEService.ts'
 
 /** Drives runAction far enough to reach the fetch, and hands back the init it was called with. */
-async function callAndCaptureInit(): Promise<RequestInit> {
+async function callAndCaptureInit(route = 'processes'): Promise<RequestInit> {
     const fetchMock = vi.fn().mockResolvedValue({ body: null })
     vi.stubGlobal('fetch', fetchMock)
 
     await sseService.runAction(
         // The api client is only used by the non-SSE path, so a bare cast is enough here.
         {} as never,
-        '/_workflow', 'processes', '/processes', 'refresh', 'initiator-id',
+        '/_workflow', route, '/processes', 'refresh', 'initiator-id',
         {}, 'io.mateu.Some', {}, {},
         // background: true, so nothing is dispatched at the initiator before the fetch.
         document.createElement('div'), true,
@@ -20,8 +20,11 @@ async function callAndCaptureInit(): Promise<RequestInit> {
     )
 
     expect(fetchMock).toHaveBeenCalledOnce()
+    lastUrl = fetchMock.mock.calls[0][0] as string
     return fetchMock.mock.calls[0][1] as RequestInit
 }
+
+let lastUrl = ''
 
 describe('SSEService', () => {
     beforeEach(() => {
@@ -53,5 +56,11 @@ describe('SSEService', () => {
 
         expect(headers).not.toHaveProperty('Authorization')
         expect(headers).not.toHaveProperty('X-Session-Id')
+    })
+
+    it('streams the root view of a mount too (empty route → _no_route), instead of doing nothing', async () => {
+        await callAndCaptureInit('')
+
+        expect(lastUrl).toBe('/_workflow/mateu/v3/sse/_no_route')
     })
 })

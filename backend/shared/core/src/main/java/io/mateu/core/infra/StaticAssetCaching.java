@@ -63,5 +63,33 @@ public final class StaticAssetCaching {
     return "W/\"" + Long.toHexString(contentLength) + "-" + Long.toHexString(lastModified) + "\"";
   }
 
+  /** The {@code Cache-Control} of an immutable (content-versioned) asset. */
+  public static final String IMMUTABLE_CACHE_CONTROL =
+      "max-age=" + IMMUTABLE_MAX_AGE.toSeconds() + ", public, immutable";
+
+  /** The {@code Cache-Control} of an asset with a stable name: keep it, but always revalidate. */
+  public static final String REVALIDATE_CACHE_CONTROL = "no-cache";
+
+  /**
+   * The policy for a request path, for adapters whose static handler cannot be configured per
+   * pattern (Micronaut, Quarkus, Helidon set the header with a response filter): {@link
+   * #IMMUTABLE_CACHE_CONTROL} for {@code /version_<n>/…}, {@link #REVALIDATE_CACHE_CONTROL} for the
+   * {@link #REVALIDATE_FOLDERS}, null for anything else (not a Mateu asset — left alone).
+   */
+  public static String cacheControlFor(String path) {
+    if (path == null || !path.startsWith("/")) {
+      return null;
+    }
+    if (path.startsWith("/version_") && path.indexOf('/', 1) > 0) {
+      return IMMUTABLE_CACHE_CONTROL;
+    }
+    for (String folder : REVALIDATE_FOLDERS) {
+      if (path.startsWith("/" + folder + "/")) {
+        return REVALIDATE_CACHE_CONTROL;
+      }
+    }
+    return null;
+  }
+
   private StaticAssetCaching() {}
 }

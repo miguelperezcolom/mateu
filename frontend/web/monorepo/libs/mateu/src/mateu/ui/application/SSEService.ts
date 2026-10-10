@@ -19,10 +19,9 @@ export class SSEService implements Service {
                 initiator, background, callback, callbackonly, callbackToken, options)
         }
 
-        if (!route) {
-            return
-        }
-        // };
+        // An empty route is the root view of a mount: it streams to /mateu/v3/sse/_no_route, the
+        // same placeholder the sync path uses. It used to return here, so a LongTask on the root
+        // view of a mount silently did nothing.
 
         route = route?route:'_no_route'
 

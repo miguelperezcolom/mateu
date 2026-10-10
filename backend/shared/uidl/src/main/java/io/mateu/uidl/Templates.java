@@ -19,9 +19,9 @@ public final class Templates {
   private Templates() {}
 
   /**
-   * {@code text} escaped so the renderers show it as is: a {@code ${} becomes {@code \${} (and a
-   * backslash {@code \\}) — only when the text contains {@code ${}; any other text is returned
-   * unchanged, since a text without the marker is never evaluated.
+   * {@code text} escaped so the renderers show it as is: a <code>${</code> becomes <code>\${</code>
+   * (and a backslash <code>\\</code>) — only when the text contains <code>${</code>; any other text
+   * is returned unchanged, since a text without the marker is never evaluated.
    */
   public static String literal(String text) {
     if (text == null || !text.contains("${")) {

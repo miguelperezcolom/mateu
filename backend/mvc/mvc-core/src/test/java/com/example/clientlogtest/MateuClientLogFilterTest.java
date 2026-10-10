@@ -1,4 +1,4 @@
-package io.mateu.clientlogtest;
+package com.example.clientlogtest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;

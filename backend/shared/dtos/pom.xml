@@ -11,7 +11,8 @@
 
     <artifactId>dtos</artifactId>
 
-    <name>dtos</name>
+    <name>Mateu wire DTOs</name>
+    <description>The DTOs Mateu backends and renderers exchange (the /mateu/v3 wire model).</description>
 
     <url>https://mateu.io</url>
 
@@ -23,6 +24,17 @@
 
     <build>
         <plugins>
+            <!-- Public API: its javadoc must pass doclint (every check except missing comments) and
+                 a javadoc error FAILS the build here, unlike the backend default (doclint none). -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <doclint>all,-missing</doclint>
+                    <failOnError>true</failOnError>
+                    <failOnWarnings>false</failOnWarnings>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

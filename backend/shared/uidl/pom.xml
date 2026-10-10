@@ -10,8 +10,8 @@
     <artifactId>uidl</artifactId>
     <packaging>jar</packaging>
 
-    <name>uidl</name>
-    <url>http://maven.apache.org</url>
+    <name>Mateu UIDL</name>
+    <description>Public API for declaring Mateu UIs: annotations (@UI, @Action, ...), interfaces and fluent components. The only dependency a framework-agnostic UI module needs.</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -53,6 +53,17 @@
             </resource>
         </resources>
         <plugins>
+            <!-- Public API: its javadoc must pass doclint (every check except missing comments) and
+                 a javadoc error FAILS the build here, unlike the backend default (doclint none). -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <doclint>all,-missing</doclint>
+                    <failOnError>true</failOnError>
+                    <failOnWarnings>false</failOnWarnings>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

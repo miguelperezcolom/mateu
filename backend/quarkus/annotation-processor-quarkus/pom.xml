@@ -10,7 +10,8 @@
     </parent>
 
     <artifactId>annotation-processor-quarkus</artifactId>
-    <name>Annotation processor for quarkus</name>
+    <name>Mateu annotation processor for Quarkus</name>
+    <description>Generates the Quarkus REST controllers of the @UI classes at compile time. Put it on the annotationProcessorPaths only, never on the runtime classpath.</description>
 
     <dependencies>
         <dependency>

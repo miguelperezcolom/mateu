@@ -10,8 +10,8 @@
     <artifactId>vaadin-lit</artifactId>
     <packaging>jar</packaging>
 
-    <name>vaadin-lit</name>
-    <url>http://maven.apache.org</url>
+    <name>Mateu Vaadin renderer</name>
+    <description>The Vaadin-themed Mateu web renderer, packaged as static assets served by the backend.</description>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

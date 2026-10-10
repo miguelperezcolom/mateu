@@ -14,11 +14,13 @@ import io.mateu.uidl.data.Pageable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Flux;
 
 @Named
+@Singleton
 @RequiredArgsConstructor(onConstructor_ = @Inject)
 public class ForeignKeyResolverActionRunner implements ActionRunner {
 

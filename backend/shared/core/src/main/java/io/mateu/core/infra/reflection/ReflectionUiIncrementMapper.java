@@ -19,11 +19,13 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.MapsToDto;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
+import jakarta.inject.Singleton;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import reactor.core.publisher.Mono;
 
 @Named
+@Singleton
 @RequiredArgsConstructor(onConstructor_ = @Inject)
 public class ReflectionUiIncrementMapper implements UiIncrementMapper {
 

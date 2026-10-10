@@ -10,10 +10,17 @@
   <artifactId>agent-cli-companion</artifactId>
   <packaging>jar</packaging>
 
-  <name>Agent CLI Companion</name>
+  <name>Mateu agent CLI companion</name>
   <description>Runnable local companion: serves the chat's SSE contract on localhost by bridging to
     the user's authenticated LLM CLI (claude, gemini) — so a REMOTELY served app still talks to an
     LLM with no api key. Start it with an explicit --allow-origin; the chat auto-detects it.</description>
+
+  <properties>
+
+    <!-- internal: built and tested with the rest, never published to Maven Central -->
+    <maven.deploy.skip>true</maven.deploy.skip>
+  </properties>
+
 
   <dependencies>
     <dependency>
