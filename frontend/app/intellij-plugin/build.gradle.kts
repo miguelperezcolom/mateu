@@ -52,7 +52,16 @@ intellijPlatform {
         name = "Mateu"
         ideaVersion {
             sinceBuild = "252"
-            untilBuild = provider { null }
+            // Capped to the platform lines it is verified against (pluginVerification below); raise it
+            // after verifyPlugin passes on the next major — an open range ships untested combinations.
+            untilBuild = "253.*"
+        }
+    }
+    // `./gradlew verifyPlugin` runs the JetBrains Plugin Verifier (compatibility, internal/deprecated
+    // API usage, descriptor problems) against the IDEs the Marketplace recommends for this range.
+    pluginVerification {
+        ides {
+            recommended()
         }
     }
     // `./gradlew publishPlugin` uploads to the JetBrains Marketplace (CI, on a `plugins-v*` release).
@@ -506,9 +515,16 @@ tasks.register("buildInstaller") {
     }
 }
 
+// Dev-only probes (render/registry) live in their OWN source set: they are compiled against the
+// plugin + platform for the probe tasks, but never packaged into the plugin jar.
+val probes: SourceSet = sourceSets.create("probes") {
+    compileClasspath += sourceSets.main.get().output + sourceSets.main.get().compileClasspath
+    runtimeClasspath += output + compileClasspath
+}
+
 // Dev-only: exercise the app-registry client (entry URL, fetch/parse, version gate) headlessly.
 tasks.register<JavaExec>("registryProbe") {
-    classpath = sourceSets.main.get().output + sourceSets.main.get().compileClasspath
+    classpath = probes.output + probes.compileClasspath
     mainClass.set("io.mateu.ijp.debug.RegistryProbeKt")
 }
 
@@ -517,7 +533,7 @@ tasks.register<JavaExec>("registryProbe") {
 tasks.register<JavaExec>("renderProbe") {
     // The intellij-platform plugin wires the IDE jars into compileClasspath only, so compose the
     // exec classpath from output + compileClasspath (runtimeClasspath lacks the platform).
-    classpath = sourceSets.main.get().output + sourceSets.main.get().compileClasspath
+    classpath = probes.output + probes.compileClasspath
     mainClass.set("io.mateu.ijp.debug.RenderProbeKt")
     (findProperty("probe.json") as String?)?.let { systemProperty("probe.json", it) }
     (findProperty("probe.png") as String?)?.let { systemProperty("probe.png", it) }
