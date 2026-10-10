@@ -27,8 +27,10 @@ export default defineConfig({
             include: ['src/**/*.ts'],
             exclude: ['src/**/*.test.ts', 'src/test/**', 'src/stubs/**'],
             reporter: ['text-summary', 'json-summary'],
-            // measured 2026-10-10: 12.2% lines/statements (mateu-field is 2.5k lines), 31.8% functions, 54.8% branches
-            thresholds: { lines: 12, statements: 12, functions: 31, branches: 54 },
+            // re-measured 2026-10-10 under vitest 4 (its v8 provider remaps with the AST, so functions
+            // and branches are counted for real — vitest 3 read 31.8% / 54.8% on the same suite):
+            // 13.8% lines/statements (mateu-field is 2.5k lines), 6.1% functions, 8.7% branches
+            thresholds: { lines: 13, statements: 13, functions: 6, branches: 8 },
         },
     },
 })
