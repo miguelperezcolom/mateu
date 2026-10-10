@@ -20,7 +20,7 @@
         <!-- The Helidon line the adapter is built and tested against — the SAME one the e2e SUT
              (e2e/sut/apps/helidon-app1) runs on. Every Helidon/Jakarta artifact comes from its BOM
              and is `provided`: the application brings its own Helidon. -->
-        <helidon.version>4.5.1</helidon.version>
+        <helidon.version>27.0.0</helidon.version>
     </properties>
 
     <dependencyManagement>
