@@ -45,6 +45,8 @@ class SeparatorAndTextSizeSyncTest {
     @Text(container = TextContainer.p, noMargins = true)
     String apretado = "Sin márgenes";
 
+    Address address = new Address();
+
     @Label("")
     Callable<Component> fluent =
         () ->
@@ -53,6 +55,12 @@ class SeparatorAndTextSizeSyncTest {
                 .container(TextContainer.span)
                 .size(TextSize.xs)
                 .build();
+  }
+
+  @SuppressWarnings("unused")
+  public static class Address {
+    @Text(container = TextContainer.p)
+    String street = "Main St";
   }
 
   static TestMateu mateu;
@@ -88,5 +96,13 @@ class SeparatorAndTextSizeSyncTest {
             // noMargins is independent of size
             org.assertj.core.groups.Tuple.tuple("${state.apretado}", "m", true),
             org.assertj.core.groups.Tuple.tuple("pequeño", "xs", false));
+  }
+
+  @Test
+  void aNestedTextReadsItsPrefixedKeyWithBracketAccess() {
+    // `${state.address-street}` would evaluate as state.address minus street
+    var increment = mateu.sync("/separator");
+    var texts = FieldKindsSyncTest.collect(increment.fragments().get(0).component(), TextDto.class);
+    assertThat(texts).extracting(TextDto::text).contains("${state['address-street']}");
   }
 }

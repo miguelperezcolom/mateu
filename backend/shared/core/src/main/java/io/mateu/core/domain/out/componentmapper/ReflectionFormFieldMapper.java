@@ -184,7 +184,7 @@ public class ReflectionFormFieldMapper {
       var annotation = MetaAnnotations.find(field, io.mateu.uidl.annotations.Notice.class);
       return io.mateu.uidl.data.Notice.builder()
           .id(getFieldId(field, prefix, readOnly))
-          .text("${state." + prefix + field.getName() + "}")
+          .text(stateExpression(prefix + field.getName()))
           .theme(annotation.theme())
           .icon(annotation.icon().isBlank() ? null : annotation.icon())
           .actionLabel(annotation.actionLabel().isBlank() ? null : annotation.actionLabel())
@@ -204,12 +204,24 @@ public class ReflectionFormFieldMapper {
           .container(MetaAnnotations.find(field, Text.class).container())
           .size(MetaAnnotations.find(field, Text.class).size())
           .noMargins(MetaAnnotations.find(field, Text.class).noMargins())
-          .text("${state." + prefix + field.getName() + "}")
+          .text(stateExpression(prefix + field.getName()))
           .attributes(attributes)
           .build();
     }
     return StandardFormFieldBuilder.build(
         prefix, field, instance, httpRequest, readOnly, forCreationForm);
+  }
+
+  /**
+   * The {@code ${…}} expression reading a state key. A nested field's key carries its prefix
+   * ({@code address-street}), which is not an identifier — {@code state.address-street} would
+   * evaluate as a subtraction — so such keys use bracket access, which every renderer's
+   * interpolator understands.
+   */
+  static String stateExpression(String key) {
+    return key.matches("[A-Za-z_$][A-Za-z0-9_$]*")
+        ? "${state." + key + "}"
+        : "${state['" + key.replace("\\", "\\\\").replace("'", "\\'") + "']}";
   }
 
   private static boolean isReadOnly(Field field, Object instance, HttpRequest httpRequest) {
