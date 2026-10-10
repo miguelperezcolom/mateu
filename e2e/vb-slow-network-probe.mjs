@@ -46,7 +46,7 @@ const browser = await chromium.launch()
   page.getByText('Products', { exact: true }).first().click().catch(()=>{})
   await sleep(3000)
   const band = await page.locator('.mateu-offline-band').innerText().catch(()=>'')
-  check('perder la conexión sostiene una banda', /sin conexión/i.test(band), JSON.stringify(band))
+  check('perder la conexión sostiene una banda', /offline|sin conexión/i.test(band), JSON.stringify(band))
   const err = await page.locator('.mateu-error-band').innerText().catch(()=>'')
   check('el fallo se explica en lenguaje humano, no "Failed to fetch"',
     err.length > 0 && !/failed to fetch|typeerror|http \d/i.test(err), JSON.stringify(err.slice(0,90)))

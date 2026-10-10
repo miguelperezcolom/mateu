@@ -29,6 +29,10 @@ const SCREENS = [
   ['/requisitions', ['Requisition 204', 'Approval']],                 // general overview
   ['/chair', ['SKU: EC-200-BLK', 'Specifications']],                  // item overview
   ['/person', ['Name', 'Age', 'Save']],                               // form
+  // the display components galleries (data-only routes, specs/ui/components*.yaml): every type
+  ['/components', ['Review contract', 'Order placed', 'Go Pro', 'Grace Hopper', 'Go-live checklist',
+    'Nightly sync', 'Maintenance window']],
+  ['/components-2', ['Rate details', 'Engineering', 'Release notes', 'Approve', 'Onboarding', 'Sign-up form', 'Sales']],
 ]
 
 const browser = await chromium.launch()
