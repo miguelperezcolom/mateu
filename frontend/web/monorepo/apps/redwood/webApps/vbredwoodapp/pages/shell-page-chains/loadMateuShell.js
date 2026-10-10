@@ -119,6 +119,22 @@ define([
       bridge.setDropSink(runPageAction);
       bridge.setKeysActionSink(runPageAction);
 
+      // The IDE's visual editor paints with this app (its preview page sets the flag): the
+      // increment comes from the editor through postMessage, the app answers its own /mateu calls
+      // with it, and the painted atoms carry the definition's node ids (bridge editorPreview.mjs).
+      // Before the bootstrap: it must already be answered locally.
+      let editorPreview = null;
+      if (bridge.isEditorPreview(window)) {
+        bridge.setEditorNodeIds(true);
+        editorPreview = bridge.installEditorPreview(window, {
+          rerender: () => Actions.callChain(window.__mateuShellContext || context, {
+            chain: 'onMateuNavigate',
+            params: { event: { detail: { route: bridge.PREVIEW_ROUTE } }, force: true },
+          }),
+          dataOf: await bridge.editorDataResolver(),
+        });
+      }
+
       // Static-bundle (modo sin backend): si hay un mateuBundleUrl configurado, se arranca la carga
       // del manifest AQUÍ, antes del bootstrap. bootstrapShell/loadRoute esperan al fetch en vuelo
       // (awaitBundle) y responden desde el bundle cuando la ruta está — así las cargas van sin
@@ -289,6 +305,10 @@ define([
           chain: 'onMateuNavigate',
           params: { event: { detail: { currentId: startRoute } }, fromUrl: !!deepLink },
         });
+      }
+      if (editorPreview) {
+        window.__mateuShellContext = context;
+        editorPreview.booted();
       }
 
       // navigation-requested: lo emite el HTML de un widget (el enlace del badge de la bandeja) y
