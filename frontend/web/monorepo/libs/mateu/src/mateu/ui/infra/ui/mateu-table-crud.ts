@@ -63,6 +63,29 @@ const directions: Record<string, string> = {
 const EDGE_GUTTER = 'padding-inline: var(--mateu-edge-header-gutter, 0px); box-sizing: border-box;'
 const FILTER_ROW_STYLE = 'flex-shrink: 0; display: flex; align-items: center; gap: var(--lumo-space-s, 0.5rem); padding: 3px;'
 
+/**
+ * Whether a listing's search is coming without the user asking: the enclosing component fires
+ * `search` on load. A SEARCH-FIRST listing (HeroSearch, SmartSearchPage —
+ * `searchesOnOpening() = false`) has no such trigger, and it used to shimmer a skeleton for 15 s and
+ * then say "Nothing here yet." — a wait for nothing, then a claim that is not true (Nielsen #1; UX
+ * review W-V-SEARCHFIRST). Outside a mateu-component (tests, the editor) it assumes the old way.
+ */
+type WalkedNode = { tagName?: string, parentElement?: WalkedNode | null, getRootNode?: () => { host?: WalkedNode },
+    component?: { triggers?: Array<{ type?: string, actionId?: string }> } }
+
+export const listingSearchesOnLoad = (start: unknown): boolean => {
+    let node = start as WalkedNode | null | undefined
+    while (node) {
+        if (node.tagName === 'MATEU-COMPONENT') {
+            const triggers = node.component?.triggers ?? []
+            return triggers.some(t => t?.type === 'OnLoad' && t?.actionId === 'search')
+        }
+        // node env (tests): no DOM classes; a shadow root is recognised by its host
+        node = node.parentElement ?? node.getRootNode?.()?.host ?? null
+    }
+    return true
+}
+
 @customElement('mateu-table-crud')
 export class MateuTableCrud extends LitElement {
 
@@ -481,6 +504,17 @@ export class MateuTableCrud extends LitElement {
 
     private loadingTimer?: ReturnType<typeof setTimeout>
 
+    /**
+     * Whether a search is coming without the user asking: the enclosing component fires `search` on
+     * load. A SEARCH-FIRST listing (HeroSearch, SmartSearchPage — `searchesOnOpening() = false`)
+     * has no such trigger, and it used to shimmer a skeleton for 15 s and then say "Nothing here
+     * yet." — a wait for nothing, then a claim that is not true (Nielsen #1; UX review W-V-SEARCHFIRST).
+     */
+    /** No search has run yet and none is coming: the listing invites one instead of claiming "nothing". */
+    private get awaitingFirstSearch(): boolean {
+        return this.data?.[this.id] == undefined && this.loadingSince == undefined && !listingSearchesOnLoad(this)
+    }
+
     /** The listing has asked for rows and is still waiting for them. */
     private get awaitingRows(): boolean {
         return this.loadingSince != undefined
@@ -844,7 +878,7 @@ export class MateuTableCrud extends LitElement {
         // answered for its id yet.
         if (this.data?.[this.id] != undefined) this.endLoading()
         else if (this.loadingSince == undefined && this._initializedForKey != undefined
-            && !this.awaitingRows) this.beginLoading()
+            && !this.awaitingRows && listingSearchesOnLoad(this)) this.beginLoading()
         if (_changedProperties.has("component")) {
             const initKey = MateuTableCrud._initKeyOf(this.component)
             const metadata = this.component?.metadata as Crud
@@ -952,13 +986,14 @@ export class MateuTableCrud extends LitElement {
     needsSelection = (button: Button): boolean => {
         const selected = this.state?.['crud_selected_items']
         if (Array.isArray(selected) && selected.length > 0) return false
-        let node: Node | null = this
+        type Walked = { tagName?: string, parentElement?: Walked | null, getRootNode?: () => { host?: Walked },
+            component?: { actions?: Array<{ id?: string, rowsSelectedRequired?: boolean }> } }
+        let node: Walked | null | undefined = this as unknown as Walked
         while (node) {
-            const el = node as any
-            const actions = el.tagName === 'MATEU-COMPONENT' ? el.component?.actions : undefined
-            const action = Array.isArray(actions) ? actions.find((a: any) => a?.id === button.actionId) : undefined
+            const actions = node.tagName === 'MATEU-COMPONENT' ? node.component?.actions : undefined
+            const action = Array.isArray(actions) ? actions.find(a => a?.id === button.actionId) : undefined
             if (action) return !!action.rowsSelectedRequired
-            node = el.parentElement ?? ((el.getRootNode?.() instanceof ShadowRoot) ? (el.getRootNode() as ShadowRoot).host : null)
+            node = node.parentElement ?? node.getRootNode?.()?.host ?? null
         }
         return false
     }
@@ -1046,7 +1081,9 @@ export class MateuTableCrud extends LitElement {
         // summaries — the table layouts pick those up for totals/group rows.
         const listing = this.data[this.id] as ListingData | undefined
         const rows: any[] = (listing?.page?.content as any[]) ?? []
-        const emptyMsg = this.state[this.component?.id!]?.emptyStateMessage
+        const emptyMsg = this.awaitingFirstSearch
+            ? chromeText('searchToStart')
+            : this.state[this.component?.id!]?.emptyStateMessage
 
         const formatListValue = (col: GridColumn, item: any) => {
             const val = item[col.id]
@@ -1395,7 +1432,9 @@ export class MateuTableCrud extends LitElement {
             ` : renderCards())
             : !rendererOwnsLayouts && gridLayout === 'masterDetail' ? renderMasterDetail()
             : !rendererOwnsLayouts && gridLayout === 'tree' ? treeContent()
-            : componentRenderer.get()?.renderTableComponent(this, component, this.baseUrl, this.state, this.data, this.appState, this.appData)}
+            : componentRenderer.get()?.renderTableComponent(this, this.awaitingFirstSearch
+                ? { ...component, metadata: { ...(component.metadata as object), emptyStateMessage: chromeText('searchToStart') } } as unknown as ClientSideComponent
+                : component, this.baseUrl, this.state, this.data, this.appState, this.appData)}
             <slot></slot>
         `
 

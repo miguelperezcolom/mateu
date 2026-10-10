@@ -4,6 +4,7 @@ import PlanningResource from "@mateu/shared/apiClients/dtos/componentmetadata/Pl
 import PlanningBlock from "@mateu/shared/apiClients/dtos/componentmetadata/PlanningBlock";
 import { icon } from "@infra/ui/renderers/neutralIcon.ts";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { inkOn } from '@infra/ui/inkOn.ts'
 
 interface DragState {
     blockId: string
@@ -206,7 +207,7 @@ export class MateuPlanningBoard extends LitElement {
             line-height: 1.5rem;
             border-radius: .5rem;
             background: var(--mateu-planning-block, var(--lumo-primary-color, #1a73e8));
-            color: var(--lumo-primary-contrast-color, #fff);
+            color: var(--mateu-planning-block-ink, var(--lumo-primary-contrast-color, #fff));
             padding: 0 .5rem;
             box-sizing: border-box;
             white-space: nowrap;
@@ -596,7 +597,7 @@ export class MateuPlanningBoard extends LitElement {
                     return html`
                         <div class="block ${this.selectActionId ? 'clickable' : ''} ${this.moveActionId ? 'draggable' : ''} ${dragging ? 'dragging' : ''}"
                              title="${tooltip}"
-                             style="left: ${shownStart * pctPerDay}%; width: ${(shownEnd - shownStart + 1) * pctPerDay}%; ${block.color ? `--mateu-planning-block: ${block.color};` : ''}"
+                             style="left: ${shownStart * pctPerDay}%; width: ${(shownEnd - shownStart + 1) * pctPerDay}%; ${block.color ? `--mateu-planning-block: ${block.color}; ${inkOn(block.color) ? `--mateu-planning-block-ink: ${inkOn(block.color)};` : ''}` : ''}"
                              @dblclick="${this.openActionId ? () => this.emit(this.openActionId!, { _blockId: block.id }) : nothing}"
                              @pointerdown="${(e: PointerEvent) => this.onBlockPointerDown(e, block, startIdx)}"
                              @pointermove="${(e: PointerEvent) => this.onBlockPointerMove(e)}"

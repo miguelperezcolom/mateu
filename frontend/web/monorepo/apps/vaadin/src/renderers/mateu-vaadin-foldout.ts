@@ -613,8 +613,8 @@ export class MateuVaadinFoldout extends LitElement {
             margin-top: -3.2rem;
             z-index: 3;
             display: inline-flex;
-            gap: .5rem;
-            padding: .55rem .9rem;
+            gap: 0;
+            padding: .2rem .5rem;
             border-radius: 999px;
             background: var(--mateu-foldout-dots-bg, rgba(22, 21, 19, .78));
         }
@@ -624,7 +624,6 @@ export class MateuVaadinFoldout extends LitElement {
             box-sizing: border-box;
             width: 24px;
             height: 24px;
-            margin: calc((.7rem - 24px) / 2);
             display: inline-grid;
             place-items: center;
             cursor: pointer;

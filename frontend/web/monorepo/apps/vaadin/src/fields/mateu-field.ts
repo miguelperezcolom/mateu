@@ -61,6 +61,7 @@ import {announce} from "@infra/a11y/announcer.ts";
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
 import { safeHref } from '@infra/ui/safeNavigate.ts'
 import { displayedValue, formatMoney } from './fieldDisplay'
+import { humanizeFieldId } from '@infra/ui/humanize.ts'
 
 type ValueChangedDetail = { value: unknown; fieldId: string | undefined }
 
@@ -659,10 +660,25 @@ export class MateuField extends LitElement {
         super.updated(changedProperties);
         this.positionNavLink()
         this.applyValidationState()
+        this.nameUnlabelledControl()
         // Whether the control displays its own message decides if the fallback list is rendered.
         // It can only be known after the control exists, so it feeds the NEXT render — which Lit
         // schedules because it is @state.
         this.controlOwnsValidity = !!this.validatableControl()
+    }
+
+    /**
+     * A field declared with a HIDDEN label (`@Label("")` — a record switcher, a search box that the
+     * page explains around it) still needs an accessible name: without one a screen reader announced
+     * a bare "edit text" (WCAG 4.1.2; UX review W-V-RECORD-SWITCH). The control gets the field's
+     * humanized id as its name; a visible label always wins.
+     */
+    private nameUnlabelledControl() {
+        const label = this.field?.label
+        if (!this.field || (typeof label === 'string' && label.trim())) return
+        const control = this.validatableControl() as (HTMLElement & { accessibleName?: string, label?: string }) | null
+        if (!control || !('accessibleName' in control) || control.accessibleName || control.label) return
+        control.accessibleName = humanizeFieldId(this.field.fieldId ?? '')
     }
 
     iconFilterChanged = (event: CustomEvent) => {
@@ -998,8 +1014,8 @@ export class MateuField extends LitElement {
                             data-colspan="${this.field.colspan}"
                     >
                         <vaadin-horizontal-layout theme="spacing" style="--lumo-space-m: 0.33rem;">
-                            <vaadin-text-field style="width: 4rem;" @change="${searchCode}" value="${value}"></vaadin-text-field>
-                            <vaadin-text-field readonly="" value="${this.data[this.field.fieldId + '-label']}"></vaadin-text-field>
+                            <vaadin-text-field style="width: 4rem;" accessible-name="${(this.field.label ?? this.field.fieldId) + ' — ' + chromeText('code')}" @change="${searchCode}" value="${value}"></vaadin-text-field>
+                            <vaadin-text-field readonly="" accessible-name="${this.field.label ?? this.field.fieldId}" value="${this.data[this.field.fieldId + '-label']}"></vaadin-text-field>
                             <vaadin-button theme="icon" aria-label="${chromeText('search')}" @click="${search}"><vaadin-icon icon="lumo:search"></vaadin-icon></vaadin-button>
                         </vaadin-horizontal-layout>
                     </vaadin-custom-field>
