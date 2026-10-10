@@ -1052,6 +1052,67 @@ test('arrastre: el listado @DragRows da su tipo al oj-table; el DropZone es un �
   assert.match(webApp('flows/main/pages/main-start-page-chains/runMateuAction.js'), /hostNow\.tree\.id !== host\.tree\.id/)
 })
 
+import { markdownBlocksOf, ganttAtomOf, itemOverviewOf, generalOverviewOf } from './reduceContexts.mjs'
+
+test('Markdown: encabezados, párrafos y listas como átomos, sin marcas en línea ni HTML', () => {
+  assert.deepEqual(markdownBlocksOf('# Title\n\nSome **bold** and `code`,\nsame paragraph.\n\n- one\n- [two](http://x)\n\n## Sub'), [
+    { level: 1, text: 'Title' },
+    { level: 0, text: 'Some bold and code, same paragraph.' },
+    { list: ['one', 'two'] },
+    { level: 2, text: 'Sub' },
+  ])
+  const atoms = atomsOf(node({ type: 'Markdown', markdown: '# H\n\ntext\n\n* a' }))
+  assert.equal(atoms.length, 3)
+  assert.ok(atoms[0].isText && atoms[0].isHeading)
+  assert.ok(atoms[1].isText && !atoms[1].isHeading)
+  assert.deepEqual(atoms[2].items, ['a'])
+})
+
+test('Gantt: una fila por tarea sobre oj-gantt, avance 0..1, selección → _clickedTaskId', () => {
+  const g = ganttAtomOf({ onTaskSelectionActionId: 'selectGanttTask', tasks: [
+    { id: 't1', title: 'Design', start: '2026-01-05', end: '2026-01-20', progress: 50 },
+    { id: 't2', title: 'Build', start: '2026-01-21', end: '2026-04-30', progress: 150 },
+    { id: 'tx', title: 'No dates' },
+  ] }, 'plan')
+  assert.ok(g.isGantt)
+  assert.equal(g.rows.length, 2, 'las tareas sin fechas no se pintan')
+  const prog = Object.fromEntries(g.rows.flatMap((r) => r.tasks).map((t) => [t.id, t.progress.value]))
+  assert.deepEqual(prog, { t1: 0.5, t2: 1 })
+  assert.equal(g.majorScale, 'months', 'un plan de meses se lee por meses')
+  assert.deepEqual(planningActionOf(g, 'select', { value: ['t1'] }) || planningActionOf(g, 'select', { taskId: 't1' }),
+    { actionId: 'selectGanttTask', parameters: { _clickedTaskId: 't1' } })
+  assert.ok(atomsOf(node({ type: 'Gantt', tasks: [{ id: 'a', start: '2026-01-01', end: '2026-01-02' }] }))[0].isGantt)
+  assert.match(webApp('flows/main/pages/main-start-page.html'), /on-selection-changed/)
+})
+
+test('Grid fluido: oj-table de sus columnas hoja (grupos aplanados) y sus filas', () => {
+  const [g] = atomsOf(node({ type: 'Grid', content: [
+    { type: 'GridColumn', id: 'name', label: 'Name' },
+    { type: 'GridGroupColumn', columns: [{ type: 'GridColumn', id: 'qty', label: 'Qty' }] },
+  ], page: { content: [{ name: 'A', qty: 1 }] } }))
+  assert.ok(g.isGrid)
+  assert.deepEqual(g.columns.map((c) => c.field), ['name', 'qty'])
+  assert.equal(g.rows[0]._rowNumber, 0)
+  assert.equal(g.isEmpty, false)
+})
+
+test('Item Overview y General Overview: el contenido de tarjetas y pestañas viaja como átomos', () => {
+  const io = itemOverviewOf({ state: {}, data: {}, tree: node({ type: 'HorizontalLayout' }, [
+    node({ type: 'Card', title: node({ type: 'Text', text: 'Chair' }), content: [node({ type: 'Markdown', markdown: '- 4D armrests' })] }),
+    node({ type: 'TabLayout' }, [node({ type: 'Tab', label: 'Specs' }, [node({ type: 'Markdown', markdown: '## Size' })])]),
+  ]) })
+  assert.equal(io.key.title, 'Chair')
+  assert.deepEqual(io.key.items[0].items, ['4D armrests'])
+  assert.ok(io.tabs[0].items[0].isHeading)
+  const go = generalOverviewOf({ state: {}, data: {}, tree: node({ type: 'VerticalLayout' }, [
+    node({ type: 'FormField', fieldId: 'record', dataType: 'string', options: [{ value: '1', label: 'One' }] }),
+    node({ type: 'EntityHeader', title: 'One' }),
+    node({ type: 'Card', title: node({ type: 'Text', text: 'Notes' }), content: [node({ type: 'Markdown', markdown: 'hello' })] }),
+  ]) })
+  const card = go.cards.find((c) => c.title === 'Notes')
+  assert.equal(card.items[0].text, 'hello')
+})
+
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }
 console.log(`\n${pass} tests PMS OK`)
 void HOST_ID

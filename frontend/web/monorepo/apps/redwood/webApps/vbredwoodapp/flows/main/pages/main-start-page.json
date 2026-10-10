@@ -679,6 +679,18 @@
         }
       ]
     },
+    "planningSelected": {
+      "chains": [
+        {
+          "chain": "planningGanttEvent",
+          "parameters": {
+            "kind": "select",
+            "event": "{{ $event }}",
+            "atom": "{{ $current.data }}"
+          }
+        }
+      ]
+    },
     "planningDblClick": {
       "chains": [
         {

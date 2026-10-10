@@ -1253,6 +1253,37 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  puede leer los datos), si lo que viene es suyo. */
   const dragMimeOf = (type) => (type ? 'application/x-mateu-' + String(type).toLowerCase().replace(/[^a-z0-9.+-]/g, '-') : '')
 
+  /** Markdown → bloques: {level, text} (encabezado #… o párrafo) o {list: [items]}. Énfasis, código
+   *  en línea y enlaces quedan como texto (sin sus marcas); nada de HTML. */
+  function markdownBlocksOf(md) {
+    const inline = (t) => String(t)
+      .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '$1')
+      .replace(/(\*\*|__)(.+?)\1/g, '$2')
+      .replace(/(\*|_)(.+?)\1/g, '$2')
+      .replace(/`([^`]+)`/g, '$1')
+      .trim()
+    const blocks = []
+    let para = []
+    let list = null
+    const flush = () => {
+      if (para.length) { blocks.push({ level: 0, text: inline(para.join(' ')) }); para = [] }
+      if (list) { blocks.push({ list }); list = null }
+    }
+    for (const raw of String(md || '').split('\n')) {
+      const line = raw.trimEnd()
+      const heading = /^(#{1,6})\s+(.*)$/.exec(line.trim())
+      const item = /^\s*(?:[-*+]|\d+\.)\s+(.*)$/.exec(line)
+      if (!line.trim()) { flush(); continue }
+      if (heading) { flush(); blocks.push({ level: heading[1].length, text: inline(heading[2]) }); continue }
+      if (item) { if (para.length) { blocks.push({ level: 0, text: inline(para.join(' ')) }); para = [] } ; (list = list || []).push(inline(item[1])); continue }
+      if (list) { blocks.push({ list }); list = null }
+      para.push(line.trim())
+    }
+    flush()
+    return blocks.filter((b) => b.list ? b.list.length : b.text)
+  }
+
   /** «colSpan de N columnas» → la clase oj-flex del bloque (doceavos, nunca más de 12). */
   function panelColClass(colSpan, columns) {
     const span = Math.max(1, Math.min(columns, colSpan > 0 ? colSpan : 1))
@@ -1326,7 +1357,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
     // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
     // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
-    'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone',
+    'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt',
   ]
   function isRichAtom(a) {
     return !!a && RICH_ATOM_FLAGS.some((flag) => a[flag])
@@ -1536,7 +1567,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const facts = (md.facts || []).map((f) => ({ label: f.label, value: f.value }))
     if (md.metricLabel) facts.push({ label: md.metricLabel, value: md.metricValue })
     const cards = findAllByType(ctx.tree, 'Card')
-      .map(cardOf)
+      .map((node) => {
+        const card = cardOf(node)
+        // el contenido de la tarjeta como ÁTOMOS (no sólo sus textos): una StatusList, una tabla…
+        // se pintaban vacías porque sólo se recogía el texto
+        const content = (node.metadata && node.metadata.content) || []
+        const blocks = islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_overviewCard', metadata: { type: 'VerticalLayout' },
+          children: Array.isArray(content) ? content : [content] } }) || []
+        return { ...card, items: blocks.flatMap((b) => b.items || []) }
+      })
       .filter((card) => card.title) // los Card sin título son wrappers de sección/estructura
     return {
       title: md.title || '',
@@ -1598,13 +1637,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!keyCard) return null
     // solo las pestañas de la barra EXTERIOR: las de una barra anidada son contenido de su
     // pestaña (sus textos van en los de ella), no hermanas de la lista
+    // el contenido como ÁTOMOS (un Markdown, un Chart, una StatusList…): antes solo sus textos sueltos
+    const atomsOfNodes = (nodes) => (islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_itemOverview',
+      metadata: { type: 'VerticalLayout' }, children: nodes } }) || []).flatMap((b) => b.items || [])
     const tabs = (tabLayout.children || []).filter((c) => c.metadata && c.metadata.type === 'Tab').map((tab, i) => ({
       id: 'itab-' + i,
       label: tab.metadata.label || tab.metadata.caption || 'Tab ' + (i + 1),
       texts: collectTexts(tab),
+      items: atomsOfNodes(tab.children || []),
     }))
+    const keyContent = keyCard ? ((keyCard.metadata && keyCard.metadata.content) || []) : []
     return {
-      key: keyCard ? cardOf(keyCard) : { title: '', texts: [] },
+      key: keyCard ? { ...cardOf(keyCard), items: atomsOfNodes(Array.isArray(keyContent) ? keyContent : [keyContent]) } : { title: '', texts: [], items: [] },
       tabs,
     }
   }
@@ -2580,6 +2624,49 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           noticeClass: NOTICE_CLASSES[m.theme] || NOTICE_CLASSES.info,
           buttons: collectButtons({ children: kidsOf(node) }, []),
         }, container)
+        return
+      }
+      if (t === 'Markdown') {
+        // Markdown sin HTML crudo (VB no estampa HTML de un binding, y así no hay nada que sanear): sus
+        // bloques como los átomos de siempre — encabezados, párrafos, listas —; el énfasis en línea
+        // se queda en el texto sin sus marcas
+        for (const block of markdownBlocksOf(interp(m.markdown || m.text || ''))) {
+          if (block.list) atom({ isBullets: true, items: block.list }, container)
+          else atom({ isText: true, text: block.text, isHeading: block.level > 0,
+            cls: block.level === 1 ? 'oj-typography-heading-sm oj-sm-margin-2x-bottom'
+              : block.level > 1 ? 'oj-typography-subheading-sm oj-sm-margin-2x-bottom' : 'oj-typography-body-md oj-sm-margin-2x-bottom' }, container)
+        }
+        return
+      }
+      if (t === 'Grid') {
+        // un Grid fluido (columnas en content, filas en page.content): la misma tabla embebida que
+        // un campo de tipo lista — oj-table en modo lista; los grupos de columnas se aplanan
+        const leafColumns = []
+        const walkCols = (n) => {
+          const cm = n && (n.metadata || n)
+          if (!cm) return
+          if (cm.type === 'GridGroupColumn') { kidsOf(n).forEach(walkCols); (cm.columns || []).forEach(walkCols); return }
+          if (cm.type === 'GridColumn' || cm.id) leafColumns.push(cm)
+        }
+        ;(m.content || []).forEach(walkCols)
+        const rows = ((m.page && m.page.content) || []).map((r, i) => ({ ...r, _rowNumber: r._rowNumber == null ? i : r._rowNumber }))
+        const columns = leafColumns.map((c) => ({ headerText: interp(c.label || c.id), field: c.id }))
+        atom({
+          isGrid: true,
+          fieldId: node.id || 'grid',
+          label: '',
+          columns,
+          rows,
+          adp: dataProviderFactory ? dataProviderFactory(rows) : null,
+          isEmpty: rows.length === 0,
+          rowEditable: false,
+          addActionId: '',
+          addLabel: 'Add',
+        }, container)
+        return
+      }
+      if (t === 'Gantt') {
+        atom(ganttAtomOf(m, node.id), container)
         return
       }
       if (t === 'DropZone') {
@@ -5575,6 +5662,33 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  /** Un GANTT de tareas (Gantt: título, inicio, fin, avance, color) sobre el mismo oj-gantt que el
+   *  tape chart: una fila por tarea con su barra, el avance como el relleno de progreso de JET, y la
+   *  tarea pulsada → onTaskSelectionActionId con _clickedTaskId (el contrato del renderer web). */
+  function ganttAtomOf(m, id) {
+    const tasks = (m.tasks || []).filter((t) => t && t.start && t.end)
+    const atom = planningAtomOf({
+      resources: tasks.map((t) => ({ id: t.id, label: t.title || t.id })),
+      blocks: tasks.map((t) => ({
+        id: t.id, resourceId: t.id, start: t.start, end: t.end, label: t.title || '', color: t.color,
+        summary: (t.title || '') + ' · ' + t.start + ' → ' + t.end + ' · ' + Math.round(t.progress || 0) + '%',
+      })),
+      selectActionId: m.onTaskSelectionActionId || '',
+    }, id || 'gantt')
+    const progress = {}
+    for (const t of tasks) progress[t.id] = Math.max(0, Math.min(100, Number(t.progress) || 0)) / 100
+    for (const row of atom.rows) for (const task of row.tasks) task.progress = { value: progress[task.id] || 0 }
+    const days = Math.round((Date.parse(atom.endDay) - Date.parse(atom.startDay)) / DAY_MS)
+    return {
+      ...atom,
+      isGantt: true,
+      selectParam: '_clickedTaskId',
+      // escala a la medida del plan: un proyecto de meses se lee por meses/semanas
+      majorScale: days > 60 ? 'months' : 'weeks',
+      minorScale: days > 60 ? 'weeks' : 'days',
+    }
+  }
+
   /**
    * Un evento del oj-gantt → { actionId, parameters } de Mateu, o null si no hay acción. Fechas a
    * días (fin inclusivo). `kind`: 'move' | 'resize' | 'open' | 'select' | 'range'.
@@ -5607,7 +5721,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         _blockId: taskId, _resourceId: rowId, _start: day(detail.start), _end: lastNight(detail.end) } }
     }
     if (kind === 'open' && atom.openActionId && taskId) return { actionId: atom.openActionId, parameters: { _blockId: taskId } }
-    if (kind === 'select' && atom.selectActionId && taskId) return { actionId: atom.selectActionId, parameters: { _blockId: taskId } }
+    // el Gantt (Gantt.onTaskSelectionActionId) recibe la tarea como _clickedTaskId; el tape chart, _blockId
+    if (kind === 'select' && atom.selectActionId && taskId) return { actionId: atom.selectActionId, parameters: { [atom.selectParam || '_blockId']: taskId } }
     if (kind === 'range' && atom.rangeSelectActionId && detail && detail.rowId && detail.start && detail.end) {
       const [a, b] = [day(detail.start), day(detail.end)].sort()
       return { actionId: atom.rangeSelectActionId, parameters: { _resourceId: detail.rowId, _start: a, _end: b } }

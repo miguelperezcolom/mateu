@@ -51,7 +51,7 @@
                         :data-start="[[ $current.data.startDay ]]" :data-end="[[ $current.data.endDay ]]"
                         :data-row-ids="[[ $current.data.rowIds ]]" :data-row-labels="[[ $current.data.rowLabels ]]"
                         start="[[ $current.data.start ]]" end="[[ $current.data.end ]]"
-                        major-axis.scale="weeks" minor-axis.scale="days"
+                        major-axis.scale="[[ $current.data.majorScale || 'weeks' ]]" minor-axis.scale="[[ $current.data.minorScale || 'days' ]]"
                         row-axis.rendered="on" row-axis.max-width="30%"
                         gridlines.horizontal="visible" gridlines.vertical="visible"
                         selection-mode="single"
@@ -60,7 +60,8 @@
                         row-data="[[ $current.data.rowsProvider ]]"
                         on-oj-move="[[ $listeners.planningMoved ]]"
                         on-oj-resize="[[ $listeners.planningResized ]]"
-                        on-dblclick="[[ $listeners.planningDblClick ]]">
+                        on-dblclick="[[ $listeners.planningDblClick ]]"
+                        on-selection-changed="[[ $listeners.planningSelected ]]">
                         <template slot="rowTemplate" data-oj-as="row">
                           <oj-gantt-row label="[[ row.data.label ]]" tasks="[[ row.data.tasks ]]"></oj-gantt-row>
                         </template>

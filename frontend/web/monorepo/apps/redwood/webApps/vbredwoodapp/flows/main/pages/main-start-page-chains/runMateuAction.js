@@ -560,7 +560,7 @@ define([
       $application.variables.mateuOverviewOptions = overviewProjection ? overviewProjection.switcherOptions : [];
       $application.variables.mateuItemOv = itemProjection;
       $application.variables.mateuItemTabTexts = itemProjection && itemProjection.tabs.length
-        ? itemProjection.tabs[0].texts : [];
+        ? itemProjection.tabs[0].items : []; // los ÁTOMOS de la pestaña (no sólo sus textos)
       if (welcome || overviewProjection || itemProjection) {
         // sus campos/botones los pintan las ramas del arquetipo (o los paneles del foldout:
         // la vista @FoldoutDetail de un crud), no el form genérico

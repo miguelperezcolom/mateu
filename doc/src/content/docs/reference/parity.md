@@ -44,7 +44,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Access keys mode (`@App(accessKeys)` → `AppDto.accessKeys`) | ✅ | ✅ | ✅ |
 | `Popover.trigger` (click/hover) + `@Tooltip("field")` → `GridColumn.tooltipPath` | ✅ | ✅ | ✅ |
 | `@DragRows` → `CrudlDto.dragType` + `DropZone` | ✅ | ✅ | ✅ |
-| Row tones (`@RowStatus` → `CrudlDto.rowStatusField`) and listing export buttons on `AutoCrud` | ✅ | — | — |
+| Row tones (`@RowStatus` → `CrudlDto.rowStatusField`) and listing export buttons on `AutoCrud` | ✅ | 🟡 `[RowStatus]` + Export CSV (`Crud.CsvExportable`, built-in CSV writer); no Excel/PDF exporters in the port | 🟡 `RowStatus()` + Export CSV (`Crud.csv_exportable()`, built-in CSV writer); no Excel/PDF exporters in the port |
 | i18n, events (emit/subscribe), security scaffolding | ✅ | ✅ | ✅ |
 | Application context selector (`@AppContext`) | ✅ | ✅ | ✅ |
 | App header actions (`AppActionsSupplier` → buttons + dropdown groups) | ✅ | ✅ | ✅ |
@@ -259,8 +259,8 @@ not the feature rows above — is the authority when a screen looks emptier on R
 
 <!-- redwood-coverage:start -->
 Generated from `frontend/web/monorepo/apps/redwood/poc/coverage.mjs` and checked in CI against the
-wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 48 rendered, 12 layout
-containers, 6 partial, 42 not rendered (they are dropped silently — the
+wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 49 rendered, 12 layout
+containers, 8 partial, 39 not rendered (they are dropped silently — the
 children of a container still render).
 
 | Component | Redwood | How |
@@ -289,6 +289,7 @@ children of a container still render).
 | `Form` | ✅ | oj-form-layout |
 | `FormField` | ✅ | oj-input-*, oj-select-*, oj-radioset, oj-checkboxset, oj-input-number, capture fields |
 | `FormLayout` | ✅ | oj-form-layout |
+| `Gantt` | ✅ | oj-gantt: a row per task, progress fill, task click → onTaskSelectionActionId |
 | `HorizontalLayout` | ✅ | oj-flex row |
 | `Ledger` | ✅ |  |
 | `MasterDetailLayout` | ✅ | list + detail panes |
@@ -327,7 +328,9 @@ children of a container still render).
 | `VerticalLayout` | ✅ layout |  |
 | `CustomComponent` | 🟡 | visible placeholder + slotted children (no VB registry) |
 | `EmptyState` | 🟡 | page-level empty state only |
+| `Grid` | 🟡 | oj-table (list display) with its columns and rows; no tree, no paging |
 | `HeroSection` | 🟡 | Welcome archetype hero only |
+| `Markdown` | 🟡 | headings, paragraphs and bullet lists as Redwood typography; inline emphasis, links and code lose their marks; no tables or raw HTML |
 | `Popover` | 🟡 | trigger + the content as text lines in a shared oj-popup (hover/focus or click); the wrapped component shows as its text |
 | `ProgressBar` | 🟡 | wizard progress only |
 | `ResponsiveGrid` | 🟡 | fixed tracks → oj-flex columns sized by their fr weights and spans; auto-fill/auto-fit grids stack |
@@ -356,14 +359,11 @@ children of a container still render).
 | `FileList` | — |  |
 | `FormEditor` | — |  |
 | `Funnel` | — |  |
-| `Gantt` | — |  |
-| `Grid` | — | listings go through Crud |
 | `Heatmap` | — |  |
 | `Icon` | — |  |
 | `Image` | — |  |
 | `Kanban` | — |  |
 | `Map` | — |  |
-| `Markdown` | — |  |
 | `MenuBar` | — |  |
 | `MessageInput` | — |  |
 | `MessageList` | — |  |

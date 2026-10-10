@@ -428,7 +428,7 @@ define([
       $application.variables.mateuOverviewOptions = overviewProjection ? overviewProjection.switcherOptions : [];
       $application.variables.mateuItemOv = itemProjection;
       $application.variables.mateuItemTabTexts = itemProjection && itemProjection.tabs.length
-        ? itemProjection.tabs[0].texts : [];
+        ? itemProjection.tabs[0].items : []; // los ÁTOMOS de la pestaña (no sólo sus textos)
       if (itemProjection) {
         try {
           await Actions.callComponentMethod(context, { selector: '#mateuItemTabs', method: 'refresh' });

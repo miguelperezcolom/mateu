@@ -34,6 +34,13 @@ define([
         if (!task) return;
         detail = { taskId: task.id };
       }
+      if (kind === 'select') {
+        // la selección del oj-gantt (un clic en una barra): sólo la del usuario, y la tarea elegida
+        if (detail.updatedFrom === 'internal') return;
+        const selected = Array.isArray(detail.value) ? detail.value : [];
+        if (!selected.length) return;
+        detail = { taskId: selected[0] };
+      }
       const call = bridge.planningActionOf(atom, kind, detail);
       if (!call) return;
       await Actions.callChain(context, {
