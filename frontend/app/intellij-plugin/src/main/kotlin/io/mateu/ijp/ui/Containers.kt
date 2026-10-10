@@ -121,6 +121,14 @@ fun renderProgressBar(metadata: JsonNode, state: JsonNode): JComponent {
     val bar = JProgressBar(0, 100)
     val fraction = if (max > min) ((value - min) / (max - min)).coerceIn(0.0, 1.0) else 0.0
     bar.value = (fraction * 100).toInt()
+    // IJ-11: the bar's own text (a wizard sends "Step 2") was dropped — the user had a 4px bar and
+    // nothing saying where they were. It is painted on the bar and is its accessible name.
+    val text = metadata.text("text")
+    if (text.isNotBlank()) {
+        bar.isStringPainted = true
+        bar.string = text
+        bar.accessibleName(text)
+    }
     return bar
 }
 

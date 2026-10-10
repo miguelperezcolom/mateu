@@ -41,7 +41,7 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val subtitle = io.mateu.ijp.state.Expressions.interpolate(metadata.text("subtitle"), exprCtx)
     if (subtitle.isNotBlank()) {
         val l = JBLabel(subtitle)
-        l.foreground = JBUI.CurrentTheme.Label.disabledForeground()
+        l.foreground = ToneColors.secondaryText()
         header.addStacked(l, 8)
     }
     // Toolbar actions go to the native host toolbar (editor header / tool window title) when the
@@ -64,7 +64,7 @@ fun renderPage(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             value.font = value.font.deriveFont(Font.BOLD, 18f)
             cell.addStacked(value, 0)
             cell.addStacked(JBLabel(io.mateu.ijp.state.Expressions.interpolate(k.text("title"), exprCtx)).apply {
-                foreground = JBUI.CurrentTheme.Label.disabledForeground()
+                foreground = ToneColors.secondaryText()
             }, 0)
             row.add(cell)
         }
@@ -112,18 +112,18 @@ internal fun buttonRow(r: ComponentRenderer, buttons: List<JsonNode>): JComponen
 }
 
 private fun renderBanner(banner: JsonNode): JComponent {
-    val theme = banner.text("theme", "INFO").uppercase()
-    val (bg, fg) = when (theme) {
-        "SUCCESS" -> Color(0xE6, 0xF4, 0xEA) to Color(0x1E, 0x4A, 0x2B)
-        "WARNING" -> Color(0xFD, 0xF6, 0xE3) to Color(0x6B, 0x53, 0x00)
-        "DANGER", "ERROR" -> Color(0xFB, 0xE9, 0xE7) to Color(0x7A, 0x1E, 0x14)
-        else -> Color(0xE8, 0xF0, 0xFE) to Color(0x0B, 0x3D, 0x91)
-    }
+    // IJ-08: the theme's own Banner colours (light pastels used to glare out of a dark IDE).
+    val tone = ToneColors.toneOf(banner.text("theme", "INFO")).let { if (it == ToneColors.Tone.NEUTRAL) ToneColors.Tone.INFO else it }
+    val bg = ToneColors.background(tone)
+    val fg = ToneColors.foreground()
     val panel = JPanel()
     panel.layout = javax.swing.BoxLayout(panel, javax.swing.BoxLayout.Y_AXIS)
     panel.background = bg
     panel.isOpaque = true
-    panel.border = JBUI.Borders.empty(10, 12)
+    panel.border = JBUI.Borders.compound(
+        JBUI.Borders.customLine(ToneColors.border(tone), 1),
+        JBUI.Borders.empty(10, 12),
+    )
     val bTitle = banner.text("title")
     if (bTitle.isNotBlank()) {
         val l = JBLabel(bTitle)
@@ -143,17 +143,22 @@ private fun renderBanner(banner: JsonNode): JComponent {
 }
 
 
-private fun headerBadge(badge: JsonNode, exprCtx: Map<String, Any?>): JComponent {
-    val bg = when (badge.text("color").lowercase()) {
-        "success" -> Color(0xE6, 0xF4, 0xEA)
-        "error" -> Color(0xFC, 0xE8, 0xE6)
-        "warning" -> Color(0xFE, 0xF7, 0xE0)
-        "contrast" -> Color(0xDA, 0xDC, 0xE0)
-        else -> Color(0xE8, 0xEA, 0xED)
+/**
+ * A header badge. IJ-01: it set a light pastel background and NO foreground, so under Darcula the
+ * theme's light-grey label text sat on a light chip at ~1.6:1. Background and text now both come
+ * from the current theme ([ToneColors]), so the pair is readable in light and dark alike.
+ */
+internal fun headerBadge(badge: JsonNode, exprCtx: Map<String, Any?>): JComponent {
+    val tone = when (badge.text("color").lowercase()) {
+        "success" -> ToneColors.Tone.SUCCESS
+        "error" -> ToneColors.Tone.DANGER
+        "warning" -> ToneColors.Tone.WARNING
+        else -> ToneColors.Tone.NEUTRAL
     }
     return JBLabel(io.mateu.ijp.state.Expressions.interpolate(badge.text("text"), exprCtx)).apply {
         isOpaque = true
-        background = bg
+        background = ToneColors.background(tone)
+        foreground = ToneColors.foreground()
         border = JBUI.Borders.empty(2, 8)
     }
 }
@@ -168,7 +173,7 @@ internal fun renderRecordSwitcher(r: ComponentRenderer, switcher: PageSlots.Swit
     val row = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(6), 0))
     row.isOpaque = false
     val hint = JBLabel(switcher.label)
-    hint.foreground = JBUI.CurrentTheme.Label.disabledForeground()
+    hint.foreground = ToneColors.secondaryText()
     row.add(hint)
 
     val combo = com.intellij.openapi.ui.ComboBox(javax.swing.DefaultComboBoxModel(switcher.options.toTypedArray()))

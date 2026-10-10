@@ -72,7 +72,7 @@ fun renderDropZone(r: ComponentRenderer, component: JsonNode, metadata: JsonNode
     val subtitle = metadata.text("subtitle")
     if (title.isNotBlank()) panel.addStacked(JBLabel(title).apply { font = font.deriveFont(Font.BOLD) }, 0)
     if (subtitle.isNotBlank()) {
-        panel.addStacked(JBLabel(subtitle).apply { foreground = JBUI.CurrentTheme.Label.disabledForeground() }, 0)
+        panel.addStacked(JBLabel(subtitle).apply { foreground = ToneColors.secondaryText() }, 0)
     }
     component.path("children").forEach { child -> panel.addStacked(r.render(child, state, data), 4) }
     panel.accessibleName(title.ifBlank { subtitle })

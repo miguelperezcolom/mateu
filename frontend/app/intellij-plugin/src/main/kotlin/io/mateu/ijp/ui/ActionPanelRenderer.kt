@@ -96,7 +96,7 @@ private fun openActionPanelDialog(ctx: AppContext, metadata: JsonNode, anchor: J
         columns.removeAll()
         val categories = ActionPanels.view(metadata, expanded, hideUnpopulated)
         if (categories.isEmpty()) {
-            columns.add(JBLabel("No actions").apply { foreground = JBUI.CurrentTheme.Label.disabledForeground() })
+            columns.add(JBLabel("No actions").apply { foreground = ToneColors.secondaryText() })
         }
         for (category in categories) {
             val column = verticalPanel(0)
@@ -104,7 +104,7 @@ private fun openActionPanelDialog(ctx: AppContext, metadata: JsonNode, anchor: J
                 column.addStacked(
                     JBLabel(category.title).apply {
                         font = font.deriveFont(Font.BOLD)
-                        foreground = JBUI.CurrentTheme.Label.disabledForeground()
+                        foreground = ToneColors.secondaryText()
                         border = JBUI.Borders.emptyBottom(4)
                     },
                     0,

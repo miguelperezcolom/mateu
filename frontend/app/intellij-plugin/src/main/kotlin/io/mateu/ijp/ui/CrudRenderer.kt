@@ -58,7 +58,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     val subtitle = metadata.text("subtitle")
     if (subtitle.isNotBlank()) {
         val l = JBLabel(subtitle)
-        l.foreground = JBUI.CurrentTheme.Label.disabledForeground()
+        l.foreground = ToneColors.secondaryText()
         header.addStacked(l, 4)
     }
     // Crud toolbar (New, export…) → the native host toolbar when available (tool window title).
@@ -113,11 +113,16 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     // Group headers / totals footer (synthetic, presentation-only rows) render bold on a tinted
     // background through a dedicated renderer, bypassing the per-column renderers/editors.
     val syntheticRenderer = SyntheticRowRenderer()
+    val numberRenderer = NumberCellRenderer(money = false)
     val table = object : JBTable(model) {
         override fun getCellRenderer(row: Int, column: Int): TableCellRenderer {
             val m = getModel() as? CrudTableModel
-            return if (m != null && m.isSynthetic(convertRowIndexToModel(row))) syntheticRenderer
-            else super.getCellRenderer(row, column)
+            if (m != null && m.isSynthetic(convertRowIndexToModel(row))) return syntheticRenderer
+            val own = super.getCellRenderer(row, column)
+            // a numeric VALUE in a column typed as text: right-aligned and formatted (IJ-07)
+            if (m != null && own !is NumberCellRenderer &&
+                m.isNumberAt(convertRowIndexToModel(row), convertColumnIndexToModel(column))) return numberRenderer
+            return own
         }
 
         // A column with a tooltipPath shows that field of the row on hover (multi-line as HTML);
@@ -211,7 +216,9 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         when (spec.kind) {
             ColKind.STATUS -> column.cellRenderer = StatusCellRenderer(spec.tones, spec.valueLabels)
             ColKind.LINK -> column.cellRenderer = LinkCellRenderer(spec.text)
-            else -> {}
+            else -> if (isNumericColumn(spec.dataType, spec.stereotype) && !spec.editable) {
+                column.cellRenderer = NumberCellRenderer(spec.dataType == "money" || spec.stereotype == "money")
+            }
         }
     }
 
@@ -298,6 +305,10 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         val searchField = SearchTextField(true)
         searchField.textEditor.emptyText.text = "Search…"
         searchField.textEditor.columns = 24
+        // IJ-03: empty text is not a name — the search box was announced as an unnamed edit field.
+        val searchName = metadata.text("title").let { if (it.isBlank()) "Search" else "Search $it" }
+        searchField.accessibleName(searchName)
+        searchField.textEditor.accessibleName(searchName)
 
         var filterBar: FilterBar? = null
         val doSearch = {
@@ -383,7 +394,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         val detail = JPanel(BorderLayout())
         detail.border = JBUI.Borders.emptyLeft(12)
         val hint = JBLabel("Select a row to see its details.")
-        hint.foreground = JBUI.CurrentTheme.Label.disabledForeground()
+        hint.foreground = ToneColors.secondaryText()
         detail.add(hint, BorderLayout.NORTH)
         table.selectionModel.addListSelectionListener { e ->
             if (e.valueIsAdjusting) return@addListSelectionListener
@@ -396,7 +407,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
                     for (spec in specs) {
                         val cell = JBLabel(row.path(spec.id).displayString())
                         val cap = JBLabel(spec.label)
-                        cap.foreground = JBUI.CurrentTheme.Label.disabledForeground()
+                        cap.foreground = ToneColors.secondaryText()
                         form.addStacked(cap, 0)
                         form.addStacked(cell, 6)
                     }
@@ -523,6 +534,35 @@ private fun rowAsParams(ctx: io.mateu.ijp.state.AppContext, row: JsonNode): Map<
     ctx.mapper.convertValue(row, Map::class.java) as Map<String, Any?>
 
 private enum class ColKind { TEXT, STATUS, LINK, ACTIONS }
+
+private val NUMERIC_TYPES = setOf("integer", "int", "long", "number", "double", "float", "decimal", "BigDecimal", "money")
+
+/** Whether a listing column holds numbers (by wire dataType / money stereotype). */
+internal fun isNumericColumn(dataType: String, stereotype: String): Boolean =
+    dataType in NUMERIC_TYPES || stereotype == "money" || stereotype == "currency"
+
+/**
+ * The text of a numeric cell: grouped digits in the user's locale, no spurious ".0" on whole
+ * numbers, two decimals for money. "650.0" (the raw double) made a column of prices read as code.
+ */
+internal fun formatNumberCell(raw: String, money: Boolean, locale: java.util.Locale = java.util.Locale.getDefault()): String {
+    val n = raw.trim().toBigDecimalOrNull() ?: return raw
+    val f = java.text.NumberFormat.getNumberInstance(locale)
+    if (money) { f.minimumFractionDigits = 2; f.maximumFractionDigits = 2 } else { f.maximumFractionDigits = 6 }
+    return f.format(n)
+}
+
+/**
+ * IJ-07: numbers right-aligned so their magnitudes line up — a left-aligned column of numbers
+ * cannot be compared at a glance (Few, "Show Me the Numbers": align numbers on the right) — and
+ * formatted with [formatNumberCell].
+ */
+private class NumberCellRenderer(private val money: Boolean) : DefaultTableCellRenderer() {
+    init { horizontalAlignment = javax.swing.SwingConstants.RIGHT }
+    override fun setValue(value: Any?) {
+        text = value?.toString()?.let { if (it.isBlank()) it else formatNumberCell(it, money) } ?: ""
+    }
+}
 
 private data class ColSpec(
     val id: String,
@@ -697,21 +737,15 @@ private class StatusCellRenderer(
     }
 }
 
-private fun statusBadge(text: String, type: String): JComponent {
+/** A listing status cell: a solid chip whose text reaches AA on its fill (IJ-02). */
+internal fun statusBadge(text: String, type: String): JComponent {
+    val (bg, fg) = ToneColors.solid(ToneColors.toneOf(type))
     val badge = JLabel(text)
     badge.isOpaque = true
-    badge.foreground = Color.WHITE
-    badge.background = statusColor(type)
+    badge.foreground = fg
+    badge.background = bg
     badge.border = JBUI.Borders.empty(1, 8)
     return badge
-}
-
-private fun statusColor(type: String): Color = when (type.uppercase()) {
-    "SUCCESS", "OK", "DONE" -> Color(0x3E, 0x86, 0x35)
-    "ERROR", "DANGER", "KO" -> Color(0xC9, 0x19, 0x0B)
-    "WARNING", "WARN", "PENDING" -> Color(0xF0, 0xAB, 0x00)
-    "INFO" -> Color(0x2B, 0x9A, 0xF3)
-    else -> Color(0x6A, 0x6E, 0x73)
 }
 
 /** The row-action nodes of an action-group/menu/action field (feeds the row context menu). */
@@ -749,6 +783,14 @@ private class CrudTableModel(
     fun rowAt(index: Int): JsonNode? = (entries.getOrNull(index) as? DataRow)?.node
 
     fun isSynthetic(index: Int): Boolean = entries.getOrNull(index) is SyntheticRow
+
+    /** Whether the wire value of a plain TEXT cell is a JSON number — the server may type a numeric
+     *  column as "string" (e.g. a double price), so the VALUE decides its alignment (IJ-07). */
+    fun isNumberAt(index: Int, column: Int): Boolean {
+        val spec = specs.getOrNull(column) ?: return false
+        if (spec.kind != ColKind.TEXT || spec.editable) return false
+        return rowAt(index)?.path(spec.id)?.isNumber == true
+    }
 
     override fun getRowCount(): Int = entries.size
     override fun getColumnCount(): Int = specs.size

@@ -57,7 +57,7 @@ fun renderEmptyState(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val description = metadata.text("description")
     if (description.isNotBlank()) {
         panel.addStacked(JBLabel(description, SwingConstants.CENTER).apply {
-            foreground = JBUI.CurrentTheme.Label.disabledForeground()
+            foreground = ToneColors.secondaryText()
         }, 6)
     }
     val actionId = metadata.text("actionId")
@@ -94,7 +94,7 @@ fun renderKanban(r: ComponentRenderer, metadata: JsonNode): JComponent {
             val desc = card.text("description")
             if (desc.isNotBlank()) {
                 cardPanel.addStacked(JBLabel(desc).apply {
-                    foreground = JBUI.CurrentTheme.Label.disabledForeground()
+                    foreground = ToneColors.secondaryText()
                 }, 2)
             }
             val badge = card.text("badge")
@@ -131,7 +131,7 @@ fun renderTimeline(r: ComponentRenderer, metadata: JsonNode): JComponent {
         val desc = item.text("description")
         if (desc.isNotBlank()) {
             body.addStacked(JBLabel(desc).apply {
-                foreground = JBUI.CurrentTheme.Label.disabledForeground()
+                foreground = ToneColors.secondaryText()
             }, 0)
         }
         row.add(body, BorderLayout.CENTER)
@@ -165,11 +165,11 @@ fun renderProgressSteps(metadata: JsonNode): JComponent {
             when (status) {
                 "done" -> Color(0x1A, 0x73, 0xE8)
                 "current" -> Color(0x1A, 0x73, 0xE8)
-                else -> JBUI.CurrentTheme.Label.disabledForeground()
+                else -> ToneColors.secondaryText()
             }
         dot.font = dot.font.deriveFont(Font.BOLD, 15f)
         val title = JBLabel(step.text("title"), align).apply {
-            if (status == "upcoming") foreground = JBUI.CurrentTheme.Label.disabledForeground()
+            if (status == "upcoming") foreground = ToneColors.secondaryText()
             else font = font.deriveFont(Font.BOLD)
         }
         val desc = step.text("description")
@@ -182,7 +182,7 @@ fun renderProgressSteps(metadata: JsonNode): JComponent {
             textCell.addStacked(title, 0)
             if (desc.isNotBlank()) {
                 textCell.addStacked(JBLabel(desc, align).apply {
-                    foreground = JBUI.CurrentTheme.Label.disabledForeground()
+                    foreground = ToneColors.secondaryText()
                 }, 0)
             }
             rowPanel.add(textCell)
@@ -194,7 +194,7 @@ fun renderProgressSteps(metadata: JsonNode): JComponent {
             cell.addStacked(title, 0)
             if (desc.isNotBlank()) {
                 cell.addStacked(JBLabel(desc, align).apply {
-                    foreground = JBUI.CurrentTheme.Label.disabledForeground()
+                    foreground = ToneColors.secondaryText()
                 }, 0)
             }
             container.add(cell)
@@ -209,7 +209,7 @@ fun renderStat(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val trendColor =
         when (trend) {
             "down" -> Color(0xE1, 0x1D, 0x48)
-            "flat" -> JBUI.CurrentTheme.Label.disabledForeground()
+            "flat" -> ToneColors.secondaryText()
             else -> Color(0x12, 0xB7, 0x6A)
         }
     val tile = verticalPanel(2)
@@ -217,7 +217,7 @@ fun renderStat(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val label = metadata.text("label")
     if (label.isNotBlank()) {
         tile.addStacked(JBLabel(label).apply {
-            foreground = JBUI.CurrentTheme.Label.disabledForeground()
+            foreground = ToneColors.secondaryText()
         }, 2)
     }
     val value = metadata.text("value") + metadata.text("unit").let { if (it.isNotBlank()) " $it" else "" }
@@ -282,7 +282,7 @@ fun renderPricingTable(r: ComponentRenderer, metadata: JsonNode): JComponent {
             font = font.deriveFont(Font.BOLD, 10f)
         }, 2)
         card.addStacked(JBLabel(plan.text("name")).apply {
-            foreground = JBUI.CurrentTheme.Label.disabledForeground()
+            foreground = ToneColors.secondaryText()
         }, 2)
         val price = plan.text("price") + plan.text("period").let { if (it.isNotBlank()) " $it" else "" }
         card.addStacked(JBLabel(price).apply { font = font.deriveFont(Font.BOLD, 22f) }, 4)
@@ -463,7 +463,7 @@ fun renderFeatureGrid(r: ComponentRenderer, metadata: JsonNode): JComponent {
         }, 2)
         val desc = feature.text("description")
         if (desc.isNotBlank()) {
-            card.addStacked(JBLabel(desc).apply { foreground = JBUI.CurrentTheme.Label.disabledForeground() }, 0)
+            card.addStacked(JBLabel(desc).apply { foreground = ToneColors.secondaryText() }, 0)
         }
         val actionId = feature.text("actionId")
         if (actionId.isNotBlank()) {
@@ -495,7 +495,7 @@ fun renderTestimonials(metadata: JsonNode): JComponent {
         val avatar = item.text("avatar")
         val author = item.text("author") + item.text("role").let { if (it.isNotBlank()) " · $it" else "" }
         card.addStacked(JBLabel((if (avatar.isNotBlank() && !avatar.contains(":")) "$avatar " else "") + author).apply {
-            foreground = JBUI.CurrentTheme.Label.disabledForeground()
+            foreground = ToneColors.secondaryText()
         }, 0)
         panel.addStacked(card, 8)
     }
@@ -510,7 +510,7 @@ fun renderFaq(metadata: JsonNode): JComponent {
         row.border = JBUI.Borders.emptyBottom(6)
         row.addStacked(JBLabel(item.text("question")).apply { font = font.deriveFont(Font.BOLD) }, 2)
         row.addStacked(JBLabel("<html>${item.text("answer")}</html>").apply {
-            foreground = JBUI.CurrentTheme.Label.disabledForeground()
+            foreground = ToneColors.secondaryText()
         }, 0)
         panel.addStacked(row, 6)
     }
@@ -534,7 +534,7 @@ fun renderCalloutCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val desc = metadata.text("description")
     if (desc.isNotBlank()) {
         body.addStacked(JBLabel("<html>$desc</html>").apply {
-            foreground = JBUI.CurrentTheme.Label.disabledForeground()
+            foreground = ToneColors.secondaryText()
         }, 4)
     }
     val ctaLabel = metadata.text("ctaLabel")
@@ -586,7 +586,7 @@ fun renderFileList(r: ComponentRenderer, metadata: JsonNode): JComponent {
         row.add(JBLabel("$icon  ${file.text("name")}"), BorderLayout.WEST)
         val size = file.text("size")
         if (size.isNotBlank()) row.add(JBLabel(size).apply {
-            foreground = JBUI.CurrentTheme.Label.disabledForeground()
+            foreground = ToneColors.secondaryText()
         }, BorderLayout.EAST)
         val actionId = file.text("actionId")
         if (actionId.isNotBlank()) {
@@ -613,7 +613,7 @@ fun renderChecklist(r: ComponentRenderer, metadata: JsonNode): JComponent {
         val isDone = item.path("done").asBoolean(false)
         val box = if (isDone) "☑" else "☐"
         val row = JBLabel("$box  ${item.text("label")}")
-        if (isDone) row.foreground = JBUI.CurrentTheme.Label.disabledForeground()
+        if (isDone) row.foreground = ToneColors.secondaryText()
         val actionId = item.text("actionId")
         if (actionId.isNotBlank()) {
             row.cursor = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR)
@@ -658,7 +658,7 @@ private fun uxChip(text: String, color: String): JBLabel = JBLabel(text).apply {
     font = font.deriveFont(Font.BOLD, 10f)
 }
 
-private fun uxMuted(): Color = JBUI.CurrentTheme.Label.disabledForeground()
+private fun uxMuted(): Color = ToneColors.secondaryText()
 
 private fun uxAccent(): Color = JBColor(0x1A73E8, 0x548AF7)
 
@@ -1028,7 +1028,7 @@ fun renderComparisonCard(metadata: JsonNode): JComponent {
         val p = verticalPanel(1)
         if (label.isNotBlank()) {
             p.addStacked(JBLabel(label.uppercase()).apply {
-                foreground = JBUI.CurrentTheme.Label.disabledForeground()
+                foreground = ToneColors.secondaryText()
                 font = font.deriveFont(font.size2D - 2f)
             }, 1)
         }
@@ -1043,7 +1043,7 @@ fun renderComparisonCard(metadata: JsonNode): JComponent {
         val color = when (trend) {
             "up" -> Color(0x12, 0xB7, 0x6A)
             "down" -> Color(0xE1, 0x1D, 0x48)
-            else -> JBUI.CurrentTheme.Label.disabledForeground()
+            else -> ToneColors.secondaryText()
         }
         row.add(JBLabel("$mark $delta").apply { foreground = color; horizontalAlignment = javax.swing.SwingConstants.CENTER }, BorderLayout.CENTER)
     }

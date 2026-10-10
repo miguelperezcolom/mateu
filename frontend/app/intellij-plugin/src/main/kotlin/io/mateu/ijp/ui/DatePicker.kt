@@ -56,7 +56,7 @@ private class CalendarPanel(start: LocalDate, val onPick: (LocalDate) -> Unit) :
         header.text = "${ym.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${ym.year}"
         grid.removeAll()
         for (d in listOf("Mo", "Tu", "We", "Th", "Fr", "Sa", "Su")) {
-            grid.add(JBLabel(d, SwingConstants.CENTER).apply { foreground = JBUI.CurrentTheme.Label.disabledForeground() })
+            grid.add(JBLabel(d, SwingConstants.CENTER).apply { foreground = ToneColors.secondaryText() })
         }
         val lead = ym.atDay(1).dayOfWeek.value - 1 // Monday = 1 → 0 leading blanks
         repeat(lead) { grid.add(JLabel("")) }

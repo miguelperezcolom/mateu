@@ -1,6 +1,5 @@
 package io.mateu.ijp.ui
 
-import com.intellij.ide.util.PropertiesComponent
 import com.intellij.ui.table.JBTable
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
@@ -15,7 +14,7 @@ import javax.swing.table.TableColumn
 /**
  * Per-user column personalization on a crud [JBTable] — parity with the web column chooser
  * (`columnPrefsStore`/`applyColumnPrefs`): show/hide columns via a header right-click menu, and
- * native drag-reorder, both persisted per crud route in [PropertiesComponent]. Protected columns
+ * native drag-reorder, both persisted per crud route in [UserPrefs] (the IDE PropertiesComponent). Protected columns
  * (the row-open/identifier column) are never hideable. Additive — installs on an already-built
  * table, so the crud renderer needs no refactor.
  *
@@ -28,11 +27,10 @@ object ColumnChooser {
     private fun keyOrder(scope: String) = "mateu.columns.${scope.ifBlank { "_" }}.order"
 
     private fun readList(name: String): List<String> =
-        PropertiesComponent.getInstance().getValue(name)?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
+        UserPrefs.get(name)?.split(",")?.filter { it.isNotBlank() } ?: emptyList()
 
     private fun writeList(name: String, values: List<String>) {
-        val pc = PropertiesComponent.getInstance()
-        if (values.isEmpty()) pc.unsetValue(name) else pc.setValue(name, values.joinToString(","))
+        if (values.isEmpty()) UserPrefs.unset(name) else UserPrefs.set(name, values.joinToString(","))
     }
 
     /**
