@@ -3,7 +3,6 @@ package io.mateu.core.application.security;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.ServerSideComponentDto;
@@ -15,7 +14,6 @@ import io.mateu.uidl.annotations.Toolbar;
 import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.data.Message;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -218,13 +216,7 @@ class ActionPipelineSecurityTest {
   }
 
   private static Map<String, String> token(String... roles) {
-    try {
-      var claims = new ObjectMapper().writeValueAsBytes(Map.of("roles", List.of(roles)));
-      var payload = Base64.getUrlEncoder().withoutPadding().encodeToString(claims);
-      return Map.of("Authorization", "Bearer header." + payload + ".sig");
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
+    return io.mateu.core.testutil.TestIdentities.headersWithRoles(roles);
   }
 
   private static String serverSideTypeOf(UIIncrementDto increment) {

@@ -16,8 +16,11 @@ public interface ActionHandler {
   }
 
   default boolean supportsAction(String actionId) {
+    // "" and "__load__" are both the LOAD of the route (the web client sends "", a shell's
+    // bootstrap "__load__"), never an action of the component
     return actionId != null
         && !"".equals(actionId)
+        && !"__load__".equals(actionId)
         && !actionId.endsWith("_create")
         && !actionId.endsWith("_create-and-stay")
         && !actionId.endsWith("_add")

@@ -4,7 +4,9 @@ import io.mateu.core.domain.ports.BeanProvider;
 import io.mateu.uidl.di.MateuBeanProvider;
 import java.util.Collection;
 import java.util.List;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,6 +17,16 @@ public class SpringBeanProvider implements BeanProvider {
   public SpringBeanProvider(ApplicationContext applicationContext) {
     this.applicationContext = applicationContext;
     MateuBeanProvider.setBeanProvider(this);
+  }
+
+  /** Warns, once, when nothing will authenticate callers (no Spring Security, no resolver). */
+  @EventListener(ApplicationReadyEvent.class)
+  public void warnAboutSecurity() {
+    io.mateu.core.infra.security.IdentityResolver.warnOnStartup(
+        io.mateu.core.infra.security.IdentityResolver.present(
+            "org.springframework.security.core.Authentication"),
+        "Add Spring Security (e.g. spring-boot-starter-oauth2-resource-server +"
+            + " spring.security.oauth2.resourceserver.jwt.issuer-uri)");
   }
 
   @Override

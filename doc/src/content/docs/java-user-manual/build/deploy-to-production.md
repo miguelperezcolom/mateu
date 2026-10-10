@@ -80,10 +80,10 @@ Mateu does not authenticate users itself; it reads an identity the platform esta
   Keycloak and send a Bearer token with every request.
 - **Authorization**: `@EyesOnly`, `@ReadOnlyUnless` and `@DisabledUnless` read roles, groups, scopes
   and permissions from the JWT in the `Authorization` header (see [Security](/java-user-manual/advanced/security/)).
-- **Verify the token before it reaches Mateu.** Mateu decodes the token's claims to decide what to
-  show; it does **not** verify the signature. Validate it in the gateway or in your framework's
-  security filter (Spring Security resource server, Quarkus OIDC, Micronaut Security) — otherwise a
-  forged token can claim any role.
+- **Authenticate in your framework.** Mateu does not authenticate: it takes roles only from the
+  principal your framework authenticated (Spring Security resource server, Quarkus OIDC, Micronaut
+  Security, MicroProfile JWT) or a `PrincipalResolver` you register. Without one, restricted UI is
+  hidden for everyone — see [Security](/java-user-manual/advanced/security/#how-authorization-works).
 - A YAML-authored app restricts routes, menu items, actions and components with the same rules —
   see [Permissions in YAML](/java-ui-definition/yaml-security/).
 - Enforce permissions in your **services** too. Hiding a button is UX; the action method behind it
@@ -166,6 +166,6 @@ only where an agent should operate the app, behind the same authentication as th
 - [ ] Served at the host root, or `@UI` path + `/assets/**` both routed to the backend
 - [ ] SSE not buffered by the proxy (if you use long-running actions)
 - [ ] No singleton view model with mutable fields
-- [ ] Token signatures verified before Mateu; services check permissions
+- [ ] Your framework authenticates requests (resource server / OIDC / JWT module); services check permissions
 - [ ] CSP set (report-only first), CORS limited to the origins you need
 - [ ] Static bundle: SPA fallback, cache headers, `staticOnly` on, no secrets in direct sources

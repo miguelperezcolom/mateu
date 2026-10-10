@@ -9,7 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * carries an {@code app:} block for the shell and a {@code routes:} list binding each URL to a page
  * definition. Served at the deployment root.
  */
-@SpringBootApplication(scanBasePackages = "io.mateu")
+@SpringBootApplication(scanBasePackages = "io.mateu.demo")
 public class AppDefinitionDemoApplication {
 
   public static void main(String[] args) {

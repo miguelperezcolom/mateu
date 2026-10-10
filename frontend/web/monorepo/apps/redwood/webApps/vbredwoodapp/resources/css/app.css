@@ -1588,6 +1588,19 @@ oj-sp-guided-process.mateu-wizard-completed button:not(.mateu-wizard-slot button
 .mateu-atom-richtext th[align="right"], .mateu-atom-richtext td[align="right"] { text-align: end; }
 .mateu-cookie-consent[hidden] { display: none; }
 
+/* @Compact (pageProjection.pageDensityOf → the content container's .mateu-density-compact): HIGH
+   DENSITY for power-user screens, expressed in Redwood's OWN tokens — buttons take the sm height,
+   the form layout drops to the 1x spacing between rows and a 4x column gutter, list cells to a 1x
+   vertical padding; tables switch to JET's display="grid" density in the listing projection. The
+   fields keep their height: an inside label needs it (shrinking --oj-text-field-inside-edge-height
+   lays the label over the value). Font sizes are untouched: text stays legible. */
+.mateu-density-compact {
+  --oj-button-height: var(--oj-button-sm-height);
+  --oj-form-layout-margin-bottom: var(--oj-core-spacing-1x);
+  --oj-form-layout-column-gutter: var(--oj-core-spacing-4x);
+  --oj-collection-list-cell-padding-vertical: var(--oj-core-spacing-1x);
+}
+
 /* @Fab: stacked above the shell FAB (72px at 24px from the edge), same column */
 .mateu-fabs { position: fixed; right: 24px; bottom: 108px; z-index: 50; display: flex; flex-direction: column-reverse; gap: 12px; align-items: center; }
 .mateu-fab { --oj-button-height: 56px; --oj-button-border-radius: 50%; box-shadow: var(--oj-core-box-shadow-md, 0 4px 12px rgba(0,0,0,.2)); border-radius: 50%; }

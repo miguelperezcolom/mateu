@@ -56,14 +56,16 @@ Other stacks replace the `mvc` pair: `webflux`, `quarkus`, `micronaut`, `helidon
 ## Main class
 
 ```java
-@SpringBootApplication(scanBasePackages = {"io.mateu", "com.yourco.yourapp"})
+@SpringBootApplication // add scanBasePackages only if your @UI classes live outside this package
 public class Application {
   public static void main(String[] args) { SpringApplication.run(Application.class, args); }
 }
 ```
 
-`scanBasePackages` **must include `io.mateu`** so the framework's beans/controllers are
-picked up, plus your own package(s).
+Do **not** scan `io.mateu`: the framework's beans come with the adapter jar (its
+`MateuAutoConfiguration`), and scanning the whole package also sweeps in any third-party library
+living under `io.mateu.*`. Scan your own package(s) — the ones holding your `@UI` classes, since
+the generated controllers live next to them.
 
 ## Versions
 

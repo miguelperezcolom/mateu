@@ -53,6 +53,11 @@ public class VbHome implements AppActionsSupplier, GlobalSearchSupplier {
 
   @Menu StockCrud stock;
 
+  // the same orders at the standard density and at @Compact (Redwood: grid tables, small controls)
+  @Menu io.mateu.mdd.demovb.infra.in.ui.density.AiryOrdersCrud ordersAiry;
+
+  @Menu io.mateu.mdd.demovb.infra.in.ui.density.DenseOrdersCrud ordersDense;
+
   @Menu BookingFoldout booking;
 
   @Menu io.mateu.mdd.demovb.infra.in.ui.checkout.CheckoutWizard checkout;

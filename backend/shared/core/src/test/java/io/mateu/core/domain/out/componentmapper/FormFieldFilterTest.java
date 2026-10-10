@@ -22,7 +22,6 @@ import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Named;
 import io.mateu.uidl.interfaces.VisibilitySupplier;
 import java.lang.reflect.Field;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -117,14 +116,9 @@ class FormFieldFilterTest {
 
   private static HttpRequest requestWithRoles(String... roles) throws Exception {
     var claims = Map.of("realm_access", Map.of("roles", List.of(roles)));
-    String jwt =
-        "h."
-            + Base64.getUrlEncoder()
-                .withoutPadding()
-                .encodeToString(MAPPER.writeValueAsBytes(claims))
-            + ".s";
     HttpRequest req = mock(HttpRequest.class);
-    when(req.getHeaderValue("Authorization")).thenReturn("Bearer " + jwt);
+    when(req.getUserPrincipal())
+        .thenReturn(io.mateu.core.testutil.TestIdentities.principal(claims));
     return req;
   }
 

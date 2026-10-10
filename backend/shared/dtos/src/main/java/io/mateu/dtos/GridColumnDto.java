@@ -36,8 +36,76 @@ public record GridColumnDto(
     /* 1-based line of the row (multi-line rows, @Line); null = line 1 */
     Integer line,
     /* a status column's badge tone per value (success | warning | danger | info | neutral) */
-    java.util.Map<String, String> tones)
+    java.util.Map<String, String> tones,
+    /* what each raw value reads as (an enum column's labels); display only, null = as is */
+    java.util.Map<String, String> valueLabels)
     implements ComponentMetadataDto {
+
+  /** The shape before {@code valueLabels} (v3.0 beta): no display labels per value. */
+  public GridColumnDto(
+      String id,
+      String label,
+      String dataType,
+      String stereotype,
+      String style,
+      String cssClasses,
+      String align,
+      boolean sortable,
+      String sortingProperty,
+      boolean filterable,
+      boolean frozen,
+      boolean frozenToEnd,
+      boolean autoWidth,
+      String flexGrow,
+      boolean resizable,
+      String width,
+      String tooltipPath,
+      String actionId,
+      String text,
+      String captionPath,
+      String leadingPath,
+      Integer priority,
+      boolean identifier,
+      boolean editable,
+      String editorType,
+      java.util.List<OptionDto> editorOptions,
+      Double weight,
+      String aggregate,
+      Integer line,
+      java.util.Map<String, String> tones) {
+    this(
+        id,
+        label,
+        dataType,
+        stereotype,
+        style,
+        cssClasses,
+        align,
+        sortable,
+        sortingProperty,
+        filterable,
+        frozen,
+        frozenToEnd,
+        autoWidth,
+        flexGrow,
+        resizable,
+        width,
+        tooltipPath,
+        actionId,
+        text,
+        captionPath,
+        leadingPath,
+        priority,
+        identifier,
+        editable,
+        editorType,
+        editorOptions,
+        weight,
+        aggregate,
+        line,
+        tones,
+        null);
+  }
 
   /** The shape before {@code tones} (v3.0-alpha.408): no value tones. */
   public GridColumnDto(

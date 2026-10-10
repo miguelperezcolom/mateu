@@ -38,4 +38,7 @@ export default interface GridColumn extends ComponentMetadata {
     /** A status column's badge tone per VALUE (`OPEN: warning`): success | warning | danger | info |
      *  neutral. Usually supplied by a field type (types.yaml). A value not listed reads by its word. */
     tones?: Record<string, string> | null
+    /** What each raw VALUE reads as (`IN_HOUSE: "In house"`) — an enum column's labels, the same
+     *  its form options use. Display only: the row keeps the raw value. */
+    valueLabels?: Record<string, string> | null
 }

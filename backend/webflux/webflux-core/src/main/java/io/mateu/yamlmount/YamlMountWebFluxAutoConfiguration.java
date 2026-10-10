@@ -97,14 +97,13 @@ public class YamlMountWebFluxAutoConfiguration {
 
   private static Flux<UIIncrementDto> run(
       MateuService service, ServerRequest request, RunActionRqDto rq, String baseUrl) {
-    var httpRequest =
-        new SpringHttpRequest(request.exchange().getRequest()).storeRunActionRqDto(rq);
+    var springRequest = new SpringHttpRequest(request.exchange().getRequest());
+    var httpRequest = springRequest.storeRunActionRqDto(rq);
     httpRequest.setAttribute("uiId", "");
     httpRequest.setAttribute("baseUrl", baseUrl);
-    try {
-      return service.runAction(baseUrl, rq, baseUrl, httpRequest);
-    } catch (Throwable t) {
-      return Flux.error(t);
-    }
+    return SpringHttpRequest.withPrincipalOf(
+        request.exchange(),
+        springRequest,
+        () -> service.runAction(baseUrl, rq, baseUrl, httpRequest));
   }
 }

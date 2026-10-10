@@ -10,10 +10,8 @@ import io.mateu.core.application.security.MateuForbiddenException;
 import io.mateu.core.testutil.SpecsDir;
 import io.mateu.core.testutil.TestMateu;
 import io.mateu.dtos.RunActionRqDto;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -179,22 +177,9 @@ class YamlSecuritySyncTest {
 
   // ── helpers ─────────────────────────────────────────────────────────────────────────────────
 
-  /** A JWT carrying {@code roles} (unsigned — the Authorizer reads the claims). */
+  /** A caller the framework authenticated with {@code roles}. */
   static Map<String, String> as(String... roles) {
-    var header =
-        Base64.getUrlEncoder()
-            .withoutPadding()
-            .encodeToString("{\"alg\":\"none\"}".getBytes(StandardCharsets.UTF_8));
-    var claims = new StringBuilder("{\"roles\":[");
-    for (int i = 0; i < roles.length; i++) {
-      claims.append(i == 0 ? "" : ",").append('"').append(roles[i]).append('"');
-    }
-    claims.append("]}");
-    var payload =
-        Base64.getUrlEncoder()
-            .withoutPadding()
-            .encodeToString(claims.toString().getBytes(StandardCharsets.UTF_8));
-    return Map.of("Authorization", "Bearer " + header + "." + payload + ".sig");
+    return io.mateu.core.testutil.TestIdentities.headersWithRoles(roles);
   }
 
   static final Map<String, String> ANONYMOUS = Map.of();

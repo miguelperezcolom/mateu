@@ -294,10 +294,12 @@ into the JAR and generate the Spring MVC controllers.
 </build>
 ```
 
-Also make sure `@SpringBootApplication` scans both the Mateu framework packages and your UI package:
+Mateu's own beans come with the adapter jar (an auto-configuration), so do **not** scan
+`io.mateu`. If your `@UI` classes live outside the main class's package, scan that package too —
+the controllers the annotation processor generates for them live next to them:
 
 ```java
-@SpringBootApplication(scanBasePackages = {"io.mateu", "com.example.myui"})
+@SpringBootApplication(scanBasePackages = {"com.example.myapp", "com.example.myui"})
 public class MyApplication {
     public static void main(String[] args) {
         SpringApplication.run(MyApplication.class, args);

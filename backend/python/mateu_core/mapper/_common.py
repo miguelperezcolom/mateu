@@ -277,6 +277,15 @@ def _id() -> str:
     return str(uuid.uuid4())
 
 
+def value_labels_of(t) -> dict[str, str] | None:
+    """An enum column's cell labels (member name → enum_label), None for any other type — display
+    only, rows keep the raw name (Java: GridColumnBuilder.getValueLabels)."""
+    args = [a for a in get_args(t) if a is not type(None)]
+    if not is_enum(t) and len(args) == 1:  # Optional[SomeEnum] / SomeEnum | None
+        t = args[0]
+    return {m.name: enum_label(m) for m in t} if is_enum(t) else None
+
+
 def enum_label(member) -> str:
     """What an enum member is called on screen: its own ``__str__`` when the enum class defines one
     (a display name the developer already wrote), else its name humanized (``CHECK_OUT`` → "Check

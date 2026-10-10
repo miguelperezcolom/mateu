@@ -35,6 +35,7 @@ import { buttonA11y } from '../a11y/a11y';
 import { cellTooltipText } from './hoverDetails';
 import { ComponentRenderer } from './ComponentRenderer';
 import { showsPreSearch } from './patternGaps';
+import { cellText } from './cellText';
 
 interface FilterFieldMeta {
   fieldId: string;
@@ -106,14 +107,6 @@ function extractRowId(row: Record<string, unknown>): string {
   return '';
 }
 
-function cellText(value: unknown): string {
-  if (value === null || value === undefined) return '';
-  if (typeof value === 'object') {
-    const v = value as Record<string, unknown>;
-    return String(v['message'] ?? v['value'] ?? JSON.stringify(value));
-  }
-  return String(value);
-}
 
 export function CrudRenderer({ component, metadata, state, data }: Props) {
   const controller = useViewController();
@@ -344,6 +337,8 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         // @Tooltip("otherField") / a fixed width: the field the cell shows on hover — on touch,
         // on LONG-PRESS (a short press keeps opening the row).
         tooltipPath: (cm['tooltipPath'] as string) ?? '',
+        // an enum column's labels (IN_HOUSE → "In house"); the row keeps the raw value
+        valueLabels: (cm['valueLabels'] as Record<string, string> | null | undefined) ?? null,
       };
     })
     .filter((c) => c.dataType !== 'actionGroup' && c.dataType !== 'menu' && c.dataType !== 'action');
@@ -550,7 +545,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                       <>
                         {i > 0 && <Text style={styles.cardLabel}>{col.label}</Text>}
                         <Text style={i === 0 ? styles.cardPrimary : styles.cardValue} numberOfLines={2}>
-                          {cellText(item[col.fieldId])}
+                          {cellText(item[col.fieldId], col.valueLabels)}
                         </Text>
                       </>
                     );
@@ -597,9 +592,9 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                     </TouchableOpacity>
                   )}
                   <TouchableOpacity {...buttonA11y()} style={[styles.listRow, { flex: 1 }]} onPress={() => handleRowPress(item)}>
-                    <Text style={styles.cardPrimary} numberOfLines={1}>{cellText(item[colDefs[0]?.fieldId ?? ''])}</Text>
+                    <Text style={styles.cardPrimary} numberOfLines={1}>{cellText(item[colDefs[0]?.fieldId ?? ''], colDefs[0]?.valueLabels)}</Text>
                     <Text style={styles.listSecondary} numberOfLines={1}>
-                      {colDefs.slice(1).map((c) => cellText(item[c.fieldId])).filter(Boolean).join(' · ')}
+                      {colDefs.slice(1).map((c) => cellText(item[c.fieldId], c.valueLabels)).filter(Boolean).join(' · ')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -670,7 +665,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                     )}
                     {colDefs.map((col) => {
                       const tip = cellTooltipText(item, col.tooltipPath);
-                      const content = <Text style={styles.cellText} numberOfLines={2}>{cellText(item[col.fieldId])}</Text>;
+                      const content = <Text style={styles.cellText} numberOfLines={2}>{cellText(item[col.fieldId], col.valueLabels)}</Text>;
                       return tip ? (
                         <TouchableOpacity
                           {...buttonA11y({ hint: 'Long-press for details' })}
@@ -846,7 +841,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
  *  target so selectable group rows can still expand (same rule as the tree select). */
 function TreeRows({ rows, colDefs, depth, onPress }: {
   rows: Record<string, unknown>[];
-  colDefs: { fieldId: string; label: string }[];
+  colDefs: { fieldId: string; label: string; valueLabels?: Record<string, string> | null }[];
   depth: number;
   onPress: (row: Record<string, unknown>) => void;
 }) {
@@ -871,7 +866,7 @@ function TreeRows({ rows, colDefs, depth, onPress }: {
               )}
               <TouchableOpacity {...buttonA11y()} style={{ flex: 1 }} onPress={() => onPress(row)}>
                 <Text style={styles.cardPrimary} numberOfLines={1}>
-                  {String(row[colDefs[0]?.fieldId ?? ''] ?? '')}
+                  {cellText(row[colDefs[0]?.fieldId ?? ''], colDefs[0]?.valueLabels)}
                 </Text>
               </TouchableOpacity>
             </View>

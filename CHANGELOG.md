@@ -81,6 +81,22 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   replacement in the migration guide. `@BusinessComponent` now works (it was also unread): a
   field / no-arg method of a registered class holding a `Component` joins the business-component
   catalogue.
+- **Roles no longer come from unverified tokens** (security). `@EyesOnly`, `@ReadOnlyUnless`,
+  `@DisabledUnless`, YAML `access:` and menu visibility used to read the Bearer token's payload
+  without checking its signature, so anyone could forge roles. **Mateu does not authenticate**: the
+  caller's identity now comes only from the principal the host framework authenticated (Spring
+  Security, Quarkus `SecurityIdentity`, Micronaut `Authentication`, the JAX-RS `SecurityContext`
+  on Helidon) or a `PrincipalResolver` bean the app registers (`io.mateu.uidl.security`). A token
+  on its own grants nothing; with no security module on the classpath a WARN at startup says
+  restricted UI will be hidden. .NET already read only `HttpContext.User`; Python reads
+  `request.state.mateu_identity` or Starlette's `AuthenticationMiddleware` (`jwt_identity_provider`
+  and the `jwt` extra are removed). A field hidden by `@EyesOnly` is also left out of the
+  component state. `java-jwt` is no longer a dependency of `mateu-core`.
+- **Spring: no more component scan of all `io.mateu`.** The generated configuration used to scan
+  the whole package, pulling in the beans of any third-party library living under `io.mateu.*`
+  (e.g. a workflow engine's own UI). Mateu's beans now come from the adapter's auto-configuration,
+  which scans only Mateu's packages. Apps no longer need `scanBasePackages = "io.mateu"` — drop it
+  (and scan your own packages if your code lives under `io.mateu.*`).
 - **CORS is off by default** on every adapter; allow origins with `mateu.cors.allowed-origins`.
 - **The MCP endpoint is off by default**; `mateu.mcp.enabled=true`.
 - **`${secret.X}`** falls back only to the env var `MATEU_SECRET_X` (Java, .NET, Python).
@@ -112,6 +128,19 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   Mateu's optimistic locking: same conflict dialog, version incremented by the provider, not by Mateu.
 
 ### Fixed
+- **Enum values in grid and listing cells** read as their labels ("In house", not `IN_HOUSE`) on
+  every renderer — the same `@Label` > `toString()` > humanized rule the form options use, carried
+  as `GridColumn.valueLabels`. Rows keep the raw value (sorting, filtering, selection, editing).
+  Java, .NET and Python; Vaadin, Redwood, React Native and IntelliJ.
+- **`@NotNavigable` cruds no longer serve their record page** to a typed or bookmarked
+  `/{id}` URL; it answers the not-found page.
+- **`@Compact` on Redwood** (and on cruds/listings everywhere): dense `display="grid"` tables and
+  Redwood's small-control density tokens; a `@Compact` crud now sets `CrudlDto.compact` and the
+  high-density preset on its pages (Java, .NET, Python).
+- **A crud mounted at the root (`@UI("")`) on Redwood** loaded "Not found": the shell's
+  `__load__` bootstrap reached the crud as an action ("`__load__` not supported", logged as an
+  ERROR) and the content load consumed `/` instead of `""`. `__load__` is now the route load for
+  every view, a consumed `/` is the mount root, and the Redwood shell sends `""`.
 - .NET and Python primary buttons were sent as `"Primary"` and rendered as plain buttons.
 - A nested `@Text`/`@Notice` read its state with an expression that evaluated as a subtraction.
 - A dashboard `@Panel` holding a `Text` advertised twelve list actions nothing could trigger.

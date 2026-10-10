@@ -51,9 +51,9 @@ access:
 - **No token, or a malformed one, is denied.** Restricted content needs a Bearer token.
 - Shorthand: `access: admin` or `access: [admin, hr]` lists **roles**.
 
-The claims are read from the JWT in the `Authorization` header, exactly as for the annotations.
-Mateu does not verify the token's signature: do that in your gateway or security filter (see
-[Deploy to production](/java-user-manual/build/deploy-to-production/#4-authentication-and-authorization)).
+The caller's identity is resolved exactly as for the annotations: the principal your framework
+authenticated — Mateu does not authenticate, and never reads a Bearer token itself (see
+[Security](/java-user-manual/advanced/security/#how-authorization-works)).
 
 ## Where each key goes, and what it does
 

@@ -1,36 +1,34 @@
-"""Identity from a Bearer JWT — the default identity provider ``add_mateu`` installs.
+"""Identity — who the caller is, for ``EyesOnly`` / ``ReadOnlyUnless`` / ``DisabledUnless``.
 
-The Python mirror of Java's ``io.mateu.core.domain.Authorizer`` claim extraction, provider-agnostic:
+Mateu does NOT authenticate: it reads the identity the application already established — the same
+rule as Java's ``IdentityResolver``. The default provider ``add_mateu`` installs
+(``framework_identity_provider()``) takes it, in order, from:
 
-- **roles** — Keycloak ``realm_access.roles`` + ``resource_access.*.roles``, plus a top-level
-  ``roles`` claim (Okta / Azure AD / generic OIDC);
-- **groups** — ``groups``;
-- **scopes** — the space-delimited ``scope`` claim, or the ``scp`` array (Azure AD);
-- **permissions** — ``permissions``.
+1. ``request.state.mateu_identity`` — an ``Identity`` the app's own dependency or middleware set
+   after authenticating the request;
+2. Starlette's ``AuthenticationMiddleware`` — ``request.user`` (its ``roles`` / ``groups`` /
+   ``permissions`` attributes) and ``request.auth.scopes``;
+3. otherwise nobody: every gate with a declared dimension denies.
 
-Verification. With a ``key`` the token's signature (and expiry) is VERIFIED with PyJWT and a token
-that fails is no identity at all. Without one the claims are read unverified — exactly what Java's
-``Authorizer`` does, which assumes something upstream (an API gateway, an auth middleware, Spring
-Security on the Java side) already verified the token. Do NOT run the keyless mode on an endpoint
-reachable without such a verifier: anyone could then mint their own roles.
-
-PyJWT is an optional extra (``pip install mateu-ui[jwt]``). Without it the provider resolves no
-identity — every gated element stays denied — and says so once in the log.
+A Bearer token is never decoded here — its payload is the client's to write. To use your token's
+claims, verify it in your app (a FastAPI dependency, a middleware) and hand Mateu the result,
+e.g. ``request.state.mateu_identity = identity_from_claims(verified_claims)``, or pass
+``add_mateu(identity_provider=...)``.
 """
 
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable
 from typing import Any
 
 from mateu_uidl import Identity
 
-from .request_context import bearer_token
+from .request_context import current_request
 
 log = logging.getLogger("mateu.identity")
 
-_warned_missing_pyjwt = False
+_warned = False
 
 
 def _as_list(value: Any) -> list[str]:
@@ -44,7 +42,9 @@ def _as_list(value: Any) -> list[str]:
 
 
 def identity_from_claims(claims: dict[str, Any]) -> Identity:
-    """Map JWT claims onto an ``Identity`` (mirrors ``Authorizer.extractRoles``/``extractScopes``)."""
+    """Map the claims of a token YOUR APP verified onto an ``Identity`` (mirrors Java's
+    ``CallerIdentities.fromClaims``): Keycloak ``realm_access``/``resource_access`` roles plus a
+    top-level ``roles``, ``groups``, ``scope``/``scp`` and ``permissions``."""
     roles: list[str] = []
     realm = claims.get("realm_access")
     if isinstance(realm, dict):
@@ -65,51 +65,28 @@ def identity_from_claims(claims: dict[str, Any]) -> Identity:
     )
 
 
-def jwt_identity_provider(
-    key: Any = None,
-    algorithms: Sequence[str] = ("RS256", "ES256", "HS256"),
-    audience: str | None = None,
-    issuer: str | None = None,
-) -> Callable[[], Identity | None]:
-    """A parameterless identity provider reading the Bearer JWT of the request in flight.
+def warn_on_startup() -> None:
+    """Logs, once, that Mateu takes roles only from what the app authenticated."""
+    global _warned
+    if not _warned:
+        _warned = True
+        log.warning(
+            "Mateu does not authenticate: EyesOnly / ReadOnlyUnless / DisabledUnless match the "
+            "identity your app established — request.state.mateu_identity, or Starlette's "
+            "AuthenticationMiddleware (request.user + request.auth.scopes). Without one, restricted "
+            "UI stays hidden for everyone."
+        )
 
-    ``key`` — the verification key (a PEM public key, an HS secret, or a ``PyJWK``); None reads the
-    claims unverified (see the module docstring for when that is acceptable)."""
+
+def framework_identity_provider() -> Callable[[], Identity | None]:
+    """The default identity provider: the identity the app authenticated for the request in
+    flight (see the module docstring), or None."""
 
     def provide() -> Identity | None:
-        global _warned_missing_pyjwt
-        token = bearer_token()
-        if token is None:
-            return None
-        try:
-            import jwt  # PyJWT, optional extra
-        except ImportError:
-            if not _warned_missing_pyjwt:
-                _warned_missing_pyjwt = True
-                log.warning(
-                    "A Bearer token arrived but PyJWT is not installed (pip install mateu-ui[jwt]): "
-                    "no identity is resolved, so every EyesOnly/ReadOnlyUnless/DisabledUnless gate "
-                    "denies. Install it or pass add_mateu(identity_provider=...)."
-                )
-            return None
-        try:
-            if key is None:
-                claims = jwt.decode(token, options={"verify_signature": False})
-            else:
-                claims = jwt.decode(
-                    token,
-                    key,
-                    algorithms=list(algorithms),
-                    audience=audience,
-                    issuer=issuer,
-                    options={"verify_aud": audience is not None},
-                )
-        except Exception as e:  # noqa: BLE001 - any invalid token is "no identity", never a 500
-            log.warning("Ignoring an invalid Bearer token: %s", e)
-            return None
-        return identity_from_claims(claims if isinstance(claims, dict) else {})
+        rq = current_request()
+        return rq.principal if rq is not None else None
 
     return provide
 
 
-__all__ = ["identity_from_claims", "jwt_identity_provider"]
+__all__ = ["framework_identity_provider", "identity_from_claims", "warn_on_startup"]

@@ -71,6 +71,10 @@ class GridColumnMeta(Wire):
     #: field type; a declared tone wins over the renderer's word heuristics. None when absent
     #: (mirrors GridColumnDto.tones).
     tones: dict[str, str] | None = None
+    #: value → what it reads as: an enum column's labels (enum_label), the same as its options.
+    #: Display only — rows keep the raw member name. None for any other column (mirrors
+    #: GridColumnDto.valueLabels).
+    value_labels: dict[str, str] | None = None
 
 
 class GridColumn(Wire):

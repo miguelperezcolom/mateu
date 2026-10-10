@@ -27,17 +27,18 @@ import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass 
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays } from './calendar.mjs'
 import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf } from './notify.mjs'
 import { startPolling, actionSucceeded, setPollingRunner, timedOnLoadTriggers } from './polling.mjs'
-import { onLoadTriggers } from './reduceContexts.mjs'
+import { onLoadTriggers, mediatorOf } from './reduceContexts.mjs'
 import { assignAccessKeys, keyHint, setShortcutContext, currentShortcutActions, isFunctionKeyShortcut } from './keys.mjs'
 import { hoverLinesOf } from './hover.mjs'
 import { draggedIdsOf, dragTypeOfMime } from './dnd.mjs'
 import { dragMimeOf, listingHeaderBlocksOf } from './reduceContexts.mjs'
 import { dayIndexAtX } from './planning.mjs'
+import { listingBaseOf, selectedRowsOf, rowAsArrived, valueLabelOf, LABEL_CELL_SUFFIX } from './core/listing.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
 import { listingOf, rowClickOpensRecord, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
 import { reduceContexts, islandContentOf, hostContentOf, hostContentShown, summarizeHost, shellNavOf, entityHeaderOf, taskQueueOf, formSectionsOf, layoutFieldOf, HOST_ID } from './reduceContexts.mjs'
 import { localMenuOptionOf, isSentinelHome } from './navTree.mjs'
-import { loadMenuRouteInto, terminalMenuRouteOf, bootstrapHasApp } from './transport.mjs'
+import { loadMenuRouteInto, terminalMenuRouteOf, bootstrapHasApp, mediatorConsumedRoute, mediatorBaseOf, composeInnerRoute } from './transport.mjs'
 import { fileDownloadOf, triggerDownload, applyDomEffects } from './files.mjs'
 import { evaluateExpression, evaluateTemplate, computeRules, fieldFlagsOf, valueChangeActionOf } from './rules.mjs'
 import { describeFileValue, isImageValue, captureTexts } from './inputs.mjs'
@@ -1449,8 +1450,69 @@ test('mount: an @UI that is not an App (a page, a crud) boots as a fresh load of
   assert.equal(bootstrapHasApp({ fragments: [{ component: { type: 'ServerSide', serverSideType: 'X',
     children: [{ type: 'ClientSide', metadata: { type: 'App' } }] } }] }), true)
   assert.equal(bootstrapHasApp(null), false)
+  // …and its content loads with the mount ROOT consumed: "", never "/"
+  assert.equal(mediatorConsumedRoute({ rootRoute: '' }, '/'), '')
+  assert.equal(mediatorConsumedRoute({ rootRoute: '' }, ''), '')
+  assert.equal(mediatorConsumedRoute({ rootRoute: '/products' }, '/products/7'), '/products')
+  assert.equal(mediatorConsumedRoute({}, '/orders'), '/orders')
+  // a deep link to a RECORD of a root crud (/P-001): the mediator App says the root is consumed
+  // (homeConsumedRoute "" + rootRoute ""), not its _route, which is the record
+  const rootMediator = mediatorOf({ tree: { type: 'ServerSide', children: [{ type: 'ClientSide', metadata: {
+    type: 'App', variant: 'MEDIATOR', rootRoute: '', homeConsumedRoute: '', homeRoute: '/P-001',
+    homeServerSideType: 'com.example.app.Products' } }] }, state: { _route: '/P-001' } })
+  assert.equal(rootMediator.rootRoute, '')
+  assert.equal(mediatorConsumedRoute(rootMediator, '/P-001'), '')
+  // a crud mounted at /products keeps consuming its own path
+  const productsMediator = mediatorOf({ tree: { type: 'ServerSide', children: [{ type: 'ClientSide', metadata: {
+    type: 'App', variant: 'MEDIATOR', rootRoute: '/products/7', homeConsumedRoute: '/products' } }] }, state: { _route: '/7' } })
+  assert.equal(mediatorConsumedRoute(productsMediator, '/products/7'), '/products')
+  // and a row click on the root crud flips to /P-002, not //P-002
+  assert.equal(composeInnerRoute(mediatorBaseOf({ route: '', consumedRoute: '' }, '/'), '/P-002'), '/P-002')
+  // …and Edit on a record opened by a deep link (/P-003): /P-003/edit, not /P-003/P-003/edit
+  assert.equal(composeInnerRoute(mediatorBaseOf({ route: '/P-003', consumedRoute: '', mountRoot: true }, '/P-003'), '/P-003/edit'), '/P-003/edit')
+  assert.equal(composeInnerRoute(mediatorBaseOf({ route: '/products', consumedRoute: '/products' }, '/products'), '/7'), '/products/7')
+  // @UI("") on a crud: the bootstrap now answers its MEDIATOR App (the load, not an error) — still
+  // a mount without a shell
+  assert.equal(bootstrapHasApp({ fragments: [{ component: { type: 'ServerSide', serverSideType: 'com.example.app.Products',
+    children: [{ type: 'ClientSide', metadata: { type: 'App', variant: 'MEDIATOR' } }] } }] }), false)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.setMountWithoutApp\(withoutApp\)/)
   assert.match(readFileSync(join(here, 'transport.mjs'), 'utf8'), /consumedRoute: '_empty'/)
+})
+
+test('enum cells: a column with valueLabels shows "In house", the row keeps IN_HOUSE', () => {
+  const labels = { IN_HOUSE: 'In house', DEPARTED: 'Checked out' }
+  const ctx = { tree: { metadata: { type: 'Crud', columns: [
+    { metadata: { id: 'guest', label: 'Guest' } },
+    { metadata: { id: 'status', label: 'Status', valueLabels: labels } },
+    { metadata: { id: 'state', label: 'State', dataType: 'status', valueLabels: labels, tones: { DEPARTED: 'danger' } } },
+  ] }, children: [] }, data: { crud: { page: { content: [
+    { _rowNumber: 0, guest: 'Ada', status: 'IN_HOUSE', state: 'DEPARTED' },
+  ], totalElements: 1 } } } }
+  const listing = listingBaseOf(ctx)
+  const status = listing.columns.find((c) => c.id === 'status')
+  assert.equal(status.field, 'status' + LABEL_CELL_SUFFIX)
+  const row = listing.rows[0]
+  assert.equal(row['status' + LABEL_CELL_SUFFIX], 'In house')
+  assert.equal(row.status, 'IN_HOUSE')
+  // a status badge reads the label, toned by the RAW value
+  assert.equal(row.state.message, 'Checked out')
+  assert.equal(row.state.type, 'DANGER')
+  // what a selection hands back is the row as it arrived
+  const [picked] = selectedRowsOf(listing.rows, { all: true, keys: [], except: [] })
+  assert.equal(picked.status, 'IN_HOUSE')
+  assert.equal(picked.state, 'DEPARTED')
+  assert.equal(Object.keys(picked).some((k) => k.endsWith(LABEL_CELL_SUFFIX)), false)
+  // a row CLICK hands the row back as it arrived too (the 'view' parameters)
+  assert.deepEqual(rowAsArrived(listing.rows[0]), { _rowNumber: 0, guest: 'Ada', status: 'IN_HOUSE', state: 'DEPARTED' })
+  assert.equal(valueLabelOf({ valueLabels: labels }, 'DUE_OUT'), 'DUE_OUT')
+  assert.equal(valueLabelOf({}, 'IN_HOUSE'), 'IN_HOUSE')
+})
+
+test('@Compact listing: the table takes JET display="grid" (dense rows), a plain one stays "list"', () => {
+  const ctxOf = (compact) => ({ tree: { metadata: { type: 'Crud', compact, columns: [{ metadata: { id: 'name' } }] }, children: [] },
+    data: { crud: { page: { content: [], totalElements: 0 } } } })
+  assert.equal(listingBaseOf(ctxOf(true)).display, 'grid')
+  assert.equal(listingBaseOf(ctxOf(false)).display, 'list')
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

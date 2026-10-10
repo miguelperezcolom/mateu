@@ -279,6 +279,11 @@ A constant needs no annotation when its name says it. Mateu calls it, in order:
 
 So in the example above, `DRAFT` and `PAID` need no annotation ("Draft", "Paid"). The .NET (`[Label]` on the member) and Python (the enum's own `__str__`) backends follow the same rule.
 
+The same names are used in **listing and grid cells**: an enum column carries its labels on the
+wire (`GridColumn.valueLabels`) and every renderer shows "In house" instead of `IN_HOUSE` — in a
+status badge too, whose tone is still picked by the raw value. The row itself keeps the raw
+constant, so sorting, filtering, row selection and inline editing work on it exactly as before.
+
 ---
 
 ## @OptionsLayout

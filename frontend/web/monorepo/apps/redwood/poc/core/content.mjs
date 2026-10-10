@@ -6,7 +6,7 @@ import { RICH_TEXT_STEREOTYPES, actionPanelAtomOf, avatarOf, chartAtomOf, dragMi
 import { findAllByType, tabIdOf, tabStripKeyOf } from './overviews.mjs'
 import { ojIconOrGenericOf } from './shellNav.mjs'
 import { findOutsidePanes } from './pageHeader.mjs'
-import { findByType, findFirst, statusBadgeRows } from './listing.mjs'
+import { findByType, findFirst, statusBadgeRows, labelCellRows, labelColumn, LABEL_CELL_SUFFIX } from './listing.mjs'
 import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf } from './rowEditor.mjs'
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
@@ -468,6 +468,8 @@ export function islandContentOf(ctx, opts = {}) {
           .map((c) => {
             const def = { headerText: c.label || c.id, field: c.id }
             if (c.dataType === 'status') def.template = 'cellStatusBadge'
+            // un enum se lee por su etiqueta («In house»): la celda lee <id>__labelCell
+            if (!def.template && labelColumn(c)) def.field = c.id + LABEL_CELL_SUFFIX
             return def
           })
         if (rowEditable) {
@@ -482,7 +484,7 @@ export function islandContentOf(ctx, opts = {}) {
           }
           return out
         }
-        const shown = statusBadgeRows(rows, m.columns).map((row, i) => (rowEditable
+        const shown = labelCellRows(statusBadgeRows(rows, m.columns), m.columns).map((row, i) => (rowEditable
           ? {
             ...dashEmpty(row),
             _rowNumber: row._rowNumber == null ? i : row._rowNumber,
@@ -1493,7 +1495,7 @@ export function withSubresources(blocks, contexts) {
         // las acciones por fila no tienen sitio en la tabla de solo consulta
         .filter((c) => c.dataType !== 'actionGroup' && !(c.id === '_select' && c.stereotype === 'button'))
       const page = (((ctx.data || {}).crud || {}).page) || {}
-      const rows = statusBadgeRows(page.content || [], wire)
+      const rows = labelCellRows(statusBadgeRows(page.content || [], wire), wire)
       return [{
         isGrid: true,
         isSubresourceGrid: true,
@@ -1501,7 +1503,7 @@ export function withSubresources(blocks, contexts) {
         label: md.title || '',
         columns: wire.map((c) => (c.dataType === 'status'
           ? { headerText: c.label || c.id, field: c.id, template: 'cellStatusBadge' }
-          : { headerText: c.label || c.id, field: c.id })),
+          : { headerText: c.label || c.id, field: labelColumn(c) ? c.id + LABEL_CELL_SUFFIX : c.id })),
         rows,
         adp: dataProviderFactory ? dataProviderFactory(rows) : null,
         isEmpty: rows.length === 0,

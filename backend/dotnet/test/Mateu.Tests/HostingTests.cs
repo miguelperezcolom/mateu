@@ -59,6 +59,17 @@ public class HostingTests
         Assert.Null(ClaimsIdentityMapper.From(null));
     }
 
+    [Fact]
+    public void A_bearer_token_nobody_authenticated_grants_nothing()
+    {
+        // An unsigned token claiming the role: the port never decodes the header itself — only
+        // what ASP.NET Core's authentication (JwtBearer, cookies…) VERIFIED reaches HttpContext.User.
+        var forged = "eyJhbGciOiJub25lIn0.eyJyb2xlcyI6WyJtYW5hZ2VyIl19.";
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Headers.Authorization = $"Bearer {forged}";
+        Assert.Null(ClaimsIdentityMapper.FromUser(ctx));
+    }
+
     private static (SyncHandler Handler, IHttpContextAccessor Accessor) Host(Action<MateuOptions>? configure = null,
         Action<IServiceCollection>? services = null)
     {

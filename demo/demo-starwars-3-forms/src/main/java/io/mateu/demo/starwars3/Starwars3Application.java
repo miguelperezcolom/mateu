@@ -11,7 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * tabbed {@link Dossier} form exercising a spread of field types (textarea, stars, toggle, date,
  * money, radios). A tiny {@code @App} shell ({@link Home3}) puts both behind a menu.
  */
-@SpringBootApplication(scanBasePackages = "io.mateu")
+@SpringBootApplication(scanBasePackages = "io.mateu.demo")
 public class Starwars3Application {
 
   public static void main(String[] args) {

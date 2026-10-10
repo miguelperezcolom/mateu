@@ -118,9 +118,58 @@ public class ComponentStateHelper {
       GeneratedValueInitializer.initialize(
           getViewModelClass(modelView, httpRequest), newState, httpRequest);
       addRowNumber(modelView.getClass(), newState);
+      stripRestricted(state, newState, httpRequest);
       return newState;
     }
     return state;
+  }
+
+  /**
+   * A field the caller may not see ({@code @EyesOnly}) must not travel in the state either: hiding
+   * the input while sending its value in {@code initialData} would leak exactly what the annotation
+   * protects.
+   */
+  @SuppressWarnings("unchecked")
+  private static void stripRestricted(Object source, Object state, HttpRequest httpRequest) {
+    if (source == null || !(state instanceof Map<?, ?> map)) {
+      return;
+    }
+    for (var name : restrictedFields(source, httpRequest)) {
+      ((Map<String, Object>) map).remove(name);
+    }
+  }
+
+  /**
+   * The instance itself when the caller may see all of it; otherwise its state as a map WITHOUT the
+   * fields an {@code @EyesOnly} hides from this caller — for the places that hand the raw instance
+   * to the wire as state / initial data.
+   */
+  public static Object withoutRestricted(Object instance, HttpRequest httpRequest) {
+    if (instance == null || instance instanceof Map<?, ?>) {
+      return instance;
+    }
+    var restricted = restrictedFields(instance, httpRequest);
+    if (restricted.isEmpty()) {
+      return instance;
+    }
+    var map = new LinkedHashMap<>(toMap(instance));
+    restricted.forEach(map::remove);
+    return map;
+  }
+
+  private static List<String> restrictedFields(Object source, HttpRequest httpRequest) {
+    List<String> names = new ArrayList<>();
+    for (var field :
+        io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields(source.getClass())) {
+      var eyesOnly =
+          io.mateu.core.infra.reflection.MetaAnnotations.find(
+              field, io.mateu.uidl.annotations.EyesOnly.class);
+      if (eyesOnly != null
+          && !io.mateu.core.domain.Authorizer.isAuthorized(eyesOnly, httpRequest)) {
+        names.add(field.getName());
+      }
+    }
+    return names;
   }
 
   public static String getAppRoute(Object potentialApp) {
