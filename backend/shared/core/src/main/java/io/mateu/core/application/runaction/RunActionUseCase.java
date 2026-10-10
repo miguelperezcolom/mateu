@@ -450,8 +450,24 @@ public class RunActionUseCase {
     return REST_MAPPER.readValue(body, Object.class);
   }
 
-  /** A {@code ${secret.X}} value: the first non-null SecretsProvider bean, else the environment. */
-  private String resolveSecret(String key) {
+  /** The only environment variables a {@code ${secret.X}} may fall back to. */
+  public static final String SECRET_ENV_PREFIX = "MATEU_SECRET_";
+
+  /**
+   * The environment variable {@code ${secret.KEY}} falls back to: {@code MATEU_SECRET_KEY} (a key
+   * that already carries the prefix is used as is). Restricted on purpose: the fallback used to
+   * read ANY variable of the process, so a template naming {@code ${secret.DB_PASSWORD}} (or a
+   * cloud credential) would send it to whatever endpoint the source declared.
+   */
+  public static String secretEnvName(String key) {
+    return key.startsWith(SECRET_ENV_PREFIX) ? key : SECRET_ENV_PREFIX + key;
+  }
+
+  /**
+   * A {@code ${secret.X}} value: the first non-null SecretsProvider bean, else the environment
+   * variable {@code MATEU_SECRET_X} (see {@link #secretEnvName}).
+   */
+  String resolveSecret(String key) {
     try {
       for (var p :
           io.mateu.uidl.di.MateuBeanProvider.getBeans(
@@ -464,7 +480,7 @@ public class RunActionUseCase {
     } catch (Exception ignored) {
       // no provider registered (e.g. tests) — fall through to the environment
     }
-    return System.getenv(key);
+    return System.getenv(secretEnvName(key));
   }
 
   private String extractTitle(Throwable e) {

@@ -90,12 +90,12 @@ always travelled to the browser and been run there without a server round trip �
 `@RestAction` method could attach one, so a page with no class could read and never write.
 
 **The write key never reaches the browser.** The write sources are `proxy: true`, so the SERVER makes
-the call and resolves `${secret.SWAPI_WRITE_KEY}` from its environment. A direct write could not do
+the call and resolves `${secret.SWAPI_WRITE_KEY}` from its environment (variable `MATEU_SECRET_SWAPI_WRITE_KEY` — only `MATEU_SECRET_`-prefixed variables are readable as secrets). A direct write could not do
 that: the client-side interpolator has no `secret` scope, deliberately. Run the demo with the key in
 the environment:
 
 ```bash
-SWAPI_WRITE_KEY=… mvn -s ../../settings.xml spring-boot:run
+MATEU_SECRET_SWAPI_WRITE_KEY=… mvn -s ../../settings.xml spring-boot:run
 ```
 
 Without it the reads all work and a write comes back 401 — which is the API refusing, exactly as it
