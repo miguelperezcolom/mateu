@@ -55,6 +55,39 @@ public sealed partial class ReflectionMapper
         }
     }
 
+    /// <summary>A reflected column whose row property carries [FieldType]: the catalogue type's
+    /// attributes are its DEFAULTS — label (unless [Label]), data type, stereotype (unless the
+    /// property declares one), width/autoWidth and the status tones — the same rule a YAML
+    /// <c>fieldType:</c> reference follows. An unknown id is warned about and changes nothing.</summary>
+    private static GridColumnDto WithFieldType(GridColumnDto column, Type row)
+    {
+        var p = row.GetProperties().FirstOrDefault(x => Naming.CamelCase(x.Name) == column.Metadata.Id);
+        if (p?.Find<FieldTypeAttribute>() is not { } declared) return column;
+        if (MateuCatalogs.FieldTypes.Get(declared.Id) is not { } type)
+        {
+            FieldTypeResolver.Apply(new Dictionary<object, object> { [FieldTypeResolver.Key] = declared.Id, ["id"] = column.Metadata.Id },
+                MateuCatalogs.FieldTypes, KnownUnknownTypes);
+            return column;
+        }
+        var m = column.Metadata;
+        var ownStereotype = ColumnStereotypeOf(p);
+        return column with
+        {
+            Metadata = m with
+            {
+                Label = p.Find<LabelAttribute>() is null && !string.IsNullOrWhiteSpace(type.Label) ? type.Label : m.Label,
+                DataType = string.IsNullOrWhiteSpace(type.DataType) ? m.DataType : type.DataType,
+                Stereotype = ownStereotype is null && !string.IsNullOrWhiteSpace(type.Stereotype) ? type.Stereotype : m.Stereotype,
+                Width = m.Width ?? (string.IsNullOrWhiteSpace(type.Width) ? null : type.Width),
+                AutoWidth = type.AutoWidth ?? m.AutoWidth,
+                Tones = type.Tones is { Count: > 0 } tones ? tones : m.Tones,
+            },
+        };
+    }
+
+    /// <summary>The [FieldType] ids already warned about as unknown (once per process).</summary>
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> KnownUnknownTypes = new();
+
     internal ServerSideComponentDto MapListing(Type viewType, Type filters, Type row, string route)
     {
         var title = viewType.Find<TitleAttribute>()?.Value ?? Naming.Humanize(viewType.Name);
@@ -78,6 +111,7 @@ public sealed partial class ReflectionMapper
                 LeadingPath = LeadingPathOf(p),
                 TooltipPath = TooltipPathOf(p),
             }))
+            .Select(c => WithFieldType(c, row))
             .ToList();
         var actions = new List<ActionDto> { new("search") };
         var toolbar = new List<ButtonDto>();
@@ -206,6 +240,7 @@ public sealed partial class ReflectionMapper
                     ActionId = rowsClickable && index == 0 ? "view" : null,
                 });
             })
+            .Select(c => WithFieldType(c, element))
             .ToList();
         var toolbar = new List<ButtonDto>();
         var actions = new List<ActionDto> { new("search") };
@@ -305,6 +340,7 @@ public sealed partial class ReflectionMapper
                 // edit drawer when editable-without-navigable (both dispatch "view").
                 ActionId = rowsClickable && index == 0 ? "view" : null,
             }))
+            .Select(c => WithFieldType(c, profile.RowType))
             .ToList();
         var toolbar = new List<ButtonDto>();
         var actions = new List<ActionDto> { new("search") };
@@ -562,6 +598,7 @@ public sealed partial class ReflectionMapper
                         : null,
                 });
             })
+            .Select(c => WithFieldType(c, rowType))
             .ToList();
         // The per-row "Edit" button opens the row detail form (the <field>_select action of the
         // grid-field crud); inline editing replaces it (Java: GridColumnBuilder).

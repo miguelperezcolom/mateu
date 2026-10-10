@@ -61,6 +61,7 @@ public static class MateuExtensions
                 secrets: secrets,
                 http: options.HttpClient)
             {
+                MockSources = options.MockSources,
                 // Listing exports: an exporter registered as a service replaces the built-in writer
                 // of its format (Java: the CsvExporter/ExcelExporter/PdfExporter beans).
                 Exporters = new Mateu.Core.Export.MateuExporters(

@@ -113,22 +113,43 @@ public sealed class RestSourceRegistry
                 IEnumerable<object> list => list,
                 _ => null,
             };
+            // The samples are read a second time TYPED (an unquoted 120.5 a number, not a string),
+            // aligned by position with the untyped nodes the rest of the entry is read from.
+            var typedRoot = YamlPlain.Parse(File.ReadAllText(path));
+            var typedNodes = (typedRoot switch
+            {
+                IDictionary<string, object?> m when m.TryGetValue("sources", out var ts) => ts as List<object?>,
+                List<object?> l => l,
+                _ => null,
+            }) ?? [];
             var entries = new List<RestSourceEntry>();
+            var index = -1;
             foreach (var node in nodes ?? [])
             {
+                index++;
                 if (node is not IDictionary<object, object> map) continue;
+                var typed = index < typedNodes.Count ? typedNodes[index] as IDictionary<string, object?> : null;
                 var name = Str(map, "name");
                 if (string.IsNullOrWhiteSpace(name))
                 {
                     MateuLogging.For("Mateu.RestSources").LogWarning("Ignoring a REST source with no name in {Path}", path);
                     continue;
                 }
-                entries.Add(new RestSourceEntry(name.Trim(), SourceOf(map.TryGetValue("source", out var s) ? s : null))
+                var sampleFile = Str(map, "sampleFile") ?? "";
+                var source = SourceOf(map.TryGetValue("source", out var s) ? s : null);
+                if (typed?.TryGetValue("source", out var typedSource) == true
+                    && typedSource is IDictionary<string, object?> ts2 && ts2.TryGetValue("sample", out var inline) && inline is not null)
+                    source = source with { Sample = inline };
+                entries.Add(new RestSourceEntry(name.Trim(), source)
                 {
                     Provenance = ProvenanceOf(Str(map, "provenance"), path),
                     Fields = MapOf(map, "fields"),
                     TotalPath = Str(map, "totalPath") ?? "",
                     Description = Str(map, "description") ?? "",
+                    Sample = typed?.TryGetValue("sample", out var sample) == true && sample is not null
+                        ? sample
+                        : SampleFromFile(dir, name.Trim(), sampleFile),
+                    SampleFile = sampleFile,
                 });
             }
             return new RestSourceCatalog(entries);
@@ -137,6 +158,32 @@ public sealed class RestSourceRegistry
         {
             MateuLogging.For("Mateu.RestSources").LogWarning(e, "{Path} ignored: {Error}", path, e.Message);
             return RestSourceCatalog.Empty;
+        }
+    }
+
+    /// <summary>A <c>sampleFile:</c> (JSON or YAML, relative to the specs directory) as plain data,
+    /// or null when none is declared or it cannot be read — a missing sample is WARNed about and the
+    /// source simply has none; it never takes the catalogue down.</summary>
+    private static object? SampleFromFile(string dir, string sourceName, string sampleFile)
+    {
+        if (string.IsNullOrWhiteSpace(sampleFile)) return null;
+        var relative = sampleFile.TrimStart('/');
+        if (relative.StartsWith("specs/ui/", StringComparison.Ordinal)) relative = relative["specs/ui/".Length..];
+        var path = Path.Combine(dir, relative);
+        try
+        {
+            if (!File.Exists(path))
+            {
+                MateuLogging.For("Mateu.RestSources").LogWarning("REST source '{Name}': sampleFile {Path} not found", sourceName, path);
+                return null;
+            }
+            return YamlPlain.Parse(File.ReadAllText(path)); // YAML is a superset of JSON: one reader for both
+        }
+        catch (Exception e)
+        {
+            MateuLogging.For("Mateu.RestSources").LogWarning("REST source '{Name}': could not read sampleFile {Path}: {Error}",
+                sourceName, path, e.Message);
+            return null;
         }
     }
 
@@ -212,7 +259,7 @@ public sealed class ComponentRegistry
     public ComponentRegistry(MateuRegistry registry, string? dir = null)
     {
         var specs = dir ?? Environment.GetEnvironmentVariable("MATEU_SPECS_DIR") ?? Path.Combine("specs", "ui");
-        _load = () => AuthoredFrom(specs).MergedOver(DerivedFrom(registry.ScannedTypes));
+        _load = () => AuthoredFrom(specs, new FieldTypeRegistry(registry, specs)).MergedOver(DerivedFrom(registry.ScannedTypes));
     }
 
     /// <summary>A registry over a fixed catalogue.</summary>
@@ -290,7 +337,7 @@ public sealed class ComponentRegistry
         return new ComponentCatalog(order.Select(n => byName[n]).ToList());
     }
 
-    public static ComponentCatalog AuthoredFrom(string dir)
+    public static ComponentCatalog AuthoredFrom(string dir, FieldTypeRegistry? fieldTypes = null)
     {
         var path = Path.Combine(dir, FileName);
         if (!File.Exists(path)) return ComponentCatalog.Empty;
@@ -309,7 +356,7 @@ public sealed class ComponentRegistry
                 if (node is not IDictionary<object, object> map) continue;
                 var name = map.TryGetValue("name", out var n) ? n?.ToString() : null;
                 if (string.IsNullOrWhiteSpace(name) || !map.TryGetValue("component", out var c) || c is null) continue;
-                if (YamlComponentBuilder.FromNode(c) is { } component)
+                if (YamlComponentBuilder.FromNode(c, fieldTypes ?? new FieldTypeRegistry(dir)) is { } component)
                     entries.Add(new ComponentEntry(name.Trim(), component));
                 else
                     MateuLogging.For("Mateu.Components").LogWarning("{Path}: could not parse component '{Name}'", path, name);
@@ -331,16 +378,19 @@ internal static class MateuCatalogs
 {
     private static readonly AsyncLocal<RestSourceCatalog?> Rest = new();
     private static readonly AsyncLocal<ComponentCatalog?> Comps = new();
+    private static readonly AsyncLocal<FieldTypeCatalog?> Types = new();
     private static readonly AsyncLocal<int> Depth = new();
 
-    internal static void Set(RestSourceCatalog? sources, ComponentCatalog? components)
+    internal static void Set(RestSourceCatalog? sources, ComponentCatalog? components, FieldTypeCatalog? fieldTypes = null)
     {
         Rest.Value = sources;
         Comps.Value = components;
+        Types.Value = fieldTypes;
     }
 
     internal static RestSourceCatalog Sources => Rest.Value ?? RestSourceCatalog.Empty;
     internal static ComponentCatalog Components => Comps.Value ?? ComponentCatalog.Empty;
+    internal static FieldTypeCatalog FieldTypes => Types.Value ?? FieldTypeCatalog.Empty;
 
     /// <summary>The composition a <see cref="ComponentRef"/> stands for; an unknown name (or a
     /// reference cycle) is a visible placeholder, never an error (Java: ComponentToFragmentDtoMapper).</summary>
@@ -368,13 +418,17 @@ internal static class MateuCatalogs
         ValuePath = s.ValuePath,
         LabelPath = s.LabelPath,
         Proxy = s.Proxy,
+        Sample = s.Sample,
     };
 
-    /// <summary>The catalogue on the wire (AppDto.restSources).</summary>
-    internal static List<RestSourceEntryDto> MapCatalogue(RestSourceCatalog catalog) =>
+    /// <summary>The catalogue on the wire (AppDto.restSources). The samples travel ONLY in sample
+    /// mode: a production app does not ship design-time data it will never use.</summary>
+    internal static List<RestSourceEntryDto> MapCatalogue(RestSourceCatalog catalog, bool withSamples = false) =>
         catalog.Sources.Select(e => new RestSourceEntryDto(
-            e.Name, ToDto(e.Source), e.Fields.ToDictionary(kv => kv.Key, kv => kv.Value), e.TotalPath,
-            e.EffectiveProvenance().ToString().ToLowerInvariant(), e.Description)).ToList();
+            e.Name, ToDto(withSamples || e.Source is null ? e.Source! : e.Source with { Sample = null }),
+            e.Fields.ToDictionary(kv => kv.Key, kv => kv.Value), e.TotalPath,
+            e.EffectiveProvenance().ToString().ToLowerInvariant(), e.Description,
+            withSamples ? e.Sample : null)).ToList();
 
     /// <summary>The business components on the wire (AppDto.components), compositions mapped.</summary>
     internal static List<ComponentEntryDto> MapComponents(ComponentCatalog catalog) =>
@@ -401,6 +455,8 @@ internal static class MateuCatalogs
             ValuePath = Blank(declared.ValuePath) ? from.ValuePath : declared.ValuePath,
             LabelPath = Blank(declared.LabelPath) ? from.LabelPath : declared.LabelPath,
             Proxy = declared.Proxy || from.Proxy,
+            // surface's own sample > entry sample > entry.source sample
+            Sample = declared.Sample ?? Sources.Get(declared.Ref)!.EffectiveSample(),
         };
     }
 }

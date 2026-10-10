@@ -28,6 +28,12 @@ public sealed class MateuOptions
 
     /// <summary>The client proxied REST fetches use (null → a shared client with a 60 s timeout).</summary>
     public HttpClient? HttpClient { get; set; }
+
+    /// <summary>SAMPLE mode: REST sources that carry sample data (<c>sample:</c> / <c>sampleFile:</c>
+    /// in sources.yaml) answer with it instead of being called, on the proxied leg and — told by the
+    /// app metadata — the browser's direct one. Null (the default) reads the environment variable
+    /// <c>MATEU_SOURCES_MOCK</c> (<c>true</c>/<c>1</c>). Never switch it on in production.</summary>
+    public bool? MockSources { get; set; }
 }
 
 /// <summary>The default claims → <see cref="Identity"/> mapping. Claim names vary by issuer, so
