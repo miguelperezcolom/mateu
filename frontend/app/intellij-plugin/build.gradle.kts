@@ -115,6 +115,20 @@ val generatePluginVersion = tasks.register("generatePluginVersion") {
 sourceSets.main.get().resources.srcDir(versionResourceDir)
 tasks.named("processResources") { dependsOn(generatePluginVersion) }
 
+// The bundled authoring schema is the GENERATED backend/shared/uidl/specs-schema.json, copied at build
+// time (never a committed duplicate that drifts): it drives the specs/ui YAML validation and the
+// New | Mateu skeleton test.
+val specsSchema = projectDir.resolve("../../../backend/shared/uidl/specs-schema.json")
+val schemaResourceDir = layout.buildDirectory.dir("generated/schema")
+val copySpecsSchema = tasks.register<Copy>("copySpecsSchema") {
+    description = "Copy the generated Mateu specs schema into the plugin resources."
+    from(specsSchema)
+    into(schemaResourceDir.map { it.dir("schema") })
+    doFirst { check(specsSchema.exists()) { "missing $specsSchema" } }
+}
+sourceSets.main.get().resources.srcDir(schemaResourceDir)
+tasks.named("processResources") { dependsOn(copySpecsSchema) }
+
 // `./gradlew runIde` launches the IDE (from the configured platform) with the Mateu plugin — open
 // the "Mateu" tool window (View ▸ Tool Windows ▸ Mateu, or the Mateu menu). The consent flag just
 // skips the data-sharing prompt on a fresh dev sandbox.
