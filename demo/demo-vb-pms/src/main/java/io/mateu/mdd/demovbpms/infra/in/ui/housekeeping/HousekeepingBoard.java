@@ -4,7 +4,6 @@ import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.core.infra.declarative.orchestrators.crud.Crud;
 import io.mateu.mdd.demovbpms.domain.Hotel;
 import io.mateu.uidl.annotations.HiddenInList;
-import io.mateu.uidl.annotations.Label;
 import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.NotCreatable;
 import io.mateu.uidl.annotations.NotDeletable;
@@ -99,7 +98,6 @@ public class HousekeepingBoard extends AutoCrud<HousekeepingBoard.RoomRow> {
   }
 
   @ListToolbarButton
-  @Label("Set room status")
   Dialog setRoomStatus(List<RoomRow> selection) {
     return Dialog.builder()
         .id("set-room-status")

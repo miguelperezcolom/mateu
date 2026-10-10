@@ -56,7 +56,6 @@ public class RegistrationCard {
   String documentNumber = "X1234567";
 
   @PhotoCapture
-  @Label("Document scan")
   String documentScan;
 
   @Section("Stay")
@@ -80,7 +79,6 @@ public class RegistrationCard {
   String signature;
 
   @Toolbar
-  @Label("Complete check in")
   public Message completeCheckIn() {
     return new Message(
         "Checked in "

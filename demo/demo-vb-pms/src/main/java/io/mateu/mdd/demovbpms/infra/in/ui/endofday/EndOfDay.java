@@ -51,7 +51,6 @@ public class EndOfDay extends Wizard {
   public static class ArrivalsStep implements WizardStep {
 
     @PlainText
-    @Label("Business date")
     public String businessDate = Hotel.businessDate().toString();
 
     @BulletedList
@@ -100,7 +99,6 @@ public class EndOfDay extends Wizard {
     public String businessDate;
 
     @BulletedList
-    @Label("Procedures")
     public List<String> procedures = new ArrayList<>();
   }
 

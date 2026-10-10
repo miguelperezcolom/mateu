@@ -98,7 +98,6 @@ public class NewReservation implements RuleSupplier {
   }
 
   @Toolbar
-  @Label("Book")
   public Message book() {
     return new Message(
         "Booked " + guest + " " + arrival + " → " + departure + " (" + nights + " nights), "
