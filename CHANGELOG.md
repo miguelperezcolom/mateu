@@ -25,10 +25,41 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - `CONTRIBUTING.md`, `SECURITY.md` (private reporting through GitHub Security Advisories), a pull
   request template and `CODEOWNERS`.
 
-### Changed by other work streams in this cycle
-<!-- Filled in at integration: CORS and MCP are opt-in; error messages; SSE in the adapters;
-     .NET and Python packaging. -->
-- See the release notes of the beta release.
+### Breaking (read [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/))
+- **CORS is off by default** on every adapter; allow origins with `mateu.cors.allowed-origins`.
+- **The MCP endpoint is off by default**; `mateu.mcp.enabled=true`.
+- **`${secret.X}`** falls back only to the env var `MATEU_SECRET_X` (Java, .NET, Python).
+- **RunJS is opt-in** (`<meta name="mateu-allow-run-js" content="true">`).
+- **Quarkus** apps declare `quarkus-rest-jackson`; `quarkus-spring-di` is no longer brought in.
+- The Spring bean `objectMapper` is now `mateuObjectMapper`.
+- Python: CORS needs `cors_origins=[...]`; the distribution is **`mateu-ui`** on PyPI.
+
+### Security and robustness
+- An **error boundary** on every backend: `UserFacingException` messages are shown as written;
+  anything else shows a generic message with a reference id, logged at ERROR under it.
+- Proxied REST URLs are percent-encoded by position on every server and renderer.
+- Strict CSP works: expressions run in Mateu's own sandboxed evaluator (no `new Function`).
+- Server-sent URLs are checked (`javascript:` refused); token storage is configurable.
+
+### Added
+- `io.mateu:mateu-bom`; annotation processors are Gradle-incremental.
+- SSE / LongTask on WebFlux, Quarkus and Helidon; client-log, asset caching, YAML mounts and the
+  deep-link fallback on every adapter.
+- A UI mount declares its home page: `home:` on `type: UI` (Java, .NET, Python).
+- The client's own text in English and Spanish, chosen by `Translator.locale(…)` (`AppDto.locale`).
+- Redwood renders every wire component type; chat panel, FABs, theme toggle, global search;
+  reproducible ~5 MB jar that works at any mount path; `Map` takes `tileUrl`/`attribution`.
+- .NET: net8.0 + net10.0, NuGet release job. Python: published to PyPI as `mateu-ui`, mypy-clean,
+  split into modules, identity and secrets providers, Excel/PDF exports, embedded islands and more.
+- IDE tooling: New › Mateu for every specs/ui file kind, Add Route…, a settings page and
+  authentication in IntelliJ; the same in VS Code ("Mateu: New File…", "Mateu: Add Route…").
+
+### Fixed
+- .NET and Python primary buttons were sent as `"Primary"` and rendered as plain buttons.
+- A nested `@Text`/`@Notice` read its state with an expression that evaluated as a subtraction.
+- A dashboard `@Panel` holding a `Text` advertised twelve list actions nothing could trigger.
+- A streamed action on the root view of a mount did nothing; LongTask steps no longer retitle the tab.
+- The wire conformance corpus (25 cases) now matches exactly in Java, .NET and Python.
 
 ## [3.0-alpha.406] — 2026-10-10
 

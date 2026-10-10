@@ -46,7 +46,13 @@ These compile unchanged and **behave differently**. Check each against your scre
 | Listing search box | always shown | shown only if the listing implements `Searchable` | add `Searchable` to the listing (`AutoCrud` and `Crud` already have it) |
 | Listings without interaction capabilities | opened empty | **search on opening** (`Listing.searchesOnOpening()` defaults to `true`) | override `searchesOnOpening()` to return `false` |
 | `@Section(columns = …)` | default `1`, and an explicit `1` was ignored | default `0` = inherit from `@FormLayout`; an explicit `columns = 1` is honoured | remove an explicit `columns = 1` you did not mean |
-| CORS and the MCP endpoint | — | see the release notes of the beta | — |
+| CORS | the generated controllers carried `@CrossOrigin` (any origin; Micronaut also with credentials) | **off**: same-origin only | set `mateu.cors.allowed-origins` (comma-separated; optionally `mateu.cors.allow-credentials=true`, never with `*`) — Python: `add_mateu(app, cors_origins=[...])` |
+| MCP endpoint (`POST /mateu/mcp`) | on | **off** | `mateu.mcp.enabled=true` |
+| `${secret.X}` in proxied REST sources | fell back to ANY environment variable named `X` | a `SecretsProvider` bean first, then only the env var `MATEU_SECRET_X` | rename the variable to `MATEU_SECRET_X` |
+| Unexpected exceptions in actions | the exception class and message in the toast | "Something went wrong — An unexpected error occurred. Reference: …", the details in the server log under that reference | throw `io.mateu.uidl.UserFacingException(title, message)` for messages meant for the user; `MATEU_ERRORS_DETAILED=true` restores the raw text in development |
+| Client-side JavaScript (`RunJS` rules, RunJS menu leaves, an action's `js`) | always on | **off** — expressions (`${…}`, rules, `@Hidden(…)`) run in Mateu's own evaluator and need no `'unsafe-eval'` | `<meta name="mateu-allow-run-js" content="true">` (or `configureRunJs(true)`), and `'unsafe-eval'` in that page's CSP |
+| Quarkus | `quarkus-spring-di` came with the adapter | not brought in | declare `quarkus-rest-jackson` (and `quarkus-spring-di` only if your own beans need it) |
+| Spring `ObjectMapper` bean | Mateu registered one named `objectMapper` | named `mateuObjectMapper`, not injected into your beans | declare your own `ObjectMapper` bean if you relied on Mateu's |
 
 ## Wire and renderers
 

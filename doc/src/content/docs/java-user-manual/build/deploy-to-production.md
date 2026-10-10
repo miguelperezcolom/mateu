@@ -112,9 +112,9 @@ For production:
 The web renderers work under a CSP; the parts to allow:
 
 - `script-src 'self'` plus the CDN of your identity provider's JS adapter if you use one (Keycloak).
-- **`'unsafe-eval'`** is needed if your screens use client-side expressions — `${…}` in labels,
-  rules, `@Disabled(expression)`, visibility rules — because they are evaluated as JavaScript in the
-  browser. Screens without expressions do not need it.
+- **No `'unsafe-eval'`**: client-side expressions — `${…}` in labels, rules, `@Disabled(expression)`,
+  visibility rules — run in Mateu's own sandboxed evaluator. Only a page that opts into RunJS
+  (`<meta name="mateu-allow-run-js" content="true">`) needs `'unsafe-eval'`, and only that page.
 - `style-src 'self' 'unsafe-inline'` — web components set inline styles.
 - `connect-src 'self'` plus every REST API your screens call directly (`@RestOptions`,
   `@RestListing`, sources in direct mode).
@@ -131,9 +131,21 @@ A browser only needs CORS when the page and the backend are on **different origi
 bundle on a CDN calling your APIs, a renderer served separately from its backend, a micro-frontend
 embedded in another product. A Mateu app served by its own backend (the normal case) needs none.
 
-The CORS defaults of the Mateu adapters changed for the beta; see the beta release notes for the
-current default and how to allow specific origins. Whatever the default, list the exact origins you
-need — never `*` on an endpoint that accepts credentials.
+CORS is **off by default** on every adapter (Spring MVC, WebFlux, Quarkus, Micronaut, Helidon): only
+same-origin pages may call the Mateu endpoints. Allow the exact origins you need:
+
+```properties
+mateu.cors.allowed-origins=https://app.example.com,https://cdn.example.com
+# only if the browser must send cookies / Authorization with a credentialed request
+mateu.cors.allow-credentials=true
+```
+
+`*` is refused together with credentials. On Micronaut, a server bound to localhost also refuses
+non-localhost origins unless `micronaut.server.cors.localhost-pass-through=true`. .NET: configure
+ASP.NET Core's CORS middleware for the Mateu endpoints; Python: `add_mateu(app, cors_origins=[...])`.
+
+The MCP endpoint (`POST /mateu/mcp`) is likewise **off** unless `mateu.mcp.enabled=true` — turn it on
+only where an agent should operate the app, behind the same authentication as the UI.
 
 ## 8. Before go-live
 
