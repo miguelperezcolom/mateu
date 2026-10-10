@@ -39,6 +39,32 @@ text editor stays the default).
 Configure the backend via the `mateu.baseUrl` setting (default `http://localhost:8594`). Any running
 Mateu backend works — it exposes the reserved `__preview__` / `__contract__` actions.
 
+## Schema validation
+
+The extension contributes the Mateu `specs/ui` authoring schema through `yamlValidation`
+(`**/specs/ui/**/*.yaml|yml`), so with the [Red Hat YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)
+extension installed every page, `routes.yaml` and `sources.yaml` gets completion and validation. The
+schema is bundled at packaging time from the generated `backend/shared/uidl/specs-schema.json`. Without
+the packaged copy (e.g. running from source before `npm run stage`), point a `$schema:` line or the
+`yaml.schemas` setting at
+`https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json`.
+
+The extension activates only in workspaces containing `specs/ui/**/*.yaml|yml` files, or when the
+Mateu visual editor is opened.
+
+## Packaging & tests
+
+```bash
+npm ci
+npm run compile
+npm test            # vitest, headless — no VS Code instance needed
+npm run package     # = vsce package; stages LICENSE, schema/ and media/ via scripts/prepackage.mjs
+```
+
+`media/` is built from the web workspace when it is installed; otherwise the bundle committed in the
+IntelliJ plugin (`src/main/resources/visual-editor`, the same `dist/`) is used, so packaging works from
+a clean checkout with no prompts.
+
 ## Status
 
 First cut: renders + selects + edits + palette drag (pointer-based, shared with the JCEF host) + saves
