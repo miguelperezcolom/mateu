@@ -4,6 +4,7 @@ import { externalAuthHeaders, registerRestSources } from './restFetch';
 import { announce } from '../a11y/a11y';
 import { isTimedOnLoad, PollingScheduler } from './polling';
 import { isDev } from '../api/MateuApiClient';
+import { getActionCatalogue, isClientRunnable, registerActionCatalogue, resolveAction, type ShellAction } from './shellFlows';
 
 /** Diagnostics only in development builds (a release build must not log user data). */
 const devLog = (...args: unknown[]): void => {
@@ -62,6 +63,10 @@ export class MateuViewController {
 
   // Action metadata of the currently-loaded server-side component.
   private currentComponentActions: string[] = [];
+  /** The full wire actions of the current component (owner of an id, before the catalogue). */
+  private currentActionDefs: ShellAction[] = [];
+  /** Nesting of flows applied client-side, bounded so a flow running itself cannot loop. */
+  private flowDepth = 0;
   private actionValidationRequired: Record<string, boolean> = {};
   private actionRowsSelectedRequired: Record<string, boolean> = {};
   private actionBubble: Record<string, boolean> = {};
@@ -225,6 +230,26 @@ export class MateuViewController {
       return;
     }
 
+    // A declared FLOW (the page's own `actions:` lowered to commands) or, for an id the page does
+    // NOT declare, the app's ACTION catalogue — owner first. Either runs here with no round-trip; a
+    // RunAction inside the flow comes back through this method and resolves the same way.
+    const resolved = resolveAction(actionId, this.currentActionDefs, getActionCatalogue());
+    if (isClientRunnable(resolved) && this.flowDepth < 8) {
+      if (resolved!.commands && resolved!.commands.length) {
+        this.flowDepth++;
+        try {
+          for (const cmd of resolved!.commands) this.handleCommand(cmd as Json);
+        } finally {
+          this.flowDepth--;
+        }
+        return;
+      }
+      if (resolved!.restAction) {
+        await this.handleRestAction(resolved!.restAction as Json, actionId);
+        return;
+      }
+    }
+
     const generation = this.polling.currentGeneration;
     try {
       const increment = await this.session.api.runAction({
@@ -376,6 +401,7 @@ export class MateuViewController {
       if (a['restAction'] && typeof a['restAction'] === 'object') restData[id] = a['restAction'] as Json;
     }
     this.currentComponentActions = actions;
+    this.currentActionDefs = asArray(sscNode['actions']) as ShellAction[];
     this.actionValidationRequired = validationFlags;
     this.actionRowsSelectedRequired = rowsSelectedFlags;
     this.actionBubble = bubbleFlags;
@@ -699,6 +725,7 @@ export class MateuViewController {
     // The app shell carries the REST source catalogue (AppDto.restSources); register it so a surface
     // that references a source by `ref` can resolve it — before the home-route hop below returns.
     if (meta['type'] === 'App' && meta['restSources'] !== undefined) registerRestSources(meta['restSources']);
+    if (meta['type'] === 'App' && meta['actionCatalogue'] !== undefined) registerActionCatalogue(meta['actionCatalogue']);
     if (component['type'] !== 'ServerSide' && meta['type'] === 'App') {
       const homeRoute = str(meta['homeRoute']);
       const homeConsumed = str(meta['homeConsumedRoute']);
@@ -722,6 +749,7 @@ export class MateuViewController {
         const firstMeta = (first['metadata'] as Json) ?? {};
         const firstIsApp = first['type'] === 'ClientSide' && firstMeta['type'] === 'App';
         if (firstMeta['type'] === 'App' && firstMeta['restSources'] !== undefined) registerRestSources(firstMeta['restSources']);
+        if (firstMeta['type'] === 'App' && firstMeta['actionCatalogue'] !== undefined) registerActionCatalogue(firstMeta['actionCatalogue']);
         if (firstIsApp) {
           // Crud MEDIATOR shell: don't render the App chrome — navigate to its home route.
           const homeRoute = str(firstMeta['homeRoute']);

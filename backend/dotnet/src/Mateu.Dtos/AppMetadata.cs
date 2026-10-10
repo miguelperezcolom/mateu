@@ -88,6 +88,12 @@ public record AppMetadataDto(
     /// so a client-side expander can resolve a ComponentRef with no backend. (Mirrors
     /// io.mateu.dtos.AppDto.components.)</summary>
     public IReadOnlyList<ComponentEntryDto> Components { get; init; } = [];
+
+    /// <summary>The app's ACTION catalogue (actions.yaml + IActionCatalogSupplier): named client-runnable
+    /// actions, each flow lowered to Commands. A client resolves an id its owner (the page, the shell)
+    /// does not declare against this list before a server dispatch. Empty when there is none.
+    /// (Mirrors io.mateu.dtos.AppDto.actionCatalogue.)</summary>
+    public IReadOnlyList<ActionDto> ActionCatalogue { get; init; } = [];
 }
 
 /// <summary>One named entry of the REST source catalogue as it travels to the renderer. Provenance is

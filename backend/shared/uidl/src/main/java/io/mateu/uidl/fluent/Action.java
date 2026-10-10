@@ -35,7 +35,12 @@ public record Action(
      * with {@code .steps(...)} runs on the current wire with no renderer change. Null/empty for a
      * normal server-dispatched action.
      */
-    java.util.List<Step> steps) {
+    java.util.List<Step> steps,
+    /**
+     * What the action does, in words — documentation for whoever picks it from a list (the action
+     * catalogue's entries, the visual editor's pickers). Never on the wire.
+     */
+    String description) {
 
   /**
    * The fluent action declared by an {@code @Action} annotation.

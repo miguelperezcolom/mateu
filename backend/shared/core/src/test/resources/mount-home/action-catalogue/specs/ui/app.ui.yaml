@@ -1,0 +1,6 @@
+# Fixture for ActionCatalogueSyncTest: a mount whose shell menu and pages run actions of the
+# shared catalogue (actions.yaml + catalogs/more.yaml).
+type: UI
+basePath: /
+routes:
+  - routes.yaml

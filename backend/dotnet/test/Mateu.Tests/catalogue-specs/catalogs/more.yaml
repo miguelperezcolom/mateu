@@ -1,0 +1,7 @@
+# Any file declaring `type: Actions` is part of the catalogue, whatever its name.
+type: Actions
+actions:
+  - id: fromOtherFile
+    steps:
+      - type: Navigate
+        route: home

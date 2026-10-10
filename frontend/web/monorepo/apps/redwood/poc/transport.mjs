@@ -433,6 +433,9 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
         ...next.contexts[ctxId],
         outbound,
         sseActionIds: wrapperActions.filter((a) => a && a.sse).map((a) => a.id),
+        // the page's OWN actions (id + lowered flow): owner first over the action catalogue
+        declaredActions: wrapperActions.filter((a) => a && a.id)
+          .map((a) => ({ id: a.id, commands: a.commands || null })),
       },
     },
   }

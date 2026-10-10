@@ -4860,6 +4860,60 @@ import { MENU_RULE_PREFIX } from './reduceContexts.mjs'
   })
 }
 
+// ── the ACTION catalogue: owner first, then App.actionCatalogue ──────────────────────────────────
+import { pageFlowOf, catalogueActionOf } from './shellFlows.mjs'
+{
+  // the Java golden (ActionCatalogueSyncTest): a shell whose menu names a CATALOGUE id
+  const catGolden = JSON.parse(readFileSync(join(here, '..', '..', '..', 'libs', 'mateu', 'src', 'mateu', 'ui', 'infra', 'expander', '__fixtures__', 'action-catalogue.golden.json'), 'utf8'))
+  const catReg = reduceContexts({ contexts: {}, stack: [] }, catGolden.shell)
+
+  test('action catalogue: the wire App\'s actionCatalogue (lowered) reaches the shell', () => {
+    assert.deepEqual(catReg.shell.actionCatalogue.map((a) => a.id),
+      ['newOrder', 'refreshCustomers', 'refresh', 'chained', 'fromOtherFile'])
+    assert.deepEqual(catReg.shell.actions.map((a) => a.id), ['announce'])
+    assert.ok(catalogueActionOf(catReg.shell, 'refreshCustomers').restAction)
+  })
+
+  test('action catalogue: a menu leaf naming a catalogue id the shell does not declare runs it client-side', () => {
+    const leaf = shellNavOf(catReg).menuTree.find((n) => isMenuRuleId(n.id))
+    const plan = menuRulePlanOf(catReg, menuRulesOf(catReg.shell.menu, leaf.id))
+    assert.deepEqual(plan.navigate, { route: '/orders/new' })
+    assert.equal(plan.dirty, false)
+    assert.deepEqual(plan.serverActions, [])
+  })
+
+  test('action catalogue: owner first — a shell action without steps stays the shell\'s server action', () => {
+    const reg = { ...catReg, shell: { ...catReg.shell, actions: [{ id: 'newOrder' }] } }
+    const plan = menuRulePlanOf(reg, [{ action: 'RunAction', actionId: 'newOrder' }])
+    assert.deepEqual(plan.serverActions, ['newOrder'])
+    assert.equal(plan.navigate, null)
+  })
+
+  test('action catalogue: a catalogue flow running another entry resolves it too; an unknown id goes to the server', () => {
+    const plan = menuRulePlanOf(catReg, [{ action: 'RunAction', actionId: 'chained' }, { action: 'RunAction', actionId: 'nobody' }])
+    assert.deepEqual(plan.navigate, { route: '/orders/new' })
+    assert.deepEqual(plan.serverActions, ['nobody'])
+  })
+
+  test('action catalogue: a page button runs the page\'s own flow first, then the catalogue\'s, else the server', () => {
+    const reg = { ...catReg, contexts: { ...catReg.contexts, [HOST_ID]: {
+      declaredActions: [
+        { id: 'refresh', commands: [{ type: 'DispatchEvent', data: { eventName: 'page-refresh' } }] },
+        { id: 'save', commands: null },
+      ],
+    } } }
+    assert.equal(pageFlowOf(reg, 'refresh')[0].data.eventName, 'page-refresh')
+    assert.deepEqual(pageFlowOf(reg, 'newOrder').map((c) => c.type), ['MarkAsClean', 'NavigateTo'])
+    assert.equal(pageFlowOf(reg, 'save'), null, 'the page owns it: its server action')
+    assert.equal(pageFlowOf(reg, 'refreshCustomers'), null, 'a REST entry is not a flow')
+    assert.equal(pageFlowOf(reg, 'nobody'), null)
+    const chain = readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', 'flows', 'main', 'pages', 'main-start-page-chains', 'runMateuAction.js'), 'utf8')
+    assert.match(chain, /const clientFlow = bridge\.pageFlowOf\(before, id\);/)
+    const amd = readFileSync(join(here, 'make-amd.mjs'), 'utf8')
+    assert.match(amd, /pageFlowOf,/)
+  })
+}
+
 await queue
 console.log(`\n${pass} tests OK (contrato de wire real)`)
 

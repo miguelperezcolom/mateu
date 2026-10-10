@@ -181,9 +181,10 @@
               "detail" : null
             }
           } ]
-        } ]
+        } ],
+        "actionCatalogue" : [ ]
       },
-      "id" : "bb8a75b8-267f-45f9-9d98-642973d0cbf2",
+      "id" : "62a0a5b7-4835-4c6e-a678-85d50e81c395",
       "children" : [ {
         "type" : "ClientSide",
         "metadata" : {
@@ -194,7 +195,7 @@
           "size" : null,
           "noMargins" : false
         },
-        "id" : "b466f7a3-43ad-4892-bcf5-2a99684e7f2e",
+        "id" : "f84bbe08-2fe6-44c2-967a-20beead29c4a",
         "children" : [ ],
         "style" : null,
         "cssClasses" : null,

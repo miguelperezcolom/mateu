@@ -51,6 +51,15 @@ public final class TreeActionHarvester {
         all.add(ActionDto.builder().id(id).build());
       }
     }
+    // OWNER FIRST, then the action catalogue: an id the view neither declares nor has a method for
+    // runs the catalogue entry of that id (a flow or a REST call, lowered like any page action).
+    var unresolved = new LinkedHashSet<String>();
+    for (var id : referenced) {
+      if (!known.contains(id)) {
+        unresolved.add(id);
+      }
+    }
+    all.addAll(ActionCatalogMapper.referenced(unresolved, known));
     return all;
   }
 

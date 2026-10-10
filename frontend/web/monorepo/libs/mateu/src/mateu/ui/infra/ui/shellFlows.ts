@@ -1,4 +1,6 @@
 import UICommand from '../../../shared/apiClients/dtos/UICommand.ts'
+import type Action from '../../../shared/apiClients/dtos/componentmetadata/Action.ts'
+import { resolveOwnerFirst } from './actionCatalogue.ts'
 
 /**
  * The FLOWS an app shell declares (`actions:` with `steps:` on a `type: AppShell`, or
@@ -11,12 +13,27 @@ import UICommand from '../../../shared/apiClients/dtos/UICommand.ts'
  * Pure (no DOM, no `this`) so the decision is unit-testable and lives in one place.
  */
 export function shellFlowFor(
-    app: { actions?: { id?: string, commands?: UICommand[] | undefined }[] | undefined } | undefined,
+    app: ShellLike | undefined,
     actionId: string | undefined,
 ): UICommand[] | undefined {
-    if (!app || !actionId || !Array.isArray(app.actions)) return undefined
-    const action = app.actions.find((a) => a && a.id === actionId)
+    const action = shellActionFor(app, actionId)
     return action?.commands && action.commands.length ? action.commands : undefined
+}
+
+type ShellLike = {
+    actions?: { id?: string, commands?: UICommand[] | undefined }[] | undefined,
+    actionCatalogue?: Action[] | undefined,
+}
+
+/**
+ * The action a menu leaf (or a shell flow's RunAction) names, OWNER FIRST: the shell's own
+ * `actions:` — even one without steps, which is the shell's server action — then the app's action
+ * catalogue (`App.actionCatalogue`, else the client-side store fed by a bundle or the editor's Play).
+ * Undefined: nobody declares it client-side → an app-level server action, as before.
+ */
+export function shellActionFor(app: ShellLike | undefined, actionId: string | undefined): Action | undefined {
+    if (!app || !actionId) return undefined
+    return resolveOwnerFirst(app.actions, actionId, app.actionCatalogue)
 }
 
 /**
