@@ -2,6 +2,8 @@ import { evaluateExpression, interpolate, interpolateUrl } from './expressions';
 import { MateuSession, NavTarget } from './MateuSession';
 import { externalAuthHeaders, registerRestSources, resolveRestSource, sampledResponse, setSampleMode, viaProxy } from './restFetch';
 import { announce, announceLive } from '../a11y/a11y';
+import { presentDocument } from './documentEffects';
+import type { FileDownloadData } from './documents';
 import { isTimedOnLoad, PollingScheduler } from './polling';
 import { isDev } from '../api/MateuApiClient';
 import { getActionCatalogue, isClientRunnable, registerActionCatalogue, resolveAction, type ShellAction } from './shellFlows';
@@ -893,6 +895,19 @@ export class MateuViewController {
       case 'CloseModal':
         this.session.closeTopOverlay();
         this.dispatchNamedEvent(cmdData as Json);
+        break;
+      case 'DownloadFile': {
+        // a Document (or a listing export): previewed in the system browser sheet when it sits
+        // behind a single-use URL, else written to the cache and handed to the share sheet /
+        // the app that opens it. `print` takes the same path — print it from there.
+        presentDocument(cmdData as FileDownloadData, this.session.api.baseUrl).catch((e) => {
+          this.session.notify(null, String((e as Error)?.message ?? e), 'error');
+        });
+        break;
+      }
+      case 'Print':
+        // no native print of a rendered screen: said, not silently dropped (see the docs)
+        announceLive('Printing is not available in the mobile app', false);
         break;
       case 'Announce': {
         // Tell assistive tech what happened (the Redwood `announcement` slot). Draws nothing.
