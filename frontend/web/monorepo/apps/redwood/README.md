@@ -80,9 +80,9 @@ El controller generado por el AP sirve `_index.html` en la ruta del `@UI` e inye
 de ESE montaje (`/ruta/mateu/v3/...`) y la ruta del propio montaje es la home de la UI — el home
 del menú si el `@UI` es un App; la propia página o crud si no lo es. Así que **un `@UI` en
 cualquier ruta funciona** (`@UI("")`, `@UI("/console")`, `@UI("/products")` sobre un crud…), sin
-necesitar un `@UI` en la raíz. Las rutas de Mateu van **por path, sin hash** (`/products`,
-deep-links y back/forward incluidos; el espacio de rutas del servidor es global y ya incluye la
-ruta del `@UI`): el `SpaRedirectFilter` reenvía cualquier path al index del montaje y los chains
+necesitar un `@UI` en la raíz. Las rutas de Mateu van **por path, sin hash** y son RELATIVAS al
+montaje, como en el renderer web (el menú de un App en `/app` dice `/section1` y la URL es
+`/app/section1`; deep-links y back/forward incluidos): el `SpaRedirectFilter` reenvía cualquier path al index del montaje y los chains
 detectan el modo por ese mismo `<mateu-ui>`; en serving estático (`vb-serve`, VB hosteado) siguen
 usando hash (`#/ruta`). Imágenes, logo, módulos de componentes web y el `sseUrl` se piden a la
 RAÍZ del backend, como en el renderer Vaadin. App de referencia: `demo/demo-vb` (:9005), que
