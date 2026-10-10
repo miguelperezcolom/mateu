@@ -76,6 +76,8 @@
     <module>quarkus</module>
     <module>mvc</module>
     <module>helidon-mp</module>
+    <!-- optional: a CrudStore over Spring Data JPA -->
+    <module>spring-data</module>
     <module>mateu-bundle-maven-plugin</module>
     <!-- not a child of this pom (see its header): only aggregated, so it is built and released
          with the rest -->

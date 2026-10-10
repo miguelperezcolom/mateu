@@ -149,6 +149,12 @@
         <artifactId>mateu-export-pdf</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <!-- optional data-access adapters -->
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>mateu-spring-data</artifactId>
+        <version>${project.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
