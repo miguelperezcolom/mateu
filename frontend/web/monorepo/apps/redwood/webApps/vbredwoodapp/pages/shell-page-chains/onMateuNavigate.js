@@ -117,7 +117,7 @@ define([
       }
       // dirtyGuard (1.5): edición local sin guardar → confirmar; al cancelar, restaurar la URL
       if (!force && $application.variables.mateuDirty) {
-        if (!window.confirm('Hay cambios sin guardar. ¿Salir de esta pantalla?')) {
+        if (!window.confirm(bridge.chromeText('unsavedLeave'))) {
           const previous = $application.variables.mateuSelectedRoute;
           if (previous) {
             window.history.replaceState(null, '', '#' + previous);

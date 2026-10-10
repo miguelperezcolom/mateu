@@ -11,6 +11,7 @@ import { EMPTY_VALUE, isModalRowEditor, layoutFieldOf, plainValueOf } from './ro
 import { ganttAtomOf, planningAtomOf } from './boards.mjs'
 import { wizardOf } from './archetypes.mjs'
 import { VISITOR_PASS_THROUGH, autoFitColClass, pagerButtonsOf, heroAtomOf, emptyStateAtomOf, progressBarAtomOf, customComponentAtomOf, customComponentRegistered, microFrontendOf, tagSurfaceActions, componentHtmlOf, flattenTreeRows, gridPageOf, bpmnAtomOf, breadcrumbsAtomOf, calloutAtomOf, carouselPagerAtomOf, chatAtomOf, checklistAtomOf, commentsAtomOf, comparisonAtomOf, confirmDialogAtomOf, contextMenuAtomOf, cookieConsentAtomOf, directoryAtomOf, featureGridAtomOf, fileListAtomOf, formEditorFieldsOf, funnelAtomOf, heatmapAtomOf, iconAtomOf, kanbanAtomOf, menuBarAtomOf, messageInputAtomOf, messageListAtomOf, notificationAtomOf, orgChartAtomOf, pricingAtomOf, processMonitorAtomOf, resultAtomOf, skeletonAtomOf, testimonialsAtomOf, timelineAtomOf, unsupportedAtomOf, workflowAtomOf } from './display.mjs'
+import { chromeText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): the content visitor (islandContentOf → blocks of atoms), host content, subresources.
 
 /** Colores de Chip del wire → clases badge de JET (sistema, Redwood). PRECOMPUTADO (CSP). */
@@ -1097,7 +1098,7 @@ export function islandContentOf(ctx, opts = {}) {
           actionId: m.methodActionId,
           parameters: { _method: method.id },
         })),
-        confirmLabel: m.confirmLabel || 'Confirmar',
+        confirmLabel: m.confirmLabel || chromeText('confirm'),
         confirmActionId: m.actionId,
         confirmParameters: { _method: m.selected },
       }, container)
@@ -1125,7 +1126,7 @@ export function islandContentOf(ctx, opts = {}) {
         label: interp(m.label || ''),
         value: done,
         max: total,
-        valueText: done + ' de ' + total,
+        valueText: chromeText('progressOf', { done, total }),
         panelClass: complete
           ? 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-success-30'
           : 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-neutral-20',

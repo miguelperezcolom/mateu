@@ -3,6 +3,310 @@
  * (tests de contrato: cd poc && node test.mjs). */
 define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/ojarraytreedataprovider', 'ojs/ojflattenedtreedataproviderview', 'ojs/ojrowdatagridprovider', 'ojs/ojkeyset'], (require, ArrayDataProvider, NumberConverter, ArrayTreeDataProvider, FlattenedTreeDataProviderView, RowDataGridProvider, KeySet) => {
   'use strict';
+  // The renderer's OWN words (its chrome: the shell, the chat panel, error bands, paging, empty
+  // states…) in the interface's language. The app's texts come from the server; these are the few the
+  // renderer draws by itself. Same source of truth as the web renderer (libs/mateu chromeTexts.ts):
+  // the page's language (`<html lang>`, which copy.mjs sets from the browser and VB's
+  // vbInitParams.locale reads), else the browser's, English by default.
+  //
+  // One catalogue for both halves of the app:
+  //  - JS (the bridge, chains): chromeText(key, vars, lang).
+  //  - VB page HTML: `[[ $application.translations.appBundle.<key> ]]` — make-nls.mjs writes the VB
+  //    translation bundle (resources/strings/appBundle/nls/<lang>/appBundle-strings.json) from this
+  //    catalogue, so VB's own locale resolution picks the language and there is nothing to rebind.
+  //
+  // A key missing in a language falls back to English, key by key — a partial language (fr, de…)
+  // only needs the words it has.
+
+  const CHROME_TEXTS = {
+    en: {
+      // ── generic ──
+      close: 'Close',
+      retry: 'Retry',
+      loading: 'Loading',
+      search: 'Search…',
+      noData: 'No data',
+      new: 'New',
+      confirm: 'Confirm',
+      cancel: 'Cancel',
+      save: 'Save',
+      apply: 'Apply',
+      reset: 'Reset',
+      view: 'View',
+      edit: 'Edit',
+      remove: 'Remove',
+      name: 'Name',
+      skipToContent: 'Skip to content',
+      enterValue: 'Enter a value.',
+      selectValue: 'Select a value',
+      progressOf: '{done} of {total}',
+      occupancy: 'Occupancy %',
+      dropHere: 'Drop here',
+      noEvents: 'No events',
+      hideUnpopulated: 'Hide unpopulated',
+      mapUnavailable: 'The map could not be loaded.',
+      // ── shell ──
+      menu: 'Menu',
+      context: 'Context',
+      workContext: 'Working context',
+      sections: 'Sections',
+      searchOrGo: 'Search or go to…',
+      notifications: 'Notifications',
+      markAllRead: 'Mark all read',
+      allCaughtUp: "You're all caught up",
+      notificationsUnread: 'Notifications, {n} unread',
+      undo: 'Undo',
+      askSearch: 'Search',
+      goTo: 'Go to',
+      home: 'Home',
+      listing: 'Listing',
+      quickView: 'Quick view',
+      unsavedLeave: 'There are unsaved changes. Leave this screen?',
+      unavailableMount: '{name} is not available right now. It will be retried.',
+      // ── listing ──
+      columns: 'Columns',
+      views: 'Views',
+      saveView: 'Save view',
+      openWithView: 'Open with this view',
+      saveCurrentView: 'Save current view…',
+      clearFilters: 'Clear filters',
+      pagingOf: 'of',
+      pagingPage: 'Page',
+      pagingFirst: 'First page',
+      pagingPrev: 'Previous page',
+      pagingNext: 'Next page',
+      pagingLast: 'Last page',
+      idsFew: 'Selection: ',
+      idsMany: '{n} selected items',
+      // ── confirmation dialog ──
+      confirmTitle: 'One moment, please',
+      confirmMessage: 'Are you sure?',
+      confirmYes: 'Yes',
+      confirmNo: 'No',
+      // ── not found ──
+      notFoundTitle: 'Not found',
+      notFoundMessage: 'It may have been deleted, or the link is wrong.',
+      goBack: 'Go back',
+      // ── capture fields ──
+      captureClear: 'Clear',
+      captureAccept: 'Accept',
+      captureSignAgain: 'Sign again',
+      captureRemove: 'Remove',
+      captureTake: 'Take photo',
+      captureRetake: 'Retake',
+      captureUpload: 'Upload',
+      captureReplace: 'Replace',
+      captureNoCamera: 'Camera unavailable — choose a file',
+      captureEmpty: 'No file',
+      captureStart: 'Open camera',
+      captureSignHere: 'Sign here',
+      // ── network / errors ──
+      offlineBand: "Offline — changes you make now won't be saved.",
+      errOffline: "You're offline. Your changes were not sent — check the network and try again.",
+      errTimeout: 'The server is taking too long to answer. Your changes may not have been saved.',
+      errServer: 'The server could not complete the request. Try again.',
+      errServerStatus: 'The server could not complete the request (error {status}). Try again.',
+      errUnauthorized: 'Your session is no longer valid. Sign in again.',
+      errForbidden: "You're not allowed to do this.",
+      errNotFound: 'This is no longer available. It may have been moved or deleted.',
+      errClient: 'The request was rejected.',
+      errClientStatus: 'The request was rejected (error {status}).',
+      errUnknown: 'Something went wrong. Try again.',
+      // ── AI chat panel ──
+      chatTitle: 'Assistant',
+      chatOpen: 'Chat',
+      chatPanel: 'Assistant chat',
+      chatClose: 'Close the chat',
+      chatEmpty: 'Ask whatever you need about this screen or the application.',
+      chatPlaceholder: 'Write a message…',
+      chatInputLabel: 'Message for the assistant',
+      chatSend: 'Send',
+      chatDictate: 'Dictate (Ctrl+Shift+M)',
+      chatStopDictation: 'Stop dictation (Ctrl+Shift+M)',
+      chatTokens: 'Tokens',
+      chatTokensIn: 'input',
+      chatTokensOut: 'output',
+      chatTokensTotal: 'total',
+      chatThinking: 'Thinking…',
+      chatThinkingFor: 'Thinking… {s} s',
+      chatAnswering: 'Answering…',
+      chatCalling: 'Calling {name}…',
+      chatAgentError: 'Unknown agent error',
+      chatNoReader: 'Could not read the answer stream.',
+      chatServerError: 'The server answered {status}: {text}',
+      chatUploadFailed: 'Upload failed: {status}',
+      chatAttach: 'Attach files',
+      chatRemoveAttachment: 'Remove {name}',
+      chatTool: 'tool',
+      chatToolsUsed: 'Tools used',
+      chatNoAnswer: 'No answer from the agent. The server closed the connection without sending anything — check that the LLM has its API key configured and is available.',
+      chatEmptyAnswer: 'The agent returned no answer. Check that the LLM is configured correctly (API key).',
+      chatError: 'Error: {message}',
+      chatUploadError: 'Could not upload the files: {message}',
+      chatLocalAgent: 'local agent',
+      chatLocalAgentHint: 'Talking to your local CLI (the companion agent) — no API key',
+      chatExpand: 'Widen the assistant',
+      chatRestore: 'Restore the width',
+    },
+    es: {
+      close: 'Cerrar',
+      retry: 'Reintentar',
+      loading: 'Cargando',
+      search: 'Buscar…',
+      noData: 'Sin datos',
+      new: 'Nuevo',
+      confirm: 'Confirmar',
+      cancel: 'Cancelar',
+      save: 'Guardar',
+      apply: 'Aplicar',
+      reset: 'Restablecer',
+      view: 'Ver',
+      edit: 'Editar',
+      remove: 'Quitar',
+      name: 'Nombre',
+      skipToContent: 'Saltar al contenido',
+      enterValue: 'Introduce un valor.',
+      selectValue: 'Seleccione un valor',
+      progressOf: '{done} de {total}',
+      occupancy: 'Ocupación %',
+      dropHere: 'Suelta aquí',
+      noEvents: 'Sin eventos',
+      hideUnpopulated: 'Ocultar vacías',
+      mapUnavailable: 'No se ha podido cargar el mapa.',
+      menu: 'Menú',
+      context: 'Contexto',
+      workContext: 'Contexto de trabajo',
+      sections: 'Secciones',
+      searchOrGo: 'Buscar o ir a…',
+      notifications: 'Notificaciones',
+      markAllRead: 'Marcar todas como leídas',
+      allCaughtUp: 'Estás al día',
+      notificationsUnread: 'Notificaciones, {n} sin leer',
+      undo: 'Deshacer',
+      askSearch: 'Buscar',
+      goTo: 'Ir a',
+      home: 'Inicio',
+      listing: 'Listado',
+      quickView: 'Vista rápida',
+      unsavedLeave: 'Hay cambios sin guardar. ¿Salir de esta pantalla?',
+      unavailableMount: '{name} no está disponible ahora. Se volverá a intentar.',
+      columns: 'Columnas',
+      views: 'Vistas',
+      saveView: 'Guardar vista',
+      openWithView: 'Abrir con esta vista',
+      saveCurrentView: 'Guardar la vista actual…',
+      clearFilters: 'Quitar filtros',
+      pagingOf: 'de',
+      pagingPage: 'Página',
+      pagingFirst: 'Primera página',
+      pagingPrev: 'Página anterior',
+      pagingNext: 'Página siguiente',
+      pagingLast: 'Última página',
+      idsFew: 'Selección: ',
+      idsMany: '{n} elementos seleccionados',
+      confirmTitle: 'Un momento, por favor',
+      confirmMessage: '¿Estás seguro?',
+      confirmYes: 'Sí',
+      confirmNo: 'No',
+      notFoundTitle: 'No encontrado',
+      notFoundMessage: 'Puede que se haya borrado o que el enlace no sea correcto.',
+      goBack: 'Volver',
+      captureClear: 'Borrar',
+      captureAccept: 'Aceptar',
+      captureSignAgain: 'Volver a firmar',
+      captureRemove: 'Quitar',
+      captureTake: 'Hacer foto',
+      captureRetake: 'Repetir',
+      captureUpload: 'Subir',
+      captureReplace: 'Sustituir',
+      captureNoCamera: 'Cámara no disponible — elige un fichero',
+      captureEmpty: 'Sin fichero',
+      captureStart: 'Abrir cámara',
+      captureSignHere: 'Firme aquí',
+      offlineBand: 'Sin conexión — los cambios que hagas ahora no se guardarán.',
+      errOffline: 'Sin conexión. Tus cambios no se han enviado — revisa la red e inténtalo de nuevo.',
+      errTimeout: 'El servidor tarda demasiado en responder. Puede que tus cambios no se hayan guardado.',
+      errServer: 'El servidor no ha podido completar la petición. Inténtalo de nuevo.',
+      errServerStatus: 'El servidor no ha podido completar la petición (error {status}). Inténtalo de nuevo.',
+      errUnauthorized: 'Tu sesión ya no es válida. Vuelve a iniciar sesión.',
+      errForbidden: 'No tienes permiso para hacer esto.',
+      errNotFound: 'Esto ya no está disponible. Puede que se haya movido o borrado.',
+      errClient: 'La petición ha sido rechazada.',
+      errClientStatus: 'La petición ha sido rechazada (error {status}).',
+      errUnknown: 'Algo ha ido mal. Inténtalo de nuevo.',
+      chatTitle: 'Asistente',
+      chatOpen: 'Chat',
+      chatPanel: 'Chat del asistente',
+      chatClose: 'Cerrar el chat',
+      chatEmpty: 'Pregunta lo que necesites sobre esta pantalla o la aplicación.',
+      chatPlaceholder: 'Escribe un mensaje…',
+      chatInputLabel: 'Mensaje para el asistente',
+      chatSend: 'Enviar',
+      chatDictate: 'Dictar (Ctrl+Shift+M)',
+      chatStopDictation: 'Detener dictado (Ctrl+Shift+M)',
+      chatTokens: 'Tokens',
+      chatTokensIn: 'entrada',
+      chatTokensOut: 'salida',
+      chatTokensTotal: 'total',
+      chatThinking: 'Pensando…',
+      chatThinkingFor: 'Pensando… {s} s',
+      chatAnswering: 'Respondiendo…',
+      chatCalling: 'Llamando a {name}…',
+      chatAgentError: 'Error desconocido del agente',
+      chatNoReader: 'No se pudo leer la respuesta del agente.',
+      chatServerError: 'El servidor respondió {status}: {text}',
+      chatUploadFailed: 'Falló la subida: {status}',
+      chatAttach: 'Adjuntar ficheros',
+      chatRemoveAttachment: 'Quitar {name}',
+      chatTool: 'herramienta',
+      chatToolsUsed: 'Herramientas usadas',
+      chatNoAnswer: 'No se recibió respuesta del agente. El servidor cerró la conexión sin enviar datos — comprueba que el LLM tiene la API key configurada y está disponible.',
+      chatEmptyAnswer: 'El agente no devolvió ninguna respuesta. Comprueba que el LLM está configurado correctamente (API key).',
+      chatError: 'Error: {message}',
+      chatUploadError: 'No se pudieron subir los ficheros: {message}',
+      chatLocalAgent: 'agente local',
+      chatLocalAgentHint: 'Hablando con tu CLI local (el agente companion) — sin API key',
+      chatExpand: 'Ampliar el asistente',
+      chatRestore: 'Ancho normal',
+    },
+    // partial languages: only the words they have (the rest falls back to English)
+    ca: { selectValue: 'Seleccioneu un valor' },
+    fr: { selectValue: 'Sélectionnez une valeur' },
+    de: { selectValue: 'Wert auswählen' },
+    it: { selectValue: 'Selezionare un valore' },
+    pt: { selectValue: 'Selecione um valor' },
+    nl: { selectValue: 'Selecteer een waarde' },
+  }
+
+  let explicitLanguage = ''
+
+  /** Pin the chrome language (e.g. from the app); '' goes back to the page's/browser's. */
+  function setChromeLanguage(lang) { explicitLanguage = lang ? String(lang) : '' }
+
+  /** The base language code of the chrome ('en', 'es'…): explicit > <html lang> > browser > 'en'. */
+  function chromeLanguage(lang) {
+    const raw = lang || explicitLanguage
+      || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
+      || (typeof navigator !== 'undefined' && navigator.language) || 'en'
+    return String(raw).toLowerCase().split(/[-_]/)[0] || 'en'
+  }
+
+  /** A chrome text in `lang` (or the interface's language), `{name}` placeholders filled from vars. */
+  function chromeText(key, vars, lang) {
+    const language = chromeLanguage(lang)
+    const dict = CHROME_TEXTS[language] || {}
+    let text = Object.prototype.hasOwnProperty.call(dict, key) ? dict[key] : CHROME_TEXTS.en[key]
+    if (text == null) return key
+    if (vars) text = text.replace(/\{(\w+)\}/g, (m, k) => (vars[k] == null ? m : String(vars[k])))
+    return text
+  }
+
+  /** Every chrome text in `lang`, English filling the gaps (what the VB translation bundle carries). */
+  function chromeTextsOf(lang) {
+    return { ...CHROME_TEXTS.en, ...(CHROME_TEXTS[chromeLanguage(lang)] || {}) }
+  }
+
+
   // PERSONALIZACIÓN DE LISTADOS en el navegador: el SELECTOR DE COLUMNAS (cuáles se ven y en qué
   // orden) y las VISTAS GUARDADAS (una combinación con nombre de búsqueda + filtros, con una por
   // defecto). Mismo formato y mismas claves de localStorage que el renderer web (libs/mateu
@@ -130,8 +434,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** Las opciones del menú de vistas (oj-menu): las guardadas (★ la de por defecto) + acciones. */
   function viewsMenuOf(scope, storage) {
     const views = listSavedViews(scope, storage).map((v) => ({ value: 'view:' + v.name, label: (v.isDefault ? '★ ' : '') + v.name }))
-    return views.concat([{ value: 'save', label: 'Save current view…' }])
-      .concat(views.length ? [{ value: 'clear', label: 'Clear filters' }] : [])
+    return views.concat([{ value: 'save', label: chromeText('saveCurrentView') }])
+      .concat(views.length ? [{ value: 'clear', label: chromeText('clearFilters') }] : [])
   }
 
   /** El ámbito de las preferencias: la ruta del listado en pantalla, sin query (en modo hash, lo
@@ -233,9 +537,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       name = name.replace(/<[^<>]*>/g, '')
     }
     name = name.replace(/[<>]/g, '').replace(/\s+/g, ' ').trim()
-    return String(language).toLowerCase().startsWith('es')
-      ? `${name} no está disponible ahora. Se volverá a intentar.`
-      : `${name} is not available right now. It will be retried.`
+    return chromeText('unavailableMount', { name }, language || 'en')
   }
 
   /**
@@ -1928,7 +2230,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       ? tm.chartData.datasets[0] : null
     const values = tm ? (tm.values || (dataset ? dataset.data : []) || []) : []
     const labels = tm ? (tm.labels || (tm.chartData ? tm.chartData.labels : []) || []) : []
-    const series = (dataset && dataset.label) || 'Ocupación %'
+    const series = (dataset && dataset.label) || chromeText('occupancy')
     const trend = tm
       ? {
           title: trendPanel.metadata.title || tm.title || '',
@@ -3398,7 +3700,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
             actionId: m.methodActionId,
             parameters: { _method: method.id },
           })),
-          confirmLabel: m.confirmLabel || 'Confirmar',
+          confirmLabel: m.confirmLabel || chromeText('confirm'),
           confirmActionId: m.actionId,
           confirmParameters: { _method: m.selected },
         }, container)
@@ -3426,7 +3728,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           label: interp(m.label || ''),
           value: done,
           max: total,
-          valueText: done + ' de ' + total,
+          valueText: chromeText('progressOf', { done, total }),
           panelClass: complete
             ? 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-success-30'
             : 'oj-panel oj-sm-padding-3x oj-sm-margin-2x-bottom oj-bg-neutral-20',
@@ -4261,15 +4563,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
-  const PAGING_TEXTS = {
-    en: { of: 'of', page: 'Page', first: 'First page', prev: 'Previous page', next: 'Next page', last: 'Last page' },
-    es: { of: 'de', page: 'Página', first: 'Primera página', prev: 'Página anterior', next: 'Página siguiente', last: 'Última página' },
-  }
-
+  // los textos del pie, del catálogo de la interfaz (i18n.mjs)
   function pagingLangOf(lang) {
-    const raw = lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
-      || (typeof navigator !== 'undefined' && navigator.language) || ''
-    return PAGING_TEXTS[String(raw).toLowerCase().split(/[-_]/)[0]] || PAGING_TEXTS.en
+    const l = chromeLanguage(lang)
+    const t = (key) => chromeText(key, null, l)
+    return { of: t('pagingOf'), page: t('pagingPage'), first: t('pagingFirst'), prev: t('pagingPrev'), next: t('pagingNext'), last: t('pagingLast') }
   }
 
   /**
@@ -4763,15 +5061,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** El filtro reservado de la selección por ids (lo aplica el server, ningún listado lo declara). */
   const IDS_PARAM = 'ids'
 
-  const IDS_TEXTS = {
-    en: { few: 'Selection: ', many: (n) => n + ' selected items' },
-    es: { few: 'Selección: ', many: (n) => n + ' elementos seleccionados' },
-  }
-
   function idsTextsOf(lang) {
-    const raw = lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
-      || (typeof navigator !== 'undefined' && navigator.language) || ''
-    return IDS_TEXTS[String(raw).toLowerCase().split(/[-_]/)[0]] || IDS_TEXTS.en
+    const l = chromeLanguage(lang)
+    return { few: chromeText('idsFew', null, l), many: (n) => chromeText('idsMany', { n }, l) }
   }
 
   /** El rótulo del chip de la selección: los ids si son pocos (≤3), si no cuántos son. */
@@ -5150,7 +5442,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * desde 8af850e63): el buscador del listado vuelve a ser una caja con su menú de filtros.
    */
   async function smartFiltersOf(filters, values, searchText) {
-    const config = { askHint: 'Buscar…', value: smartFilterValueOf(filters, values, searchText) }
+    const config = { askHint: chromeText('search'), value: smartFilterValueOf(filters, values, searchText) }
     const hasIds = !isBlank((values || {})[IDS_PARAM])
     if ((!filters || !filters.length) && !hasIds) return config
     // sin filtros declarados pero con selección por ids: el chip necesita su metadata, no sugerencias
@@ -5389,6 +5681,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           homeRoute: md.homeRoute || '',
           // chat de IA (@AI → App.sseUrl): si viene, la shell pinta el botón del chat del agente en la cabecera
           sseUrl: md.sseUrl || '',
+          // @AI(upload) → el botón de adjuntar del chat; @AI(mcp) → el mcpUrl que el agente usa para operar la app
+          uploadUrl: md.uploadUrl || '',
+          mcpUrl: md.mcpUrl || '',
           // el FAB de "ask" del shell (@App(askLabel, askIcon)): vacíos = el FAB neutro (Search)
           askLabel: md.askLabel || '',
           askIcon: md.askIcon || '',
@@ -6095,16 +6390,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // Los textos genéricos del diálogo de confirmación, en el idioma de la interfaz (el lang del
   // documento, que copy.mjs fija al del navegador — como pagingLangOf): una consola en español no
   // pregunta «Yes / No».
-  const CONFIRMATION_DEFAULTS = {
-    en: { title: 'One moment, please', message: 'Are you sure?', confirmText: 'Yes', denyText: 'No' },
-    es: { title: 'Un momento, por favor', message: '¿Estás seguro?', confirmText: 'Sí', denyText: 'No' },
-  }
-
-  /** Los textos genéricos del diálogo de confirmación para `lang` (o el idioma de la interfaz). */
   function confirmationDefaultsOf(lang) {
-    const raw = lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
-      || (typeof navigator !== 'undefined' && navigator.language) || ''
-    return CONFIRMATION_DEFAULTS[String(raw).toLowerCase().split(/[-_]/)[0]] || CONFIRMATION_DEFAULTS.en
+    const l = chromeLanguage(lang)
+    return { title: chromeText('confirmTitle', null, l), message: chromeText('confirmMessage', null, l),
+      confirmText: chromeText('confirmYes', null, l), denyText: chromeText('confirmNo', null, l) }
   }
 
   /**
@@ -6177,19 +6466,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return out
   }
 
-  const SELECT_PLACEHOLDERS = {
-    en: 'Select a value', es: 'Seleccione un valor', ca: 'Seleccioneu un valor', fr: 'Sélectionnez une valeur',
-    de: 'Wert auswählen', it: 'Selezionare un valore', pt: 'Selecione um valor', nl: 'Selecteer een waarde',
-  }
-
   /**
    * El placeholder de los desplegables en el idioma `lang` (el del navegador; inglés si no se
    * conoce). Hace falta uno: un oj-select-one SIN placeholder elige la primera opción por su
    * cuenta, y un obligatorio vacío pasaba la validación con un valor que nadie había elegido.
    */
   function selectPlaceholder(lang) {
-    const base = String(lang || '').toLowerCase().split(/[-_]/)[0]
-    return SELECT_PLACEHOLDERS[base] || SELECT_PLACEHOLDERS.en
+    return chromeText('selectValue', null, String(lang || '').split(/[-_]/)[0] || 'en')
   }
 
   /**
@@ -7700,17 +7983,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const rest = crumbRoute(path).slice(matched.length).split('/').filter(Boolean)
     const lang = page.lang || (typeof document !== 'undefined' && document.documentElement && document.documentElement.lang)
       || (typeof navigator !== 'undefined' && navigator.language) || ''
-    const es = String(lang).toLowerCase().startsWith('es')
     if (rest.length > 0) {
       const id = decodeURIComponent(rest[0])
       if (id === 'new' || id === 'create') {
-        trail.push({ text: es ? 'Nuevo' : 'New' })
+        trail.push({ text: chromeText('new', null, lang || 'en') })
       } else {
         const recordRoute = matched + '/' + rest[0]
         const title = crumbText(page.title)
         if (rest.length === 1 && title) recordTitles.set(recordRoute, title)
         trail.push({ text: recordTitles.get(recordRoute) || id, route: recordRoute })
-        if (rest[1] === 'edit') trail.push({ text: es ? 'Editar' : 'Edit' })
+        if (rest[1] === 'edit') trail.push({ text: chromeText('edit', null, lang || 'en') })
         else if (rest.length > 1) trail.push({ text: title || decodeURIComponent(rest[rest.length - 1]) })
       }
     }
@@ -8151,19 +8433,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** Ceiling por defecto de una petición, en ms. Lo pisa `@Action(timeoutMillis = …)`. */
   const DEFAULT_TIMEOUT_MS = 60000
 
+  // los textos, en el idioma de la interfaz (i18n.mjs)
   const MESSAGES = {
-    offline: () => 'Sin conexión. Tus cambios no se han enviado — revisa la red e inténtalo de nuevo.',
-    timeout: () => 'El servidor tarda demasiado en responder. Puede que tus cambios no se hayan guardado.',
-    server: (s) => `El servidor no ha podido completar la petición${s ? ` (error ${s})` : ''}. Inténtalo de nuevo.`,
-    unauthorized: () => 'Tu sesión ya no es válida. Vuelve a iniciar sesión.',
+    offline: () => chromeText('errOffline'),
+    timeout: () => chromeText('errTimeout'),
+    server: (s) => (s ? chromeText('errServerStatus', { status: s }) : chromeText('errServer')),
+    unauthorized: () => chromeText('errUnauthorized'),
     // Un 403 NO es la sesión: el servidor sabe quién eres y dice que no a ESTO (una acción que la
     // vista no declara, un rol que falta). Decir "vuelve a iniciar sesión" mandaba a un login que
     // no arregla nada.
-    forbidden: () => 'No tienes permiso para hacer esto.',
-    notFound: () => 'Esto ya no está disponible. Puede que se haya movido o borrado.',
-    client: (s) => `La petición ha sido rechazada${s ? ` (error ${s})` : ''}.`,
+    forbidden: () => chromeText('errForbidden'),
+    notFound: () => chromeText('errNotFound'),
+    client: (s) => (s ? chromeText('errClientStatus', { status: s }) : chromeText('errClient')),
     cancelled: () => '',
-    unknown: () => 'Algo ha ido mal. Inténtalo de nuevo.',
+    unknown: () => chromeText('errUnknown'),
   }
 
   /** Tipos que merece la pena reintentar: o no llegó, o el servidor tuvo un mal momento. */
@@ -8807,7 +9090,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * Oculto por transform y no por display:none, porque un elemento con display:none no puede
    * recibir foco — y entonces el enlace sería inalcanzable, que es justo lo contrario.
    */
-  function mountSkipLink(label = 'Saltar al contenido') {
+  function mountSkipLink(label = chromeText('skipToContent')) {
     if (typeof document === 'undefined') return
     if (!document.body) {
       document.addEventListener('DOMContentLoaded', () => mountSkipLink(label), { once: true })
@@ -9312,7 +9595,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       unread,
       badge: unread > 9 ? '9+' : String(unread),
       hasUnread: unread > 0,
-      label: unread ? 'Notifications, ' + unread + ' unread' : 'Notifications',
+      label: unread ? chromeText('notificationsUnread', { n: unread }) : chromeText('notifications'),
       empty: items.length === 0,
       items,
       provider: notificationsProviderFactory ? notificationsProviderFactory(items) : null,
@@ -9387,7 +9670,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const button = doc.createElement('oj-button')
       button.setAttribute('chroming', 'borderless')
       button.className = 'mateu-undo-button'
-      button.textContent = toast.undoLabel || 'Undo'
+      button.textContent = toast.undoLabel || chromeText('undo')
       button.addEventListener('ojAction', () => {
         if (undoSink) undoSink(toast.undoActionId, toast.undoParameters || {}, {})
         if (typeof msg.close === 'function') msg.close()
@@ -9489,17 +9772,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return v
   }
 
-  const CAPTURE_TEXTS = {
-    en: { clear: 'Clear', accept: 'Accept', signAgain: 'Sign again', remove: 'Remove', take: 'Take photo',
-      retake: 'Retake', upload: 'Upload', replace: 'Replace', noCamera: 'Camera unavailable — choose a file',
-      empty: 'No file', start: 'Open camera', signHere: 'Sign here' },
-    es: { clear: 'Borrar', accept: 'Aceptar', signAgain: 'Volver a firmar', remove: 'Quitar', take: 'Hacer foto',
-      retake: 'Repetir', upload: 'Subir', replace: 'Sustituir', noCamera: 'Cámara no disponible — elige un fichero',
-      empty: 'Sin fichero', start: 'Abrir cámara', signHere: 'Firme aquí' },
-  }
+  const CAPTURE_KEYS = ['clear', 'accept', 'signAgain', 'remove', 'take', 'retake', 'upload', 'replace', 'noCamera', 'empty', 'start', 'signHere']
 
+  /** Los textos de los campos de captura en `lang` (catálogo de la interfaz, i18n.mjs). */
   function captureTexts(lang) {
-    return String(lang || '').toLowerCase().startsWith('es') ? CAPTURE_TEXTS.es : CAPTURE_TEXTS.en
+    const l = chromeLanguage(lang)
+    return Object.fromEntries(CAPTURE_KEYS.map((k) => [k, chromeText('capture' + k[0].toUpperCase() + k.slice(1), null, l)]))
   }
 
   /** ¿El valor es una imagen que se puede enseñar? (data URI de imagen o URL corriente) */
@@ -10906,7 +11184,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         // la especificación pudo cambiar (o el contenedor desaparecer) mientras cargaba
         if (el.__mateuMapSpec === raw && el.isConnected) drawMap(L, el, spec)
       }).catch(() => {
-        el.textContent = 'The map could not be loaded.'
+        el.textContent = chromeText('mapUnavailable')
       })
     }
     const scan = (root) => {
@@ -12192,7 +12470,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    * vuelve a la lupa.
    */
   function askFabOf(shell, base = '') {
-    const label = String((shell && shell.askLabel) || '').trim() || ASK_FAB_LABEL
+    const label = String((shell && shell.askLabel) || '').trim() || chromeText('askSearch')
     const raw = String((shell && shell.askIcon) || '').trim()
     const glyph = (cls) => ({ label, kind: 'glyph', glyph: cls })
     if (!raw) return glyph(ASK_FAB_GLYPH)
@@ -12265,7 +12543,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // URL (agente local vs sseUrl), aplanar el menú como contexto, discriminar cada payload `data:` y
   // acumular el texto del asistente. Ese núcleo va aquí — probado en Node (poc/test.mjs) — y el bucle
   // de streaming acepta un `fetchImpl` inyectable para no tocar globals. Es la capa "lógica" del
-  // roadmap; el panel VB (gate visual) la consume. Sin imports: se concatena en el bundle AMD.
+  // roadmap; el panel VB (gate visual) la consume. Se concatena en el bundle AMD (make-amd quita el import).
+
 
   /** Discrimina un payload `data:` que es un objeto de uso de tokens ({inputTokens|outputTokens|totalTokens}). */
   function tryParseTokenUsage(payload) {
@@ -12352,7 +12631,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     for (const f of files || []) form.append('files', f)
     if (sessionId) form.append('sessionId', sessionId)
     const response = await fetchImpl(uploadUrl, { method: 'POST', headers, body: form })
-    if (!response.ok) throw new Error(`Upload failed: ${response.status}`)
+    if (!response.ok) throw new Error(chromeText('chatUploadFailed', { status: response.status }))
     const result = await response.json()
     return ((result && result.files) || []).filter((f) => f && f.path)
   }
@@ -12422,7 +12701,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (ev.event === 'agent-delta') return { kind: 'delta', text: typeof detail.text === 'string' ? detail.text : '' }
       if (ev.event === 'agent-status') return { kind: 'status', detail }
       if (ev.event === 'agent-tool') return { kind: 'tool', detail }
-      if (ev.event === 'agent-error') return { kind: 'error', message: String(detail.message || 'Error desconocido del agente') }
+      if (ev.event === 'agent-error') return { kind: 'error', message: String(detail.message || chromeText('chatAgentError')) }
       return { kind: 'event', event: ev.event, detail: ev.detail }
     }
     return { kind: 'text', text: payload ?? '' }
@@ -12455,7 +12734,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       tool(detail, at) {
         p.reported = true
         const d = detail || {}
-        const name = d.name || 'herramienta'
+        const name = d.name || chromeText('chatTool')
         if (d.phase === 'start') {
           p.steps = [...p.steps, { name, server: d.server, kind: d.kind, running: true }]
           p.since = at
@@ -12482,10 +12761,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const secs = Math.max(0, Math.floor((at - p.since) / 1000))
         const withSecs = (s) => (secs > 0 ? `${s} ${secs} s` : s)
         const running = p.runningTool()
-        if (running) return withSecs(`Llamando a ${running.name}…`)
-        if (p.answering) return 'Respondiendo…'
+        if (running) return withSecs(chromeText('chatCalling', { name: running.name }))
+        if (p.answering) return chromeText('chatAnswering')
         if (!p.reported) return null
-        return withSecs(p.statusText || 'Pensando…')
+        return withSecs(p.statusText || chromeText('chatThinking'))
       },
     }
     return p
@@ -12532,10 +12811,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     if (!response.ok) {
       const errorText = response.text ? await response.text() : ''
-      throw new Error(`Servidor respondió ${response.status}: ${errorText}`)
+      throw new Error(chromeText('chatServerError', { status: response.status, text: errorText }))
     }
     const reader = response.body && response.body.getReader ? response.body.getReader() : null
-    if (!reader) throw new Error('No se pudo obtener el reader del stream.')
+    if (!reader) throw new Error(chromeText('chatNoReader'))
 
     const decoder = new TextDecoder()
     const parser = createSseParser()
@@ -12649,9 +12928,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     if (!busy) return ''
     const line = progress && progress.line ? progress.line(typeof now === 'number' ? now : Date.now()) : null
     if (line) return line
-    if (hasText) return 'Respondiendo…'
+    if (hasText) return chromeText('chatAnswering')
     const s = Math.max(0, Math.floor(elapsedSeconds || 0))
-    return s > 0 ? `Pensando… ${s} s` : 'Pensando…'
+    return s > 0 ? chromeText('chatThinkingFor', { s }) : chromeText('chatThinking')
   }
 
   /** El constructor del reconocimiento de voz del navegador, o null donde no existe (Firefox). */
@@ -12852,6 +13131,191 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     observer.observe(el, { childList: true, subtree: true, characterData: true })
     toEnd()
     return () => { observer.disconnect(); el.removeEventListener('scroll', onScroll) }
+  }
+
+  // ---- Paridad con el chat web (libs/mateu mateu-chat.ts): lo que el panel VB necesitaba ----------
+  //
+  // El chat compartido manda en cada mensaje, además del texto: el CONTEXTO de la pantalla (url,
+  // título, appState/appData, el estado del componente — su contextProvider), una PROYECCIÓN
+  // autodescriptiva de la pantalla (screenContext.ts: campos con tipo/rótulo/valor + acciones, la
+  // misma que recibe un agente MCP), el `mcpUrl` del @AI y los adjuntos; prefiere el agente LOCAL si
+  // contesta a /health; titula el panel con el @App(askLabel); enseña las herramientas que usa el
+  // agente en el turno en curso; y explica una respuesta vacía o un corte de red. Todo puro aquí.
+
+  /** El agente local (companion) por defecto, el mismo que el chat web. */
+  const LOCAL_AGENT_URL = 'http://127.0.0.1:8776'
+
+  /** ¿Contesta el agente local? (GET <url>/health con un tope de 1,2 s; cualquier fallo = no). */
+  async function probeLocalAgent({ url = LOCAL_AGENT_URL, fetchImpl = globalThis.fetch, timeoutMs = 1200 } = {}) {
+    if (!url || !fetchImpl) return false
+    const controller = typeof AbortController !== 'undefined' ? new AbortController() : null
+    const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null
+    try {
+      const response = await fetchImpl(url + '/health', controller ? { signal: controller.signal } : {})
+      return !!(response && response.ok)
+    } catch {
+      return false
+    } finally {
+      if (timer) clearTimeout(timer)
+    }
+  }
+
+  /** La configuración del panel desde la shell (el App del bootstrap) y la base del backend. */
+  function chatConfigOf(shell, base = '') {
+    const s = shell || {}
+    const abs = (u) => (u ? (/^[a-z][a-z0-9+.-]*:/i.test(u) ? u : base + u) : '')
+    return {
+      sseUrl: abs(s.sseUrl),
+      uploadUrl: abs(s.uploadUrl),
+      mcpUrl: abs(s.mcpUrl),
+      // el título del panel: la marca del App (@App(askLabel)), si no «Assistant»
+      title: String(s.askLabel || '').trim() || chromeText('chatTitle'),
+    }
+  }
+
+  const mdTypeOf = (node) => (node && node.metadata && typeof node.metadata.type === 'string' ? node.metadata.type : undefined)
+
+  /**
+   * La pantalla proyectada para el agente — port de screenContext.ts `projectScreen`: los FormField
+   * (id, rótulo, tipo, estereotipo, obligatorio, solo lectura, valor del estado, opciones) y las
+   * acciones (las declaradas por el componente, con el rótulo de su botón; y los botones sueltos).
+   */
+  function projectChatScreen(component, state) {
+    if (!component || typeof component !== 'object') return { fields: [], actions: [] }
+    const fieldMds = []
+    const buttons = new Map()
+    let page
+    const seen = new Set()
+    const visit = (node) => {
+      if (!node || typeof node !== 'object' || seen.has(node)) return
+      seen.add(node)
+      if (!Array.isArray(node)) {
+        const t = mdTypeOf(node)
+        if (t === 'FormField' && node.metadata.fieldId) fieldMds.push(node.metadata)
+        else if (t === 'Page' && !page) page = node.metadata
+        else if (t === 'Button' && node.metadata.actionId && !buttons.has(node.metadata.actionId)) buttons.set(node.metadata.actionId, node.metadata.label)
+      }
+      for (const v of Array.isArray(node) ? node : Object.values(node)) if (v && typeof v === 'object') visit(v)
+    }
+    visit(component)
+    const values = state && typeof state === 'object' ? state
+      : (component.initialData && typeof component.initialData === 'object' ? component.initialData : {})
+    const fields = []
+    const seenField = new Set()
+    for (const md of fieldMds) {
+      if (seenField.has(md.fieldId)) continue
+      seenField.add(md.fieldId)
+      const field = {
+        id: md.fieldId,
+        label: md.label != null ? md.label : md.fieldId,
+        dataType: md.dataType || 'string',
+        stereotype: md.stereotype || 'regular',
+        required: !!md.required,
+        readOnly: !!md.readOnly,
+      }
+      if (Object.prototype.hasOwnProperty.call(values, md.fieldId)) field.value = values[md.fieldId]
+      if (Array.isArray(md.options) && md.options.length) {
+        field.options = md.options.map((o) => (o && typeof o === 'object'
+          ? { value: o.value, label: o.label != null ? o.label : String(o.value != null ? o.value : '') }
+          : { value: o, label: String(o) }))
+      }
+      fields.push(field)
+    }
+    const actions = []
+    const seenAction = new Set()
+    for (const a of Array.isArray(component.actions) ? component.actions : []) {
+      if (!a || !a.id || seenAction.has(a.id)) continue
+      seenAction.add(a.id)
+      const action = { id: a.id, label: buttons.get(a.id) != null ? buttons.get(a.id) : a.id }
+      if (a.shortcut) action.shortcut = a.shortcut
+      actions.push(action)
+    }
+    for (const [id, label] of buttons) {
+      if (!seenAction.has(id)) { seenAction.add(id); actions.push({ id, label: label != null ? label : id }) }
+    }
+    const screen = { fields, actions }
+    const title = (page && (page.pageTitle || page.title)) || undefined
+    if (title) screen.title = title
+    if (component.route) screen.route = component.route
+    if (component.serverSideType) screen.serverSideType = component.serverSideType
+    if (component.pageType || (page && page.pageType)) screen.pageType = component.pageType || page.pageType
+    return screen
+  }
+
+  /**
+   * El POST de un turno, con la misma forma que el del chat web: el texto, la sesión, la ruta, los
+   * adjuntos, el contexto (url, título, appState/appData y el estado/datos del contexto HOST del
+   * registro), la pantalla proyectada (si tiene algo), el mcpUrl y, sólo en el primer mensaje de la
+   * sesión (`sendMenu`), el menú. Devuelve `{ body, shown }`: `shown` es lo que se pinta como mensaje
+   * del usuario (el texto + 📎 los adjuntos).
+   */
+  function chatTurnOf({ message, sessionId, attachments = [], registry, appState, appData, url, screenTitle, currentRoute, mcpUrl, menu, sendMenu, origin }) {
+    const text = String(message || '').trim()
+    const host = registry && registry.contexts ? registry.contexts.__root__ : null
+    const context = {
+      url: url || '',
+      screenTitle: screenTitle || '',
+      appState: appState || {},
+      appData: appData || (registry && registry.appData) || {},
+      componentState: (host && host.state) || {},
+      componentData: (host && host.data) || {},
+    }
+    const screen = host && host.tree ? projectChatScreen(host.tree, host.state) : null
+    const hasScreen = !!screen && (screen.fields.length > 0 || screen.actions.length > 0 || !!screen.title)
+    const pageOrigin = origin || (typeof location !== 'undefined' && location.origin) || 'http://localhost'
+    const body = {
+      ...buildChatBody({
+        message: text,
+        sessionId,
+        attachments,
+        context,
+        mcpUrl: mcpUrl ? new URL(mcpUrl, pageOrigin).href : undefined,
+        menuContext: sendMenu ? buildChatMenuContext(menu || []) : undefined,
+        currentRoute,
+      }),
+      ...(hasScreen ? { screen } : {}),
+    }
+    const names = (attachments || []).map((a) => a.name).join(', ')
+    const shown = names ? `${text}${text ? '\n\n' : ''}📎 ${names}` : text
+    return { body, shown }
+  }
+
+  /** El texto final del turno: la respuesta, o por qué no la hay (respuesta vacía, corte de red, error). */
+  function chatTurnTextOf(accumulated, error) {
+    if (error) {
+      const message = (error && error.message) || String(error)
+      const network = message === 'Failed to fetch' || message === 'network error' || message === 'Load failed'
+      if (network && !accumulated) return '⚠️ ' + chromeText('chatNoAnswer')
+      return '⚠️ ' + chromeText('chatError', { message })
+    }
+    if (!accumulated) return '⚠️ ' + chromeText('chatEmptyAnswer')
+    return accumulated
+  }
+
+  /** La duración de una herramienta como el chat web: «850 ms», «1,2 s». */
+  function formatToolDuration(ms) {
+    if (typeof ms !== 'number' || !Number.isFinite(ms)) return ''
+    return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(1).replace('.', ',')} s`
+  }
+
+  /** Las herramientas del turno en curso, listas para pintar bajo la respuesta (CSP: todo precomputado). */
+  function chatToolStepsOf(progress) {
+    return ((progress && progress.steps) || []).map((step, i) => ({
+      key: i + ':' + step.name,
+      name: step.name,
+      title: step.server ? `${step.name} (${step.server})` : step.name,
+      icon: step.running ? '…' : step.error ? '✕' : '✓',
+      cls: 'mateu-chat-step ' + (step.running ? 'running' : step.error ? 'failed' : 'done'),
+      time: step.running ? '' : formatToolDuration(step.ms),
+      error: step.error ? String(step.error) : '',
+    }))
+  }
+
+  /** Adjuntos tras una subida: los que había + los nuevos, sin repetir ruta. */
+  function withAttachments(current, added) {
+    const out = (current || []).slice()
+    for (const a of added || []) if (a && a.path && !out.some((b) => b.path === a.path)) out.push({ name: a.name || a.path, path: a.path, removeLabel: chromeText('chatRemoveAttachment', { name: a.name || a.path }) })
+    return out
   }
 
 
@@ -13184,6 +13648,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   return {
     HOST_ID,
+    // the renderer's own words (i18n.mjs): chains say them in the interface's language
+    chromeText,
+    chromeLanguage,
+    setChromeLanguage,
+    chromeTextsOf,
     mountElements,
     setElementEventSink,
     setElementModuleBase,
@@ -13443,6 +13912,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     streamChat,
     stickChatToBottom,
     uploadChatFiles,
+    // paridad con el chat web: config del panel, el turno completo (contexto + pantalla + mcp +
+    // adjuntos), agente local, herramientas en curso y los textos de una respuesta vacía o fallida
+    chatConfigOf,
+    chatTurnOf,
+    chatTurnTextOf,
+    chatToolStepsOf,
+    withAttachments,
+    probeLocalAgent,
+    projectChatScreen,
+    LOCAL_AGENT_URL,
     // el panel mientras el asistente trabaja, los contadores de tokens y el dictado
     mergeTurnUsage,
     addUsage,

@@ -215,6 +215,9 @@ export function reduceContexts(reg, increment, opts = {}) {
         homeRoute: md.homeRoute || '',
         // chat de IA (@AI → App.sseUrl): si viene, la shell pinta el botón del chat del agente en la cabecera
         sseUrl: md.sseUrl || '',
+        // @AI(upload) → el botón de adjuntar del chat; @AI(mcp) → el mcpUrl que el agente usa para operar la app
+        uploadUrl: md.uploadUrl || '',
+        mcpUrl: md.mcpUrl || '',
         // el FAB de "ask" del shell (@App(askLabel, askIcon)): vacíos = el FAB neutro (Search)
         askLabel: md.askLabel || '',
         askIcon: md.askIcon || '',

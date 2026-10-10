@@ -1868,3 +1868,21 @@ tapaba contenido. El chat pasa a ser un botón de la cabecera global, como en el
   lista editable, sus celdas vacías dicen «—».
 - **Confirmación**: los textos genéricos en el idioma de la interfaz (`confirmationDefaultsOf`,
   es → «Sí»/«No»).
+
+## Chrome i18n y paridad del chat (2026-10-10)
+
+- **Las palabras del propio renderer** viven en UN catálogo, `poc/i18n.mjs` (`en` + `es`; un idioma
+  parcial —`fr`, `de`…— sólo trae lo que tiene y el resto cae a inglés clave a clave). El idioma es el
+  de la interfaz, con la misma fuente que el renderer web (`chromeTexts.ts`): `<html lang>`, que ahora
+  fija `index.html` desde el navegador (antes sólo el jar, en `copy.mjs`), si no `navigator.language`,
+  inglés por defecto. El bridge las dice con `chromeText(key, vars)`; el HTML de las páginas enlaza el
+  bundle de traducciones de VB (`$application.translations.appBundle.<clave>`), que **genera**
+  `make-nls.mjs` desde el mismo catálogo (`npm run bridge`; `--check` en CI). Así es VB quien resuelve
+  el idioma por su locale y no hay que re-enlazar nada. Fuera los textos del starter de VB.
+- **El chat** se cerró contra `mateu-chat.ts` función a función — tabla en RENDERER-ROADMAP. Lo que
+  faltaba (contexto + proyección de la pantalla, `mcpUrl`, adjuntos, agente local, título de marca,
+  herramientas del turno, respuesta vacía/corte explicados, modo ancho) es lógica pura en
+  `poc/chat.mjs`; las chains sólo cablean. Los adjuntos crean su `<input type=file>` desde la chain:
+  el binding declarativo de VB sobre un input nativo oculto no es fiable.
+- Capturas: `poc/shots/chat-en.png`, `chat-es-tools.png` (herramienta del turno en curso, chrome en
+  español), `i18n-en-products.png`, `i18n-es-products.png`.

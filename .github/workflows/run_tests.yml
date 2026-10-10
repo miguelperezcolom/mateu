@@ -111,6 +111,9 @@ jobs:
       - name: Redwood atom template is expanded in every surface
         run: cd frontend/web/monorepo/apps/redwood/poc && node make-html.mjs --check
 
+      - name: Redwood VB translation bundle matches the chrome catalogue (poc/i18n.mjs)
+        run: cd frontend/web/monorepo/apps/redwood/poc && node make-nls.mjs --check
+
       - name: parity.md tells the truth about Redwood (coverage vs wire catalogue vs renderer code)
         run: cd frontend/web/monorepo/apps/redwood/poc && node parity-check.mjs
 

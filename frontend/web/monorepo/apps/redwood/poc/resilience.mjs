@@ -15,25 +15,27 @@
 // Node sin navegador ni backend.
 
 import { clientErrors } from './clientLog.mjs'
+import { chromeText } from './i18n.mjs'
 
 // ── clasificación ────────────────────────────────────────────────────────────────────────
 
 /** Ceiling por defecto de una petición, en ms. Lo pisa `@Action(timeoutMillis = …)`. */
 export const DEFAULT_TIMEOUT_MS = 60000
 
+// los textos, en el idioma de la interfaz (i18n.mjs)
 const MESSAGES = {
-  offline: () => 'Sin conexión. Tus cambios no se han enviado — revisa la red e inténtalo de nuevo.',
-  timeout: () => 'El servidor tarda demasiado en responder. Puede que tus cambios no se hayan guardado.',
-  server: (s) => `El servidor no ha podido completar la petición${s ? ` (error ${s})` : ''}. Inténtalo de nuevo.`,
-  unauthorized: () => 'Tu sesión ya no es válida. Vuelve a iniciar sesión.',
+  offline: () => chromeText('errOffline'),
+  timeout: () => chromeText('errTimeout'),
+  server: (s) => (s ? chromeText('errServerStatus', { status: s }) : chromeText('errServer')),
+  unauthorized: () => chromeText('errUnauthorized'),
   // Un 403 NO es la sesión: el servidor sabe quién eres y dice que no a ESTO (una acción que la
   // vista no declara, un rol que falta). Decir "vuelve a iniciar sesión" mandaba a un login que
   // no arregla nada.
-  forbidden: () => 'No tienes permiso para hacer esto.',
-  notFound: () => 'Esto ya no está disponible. Puede que se haya movido o borrado.',
-  client: (s) => `La petición ha sido rechazada${s ? ` (error ${s})` : ''}.`,
+  forbidden: () => chromeText('errForbidden'),
+  notFound: () => chromeText('errNotFound'),
+  client: (s) => (s ? chromeText('errClientStatus', { status: s }) : chromeText('errClient')),
   cancelled: () => '',
-  unknown: () => 'Algo ha ido mal. Inténtalo de nuevo.',
+  unknown: () => chromeText('errUnknown'),
 }
 
 /** Tipos que merece la pena reintentar: o no llegó, o el servidor tuvo un mal momento. */

@@ -1,3 +1,4 @@
+import { chromeText } from './i18n.mjs'
 // PERSONALIZACIÓN DE LISTADOS en el navegador: el SELECTOR DE COLUMNAS (cuáles se ven y en qué
 // orden) y las VISTAS GUARDADAS (una combinación con nombre de búsqueda + filtros, con una por
 // defecto). Mismo formato y mismas claves de localStorage que el renderer web (libs/mateu
@@ -125,8 +126,8 @@ export function currentViewValues(filterValues, searchText) {
 /** Las opciones del menú de vistas (oj-menu): las guardadas (★ la de por defecto) + acciones. */
 export function viewsMenuOf(scope, storage) {
   const views = listSavedViews(scope, storage).map((v) => ({ value: 'view:' + v.name, label: (v.isDefault ? '★ ' : '') + v.name }))
-  return views.concat([{ value: 'save', label: 'Save current view…' }])
-    .concat(views.length ? [{ value: 'clear', label: 'Clear filters' }] : [])
+  return views.concat([{ value: 'save', label: chromeText('saveCurrentView') }])
+    .concat(views.length ? [{ value: 'clear', label: chromeText('clearFilters') }] : [])
 }
 
 /** El ámbito de las preferencias: la ruta del listado en pantalla, sin query (en modo hash, lo

@@ -33,7 +33,11 @@ import {
   createSseParser, classifyChatPayload, isEmptyUsage, createChatProgress, latestUsage,
   speechRecognitionCtor, transcriptOf, chatMarkdownToHtml, chatRouteOfLink, stickChatToBottom, isChatMicShortcut,
   CHAT_MIC_ARIA_KEYSHORTCUTS,
+  chatConfigOf, chatTurnOf, chatTurnTextOf, chatToolStepsOf, withAttachments, probeLocalAgent, LOCAL_AGENT_URL,
 } from './chat.mjs'
+import { CHROME_TEXTS, chromeText, chromeLanguage, setChromeLanguage, chromeTextsOf } from './i18n.mjs'
+import { nlsFiles } from './make-nls.mjs'
+import { classifyRequestFailure as i18nClassify } from './resilience.mjs'
 import {
   reduceContexts, collectFields, collectActions, collectIslands, mediatorOf, HOST_ID, layoutFieldOf,
   dynFormMetadataOf, actionsOf, summarizeHost, listingOf, onLoadTriggers, findByType,
@@ -62,6 +66,8 @@ const empty = () => ({ contexts: {}, stack: [], shell: null })
 const fieldIds = (tree) => [...new Set(collectFields(tree).map((f) => f.fieldId))]
 
 let pass = 0
+// la interfaz del renderer, en inglés salvo que un test pida otro idioma (Node trae navigator.language)
+setChromeLanguage('en')
 const test = (name, fn) => { fn(); console.log(`  ✓ ${name}`); pass++ }
 
 // Los tests del transporte son async y SUSTITUYEN globalThis.fetch por un doble. Tienen que
@@ -1166,7 +1172,7 @@ test('checklist check-in: TaskProgress N-de-M + StatusList con acciones por oper
   const tp = atoms.find((a) => a.isTaskProgress)
   assert.equal(tp.label, 'Operaciones de check-in')
   assert.equal(tp.max, 7)
-  assert.equal(tp.valueText, tp.value + ' de 7')
+  assert.equal(tp.valueText, tp.value + ' of 7')
   assert.match(tp.panelClass, /oj-panel/)
   const ops = atoms.filter((a) => a.isStatusList)
       .find((sl) => sl.items.some((i) => i.title === 'Tarjeta wifi'))
@@ -2091,7 +2097,7 @@ atest('fetchWithPolicy: si el refresco falla, el 401 acaba en "sesión no válid
   globalThis.fetch = async () => { calls++; return { ok: false, status: 401, text: async () => '' } }
   try {
     await assert.rejects(() => fetchWithPolicy('https://x/', {}, { actionId: 'save' }),
-      (e) => e.failure && e.failure.kind === 'unauthorized' && /sesión ya no es válida/.test(e.failure.message))
+      (e) => e.failure && e.failure.kind === 'unauthorized' && /session is no longer valid/.test(e.failure.message))
     assert.equal(calls, 1)
   } finally {
     globalThis.fetch = originalFetch
@@ -2649,7 +2655,7 @@ test('chat: botón en la cabecera y drawer a la izquierda — Ask Oracle ya no l
   assert.match(toggle[0], /chroming="borderless"/)
   assert.match(toggle[0], /oj-ux-ico-chat/)
   assert.match(toggle[0], /aria-controls="mateuChatPanel"/)
-  assert.match(toggle[0], /<span slot="startIcon" class="oj-ux-ico-chat"><\/span>\s*Chat\s*<\/oj-button>/)
+  assert.match(toggle[0], /<span slot="startIcon" class="oj-ux-ico-chat"><\/span>\s*<oj-bind-text value=\"\[\[ \$application\.translations\.appBundle\.chatOpen \]\]\"><\/oj-bind-text>\s*<\/oj-button>/)
   assert.match(toggle[0], /mateuChatOpen \? ' mateu-chat-open' : ''/)
   assert.match(toggle[0], /\$listeners\.chatToggle/)
   assert.match(webApp('resources/css/app.css'), /oj-button\.mateu-chat-toggle\.mateu-chat-open \.oj-button-button \{/)
@@ -2664,7 +2670,7 @@ test('chat: botón en la cabecera y drawer a la izquierda — Ask Oracle ya no l
   assert.equal(/start-display="overlay"/.test(layout), false)
   assert.ok(shell.indexOf('id="mateuChatDrawer"') < shell.indexOf('id="mateuNavDrawer"'), 'envuelve al contenido')
   assert.ok(shell.indexOf('slot="globalHeader"') < shell.indexOf('id="mateuChatDrawer"'), 'la cabecera queda fuera')
-  assert.match(shell, /<div slot="start" id="mateuChatPanel" role="complementary" aria-label="Chat del asistente"/)
+  assert.match(shell, /<div slot="start" id="mateuChatPanel" role="complementary" :aria-label="\[\[ \$application\.translations\.appBundle\.chatPanel \]\]"/)
   assert.match(shell, /id="mateuChatInput"/)
   assert.match(shell, /aria-live="polite"/)
   // cableado: listeners y cadena
@@ -2678,7 +2684,7 @@ test('chat: botón en la cabecera y drawer a la izquierda — Ask Oracle ya no l
   // el envío conserva streaming + agente por ruta y presenta el token, leído en CADA envío y
   // recuperando un 401 como el resto del tráfico
   const send = webApp('pages/shell-page-chains/chatSend.js')
-  assert.match(send, /currentRoute: \$application\.variables\.mateuSelectedRoute/)
+  assert.match(send, /currentRoute: vars\.mateuSelectedRoute/)
   assert.match(send, /headers: \(\) => bridge\.authHeadersOf\(\)/)
   assert.match(send, /reauthenticate: bridge\.askForReauthentication/)
   assert.match(send, /onText:/)
@@ -2728,8 +2734,8 @@ test('chat: el panel dice que el asistente trabaja, cuenta los tokens y deja dic
   // tokens: badges de JET, sólo cuando hay alguno
   const tokens = panel.match(/<oj-bind-if test="\[\[ !!\$application\.variables\.mateuChatTokens \]\]">[\s\S]*?id="mateuChatTokens"/)
   assert.ok(tokens, 'la fila de tokens sale sólo con tokens')
-  assert.match(panel, /class="oj-badge oj-badge-subtle[^"]*">entrada/)
-  assert.match(panel, /class="oj-badge oj-badge-subtle[^"]*">salida/)
+  assert.match(panel, /class="oj-badge oj-badge-subtle[^"]*"><oj-bind-text value="\[\[ \$application\.translations\.appBundle\.chatTokensIn/)
+  assert.match(panel, /class="oj-badge oj-badge-subtle[^"]*"><oj-bind-text value="\[\[ \$application\.translations\.appBundle\.chatTokensOut/)
   // micrófono: oj-button de icono Redwood, sólo donde hay reconocimiento de voz, antes del campo
   const mic = panel.match(/<oj-bind-if test="\[\[ \$application\.variables\.mateuChatMicAvailable \]\]">\s*<oj-bind-if test="\[\[ !\$application\.variables\.mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[\s\S]*?<\/oj-button>/)
   assert.ok(mic, 'el botón de dictar depende de mateuChatMicAvailable')
@@ -2750,7 +2756,7 @@ test('chat: el panel dice que el asistente trabaja, cuenta los tokens y deja dic
   // el agente manda el uso de toda la conversación: se sustituye, no se suma
   assert.match(send, /mateuChatTokens = bridge\.latestUsage\(/)
   // la fila de estado lee el progreso que informa el agente
-  assert.match(send, /onProgress: \(p\) => \{ progress = p; showStatus\(\); \}/)
+  assert.match(send, /onProgress: \(p\) => \{\s*progress = p;\s*vars\.mateuChatSteps = bridge\.chatToolStepsOf\(p\);\s*showStatus\(\);\s*\}/)
   assert.match(send, /bridge\.chatStatusText\(\{[^}]*progress, now: Date\.now\(\)/)
   // y un navigation-requested navega al acabar, si no hay pantalla generada
   assert.match(send, /ev\.event === 'navigation-requested'/)
@@ -2895,7 +2901,7 @@ atest('chat: el progreso del agente (fases y herramientas) llega a onProgress y 
       if (p.steps.length && !p.runningTool()) assert.deepEqual(p.steps, [{ name: 'booking_findBookings', server: 'booking', kind: 'mcp', ms: 3100, error: 'timeout', running: false }])
     },
   })
-  assert.deepEqual(lines, ['Conectando con 2 servidores MCP… 3 s', 'Llamando a booking_findBookings… 3 s', 'Conectando con 2 servidores MCP… 3 s', 'Respondiendo…'])
+  assert.deepEqual(lines, ['Conectando con 2 servidores MCP… 3 s', 'Calling booking_findBookings… 3 s', 'Conectando con 2 servidores MCP… 3 s', 'Answering…'])
 })
 
 atest('chat: streamChat despacha eventos personalizados y captura uso de tokens', async () => {
@@ -2971,7 +2977,7 @@ atest('chat: streamChat ante un 401 sin nadie que reautentique falla como siempr
     await assert.rejects(streamChat({
       url: '/sse', body: {}, reauthenticate: askForReauthentication,
       fetchImpl: async () => { calls++; return { ok: false, status: 401, text: async () => '' } },
-    }), /Servidor respondió 401/)
+    }), /The server answered 401/)
     assert.equal(calls, 1)
   } finally {
     globalThis.document = originalDocument
@@ -2983,7 +2989,7 @@ atest('chat: streamChat reenvía UNA sola vez: un segundo 401 falla, sin bucle',
   await assert.rejects(streamChat({
     url: '/sse', body: {}, reauthenticate: async () => true,
     fetchImpl: async () => { calls++; return { ok: false, status: 401, text: async () => '' } },
-  }), /Servidor respondió 401/)
+  }), /The server answered 401/)
   assert.equal(calls, 2)
 })
 
@@ -3876,7 +3882,7 @@ test('chat: el lector SSE ignora comentarios y otros campos, y quita sólo UN es
 
 test('chat: sin progreso del agente, la fila de estado es la de siempre', () => {
   const p = createChatProgress(0)
-  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 4.7, progress: p, now: 4700 }), 'Pensando… 4 s')
+  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 4.7, progress: p, now: 4700 }), 'Thinking… 4 s')
   p.status({ phase: 'thinking', text: 'Pensando…' }, 5000)
   assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 9, progress: p, now: 7000 }), 'Pensando… 2 s')
   assert.equal(chatStatusText({ busy: false, hasText: false, elapsedSeconds: 9, progress: p, now: 7000 }), '')
@@ -3884,9 +3890,9 @@ test('chat: sin progreso del agente, la fila de estado es la de siempre', () => 
 
 test('chat: la fila de estado dice si el asistente piensa o ya responde', () => {
   assert.equal(chatStatusText({ busy: false, hasText: false, elapsedSeconds: 9 }), '')
-  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 0 }), 'Pensando…')
-  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 4.7 }), 'Pensando… 4 s')
-  assert.equal(chatStatusText({ busy: true, hasText: true, elapsedSeconds: 12 }), 'Respondiendo…')
+  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 0 }), 'Thinking…')
+  assert.equal(chatStatusText({ busy: true, hasText: false, elapsedSeconds: 4.7 }), 'Thinking… 4 s')
+  assert.equal(chatStatusText({ busy: true, hasText: true, elapsedSeconds: 12 }), 'Answering…')
 })
 
 test('chat: el dictado usa el reconocimiento del navegador si existe, y el último resultado', () => {
@@ -3925,8 +3931,8 @@ test('chat: Ctrl+Shift+M activa/desactiva el micrófono (también en macOS: Ctrl
   const shell = webApp('pages/shell-page.html')
   assert.match(shell, /aria-keyshortcuts="Control\+Shift\+M"/)
   // un botón por estado (el texto de un oj-button no sigue a un oj-bind-text): el de escuchar resaltado
-  assert.match(shell, /mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[^>]*chroming="callToAction"[\s\S]*?Detener dictado \(Ctrl\+Shift\+M\)\s*<\/oj-button>/)
-  assert.match(shell, /!\$application\.variables\.mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[^>]*chroming="borderless"[\s\S]*?Dictar \(Ctrl\+Shift\+M\)\s*<\/oj-button>/)
+  assert.match(shell, /mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[^>]*chroming="callToAction"[\s\S]*?appBundle\.chatStopDictation \]\]\"><\/oj-bind-text>\s*<\/oj-button>/)
+  assert.match(shell, /!\$application\.variables\.mateuChatListening \]\]">\s*<oj-button id="mateuChatMic"[^>]*chroming="borderless"[\s\S]*?appBundle\.chatDictate \]\]\"><\/oj-bind-text>\s*<\/oj-button>/)
 })
 
 // ── gaps de Redwood vistos en la demo de ec-demo1 (3.0-alpha.376) ─────────────────────────
@@ -4622,6 +4628,163 @@ atest('la pantalla en curso sigue recibiendo sus respuestas; las de fondo (quiet
   } finally { h.restore() }
 })
 
+// ── i18n: las palabras del propio renderer (i18n.mjs) ──────────────────────────────────────
+test('i18n: inglés por defecto; español por el idioma de la interfaz; huecos en inglés clave a clave', () => {
+  assert.equal(chromeText('retry'), 'Retry')
+  assert.equal(chromeText('retry', null, 'es-ES'), 'Reintentar')
+  assert.equal(chromeText('retry', null, 'ja'), 'Retry')
+  assert.equal(chromeText('selectValue', null, 'fr'), 'Sélectionnez une valeur')
+  assert.equal(chromeText('retry', null, 'fr'), 'Retry')
+  assert.equal(chromeText('progressOf', { done: 2, total: 7 }, 'es'), '2 de 7')
+  assert.equal(chromeText('chatCalling', { name: 'x' }), 'Calling x…')
+  assert.equal(chromeText('no-such-key'), 'no-such-key')
+  assert.equal(chromeLanguage('pt_BR'), 'pt')
+  setChromeLanguage('es')
+  try {
+    assert.equal(chromeLanguage(), 'es')
+    assert.equal(chromeText('close'), 'Cerrar')
+    assert.equal(i18nClassify({ status: 503 }).message, 'El servidor no ha podido completar la petición (error 503). Inténtalo de nuevo.')
+  } finally { setChromeLanguage('en') }
+  assert.equal(i18nClassify({ status: 503 }).message, 'The server could not complete the request (error 503). Try again.')
+  assert.equal(chromeTextsOf('fr').retry, 'Retry')
+})
+
+test('i18n: español e inglés tienen las MISMAS claves (un hueco en español sería inglés en una consola española)', () => {
+  assert.deepEqual(Object.keys(CHROME_TEXTS.es).sort(), Object.keys(CHROME_TEXTS.en).sort())
+  for (const [lang, dict] of Object.entries(CHROME_TEXTS)) {
+    for (const k of Object.keys(dict)) assert.ok(k in CHROME_TEXTS.en, lang + '.' + k + ' no existe en inglés')
+  }
+})
+
+test('i18n: el bundle nls de VB sale del catálogo y está al día; las páginas sólo enlazan claves que existen', () => {
+  const files = nlsFiles()
+  assert.equal(JSON.parse(files['appBundle-strings.json']).root, true)
+  assert.equal(JSON.parse(files['appBundle-strings.json']).es, true)
+  assert.equal(JSON.parse(files['root/appBundle-strings.json']).retry, 'Retry')
+  const nls = join(here, '..', 'webApps', 'vbredwoodapp', 'resources', 'strings', 'appBundle', 'nls')
+  for (const [f, c] of Object.entries(files)) assert.equal(readFileSync(join(nls, f), 'utf8'), c, f + ': npm run bridge')
+  // sin restos del starter de VB
+  assert.doesNotMatch(files['root/appBundle-strings.json'], /Welcome to your First Redwood App|Lorem ipsum/)
+  const pages = ['pages/shell-page.html', 'flows/main/pages/main-start-page.html']
+    .map((rel) => readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', rel), 'utf8')).join('\n')
+  const used = [...pages.matchAll(/translations\.appBundle\.(\w+)/g)].map((m) => m[1])
+  assert.ok(used.length > 10)
+  for (const k of used) assert.ok(k in CHROME_TEXTS.en, 'la página enlaza una clave que no existe: ' + k)
+})
+
+test('i18n: la chrome de las páginas no lleva español escrito a mano', () => {
+  const page = (rel) => readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', rel), 'utf8').replace(/<!--[\s\S]*?-->/g, '')
+  const html = page('pages/shell-page.html') + page('flows/main/pages/main-start-page.html') + readFileSync(join(here, 'templates', 'atoms.html'), 'utf8').replace(/<!--[\s\S]*?-->/g, '')
+  for (const word of ['Buscar', 'Cerrar', 'Reintentar', 'Cargando', 'Sin conexión', 'Sin datos', 'Secciones', 'Asistente', 'Enviar', 'Escribe un mensaje', 'Dictar', 'Contexto']) {
+    assert.ok(!html.includes(word), 'texto en español en una página: ' + word)
+  }
+})
+
+
+// ── chat: paridad con el chat web (mateu-chat.ts) ─────────────────────────────────────────────
+test('chat: la config del panel sale del App — sseUrl/uploadUrl/mcpUrl con la base del backend, y el título es su marca', () => {
+  const reg = reduceContexts(empty(), { fragments: [{ targetComponentId: '', component: { type: 'ClientSide', metadata: {
+    type: 'App', title: 'X', menu: [], sseUrl: '/agent/stream', uploadUrl: '/agent/upload', mcpUrl: '/mcp', askLabel: 'Ask RIU' } } }] })
+  assert.equal(reg.shell.uploadUrl, '/agent/upload')
+  assert.equal(reg.shell.mcpUrl, '/mcp')
+  assert.deepEqual(chatConfigOf(reg.shell, 'http://b'), { sseUrl: 'http://b/agent/stream', uploadUrl: 'http://b/agent/upload', mcpUrl: 'http://b/mcp', title: 'Ask RIU' })
+  assert.deepEqual(chatConfigOf({ sseUrl: 'https://agent.example/stream' }, 'http://b'), { sseUrl: 'https://agent.example/stream', uploadUrl: '', mcpUrl: '', title: 'Assistant' })
+  assert.equal(chatConfigOf(null).title, 'Assistant')
+})
+
+test('chat: el turno lleva lo mismo que el web — contexto, pantalla proyectada, mcpUrl, adjuntos y el menú sólo la primera vez', () => {
+  const tree = { type: 'ServerSide', id: 'p', route: '/people', serverSideType: 'app.People', actions: [{ id: 'save' }, { id: 'search' }],
+    children: [{ type: 'ClientSide', metadata: { type: 'Page', title: 'People' }, children: [
+      { type: 'ClientSide', metadata: { type: 'FormField', fieldId: 'name', label: 'Name', dataType: 'string', required: true } },
+      { type: 'ClientSide', metadata: { type: 'FormField', fieldId: 'kind', label: 'Kind', dataType: 'string', options: [{ value: 'A', label: 'Alpha' }, 'B'] } },
+      { type: 'ClientSide', metadata: { type: 'Button', actionId: 'save', label: 'Save' } },
+      { type: 'ClientSide', metadata: { type: 'Button', actionId: 'extra', label: 'Extra' } },
+    ] }] }
+  const registry = { contexts: { __root__: { tree, state: { name: 'Ada' }, data: { d: 1 } } }, appData: { x: 1 } }
+  const menu = [{ label: 'People', route: '/people' }]
+  const first = chatTurnOf({ message: ' hola ', sessionId: 's', attachments: [{ name: 'a.pdf', path: 'up/a.pdf' }], registry,
+    appState: { hotel: 'H1' }, url: '/people', screenTitle: 'People', currentRoute: '/people', mcpUrl: '/mcp', menu, sendMenu: true, origin: 'http://h' })
+  assert.equal(first.shown, 'hola\n\n📎 a.pdf')
+  assert.equal(first.body.message, 'hola')
+  assert.deepEqual(first.body.attachments, [{ name: 'a.pdf', path: 'up/a.pdf' }])
+  assert.equal(first.body.mcpUrl, 'http://h/mcp')
+  assert.deepEqual(first.body.context, { url: '/people', screenTitle: 'People', appState: { hotel: 'H1' }, appData: { x: 1 }, componentState: { name: 'Ada' }, componentData: { d: 1 } })
+  assert.equal(first.body.menuContext.length, 1)
+  assert.equal(first.body.screen.title, 'People')
+  assert.equal(first.body.screen.route, '/people')
+  assert.deepEqual(first.body.screen.fields[0], { id: 'name', label: 'Name', dataType: 'string', stereotype: 'regular', required: true, readOnly: false, value: 'Ada' })
+  assert.deepEqual(first.body.screen.fields[1].options, [{ value: 'A', label: 'Alpha' }, { value: 'B', label: 'B' }])
+  assert.deepEqual(first.body.screen.actions, [{ id: 'save', label: 'Save' }, { id: 'search', label: 'search' }, { id: 'extra', label: 'Extra' }])
+  const next = chatTurnOf({ message: 'otra', sessionId: 's', registry, menu, sendMenu: false })
+  assert.equal(next.body.menuContext, undefined)
+  assert.equal(next.shown, 'otra')
+  // sin pantalla (aún no hay host) no viaja `screen`
+  assert.equal('screen' in chatTurnOf({ message: 'x', sessionId: 's', registry: { contexts: {} } }).body, false)
+  // un mensaje con SÓLO adjuntos
+  assert.equal(chatTurnOf({ message: '', sessionId: 's', attachments: [{ name: 'b', path: 'b' }] }).shown, '📎 b')
+})
+
+test('chat: una respuesta vacía o un corte de red se explican; el resto de errores dice cuál', () => {
+  assert.equal(chatTurnTextOf('Hola', null), 'Hola')
+  assert.match(chatTurnTextOf('', null), /^⚠️ The agent returned no answer/)
+  assert.match(chatTurnTextOf('', new Error('Failed to fetch')), /^⚠️ No answer from the agent/)
+  assert.equal(chatTurnTextOf('parcial', new Error('Failed to fetch')), '⚠️ Error: Failed to fetch')
+  assert.equal(chatTurnTextOf('', new Error('The server answered 500: x')), '⚠️ Error: The server answered 500: x')
+})
+
+test('chat: las herramientas del turno se pintan hechas, fallidas o en marcha, con su tiempo', () => {
+  const p = createChatProgress(0)
+  p.tool({ name: 'findBookings', phase: 'start', server: 'booking' }, 0)
+  p.tool({ name: 'findBookings', phase: 'end', ms: 1234 }, 10)
+  p.tool({ name: 'cancel', phase: 'start' }, 20)
+  p.tool({ name: 'cancel', phase: 'end', error: 'denied', ms: 80 }, 30)
+  p.tool({ name: 'lookup', phase: 'start' }, 40)
+  const steps = chatToolStepsOf(p)
+  assert.deepEqual(steps.map((s) => [s.name, s.icon, s.time, s.error]), [['findBookings', '✓', '1,2 s', ''], ['cancel', '✕', '80 ms', 'denied'], ['lookup', '…', '', '']])
+  assert.match(steps[1].cls, /failed/)
+  assert.equal(chatToolStepsOf(null).length, 0)
+})
+
+test('chat: adjuntos — se acumulan sin repetir y cada chip lleva el nombre accesible de su ✕', () => {
+  const a = withAttachments([], [{ name: 'a.pdf', path: 'p/a' }, { name: 'x' }])
+  assert.deepEqual(a, [{ name: 'a.pdf', path: 'p/a', removeLabel: 'Remove a.pdf' }])
+  assert.equal(withAttachments(a, [{ name: 'a.pdf', path: 'p/a' }, { name: 'b', path: 'p/b' }]).length, 2)
+})
+
+atest('chat: el agente local gana si contesta a /health (con tope de tiempo); si no, el sseUrl', async () => {
+  const seen = []
+  assert.equal(await probeLocalAgent({ fetchImpl: async (u) => { seen.push(u); return { ok: true } } }), true)
+  assert.equal(seen[0], LOCAL_AGENT_URL + '/health')
+  assert.equal(await probeLocalAgent({ fetchImpl: async () => { throw new TypeError('Failed to fetch') } }), false)
+  // un companion que no contesta: el tope de tiempo aborta la petición (fetch rechaza al abortar)
+  const hanging = (u, { signal }) => new Promise((_, reject) => signal.addEventListener('abort', () => reject(new Error('aborted'))))
+  assert.equal(await probeLocalAgent({ fetchImpl: hanging, timeoutMs: 10 }), false)
+  assert.equal(effectiveChatUrl({ localAgentAlive: true, localAgentUrl: LOCAL_AGENT_URL, sseUrl: '/s' }), LOCAL_AGENT_URL + '/mateu/agent/stream')
+  assert.equal(effectiveChatUrl({ localAgentAlive: false, localAgentUrl: LOCAL_AGENT_URL, sseUrl: '/s' }), '/s')
+})
+
+test('chat: el panel VB tiene lo del web — título de marca, agente local, modo ancho, herramientas, adjuntos', () => {
+  const shell = webApp('pages/shell-page.html')
+  assert.match(shell, /mateuChatTitle \|\| \$application\.translations\.appBundle\.chatTitle/)
+  assert.match(shell, /mateuChatLocalAgent/)
+  assert.match(shell, /mateu-chat-wide/)
+  assert.match(shell, /id="mateuChatSteps"/)
+  assert.match(shell, /id="mateuChatAttach"/)
+  assert.match(shell, /\$listeners\.chatRemoveAttachment/)
+  const listeners = JSON.parse(webApp('pages/shell-page.json')).eventListeners
+  for (const l of ['chatAttach', 'chatRemoveAttachment', 'chatExpand']) assert.equal(listeners[l].chains[0].chain, 'chatAttach', l)
+  const flow = JSON.parse(webApp('app-flow.json'))
+  for (const v of ['mateuChatTitle', 'mateuChatUploadUrl', 'mateuChatMcpUrl', 'mateuChatLocalAgent', 'mateuChatAttachments', 'mateuChatSteps', 'mateuChatExpanded']) assert.ok(flow.variables[v], v)
+  const send = webApp('pages/shell-page-chains/chatSend.js')
+  assert.match(send, /bridge\.effectiveChatUrl\(/)
+  assert.match(send, /bridge\.chatTurnTextOf\(accumulated, failure\)/)
+  assert.match(webApp('pages/shell-page-chains/toggleMateuChat.js'), /bridge\.probeLocalAgent\(\)/)
+  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.chatConfigOf\(reg\.shell, base\)/)
+  const attach = webApp('pages/shell-page-chains/chatAttach.js')
+  assert.match(attach, /bridge\.uploadChatFiles\(/)
+  assert.match(attach, /headers: bridge\.authHeadersOf\(\)/)
+})
+
 await queue
 console.log(`\n${pass} tests OK (contrato de wire real)`)
 
@@ -4977,8 +5140,8 @@ test('chat: el menuContext lleva el descriptor de listado de cada entrada (filtr
   assert.equal(ctx[1].listing, undefined)
   // el chat de Redwood lo manda en el primer mensaje de la sesión (antes no lo mandaba nunca)
   const send = webApp('pages/shell-page-chains/chatSend.js')
-  assert.match(send, /bridge\.buildChatMenuContext\(/)
-  assert.match(send, /menuContext: menuContext/)
+  assert.match(send, /bridge\.chatTurnOf\(/)
+  assert.match(send, /sendMenu = window\.__mateuChatMenuSentFor !== sessionId/)
 })
 
 test('guided process: el overview sólo va en columna en teléfono (< 600px), no en ventanas bajas', () => {

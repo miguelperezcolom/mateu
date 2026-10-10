@@ -707,11 +707,39 @@ oj-sp-global-header oj-button.mateu-chat-toggle.mateu-chat-open .oj-button-butto
   border-inline-start: 3px solid var(--oj-core-divider-color, rgb(0 0 0 / 0.12));
 }
 
+/* Modo ancho del panel (el ⤢ del chat web): ~60% del viewport, la página sigue al lado (reflow). */
+.mateu-chat-panel.mateu-chat-wide {
+  width: 60vw;
+}
+/* Las herramientas del turno en curso, bajo la respuesta: compactas y en gris; la que falla, en rojo. */
+.mateu-chat-steps {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  font-size: var(--oj-typography-body-xs-font-size, 0.75rem);
+  color: var(--oj-core-text-color-secondary, #6f6f6f);
+}
+.mateu-chat-step {
+  display: flex;
+  gap: 0.375rem;
+  align-items: baseline;
+  padding: 0.125rem 0;
+}
+.mateu-chat-step.failed { color: var(--oj-core-danger-3, #c74634); }
+.mateu-chat-step-name { font-family: var(--oj-core-font-family-mono, ui-monospace, monospace); }
+.mateu-chat-attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 220px;
+}
+
 /* En estrecho oj-drawer-layout pasa el drawer a OVERLAY: a todo el ancho, bajo la cabecera
    (la capa del overlay tapa también el FAB de Ask Oracle). Se cierra con el mismo botón de la
    cabecera, con la ✕ del panel o con Escape. */
 @media (max-width: 1023px) {
-  .mateu-chat-panel {
+  .mateu-chat-panel,
+  .mateu-chat-panel.mateu-chat-wide {
     width: 100vw;
   }
 }

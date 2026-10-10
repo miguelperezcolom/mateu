@@ -1,6 +1,7 @@
 import { actionsOf, collectFields, collectTexts } from './tree.mjs'
 import { islandContentOf } from './content.mjs'
 import { findByType } from './listing.mjs'
+import { chromeText } from '../i18n.mjs'
 // Part of the Redwood core (reduceContexts.mjs re-exports every piece): welcome, general/item overview, content tab strips, banners, page style.
 
 /** Helper de RENDER: todos los nodos de un tipo (sin cruzar fronteras de isla). */
@@ -81,7 +82,7 @@ export function welcomeOf(ctx) {
     ? tm.chartData.datasets[0] : null
   const values = tm ? (tm.values || (dataset ? dataset.data : []) || []) : []
   const labels = tm ? (tm.labels || (tm.chartData ? tm.chartData.labels : []) || []) : []
-  const series = (dataset && dataset.label) || 'Ocupación %'
+  const series = (dataset && dataset.label) || chromeText('occupancy')
   const trend = tm
     ? {
         title: trendPanel.metadata.title || tm.title || '',

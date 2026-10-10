@@ -10,6 +10,10 @@
     <!-- la query con que se abre la consola (?integration=MRU01: los filtros de un listado) se
          guarda ANTES de que arranque Visual Builder, cuyo router la borra de la URL al iniciar -->
     <script>window.__mateuInitialSearch = window.location.search || '';</script>
+    <!-- the interface language is the browser's (like the Vaadin renderer), not a fixed "en": VB
+         reads <html lang> for its locale (JET's own texts, the appBundle translations) and the
+         bridge's chrome catalogue (poc/i18n.mjs) reads it too -->
+    <script>document.documentElement.lang = (navigator.languages && navigator.languages[0]) || navigator.language || 'en';</script>
     <!-- vb:inject id="headContent" theme="resources/css/dt.theme.redwood" -->
     <link rel="stylesheet" href="resources/css/app.css">
   </head>
