@@ -1,7 +1,7 @@
 import { evaluateExpression, interpolate, interpolateUrl } from './expressions';
 import { MateuSession, NavTarget } from './MateuSession';
 import { externalAuthHeaders, registerRestSources, resolveRestSource, sampledResponse, setSampleMode, viaProxy } from './restFetch';
-import { announce } from '../a11y/a11y';
+import { announce, announceLive } from '../a11y/a11y';
 import { isTimedOnLoad, PollingScheduler } from './polling';
 import { isDev } from '../api/MateuApiClient';
 import { getActionCatalogue, isClientRunnable, registerActionCatalogue, resolveAction, type ShellAction } from './shellFlows';
@@ -894,6 +894,12 @@ export class MateuViewController {
         this.session.closeTopOverlay();
         this.dispatchNamedEvent(cmdData as Json);
         break;
+      case 'Announce': {
+        // Tell assistive tech what happened (the Redwood `announcement` slot). Draws nothing.
+        const text = typeof cmdData === 'string' ? cmdData : str((cmdData as Json)?.['text']);
+        announceLive(text, (cmdData as Json)?.['assertive'] === true);
+        break;
+      }
       default:
         break;
     }

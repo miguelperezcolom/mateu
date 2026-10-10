@@ -60,6 +60,18 @@ public class FoldoutLayoutMapper {
                     httpRequest)
                 .setSlot("panel-" + i));
       }
+      if (panel.summary() != null) {
+        children.add(
+            mapComponentToDto(
+                    null,
+                    panel.summary(),
+                    baseUrl,
+                    route,
+                    consumedRoute,
+                    initiatorComponentId,
+                    httpRequest)
+                .setSlot("summary-" + i));
+      }
     }
     List<String> badgeTexts = new ArrayList<>();
     if (foldoutLayout.badges() != null) {

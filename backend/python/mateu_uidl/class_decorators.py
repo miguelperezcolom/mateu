@@ -226,13 +226,17 @@ def rest_data(
     return deco
 
 
-def welcome_banner(title: str = "", subtitle: str = "", image: str = "") -> Callable[[type], type]:
+def welcome_banner(
+    title: str = "", subtitle: str = "", image: str = "", tone=None
+) -> Callable[[type], type]:
     """Class-level: prepends the Redwood "Welcome Banner" element to the page content — a
     centered HeroSection (id "welcome-banner") with the given title (empty → the page title),
-    subtitle and background image. The Python analogue of Java's ``@WelcomeBanner``."""
+    subtitle and background image. ``tone`` (a ``HeroTone`` or its name; None/auto = the default
+    look) paints a dark tinted band. The Python analogue of Java's ``@WelcomeBanner``."""
 
     def deco(cls: type) -> type:
         setattr(cls, "__mateu_welcome_banner__", (title, subtitle, image))
+        setattr(cls, "__mateu_welcome_banner_tone__", tone)
         return cls
 
     return deco

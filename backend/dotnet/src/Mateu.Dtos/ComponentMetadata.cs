@@ -150,7 +150,14 @@ public record FoldoutNavigationDto(
 public record FoldoutPanelInfoDto(string? Title, string? Subtitle, string? Icon, bool Open, string? Width = null);
 
 /// <summary>Page hero header. Slotted content travels as component children.</summary>
-public record HeroSectionMetadataDto(string? Title, string? Subtitle, string? Image, string? Height, bool Centered) : ComponentMetadataDto;
+public record HeroSectionMetadataDto(string? Title, string? Subtitle, string? Image, string? Height, bool Centered) : ComponentMetadataDto
+{
+    /// <summary>The band's tone: null (omitted) = default look; otherwise one of ocean, pine, lilac,
+    /// teal, rose, pebble, slate, plum, sienna — a dark tinted band with light ink. (Mirrors
+    /// io.mateu.dtos.HeroSectionDto.tone.)</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Tone { get; init; }
+}
 
 /// <summary>Friendly empty-state placeholder with an optional call-to-action.</summary>
 public record EmptyStateMetadataDto(string? Icon, string? Title, string? Description, string? ActionId, string? ActionLabel) : ComponentMetadataDto;

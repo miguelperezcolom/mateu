@@ -70,8 +70,30 @@ export function foldoutOf(ctx) {
       width: panel.width || '',
       texts: collectTexts(bySlot['panel-' + i]),
       blocks: blocksOf(bySlot['panel-' + i]),
+      // FoldoutPanel.summary (child slotted summary-N): oj-sp-foldout-panel's own `summary` slot,
+      // the compact line under the panel title
+      ...foldoutSummaryOf(bySlot['summary-' + i]),
     })),
   }
+}
+
+/** A foldout panel's summary (the `summary-N` child): `hasSummary` + its texts as one line. */
+export function foldoutSummaryOf(slotNode) {
+  const parts = []
+  const walk = (n) => {
+    if (!n || typeof n !== 'object') return
+    if (Array.isArray(n)) { n.forEach(walk); return }
+    const m = n.metadata || {}
+    // the short pieces a summary is made of: texts, and the label of a badge/chip
+    if (m.type === 'Text' && m.text != null) parts.push(String(m.text))
+    else if ((m.type === 'Badge' || m.type === 'Chip') && (m.label || m.text)) parts.push(String(m.label || m.text))
+    else if (m.type === 'Notice' && m.text) parts.push(String(m.text))
+    for (const c of n.children || []) walk(c)
+    if (m.content) walk(m.content)
+  }
+  walk(slotNode)
+  const text = parts.map((t) => t.trim()).filter(Boolean).join(' · ')
+  return { hasSummary: !!text, summary: text }
 }
 
 /** Proyección del WIZARD (Fase 8): los ProgressSteps del wire → pasos ({id,label} + currentStep

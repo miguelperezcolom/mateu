@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { LitElement, render } from 'lit'
 import type ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
-import { heroImageCss, renderHeroSection } from './heroRenderer'
+import { HERO_TONES, heroBackground, heroImageCss, renderHeroSection } from './heroRenderer'
 
 /** The hero drawn as Redwood's welcome banner: themed band, text on the start, image on the end, strip at the foot. */
 describe('the hero', () => {
@@ -39,5 +39,19 @@ describe('the hero', () => {
     it('ignores an image URL that would end the declaration', () => {
         expect(heroImageCss('x") ; background: red')).toBeUndefined()
         expect(heroImageCss(' /images/a b.png ')).toBe('url("/images/a b.png")')
+    })
+
+    it('paints a declared tone as its own deep hue, keeping the light ink', () => {
+        const hero = draw({ title: 'Hola', tone: 'pine' })
+        expect(hero.getAttribute('style')).toContain('background: #2d5a3d')
+        expect(hero.getAttribute('style')).toContain('color: #fff')
+        expect(hero.dataset.tone).toBe('pine')
+    })
+
+    it('falls back to the themed band for no tone or an unknown one', () => {
+        expect(heroBackground(undefined)).toContain('var(--mateu-accent')
+        expect(heroBackground('chartreuse')).toContain('var(--mateu-accent')
+        expect(Object.keys(HERO_TONES)).toEqual(
+            ['ocean', 'pine', 'lilac', 'teal', 'rose', 'pebble', 'slate', 'plum', 'sienna'])
     })
 })

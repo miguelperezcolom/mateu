@@ -36,6 +36,15 @@ public abstract class Welcome implements ComponentTreeSupplier {
     return null;
   }
 
+  /**
+   * The hero band's tone (the Redwood welcome-page {@code backgroundColor}): {@link
+   * io.mateu.uidl.data.HeroTone#auto} (the default) keeps the default look, any other hue paints a
+   * dark tinted band with light ink.
+   */
+  protected io.mateu.uidl.data.HeroTone heroTone() {
+    return io.mateu.uidl.data.HeroTone.auto;
+  }
+
   @Override
   public String style() {
     return null;
@@ -43,6 +52,7 @@ public abstract class Welcome implements ComponentTreeSupplier {
 
   @Override
   public Component component(HttpRequest httpRequest) {
-    return WelcomeComposer.compose(this, id(), heroTitle(), heroSubtitle(), heroImage());
+    return WelcomeComposer.compose(
+        this, id(), heroTitle(), heroSubtitle(), heroImage(), heroTone());
   }
 }

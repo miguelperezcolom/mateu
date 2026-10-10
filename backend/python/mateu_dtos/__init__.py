@@ -167,10 +167,12 @@ from .records import (  # noqa: F401
     MenuItem,
     Option,
     PeerNav,
+    RecordSwitcherRecord,
     RestAction,
     Trigger,
 )
 from .envelope import (  # noqa: F401
+    Announcement,
     CustomEventRecord,
     Message,
     UICommand,

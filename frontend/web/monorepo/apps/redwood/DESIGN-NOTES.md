@@ -1886,3 +1886,15 @@ tapaba contenido. El chat pasa a ser un botón de la cabecera global, como en el
   el binding declarativo de VB sobre un input nativo oculto no es fiable.
 - Capturas: `poc/shots/chat-en.png`, `chat-es-tools.png` (herramienta del turno en curso, chrome en
   español), `i18n-en-products.png`, `i18n-es-products.png`.
+
+## Huecos de patrones Redwood (2026-10-10)
+
+Cada pieza nueva del wire cae en la afordancia oj-sp que ya existe para ella (tests de contrato:
+`poc/test-patterns.mjs`): comando **Announce** → regiones vivas de `a11y.mjs`;
+**PageDto.switcher** → `selectObject`/`selectContext` del `oj-sp-header-general-overview`
+(+ `displayOptions.switcherSearch`; chain `onPageSwitch` → `_switchRecord` con `{_record}`; deshabilitado
+= sin switcher, la entrada actual como fact); **HeroSection.tone** → `background-color` `dark-<tono>`
+del welcome banner; **summary-N** del foldout → slot `summary` de `oj-sp-foldout-panel`;
+**preSearch** del Crudl → en lugar de la tabla hasta la primera búsqueda. Composición: un Drawer
+reenviado con el MISMO id sustituye al abierto; `disabled` llega a todos los botones; las rejillas
+con plantilla de slots ordenan sus hijos por área. Detalle en DESIGN-NOTES.en.md.

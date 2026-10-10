@@ -8,5 +8,10 @@ export default interface HeroSection extends ComponentMetadata {
     image?: string
     height?: string
     centered?: boolean
+    /**
+     * The band's tone: ocean | pine | lilac | teal | rose | pebble | slate | plum | sienna — a dark
+     * tinted band with light ink; absent = the default look.
+     */
+    tone?: string
 
 }

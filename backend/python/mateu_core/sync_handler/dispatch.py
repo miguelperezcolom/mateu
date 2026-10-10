@@ -16,6 +16,7 @@ from mateu_uidl import (
     ComponentTreeSupplier,
     DataManagement,
     GanttPage,
+    RecordSwitcherSupplier,
     TodoList,
     Wizard,
 )
@@ -263,6 +264,18 @@ class DispatchMixin(MixinBase):
             return self.field_code_search(type_, rq)
         if not rq.action_id:
             return self.render(type_, instance, rq, layout_override)
+        # 4a'. The header record switcher's pick (_switchRecord, the picked value in _record):
+        # runs the page's switch_to; None (or the page itself) re-renders in place (mirrors
+        # Java's RecordSwitcherActionRunner).
+        if (
+            isinstance(instance, RecordSwitcherSupplier)
+            and rq.action_id == RecordSwitcherSupplier.ACTION_ID
+        ):
+            raw = (rq.parameters or {}).get(RecordSwitcherSupplier.VALUE_PARAMETER)
+            result = instance.switch_to(None if raw is None else str(raw))
+            if result is None or result is instance:
+                return self.render(type_, instance, rq, layout_override)
+            return self.map_result(result, rq)
         # 4b. Archetype in-place actions (CollectionDetail / GeneralOverview): selection, search
         # filtering and record switching mutate the bound state and re-render the tree — no
         # navigation, no method dispatch.
@@ -319,6 +332,13 @@ class DispatchMixin(MixinBase):
         # 4e. A DataManagement toolbar switch flips the active view and re-renders in place.
         if isinstance(instance, DataManagement) and rq.action_id in ("switchToGrid", "switchToGantt"):
             instance.view = "gantt" if rq.action_id == "switchToGantt" else "grid"
+            return self.render(type_, instance, rq)
+        # 4f. A DataManagement docked-panel toggle flips that panel and re-renders in place.
+        if isinstance(instance, DataManagement) and rq.action_id == "toggleEndPanel":
+            instance.toggle_end_panel()
+            return self.render(type_, instance, rq)
+        if isinstance(instance, DataManagement) and rq.action_id == "toggleBottomPanel":
+            instance.toggle_bottom_panel()
             return self.render(type_, instance, rq)
         return self.run_action(type_, instance, rq, layout_override)
 

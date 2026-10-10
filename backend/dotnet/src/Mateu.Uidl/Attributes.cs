@@ -398,6 +398,20 @@ public sealed class SectionAttribute(string caption) : Attribute
     /// sits bare on the page. For bands whose content brings its own chrome. (C# analogue of
     /// Java's @Section(frameless=true).)</summary>
     public bool Frameless { get; set; }
+
+    /// <summary>Section affordance (the Redwood section edit action): the name of an action method
+    /// of the form that edits this section — an "Edit" button on the section's title row. Empty =
+    /// none. (Java's @Section(editAction).)</summary>
+    public string EditAction { get; set; } = "";
+
+    /// <summary>Section affordance: the name of an action method that adds an item to this section —
+    /// an "Add" button on the title row. Empty = none. (Java's @Section(addAction).)</summary>
+    public string AddAction { get; set; } = "";
+
+    /// <summary>Section affordance: the name of an action method that shows the rest of what this
+    /// section summarises — a "View more" button under its content. Empty = none. (Java's
+    /// @Section(viewMoreAction).)</summary>
+    public string ViewMoreAction { get; set; } = "";
 }
 
 /// <summary>A named column of a multi-column form. Declare several on the class (order matters)

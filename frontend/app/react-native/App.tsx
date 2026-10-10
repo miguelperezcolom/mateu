@@ -18,6 +18,7 @@ import { platformStore } from './src/core/secureStore';
 import { installSessionId } from './src/core/sessionId';
 import { AppRenderer } from './src/renderer/AppRenderer';
 import { MateuViewHost } from './src/renderer/MateuViewHost';
+import { overlayContentWithData, overlayIdOf, upsertOverlay } from './src/renderer/patternGaps';
 
 // ─── Backend resolution ──────────────────────────────────────────────────────
 // PRODUCTION: the installable carries only a registry URL + app id (app.json `expo.extra`
@@ -134,18 +135,20 @@ function DirtyGuardHost() {
 }
 
 /** Drawer/Dialog fragments (action=Add overlays): shown as a native modal sheet; the server
- *  closes them with UICommand.closeModal (its named event reaches @SubscribeTo hosts). */
+ *  closes them with UICommand.closeModal (its named event reaches @SubscribeTo hosts). An Add whose
+ *  overlay id matches an OPEN overlay refreshes that one in place (the "same Drawer.id" contract —
+ *  crud "Save and next", the drawer error banner) instead of stacking a duplicate. */
 function OverlayHost() {
   const { session } = useAppContext();
   const [overlays, setOverlays] = useState<
-    { component: unknown; title: string; opener?: import('./src/core/MateuSession').OverlayOpenerContext }[]
+    { component: unknown; title: string; revision: number; opener?: import('./src/core/MateuSession').OverlayOpenerContext }[]
   >([]);
 
   useEffect(() => {
     session.openOverlay = (component, _state, _data, opener) => {
       const meta = ((component as Record<string, unknown>)?.['metadata'] as Record<string, unknown>) ?? {};
       const title = (meta['headerTitle'] as string) ?? (meta['title'] as string) ?? '';
-      setOverlays((o) => [...o, { component, title, opener }]);
+      setOverlays((o) => upsertOverlay(o, { component, title, opener, revision: 0 }));
     };
     session.closeTopOverlay = () => setOverlays((o) => o.slice(0, -1));
   }, [session]);
@@ -153,7 +156,7 @@ function OverlayHost() {
   if (overlays.length === 0) return null;
   const top = overlays[overlays.length - 1];
   const meta = ((top.component as Record<string, unknown>)?.['metadata'] as Record<string, unknown>) ?? {};
-  const content = meta['content'];
+  const content = overlayContentWithData(meta);
 
   return (
     <Modal animationType="slide" transparent onRequestClose={() => session.closeTopOverlay()}>
@@ -165,7 +168,14 @@ function OverlayHost() {
               <Text style={styles.overlayClose}>✕</Text>
             </TouchableOpacity>
           </View>
-          {content ? <MateuViewHost session={session} serverSideNode={content} overlayOpener={top.opener} /> : null}
+          {content ? (
+            <MateuViewHost
+              key={`${overlayIdOf(top.component)}#${top.revision}#${overlays.length}`}
+              session={session}
+              serverSideNode={content}
+              overlayOpener={top.opener}
+            />
+          ) : null}
         </View>
       </View>
     </Modal>

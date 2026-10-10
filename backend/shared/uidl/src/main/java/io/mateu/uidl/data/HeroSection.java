@@ -17,6 +17,11 @@ public record HeroSection(
     String image,
     String height,
     boolean centered,
+    /**
+     * The band's tone (the Redwood welcome-page palette): {@code null}/{@code auto} keeps the
+     * default look, any other {@link HeroTone} paints a dark tinted band with light ink.
+     */
+    HeroTone tone,
     List<Component> content,
     String style,
     String cssClasses)

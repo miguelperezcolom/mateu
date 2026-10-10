@@ -8,6 +8,7 @@ import io.mateu.uidl.annotations.WizardCompletionAction;
 import io.mateu.uidl.data.Message;
 import io.mateu.uidl.data.NotificationVariant;
 import io.mateu.uidl.di.MateuBeanProvider;
+import io.mateu.uidl.interfaces.Draftable;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.InstanceFactory;
 import java.lang.reflect.InvocationTargetException;
@@ -60,11 +61,75 @@ final class WizardActionDispatcher {
       // the answers so far). The result step is only reached through the completion action.
       var next = wizard.nextApplicable(wizard.position);
       if (next >= 0) {
+        var veto =
+            wizard.beforeStepNavigate(
+                wizard.stepName(wizard.position), wizard.stepName(next), httpRequest);
+        if (veto != null) {
+          return veto;
+        }
         wizard.position = next;
       }
     }
+    if ("skip".equals(actionId)) {
+      // the user leaves this step for later: keep what was typed, require nothing
+      hydrateCurrentStep(wizard, httpRequest);
+      if (!wizard.stepSkippable(wizard.stepName(wizard.position))
+          || !wizard.display().skip().enabled()) {
+        return wizard;
+      }
+      var next = wizard.nextApplicable(wizard.position);
+      if (next >= 0) {
+        var veto =
+            wizard.beforeStepNavigate(
+                wizard.stepName(wizard.position), wizard.stepName(next), httpRequest);
+        if (veto != null) {
+          return veto;
+        }
+        wizard.position = next;
+      }
+      return wizard;
+    }
+    if ("saveDraft".equals(actionId) || "saveAndClose".equals(actionId)) {
+      if (!(wizard instanceof Draftable draftable)) {
+        return wizard;
+      }
+      var toggle =
+          "saveDraft".equals(actionId)
+              ? wizard.display().saveDraft()
+              : wizard.display().saveAndClose();
+      if (!toggle.enabled()) {
+        return wizard;
+      }
+      // a draft may be incomplete: hydrate, never validate
+      hydrateCurrentStep(wizard, httpRequest);
+      var saved = draftable.saveDraft(httpRequest);
+      if ("saveDraft".equals(actionId)) {
+        return saved != null
+            ? saved
+            : Message.success(Wizard.translate("Draft saved", httpRequest));
+      }
+      var close = draftable.closeDraft(httpRequest);
+      return java.util.List.of(
+          saved instanceof Message message
+              ? message
+              : Message.success(Wizard.translate("Draft saved", httpRequest)),
+          io.mateu.uidl.data.UICommand.markAsClean(),
+          close instanceof io.mateu.uidl.data.UICommand command
+              ? command
+              : io.mateu.uidl.data.UICommand.navigateTo(close != null ? close.toString() : "/"));
+    }
     if ("back".equals(actionId)) {
-      wizard.position = wizard.previousApplicable(wizard.position);
+      var previous = wizard.previousApplicable(wizard.position);
+      if (previous != wizard.position) {
+        hydrateCurrentStep(wizard, httpRequest);
+        var veto =
+            wizard.beforeStepNavigate(
+                wizard.stepName(wizard.position), wizard.stepName(previous), httpRequest);
+        if (veto != null) {
+          return veto;
+        }
+      }
+      wizard.position = previous;
     }
     if ("goToStep".equals(actionId)) {
       // Clicking the drawer step pager jumps to an already-visited step (its field name arrives as
@@ -83,6 +148,12 @@ final class WizardActionDispatcher {
         var fields = WizardStepInspector.getStepFields(wizard);
         for (int i = 0; i < fields.size() && i < wizard.position; i++) {
           if (fields.get(i).getName().equals(stepId.toString())) {
+            var veto =
+                wizard.beforeStepNavigate(
+                    wizard.stepName(wizard.position), fields.get(i).getName(), httpRequest);
+            if (veto != null) {
+              return veto;
+            }
             wizard.position = i;
             break;
           }
@@ -107,6 +178,14 @@ final class WizardActionDispatcher {
         var missing = requiredMissing(wizard, httpRequest);
         if (missing != null) {
           return missing;
+        }
+        var veto =
+            wizard.beforeStepNavigate(
+                wizard.stepName(wizard.position),
+                wizard.stepName(wizard.numberOfSteps() - 1),
+                httpRequest);
+        if (veto != null) {
+          return veto;
         }
         var method = found.get();
         io.mateu.core.application.security.ActionMethods.checkAccess(
@@ -146,6 +225,17 @@ final class WizardActionDispatcher {
       }
     }
     return wizard;
+  }
+
+  /** Rebuilds the current step from the request's state (no validation). */
+  private static void hydrateCurrentStep(Wizard wizard, HttpRequest httpRequest) throws Exception {
+    var stepField = wizard.currentStepField();
+    setValue(
+        stepField,
+        wizard,
+        MateuBeanProvider.getBean(InstanceFactory.class)
+            .newInstance(
+                stepField.getType(), httpRequest.runActionRq().componentState(), httpRequest));
   }
 
   /**

@@ -59,6 +59,14 @@ public class ActionMapper {
     if (serverSideObject instanceof LookupOptionsSupplier) {
       actions.add(Action.builder().id("search-*").build());
     }
+    // the header's record switcher dispatches this action when the user picks an entry
+    if (serverSideObject instanceof io.mateu.uidl.interfaces.RecordSwitcherSupplier) {
+      actions.add(
+          Action.builder()
+              .id(io.mateu.uidl.interfaces.RecordSwitcherSupplier.ACTION_ID)
+              .validationRequired(false)
+              .build());
+    }
 
     actions.addAll(
         Stream.concat(

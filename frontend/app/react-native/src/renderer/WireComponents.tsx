@@ -46,6 +46,8 @@ import {
   responsiveColumns,
   textOfHtml,
   type MenuOptionLike,
+  gridTrackSizes,
+  orderByAreas,
 } from './wireWidgets';
 import { interpolate } from '../core/expressions';
 import { platformStore } from '../core/secureStore';
@@ -551,7 +553,25 @@ export function ResponsiveGridRenderer({ component, metadata, state, data }: { c
   const cols = responsiveColumns(str(metadata['gridTemplateColumns']), width, str(metadata['stackBelow']) || null);
   const spans = (metadata['colSpans'] as number[]) ?? [];
   const kids = childrenOf(component);
+  // Stacked: children order (a promoted slot — e.g. GeneralOverview's info — comes first on purpose).
   if (cols <= 1) return <View style={styles.stack}><Kids list={kids} state={state} data={data} /></View>;
+  // Wide, one child per declared track ("1fr 22rem"): honour the area names and the track sizes.
+  const tracks = gridTrackSizes(str(metadata['gridTemplateColumns']));
+  const byArea = orderByAreas(str(metadata['gridTemplateAreas']), kids) ?? (tracks && kids.length === tracks.length ? kids : null);
+  if (tracks && byArea && byArea.length === tracks.length) {
+    return (
+      <View style={[styles.row, { alignItems: 'stretch', gap: 12 }]}>
+        {byArea.map((c, i) => {
+          const t = tracks[i]!;
+          return (
+            <View key={i} style={'fr' in t ? { flex: t.fr, minWidth: 0 } : { width: t.px }}>
+              <ComponentRenderer component={c} state={state} data={data} />
+            </View>
+          );
+        })}
+      </View>
+    );
+  }
   return (
     <View style={[styles.row, styles.wrap, { alignItems: 'stretch' }]}>
       {kids.map((c, i) => {

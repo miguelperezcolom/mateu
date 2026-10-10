@@ -18,7 +18,7 @@ from mateu_dtos import (
     TextMetadata,
     VerticalLayoutMetadata,
 )
-from mateu_uidl import Step
+from mateu_uidl import Draftable, Step
 
 from ..naming import (
     camel_case,
@@ -44,7 +44,63 @@ def completion_method(cls) -> "tuple[str, str] | None":
     return None
 
 
+def completion_available_from(cls) -> int | None:
+    """The step (1-based) from which the ``@wizard_completion_action`` is offered EARLY, beside
+    Next (its ``available_from_step``), or None (only on the penultimate step)."""
+    for _name, fn in methods_with(cls, "__mateu_wizard_completion__"):
+        value = getattr(fn, "__mateu_wizard_completion_from__", None)
+        return value if isinstance(value, int) and not isinstance(value, bool) else None
+    return None
+
+
+def completion_offered_early(cls, current: int, total: int) -> bool:
+    """Whether the completion action is offered beside Next on step ``current`` (from its
+    ``available_from_step`` on, while a regular next step still exists)."""
+    if completion_method(cls) is None:
+        return False
+    start = completion_available_from(cls)
+    return start is not None and start <= current < total - 1
+
+
+def has_next_step(cls, current: int, total: int) -> bool:
+    """Whether Next/Skip lead to another (non-result) step from ``current``."""
+    return current < (total - 1 if completion_method(cls) is not None else total)
+
+
 class WizardMapperMixin(MixinBase):
+    def _wizard_extras(self, cls, instance, current: int, total: int) -> list:
+        display = instance.display()
+        out = []
+        if (
+            has_next_step(cls, current, total)
+            and instance.step_skippable(current)
+            and display.skip.shown()
+        ):
+            out.append(self.client(
+                ButtonMetadata(label=self.T("Skip"), action_id="skip", button_style="tertiary",
+                               disabled=not display.skip.enabled()),
+                "skip", [],
+            ))
+        if isinstance(instance, Draftable):
+            if display.save_draft.shown():
+                out.append(self.client(
+                    ButtonMetadata(label=self.T("Save"), action_id="saveDraft",
+                                   disabled=not display.save_draft.enabled()),
+                    "saveDraft", [],
+                ))
+            if display.save_and_close.shown():
+                out.append(self.client(
+                    ButtonMetadata(label=self.T("Save and close"), action_id="saveAndClose",
+                                   disabled=not display.save_and_close.enabled()),
+                    "saveAndClose", [],
+                ))
+        if completion_offered_early(cls, current, total):
+            name, label = completion_method(cls)  # type: ignore[misc]
+            out.append(self.client(
+                ButtonMetadata(label=self.T(label), action_id=camel_case(name)), None, [],
+            ))
+        return out
+
     # ── Wizard ─────────────────────────────────────────────────────────────────
     def map_wizard(self, cls, instance, route: str, step: int) -> ServerSideComponent:
         step_fields = [(f, (f.marker(Step).step if f.has(Step) else 1)) for f in view_fields(cls)]
@@ -101,8 +157,14 @@ class WizardMapperMixin(MixinBase):
                 None,
                 [],
             )
+        # The Redwood guided-process affordances, between Back and the way forward (Java's
+        # WizardButtonBuilder order): Skip on a skippable step, Save / Save and close on a
+        # Draftable wizard, the completion action offered early — each honouring display().
+        extras = [] if result_step else self._wizard_extras(cls, instance, current, total)
         # the result step has no navigation at all
-        bar = self.client(HorizontalLayoutMetadata(), None, [] if result_step else [back, nxt])
+        bar = self.client(
+            HorizontalLayoutMetadata(), None, [] if result_step else [back, *extras, nxt]
+        )
         if getattr(cls, "__mateu_wizard_progress__", "bar") == "rail":
             # wizard_progress("rail"): the Redwood Guided Process rail — the step form on the
             # left, a sticky right band with a big current|total counter over the vertical step
@@ -172,7 +234,19 @@ class WizardMapperMixin(MixinBase):
                 *([] if result_step else [Action(id="next", validation_required=True)]),
                 *(
                     [Action(id=camel_case(completion[0]), validation_required=True)]
-                    if completion is not None and current == total - 1
+                    if completion is not None
+                    and (current == total - 1 or completion_offered_early(cls, current, total))
+                    else []
+                ),
+                # skipping and saving a draft deliberately leave the step incomplete: no client
+                # validation (Java's Wizard.actions)
+                *([] if result_step else [Action(id="skip", validation_required=False)]),
+                *(
+                    [
+                        Action(id="saveDraft", validation_required=False),
+                        Action(id="saveAndClose", validation_required=False),
+                    ]
+                    if isinstance(instance, Draftable) and not result_step
                     else []
                 ),
                 *self.field_actions(cls, [f for f, s in step_fields if s == current]),

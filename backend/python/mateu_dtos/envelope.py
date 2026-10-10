@@ -28,6 +28,24 @@ class UICommand(Wire):
         return UICommand(target_component_id="ux_main", type="CloseModal", data=data)
 
     @staticmethod
+    def announce(text: str) -> "UICommand":
+        """Announces ``text`` to screen readers through the page's POLITE live region — tells a
+        non-sighted user what happened when nothing on screen takes focus. Nothing is drawn
+        (mirrors Java's UICommand.announce)."""
+        return UICommand(
+            target_component_id="ux_main", type="Announce",
+            data=Announcement(text=text, assertive=False),
+        )
+
+    @staticmethod
+    def announce_assertive(text: str) -> "UICommand":
+        """Like :meth:`announce`, through the ASSERTIVE region (interrupts — errors only)."""
+        return UICommand(
+            target_component_id="ux_main", type="Announce",
+            data=Announcement(text=text, assertive=True),
+        )
+
+    @staticmethod
     def dispatch_event(event_name: str, detail: Any | None = None) -> "UICommand":
         """Emits a named custom event from the current component (mirrors Java's
         UICommand.dispatchEvent) — @subscribe_to counterparts react to it."""
@@ -36,6 +54,15 @@ class UICommand(Wire):
             type="DispatchEvent",
             data=CustomEventRecord(event_name=event_name, detail=detail),
         )
+
+
+class Announcement(Wire):
+    """The payload of an ``Announce`` command (mirrors ``io.mateu.uidl.data.Announcement``): a
+    text for assistive technology, read through the polite live region, or the assertive one
+    when ``assertive``."""
+
+    text: str
+    assertive: bool = False
 
 
 class CustomEventRecord(Wire):

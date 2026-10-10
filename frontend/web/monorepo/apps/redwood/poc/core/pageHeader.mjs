@@ -109,6 +109,56 @@ export function itemOverviewPageOf(entity, blocks, toolbar) {
   }
 }
 
+/**
+ * The record/context SWITCHER of the page header (RecordSwitcherSupplier → Page.metadata.switcher;
+ * the Redwood selectObject/selectContext element). oj-sp's header draws it natively: an
+ * oj-sp-data-switcher (the title becomes the switcher for `object`; the context switcher sits beside
+ * it for `context`), searchable through displayOptions.switcherSearch. Picking an entry dispatches
+ * `actionId` with `{_record: value}`.
+ *
+ * Always an object (the VB bindings read its fields unconditionally): `on` false without one. The
+ * options of the type that is NOT in use stay empty — an empty DataProvider is how oj-sp's header
+ * knows not to draw that switcher. A DISABLED switcher draws no switcher at all (the data switcher
+ * has no read-only mode): the current entry becomes a contextual fact, labelled with the hint.
+ */
+export const RECORD_SWITCHER_ACTION = '_switchRecord'
+export const RECORD_SWITCHER_PARAMETER = '_record'
+export function pageSwitcherOf(ctx) {
+  const page = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
+  const sw = page && page.metadata ? page.metadata.switcher : null
+  const none = { on: false, type: 'object', value: null, label: '', searchable: false, disabled: false,
+    actionId: RECORD_SWITCHER_ACTION, objectOptions: [], contextOptions: [], fact: null }
+  if (!sw || !Array.isArray(sw.options) || !sw.options.length) return none
+  const options = sw.options
+    .filter((o) => o && o.value != null)
+    .map((o) => ({ value: String(o.value), label: o.label == null ? String(o.value) : String(o.label), description: o.description || '' }))
+  const type = sw.type === 'context' ? 'context' : 'object'
+  const value = sw.value == null ? null : String(sw.value)
+  const current = options.find((o) => o.value === value)
+  const disabled = !!sw.disabled
+  return {
+    on: true,
+    type,
+    value,
+    label: sw.label || '',
+    searchable: !!sw.searchable,
+    disabled,
+    actionId: sw.actionId || RECORD_SWITCHER_ACTION,
+    objectOptions: !disabled && type === 'object' ? options : [],
+    contextOptions: !disabled && type === 'context' ? options : [],
+    fact: disabled && current ? { label: sw.label || '', value: current.label } : null,
+  }
+}
+
+/** The action a pick of the header switcher runs, or null when nothing changed (the data switcher
+ *  also writes back the value it was given, and an echo must not re-run the page). */
+export function switcherPickOf(switcher, picked) {
+  if (!switcher || !switcher.on || switcher.disabled || picked == null) return null
+  const value = typeof picked === 'object' ? (picked.value != null ? picked.value : picked.key) : picked
+  if (value == null || String(value) === String(switcher.value)) return null
+  return { actionId: switcher.actionId || RECORD_SWITCHER_ACTION, parameters: { [RECORD_SWITCHER_PARAMETER]: String(value) } }
+}
+
 /** El TOOLBAR de la Page del host (para las acciones del header de banda):
  *  [{actionId, label, chroming}]. El de estilo primary va al primaryAction del header. */
 export function pageToolbarOf(ctx) {
@@ -242,6 +292,13 @@ export function crudTitleOf(host) {
   return crud && crud.metadata ? crud.metadata.title : ''
 }
 
+/** The form's action row minus the buttons its sections already draw (sectionButtonsOf). */
+export function withoutSectionButtons(actions, sections) {
+  const drawn = {}
+  for (const sec of sections || []) for (const b of (sec.titleButtons || []).concat(sec.footerButtons || [])) drawn[b.actionId] = true
+  return (actions || []).filter((a) => !drawn[a.actionId])
+}
+
 export function summarizeHost(reg, route) {
   const host = reg.contexts[HOST_ID] || {}
   const pageMetadata = (((host.tree || {}).children || [])[0] || {}).metadata || {}
@@ -269,6 +326,7 @@ export function summarizeHost(reg, route) {
     fields,
     sections,
     formValue: formMetadata ? { ...state } : null,
-    actions: host.tree ? actionsOf(host.tree) : [],
+    // the buttons a section draws itself (title row / under its content) leave the form's row
+    actions: host.tree ? withoutSectionButtons(actionsOf(host.tree), sections) : [],
   }
 }

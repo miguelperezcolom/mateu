@@ -391,6 +391,9 @@ public sealed class WelcomeBannerAttribute : Attribute
 
     /// <summary>Optional background image URL for the banner (rendered with a dark overlay).</summary>
     public string Image { get; set; } = "";
+
+    /// <summary>The banner's tone: Auto (default look) or a dark tinted band.</summary>
+    public HeroTone Tone { get; set; } = HeroTone.Auto;
 }
 
 /// <summary>Renders the whole view read-only (a display page, not an editable form). On a

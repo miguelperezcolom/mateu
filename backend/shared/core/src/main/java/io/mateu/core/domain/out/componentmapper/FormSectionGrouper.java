@@ -104,6 +104,21 @@ final class FormSectionGrouper {
                 public io.mateu.uidl.annotations.PanelWidth panelWidth() {
                   return io.mateu.uidl.annotations.PanelWidth.AUTO;
                 }
+
+                @Override
+                public String editAction() {
+                  return "";
+                }
+
+                @Override
+                public String addAction() {
+                  return "";
+                }
+
+                @Override
+                public String viewMoreAction() {
+                  return "";
+                }
               };
         }
         sectionFields = null;
@@ -132,6 +147,9 @@ final class FormSectionGrouper {
         && a.style().equals(b.style())
         && a.sticky() == b.sticky()
         && a.propertyList() == b.propertyList()
-        && a.frameless() == b.frameless();
+        && a.frameless() == b.frameless()
+        && a.editAction().equals(b.editAction())
+        && a.addAction().equals(b.addAction())
+        && a.viewMoreAction().equals(b.viewMoreAction());
   }
 }

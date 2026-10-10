@@ -43,6 +43,11 @@ public record CrudlDto(
     boolean rowsSelectionEnabled,
     List<ComponentDto> header,
     List<ComponentDto> footer,
+    /**
+     * Shown in place of the results until the first search has run (the Redwood smart-filter-search
+     * {@code dashboard} slot); {@code null} = none.
+     */
+    List<ComponentDto> preSearch,
     boolean wrapCellContent,
     boolean compact,
     boolean noBorder,

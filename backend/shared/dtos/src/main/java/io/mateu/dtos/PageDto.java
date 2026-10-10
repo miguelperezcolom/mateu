@@ -51,6 +51,11 @@ public record PageDto(
      */
     PeerNavDto peerNav,
     /**
+     * The record/context switcher of the header (the Oracle Redwood {@code selectObject}/{@code
+     * selectContext} element). {@code null} when the page supplies none.
+     */
+    RecordSwitcherDto switcher,
+    /**
      * The page's "last updated" timestamp shown in the header (the Oracle Redwood timestamp header
      * element), from a {@code @Timestamp} field; {@code null} when the page declares none.
      */

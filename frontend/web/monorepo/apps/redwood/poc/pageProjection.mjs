@@ -2,6 +2,7 @@ import {
   wizardForwardOf, welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, fieldListOf,
   formSectionsOf, actionsOf, islandContentOf, mergeNestedContent, entityHeaderOf, hostContentOf,
   primaryToolbarButton, backToolbarButton, pageSubtitleOf, pageKpisOf, pageStyleOf, findByType, ojIconOrGenericOf,
+  pageSwitcherOf,
 } from './reduceContexts.mjs'
 import { parentCrumb } from './breadcrumbs.mjs'
 
@@ -20,10 +21,12 @@ export const noGenericFormVars = () => ({ mateuFormMetadata: null, mateuFormFiel
 export function listHeaderVarsOf(listingSummary) {
   const toolbar = listingSummary ? listingSummary.toolbar : []
   const primaryToolbar = toolbar.length ? toolbar[0] : null
+  // a DISABLED button (CrudDisplay New/Delete: Toggle.disabled) is shown but inert: oj-sp's
+  // display 'disabled'
   return {
-    mateuListPrimary: primaryToolbar ? { label: primaryToolbar.label } : { label: '', display: 'off' },
+    mateuListPrimary: primaryToolbar ? { label: primaryToolbar.label, ...(primaryToolbar.disabled ? { display: 'disabled' } : {}) } : { label: '', display: 'off' },
     mateuListPrimaryId: primaryToolbar ? primaryToolbar.actionId : '',
-    mateuListSecondary: toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
+    mateuListSecondary: toolbar.slice(1).map((b) => ({ id: b.actionId, value: b.actionId, label: b.label, ...(b.disabled ? { display: 'disabled' } : {}) })),
   }
 }
 
@@ -66,7 +69,7 @@ export function archetypeVarsOf(host, previousLook) {
     mateuItemTabTexts: item && item.tabs.length ? item.tabs[0].items : [],
   }
   if (welcome) {
-    const look = welcomeLookOf(welcomeKeyOf(host), previousLook)
+    const look = welcomeLookOf(welcomeKeyOf(host), previousLook, Math.random, welcome.tone)
     vars.mateuWelcomeKey = look.key
     vars.mateuWelcomeTheme = look.theme
     vars.mateuWelcomeIlluBg = look.illuBg
@@ -136,13 +139,17 @@ export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeade
   const primaryBtn = primaryToolbarButton(hostToolbar)
   const backBtn = backToolbarButton(hostToolbar)
   const parentCrumbNav = backBtn ? undefined : parentCrumb(summary.trail)
+  const switcher = pageSwitcherOf(host)
+  const baseFacts = hostEntity ? hostEntity.facts : pageKpisOf(host)
   const header = {
     // with an EntityHeader (a record's card) the band stays FIXED on scroll and compacts
     bandClass: hostEntity ? 'oj-bg-neutral-30 oj-sm-padding-10x-bottom mateu-sticky-header' : 'oj-bg-neutral-30 oj-sm-padding-10x-bottom',
     title: hostEntity ? hostEntity.title : (summary.title || ''),
     subtitle: hostEntity ? hostEntity.subtitle : pageSubtitleOf(host),
     // without an EntityHeader, the Page's @KPIs are its facts
-    facts: hostEntity ? hostEntity.facts : pageKpisOf(host),
+    facts: switcher.fact ? [switcher.fact].concat(baseFacts || []) : baseFacts,
+    // the record/context switcher (pageSwitcherOf): select-object / select-context of the header
+    switcher,
     showBand: showBand && !gopOn && !iopOn,
     showInline: showHeader && !showBand && !gopOn && !iopOn,
     showListBand,
@@ -150,7 +157,7 @@ export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeade
     primary: primaryBtn ? { label: primaryBtn.label, display: primaryBtn.disabled ? 'disabled' : 'on' } : { label: '', display: 'off' },
     primaryId: primaryBtn ? primaryBtn.actionId : '',
     secondary: hostToolbar.filter((b) => b !== primaryBtn && b !== backBtn)
-      .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label })),
+      .map((b) => ({ id: b.actionId, value: b.actionId, label: b.label, ...(b.disabled ? { display: 'disabled' } : {}) })),
     goToParent: !!backBtn || !!parentCrumbNav,
     backId: backBtn ? backBtn.actionId : (parentCrumbNav ? '__goToParent' : ''),
     parentRoute: !backBtn && parentCrumbNav ? parentCrumbNav.route : '',

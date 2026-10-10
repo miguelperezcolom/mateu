@@ -98,13 +98,13 @@ documented once in [Page templates](/ux-patterns/page-templates/).
 |---|---|---|
 | **Slot** `main` | the form body: `@Section` groups, zones, the fluent `FormField` | ✅ |
 | **Slot** `detail` (contextual side panel) | `@Aside` on a component-holder field → `ContentLayout` (`position`/`width`/`sticky`) | ✅ |
-| **Slot** `innerEnd` | — a second docked region is not available | — |
+| **Slot** `innerEnd` | — a second docked region is not available on a form; `DataManagement` has docked end/bottom panels (`DockedPanel`) | — |
 | **Slot** `search` | the app-level smart search bar / ⌘K palette, not a page slot | 🟡 |
 | Section index | `@Toc` — the sticky section index; a Mateu addition with no Redwood prop | ✅ |
 | `badge` | `@BadgeInHeader` | ✅ |
 | `timestamp` | `@Timestamp("Last updated")` | ✅ |
 | `contextualInfo` key/value facts | `@KPI` fields | ✅ |
-| `displayOptions {save, saveAndClose, next: on \| off \| unconfigured, bottomActions}` | `AutoCrud` gates and label overrides cover save/cancel; there is no single tri-state options bag, and `saveAndClose`/`next` are not built | 🟡 |
+| `displayOptions {save, saveAndClose, next: on \| off \| unconfigured, bottomActions}` | `AutoCrud` gates and label overrides cover save/cancel; the tri-state grammar exists (`Toggle` + `CrudDisplay`: create, delete, save-and-next in the edit drawer, error banner) but a create-edit PAGE has no `saveAndClose`/`next` | 🟡 |
 | `displayOptions.contextualInfoSticky` | `@Aside(sticky = …)` for the side panel; the header facts are not stickyable | 🟡 |
 | `displayOptions.density: standard \| compact` | `@Compact`, set on the view rather than as a template option | 🟡 |
 | `endOpened: inner \| none` | — the aside is always shown when declared | — |
@@ -114,6 +114,15 @@ documented once in [Page templates](/ux-patterns/page-templates/).
 
 Unsaved-changes handling — the dirty guard and, on `AutoCrud`, optimistic locking via `@Version` —
 is covered by the framework rather than by a template prop.
+
+## Coverage
+
+| | Java | .NET | Python | Vaadin | Redwood | React Native | IntelliJ |
+|---|---|---|---|---|---|---|---|
+| Long form + `@Toc` index | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `@Aside` detail slot | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Header (badge, timestamp, facts, title placeholder) | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| `@Section` edit / add / view-more affordances | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ## Parity
 

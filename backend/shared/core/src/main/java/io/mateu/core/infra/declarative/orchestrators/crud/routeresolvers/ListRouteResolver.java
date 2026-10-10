@@ -105,15 +105,19 @@ public class ListRouteResolver implements CrudOrchestratorRouteResolver {
         && exporterAvailable(io.mateu.uidl.interfaces.PdfExporter.class)) {
       toolbar.add(new Button("Export PDF", "export-pdf"));
     }
-    if (!notCreatable(orchestrator) && orchestrator.canCreate()) {
-      toolbar.add(new Button(orchestrator.newLabel(), "new"));
+    var display = orchestrator.display();
+    if (!notCreatable(orchestrator) && orchestrator.canCreate() && display.create().shown()) {
+      toolbar.add(
+          new Button(orchestrator.newLabel(), "new")
+              .toBuilder().disabled(!display.create().enabled()).build());
     }
-    if (!notDeletable(orchestrator) && orchestrator.canDelete()) {
+    if (!notDeletable(orchestrator) && orchestrator.canDelete() && display.delete().shown()) {
       toolbar.add(
           Button.builder()
               .label(orchestrator.deleteLabel())
               .actionId("delete")
               .variant(ButtonVariant.error)
+              .disabled(!display.delete().enabled())
               .build());
     }
     List<GridContent> columns =

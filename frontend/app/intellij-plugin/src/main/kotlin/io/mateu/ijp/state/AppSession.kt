@@ -54,6 +54,12 @@ class AppSession(
     // ── overlays (Drawer/Dialog) — close callbacks, topmost last (CloseModal unwinds one) ──
     private val overlays = ArrayDeque<() -> Unit>()
 
+    /**
+     * Open overlays by their own id → refresh-in-place callback (component, state, data); it answers
+     * false when its window is already gone, so the caller opens a new one instead.
+     */
+    val openOverlays = HashMap<String, (com.fasterxml.jackson.databind.JsonNode, com.fasterxml.jackson.databind.JsonNode, com.fasterxml.jackson.databind.JsonNode) -> Boolean>()
+
     fun pushOverlay(close: () -> Unit) = overlays.addLast(close)
     fun removeOverlay(close: () -> Unit) = overlays.remove(close)
     fun closeTopOverlay() {

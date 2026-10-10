@@ -161,9 +161,20 @@ function ClientSideComponent({ component, state, data }: { component: Record<str
       // Button.parameters travel with the dispatched action (e.g. the conflict dialog's
       // keep-mine/take-theirs buttons) — same contract as the web's buttonRenderer.
       const parameters = (metadata['parameters'] as Record<string, unknown> | undefined) ?? undefined;
+      // disabled (e.g. a wizard's Toggle.disabled affordance): shown but inert. buttonStyle picks
+      // the emphasis — primary filled, tertiary a borderless text button (section Add/Edit/View more).
+      const disabled = metadata['disabled'] === true;
+      const emphasis = String(metadata['buttonStyle'] ?? '').toLowerCase();
+      const boxStyle = emphasis === 'primary' ? styles.btnPrimary : emphasis === 'tertiary' ? styles.btnTertiary : styles.btnDefault;
+      const textStyle = emphasis === 'primary' ? styles.btnPrimaryText : emphasis === 'tertiary' ? styles.btnTertiaryText : styles.btnDefaultText;
       return (
-        <TouchableOpacity {...buttonA11y()} style={styles.btnDefault} onPress={() => void controller.runAction(id, parameters)}>
-          <Text style={styles.btnDefaultText}>{label}</Text>
+        <TouchableOpacity
+          {...buttonA11y({ disabled })}
+          disabled={disabled}
+          style={[boxStyle, disabled && styles.btnDisabled]}
+          onPress={() => void controller.runAction(id, parameters)}
+        >
+          <Text style={textStyle}>{label}</Text>
         </TouchableOpacity>
       );
     }
@@ -436,4 +447,9 @@ const styles = StyleSheet.create({
   image: { width: '100%', height: 200, borderRadius: theme.radiusSm, backgroundColor: theme.background },
   btnDefault: { backgroundColor: theme.background, paddingHorizontal: 16, paddingVertical: 8, borderRadius: theme.radiusSm, borderWidth: 1, borderColor: theme.border, alignSelf: 'flex-start' },
   btnDefaultText: { color: theme.ink, fontSize: 14 },
+  btnPrimary: { backgroundColor: theme.primary, paddingHorizontal: 16, paddingVertical: 8, borderRadius: theme.radiusSm, alignSelf: 'flex-start' },
+  btnPrimaryText: { color: theme.onPrimary, fontSize: 14, fontWeight: '600' },
+  btnTertiary: { paddingHorizontal: 6, paddingVertical: 4, alignSelf: 'flex-start' },
+  btnTertiaryText: { color: theme.info, fontSize: 13, fontWeight: '600' },
+  btnDisabled: { opacity: 0.45 },
 });

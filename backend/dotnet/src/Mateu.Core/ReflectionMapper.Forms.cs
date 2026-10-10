@@ -9,15 +9,24 @@ namespace Mateu.Core;
 public sealed partial class ReflectionMapper
 {
     /// <summary>Detail/edit/new form for a single CRUD entity, with a mode-specific toolbar.</summary>
-    public ServerSideComponentDto MapEntityForm(Type crudType, Type element, object entity, string mode, string route)
+    public ServerSideComponentDto MapEntityForm(Type crudType, Type element, object entity, string mode, string route,
+        ICrudAffordances? drawerOf = null)
     {
         var title = crudType.Find<TitleAttribute>()?.Value ?? Naming.Humanize(element.Name);
-        IReadOnlyList<ButtonDto> toolbar = mode switch
+        var toolbar = (mode switch
         {
-            "view" => [new("Back to list", "cancel-view"), new("Edit", "edit"), new("Add another", "new")],
+            "view" => new List<ButtonDto> { new("Back to list", "cancel-view"), new("Edit", "edit"), new("Add another", "new") },
             "edit" => [new("Cancel", "cancel-edit"), new("Save", "create") { ButtonStyle = "primary" }],
             _ /* new */ => [new("Cancel", "cancel-new"), new("Save", "create") { ButtonStyle = "primary" }],
-        };
+        });
+        // The edit drawer's "Save and next" (CrudDisplay.SaveAndNext, the Redwood
+        // spPrimaryActionAndNext): saves and moves the drawer on to the next row — beside Save
+        // (mirrors Java's CrudFormComponentBuilder).
+        if (mode == "edit" && drawerOf is { } affordances && affordances.Display.SaveAndNext.Shown())
+            toolbar.Insert(toolbar.Count - 1, new ButtonDto(T(affordances.SaveAndNextLabel), "save-and-next")
+            {
+                Disabled = !affordances.Display.SaveAndNext.Enabled(),
+            });
         var page = Client(new PageMetadataDto(title, title, null, toolbar, []), null,
             FormCards(element, entity, readOnly: mode == "view"));
         // The entity's field values ARE the form state: seed them into initialData (and, via
@@ -290,6 +299,25 @@ public sealed partial class ReflectionMapper
                 // (mirrors Java's PageFormBuilder compact columnWidth).
                 ColumnWidth = formType?.Find<CompactAttribute>() != null ? "7em" : null,
             }, null, FormRows(fields, columns));
+        // [Section(EditAction/AddAction/ViewMoreAction)]: "Add"/"Edit" on the title row, "View
+        // more" under the content — plain buttons composed server-side (mirrors Java's
+        // SectionAffordances). A section declaring none is untouched.
+        var titleButtons = SectionTitleButtons(section);
+        if (SectionViewMoreButton(section) is { } viewMore)
+            body = Client(new VerticalLayoutMetadataDto(), null,
+            [
+                body,
+                Client(new HorizontalLayoutMetadataDto(), null, [viewMore]) with
+                {
+                    Style = "justify-content: flex-end; width: 100%;",
+                },
+            ]) with { Style = "width: 100%;" };
+        var hasTitleRow = titleButtons.Count > 0;
+        if (hasTitleRow && !(titled && !string.IsNullOrWhiteSpace(title) && section?.Frameless != true))
+            // the untitled / frameless paths draw no heading of their own: the affordances bring
+            // their title row (the caption, possibly blank, plus the buttons)
+            body = Client(new VerticalLayoutMetadataDto(), null,
+                [SectionTitleRow(title, titleButtons), body]) with { Style = "width: 100%;" };
         // [Section(Frameless = true)]: no card wrapper, no padding — the content sits bare
         // (mirrors Java's @Section(frameless=true)).
         if (section?.Frameless == true)
@@ -302,10 +330,12 @@ public sealed partial class ReflectionMapper
         // when the section has a heading).
         if (titled && !string.IsNullOrWhiteSpace(title))
         {
-            var heading = Client(new TextMetadataDto(T(title!)) { Container = "h3" }, null, []) with
-            {
-                Style = " flex: 1; margin: 0;",
-            };
+            var heading = hasTitleRow
+                ? SectionTitleRow(title, titleButtons)
+                : Client(new TextMetadataDto(T(title!)) { Container = "h3" }, null, []) with
+                {
+                    Style = " flex: 1; margin: 0;",
+                };
             var inner = Client(new VerticalLayoutMetadataDto(), null, [body]) with
             {
                 Style = "width: 100%;",
@@ -473,6 +503,9 @@ public sealed partial class ReflectionMapper
     /// <summary>A form's field values as the initialData/state map (fieldId → value): a grid property
     /// travels as its list of row dicts, everything else as its typed value. Java emits these on the
     /// component's initialData and the fragment state, instead of a per-field initialValue.</summary>
+    /// <summary>An entity's field values as wire state (what a form's initialData carries).</summary>
+    internal Dictionary<string, object?> EntityState(Type type, object instance) => InitialDataOf(type, instance);
+
     private Dictionary<string, object?> InitialDataOf(Type type, object instance)
     {
         var data = new Dictionary<string, object?>();
@@ -535,7 +568,60 @@ public sealed partial class ReflectionMapper
     /// <summary>Whether two [Section] declarations describe the same section (every attribute equal).</summary>
     private static bool SameSection(SectionAttribute a, SectionAttribute b) =>
         a.Caption == b.Caption && a.Zone == b.Zone
-        && a.PropertyList == b.PropertyList && a.Frameless == b.Frameless;
+        && a.PropertyList == b.PropertyList && a.Frameless == b.Frameless
+        && a.EditAction == b.EditAction && a.AddAction == b.AddAction
+        && a.ViewMoreAction == b.ViewMoreAction;
+
+    // ── Section affordances ([Section(EditAction/AddAction/ViewMoreAction)], Java's
+    // SectionAffordances): the named methods' wire ids are their camelCase names.
+
+    /// <summary>Every action id the form's section affordances dispatch (advertised on the view).</summary>
+    internal static IEnumerable<string> SectionActionIds(Type type) =>
+        type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Select(p => p.Find<SectionAttribute>())
+            .Where(s => s is not null)
+            .SelectMany(s => new[] { s!.AddAction, s.EditAction, s.ViewMoreAction })
+            .Where(a => !string.IsNullOrWhiteSpace(a))
+            .Select(a => Naming.CamelCase(a))
+            .Distinct();
+
+    private ClientSideComponentDto SectionAffordance(string kind, string action, string label)
+    {
+        var actionId = Naming.CamelCase(action);
+        return Client(new ButtonMetadataDto(T(label), actionId) { ButtonStyle = "tertiary" },
+            $"section-{kind}-{actionId}", []);
+    }
+
+    /// <summary>"Add" and "Edit" — the title-row affordances, in that order.</summary>
+    private List<ComponentDto> SectionTitleButtons(SectionAttribute? section)
+    {
+        var buttons = new List<ComponentDto>();
+        if (section is null) return buttons;
+        if (!string.IsNullOrWhiteSpace(section.AddAction))
+            buttons.Add(SectionAffordance("add", section.AddAction, "Add"));
+        if (!string.IsNullOrWhiteSpace(section.EditAction))
+            buttons.Add(SectionAffordance("edit", section.EditAction, "Edit"));
+        return buttons;
+    }
+
+    /// <summary>"View more" — under the section's content.</summary>
+    private ClientSideComponentDto? SectionViewMoreButton(SectionAttribute? section) =>
+        section is not null && !string.IsNullOrWhiteSpace(section.ViewMoreAction)
+            ? SectionAffordance("view-more", section.ViewMoreAction, "View more")
+            : null;
+
+    /// <summary>The section title (an h3, possibly blank) with the affordance buttons beside it.</summary>
+    private ClientSideComponentDto SectionTitleRow(string? title, List<ComponentDto> buttons)
+    {
+        var heading = Client(new TextMetadataDto(T(title ?? "")) { Container = "h3" }, null, []) with
+        {
+            Style = " flex: 1; margin: 0;",
+        };
+        return Client(new HorizontalLayoutMetadataDto(), null, [heading, .. buttons]) with
+        {
+            Style = "align-items: center; width: 100%;",
+        };
+    }
 
     /// <summary>Maps the section's properties to field DTOs, inserting a full-width separator
     /// above any [SeparatorBefore] property (mirrors Java's FormLayoutBuilder).</summary>

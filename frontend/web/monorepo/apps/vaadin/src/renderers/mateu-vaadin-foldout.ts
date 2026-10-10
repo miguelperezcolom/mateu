@@ -476,6 +476,14 @@ export class MateuVaadinFoldout extends LitElement {
             font-size: var(--lumo-font-size-m, 1rem);
             white-space: nowrap;
         }
+        .strip-summary {
+            writing-mode: vertical-rl;
+            font-size: var(--lumo-font-size-s, .875rem);
+            color: var(--lumo-secondary-text-color, #666);
+            max-height: 50%;
+            overflow: hidden;
+        }
+        .strip-summary ::slotted(*) { margin: 0; }
         .strip-chevron, .panel-fold {
             font-size: 1.1rem;
             line-height: 1;
@@ -691,6 +699,8 @@ export class MateuVaadinFoldout extends LitElement {
                                         aria-expanded="false" @click="${() => this._toggle(index)}">
                                     <span class="strip-chevron" aria-hidden="true">›</span>
                                     <span class="strip-title">${panel.title ?? ''}</span>
+                                    <!-- FoldoutPanel.summary: the folded panel's digest -->
+                                    <span class="strip-summary"><slot name="summary-${index}"></slot></span>
                                 </button>
                             </section>
                         `

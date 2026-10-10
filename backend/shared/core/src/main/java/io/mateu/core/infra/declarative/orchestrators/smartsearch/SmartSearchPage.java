@@ -34,6 +34,16 @@ public abstract class SmartSearchPage<Filters, Row>
     return null;
   }
 
+  /**
+   * What the page shows BEFORE the first search (the Redwood smart-filter-search {@code dashboard}
+   * slot): a dashboard, recent items, saved searches, tips… — replaced by the results as soon as
+   * the user searches. Null (the default) = the usual empty listing. Pointless when the page
+   * preloads its results.
+   */
+  protected Component preSearchContent(HttpRequest httpRequest) {
+    return null;
+  }
+
   @Override
   public Component component(HttpRequest httpRequest) {
     var rq = httpRequest.runActionRq();
@@ -41,9 +51,17 @@ public abstract class SmartSearchPage<Filters, Row>
     if (pageSubtitle() != null) {
       content.add(new Text("page-subtitle", pageSubtitle()));
     }
+    var preSearch = preSearchContent(httpRequest);
     content.addAll(
         PageListingBuilder.getCrud(
-            this, null, rq.route(), rq.consumedRoute(), rq.initiatorComponentId(), httpRequest));
+                this, null, rq.route(), rq.consumedRoute(), rq.initiatorComponentId(), httpRequest)
+            .stream()
+            .map(
+                component ->
+                    preSearch != null && component instanceof io.mateu.uidl.fluent.Listing listing
+                        ? (Component) listing.toBuilder().preSearchItem(preSearch).build()
+                        : (Component) component)
+            .toList());
     return VerticalLayout.builder()
         .id(id())
         .content(content)

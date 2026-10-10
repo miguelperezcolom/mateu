@@ -144,6 +144,61 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
   public static final String SAVED_IN_DRAWER_EVENT = "mateu-crud:saved-in-drawer";
 
   /**
+   * This crud's built-in affordances (the Redwood collection-container / create-edit-drawer {@code
+   * displayOptions}): the New and Delete buttons ({@code on}/{@code off}/{@code disabled} on top of
+   * the capability gates), the edit drawer's "Save and next" (default {@code off}) and its error
+   * banner (default {@code on}). Override to switch them — e.g. {@code
+   * CrudDisplay.defaults().toBuilder().create(canWrite ? Toggle.on : Toggle.disabled).build()}.
+   */
+  public io.mateu.uidl.data.CrudDisplay display() {
+    return io.mateu.uidl.data.CrudDisplay.defaults();
+  }
+
+  /**
+   * The id of the row that follows {@code currentId} in the listing, for the edit drawer's "Save
+   * and next" — or null when it was the last one (the drawer then closes as after a plain save).
+   * The default walks the first 1000 rows of an unfiltered search in the listing's own order;
+   * override it to follow the user's current filters/sort or to page through a large table.
+   */
+  public Object nextIdAfter(Object currentId, HttpRequest httpRequest) {
+    if (currentId == null) {
+      return null;
+    }
+    try {
+      Object filters = null;
+      try {
+        var filtersClass = filtersClass();
+        if (filtersClass != null) {
+          filters = filtersClass.getDeclaredConstructor().newInstance();
+        }
+      } catch (ReflectiveOperationException | RuntimeException noDefaultFilters) {
+        // a filters type without a no-arg constructor: search without one
+      }
+      var data =
+          search(
+              new io.mateu.uidl.data.SearchRequest(
+                  "", filters, List.of(), new io.mateu.uidl.data.Pageable(0, 1000, List.of())),
+              httpRequest);
+      if (data == null || data.page() == null || data.page().content() == null) {
+        return null;
+      }
+      var idField = getIdFieldForRow();
+      var current = String.valueOf(currentId);
+      boolean found = false;
+      for (Object row : data.page().content()) {
+        var id = CrudRowIds.idOf(row, idField);
+        if (found) {
+          return id;
+        }
+        found = id != null && current.equals(String.valueOf(id));
+      }
+      return null;
+    } catch (RuntimeException cannotWalk) {
+      return null;
+    }
+  }
+
+  /**
    * Persists one row edited in place in the listing grid (class-level {@code @InlineEditing}).
    * {@code AutoCrud}/{@code FilteredAutoCrud} implement it through the {@code CrudStore}; other
    * cruds must override it to support inline editing.
@@ -179,6 +234,11 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
 
   public String saveLabel() {
     return "Save";
+  }
+
+  /** The edit drawer's "Save and next" label (see {@link #display()}). */
+  public String saveAndNextLabel() {
+    return "Save and next";
   }
 
   public String cancelLabel() {
