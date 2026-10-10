@@ -11,7 +11,8 @@ import { EditHistory } from './model/history'
 import { renameBinding, mentionsIn } from './model/rename'
 import { pageActions, upsertAction, newRestAction, setActionField, PageAction } from './model/pageActions'
 import { newSlotItem } from './model/componentSchema'
-import { isSourcesYaml } from './model/projectIndex'
+import { isSourcesYaml, catalogueActionOptions } from './model/projectIndex'
+import { isActionsYaml } from './model/actionsModel'
 import { setRestSourceCatalogue } from '@infra/http/restSourceCatalogue.ts'
 import {
     CanvasRendererId, CANVAS_RENDERERS, CANVAS_RENDERER_LABELS, useCanvasRenderer, parseCanvasRenderer,
@@ -53,6 +54,7 @@ import './routes/routes-editor'
 import './app/app-editor'
 import './mount/mount-editor'
 import './sources/sources-editor'
+import './actions/actions-editor'
 import './board/mount-board'
 import './play/mount-play'
 import './widgets/ve-combo'
@@ -179,7 +181,7 @@ export class MateuVisualEditor extends LitElement {
         .shape, .status { display: inline-block; line-height: 1.5; padding: 0.05rem 0.5rem; border-radius: 999px; font-size: 11px; font-weight: 500; white-space: nowrap; }
         .shape.delta, .status.ok { background: var(--ve-success-10); color: var(--ve-success); }
         .shape.snapshot, .status.warn { background: var(--ve-warning-10); color: var(--ve-warning); }
-        .shape.partial, .shape.mount, .shape.app, .shape.routes, .shape.sources, .status.info { background: var(--ve-primary-10); color: var(--ve-primary-text); }
+        .shape.partial, .shape.mount, .shape.app, .shape.routes, .shape.sources, .shape.actions, .status.info { background: var(--ve-primary-10); color: var(--ve-primary-text); }
         .status.err { background: var(--ve-error-10); color: var(--ve-error); }
         .breadcrumb { display: flex; align-items: center; gap: 0.15rem; flex-wrap: wrap; padding: 0.25rem 0.75rem;
                       background: var(--ve-surface); border-bottom: 1px solid var(--ve-border); font-size: 11px; min-height: 1.4rem; }
@@ -269,7 +271,7 @@ export class MateuVisualEditor extends LitElement {
      * (page/partial); `mount` = a `type: UI` descriptor; `app` = a `type: AppShell` definition;
      * `routes` = a pure route file. Each is its OWN file — no mixing.
      */
-    @state() private mode: 'page' | 'mount' | 'app' | 'routes' | 'sources' = 'page'
+    @state() private mode: 'page' | 'mount' | 'app' | 'routes' | 'sources' | 'actions' = 'page'
     @state() private structuredYaml = ''
     /** Which left-panel tab is showing: the layers tree (navigate/reorder) or the insert palette. */
     @state() private leftTab: 'layers' | 'insert' = 'layers'
@@ -452,6 +454,7 @@ export class MateuVisualEditor extends LitElement {
                  @app-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
                  @mount-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
                  @sources-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
+                 @actions-save=${(e: CustomEvent) => this.saveYaml(e.detail.yaml)}
                  @board-open=${(e: CustomEvent) => this.openFile(e.detail.path)}
                  @board-play=${(e: CustomEvent) => this.play(e.detail.route)}
                  @play-close=${() => (this.view = this.playReturn)}>
@@ -474,6 +477,8 @@ export class MateuVisualEditor extends LitElement {
                     ? html`<routes-editor .yaml=${this.structuredYaml} .project=${this.project}></routes-editor>`
                     : this.mode === 'sources'
                     ? html`<sources-editor .yaml=${this.structuredYaml}></sources-editor>`
+                    : this.mode === 'actions'
+                    ? html`<actions-editor .yaml=${this.structuredYaml} .project=${this.project}></actions-editor>`
                     : html`
                 <div class="work">
                     <div style="display:grid; grid-template-rows:auto 1fr; min-height:0">
@@ -747,6 +752,11 @@ export class MateuVisualEditor extends LitElement {
             this.structuredYaml = yaml
             return
         }
+        if (isActionsYaml(yaml)) {
+            this.mode = 'actions'
+            this.structuredYaml = yaml
+            return
+        }
         if (isMountYaml(yaml)) {
             this.mode = 'mount'
             this.structuredYaml = yaml
@@ -943,6 +953,7 @@ export class MateuVisualEditor extends LitElement {
         if (this.mode === 'mount') return html`<span class="shape mount" title="A mount descriptor (type: UI) — the data-driven @UI: a base path and the route files it serves.">mount</span>`
         if (this.mode === 'app') return html`<span class="shape app" title="An app shell definition (type: AppShell) — a view bound to a route like any other.">app</span>`
         if (this.mode === 'routes') return html`<span class="shape routes" title="A route file — pure routing: each URL bound to a definition and an optional view model.">routes</span>`
+        if (this.mode === 'actions') return html`<span class="shape actions" title="The action catalogue — named client-runnable actions (flows, REST calls) run by id from the menu and any page.">actions</span>`
         if (this.mode === 'sources') return html`<span class="shape sources" title="The REST source catalogue — each external endpoint named once, referenced by name.">sources</span>`
         if (this.mode === 'page' && this.doc?.fragment) return html`<span class="shape partial" title="A reusable partial — a rootless content: list, inlined wherever a Partial ref names it.">partial</span>`
         return ''
@@ -1480,6 +1491,7 @@ export class MateuVisualEditor extends LitElement {
                                       : [
                                           ...(this.doc ? pageActions(this.doc).map((a) => a.id).filter((id) => id !== actionId) : []).map((id) => ({ value: id, hint: 'this page' })),
                                           ...(this.contract?.actions ?? []).map((a) => ({ value: a, hint: 'view model' })),
+                                          ...catalogueActionOptions(this.project, this.doc ? pageActions(this.doc).map((a) => a.id) : []),
                                       ]}
                                   @change=${(e: Event) => this.flowSet(actionId, steps, i, p.key, (e.target as HTMLInputElement).value)}></ve-combo>`}
                 <button @click=${() => this.flowMove(actionId, steps, i, -1)} ?disabled=${i === 0}>↑</button>
