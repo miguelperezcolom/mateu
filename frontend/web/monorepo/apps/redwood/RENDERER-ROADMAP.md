@@ -1,5 +1,15 @@
 # Mateu-sobre-VB — Roadmap por fases con validación VISUAL
 
+> **Status (2026-10-10, GA push) — English summary.** Every phase below is done and the renderer is a
+> fully supported renderer: every component type of the wire is painted (`poc/coverage.mjs`: 0
+> unrendered; unknown future types show a visible placeholder), client rules run on every surface,
+> FABs, the theme toggle, entity search in the Ask palette and the AI chat panel are at parity with
+> the web renderer, the chrome speaks the interface language (English by default), the packaged jar
+> works at any `@UI` mount and builds reproducibly, and CI loads it in a real (headless) browser:
+> job `renderer-vb` (smoke over demo-vb including the display galleries, a11y and slow-network
+> probes, the renderer-agnostic Playwright specs). Visual evidence: `poc/shots/ga-*.png`. The
+> phase table below is kept as the history of how it got here.
+
 > El problema histórico del renderer Redwood **nunca fue el mecanismo, fue la fidelidad visual**:
 > funcionaba mejor o peor, pero **no se parecía a una app Redwood**. Este roadmap invierte el eje:
 > se ordena por **entregable visible**, y **no se pasa de fase sin una validación visual que pase**.
