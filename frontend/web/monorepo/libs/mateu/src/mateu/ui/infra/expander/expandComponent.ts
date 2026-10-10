@@ -78,22 +78,30 @@ const CONTAINER_TYPES = new Set([
     'CustomComponent',
 ])
 
-// Types that hold ONE child under `metadata.content` (expanded), NOT lifted to wire children — the
-// Card family. Pinned by the Java golden (CardDefinitionSyncTest): a Card's content is a single
-// expanded component in metadata.content, children stays empty, variants ride in metadata. Extend
-// as later goldens add more (HeroSection, Notice-with-content, …), each verified against Java.
-const CONTENT_IN_METADATA_TYPES = new Set([
-    'Card',
-])
+// Component-valued metadata keys: the server's mapper EXPANDS each of them in place (one component,
+// or a list of them) and keeps it in metadata — NOT lifted to wire children. Pinned by Java goldens:
+// CardMapper (content + every header slot — CardDefinitionSyncTest, and the component `title` in
+// TemplateComponentsDefinitionSyncTest) and FormMapper (`header`/`footer` lists, `avatar` — the
+// latter golden too). A plain value in one of these keys (a string title) is left alone: Java cannot
+// author one (the record field is a Component), and the renderer prints a string, so it forgives.
+const METADATA_COMPONENT_KEYS: Record<string, string[]> = {
+    Card: ['content', 'title', 'subtitle', 'footer', 'header', 'media', 'headerPrefix', 'headerSuffix'],
+    Form: ['header', 'footer', 'avatar'],
+}
 
 // Types whose children the server's mapper lifts from a NAMED record component into the wire
 // children (and drops from metadata): HeroSectionMapper (`content`), DashboardLayoutMapper (`items`),
 // DashboardPanelMapper (its single `content`). Without them a browser-expanded welcome page lost its
 // hero buttons and its tiles — the renderer reads children, and the authored key rode in metadata.
+// Likewise ScoreboardMapper (`metrics`), TabLayoutMapper (`tabs`) and TabMapper (its single
+// `content`) — pinned by TemplateComponentsDefinitionSyncTest.
 const CHILDREN_KEY: Record<string, string> = {
     HeroSection: 'content',
     DashboardLayout: 'items',
     DashboardPanel: 'content',
+    Scoreboard: 'metrics',
+    TabLayout: 'tabs',
+    Tab: 'content',
 }
 
 // Authored listing types → the wire `Crud` component. Pinned by the Java golden
@@ -114,6 +122,7 @@ export function expandComponent(authored: FluentNode): Component {
     const { note, ...node } = authored as FluentNode & { note?: unknown }
     void note
     if (LISTING_TYPES.has(node.type)) return expandListing(node)
+    if (node.type === 'FoldoutLayout') return expandFoldout(node)
 
     // A business-component reference (coherence-plan #13): resolve it against the shipped catalogue,
     // no backend. The catalogue entry is already a wire component, so it is returned as-is; an
@@ -158,14 +167,19 @@ export function expandComponent(authored: FluentNode): Component {
         // Tolerate a single node authored without brackets.
         const c = content ?? children ?? []
         kids = Array.isArray(c) ? c : [c]
-    } else if (
-        CONTENT_IN_METADATA_TYPES.has(type)
-        && content
-        && typeof content === 'object'
-        && !Array.isArray(content)
-    ) {
-        // A Card-family node: its single content child is expanded INTO metadata, not lifted.
-        metadata.content = expandComponent(content as FluentNode)
+    }
+
+    // Component-valued metadata keys are expanded in place (a Card's content and header slots, a
+    // Form's header/footer/avatar).
+    for (const key of METADATA_COMPONENT_KEYS[type] ?? []) {
+        const expanded = expandNested(key === 'content' ? content : metadata[key])
+        if (expanded !== undefined) metadata[key] = expanded
+    }
+    if (type === 'Form' && isWireNode(metadata.avatar)) {
+        // FormMapper sizes the avatar with `.addStyle("width: 4rem;height: 4rem;")`, and
+        // ClientSideComponentDto.addStyle appends after a `;` whatever the style was.
+        const avatar = metadata.avatar as Record<string, unknown>
+        avatar.style = (typeof avatar.style === 'string' ? avatar.style : '') + ';width: 4rem;height: 4rem;'
     }
 
     // Cast through `unknown`: the wire `Component` interface marks style/cssClasses/slot/… as
@@ -176,6 +190,63 @@ export function expandComponent(authored: FluentNode): Component {
         type: ComponentType.ClientSide,
         metadata,
         children: kids.map(expandComponent),
+    } as unknown as ClientSideComponent
+}
+
+const isAuthoredNode = (v: unknown): v is FluentNode =>
+    !!v && typeof v === 'object' && !Array.isArray(v) && typeof (v as { type?: unknown }).type === 'string'
+const isWireNode = (v: unknown): boolean => !!v && typeof v === 'object' && !Array.isArray(v)
+
+/** A component-valued key: one authored node, or a list of them, expanded in place. `undefined`
+ *  when there is nothing to expand (absent, or a plain value such as a string title). */
+function expandNested(value: unknown): unknown {
+    if (isAuthoredNode(value)) return expandComponent(value)
+    if (Array.isArray(value)) return value.map((v) => isAuthoredNode(v) ? expandComponent(v) : v)
+    return undefined
+}
+
+/**
+ * A FoldoutLayout, as FoldoutLayoutMapper builds it: the `overview` becomes a child in slot
+ * `overview`; each panel contributes a header INFO to `metadata.panels` (title/subtitle/icon/open/
+ * width — `open` is a primitive there, so false when unset) and its `content` becomes a child in
+ * slot `panel-<index>` (the index of the PANEL, so a panel with no content leaves a gap, as on the
+ * server); `badges` travel as their texts. Pinned by TemplateComponentsDefinitionSyncTest.
+ */
+function expandFoldout(node: FluentNode): Component {
+    const { type, content, children, overview, panels, badges, ...fields } = node
+    void content
+    void children
+    const envelope: Record<string, unknown> = {}
+    const metadata: Record<string, unknown> = { type }
+    for (const [key, value] of Object.entries(fields)) {
+        if (ENVELOPE_FIELDS.has(key)) envelope[key] = value
+        else metadata[key] = value
+    }
+    const kids: Component[] = []
+    if (isAuthoredNode(overview)) kids.push({ ...expandComponent(overview), slot: 'overview' } as Component)
+    const panelList = (Array.isArray(panels) ? panels : []) as FluentNode[]
+    metadata.panels = panelList.map((panel, i) => {
+        if (isAuthoredNode(panel.content)) {
+            kids.push({ ...expandComponent(panel.content), slot: 'panel-' + i } as Component)
+        }
+        return Object.fromEntries(Object.entries({
+            title: panel.title,
+            subtitle: panel.subtitle,
+            icon: panel.icon,
+            open: Boolean(panel.open),
+            width: panel.width,
+        }).filter(([, v]) => v !== undefined))
+    })
+    if (Array.isArray(badges)) {
+        metadata.badges = (badges as { text?: unknown }[])
+            .map((b) => b?.text)
+            .filter((t): t is string => typeof t === 'string' && t.trim() !== '')
+    }
+    return {
+        ...envelope,
+        type: ComponentType.ClientSide,
+        metadata,
+        children: kids,
     } as unknown as ClientSideComponent
 }
 
