@@ -1544,8 +1544,8 @@ public class SyncHandlerTests
     {
         var renderJson = Render(Handler().Handle(new RunActionRqDto { Route = "editable-grid", ConsumedRoute = "editable-grid" }));
         // Cells edit in place, [ReadOnly] row columns stay display-only.
-        Assert.Contains("\"id\":\"name\",\"label\":\"Name\",\"type\":\"GridColumn\",\"dataType\":\"string\",\"stereotype\":null,\"captionPath\":null,\"leadingPath\":null,\"editable\":true,\"editorType\":\"text\"", renderJson);
-        Assert.Contains("\"id\":\"id\",\"label\":\"Id\",\"type\":\"GridColumn\",\"dataType\":\"string\",\"stereotype\":null,\"captionPath\":null,\"leadingPath\":null,\"editable\":false", renderJson);
+        Assert.Contains("\"id\":\"name\",\"label\":\"Name\",\"type\":\"GridColumn\",\"dataType\":\"string\",\"stereotype\":\"regular\",\"captionPath\":null,\"leadingPath\":null,\"editable\":true,\"editorType\":\"text\"", renderJson);
+        Assert.Contains("\"id\":\"id\",\"label\":\"Id\",\"type\":\"GridColumn\",\"dataType\":\"string\",\"stereotype\":\"regular\",\"captionPath\":null,\"leadingPath\":null,\"editable\":false", renderJson);
 
         // The edited rows travel in the form state and bind back into List<EditableGuest>.
         var rq = new RunActionRqDto

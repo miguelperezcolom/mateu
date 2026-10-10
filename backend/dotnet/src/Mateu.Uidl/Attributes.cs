@@ -61,6 +61,28 @@ public sealed class WizardProgressAttribute(string style) : Attribute
 [AttributeUsage(AttributeTargets.Property)]
 public sealed class SeparatorBeforeAttribute : Attribute;
 
+/// <summary>Renders the property's VALUE as a text block instead of an input: a <c>Text</c>
+/// component whose text is <c>${state.&lt;field&gt;}</c>, so it follows the state. Container is the
+/// HTML element (default "p"), Size the font size (xl | l | m | s | xs; m applies nothing) and
+/// NoMargins drops the block margins. (C# analogue of Java's @Text field annotation; the fluent
+/// counterpart is the Text component.)</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class TextAttribute : Attribute
+{
+    public string Container { get; set; } = "p";
+    public string Size { get; set; } = "m";
+    public bool NoMargins { get; set; }
+}
+
+/// <summary>How many columns of its form row the field spans (Java's @Colspan). Without it a field
+/// spans one column, except the intrinsically wide widgets (grid, textarea, rich text, html,
+/// markdown), which span the whole row of a multi-column section.</summary>
+[AttributeUsage(AttributeTargets.Property)]
+public sealed class ColspanAttribute(int value) : Attribute
+{
+    public int Value { get; } = value;
+}
+
 /// <summary>Renders a collection property (typically a list of strings) as a plain read-only
 /// bulleted list (&lt;ul&gt;). Shorthand for the "bulletedList" stereotype; the fluent counterpart
 /// is the BulletedList component.</summary>

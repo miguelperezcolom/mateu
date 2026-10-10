@@ -178,6 +178,12 @@ public record ActionDto(
     /// dispatching to the Mateu server ([RestAction]); null for normal actions (mirrors
     /// io.mateu.dtos.ActionDto.restAction).</summary>
     public RestActionDto? RestAction { get; init; }
+
+    /// <summary>The fields the client validates before sending the action (comma-separated), when
+    /// only some must be valid — a grid row editor's Save validates the row's constrained fields,
+    /// not the whole form (mirrors io.mateu.dtos.ActionDto.fieldsToValidate).</summary>
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? FieldsToValidate { get; init; }
 }
 
 /// <summary>Descriptor for a button that calls an arbitrary (non-Mateu) REST endpoint CLIENT-SIDE

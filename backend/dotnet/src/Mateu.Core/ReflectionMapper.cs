@@ -117,15 +117,13 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         // carries the client-side REST descriptor on its action. A [Fab]'s action is NOT advertised
         // in the component actions list — it travels only on the page metadata's fabs (Java parity:
         // the fab golden carries no component.actions).
-        var actions = buttonMethods.Select(m =>
+        // Field-declared actions first, in Java's FieldActionCollector order: the list fields' row
+        // editing actions, the [OnRowSelected] grid actions (which must be advertised or the
+        // renderer drops the row click), the [Lookup] search actions — then the [Button] methods.
+        var actions = FieldActions(type);
+        actions.AddRange(buttonMethods.Select(m =>
                 WithActionOptions(new ActionDto(Naming.CamelCase(m.Name)) { RestAction = RestActionOf(m) },
                     type, Naming.CamelCase(m.Name)))
-            .ToList();
-        // [OnRowSelected] grid actions must be advertised or the renderer drops the row click.
-        actions.AddRange(EditableProperties(type)
-            .Select(p => p.Find<OnRowSelectedAttribute>())
-            .Where(a => a is not null)
-            .Select(a => new ActionDto(Naming.CamelCase(a!.Value), ValidationRequired: false))
             .Where(a => actions.All(x => x.Id != a.Id)));
 
         // A component-tree view (an archetype like Dashboard/Foldout, or any IComponentTreeSupplier)

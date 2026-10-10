@@ -1079,6 +1079,8 @@ public sealed record Text(string Content) : ComponentBase
 {
     public string? Size { get; init; }
     public bool NoMargins { get; init; }
+    /// <summary>The HTML container element (div, p, h1…h6, span); null → div.</summary>
+    public string? Container { get; init; }
 }
 
 /// <summary>A horizontal divider line (&lt;hr&gt;) separating contents inside a section, form or

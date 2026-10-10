@@ -75,6 +75,10 @@ public record DivMetadataDto : ComponentMetadataDto
 public record VerticalLayoutMetadataDto : ComponentMetadataDto
 {
     public bool Spacing { get; init; }
+
+    /// <summary>Cross-axis alignment of the children: START, CENTER, END, STRETCH, BASELINE (Java
+    /// HorizontalAlignmentDto); null = the renderer default.</summary>
+    public string? HorizontalAlignment { get; init; }
 }
 
 public record FormLayoutMetadataDto : ComponentMetadataDto

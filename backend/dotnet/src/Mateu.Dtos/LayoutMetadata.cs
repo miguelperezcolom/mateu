@@ -76,9 +76,9 @@ public record TextMetadataDto(string Text) : ComponentMetadataDto
     /// <summary>Drops the container's block margins (margin-block-start/end: 0).</summary>
     public bool NoMargins { get; init; }
 
-    /// <summary>The HTML container element (e.g. "h3" for a section heading); null = the renderer's
-    /// default. Mirrors Java's TextDto.container.</summary>
-    public string? Container { get; init; }
+    /// <summary>The HTML container element (e.g. "h3" for a section heading); "div" unless set, as
+    /// in Java (TextDto.container never null: io.mateu.uidl.data.Text defaults it to div).</summary>
+    public string? Container { get; init; } = "div";
 }
 
 /// <summary>A horizontal divider line (&lt;hr&gt;); data-colspan in Attributes makes it span the

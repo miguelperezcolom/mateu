@@ -25,11 +25,35 @@ public sealed partial class ReflectionMapper
         // no longer ride as per-field initialValue (Java parity).
         return new ServerSideComponentDto(
             Guid.NewGuid().ToString(), crudType.FullName!, route, [page],
-            InitialDataOf(element, entity), [], [], null, null, null)
+            InitialDataOf(element, entity), FieldActions(element), [], null, null, null)
         {
             // [Hidden]/[Disabled] on entity fields rule the detail form too.
             Rules = MapRules(element, entity),
             PageType = PageTypeOf(crudType),
+        };
+    }
+
+    /// <summary>The detail form of a grid row: a ServerSide component of the row type whose page
+    /// carries the row's fields, the editor buttons at its foot and (when editing) the Prev/Next
+    /// toolbar. It advertises NO actions, so its buttons bubble to the hosting form, which owns the
+    /// list (Java: CrudFieldHandlerHelper.buildDetailForm).</summary>
+    internal ServerSideComponentDto MapRowEditor(Type rowType, string title, Dictionary<string, object?> data,
+        ComponentDto? header, IReadOnlyList<ButtonDto> toolbar, IReadOnlyList<ButtonDto> buttons, string route)
+    {
+        var simple = rowType == typeof(string) || rowType.IsPrimitive || rowType.IsAbstract;
+        var instance = simple ? new object() : Activator.CreateInstance(rowType)!;
+        var columns = FormColumns(rowType);
+        var content = new List<ComponentDto>();
+        if (header is not null) content.Add(header);
+        if (!simple)
+            content.Add(Client(new FormLayoutMetadataDto { MaxColumns = columns }, null,
+                FormRows(MapFields(EditableProperties(rowType).Where(Visible), instance), columns)));
+        var page = Client(new PageMetadataDto(T(title), T(title), null, toolbar, buttons) { Level = 1 }, null, content);
+        return new ServerSideComponentDto(
+            Guid.NewGuid().ToString(), rowType.FullName!, route, [page], data, [], [], "width: 100%;", null, null)
+        {
+            Rules = simple ? [] : MapRules(rowType, instance),
+            Validations = simple ? [] : MapValidations(rowType),
         };
     }
 
@@ -254,10 +278,10 @@ public sealed partial class ReflectionMapper
         // plain vertical layout instead of the responsive form layout (mirrors Java's
         // SectionFormRenderer.asPropertyList).
         var body = section?.PropertyList == true
-            ? Client(new VerticalLayoutMetadataDto(), null,
+            ? Client(new VerticalLayoutMetadataDto { HorizontalAlignment = "STRETCH" }, null,
                 fields.Select(f => f.Metadata is FormFieldMetadataDto ff && ff.Stereotype != "grid"
                     ? f with { Metadata = ff with { PropertyRow = true, ReadOnly = true, Colspan = 1 } }
-                    : (ComponentDto)f).ToList()) with { Style = "width: 100%; align-items: stretch;" }
+                    : (ComponentDto)f).ToList()) with { Style = "width: 100%;" }
             : Client(new FormLayoutMetadataDto
             {
                 MaxColumns = columns,
@@ -319,6 +343,15 @@ public sealed partial class ReflectionMapper
     {
         var fieldId = Naming.CamelCase(p.Name);
         if (GridRowType(p) is { } rowType) return MapGridField(p, rowType, instance, readOnly);
+        // [Text]: the value shown as a text block bound to the state (Java: the @Text branch of
+        // ReflectionFormFieldMapper).
+        if (p.Find<TextAttribute>() is { } text)
+            return Client(new TextMetadataDto("${state." + fieldId + "}")
+            {
+                Container = text.Container,
+                Size = text.Size,
+                NoMargins = text.NoMargins,
+            }, fieldId, []);
         var label = T(p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name));
         var required = p.Find<RequiredAttribute>() != null;
         var t = Nullable.GetUnderlyingType(p.PropertyType) ?? p.PropertyType;
@@ -355,7 +388,9 @@ public sealed partial class ReflectionMapper
             // An integer field shows the +/- step buttons; a textarea spans both columns (Java
             // parity). initialValue is NOT emitted per field — the values ride in initialData/state.
             StepButtonsVisible = t == typeof(byte) || t == typeof(short) || t == typeof(int) || t == typeof(long),
-            Colspan = stereotype == "textarea" ? 2 : 1,
+            // [Colspan(n)] wins; otherwise 1 — an intrinsically wide widget (textarea, rich text…)
+            // is widened to the full row by FormRows, which knows the section's column count.
+            Colspan = p.Find<ColspanAttribute>()?.Value ?? 1,
             Link = LinkOf(p, instance),
             // [Lookup]: the combo box loads its options remotely through the field's
             // search-<fieldId> action (answered from the view's IOptionsSupplier).
@@ -516,13 +551,27 @@ public sealed partial class ReflectionMapper
         return fields;
     }
 
+    /// <summary>Stereotypes that render an intrinsically wide component: squeezed into one cell of a
+    /// multi-column section is never what the developer meant (mirrors Java's
+    /// FormLayoutBuilder.WIDE_STEREOTYPES).</summary>
+    private static readonly HashSet<string> WideStereotypes = ["grid", "textarea", "richText", "html", "markdown"];
+
+    /// <summary>An intrinsically wide field spans the full row of a multi-column section; an explicit
+    /// [Colspan] greater than 1 always wins (Java: FormLayoutBuilder.widenIfIntrinsicallyWide).</summary>
+    private static ClientSideComponentDto WidenIfIntrinsicallyWide(ClientSideComponentDto field, int columns) =>
+        columns > 1 && field.Metadata is FormFieldMetadataDto { Colspan: <= 1 } ff
+                    && ff.Stereotype is { } s && WideStereotypes.Contains(s)
+            ? field with { Metadata = ff with { Colspan = columns } }
+            : field;
+
     private static List<ComponentDto> FormRows(List<ClientSideComponentDto> fields, int maxColumns = 2)
     {
         var rows = new List<ComponentDto>();
         var pending = new List<ComponentDto>();
         var used = 0; // columns consumed by the pending row (fields carry a colspan)
-        foreach (var field in fields)
+        foreach (var declared in fields)
         {
+            var field = WidenIfIntrinsicallyWide(declared, maxColumns);
             // A separator always takes a full row of its own (its data-colspan spans the columns).
             if (field.Metadata is SeparatorMetadataDto)
             {

@@ -31,6 +31,10 @@ public sealed partial class SyncHandler
         var crud = Activator.CreateInstance(crudType)!;
         var (mode, id) = ParseCrudRoute(baseRoute, rq.Route);
 
+        // The row editing actions of a list property of the entity form (Java resolves the list on
+        // the crud's entity class: FieldCrudActionRunner.getViewModelClass).
+        if (FieldCrudTarget(element, rq.ActionId) is { } fieldCrud)
+            return HandleFieldCrud(fieldCrud.Property, fieldCrud.FieldId, fieldCrud.Suffix, rq);
         // A [Lookup] field on the entity form searches its options through the crud view.
         if (rq.ActionId?.StartsWith("search-") == true) return FieldSearch(crud, rq);
         // A [Searchable] field on the entity form opens its selector dialog.

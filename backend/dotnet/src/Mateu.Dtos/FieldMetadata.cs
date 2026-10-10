@@ -56,6 +56,23 @@ public record FormFieldMetadataDto(string FieldId, string DataType, string Label
     /// <summary>Grid fields: keyboard base combo for selecting a row by position.</summary>
     public string? RowSelectionShortcut { get; init; }
 
+    /// <summary>Grid fields: cells edit in place ([InlineEditing]) instead of through the row detail
+    /// form (mirrors FormFieldDto.inlineEditing).</summary>
+    public bool InlineEditing { get; init; }
+
+    /// <summary>The field's own CSS (mirrors FormFieldDto.style; grids default to
+    /// "min-width: 10rem; width: 100%;").</summary>
+    public string? Style { get; init; }
+
+    /// <summary>Grid fields: where the row detail form opens (right | bottom…), its column count and
+    /// the grid's minimum height while it is open (mirrors FormFieldDto.formPosition/formColumns/
+    /// minHeightWhenDetailVisible).</summary>
+    public string? FormPosition { get; init; }
+
+    public int FormColumns { get; init; }
+
+    public string? MinHeightWhenDetailVisible { get; init; }
+
     /// <summary>Generic field attributes (mirrors FormFieldDto.attributes, a list of key/value
     /// pairs) — e.g. the [FileUpload] accept filter travels as {"key":"accept","value":".csv"}.</summary>
     public IReadOnlyList<PairDto> Attributes { get; init; } = [];

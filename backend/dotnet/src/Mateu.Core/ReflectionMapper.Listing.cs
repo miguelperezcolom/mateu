@@ -502,7 +502,11 @@ public sealed partial class ReflectionMapper
                     Naming.CamelCase(c.Name),
                     c.Find<LabelAttribute>()?.Value ?? Naming.Humanize(c.Name))
                 {
-                    DataType = InferDataType(Nullable.GetUnderlyingType(c.PropertyType) ?? c.PropertyType, c),
+                    // Grid-field columns carry the COARSE type (Java's ColumnTypeMapper: bool,
+                    // status, else string) — the cell shows the row value as is.
+                    DataType = GridColumnDataType(c),
+                    Stereotype = ColumnStereotypeOf(c) ?? "regular",
+                    AutoWidth = true,
                     Editable = editable,
                     EditorType = editable
                         ? supplied is { Count: > 0 } ? "select" : EditorTypeOf(c)
@@ -513,8 +517,21 @@ public sealed partial class ReflectionMapper
                 });
             })
             .ToList();
-        var rows = GridRows(p, rowType, instance);
+        // The per-row "Edit" button opens the row detail form (the <field>_select action of the
+        // grid-field crud); inline editing replaces it (Java: GridColumnBuilder).
+        if (!readOnly && !inline)
+            columns.Add(new GridColumnDto(new GridColumnMetaDto("_select", "")
+            {
+                DataType = "string",
+                Stereotype = "button",
+                Text = "Edit",
+                ActionId = fieldId + "_select",
+                Width = "3rem",
+            }));
         var onRow = p.Find<OnRowSelectedAttribute>();
+        const string gridStyle = "min-width: 10rem; width: 100%;";
+        // The rows ride in the component state (initialData), not as a per-field initialValue —
+        // the field-crud actions rewrite that state list.
         var meta = new FormFieldMetadataDto(fieldId, "array", T(
             p.Find<LabelAttribute>()?.Value ?? Naming.Humanize(p.Name)))
         {
@@ -522,11 +539,94 @@ public sealed partial class ReflectionMapper
             ReadOnly = readOnly,
             Columns = columns,
             ItemIdPath = "_rowNumber",
-            InitialValue = rows,
-            OnItemSelectionActionId = onRow is null ? null : Naming.CamelCase(onRow.Value),
+            InlineEditing = inline,
+            OnItemSelectionActionId = onRow is not null
+                ? Naming.CamelCase(onRow.Value)
+                // without [OnRowSelected] an editable grid keeps the legacy detail-edit binding
+                : readOnly ? null : fieldId + "_selected",
             RowSelectionShortcut = onRow is { Shortcut.Length: > 0 } ? onRow.Shortcut : null,
+            Colspan = p.Find<ColspanAttribute>()?.Value ?? 1,
+            Style = gridStyle,
+            FormPosition = "right",
+            FormColumns = FormColumns(rowType),
+            MinHeightWhenDetailVisible = "16rem;",
+            SliderMax = 0,
         };
-        return Client(meta, fieldId, []);
+        return Client(meta, fieldId, []) with { Style = gridStyle };
+    }
+
+    /// <summary>The row-editing actions of every LIST property of a view, in this order per list:
+    /// _create, _create-and-stay, _add, _select, _selected, _prev, _next, _save, _remove, _move-up,
+    /// _move-down, _cancel (the grid-field crud the SyncHandler answers). The three that persist a
+    /// row require validation of the row's constrained fields only.</summary>
+    internal static readonly string[] ListActionSuffixes =
+    [
+        "_create", "_create-and-stay", "_add", "_select", "_selected", "_prev", "_next", "_save",
+        "_remove", "_move-up", "_move-down", "_cancel",
+    ];
+
+    /// <summary>The actions a view's PROPERTIES declare, in Java's FieldActionCollector order: list
+    /// row editing, [OnRowSelected], [Lookup] search.</summary>
+    internal static List<ActionDto> FieldActions(Type type)
+    {
+        var actions = new List<ActionDto>();
+        var props = EditableProperties(type).ToList();
+        foreach (var p in props.Where(p => ListElementType(p.PropertyType) is not null))
+        {
+            var fieldId = Naming.CamelCase(p.Name);
+            var constrained = ConstrainedFieldNames(ListElementType(p.PropertyType)!);
+            foreach (var suffix in ListActionSuffixes)
+            {
+                var validates = suffix is "_create" or "_create-and-stay" or "_save";
+                actions.Add(new ActionDto(fieldId + suffix, ValidationRequired: validates)
+                {
+                    FieldsToValidate = validates ? constrained : null,
+                });
+            }
+        }
+        foreach (var onRow in props.Select(p => p.Find<OnRowSelectedAttribute>()).OfType<OnRowSelectedAttribute>())
+        {
+            var id = Naming.CamelCase(onRow.Value);
+            if (actions.All(a => a.Id != id)) actions.Add(new ActionDto(id, ValidationRequired: false));
+        }
+        foreach (var p in props.Where(p => p.Find<LookupAttribute>() != null))
+            actions.Add(new ActionDto("search-" + Naming.CamelCase(p.Name), ValidationRequired: false));
+        return actions;
+    }
+
+    /// <summary>The element type of a list-typed property (List&lt;T&gt;, IList&lt;T&gt;,
+    /// IReadOnlyList&lt;T&gt;, ICollection&lt;T&gt;, T[]), or null.</summary>
+    internal static Type? ListElementType(Type t)
+    {
+        if (t == typeof(string)) return null;
+        if (t.IsArray) return t.GetElementType();
+        if (!t.IsGenericType) return null;
+        var def = t.GetGenericTypeDefinition();
+        return def == typeof(List<>) || def == typeof(IList<>) || def == typeof(IReadOnlyList<>)
+               || def == typeof(ICollection<>) || def == typeof(IReadOnlyCollection<>)
+            ? t.GetGenericArguments()[0]
+            : null;
+    }
+
+    /// <summary>The row type's fields carrying a validation constraint, comma-separated (Java's
+    /// getConstrainedFieldNames), or null.</summary>
+    private static string? ConstrainedFieldNames(Type rowType)
+    {
+        if (rowType == typeof(string) || rowType.IsPrimitive || rowType.IsEnum) return null;
+        var names = rowType.GetProperties(BindingFlags.Public | BindingFlags.Instance)
+            .Where(p => p.GetCustomAttributes(typeof(ValidationAttribute), true).Length > 0)
+            .Select(p => Naming.CamelCase(p.Name))
+            .ToList();
+        return names.Count == 0 ? null : string.Join(",", names);
+    }
+
+    /// <summary>The coarse data type of a grid-field column (Java: ColumnTypeMapper — booleans keep
+    /// their checkbox, everything else is shown as text).</summary>
+    private static string GridColumnDataType(PropertyInfo c)
+    {
+        var t = Nullable.GetUnderlyingType(c.PropertyType) ?? c.PropertyType;
+        if (t == typeof(bool)) return "bool";
+        return "string";
     }
 
     /// <summary>A grid property's rows as wire dicts (camelCase keys), also used for the wizard

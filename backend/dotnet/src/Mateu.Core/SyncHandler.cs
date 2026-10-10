@@ -182,6 +182,9 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         // 4. A plain view.
         var instance = Activator.CreateInstance(type)!;
         BindState(instance, rq.ComponentState);
+        // The row editing actions of a list property (grid "+", Edit, Save, Remove, move…).
+        if (FieldCrudTarget(type, rq.ActionId) is { } fieldCrud)
+            return HandleFieldCrud(fieldCrud.Property, fieldCrud.FieldId, fieldCrud.Suffix, rq);
         if (rq.ActionId?.StartsWith("search-") == true) return FieldSearch(instance, rq);
         if (rq.ActionId?.StartsWith("codesearch-") == true) return FieldCodeSearch(type, rq);
         // The notification inbox's app-level actions — dispatched with the app's serverSideType,
@@ -544,6 +547,17 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
                 label = (supplierHost as ILookupLabelSupplier)?.Label(fieldId, id)
                         ?? (supplierHost as IOptionsSupplier)?.Options(fieldId)
                             .FirstOrDefault(o => o.Value == id)?.Label;
+                if (label is not null)
+                {
+                    // The combo's pre-set selection: a one-option page under the field id, so the
+                    // renderer shows the label without a search round trip (Java's
+                    // LookupFieldDataWriter — searchSignature is the label).
+                    (data ??= new Dictionary<string, object?>())[fieldId] = new
+                    {
+                        searchSignature = label, pageSize = 1, pageNumber = 0, totalElements = 1,
+                        content = new[] { new OptionDto(id, label) },
+                    };
+                }
             }
             if (label is not null) (data ??= new Dictionary<string, object?>())[fieldId + "-label"] = label;
         }

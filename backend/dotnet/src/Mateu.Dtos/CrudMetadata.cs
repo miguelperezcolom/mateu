@@ -46,7 +46,14 @@ public record CrudMetadataDto(
     public string? RowStatusField { get; init; }
 }
 
-public record GridColumnDto(GridColumnMetaDto Metadata);
+/// <summary>A column of a listing or grid field. On the wire it is a ClientSide component (Java's
+/// List&lt;ComponentDto&gt; columns), so it carries the discriminator and the column id.</summary>
+public record GridColumnDto(GridColumnMetaDto Metadata)
+{
+    [JsonPropertyOrder(-1)] public string Type { get; init; } = "ClientSide";
+
+    public string? Id => Metadata.Id;
+}
 
 public record GridColumnMetaDto(string Id, string Label)
 {
@@ -87,6 +94,15 @@ public record GridColumnMetaDto(string Id, string Label)
     /// <summary>The row field whose text the cell shows on hover ([Tooltip("otherField")] on the
     /// row property); null when the column declares none (mirrors GridColumnDto.tooltipPath).</summary>
     public string? TooltipPath { get; init; }
+
+    /// <summary>The column sizes to its content (Java: true unless a fixed width is set).</summary>
+    public bool AutoWidth { get; init; }
+
+    /// <summary>A fixed CSS width (e.g. the "3rem" of a grid field's Edit column).</summary>
+    public string? Width { get; init; }
+
+    /// <summary>The static text of a button column ("Edit").</summary>
+    public string? Text { get; init; }
 }
 
 public record TriggerDto(string Type, string ActionId);

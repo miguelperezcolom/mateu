@@ -203,7 +203,7 @@ public static class ComponentMapper
                 p.Status, p.ActionLabel, p.ActionId)).ToList())),
 
         // Generic building blocks (used by the archetypes and free composition).
-        Text t => Dto(t, new TextMetadataDto(t.Content) { Size = t.Size, NoMargins = t.NoMargins }),
+        Text t => Dto(t, new TextMetadataDto(t.Content) { Size = t.Size, NoMargins = t.NoMargins, Container = t.Container ?? "div" }),
 
         Separator sep => Dto(sep, new SeparatorMetadataDto()),
         Anchor a => Dto(a, new AnchorMetadataDto(a.Text, a.Url, a.Target)),
