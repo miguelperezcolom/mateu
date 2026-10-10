@@ -194,6 +194,11 @@ export function uiValueOf(key, fallback) { return key in uiState ? uiState[key] 
 // element as data-node-id. OFF by default: a production page never carries editor ids.
 export let editorNodeIds = false
 export function setEditorNodeIds(on) { editorNodeIds = !!on }
+/** Editor mode only: `o` tagged with the id of the wire node it was projected from. */
+export function withNodeId(o, node) {
+  if (editorNodeIds && o && typeof o === 'object' && node && node.id) o.nodeId = String(node.id)
+  return o
+}
 
 export let converterFactory = null
 export function setConverterFactory(factory) { converterFactory = factory }
@@ -328,6 +333,16 @@ export function islandContentOf(ctx, opts = {}) {
   }
   // un DashboardPanel = una tarjeta-bloque (título + subtítulo + su contenido) con su ancho
   const visitDashboardPanel = (panel, colClass) => {
+    // editor mode: the card (and its title atoms) is the PANEL's node, not the layout's
+    if (editorNodeIds && panel && panel.id) {
+      const outer = editorNode
+      editorNode = String(panel.id)
+      try { projectDashboardPanel(panel, colClass) } finally { editorNode = outer }
+      return
+    }
+    projectDashboardPanel(panel, colClass)
+  }
+  const projectDashboardPanel = (panel, colClass) => {
     const pm = panel.metadata || {}
     const card = { isCard: true, items: [], ...(colClass ? { colClass } : {}) }
     blocks.push(card)
@@ -649,7 +664,7 @@ export function islandContentOf(ctx, opts = {}) {
       return
     }
     if (t === 'Scoreboard') {
-      const metrics = findAllByType(node, 'MetricCard').map((n) => metricOf(n.metadata, interp))
+      const metrics = findAllByType(node, 'MetricCard').map((n) => withNodeId(metricOf(n.metadata, interp), n))
       if (metrics.length) atom({ isScoreboard: true, metrics }, container)
       return
     }
@@ -657,8 +672,8 @@ export function islandContentOf(ctx, opts = {}) {
       // consecutivos se juntan en la misma banda (como los botones)
       const target = container || plain
       const last = target && target.items.length ? target.items[target.items.length - 1] : null
-      if (last && last.isScoreboard) last.metrics.push(metricOf(m, interp))
-      else atom({ isScoreboard: true, metrics: [metricOf(m, interp)] }, container)
+      if (last && last.isScoreboard) last.metrics.push(withNodeId(metricOf(m, interp), node))
+      else atom({ isScoreboard: true, metrics: [withNodeId(metricOf(m, interp), node)] }, container)
       return
     }
     if (t === 'Chart' || t === 'TrendChart') {
