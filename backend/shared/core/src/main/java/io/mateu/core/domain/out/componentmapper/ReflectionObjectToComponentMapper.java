@@ -114,7 +114,9 @@ public class ReflectionObjectToComponentMapper {
             instance.getClass().getName(),
             consumedRoute,
             List.of(content),
-            instance,
+            // never the raw instance when an @EyesOnly field is hidden from this caller
+            io.mateu.core.application.runaction.ComponentStateHelper.withoutRestricted(
+                instance, httpRequest),
             "",
             "",
             io.mateu.core.domain.out.fragmentmapper.mappers.TreeActionHarvester.withTreeActions(
@@ -130,7 +132,8 @@ public class ReflectionObjectToComponentMapper {
             PageTypeResolver.wirePageType(instance),
             StaticViewResolver.isStatic(instance),
             null),
-        instance,
+        io.mateu.core.application.runaction.ComponentStateHelper.withoutRestricted(
+            instance, httpRequest),
         getData(httpRequest, instance),
         UIFragmentActionDto.Replace,
         null);

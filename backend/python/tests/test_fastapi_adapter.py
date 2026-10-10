@@ -20,7 +20,7 @@ from fastapi.testclient import TestClient  # noqa: E402
 
 from mateu_core import MateuRegistry, RunActionRq, SyncHandler  # noqa: E402
 from mateu_core.errors import error_increment  # noqa: E402
-from mateu_core.identity import identity_from_claims, jwt_identity_provider  # noqa: E402
+from mateu_core.identity import identity_from_claims  # noqa: E402
 from mateu_core.request_context import (  # noqa: E402
     MateuRequest,
     bearer_token,
@@ -87,34 +87,47 @@ def test_without_a_token_an_eyes_only_field_is_hidden():
     assert "everyone" in body and "100k" not in body
 
 
-def test_the_default_identity_reads_the_bearer_jwt_claims():
-    pytest.importorskip("jwt")
+def test_a_bearer_token_alone_grants_nothing():
+    # Mateu does not authenticate: a token's claims are never read, whatever they say
     token = unsigned_jwt({"sub": "ann", "realm_access": {"roles": ["hr"]}})
-    body = load(client(), "adapter-gated", {"Authorization": f"Bearer {token}"}).text
-    assert "100k" in body
-
-
-def test_a_jwt_without_the_role_still_hides_the_field():
-    pytest.importorskip("jwt")
-    token = unsigned_jwt({"sub": "bob", "roles": ["sales"]})
     body = load(client(), "adapter-gated", {"Authorization": f"Bearer {token}"}).text
     assert "100k" not in body
 
 
-def test_a_verifying_provider_rejects_a_forged_token():
-    pytest.importorskip("jwt")
-    token = unsigned_jwt({"sub": "mallory", "roles": ["hr"]})
-    c = client(identity_provider=jwt_identity_provider(key="the-real-secret", algorithms=["HS256"]))
-    assert "100k" not in load(c, "adapter-gated", {"Authorization": f"Bearer {token}"}).text
+def test_the_identity_the_app_put_in_request_state_is_used():
+    app = fastapi.FastAPI()
+    add_mateu(app, MODULE)
+
+    @app.middleware("http")
+    async def authenticate(request, call_next):
+        if request.headers.get("x-session") == "valid":
+            request.state.mateu_identity = identity_from_claims({"realm_access": {"roles": ["hr"]}})
+        return await call_next(request)
+
+    c = TestClient(app)
+    assert "100k" in load(c, "adapter-gated", {"X-Session": "valid"}).text
+    assert "100k" not in load(c, "adapter-gated", {"X-Session": "forged"}).text
 
 
-def test_a_verifying_provider_accepts_a_signed_token():
-    jwt = pytest.importorskip("jwt")
-    token = jwt.encode({"sub": "ann", "roles": ["hr"]}, "the-real-secret-key-of-32-bytes!", algorithm="HS256")
-    c = client(
-        identity_provider=jwt_identity_provider(key="the-real-secret-key-of-32-bytes!", algorithms=["HS256"])
-    )
-    assert "100k" in load(c, "adapter-gated", {"Authorization": f"Bearer {token}"}).text
+def test_the_principal_authenticated_by_the_app_is_trusted():
+    from starlette.authentication import AuthCredentials, AuthenticationBackend, SimpleUser
+    from starlette.middleware.authentication import AuthenticationMiddleware
+
+    class HrUser(SimpleUser):
+        roles = ("hr",)
+
+    class HeaderBackend(AuthenticationBackend):
+        async def authenticate(self, conn):
+            if conn.headers.get("x-session") == "valid":
+                return AuthCredentials(["read"]), HrUser("ann")
+            return None
+
+    app = fastapi.FastAPI()
+    add_mateu(app, MODULE)
+    app.add_middleware(AuthenticationMiddleware, backend=HeaderBackend())
+    c = TestClient(app)
+    assert "100k" in load(c, "adapter-gated", {"X-Session": "valid"}).text
+    assert "100k" not in load(c, "adapter-gated", {"X-Session": "nope"}).text
 
 
 def test_a_custom_parameterless_provider_reads_the_request_in_flight():

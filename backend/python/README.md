@@ -92,7 +92,7 @@ The shared wire-conformance corpus is a hard gate here: see `tests/test_wire_con
 
 ```bash
 pip install "mateu-ui[server]"          # the package + uvicorn
-pip install "mateu-ui[all]"             # + PyJWT (identity), openpyxl/reportlab (Excel/PDF export)
+pip install "mateu-ui[all]"             # + openpyxl/reportlab (Excel/PDF export)
 ```
 
 The distribution is **`mateu-ui`** (the PyPI name `mateu` belongs to an unrelated project); the
@@ -118,26 +118,33 @@ The server binds to `0.0.0.0`, so the iOS simulator (`localhost:8594`) and Andro
 ```python
 from fastapi import FastAPI
 from mateu_fastapi import add_mateu
-from mateu_core.identity import jwt_identity_provider
+from mateu_core.identity import identity_from_claims
 
 app = FastAPI()
 add_mateu(
     app, views,
     cors_origins=["https://app.example.com"],            # CORS is OFF unless you list origins
-    identity_provider=jwt_identity_provider(key=PUBLIC_KEY, algorithms=["RS256"]),
     secrets_provider=lambda key: vault.read(key),        # ${secret.KEY} in proxied REST sources
 )
+
+@app.middleware("http")                                  # YOUR authentication, not Mateu's
+async def authenticate(request, call_next):
+    claims = verify_with_your_idp(request.headers.get("authorization"))   # e.g. PyJWT + JWKS
+    if claims is not None:
+        request.state.mateu_identity = identity_from_claims(claims)
+    return await call_next(request)
 ```
 
 - **Identity.** `EyesOnly` / `ReadOnlyUnless` / `DisabledUnless` (and `disabled_unless`) match the
-  caller's `Identity(roles, groups, scopes, permissions)`. The provider is **parameterless** (the
-  port's idiom); it reads the request in flight from a per-request `ContextVar`:
-  `mateu_core.request_context.current_request()` (headers, base url, correlation id) or
-  `bearer_token()`. The default is `jwt_identity_provider()`, which maps the Bearer JWT's claims
-  exactly like Java's `Authorizer` (Keycloak `realm_access`/`resource_access` roles + `roles`,
-  `groups`, `scope`/`scp`, `permissions`). **Without a `key` it reads the claims unverified** —
-  as Java does, assuming a gateway/middleware verified the token; pass `key=` to verify here. It
-  needs the `jwt` extra; without PyJWT no identity is resolved and every gate denies.
+  caller's `Identity(roles, groups, scopes, permissions)`. **Mateu does not authenticate**: the
+  default provider, `framework_identity_provider()`, takes the identity your app established for
+  the request — an `Identity` your dependency or middleware put in `request.state.mateu_identity`,
+  else Starlette's `AuthenticationMiddleware` (`request.user`'s `roles`/`groups`/`permissions` +
+  `request.auth.scopes`). A Bearer token is never decoded: verify it in your app and hand Mateu the
+  result (`identity_from_claims(claims)` maps Keycloak `realm_access`/`resource_access` roles +
+  `roles`, `groups`, `scope`/`scp`, `permissions`). No identity → every gate denies. A custom
+  `identity_provider` (parameterless, reading `mateu_core.request_context.current_request()`)
+  replaces the default.
 - **Secrets.** `secrets_provider(key) -> str | None` resolves `${secret.KEY}`; unset → the
   environment variable `MATEU_SECRET_<KEY>` (never an arbitrary one). Only the proxy channel (`__restfetch__`) ever sees them.
 - **CORS (breaking).** `add_mateu` used to install `allow_origins=["*"]` by default. CORS is now

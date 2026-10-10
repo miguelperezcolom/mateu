@@ -64,6 +64,10 @@ public class GridColumnMapper {
                 gridColumn.tones() == null || gridColumn.tones().isEmpty()
                     ? null
                     : gridColumn.tones())
+            .valueLabels(
+                gridColumn.valueLabels() == null || gridColumn.valueLabels().isEmpty()
+                    ? null
+                    : gridColumn.valueLabels())
             .build(),
         gridColumn.id(),
         List.of(),

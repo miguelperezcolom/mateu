@@ -132,7 +132,11 @@ class MateuProjectGeneratorTest : TestCase() {
         assertTrue(MateuProjectGenerator.validate(manifest, base.copy(buildTool = "gradle")).joinToString().contains("Build tool"))
         assertTrue(MateuProjectGenerator.validate(manifest, base.copy(artifactId = "My App")).joinToString().contains("Artifact id"))
         assertTrue(MateuProjectGenerator.validate(manifest, base.copy(authoring = "yaml")).joinToString().contains("runs on"))
-        assertTrue(MateuProjectGenerator.validate(manifest, base.copy(runtime = "spring-mvc", renderer = "redwood")).joinToString().contains("AutoCrud"))
+        assertEquals(emptyList<String>(), MateuProjectGenerator.validate(manifest, base.copy(runtime = "spring-mvc", renderer = "redwood")))
+        val withRule = (manifest.deepCopy() as com.fasterxml.jackson.databind.node.ObjectNode).also {
+            it.putArray("incompatible").addObject().put("renderer", "redwood").put("sample", "crud").put("reason", "not on Redwood yet")
+        }
+        assertTrue(MateuProjectGenerator.validate(withRule, base.copy(runtime = "spring-mvc", renderer = "redwood")).joinToString().contains("not on Redwood yet"))
         assertEquals(emptyList<String>(), MateuProjectGenerator.validate(manifest, base.copy(authoring = "static", runtime = null, sample = "listing")))
     }
 

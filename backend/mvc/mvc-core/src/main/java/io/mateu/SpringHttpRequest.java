@@ -37,6 +37,12 @@ public class SpringHttpRequest implements HttpRequest {
   }
 
   @Override
+  public java.security.Principal getUserPrincipal() {
+    // Spring Security's servlet wrapper answers the Authentication (null for an anonymous caller)
+    return delegate.getUserPrincipal();
+  }
+
+  @Override
   public String getHeaderValue(String key) {
     return delegate.getHeader(key);
   }

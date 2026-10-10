@@ -66,6 +66,7 @@ public class GridColumnBuilder {
                       .editable(colEditable)
                       .editorType(colEditable ? getEditorType(columnField, editorOptions) : null)
                       .editorOptions(editorOptions)
+                      .valueLabels(getValueLabels(columnField))
                       .build());
             });
     // The per-row "Edit" button opens the detail form; inline editing replaces it.
@@ -183,6 +184,23 @@ public class GridColumnBuilder {
    * have here. The already-set value shows its id until the combo is opened and the label arrives
    * from the search.
    */
+  /**
+   * What each value of an enum column reads as in its cells (constant name → {@code @Label} > an
+   * overridden {@code toString()} > the humanized name): the same labels its options use. Display
+   * only — rows keep the raw constant, which is what sorting, filtering and editing work on. Null
+   * for any other type.
+   */
+  static java.util.Map<String, String> getValueLabels(Field columnField) {
+    if (!columnField.getType().isEnum()) {
+      return null;
+    }
+    var labels = new java.util.LinkedHashMap<String, String>();
+    for (Object constant : columnField.getType().getEnumConstants()) {
+      labels.put(((Enum<?>) constant).name(), FieldMetadataExtractor.enumLabel(constant));
+    }
+    return labels;
+  }
+
   static java.util.List<io.mateu.uidl.data.Option> getEditorOptions(Field columnField) {
     if (columnField.getType().isEnum()) {
       return java.util.Arrays.stream(columnField.getType().getEnumConstants())

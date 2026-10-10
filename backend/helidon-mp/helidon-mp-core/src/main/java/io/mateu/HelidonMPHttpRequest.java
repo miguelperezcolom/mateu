@@ -21,9 +21,25 @@ public class HelidonMPHttpRequest implements HttpRequest {
   private final UriInfo uriInfo;
   private final Map<String, Object> attributes = new HashMap<>();
 
+  private java.security.Principal principal;
+
   public HelidonMPHttpRequest(HttpHeaders headers, UriInfo uriInfo) {
     this.headers = headers;
     this.uriInfo = uriInfo;
+  }
+
+  /**
+   * Attaches the principal JAX-RS authenticated ({@code SecurityContext.getUserPrincipal()}: a
+   * MicroProfile JWT {@code JsonWebToken} under helidon-microprofile-jwt-auth). Null = nobody.
+   */
+  public HelidonMPHttpRequest withPrincipal(java.security.Principal principal) {
+    this.principal = principal;
+    return this;
+  }
+
+  @Override
+  public java.security.Principal getUserPrincipal() {
+    return principal;
   }
 
   private MultivaluedMap<String, String> query() {

@@ -66,9 +66,102 @@ public class App {
 
 ## How authorization works
 
-Mateu reads the JWT Bearer token from the `Authorization` request header. It decodes the payload and checks the claims. Signature verification is expected to happen at the API gateway before the request reaches Mateu.
+**Mateu does not authenticate.** Configure your framework's security — a Spring Security resource
+server, Quarkus OIDC, Micronaut Security, MicroProfile JWT on Helidon, ASP.NET Core
+authentication, your FastAPI dependency — and Mateu reads the principal it authenticated. Every
+restricted element asks *who is the caller?* and gets its answer, first match wins, from:
 
-Authorization is **provider-agnostic** — it works with Keycloak, Okta, Azure AD, Auth0 or any OIDC issuer, reading each dimension from the conventional claim shapes:
+1. a **`PrincipalResolver`** bean your application registers (`io.mateu.uidl.security`) — for an
+   identity Mateu cannot see by itself (a session, headers set by a gateway that authenticated the
+   request and is the only way in);
+2. the **principal your framework authenticated**: Spring Security's `Authentication` (servlet and
+   WebFlux — its token claims and its authorities: `ROLE_x` → role `x`, `SCOPE_x` → scope `x`,
+   anything else → role and permission), Quarkus' `SecurityIdentity`, Micronaut Security's
+   `Authentication`, the JAX-RS `SecurityContext` principal on Helidon MP (a MicroProfile
+   `JsonWebToken`: its groups are roles);
+3. otherwise the caller is **anonymous**: every `@EyesOnly`, `@ReadOnlyUnless`, `@DisabledUnless`
+   and YAML `access:` element is hidden or denied.
+
+Mateu never decodes the `Authorization` header itself: a token's payload is the client's to write,
+so on its own it grants nothing. When no security module is on the classpath (and no
+`PrincipalResolver` is registered) the server logs one WARN at startup saying restricted UI will be
+hidden for everyone.
+
+### Wiring each framework
+
+**Spring Boot (MVC or WebFlux)** — a resource server validating your identity provider's tokens:
+
+```xml
+<dependency>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
+</dependency>
+```
+
+```properties
+spring.security.oauth2.resourceserver.jwt.issuer-uri=https://idp.example.com/realms/acme
+```
+
+To read Keycloak's `realm_access.roles`, Mateu also reads the authenticated token's claims, so no
+authorities converter is needed.
+
+**Quarkus** — `quarkus-oidc` (or `quarkus-smallrye-jwt`):
+
+```properties
+quarkus.oidc.auth-server-url=https://idp.example.com/realms/acme
+quarkus.oidc.client-id=my-app
+```
+
+**Micronaut** — `micronaut-security-jwt`:
+
+```yaml
+micronaut:
+  security:
+    token:
+      jwt:
+        signatures:
+          jwks:
+            idp:
+              url: https://idp.example.com/realms/acme/protocol/openid-connect/certs
+```
+
+**Helidon MP** — `helidon-microprofile-jwt-auth`, with `@LoginConfig(authMethod = "MP-JWT")` on
+your JAX-RS `Application` and `mp.jwt.verify.publickey.location` /
+`mp.jwt.verify.issuer` in `microprofile-config.properties`. (Mateu's streamed actions, MCP and YAML
+mounts run on Helidon's own routing, which does not carry the JAX-RS principal: register a
+`PrincipalResolver` if those need roles.)
+
+**Your own identity source** — a `PrincipalResolver` bean:
+
+```java
+@Component
+public class GatewayPrincipalResolver implements PrincipalResolver {
+  @Override
+  public Optional<CallerIdentity> resolve(HttpRequest request) {
+    var user = request.getHeaderValue("X-Authenticated-User"); // set by YOUR gateway, the only way in
+    var roles = request.getHeaderValue("X-Authenticated-Roles");
+    return user == null
+        ? Optional.empty()
+        : Optional.of(CallerIdentity.withRoles(user, List.of(roles.split(","))));
+  }
+}
+```
+
+The C# and Python backends follow the same rule: .NET reads only `HttpContext.User` — what ASP.NET
+Core's authentication (`AddAuthentication().AddJwtBearer(...)`, cookies…) established — and Python
+reads the `Identity` your FastAPI dependency or middleware put in `request.state.mateu_identity`
+(`identity_from_claims(claims)` maps a verified token's claims), else Starlette's
+`AuthenticationMiddleware`.
+
+Before 3.0 beta, Mateu read the roles from the Bearer token's payload without verifying it; see
+[Migrating from alpha](/reference/migrating-from-alpha/#defaults-that-changed).
+
+A field `@EyesOnly` hides is also left out of the component's state: its value never reaches a
+caller who may not see it.
+
+Authorization is **provider-agnostic** — it works with Keycloak, Okta, Azure AD, Auth0 or any OIDC
+issuer. From the claims of the authenticated token, each dimension is read from the conventional
+claim shapes:
 
 | `@EyesOnly` attribute | JWT claim(s) checked |
 |---|---|
@@ -79,7 +172,7 @@ Authorization is **provider-agnostic** — it works with Keycloak, Okta, Azure A
 
 If any required condition is not met, the element is omitted from the response. The user never sees the menu entry or page.
 
-> `@KeycloakSecured` only configures the (Keycloak) login flow. Authorization via `@EyesOnly` is independent of the identity provider — point your gateway at any OIDC issuer and the role/group/scope/permission checks above apply unchanged.
+> `@KeycloakSecured` only configures the (Keycloak) login flow in the browser. The backend still has to authenticate the token it sends — configure your framework's security as above.
 
 ---
 
@@ -207,14 +300,18 @@ there is now a toast instead of a framework HTTP 500.
 
 ## Typical deployment setup
 
-In a distributed system, an API gateway (Nginx, Envoy, Kong, etc.) validates the JWT signature and token expiry. Mateu trusts the token but does not re-validate the signature:
+An API gateway (Nginx, Envoy, Kong, etc.) may validate the token at the edge, but Mateu does not
+trust a token just because a request reached it — a backend is often reachable by more than one
+path. Configure your framework's security on the backend too:
 
 ```
 Browser → API Gateway (validates JWT signature + expiry)
-        → Mateu backend (reads claims from Bearer token, enforces @EyesOnly)
+        → Mateu backend (the framework's resource server authenticates the token;
+                         Mateu enforces @EyesOnly on the principal it established)
 ```
 
-For common cases, the gateway can also inject identity headers (`X-User-Id`, `X-User-Email`) that action handlers read directly.
+If the gateway injects identity headers (`X-User-Id`, `X-User-Roles`) and the backend is reachable
+ONLY through it, a `PrincipalResolver` bean can turn them into the caller's identity.
 
 ---
 
@@ -247,17 +344,19 @@ Leave `text/event-stream` out of the list: a compressed stream is buffered, and 
 
 ## Reading the current user in actions
 
-Inside action handlers, read the JWT or injected headers from the `HttpRequest`:
+Inside action handlers, ask your framework for the authenticated user, or read the principal it
+put on the request:
 
 ```java
 @Override
 public Object handleAction(String actionId, HttpRequest httpRequest) {
-    String authHeader = httpRequest.getHeaderValue("Authorization");
-    // parse the Bearer token to extract user identity, or read injected headers:
-    String userId = httpRequest.getHeaderValue("X-User-Id");
+    java.security.Principal user = httpRequest.getUserPrincipal(); // null when nobody is authenticated
     return null;
 }
 ```
+
+Never take authorization decisions from a value you decoded from the `Authorization` header
+yourself — it is the client's to write.
 
 ---
 

@@ -176,7 +176,8 @@ Python (`mateu_uidl`) ports follow the same boundary for the same concepts.
 | `mateu-uidl` | `io.mateu.uidl.interfaces` | 107 | 98 | 6 | 1 | 2 |
 | `mateu-uidl` | `io.mateu.uidl.layout` | 3 | 0 | 0 | 0 | 3 |
 | `mateu-uidl` | `io.mateu.uidl.reflection` | 3 | 0 | 0 | 0 | 3 |
-| **Total** | | **958** | **836** | **47** | **40** | **35** |
+| `mateu-uidl` | `io.mateu.uidl.security` | 2 | 2 | 0 | 0 | 0 |
+| **Total** | | **960** | **838** | **47** | **40** | **35** |
 
 **Experimental types** (the whole type and its members):
 

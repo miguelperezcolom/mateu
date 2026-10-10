@@ -51,6 +51,16 @@ Renders a page in high-density mode: tighter control sizes, smaller spacing, and
 
 In addition to the visual change, `@Compact` reduces the auto-responsive form-layout minimum column width to `7em` (vs the standard default), so more columns fit at the same viewport width. On grids and tables the flag also applies Vaadin's built-in `compact` row density theme.
 
+`@Compact` also works on an `AutoCrud` / `Crud` / `Listing` class: its listing asks for dense
+rows (`CrudlDto.compact`) and its list and record pages carry the same high-density preset.
+
+**Redwood** honours it with Redwood's own density mechanisms rather than Lumo variables: tables
+switch to JET's `display="grid"` density, and the content container takes the
+`mateu-density-compact` class, which maps the page onto Redwood tokens — buttons take
+`--oj-button-sm-height`, form rows are separated by `--oj-core-spacing-1x` (column gutter
+`--oj-core-spacing-4x`), list cells have a 1x vertical padding. Fields keep their height (a
+Redwood field with its label inside needs it) and font sizes are unchanged.
+
 ```java
 @UI("/checkin/:id")
 @Compact

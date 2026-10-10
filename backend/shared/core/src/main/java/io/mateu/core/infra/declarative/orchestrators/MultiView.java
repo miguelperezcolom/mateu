@@ -219,7 +219,10 @@ public abstract class MultiView
         }
       }
     }
-    return httpRequest.runActionRq().consumedRoute();
+    // "/" is the ROOT of the mount, the same as "": routes are relative to the mount, and a crud
+    // mounted at @UI("") resolves its listing against "" — "/" made its own home a record id
+    var consumed = httpRequest.runActionRq().consumedRoute();
+    return "/".equals(consumed) ? "" : consumed;
   }
 
   @Override

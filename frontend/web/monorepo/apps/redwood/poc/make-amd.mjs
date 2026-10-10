@@ -230,6 +230,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // selección de filas del listing → crud_selected_items de las acciones del host
     selectionOfKeySet,
     selectedRowsOf,
+    rowAsArrived,
     withListingSelection,
     onLoadTriggers,
     // filtros del listado: descriptores ya resueltos a widget, y la config smartFilters de la

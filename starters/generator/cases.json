@@ -42,7 +42,7 @@
           "@UI(\"\")"
         ],
         "src/main/java/com/acme/shop/Application.java": [
-          "scanBasePackages = {\"io.mateu\", \"com.acme.shop\"}"
+          "@SpringBootApplication"
         ],
         "AGENTS.md": [
           "src/main/java/com/acme/shop/"

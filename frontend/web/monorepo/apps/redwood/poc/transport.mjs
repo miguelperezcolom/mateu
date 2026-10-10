@@ -90,8 +90,14 @@ export function composeInnerRoute(outboundRoute, flip) {
 export function mediatorBaseOf(outbound, fallbackRoute = '') {
   const o = outbound || {}
   const own = o.route && o.route !== 'null' && o.route !== 'undefined' ? o.route : ''
-  const route = own || (fallbackRoute && fallbackRoute !== 'null' ? fallbackRoute : '')
+  const loaded = own || (fallbackRoute && fallbackRoute !== 'null' ? fallbackRoute : '')
+  // the ROOT of the mount is "" (a crud at @UI("")): "/" + "/P-002" composed "//P-002"
+  const route = loaded === '/' ? '' : loaded
   const consumed = o.consumedRoute
+  if (o.mountRoot) {
+    const q = route.indexOf('?')
+    return q >= 0 ? route.slice(q) : ''
+  }
   if (!consumed || consumed === '_empty' || !consumed.startsWith('/')) return route
   const queryIndex = route.indexOf('?')
   const path = queryIndex >= 0 ? route.slice(0, queryIndex) : route
@@ -132,14 +138,25 @@ export function routeFlipOf(previousState, nextCtx, increment, fallbackRoute = '
 // and the home load ('' or '/') goes out that way.
 let mountWithoutApp = false
 
+/** What a mediator's content load consumes: its root route, else the route it was loaded with —
+ *  where the root of the mount is "" (what the web client sends), never "/": a crud mounted at
+ *  @UI("") read "/" as a record id and answered its own home with "Not found". */
+export function mediatorConsumedRoute(info, effectiveRoute) {
+  if (info && (info.rootRoute || info.rootKnown)) return info.rootRoute
+  return !effectiveRoute || effectiveRoute === '/' ? '' : effectiveRoute
+}
+
 /** Did the bootstrap answer an App (the root of a console with its menu)? */
 export function bootstrapHasApp(increment) {
   const fragments = (increment && increment.fragments) || []
+  // a MEDIATOR-variant App is the chromeless wrapper of a crud mounted as the @UI — not a console
+  // with a menu: the mount has no shell, exactly as when the bootstrap answered a page
+  const isShellApp = (metadata) => !!metadata && metadata.type === 'App' && metadata.variant !== 'MEDIATOR'
   return fragments.some((f) => {
     const c = f && f.component
     if (!c) return false
-    if (c.metadata && c.metadata.type === 'App') return true
-    return (c.children || []).some((child) => child && child.metadata && child.metadata.type === 'App')
+    if (isShellApp(c.metadata)) return true
+    return (c.children || []).some((child) => child && isShellApp(child.metadata))
   })
 }
 
@@ -157,6 +174,12 @@ export const loadRoute = async (base, route, initiator = '', extra = {}) => {
     // …and below the mount (a deep link to /products/new): with no App to resolve it relative to,
     // the server knows the crud's inner routes by their full path, mount included
     route = pathOfRoute(route, currentMount())
+    // a crud mounted at the ROOT (@UI("")) has no path prefix the server could match /P-001 by:
+    // the deep link goes out as a FRESH load of the mount, as the web client sends it — the
+    // answer is the crud's mediator, whose home is the record (followed in loadRouteInto)
+    if (!currentMount() && !extra.consumedRoute && extra.serverSideType == null) {
+      extra = { ...extra, consumedRoute: '_empty' }
+    }
   }
   await awaitBundle()
   if (hasBundle()) {
@@ -449,9 +472,12 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
     if ((!effectiveRoute || effectiveRoute === '/') && info.homeRoute) effectiveRoute = info.homeRoute
     outbound = {
       route: effectiveRoute,
-      consumedRoute: info.rootRoute || effectiveRoute,
+      consumedRoute: mediatorConsumedRoute(info, effectiveRoute),
       serverSideType: info.serverSideType,
       baseUrl: base,
+      // a crud mounted at the ROOT consumes "": its inner routes (/P-002, /P-002/edit) are
+      // composed against the root, not against the record a deep link loaded (mediatorBaseOf)
+      mountRoot: !!(info.rootKnown && info.rootRoute === ''),
     }
     next = reduceContexts(
       next,

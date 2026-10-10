@@ -43,8 +43,79 @@ public record GridColumn(
     // neutral, like @RowStatus. Usually supplied by a field type (types.yaml). Null = none, every
     // value reads by its word as before.
     @Experimental("value tones, usually from a field type (types.yaml)")
-        java.util.Map<String, String> tones)
+        java.util.Map<String, String> tones,
+    // What each raw VALUE of the column reads as (IN_HOUSE -> "In house"): an enum column's labels
+    // — @Label > an overridden toString() > the humanized name, the same rule as form options.
+    // Display only: the row keeps the raw value, so sorting, filtering, selection and editing are
+    // unchanged. Null = values are shown as they are.
+    java.util.Map<String, String> valueLabels)
     implements GridContent {
+
+  /** The shape before {@code valueLabels} (v3.0 beta): no display labels per value. */
+  public GridColumn(
+      String id,
+      String label,
+      FieldDataType dataType,
+      FieldStereotype stereotype,
+      String style,
+      String cssClasses,
+      ColumnAlignment align,
+      boolean sortable,
+      String sortingProperty,
+      boolean filterable,
+      boolean frozen,
+      boolean frozenToEnd,
+      boolean autoWidth,
+      String flexGrow,
+      boolean resizable,
+      String width,
+      String tooltipPath,
+      String actionId,
+      String text,
+      String captionPath,
+      String leadingPath,
+      Integer priority,
+      boolean identifier,
+      boolean editable,
+      String editorType,
+      List<Option> editorOptions,
+      Double weight,
+      String aggregate,
+      Integer line,
+      java.util.Map<String, String> tones) {
+    this(
+        id,
+        label,
+        dataType,
+        stereotype,
+        style,
+        cssClasses,
+        align,
+        sortable,
+        sortingProperty,
+        filterable,
+        frozen,
+        frozenToEnd,
+        autoWidth,
+        flexGrow,
+        resizable,
+        width,
+        tooltipPath,
+        actionId,
+        text,
+        captionPath,
+        leadingPath,
+        priority,
+        identifier,
+        editable,
+        editorType,
+        editorOptions,
+        weight,
+        aggregate,
+        line,
+        tones,
+        null);
+  }
 
   /** The shape before {@code tones} (released in v3.0-alpha.408): no value tones. */
   public GridColumn(

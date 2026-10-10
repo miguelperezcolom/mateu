@@ -11,6 +11,7 @@ import { groupLabelColumnId, groupRowCellText, isGroupRow } from "@infra/ui/list
 import type { GridItemModel } from "@vaadin/grid/src/vaadin-grid";
 import type { GridColumn as VaadinGridColumn } from "@vaadin/grid/vaadin-grid-column";
 import { renderStatusCell } from "@infra/ui/renderers/columnRenderers/statusColumnRenderer.ts";
+import { valueLabel } from "@infra/ui/renderers/columnRenderers/valueLabel.ts";
 import { renderPrimaryCell } from "@infra/ui/renderers/columnRenderers/primaryColumnRenderer.ts";
 import { renderBooleanCell } from "@infra/ui/renderers/columnRenderers/booleanColumnRenderer.ts";
 import { renderMoneyCell } from "@infra/ui/renderers/columnRenderers/moneyColumnRenderer.ts";
@@ -417,7 +418,7 @@ export const columnRenderer = (item: any,
         return renderEditableCell(item, column, container, state)
     }
     if ('status' == type) {
-        return renderStatusCell(item, model, vaadinColumn, column.tones)
+        return renderStatusCell(item, model, vaadinColumn, column.tones, column.valueLabels)
     }
     if ('primary' == stereotype) {
         return renderPrimaryCell(item, column, vaadinColumn)
@@ -455,7 +456,8 @@ export const columnRenderer = (item: any,
     if ('button' == stereotype || column.actionId) {
         return renderButtonCell(item, model, vaadinColumn, type, stereotype, column)
     }
-    const cellValue = item[vaadinColumn.path!]
+    // an enum column reads as its labels ("In house"); the row keeps the raw value
+    const cellValue = valueLabel(item[vaadinColumn.path!], column.valueLabels)
     // A listing that declares a rowRoute makes its IDENTIFIER column the way in, as a real anchor.
     // The row itself is clickable too, but a click target you cannot see is not an affordance: this
     // is the visible one, and being an <a> it also focuses with the keyboard, opens in a new tab and

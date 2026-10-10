@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * hamburger holds the sections and the band under the header the entries of the one on screen
  * (tests/federation-sections).
  */
-@SpringBootApplication(scanBasePackages = {"io.mateu", "io.mateu.federation.sections"})
+@SpringBootApplication(scanBasePackages = "io.mateu.federation")
 public class FedSectionsApplication {
 
     public static void main(String[] args) {
