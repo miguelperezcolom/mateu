@@ -14,7 +14,7 @@ import {
   menuTargetOf, dispatchOf, menuBarAtomOf, contextMenuAtomOf, directoryAtomOf, messageListAtomOf, messageInputAtomOf,
   messageSendOf, chatAtomOf, resultAtomOf, cookieConsentAtomOf, hasConsentCookie, confirmOpenOf, confirmDialogAtomOf,
   breadcrumbsAtomOf, workflowAtomOf, workflowOrderOf, formEditorFieldsOf, bpmnDiagramOf, bpmnAtomOf, componentHtmlOf,
-  flattenTreeRows, gridPageOf, autoFitColClass, unsupportedAtomOf, VISITOR_PASS_THROUGH, safeHref, toneOf, cssColorOf,
+  flattenTreeRows, gridPageOf, autoFitColClass, AUTO_FIT_DEFAULT, unsupportedAtomOf, VISITOR_PASS_THROUGH, safeHref, toneOf, cssColorOf,
   setUiValue, setPanelExpanded, carouselPagerAtomOf, microFrontendOf, tagSurfaceActions, heroAtomOf, emptyStateAtomOf, progressBarAtomOf,
   registerCustomComponent, customComponentRegistered, layoutFieldOf, HOST_ID,
 } from './reduceContexts.mjs'
@@ -384,6 +384,9 @@ test('ResponsiveGrid auto-fit: as many tiles per row as fit at each breakpoint',
   assert.equal(autoFitColClass('repeat(auto-fit, minmax(16rem, 1fr))'),
     'oj-flex-item oj-sm-12 oj-md-4 oj-lg-3 oj-xl-2 oj-sm-padding-2x-end oj-sm-padding-2x-bottom')
   assert.equal(autoFitColClass('1fr 2fr'), null)
+  assert.match(autoFitColClass(AUTO_FIT_DEFAULT), /oj-md-4 oj-lg-3/, 'the web default (min(100%, 16rem))')
+  const plain = islandContentOf({ tree: node({ type: 'ResponsiveGrid' }, [node({ type: 'Text', text: 'a' }), node({ type: 'Text', text: 'b' })]), state: {} })
+  assert.equal(plain.length, 2, 'no columns declared: the auto-fit default, not a stack')
   const atoms = islandContentOf({ tree: node({ type: 'ResponsiveGrid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' },
     [node({ type: 'Text', text: 'a' }), node({ type: 'Text', text: 'b' })]), state: {} })
   assert.equal(atoms.length, 2)

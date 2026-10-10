@@ -930,10 +930,12 @@ export function gridPageOf(rows, size, page) {
 }
 
 // ── ResponsiveGrid auto-fill / auto-fit: the track minimum → oj-flex responsive column classes ──
+/** The web renderers' default for a ResponsiveGrid that declares no columns (nor areas). */
+export const AUTO_FIT_DEFAULT = 'repeat(auto-fit, minmax(min(100%, 16rem), 1fr))'
 /** `repeat(auto-fit, minmax(16rem, 1fr))` → classes that put as many tiles per row as fit at each
  *  breakpoint (sm 0, md 768px, lg 1024px, xl 1280px). null when the template is not that shape. */
 export function autoFitColClass(template) {
-  const m = /repeat\(\s*auto-(?:fill|fit)\s*,\s*minmax\(\s*([\d.]+)(px|rem|em)/i.exec(str(template))
+  const m = /repeat\(\s*auto-(?:fill|fit)\s*,\s*minmax\(\s*(?:min\(\s*100%\s*,\s*)?([\d.]+)(px|rem|em)/i.exec(str(template))
   if (!m) return null
   const px = parseFloat(m[1]) * (m[2] === 'px' ? 1 : 16)
   if (!(px > 0)) return null

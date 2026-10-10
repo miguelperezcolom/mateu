@@ -1580,3 +1580,10 @@ oj-sp-guided-process.mateu-wizard-completed button:not(.mateu-wizard-slot button
 .mateu-color-field { display: inline-flex; align-items: center; gap: 8px; }
 .mateu-color-swatch { width: 2.5rem; height: 2rem; padding: 0; border: 1px solid var(--oj-core-border-color, #ccc); border-radius: 4px; background: none; }
 @media (prefers-reduced-motion: reduce) { .mateu-timeline-dot { transition: none; } }
+.mateu-checklist oj-checkboxset { display: block; }
+.mateu-atom-richtext table { border-collapse: collapse; margin-block: 8px; }
+.mateu-atom-richtext th, .mateu-atom-richtext td { border: 1px solid var(--oj-core-divider-color, #ddd); padding: 4px 10px; text-align: start; }
+.mateu-atom-richtext th { background: var(--oj-core-neutral-contrast, rgba(0,0,0,.04)); }
+.mateu-atom-richtext th[align="center"], .mateu-atom-richtext td[align="center"] { text-align: center; }
+.mateu-atom-richtext th[align="right"], .mateu-atom-richtext td[align="right"] { text-align: end; }
+.mateu-cookie-consent[hidden] { display: none; }
