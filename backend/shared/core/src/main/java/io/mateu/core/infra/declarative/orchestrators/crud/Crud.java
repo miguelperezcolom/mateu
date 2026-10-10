@@ -8,6 +8,7 @@ import io.mateu.core.infra.declarative.orchestrators.OrchestrationResult;
 import io.mateu.core.infra.declarative.orchestrators.crud.actionhandlers.*;
 import io.mateu.core.infra.declarative.orchestrators.crud.routeresolvers.*;
 import io.mateu.core.infra.reflection.MetaAnnotations;
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.annotations.ListToolbarButton;
 import io.mateu.uidl.annotations.SplitCrud;
 import io.mateu.uidl.annotations.Toolbar;
@@ -150,6 +151,7 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
    * banner (default {@code on}). Override to switch them — e.g. {@code
    * CrudDisplay.defaults().toBuilder().create(canWrite ? Toggle.on : Toggle.disabled).build()}.
    */
+  @Experimental("archetype display options (3.0-alpha.409)")
   public io.mateu.uidl.data.CrudDisplay display() {
     return io.mateu.uidl.data.CrudDisplay.defaults();
   }
@@ -160,6 +162,7 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
    * The default walks the first 1000 rows of an unfiltered search in the listing's own order;
    * override it to follow the user's current filters/sort or to page through a large table.
    */
+  @Experimental("save and next (3.0-alpha.409)")
   public Object nextIdAfter(Object currentId, HttpRequest httpRequest) {
     if (currentId == null) {
       return null;
@@ -237,6 +240,7 @@ public abstract class Crud<View, Editor, CreationForm, Filters, Row, IdType> ext
   }
 
   /** The edit drawer's "Save and next" label (see {@link #display()}). */
+  @Experimental("save and next (3.0-alpha.409)")
   public String saveAndNextLabel() {
     return "Save and next";
   }

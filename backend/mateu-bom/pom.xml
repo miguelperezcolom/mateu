@@ -149,6 +149,112 @@
         <artifactId>mateu-export-pdf</artifactId>
         <version>${project.version}</version>
       </dependency>
+      <!-- optional data-access adapters -->
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>mateu-spring-data</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <!-- the PRE-RENAME ids (backend/relocations), pinned to this version too. A library built on
+           an older Mateu (a workflow engine with its own Mateu UI, say) still depends on
+           io.mateu:mvc-core / uidl / core... at ITS version: those are other artifact ids, so Maven
+           would put BOTH copies of io.mateu.* on the classpath. Managed here, the old id resolves
+           to this version's relocation pom, which points at the current artifact — one copy. -->
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>uidl</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>dtos</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>annotation-processor-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>annotation-processor-indexer</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>annotation-processor-mvc</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>annotation-processor-webflux</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>annotation-processor-micronaut</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>annotation-processor-quarkus</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>annotation-processor-helidon-mp</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>mvc-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>webflux-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>micronaut-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>quarkus-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>helidon-mp-core</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>vaadin-lit</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>redwood</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>export-excel</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>io.mateu</groupId>
+        <artifactId>export-pdf</artifactId>
+        <version>${project.version}</version>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 

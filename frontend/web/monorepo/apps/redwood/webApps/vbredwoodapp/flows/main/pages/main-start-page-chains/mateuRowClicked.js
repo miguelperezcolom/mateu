@@ -73,6 +73,11 @@ define([
         await Actions.fireEvent(context, { name: 'application:mateuNavigate', payload: { route: rowRoute } });
         return;
       }
+      // a listing that offers no way into a record (@NotNavigable, a board you select rows on):
+      // the click is not a 'view' — asking for one rendered a record page the crud never offered
+      if (!bridge.rowClickOpensRecord(listing)) {
+        return;
+      }
       await Actions.callChain(context, {
         chain: 'runMateuAction',
         params: { actionId: 'view', parameters: row },

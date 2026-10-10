@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import lombok.Builder;
 
 /**
@@ -16,6 +17,7 @@ import lombok.Builder;
  * Both are plain on/off switches: an informational panel has no "disabled" state.
  */
 @Builder(toBuilder = true)
+@Experimental("archetype display options (3.0-alpha.409)")
 public record GeneralOverviewDisplay(Toggle info, Toggle promoteInfoSlot) {
 
   public static GeneralOverviewDisplay defaults() {

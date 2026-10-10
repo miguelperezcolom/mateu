@@ -1,5 +1,6 @@
 package io.mateu.uidl.fluent;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.data.FormField;
 import io.mateu.uidl.data.GridContent;
 import java.util.List;
@@ -38,7 +39,8 @@ public record Listing(
      * {@code dashboard} slot): a dashboard, recent items, tips… — replaced by the results as soon
      * as the user searches. Only meaningful on a listing that does not search on opening.
      */
-    @Singular("preSearchItem") List<Component> preSearch,
+    @Experimental("listing pattern gaps (3.0-alpha.409)") @Singular("preSearchItem")
+        List<Component> preSearch,
     boolean wrapCellContent,
     boolean compact,
     boolean noBorder,
@@ -70,11 +72,11 @@ public record Listing(
     @Singular("groupAction") List<UserTrigger> groupActions,
     io.mateu.uidl.data.RestDataSource rowsSource,
     /** The row field whose value tones the whole row (@RowStatus); null = no row tones. */
-    String rowStatusField,
+    @Experimental("listing pattern gaps (3.0-alpha.409)") String rowStatusField,
     /**
      * Rows can be dragged onto a DropZone accepting this type (@DragRows); null = not draggable.
      */
-    String dragType)
+    @Experimental("listing pattern gaps (3.0-alpha.409)") String dragType)
     implements Component, PageMainContent {
 
   public Boolean autoFocusOnSearchText() {

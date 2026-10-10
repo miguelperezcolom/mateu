@@ -41,6 +41,7 @@ public @interface App {
    * key next to every visible button and tab — the declared shortcut when there is one, otherwise a
    * letter of its label assigned automatically — and Alt+that letter activates it. Opt-in.
    */
+  @Experimental("access keys (3.0-alpha.409)")
   boolean accessKeys() default false;
 
   /**

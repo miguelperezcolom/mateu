@@ -21,7 +21,12 @@ import java.util.List;
  * </ol>
  *
  * where r = Σ(column weights) / available units (1u = 76px).
+ *
+ * @deprecated nothing reads it: a listing no longer picks its layout from the available width
+ *     ({@code GridLayout.auto} means a table). Declare the layout with {@code Listing.gridLayout()}
+ *     / {@link io.mateu.uidl.fluent.GridLayout}.
  */
+@Deprecated(since = "3.0-alpha.410", forRemoval = true)
 public class ColumnLayoutSelector {
 
   public enum Layout {

@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import io.mateu.uidl.annotations.Experimental;
 import io.mateu.uidl.fluent.Component;
 import lombok.Builder;
 
@@ -24,7 +25,22 @@ public record FoldoutPanel(
      * compact digest — a count, a status, a total — drawn in the collapsed strip under the rotated
      * title, so the user can tell whether it is worth opening. Null = title only.
      */
-    Component summary,
+    @Experimental("foldout panel summaries (3.0-alpha.409)") Component summary,
     String style,
     String cssClasses)
-    implements Component {}
+    implements Component {
+
+  /** The 3.0-alpha.408 shape (no summary), kept so code compiled against it keeps linking. */
+  public FoldoutPanel(
+      String id,
+      String title,
+      String subtitle,
+      String icon,
+      boolean open,
+      String width,
+      Component content,
+      String style,
+      String cssClasses) {
+    this(id, title, subtitle, icon, open, width, content, null, style, cssClasses);
+  }
+}

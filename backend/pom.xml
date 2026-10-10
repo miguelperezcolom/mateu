@@ -61,11 +61,15 @@
     <jacoco.min.bundle.coverage>0%</jacoco.min.bundle.coverage>
     <!-- Public-API compatibility check (japicmp) of uidl, dtos and core's archetypes against the
          last RELEASED version. Report-only while the version is an alpha: set
-         mateu.japicmp.enforce=true (done from the beta tag on) and an incompatible change fails
+         mateu.api.enforce=true (done from the beta tag on) and an incompatible change fails
          `mvn verify` unless the type/member is @Experimental or listed in
          api-compat/japicmp-exclusions.properties. See reference/stability-and-versioning.md. -->
-    <mateu.japicmp.baseline>3.0-alpha.407</mateu.japicmp.baseline>
-    <mateu.japicmp.enforce>false</mateu.japicmp.enforce>
+    <mateu.japicmp.baseline>3.0-alpha.408</mateu.japicmp.baseline>
+    <!-- THE beta switch: `-Dmateu.api.enforce=true` (or flipping this default at the beta tag)
+         makes an incompatible change to the non-@Experimental surface fail the build.
+         mateu.japicmp.enforce is the knob the plugin reads; it follows this one. -->
+    <mateu.api.enforce>false</mateu.api.enforce>
+    <mateu.japicmp.enforce>${mateu.api.enforce}</mateu.japicmp.enforce>
     <mateu.japicmp.skip>false</mateu.japicmp.skip>
   </properties>
 
@@ -76,6 +80,8 @@
     <module>quarkus</module>
     <module>mvc</module>
     <module>helidon-mp</module>
+    <!-- optional: a CrudStore over Spring Data JPA -->
+    <module>spring-data</module>
     <module>mateu-bundle-maven-plugin</module>
     <!-- not a child of this pom (see its header): only aggregated, so it is built and released
          with the rest -->

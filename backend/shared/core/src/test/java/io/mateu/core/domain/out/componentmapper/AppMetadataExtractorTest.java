@@ -102,11 +102,11 @@ class AppMetadataExtractorTest {
   }
 
   @Test
-  void autoWithManyEntriesSelectsHamburguerMenu() {
+  void autoWithManyEntriesSelectsHamburgerMenu() {
     var menu =
         IntStream.rangeClosed(1, 8).mapToObj(i -> (Actionable) new Menu("Menu " + i)).toList();
     assertThat(AppMetadataExtractor.getVariant(new AutoVariantApp(), menu))
-        .isEqualTo(AppVariant.HAMBURGUER_MENU);
+        .isEqualTo(AppVariant.HAMBURGER_MENU);
   }
 
   @Test

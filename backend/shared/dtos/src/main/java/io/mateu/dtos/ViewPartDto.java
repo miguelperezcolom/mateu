@@ -8,7 +8,10 @@ import java.util.List;
  *
  * @param cssClasses Css cssClasses to be applied to this view part
  * @param componentIds List of component ids for this view part
+ * @deprecated nothing produces or reads it: a leftover of the pre-3.0 wire, reachable from no live
+ *     DTO. No replacement; it will be removed.
  */
+@Deprecated(since = "3.0-alpha.410", forRemoval = true)
 public record ViewPartDto(String cssClasses, List<String> componentIds) {
 
   public ViewPartDto {
