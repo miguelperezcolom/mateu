@@ -528,9 +528,13 @@ export class MateuUx extends ConnectedElement {
      * the answer. Not a navigation: same route, same element, no history entry.
      */
     liveReload(state: Record<string, unknown> | undefined) {
-        this.liveReloadState = state && Object.keys(state).length > 0 ? state : undefined
+        // A previous live reload whose answer never landed (the backend was going down — its
+        // watcher can still report an edit made while it shuts down) still holds what the user
+        // typed: keep it under the fresh snapshot instead of dropping it.
+        const merged = { ...(this.liveReloadState ?? {}), ...(state ?? {}) }
+        this.liveReloadState = Object.keys(merged).length > 0 ? merged : undefined
         const previous = this.initialState
-        this.initialState = { ...(previous ?? {}), ...(state ?? {}) }
+        this.initialState = { ...(previous ?? {}), ...merged }
         this.instant = nanoid()
         // The load is dispatched from updated(); afterwards the seed goes back to what it was, so
         // a later navigation of this ux does not carry this screen's state to another one.

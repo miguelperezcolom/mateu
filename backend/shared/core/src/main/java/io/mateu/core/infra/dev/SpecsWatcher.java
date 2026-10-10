@@ -38,6 +38,7 @@ final class SpecsWatcher {
 
   private static volatile Thread thread;
   private static volatile List<Path> watched = List.of();
+  private static volatile boolean hooked;
 
   private SpecsWatcher() {}
 
@@ -49,6 +50,13 @@ final class SpecsWatcher {
       return;
     }
     stopAll();
+    if (!hooked) {
+      hooked = true;
+      // A JVM going down must not report edits it will never serve: the browsers would re-request
+      // the screen from a server that is gone, instead of waiting for the restarted one's hello.
+      Runtime.getRuntime()
+          .addShutdownHook(new Thread(SpecsWatcher::stopAll, "mateu-dev-specs-watcher-stop"));
+    }
     watched = List.copyOf(dirs);
     var t = new Thread(() -> run(watched), "mateu-dev-specs-watcher");
     t.setDaemon(true);
