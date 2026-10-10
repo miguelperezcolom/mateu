@@ -225,7 +225,11 @@ export function textOfHtml(html: string | null | undefined): string {
   return (html ?? '')
     .replace(/<br\s*\/?>/gi, '\n')
     .replace(/<\/(p|div|li|h[1-6])>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
+    .replace(/<[^>]*>/g, '')
+    // a tag split around another (`<scr<b>ipt>`) re-forms once its inner tag is gone: and
+    // whatever is left of an unclosed one is dropped too — the result is plain text either way
+    .replace(/<[^>]*>/g, '')
+    .replace(/</g, '')
     .replace(/&nbsp;/g, ' ')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')

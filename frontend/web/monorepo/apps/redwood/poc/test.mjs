@@ -4673,8 +4673,9 @@ test('i18n: el bundle nls de VB sale del catálogo y está al día; las páginas
 })
 
 test('i18n: la chrome de las páginas no lleva español escrito a mano', () => {
-  const page = (rel) => readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', rel), 'utf8').replace(/<!--[\s\S]*?-->/g, '')
-  const html = page('pages/shell-page.html') + page('flows/main/pages/main-start-page.html') + readFileSync(join(here, 'templates', 'atoms.html'), 'utf8').replace(/<!--[\s\S]*?-->/g, '')
+  const stripComments = (text) => { let prev; do { prev = text; text = text.replace(/<!--[\s\S]*?-->/g, '') } while (text !== prev); return text }
+  const page = (rel) => stripComments(readFileSync(join(here, '..', 'webApps', 'vbredwoodapp', rel), 'utf8'))
+  const html = page('pages/shell-page.html') + page('flows/main/pages/main-start-page.html') + stripComments(readFileSync(join(here, 'templates', 'atoms.html'), 'utf8'))
   for (const word of ['Buscar', 'Cerrar', 'Reintentar', 'Cargando', 'Sin conexión', 'Sin datos', 'Secciones', 'Asistente', 'Enviar', 'Escribe un mensaje', 'Dictar', 'Contexto']) {
     assert.ok(!html.includes(word), 'texto en español en una página: ' + word)
   }

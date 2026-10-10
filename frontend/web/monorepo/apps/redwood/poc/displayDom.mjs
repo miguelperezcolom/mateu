@@ -173,7 +173,10 @@ export function chatTurnsOf(turns) {
 }
 
 const conversations = new Map()
-const newSessionId = () => 'mateu-' + Math.random().toString(36).slice(2) + Date.now().toString(36)
+// a chat session id names the conversation on the agent's side: unguessable, from the platform CSPRNG
+const newSessionId = () => 'mateu-' + (globalThis.crypto && globalThis.crypto.randomUUID
+  ? globalThis.crypto.randomUUID()
+  : Array.from(globalThis.crypto.getRandomValues(new Uint8Array(16)), (b) => b.toString(16).padStart(2, '0')).join(''))
 
 export function installChatComponents(doc = typeof document !== 'undefined' ? document : null) {
   observeSlots(doc, '__mateuChatComponents', '[data-mateu-chat-url]', ['data-mateu-chat-url'], (el) => {
