@@ -232,6 +232,113 @@ jobs:
           path: e2e/playwright-report/
           retention-days: 7
 
+  # The VB/Redwood renderer in a real browser. Nothing else loads it: the e2e job above serves only
+  # vaadin-lit, and the Redwood Node suites (tooling-tests) check its core, not the app VB paints.
+  # The jar is built HERE FROM SOURCE (grunt vb-build + scripts/copy.mjs) rather than taken from the
+  # committed resources, so a renderer change is exercised in the PR that makes it. It runs headless:
+  # the old "VB does not paint headless" finding was the unsecured index never promoting the VB boot
+  # scripts (fixed in index.ftl), not Chromium. Needs static.oracle.com: Oracle's grunt tooling at
+  # npm install time and JET / oj-sp / the visual-runtime at runtime (never vendored - NOTICE.md).
+  renderer-vb:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5
+        with:
+          java-version: 21
+          distribution: zulu
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Build backend
+        run: mvn -B install -DskipTests -Dgpg.skip=true --file backend/pom.xml
+
+      # Only the redwood workspace: its devDependencies are Oracle's grunt tooling (tarballs from
+      # static.oracle.com, pinned in package.json / package-lock.json).
+      - name: Install the Redwood renderer's build tooling
+        run: cd frontend/web/monorepo && npm ci --workspace mateu-redwood
+
+      # vb-build's exit code is unreliable (it can fail in a network subtask after writing the
+      # output), so the artifact is what is checked; copy.mjs then lays it out as the jar resources.
+      - name: Build the Redwood renderer from source into its jar
+        run: |
+          (cd frontend/web/monorepo/apps/redwood && (npm run build || true))
+          test -f frontend/web/monorepo/apps/redwood/build/optimized/webApps/vbredwoodapp/index.html
+          (cd frontend/web/monorepo/apps/redwood && npm run copy)
+          mvn -B install -DskipTests -Dgpg.skip=true --file backend/pom.xml -pl shared/frontend/redwood
+
+      # demo-vb (the renderer's reference app: a root App with a menu plus standalone UIs at their own
+      # mounts) for the probes and the smoke pass; mvc-app1 built a second time with the redwood
+      # renderer for the renderer-agnostic Playwright specs.
+      - name: Build demo-vb and the renderer-vb SUT
+        run: |
+          mvn -B package -DskipTests --file demo/demo-vb/pom.xml
+          mvn -B install -Dmaven.test.skip=true -Dgpg.skip=true --file e2e/sut/pom.xml -pl modules/sample1
+          mvn -B package -Dmaven.test.skip=true -Dgpg.skip=true --file e2e/sut/pom.xml -pl apps/mvc-app1 -Dmateu.renderer=redwood -Dsut.build.dir=target-vb
+
+      - name: Start demo-vb (:9005) and the renderer-vb SUT (:8090)
+        run: |
+          java -jar demo/demo-vb/target/demo-vb-0.0.1-SNAPSHOT.jar --server.port=9005 > /tmp/demo-vb.log 2>&1 &
+          java -jar e2e/sut/apps/mvc-app1/target-vb/mvc-app1-1.0.0-SNAPSHOT.jar --server.port=8090 > /tmp/mvc-app-vb.log 2>&1 &
+          for url in http://localhost:9005/ http://localhost:8090/app; do
+            tries=0
+            until curl -s -o /dev/null "$url"; do
+              tries=$((tries + 1))
+              if [ "$tries" -ge 90 ]; then echo "::error::$url was not ready after 3 minutes"; exit 1; fi
+              sleep 2
+            done
+            echo "$url is ready"
+          done
+
+      - name: Install npm dependencies
+        run: cd e2e && npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('e2e/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-playwright-
+
+      - name: Install Playwright browsers
+        run: cd e2e && npx playwright install --with-deps chromium
+
+      - name: Smoke pass of demo-vb's key screens (root App and standalone mounts)
+        run: cd e2e && VB_URL=http://localhost:9005 node vb-smoke.mjs --shots vb-shots
+
+      - name: Accessibility probe (axe + SPA behaviour)
+        run: cd e2e && VB_URL=http://localhost:9005/ node vb-a11y-probe.mjs
+
+      - name: Slow / unreliable network probe
+        run: cd e2e && VB_URL=http://localhost:9005/ node vb-slow-network-probe.mjs
+
+      - name: Renderer-agnostic specs against Redwood
+        run: cd e2e && RENDERER_VB=1 npx playwright test --project renderer-vb
+
+      - name: Dump renderer-vb logs on failure
+        if: failure()
+        run: |
+          for f in /tmp/demo-vb.log /tmp/mvc-app-vb.log; do
+            echo "===== $f ====="
+            tail -n 80 "$f"
+          done
+
+      - name: Upload Redwood screenshots and Playwright report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: renderer-vb
+          path: |
+            e2e/vb-shots/
+            e2e/playwright-report/
+          retention-days: 7
+
   # Backend + port test suites — including the shared wire-conformance corpus (conformance/README.md).
   # Until now the rest of run_tests.yml built the whole backend with -DskipTests and never invoked
   # pytest or dotnet test, so ~1000 core tests, the .NET/Python golden suites AND the conformance

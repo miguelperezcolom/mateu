@@ -19,6 +19,11 @@
     <properties>
         <java.version>21</java.version>
         <mateu.version>0.0.1-MATEU</mateu.version>
+        <!-- The frontend this SUT serves. CI builds it twice: with vaadin-lit (the default, :8080)
+             and with -Dmateu.renderer=redwood -Dsut.build.dir=target-vb (the renderer-vb
+             Playwright project, :8090) — the same @UI classes behind both renderers. -->
+        <mateu.renderer>vaadin-lit</mateu.renderer>
+        <sut.build.dir>target</sut.build.dir>
     </properties>
 
     <dependencies>
@@ -39,7 +44,7 @@
         <!-- Frontend web components -->
         <dependency>
             <groupId>io.mateu</groupId>
-            <artifactId>vaadin-lit</artifactId>
+            <artifactId>${mateu.renderer}</artifactId>
             <version>${mateu.version}</version>
         </dependency>
 
@@ -62,6 +67,7 @@
     </dependencies>
 
     <build>
+        <directory>${project.basedir}/${sut.build.dir}</directory>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
