@@ -27,14 +27,31 @@ export function onSuccessTriggers(ctx, actionId) {
   return triggersOf(ctx).filter((t) => t.type === 'OnSuccess' && t.actionId && t.calledActionId === actionId)
 }
 
-const schedule = (trigger, gen, timer = setTimeout) => {
+// UNA vuelta pendiente por trigger: si el refresco repinta el host y eso relanza sus OnLoad (otro
+// 'search' que también termina bien), un segundo éxito no debe armar un segundo bucle en paralelo
+// — se reprograma el mismo (los bucles se multiplicaban: 14 búsquedas en 47 s con 15 s de espera)
+const pendingByTrigger = new Map()
+const triggerKey = (t) => t.type + ':' + t.actionId + ':' + (t.calledActionId || '')
+
+const schedule = (trigger, gen, timer = setTimeout, clear = clearTimeout) => {
   const fire = () => {
     if (gen !== generation || !runner) return
     runner(trigger.actionId, {}, { background: !!trigger.background, polling: true })
   }
   if (!(trigger.timeoutMillis > 0)) { fire(); return }
-  const handle = timer(() => { timers.delete(handle); fire() }, trigger.timeoutMillis)
+  const key = triggerKey(trigger)
+  const previous = pendingByTrigger.get(key)
+  if (previous !== undefined) { clear(previous); timers.delete(previous) }
+  // la vuelta sólo corre si sigue siendo LA pendiente de su trigger (una reemplazada vence sin
+  // efecto aunque su temporizador no se pudiera cancelar)
+  const handle = timer(() => {
+    timers.delete(handle)
+    if (pendingByTrigger.get(key) !== handle) return
+    pendingByTrigger.delete(key)
+    fire()
+  }, trigger.timeoutMillis)
   timers.add(handle)
+  pendingByTrigger.set(key, handle)
 }
 
 /** Pantalla nueva: descarta lo programado y arma sus OnLoad con espera. */
@@ -42,6 +59,7 @@ export function startPolling(hostCtx, timer = setTimeout) {
   generation++
   for (const h of timers) clearTimeout(h)
   timers.clear()
+  pendingByTrigger.clear()
   screenTree = hostCtx && hostCtx.tree
   for (const t of timedOnLoadTriggers(hostCtx)) schedule(t, generation, timer)
   return generation

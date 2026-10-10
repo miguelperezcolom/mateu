@@ -113,6 +113,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     startPolling,
     setPollingRunner,
     fetchNotifications,
+    bannerNotificationOf,
     notificationsOf,
     setUndoSink,
     setCalendarActionSink,

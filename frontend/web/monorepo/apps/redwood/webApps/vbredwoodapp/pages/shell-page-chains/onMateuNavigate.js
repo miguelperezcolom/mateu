@@ -169,6 +169,11 @@ define([
         return;
       }
 
+      // pantalla nueva: arma su refresco periódico (los OnLoad con espera) y olvida el anterior —
+      // ANTES de sus OnLoad inmediatos: si no, el éxito del primer 'search' de un listado se
+      // comparaba con la pantalla ANTERIOR y su OnSuccess (el bucle de refresco) nunca arrancaba
+      bridge.startPolling(reg.contexts[bridge.HOST_ID]);
+
       // triggers OnLoad del host (p.ej. el listing pide 'search' al cargar → llegan las filas)
       const loaded = reg.contexts[bridge.HOST_ID];
       // una vista rápida del Ask Oracle deja el filtro PENDIENTE: la búsqueda OnLoad
@@ -189,8 +194,6 @@ define([
         bridge.applyDomEffects(reg.effects, reg);
       }
 
-      // pantalla nueva: arma su refresco periódico (los OnLoad con espera) y olvida el anterior
-      bridge.startPolling(reg.contexts[bridge.HOST_ID]);
 
       // El chat de IA autoró una pantalla: se corre renderScreen con el YAML sobre el host recién
       // cargado — igual que un trigger OnLoad — y la proyección de más abajo la pinta. Es lo que

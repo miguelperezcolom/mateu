@@ -76,6 +76,15 @@ export function takeUndoToasts(effects) {
   return undo
 }
 
+/** Un Message de error o aviso NO es un toast en Redwood: oj-sp-messages-toast sólo admite
+ *  type="acknowledgement" (confirmaciones). Va al oj-sp-messages-banner de la shell como
+ *  notificación de VB (Actions.fireNotificationEvent → vbNotification → showNotificationMessage),
+ *  persistente hasta que se cierra. null para el resto, que siguen siendo toasts. */
+export function bannerNotificationOf(toast) {
+  if (!toast || (toast.variant !== 'error' && toast.variant !== 'warning')) return null
+  return { summary: toast.text || '', type: toast.variant, displayMode: 'persist' }
+}
+
 /** El objeto message de oj-message para un toast con deshacer. */
 export function undoMessageOf(toast) {
   return {

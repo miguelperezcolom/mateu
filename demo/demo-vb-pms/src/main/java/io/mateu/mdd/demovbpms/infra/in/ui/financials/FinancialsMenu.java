@@ -10,4 +10,6 @@ public class FinancialsMenu {
   @Menu FolioCharges folio;
 
   @Menu FolioWindows windows;
+
+  @Menu io.mateu.mdd.demovbpms.infra.in.ui.endofday.EndOfDay endOfDay;
 }

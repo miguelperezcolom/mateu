@@ -231,6 +231,26 @@ public final class Hotel {
         ROOMS, room(room.number()).orElseThrow(), room);
   }
 
+  /** A housekeeping round: a few rooms move on in the cleaning cycle (dirty → pickup → clean → inspected). */
+  public static void housekeepingRound() {
+    var random = new Random();
+    var cycle = List.of(HousekeepingStatus.DI, HousekeepingStatus.PU, HousekeepingStatus.CL, HousekeepingStatus.IP);
+    for (int i = 0; i < 3; i++) {
+      var room = ROOMS.get(random.nextInt(ROOMS.size()));
+      if (room.outOfOrder() || !cycle.contains(room.status())) continue;
+      var next = cycle.get((cycle.indexOf(room.status()) + 1) % cycle.size());
+      replaceRoom(new Room(room.number(), room.floor(), room.type(), room.typeLabel(), next, false));
+    }
+  }
+
+  /** Sets the housekeeping status of several rooms at once (the Housekeeping Board's Set Room Status). */
+  public static void setRoomStatus(List<String> numbers, HousekeepingStatus status) {
+    for (var number : numbers) {
+      room(number).ifPresent(r -> replaceRoom(new Room(r.number(), r.floor(), r.type(), r.typeLabel(), status,
+          status == HousekeepingStatus.OO)));
+    }
+  }
+
   /** Reservations overlapping [from, to) on a room, excluding {@code exceptId}. */
   public static List<Reservation> overlapping(
       String roomNumber, LocalDate from, LocalDate to, String exceptId) {

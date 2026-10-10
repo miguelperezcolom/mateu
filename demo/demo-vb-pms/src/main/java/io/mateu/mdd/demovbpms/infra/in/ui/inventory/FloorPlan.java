@@ -46,14 +46,7 @@ public class FloorPlan implements ComponentTreeSupplier, io.mateu.uidl.fluent.Tr
   /** A housekeeping round: a few rooms change status, and the plan re-renders in place. */
   @Action
   public Object refreshRooms() {
-    var random = new java.util.Random();
-    var cycle = List.of(Hotel.HousekeepingStatus.DI, Hotel.HousekeepingStatus.PU, Hotel.HousekeepingStatus.CL, Hotel.HousekeepingStatus.IP);
-    for (int i = 0; i < 3; i++) {
-      var room = Hotel.ROOMS.get(random.nextInt(Hotel.ROOMS.size()));
-      if (room.outOfOrder()) continue;
-      var next = cycle.get((cycle.indexOf(room.status()) + 1 + cycle.size()) % cycle.size());
-      Hotel.replaceRoom(new Hotel.Room(room.number(), room.floor(), room.type(), room.typeLabel(), next, false));
-    }
+    Hotel.housekeepingRound();
     REFRESHES.incrementAndGet();
     return this;
   }

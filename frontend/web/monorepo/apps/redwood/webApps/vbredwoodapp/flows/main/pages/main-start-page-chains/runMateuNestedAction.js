@@ -129,6 +129,9 @@ define([
         bridge.elementAtomsOf(($application.variables.mateuIsland || {}).content)));
 
       for (const toast of allToasts) {
+        // un error o aviso va al banner de mensajes de la shell (el toast de Redwood sólo confirma)
+        const notification = bridge.bannerNotificationOf(toast);
+        if (notification) { await Actions.fireNotificationEvent(context, notification); continue; }
         $page.variables.mateuToastText = toast.text;
         await Actions.callComponentMethod(context, {
           selector: '#mateuToast',

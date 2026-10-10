@@ -2306,6 +2306,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           }, container)
           return
         }
+        if (m.stereotype === 'bulletedList') {
+          // @BulletedList sobre una List<String>: su rótulo y sus valores como la lista de viñetas
+          // de siempre (el componente BulletedList ya era un átomo; el campo caía al vacío)
+          const raw = state[fieldId] != null ? state[fieldId] : (ctx.data || {})[fieldId]
+          const items = (Array.isArray(raw) ? raw : raw == null || raw === '' ? [] : [raw]).map((v) => String(plainValueOf(v)))
+          if (m.label) atom({ isText: true, text: interp(m.label), cls: 'oj-typography-body-sm oj-text-color-secondary oj-sm-margin-1x-bottom' }, container)
+          atom({ isBullets: true, items }, container)
+          return
+        }
         if (m.propertyRow) {
           // un lookup de sólo lectura viaja como el campo '<campo>-label', con su ETIQUETA en
           // data['<campo>-label'] (no en el state); un campo normal puede traer su etiqueta igual
@@ -3106,8 +3115,16 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           }
           if (opts.forWizard) {
             if (atom.isProgress) return false
+            // el contador «2 | 3» del RAIL (@WizardProgress(RAIL)): el oj-sp del proceso guiado
+            // ya pinta el suyo en su raíl, uno más en el contenido es un duplicado
+            if (atom.isText && /^\d+ \| \d+$/.test(String(atom.text || '').trim())) return false
             if (!opts.keepWizardNav && atom.isButtons && atom.buttons.length
                 && atom.buttons.every((b) => b.actionId === 'next' || b.actionId === 'back')) return false
+            // el pie del ÚLTIMO paso: Back + la acción de completar (@WizardCompletionAction) — el
+            // pie del proceso guiado ya los pinta (wizardForwardOf), aquí salían duplicados
+            if (!opts.keepWizardNav && atom.isButtons && atom.buttons.length === 2
+                && atom.buttons.some((b) => b.actionId === 'back')
+                && !atom.buttons.some((b) => b.actionId === 'next')) return false
           }
           return true
         }),
@@ -4606,6 +4623,18 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   const metaOf = (fr) => fr.component?.metadata || {}
 
+  /** El estado de una superficie con los VALORES INICIALES de sus campos (FormField.initialValue) que
+   *  aún no tienen valor: el renderer web cae a ese valor cuando el estado no trae la clave, y aquí
+   *  se siembra en el estado para que se pinte Y viaje en la siguiente acción. */
+  function withInitialValues(tree, state) {
+    const out = { ...(state || {}) }
+    if (!tree) return out
+    for (const f of collectFields(tree)) {
+      if (f.initialValue != null && !(f.fieldId in out)) out[f.fieldId] = f.initialValue
+    }
+    return out
+  }
+
   let overlaySeq = 0
   /** Construye un contexto de overlay (drawer/dialog) a partir de un fragmento Add. */
   function buildOverlay(fr, opener) {
@@ -4622,7 +4651,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       kind: 'drawer',
       tree: fr.component, // el árbol completo — md.content lleva el contenido (patrón Card)
       surface,
-      state: filled(md.initialData) || filled(fr.state) || (surface && filled(surface.initialData)) || {},
+      state: withInitialValues(surface || fr.component, filled(md.initialData) || filled(fr.state) || (surface && filled(surface.initialData)) || {}),
       title: md.headerTitle || md.title || (surfacePage && surfacePage.metadata.title) || '',
       subtitle: md.subtitle,
       position: md.position || 'end',
@@ -4728,9 +4757,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         pageWidth: ss?.pageWidth ?? (fr.component ? undefined : prev.pageWidth),
         state: !fr.component
           ? { ...prev.state, ...(fr.state || {}) } // State-only: MERGE (no borrar la isla)
-          : fr.action === 'ReplaceKeepData'
+          : withInitialValues(fr.component, fr.action === 'ReplaceKeepData'
             ? { ...prev.state, ...(fr.state || md.initialData || {}) }
-            : (fr.state ?? md.initialData ?? prev.state),
+            : (fr.state ?? md.initialData ?? prev.state)),
         // data = eje de DATOS calculados por el server (p.ej. las filas del listing, keyed
         // por id de componente: {crud: {page: …}}); un fragmento data-only MERGEA
         data: !fr.component
@@ -6286,14 +6315,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return triggersOf(ctx).filter((t) => t.type === 'OnSuccess' && t.actionId && t.calledActionId === actionId)
   }
 
-  const schedule = (trigger, gen, timer = setTimeout) => {
+  // UNA vuelta pendiente por trigger: si el refresco repinta el host y eso relanza sus OnLoad (otro
+  // 'search' que también termina bien), un segundo éxito no debe armar un segundo bucle en paralelo
+  // — se reprograma el mismo (los bucles se multiplicaban: 14 búsquedas en 47 s con 15 s de espera)
+  const pendingByTrigger = new Map()
+  const triggerKey = (t) => t.type + ':' + t.actionId + ':' + (t.calledActionId || '')
+
+  const schedule = (trigger, gen, timer = setTimeout, clear = clearTimeout) => {
     const fire = () => {
       if (gen !== generation || !runner) return
       runner(trigger.actionId, {}, { background: !!trigger.background, polling: true })
     }
     if (!(trigger.timeoutMillis > 0)) { fire(); return }
-    const handle = timer(() => { timers.delete(handle); fire() }, trigger.timeoutMillis)
+    const key = triggerKey(trigger)
+    const previous = pendingByTrigger.get(key)
+    if (previous !== undefined) { clear(previous); timers.delete(previous) }
+    // la vuelta sólo corre si sigue siendo LA pendiente de su trigger (una reemplazada vence sin
+    // efecto aunque su temporizador no se pudiera cancelar)
+    const handle = timer(() => {
+      timers.delete(handle)
+      if (pendingByTrigger.get(key) !== handle) return
+      pendingByTrigger.delete(key)
+      fire()
+    }, trigger.timeoutMillis)
     timers.add(handle)
+    pendingByTrigger.set(key, handle)
   }
 
   /** Pantalla nueva: descarta lo programado y arma sus OnLoad con espera. */
@@ -6301,6 +6347,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     generation++
     for (const h of timers) clearTimeout(h)
     timers.clear()
+    pendingByTrigger.clear()
     screenTree = hostCtx && hostCtx.tree
     for (const t of timedOnLoadTriggers(hostCtx)) schedule(t, generation, timer)
     return generation
@@ -7536,6 +7583,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       effects.toasts.splice(0, effects.toasts.length, ...rest)
     }
     return undo
+  }
+
+  /** Un Message de error o aviso NO es un toast en Redwood: oj-sp-messages-toast sólo admite
+   *  type="acknowledgement" (confirmaciones). Va al oj-sp-messages-banner de la shell como
+   *  notificación de VB (Actions.fireNotificationEvent → vbNotification → showNotificationMessage),
+   *  persistente hasta que se cierra. null para el resto, que siguen siendo toasts. */
+  function bannerNotificationOf(toast) {
+    if (!toast || (toast.variant !== 'error' && toast.variant !== 'warning')) return null
+    return { summary: toast.text || '', type: toast.variant, displayMode: 'persist' }
   }
 
   /** El objeto message de oj-message para un toast con deshacer. */
@@ -10775,6 +10831,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     startPolling,
     setPollingRunner,
     fetchNotifications,
+    bannerNotificationOf,
     notificationsOf,
     setUndoSink,
     setCalendarActionSink,

@@ -1764,6 +1764,15 @@ export function islandContentOf(ctx, opts = {}) {
         }, container)
         return
       }
+      if (m.stereotype === 'bulletedList') {
+        // @BulletedList sobre una List<String>: su rótulo y sus valores como la lista de viñetas
+        // de siempre (el componente BulletedList ya era un átomo; el campo caía al vacío)
+        const raw = state[fieldId] != null ? state[fieldId] : (ctx.data || {})[fieldId]
+        const items = (Array.isArray(raw) ? raw : raw == null || raw === '' ? [] : [raw]).map((v) => String(plainValueOf(v)))
+        if (m.label) atom({ isText: true, text: interp(m.label), cls: 'oj-typography-body-sm oj-text-color-secondary oj-sm-margin-1x-bottom' }, container)
+        atom({ isBullets: true, items }, container)
+        return
+      }
       if (m.propertyRow) {
         // un lookup de sólo lectura viaja como el campo '<campo>-label', con su ETIQUETA en
         // data['<campo>-label'] (no en el state); un campo normal puede traer su etiqueta igual
@@ -2564,8 +2573,16 @@ export function hostContentOf(ctx, islandBlocks, opts = {}) {
         }
         if (opts.forWizard) {
           if (atom.isProgress) return false
+          // el contador «2 | 3» del RAIL (@WizardProgress(RAIL)): el oj-sp del proceso guiado
+          // ya pinta el suyo en su raíl, uno más en el contenido es un duplicado
+          if (atom.isText && /^\d+ \| \d+$/.test(String(atom.text || '').trim())) return false
           if (!opts.keepWizardNav && atom.isButtons && atom.buttons.length
               && atom.buttons.every((b) => b.actionId === 'next' || b.actionId === 'back')) return false
+          // el pie del ÚLTIMO paso: Back + la acción de completar (@WizardCompletionAction) — el
+          // pie del proceso guiado ya los pinta (wizardForwardOf), aquí salían duplicados
+          if (!opts.keepWizardNav && atom.isButtons && atom.buttons.length === 2
+              && atom.buttons.some((b) => b.actionId === 'back')
+              && !atom.buttons.some((b) => b.actionId === 'next')) return false
         }
         return true
       }),
@@ -4064,6 +4081,18 @@ export function mediatorOf(ctx) {
 
 const metaOf = (fr) => fr.component?.metadata || {}
 
+/** El estado de una superficie con los VALORES INICIALES de sus campos (FormField.initialValue) que
+ *  aún no tienen valor: el renderer web cae a ese valor cuando el estado no trae la clave, y aquí
+ *  se siembra en el estado para que se pinte Y viaje en la siguiente acción. */
+export function withInitialValues(tree, state) {
+  const out = { ...(state || {}) }
+  if (!tree) return out
+  for (const f of collectFields(tree)) {
+    if (f.initialValue != null && !(f.fieldId in out)) out[f.fieldId] = f.initialValue
+  }
+  return out
+}
+
 let overlaySeq = 0
 /** Construye un contexto de overlay (drawer/dialog) a partir de un fragmento Add. */
 export function buildOverlay(fr, opener) {
@@ -4080,7 +4109,7 @@ export function buildOverlay(fr, opener) {
     kind: 'drawer',
     tree: fr.component, // el árbol completo — md.content lleva el contenido (patrón Card)
     surface,
-    state: filled(md.initialData) || filled(fr.state) || (surface && filled(surface.initialData)) || {},
+    state: withInitialValues(surface || fr.component, filled(md.initialData) || filled(fr.state) || (surface && filled(surface.initialData)) || {}),
     title: md.headerTitle || md.title || (surfacePage && surfacePage.metadata.title) || '',
     subtitle: md.subtitle,
     position: md.position || 'end',
@@ -4186,9 +4215,9 @@ export function reduceContexts(reg, increment, opts = {}) {
       pageWidth: ss?.pageWidth ?? (fr.component ? undefined : prev.pageWidth),
       state: !fr.component
         ? { ...prev.state, ...(fr.state || {}) } // State-only: MERGE (no borrar la isla)
-        : fr.action === 'ReplaceKeepData'
+        : withInitialValues(fr.component, fr.action === 'ReplaceKeepData'
           ? { ...prev.state, ...(fr.state || md.initialData || {}) }
-          : (fr.state ?? md.initialData ?? prev.state),
+          : (fr.state ?? md.initialData ?? prev.state)),
       // data = eje de DATOS calculados por el server (p.ej. las filas del listing, keyed
       // por id de componente: {crud: {page: …}}); un fragmento data-only MERGEA
       data: !fr.component

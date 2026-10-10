@@ -351,6 +351,9 @@ define([
         && !(lastIncrement.commands || []).length;
       if (onlyMessages) {
         for (const toast of allToasts) {
+          // un error o aviso va al banner de mensajes de la shell (el toast de Redwood sólo confirma)
+          const notification = bridge.bannerNotificationOf(toast);
+          if (notification) { await Actions.fireNotificationEvent(context, notification); continue; }
           $page.variables.mateuToastText = toast.text;
           await Actions.callComponentMethod(context, { selector: '#mateuToast', method: 'open' });
         }
@@ -785,6 +788,9 @@ define([
 
       // toast con el patrón del starter: variable + open() del oj-sp-messages-toast local
       for (const toast of allToasts) {
+        // un error o aviso va al banner de mensajes de la shell (el toast de Redwood sólo confirma)
+        const notification = bridge.bannerNotificationOf(toast);
+        if (notification) { await Actions.fireNotificationEvent(context, notification); continue; }
         $page.variables.mateuToastText = toast.text;
         await Actions.callComponentMethod(context, {
           selector: '#mateuToast',

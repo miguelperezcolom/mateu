@@ -954,6 +954,22 @@ test('polling: los OnLoad con espera se programan (no se lanzan ya) y cada éxit
   setPollingRunner(null)
 })
 
+test('polling: dos éxitos seguidos del mismo trigger dejan UNA vuelta pendiente, no dos bucles', () => {
+  const pending = []
+  const timer = (fn, ms) => { const h = { fn, ms }; pending.push(h); return h }
+  const ran = []
+  setPollingRunner((actionId) => ran.push(actionId))
+  const host = { tree: { serverSideType: 'Board', triggers: [
+    { type: 'OnSuccess', actionId: 'search', calledActionId: 'search', timeoutMillis: 15000, background: true },
+  ] } }
+  startPolling(host, timer)
+  actionSucceeded(host, 'search', timer)
+  actionSucceeded(host, 'search', timer) // el OnLoad relanzado al repintar el host
+  pending.forEach((p) => p.fn())
+  assert.deepEqual(ran, ['search'], 'sólo la última vuelta programada corre')
+  setPollingRunner(null)
+})
+
 test('polling: la shell lo arranca al navegar y el transporte avisa de cada éxito', () => {
   assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /bridge\.startPolling\(reg\.contexts\[bridge\.HOST_ID\]\)/)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.setPollingRunner\(runPageAction\)/)
@@ -1111,6 +1127,52 @@ test('Item Overview y General Overview: el contenido de tarjetas y pestañas via
   ]) })
   const card = go.cards.find((c) => c.title === 'Notes')
   assert.equal(card.items[0].text, 'hello')
+})
+
+import { withInitialValues } from './reduceContexts.mjs'
+
+test('FormField.initialValue siembra el estado cuando la clave falta (como el renderer web), sin pisar lo que llega', () => {
+  const tree = node({ type: 'Form' }, [
+    node({ type: 'FormField', fieldId: 'rooms', initialValue: '101, 103' }),
+    node({ type: 'FormField', fieldId: 'status', initialValue: 'CL' }),
+    node({ type: 'FormField', fieldId: 'notes' }),
+  ])
+  assert.deepEqual(withInitialValues(tree, { status: 'DI' }), { status: 'DI', rooms: '101, 103' })
+})
+
+test('el refresco se arma ANTES de los OnLoad inmediatos: el primer search de un listado ya arranca su OnSuccess', () => {
+  const nav = webApp('pages/shell-page-chains/onMateuNavigate.js')
+  assert.ok(nav.indexOf('bridge.startPolling(') > 0)
+  assert.ok(nav.indexOf('bridge.startPolling(') < nav.indexOf('bridge.onLoadTriggers(loaded)'))
+})
+
+import { bannerNotificationOf } from './notify.mjs'
+
+test('mensajes: error y aviso van al banner de la shell (vbNotification); el toast de Redwood sólo confirma', () => {
+  assert.deepEqual(bannerNotificationOf({ text: 'Close the cashiers', variant: 'error' }), { summary: 'Close the cashiers', type: 'error', displayMode: 'persist' })
+  assert.equal(bannerNotificationOf({ text: 'Saved', variant: 'success' }), null)
+  assert.equal(bannerNotificationOf({ text: 'x' }), null)
+  const chain = webApp('flows/main/pages/main-start-page-chains/runMateuAction.js')
+  assert.match(chain, /const notification = bridge\.bannerNotificationOf\(toast\);\n\s*if \(notification\) \{ await Actions\.fireNotificationEvent\(context, notification\); continue; \}/)
+  assert.doesNotMatch(webApp('flows/main/pages/main-start-page.html'), /mateuToast"[^>]*type=|type="[^"]*"[^>]*id="mateuToast"/)
+})
+
+test('@BulletedList en un campo: su rótulo y sus valores como viñetas (antes desaparecía)', () => {
+  const atoms = atomsOf(node({ type: 'FormLayout' }, [node({ type: 'FormField', fieldId: 'pending', dataType: 'array', stereotype: 'bulletedList', label: 'Still due in' })]),
+    { pending: ['A · room 1', 'B · room 2'] })
+  assert.equal(atoms[0].text, 'Still due in')
+  assert.deepEqual(atoms[1].items, ['A · room 1', 'B · room 2'])
+})
+
+test('proceso guiado: ni el contador del RAIL ni el pie Back + completar se duplican en el contenido', () => {
+  const tree = node({ type: 'VerticalLayout' }, [
+    node({ type: 'Text', text: '3 | 3' }),
+    node({ type: 'Text', text: 'Close the cashiers' }),
+    node({ type: 'HorizontalLayout' }, [node({ type: 'Button', label: 'Back', actionId: 'back' }), node({ type: 'Button', label: 'Run end of day', actionId: 'run' })]),
+  ])
+  const items = (hostContentOf({ tree, state: {}, data: {} }, [], { forWizard: true }) || []).flatMap((b) => b.items)
+  assert.deepEqual(items.filter((a) => a.isText).map((a) => a.text), ['Close the cashiers'])
+  assert.equal(items.filter((a) => a.isButtons).length, 0)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }
