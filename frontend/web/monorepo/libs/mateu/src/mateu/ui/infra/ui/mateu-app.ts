@@ -33,6 +33,9 @@ import {dirtyGuard} from "@infra/ui/dirtyGuard.ts";
 import {mateuApiClient} from "@infra/http/AxiosMateuApiClient.ts";
 import { safeLocalStorage } from '@infra/safeStorage.ts'
 import { runJs } from '@infra/ui/runJs.ts'
+import { runDeclaredFlow } from '@infra/ui/flowRunner.ts'
+import { inAppRoute, shellFlowFor } from '@infra/ui/shellFlows.ts'
+import type UICommand from '@mateu/shared/apiClients/dtos/UICommand.ts'
 import { applyUiLanguage, chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 
 // one hit of the app's GlobalSearchSupplier, shown by the command palette under the menu results
@@ -287,6 +290,31 @@ export class MateuApp extends ComponentElement {
         }
     }
 
+    /**
+     * Applies one command of a shell flow. A `Navigate` to a route of the app moves the shell there
+     * exactly as a menu RouteLink does (mount-relative, through the dirty guard); a `RunAction` with
+     * no target is the menu's app-level action dispatch; the rest is the common command applier.
+     */
+    applyShellCommand = (command: UICommand) => {
+        if (command.type === 'NavigateTo') {
+            const route = inAppRoute(command.data)
+            if (route !== undefined) {
+                const app = (this.component as ClientSideComponent | undefined)?.metadata as App | undefined
+                const root = (app?.rootRoute ?? '').replace(/\/+$/, '')
+                this.selectRoute(root, root + '/' + route, undefined, undefined, undefined, undefined)
+                return
+            }
+        }
+        if (command.type === 'RunAction') {
+            const data = command.data as { actionId?: string, targetComponentId?: string } | undefined
+            if (data?.actionId && !data.targetComponentId) {
+                this.runAction(data.actionId)
+                return
+            }
+        }
+        this.applyCommand(command)
+    }
+
     // A menu leaf is either a route or a rule. When it carries rules, clicking it RUNS them instead
     // of navigating. Only the app-level rule actions make sense here: RunAction dispatches the action
     // (same path as a FAB/header action), RunJS evaluates a statement. The state-mutating rules have
@@ -294,6 +322,10 @@ export class MateuApp extends ComponentElement {
     runMenuRules = (rules: Rule[]) => {
         for (const rule of rules) {
             if (rule.action === RuleAction.RunAction && rule.actionId) {
+                // A flow the shell declares runs HERE, in the browser; anything else is an
+                // app-level action for the server, as before.
+                const app = (this.component as ClientSideComponent | undefined)?.metadata as App | undefined
+                if (runDeclaredFlow({ commands: shellFlowFor(app, rule.actionId) }, this.applyShellCommand)) continue
                 this.runAction(rule.actionId)
             } else if (rule.action === RuleAction.RunJS && rule.value != null) {
                 try {

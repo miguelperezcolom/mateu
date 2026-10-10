@@ -103,7 +103,7 @@ function sourceOf(data: NonNullable<ExpansionContext['data']>): Record<string, u
 
 /** Wrap a screen that has behaviour in the ServerSide page component that carries it. */
 function withBehaviour(spec: DefinitionSpec, component: Component, ctx: ExpansionContext): Component {
-    const actions = [...((spec.actions as Record<string, unknown>[] | undefined) ?? [])]
+    const actions = ((spec.actions as Record<string, unknown>[] | undefined) ?? []).map(lowerAction)
     const triggers = [...((spec.triggers as Record<string, unknown>[] | undefined) ?? [])]
     if (ctx.data && (ctx.data.ref || ctx.data.url)) {
         // resultPath "" = merge the whole response into the page state (what the server sends).
@@ -127,10 +127,68 @@ function withBehaviour(spec: DefinitionSpec, component: Component, ctx: Expansio
     } as unknown as Component
 }
 
+/**
+ * One declared flow step → the wire command it lowers to — the browser twin of the server's
+ * `Step.toCommand` + `ActionDtoMapper.mapSteps`: every v0 verb is exactly one existing command, with
+ * a null target (the firing component applies it). An unknown verb yields nothing.
+ */
+export function lowerStep(step: Record<string, unknown>): Record<string, unknown> | undefined {
+    const command = (type: string, data: unknown) => ({ targetComponentId: null, type, data })
+    const event = (name: unknown, detail: unknown) => ({ eventName: name, detail: detail ?? null })
+    switch (step?.type) {
+        case 'Navigate': return command('NavigateTo', step.route ?? null)
+        case 'Emit': return command('DispatchEvent', event(step.event, step.payload))
+        case 'CloseOverlay': return command('CloseModal', step.event ? event(step.event, null) : null)
+        case 'RunAction': return command('RunAction', { actionId: step.actionId })
+        case 'MarkClean': return command('MarkAsClean', null)
+        case 'MarkDirty': return command('MarkAsDirty', null)
+        default: return undefined
+    }
+}
+
+/**
+ * An authored action as the wire carries it: a declared flow (`steps:`) travels as `commands` — the
+ * shape `mateu-component` and the shell's menu run with no server round-trip — exactly as the
+ * server lowers it. An action without steps passes through untouched.
+ */
+export function lowerAction(action: Record<string, unknown>): Record<string, unknown> {
+    if (!action || !Array.isArray(action.steps)) return action
+    const { steps, ...rest } = action
+    const commands = (steps as Record<string, unknown>[]).map(lowerStep).filter(Boolean)
+    return commands.length ? { ...rest, commands } : rest
+}
+
+/** The server's `Humanizer.toCamelCase`: where a menu entry with no route of its own points. */
+function camelCase(label: unknown): string {
+    if (typeof label !== 'string' || !label) return ''
+    const words = label.replace(/\./g, ' ')
+        .replace(/(?<=[A-Z])(?=[A-Z][a-z])|(?<=[^A-Z])(?=[A-Z])|(?<=[A-Za-z])(?=[^A-Za-z])/g, ' ')
+        .toLowerCase().replace(/ +/g, ' ')
+    if (words.length <= 1) return words
+    return words.split(' ').map((w, i) => (i > 0 && w ? w[0].toUpperCase() + w.substring(1) : w)).join('')
+}
+
+/** A menu entry's rules on the wire (a RuleLink's `rules:` — e.g. a RunAction naming a shell flow). */
+function menuRules(item: FluentNode): Record<string, unknown>[] {
+    if (item.type !== 'RuleLink' || !Array.isArray(item.rules)) return []
+    return (item.rules as Record<string, unknown>[]).map((r) => ({
+        filter: r.filter ?? null,
+        action: r.action ?? null,
+        fieldName: r.fieldName ?? null,
+        fieldAttribute: r.fieldAttribute ?? null,
+        value: r.value ?? null,
+        expression: r.expression ?? null,
+        result: r.result ?? null,
+        actionId: r.actionId ?? null,
+    }))
+}
+
 /** An authored menu entry → the wire MenuOption the app shell paints and routes with. */
 function menuOption(item: FluentNode): Record<string, unknown> {
     const route = typeof item.route === 'string' && item.route ? item.route
-        : typeof item.path === 'string' ? item.path : ''
+        : typeof item.path === 'string' ? item.path
+        // an entry with no route of its own (a RuleLink) gets the server's label-derived path
+        : item.type === 'RuleLink' ? camelCase(item.label) : ''
     const path = '/' + route.replace(/^\/+/, '')
     const submenu = (item.submenu ?? item.submenus ?? item.menu) as FluentNode[] | undefined
     return {
@@ -145,7 +203,7 @@ function menuOption(item: FluentNode): Record<string, unknown> {
         disabled: false,
         separator: item.type === 'MenuSeparator',
         remote: false,
-        rules: [],
+        rules: menuRules(item),
         submenus: Array.isArray(submenu) ? submenu.map(menuOption) : [],
     }
 }
@@ -167,7 +225,7 @@ const subOf = (item: FluentNode): FluentNode[] | undefined => {
     const sub = (item.submenu ?? item.submenus ?? item.menu) as FluentNode[] | undefined
     return Array.isArray(sub) ? sub : undefined
 }
-const isGroup = (item: FluentNode) => item.type === 'Menu' || (!item.type && !!subOf(item))
+const isGroup = (item: FluentNode) => item.type === 'Menu' || (!item.type && !!subOf(item)) // i18n-ok
 const hasRemoteMenu = (items: FluentNode[]): boolean =>
     items.some((i) => i.type === 'RemoteMenu' || (isGroup(i) && hasRemoteMenu(subOf(i) ?? [])))
 
@@ -196,6 +254,8 @@ export function resolveAppVariant(declared: unknown, menu: FluentNode[]): string
  */
 export function expandAppShell(shell: FluentNode): UIIncrement {
     const menu = (shell.menu as FluentNode[] | undefined) ?? []
+    const widgets = ((shell.widgets as FluentNode[] | undefined) ?? []).filter((w) => w && typeof w === 'object')
+    const flag = (key: string) => shell[key] === true || shell[key] === 'true'
     return {
         commands: [
             { targetComponentId: MAIN, type: 'SetWindowTitle', data: shell.title ?? '' } as never,
@@ -216,7 +276,14 @@ export function expandAppShell(shell: FluentNode): UIIncrement {
                     subtitle: shell.subtitle,
                     logo: shell.logo,
                     favicon: shell.favicon,
-                    themeToggle: Boolean(shell.themeToggle),
+                    themeToggle: flag('themeToggle'),
+                    // the header switches a shell authors (AppMapper: chromeless implies the command center)
+                    commandCenterEnabled: flag('commandCenter') || flag('chromeless'),
+                    chromeless: flag('chromeless'),
+                    accessKeys: flag('accessKeys'),
+                    drawerClosed: flag('drawerClosed'),
+                    style: typeof shell.style === 'string' ? shell.style : undefined,
+                    cssClasses: typeof shell.cssClasses === 'string' ? shell.cssClasses : undefined,
                     // The brand accent (`accentColor:`), as the server's AppMapper sends it: blank → none.
                     accentColor: typeof shell.accentColor === 'string' && shell.accentColor.trim() ? shell.accentColor.trim() : undefined,
                     menu: menu.map(menuOption),
@@ -231,8 +298,13 @@ export function expandAppShell(shell: FluentNode): UIIncrement {
                     fabs: [],
                     contextSelectors: [],
                     contextActions: [],
+                    // the shell's FLOWS, lowered as the server's AppMapper lowers them: a menu
+                    // RuleLink whose RunAction names one runs it in the browser
+                    actions: ((shell.actions as Record<string, unknown>[] | undefined) ?? [])
+                        .filter((a) => a && typeof a === 'object').map(lowerAction),
                 },
-                children: [],
+                // the header widgets (AppMapper.mapWidgets): each authored component, in slot "widgets"
+                children: widgets.map((w) => ({ ...expandComponent(w), slot: 'widgets' })),
             } as unknown as Component,
             data: undefined,
             state: undefined,
