@@ -22,6 +22,9 @@ import yaml
 
 _log = logging.getLogger("mateu.route_registry")
 
+# Mount homes already warned about (file#home), so a bad home is logged once per process.
+_WARNED_HOMES: set[str] = set()
+
 
 def _normalize(route: str | None) -> str:
     """Routes are relative to the mount, so a leading or trailing slash carries no meaning."""
@@ -312,8 +315,42 @@ class RouteRegistry:
         """routes.yaml merged OVER the code-supplied routes, so YAML wins the last-mile override and
         the code supplier still wins over the decorator-derived views."""
         if self._authored is None:
-            self._authored = self._load().merged_over(self._supplied)
+            self._authored = self._apply_homes(self._load()).merged_over(self._supplied)
         return self._authored
+
+    def _apply_homes(self, table: RouteTable) -> RouteTable:
+        """Applies each ``type: UI`` mount's ``home:`` — a route of the mount (relative to it) that is
+        its home page. When the mount authors no root route (its base path), the root becomes an
+        alias of the home entry (same definition, view model and parameters), so the mount root
+        renders the home page. An authored root always wins: explicit beats derived. A home naming no
+        route (or carrying ``:params``, which a root cannot fill) is warned about once and ignored.
+        (Mirrors Java's RouteRegistry.applyHomes and .NET's ApplyHomes.)"""
+        entries = list(table.routes)
+        applied: set[str] = set()
+        for descriptor in self._scan_mount_descriptors():
+            base_path, home = descriptor["base_path"], descriptor["home"]
+            if not home or base_path in applied:
+                continue
+            absolute = _prefix(base_path, home)
+            entry = next((e for e in entries if _normalize(e.route) == absolute), None)
+            if entry is None or ":" in home:
+                key = f"{descriptor['file']}#{home}"
+                if key not in _WARNED_HOMES:
+                    _WARNED_HOMES.add(key)
+                    _log.warning(
+                        "Mount %s declares home '%s', which %s; ignoring it",
+                        descriptor["file"],
+                        home,
+                        "is not a route of the mount"
+                        if entry is None
+                        else "has path parameters the mount root cannot fill",
+                    )
+                continue
+            applied.add(base_path)
+            if any(_normalize(e.route) == base_path for e in entries):
+                continue
+            entries.append(replace(entry, route=base_path, parent=None))
+        return RouteTable(tuple(entries))
 
     def match(self, path: str | None) -> Match | None:
         return self.authored().match(path)
@@ -345,7 +382,12 @@ class RouteRegistry:
         """Scan the specs directory for ``type: UI`` files (by content, not by filename), so several
         DSL apps can coexist. Returns each mount's base path + its listed route files. (Mirrors
         Java's MountRegistry.mounts.)"""
-        mounts: list[tuple[str, list[str]]] = []
+        return [(d["base_path"], d["route_files"]) for d in self._scan_mount_descriptors()]
+
+    def _scan_mount_descriptors(self) -> list[dict[str, Any]]:
+        """Every ``type: UI`` descriptor: base path, route files, optional ``home`` (relative,
+        slashes trimmed; ``None`` when not declared) and the file it was read from."""
+        mounts: list[dict[str, Any]] = []
         if not self._dir.is_dir():
             return mounts
         for file in sorted(self._dir.rglob("*")):
@@ -366,7 +408,16 @@ class RouteRegistry:
                 route_files = [r for r in routes if isinstance(r, str)]
             else:
                 route_files = []
-            mounts.append((base_path, route_files))
+            home = root.get("home")
+            home = _normalize(home) if isinstance(home, str) else ""
+            mounts.append(
+                {
+                    "base_path": base_path,
+                    "route_files": route_files,
+                    "home": home or None,
+                    "file": str(file),
+                }
+            )
         return mounts
 
     def _definition_of(self, base_path: str, route_files: list[str]) -> str | None:

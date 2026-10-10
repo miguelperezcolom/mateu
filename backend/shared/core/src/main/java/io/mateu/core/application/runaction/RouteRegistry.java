@@ -52,6 +52,11 @@ public class RouteRegistry {
   private volatile RouteTable table;
   private volatile RouteTable authored;
   private volatile List<Mount> mounts;
+  private volatile Map<String, String> homes;
+
+  /** Mount homes already warned about (descriptor#home), so a bad home is logged once per JVM. */
+  private static final Set<String> WARNED_HOMES =
+      java.util.concurrent.ConcurrentHashMap.newKeySet();
 
   /** The merged table (authored over derived), loaded once. */
   public RouteTable table() {
@@ -514,6 +519,7 @@ public class RouteRegistry {
     }
 
     validateBasePaths(cl, byBasePath.keySet(), discovered);
+    this.homes = applyHomes(discovered, byBasePath);
 
     var entries = new ArrayList<RouteEntry>();
     byBasePath.forEach(
@@ -528,6 +534,94 @@ public class RouteRegistry {
                                 prefix(basePath, entry.route()),
                                 entry.hasParent() ? prefix(basePath, entry.parent()) : null))));
     return new RouteTable(entries);
+  }
+
+  /**
+   * Applies each mount's {@code home} to its bucket of relative routes and answers the VALID homes
+   * by base path. A home that names no route of its mount (or carries {@code :params}, which a root
+   * cannot fill) is warned about once and ignored — the mount behaves as if it declared none. When
+   * the mount authors no root route {@code ""}, the root becomes an alias of the home entry (same
+   * definition, view model and parameters), so every consumer of the table — server resolution, the
+   * static bundle, the browser's route resolution over the shipped table — renders the home page at
+   * the root. An authored {@code ""} (typically the app shell) always wins: explicit beats derived;
+   * the shell then lands on the home through {@link #mountHomeFor}.
+   */
+  private static Map<String, String> applyHomes(
+      List<Mount> discovered, Map<String, LinkedHashMap<String, RouteEntry>> byBasePath) {
+    var valid = new LinkedHashMap<String, String>();
+    for (var mount : discovered) {
+      var home = mount.home();
+      if (home == null || home.isEmpty() || valid.containsKey(mount.basePath())) {
+        continue;
+      }
+      var bucket = byBasePath.get(mount.basePath());
+      var homeEntry = bucket == null ? null : bucket.get(home);
+      if (homeEntry == null || home.contains(":")) {
+        var key = mount.descriptor() + "#" + home;
+        if (WARNED_HOMES.add(key)) {
+          log.warn(
+              "Mount {} declares home '{}', which {}; ignoring it",
+              mount.descriptor() != null ? mount.descriptor() : "/" + mount.basePath(),
+              home,
+              homeEntry == null
+                  ? "is not a route of the mount"
+                  : "has path parameters the mount root cannot fill");
+        }
+        continue;
+      }
+      valid.put(mount.basePath(), home);
+      if (!bucket.containsKey("")) {
+        bucket.put(
+            "",
+            new RouteEntry(
+                "",
+                homeEntry.definition(),
+                homeEntry.viewModel(),
+                homeEntry.fixedParams(),
+                homeEntry.defaultParams(),
+                null,
+                null,
+                homeEntry.state(),
+                homeEntry.appState(),
+                homeEntry.data(),
+                homeEntry.appData(),
+                null,
+                homeEntry.show()));
+      }
+    }
+    return valid;
+  }
+
+  /**
+   * The validated mount homes (base path → home route, both relative, no slashes) found by the last
+   * {@link #authoredFrom} on this registry — empty before it ran.
+   */
+  public Map<String, String> mountHomes() {
+    var loaded = homes;
+    return loaded == null ? Map.of() : Map.copyOf(loaded);
+  }
+
+  /**
+   * The validated {@code home} (relative to its mount, no slashes) of the mount that owns {@code
+   * route}, or {@code null} when that mount declares none (or an invalid one). This is what an app
+   * shell bound to the mount root lands on when it declares no {@code homeRoute:} itself.
+   */
+  public String mountHomeFor(String route) {
+    authored(); // ensures the scan ran
+    var normalized = normalize(route);
+    Mount best = null;
+    for (var mount : mounts()) {
+      var basePath = mount.basePath();
+      var owns =
+          basePath.isEmpty()
+              || normalized.equals(basePath)
+              || normalized.startsWith(basePath + "/");
+      if (owns && (best == null || basePath.length() > best.basePath().length())) {
+        best = mount;
+      }
+    }
+    var loaded = homes;
+    return best == null || loaded == null ? null : loaded.get(best.basePath());
   }
 
   /**

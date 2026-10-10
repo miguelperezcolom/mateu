@@ -162,7 +162,45 @@ public sealed class RouteRegistry
 
     /// <summary>The authored half: routes.yaml merged OVER the code-supplied routes, so YAML wins the
     /// last-mile override and the code supplier still wins over the attribute-derived views.</summary>
-    public RouteTable Authored() => _authored ??= Load().MergedOver(_supplied);
+    public RouteTable Authored() => _authored ??= ApplyHomes(Load()).MergedOver(_supplied);
+
+    /// <summary>Mount homes already warned about (file#home), so a bad home is logged once per process.</summary>
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, bool> WarnedHomes = new();
+
+    /// <summary>
+    /// Applies each <c>type: UI</c> mount's <c>home:</c> — a route of the mount (relative to it) that
+    /// is its home page. When the mount authors no root route (its base path), the root becomes an
+    /// alias of the home entry (same definition, view model and parameters), so the mount root
+    /// renders the home page. An authored root always wins: explicit beats derived. A home naming no
+    /// route (or carrying <c>:params</c>, which a root cannot fill) is warned about once and ignored.
+    /// (Mirrors Java's RouteRegistry.applyHomes and Python's _apply_homes.)
+    /// </summary>
+    private RouteTable ApplyHomes(RouteTable table)
+    {
+        var entries = table.Routes.ToList();
+        var applied = new HashSet<string>();
+        foreach (var mount in ScanMounts())
+        {
+            if (mount.Home is not { Length: > 0 } homeRoute || applied.Contains(mount.BasePath)) continue;
+            var absolute = Prefix(mount.BasePath, homeRoute);
+            var home = entries.FirstOrDefault(e => Normalize(e.Route) == absolute);
+            if (home is null || homeRoute.Contains(':'))
+            {
+                if (WarnedHomes.TryAdd(mount.File + "#" + homeRoute, true))
+                    MateuLogging.For("Mateu.Routes").LogWarning(
+                        "Mount {File} declares home '{Home}', which {Reason}; ignoring it",
+                        mount.File, homeRoute,
+                        home is null
+                            ? "is not a route of the mount"
+                            : "has path parameters the mount root cannot fill");
+                continue;
+            }
+            applied.Add(mount.BasePath);
+            if (entries.Any(e => Normalize(e.Route) == mount.BasePath)) continue;
+            entries.Add(home with { Route = mount.BasePath, Parent = null, Children = null });
+        }
+        return new RouteTable(entries);
+    }
 
     /// <summary>Flattens code-authored entries (and their nested <c>Children</c>) into flat ABSOLUTE
     /// entries, the object-tree twin of <see cref="FlattenNode"/> for the YAML path: a child's route
@@ -225,7 +263,8 @@ public sealed class RouteRegistry
     }
 
     /// <summary>A DSL mount discovered by content: a base path and the route files that make it up.</summary>
-    private sealed record MountDescriptor(string BasePath, IReadOnlyList<string> RouteFiles);
+    private sealed record MountDescriptor(
+        string BasePath, IReadOnlyList<string> RouteFiles, string? Home = null, string? File = null);
 
     /// <summary>Scans the specs directory for <c>type: UI</c> files (by content, not by filename), so
     /// several DSL apps can coexist. (Mirrors Java's MountRegistry.mounts.)</summary>
@@ -250,7 +289,8 @@ public sealed class RouteRegistry
                     else if (routes is string one)
                         routeFiles.Add(one);
                 }
-                mounts.Add(new MountDescriptor(basePath, routeFiles));
+                var home = Normalize(Str(root, "home"));
+                mounts.Add(new MountDescriptor(basePath, routeFiles, home.Length == 0 ? null : home, file));
             }
             catch (Exception e)
             {

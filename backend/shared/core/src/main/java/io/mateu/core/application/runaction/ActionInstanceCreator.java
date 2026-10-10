@@ -88,7 +88,10 @@ public class ActionInstanceCreator {
     // set) still goes through findRouteResolver, so a class mediator keeps serving its own
     // sub-routes.
     if (wrapsInAppShell(command)) {
-      var app = yamlAppLoader.load(routeRegistry.rootDefinitionFor(command.route()));
+      var app =
+          yamlAppLoader.load(
+              routeRegistry.rootDefinitionFor(command.route()),
+              routeRegistry.mountHomeFor(command.route()));
       return appMenuResolver
           .resolveMenuIfApp(finalCommand, app, routeInstanceCreator::findRouteResolver)
           .switchIfEmpty((Mono) Mono.just(app));
@@ -109,7 +112,7 @@ public class ActionInstanceCreator {
    */
   private Mono<?> loadYaml(RunActionCommand command) {
     var appDefinition = routeRegistry.rootDefinitionFor(command.route());
-    var app = yamlAppLoader.load(appDefinition);
+    var app = yamlAppLoader.load(appDefinition, routeRegistry.mountHomeFor(command.route()));
     if (app == null || isTerminalRoute(command.route()) || isAppLevelAction(command)) {
       return loadYamlPage(command);
     }

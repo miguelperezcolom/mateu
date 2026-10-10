@@ -447,6 +447,14 @@ public final class UidlSchemaGenerator {
     var props = root.putObject("properties");
     props.putObject("type").put("const", "UI");
     props.putObject("basePath").put("type", "string");
+    props
+        .putObject("home")
+        .put("type", "string")
+        .put(
+            "description",
+            "A route of this mount (relative to it, as in routes.yaml) that is the mount's home"
+                + " page: the mount root renders it when no route \"\" is authored, and an app shell"
+                + " bound to \"\" without its own homeRoute lands on it.");
     var routes = props.putObject("routes");
     routes.put("type", "array");
     routes.putObject("items").put("type", "string");
@@ -498,6 +506,14 @@ public final class UidlSchemaGenerator {
     var mountProps = mount.putObject("properties");
     mountProps.putObject("type").put("const", "UI");
     mountProps.putObject("basePath").put("type", "string");
+    mountProps
+        .putObject("home")
+        .put("type", "string")
+        .put(
+            "description",
+            "A route of this mount (relative to it, as in routes.yaml) that is the mount's home"
+                + " page: the mount root renders it when no route \"\" is authored, and an app shell"
+                + " bound to \"\" without its own homeRoute lands on it.");
     mountProps.putObject("routes").put("type", "array").putObject("items").put("type", "string");
     mount.putArray("required").add("type");
 
