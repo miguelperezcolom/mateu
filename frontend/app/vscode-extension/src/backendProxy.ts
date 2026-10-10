@@ -2,6 +2,7 @@ import * as fs from 'fs'
 import * as http from 'http'
 import * as https from 'https'
 import { staticAnswerOf } from './staticFiles'
+import { IMAGES_PREFIX, imageFileOf, imageToken } from './projectImages'
 
 /**
  * A loopback HTTP proxy that forwards the Mateu sync endpoints (`/mateu`, `/sse`) to the configured
@@ -18,6 +19,15 @@ export class BackendProxy {
     private server?: http.Server
     private _port = -1
     private startedFor?: string
+    /** The module roots whose images this server answers for, by token. */
+    private readonly imageRoots = new Map<string, string>()
+
+    /** Let the editor show a module's images from here (the canvas and the framed Redwood app). */
+    registerImageRoot(root: string): string {
+        const token = imageToken(root)
+        this.imageRoots.set(token, root)
+        return token
+    }
 
     /** @param mediaDir the visual-editor bundle (`media/`), for the Redwood canvas */
     constructor(private readonly mediaDir?: string) {}
@@ -46,6 +56,13 @@ export class BackendProxy {
         if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return }
 
         let path = req.url ?? '/'
+        if (path.startsWith(IMAGES_PREFIX)) {
+            const image = req.method === 'GET' ? imageFileOf(this.imageRoots, path) : undefined
+            if (!image) { res.writeHead(404); res.end('not found'); return }
+            res.writeHead(200, { 'Content-Type': image.contentType, 'Cache-Control': 'no-cache' })
+            fs.createReadStream(image.file).pipe(res)
+            return
+        }
         if (!path.startsWith('/mateu') && !path.startsWith('/sse')) {
             const answer = req.method === 'GET' ? staticAnswerOf(this.mediaDir, path) : { kind: 'none' as const }
             if (answer.kind === 'file') {

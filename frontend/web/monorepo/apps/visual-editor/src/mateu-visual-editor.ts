@@ -51,6 +51,7 @@ import { buildMountGraph } from './model/mountGraph'
 import { VIEWPORTS, ViewportId, parseViewport, viewportWidth } from './model/viewport'
 import { collectNotes, buildViewModelPrompt } from './model/notes'
 import { parentSelection, surviving } from './canvas/canvasSelection'
+import type { ProjectImage } from './model/projectImages'
 import { tidyFindings, applyTidy, TIDY_RULES, TidyRule } from './model/tidy'
 import { resolveHost, HostBridge } from './host/hostBridge'
 import { watchHostTheme, Theme } from './host/theme'
@@ -312,6 +313,8 @@ export class MateuVisualEditor extends LitElement {
     @state() private project?: ProjectIndex
     /** The mount's files as the host handed them over (the board and play mode read them whole). */
     @state() private projectFiles: ProjectFile[] = []
+    /** The project's images, as the host lists them (none in the standalone browser). */
+    @state() private images: ProjectImage[] = []
     /**
      * What fills the work area: the editor for the open file, the board (every screen of the mount and
      * the arrows between them) or play mode (the mount running, from the files as edited).
@@ -375,6 +378,21 @@ export class MateuVisualEditor extends LitElement {
         // the host re-sends the files when one changes (a page created while this editor is open)
         this.host.onFilesChanged?.((files) => this.applyProjectFiles(files))
         this.host.listFiles?.().then((files) => this.applyProjectFiles(files)).catch(() => undefined)
+        // …and the project's images, for the image pickers and the canvas
+        this.host.onImagesChanged?.((images) => (this.images = images))
+        this.host.listImages?.().then((images) => { if (images.length || !this.images.length) this.images = images }).catch(() => undefined)
+    }
+
+    /**
+     * "Add image to project…" in a picker: the host copies the chosen file into the project, and the
+     * picker that asked gets its URL (the image list follows by the host's own push).
+     */
+    private onAddImage = async (e: Event) => {
+        const picker = (e as CustomEvent<{ picker?: { commit(value: string): void } }>).detail?.picker
+        const added = await this.host.addImage?.()
+        if (!added) return
+        if (!this.images.some((i) => i.url === added.url)) this.images = [...this.images, added]
+        picker?.commit(added.url)
     }
 
     private applyProjectFiles(files: ProjectFile[] | undefined) {
@@ -510,6 +528,7 @@ export class MateuVisualEditor extends LitElement {
                  @slot-add=${(e: CustomEvent) => this.onSlotAdd(e.detail.key, e.detail.ref)}
                  @binding-rename=${(e: CustomEvent) => this.onRename(e.detail.from)}
                  @preview-status=${(e: CustomEvent) => (this.previewStatus = e.detail)}
+                 @add-image=${this.onAddImage}
                  @node-delete=${this.onDelete}
                  @node-duplicate=${this.onDuplicate}
                  @node-move=${(e: CustomEvent) => this.onMove(e.detail.delta)}
@@ -533,11 +552,11 @@ export class MateuVisualEditor extends LitElement {
                     : this.view === 'play'
                     ? html`<mount-play .files=${this.mountFiles()} .start=${this.playStart} .baseUrl=${renderBaseUrl(this.previewSource)}
                                        .theme=${this.theme} .viewport=${this.viewport} .renderer=${this.projectRenderer}
-                                       .editorSources=${this.project?.sources ?? []}></mount-play>`
+                                       .editorSources=${this.project?.sources ?? []} .images=${this.images}></mount-play>`
                     : this.mode === 'mount'
                     ? html`<mount-editor .yaml=${this.structuredYaml}></mount-editor>`
                     : this.mode === 'app'
-                    ? html`<app-editor .yaml=${this.structuredYaml} .project=${this.project}></app-editor>`
+                    ? html`<app-editor .yaml=${this.structuredYaml} .project=${this.project} .images=${this.images} ?canAddImage=${!!this.host.addImage}></app-editor>`
                     : this.mode === 'routes'
                     ? html`<routes-editor .yaml=${this.structuredYaml} .project=${this.project}></routes-editor>`
                     : this.mode === 'sources'
@@ -568,8 +587,9 @@ export class MateuVisualEditor extends LitElement {
                             </div>
                             <editor-canvas .doc=${this.doc} .baseUrl=${renderBaseUrl(this.previewSource)}
                                            .clientRender=${rendersClientSide(this.previewSource)} .renderer=${this.renderer} .theme=${this.theme}
-                                           .selectedPath=${this.selectedPath} .frameWidth=${viewportWidth(this.viewport)}></editor-canvas>
+                                           .selectedPath=${this.selectedPath} .frameWidth=${viewportWidth(this.viewport)} .images=${this.images}></editor-canvas>
                             <editor-properties .node=${selected} .project=${this.project} .contract=${this.contract}
+                                .images=${this.images} ?canAddImage=${!!this.host.addImage}
                                 .pageActionIds=${this.doc ? pageActions(this.doc).map((a) => a.id) : []}></editor-properties>
                         </div>
                     </div>

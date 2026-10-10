@@ -22,6 +22,8 @@ export interface PropSpec {
      * properties panel offer a real editor for the few shapes authors touch all the time.
      */
     ref?: string
+    /** A JSON-schema `format` / `contentMediaType` hint (e.g. `image/png`), when the schema has one. */
+    format?: string
 }
 
 export interface ComponentSpec {
@@ -106,7 +108,9 @@ export function parseSchema(raw: any): ComponentSchema {
         for (const [propName, propDef] of Object.entries<any>(def.properties)) {
             if (propName === 'type') continue
             const { kind, values, ref } = propKind(raw, propDef)
-            props.push({ name: propName, kind, values, ref, required: required.includes(propName) })
+            const format = typeof propDef?.contentMediaType === 'string' ? propDef.contentMediaType
+                : typeof propDef?.format === 'string' ? propDef.format : undefined
+            props.push({ name: propName, kind, values, ref, required: required.includes(propName), ...(format ? { format } : {}) })
         }
         components.set(name, { name, group: groupOf(name), props })
     }

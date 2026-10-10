@@ -58,6 +58,7 @@ class MateuVisualEditor(
 
     /** Coalesces bursts of file events (a save-all, a refactoring) into one push of the file list. */
     private val filesAlarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
+    private val imagesAlarm = Alarm(Alarm.ThreadToUse.POOLED_THREAD, this)
 
     init {
         val b = browser
@@ -88,10 +89,16 @@ class MateuVisualEditor(
         // its pickers (a routes file's definition list) without reopening the editor: push the files.
         project.messageBus.connect(this).subscribe(VirtualFileManager.VFS_CHANGES, object : BulkFileListener {
             override fun after(events: List<VFileEvent>) {
-                val root = specsUiRoot(file)?.path ?: return
-                if (events.any { e -> isSpecsYaml(e.path, root) }) {
+                val root = specsUiRoot(file)?.path
+                if (root != null && events.any { e -> isSpecsYaml(e.path, root) }) {
                     filesAlarm.cancelAllRequests()
                     filesAlarm.addRequest({ sendFiles() }, 300)
+                }
+                // an image added, changed or removed in the module reaches the image pickers
+                val module = moduleRoot()?.toString()?.replace('\\', '/')
+                if (module != null && events.any { e -> e.path.startsWith("$module/") && ProjectImages.isImage(e.path) }) {
+                    imagesAlarm.cancelAllRequests()
+                    imagesAlarm.addRequest({ sendImages() }, 300)
                 }
             }
         })
@@ -126,6 +133,57 @@ class MateuVisualEditor(
             "listFiles" -> sendFiles()
             // The board's Edit: open another file of the mount in an editor tab of its own.
             "openFile" -> openFile(msg.path("path").asText())
+            // The image pickers: the project's images, and "Add image to project…".
+            "listImages" -> sendImages()
+            "addImage" -> addImage()
+        }
+    }
+
+    /** The module the edited file belongs to (its images are the ones offered), or null off-disk. */
+    private fun moduleRoot(): java.nio.file.Path? = moduleRootCached
+
+    private val moduleRootCached: java.nio.file.Path? by lazy {
+        runCatching { ProjectImages.moduleRootOf(file.toNioPath(), project.basePath?.let { java.nio.file.Path.of(it) }) }.getOrNull()
+    }
+
+    private fun imageEntry(token: String, found: ProjectImages.Found): Map<String, String> {
+        val src = MateuVisualEditorServer.imageUrl(token, found.path)
+        // same origin as the editor (the loopback server): the picker's thumbnail AND the canvas's image
+        return mapOf("path" to found.path, "url" to found.url, "thumb" to src, "src" to src)
+    }
+
+    /** Push the module's images (path, served URL, a thumbnail the loopback server answers). */
+    private fun sendImages() {
+        val root = moduleRoot()
+        val images = if (root == null) emptyList() else {
+            val token = MateuVisualEditorServer.registerImageRoot(root)
+            ProjectImages.list(root).map { imageEntry(token, it) }
+        }
+        sendToWeb(mapOf("type" to "images", "images" to images))
+    }
+
+    /** "Add image to project…": choose a file, copy it into the module's images folder, answer with it. */
+    private fun addImage() {
+        ApplicationManager.getApplication().invokeLater {
+            val root = moduleRoot()
+            val descriptor = com.intellij.openapi.fileChooser.FileChooserDescriptorFactory.createSingleFileDescriptor()
+                .withTitle("Add Image to Project")
+                .withFileFilter { vf -> ProjectImages.isImage(vf.name) }
+            val chosen = if (root == null) null else com.intellij.openapi.fileChooser.FileChooser.chooseFile(descriptor, project, null)
+            if (root == null || chosen == null) {
+                sendToWeb(mapOf("type" to "imageAdded", "image" to null))
+                return@invokeLater
+            }
+            val found = runCatching { ProjectImages.copyInto(root, chosen.toNioPath()) }.getOrNull()
+            if (found == null) {
+                sendToWeb(mapOf("type" to "imageAdded", "image" to null))
+                return@invokeLater
+            }
+            // the VFS learns about the new file (and the project view shows it)
+            com.intellij.openapi.vfs.LocalFileSystem.getInstance().refreshAndFindFileByNioFile(root.resolve(found.path))
+            val token = MateuVisualEditorServer.registerImageRoot(root)
+            sendToWeb(mapOf("type" to "imageAdded", "image" to imageEntry(token, found)))
+            sendImages()
         }
     }
 

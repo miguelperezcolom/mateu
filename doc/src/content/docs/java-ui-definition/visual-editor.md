@@ -217,6 +217,32 @@ Grid columns and listing filters are selected from **Layers**. Their `id` is the
 so the canvas cannot mark them. A layout whose children fill it completely, such as a dashboard
 grid, has no spot of its own to click. Click one of its children, then press `Esc`.
 
+#### Images
+
+A property that holds an image has an image picker in **Properties**: a hero's `image`, an
+`Image`'s `src`, an avatar, an offer card's picture, the app shell's `logo` and `favicon`. The rule
+is the property name (`image`, `src`, `avatar`, `logo`, `favicon`, or any name ending in `Image` or
+`ImageUrl`) or an image media type in the schema. Only text properties count, so a form's `avatar`
+component is not one.
+
+- **Type anything.** A URL, a path or a data URI is kept as you write it.
+- **▦ opens the project's images** as a grid of thumbnails, with a filter when there are many. Click
+  one to set the property to the URL the app serves it at: `src/main/resources/static/img/hero.jpg`
+  becomes `/img/hero.jpg`.
+- **Add image to project…** opens a file chooser, copies the file into the project and selects it.
+  The file goes to `images/` under the project's existing web folder. With none, it goes to
+  `src/main/resources/static/images/` (Java), `wwwroot/images/` (.NET) or `static/images/`
+  (Python). The folder is created if needed, and an existing file is never overwritten.
+
+The images come from the folders the app serves: `src/main/resources/static`, `public` and
+`META-INF/resources`, a `public/` folder, `wwwroot` and `static`, in the module of the file you are
+editing. Build output (`target`, `build`, `node_modules`, `dist`…) is skipped. The list follows the
+project: an image added, changed or deleted shows up in the picker without reopening the editor.
+
+The canvas, the Redwood canvas and **Play** show a project image even when no backend serves it.
+The IDE serves the file to the editor, and the page keeps the URL you picked. In a browser with no
+IDE, the field is plain text.
+
 ### 5. A partial — `specs/ui/partials/address-block.yaml`
 
 A partial is a reusable fragment: a rootless `content:` list, inlined wherever a page's `Partial ref`

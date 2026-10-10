@@ -11,6 +11,7 @@ import './redwood-frame'
 import type { RedwoodFrame } from './redwood-frame'
 import { setNodeIdStamping } from '@infra/ui/renderers/nodeIdStamp.ts'
 import { nodeIdOf, nodePathOfEventPath } from './canvasSelection'
+import type { ProjectImage } from '../model/projectImages'
 
 // Every component the canvas paints carries its node id (data-node-id), so a click on ANY painted
 // element — a hero, a dashboard panel, a metric card — selects its node (see nodeIdStamp.ts).
@@ -118,6 +119,8 @@ export class EditorCanvas extends LitElement {
     @property() theme: 'light' | 'dark' = 'light'
     /** The width the page is framed at (px), or 0 to fill the pane — see model/viewport.ts. */
     @property({ type: Number }) frameWidth = 0
+    /** The project's images: a page naming one shows it from where the host serves it. */
+    @property({ attribute: false }) images: readonly ProjectImage[] = []
 
     @state() private error?: string
     /** A non-error note above the canvas (e.g. "backend unreachable — showing the offline render"). */
@@ -319,7 +322,7 @@ export class EditorCanvas extends LitElement {
     updated(changed: PropertyValues) {
         // Re-render against the new backend when the preview source changes, even if the YAML is unchanged.
         if (changed.has('baseUrl') || changed.has('clientRender') || changed.has('renderer')) this.lastYaml = ''
-        if (changed.has('doc') || changed.has('baseUrl') || changed.has('clientRender') || changed.has('renderer')) this.schedulePreview()
+        if (changed.has('doc') || changed.has('baseUrl') || changed.has('clientRender') || changed.has('renderer') || changed.has('images')) this.schedulePreview()
         if (changed.has('selectedPath')) {
             this.applyHighlight()
             // Selected from Layers (or by undo, or by adding a node): bring it into view. A node
@@ -337,7 +340,7 @@ export class EditorCanvas extends LitElement {
 
     private schedulePreview() {
         if (!this.doc) return
-        const yaml = decorateForPreview(this.doc)
+        const yaml = decorateForPreview(this.doc, this.images)
         if (yaml === this.lastYaml) return
         this.lastYaml = yaml
         window.clearTimeout(this.previewTimer)

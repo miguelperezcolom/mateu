@@ -2,6 +2,8 @@ import * as vscode from 'vscode'
 import { connectSrc, sourceOrigins } from './csp'
 import * as fs from 'fs'
 import { BackendProxy } from './backendProxy'
+import * as path from 'path'
+import { copyInto, imageUrlPath, isImage, listImages, moduleRootOf, type Found } from './projectImages'
 
 /**
  * Opens Mateu visual-builder pages (`specs/ui/*.yaml`) in the cross-IDE web visual editor, hosted in
@@ -36,7 +38,22 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
         const port = await this.proxy.ensureStarted(backend)
         const webview = panel.webview
         const mediaRoot = vscode.Uri.joinPath(this.context.extensionUri, 'media')
-        webview.options = { enableScripts: true, localResourceRoots: [mediaRoot] }
+        // The module the page belongs to: its images are what the image pickers offer. The webview may
+        // load them (thumbnails as webview URIs), so the module is a resource root too.
+        const moduleRoot = document.uri.scheme === 'file'
+            ? moduleRootOf(document.uri.fsPath, vscode.workspace.getWorkspaceFolder(document.uri)?.uri.fsPath)
+            : undefined
+        webview.options = { enableScripts: true, localResourceRoots: moduleRoot ? [mediaRoot, vscode.Uri.file(moduleRoot)] : [mediaRoot] }
+        const imageToken = moduleRoot ? this.proxy.registerImageRoot(moduleRoot) : undefined
+        // thumb: a webview URI (the picker); src: the loopback server's URL, which the canvas — and the
+        // Redwood app it frames from that server — can load (a webview URI does not load in that frame)
+        const imageEntry = (found: Found) => ({
+            path: found.path,
+            url: found.url,
+            thumb: webview.asWebviewUri(vscode.Uri.file(path.join(moduleRoot!, ...found.path.split('/')))).toString(),
+            src: `http://127.0.0.1:${port}${imageUrlPath(imageToken!, found.path)}`,
+        })
+        const sendImages = () => webview.postMessage({ type: 'images', images: moduleRoot ? listImages(moduleRoot).map(imageEntry) : [] })
         // The CSP names the REST source origins the project declares; when sources.yaml changes so
         // that set changes, the webview is rebuilt (it re-inits from the document, nothing is lost).
         let origins = sourceOrigins((await collectSpecsUiFiles(document.uri)).map((f) => f.content))
@@ -61,6 +78,19 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
         watcher?.onDidChange(refreshOrigins)
         watcher?.onDidCreate(refreshOrigins)
         watcher?.onDidDelete(refreshOrigins)
+        // an image added, changed or removed in the module reaches the pickers
+        let imagesTimer: ReturnType<typeof setTimeout> | undefined
+        const refreshImages = (uri: vscode.Uri) => {
+            if (!isImage(uri.path)) return
+            clearTimeout(imagesTimer)
+            imagesTimer = setTimeout(sendImages, 300)
+        }
+        const imageWatcher = moduleRoot
+            ? vscode.workspace.createFileSystemWatcher(new vscode.RelativePattern(vscode.Uri.file(moduleRoot), '**/*.{png,jpg,jpeg,gif,svg,webp,avif,PNG,JPG,JPEG,GIF,SVG,WEBP,AVIF}'))
+            : undefined
+        imageWatcher?.onDidChange(refreshImages)
+        imageWatcher?.onDidCreate(refreshImages)
+        imageWatcher?.onDidDelete(refreshImages)
 
         let savingFromWebview = false
 
@@ -80,6 +110,26 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
             } else if (msg.type === 'listFiles') {
                 // Project awareness: hand the whole mount to the editor's reference pickers.
                 collectSpecsUiFiles(document.uri).then((files) => webview.postMessage({ type: 'files', files }))
+            } else if (msg.type === 'listImages') {
+                sendImages()
+            } else if (msg.type === 'addImage') {
+                // "Add image to project…": pick a file, copy it into the module's images folder
+                const answer = (image: unknown) => webview.postMessage({ type: 'imageAdded', image })
+                if (!moduleRoot) { answer(null); return }
+                vscode.window.showOpenDialog({
+                    canSelectMany: false, openLabel: 'Add to project', title: 'Add image to project',
+                    filters: { Images: ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'avif'] },
+                }).then((picked) => {
+                    const source = picked?.[0]
+                    if (!source) { answer(null); return }
+                    try {
+                        answer(imageEntry(copyInto(moduleRoot, source.fsPath)))
+                        sendImages()
+                    } catch (e) {
+                        vscode.window.showErrorMessage(`Could not add the image: ${(e as Error).message}`)
+                        answer(null)
+                    }
+                })
             } else if (msg.type === 'openFile' && typeof msg.path === 'string') {
                 // The board's Edit: open another file of the mount in a visual editor of its own.
                 const root = specsUiRoot(document.uri)
@@ -96,7 +146,10 @@ export class MateuVisualEditorProvider implements vscode.CustomTextEditorProvide
             webview.postMessage({ type: 'externalChange', yaml: document.getText() })
         })
 
-        panel.onDidDispose(() => { onMessage.dispose(); onDocChange.dispose(); watcher?.dispose(); clearTimeout(rebuildTimer) })
+        panel.onDidDispose(() => {
+            onMessage.dispose(); onDocChange.dispose(); watcher?.dispose(); imageWatcher?.dispose()
+            clearTimeout(rebuildTimer); clearTimeout(imagesTimer)
+        })
     }
 
     /** The bundle's index.html, rewritten for the webview: CSP, the host baseUrl, and the entry asset. */

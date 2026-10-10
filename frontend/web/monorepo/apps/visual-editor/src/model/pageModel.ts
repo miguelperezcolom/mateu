@@ -2,6 +2,7 @@ import { parse, stringify } from 'yaml'
 import {
     FieldOverride, InferredField, LayoutDelta, applyDelta, deltaBetween, readDelta, writeDelta,
 } from './layoutDelta'
+import { ProjectImage, isImageProp, previewImageSrc } from './projectImages'
 
 /**
  * A single node of a Mateu page layout: a `type` plus arbitrary scalar props and an
@@ -572,12 +573,27 @@ export function idToPath(id: string | null | undefined): NodePath | null {
  * send to `__preview__`. The renderer stamps `id="${component.id}"` on each DOM element, so a
  * click can be mapped straight back to a node path — no structural alignment guesswork.
  */
-export function decorateForPreview(doc: PageDoc): string {
+export function decorateForPreview(doc: PageDoc, images: readonly ProjectImage[] = []): string {
     const clone = structuredClone(doc.layout)
     stamp(clone, [])
+    // A project image (`/img/hero.jpg`) is served by the app, not by whatever renders the canvas:
+    // show it from where the host serves it. The file keeps the authored URL.
+    if (images.length) resolveImages(clone, images)
     // Single-child slots go back to their authored single-object shape: the backend deserializes a
     // Card/Tab `content` as ONE component.
     return stringify(denormalizeSlots(clone))
+}
+
+function resolveImages(node: PageNode, images: readonly ProjectImage[]): void {
+    for (const key of Object.keys(node)) {
+        const v = node[key]
+        if (typeof v === 'string' && isImageProp(key)) {
+            const src = previewImageSrc(images, v)
+            if (src) node[key] = src
+        } else if (Array.isArray(v)) {
+            v.forEach((c) => { if (c && typeof c === 'object' && typeof (c as PageNode).type === 'string') resolveImages(c as PageNode, images) })
+        }
+    }
 }
 
 function stamp(node: PageNode, path: NodePath): void {

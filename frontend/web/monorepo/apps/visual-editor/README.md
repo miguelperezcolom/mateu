@@ -160,6 +160,15 @@ Two views of the whole mount, next to the file editor (both from lnkiai/m3e-canv
   page is not the app's. On close it unloads the bundle.
 - Edit from the board goes through `HostBridge.openFile`. The browser host swaps the draft in place;
   IntelliJ and VS Code handle an `openFile` message by opening the file in another tab.
+- **Image pickers** (`widgets/ve-image-picker.ts`; the rule in `model/projectImages.ts`
+  `isImageProp`). The host answers `listImages` with `images: [{path, url, thumb, src?}]` (the
+  module-relative file, the URL the app serves it at, a thumbnail, and where the canvas loads it) and
+  pushes the list again when an image changes. It answers `addImage` (file chooser + copy) with
+  `imageAdded {image}`. IntelliJ (`ProjectImages.kt`) serves both `thumb` and `src` from its loopback
+  server (`/__mateu-images/<token>/<path>`, same origin as the editor). VS Code (`projectImages.ts`)
+  uses a webview URI for `thumb` and its loopback server for `src`, because the framed Redwood canvas
+  cannot load a webview URI. The canvas and Play swap a project image's URL for `src`
+  (`decorateForPreview`, `withPreviewImages`); the file keeps the URL.
 
 ## Palette thumbnails (`scripts/thumbnails.mjs`)
 
