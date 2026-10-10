@@ -120,12 +120,17 @@ jobs:
       - name: Test the extension
         run: cd frontend/app/vscode-extension && npm run compile && npm test
       - name: Package the .vsix
-        run: cd frontend/app/vscode-extension && npx @vscode/vsce package -o mateu-visual-editor.vsix
+        run: cd frontend/app/vscode-extension && npx --no -- vsce package -o mateu-visual-editor.vsix
       - name: Publish to the VS Code Marketplace
-        run: cd frontend/app/vscode-extension && npx @vscode/vsce publish --packagePath mateu-visual-editor.vsix --pat "$VSCE_PAT"
+        run: cd frontend/app/vscode-extension && npx --no -- vsce publish --packagePath mateu-visual-editor.vsix --pat "$VSCE_PAT"
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
       # Optional: skipped when OVSX_PAT is not set, so IntelliJ + VS Code Marketplace alone are enough.
       - name: Publish to Open VSX
         if: ${{ env.OVSX_PAT != '' }}
-        run: cd frontend/app/vscode-extension && npx --yes ovsx@1.2.0 publish mateu-visual-editor.vsix -p "$OVSX_PAT"
+        # ovsx is not a dependency of the extension: installed at an exact version, without install
+        # hooks, outside the project (not `npx --yes`, which would fetch and run it on demand).
+        run: |
+          npm install --prefix "$RUNNER_TEMP/ovsx" --no-save --ignore-scripts ovsx@1.2.0
+          cd frontend/app/vscode-extension
+          "$RUNNER_TEMP/ovsx/node_modules/.bin/ovsx" publish mateu-visual-editor.vsix -p "$OVSX_PAT"

@@ -130,7 +130,7 @@ jobs:
 
       - name: Build sdist + wheel
         run: |
-          python -m pip install --upgrade build
+          python -m pip install --only-binary :all: build==1.6.1
           python -m build backend/python --outdir dist
 
       - name: The wheel installs and imports

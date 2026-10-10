@@ -103,7 +103,7 @@ jobs:
       # jobs install those on every run anyway.
       - name: Download the browsers
         if: steps.browsers.outputs.cache-hit != 'true'
-        run: cd e2e && npm ci --ignore-scripts && npx playwright install chromium
+        run: cd e2e && npm ci --ignore-scripts && npx --no -- playwright install chromium
 
       - name: Share them
         if: steps.browsers.outputs.cache-hit != 'true'

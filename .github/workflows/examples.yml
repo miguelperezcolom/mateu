@@ -116,7 +116,7 @@ jobs:
       - name: Install and test the Python starter
         working-directory: starters/python
         run: |
-          pip install -r requirements.txt pytest httpx
+          pip install --only-binary :all: -r requirements.txt pytest httpx
           PYTHONPATH=../../backend/python:. pytest -q
 
   # The check to require on master (design/ci-required-checks.md): always reports, green when every

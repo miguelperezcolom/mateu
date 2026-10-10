@@ -98,9 +98,9 @@ jobs:
       - name: Vaadin renderer — typecheck, tests (with coverage thresholds), build and eager bundle budget
         run: |
           cd frontend/web/monorepo/apps/vaadin
-          npx tsc --noEmit -p .
+          npx --no -- tsc --noEmit -p .
           npm run test:coverage
-          npx vite build
+          npx --no -- vite build
           node scripts/check-bundle-budget.mjs
 
       # The visual editor (embedded in both IDE plugins) has its own vitest suite (~120 tests, <1s)
@@ -108,7 +108,7 @@ jobs:
       - name: Visual editor — typecheck and tests
         run: |
           cd frontend/web/monorepo/apps/visual-editor
-          npx tsc --noEmit
+          npx --no -- tsc --noEmit
           npm test
 
   # Small, dependency-light suites that existed but never ran in CI: the Redwood core's wire-contract
@@ -157,7 +157,7 @@ jobs:
         run: cd frontend/app/react-native && node scripts/parity-check.mjs
 
       - name: React Native renderer type check
-        run: cd frontend/app/react-native && npm ci --ignore-scripts && npx tsc --noEmit
+        run: cd frontend/app/react-native && npm ci --ignore-scripts && npx --no -- tsc --noEmit
 
       # Typecheck, unit tests (manifest contract + New File skeletons) and a real non-interactive
       # `vsce package` — packaging stages LICENSE, the specs schema, the New File templates and the
@@ -321,10 +321,10 @@ jobs:
       # outside the cached directory and are needed on every run. On a cache hit this is the apt
       # part only — the ~150 MB download is what the cache saves.
       - name: Install Playwright browsers
-        run: cd e2e && npx playwright install --with-deps chromium
+        run: cd e2e && npx --no -- playwright install --with-deps chromium
 
       - name: Run Playwright tests
-        run: cd e2e && npx playwright test
+        run: cd e2e && npx --no -- playwright test
 
       - name: Upload Playwright report
         if: always()
@@ -466,7 +466,7 @@ jobs:
           restore-keys: ${{ runner.os }}-playwright-
 
       - name: Install Playwright browsers
-        run: cd e2e && npx playwright install --with-deps chromium
+        run: cd e2e && npx --no -- playwright install --with-deps chromium
 
       - name: Smoke pass of demo-vb's key screens (root App and standalone mounts)
         run: cd e2e && VB_URL=http://localhost:9005 node vb-smoke.mjs --shots vb-shots
@@ -478,7 +478,7 @@ jobs:
         run: cd e2e && VB_URL=http://localhost:9005/ node vb-slow-network-probe.mjs
 
       - name: Renderer-agnostic specs against Redwood
-        run: cd e2e && RENDERER_VB=1 npx playwright test --project renderer-vb
+        run: cd e2e && RENDERER_VB=1 npx --no -- playwright test --project renderer-vb
 
       - name: Dump renderer-vb logs on failure
         if: failure()

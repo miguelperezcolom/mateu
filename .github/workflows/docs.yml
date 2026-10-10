@@ -101,7 +101,10 @@ jobs:
             echo "::notice::NETLIFY_AUTH_TOKEN / NETLIFY_SITE_ID not configured — skipping the deploy."
             exit 0
           fi
-          npx --yes netlify-cli@27.12.0 deploy --dir=doc/dist --prod --no-build \
+          # At an exact version, without install hooks (its postinstall only sets up shell
+          # completion and prints a welcome), outside the project — not `npx --yes …@latest`.
+          npm install --prefix "$RUNNER_TEMP/netlify" --no-save --ignore-scripts netlify-cli@27.12.0
+          "$RUNNER_TEMP/netlify/node_modules/.bin/netlify" deploy --dir=doc/dist --prod --no-build \
             --site "$NETLIFY_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN" \
             --message "${GITHUB_SHA::9} ${GITHUB_EVENT_NAME}"
 
