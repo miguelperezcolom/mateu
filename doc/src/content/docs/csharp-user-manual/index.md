@@ -526,25 +526,93 @@ The island mounts its own `mateu-ux` against the remote backend and runs its own
 
 ## Adapting foreign classes (component adapters)
 
-Java's `ComponentAdapter` SPI renders third-party classes that carry no Mateu annotations. In C#
-the idiomatic equivalent needs no SPI: **wrap** the foreign object in a view — the mapper renders
-any plain properties reflectively, and your actions write back:
+Java's `ComponentAdapter` SPI is available as is: an adapter renders a domain object that is NOT a
+Mateu view and carries no Mateu attributes, and rebuilds it from the state that comes back on an
+action. Adapters are discovered in the scanned assemblies, registered with
+`MateuRegistry.RegisterAdapter`, or registered as `IComponentAdapter` services (picked up by
+`AddMateu`).
 
 ```csharp
-[UI("/pedido")]
-public class PedidoView   // Pedido is a third-party class you cannot touch
+[UI("pedido")]                       // routing only — the adapter owns the whole UI
+public class Pedido { public string Cliente { get; set; } = "Acme"; public decimal Importe { get; set; } }
+
+public class PedidoAdapter : ComponentAdapter<Pedido>
 {
-    private readonly Pedido _pedido = PedidoRepo.Load();
+    public override AdaptedView Adapt(Pedido p) => AdaptedView.Of(
+        new VerticalLayout { Content = [new FormField { FieldId = "cliente", Label = "Cliente" }, new Button("Guardar", "guardar")] },
+        state: new Dictionary<string, object?> { ["cliente"] = p.Cliente },
+        actions: ["guardar"]);
 
-    public string Cliente { get => _pedido.Cliente; set => _pedido.Cliente = value; }
-    public decimal Importe { get => _pedido.Importe; set => _pedido.Importe = value; }
-
-    [Button] public Message Guardar() { PedidoRepo.Save(_pedido); return new Message("Saved"); }
+    public override Pedido Deserialize(IReadOnlyDictionary<string, object?> state)
+    {
+        var p = new Pedido();                     // the initial load passes an EMPTY state:
+        if (state.TryGetValue("cliente", out var c)) p.Cliente = (string)c!;   // overwrite only what came
+        return p;
+    }
 }
 ```
 
-For full control of the UI, implement `IComponentTreeSupplier` on the wrapper instead and emit a
-fluent tree.
+An action listed in `Actions` runs the method of that name on the rebuilt model. A property of an
+adapted type on a normal form renders as an independent island that round-trips through the
+adapter on its own.
+
+## Embedded islands
+
+A property whose type is a routed `[UI]` view embeds that view as an independent island: its own
+server-side type, actions and state, inside the host page. The host seeds it by setting the
+property — the value's simple properties (ids, flags) become the island's initial state. `[Inline]`
+drops the island's own chrome (badges, KPIs, the card around a single section; the title demoted)
+so it blends into the host section or tab. An island action that returns a routed view re-renders
+the island in place — the way to build an element with several server-decided states (empty →
+data → editor).
+
+```csharp
+[UI("documento"), Title("Documento")]
+public class DocumentoView { public string? StayId { get; set; } /* … state-dependent fields … */ }
+
+[UI("check-in/:id"), Title("Check-in")]
+public class CheckIn
+{
+    [Section("Identidad"), Inline] public DocumentoView Documento { get; set; } = new() { StayId = "42" };
+}
+```
+
+## Listing exports
+
+`CsvExportable`, `ExcelExportable` and `PdfExportable` (on `Crud<T>`, on `Listing<F,R>`, or on any
+listing implementing `ICrudExports`) add **Export CSV / Excel / PDF** to the listing toolbar. Each
+exports the WHOLE filtered result set (search text, filters and sort — not just the page) and
+answers a `DownloadFile`. The built-in writers have no third-party dependency (an Office Open XML
+workbook and a paginated PDF table); register your own `ICsvExporter`, `IExcelExporter` or
+`IPdfExporter` as a service to replace them.
+
+## Group actions
+
+On a listing whose row type has a `[GroupBy]` column, a method marked `[GroupAction("Label")]`
+becomes a button on every group header row; a `string` parameter receives the clicked group's
+value. Implement `IGroupActionVisibility` to hide it on some groups. When a custom listing returns
+rows without computing groups, the server synthesizes the group counts from them.
+
+## REST source catalogue and business components
+
+Name an endpoint once and reference it everywhere: `specs/ui/sources.yaml` (authored, wins), or
+`[RestSource("countries", "https://…")]` on a registered view / an `IRestSourceCatalogSupplier`
+class (derived). A surface then says `[RestOptions(Source = "countries")]`. The catalogue travels
+to the client on the app metadata (`restSources`), so a statically deployed screen can be
+re-pointed without a rebuild, and a proxied source is resolved from the SERVER's table — its
+`${secret.KEY}` never reaches the browser. A view assembled at runtime declares its sources by
+implementing `IRestSourceSupplier`; they gate and resolve the proxy exactly like the attributes.
+
+Business components work the same way: `specs/ui/components.yaml`, `[BusinessComponent("name")]`
+or an `IComponentCatalogSupplier` name a bound composition, and `new ComponentRef("name")` (or
+`type: ComponentRef` in YAML) places it; the server expands it before it reaches the wire.
+
+## YAML layout deltas
+
+A YAML definition bound to a view model can carry `layoutDelta:` instead of a full `layout:` — what
+a person changed about the INFERRED layout (hidden fields, label/colspan overrides, order within a
+container), anchored to field ids and re-applied on every render, so the screen keeps following its
+model. A delta that cannot be applied is logged and the inferred layout renders.
 
 ## Semantic attributes
 
@@ -664,10 +732,11 @@ unsaved-changes guard), the nine dashboard/UX component types (MetricCard, Score
 DashboardPanel, DashboardLayout, FoldoutLayout, HeroSection, EmptyState, Skeleton, Gantt) and the
 declarative page archetypes (Dashboard, Foldout, Welcome, ItemOverview). Federated microfrontends
 (`[RemoteMenu]` + the `MicroFrontend` component) and the SSE/AI chat entry point (`[AI]` → the
-app's `SseUrl`) are wired through the mapper as well. Over 270 tests cover this port, including a
+app's `SseUrl`) are wired through the mapper as well. Over 520 tests (run on net8.0 and net10.0) cover this port, including a
 golden-JSON wire-conformance corpus (`WireConformanceTests`) that checks the emitted JSON against
 shared `expected.json` snapshots derived from the Java reference.
 
-Beyond the core, the remaining Java features (the component-adapter SPI, the other framework
-adapters, the static-bundle exporter) follow the same pattern: extend the mapper, add a metadata
-DTO, add a conformance case.
+The shared wire-conformance corpus is a hard gate for this port: `WireConformanceTests` fails on
+any difference from the Java reference outside a short, path-scoped allow-list of defects in the
+Java goldens themselves (see the test for the reasons).
+
