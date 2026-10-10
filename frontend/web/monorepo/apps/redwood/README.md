@@ -21,6 +21,7 @@ poc/                    ← the single source of the bridge: plain ES modules, t
   actionPlan.mjs        ←   what an action sends, and when it must not leave yet
   i18n.mjs              ←   the chrome text catalogue (English by default)
   mount.mjs             ←   the packaged app at any mount path
+  editorPreview.mjs     ←   editor-preview mode: the IDE visual editor's Redwood canvas (an iframe)
   test*.mjs             ←   the suites (npm test)
   make-amd.mjs          ←   bridge generator (--check in CI)
   make-html.mjs         ←   expands the atom templates into every surface of the page (--check)
@@ -49,6 +50,17 @@ place to change it; `npm run copy` replaces it with same-origin).
 
 Reference screens: demo-vb's `/components` and `/components-2` are data-only galleries with every
 display component (`demo/demo-vb/src/main/resources/specs/ui/components*.yaml`).
+
+### The visual editor's Redwood canvas (editor-preview mode)
+
+The IDE visual editor (`apps/visual-editor`) can paint its canvas with this app. Its page
+`redwood-preview.html` frames the packaged app and sets `window.__mateuEditorPreview`. Then
+`loadMateuShell` installs `poc/editorPreview.mjs` before the bootstrap. The editor hands over the
+increment through `postMessage` and the app answers its own `/mateu` calls with it. A click selects
+instead of acting, and `setEditorNodeIds(true)` makes every painted atom carry the definition's
+node id (`data-node-id`). A production page never enters this mode (`test-editor.mjs`). After
+touching it, `npm run build && npm run copy`, since the editor serves the app from the jar's
+resources.
 
 ### Trying a local build against a DEPLOYED UI
 
