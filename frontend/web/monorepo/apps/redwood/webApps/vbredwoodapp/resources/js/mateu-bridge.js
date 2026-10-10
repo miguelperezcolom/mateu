@@ -65,6 +65,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       unavailableMount: '{name} is not available right now. It will be retried.',
       // ── listing ──
       columns: 'Columns',
+      views: 'Views',
       saveView: 'Save view',
       openWithView: 'Open with this view',
       saveCurrentView: 'Save current view…',
@@ -190,6 +191,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       unsavedLeave: 'Hay cambios sin guardar. ¿Salir de esta pantalla?',
       unavailableMount: '{name} no está disponible ahora. Se volverá a intentar.',
       columns: 'Columnas',
+      views: 'Vistas',
       saveView: 'Guardar vista',
       openWithView: 'Abrir con esta vista',
       saveCurrentView: 'Guardar la vista actual…',

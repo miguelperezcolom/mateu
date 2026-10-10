@@ -41,6 +41,7 @@
   "unsavedLeave": "Hay cambios sin guardar. ¿Salir de esta pantalla?",
   "unavailableMount": "{name} no está disponible ahora. Se volverá a intentar.",
   "columns": "Columnas",
+  "views": "Vistas",
   "saveView": "Guardar vista",
   "openWithView": "Abrir con esta vista",
   "saveCurrentView": "Guardar la vista actual…",

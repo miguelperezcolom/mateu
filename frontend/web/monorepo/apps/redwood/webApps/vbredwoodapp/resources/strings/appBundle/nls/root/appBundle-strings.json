@@ -41,6 +41,7 @@
   "unsavedLeave": "There are unsaved changes. Leave this screen?",
   "unavailableMount": "{name} is not available right now. It will be retried.",
   "columns": "Columns",
+  "views": "Views",
   "saveView": "Save view",
   "openWithView": "Open with this view",
   "saveCurrentView": "Save current view…",

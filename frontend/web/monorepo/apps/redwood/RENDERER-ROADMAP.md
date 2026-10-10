@@ -114,33 +114,36 @@ Mateu, y ver una pantalla de Mateu renderizada con aspecto Redwood nativo — si
 app. Cada fase de arriba se valida, además de con su puerta visual, **corriendo dentro de una app VB real**
 (no solo en local/dev), para no descubrir al final una incompatibilidad del runtime hosteado.
 
-## Superficie pendiente — chat de IA conversacional (`sseUrl`)
+## Chat de IA conversacional (`sseUrl`) — HECHO, a paridad con el chat web
 
-Estado (2026-09-20): **NO implementado en VB.** El shell tiene un FAB de chat, pero está cableado a
-la paleta **Ask Oracle** (command center / navegación), no a un chat conversacional. El único SSE que
-hoy consume el bridge es el **diálogo de progreso de un LongTask** (`reduceContexts` → `Add`), que es
-otra cosa. El chat de IA compartido (`libs/mateu/.../mateu-chat.ts`, ~939 líneas) expone: `sseUrl`
-(POST `{message, sessionId, menuContext?, attachments?}` → `data:` chunks acumulados en el mensaje del
-asistente), `sessionId`, `menuContext` (el menú aplanado como contexto), subida de ficheros
-(`@AI(upload=…)`) y un modo "agente local".
+Estado (2026-10-10): **implementado.** (La sección que había aquí, de 2026-09-20, lo daba por
+pendiente; el panel llegó el 2026-09-21/27 — ver DESIGN-NOTES «Chat del agente…» — y el 2026-10-10
+se cerraron las diferencias con `libs/mateu/.../mateu-chat.ts`.)
 
-**Cómo encaja el trabajo por capas (igual que el resto del roadmap):**
-- **Lógica (gate Node, seguro y verificable ya):** el transporte del chat — POST a `sseUrl`, lectura
-  del stream `data:`, acumulación por mensaje — es renderer-neutral y va en `poc/` (junto a
-  `resilience.mjs`, que ya hace SSE para el LongTask) con tests en `poc/test.mjs`. No aproxima nada
-  visual.
-- **Visual (gate en runtime VB — necesita Oracle):** el panel real. Apoyarse en VB al máximo = usar el
-  componente de conversación de JET/Redwood (familia `oj-c-*` de messaging/conversation) en vez de
-  dibujar burbujas a mano. Esta es la decisión que el roadmap dice **resolver mirando antes de
-  construir**.
+- **Entrada**: botón `#mateuChatToggle` en la cabecera global (sólo si el App declara `sseUrl`),
+  distinto del FAB de Ask Oracle; el panel es el START drawer de un `oj-drawer-layout` (reflow en
+  ancho, overlay en estrecho) con modo ancho (60vw).
+- **Transporte y lógica** en `poc/chat.mjs` (probado en `poc/test.mjs`); las chains
+  (`chatSend`, `chatAttach`, `chatMic`, `toggleMateuChat`) son adaptadores finos.
 
-**Decisiones de diseño que abre (a resolver con el runtime/tu criterio):**
-1. **Coexistencia del FAB.** El FAB de chat del shell ya abre Ask Oracle. ¿El chat de IA es un
-   segundo FAB apilado (como en Vaadin: AI-fab + app-fab), una pestaña dentro de la paleta, o un modo
-   del mismo FAB? En Vaadin son entradas separadas.
-2. **Componente JET de conversación** concreto sobre el que apoyarse (fidelidad heredada, no dibujada).
-3. **Alcance v1:** ¿solo texto en streaming, o también `menuContext` + subida de ficheros + agente
-   local desde el arranque?
-
-Hasta resolver (1)–(2) por la puerta visual, lo correcto es NO aproximar el panel; el núcleo de
-transporte sí puede ir cerrándose en `poc/`.
+| Función del chat web | VB |
+|---|---|
+| Streaming SSE (`agent-delta`, texto entero, `agent-error`) | ✅ `streamChat` |
+| `sessionId`, `menuContext` sólo en el primer mensaje | ✅ `chatTurnOf` |
+| Contexto de pantalla (url, título, appState/appData, estado/datos del host) | ✅ `chatTurnOf` |
+| Proyección de la pantalla para el agente (campos + acciones, como MCP) | ✅ `projectChatScreen` (port de `screenContext.ts`) |
+| `mcpUrl` (`@AI(mcp)`) | ✅ |
+| Adjuntos (`@AI(upload)`): botón, subida con token, chips con ✕ | ✅ `chatAttach` + `uploadChatFiles` |
+| Agente local (companion en 127.0.0.1:8776, `/health`) + insignia | ✅ `probeLocalAgent` + `effectiveChatUrl` |
+| Markdown en las respuestas, enlaces a pantallas dentro de la shell | ✅ `chatMarkdownToHtml` + `chatRouteOfLink` |
+| Fila de estado (fase, herramienta en curso, «Thinking… N s») | ✅ `chatStatusText` |
+| Herramientas del turno (hechas/fallidas/en marcha, con tiempo) | ✅ `chatToolStepsOf` |
+| Tokens (entrada/salida/total) | ✅ `latestUsage` |
+| Respuesta vacía / corte de red explicados | ✅ `chatTurnTextOf` |
+| 401 → reautenticar y reenviar una vez | ✅ |
+| Dictado + Ctrl+Shift+M | ✅ `chatMic` |
+| Título = marca del App (`@App(askLabel)`) | ✅ `chatConfigOf` |
+| Modo ancho | ✅ (sin arrastre del borde: el ancho del drawer lo fija JET) |
+| `render-screen` / `navigation-requested` | ✅ vía `onMateuNavigate` |
+| Otros eventos del agente | 🟡 se despachan en el `document` (un componente web los oye); `@SubscribeTo` de la pantalla no, porque la shell no alcanza las chains del contenido |
+| Textos del panel en el idioma de la interfaz | ✅ catálogo `poc/i18n.mjs` |

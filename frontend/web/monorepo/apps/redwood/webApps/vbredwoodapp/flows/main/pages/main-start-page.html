@@ -8240,7 +8240,7 @@
       <div class="oj-flex oj-sm-justify-content-flex-end oj-sm-align-items-center oj-sm-margin-2x-bottom mateu-listing-tools">
         <oj-menu-button chroming="borderless" class="oj-button-sm" id="mateuViewsButton">
           <span slot="startIcon" class="oj-ux-ico-bookmark"></span>
-          Views
+          <oj-bind-text value="[[ $application.translations.appBundle.views ]]"></oj-bind-text>
           <oj-menu slot="menu" id="mateuViewsMenu"
             on-oj-before-open="[[ $listeners.viewsBeforeOpen ]]"
             on-oj-menu-action="[[ $listeners.viewsAction ]]">
@@ -8253,7 +8253,7 @@
         </oj-menu-button>
         <oj-button chroming="borderless" class="oj-button-sm" on-oj-action="[[ $listeners.columnsOpen ]]">
           <span slot="startIcon" class="oj-ux-ico-column-layout"></span>
-          Columns
+          <oj-bind-text value="[[ $application.translations.appBundle.columns ]]"></oj-bind-text>
         </oj-button>
       </div>
       <oj-table id="mateuTable" :class="[[ $application.variables.mateuListing.tableClass || 'oj-sm-12' ]]"

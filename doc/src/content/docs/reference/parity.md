@@ -225,7 +225,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Keyboard shortcuts (`@Action(shortcut)`, `@Tab(shortcut)`) + access keys mode (`@App(accessKeys)`: hold Alt, Alt+letter) | ✅ | ✅ | ✅ (Swing mnemonics) | — (no hardware-key model) |
 | Hover details (`Popover` with `trigger = hover`, `@Tooltip("otherField")` on listing cells) | ✅ | ✅ (shared `oj-popup`) | ✅ | 🟡 press / long-press (no hover on touch) |
 | Drag rows to a destination (`@DragRows` + `DropZone`: origin and destination in one action) | ✅ | ✅ (`oj-table` dnd) | ✅ | 🟡 "Move to…" picker (no drag on touch) |
-| AI chat (sseUrl) / theme toggle | ✅ | 🟡 AI chat (the shell chat FAB's Ask Oracle palette has a 💬 Chat mode — a streaming panel wired to the shared transport core); the `themeToggle` flag is read but **no toggle is drawn** | ✅ chat (theme = the IDE's own) | ✅ |
+| AI chat (sseUrl) / theme toggle | ✅ | 🟡 AI chat ✅ at parity with the web panel (header button + left drawer: streaming, agent progress and tool steps, token usage, markdown answers with in-app links, screen context + projection, `mcpUrl`, `@AI(upload)` attachments, local agent, dictation, wide mode, `render-screen`/navigation events); the `themeToggle` flag is read but **no toggle is drawn** | ✅ chat (theme = the IDE's own) | ✅ |
 | App context selector | ✅ | ✅ | ✅ (navigator combos) | ✅ |
 | — searchable picker w/ remote search | ✅ | ✅ | 🟡 loaded options only | ✅ |
 | Signature capture | ✅ canvas | ✅ canvas (own element: JET has no signature pad) | ✅ mouse canvas | ✅ svg + view-shot |
