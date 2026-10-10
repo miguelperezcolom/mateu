@@ -70,6 +70,7 @@ export default defineConfig({
 					label: 'UX Patterns',
 					items: [
 						{ slug: 'ux-patterns', label: 'Overview & Principles' },
+						{ slug: 'ux-patterns/how-ux-is-evaluated', label: 'How UX is evaluated' },
 						{ slug: 'ux-patterns/page-templates', label: 'Page Templates' },
 						{ slug: 'ux-patterns/choosing-a-page-template', label: 'Choosing a Page Template' },
 						{ slug: 'ux-patterns/navigation', label: 'Navigation & Menus' },
