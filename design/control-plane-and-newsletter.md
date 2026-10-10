@@ -1,6 +1,7 @@
 # Control plane for distributed UIs + an editable newsletter
 
-Status: **design, queued after GA** (agreed with Miguel, 2026-10-10).
+Status: **approved for implementation** (Miguel, 2026-10-10) — console registry first, newsletter
+when it has a date. Riu's adoption is ADR-0045 "Registro de consolas" in `frontend-public-reference`.
 Both use cases come from Riu: (1) domain teams contributing their UIs to several consoles,
 (2) one person who wants to edit a newsletter WYSIWYG. They share a platform (versioned store,
 publication per environment, permissions, an online studio) but are different problems: (1) manages
@@ -76,7 +77,65 @@ as an overlay when the control plane serves a shell — the same overlay idea as
 | Reading specs from somewhere other than the jar | `DevSpecs.classLoader` hook | `SpecsSource` SPI: files \| git \| control-plane HTTP |
 | Studio screens | Mateu itself | two CRUDs + preview, built **in Mateu** (dogfooding) |
 
-### 1.4 Slices
+### 1.4 Where it lives
+
+- **Mateu**: everything generic — the `SpecsSource` SPI, the `RemoteUi`/`Console` kinds and their
+  schema, shell composition, menu discovery and health, the override layer + reconcile + pause +
+  drift + promote-to-git, and the registry APP itself as an optional module (`mateu-console-registry`,
+  built in Mateu, nothing organisation-specific). Name: **console registry** — not "control plane",
+  which in Riu already names the public-website admin.
+- **The adopting organisation** (Riu: ADR-0045): the git repo of consoles, the git provider for PRs,
+  authentication, environments, who maintains which console, deployment, the guide for domain teams.
+
+### 1.5 Implementation plan
+
+Each phase is shippable and lands with tests in Java + .NET + Python where the wire is involved, the
+web + Redwood renderers where something is drawn, and docs.
+
+**Phase A — specs from somewhere else than the jar**
+- `SpecsSource` SPI in core: `ClasspathSpecsSource` (today), `DirectorySpecsSource` (what live reload
+  uses), `GitSpecsSource` (a checkout kept by the registry, pulled on reconcile), `HttpSpecsSource`
+  (a console asking the registry). Reuse the live-reload invalidation (`SpecsCache`/`DevSpecs`) so
+  every catalogue reloads on a source change, in production too (dev-only today).
+- Last-known-good cache: a source that fails keeps serving what it had.
+- Ports: same SPI in .NET (`ISpecsSource`) and Python (`SpecsSource`).
+
+**Phase B — the two kinds**
+- `type: RemoteUi` (id, name, owner, description, `urls: {dev, pre, pro}`, default access keys) and
+  `type: Console` (an AppShell + `entries:` each `{ remoteUi, menu? | option?, section, order,
+  label?, access }`), records in uidl → generated schema (`UidlSchemaGenerator`), `specs-schema.json`
+  branch, IntelliJ/VS Code New › Mateu kinds.
+- Composition: `ConsoleComposer` turns a Console + the RemoteUi table + the current environment into
+  the existing `AppShell` with `RemoteMenu`s — no new wire types; every renderer already draws it.
+- Tests: composition goldens (Java), mirrored in the ports.
+
+**Phase C — discovery and health**
+- `MenuDiscovery`: load a RemoteUi's app through `/mateu/v3` (`DefaultMateuHttpClient`), flatten its
+  menu tree to pickable options; cache with TTL; health = last answer + latency.
+- CORS/auth: the registry calls server-to-server, so no browser CORS; a configurable credential
+  provider per RemoteUi.
+
+**Phase D — the registry app (`mateu-console-registry`)**
+- Built in Mateu: RemoteUi CRUD (with discovered menus + health columns), Console CRUD with an
+  entry editor (pick UI → pick menu/option from discovery via `ve-combo`-like lookups), preview =
+  the composed console rendered in a drawer/iframe, per environment.
+- Served by a backend that mounts the registry + exposes `GET /console-registry/consoles/{id}?env=`
+  (the composed shell) for the consoles' `HttpSpecsSource`.
+
+**Phase E — GitOps with hot overrides**
+- Override table `(target, path, value, author, at, expiresAt)`, applied as an overlay on top of git
+  (same overlay idea as `Environments.overlay`), shown with "differs from git" badges.
+- Reconcile on git change (webhook endpoint + manual button) and at boot; wipes overrides.
+- Pause-sync per console with expiry, visible.
+- Promote to git: overrides → YAML patch (minimal text edits, like the routes wizard) → branch + PR
+  through a `GitProvider` SPI (GitHub first; GitLab next).
+- Policy per environment: overrides on/off/audited.
+
+**Phase F — adoption tooling**
+- Optional CI action/script for a domain to (re)register its RemoteUi on deploy.
+- Docs: concept page, registry guide, domain-team guide; migration from hand-written `RemoteMenu`.
+
+### 1.6 Slices (summary)
 
 1. `SpecsSource` SPI (files, git checkout, HTTP) + reconcile endpoint.
 2. Registry + consoles as YAML kinds with schema, composed shell served by the control plane.
