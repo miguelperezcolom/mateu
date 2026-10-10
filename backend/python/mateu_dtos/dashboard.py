@@ -77,10 +77,10 @@ class FoldoutNavigation(Wire):
     A null/blank actionId hides the corresponding control."""
 
     title: str | None = None
-    parentLabel: str | None = None
-    parentActionId: str | None = None
-    previousActionId: str | None = None
-    nextActionId: str | None = None
+    parent_label: str | None = None
+    parent_action_id: str | None = None
+    previous_action_id: str | None = None
+    next_action_id: str | None = None
 
 
 class FoldoutLayoutMetadata(Wire):
@@ -90,7 +90,7 @@ class FoldoutLayoutMetadata(Wire):
     type: Literal["FoldoutLayout"] = "FoldoutLayout"
     panels: list[FoldoutPanelInfo] = Field(default_factory=list)
     #: Big heading of the optional header band above the columns (RDS "overview title").
-    headerTitle: str | None = None
+    header_title: str | None = None
     #: Label/Value chips under the header title (flattened to text on the wire).
     badges: list[str] = Field(default_factory=list)
     #: Overview orientation: "vertical" (left) or "horizontal" (top).
@@ -98,7 +98,7 @@ class FoldoutLayoutMetadata(Wire):
     #: Navigation Header (prev/next + go-to-parent); None hides the bar.
     navigation: "FoldoutNavigation | None" = None
     #: ActionId dispatched by the overview's Edit affordance; None = no Edit button.
-    overviewEditActionId: str | None = None
+    overview_edit_action_id: str | None = None
 
 
 class ContentLayoutMetadata(Wire):
@@ -108,9 +108,9 @@ class ContentLayoutMetadata(Wire):
 
     type: Literal["ContentLayout"] = "ContentLayout"
     #: Which side the aside sits on: "start" or "end".
-    asidePosition: str = "end"
-    asideWidth: str | None = None
-    asideSticky: bool = False
+    aside_position: str = "end"
+    aside_width: str | None = None
+    aside_sticky: bool = False
 
 
 class HeroSectionMetadata(Wire):

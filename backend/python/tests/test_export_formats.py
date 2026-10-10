@@ -85,6 +85,8 @@ def export(cls, action_id, search=""):
 
 
 def test_every_format_is_offered_in_java_order():
+    pytest.importorskip("openpyxl")
+    pytest.importorskip("reportlab")
     assert toolbar_ids(AllFormats)[:3] == ["export-csv", "export-excel", "export-pdf"]
     assert not [i for i in toolbar_ids(NoExport) if i.startswith("export-")]
 
@@ -114,6 +116,7 @@ def test_pdf_export_is_a_pdf():
 def test_a_format_whose_library_is_missing_is_neither_offered_nor_answered(monkeypatch):
     import mateu_core.export as export_module
 
+    pytest.importorskip("reportlab")
     monkeypatch.setattr(export_module, "excel_available", lambda: False)
     ids = toolbar_ids(AllFormats)
     assert "export-excel" not in ids and "export-pdf" in ids
