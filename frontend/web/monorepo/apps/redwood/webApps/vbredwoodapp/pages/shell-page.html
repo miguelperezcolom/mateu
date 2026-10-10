@@ -16,7 +16,7 @@
       <oj-bind-if test="[[ $application.variables.mateuMenuDrawerMode || $application.variables.mateuMenuSections ]]">
         <oj-button id="mateuHamburger" chroming="borderless" display="icons"
           :class="[[ $application.variables.mateuNavDrawerOpen ? 'mateu-hamburger mateu-hamburger-open oj-sm-margin-2x-end' : 'mateu-hamburger oj-sm-margin-2x-end' ]]"
-          aria-controls="mateuSectionsOverlay"
+          :aria-controls="[[ $application.variables.mateuMenuSections ? 'mateuSectionsOverlay' : 'mateuNavDrawer' ]]"
           on-oj-action="[[ $listeners.hamburgerClicked ]]">
           <span slot="startIcon" :class="[[ $application.variables.mateuNavDrawerOpen ? 'oj-ux-ico-close' : 'oj-ux-ico-menu' ]]"></span>
           Menu

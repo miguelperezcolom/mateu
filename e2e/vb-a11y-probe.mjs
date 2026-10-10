@@ -7,12 +7,16 @@
  *    anuncio y foco al navegar), que axe no puede evaluar: al cambiar de ruta no cambia la
  *    página, así que no hay nada en el marcado que delate el problema.
  *
+ * VB_URL (default http://localhost:9006/): the app to probe — the packaged app served by demo-vb
+ * itself (VB_URL=http://localhost:9005/, path routes; what CI runs) or vb-serve (hash routes).
+ *
  * Uso (demo-vb en :9005, renderer servido en :9006):
  *   cd frontend/web/monorepo/apps/redwood && npm run serve
  *   cd e2e && node vb-a11y-probe.mjs
  */
 import { chromium } from 'playwright'
 import { AxeBuilder } from '@axe-core/playwright'
+const VB_URL = process.env.VB_URL || 'http://localhost:9006/'
 
 const WCAG = ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa']
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms))
@@ -34,7 +38,7 @@ const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } })
 const page = await ctx.newPage()
 
 const boot = async (nav) => {
-  await page.goto('http://localhost:9006/', { waitUntil: 'networkidle' })
+  await page.goto(VB_URL, { waitUntil: 'networkidle' })
   await sleep(5000)
   if (nav) { await page.getByText(nav, { exact: true }).first().click().catch(() => {}); await sleep(4000) }
 }
