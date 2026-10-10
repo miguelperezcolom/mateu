@@ -69,7 +69,8 @@ export function listingPreSearchBlocksOf(ctx) {
   const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
   const pre = crudNode && crudNode.metadata && Array.isArray(crudNode.metadata.preSearch) ? crudNode.metadata.preSearch : []
   if (!pre.length || listingSearchedOf(ctx)) return null
-  const blocks = islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_listingPreSearch', metadata: { type: 'VerticalLayout' }, children: pre } }) || []
+  // kind island: as host content the first EmptyState is the page's own one, and skipped
+  const blocks = islandContentOf({ ...ctx, kind: 'island', tree: { type: 'ClientSide', id: '_listingPreSearch', metadata: { type: 'VerticalLayout' }, children: pre } }) || []
   const out = blocks.map((b) => ({ ...b, blockClass: b.colClass || 'oj-flex-item oj-sm-12', preSearch: true }))
   return out.length ? out : null
 }

@@ -14,6 +14,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
 import {
+  summarizeHost, generalOverviewOf, emptyStateOf, sectionButtonsOf, withoutSectionButtons,
   reduceContexts, HOST_ID, overlayOf, foldoutOf, welcomeOf, welcomeLookOf, welcomeToneLookOf, listingOf,
   pageSwitcherOf, switcherPickOf, actionsOf, islandContentOf, kidsInAreaOrder, setPanelExpanded,
 } from './reduceContexts.mjs'
@@ -158,7 +159,10 @@ test('A4: summary-N → the panel\'s summary (oj-sp-foldout-panel summary slot),
   assert.ok(!f.panels[0].texts.includes('€ 120 due'))
   assert.ok(!f.overview.texts.includes('€ 120 due'))
   const html = webApp('flows/main/pages/main-start-page.html')
-  assert.match(html, /<div slot="summary"[^>]*><oj-bind-text value="\[\[ \(\$application\.variables\.mateuFoldoutContent\.panels\[\$current\.index\] \|\| \$current\.data\)\.summary \]\]">/)
+  // a digest under the panel title (oj-sp-foldout-layout never folds a panel; its `summary` slot is
+  // read once at creation, before the binding stamps — so not that slot)
+  assert.match(html, /mateu-foldout-summary"><oj-bind-text value="\[\[ \(\$application\.variables\.mateuFoldoutContent\.panels\[\$current\.index\] \|\| \$current\.data\)\.summary \]\]">/)
+  assert.doesNotMatch(html, /slot="summary"/)
 })
 
 test('A4: a foldout inside a tab shows a FOLDED panel\'s summary in place of its content', () => {
@@ -291,6 +295,80 @@ test('B: a slot-template grid (GeneralOverview info, DataManagement panel) place
   const blocks = islandContentOf({ tree: node({ type: 'VerticalLayout' }, [grid]), state: {}, data: {} })
   const texts = blocks.map((b) => (b.items || []).filter((a) => a.isText).map((a) => a.text).join())
   assert.deepEqual(texts.filter(Boolean), ['Main', 'Info'])
+})
+
+// ── wire captured from the SUT (e2e mvc-app1 patterns/*: SwitcherPage, OverviewWithInfo, GuestSearch,
+//    SummaryFoldout) — the four defects found driving the Redwood build in a browser ───────────
+
+const wire = (name) => {
+  const w = JSON.parse(readFileSync(join(here, 'fixtures', 'patterns', name + '.json'), 'utf8'))
+  for (const f of w.fragments) f.targetComponentId = ''
+  return reduceContexts(empty(), w)
+}
+
+test('SUT switcher: the switcher is header chrome — no stray «Customer» button in the form row', () => {
+  const reg = wire('switcher')
+  const summary = summarizeHost(reg, '')
+  assert.ok(!summary.actions.some((a) => a.actionId === '_switchRecord' || a.label === 'Customer'))
+  assert.equal(pageSwitcherOf(reg.contexts[HOST_ID]).value, 'c1')
+})
+
+test('SUT switcher: @Section affordances stay with their section (title row / under the content)', () => {
+  const summary = summarizeHost(wire('switcher'), '')
+  const byTitle = Object.fromEntries(summary.sections.filter((s) => s.title).map((s) => [s.title, s]))
+  assert.deepEqual(byTitle.Contact.titleButtons.map((b) => [b.actionId, b.label, b.chroming]), [['editContact', 'Edit', 'borderless']])
+  assert.deepEqual(byTitle.Contact.footerButtons, [])
+  assert.deepEqual(byTitle.Segment.titleButtons.map((b) => b.label), ['Add'])
+  assert.deepEqual(byTitle.Segment.footerButtons.map((b) => b.label), ['View more'])
+  assert.equal(byTitle.Segment.hasFooterButtons, true)
+  // and they leave the form's bottom action row
+  assert.deepEqual(summary.actions.map((a) => a.actionId), [])
+  assert.deepEqual(withoutSectionButtons([{ actionId: 'save' }, { actionId: 'addTag' }], summary.sections).map((a) => a.actionId), ['save'])
+  // the page/wizard section templates draw both rows
+  const html = webApp('flows/main/pages/main-start-page.html')
+  assert.equal((html.match(/mateu-section-title-row/g) || []).length, 3)
+  assert.equal((html.match(/data="\[\[ \$current\.data\.footerButtons \]\]"/g) || []).length, 3)
+})
+
+test('sectionButtonsOf does not take a nested section\'s buttons', () => {
+  const inner = { ...node({ type: 'Card' }, [node({ type: 'Button', label: 'Inner', actionId: 'inner' })]), cssClasses: 'mateu-section' }
+  const outer = { ...node({ type: 'Card' }, [node({ type: 'Button', label: 'Outer', actionId: 'outer' }), inner]), cssClasses: 'mateu-section' }
+  assert.deepEqual(sectionButtonsOf(outer).footerButtons.map((b) => b.actionId), ['outer'])
+})
+
+test('SUT overview: the GeneralOverview info slot (untitled Card slotted info) is drawn', () => {
+  const o = generalOverviewOf(wire('overview').contexts[HOST_ID])
+  const info = o.cards.find((c) => c.isInfo)
+  assert.ok(info, 'the info card is there')
+  assert.ok(info.items.some((a) => a.isText && a.text === 'Recent activity'))
+  assert.ok(info.items.some((a) => a.isBullets))
+  // beside other cards it is the narrower column; promoted it leads
+  const main = node({ type: 'Card', title: node({ type: 'Text', text: 'Lines' }), content: [text('3 lines')] }, [], 'c', 'main')
+  const infoN = node({ type: 'Card', content: [text('Activity')] }, [], 'i', 'info')
+  const tree = (kids) => page({}, [node({ type: 'EntityHeader', title: 'R' }), node({ type: 'FormField', fieldId: 'record', dataType: 'string', options: [{ value: 'r1', label: 'R1' }] }),
+    node({ type: 'ResponsiveGrid', gridTemplateAreas: '"main info"' }, kids, 'general-overview')])
+  const plain = generalOverviewOf(host(tree([main, infoN]), { record: 'r1' }))
+  assert.deepEqual(plain.cards.map((c) => [c.title, !!c.isInfo, c.colClass || '']), [['Lines', false, ''], ['', true, 'oj-flex-item oj-sm-12 oj-md-4']])
+  const promoted = generalOverviewOf(host(tree([infoN, main]), { record: 'r1' }))
+  assert.equal(promoted.cards[0].isInfo, true)
+  assert.match(webApp('flows/main/pages/main-start-page.html'), /:class="\[\[ \$current\.data\.colClass \|\| 'oj-flex-item oj-sm-12 oj-md-6' \]\]"/)
+})
+
+test('SUT search: before the first search only the pre-search content (an EmptyState) is there', () => {
+  const ctx = wire('search').contexts[HOST_ID]
+  const l = listingOf(ctx)
+  assert.equal(l.showPreSearch, true)
+  assert.match(l.tableClass, /oj-helper-hidden/) // the table — and its «No data.» — hidden
+  const atoms = l.headerBlocks.flatMap((b) => b.items || [])
+  assert.ok(atoms.some((a) => a.isEmptyStateAtom))
+  // the pre-search EmptyState is not the PAGE's empty state (painted under the table before)
+  assert.equal(emptyStateOf(ctx.tree), null)
+})
+
+test('SUT foldout: the folded panels carry their summaries for the digest line', () => {
+  const f = foldoutOf(wire('foldout').contexts[HOST_ID])
+  assert.deepEqual(f.panels.map((p) => [p.title, p.open, p.hasSummary, p.summary]),
+    [['Payments', false, true, '€240 due'], ['Requests', false, true, '2 open'], ['History', true, false, '']])
 })
 
 console.log(`\n${passed} pattern-gap tests OK`)

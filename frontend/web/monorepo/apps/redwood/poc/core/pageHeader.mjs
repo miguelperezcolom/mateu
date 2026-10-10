@@ -292,6 +292,13 @@ export function crudTitleOf(host) {
   return crud && crud.metadata ? crud.metadata.title : ''
 }
 
+/** The form's action row minus the buttons its sections already draw (sectionButtonsOf). */
+export function withoutSectionButtons(actions, sections) {
+  const drawn = {}
+  for (const sec of sections || []) for (const b of (sec.titleButtons || []).concat(sec.footerButtons || [])) drawn[b.actionId] = true
+  return (actions || []).filter((a) => !drawn[a.actionId])
+}
+
 export function summarizeHost(reg, route) {
   const host = reg.contexts[HOST_ID] || {}
   const pageMetadata = (((host.tree || {}).children || [])[0] || {}).metadata || {}
@@ -319,6 +326,7 @@ export function summarizeHost(reg, route) {
     fields,
     sections,
     formValue: formMetadata ? { ...state } : null,
-    actions: host.tree ? actionsOf(host.tree) : [],
+    // the buttons a section draws itself (title row / under its content) leave the form's row
+    actions: host.tree ? withoutSectionButtons(actionsOf(host.tree), sections) : [],
   }
 }

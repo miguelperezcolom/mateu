@@ -1361,7 +1361,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!n || typeof n !== 'object') return
       if (!isRoot && n.type === 'ServerSide') return // frontera de isla: parar
       visit(n)
-      for (const v of Object.values(n)) {
+      for (const [k, v] of Object.entries(n)) {
+        // the page header's record/context switcher (Page.metadata.switcher) is header chrome, not
+        // content: its actionId + label made a stray «Customer» button in the form's action row
+        if (k === 'switcher' && n.type === 'Page') continue
         if (Array.isArray(v)) v.forEach((x) => walk(x, false))
         else if (v && typeof v === 'object') walk(v, false)
       }
@@ -1533,6 +1536,46 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
   /**
+   * The buttons a SECTION carries (@Section(editAction, addAction, viewMoreAction), an @Inline type's
+   * @Toolbar/@Button): those in the title row (the HorizontalLayout holding the section's heading)
+   * stay beside the title, the rest go under the section's content — they belong to the section,
+   * not to the form's action row. Not crossing a nested section or an island.
+   */
+  function sectionButtonsOf(card) {
+    const titleButtons = []
+    const footerButtons = []
+    const isHeading = (k) => !!(k && k.metadata && k.metadata.type === 'Text' && /^h[1-6]$/.test(k.metadata.container || ''))
+    const buttonOf = (m) => ({
+      actionId: m.actionId,
+      label: m.label || m.actionId,
+      // tertiary (the affordances) = JET borderless
+      chroming: m.buttonStyle === 'primary' ? 'callToAction' : m.buttonStyle === 'tertiary' ? 'borderless' : 'outlined',
+      disabled: !!m.disabled,
+      parameters: m.parameters || {},
+    })
+    const walk = (n, isRoot, inTitleRow) => {
+      if (!n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach((x) => walk(x, false, inTitleRow)); return }
+      if (!isRoot && (n.type === 'ServerSide' || isSectionNode(n))) return
+      const md = n.metadata
+      if (md && md.type === 'Button' && md.actionId) {
+        (inTitleRow ? titleButtons : footerButtons).push(buttonOf(md))
+        return
+      }
+      const titleRow = !!(md && md.type === 'HorizontalLayout' && (n.children || []).some(isHeading))
+      for (const [k, v] of Object.entries(n)) {
+        if (k === 'metadata' && md) {
+          for (const mv of Object.values(md)) if (mv && typeof mv === 'object') walk(mv, false, inTitleRow || titleRow)
+          continue
+        }
+        if (v && typeof v === 'object') walk(v, false, inTitleRow || titleRow)
+      }
+    }
+    walk(card, true, false)
+    return { titleButtons, footerButtons }
+  }
+
+  /**
    * Las columnas de un grupo de campos en un formulario a TODO EL ANCHO (página, wizard): las
    * declaradas (FormLayout maxColumns, @Section(columns)) o, sin declarar, dos — el reparto por
    * defecto del FormLayout de Vaadin en escritorio. oj-form-layout las baja solo cuando no caben
@@ -1561,7 +1604,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (!isRoot && n.type === 'ServerSide') return // frontera de isla: sus campos no son de aquí
       let here = section
       if (isSectionNode(n)) {
-        here = { key: 's' + sections.length, ...sectionHeadOf(n), fields: [] }
+        here = { key: 's' + sections.length, ...sectionHeadOf(n), ...sectionButtonsOf(n), fields: [] }
         sections.push(here)
       }
       if (n.fieldId && byId[n.fieldId] && !placed[n.fieldId]) {
@@ -1570,7 +1613,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           here.fields.push(byId[n.fieldId])
         } else {
           if (!loose || sections[sections.length - 1] !== loose) {
-            loose = { key: 's' + sections.length, title: '', columns: 1, declaredColumns: false, fields: [] }
+            loose = { key: 's' + sections.length, title: '', columns: 1, declaredColumns: false, titleButtons: [], footerButtons: [], fields: [] }
             sections.push(loose)
           }
           loose.fields.push(byId[n.fieldId])
@@ -1591,7 +1634,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         const head = !sec.declaredColumns && rootColumns.declaredColumns ? { ...sec, columns: rootColumns.columns, declaredColumns: true } : sec
         // (el @Colspan de un campo no se aplica: de los hijos del oj-form-layout clásico sólo
         // oj-label-value tiene colspan, y envolver el control en uno descuadra la rejilla)
-        return { ...head, hasTitle: !!sec.title, wideColumns: wideColumnsOf(head) }
+        return { ...head, hasTitle: !!sec.title, wideColumns: wideColumnsOf(head),
+          hasTitleButtons: !!(sec.titleButtons && sec.titleButtons.length),
+          hasFooterButtons: !!(sec.footerButtons && sec.footerButtons.length) }
       })
   }
 
@@ -2449,6 +2494,40 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  /** The first child slotted `slot` of a ResponsiveGrid in the tree, and whether it leads its
+   *  siblings: { node, first } or null. */
+  function findFirstSlotted(tree, slot) {
+    let found = null
+    const walk = (n) => {
+      if (found || !n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach(walk); return }
+      if (n.metadata && n.metadata.type === 'ResponsiveGrid') {
+        const kids = n.children || []
+        const i = kids.findIndex((k) => k && k.slot === slot)
+        if (i >= 0) { found = { node: kids[i], first: i === 0 }; return }
+      }
+      for (const v of Object.values(n)) if (v && typeof v === 'object') walk(v)
+    }
+    walk(tree)
+    return found
+  }
+
+  /** The overview's `info` slot as a card: a Card brings its title and content, anything else is
+   *  the content itself. */
+  function overviewInfoCardOf(ctx, node) {
+    const isCard = !!(node && node.metadata && node.metadata.type === 'Card')
+    const content = isCard ? (node.metadata.content || []) : [node]
+    const blocks = islandContentOf({ ...ctx, kind: 'island', tree: { type: 'ClientSide', id: '_overviewInfo', metadata: { type: 'VerticalLayout' },
+      children: Array.isArray(content) ? content : [content] } }) || []
+    return {
+      title: isCard ? cardOf(node).title : '',
+      texts: [],
+      items: blocks.flatMap((b) => b.items || []),
+      isInfo: true,
+      colClass: 'oj-flex-item oj-sm-12 oj-md-4',
+    }
+  }
+
   /** Arquetipo GENERAL OVERVIEW: switcher de registro + EntityHeader + cards. */
   function generalOverviewOf(ctx) {
     const header = ctx && ctx.tree ? findByType(ctx.tree, 'EntityHeader') : null
@@ -2462,7 +2541,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const badgeText = (md.badges || []).map((b) => b.label).join(' · ')
     const facts = (md.facts || []).map((f) => ({ label: f.label, value: f.value }))
     if (md.metricLabel) facts.push({ label: md.metricLabel, value: md.metricValue })
+    // the GeneralOverview `info` slot (GeneralOverview.info(): a child slotted `info` of the
+    // ResponsiveGrid `general-overview`): drawn as its own, narrower card — untitled, it was taken for
+    // a structural wrapper and dropped. First when it travels first (promoteInfoSlot).
+    const infoNode = findFirstSlotted(ctx.tree, 'info')
+    const infoCard = infoNode ? overviewInfoCardOf(ctx, infoNode.node) : null
     const cards = findAllByType(ctx.tree, 'Card')
+      .filter((node) => !infoNode || node !== infoNode.node)
       .map((node) => {
         const card = cardOf(node)
         // el contenido de la tarjeta como ÁTOMOS (no sólo sus textos): una StatusList, una tabla…
@@ -2473,6 +2558,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         return { ...card, items: blocks.flatMap((b) => b.items || []) }
       })
       .filter((card) => card.title) // los Card sin título son wrappers de sección/estructura
+    if (infoCard) {
+      // a side column next to other cards; alone, as wide as a card
+      if (!cards.length) infoCard.colClass = 'oj-flex-item oj-sm-12 oj-md-6'
+      if (infoNode.first) cards.unshift(infoCard)
+      else cards.push(infoCard)
+    }
     return {
       title: md.title || '',
       subtitle: (md.subtitle || '') + (badgeText ? ' · ' + badgeText : ''),
@@ -2879,7 +2970,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  bienvenida). Tras seleccionar un item el server lo sustituye por la isla → null. */
   /** The PAGE's empty state: the first EmptyState that is not in a slot of a template (a slotted
    *  one — the @detail placeholder of a CollectionDetail — is content). */
-  const pageEmptyStateNode = (tree) => findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot))
+  const pageEmptyStateNode = (tree) => {
+    // a listing's PRE-SEARCH content (Crud.metadata.preSearch) is not the page's empty state: it
+    // stands in for the results until the first search (listingPreSearchBlocksOf) — taken for the
+    // page's it was painted at the bottom, under the table's own «No data.»
+    const pre = new Set()
+    const mark = (n) => {
+      if (!n || typeof n !== 'object') return
+      if (Array.isArray(n)) { n.forEach(mark); return }
+      pre.add(n)
+      for (const v of Object.values(n)) if (v && typeof v === 'object') mark(v)
+    }
+    findFirst(tree, (n) => { if (n && n.metadata && n.metadata.type === 'Crud' && Array.isArray(n.metadata.preSearch)) mark(n.metadata.preSearch); return false })
+    return findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot && !pre.has(n)))
+  }
   function emptyStateOf(tree) {
     const node = pageEmptyStateNode(tree)
     if (!node) return null
@@ -4707,6 +4811,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return crud && crud.metadata ? crud.metadata.title : ''
   }
 
+  /** The form's action row minus the buttons its sections already draw (sectionButtonsOf). */
+  function withoutSectionButtons(actions, sections) {
+    const drawn = {}
+    for (const sec of sections || []) for (const b of (sec.titleButtons || []).concat(sec.footerButtons || [])) drawn[b.actionId] = true
+    return (actions || []).filter((a) => !drawn[a.actionId])
+  }
+
   function summarizeHost(reg, route) {
     const host = reg.contexts[HOST_ID] || {}
     const pageMetadata = (((host.tree || {}).children || [])[0] || {}).metadata || {}
@@ -4734,7 +4845,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       fields,
       sections,
       formValue: formMetadata ? { ...state } : null,
-      actions: host.tree ? actionsOf(host.tree) : [],
+      // the buttons a section draws itself (title row / under its content) leave the form's row
+      actions: host.tree ? withoutSectionButtons(actionsOf(host.tree), sections) : [],
     }
   }
 
@@ -4810,7 +4922,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const crudNode = ctx && ctx.tree ? findByType(ctx.tree, 'Crud') : null
     const pre = crudNode && crudNode.metadata && Array.isArray(crudNode.metadata.preSearch) ? crudNode.metadata.preSearch : []
     if (!pre.length || listingSearchedOf(ctx)) return null
-    const blocks = islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_listingPreSearch', metadata: { type: 'VerticalLayout' }, children: pre } }) || []
+    // kind island: as host content the first EmptyState is the page's own one, and skipped
+    const blocks = islandContentOf({ ...ctx, kind: 'island', tree: { type: 'ClientSide', id: '_listingPreSearch', metadata: { type: 'VerticalLayout' }, children: pre } }) || []
     const out = blocks.map((b) => ({ ...b, blockClass: b.colClass || 'oj-flex-item oj-sm-12', preSearch: true }))
     return out.length ? out : null
   }

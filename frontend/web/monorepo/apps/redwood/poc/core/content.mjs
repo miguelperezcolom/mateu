@@ -71,7 +71,20 @@ export function queueProjectionOf(md) {
  *  bienvenida). Tras seleccionar un item el server lo sustituye por la isla → null. */
 /** The PAGE's empty state: the first EmptyState that is not in a slot of a template (a slotted
  *  one — the @detail placeholder of a CollectionDetail — is content). */
-export const pageEmptyStateNode = (tree) => findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot))
+export const pageEmptyStateNode = (tree) => {
+  // a listing's PRE-SEARCH content (Crud.metadata.preSearch) is not the page's empty state: it
+  // stands in for the results until the first search (listingPreSearchBlocksOf) — taken for the
+  // page's it was painted at the bottom, under the table's own «No data.»
+  const pre = new Set()
+  const mark = (n) => {
+    if (!n || typeof n !== 'object') return
+    if (Array.isArray(n)) { n.forEach(mark); return }
+    pre.add(n)
+    for (const v of Object.values(n)) if (v && typeof v === 'object') mark(v)
+  }
+  findFirst(tree, (n) => { if (n && n.metadata && n.metadata.type === 'Crud' && Array.isArray(n.metadata.preSearch)) mark(n.metadata.preSearch); return false })
+  return findFirst(tree, (n) => !!(n && n.metadata && n.metadata.type === 'EmptyState' && !n.slot && !pre.has(n)))
+}
 export function emptyStateOf(tree) {
   const node = pageEmptyStateNode(tree)
   if (!node) return null

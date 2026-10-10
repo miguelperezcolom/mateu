@@ -3916,9 +3916,12 @@
               :style.width="[[ $current.data.width || null ]]"
               :style.min-width="[[ $current.data.width || null ]]"
               :style.max-width="[[ $current.data.width || null ]]">
-              <!-- FoldoutPanel.summary (child summary-N): the panel's own `summary` slot -->
+              <!-- FoldoutPanel.summary (child summary-N): oj-sp-foldout-layout's panels never fold (a
+                   carousel of open panels), so the summary is the spec's fallback — a one-line
+                   digest under the panel title. Not the panel's `summary` slot: oj-sp-foldout-panel
+                   reads that slot ONCE when it is created (hasSummary), before this binding stamps -->
               <oj-bind-if test="[[ !!($application.variables.mateuFoldoutContent.panels[$current.index] || $current.data).hasSummary ]]">
-                <div slot="summary" class="oj-typography-body-sm oj-text-color-secondary mateu-foldout-summary"><oj-bind-text value="[[ ($application.variables.mateuFoldoutContent.panels[$current.index] || $current.data).summary ]]"></oj-bind-text></div>
+                <div class="oj-typography-body-sm oj-text-color-secondary oj-sm-margin-4x-bottom mateu-foldout-summary"><oj-bind-text value="[[ ($application.variables.mateuFoldoutContent.panels[$current.index] || $current.data).summary ]]"></oj-bind-text></div>
               </oj-bind-if>
               <!-- bloques RICOS del panel: mismo template de átomos que el host. Ligados al
                    CONTENIDO vivo (mateuFoldoutContent) indexado por posición: el panel se
@@ -7182,9 +7185,12 @@
   <div class="oj-flex oj-sm-margin-6x-top oj-sm-padding-12x-horizontal">
     <oj-bind-for-each data="[[ $application.variables.mateuOverview.cards ]]">
       <template>
-        <div class="oj-flex-item oj-sm-12 oj-md-6">
+        <!-- colClass: md-6 per card; the GeneralOverview `info` slot (a narrower column) md-4 -->
+        <div :class="[[ $current.data.colClass || 'oj-flex-item oj-sm-12 oj-md-6' ]]">
           <div class="oj-panel oj-sm-margin-2x">
-            <div class="oj-typography-subheading-sm oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+            <oj-bind-if test="[[ !!$current.data.title ]]">
+              <div class="oj-typography-subheading-sm oj-sm-margin-2x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
+            </oj-bind-if>
             <!-- el contenido de la tarjeta, como átomos (textos, StatusList, tablas…) -->
             <oj-bind-for-each data="[[ $current.data.items ]]">
                   <!-- @atoms host — GENERADO desde poc/templates/atoms.html (npm run bridge), NO EDITAR -->
@@ -18768,8 +18774,19 @@
       <oj-bind-for-each data="[[ $application.variables.mateuFormSections ]]">
         <template>
           <div class="mateu-form-section">
-            <oj-bind-if test="[[ $current.data.hasTitle ]]">
-              <h3 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+            <!-- the section title row: its heading + its own buttons (@Section editAction/addAction) -->
+            <oj-bind-if test="[[ $current.data.hasTitle || $current.data.hasTitleButtons ]]">
+              <div class="oj-flex oj-sm-align-items-center oj-sm-margin-4x-bottom mateu-section-title-row">
+                <h3 style="margin: 0;" class="oj-typography-heading-xs oj-sm-margin-0"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                <oj-bind-for-each data="[[ $current.data.titleButtons ]]">
+                  <template>
+                    <oj-button class="oj-button-sm oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                      disabled="[[ !!$current.data.disabled ]]"
+                      :data-action-id="[[ $current.data.actionId ]]"
+                      on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                  </template>
+                </oj-bind-for-each>
+              </div>
             </oj-bind-if>
             <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.wideColumns ]]" direction="row">
               <oj-bind-for-each data="[[ $current.data.fields ]]">
@@ -18995,6 +19012,19 @@
                 </template>
               </oj-bind-for-each>
             </oj-form-layout>
+            <!-- what the section offers under its content (@Section viewMoreAction, an @Inline @Button) -->
+            <oj-bind-if test="[[ $current.data.hasFooterButtons ]]">
+              <div class="oj-flex oj-sm-margin-2x-top mateu-section-footer">
+                <oj-bind-for-each data="[[ $current.data.footerButtons ]]">
+                  <template>
+                    <oj-button class="oj-button-sm oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                      disabled="[[ !!$current.data.disabled ]]"
+                      :data-action-id="[[ $current.data.actionId ]]"
+                      on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                  </template>
+                </oj-bind-for-each>
+              </div>
+            </oj-bind-if>
           </div>
         </template>
       </oj-bind-for-each>
@@ -19021,8 +19051,19 @@
       <oj-bind-for-each data="[[ $application.variables.mateuFormSections ]]">
         <template>
           <div class="mateu-form-section">
-            <oj-bind-if test="[[ $current.data.hasTitle ]]">
-              <h3 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+            <!-- the section title row: its heading + its own buttons (@Section editAction/addAction) -->
+            <oj-bind-if test="[[ $current.data.hasTitle || $current.data.hasTitleButtons ]]">
+              <div class="oj-flex oj-sm-align-items-center oj-sm-margin-4x-bottom mateu-section-title-row">
+                <h3 style="margin: 0;" class="oj-typography-heading-xs oj-sm-margin-0"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                <oj-bind-for-each data="[[ $current.data.titleButtons ]]">
+                  <template>
+                    <oj-button class="oj-button-sm oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                      disabled="[[ !!$current.data.disabled ]]"
+                      :data-action-id="[[ $current.data.actionId ]]"
+                      on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                  </template>
+                </oj-bind-for-each>
+              </div>
             </oj-bind-if>
             <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.wideColumns ]]" direction="row">
               <oj-bind-for-each data="[[ $current.data.fields ]]">
@@ -19248,6 +19289,19 @@
                 </template>
               </oj-bind-for-each>
             </oj-form-layout>
+            <!-- what the section offers under its content (@Section viewMoreAction, an @Inline @Button) -->
+            <oj-bind-if test="[[ $current.data.hasFooterButtons ]]">
+              <div class="oj-flex oj-sm-margin-2x-top mateu-section-footer">
+                <oj-bind-for-each data="[[ $current.data.footerButtons ]]">
+                  <template>
+                    <oj-button class="oj-button-sm oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                      disabled="[[ !!$current.data.disabled ]]"
+                      :data-action-id="[[ $current.data.actionId ]]"
+                      on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                  </template>
+                </oj-bind-for-each>
+              </div>
+            </oj-bind-if>
           </div>
         </template>
       </oj-bind-for-each>
@@ -32136,8 +32190,19 @@
     <oj-bind-for-each data="[[ $application.variables.mateuFormSections ]]">
       <template>
         <div class="mateu-form-section">
-          <oj-bind-if test="[[ $current.data.hasTitle ]]">
-            <h3 class="oj-typography-heading-xs oj-sm-margin-4x-bottom"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+          <!-- the section title row: its heading + its own buttons (@Section editAction/addAction) -->
+          <oj-bind-if test="[[ $current.data.hasTitle || $current.data.hasTitleButtons ]]">
+            <div class="oj-flex oj-sm-align-items-center oj-sm-margin-4x-bottom mateu-section-title-row">
+              <h3 style="margin: 0;" class="oj-typography-heading-xs oj-sm-margin-0"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+              <oj-bind-for-each data="[[ $current.data.titleButtons ]]">
+                <template>
+                  <oj-button class="oj-button-sm oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                    disabled="[[ !!$current.data.disabled ]]"
+                    :data-action-id="[[ $current.data.actionId ]]"
+                    on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                </template>
+              </oj-bind-for-each>
+            </div>
           </oj-bind-if>
           <oj-form-layout class="oj-formlayout-full-width" max-columns="[[ $current.data.wideColumns ]]" direction="row">
             <oj-bind-for-each data="[[ $current.data.fields ]]">
@@ -32363,6 +32428,19 @@
               </template>
             </oj-bind-for-each>
           </oj-form-layout>
+          <!-- what the section offers under its content (@Section viewMoreAction, an @Inline @Button) -->
+          <oj-bind-if test="[[ $current.data.hasFooterButtons ]]">
+            <div class="oj-flex oj-sm-margin-2x-top mateu-section-footer">
+              <oj-bind-for-each data="[[ $current.data.footerButtons ]]">
+                <template>
+                  <oj-button class="oj-button-sm oj-sm-margin-1x-start" chroming="[[ $current.data.chroming ]]"
+                    disabled="[[ !!$current.data.disabled ]]"
+                    :data-action-id="[[ $current.data.actionId ]]"
+                    on-oj-action="[[ $listeners.mateuActionClicked ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+                </template>
+              </oj-bind-for-each>
+            </div>
+          </oj-bind-if>
         </div>
       </template>
     </oj-bind-for-each>
