@@ -12,7 +12,7 @@ from pydantic import Field
 from .base import Wire
 
 if TYPE_CHECKING:
-    from .fields import RestDataSource, RestSourceEntryRecord
+    from .fields import ComponentEntryRecord, RestDataSource, RestSourceEntryRecord
     from .records import (
         MenuItem,
         Option,
@@ -78,6 +78,10 @@ class AppMetadata(Wire):
     #: The app's REST source catalogue (named endpoints surfaces reference by ``ref``), shipped
     #: once on the app metadata rather than on every response (mirrors AppDto.restSources).
     rest_sources: list["RestSourceEntryRecord"] = Field(default_factory=list)
+    #: The business-component catalogue (name → resolved composition), so a ComponentRef can be
+    #: resolved by a renderer / the client-side expander with no backend (mirrors
+    #: AppDto.components).
+    components: list["ComponentEntryRecord"] = Field(default_factory=list)
 
 
 class AppContextSelector(Wire):

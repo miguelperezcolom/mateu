@@ -76,6 +76,17 @@ class CardMetadata(Wire):
     variants: list[str] = Field(default_factory=lambda: ["outlined"])
 
 
+class CustomFieldMetadata(Wire):
+    """A form slot holding a COMPONENT instead of an input: a component-holder field of a reflected
+    page (a fluent component, a business component reference, an adapted object, an embedded
+    island). Mirrors io.mateu.dtos.CustomFieldDto."""
+
+    type: Literal["CustomField"] = "CustomField"
+    label: str | None = None
+    content: "Component | None" = None
+    colspan: int = 1
+
+
 class DivMetadata(Wire):
     type: Literal["Div"] = "Div"
     content: Any | None = None

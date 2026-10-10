@@ -17,6 +17,7 @@ from .app import (  # noqa: F401
 )
 from .layout import (  # noqa: F401
     CardMetadata,
+    CustomFieldMetadata,
     DivMetadata,
     FormLayoutMetadata,
     FormMetadata,
@@ -27,6 +28,7 @@ from .layout import (  # noqa: F401
     VerticalLayoutMetadata,
 )
 from .fields import (  # noqa: F401
+    ComponentEntryRecord,
     CrudMetadata,
     FormFieldMetadata,
     NavLinkRecord,

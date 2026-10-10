@@ -35,6 +35,10 @@ class MateuRegistry:
         #: RestSourceCatalogSupplier subclasses found among the sources (the code-authored half of
         #: the REST source catalogue; instantiated with no arguments, the port's idiom).
         self.catalog_suppliers: list[type] = []
+        #: ComponentCatalogSupplier subclasses (the code half of the business-component catalogue).
+        self.component_suppliers: list[type] = []
+        #: model type → its ComponentAdapter instance (the ComponentAdapter SPI).
+        self.adapters: dict[type, object] = {}
         for src in sources:
             if isinstance(src, ModuleType):
                 for _, cls in inspect.getmembers(src, inspect.isclass):
@@ -75,6 +79,24 @@ class MateuRegistry:
     def _register_catalog_supplier(self, cls: type) -> None:
         from mateu_uidl.rest_sources import RestSourceCatalogSupplier
 
+        from mateu_uidl.adapters import ComponentAdapter
+
+        from .component_registry import is_catalog_supplier
+
+        if isinstance(cls, type) and issubclass(cls, ComponentAdapter) and cls is not ComponentAdapter:
+            try:
+                adapter = cls()
+                model = adapter.type()
+            except Exception as e:  # noqa: BLE001 - a broken adapter adapts nothing
+                _log.warning("Component adapter %s could not be registered (%s)", cls.__name__, e)
+            else:
+                if isinstance(model, type):
+                    self.adapters[model] = adapter
+                    # the island / routed model is addressed by its type name on the wire
+                    self._by_name[type_name(model)] = model
+
+        if is_catalog_supplier(cls) and cls not in self.component_suppliers:
+            self.component_suppliers.append(cls)
         if (
             isinstance(cls, type)
             and issubclass(cls, RestSourceCatalogSupplier)
@@ -82,6 +104,15 @@ class MateuRegistry:
             and cls not in self.catalog_suppliers
         ):
             self.catalog_suppliers.append(cls)
+
+    def adapter_for(self, cls) -> object | None:
+        """The ComponentAdapter registered for ``cls`` (or one of its bases), or None."""
+        if not isinstance(cls, type):
+            return None
+        for klass in cls.__mro__:
+            if klass in self.adapters:
+                return self.adapters[klass]
+        return None
 
     def resolve(self, server_side_type: str | None, route: str | None) -> type | None:
         if server_side_type and server_side_type in self._by_name:

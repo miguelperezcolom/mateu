@@ -278,11 +278,17 @@ class ReflectionMapper(
     FieldMapperMixin,
     MixinBase,
 ):
-    def __init__(self, translator: Translator | None = None, identity_provider=None, rest_sources=None):
+    def __init__(
+        self, translator: Translator | None = None, identity_provider=None, rest_sources=None, components=None
+    ):
         self.translator = translator
         self.identity_provider = identity_provider
         #: The app's REST source catalogue (a RestSourceRegistry); None = no catalogue.
         self.rest_sources = rest_sources
+        #: The app's business-component catalogue (a ComponentRegistry); None = none.
+        self.components = components
+        #: model type → ComponentAdapter (set by the SyncHandler from the registry).
+        self.adapters: dict = {}
 
     def authorized(self, gate) -> bool:
         """Whether the caller passes ``gate`` (mirrors Java's Authorizer): AND across declared

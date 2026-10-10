@@ -8,11 +8,12 @@ from datetime import (
 )
 from decimal import Decimal
 from typing import (
+    Any,
     get_args,
     get_origin,
 )
 
-from mateu_dtos import Action, TextMetadata
+from mateu_dtos import Action, CustomFieldMetadata, ServerSideComponent, TextMetadata
 from mateu_dtos import (
     Button,
     ClientSideComponent,
@@ -26,6 +27,7 @@ from mateu_dtos import (
     RestAction,
     RestDataSource,
 )
+from mateu_uidl import components as fluent
 from mateu_uidl import Colspan, DetailForm, Hidden, Max, Min, Pattern, Size
 from mateu_uidl.rest_sources import RestSourceSupplier
 from mateu_uidl import Text as TextMarker
@@ -65,7 +67,9 @@ from ..reflection import (
     view_fields,
 )
 from ._base import MixinBase
+from ..registry import type_name
 from ._common import (
+    _id,
     _log,
     enum_label,
     is_enum,
@@ -253,6 +257,9 @@ class FieldMapperMixin(MixinBase):
         row_type = self.grid_row_type(f)
         if row_type is not None:
             return self.map_grid_field(f, row_type, instance, read_only)
+        holder = self.map_holder_field(f, instance)
+        if holder is not None:
+            return holder
         if f.has(TextMarker):
             # Text(): the VALUE rendered as a sized text, interpolated from the state client-side
             # (mirrors Java's ReflectionFormFieldMapper @Text branch).
@@ -321,6 +328,76 @@ class FieldMapperMixin(MixinBase):
             ),
         )
         return self.client(meta, field_id, [])
+
+    def map_holder_field(self, f, instance) -> ClientSideComponent | None:
+        """A field holding a COMPONENT rather than data renders that component in its form slot
+        (Java's ReflectionFormFieldMapper Component branch → CustomField): a fluent component or
+        a ``ComponentRef`` (resolved against the business-component catalogue). None when the
+        field is a plain data field."""
+        value = getattr(instance, f.name, None)
+        adapter = self.adapter_of(value)
+        if adapter is not None:
+            # an adapted object held by a field: an independent island — its own server-side type,
+            # state and actions round-trip through the adapter (Java's AdaptedComponentTree in a
+            # CustomField)
+            label = self.T(f.marker(Label).value if f.has(Label) else humanize(f.name))
+            return ClientSideComponent(
+                metadata=CustomFieldMetadata(
+                    label=label,
+                    content=self.map_adapted(value, adapter, ""),
+                    colspan=f.marker(Colspan).value if f.has(Colspan) else 1,
+                ),
+                id="fieldId",
+                children=[],
+                style="width: 100%;",
+            )
+        holds_component = isinstance(value, fluent.Component) or (
+            isinstance(f.type, type) and issubclass(f.type, fluent.Component)
+        )
+        if not holds_component:
+            return None
+        if value is None:
+            return None
+        label = self.T(f.marker(Label).value if f.has(Label) else humanize(f.name))
+        content = self.map_component(value)
+        return ClientSideComponent(
+            metadata=CustomFieldMetadata(
+                label=label, content=content, colspan=f.marker(Colspan).value if f.has(Colspan) else 1
+            ),
+            id="fieldId",
+            children=[],
+            style=getattr(value, "style", None),
+        )
+
+    def adapter_of(self, value):
+        """The ComponentAdapter for ``value``'s type, or None."""
+        if value is None or not self.adapters:
+            return None
+        for klass in type(value).__mro__:
+            if klass in self.adapters:
+                return self.adapters[klass]
+        return None
+
+    def map_adapted(self, model, adapter, route: str) -> ServerSideComponent:
+        """A model rendered through its adapter: its components, state (initialData) and action
+        ids, advertised under the MODEL's type name so the state routes back to the adapter."""
+        view = adapter.adapt(model)
+        components = list(view.components or [])
+        if not components:
+            tree: Any = fluent.VerticalLayout()
+        elif len(components) == 1:
+            tree = components[0]
+        else:
+            tree = fluent.VerticalLayout(content=tuple(components), style="width: 100%;")
+        return ServerSideComponent(
+            id=_id(),
+            server_side_type=type_name(type(model)),
+            route=route,
+            children=[self.map_component(tree)],
+            initial_data=dict(view.state or {}),
+            actions=[Action(id=a, validation_required=False) for a in (view.actions or [])],
+            style="width: 100%;",
+        )
 
     @staticmethod
     def _headers_of(header_strings) -> dict[str, str]:

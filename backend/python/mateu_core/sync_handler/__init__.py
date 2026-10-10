@@ -103,6 +103,7 @@ from ._common import (  # noqa: F401 - the public import path of every helper
     version_field,
     view_fields,
 )
+from ..component_registry import ComponentRegistry
 from ..rest_source_registry import RestSourceRegistry
 from .. import action_guard
 from ._base import MixinBase
@@ -143,6 +144,7 @@ class SyncHandler(
         secrets_provider=None,
         proxy_timeout_seconds: float = 30.0,
         rest_sources: RestSourceRegistry | None = None,
+        components: ComponentRegistry | None = None,
     ):
         self.registry = registry
         #: Upper bound for a proxied (__restfetch__) upstream call.
@@ -153,7 +155,14 @@ class SyncHandler(
             classes=getattr(registry, "classes", []),
             suppliers=getattr(registry, "catalog_suppliers", []),
         )
-        self.mapper = ReflectionMapper(translator, identity_provider, self.rest_sources)
+        #: The business-component catalogue: @business_component methods + ComponentCatalogSupplier
+        #: classes (derived), specs/ui/components.yaml on top (authored).
+        self.components = components or ComponentRegistry(
+            classes=getattr(registry, "classes", []),
+            suppliers=getattr(registry, "component_suppliers", []),
+        )
+        self.mapper = ReflectionMapper(translator, identity_provider, self.rest_sources, self.components)
+        self.mapper.adapters = getattr(registry, "adapters", {})
         #: resolves ${secret.X} for proxy mode; None → same-named env var fallback.
         self._secrets = secrets_provider
         #: The mount's authored route registry: specs/ui/routes.yaml merged OVER the routes

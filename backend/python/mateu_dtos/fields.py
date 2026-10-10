@@ -13,6 +13,7 @@ from pydantic import Field
 from .base import Wire
 
 if TYPE_CHECKING:
+    from .components import Component
     from .records import (
         Button,
         GridColumn,
@@ -184,3 +185,11 @@ class CrudMetadata(Wire):
     #: | danger | info | neutral) tones the whole row. None = no row tones (mirrors
     #: CrudlDto.rowStatusField).
     row_status_field: str | None = None
+
+
+class ComponentEntryRecord(Wire):
+    """One business component on the wire (mirrors ``io.mateu.dtos.ComponentEntryDto``): its name
+    and its RESOLVED composition, so a reference resolves with no backend."""
+
+    name: str
+    component: "Component | None" = None

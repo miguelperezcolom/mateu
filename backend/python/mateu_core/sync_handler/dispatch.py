@@ -226,6 +226,13 @@ class DispatchMixin(MixinBase):
         if issubclass(type_, Wizard):
             return self.handle_wizard(type_, rq)
 
+        # 3b. A model with a ComponentAdapter: rebuilt from the state by the adapter, rendered
+        # through it, its listed action ids run on the model (Java's AdapterInstanceFactory +
+        # AdaptedComponentTree).
+        adapter = self.registry.adapter_for(type_) if hasattr(self.registry, "adapter_for") else None
+        if adapter is not None:
+            return self.handle_adapted(type_, adapter, rq)
+
         # 4. A plain view.
         instance = type_()
         self.bind_state(instance, rq.component_state)

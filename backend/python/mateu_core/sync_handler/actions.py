@@ -36,7 +36,12 @@ class ActionHandlerMixin(MixinBase):
             return self.error(f"Action not found: {rq.action_id}")
         action_guard.ensure_may_invoke(self.mapper, type_, fn, rq.action_id)
         method = fn.__get__(instance, type_)
-        return self.map_result(method(*self._build_arguments(method, rq)), rq)
+        result = method(*self._build_arguments(method, rq))
+        if result is instance:
+            # returning the view itself re-renders it in place with its new state (Java's
+            # `return this`)
+            return self.render(type_, instance, rq, layout_override)
+        return self.map_result(result, rq)
 
     def _build_arguments(self, method, rq: RunActionRq) -> list:
         """Fills a method's parameters from the action request: a row-click's _clickedRow

@@ -64,6 +64,7 @@ from .front_office import (
     TaskQueueMetadata,
 )
 from .layout import (
+    CustomFieldMetadata,
     FormMetadata,
     CardMetadata,
     DivMetadata,
@@ -110,6 +111,7 @@ ComponentMetadata = Annotated[
         AppMetadata,
         PageMetadata,
         FormMetadata,
+        CustomFieldMetadata,
         CardMetadata,
         DivMetadata,
         VerticalLayoutMetadata,

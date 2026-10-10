@@ -1113,6 +1113,17 @@ class Notice(Component):
 
 
 @dataclass(frozen=True)
+class ComponentRef(Component):
+    """A reference to a named BUSINESS component of the app's catalogue (Java's ``ComponentRef``):
+    a reusable bound composition declared once (``@business_component``, a
+    ``ComponentCatalogSupplier`` or ``specs/ui/components.yaml``) and referenced by name wherever a
+    component goes. The server substitutes the composition while rendering, so the reference never
+    reaches the wire; an unknown name renders a visible placeholder, never an error."""
+
+    ref: str = ""
+
+
+@dataclass(frozen=True)
 class CustomComponent(Component):
     """A genuinely NEW component type the platform does not ship (coherence-plan #14): the
     per-renderer escape hatch. Unlike a business component (composition of known pieces that ports
@@ -1644,6 +1655,7 @@ class Dialog(Component):
 
 
 __all__ = [
+    "ComponentRef",
     "Component",
     "MetricTrend",
     "SkeletonVariant",

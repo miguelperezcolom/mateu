@@ -36,6 +36,11 @@ def build_from_yaml(text: str, partials: PartialRegistry | None = None) -> fluen
     return _single(data, partials or _DEFAULT_PARTIALS, [])
 
 
+def build_node(node: Any, partials: PartialRegistry | None = None) -> fluent.Component | None:
+    """One already-parsed YAML node (a dict) as a fluent component tree."""
+    return _single(node, partials or _DEFAULT_PARTIALS, [])
+
+
 def parse_spec(
     text: str, partials: PartialRegistry | None = None
 ) -> tuple[str | None, fluent.Component | None]:
@@ -121,6 +126,8 @@ def _build(node: Any, partials: PartialRegistry, chain: list[str]) -> fluent.Com
         )
     if kind == "Text":
         return fluent.Text(text=node.get("text", ""))
+    if kind == "ComponentRef":
+        return fluent.ComponentRef(ref=str(node.get("ref") or ""))
     return fluent.Text(text=f"Unsupported component: {kind}")
 
 

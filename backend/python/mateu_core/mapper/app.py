@@ -9,6 +9,7 @@ from typing import (
     get_type_hints,
 )
 
+from mateu_dtos import ComponentEntryRecord
 from mateu_dtos import (
     AppContextSelector,
     AppHeaderAction,
@@ -164,6 +165,7 @@ class AppMapperMixin(MixinBase):
             # 🟡 matrix. Sorted + deduped so the wire is stable (mirrors AppMapper).
             # the catalogue rides the app metadata once (surfaces carry only the names)
             rest_sources=self.rest_sources.wire() if self.rest_sources is not None else [],
+            components=self._component_catalogue(),
             required_capabilities=self._required_capabilities(
                 cls,
                 sse_url=sse_url,
@@ -324,6 +326,18 @@ class AppMapperMixin(MixinBase):
                 AppContextSelector(field_name=name, label=label, options=options)
             )
         return selectors
+
+    def _component_catalogue(self) -> list[ComponentEntryRecord]:
+        """The business-component catalogue on the app metadata, each composition resolved."""
+        if self.components is None:
+            return []
+        out = []
+        for entry in self.components.catalog():
+            try:
+                out.append(ComponentEntryRecord(name=entry.name, component=self.map_component(entry.component)))
+            except Exception as e:  # noqa: BLE001 - one broken entry must not take the shell down
+                _log.warning("Business component '%s' could not be mapped (%s)", entry.name, e)
+        return out
 
     def _target_visible(self, fn) -> bool:
         """Whether the caller may open the view a menu method leads to (its return annotation)."""

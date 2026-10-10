@@ -118,6 +118,14 @@ class ComponentMapperMixin(MixinBase):
         The Python port of the Java Metric/Scoreboard/Dashboard/Foldout/Hero/… mappers."""
         if isinstance(c, ClientSideComponent):  # pre-composed (archetype wrappers)
             return c
+        if isinstance(c, fluent.ComponentRef):
+            # A business component reference resolves HERE, so a backend-driven app never ships
+            # it; an unknown name is a visible placeholder, never an error (Java's
+            # ComponentToFragmentDtoMapper ComponentRef branch).
+            entry = self.components.get(c.ref) if self.components is not None else None
+            if entry is None or entry.component is None:
+                return self.map_component(fluent.Text(text=f"Unknown business component: {c.ref}"))
+            return self.map_component(entry.component)
         if isinstance(c, fluent.MetricCard):
             meta = MetricCardMetadata(
                 title=c.title,

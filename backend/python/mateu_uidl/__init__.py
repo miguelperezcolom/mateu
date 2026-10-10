@@ -236,9 +236,23 @@ from .rest_sources import (  # noqa: F401
     RestSourceSupplier,
     rest_source,
 )
+from .business_components import (  # noqa: F401
+    ComponentCatalogSupplier,
+    ComponentEntry,
+    business_component,
+)
+from .adapters import (  # noqa: F401
+    AdaptedView,
+    ComponentAdapter,
+)
 
 
 __all__ = [
+    "AdaptedView",
+    "ComponentAdapter",
+    "ComponentCatalogSupplier",
+    "ComponentEntry",
+    "business_component",
     "group_action",
     "GroupActionVisibility",
     "GroupSummary",

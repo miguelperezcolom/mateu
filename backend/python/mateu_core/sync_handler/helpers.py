@@ -34,6 +34,8 @@ from ..naming import (
     humanize,
 )
 from ..reflection import view_fields
+from mateu_uidl import components as fluent
+
 from ._base import MixinBase
 from ._common import (
     log,
@@ -199,6 +201,10 @@ class ResponseHelpersMixin(MixinBase):
                 continue
             key = camel_case(f.name)
             if key not in state or state[key] is None:
+                continue
+            if isinstance(f.type, type) and issubclass(f.type, fluent.Component):
+                # a component-holder field is structure, not data: the wire never writes it
+                # (Java's HolderFieldChecker)
                 continue
             row_type = ReflectionMapper.grid_row_type(f)
             if row_type is not None and isinstance(state[key], list):
