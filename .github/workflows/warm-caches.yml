@@ -1,0 +1,113 @@
+# Writes, on master, the cache entries the PR jobs of run_tests.yml READ.
+#
+# GitHub scopes a cache entry to the ref that wrote it: a PR can restore entries written by its own
+# branch or by the base branch (master), never by another PR. run_tests.yml only runs on pull
+# requests, so before this workflow nothing it cached was ever shared — every PR started cold. Two
+# entries are worth sharing:
+#
+#  - the IntelliJ IDE layout index (~150 KB): building it from a freshly extracted IDE is where the
+#    flaky "Could not find bundled plugin with ID: 'com.intellij.java'" comes from (see
+#    scripts/intellij-gradle.sh); a restored, complete index skips that step entirely.
+#  - the Playwright browsers (~150 MB) of the e2e and renderer-vb jobs.
+#
+# The keys are IDENTICAL to the ones run_tests.yml uses, so a change to either must change both.
+# The weekly run keeps the entries from being evicted (GitHub drops entries unused for 7 days).
+name: Warm CI caches
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'frontend/app/intellij-plugin/build.gradle.kts'
+      - 'frontend/app/intellij-plugin/gradle/**'
+      - 'e2e/package-lock.json'
+      - 'scripts/intellij-gradle.sh'
+      - '.github/workflows/warm-caches.yml'
+  schedule:
+    - cron: '23 4 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: warm-caches
+  cancel-in-progress: false
+
+jobs:
+  intellij-layout-index:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
+        with:
+          java-version: 21
+          distribution: zulu
+
+      - name: Look for the entry
+        id: layout-index
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: frontend/app/intellij-plugin/.intellijPlatform/layoutIndex
+          key: intellij-layout-index-${{ hashFiles('frontend/app/intellij-plugin/build.gradle.kts') }}
+          lookup-only: true
+
+      # Indexing is all that is needed (printBundledPlugins reads the IDE layout). The race can still
+      # drop a plugin here, so the index is checked and rebuilt — at most three times — before it is
+      # shared: an incomplete one in the cache would fail every PR (the wrapper would discard it, but
+      # every PR would then build it cold again).
+      - name: Build a complete layout index
+        if: steps.layout-index.outputs.cache-hit != 'true'
+        run: |
+          for attempt in 1 2 3; do
+            (cd frontend/app/intellij-plugin && ./gradlew printBundledPlugins --console=plain -q > /dev/null)
+            if scripts/intellij-gradle.sh --check-index; then exit 0; fi
+            echo "::warning::attempt $attempt produced an incomplete layout index — rebuilding it"
+            rm -rf frontend/app/intellij-plugin/.intellijPlatform/layoutIndex
+            (cd frontend/app/intellij-plugin && ./gradlew --stop) || true
+          done
+          exit 1
+
+      - name: Share it
+        if: steps.layout-index.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: frontend/app/intellij-plugin/.intellijPlatform/layoutIndex
+          key: intellij-layout-index-${{ hashFiles('frontend/app/intellij-plugin/build.gradle.kts') }}
+
+  playwright-browsers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      - name: Look for the entry
+        id: browsers
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('e2e/package-lock.json') }}
+          lookup-only: true
+
+      # Browsers only (no --with-deps): the system packages are not in the cached directory, the PR
+      # jobs install those on every run anyway.
+      - name: Download the browsers
+        if: steps.browsers.outputs.cache-hit != 'true'
+        run: cd e2e && npm ci --ignore-scripts && npx playwright install chromium
+
+      - name: Share them
+        if: steps.browsers.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('e2e/package-lock.json') }}
