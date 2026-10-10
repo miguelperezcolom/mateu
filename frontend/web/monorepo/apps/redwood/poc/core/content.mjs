@@ -1349,7 +1349,22 @@ export function islandContentOf(ctx, opts = {}) {
       : block
   ))
   const hasDisplay = hoisted.some((b) => b.items.some((a) => !a.isButtons) || b.isNestedBlock)
-  return hasDisplay ? hoisted : null
+  // Only buttons: the generic form paints them under its fields — but a tree with NO field has no
+  // generic form, and its buttons (a page that is a lone call to action, a tooltip on a button)
+  // were painted by nobody. Then they are the content.
+  const onlyButtons = !hasDisplay && hoisted.some((b) => b.items.some((a) => a.isButtons)) && !hasFormField(ctx.tree)
+  return hasDisplay || onlyButtons ? hoisted : null
+}
+
+/** Does the surface hold any FormField (without crossing into an island)? */
+function hasFormField(node, isRoot = true) {
+  if (!node || typeof node !== 'object') return false
+  if (!isRoot && node.type === 'ServerSide') return false
+  if (node.metadata && node.metadata.type === 'FormField') return true
+  for (const v of Object.values(node)) {
+    if (Array.isArray(v) ? v.some((x) => hasFormField(x, false)) : (v && typeof v === 'object' && hasFormField(v, false))) return true
+  }
+  return false
 }
 
 /** ¿Hace el contenido de la pantalla de cuerpo de la página? (si no, lo pinta el form genérico)
