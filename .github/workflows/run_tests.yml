@@ -123,8 +123,51 @@ jobs:
       - name: React Native renderer unit tests
         run: cd frontend/app/react-native && node --test 'src/**/*.test.ts'
 
-      - name: VS Code extension tests
-        run: cd frontend/app/vscode-extension && npm ci --ignore-scripts && npx vitest run
+      # Typecheck, unit tests (manifest contract + New File skeletons) and a real non-interactive
+      # `vsce package` — packaging stages LICENSE, the specs schema, the New File templates and the
+      # visual-editor bundle (the one committed in the IntelliJ plugin, since the monorepo is not
+      # installed here), so a broken staging step fails the PR instead of the release.
+      - name: VS Code extension — typecheck, tests and packaging
+        run: |
+          cd frontend/app/vscode-extension
+          npm ci --ignore-scripts
+          npm run compile
+          npm test
+          npm run package < /dev/null
+          rm -f *.vsix
+
+      # The Figma plugin draws the library from design/figma/contract.json: its test fails when a
+      # sketch primitive used by the contract has no case in renderItem (the `tile` gap).
+      - name: Figma plugin — typecheck and tests
+        run: |
+          cd design/figma/plugin
+          npm ci --ignore-scripts
+          npm run typecheck
+          npm test
+
+  # The IntelliJ plugin's suite (settings/auth, New | Mateu skeletons validated against the specs
+  # schema, wire-type parity, headless rendering of every component type, the YAML binding
+  # annotator) only ran on a developer's machine. The platform download is cached by setup-gradle.
+  intellij-plugin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v5
+        with:
+          java-version: 21
+          distribution: zulu
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/master' }}
+
+      # copyVisualEditor is skipped (with a warning) because the web monorepo is not installed: the
+      # tests run against the committed visual-editor bundle, which bundle-freshness guards.
+      - name: IntelliJ plugin tests
+        run: cd frontend/app/intellij-plugin && ./gradlew test --console=plain
 
   e2e:
     runs-on: ubuntu-latest
