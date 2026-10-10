@@ -125,6 +125,12 @@ jobs:
       - name: Redwood core contract tests
         run: cd frontend/web/monorepo/apps/redwood/poc && node test.mjs && node test-pms.mjs && node test-display.mjs && node test-chains.mjs && node test-editor.mjs
 
+      # The embedded mode: the <mateu-ui> JET Custom Component a VB developer imports into their
+      # own app (poc/embedded.mjs + embedded/mateu-ui) — its runtime, its package and that it installs
+      # what the standalone shell installs. Node only, like the contract tests above.
+      - name: Redwood embedded component (<mateu-ui>) tests
+        run: cd frontend/web/monorepo/apps/redwood/poc && node test-embedded.mjs
+
       - name: Redwood atom template is expanded in every surface
         run: cd frontend/web/monorepo/apps/redwood/poc && node make-html.mjs --check
 
