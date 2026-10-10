@@ -31,9 +31,14 @@ public class ${simpleClassName}MateuController implements MateuController {
         this.service = service;
     }
 
-    private final String uiId = "${className}";
+    // Read by io.mateu.MateuHelidonRoutes, which serves this UI's streamed actions (v3/sse/**) on
+    // the Helidon routing itself: through Jersey the events were buffered until the end.
+    public static final String MATEU_UI_ID = "${className}";
+    public static final String MATEU_BASE_URL = "${path}";
 
-    private final String baseUrl = "${path}";
+    private final String uiId = MATEU_UI_ID;
+
+    private final String baseUrl = MATEU_BASE_URL;
 
     @Override
     public String getBaseUrl() {
@@ -55,9 +60,9 @@ public class ${simpleClassName}MateuController implements MateuController {
         return service.runAction(uiId, rq, baseUrl, httpRequest).blockFirst();
     }
 
-    // Streamed actions (LongTask, Action.sse): one text/event-stream "data:" event per increment,
-    // flushed as soon as it is produced. It used to fall into runStep above and answer ONE plain
-    // JSON body, so a LongTask's progress never reached the browser.
+    // Streamed actions (LongTask, Action.sse): one text/event-stream "data:" event per increment.
+    // Normally answered by io.mateu.MateuHelidonRoutes on the Helidon routing, ahead of Jersey (which
+    // buffers a StreamingOutput); this is the fallback when that routing is not in place.
     @Path("v3/sse/{ignored:.*}")
     @POST
     @Produces("text/event-stream")
