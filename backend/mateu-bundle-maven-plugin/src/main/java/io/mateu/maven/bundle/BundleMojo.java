@@ -102,11 +102,27 @@ public class BundleMojo extends AbstractMojo {
   @Parameter(property = "mateu.bundle.specsOnly", defaultValue = "false")
   private boolean specsOnly;
 
+  /**
+   * The deployment ENVIRONMENT the bundle's REST sources point at: the name of a {@code type:
+   * Environment} file ({@code specs/ui/environments/<name>.yaml}), overlaid on {@code sources.yaml}
+   * exactly as {@code -Dmateu.environment} does on a server. The resolved catalogue is what {@code
+   * manifest.json} ships, so the same build can be re-pointed later by building again with another
+   * environment — the {@code structureHash} does not change — or by editing {@code manifest.json}'s
+   * {@code sources}. Empty = the catalogue as authored.
+   */
+  @Parameter(property = "mateu.bundle.environment")
+  private String environment;
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     var appLoader = buildAppLoader();
     var previous = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(appLoader);
+    var previousEnvironment = System.getProperty("mateu.environment");
+    if (environment != null && !environment.isBlank()) {
+      getLog().info("mateu-bundle: REST sources for environment '" + environment.trim() + "'");
+      System.setProperty("mateu.environment", environment.trim());
+    }
     try {
       var discovered = RouteRegistrations.read(appLoader);
       getLog().info("mateu-bundle: discovered " + discovered.size() + " declared route(s)");
@@ -209,6 +225,13 @@ public class BundleMojo extends AbstractMojo {
       throw new MojoExecutionException("mateu-bundle failed", e);
     } finally {
       Thread.currentThread().setContextClassLoader(previous);
+      if (environment != null && !environment.isBlank()) {
+        if (previousEnvironment == null) {
+          System.clearProperty("mateu.environment");
+        } else {
+          System.setProperty("mateu.environment", previousEnvironment);
+        }
+      }
     }
   }
 

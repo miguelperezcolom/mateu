@@ -58,6 +58,21 @@ public class Authorizer {
   }
 
   /**
+   * Whether the request satisfies an {@link io.mateu.uidl.data.Access} restriction authored as data
+   * ({@code access:} / {@code eyesOnly:} / {@code readOnlyUnless:} / {@code disabledUnless:} in
+   * YAML). The SAME predicate as the annotations — one rule, two spellings.
+   */
+  public static boolean isAuthorized(io.mateu.uidl.data.Access access, HttpRequest httpRequest) {
+    if (access == null) return true;
+    return matches(
+        access.roles().toArray(String[]::new),
+        access.groups().toArray(String[]::new),
+        access.scopes().toArray(String[]::new),
+        access.permissions().toArray(String[]::new),
+        httpRequest);
+  }
+
+  /**
    * Core identity predicate shared by every access-control annotation: true unless the declared
    * dimensions are present and the JWT Bearer token fails to satisfy them (AND across declared
    * dimensions, OR within each). No dimension declared → true; no request/token → false.

@@ -8,6 +8,35 @@
     "$ref" : "#/$defs/Component"
   } ],
   "$defs" : {
+    "Access" : {
+      "type" : "object",
+      "properties" : {
+        "roles" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "groups" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "scopes" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "permissions" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
     "AccordionLayout" : {
       "type" : "object",
       "required" : [ "type" ],
@@ -37,6 +66,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -73,6 +114,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -179,6 +232,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -303,6 +368,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -332,6 +409,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -353,6 +442,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -461,6 +562,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -482,6 +595,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -531,6 +656,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -560,6 +697,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -605,6 +754,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -634,6 +795,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -660,6 +833,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -686,6 +871,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -709,6 +906,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -749,6 +958,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -778,6 +999,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -846,6 +1079,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -885,6 +1130,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -945,6 +1202,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -1027,6 +1296,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -1080,6 +1361,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -1155,6 +1448,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -1184,6 +1489,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -1275,6 +1592,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -1307,6 +1636,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -1407,6 +1748,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -1451,6 +1804,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -1720,6 +2085,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -1770,6 +2147,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -1810,6 +2199,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -1864,6 +2265,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -1902,6 +2315,10 @@
         "itemData" : { },
         "hidden" : {
           "type" : "boolean"
+        },
+        "access" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may see this menu item: it is not sent to a caller whose token does not satisfy it. A RouteLink with none inherits its route's `access:`."
         }
       }
     },
@@ -1934,6 +2351,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -1975,6 +2404,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2008,6 +2449,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2046,6 +2499,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2078,6 +2543,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2116,6 +2593,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2138,6 +2627,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2167,6 +2668,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2230,6 +2743,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2256,6 +2781,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2285,6 +2822,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2351,6 +2900,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2403,6 +2964,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2438,6 +3011,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2453,6 +3038,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2505,6 +3102,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2555,6 +3164,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2595,6 +3216,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2658,6 +3291,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2709,6 +3354,10 @@
         },
         "presentation" : {
           "$ref" : "#/$defs/MenuPresentation"
+        },
+        "access" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may see this menu item: it is not sent to a caller whose token does not satisfy it. A RouteLink with none inherits its route's `access:`."
         }
       }
     },
@@ -2762,6 +3411,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2816,6 +3477,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2881,6 +3554,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2946,6 +3631,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -2969,6 +3666,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3110,6 +3819,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3139,6 +3860,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3199,6 +3932,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3232,6 +3977,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3267,6 +4024,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3296,6 +4065,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3319,6 +4100,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3348,6 +4141,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3377,6 +4182,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3409,6 +4226,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3490,6 +4319,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3594,6 +4435,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3626,6 +4479,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3686,6 +4551,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3730,6 +4607,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3793,6 +4682,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3820,6 +4721,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3847,6 +4760,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3873,6 +4798,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3902,6 +4839,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -3983,6 +4932,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -4173,6 +5134,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -4221,6 +5194,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -4287,6 +5272,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -4322,6 +5319,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -4397,6 +5406,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -4487,6 +5508,10 @@
         },
         "presentation" : {
           "$ref" : "#/$defs/MenuPresentation"
+        },
+        "access" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may see this menu item: it is not sent to a caller whose token does not satisfy it. A RouteLink with none inherits its route's `access:`."
         }
       }
     },
@@ -4513,6 +5538,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -4541,6 +5578,10 @@
         "type" : {
           "type" : "string",
           "const" : "MenuSeparator"
+        },
+        "access" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may see this menu item: it is not sent to a caller whose token does not satisfy it. A RouteLink with none inherits its route's `access:`."
         }
       }
     },
@@ -4567,6 +5608,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -4596,6 +5649,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -4663,6 +5728,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -4704,6 +5781,10 @@
         "itemData" : { },
         "hidden" : {
           "type" : "boolean"
+        },
+        "access" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may see this menu item: it is not sent to a caller whose token does not satisfy it. A RouteLink with none inherits its route's `access:`."
         }
       }
     },
@@ -4751,6 +5832,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -4791,6 +5884,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -4856,6 +5961,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -4915,6 +6032,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -4941,6 +6070,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -5003,6 +6144,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -5169,6 +6322,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -5240,6 +6405,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -5298,6 +6475,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -5401,6 +6590,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -5456,6 +6657,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -5521,6 +6734,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -5585,6 +6810,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -5626,6 +6863,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -5658,6 +6907,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -5758,6 +7019,10 @@
         },
         "hidden" : {
           "type" : "boolean"
+        },
+        "access" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may see this menu item: it is not sent to a caller whose token does not satisfy it. A RouteLink with none inherits its route's `access:`."
         }
       }
     },
@@ -5796,6 +7061,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -5887,6 +7164,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -5995,6 +7284,10 @@
         },
         "presentation" : {
           "$ref" : "#/$defs/MenuPresentation"
+        },
+        "access" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may see this menu item: it is not sent to a caller whose token does not satisfy it. A RouteLink with none inherits its route's `access:`."
         }
       }
     },
@@ -6078,6 +7371,10 @@
         },
         "hidden" : {
           "type" : "boolean"
+        },
+        "access" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may see this menu item: it is not sent to a caller whose token does not satisfy it. A RouteLink with none inherits its route's `access:`."
         }
       }
     },
@@ -6124,6 +7421,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6147,6 +7456,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6173,6 +7494,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6206,6 +7539,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6230,6 +7575,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6272,6 +7629,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6323,6 +7692,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6344,6 +7725,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6447,6 +7840,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6505,6 +7910,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6546,6 +7963,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6588,6 +8017,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6620,6 +8061,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6669,6 +8122,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6713,6 +8178,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6754,6 +8231,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6806,6 +8295,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6850,6 +8351,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6940,6 +8453,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6963,6 +8488,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     },
@@ -6986,6 +8523,18 @@
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
+        },
+        "eyesOnly" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Who may SEE this component: removed for a caller whose token does not satisfy it (roles/groups/scopes/permissions — AND across, OR within). Decided on the server."
+        },
+        "readOnlyUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Read-only (with every field under it) unless the caller satisfies it; the server also ignores the client's value for a locked field."
+        },
+        "disabledUnless" : {
+          "$ref" : "#/$defs/Access",
+          "description" : "Disabled unless the caller satisfies it (a FormField, which has no disabled state, becomes read-only)."
         }
       }
     }

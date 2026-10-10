@@ -133,8 +133,41 @@ public final class UidlSchemaGenerator {
     }
     if (Component.class.isAssignableFrom(type)) {
       properties.set("note", NOTE.deepCopy());
+      // The access overlay every component accepts (the data twin of @EyesOnly/@ReadOnlyUnless/
+      // @DisabledUnless): read off the tree by the server's YamlAccess pass, never a record
+      // component — so it is added here, like `note`, or an editor would flag a valid file.
+      defineValueRecord(io.mateu.uidl.data.Access.class);
+      properties.set(
+          "eyesOnly",
+          accessRef(
+              "Who may SEE this component: removed for a caller whose token does not satisfy it"
+                  + " (roles/groups/scopes/permissions — AND across, OR within). Decided on the"
+                  + " server."));
+      properties.set(
+          "readOnlyUnless",
+          accessRef(
+              "Read-only (with every field under it) unless the caller satisfies it; the server"
+                  + " also ignores the client's value for a locked field."));
+      properties.set(
+          "disabledUnless",
+          accessRef(
+              "Disabled unless the caller satisfies it (a FormField, which has no disabled state,"
+                  + " becomes read-only)."));
+    }
+    if (io.mateu.uidl.interfaces.Actionable.class.isAssignableFrom(type)) {
+      defineValueRecord(io.mateu.uidl.data.Access.class);
+      properties.set(
+          "access",
+          accessRef(
+              "Who may see this menu item: it is not sent to a caller whose token does not"
+                  + " satisfy it. A RouteLink with none inherits its route's `access:`."));
     }
     defs.put(type.getSimpleName(), node);
+  }
+
+  /** A {@code $ref} to the {@code Access} record, with a description. */
+  private static ObjectNode accessRef(String description) {
+    return MAPPER.createObjectNode().put("$ref", "#/$defs/Access").put("description", description);
   }
 
   /**
@@ -556,6 +589,17 @@ public final class UidlSchemaGenerator {
     // classless page says it has one.
     var actionGen = new UidlSchemaGenerator();
     actionGen.defineValueRecord(io.mateu.uidl.fluent.Action.class);
+    actionGen.defineValueRecord(io.mateu.uidl.data.Access.class);
+    // `access:` on a declared action: not advertised to a caller who does not satisfy it, buttons
+    // naming it disabled, and refused (403) if it reaches the server anyway. Read off the tree by
+    // YamlAccess, not a record component — added here like the components' overlay.
+    ((ObjectNode) actionGen.defs.get("Action").get("properties"))
+        .set(
+            "access",
+            accessRef(
+                "Who may run this action: not advertised to a caller whose token does not satisfy"
+                    + " it, buttons naming it are disabled, and a call that reaches the server"
+                    + " anyway answers 403."));
     actionGen.defs.forEach(defs::set);
 
     var actionList = MAPPER.createObjectNode().put("type", "array");
@@ -611,11 +655,70 @@ public final class UidlSchemaGenerator {
                 + " change. Each entry is discriminated by `type` (OnLoadTrigger,"
                 + " OnCustomEventTrigger, OnValueChangeTrigger …) and names the action it runs.");
 
+    // `type: Translations` — one locale's message catalogue (also the convention
+    // specs/ui/translations/<locale>.yaml, where `type` and `locale` may be omitted). Hand-built:
+    // `messages` is a free tree of keys (nested maps flattened with dots), not a record.
+    var translations = MAPPER.createObjectNode().put("type", "object");
+    var translationsProps = translations.putObject("properties");
+    translationsProps.putObject("type").put("const", "Translations");
+    translationsProps
+        .putObject("locale")
+        .put("type", "string")
+        .put(
+            "description",
+            "BCP 47 tag (es, en-GB). Optional under specs/ui/translations/, where the file name is"
+                + " the locale.");
+    var messages =
+        translationsProps
+            .putObject("messages")
+            .put("type", "object")
+            .put(
+                "description",
+                "Key → text, nested maps flattened with dots: `orders: {title: Pedidos}` is"
+                    + " ${i18n.orders.title}.");
+    messages
+        .putObject("additionalProperties")
+        .putArray("type")
+        .add("string")
+        .add("object")
+        .add("number")
+        .add("boolean");
+    translations.putArray("required").add("messages");
+
+    // `type: Environment` — per-source overrides of the REST catalogue for one deployment.
+    var envGen = new UidlSchemaGenerator();
+    envGen.defineValueRecord(io.mateu.uidl.data.Environment.SourceOverride.class);
+    envGen.defs.forEach(defs::set);
+    var environment = MAPPER.createObjectNode().put("type", "object");
+    var environmentProps = environment.putObject("properties");
+    environmentProps.putObject("type").put("const", "Environment");
+    environmentProps
+        .putObject("name")
+        .put("type", "string")
+        .put(
+            "description",
+            "The environment's name, activated with -Dmateu.environment / MATEU_ENVIRONMENT (or the"
+                + " bundle goal's `environment`). Optional under specs/ui/environments/, where the"
+                + " file name is the name.");
+    environmentProps
+        .putObject("sources")
+        .put("type", "object")
+        .put(
+            "description",
+            "Source name → what this environment changes about it (baseUrl, url, headers, proxy)."
+                + " Never put a secret here: use ${secret.X}, resolved by the server-side proxy"
+                + " from MATEU_SECRET_X.")
+        .putObject("additionalProperties")
+        .put("$ref", "#/$defs/SourceOverride");
+    environment.putArray("required").add("sources");
+
     var oneOf = MAPPER.createArrayNode();
     oneOf.add(mount);
     oneOf.add(routesEnvelope);
     oneOf.add(entryList.deepCopy()); // a bare list of route entries
     oneOf.add(sourcesEnvelope);
+    oneOf.add(translations);
+    oneOf.add(environment);
     oneOf.add(pageDefinition); // app shell / page
     root.set("oneOf", oneOf);
 
@@ -625,7 +728,8 @@ public final class UidlSchemaGenerator {
     root.put(
         "description",
         "Unified JSON Schema for every file under specs/ui/: a `type: UI` mount, a `type: Routes`"
-            + " route file, a `type: Sources` REST source catalogue, or a component definition"
+            + " route file, a `type: Sources` REST source catalogue, a `type: Translations` message"
+            + " catalogue, a `type: Environment` source overlay, or a component definition"
             + " (`type: AppShell` app shell / a page). The `type` field selects the branch."
             + " GENERATED by UidlSchemaGenerator — do not edit by hand.");
     return root;

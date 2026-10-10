@@ -66,7 +66,7 @@ public class ReflectionObjectToComponentMapper {
       if (uiSpec != null) {
         component = yamlUidlLoader.loadFromSpec(uiSpec.value());
       } else {
-        component = yamlUidlLoader.layoutForRoute(route, instance.getClass());
+        component = yamlUidlLoader.layoutForRoute(route, instance.getClass(), httpRequest);
       }
       if (component != null) {
         return buildPageUIFragment(

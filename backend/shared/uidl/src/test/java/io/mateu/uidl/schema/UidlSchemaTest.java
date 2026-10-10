@@ -72,8 +72,11 @@ class UidlSchemaTest {
     // catalogue, component) and carry the defs they reference (RouteEntry, RestSourceEntry and the
     // component catalog) — a specs/ui file kind missing from here is one the editor cannot
     // validate.
-    assertThat(generated.get("oneOf")).hasSize(5);
+    assertThat(generated.get("oneOf")).hasSize(7);
     assertThat(generated.get("$defs").has("RouteEntry")).isTrue();
+    // translations + environments (the i18n catalogue and the REST source overlay)
+    assertThat(generated.get("$defs").has("SourceOverride")).isTrue();
+    assertThat(generated.get("$defs").has("Access")).isTrue();
     assertThat(generated.get("$defs").has("RestSourceEntry")).isTrue();
     assertThat(generated.get("$defs").has("Component")).isTrue();
     assertThat(MAPPER.readTree(Files.readString(specsSchemaFile())))
@@ -127,7 +130,8 @@ class UidlSchemaTest {
             "data",
             "appData",
             "defaultChild",
-            "show");
+            "show",
+            "access");
   }
 
   private static Path sourcesSchemaFile() {
