@@ -217,6 +217,8 @@ public class ContactsCrud extends AutoCrud<Contact> {
 
 The listing never unmounts (scroll, filters and page survive); **Save** persists, closes the drawer and re-runs the listing's search in place (the closing drawer emits a saved event the listing subscribes to); **Cancel**/✕/Esc just close it. In this mode there is no separate read-only view page — a row click goes straight to the edit drawer (on read-only cruds row clicks keep navigating to the view).
 
+![A row click opens the edit form in a drawer over the listing](/images/docs/drawer/edit-in-drawer.png)
+
 Demo: `demo-admin-panel/.../drawercrud/ContactsDrawerCrud.java` (`/drawer-crud-demo`). Tests: `EditInDrawerSyncTest`.
 
 ## Redwood parameter and slot reference
