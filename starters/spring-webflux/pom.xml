@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.5</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.example</groupId>
+    <artifactId>mateu-starter-spring-webflux</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>mateu-starter-spring-webflux</name>
+    <description>Minimal Mateu app on Spring Boot (WebFlux): one @UI class, a CRUD over a record.</description>
+
+    <properties>
+        <java.version>21</java.version>
+        <!-- The latest Mateu release on Maven Central. To build against your local checkout instead,
+             install the backend (cd backend && mvn install -DskipTests) and pass
+             -Dmateu.version=0.0.1-MATEU -->
+        <mateu.version>3.0-alpha.405</mateu.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
+        <!-- Mateu runtime for Spring WebFlux -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>webflux-core</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+        <!-- The web renderer (served as static assets by the app) -->
+        <dependency>
+            <groupId>io.mateu</groupId>
+            <artifactId>vaadin-lit</artifactId>
+            <version>${mateu.version}</version>
+        </dependency>
+        <!-- The generated controllers use Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <!-- REQUIRED: the Mateu annotation processor generates one Spring WebFlux controller
+                         per @UI class. List every processor you use here (Lombok too): once
+                         annotationProcessorPaths is set, nothing else on the classpath runs. -->
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                        <path>
+                            <groupId>io.mateu</groupId>
+                            <artifactId>annotation-processor-webflux</artifactId>
+                            <version>${mateu.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
