@@ -5,22 +5,27 @@ Two flavors. The **single-module** flavor has the `@UI` classes in the app itsel
 
 ## Common parts (both flavors)
 
-- Parent: `spring-boot-starter-parent` (samples use 3.5.x / 4.0.x).
-- Web starter (`spring-boot-starter-web` or `-webmvc`), Lombok (optional).
+- Parent: `spring-boot-starter-parent` 4.0.x, Java 21.
+- Web starter `spring-boot-starter-webmvc`, Lombok (the generated controllers use it).
 - Mateu runtime + renderer: `io.mateu:mvc-core` + `io.mateu:vaadin-lit`.
 - `spring-boot-maven-plugin` with Lombok excluded.
 
 ## Flavor A — single-module app (`@UI` in the app)
 
 Annotation processor path needs **lombok + `annotation-processor-mvc`** only (the `@UI`
-classes are local sources). Model on `demo/demo-vaadin-mvc/pom.xml`.
+classes are local sources). Model on `starters/spring-mvc/pom.xml` (compiled and booted by CI).
 
 ```xml
-<dependencies>
-  <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-web</artifactId></dependency>
+<properties>
+  <java.version>21</java.version>
+  <mateu.version><!-- latest release on Maven Central --></mateu.version>
+</properties>
 
-  <dependency><groupId>io.mateu</groupId><artifactId>mvc-core</artifactId><version>0.0.1-MATEU</version></dependency>
-  <dependency><groupId>io.mateu</groupId><artifactId>vaadin-lit</artifactId><version>0.0.1-MATEU</version></dependency>
+<dependencies>
+  <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-webmvc</artifactId></dependency>
+
+  <dependency><groupId>io.mateu</groupId><artifactId>mvc-core</artifactId><version>${mateu.version}</version></dependency>
+  <dependency><groupId>io.mateu</groupId><artifactId>vaadin-lit</artifactId><version>${mateu.version}</version></dependency>
 
   <dependency><groupId>org.projectlombok</groupId><artifactId>lombok</artifactId><optional>true</optional></dependency>
 </dependencies>
@@ -33,7 +38,7 @@ classes are local sources). Model on `demo/demo-vaadin-mvc/pom.xml`.
       <configuration>
         <annotationProcessorPaths>
           <path><groupId>org.projectlombok</groupId><artifactId>lombok</artifactId></path>
-          <path><groupId>io.mateu</groupId><artifactId>annotation-processor-mvc</artifactId><version>0.0.1-MATEU</version></path>
+          <path><groupId>io.mateu</groupId><artifactId>annotation-processor-mvc</artifactId><version>${mateu.version}</version></path>
         </annotationProcessorPaths>
       </configuration>
     </plugin>

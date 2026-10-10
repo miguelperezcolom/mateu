@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Points the starters and the "start here" demos at a released Mateu version.
+# Points the starters, the "start here" demos and the AI reference files (doc/public/mateu-ai-*.md)
+# at a released Mateu version.
 #
 #   scripts/bump-example-version.sh 3.0-alpha.407
 #
@@ -11,6 +12,7 @@ set -euo pipefail
 new=${1:?usage: $0 <version, e.g. 3.0-alpha.407>}
 cd "$(dirname "$0")/.."
 files=$(grep -rlE '<mateu.version>[0-9]+\.[0-9]+-[a-z]+\.[0-9]+</mateu.version>' --include=pom.xml starters demo || true)
+files="$files $(grep -lE '<mateu.version>[0-9]+\.[0-9]+-[a-z]+\.[0-9]+</mateu.version>' doc/public/*.md || true)"
 for f in $files; do
   sed -E -i.bak "s#<mateu.version>[0-9]+\.[0-9]+-[a-z]+\.[0-9]+</mateu.version>#<mateu.version>$new</mateu.version>#" "$f"
   rm -f "$f.bak"

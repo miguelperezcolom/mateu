@@ -67,9 +67,11 @@ picked up, plus your own package(s).
 
 ## Versions
 
-Use a `mateu.version` property. When building against a local `mvn install` of this repo
-it is `0.0.1-MATEU`; for a published build use the latest release from GitHub
-releases / Maven Central. Lombok and `jakarta.validation-api` are the only extra
+Always declare a `mateu.version` property and reference it as `${mateu.version}` — never a
+literal version on each dependency. Default it to the **latest release on Maven Central**
+(`https://repo1.maven.org/maven2/io/mateu/mvc-core/maven-metadata.xml`, `<release>`); pass
+`-Dmateu.version=0.0.1-MATEU` only to build against a local `mvn install` of this repo. The
+`starters/` directory of the repo has a verified pom per runtime to copy from. Lombok and `jakarta.validation-api` are the only extra
 compile-time helpers the samples use. Java 21+ (the framework is compiled for 21).
 
 ## After scaffolding — verify it actually generated
