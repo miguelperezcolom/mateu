@@ -386,6 +386,24 @@ no API key, nothing in between.
 A link opens the editor at the page's own address. To point links at a hosted editor instead, set
 `window.__mateuEditorUrl` before the bundle loads.
 
+## Field types and sample data
+
+Two files make a mount designable with **no backend and no API**:
+
+- **`types.yaml`** (`type: Types`) — the [field types](/java-ui-definition/field-types/), the domain
+  vocabulary. It opens in a YAML editor checked against `types-schema.json` (unknown keys, data
+  types, stereotypes, tones, duplicate ids) with a summary of the types it declares. On a page, a
+  `FormField` or `GridColumn` picks its **`fieldType`** from a list of the catalogue's ids (or you type
+  one); the canvas and Play paint the field with the type's attributes, its own ones winning.
+- **`sources.yaml`** — each source has a **Sample data** box (JSON or YAML: the response the endpoint
+  would return) and a **sample file** field. The editor is a design session, so its canvas and Play
+  always answer sources from their samples: a listing shows the sample rows (searched, sorted and
+  paged in the browser), a select its options, a save succeeds without persisting. At runtime the
+  samples are only used when the app opts in — see
+  [sample data](/java-ui-definition/rest-source-catalogue/#sample-data-designing-without-an-api).
+
+New › Mateu › **Field Types** (IntelliJ and VS Code) creates an empty catalogue.
+
 ## Project awareness — the roadmap
 
 Everything above works today; what is still landing is the **"pick, don't type"** half of each
