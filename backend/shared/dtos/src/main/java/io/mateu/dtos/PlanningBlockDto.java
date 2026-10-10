@@ -11,4 +11,7 @@ public record PlanningBlockDto(
     String end,
     String label,
     String color,
-    String status) {}
+    String status,
+    // icon before the label (e.g. a VIP star) and the hover text (lines separated by \n)
+    String icon,
+    String summary) {}

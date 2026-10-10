@@ -10,5 +10,9 @@ export default interface PlanningBoard extends ComponentMetadata {
     to?: string
     moveActionId?: string
     selectActionId?: string
+    attributeColumns?: string[]
+    resizeActionId?: string | null
+    openActionId?: string | null
+    rangeSelectActionId?: string | null
 
 }

@@ -1,5 +1,6 @@
 package io.mateu.uidl.data;
 
+import java.util.List;
 import lombok.Builder;
 
 /**
@@ -8,4 +9,16 @@ import lombok.Builder;
  * sharing the same group render under one caption.
  */
 @Builder
-public record PlanningResource(String id, String label, String group) {}
+public record PlanningResource(
+    String id,
+    String label,
+    String group,
+    /** Values of the board's attribute columns, in order (e.g. "SUP", "Clean"). */
+    List<String> attributes,
+    /** Icon shown before the label (icon name, e.g. "vaadin:star"); null for none. */
+    String icon) {
+
+  public PlanningResource(String id, String label, String group) {
+    this(id, label, group, List.of(), null);
+  }
+}

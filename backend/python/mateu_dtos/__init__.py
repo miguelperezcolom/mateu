@@ -576,6 +576,8 @@ class PlanningResourceRecord(Wire):
     id: str | None = None
     label: str | None = None
     group: str | None = None
+    attributes: list[str] = Field(default_factory=list)
+    icon: str | None = None
 
 
 class PlanningBlockRecord(Wire):
@@ -589,6 +591,9 @@ class PlanningBlockRecord(Wire):
     label: str | None = None
     color: str | None = None
     status: str | None = None
+    #: icon before the label and the hover text (lines separated by \n)
+    icon: str | None = None
+    summary: str | None = None
 
 
 class PlanningBoardMetadata(Wire):
@@ -602,6 +607,10 @@ class PlanningBoardMetadata(Wire):
     to: str | None = None
     move_action_id: str | None = None
     select_action_id: str | None = None
+    attribute_columns: list[str] = Field(default_factory=list)
+    resize_action_id: str | None = None
+    open_action_id: str | None = None
+    range_select_action_id: str | None = None
 
 
 class KanbanCardRecord(Wire):

@@ -1339,7 +1339,13 @@ class ReflectionMapper:
         if isinstance(c, fluent.PlanningBoard):
             meta = PlanningBoardMetadata(
                 resources=[
-                    PlanningResourceRecord(id=r.id, label=r.label, group=r.group)
+                    PlanningResourceRecord(
+                        id=r.id,
+                        label=r.label,
+                        group=r.group,
+                        attributes=list(r.attributes or ()),
+                        icon=r.icon,
+                    )
                     for r in c.resources
                 ],
                 blocks=[
@@ -1351,6 +1357,8 @@ class ReflectionMapper:
                         label=b.label,
                         color=b.color,
                         status=b.status,
+                        icon=b.icon,
+                        summary=b.summary,
                     )
                     for b in c.blocks
                 ],
@@ -1358,6 +1366,10 @@ class ReflectionMapper:
                 to=c.to.isoformat() if c.to is not None else None,
                 move_action_id=c.move_action_id,
                 select_action_id=c.select_action_id,
+                attribute_columns=list(c.attribute_columns or ()),
+                resize_action_id=c.resize_action_id,
+                open_action_id=c.open_action_id,
+                range_select_action_id=c.range_select_action_id,
             )
             return self._fluent_client(meta, c)
         if isinstance(c, fluent.Kanban):
@@ -1905,8 +1917,14 @@ class ReflectionMapper:
             aid = getattr(node, "action_id", None)
             if aid:
                 out.append(aid)
-            # Planning boards reference their actions as move/select action ids.
-            for attr in ("move_action_id", "select_action_id"):
+            # Planning boards reference their actions as move/select/resize/open/range ids.
+            for attr in (
+                "move_action_id",
+                "select_action_id",
+                "resize_action_id",
+                "open_action_id",
+                "range_select_action_id",
+            ):
                 v = getattr(node, attr, None)
                 if v:
                     out.append(v)

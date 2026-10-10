@@ -285,6 +285,10 @@ public sealed record PlanningResource
     public string? Id { get; init; }
     public string? Label { get; init; }
     public string? Group { get; init; }
+    /// <summary>Values of the board's attribute columns, in order (e.g. "SUP", "Clean").</summary>
+    public IReadOnlyList<string> Attributes { get; init; } = [];
+    /// <summary>Icon shown before the label (icon name, e.g. "vaadin:star"); null for none.</summary>
+    public string? Icon { get; init; }
 }
 
 /// <summary>One block of a <see cref="PlanningBoard"/>: a booking/assignment spanning Start to End
@@ -299,6 +303,10 @@ public sealed record PlanningBlock
     public string? Label { get; init; }
     public string? Color { get; init; }
     public string? Status { get; init; }
+    /// <summary>Icon shown before the label (e.g. "vaadin:star" for a VIP); null for none.</summary>
+    public string? Icon { get; init; }
+    /// <summary>What hovering the block shows (lines separated by \n); null = label + dates.</summary>
+    public string? Summary { get; init; }
 }
 
 /// <summary>A planning board / tape chart: one row per <see cref="PlanningResource"/>, one column
@@ -315,6 +323,17 @@ public sealed record PlanningBoard : ComponentBase
     public DateOnly? To { get; init; }
     public string? MoveActionId { get; init; }
     public string? SelectActionId { get; init; }
+    /// <summary>Headers of the attribute columns shown next to each resource's label (e.g. "Type",
+    /// "Status"); each resource carries its values in <see cref="PlanningResource.Attributes"/>.</summary>
+    public IReadOnlyList<string> AttributeColumns { get; init; } = [];
+    /// <summary>Action run when a block's start/end edge is dragged: _blockId, _resourceId, _start,
+    /// _end (ISO dates, end inclusive). Null = not resizable.</summary>
+    public string? ResizeActionId { get; init; }
+    /// <summary>Action run on double click on a block: _blockId.</summary>
+    public string? OpenActionId { get; init; }
+    /// <summary>Action run when the user drags across EMPTY cells of a resource: _resourceId,
+    /// _start, _end (end inclusive). Null = no range selection.</summary>
+    public string? RangeSelectActionId { get; init; }
 }
 
 /// <summary>One card on a <see cref="KanbanColumn"/>. A card with an ActionId is clickable.</summary>

@@ -361,14 +361,22 @@ public record PlanningBoardMetadataDto(
     string? From,
     string? To,
     string? MoveActionId,
-    string? SelectActionId) : ComponentMetadataDto;
+    string? SelectActionId,
+    IReadOnlyList<string>? AttributeColumns = null,
+    string? ResizeActionId = null,
+    string? OpenActionId = null,
+    string? RangeSelectActionId = null) : ComponentMetadataDto;
 
-/// <summary>One planning board row; group is an optional swimlane caption.</summary>
-public record PlanningResourceDto(string? Id, string? Label, string? Group);
+/// <summary>One planning board row; group is an optional swimlane caption, attributes the values
+/// of the board's attribute columns, icon an optional icon name before the label.</summary>
+public record PlanningResourceDto(
+    string? Id, string? Label, string? Group, IReadOnlyList<string>? Attributes = null, string? Icon = null);
 
-/// <summary>One planning board block; start/end are ISO-8601 dates (inclusive).</summary>
+/// <summary>One planning board block; start/end are ISO-8601 dates (inclusive); icon before the
+/// label and summary = the hover text (lines separated by \n).</summary>
 public record PlanningBlockDto(
-    string? Id, string? ResourceId, string? Start, string? End, string? Label, string? Color, string? Status);
+    string? Id, string? ResourceId, string? Start, string? End, string? Label, string? Color, string? Status,
+    string? Icon = null, string? Summary = null);
 
 /// <summary>Kanban board metadata: columns of cards.</summary>
 public record KanbanMetadataDto(IReadOnlyList<KanbanColumnDto> Columns) : ComponentMetadataDto;

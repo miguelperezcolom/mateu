@@ -377,6 +377,10 @@ class PlanningResource:
     id: str | None = None
     label: str | None = None
     group: str | None = None
+    #: Values of the board's attribute columns, in order (e.g. "SUP", "Clean").
+    attributes: tuple[str, ...] = ()
+    #: Icon shown before the label (icon name, e.g. "vaadin:star"); None for none.
+    icon: str | None = None
 
 
 @dataclass(frozen=True)
@@ -392,6 +396,10 @@ class PlanningBlock:
     label: str | None = None
     color: str | None = None
     status: str | None = None
+    #: Icon shown before the label (e.g. "vaadin:star" for a VIP); None for none.
+    icon: str | None = None
+    #: What hovering the block shows (lines separated by \n); None = label + dates.
+    summary: str | None = None
 
 
 @dataclass(frozen=True)
@@ -400,7 +408,9 @@ class PlanningBoard(Component):
     between ``from_`` and ``to``, and colored :class:`PlanningBlock` s spanning their date ranges
     on their resource's row — the rooms × days grid every hotel/rental/staffing back-office
     needs. ``select_action_id`` runs on block click (``parameters._blockId``);
-    ``move_action_id`` runs on drag-drop (``_blockId``, ``_resourceId``, ``_start``, ``_end``)."""
+    ``move_action_id`` runs on drag-drop (``_blockId``, ``_resourceId``, ``_start``, ``_end``);
+    ``resize_action_id`` on edge drag, ``open_action_id`` on double click and
+    ``range_select_action_id`` on a drag across empty cells (the OPERA Room Diary extras)."""
 
     resources: tuple[PlanningResource, ...] = ()
     blocks: tuple[PlanningBlock, ...] = ()
@@ -411,10 +421,22 @@ class PlanningBoard(Component):
     id: str | None = None
     style: str | None = None
     css_classes: str | None = None
+    #: Headers of the attribute columns shown next to each resource's label (e.g. "Type",
+    #: "Status"); each resource carries its values in ``PlanningResource.attributes``.
+    attribute_columns: tuple[str, ...] = ()
+    #: Run when a block's start/end edge is dragged: ``_blockId``, ``_resourceId``, ``_start``,
+    #: ``_end`` (ISO dates, end inclusive). None = not resizable.
+    resize_action_id: str | None = None
+    #: Run on double click on a block: ``_blockId``.
+    open_action_id: str | None = None
+    #: Run when the user drags across EMPTY cells of a resource: ``_resourceId``, ``_start``,
+    #: ``_end`` (end inclusive). None = no range selection.
+    range_select_action_id: str | None = None
 
     def __post_init__(self):
         object.__setattr__(self, "resources", tuple(self.resources))
         object.__setattr__(self, "blocks", tuple(self.blocks))
+        object.__setattr__(self, "attribute_columns", tuple(self.attribute_columns or ()))
 
 
 @dataclass(frozen=True)

@@ -46,10 +46,13 @@ public static class ComponentMapper
         }),
 
         PlanningBoard pb => Dto(pb, new PlanningBoardMetadataDto(
-            pb.Resources.Select(r => new PlanningResourceDto(r.Id, r.Label, r.Group)).ToList(),
+            pb.Resources.Select(r => new PlanningResourceDto(
+                r.Id, r.Label, r.Group, r.Attributes ?? [], r.Icon)).ToList(),
             pb.Blocks.Select(b => new PlanningBlockDto(
-                b.Id, b.ResourceId, Iso(b.Start), Iso(b.End), b.Label, b.Color, b.Status)).ToList(),
-            Iso(pb.From), Iso(pb.To), pb.MoveActionId, pb.SelectActionId)),
+                b.Id, b.ResourceId, Iso(b.Start), Iso(b.End), b.Label, b.Color, b.Status,
+                b.Icon, b.Summary)).ToList(),
+            Iso(pb.From), Iso(pb.To), pb.MoveActionId, pb.SelectActionId,
+            pb.AttributeColumns ?? [], pb.ResizeActionId, pb.OpenActionId, pb.RangeSelectActionId)),
 
         Kanban k => Dto(k, new KanbanMetadataDto(k.Columns.Select(col => new KanbanColumnDto(
             col.Id, col.Title, col.Color, col.Cards.Select(c => new KanbanCardDto(
@@ -296,6 +299,9 @@ public static class ComponentMapper
             case PlanningBoard pb:
                 if (!string.IsNullOrEmpty(pb.MoveActionId)) ids.Add(pb.MoveActionId);
                 if (!string.IsNullOrEmpty(pb.SelectActionId)) ids.Add(pb.SelectActionId);
+                if (!string.IsNullOrEmpty(pb.ResizeActionId)) ids.Add(pb.ResizeActionId);
+                if (!string.IsNullOrEmpty(pb.OpenActionId)) ids.Add(pb.OpenActionId);
+                if (!string.IsNullOrEmpty(pb.RangeSelectActionId)) ids.Add(pb.RangeSelectActionId);
                 break;
             case Button b when !string.IsNullOrEmpty(b.ActionId): ids.Add(b.ActionId); break;
             case Scoreboard s: foreach (var m in s.Metrics) Collect(m, ids); break;

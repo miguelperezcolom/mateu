@@ -4834,6 +4834,12 @@
         },
         "status" : {
           "type" : "string"
+        },
+        "icon" : {
+          "type" : "string"
+        },
+        "summary" : {
+          "type" : "string"
         }
       }
     },
@@ -4874,6 +4880,21 @@
         "cssClasses" : {
           "type" : "string"
         },
+        "attributeColumns" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "resizeActionId" : {
+          "type" : "string"
+        },
+        "openActionId" : {
+          "type" : "string"
+        },
+        "rangeSelectActionId" : {
+          "type" : "string"
+        },
         "note" : {
           "type" : "string",
           "description" : "A design note: what this piece of the screen is meant to do. For the people and agents reading the file (the visual editor puts notes in the prompts it writes); never rendered."
@@ -4890,6 +4911,15 @@
           "type" : "string"
         },
         "group" : {
+          "type" : "string"
+        },
+        "attributes" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "icon" : {
           "type" : "string"
         }
       }

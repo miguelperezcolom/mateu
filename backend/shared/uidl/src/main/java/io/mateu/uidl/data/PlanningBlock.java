@@ -16,4 +16,20 @@ public record PlanningBlock(
     LocalDate end,
     String label,
     String color,
-    String status) {}
+    String status,
+    /** Icon shown before the label (e.g. "vaadin:star" for a VIP); null for none. */
+    String icon,
+    /** What hovering the block shows (several lines separated by \n); null = label + dates. */
+    String summary) {
+
+  public PlanningBlock(
+      String id,
+      String resourceId,
+      LocalDate start,
+      LocalDate end,
+      String label,
+      String color,
+      String status) {
+    this(id, resourceId, start, end, label, color, status, null, null);
+  }
+}

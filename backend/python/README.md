@@ -43,7 +43,11 @@ for the sibling implementation.
   `MetricCardDto`…`GanttDto`) — `MetricCard` (+ `MetricTrend`), `Scoreboard`, `DashboardPanel`,
   `DashboardLayout`, `FoldoutPanel`/`FoldoutLayout` (overview slotted `overview`, panel contents
   slotted `panel-N`), `HeroSection`, `EmptyState`, `Skeleton` (+ `SkeletonVariant`), `Gantt` /
-  `GanttTask`, plus fluent `Text` and `Button`.
+  `GanttTask`, plus fluent `Text` and `Button`. `PlanningBoard` (tape chart: `PlanningResource`
+  rows × days, `PlanningBlock`s) also carries the OPERA Room Diary extras — `attribute_columns`
+  + per-resource `attributes`/`icon`, block `icon`/`summary` (hover text), and
+  `resize_action_id` / `open_action_id` (double click) / `range_select_action_id` (drag across
+  empty cells) next to `move_action_id`/`select_action_id`.
 - **Declarative archetypes** — subclass `Dashboard` / `Foldout` / `ItemOverview` / `Welcome` and
   declare type-hinted fields holding components; `Panel(title, subtitle, col_span, row_span, icon,
   open)` in `Annotated[...]` marks titled panels/tabs/tiles (the analogue of Java's `@Panel`).

@@ -140,8 +140,11 @@ public class BookingFoldout : Foldout
 Beyond reflected forms, any view can implement `IComponentTreeSupplier` and return a fluent
 component tree (`Mateu.Uidl` records). Supported types: `MetricCard`, `Scoreboard`,
 `DashboardPanel`, `DashboardLayout`, `FoldoutLayout`/`FoldoutPanel`, `HeroSection`, `EmptyState`,
-`Skeleton`, `Gantt`/`GanttTask`, plus the generic `Text`, `Button`, `Card`, `HorizontalLayout`,
-`VerticalLayout` and `TabLayout`/`TabPanel`. They serialize to the exact wire shape of the Java
+`Skeleton`, `Gantt`/`GanttTask`, `PlanningBoard`/`PlanningResource`/`PlanningBlock` (tape chart;
+with the OPERA Room Diary extras — `AttributeColumns` + per-resource `Attributes`/`Icon`, block
+`Icon`/`Summary` hover text, and `ResizeActionId` / `OpenActionId` (double click) /
+`RangeSelectActionId` (drag across empty cells) next to `MoveActionId`/`SelectActionId`), plus the
+generic `Text`, `Button`, `Card`, `HorizontalLayout`, `VerticalLayout` and `TabLayout`/`TabPanel`. They serialize to the exact wire shape of the Java
 DTOs (same `type` discriminators, field names and `slot`s), so every renderer that supports them
 renders the C# output unchanged. `MetricCard.ActionId` / `EmptyState.ActionId` / `Button.ActionId`
 dispatch the method of the same name on the view (drill-in navigation, CTAs).

@@ -502,7 +502,11 @@ public class PlanningPage : IComponentTreeSupplier
         To = new DateOnly(2026, 8, 21),
         Resources =
         [
-            new PlanningResource { Id = "101", Label = "Room 101", Group = "Floor 1" },
+            new PlanningResource
+            {
+                Id = "101", Label = "Room 101", Group = "Floor 1",
+                Attributes = ["STD", "Clean"], Icon = "vaadin:star",
+            },
             new PlanningResource { Id = "102", Label = "Room 102", Group = "Floor 1" },
             new PlanningResource { Id = "201", Label = "Room 201", Group = "Floor 2" },
         ],
@@ -513,6 +517,7 @@ public class PlanningPage : IComponentTreeSupplier
                 Id = "b1", ResourceId = "101", Start = new DateOnly(2026, 8, 3),
                 End = new DateOnly(2026, 8, 7), Label = "Ada Lovelace",
                 Color = "#3b82f6", Status = "confirmed",
+                Icon = "vaadin:star", Summary = "Ada Lovelace\n3 → 7 Aug · BAR",
             },
             new PlanningBlock
             {
@@ -522,6 +527,10 @@ public class PlanningPage : IComponentTreeSupplier
         ],
         MoveActionId = "moveBooking",
         SelectActionId = "openBooking",
+        AttributeColumns = ["Type", "Status"],
+        ResizeActionId = "resizeBooking",
+        OpenActionId = "editBooking",
+        RangeSelectActionId = "newBooking",
     };
 }
 
@@ -616,16 +625,18 @@ public class ComponentTests
         Assert.Contains("\"type\":\"PlanningBoard\"", json);
         Assert.Contains(
             "\"resources\":[" +
-            "{\"id\":\"101\",\"label\":\"Room 101\",\"group\":\"Floor 1\"}," +
-            "{\"id\":\"102\",\"label\":\"Room 102\",\"group\":\"Floor 1\"}," +
-            "{\"id\":\"201\",\"label\":\"Room 201\",\"group\":\"Floor 2\"}]",
+            "{\"id\":\"101\",\"label\":\"Room 101\",\"group\":\"Floor 1\"," +
+            "\"attributes\":[\"STD\",\"Clean\"],\"icon\":\"vaadin:star\"}," +
+            "{\"id\":\"102\",\"label\":\"Room 102\",\"group\":\"Floor 1\",\"attributes\":[],\"icon\":null}," +
+            "{\"id\":\"201\",\"label\":\"Room 201\",\"group\":\"Floor 2\",\"attributes\":[],\"icon\":null}]",
             json);
         Assert.Contains(
             "\"blocks\":[" +
             "{\"id\":\"b1\",\"resourceId\":\"101\",\"start\":\"2026-08-03\",\"end\":\"2026-08-07\"," +
-            "\"label\":\"Ada Lovelace\",\"color\":\"#3b82f6\",\"status\":\"confirmed\"}," +
+            "\"label\":\"Ada Lovelace\",\"color\":\"#3b82f6\",\"status\":\"confirmed\"," +
+            "\"icon\":\"vaadin:star\",\"summary\":\"Ada Lovelace\\n3 → 7 Aug · BAR\"}," +
             "{\"id\":\"b2\",\"resourceId\":\"201\",\"start\":\"2026-08-05\",\"end\":\"2026-08-12\"," +
-            "\"label\":\"Grace Hopper\",\"color\":null,\"status\":null}]",
+            "\"label\":\"Grace Hopper\",\"color\":null,\"status\":null,\"icon\":null,\"summary\":null}]",
             json);
         Assert.Contains("\"from\":\"2026-08-01\"", json);
         Assert.Contains("\"to\":\"2026-08-21\"", json);
@@ -636,6 +647,26 @@ public class ComponentTests
         Assert.Contains("{\"id\":\"openBooking\"", json);
         // The component id travels on the wrapping ClientSide component.
         Assert.Contains("\"id\":\"tape\"", json);
+    }
+
+    [Fact]
+    public void PlanningBoard_room_diary_extras_travel()
+    {
+        // Java: PlanningBoardSyncTest.roomDiaryExtrasTravel — the OPERA Room Diary: attribute
+        // columns per room, icons, a hover summary, and the resize / double-click / range actions.
+        var json = RenderView(typeof(PlanningPage));
+
+        Assert.Contains("\"attributeColumns\":[\"Type\",\"Status\"]", json);
+        Assert.Contains("\"attributes\":[\"STD\",\"Clean\"],\"icon\":\"vaadin:star\"", json);
+        Assert.Contains("\"group\":\"Floor 1\",\"attributes\":[],\"icon\":null", json);
+        Assert.Contains("\"icon\":\"vaadin:star\",\"summary\":\"Ada Lovelace\\n3 → 7 Aug · BAR\"", json);
+        Assert.Contains("\"resizeActionId\":\"resizeBooking\"", json);
+        Assert.Contains("\"openActionId\":\"editBooking\"", json);
+        Assert.Contains("\"rangeSelectActionId\":\"newBooking\"", json);
+        // The new actions are advertised too, so the renderer routes them back.
+        Assert.Contains("{\"id\":\"resizeBooking\"", json);
+        Assert.Contains("{\"id\":\"editBooking\"", json);
+        Assert.Contains("{\"id\":\"newBooking\"", json);
     }
 
     [Fact]

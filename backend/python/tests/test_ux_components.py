@@ -160,7 +160,13 @@ class PlanningPage(ComponentTreeSupplier):
             from_=date(2026, 8, 1),
             to=date(2026, 8, 21),
             resources=(
-                PlanningResource(id="101", label="Room 101", group="Floor 1"),
+                PlanningResource(
+                    id="101",
+                    label="Room 101",
+                    group="Floor 1",
+                    attributes=("STD", "Clean"),
+                    icon="vaadin:star",
+                ),
                 PlanningResource(id="102", label="Room 102", group="Floor 1"),
                 PlanningResource(id="201", label="Room 201", group="Floor 2"),
             ),
@@ -173,6 +179,8 @@ class PlanningPage(ComponentTreeSupplier):
                     label="Ada Lovelace",
                     color="#3b82f6",
                     status="confirmed",
+                    icon="vaadin:star",
+                    summary="Ada Lovelace\n3 → 7 Aug · BAR",
                 ),
                 PlanningBlock(
                     id="b2",
@@ -184,6 +192,10 @@ class PlanningPage(ComponentTreeSupplier):
             ),
             move_action_id="moveBooking",
             select_action_id="openBooking",
+            attribute_columns=("Type", "Status"),
+            resize_action_id="resizeBooking",
+            open_action_id="editBooking",
+            range_select_action_id="newBooking",
         )
 
 
@@ -1231,9 +1243,15 @@ def test_component_tree_supplier_emits_planning_board():
     assert board["metadata"] == {
         "type": "PlanningBoard",
         "resources": [
-            {"id": "101", "label": "Room 101", "group": "Floor 1"},
-            {"id": "102", "label": "Room 102", "group": "Floor 1"},
-            {"id": "201", "label": "Room 201", "group": "Floor 2"},
+            {
+                "id": "101",
+                "label": "Room 101",
+                "group": "Floor 1",
+                "attributes": ["STD", "Clean"],
+                "icon": "vaadin:star",
+            },
+            {"id": "102", "label": "Room 102", "group": "Floor 1", "attributes": [], "icon": None},
+            {"id": "201", "label": "Room 201", "group": "Floor 2", "attributes": [], "icon": None},
         ],
         "blocks": [
             {
@@ -1244,6 +1262,8 @@ def test_component_tree_supplier_emits_planning_board():
                 "label": "Ada Lovelace",
                 "color": "#3b82f6",
                 "status": "confirmed",
+                "icon": "vaadin:star",
+                "summary": "Ada Lovelace\n3 → 7 Aug · BAR",
             },
             {
                 "id": "b2",
@@ -1253,12 +1273,18 @@ def test_component_tree_supplier_emits_planning_board():
                 "label": "Grace Hopper",
                 "color": None,
                 "status": None,
+                "icon": None,
+                "summary": None,
             },
         ],
         "from": "2026-08-01",
         "to": "2026-08-21",
         "moveActionId": "moveBooking",
         "selectActionId": "openBooking",
+        "attributeColumns": ["Type", "Status"],
+        "resizeActionId": "resizeBooking",
+        "openActionId": "editBooking",
+        "rangeSelectActionId": "newBooking",
     }
     # The board's action ids live on the PlanningBoard component (moveActionId/selectActionId
     # above), NOT in the ServerSide.actions envelope — a ComponentTreeSupplier does not harvest
@@ -1266,6 +1292,23 @@ def test_component_tree_supplier_emits_planning_board():
     action_ids = [a["id"] for a in (doc["fragments"][0]["component"]["actions"] or [])]
     assert "moveBooking" not in action_ids
     assert "openBooking" not in action_ids
+
+
+def test_planning_board_room_diary_extras_travel():
+    # Java: PlanningBoardSyncTest.roomDiaryExtrasTravel — the OPERA Room Diary: attribute
+    # columns per room, icons, a hover summary, and the resize / double-click / range actions.
+    doc = render(PlanningPage)
+    (board,) = page_children(doc)
+    meta = board["metadata"]
+    assert meta["attributeColumns"] == ["Type", "Status"]
+    assert meta["resources"][0]["attributes"] == ["STD", "Clean"]
+    assert meta["resources"][0]["icon"] == "vaadin:star"
+    assert meta["resources"][1]["attributes"] == []
+    assert meta["blocks"][0]["icon"] == "vaadin:star"
+    assert meta["blocks"][0]["summary"] == "Ada Lovelace\n3 → 7 Aug · BAR"
+    assert meta["resizeActionId"] == "resizeBooking"
+    assert meta["openActionId"] == "editBooking"
+    assert meta["rangeSelectActionId"] == "newBooking"
 
 
 def test_foldout_archetype_slots_overview_and_panels():
