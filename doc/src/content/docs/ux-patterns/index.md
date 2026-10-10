@@ -21,6 +21,10 @@ Seven principles drive every pattern in this catalogue. Each exists to eliminate
 | 06 | **Recoverability** | Every error must be correctable. Confirm destructive actions, undo reversible ones, never lose work in progress. |
 | 07 | **Consistency** | Patterns repeat predictably. What a user learns on one screen works on all. |
 
+How these principles are checked — heuristic reviews, task walkthroughs, synthetic users, task
+metrics and accessibility probes on every renderer — is described in
+[How Mateu's UX is evaluated](/ux-patterns/how-ux-is-evaluated/).
+
 ## Pattern catalogue
 
 Looking for **full-page templates** (record overview, collection detail, guided process, create
