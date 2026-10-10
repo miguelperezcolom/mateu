@@ -61,6 +61,16 @@ for the sibling implementation.
 - **Catalogues** — named REST sources (`@rest_source`, `sources.yaml`, `source=` on every surface;
   `RestSourceSupplier` for runtime proxy views) and business components (`@business_component`,
   `components.yaml`, `ComponentRef`).
+- **Field types** — the app's vocabulary (`OrderStatus`, `Money`…) declared once in
+  `specs/ui/types.yaml` (or a `FieldTypeCatalogSupplier`; the file wins by id) and referenced by
+  `fieldType:` on a YAML `FormField`/`GridColumn` or `Annotated[..., FieldType("X")]` on a listing
+  row field: the type supplies defaults (incl. status `tones` on columns), the field's own win.
+- **Sample data** — a source in `sources.yaml` may carry `sample:` (the response) or `sampleFile:`
+  (JSON/YAML, relative to `specs/ui`). It is used **only in sample mode**, an explicit opt-in:
+  set `MATEU_SOURCES_MOCK=true`. Then the app metadata says `mockSources: true` (the browser
+  answers its direct fetches from the samples), the samples travel in the catalogue, and the
+  proxied `__restfetch__` answers reads with the sample and writes with `{}` without calling the
+  endpoint. Without it, samples never reach the wire and endpoints are called for real.
 - **Component adapters** (`ComponentAdapter` + `AdaptedView`), **embedded islands** (a field holding
   a routed view), **`layoutDelta:`** pages, **group actions** (`@group_action`), **wizard
   completion actions**, **Excel/PDF exports**, class/method-level **`@eyes_only`**.

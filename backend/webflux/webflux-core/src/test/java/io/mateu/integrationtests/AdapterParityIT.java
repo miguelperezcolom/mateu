@@ -52,6 +52,11 @@ class AdapterParityIT {
     }
 
     @Test
+    void servesNoDevEndpointsByDefault() {
+      contract.servesNoDevEndpointsByDefault();
+    }
+
+    @Test
     void answersDeepLinksWithTheIndex() {
       contract.answersDeepLinksWithTheIndex();
     }
@@ -68,7 +73,8 @@ class AdapterParityIT {
       classes = FakeApplication.class,
       properties = {
         "mateu.cors.allowed-origins=" + AdapterParityITFoundation.ALLOWED_ORIGIN,
-        "mateu.mcp.enabled=true"
+        "mateu.mcp.enabled=true",
+        "mateu.dev=true"
       })
   class Enabled {
 
@@ -87,6 +93,11 @@ class AdapterParityIT {
     @Test
     void servesMcpWhenEnabled() {
       contract.servesMcpWhenEnabled();
+    }
+
+    @Test
+    void servesDevEndpointsWhenEnabled() throws Exception {
+      contract.servesDevEndpointsWhenEnabled();
     }
   }
 }

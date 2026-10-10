@@ -11,10 +11,17 @@ object Expressions {
 
     fun evaluate(expr: String, ctx: Map<String, Any?>): Any? = Parser(tokenize(expr), ctx).parse()
 
+    /** `i18n.orders.title` — the translation scope the server resolves (TranslationRegistry). */
+    private val I18N_KEY = Regex("^i18n\\.([A-Za-z0-9_][A-Za-z0-9_.\\-]*)$")
+
     /** Replaces every `${expr}` with its evaluated value ('' on failure/null). */
     fun interpolate(template: String?, ctx: Map<String, Any?>): String {
         if (template == null || !template.contains("\${")) return template ?: ""
         return Regex("\\$\\{([^}]+)}").replace(template) { m ->
+            // `${i18n.key}` is resolved by the SERVER for the caller's language; one that reaches the
+            // plugin unresolved (no catalogue on the server for it) shows as its key, never as blank.
+            val i18n = I18N_KEY.matchEntire(m.groupValues[1].trim())
+            if (i18n != null && ctx["i18n"] == null) return@replace i18n.groupValues[1]
             try {
                 when (val v = evaluate(m.groupValues[1].trim(), ctx)) {
                     null -> ""

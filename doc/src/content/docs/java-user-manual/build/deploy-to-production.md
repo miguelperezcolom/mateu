@@ -84,6 +84,8 @@ Mateu does not authenticate users itself; it reads an identity the platform esta
   show; it does **not** verify the signature. Validate it in the gateway or in your framework's
   security filter (Spring Security resource server, Quarkus OIDC, Micronaut Security) — otherwise a
   forged token can claim any role.
+- A YAML-authored app restricts routes, menu items, actions and components with the same rules —
+  see [Permissions in YAML](/java-ui-definition/yaml-security/).
 - Enforce permissions in your **services** too. Hiding a button is UX; the action method behind it
   must still check who is calling.
 
@@ -105,7 +107,17 @@ For production:
   and must never receive a secret the browser can read. Use a source in `proxy` mode (served through
   a Mateu backend, which injects `${secret.…}` server-side) for anything that needs a key.
 - Re-pointing a bundle to another environment means editing the source catalogue in
-  `manifest.json` — no rebuild of the screens.
+  `manifest.json` — no rebuild of the screens — or rebuilding with
+  `-Dmateu.bundle.environment=pro` (the `structureHash` does not change).
+
+### Environments and secrets
+
+Keep one `sources.yaml` and one [environment file](/java-ui-definition/environments/) per
+deployment (`specs/ui/environments/pre.yaml`, `pro.yaml`), and select it with `MATEU_ENVIRONMENT`
+(or `-Dmateu.environment`) on the server, `-Dmateu.bundle.environment` for a bundle. Environment
+files hold base URLs, URLs, headers and the proxy flag — **never a secret**: write `${secret.X}` and
+set `MATEU_SECRET_X` on the server, which resolves it on the proxy leg only. A literal credential
+header in an environment file is warned about at startup.
 
 ## 6. Content Security Policy
 

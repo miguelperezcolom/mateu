@@ -1,0 +1,14 @@
+type: Sources
+sources:
+  - name: orders
+    # 127.0.0.1:1 refuses at once: a real call fails, so a test can tell sample from fetch
+    source: {url: "http://127.0.0.1:1/orders", itemsPath: data, proxy: true}
+    totalPath: meta.total
+    sample:
+      data:
+        - {id: 1, customer: Acme, status: OPEN, total: 120.5}
+        - {id: 2, customer: Globex, status: SHIPPED, total: 80}
+      meta: {total: 2}
+  - name: customers
+    source: {url: "http://127.0.0.1:1/customers", proxy: true}
+    sampleFile: fixtures/customers.json

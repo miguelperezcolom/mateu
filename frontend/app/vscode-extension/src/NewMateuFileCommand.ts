@@ -14,10 +14,12 @@ import {
 } from './newFiles'
 import { ofKind, registerInMount, relativePath, routeNameOf, setHome, specsRoot, withBasePath } from './routesWizard'
 import { applyRoute, askMakeHome, editFile, scanWorkspace, validateRoute } from './AddRouteCommand'
+import { hasDescriptor, projectRenderer } from './ProjectSettingsCommand'
+import { coordinatesOf, rendererInfo } from './projectDescriptor'
 
 /**
  * "Mateu: New File…" — the VS Code twin of the IntelliJ New › Mateu group: pick a specs/ui file kind
- * (UI mount, routes, app shell, REST sources, action catalogue, page), for a page its template and page width, then a
+ * (UI mount, routes, app shell, REST sources, action catalogue, field types, translations, environment, page), for a page its template and page width, then a
  * name. Same catalogue and skeletons as the IntelliJ plugin (see newFiles.ts).
  */
 export class NewMateuFileCommand {
@@ -30,8 +32,10 @@ async function run(context: vscode.ExtensionContext, uri?: vscode.Uri): Promise<
     const roots = templatesRoot(context.extensionPath)
     const catalogue = loadCatalogue(roots.catalogue)
 
+    // the project descriptor is one per project: offered only while there is none
+    const offered = (await hasDescriptor()) ? catalogue.files.filter((k) => !k.singleton) : catalogue.files
     const kindPick = await vscode.window.showQuickPick(
-        catalogue.files.map((k) => ({ label: k.label, detail: k.description, fileKind: k })),
+        offered.map((k) => ({ label: k.label, detail: k.description, fileKind: k })),
         { title: 'Mateu: New File', placeHolder: 'What do you want to create?', matchOnDetail: true },
     )
     if (!kindPick) return
@@ -101,9 +105,11 @@ async function run(context: vscode.ExtensionContext, uri?: vscode.Uri): Promise<
     let afterCreate: (() => Promise<void>) | null = null
 
     if (kind.id === 'mount') {
+        const renderer = await projectRenderer()
         const home = await vscode.window.showInputBox({
             title,
-            prompt: 'Home page route (optional): a route of this mount, relative. Usually empty now — set it later with Mateu: Add Route…',
+            prompt: 'Home page route (optional): a route of this mount, relative. Usually empty now — set it later with Mateu: Add Route…' +
+                ` Renderer: ${rendererInfo(renderer).label} (specs/ui/project.yaml) — the app serving it depends on ${coordinatesOf(renderer)}.`,
         })
         if (home === undefined) return
         if (home.trim() !== '') text = setHome(text, home)

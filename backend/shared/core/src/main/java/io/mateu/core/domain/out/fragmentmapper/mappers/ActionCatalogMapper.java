@@ -27,6 +27,12 @@ public final class ActionCatalogMapper {
     return map(catalogue());
   }
 
+  /** The catalogue as wire actions, without the entries this caller may not run. */
+  public static List<ActionDto> mapCatalogue(io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    var registry = registry();
+    return registry == null ? List.of() : map(registry.catalogFor(httpRequest));
+  }
+
   /** A catalogue as wire actions (also what the bundle manifest ships, once). */
   public static List<ActionDto> map(ActionCatalog catalogue) {
     if (catalogue == null || catalogue.hasNoActions()) {
@@ -40,13 +46,19 @@ public final class ActionCatalogMapper {
    * an owner already has — see {@link ActionRegistry#referencedBy}.
    */
   static List<ActionDto> referenced(Collection<String> ids, Set<String> owned) {
+    return referenced(ids, owned, null);
+  }
+
+  /** As {@link #referenced(Collection, Set)}, without what this caller may not run. */
+  static List<ActionDto> referenced(
+      Collection<String> ids, Set<String> owned, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
     var registry = registry();
     if (registry == null || ids.isEmpty()) {
       return List.of();
     }
     // the registry walks a tree for action ids: hand it one naming exactly these
     var tree = ids.stream().map(id -> Map.of("actionId", id)).toList();
-    return registry.referencedBy(tree, List.of(), owned).stream()
+    return registry.referencedBy(tree, List.of(), owned, httpRequest).stream()
         .map(ActionDtoMapper::mapAction)
         .toList();
   }

@@ -19,6 +19,8 @@ class AdapterParityEnabledTest {
           "mateu.cors.allowed-origins",
           AdapterParityITFoundation.ALLOWED_ORIGIN,
           "mateu.mcp.enabled",
+          "true",
+          "mateu.dev",
           "true");
     }
   }
@@ -33,5 +35,10 @@ class AdapterParityEnabledTest {
   @Test
   void servesMcpWhenEnabled() {
     contract.servesMcpWhenEnabled();
+  }
+
+  @Test
+  void servesDevEndpointsWhenEnabled() throws Exception {
+    contract.servesDevEndpointsWhenEnabled();
   }
 }

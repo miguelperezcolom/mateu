@@ -85,6 +85,8 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             cm.text("stereotype"), cm.text("aggregate"),
             // @Tooltip("otherField") / a fixed width: the row field the cell shows on hover.
             tooltipPath = cm.text("tooltipPath"),
+            // a field type's `tones` (value → success|warning|danger|info|neutral) for a status cell
+            tones = StatusTones.tonesOf(cm),
         )
     }
     // The action id used to open a row's detail: the first link column (e.g. the id column's "view").
@@ -92,6 +94,14 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     // Row actions live in the right-click context menu (the IDE way) — no button column in the table.
     val actionSpecs = allSpecs.filter { it.kind == ColKind.ACTIONS }
     val specs = allSpecs.filterNot { it.kind == ColKind.ACTIONS }
+
+    // @RestListing: the rows are fetched WHOLE (the plugin does not honour totalPath, and a source
+    // answered from its SAMPLE cannot honour `${'$'}{state.page}` either), so search, filters, sort and
+    // page apply in memory over the component state — the web's mateu-table-crud unpaged path.
+    // `showRestPage` is bound once the data handler exists (below).
+    val isRestListing = metadata.path("rowsSource").isObject
+    var restRowsAll: List<JsonNode> = emptyList()
+    var showRestPage: () -> Unit = {}
 
     // Inline editing (@InlineEditing crud): committing an edited cell persists its row right away
     // through the crud's `update-row` action, like the web's renderEditableCell.
@@ -187,7 +197,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
                     if (sortField.isBlank()) emptyList<Any>()
                     else listOf(mapOf("field" to sortField, "direction" to if (sortAscending) "ascending" else "descending"))
                 ctx.currentComponentState["page"] = 0
-                ctx.runAction("search", null, silent = true)
+                if (isRestListing) showRestPage() else ctx.runAction("search", null, silent = true)
             }
         })
     }
@@ -197,7 +207,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
     for ((i, spec) in specs.withIndex()) {
         val column = table.columnModel.getColumn(i)
         when (spec.kind) {
-            ColKind.STATUS -> column.cellRenderer = StatusCellRenderer()
+            ColKind.STATUS -> column.cellRenderer = StatusCellRenderer(spec.tones)
             ColKind.LINK -> column.cellRenderer = LinkCellRenderer(spec.text)
             else -> {}
         }
@@ -261,8 +271,17 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
 
     // ── pagination bar ──
     val pageInfo = JBLabel("")
-    val prev = JButton("‹ Prev").apply { addActionListener { ctx.runAction("prevPage", null) } }
-    val next = JButton("Next ›").apply { addActionListener { ctx.runAction("nextPage", null) } }
+    val stepRestPage = { delta: Int ->
+        val current = (ctx.currentComponentState["page"] as? Number)?.toInt() ?: 0
+        ctx.currentComponentState["page"] = (current + delta).coerceAtLeast(0)
+        showRestPage()
+    }
+    val prev = JButton("‹ Prev").apply {
+        addActionListener { if (isRestListing) stepRestPage(-1) else ctx.runAction("prevPage", null) }
+    }
+    val next = JButton("Next ›").apply {
+        addActionListener { if (isRestListing) stepRestPage(1) else ctx.runAction("nextPage", null) }
+    }
     val pager = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(JBGap), 0)).apply {
         isOpaque = false
         add(prev); add(next); add(pageInfo)
@@ -286,7 +305,7 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
             ctx.currentComponentState["size"] = 10
             ctx.currentComponentState["sort"] = emptyList<Any>()
             filterBar?.collectInto(ctx.currentComponentState)
-            ctx.runAction("search", null)
+            if (isRestListing) showRestPage() else ctx.runAction("search", null)
         }
         searchField.textEditor.addActionListener { doSearch() }
         val searchBar = JPanel(FlowLayout(FlowLayout.LEFT, JBUI.scale(JBGap), 0)).apply {
@@ -457,27 +476,37 @@ fun renderCrud(r: ComponentRenderer, component: JsonNode, metadata: JsonNode, st
         val exprCtx = mapOf<String, Any?>("state" to ctx.currentComponentState, "appState" to ctx.appState)
         val mapper = ctx.session.mapper
         val crudId = component.text("id", "crud")
+        val filtersMeta = metadata.arr("filters")
+        val pageSize = metadata.path("pageSize").asInt(0)
+        showRestPage = {
+            val p = RestListing.page(restRowsAll, columnIds, filtersMeta, ctx.currentComponentState, pageSize)
+            val page = mapper.createObjectNode()
+            page.replace("content", mapper.createArrayNode().also { arr -> p.content.forEach { arr.add(it) } })
+            page.put("totalElements", p.totalElements)
+            page.put("pageSize", p.pageSize)
+            page.put("pageNumber", p.pageNumber)
+            val envelope = mapper.createObjectNode()
+            envelope.replace("page", page)
+            applyData(envelope)
+        }
         ctx.session.executor.submit {
             try {
                 // Proxy mode: route through the Mateu server via __restfetch__ (no CORS, secrets
                 // server-side); direct fetch otherwise. Both resolve to the same JSON.
-                val json = if (rowsResolved.path("proxy").asBoolean(false)) ctx.fetchViaProxy("rows", crudId)
+                // A sampled source (sample mode) is never proxied: RestFetch.fetch answers it from the sample.
+                val json = if (RestFetch.viaProxy(rowsSource)) ctx.fetchViaProxy("rows", crudId)
                            else RestFetch.fetch(ctx.apiClient, rowsSource, exprCtx)
                 val arr = RestFetch.valueAtPath(json, rowsResolved.text("itemsPath"))
-                val content = mapper.createArrayNode()
+                val rows = ArrayList<JsonNode>()
                 if (arr != null && arr.isArray) for (item in arr) {
                     val rowNode = mapper.createObjectNode()
                     for (cid in columnIds) RestFetch.valueAtPath(item, cid)?.let { rowNode.replace(cid, it) }
-                    content.add(rowNode)
+                    rows.add(rowNode)
                 }
-                val page = mapper.createObjectNode()
-                page.replace("content", content)
-                page.put("totalElements", content.size())
-                page.put("pageSize", content.size().coerceAtLeast(1))
-                page.put("pageNumber", 0)
-                val envelope = mapper.createObjectNode()
-                envelope.replace("page", page)
-                javax.swing.SwingUtilities.invokeLater { applyData(envelope) }
+                javax.swing.SwingUtilities.invokeLater {
+                    restRowsAll = rows
+                    showRestPage()
+                }
             } catch (t: Throwable) {
                 println("[Mateu] external rows fetch failed: ${t.message}")
             }
@@ -505,6 +534,7 @@ private data class ColSpec(
     val stereotype: String = "",
     val aggregate: String = "",
     val tooltipPath: String = "",
+    val tones: Map<String, String> = emptyMap(),
 )
 
 // ── listing groups + aggregates (replicates the web's listingGroups.ts rules) ────────────
@@ -642,8 +672,9 @@ private class LinkCellRenderer(private val fixedText: String) : DefaultTableCell
     }
 }
 
-/** Status column: renders the `{type,message,value}` object as a coloured badge. */
-private class StatusCellRenderer : TableCellRenderer {
+/** Status column: renders the `{type,message,value}` object — or a plain word, toned by the
+ *  column's declared `tones` first, then by the word's usual meaning — as a coloured badge. */
+private class StatusCellRenderer(private val tones: Map<String, String> = emptyMap()) : TableCellRenderer {
     override fun getTableCellRendererComponent(
         table: JTable, value: Any?, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int,
     ): Component {
@@ -652,7 +683,7 @@ private class StatusCellRenderer : TableCellRenderer {
         val node = value as? JsonNode
         if (node != null && !node.isNull && !node.isMissingNode) {
             val text = node.displayString()
-            val type = if (node.isObject) node.text("type") else ""
+            val type = StatusTones.statusType(node, tones)
             if (text.isNotBlank()) wrapper.add(statusBadge(text, type))
         }
         return wrapper

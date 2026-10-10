@@ -9,6 +9,7 @@ import { fetchWithPolicy, pendingActions, isIdempotentAction, currentView, isVie
 import { awaitBundle, hasBundle, bundledIncrementFor } from './bundle.mjs'
 import { asSection, labelledByShell, markHidden, unavailableMount, localMenuOptionOf } from './navTree.mjs'
 import { currentMount, pathOfRoute } from './mount.mjs'
+import { restAnswerOf, loadRestOptions, adoptAppSources } from './restSources.mjs'
 import { observeWireVersion } from './wireVersion.mjs'
 
 /** POST {base}/mateu/v3/sync/{route} — la request estándar (= AxiosMateuApiClient.runAction).
@@ -47,20 +48,21 @@ export async function callMateu(base, body, options = {}) {
  *  la app arranque igual. Sólo en el fallo — el camino feliz no cambia. */
 export async function bootstrapShell(base, initiator = 'shell') {
   await awaitBundle()
+  // with a bundle that can boot the shell by itself, the backend is only PROBED: on a static host
+  // its absence is the normal case, not an error band nor a sign of being offline
+  const fallback = hasBundle() ? bundledIncrementFor('', initiator) : undefined
   try {
     const res = await fetchWithPolicy(`${base}/mateu/v3/components/_/action`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ route: '', actionId: '__load__', componentState: {}, initiatorComponentId: initiator }),
-    }, { actionId: '__load__' })
+    }, fallback ? { actionId: '__load__', quiet: true, isolated: true } : { actionId: '__load__' })
     const increment = await res.json()
     observeWireVersion(increment)
-    return increment
+    // the App carries the REST source catalogue (restSources) and the sample-mode opt-in
+    return adoptAppSources(increment)
   } catch (e) {
-    if (hasBundle()) {
-      const bundled = bundledIncrementFor('', initiator)
-      if (bundled) return bundled
-    }
+    if (fallback) return fallback
     throw e
   }
 }
@@ -156,7 +158,9 @@ export const loadRoute = async (base, route, initiator = '', extra = {}) => {
   }
   await awaitBundle()
   if (hasBundle()) {
-    const bundled = bundledIncrementFor(route, initiator)
+    // a load INTO the shell (any but the fresh '_empty' one) gets the route's content, never the
+    // shell aimed at it
+    const bundled = bundledIncrementFor(route, initiator, { content: extra.consumedRoute !== '_empty' })
     if (bundled) return bundled
   }
   return callMateu(base, { route, actionId: '', initiatorComponentId: initiator, ...extra })
@@ -166,6 +170,17 @@ export const loadRoute = async (base, route, initiator = '', extra = {}) => {
  *  Los 4 campos de ruta salen del `outbound` que loadRouteInto estampó al cargar el
  *  contexto (un mediador necesita consumedRoute + serverSideType también en las acciones). */
 export function runMateuAction(base, ctx, route, actionId, componentState, extra = {}) {
+  // A REST-backed action never reaches the Mateu server as itself: the `search` of a listing with a
+  // rowsSource, and any action declaring a restAction (the route's `__restdata__` load included),
+  // are answered here — direct with fetch, or proxied through the reserved `__restfetch__` action
+  // (restSources.mjs). The increment is shaped like the server's, so the chains do not know.
+  const restAnswer = restAnswerOf(ctx, actionId, componentState, {
+    route,
+    appState: (extra && extra.appState) || {},
+    server: (parameters, idempotent) => runMateuAction(base, ctx, route, '__restfetch__', componentState,
+      { ...extra, parameters, idempotent: !!idempotent }),
+  })
+  if (restAnswer) return restAnswer
   // los OnSuccess (refresco periódico) se leen del contexto que LANZA la acción
   const source = ctx
   // la acción va al ServerSide que la DECLARA (la vista, no el mediador que la cargó): también
@@ -214,6 +229,16 @@ export function runMateuAction(base, ctx, route, actionId, componentState, extra
  * fallan, para no repetirlas en cada acción. Devuelve el registro nuevo.
  */
 export async function loadLookups(base, reg, ctxId = HOST_ID, opts = {}) {
+  // the options of the fields backed by a REST source (optionsSource) — direct, or proxied
+  reg = await loadRestOptions(reg, ctxId, {
+    draft: opts.draft,
+    appState: opts.appState || {},
+    server: (parameters, idempotent) => {
+      const owner = reg.contexts[ctxId]
+      return runMateuAction(base, owner, opts.route || '', '__restfetch__', { ...(owner.state || {}), ...(opts.draft || {}) },
+        { parameters, appState: opts.appState || {}, idempotent: !!idempotent })
+    },
+  })
   const ctx = reg && reg.contexts && reg.contexts[ctxId]
   const pending = formLookupsOf(ctx)
   if (!pending.length) return reg
@@ -375,6 +400,13 @@ export async function loadMenuRouteInto(base, reg, route, targetId = '', extra =
  * Devuelve el registro nuevo. targetId = clave del contexto destino (initiator).
  */
 export async function loadRouteInto(base, reg, route, targetId = '', extra = {}) {
+  // live reload (liveReload.mjs): lo tecleado viaja con la carga — un view model se hidrata con
+  // ello — y se vuelve a poner sobre la respuesta, para que una página sólo-definición lo conserve
+  const liveState = extra && extra.liveState
+  if (extra && 'liveState' in extra) {
+    const { liveState: _omit, ...rest } = extra
+    extra = liveState ? { ...rest, componentState: liveState } : rest
+  }
   // el INCREMENTO crudo se conserva: la 1ª carga de una opción de menú llega como App de mediador
   // (ClientSide type App), que reduceContexts encamina al CHROME (shell) y no al contexto —
   // mediatorOf(host) no lo ve, así que hay que sacar el mediador del incremento mismo.
@@ -443,6 +475,15 @@ export async function loadRouteInto(base, reg, route, targetId = '', extra = {})
           .map((a) => ({ id: a.id, commands: a.commands || null })),
       },
     },
+  }
+  if (liveState && next.contexts[ctxId]) {
+    next = {
+      ...next,
+      contexts: {
+        ...next.contexts,
+        [ctxId]: { ...next.contexts[ctxId], state: { ...(next.contexts[ctxId].state || {}), ...liveState } },
+      },
+    }
   }
   // los niveles de app (maestros) de la pantalla del HOST: una barra de pestañas por nivel
   if (targetId === '') next = { ...next, appLevels, loadedRoute: effectiveRoute }

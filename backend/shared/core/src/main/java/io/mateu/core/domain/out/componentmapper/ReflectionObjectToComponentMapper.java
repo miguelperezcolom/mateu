@@ -66,7 +66,7 @@ public class ReflectionObjectToComponentMapper {
       if (uiSpec != null) {
         component = yamlUidlLoader.loadFromSpec(uiSpec.value());
       } else {
-        component = yamlUidlLoader.layoutForRoute(route, instance.getClass());
+        component = yamlUidlLoader.layoutForRoute(route, instance.getClass(), httpRequest);
       }
       if (component != null) {
         return buildPageUIFragment(
@@ -118,7 +118,7 @@ public class ReflectionObjectToComponentMapper {
             "",
             "",
             io.mateu.core.domain.out.fragmentmapper.mappers.TreeActionHarvester.withTreeActions(
-                mapActions(instance, httpRequest), instance, content),
+                mapActions(instance, httpRequest), instance, content, httpRequest),
             mapTriggers(instance, httpRequest),
             mapRules(instance, httpRequest),
             mapValidations(instance, route, httpRequest),

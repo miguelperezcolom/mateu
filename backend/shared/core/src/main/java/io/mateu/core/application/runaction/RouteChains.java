@@ -288,12 +288,18 @@ public final class RouteChains {
     }
   }
 
-  /** {@link #childrenOf} without the ones whose {@code show} flag is off for this request. */
+  /**
+   * {@link #childrenOf} without the ones whose {@code show} flag is off, or whose {@code access:}
+   * the caller does not satisfy, for this request.
+   */
   public static List<ChildRoute> visibleChildrenOf(
       String concretePath, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
     return childrenOf(concretePath).stream()
         .filter(
-            child -> io.mateu.core.domain.FeatureFlagGate.shows(child.entry().show(), httpRequest))
+            child ->
+                io.mateu.core.domain.FeatureFlagGate.shows(child.entry().show(), httpRequest)
+                    && io.mateu.core.domain.Authorizer.isAuthorized(
+                        child.entry().access(), httpRequest))
         .toList();
   }
 

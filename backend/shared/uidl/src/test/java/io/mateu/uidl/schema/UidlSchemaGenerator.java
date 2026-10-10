@@ -85,6 +85,7 @@ public final class UidlSchemaGenerator {
         .sorted()
         .forEach(name -> oneOf.addObject().put("$ref", "#/$defs/" + name));
     generator.defs.put("Component", componentDef);
+    addFieldTypeReference(generator.defs);
 
     var root = MAPPER.createObjectNode();
     root.put("$schema", "http://json-schema.org/draft-07/schema#");
@@ -100,6 +101,71 @@ public final class UidlSchemaGenerator {
     var defsNode = root.putObject("$defs");
     generator.defs.forEach(defsNode::set);
     return root;
+  }
+
+  /**
+   * The ONE authored key that is not a record component: {@code fieldType}, on a form field and a
+   * grid column, naming an entry of the field type catalogue ({@code types.yaml}). It is resolved
+   * before the tree becomes components (the type's attributes become the field's defaults) and
+   * never reaches the record or the wire — so it is added here rather than to the records, which
+   * would otherwise carry a key nothing reads.
+   */
+  static void addFieldTypeReference(Map<String, ObjectNode> defs) {
+    for (var name : List.of("FormField", "GridColumn")) {
+      var def = defs.get(name);
+      if (def != null && def.get("properties") instanceof ObjectNode properties) {
+        properties
+            .putObject("fieldType")
+            .put("type", "string")
+            .put(
+                "description",
+                "The id of a field type of the app's catalogue (specs/ui/types.yaml): its"
+                    + " attributes are this field's defaults, and what the field declares itself"
+                    + " wins.");
+      }
+    }
+  }
+
+  /**
+   * The schema of the authored FIELD TYPE catalogue ({@code specs/ui/types.yaml}), derived from
+   * {@link io.mateu.uidl.data.FieldTypeEntry} — a {@code types:} envelope (optionally {@code type:
+   * Types}) or a bare list, like the source catalogue.
+   */
+  public static ObjectNode generateTypes() {
+    var generator = new UidlSchemaGenerator();
+    generator.defineValueRecord(io.mateu.uidl.data.FieldTypeEntry.class);
+
+    var list = MAPPER.createObjectNode().put("type", "array");
+    list.putObject("items").put("$ref", "#/$defs/FieldTypeEntry");
+
+    var root = MAPPER.createObjectNode();
+    root.put("$schema", "http://json-schema.org/draft-07/schema#");
+    root.put("$id", "https://mateu.io/uidl/types-schema.json");
+    root.put("version", SCHEMA_VERSION);
+    root.put("title", "Mateu field type catalogue");
+    root.put(
+        "description",
+        "JSON Schema for a mount's field type catalogue — the domain vocabulary (OrderStatus,"
+            + " Money, Email): what a concept looks like as a field or a column, declared once. A"
+            + " FormField or GridColumn references one by `fieldType: <id>`; the type's attributes"
+            + " are its defaults and the field's own win. GENERATED from FieldTypeEntry by"
+            + " UidlSchemaGenerator — do not edit by hand.");
+    var oneOf = root.putArray("oneOf");
+    oneOf.add(typesEnvelope(list));
+    oneOf.add(list);
+    var defsNode = root.putObject("$defs");
+    generator.defs.forEach(defsNode::set);
+    return root;
+  }
+
+  private static ObjectNode typesEnvelope(ObjectNode list) {
+    var envelope = MAPPER.createObjectNode();
+    envelope.put("type", "object");
+    var props = envelope.putObject("properties");
+    props.putObject("type").put("const", "Types");
+    props.set("types", list.deepCopy());
+    envelope.putArray("required").add("types");
+    return envelope;
   }
 
   /** Every component record that belongs to the authoring surface, sorted by simple name. */
@@ -133,8 +199,41 @@ public final class UidlSchemaGenerator {
     }
     if (Component.class.isAssignableFrom(type)) {
       properties.set("note", NOTE.deepCopy());
+      // The access overlay every component accepts (the data twin of @EyesOnly/@ReadOnlyUnless/
+      // @DisabledUnless): read off the tree by the server's YamlAccess pass, never a record
+      // component — so it is added here, like `note`, or an editor would flag a valid file.
+      defineValueRecord(io.mateu.uidl.data.Access.class);
+      properties.set(
+          "eyesOnly",
+          accessRef(
+              "Who may SEE this component: removed for a caller whose token does not satisfy it"
+                  + " (roles/groups/scopes/permissions — AND across, OR within). Decided on the"
+                  + " server."));
+      properties.set(
+          "readOnlyUnless",
+          accessRef(
+              "Read-only (with every field under it) unless the caller satisfies it; the server"
+                  + " also ignores the client's value for a locked field."));
+      properties.set(
+          "disabledUnless",
+          accessRef(
+              "Disabled unless the caller satisfies it (a FormField, which has no disabled state,"
+                  + " becomes read-only)."));
+    }
+    if (io.mateu.uidl.interfaces.Actionable.class.isAssignableFrom(type)) {
+      defineValueRecord(io.mateu.uidl.data.Access.class);
+      properties.set(
+          "access",
+          accessRef(
+              "Who may see this menu item: it is not sent to a caller whose token does not"
+                  + " satisfy it. A RouteLink with none inherits its route's `access:`."));
     }
     defs.put(type.getSimpleName(), node);
+  }
+
+  /** A {@code $ref} to the {@code Access} record, with a description. */
+  private static ObjectNode accessRef(String description) {
+    return MAPPER.createObjectNode().put("$ref", "#/$defs/Access").put("description", description);
   }
 
   /**
@@ -607,6 +706,17 @@ public final class UidlSchemaGenerator {
     // classless page says it has one.
     var actionGen = new UidlSchemaGenerator();
     actionGen.defineValueRecord(io.mateu.uidl.fluent.Action.class);
+    actionGen.defineValueRecord(io.mateu.uidl.data.Access.class);
+    // `access:` on a declared action: not advertised to a caller who does not satisfy it, buttons
+    // naming it disabled, and refused (403) if it reaches the server anyway. Read off the tree by
+    // YamlAccess, not a record component — added here like the components' overlay.
+    ((ObjectNode) actionGen.defs.get("Action").get("properties"))
+        .set(
+            "access",
+            accessRef(
+                "Who may run this action: not advertised to a caller whose token does not satisfy"
+                    + " it, buttons naming it are disabled, and a call that reaches the server"
+                    + " anyway answers 403."));
     actionGen.defs.forEach(defs::set);
 
     var actionList = MAPPER.createObjectNode().put("type", "array");
@@ -662,12 +772,80 @@ public final class UidlSchemaGenerator {
                 + " change. Each entry is discriminated by `type` (OnLoadTrigger,"
                 + " OnCustomEventTrigger, OnValueChangeTrigger …) and names the action it runs.");
 
+    // `type: Translations` — one locale's message catalogue (also the convention
+    // specs/ui/translations/<locale>.yaml, where `type` and `locale` may be omitted). Hand-built:
+    // `messages` is a free tree of keys (nested maps flattened with dots), not a record.
+    var translations = MAPPER.createObjectNode().put("type", "object");
+    var translationsProps = translations.putObject("properties");
+    translationsProps.putObject("type").put("const", "Translations");
+    translationsProps
+        .putObject("locale")
+        .put("type", "string")
+        .put(
+            "description",
+            "BCP 47 tag (es, en-GB). Optional under specs/ui/translations/, where the file name is"
+                + " the locale.");
+    var messages =
+        translationsProps
+            .putObject("messages")
+            .put("type", "object")
+            .put(
+                "description",
+                "Key → text, nested maps flattened with dots: `orders: {title: Pedidos}` is"
+                    + " ${i18n.orders.title}.");
+    messages
+        .putObject("additionalProperties")
+        .putArray("type")
+        .add("string")
+        .add("object")
+        .add("number")
+        .add("boolean");
+    translations.putArray("required").add("messages");
+
+    // `type: Environment` — per-source overrides of the REST catalogue for one deployment.
+    var envGen = new UidlSchemaGenerator();
+    envGen.defineValueRecord(io.mateu.uidl.data.Environment.SourceOverride.class);
+    envGen.defs.forEach(defs::set);
+    var environment = MAPPER.createObjectNode().put("type", "object");
+    var environmentProps = environment.putObject("properties");
+    environmentProps.putObject("type").put("const", "Environment");
+    environmentProps
+        .putObject("name")
+        .put("type", "string")
+        .put(
+            "description",
+            "The environment's name, activated with -Dmateu.environment / MATEU_ENVIRONMENT (or the"
+                + " bundle goal's `environment`). Optional under specs/ui/environments/, where the"
+                + " file name is the name.");
+    environmentProps
+        .putObject("sources")
+        .put("type", "object")
+        .put(
+            "description",
+            "Source name → what this environment changes about it (baseUrl, url, headers, proxy)."
+                + " Never put a secret here: use ${secret.X}, resolved by the server-side proxy"
+                + " from MATEU_SECRET_X.")
+        .putObject("additionalProperties")
+        .put("$ref", "#/$defs/SourceOverride");
+    environment.putArray("required").add("sources");
+
+    // The field type catalogue (types.yaml): FieldTypeEntry (and anything it nests) into $defs.
+    var typesGen = new UidlSchemaGenerator();
+    typesGen.defineValueRecord(io.mateu.uidl.data.FieldTypeEntry.class);
+    typesGen.defs.forEach(defs::putIfAbsent);
+    var typeList = MAPPER.createObjectNode().put("type", "array");
+    typeList.putObject("items").put("$ref", "#/$defs/FieldTypeEntry");
+
     var oneOf = MAPPER.createArrayNode();
     oneOf.add(mount);
     oneOf.add(routesEnvelope);
     oneOf.add(entryList.deepCopy()); // a bare list of route entries
     oneOf.add(sourcesEnvelope);
     oneOf.add(actionsEnvelope(actionList)); // the action catalogue
+    oneOf.add(translations);
+    oneOf.add(environment);
+    oneOf.add(typesEnvelope(typeList));
+    oneOf.add(projectDescriptor(defs));
     oneOf.add(pageDefinition); // app shell / page
     root.set("oneOf", oneOf);
 
@@ -678,10 +856,45 @@ public final class UidlSchemaGenerator {
         "description",
         "Unified JSON Schema for every file under specs/ui/: a `type: UI` mount, a `type: Routes`"
             + " route file, a `type: Sources` REST source catalogue, a `type: Actions` action"
-            + " catalogue, or a component definition"
+            + " catalogue, a `type: Translations` message catalogue, a `type: Environment` source"
+            + " overlay, a `type: Types` field type catalogue, the `type: Project` project"
+            + " descriptor (specs/ui/project.yaml), or a component definition"
             + " (`type: AppShell` app shell / a page). The `type` field selects the branch."
             + " GENERATED by UidlSchemaGenerator — do not edit by hand.");
     return root;
+  }
+
+  /**
+   * The {@code type: Project} branch: the project descriptor ({@code specs/ui/project.yaml}), one
+   * per project, derived from {@link io.mateu.uidl.data.ProjectSettings} so a new setting reaches
+   * the schema the moment the record grows. {@code type} is REQUIRED here (unlike the route and
+   * source envelopes) — the descriptor has no other key that could tell it apart.
+   */
+  private static ObjectNode projectDescriptor(ObjectNode defs) {
+    var projectGen = new UidlSchemaGenerator();
+    projectGen.defineValueRecord(io.mateu.uidl.data.ProjectSettings.class);
+    var record = projectGen.defs.remove("ProjectSettings");
+    projectGen.defs.forEach(defs::set); // ProjectRenderer
+    var project = MAPPER.createObjectNode().put("type", "object");
+    project.put(
+        "description",
+        "The project descriptor (specs/ui/project.yaml): settings true of the whole project, not"
+            + " of one mount or page. One per project; absent means the defaults.");
+    var props = project.putObject("properties");
+    props.putObject("type").put("const", io.mateu.uidl.data.ProjectSettings.TYPE);
+    if (record != null && record.get("properties") instanceof ObjectNode recordProps) {
+      recordProps.fields().forEachRemaining(e -> props.set(e.getKey(), e.getValue()));
+    }
+    if (props.get("renderer") instanceof ObjectNode renderer) {
+      renderer.put(
+          "description",
+          "The renderer the project paints with: `vaadin` (io.mateu:mateu-vaadin, the default) or"
+              + " `redwood` (io.mateu:mateu-redwood). The visual editor's canvas and Play open in it and"
+              + " the static bundle ships it; a served app's renderer is still its Maven"
+              + " dependency, and the server warns at startup when the two disagree.");
+    }
+    project.putArray("required").add("type");
+    return project;
   }
 
   /**

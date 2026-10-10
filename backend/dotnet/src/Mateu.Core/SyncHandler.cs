@@ -12,15 +12,40 @@ namespace Mateu.Core;
 public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? translator = null, Func<Identity?>? identity = null,
     Func<string, string?>? secrets = null, HttpClient? http = null,
     RestSourceRegistry? restSources = null, ComponentRegistry? components = null,
-    ActionRegistry? actionCatalog = null)
+    Func<string?>? locale = null, TranslationRegistry? translations = null, string? specsDir = null,
+    ActionRegistry? actionCatalog = null, FieldTypeRegistry? fieldTypes = null)
 {
+    /// <summary>The request's own locale (the adapter reads the first Accept-Language tag) — the
+    /// fallback of the UI language when the app's ITranslator does not name one (Java's
+    /// DefaultTranslator.locale). AsyncLocal because the handler is a singleton.</summary>
+    private static readonly AsyncLocal<string?> RequestLocale = new();
+
+    /// <summary>The translation catalogue (type: Translations files over ITranslationsSupplier).</summary>
+    private readonly TranslationRegistry _translations = translations ??= new TranslationRegistry(registry, specsDir);
+
+    /// <summary>The app's translator (if any) backed by the catalogue — what the mapper translates
+    /// with and where the UI language of a request comes from.</summary>
+    private readonly CatalogueTranslator _i18n = new(translator, translations!, () => RequestLocale.Value);
+
     /// <summary>The action catalogue (actions.yaml + type: Actions files over IActionCatalogSupplier).</summary>
-    private readonly ActionRegistry _actionCatalog = actionCatalog ?? new ActionRegistry(registry);
+    private readonly ActionRegistry _actionCatalog = actionCatalog ?? new ActionRegistry(registry, specsDir);
 
     /// <summary>The REST source catalogue (sources.yaml over [RestSource] + suppliers) and the
     /// business-component catalogue (components.yaml over [BusinessComponent] + suppliers).</summary>
-    private readonly RestSourceRegistry _restSources = restSources ?? new RestSourceRegistry(registry);
-    private readonly ComponentRegistry _components = components ?? new ComponentRegistry(registry);
+    private readonly RestSourceRegistry _restSources = restSources ?? new RestSourceRegistry(registry, specsDir);
+    private readonly ComponentRegistry _components = components ?? new ComponentRegistry(registry, specsDir);
+
+    /// <summary>The field type catalogue (types.yaml over IFieldTypeCatalogSupplier implementers): a
+    /// definition's <c>fieldType:</c> references, and a row property's [FieldType], resolve against it.</summary>
+    private readonly FieldTypeRegistry _fieldTypes = fieldTypes ??= new FieldTypeRegistry(registry, specsDir);
+
+    /// <summary>SAMPLE mode: REST sources carrying sample data answer with it instead of being
+    /// called (the proxied leg here; the app metadata's MockSources tells the browser to do the same
+    /// on the direct one). Null (the default) reads the environment (<c>MATEU_SOURCES_MOCK=true</c>);
+    /// never on silently in production.</summary>
+    public bool? MockSources { get; init; }
+
+    private bool SampleMode => MockSources ?? SampleSources.EnabledByEnvironment();
 
     private static readonly HttpClient DefaultHttp = new() { Timeout = TimeSpan.FromSeconds(60) };
 
@@ -28,15 +53,16 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     /// or a fake in tests).</summary>
     private readonly HttpClient _http = http ?? DefaultHttp;
 
-    private readonly ReflectionMapper _mapper = new(translator, identity, registry);
+    private readonly ReflectionMapper _mapper =
+        new(new CatalogueTranslator(translator, translations!, () => RequestLocale.Value), identity, registry);
     /// <summary>The mount's authored route registry: specs/ui/routes.yaml merged OVER the routes
     /// contributed in code by IRouteEntrySupplier implementers (discovered by the MateuRegistry).</summary>
-    private readonly RouteRegistry _routes = new(supplied: registry.SuppliedRoutes);
+    private readonly RouteRegistry _routes = new(specsDir, supplied: registry.SuppliedRoutes);
 
     /// <summary>The loader builds its OWN registry: a field initialiser cannot reference another
     /// instance field, and routes.yaml is a small file each side parses once and caches, so sharing
     /// the instance is not worth a constructor just for it.</summary>
-    private readonly YamlSpecLoader _yaml = new();
+    private readonly YamlSpecLoader _yaml = new(specsDir, translations: translations, fieldTypes: fieldTypes);
 
     /// <summary>Handles a sync call asynchronously — the entry point of the HTTP endpoint. The only
     /// step that does I/O of its own, the proxied REST fetch (<c>__restfetch__</c>), is awaited end
@@ -47,6 +73,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         if (rq.ActionId == "__restfetch__")
         {
             EstablishRequestContext(rq);
+            rq = GuardYamlAccess(rq);
             return await RestFetchResponseAsync(rq, cancellationToken).ConfigureAwait(false);
         }
         return Handle(rq, requestBaseUrl);
@@ -59,6 +86,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     {
         EstablishRequestContext(rq);
         rq = FoldRouteMarkers(rq);
+        rq = GuardYamlAccess(rq);
 
         // 0b. Visual-builder contract: return the ModelView's bindable fields + actions instead of
         // rendering — the tooling POSTs a sync request with the ModelView as serverSideType and this
@@ -75,7 +103,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         // __preview__ reserved action / YamlUidlLoader.parseText).
         if (rq.ActionId == "__preview__" && rq.Parameters.TryGetValue("_yaml", out var yamlParam))
         {
-            var previewTree = YamlComponentBuilder.Parse(StateString(yamlParam) ?? "")
+            var previewTree = YamlComponentBuilder.Parse(StateString(yamlParam) ?? "", types: _fieldTypes)
                               ?? new Text("Invalid YAML");
             return FragmentResponse("Preview", ComponentMapper.Map(previewTree), rq);
         }
@@ -140,8 +168,11 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     private void EstablishRequestContext(RunActionRqDto rq)
     {
         ActionGuard.SetIdentity(identity);
-        MateuCatalogs.Set(_restSources.Catalog, _components.Catalog);
-        MateuCatalogs.SetActions(_actionCatalog.Catalog);
+        RequestLocale.Value = locale?.Invoke();
+        MateuCatalogs.Set(_restSources.Catalog, _components.Catalog, _fieldTypes.Catalog);
+        // the catalogue entries whose access: the caller does not satisfy are never shipped, buttons
+        // naming them are disabled and a call to them answers 403 (like a page's own declared action)
+        MateuCatalogs.SetActions(_actionCatalog.Catalog, _actionCatalog.RefusedFor(ActionGuard.Authorized));
 
         // Audience PROJECTION, not security: the value is client-controlled app state (the
         // [AppContext] selector named audience), so it only filters [Audience]-marked members out of
@@ -150,6 +181,32 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
             rq.AppState.TryGetValue("audience", out var audience) ? StateString(audience) : null);
     }
 
+    /// <summary>The server-side half of the YAML access keys (mirrors Java's YamlUidlLoader.guard):
+    /// a route whose <c>access:</c> (or an ancestor's) the caller does not satisfy is refused (403);
+    /// a declared action the caller may not run is refused when it reaches the server anyway
+    /// (dispatched, or proxied through <c>__restfetch__</c> by its source id); and the values of the
+    /// fields hidden or made read-only for the caller are dropped from the incoming state.</summary>
+    private RunActionRqDto GuardYamlAccess(RunActionRqDto rq)
+    {
+        if (_routes.RefusingEntry(rq.Route, ActionGuard.Authorized) is { } refusing)
+            ActionGuard.Deny($"route '{refusing.Route}' denied by access:");
+        if (_yaml.LoadSpec(rq.Route) is not { DependsOnRequest: true }) return rq;
+        if (_yaml.LoadSpec(rq.Route, ActionGuard.Authorized, _i18n.Locale) is not { } personal) return rq;
+        if (rq.ActionId is { } actionId && personal.RefusedActions.Contains(actionId))
+            ActionGuard.Deny($"action '{actionId}' denied by access:");
+        if (rq.ActionId == "__restfetch__" && StateString(GetState(rq.Parameters, "_sourceId")) is { } sourceId
+            && personal.RefusedActions.Contains(sourceId))
+            ActionGuard.Deny($"action '{sourceId}' denied by access:");
+        if (personal.LockedFields.Count == 0 || !personal.LockedFields.Any(rq.ComponentState.ContainsKey)) return rq;
+        var narrowed = new Dictionary<string, object?>(rq.ComponentState);
+        foreach (var id in personal.LockedFields) narrowed.Remove(id);
+        return rq with { ComponentState = narrowed };
+    }
+
+    /// <summary>The YAML spec of a route as the current caller sees it (access keys, i18n).</summary>
+    private YamlSpecLoader.Spec? PersonalSpec(string? route) =>
+        _yaml.LoadSpec(route, ActionGuard.Authorized, _i18n.Locale);
+
     /// <summary>The route-resolution tail of <see cref="Handle"/>: a view/listing/wizard resolved
     /// either from the authored registry or from attributes. Split out so route-scope seeding can
     /// decorate its result once, at every exit. When <paramref name="routeEntry"/> declares Data the
@@ -157,7 +214,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     private UIIncrementDto ResolveRoute(RunActionRqDto rq, Type? type, RouteEntry? routeEntry)
     {
         type ??= registry.Resolve(rq.ServerSideType, rq.Route);
-        var yamlSpec = _yaml.LoadSpec(rq.Route);
+        var yamlSpec = PersonalSpec(rq.Route);
         if (type is null && yamlSpec is not null)
         {
             // A route with no view class → a YAML page. A bare layout renders as a static, unbound
@@ -343,7 +400,8 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         // non-empty REST source catalogue adds the rest-sources capability (Java's AppMapper).
         if (app is { Metadata: AppMetadataDto catalogued })
         {
-            var sources = MateuCatalogs.MapCatalogue(MateuCatalogs.Sources);
+            var sampleMode = SampleMode;
+            var sources = MateuCatalogs.MapCatalogue(MateuCatalogs.Sources, withSamples: sampleMode);
             var caps = new SortedSet<string>(catalogued.RequiredCapabilities, StringComparer.Ordinal);
             if (sources.Count > 0) caps.Add(Capabilities.RestSources);
             app = app with
@@ -352,8 +410,9 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
                 {
                     RestSources = sources,
                     Components = MateuCatalogs.MapComponents(MateuCatalogs.Components),
-                    ActionCatalogue = ActionRegistry.MapCatalogue(MateuCatalogs.Actions),
+                    ActionCatalogue = ActionRegistry.MapCatalogue(MateuCatalogs.ActionsForCaller),
                     RequiredCapabilities = caps.ToList(),
+                    MockSources = sampleMode ? true : null,
                 },
             };
         }
@@ -431,7 +490,7 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
     /// <summary>The <c>layoutDelta:</c> of the route's definition when it is bound to
     /// <paramref name="type"/>, else empty — so the caller can apply it unconditionally.</summary>
     private LayoutDelta DeltaFor(string? route, Type type) =>
-        _yaml.LoadSpec(route) is { } spec && spec.ModelView == type.FullName ? spec.Delta : LayoutDelta.Empty;
+        PersonalSpec(route) is { } spec && spec.ModelView == type.FullName ? spec.Delta : LayoutDelta.Empty;
 
     /// <summary>Runs a view action. The actionId comes from the wire, so it only reaches a method
     /// DECLARED as an action (see <see cref="ActionGuard.ResolveAction"/>) and only when the caller

@@ -35,5 +35,7 @@ export default interface GridColumn extends ComponentMetadata {
      *  Absent/1 = the ordinary columns; a listing with any column on a line > 1 draws each row
      *  on several lines (line 1 as columns, the rest as «Label: value» under it). */
     line?: number | null
-
+    /** A status column's badge tone per VALUE (`OPEN: warning`): success | warning | danger | info |
+     *  neutral. Usually supplied by a field type (types.yaml). A value not listed reads by its word. */
+    tones?: Record<string, string> | null
 }

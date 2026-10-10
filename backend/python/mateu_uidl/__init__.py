@@ -65,6 +65,7 @@ from .markers import (  # noqa: F401
     Version,
 )
 from .security import (  # noqa: F401
+    Access,
     Audience,
     audience,
     disabled_unless,
@@ -249,6 +250,13 @@ from .adapters import (  # noqa: F401
     AdaptedView,
     ComponentAdapter,
 )
+from .i18n import Translations, TranslationsSupplier  # noqa: F401
+from .environments import Environment, SourceOverride  # noqa: F401
+from .field_types import (  # noqa: F401
+    FieldType,
+    FieldTypeCatalogSupplier,
+    FieldTypeEntry,
+)
 from .patterns import (  # noqa: F401
     CrudDisplay,
     DockedPanel,
@@ -264,6 +272,11 @@ from .patterns import (  # noqa: F401
 
 
 __all__ = [
+    "Access",
+    "Translations",
+    "TranslationsSupplier",
+    "Environment",
+    "SourceOverride",
     "UserFacingException",
     "Inline",
     "AdaptedView",
@@ -282,6 +295,9 @@ __all__ = [
     "ActionCatalogSupplier",
     "CatalogAction",
     "CatalogRestAction",
+    "FieldType",
+    "FieldTypeCatalogSupplier",
+    "FieldTypeEntry",
     "RestSourceEntry",
     "RestSourceKind",
     "RestSourceProvenance",

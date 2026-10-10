@@ -58,8 +58,49 @@ export const resolveRestSource = (source: RestDataSource): RestDataSource => {
         valuePath: blank(source.valuePath) ? from.valuePath : source.valuePath,
         labelPath: blank(source.labelPath) ? from.labelPath : source.labelPath,
         proxy: source.proxy || from.proxy,
+        // the entry's sample (or the one its own source carries) unless the surface declares one
+        sample: source.sample !== undefined && source.sample !== null
+            ? source.sample
+            : (entry.sample ?? from.sample),
     }
 }
+
+// ── Sample mode ────────────────────────────────────────────────────────────────────────────────
+// A source may carry SAMPLE data (`sample:` / `sampleFile:` in sources.yaml, or `sample:` inline):
+// the response the endpoint would return. It is answered INSTEAD of calling the endpoint only in
+// sample mode, and the rule is the same everywhere (see SampleSources on the server):
+//   - ALWAYS in the visual editor (canvas and Play) — it turns sample mode on itself;
+//   - in a bundle built with the mock flag — its manifest says `mockSources: true`;
+//   - at runtime ONLY when the app opted in (`mateu.sources.mock=true`) — the app metadata says so.
+// Never silently in production: nothing here turns it on by default, and the app / manifest can
+// only switch it ON (an app without the flag does not switch off an editor that embeds it).
+
+let sampleMode = false
+
+/** Turns sample mode on (or off — only the editor and tests do that). */
+export const setSampleMode = (on: boolean): void => {
+    sampleMode = !!on
+}
+
+/** Whether sources carrying sample data answer with it. */
+export const isSampleMode = (): boolean => sampleMode
+
+/** The sample a (resolved) source answers with in sample mode; undefined when it is not answered
+ *  from a sample (sample mode off, or the source carries none). */
+export const sampleOf = (source: RestDataSource | undefined): unknown => {
+    if (!sampleMode || !source) return undefined
+    const resolved = resolveRestSource(source)
+    return resolved?.sample === null ? undefined : resolved?.sample
+}
+
+/** True when this source is answered from its sample — so it is neither fetched nor proxied, and a
+ *  listing pages, filters and sorts it in memory (a sample cannot honour `${state.page}`). */
+export const isSampled = (source: RestDataSource | undefined): boolean => sampleOf(source) !== undefined
+
+/** Whether the fetch of this source goes through the Mateu server: declared `proxy`, unless sample
+ *  mode answers it in the browser (a design session or a static bundle has no server to ask). */
+export const viaProxy = (source: RestDataSource | undefined): boolean =>
+    !!source && !!resolveRestSource(source)?.proxy && !isSampled(source)
 
 /**
  * The dot path to read a field by, honouring the referenced source's field map.

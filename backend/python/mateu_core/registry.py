@@ -40,8 +40,14 @@ class MateuRegistry:
         self.component_suppliers: list[type] = []
         #: ActionCatalogSupplier subclasses (the code half of the action catalogue).
         self.action_suppliers: list[type] = []
+        #: FieldTypeCatalogSupplier subclasses (the code half of the field type catalogue;
+        #: specs/ui/types.yaml wins over them).
+        self.field_type_suppliers: list[type] = []
         #: model type → its ComponentAdapter instance (the ComponentAdapter SPI).
         self.adapters: dict[type, object] = {}
+        #: TranslationsSupplier subclasses (the code half of the translation catalogue; the
+        #: `type: Translations` files win over them key by key).
+        self.translations_suppliers: list[type] = []
         for src in sources:
             if isinstance(src, ModuleType):
                 for _, cls in inspect.getmembers(src, inspect.isclass):
@@ -98,6 +104,16 @@ class MateuRegistry:
                     # the island / routed model is addressed by its type name on the wire
                     self._by_name[type_name(model)] = model
 
+        from mateu_uidl.i18n import TranslationsSupplier
+
+        if (
+            isinstance(cls, type)
+            and issubclass(cls, TranslationsSupplier)
+            and cls is not TranslationsSupplier
+            and cls not in self.translations_suppliers
+        ):
+            self.translations_suppliers.append(cls)
+
         from mateu_uidl.action_catalog import ActionCatalogSupplier
 
         if (
@@ -107,6 +123,16 @@ class MateuRegistry:
             and cls not in self.action_suppliers
         ):
             self.action_suppliers.append(cls)
+
+        from mateu_uidl.field_types import FieldTypeCatalogSupplier
+
+        if (
+            isinstance(cls, type)
+            and issubclass(cls, FieldTypeCatalogSupplier)
+            and cls is not FieldTypeCatalogSupplier
+            and cls not in self.field_type_suppliers
+        ):
+            self.field_type_suppliers.append(cls)
         if is_catalog_supplier(cls) and cls not in self.component_suppliers:
             self.component_suppliers.append(cls)
         if (

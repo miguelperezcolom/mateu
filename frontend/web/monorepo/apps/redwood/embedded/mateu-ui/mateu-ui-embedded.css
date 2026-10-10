@@ -1,0 +1,27 @@
+/* Mateu — Apache License 2.0. Appended by make-embedded.mjs after the scoped app.css.
+ *
+ * The standalone app owns the viewport; <mateu-ui> is a box in somebody else's page. What the
+ * standalone pins to the VIEWPORT is pinned to the component instead, so nothing of ours floats
+ * over the host's header or navigation. (Dialogs, drawers and popups stay JET's: they open in the
+ * host's popup layer, over the page, as any JET overlay of the host does.) */
+
+mateu-ui .mateu-busy-bar {
+  position: absolute;
+}
+
+mateu-ui .mateu-fabs {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+}
+
+@media (max-width: 1023px) {
+  mateu-ui .mateu-fabs { right: 8px; bottom: 8px; }
+}
+
+/* the content area of the standalone shell has the shell's page background behind it */
+mateu-ui .mateu-ui-root {
+  position: relative;
+  background-color: var(--oj-core-neutral-30, #f1efed);
+  min-height: 12rem;
+}

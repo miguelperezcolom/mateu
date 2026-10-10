@@ -17,6 +17,7 @@ import io.mateu.core.infra.MateuController;
 import io.mateu.core.infra.StaticAssetCaching;
 import io.mateu.core.infra.WireMapper;
 import io.mateu.core.infra.YamlMounts;
+import io.mateu.core.infra.dev.DevEndpoint;
 import io.mateu.dtos.RunActionRqDto;
 import io.mateu.dtos.UIIncrementDto;
 import jakarta.annotation.Priority;
@@ -174,6 +175,12 @@ public class MateuHelidonRoutes {
           });
     }
 
+    if (config.getOptionalValue(DevEndpoint.ENABLED_PROPERTY, Boolean.class).orElse(false)) {
+      dev(
+          routing,
+          config.getOptionalValue(DevEndpoint.SPECS_DIR_PROPERTY, String.class).orElse(null));
+    }
+
     if (YamlMounts.present(Thread.currentThread().getContextClassLoader())
         && beanManager.getBeans(MateuController.class, Any.Literal.INSTANCE).isEmpty()) {
       List<YamlMounts.Mount> mounts = YamlMounts.mounts(routeRegistry.get(), yamlAppLoader.get());
@@ -194,6 +201,33 @@ public class MateuHelidonRoutes {
         routing.post(mount.apiPrefix() + "/v3/*", (req, res) -> run(req, res, mount));
       }
     }
+  }
+
+  /** Live reload ({@code mateu.dev=true} only): the dev event stream and the reload trigger. */
+  private static void dev(HttpRouting.Builder routing, String specsDir) {
+    DevEndpoint.enable(specsDir);
+    routing.get(
+        DevEndpoint.EVENTS_PATH,
+        (req, res) -> {
+          res.header("Content-Type", "text/event-stream");
+          res.header("Cache-Control", "no-cache");
+          try (OutputStream out = res.outputStream();
+              var events = DevEndpoint.events().toStream()) {
+            var it = events.iterator();
+            while (it.hasNext()) {
+              out.write(DevEndpoint.sse(it.next()).getBytes(StandardCharsets.UTF_8));
+              out.flush();
+            }
+          } catch (IOException | java.io.UncheckedIOException e) {
+            // the browser went away; closing the stream cancelled the subscription
+          }
+        });
+    routing.post(
+        DevEndpoint.RELOAD_PATH,
+        (req, res) -> {
+          var scope = req.query().contains("scope") ? req.query().get("scope") : null;
+          res.status(Status.create(DevEndpoint.reload(scope))).send();
+        });
   }
 
   /**

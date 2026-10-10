@@ -20,6 +20,8 @@ object MateuNewFiles {
         val fileName: String,
         val template: String?,
         val page: Boolean,
+        /** One per project (the project descriptor): offered only while the project has none. */
+        val singleton: Boolean = false,
     )
 
     data class PageWidth(val id: String, val label: String, val style: String?) {
@@ -57,6 +59,7 @@ object MateuNewFiles {
                 fileName = it.path("fileName").asText(),
                 template = it.path("template").takeIf { t -> t.isTextual }?.asText(),
                 page = it.path("page").asBoolean(false),
+                singleton = it.path("singleton").asBoolean(false),
             )
         },
         pageWidths = root.path("pageWidths").map {

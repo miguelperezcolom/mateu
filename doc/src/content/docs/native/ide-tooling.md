@@ -23,14 +23,35 @@ models through the Java plugin.
 ## The visual editor's canvas: Vaadin or Redwood
 
 Both editors can paint the canvas with the **Vaadin** renderer or with the real **Redwood**
-renderer, which is the Oracle Visual Builder app of `io.mateu:redwood`. Pick one with the renderer
-selector in the editor's toolbar. See [the Redwood canvas](/java-ui-definition/visual-editor/#the-redwood-canvas).
+renderer, which is the Oracle Visual Builder app of `io.mateu:mateu-redwood`. The canvas opens in the
+project's renderer (`project.yaml`, below), and the selector in the editor's toolbar previews the
+other renderer for the session. See [the Redwood canvas](/java-ui-definition/visual-editor/#the-redwood-canvas).
 In both IDEs the Redwood app is part of the editor's bundle. The IDE's local server serves it, so
 it works with no backend running. VS Code frames it from the extension's loopback server, because a
 webview cannot host the app itself. A bundle built without the Redwood app falls back to the
 configured backend's own (`/_index.html`, `/_redwood/`). In every case Redwood loads Oracle JET and
 the Visual Builder runtime from **Oracle's CDN**, so the IDE needs to reach `static.oracle.com`.
 Without it the canvas shows a notice instead of the page, and the Vaadin canvas keeps working offline.
+
+## The project's renderer: project.yaml
+
+The renderer is a **project** setting, kept in `specs/ui/project.yaml` (`type: Project`,
+`renderer: vaadin | redwood`; see [project settings](/java-ui-definition/project-settings)). Both IDEs
+edit that file, and the file is the source of truth:
+
+- **IntelliJ**: **Settings | Tools | Mateu → Project → Renderer** reads `project.yaml` when the page
+  opens and writes it on **Apply**. It creates the file if it is missing and rewrites only the
+  `renderer:` line.
+- **VS Code**: the `mateu.renderer` setting follows the file. It is synced from the file on
+  activation and whenever the file changes, and changing the setting writes the file. The command
+  **Mateu: Project Settings…** asks for the renderer and writes the file too.
+- **New | Mateu → Project Settings** creates the descriptor. It is offered only while the project has
+  none, because there is one per project.
+- The **UI Mount** wizard shows the project's renderer and the artifact the app must depend on
+  (`io.mateu:mateu-vaadin` or `io.mateu:mateu-redwood`).
+
+The visual editor's canvas, Play and Export use this renderer. The canvas's own toolbar switch is
+only a preview for the session.
 
 ## Creating files: New | Mateu
 
@@ -130,3 +151,16 @@ the wire traffic.
 The standalone desktop distribution (the IDE rebranded as your app, see
 [Desktop & Mobile](/native/)) is the only place the plugin takes over the frame title, hides foreign
 tool windows and lands on the home route.
+
+## Live development: Run Mateu App (Live)
+
+**Run | Run Mateu App (Live)** (also under **Tools**) starts the project's app in development mode
+(`mateu.dev=true`, every `src/main/resources/specs/ui` of the project watched) with the debug agent
+listening, attaches a *Remote JVM Debug* session once it answers, points **Settings | Tools | Mateu** at
+it when nothing else is configured — so this tool window and the **visual editor's Play** use the
+running app — and opens it in the browser. From then on a YAML edit (in the text editor or the visual
+editor's canvas) re-renders the open screen in place, and every **HotSwap** fires
+`POST /mateu/dev/reload` so the screen shows the new code. **Run | Reload Mateu Screen** fires it by
+hand. Spring Boot, Quarkus, Micronaut and Helidon apps (Maven or Gradle) are detected. VS Code has the
+same pair: **Mateu: Run App (Live)** and **Mateu: Reload Screen** (also fired on a Java hot code
+replace). Details, adapters and limits: [Live reload](/java-user-manual/build/live-reload/).

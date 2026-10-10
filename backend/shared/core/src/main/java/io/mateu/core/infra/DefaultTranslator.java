@@ -1,5 +1,6 @@
 package io.mateu.core.infra;
 
+import io.mateu.core.application.i18n.TranslationRegistry;
 import io.mateu.uidl.interfaces.HttpRequest;
 import io.mateu.uidl.interfaces.Translator;
 import jakarta.inject.Named;
@@ -8,13 +9,41 @@ import java.util.Locale;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
+/**
+ * The translator used when the app provides none. Two catalogues, in order: the app's translation
+ * files ({@code type: Translations} / {@code specs/ui/translations/<locale>.yaml}, via {@link
+ * TranslationRegistry}) — {@code ${i18n.key}} expressions inside the text, or the whole text when
+ * it IS a key there — and then a {@code messages} {@link ResourceBundle}, as before.
+ */
 @Named
 @Singleton
 public class DefaultTranslator implements Translator {
 
+  private final TranslationRegistry translations;
+
+  @jakarta.inject.Inject
+  public DefaultTranslator(TranslationRegistry translations) {
+    this.translations = translations;
+  }
+
+  public DefaultTranslator() {
+    this(new TranslationRegistry());
+  }
+
   @Override
   public String translate(String text, HttpRequest httpRequest) {
     if (text == null || text.isBlank()) return text;
+    if (TranslationRegistry.isRaw(httpRequest)) return text;
+    var tag = locale(httpRequest);
+    if (text.contains("i18n.")) {
+      text = translations.interpolate(text, tag);
+    }
+    if (translations.hasTranslations()) {
+      var asKey = translations.message(text, tag);
+      if (asKey != null) {
+        return asKey;
+      }
+    }
     Locale locale = resolveLocale(httpRequest);
     try {
       ResourceBundle bundle = ResourceBundle.getBundle("messages", locale);

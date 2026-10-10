@@ -121,6 +121,20 @@ Comprobaciones: `node poc/make-amd.mjs --check` (el bridge commiteado es el que 
 Los componentes JET/oj-sp y el visual-runtime se cargan del CDN de Oracle en runtime: el jar no
 vendoriza nada de `static.oracle.com` (ver `NOTICE.md`) y el navegador necesita acceso al CDN.
 
+## Dos modos: standalone y embebido
+
+- **Standalone** — esta app VB empaquetada en el jar: la shell, el menú y las rutas de Mateu.
+- **Embebido** — `<mateu-ui>`, un JET Custom Component que un desarrollador de Visual Builder importa
+  en SU app y suelta en una página (`<mateu-ui base-url="https://erp.acme.com/mateu" route="orders">`).
+  Pinta con el runtime JET y el tema Redwood del anfitrión (sin segundo runtime, sin iframe).
+
+UN core: la vista del componente es la página de contenido de esta app (dentro del marco de
+contenido de `shell-page.html`, entre los marcadores `@embedded-frame`) y su viewModel ejecuta las
+mismas chains sobre un runtime mínimo (`poc/embedded.mjs`). `npm run build` deja además
+`build/embedded/mateu-ui-<versión>.zip` (se adjunta a la release); `npm run serve:embedded` sirve un
+anfitrión JET de prueba en :9131 y `e2e/vb-embedded-probe.mjs` lo comprueba. Detalle completo (en
+inglés): README.md, sección "Two modes", y `doc/.../design-systems/oracle-redwood.md`.
+
 ## El FAB de "Ask Oracle" y la marca del App
 
 La shell tiene dos FABs en la esquina: el de **Ask Oracle** (el propio de `oj-sp-simple-ui-shell`;

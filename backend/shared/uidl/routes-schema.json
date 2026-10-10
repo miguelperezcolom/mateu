@@ -29,6 +29,35 @@
     }
   } ],
   "$defs" : {
+    "Access" : {
+      "type" : "object",
+      "properties" : {
+        "roles" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "groups" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "scopes" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        },
+        "permissions" : {
+          "type" : "array",
+          "items" : {
+            "type" : "string"
+          }
+        }
+      }
+    },
     "RestDataSource" : {
       "type" : "object",
       "properties" : {
@@ -58,7 +87,8 @@
         },
         "proxy" : {
           "type" : "boolean"
-        }
+        },
+        "sample" : { }
       }
     },
     "RouteEntry" : {
@@ -107,6 +137,9 @@
         },
         "show" : {
           "type" : "string"
+        },
+        "access" : {
+          "$ref" : "#/$defs/Access"
         },
         "layout" : {
           "type" : "string",

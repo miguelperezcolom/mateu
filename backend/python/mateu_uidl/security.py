@@ -106,3 +106,30 @@ def audience(*audiences: str):
         return fn
 
     return deco
+
+
+@dataclass(frozen=True)
+class Access:
+    """An identity restriction authored as DATA — the YAML twin of ``EyesOnly`` /
+    ``ReadOnlyUnless`` / ``DisabledUnless``, with the same four dimensions and the SAME matching
+    (evaluated by the mapper's ``authorized``, the one rule behind the markers): AND across declared
+    dimensions, OR within one; nothing declared → unrestricted; no identity → denied.
+
+    Where it is authored (mirrors Java's ``io.mateu.uidl.data.Access``):
+
+    - ``access:`` on a ``routes.yaml`` entry — the route and every route nested under it answer 403;
+    - ``access:`` on a declared ``actions:`` entry — not advertised, buttons naming it disabled, 403
+      if invoked anyway;
+    - ``eyesOnly:`` / ``readOnlyUnless:`` / ``disabledUnless:`` on any component of a definition —
+      removed / read-only / disabled.
+
+    A string or a list is the roles shorthand (``access: admin``, ``access: [admin, hr]``)."""
+
+    roles: tuple[str, ...] = ()
+    groups: tuple[str, ...] = ()
+    scopes: tuple[str, ...] = ()
+    permissions: tuple[str, ...] = ()
+
+    def restricts(self) -> bool:
+        """Whether any dimension is declared (named so it does not read as a property)."""
+        return bool(self.roles or self.groups or self.scopes or self.permissions)

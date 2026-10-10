@@ -41,9 +41,28 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Named
 @Singleton
-public class YamlAppLoader {
+public class YamlAppLoader implements io.mateu.core.infra.dev.SpecsCache {
 
   private final ObjectMapper mapper = YamlUidlMapperFactory.create();
+
+  /** The translation catalogue {@code ${i18n.…}} expressions are resolved against. */
+  private final io.mateu.core.application.i18n.TranslationRegistry translations;
+
+  /**
+   * The source trees of the shells that depend on WHO asks (access keys on menu items / actions) or
+   * in which LANGUAGE ({@code ${i18n.…}}): those are re-derived per request.
+   */
+  private final ConcurrentHashMap<String, JsonNode> requestDependent = new ConcurrentHashMap<>();
+
+  @jakarta.inject.Inject
+  public YamlAppLoader(io.mateu.core.application.i18n.TranslationRegistry translations) {
+    this.translations = translations;
+    io.mateu.core.infra.dev.DevSpecs.register(this);
+  }
+
+  public YamlAppLoader() {
+    this(new io.mateu.core.application.i18n.TranslationRegistry());
+  }
 
   // Definitions are static files: parse once per path. A miss (absent, unparseable, or not an
   // AppShell) is cached as NONE so a route pointing at a non-shell definition isn't re-read
@@ -52,6 +71,14 @@ public class YamlAppLoader {
   private final ConcurrentHashMap<String, AppShell> byPath = new ConcurrentHashMap<>();
   // Definitions that declare their own `homeRoute:` — a mount's `home:` never overrides those.
   private final java.util.Set<String> declaresHomeRoute = ConcurrentHashMap.newKeySet();
+
+  /** Dev mode: a spec changed — every app shell is read again on next use. */
+  @Override
+  public void invalidateSpecs() {
+    byPath.clear();
+    declaresHomeRoute.clear();
+    requestDependent.clear();
+  }
 
   /**
    * The {@link AppShell} declared by the definition file at {@code definitionPath}, or {@code null}
@@ -82,6 +109,53 @@ public class YamlAppLoader {
     return shell.withHomeRoute(mountHome);
   }
 
+  /**
+   * As {@link #load(String, String)}, AS THIS REQUEST SEES IT: menu items and actions whose {@code
+   * access:} the caller does not satisfy are gone (a {@code RouteLink} to a route the caller may
+   * not reach too, via {@code routeReachable}), and {@code ${i18n.…}} expressions are resolved for
+   * the caller's locale. Decided here, on the server — the shell that reaches the wire is the one
+   * this caller may see.
+   */
+  public AppShell load(
+      String definitionPath,
+      String mountHome,
+      io.mateu.uidl.interfaces.HttpRequest httpRequest,
+      java.util.function.Predicate<String> routeReachable) {
+    var shell = load(definitionPath, mountHome);
+    if (shell == null) {
+      return null;
+    }
+    var source = requestDependent.get(definitionPath);
+    if (source == null) {
+      return shell;
+    }
+    try {
+      var tree =
+          io.mateu.core.application.security.YamlAccess.declaresAccess(source)
+              ? io.mateu.core.application.security.YamlAccess.apply(
+                      source, httpRequest, routeReachable)
+                  .tree()
+              : source.deepCopy();
+      if (tree == null) {
+        return shell;
+      }
+      if (!io.mateu.core.application.i18n.TranslationRegistry.isRaw(httpRequest)) {
+        translations.translateTree(
+            tree, io.mateu.core.application.i18n.TranslationRegistry.localeOf(httpRequest));
+      }
+      var personal = parse(tree);
+      if (personal == null) {
+        return shell;
+      }
+      return mountHome == null || mountHome.isBlank() || declaresHomeRoute.contains(definitionPath)
+          ? personal
+          : personal.withHomeRoute(mountHome);
+    } catch (Exception e) {
+      log.warn("Failed to personalise app shell {}: {}", definitionPath, e.getMessage());
+      return shell;
+    }
+  }
+
   /** Whether the definition at {@code definitionPath} is a {@code type: AppShell}. */
   public boolean isAppShell(String definitionPath) {
     return load(definitionPath) != null;
@@ -96,6 +170,11 @@ public class YamlAppLoader {
       var shell = parse(root);
       if (shell != null && root.hasNonNull("homeRoute")) {
         declaresHomeRoute.add(definitionPath);
+      }
+      if (shell != null
+          && (io.mateu.core.application.security.YamlAccess.declaresAccess(root)
+              || io.mateu.core.application.i18n.TranslationRegistry.mentionsI18n(root))) {
+        requestDependent.put(definitionPath, root);
       }
       return shell == null ? NONE : shell;
     } catch (Exception e) {
@@ -233,10 +312,15 @@ public class YamlAppLoader {
   }
 
   private InputStream resolve(String path) {
-    var cl = Thread.currentThread().getContextClassLoader();
-    var resource = cl != null ? cl.getResourceAsStream(path) : null;
+    var context = Thread.currentThread().getContextClassLoader();
+    var resource =
+        context != null
+            ? io.mateu.core.infra.dev.DevSpecs.classLoader(context).getResourceAsStream(path)
+            : null;
     if (resource == null) {
-      resource = YamlAppLoader.class.getClassLoader().getResourceAsStream(path);
+      resource =
+          io.mateu.core.infra.dev.DevSpecs.classLoader(YamlAppLoader.class.getClassLoader())
+              .getResourceAsStream(path);
     }
     return resource;
   }

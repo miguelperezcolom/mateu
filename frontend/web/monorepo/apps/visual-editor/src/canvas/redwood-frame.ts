@@ -4,11 +4,13 @@ import {
     BOOT_TIMEOUT_MS, PreviewFragment, frameMessageOf, redwoodPreviewUrl, renderMessage, selectMessage,
     type FrameToEditor,
 } from './redwoodProtocol'
+import { restSourceCatalogue } from '@infra/http/restSourceCatalogue.ts'
+import { fieldTypeCatalogue } from '@infra/expander/fieldTypes.ts'
 
 export type RedwoodFrameStatus = 'booting' | 'ready' | 'offline' | 'unavailable'
 
 /**
- * The Redwood canvas: the REAL Redwood renderer (the Visual Builder app of io.mateu:redwood) in an
+ * The Redwood canvas: the REAL Redwood renderer (the Visual Builder app of io.mateu:mateu-redwood) in an
  * iframe, in editor-preview mode. The canvas hands it the increment it would have applied to its
  * own renderer; the app paints it and stamps the definition's node ids on what it paints, so a
  * click in the frame comes back as the node to select (`redwood-click`), and the selection is
@@ -61,7 +63,7 @@ export class RedwoodFrame extends LitElement {
             ${this.status === 'unavailable' ? html`<div class="notice" role="alert"><div>
                 <h3>The Redwood renderer is not available in this editor</h3>
                 <p>${this.problem}</p>
-                <p>This editor build does not bundle the Redwood app (io.mateu:redwood), and the configured backend does not serve one either.</p>
+                <p>This editor build does not bundle the Redwood app (io.mateu:mateu-redwood), and the configured backend does not serve one either.</p>
                 <button @click=${this.retry}>Try again</button>
             </div></div>` : ''}
         `
@@ -88,7 +90,13 @@ export class RedwoodFrame extends LitElement {
     /** Paints this fragment (sent now, or as soon as the app says hello). */
     show(fragment: PreviewFragment) {
         this.fragment = fragment
-        if (this.hello) this.post(renderMessage(fragment))
+        if (this.hello) this.post(this.renderOf(fragment))
+    }
+
+    /** The render message: the fragment plus the project's catalogues (sources with their sample
+     *  data, field types) — the frame previews with samples, as every canvas does. */
+    private renderOf(fragment: PreviewFragment) {
+        return renderMessage(fragment, { sources: restSourceCatalogue(), types: fieldTypeCatalogue() })
     }
 
     private startBoot() {
@@ -139,7 +147,7 @@ export class RedwoodFrame extends LitElement {
             case 'hello':
                 this.hello = true
                 window.clearTimeout(this.bootTimer)
-                if (this.fragment) this.post(renderMessage(this.fragment))
+                if (this.fragment) this.post(this.renderOf(this.fragment))
                 this.sendSelection(false)
                 return
             case 'rendered':

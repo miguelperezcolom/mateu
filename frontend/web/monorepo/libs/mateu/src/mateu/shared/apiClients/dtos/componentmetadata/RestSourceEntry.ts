@@ -19,4 +19,7 @@ export default interface RestSourceEntry {
      * Build-time information — the renderer ignores it. */
     provenance?: string | undefined
     description?: string | undefined
+    /** SAMPLE data — the response the endpoint would return — answered instead of calling it, in
+     * sample mode only. Travels only when sample mode is on (or the bundle was built for it). */
+    sample?: unknown
 }

@@ -27,15 +27,17 @@ const CORE_PIECES = [...readFileSync(join(here, 'reduceContexts.mjs'), 'utf8')
   .matchAll(/^export \* from '\.\/(core\/[\w-]+\.mjs)'/gm)].map((m) => m[1])
 
 // bundle.mjs antes de transport.mjs: transport.loadRoute consulta el manifest cargado.
+// restSources.mjs (fuentes REST + modo muestra) antes de bundle.mjs y transport.mjs, que lo usan.
 // chat.mjs es autónomo (solo transporte SSE del chat de IA); va al final del scope compartido.
 export const MODULES = [
   'i18n.mjs', 'prefs.mjs', 'navTree.mjs', 'calendar.mjs', 'richtext.mjs', 'links.mjs',
   ...CORE_PIECES,
-  'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'resilience.mjs', 'wireVersion.mjs', 'a11y.mjs', 'elements.mjs',
+  'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'hostHeaders.mjs', 'resilience.mjs', 'wireVersion.mjs', 'a11y.mjs', 'elements.mjs',
   'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'shellFlows.mjs', 'planning.mjs', 'actionPanels.mjs',
-  'keys.mjs', 'hover.mjs', 'dnd.mjs', 'matrix.mjs', 'map.mjs', 'tables.mjs', 'bundle.mjs',
+  'keys.mjs', 'hover.mjs', 'dnd.mjs', 'matrix.mjs', 'map.mjs', 'tables.mjs', 'fieldTypes.mjs', 'restSources.mjs', 'bundle.mjs',
   'mount.mjs', 'transport.mjs', 'widgets.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs', 'pageProjection.mjs', 'actionPlan.mjs', 'globalSearch.mjs', 'theme.mjs',
-  'editorPreview.mjs',
+  'editorPreview.mjs', 'embedded.mjs',
+  'liveReload.mjs',
 ]
 const body = MODULES.map(strip).join('\n\n')
 
@@ -121,6 +123,13 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
 
   return {
     HOST_ID,
+    // live reload contra un backend en modo dev (poc/liveReload.mjs)
+    installDevLiveReload,
+    devEventsUrlOf,
+    noteLiveDraft,
+    liveDraftFor,
+    // embedded mode (embedded.mjs): the <mateu-ui> component's runtime and boot
+    ...EMBEDDED_API,
     // the renderer's own words (i18n.mjs): chains say them in the interface's language
     chromeText,
     chromeLanguage,
@@ -376,6 +385,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     DEFAULT_TIMEOUT_MS,
     // static bundle: la shell carga el manifest al arrancar; loadRoute responde desde él sin backend
     loadBundleManifest,
+    bundleUrlOf,
     hasBundle,
     awaitBundle,
     // the IDE's visual editor paints with this app in an iframe (editorPreview.mjs): it hands the

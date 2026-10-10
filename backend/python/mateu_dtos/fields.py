@@ -123,6 +123,9 @@ class RestDataSource(Wire):
     label_path: str | None = None
     #: fetch through the Mateu server (no CORS, ${secret.X} injected server-side); default False
     proxy: bool = False
+    #: SAMPLE data: the response the endpoint would return, answered instead of calling it — only
+    #: in sample mode, and only then on the wire (mirrors RestDataSourceDto.sample).
+    sample: Any | None = None
 
 
 class RestSourceEntryRecord(Wire):
@@ -135,6 +138,9 @@ class RestSourceEntryRecord(Wire):
     total_path: str | None = None
     provenance: str | None = None
     description: str | None = None
+    #: The entry's sample response (inline ``sample:`` or a ``sampleFile:`` read at load) — on the
+    #: wire only in sample mode (mirrors RestSourceEntryDto.sample).
+    sample: Any | None = None
 
 
 class NavLinkRecord(Wire):

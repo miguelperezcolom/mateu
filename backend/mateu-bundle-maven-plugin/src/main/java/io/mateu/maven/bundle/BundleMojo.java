@@ -2,6 +2,8 @@ package io.mateu.maven.bundle;
 
 import io.mateu.core.application.export.MateuBundleExporter;
 import io.mateu.core.application.export.RouteRegistrations;
+import io.mateu.core.infra.ProjectRendererCheck;
+import io.mateu.uidl.data.ProjectRenderer;
 import java.io.File;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -20,7 +22,8 @@ import org.apache.maven.project.MavenProject;
  * {@code mateu:bundle} — exports the app's declared screens to a STATIC BUNDLE so the Mateu UI can
  * be served from static hosting / a CDN with no (or optional) backend. For each static
  * {@code @UI}/{@code @Route} route it renders the initial load (the same JSON the server returns
- * for {@code actionId=""}) into {@code manifest.json}, copies the renderer assets and stamps a
+ * for {@code actionId=""}) into {@code manifest.json}, copies the PROJECT's renderer static app
+ * ({@code specs/ui/project.yaml}: vaadin's assets or redwood's Visual Builder app) and stamps a
  * static {@code index.html} that boots {@code <mateu-ui bundleUrl="./manifest.json">}. Route loads
  * are then answered from the bundle client-side; live data still comes from external endpoints, and
  * ACTIONS still need a backend.
@@ -62,7 +65,8 @@ public class BundleMojo extends AbstractMojo {
   private boolean skipParamRoutes;
 
   /**
-   * Dir holding {@code _index.html} + {@code assets/}; default = the vaadin-lit static resources.
+   * Dir holding {@code _index.html} + the renderer's static files; default = the static app of the
+   * chosen {@link #renderer}, read off its jar on the app classpath.
    */
   @Parameter(property = "mateu.bundle.assetsFrom")
   private String assetsFrom;
@@ -102,11 +106,51 @@ public class BundleMojo extends AbstractMojo {
   @Parameter(property = "mateu.bundle.specsOnly", defaultValue = "false")
   private boolean specsOnly;
 
+  /**
+   * The deployment ENVIRONMENT the bundle's REST sources point at: the name of a {@code type:
+   * Environment} file ({@code specs/ui/environments/<name>.yaml}), overlaid on {@code sources.yaml}
+   * exactly as {@code -Dmateu.environment} does on a server. The resolved catalogue is what {@code
+   * manifest.json} ships, so the same build can be re-pointed later by building again with another
+   * environment — the {@code structureHash} does not change — or by editing {@code manifest.json}'s
+   * {@code sources}. Empty = the catalogue as authored.
+   */
+  @Parameter(property = "mateu.bundle.environment")
+  private String environment;
+
+  /**
+   * The renderer to bundle: {@code vaadin} or {@code redwood}. Default: the project's choice in
+   * {@code specs/ui/project.yaml} ({@code type: Project}); without one, whichever renderer the
+   * app's classpath serves; else vaadin. Its static app is taken from the renderer jar on the app's
+   * classpath (or {@code <assetsFrom>}), so a redwood bundle needs {@code io.mateu:mateu-redwood}
+   * there.
+   */
+  @Parameter(property = "mateu.bundle.renderer")
+  private String renderer;
+
+  /** The renderer this bundle ships: explicit, else the project's, else the served one. */
+  static ProjectRenderer chooseRenderer(String explicit, ClassLoader appLoader) {
+    var named = ProjectRenderer.parse(explicit);
+    if (named != null) {
+      return named;
+    }
+    var declared = ProjectRendererCheck.read(appLoader);
+    if (declared.isPresent()) {
+      return declared.get().renderer();
+    }
+    var served = ProjectRendererCheck.served(appLoader);
+    return served != null ? served : ProjectRenderer.vaadin;
+  }
+
   @Override
   public void execute() throws MojoExecutionException, MojoFailureException {
     var appLoader = buildAppLoader();
     var previous = Thread.currentThread().getContextClassLoader();
     Thread.currentThread().setContextClassLoader(appLoader);
+    var previousEnvironment = System.getProperty("mateu.environment");
+    if (environment != null && !environment.isBlank()) {
+      getLog().info("mateu-bundle: REST sources for environment '" + environment.trim() + "'");
+      System.setProperty("mateu.environment", environment.trim());
+    }
     try {
       var discovered = RouteRegistrations.read(appLoader);
       getLog().info("mateu-bundle: discovered " + discovered.size() + " declared route(s)");
@@ -134,6 +178,23 @@ public class BundleMojo extends AbstractMojo {
               : inferBasePackages(uiClasses);
       getLog().info("mateu-bundle: scanning app packages " + packages);
 
+      if (renderer != null && !renderer.isBlank() && ProjectRenderer.parse(renderer) == null) {
+        throw new MojoFailureException(
+            "mateu-bundle: unknown renderer '" + renderer + "' (vaadin | redwood)");
+      }
+      var chosen = chooseRenderer(renderer, appLoader);
+      getLog().info("mateu-bundle: renderer " + chosen + " (" + chosen.coordinates() + ")");
+      var expandInBrowser = specsOnly;
+      if (specsOnly && chosen == ProjectRenderer.redwood) {
+        // The Redwood renderer has no client-side expander: it answers route loads only from
+        // PRE-RENDERED increments, so a raw definition would never paint. Pre-render instead.
+        getLog()
+            .warn(
+                "mateu-bundle: specsOnly is not supported by the redwood renderer (it has no"
+                    + " client-side expander) — pre-rendering every route instead");
+        expandInBrowser = false;
+      }
+
       try (var boot = new BootContext(appLoader, uiClasses, packages)) {
         var exporter = new MateuBundleExporter(boot.service);
         // With an explicit allowlist, export exactly those routes. Otherwise let the exporter
@@ -144,10 +205,10 @@ public class BundleMojo extends AbstractMojo {
         var manifest =
             (routes != null && !routes.isEmpty())
                 ? exporter.export(baseUrl, toExport)
-                : exporter.exportAll(baseUrl, appLoader, true, !skipParamRoutes, specsOnly);
+                : exporter.exportAll(baseUrl, appLoader, true, !skipParamRoutes, expandInBrowser);
 
         BundleWriter.write(
-            outputDirectory.toPath(), manifest, assetsFrom, appLoader, baseUrl, pageTitle);
+            outputDirectory.toPath(), manifest, assetsFrom, appLoader, baseUrl, pageTitle, chosen);
 
         long ok = manifest.entries().stream().filter(MateuBundleExporter.BundleEntry::ok).count();
         manifest.entries().stream()
@@ -165,7 +226,7 @@ public class BundleMojo extends AbstractMojo {
         if (failOnEmpty && ok == 0) {
           throw new MojoFailureException("mateu-bundle: no routes rendered");
         }
-        if (!manifest.definitions().isEmpty() && specsOnly) {
+        if (!manifest.definitions().isEmpty() && expandInBrowser) {
           getLog()
               .info(
                   "mateu-bundle: specs mode — "
@@ -209,6 +270,13 @@ public class BundleMojo extends AbstractMojo {
       throw new MojoExecutionException("mateu-bundle failed", e);
     } finally {
       Thread.currentThread().setContextClassLoader(previous);
+      if (environment != null && !environment.isBlank()) {
+        if (previousEnvironment == null) {
+          System.clearProperty("mateu.environment");
+        } else {
+          System.setProperty("mateu.environment", previousEnvironment);
+        }
+      }
     }
   }
 

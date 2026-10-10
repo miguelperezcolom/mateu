@@ -29,6 +29,7 @@ an explicit `type:` at its root, and the editor opens it in the matching mode:
 | **Routes** | `Routes` | Pure routing: each URL bound to a **definition** and an optional **view model**. | `routes` (table) |
 | **Page** | any component (e.g. `VerticalLayout`) | A component tree — the layout of one screen. | `page` (WYSIWYG canvas) |
 | **Partial** | a bare `content:` list | A reusable, rootless fragment inlined wherever a page names it. | `page` (canvas, "partial" chip) |
+| **Project** | `Project` | The project's settings — the renderer, chosen once ([project settings](/java-ui-definition/project-settings)). | `project` (form) |
 
 The editor picks the mode automatically from the file's `type:` — there are no tabs to switch. A
 `type: UI` file opens the mount form; `type: AppShell` opens the app form; a routes file opens the
@@ -220,11 +221,23 @@ view model, the editor saves the smallest thing that expresses your change — a
 your edits are a re-ordering/relabelling of the model's fields, a full **snapshot** only when the tree
 holds something a delta cannot.
 
+## The project's renderer
+
+The canvas paints with the **project's renderer**, the one `specs/ui/project.yaml` names
+(`renderer: vaadin | redwood`; Vaadin when the project has no descriptor, see
+[project settings](/java-ui-definition/project-settings)). The renderer selector in the toolbar
+marks the project's choice with **· project**. Picking another renderer there is a **peek** for this
+session: the toolbar shows **preview — project: …** next to it, and **↺** goes back. A peek never
+changes the file, and Play and Export keep using the project's renderer. To change the project's
+renderer, open `project.yaml`. The editor shows it as a small settings form, and choosing a renderer
+there rewrites only its `renderer:` line, so comments are kept. You can also use the IDE settings
+([IDE tooling](/native/ide-tooling#the-projects-renderer-projectyaml)).
+
 ## The Redwood canvas
 
-The canvas paints with the **Vaadin** renderer by default. The renderer selector in the toolbar
-switches it to **Redwood (Oracle)**, which paints the page with the real Redwood renderer: the
-Oracle Visual Builder app that the `io.mateu:redwood` jar ships, running inside the canvas. You see
+With `renderer: redwood`, or with the toolbar switched to **Redwood (Oracle)**, the canvas paints
+the page with the real Redwood renderer: the
+Oracle Visual Builder app that the `io.mateu:mateu-redwood` jar ships, running inside the canvas. You see
 what a Redwood app shows, at the canvas's width, and the page is still editable:
 
 - **Click** a component in the Redwood canvas to select it. **Layers**, **Properties**, the
@@ -253,12 +266,12 @@ editor, so every host can serve it without a backend:
 
 | Host | The Redwood canvas |
 |---|---|
-| Browser (`npx vite` in `apps/visual-editor`) | the dev server serves `redwood/` from the `io.mateu:redwood` resources (`MATEU_REDWOOD_STATIC` points it elsewhere) |
+| Browser (`npx vite` in `apps/visual-editor`) | the dev server serves `redwood/` from the `io.mateu:mateu-redwood` resources (`MATEU_REDWOOD_STATIC` points it elsewhere) |
 | IntelliJ | the plugin's loopback server serves it from the bundled editor |
 | VS Code | the extension's loopback server serves it from the bundled editor, and the webview frames it from there |
 
 If the build does not include the Redwood app, the hosts ask the configured backend for it instead.
-A backend that depends on `io.mateu:redwood` serves it at its root (`/_index.html`, `/_redwood/`).
+A backend that depends on `io.mateu:mateu-redwood` serves it at its root (`/_index.html`, `/_redwood/`).
 
 **What it does not do yet.** You can drag a component from the palette onto the Redwood canvas, but
 it lands at the end of the page. Use the Vaadin canvas or **Layers** to place it exactly. Layout
@@ -350,7 +363,16 @@ the app. The menu (including menu entries that run a shell flow), row clicks, bu
 address bar with back and forward follows along. A mount that is only YAML needs no backend: play
 expands each screen in the browser, the same way a statically deployed bundle does. A route served
 by a view model goes to the preview backend, if you have one. The width selector shows the app on a
-tablet or a phone, starting at the canvas's width. Play starts on the screen you are editing; a card's **Play** starts on that card.
+tablet or a phone, starting at the canvas's width.
+
+Play always runs in the **project's renderer** (a badge in its bar names it), whatever the canvas
+is peeking at. With `renderer: redwood` the whole mount runs in the real Redwood app, framed like
+the Redwood canvas but live. Its menu navigates, rows and links open their screens, and Play's
+address bar, back and forward move it. The editor is that app's backend. Every call the app makes
+comes to the editor, which answers it from the files as you have edited them, using the same
+in-browser expansion Play uses for Vaadin. A shell boots as the app shell, and a route loads its
+screen. An action that needs a server goes to the preview backend, and with no backend it shows a
+toast saying so. Like the Redwood canvas, it needs Oracle's CDN. Play starts on the screen you are editing; a card's **Play** starts on that card.
 **Close** (or `Esc`) brings you back.
 
 ## Recognising components in the palette
@@ -386,6 +408,39 @@ no API key, nothing in between.
 A link opens the editor at the page's own address. To point links at a hosted editor instead, set
 `window.__mateuEditorUrl` before the bundle loads.
 
+## Permissions, translations and environments
+
+- **Access rules.** The properties panel of a component has a small editor for `eyesOnly`,
+  `readOnlyUnless` and `disabledUnless` (roles, groups, scopes, permissions); the app editor's menu
+  items and the routes editor carry the same editor for `access`. See
+  [Permissions in YAML](/java-ui-definition/yaml-security/). Play has no identity, so it shows
+  everything.
+- **Translation keys.** Label fields offer the project's translation keys (`${i18n.…}`) in their
+  combo, read from the translation files; you can still type any text. **▶ Play** has a locale
+  switcher that renders the app in each language your files declare. See
+  [Translations in YAML](/java-ui-definition/yaml-i18n/).
+- **Environments.** Environment files are plain YAML: open them in the text editor, validated by
+  the `type: Environment` branch of the schema. See [Environments](/java-ui-definition/environments/).
+- **New › Mateu** in IntelliJ and VS Code creates an empty *Translations* or *Environment* file.
+
+## Field types and sample data
+
+Two files make a mount designable with **no backend and no API**:
+
+- **`types.yaml`** (`type: Types`) — the [field types](/java-ui-definition/field-types/), the domain
+  vocabulary. It opens in a YAML editor checked against `types-schema.json` (unknown keys, data
+  types, stereotypes, tones, duplicate ids) with a summary of the types it declares. On a page, a
+  `FormField` or `GridColumn` picks its **`fieldType`** from a list of the catalogue's ids (or you type
+  one); the canvas and Play paint the field with the type's attributes, its own ones winning.
+- **`sources.yaml`** — each source has a **Sample data** box (JSON or YAML: the response the endpoint
+  would return) and a **sample file** field. The editor is a design session, so its canvas and Play
+  always answer sources from their samples: a listing shows the sample rows (searched, sorted and
+  paged in the browser), a select its options, a save succeeds without persisting. At runtime the
+  samples are only used when the app opts in — see
+  [sample data](/java-ui-definition/rest-source-catalogue/#sample-data-designing-without-an-api).
+
+New › Mateu › **Field Types** (IntelliJ and VS Code) creates an empty catalogue.
+
 ## Project awareness — the roadmap
 
 Everything above works today; what is still landing is the **"pick, don't type"** half of each
@@ -400,3 +455,4 @@ manual describes and validate that a reference resolves.
 - [App shell as data](/java-ui-definition/yaml-app-shell/) — the chrome the app file authors.
 - [Partials](/java-ui-definition/partials/) — reusable fragments.
 - [YAML UI definition](/java-ui-definition/yaml-ui-definition/) — the component-tree YAML a page is.
+- [Permissions in YAML](/java-ui-definition/yaml-security/), [Translations in YAML](/java-ui-definition/yaml-i18n/), [Environments](/java-ui-definition/environments/).

@@ -1,6 +1,7 @@
 import { parse } from 'yaml'
-import type { ProjectFile } from './projectIndex'
+import { parseSources, parseTypes, withSampleFiles, type FieldTypeEntry, type ProjectFile } from './projectIndex'
 import { isRoutesYaml, parseRoutes, flattenRoutes } from './routesModel'
+import { catalogueOf, environmentName, parseTranslationsFile, type TranslationsFile } from './translationsModel'
 import { lowerCatalogue } from '@infra/ui/actionCatalogue.ts'
 
 /**
@@ -21,7 +22,14 @@ export interface PlayManifest {
     sources?: { sources: unknown[] }
     /** The ACTION catalogue (every `type: Actions` file), lowered exactly as the server ships it. */
     actions?: unknown[]
+    /** The field types (`types.yaml`) the definitions reference by `fieldType:` — expanded in the
+     *  browser like the definitions themselves. */
+    types?: { types: FieldTypeEntry[] }
+    /** Play is a design session: the sources answer with their SAMPLE data (the visual editor's rule). */
+    mockSources: true
     definitions: Record<string, unknown>
+    /** locale → key → text: the shared runtime resolves `${i18n.…}` with it, as for a static bundle. */
+    translations?: Record<string, Record<string, string>>
 }
 
 export interface PlayRoute {
@@ -37,20 +45,42 @@ export function buildPlayManifest(files: ProjectFile[], generatedAt = new Date()
     const routes: PlayRoute[] = []
     const definitions: Record<string, unknown> = {}
     const sources: unknown[] = []
+    const catalogues: TranslationsFile[] = []
     const actions: unknown[] = []
+    const types: FieldTypeEntry[] = []
+    const sampleFiles = new Set<string>()
     for (const f of files ?? []) {
-        if (isRoutesYaml(f.content)) { routes.push(...flattenRoutes(parseRoutes(f.content).routes).map(toPlayRoute)); continue }
         const obj = parseObject(f.content)
-        if (!obj || obj.type === 'UI') continue // unreadable, or the mount descriptor
-        if (obj.type === 'Sources' || (!obj.type && Array.isArray(obj.sources))) sources.push(...((obj.sources as unknown[]) ?? []))
+        if (obj && (obj.type === 'Sources' || (!obj.type && Array.isArray(obj.sources)))) {
+            for (const e of parseSources(f.content)) if (typeof e.sampleFile === 'string') sampleFiles.add(normalizePath(e.sampleFile))
+        }
+    }
+    for (const f of files ?? []) {
+        if (sampleFiles.has(normalizePath(f.path))) continue // a source's sample data, not a definition
+        if (isRoutesYaml(f.content)) { routes.push(...flattenRoutes(parseRoutes(f.content).routes).map(toPlayRoute)); continue }
+        // a message catalogue travels as the manifest's `translations`; an environment re-points the
+        // server's sources and means nothing here — neither is a screen
+        const catalogue = parseTranslationsFile(f.path, f.content)
+        if (catalogue) { catalogues.push(catalogue); continue }
+        if (environmentName(f.path, f.content)) continue
+        const obj = parseObject(f.content)
+        if (!obj || obj.type === 'UI' || obj.type === 'Project') continue // unreadable, the mount or the project descriptor
+        if (obj.type === 'Sources' || (!obj.type && Array.isArray(obj.sources))) sources.push(...withSampleFiles(parseSources(f.content), files))
+        else if (obj.type === 'Types' || (!obj.type && Array.isArray(obj.types))) types.push(...parseTypes(f.content))
         else if (obj.type === 'Actions') actions.push(...((obj.actions as unknown[]) ?? []))
         else definitions[normalizePath(f.path)] = obj
     }
     const lowered = lowerCatalogue(actions)
-    return {
-        staticOnly: true, generatedAt, routes: { routes }, sources: sources.length ? { sources } : undefined,
-        ...(lowered.length ? { actions: lowered } : {}), definitions,
+    const manifest: PlayManifest = {
+        staticOnly: true, generatedAt, routes: { routes },
+        sources: sources.length ? { sources } : undefined,
+        types: types.length ? { types } : undefined,
+        mockSources: true,
+        ...(lowered.length ? { actions: lowered } : {}),
+        definitions,
     }
+    if (catalogues.length) manifest.translations = catalogueOf(catalogues)
+    return manifest
 }
 
 /** A route row as the runtime reads it: `layout:` as the definition, a bare `data: name` as `{ref}`. */
@@ -84,4 +114,13 @@ export function withEdited(files: ProjectFile[], path: string | undefined, text:
 
 function normalizePath(p: string): string {
     return (p ?? '').replace(/^\/+/, '').replace(/^specs\/ui\//, '')
+}
+
+/**
+ * Whether the mount's files declare access rules (`access:` on a route / menu item / action,
+ * `eyesOnly:` / `readOnlyUnless:` / `disabledUnless:` on a component). Play has no identity to check
+ * them against — they are applied on the server — so it shows everything and says so.
+ */
+export function filesDeclareAccess(files: ProjectFile[]): boolean {
+    return (files ?? []).some((f) => /^\s*(-\s*)?(access|eyesOnly|readOnlyUnless|disabledUnless)\s*:|[{,]\s*(access|eyesOnly|readOnlyUnless|disabledUnless)\s*:/m.test(f.content ?? ''))
 }

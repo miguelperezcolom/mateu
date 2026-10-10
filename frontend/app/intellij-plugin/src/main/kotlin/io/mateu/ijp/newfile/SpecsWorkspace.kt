@@ -38,8 +38,8 @@ class SpecsWorkspace private constructor(val root: String, val files: List<SpecF
                 VfsUtilCore.iterateChildrenRecursively(dir, null) { f ->
                     if (!f.isDirectory && (f.extension == "yaml" || f.extension == "yml")) {
                         val text = textOf(f)
-                        val kind = text?.let { MateuRoutes.classify(it) }
                         val rel = VfsUtilCore.getRelativePath(f, dir, '/')
+                        val kind = text?.let { MateuRoutes.classify(it, rel) }
                         if (kind != null && rel != null) {
                             files += SpecFile(rel, kind)
                             texts[rel] = text
