@@ -213,7 +213,7 @@ route. (Shipping only the first is what made a bundled deep link "render HOME", 
   deploy the menu/shell still comes from the backend, and if the backend is absent the shell falls
   back to the bundled root route. Contract-tested in `apps/redwood/poc/test.mjs`. It does **not** yet
   read an entry's `contentJson`, the raw `definitions` or the source catalogue — under an app shell,
-  static Redwood is structure-only (S4 of `design/maui-parity-plan.md`).
+  static Redwood is structure-only for now.
 
 ## Notes
 

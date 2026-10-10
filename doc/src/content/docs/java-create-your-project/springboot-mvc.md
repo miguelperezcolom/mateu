@@ -126,7 +126,9 @@ mvn spring-boot:run
 
 Open `http://localhost:8080` in your browser.
 
-<p align="center"><img src="../../../images/helloworld.png?raw=true" width="600"/></p>
+An empty class renders an empty page. For a complete project on this runtime — a model, a store and
+a full CRUD, with this exact build setup — copy the [`starters/spring-mvc`](https://github.com/miguelperezcolom/mateu/tree/master/starters/spring-mvc) project; CI
+compiles and boots it on every change.
 
 ---
 

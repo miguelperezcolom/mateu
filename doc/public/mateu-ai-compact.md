@@ -288,8 +288,10 @@ public class HotelSearch extends HeroSearch<HotelFilters, Hotel> {
     @Override protected String heroSubtitle() { return "Search by name or zone…"; }
 
     @Override
-    public ListingData<Hotel> search(String searchText, HotelFilters filters,
-                                     Pageable pageable, HttpRequest req) { /* query */ }
+    public ListingData<Hotel> search(SearchRequest request, HttpRequest req) {
+        HotelFilters filters = filters(request);   // typed; request.searchText(), request.pageable()
+        /* query */
+    }
 }
 ```
 

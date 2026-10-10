@@ -57,18 +57,18 @@ Font size is intentionally left at the normal Lumo value so body text stays legi
 
 ```
 ┌────────────────────────────────────────────────────────────┐
-│  Localizador  Hotel  Agencia  Estancia  Régimen  Saldo     │  ← header strip
+│  Locator  Hotel  Agency  Stay  Board  Balance              │  ← header strip
 ├──────────────────────────────┬─────────────────────────────┤
-│ Información general   col×8  │ Importes (grid)             │
-│  Waiting  TarifaRef  Tipo …  │                             │
-├──────────────────────────────┤ Información habitación      │
-│ Check-in              col×6  │  Nº hab  Beds  Estado …     │
-│  Nº hab  Tipo  Upgrade …     │                             │
-├──────────────────────────────┤ Historial cliente           │
-│ Huéspedes (grid)             │  RiuClass  Último hotel …   │
+│ Overview              col×8  │ Amounts (grid)              │
+│  Waiting  RateRef  Type …    │                             │
+├──────────────────────────────┤ Room                        │
+│ Check-in              col×6  │  Room no  Beds  Status …    │
+│  Room no  Type  Upgrade …    │                             │
+├──────────────────────────────┤ Guest history               │
+│ Guests (grid)                │  Loyalty  Last hotel …      │
 ├──────────────────────────────┤                             │
-│ Información cliente  col×8   │ Folios / Anticipos          │
-│  [Info Cardex] [Empresa] …   │  Crédito  Tarjeta  Saldo …  │
+│ Customer             col×8   │ Folios / Deposits           │
+│  [Profile] [Company] …       │  Credit  Card  Balance …    │
 └──────────────────────────────┴─────────────────────────────┘
 ```
 

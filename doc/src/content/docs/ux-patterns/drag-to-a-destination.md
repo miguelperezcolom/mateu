@@ -5,6 +5,8 @@ description: Select listing rows, drag them onto a card, a column or a list of d
 
 **Status:** ✅ Implemented
 
+![Folio charges grouped by window; the window cards on top are the drop zones](/images/docs/drag-to-a-destination/folio-windows.png)
+
 ## Intent
 
 Some operations are about *moving* things: folio charges from one billing window to another,

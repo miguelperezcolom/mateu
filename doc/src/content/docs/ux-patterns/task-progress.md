@@ -14,11 +14,11 @@ Tell the operator *how far along a repeated subtask is* and pull them into the n
 Use the `TaskProgress` component: a `label`, integer `total` and `done` counts (rendered as `1/4 2/4 3/4 4/4` pills, filled up to `done`), and an optional right-aligned button (`actionLabel` + `actionId`). While incomplete the banner is warning-tinted; when `done == total` it turns success-tinted and the button disappears.
 
 ```java
-@Section("Huéspedes")
+@Section("Guests")
 Component pax = TaskProgress.builder()
-        .label("Reserva con 4 pax. Registrar huéspedes adicionales.")
+        .label("Booking for 4 guests. Register the additional guests.")
         .total(4).done(1)
-        .actionLabel("Añadir siguiente pax").actionId("addPax")
+        .actionLabel("Add next guest").actionId("addPax")
         .build();
 ```
 

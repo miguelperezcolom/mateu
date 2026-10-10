@@ -75,7 +75,9 @@ public class HelloWorld {
 When you run your Quarkus application, you will find your ui at [http://localhost:8080](http://localhost:8080) (for the code above) as expected:
 
 
-<p align="center"><img src="../../../images/helloworld.png?raw=true" width="600"/></p>
+An empty class renders an empty page. For a complete project on this runtime — a model, a store and
+a full CRUD, with this exact build setup — copy the [`starters/quarkus`](https://github.com/miguelperezcolom/mateu/tree/master/starters/quarkus) project; CI
+compiles and boots it on every change.
 
 ## Troubleshooting
 
