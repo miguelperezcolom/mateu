@@ -244,7 +244,7 @@ type Node =
     | { k: 'unary'; op: string; arg: Node }
     | { k: 'bin'; op: string; left: Node; right: Node }
     | { k: 'logic'; op: string; left: Node; right: Node }
-    | { k: 'cond'; test: Node; then: Node; else: Node }
+    | { k: 'cond'; test: Node; consequent: Node; alternate: Node }
     | { k: 'seq'; items: Node[] }
     | { k: 'arrow'; params: string[]; rest: string | undefined; body: Node }
     | { k: 'spread'; arg: Node }
@@ -346,10 +346,11 @@ class Parser {
         const test = this.binary(0)
         if (!this.isP('?')) return test
         this.i++
-        const then = this.assignment()
+        // not `then`: an object with a `then` member is a thenable to every Promise consumer
+        const consequent = this.assignment()
         this.expectP(':')
-        const otherwise = this.assignment()
-        return { k: 'cond', test, then, else: otherwise }
+        const alternate = this.assignment()
+        return { k: 'cond', test, consequent, alternate }
     }
 
     private binaryOp(): string | undefined {
@@ -741,7 +742,7 @@ const evaluateNode = (node: Node, scope: Scope): unknown => {
             return l ?? evaluateNode(node.right, scope)
         }
         case 'bin': return binary(node.op, evaluateNode(node.left, scope), evaluateNode(node.right, scope))
-        case 'cond': return evaluateNode(node.test, scope) ? evaluateNode(node.then, scope) : evaluateNode(node.else, scope)
+        case 'cond': return evaluateNode(node.test, scope) ? evaluateNode(node.consequent, scope) : evaluateNode(node.alternate, scope)
         case 'seq': {
             let v: unknown
             for (const item of node.items) v = evaluateNode(item, scope)

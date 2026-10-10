@@ -1481,7 +1481,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const widget = fieldWidgetOf(f, data, { lookups: true, value: raw, textWhenEmpty: true })
       let value = raw == null ? null : (widget.isSelect ? plainValueOf(raw) : raw)
       if (widget.isMultiSelect || widget.isCheckboxSet)
-        value = Array.isArray(raw) ? raw.map(plainValueOf) : (raw == null || raw === '' ? [] : String(raw).split(','))
+        value = Array.isArray(raw) ? raw.map((v) => plainValueOf(v)) : (raw == null || raw === '' ? [] : String(raw).split(','))
       else if (widget.isMoney) value = raw == null || raw === '' || Number.isNaN(Number(raw)) ? null : Number(raw)
       out.push({ ...widget, value })
     }
@@ -7470,7 +7470,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
     const groups = (m.menu || []).filter((o) => o && o.visible !== false).map((o) => ({
       title: interp(str(o.label)),
-      links: keyed((o.submenus || []).length ? linksOf(o, '') : linksOf(o, '')),
+      links: keyed(linksOf(o, '')),
     }))
     const cols = Math.max(1, Math.min(4, groups.length))
     return { isDirectory: true, groups: keyed(groups.map((g) => ({ ...g, colClass: 'oj-flex-item oj-sm-12 oj-md-' + Math.floor(12 / cols) }))) }
@@ -13840,7 +13840,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       if (n.label) {
         const inside = n.kind === 'task' || n.kind === 'note'
         const t = el2('text', {
-          x: inside ? cx : cx, y: inside ? cy : n.y + n.h + 14,
+          x: cx, y: inside ? cy : n.y + n.h + 14,
           'text-anchor': 'middle', 'dominant-baseline': inside ? 'middle' : 'hanging', class: 'mateu-bpmn-label',
         })
         // a long name wraps on words over up to three lines inside its box
@@ -14004,9 +14004,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           paint()
         }
       }
-      send.addEventListener('ojAction', (e) => { e.stopPropagation(); submit() })
-      form.addEventListener('submit', (e) => { e.preventDefault(); submit() })
-      input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() } })
+      send.addEventListener('ojAction', (e) => { e.stopPropagation(); void submit() })
+      form.addEventListener('submit', (e) => { e.preventDefault(); void submit() })
+      input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void submit() } })
       paint()
     })
   }

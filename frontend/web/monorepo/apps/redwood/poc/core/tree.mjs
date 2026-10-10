@@ -135,7 +135,7 @@ export function fieldListOf(tree, state, data) {
     const widget = fieldWidgetOf(f, data, { lookups: true, value: raw, textWhenEmpty: true })
     let value = raw == null ? null : (widget.isSelect ? plainValueOf(raw) : raw)
     if (widget.isMultiSelect || widget.isCheckboxSet)
-      value = Array.isArray(raw) ? raw.map(plainValueOf) : (raw == null || raw === '' ? [] : String(raw).split(','))
+      value = Array.isArray(raw) ? raw.map((v) => plainValueOf(v)) : (raw == null || raw === '' ? [] : String(raw).split(','))
     else if (widget.isMoney) value = raw == null || raw === '' || Number.isNaN(Number(raw)) ? null : Number(raw)
     out.push({ ...widget, value })
   }

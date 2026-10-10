@@ -4650,7 +4650,7 @@ test('i18n: inglés por defecto; español por el idioma de la interfaz; huecos e
 })
 
 test('i18n: español e inglés tienen las MISMAS claves (un hueco en español sería inglés en una consola española)', () => {
-  assert.deepEqual(Object.keys(CHROME_TEXTS.es).sort(), Object.keys(CHROME_TEXTS.en).sort())
+  assert.deepEqual(Object.keys(CHROME_TEXTS.es).sort((a, b) => a.localeCompare(b)), Object.keys(CHROME_TEXTS.en).sort((a, b) => a.localeCompare(b)))
   for (const [lang, dict] of Object.entries(CHROME_TEXTS)) {
     for (const k of Object.keys(dict)) assert.ok(k in CHROME_TEXTS.en, lang + '.' + k + ' no existe en inglés')
   }

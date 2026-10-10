@@ -72,7 +72,7 @@ export function drawBpmn(el, spec, doc = el.ownerDocument) {
     if (n.label) {
       const inside = n.kind === 'task' || n.kind === 'note'
       const t = el2('text', {
-        x: inside ? cx : cx, y: inside ? cy : n.y + n.h + 14,
+        x: cx, y: inside ? cy : n.y + n.h + 14,
         'text-anchor': 'middle', 'dominant-baseline': inside ? 'middle' : 'hanging', class: 'mateu-bpmn-label',
       })
       // a long name wraps on words over up to three lines inside its box
@@ -236,9 +236,9 @@ export function installChatComponents(doc = typeof document !== 'undefined' ? do
         paint()
       }
     }
-    send.addEventListener('ojAction', (e) => { e.stopPropagation(); submit() })
-    form.addEventListener('submit', (e) => { e.preventDefault(); submit() })
-    input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit() } })
+    send.addEventListener('ojAction', (e) => { e.stopPropagation(); void submit() })
+    form.addEventListener('submit', (e) => { e.preventDefault(); void submit() })
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void submit() } })
     paint()
   })
 }

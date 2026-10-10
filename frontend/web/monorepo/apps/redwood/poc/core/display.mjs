@@ -497,7 +497,7 @@ export function directoryAtomOf(m, interp = (x) => x) {
   }
   const groups = (m.menu || []).filter((o) => o && o.visible !== false).map((o) => ({
     title: interp(str(o.label)),
-    links: keyed((o.submenus || []).length ? linksOf(o, '') : linksOf(o, '')),
+    links: keyed(linksOf(o, '')),
   }))
   const cols = Math.max(1, Math.min(4, groups.length))
   return { isDirectory: true, groups: keyed(groups.map((g) => ({ ...g, colClass: 'oj-flex-item oj-sm-12 oj-md-' + Math.floor(12 / cols) }))) }

@@ -47,7 +47,8 @@ export function sourceFiles(root = rendererRoot) {
     .flatMap((d) => walk(join(root, d), []))
     .map((p) => relative(root, p).split(sep).join('/'))
     .filter(isSource)
-    .sort()
+    // code-unit order, not locale order: the hash must be identical on every machine
+    .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
 }
 
 /** sha256 over every source file's path and bytes; hex, first 16 characters. */

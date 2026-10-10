@@ -332,7 +332,7 @@ export class MateuVisualEditor extends LitElement {
     private loadProject() {
         // the host re-sends the files when one changes (a page created while this editor is open)
         this.host.onFilesChanged?.((files) => this.applyProjectFiles(files))
-        this.host.listFiles?.().then((files) => this.applyProjectFiles(files))
+        this.host.listFiles?.().then((files) => this.applyProjectFiles(files)).catch(() => undefined)
     }
 
     private applyProjectFiles(files: ProjectFile[] | undefined) {
