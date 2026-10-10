@@ -32,6 +32,8 @@ import {
 } from '../core/listingGroups';
 import { buttonA11y } from '../a11y/a11y';
 import { cellTooltipText } from './hoverDetails';
+import { ComponentRenderer } from './ComponentRenderer';
+import { showsPreSearch } from './patternGaps';
 
 interface FilterFieldMeta {
   fieldId: string;
@@ -145,9 +147,14 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
   // Live listing data: seeded from the initial fragment, refreshed by every data-only
   // fragment (search/pagination responses) through the registered data handler.
   const [liveData, setLiveData] = useState<unknown>(data);
+  // CrudlDto.preSearch: shown in place of the results until this listing's FIRST search answers;
+  // from then on the results (or the normal empty state) replace it for good.
+  const [searched, setSearched] = useState(false);
+  const preSearch = (metadata['preSearch'] as unknown[] | null | undefined) ?? null;
   useEffect(() => {
     const id = (component['id'] as string) || 'crud';
     const onData = (d: unknown) => {
+      setSearched(true);
       setLiveData(normalizeCrudData(d));
       // fresh rows: any previous selection points at stale row objects
       setSelectedRows([]);
@@ -182,6 +189,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         if (cancelled) return;
         const rows = mapItemsToRows(json, rowsResolved.itemsPath, columnIds) as Record<string, unknown>[];
         setRestRows(rows);
+        setSearched(true);
         setLiveData({ page: { content: rows, totalElements: rows.length, pageSize: rows.length, pageNumber: 0 } });
       })
       .catch((e) => console.warn('mateu: external rows fetch failed', e));
@@ -488,7 +496,13 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         />
       )}
 
-      {rawRows.length === 0 ? (
+      {showsPreSearch(preSearch, searched) ? (
+        <View style={styles.preSearch}>
+          {(preSearch ?? []).map((c, i) => (
+            <ComponentRenderer key={i} component={c} state={state} />
+          ))}
+        </View>
+      ) : rawRows.length === 0 ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyStateIcon}>🗂</Text>
           <Text style={styles.emptyStateText}>{(metadata['emptyStateMessage'] as string) || 'No data'}</Text>
@@ -1016,6 +1030,7 @@ const styles = StyleSheet.create({
   filterChipOnText: { color: theme.white, fontSize: 13 },
   filterButtons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginTop: 4 },
   emptyState: { alignItems: 'center', padding: 32 },
+  preSearch: { padding: 12, gap: 12 },
   emptyStateIcon: { fontSize: 32, marginBottom: 8 },
   emptyStateText: { fontSize: 14, color: theme.faint },
   cardRow: { margin: 8, marginBottom: 0, padding: 12, borderWidth: 1, borderColor: theme.border, borderRadius: 8, backgroundColor: theme.white },

@@ -5,6 +5,7 @@ import { ComponentRenderer } from './ComponentRenderer';
 import { AddOn, ChecklistItem, Chip, Comment, EmptyState, EntityHeader, Fact, FaqItem, Feature, FileItem, FoldoutPanelInfo, FunnelStage, GanttTask, HeatCell, HeroSection, KanbanColumn, LedgerLine, Meter, OfferCard, OrgNode, PaymentMethod, PricingPlan, ProcessItem, QueueGroup, ResourceItem, Skeleton, Stat, StatusItem, Step, Testimonial, TimelineItem } from '../api/metadata';
 import { theme } from '../theme';
 import { buttonA11y } from '../a11y/a11y';
+import { foldoutSummaryOf, heroToneColors } from './patternGaps';
 
 type Dict = Record<string, unknown>;
 const meta = (c: unknown): Dict => ((c as Dict)?.['metadata'] as Dict) ?? {};
@@ -33,6 +34,8 @@ export function FoldoutRenderer({ component, state }: { component: unknown; stat
       )}
       {panels.map((p, i) => {
         const content = children.find((c) => slotOf(c) === `panel-${i}`);
+        // summary-N: what a FOLDED panel shows — a compact digest under the title while closed.
+        const summary = foldoutSummaryOf(children, i);
         const icon = displayIcon(p.icon);
         return (
           <View key={i} style={styles.foldoutPanel}>
@@ -40,6 +43,11 @@ export function FoldoutRenderer({ component, state }: { component: unknown; stat
               <View style={styles.foldoutHeaderText}>
                 <Text style={styles.foldoutTitle}>{icon ? `${icon} ` : ''}{p.title ?? ''}</Text>
                 {!!p.subtitle && <Text style={styles.foldoutSubtitle}>{p.subtitle}</Text>}
+                {!open[i] && !!summary && (
+                  <View style={styles.foldoutSummary}>
+                    <ComponentRenderer component={summary} state={state} />
+                  </View>
+                )}
               </View>
               <Text style={styles.foldoutChevron}>{open[i] ? '▾' : '▸'}</Text>
             </TouchableOpacity>
@@ -69,16 +77,21 @@ export function HeroSectionRenderer({ component, state }: { component: unknown; 
   const children = childrenOf(component);
   const centered = m.centered !== false;
   const onImage = !!m.image;
+  // HeroSectionDto.tone: a dark tinted band with light ink (shared palette); unknown → default look.
+  // With an image the image wins and the tone is the band behind it.
+  const tone = heroToneColors(m.tone);
+  const titleInk = !onImage && tone ? { color: tone.title } : null;
+  const subtitleInk = !onImage && tone ? { color: tone.subtitle } : null;
 
   const content = (
     <View style={[styles.heroContent, { alignItems: centered ? 'center' : 'flex-start' }]}>
       {!!m.title && (
-        <Text style={[styles.heroTitle, onImage && styles.heroTextOnImage, { textAlign: centered ? 'center' : 'left' }]}>
+        <Text style={[styles.heroTitle, onImage && styles.heroTextOnImage, titleInk, { textAlign: centered ? 'center' : 'left' }]}>
           {m.title}
         </Text>
       )}
       {!!m.subtitle && (
-        <Text style={[styles.heroSubtitle, onImage && styles.heroTextOnImage, { textAlign: centered ? 'center' : 'left' }]}>
+        <Text style={[styles.heroSubtitle, onImage && styles.heroTextOnImage, subtitleInk, { textAlign: centered ? 'center' : 'left' }]}>
           {m.subtitle}
         </Text>
       )}
@@ -94,13 +107,13 @@ export function HeroSectionRenderer({ component, state }: { component: unknown; 
 
   if (m.image) {
     return (
-      <ImageBackground source={{ uri: m.image }} style={[styles.hero, { minHeight: heroHeight(m.height) }]} imageStyle={styles.heroImage}>
+      <ImageBackground source={{ uri: m.image }} style={[styles.hero, tone && { backgroundColor: tone.background }, { minHeight: heroHeight(m.height) }]} imageStyle={styles.heroImage}>
         <View style={styles.heroOverlay} />
         {content}
       </ImageBackground>
     );
   }
-  return <View style={[styles.hero, styles.heroPlain, { minHeight: heroHeight(m.height) }]}>{content}</View>;
+  return <View style={[styles.hero, styles.heroPlain, tone && { backgroundColor: tone.background }, { minHeight: heroHeight(m.height) }]}>{content}</View>;
 }
 
 // ── EmptyState ────────────────────────────────────────────────────────────────
@@ -1234,6 +1247,7 @@ const styles = StyleSheet.create({
   foldoutTitle: { fontWeight: '700' },
   foldoutSubtitle: { fontSize: 12, color: theme.muted },
   foldoutChevron: { color: theme.muted, marginLeft: 8 },
+  foldoutSummary: { marginTop: 4, maxHeight: 64, overflow: 'hidden' },
   foldoutBody: { padding: 12, backgroundColor: theme.white },
   // Hero
   hero: { borderRadius: 12, overflow: 'hidden', justifyContent: 'center' },
