@@ -4,9 +4,12 @@ import static io.mateu.core.domain.out.componentmapper.FieldMetadataExtractor.ge
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getForm;
 import static io.mateu.core.domain.out.componentmapper.PageFormBuilder.getFormColumns;
 import static io.mateu.core.domain.out.componentmapper.ReflectionPageMapper.getTitle;
+import static io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods;
 import static io.mateu.core.infra.reflection.write.ValueWriter.setValue;
 
 import io.mateu.core.domain.out.componentmapper.TranslatorContext;
+import io.mateu.core.infra.reflection.MetaAnnotations;
+import io.mateu.uidl.annotations.WizardCompletionAction;
 import io.mateu.uidl.annotations.WizardLabels;
 import io.mateu.uidl.annotations.WizardLayoutMode;
 import io.mateu.uidl.data.*;
@@ -22,6 +25,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.reactivestreams.Publisher;
 
 @Slf4j
 public abstract class Wizard
@@ -496,6 +500,15 @@ public abstract class Wizard
   public List<Action> actions(HttpRequest httpRequest) {
     var actions = new ArrayList<Action>();
     actions.add(Action.builder().id("next").validationRequired(true).build());
+    // A completion action that streams (returns a Flux, e.g. a LongTask) has to be called over
+    // SSE, or the client waits for the whole stream and the progress never shows.
+    getAllMethods(getClass()).stream()
+        .filter(method -> MetaAnnotations.isPresent(method, WizardCompletionAction.class))
+        .filter(method -> Publisher.class.isAssignableFrom(method.getReturnType()))
+        .map(
+            method ->
+                Action.builder().id(method.getName()).validationRequired(true).sse(true).build())
+        .forEach(actions::add);
     return actions;
   }
 }

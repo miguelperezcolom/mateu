@@ -49,7 +49,7 @@ The captures are in `frontend/web/monorepo/apps/redwood/poc/shots/`.
 | Financials › Billing | `/financials/billing` | Billing: the folio generated as a PDF and downloaded (006 "About Billing", "Generating a Folio") | `pms-billing-download.png` |
 | Financials › Folio | `/financials/folio` | The folio summarized: charges grouped by transaction code, with subtotals and total (006 "About Billing") | `pms-folio-summarized.png` |
 | Financials › Windows | `/financials/windows` | Folio windows: select charges and drag them onto another window (006 "Billing", "Transfer Charges using Drag and Drop") | `pms-folio-windows.png`, `pms-folio-windows-moved.png` |
-| Financials › End of day | `/financials/endOfDay` | End of Day: a guided run that stops at arrivals not checked in, departures not checked out and open cashiers; then the status of each procedure and the new business date (006 "Running End of Day") | `pms-end-of-day-arrivals.png`, `pms-end-of-day-stop.png`, `pms-end-of-day-done.png` |
+| Financials › End of day | `/financials/endOfDay` | End of Day: a guided run that stops at arrivals not checked in, departures not checked out and open cashiers; the procedures run with their progress streamed live (a `LongTask` returned from the completion action); then the status of each procedure and the new business date (006 "Running End of Day") | `pms-end-of-day-arrivals.png`, `pms-end-of-day-stop.png`, `pms-end-of-day-progress.png`, `pms-end-of-day-done.png` |
 
 The access keys (Alt+letter on the section band) show on every screen: `pms-access-keys.png`.
 

@@ -11,10 +11,15 @@ import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.annotations.WizardCompletionAction;
 import io.mateu.uidl.annotations.WizardProgress;
 import io.mateu.uidl.annotations.WizardProgressStyle;
+import io.mateu.uidl.data.LongTask;
 import io.mateu.uidl.data.Message;
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Supplier;
+import reactor.core.publisher.Flux;
 
 /**
  * End of Day (OPERA Cloud 26.3 user guide, 006 "Running End of Day"): the night audit as a guided
@@ -106,62 +111,101 @@ public class EndOfDay extends Wizard {
 
   @WizardCompletionAction
   @Label("Run end of day")
-  Object run() {
+  Flux<?> run() {
     if (!cashiers.closeAll) {
-      return Message.error("End of day stops here: close the open cashiers first.");
+      return Flux.just(Message.error("End of day stops here: close the open cashiers first."));
     }
+    // each procedure runs as the stream reaches it, so the progress dialog shows them one by one
+    List<Supplier<String>> steps =
+        List.of(
+            this::resolveArrivals,
+            this::resolveDepartures,
+            () -> "✓ Cashiers: " + cashiers.open.size() + " closed",
+            this::postRoomAndTax,
+            this::setOccupiedRoomsDirty,
+            () -> {
+              Hotel.rollBusinessDate();
+              return "✓ Business date rolled to " + Hotel.businessDate();
+            },
+            () -> "✓ Final reports: Manager report, Trial balance");
     var procedures = new ArrayList<String>();
-    var date = Hotel.businessDate();
-    int arrivalsResolved = 0;
-    int departuresResolved = 0;
+    return LongTask.create("Running end of day")
+        .withProgressBar()
+        .done("End of day", "All procedures finished")
+        .closeAfter(1)
+        .run(
+            progress ->
+                Flux.range(0, steps.size())
+                    .delayElements(Duration.ofMillis(400))
+                    .map(
+                        i -> {
+                          var line = steps.get(i).get();
+                          procedures.add(line);
+                          if (i == steps.size() - 1) {
+                            result = new ResultStep();
+                            result.businessDate = Hotel.businessDate().toString();
+                            result.procedures = procedures;
+                          }
+                          return progress.step(line, (i + 1) / (double) steps.size());
+                        }));
+  }
+
+  private String resolveArrivals() {
+    int resolved = 0;
     for (var r : Hotel.RESERVATIONS) {
-      var status = Hotel.statusFor(r);
-      if (status == Hotel.ReservationStatus.DUE_IN) {
+      if (Hotel.statusFor(r) == Hotel.ReservationStatus.DUE_IN) {
         // OPERA keeps no-shows apart from cancellations; this demo has one terminal status for both
         r.status = Hotel.ReservationStatus.CANCELLED;
-        arrivalsResolved++;
-      } else if (status == Hotel.ReservationStatus.DUE_OUT) {
+        resolved++;
+      }
+    }
+    return "✓ Arrivals: "
+        + resolved
+        + (arrivals.resolution == ArrivalsResolution.MARK_AS_NO_SHOW
+            ? " marked as no-show"
+            : " cancelled");
+  }
+
+  private String resolveDepartures() {
+    int resolved = 0;
+    for (var r : Hotel.RESERVATIONS) {
+      if (Hotel.statusFor(r) == Hotel.ReservationStatus.DUE_OUT) {
         if (departures.resolution == DeparturesResolution.EXTEND_ONE_NIGHT) {
           r.departure = r.departure.plusDays(1);
         } else {
           r.status = Hotel.ReservationStatus.CHECKED_OUT;
         }
-        departuresResolved++;
+        resolved++;
       }
     }
-    procedures.add(
-        "✓ Arrivals: "
-            + arrivalsResolved
-            + (arrivals.resolution == ArrivalsResolution.MARK_AS_NO_SHOW
-                ? " marked as no-show"
-                : " cancelled"));
-    procedures.add(
-        "✓ Departures: "
-            + departuresResolved
-            + (departures.resolution == DeparturesResolution.EXTEND_ONE_NIGHT
-                ? " extended one night"
-                : " checked out"));
-    procedures.add("✓ Cashiers: " + cashiers.open.size() + " closed");
-    var inHouse =
-        Hotel.RESERVATIONS.stream()
-            .filter(r -> Hotel.statusFor(r) == Hotel.ReservationStatus.IN_HOUSE)
-            .toList();
+    return "✓ Departures: "
+        + resolved
+        + (departures.resolution == DeparturesResolution.EXTEND_ONE_NIGHT
+            ? " extended one night"
+            : " checked out");
+  }
+
+  private List<Hotel.Reservation> inHouse() {
+    return Hotel.RESERVATIONS.stream()
+        .filter(r -> Hotel.statusFor(r) == Hotel.ReservationStatus.IN_HOUSE)
+        .toList();
+  }
+
+  private String postRoomAndTax() {
+    var date = Hotel.businessDate();
+    var inHouse = inHouse();
     var roomRevenue = BigDecimal.ZERO;
     for (var r : inHouse) {
-      Hotel.CHARGES.add(Hotel.charge("EOD-" + date + "-" + r.id, r.id, 1, date, "1000", "Room charge", r.rate));
+      Hotel.CHARGES.add(
+          Hotel.charge("EOD-" + date + "-" + r.id, r.id, 1, date, "1000", "Room charge", r.rate));
       roomRevenue = roomRevenue.add(r.rate);
     }
-    procedures.add(
-        "✓ Room and tax posted: " + inHouse.size() + " rooms · " + roomRevenue + " €");
-    var occupied = inHouse.stream().map(r -> r.room).filter(java.util.Objects::nonNull).toList();
+    return "✓ Room and tax posted: " + inHouse.size() + " rooms · " + roomRevenue + " €";
+  }
+
+  private String setOccupiedRoomsDirty() {
+    var occupied = inHouse().stream().map(r -> r.room).filter(Objects::nonNull).toList();
     Hotel.setRoomStatus(occupied, Hotel.HousekeepingStatus.DI);
-    procedures.add("✓ Housekeeping: " + occupied.size() + " occupied rooms set to dirty");
-    Hotel.rollBusinessDate();
-    procedures.add("✓ Business date rolled to " + Hotel.businessDate());
-    procedures.add("✓ Final reports: Manager report, Trial balance");
-    result = new ResultStep();
-    result.businessDate = Hotel.businessDate().toString();
-    result.procedures = procedures;
-    return null;
+    return "✓ Housekeeping: " + occupied.size() + " occupied rooms set to dirty";
   }
 }
