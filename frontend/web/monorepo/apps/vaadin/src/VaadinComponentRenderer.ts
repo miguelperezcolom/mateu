@@ -67,9 +67,6 @@ const VAADIN_WIDGETS: Partial<Record<ComponentMetadataType, WidgetRenderer>> = {
     [ComponentMetadataType.MasterDetailLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderMasterDetailLayout(c, comp, b, s, d, as, ad),
     [ComponentMetadataType.TabLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderTabLayout(c, comp, b, s, d, as, ad),
     [ComponentMetadataType.AccordionLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderAccordionLayout(c, comp, b, s, d, as, ad),
-    [ComponentMetadataType.BoardLayout]: (c, comp, b, s, d, as, ad) => vLayouts.renderBoardLayout(c, comp, b, s, d, as, ad),
-    [ComponentMetadataType.BoardLayoutRow]: (c, comp, b, s, d, as, ad) => vLayouts.renderBoardLayoutRow(c, comp, b, s, d, as, ad),
-    [ComponentMetadataType.BoardLayoutItem]: (c, comp, b, s, d, as, ad) => vLayouts.renderBoardLayoutItem(c, comp, b, s, d, as, ad),
     [ComponentMetadataType.Scroller]: (c, comp, b, s, d, as, ad) => vLayouts.renderScroller(c, comp, b, s, d, as, ad),
     // Menu subsystem
     [ComponentMetadataType.MenuBar]: (c, comp, b, s, d) => renderMenuBar(c, comp, b, s, d),
