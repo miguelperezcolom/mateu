@@ -326,6 +326,37 @@
           "chain": "chatMic"
         }
       ]
+    },
+    "bellClicked": {
+      "chains": [
+        {
+          "chain": "mateuBell",
+          "parameters": {
+            "op": "toggle"
+          }
+        }
+      ]
+    },
+    "bellMarkAllRead": {
+      "chains": [
+        {
+          "chain": "mateuBell",
+          "parameters": {
+            "op": "readAll"
+          }
+        }
+      ]
+    },
+    "bellItemAction": {
+      "chains": [
+        {
+          "chain": "mateuBell",
+          "parameters": {
+            "op": "open",
+            "item": "{{ $event.detail.context.data }}"
+          }
+        }
+      ]
     }
   },
   "imports": {
@@ -392,6 +423,12 @@
       },
       "oj-bind-dom": {
         "path": "ojs/ojbinddom"
+      },
+      "oj-list-view": {
+        "path": "ojs/ojlistview"
+      },
+      "oj-list-item-layout": {
+        "path": "ojs/ojlistitemlayout"
       }
     }
   },

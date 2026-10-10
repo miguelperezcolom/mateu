@@ -1329,3 +1329,10 @@ body.mateu-scrolled .mateu-sticky-header .oj-sp-header-general-overview-title { 
 .mateu-cal-danger { background-color: rgba(200, 40, 30, 0.10); }
 .mateu-cal-danger .mateu-cal-label { color: #b3261e; }
 .mateu-cal-neutral { background-color: rgba(0, 0, 0, 0.035); }
+
+/* ── Campana de la bandeja ── */
+.mateu-bell { position: relative; display: inline-flex; }
+.mateu-bell-badge { position: absolute; top: -4px; right: -6px; transform: scale(0.85); pointer-events: none; min-width: 1.1rem; text-align: center; }
+.mateu-bell-panel { width: 22rem; max-width: 90vw; }
+.mateu-bell-list { max-height: 24rem; }
+.mateu-undo-button { margin-top: 0.25rem; }

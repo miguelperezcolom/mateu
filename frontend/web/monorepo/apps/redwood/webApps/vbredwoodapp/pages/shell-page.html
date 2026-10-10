@@ -119,6 +119,45 @@
           Chat
         </oj-button>
       </oj-bind-if>
+      <!-- CAMPANA de la bandeja (NotificationsSupplier del App): oj-button con la insignia de no
+           leídas y un oj-popup con un oj-list-view; activar una entrada la marca leída y navega -->
+      <oj-bind-if test="[[ $application.variables.mateuNotifications.enabled ]]">
+        <span class="mateu-bell oj-sm-margin-1x-start">
+          <oj-button id="mateuBellButton" chroming="borderless" display="icons" class="oj-color-invert"
+            :aria-label="[[ $application.variables.mateuNotifications.label ]]"
+            on-oj-action="[[ $listeners.bellClicked ]]">
+            <span slot="startIcon" class="oj-ux-ico-notification"></span>
+            Notifications
+          </oj-button>
+          <oj-bind-if test="[[ $application.variables.mateuNotifications.hasUnread ]]">
+            <span class="mateu-bell-badge oj-badge oj-badge-danger" aria-hidden="true"><oj-bind-text value="[[ $application.variables.mateuNotifications.badge ]]"></oj-bind-text></span>
+          </oj-bind-if>
+        </span>
+        <oj-popup id="mateuBellPopup" class="mateu-widget-popup" position.my.horizontal="end" position.at.horizontal="end" auto-dismiss="focusLoss" modality="modeless">
+          <div class="oj-sm-padding-3x mateu-bell-panel">
+            <div class="oj-flex oj-sm-justify-content-space-between oj-sm-align-items-center oj-sm-margin-2x-bottom">
+              <span class="oj-typography-subheading-xs">Notifications</span>
+              <oj-bind-if test="[[ $application.variables.mateuNotifications.hasUnread ]]">
+                <oj-button chroming="borderless" on-oj-action="[[ $listeners.bellMarkAllRead ]]">Mark all read</oj-button>
+              </oj-bind-if>
+            </div>
+            <oj-bind-if test="[[ $application.variables.mateuNotifications.empty ]]">
+              <div class="oj-text-color-secondary oj-sm-padding-4x-vertical">You're all caught up</div>
+            </oj-bind-if>
+            <oj-list-view id="mateuBellList" aria-label="Notifications" class="mateu-bell-list"
+              data="[[ $application.variables.mateuNotifications.provider ]]"
+              selection-mode="single" on-oj-item-action="[[ $listeners.bellItemAction ]]">
+              <template slot="itemTemplate" data-oj-as="item">
+                <oj-list-item-layout>
+                  <div :class="[[ item.data.titleClass ]]"><oj-bind-text value="[[ item.data.title ]]"></oj-bind-text></div>
+                  <div slot="secondary" class="oj-typography-body-sm"><oj-bind-text value="[[ item.data.text ]]"></oj-bind-text></div>
+                  <div slot="tertiary" class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ item.data.when ]]"></oj-bind-text></div>
+                </oj-list-item-layout>
+              </template>
+            </oj-list-view>
+          </div>
+        </oj-popup>
+      </oj-bind-if>
       <!-- WIDGETS de cabecera del App (WidgetSupplier): la zona de ACCIONES de la cabecera global.
            HTML de un Text y HTML vivo de un MicroFrontend (el badge de la bandeja, que se refresca
            con sus triggers) van a un hueco que rellena el bridge — VB no estampa HTML crudo desde

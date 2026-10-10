@@ -1,3 +1,4 @@
+import { takeUndoToasts, showUndoToasts } from './notify.mjs'
 // Efectos de DOM que el reducer (puro) solo DESCRIBE: descargar un fichero y abrir una URL en
 // otra pestaña. Antes `effects.download` se calculaba y nadie lo leía — el CSV de un listado o
 // el PDF de un folio llegaban al navegador y se perdían. Cada chain que reduce un increment
@@ -55,5 +56,8 @@ export function applyDomEffects(effects, reg, env = globalThis) {
   let n = 0
   for (const d of effects.downloads || (effects.download ? [effects.download] : []))
     if (triggerDownload(d, env)) n++
+  // los toasts con «Undo» salen por el oj-message de JET (notify.mjs), no por el toast normal
+  const undo = takeUndoToasts(effects)
+  if (undo.length && env && env.document) showUndoToasts(undo, env.document)
   return n
 }

@@ -18,6 +18,7 @@ import { coverageProblems } from './parity-check.mjs'
 import { coverageTable } from './coverage.mjs'
 import { chartAtomOf, metricOf, gridTrackWeights, gridColClasses, panelColClass } from './reduceContexts.mjs'
 import { calendarAtomOf, calPeriod, calEventsOn, calAddDays } from './calendar.mjs'
+import { notificationsOf, notificationListOf, takeUndoToasts, undoMessageOf } from './notify.mjs'
 import { dayIndexAtX } from './planning.mjs'
 import { applyColumnPrefs, columnChooserOf, prefsFromChooser, moveChooserItem, readColumnPrefs, writeColumnPrefs, saveView, listSavedViews, defaultView, deleteView, viewRouteOf, currentViewValues, viewsMenuOf, listingScope } from './prefs.mjs'
 import { listingOf, groupedRows, rowToneOf, aggregateFootersOf } from './reduceContexts.mjs'
@@ -866,6 +867,53 @@ test('calendario: la plantilla pinta las vistas por data-cal-shown, con oj-butto
   assert.match(webApp('flows/main/pages/main-start-page.json'), /"oj-buttonset-one": \{\s*"path": "ojs\/ojbutton"/)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installCalendars\(\)/)
   assert.match(webApp('resources/css/app.css'), /\.mateu-cal\[data-cal-shown="week"\] \.mateu-cal-view\[data-for="week"\]/)
+})
+
+// ── P1 #17 campana de notificaciones y toasts con deshacer ───────────────────────────────────
+test('campana: la lista de la respuesta Data, no leídas en negrita, insignia y etiqueta accesible', () => {
+  const inc = { fragments: [{ targetComponentId: '', data: { _notifications: [
+    { id: 'vip', title: 'VIP arriving', text: 'Room 106', route: '/bookings/reservation', unread: true, when: '08:12' },
+    { id: 'eod', title: 'End of day', text: 'Done', route: '', unread: false },
+  ] } }] }
+  const list = notificationListOf(inc)
+  assert.equal(list.length, 2)
+  const m = notificationsOf(list)
+  assert.equal(m.unread, 1)
+  assert.equal(m.badge, '1')
+  assert.equal(m.label, 'Notifications, 1 unread')
+  assert.match(m.items[0].titleClass, /oj-typography-bold/)
+  assert.doesNotMatch(m.items[1].titleClass, /bold/)
+  assert.equal(notificationsOf(Array.from({ length: 12 }, (_, i) => ({ id: i, title: 't' }))).badge, '9+')
+  assert.equal(notificationsOf([]).empty, true)
+  assert.equal(notificationListOf({ fragments: [] }), null)
+})
+
+test('deshacer: el reducer guarda los campos undo; applyDomEffects los saca de los toasts normales', () => {
+  const reg = reduceContexts(empty(), { messages: [
+    { text: 'Moved', variant: 'success', undoActionId: 'undoMove', undoLabel: 'Undo', undoParameters: { _blockId: 'R1' } },
+    { text: 'Saved', variant: 'info' },
+  ], fragments: [], commands: [] })
+  const toasts = reg.effects.toasts
+  assert.equal(toasts[0].undoActionId, 'undoMove')
+  assert.deepEqual(toasts[0].undoParameters, { _blockId: 'R1' })
+  const same = toasts
+  const undo = takeUndoToasts(reg.effects)
+  assert.equal(undo.length, 1)
+  assert.equal(reg.effects.toasts, same, 'la MISMA lista: las chains la leen después')
+  assert.deepEqual(reg.effects.toasts.map((t) => t.text), ['Saved'])
+  assert.deepEqual(undoMessageOf(undo[0]), { severity: 'confirmation', summary: 'Moved', autoTimeout: 10000, closeAffordance: 'defaults' })
+})
+
+test('campana y deshacer: la shell pinta la campana con oj-list-view y su chain; JET oj-message lleva el Undo', () => {
+  const shell = webApp('pages/shell-page.html')
+  assert.match(shell, /id="mateuBellButton"/)
+  assert.match(shell, /<oj-list-view id="mateuBellList"[^>]*on-oj-item-action="\[\[ \$listeners\.bellItemAction \]\]"/)
+  const json = webApp('pages/shell-page.json')
+  assert.match(json, /"oj-list-view": \{\s*"path": "ojs\/ojlistview"/)
+  assert.match(json, /"oj-list-item-layout": \{\s*"path": "ojs\/ojlistitemlayout"/)
+  assert.match(webApp('pages/shell-page-chains/mateuBell.js'), /_notifications|fetchNotifications/)
+  assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.setUndoSink\(runPageAction\)/)
+  assert.match(webApp('resources/js/mateu-bridge.js'), /slot', 'detail'/)
 })
 
 for (const [name, fn] of pending) { await fn(); console.log(`  ✓ ${name}`); pass++ }

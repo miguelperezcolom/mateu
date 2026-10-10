@@ -20,7 +20,7 @@ const strip = (file) =>
 
 // bundle.mjs antes de transport.mjs: transport.loadRoute consulta el manifest cargado.
 // chat.mjs es autónomo (solo transporte SSE del chat de IA); va al final del scope compartido.
-const body = `${strip('prefs.mjs')}\n\n${strip('navTree.mjs')}\n\n${strip('calendar.mjs')}\n\n${strip('links.mjs')}\n\n${strip('reduceContexts.mjs')}\n\n${strip('breadcrumbs.mjs')}\n\n${strip('clientLog.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('a11y.mjs')}\n\n${strip('elements.mjs')}\n\n${strip('files.mjs')}\n\n${strip('inputs.mjs')}\n\n${strip('rules.mjs')}\n\n${strip('planning.mjs')}\n\n${strip('actionPanels.mjs')}\n\n${strip('matrix.mjs')}\n\n${strip('tables.mjs')}\n\n${strip('bundle.mjs')}\n\n${strip('transport.mjs')}\n\n${strip('widgets.mjs')}\n\n${strip('chat.mjs')}`
+const body = `${strip('prefs.mjs')}\n\n${strip('navTree.mjs')}\n\n${strip('calendar.mjs')}\n\n${strip('links.mjs')}\n\n${strip('reduceContexts.mjs')}\n\n${strip('breadcrumbs.mjs')}\n\n${strip('clientLog.mjs')}\n\n${strip('resilience.mjs')}\n\n${strip('a11y.mjs')}\n\n${strip('elements.mjs')}\n\n${strip('notify.mjs')}\n\n${strip('files.mjs')}\n\n${strip('inputs.mjs')}\n\n${strip('rules.mjs')}\n\n${strip('planning.mjs')}\n\n${strip('actionPanels.mjs')}\n\n${strip('matrix.mjs')}\n\n${strip('tables.mjs')}\n\n${strip('bundle.mjs')}\n\n${strip('transport.mjs')}\n\n${strip('widgets.mjs')}\n\n${strip('chat.mjs')}`
 
 const amd = `/* GENERADO por poc/make-amd.mjs — NO EDITAR A MANO.
  * Fuente única del core: poc/reduceContexts.mjs + transport.mjs
@@ -54,6 +54,8 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     provider.__mateu = { flat, expanded };
     return provider;
   });
+  // la lista de la campana: un ArrayDataProvider para el oj-list-view del popup
+  setNotificationsProviderFactory((items) => new ArrayDataProvider(items || [], { keyAttributes: 'id' }));
   // campos de captura (fichero, imagen, firma, cámara): JET no los trae
   defineCaptureField();
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
@@ -100,6 +102,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     installActionPanels,
     installMatrixGrids,
     installCalendars,
+    fetchNotifications,
+    notificationsOf,
+    setUndoSink,
     setCalendarActionSink,
     setMatrixActionSink,
     actionPanelAtomOf,

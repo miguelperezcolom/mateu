@@ -370,6 +370,11 @@
       "defaultValue": [],
       "description": "widgets de cabecera del App (WidgetSupplier) para la zona de acciones: HTML, MicroFrontend vivo, Popover"
     },
+    "mateuNotifications": {
+      "type": "any",
+      "defaultValue": {"enabled": false, "unread": 0, "badge": "", "hasUnread": false, "label": "Notifications", "empty": true, "items": [], "provider": null},
+      "description": "bandeja de notificaciones (NotificationsSupplier del App): la campana de la cabecera"
+    },
     "mateuUserWidget": {
       "type": "any",
       "defaultValue": null,

@@ -82,6 +82,8 @@ define([
       // la ficha de un registro: su cabecera queda fija y se compacta al hacer scroll
       bridge.installStickyHeader();
       bridge.setPlanningRangeSink(runPageAction);
+      // toasts con «Undo» (Message.undoable): la acción vuelve a la página de contenido
+      bridge.setUndoSink(runPageAction);
 
       // Static-bundle (modo sin backend): si hay un mateuBundleUrl configurado, se arranca la carga
       // del manifest AQUÍ, antes del bootstrap. bootstrapShell/loadRoute esperan al fetch en vuelo
@@ -176,6 +178,12 @@ define([
         }
       }
       $application.variables.mateuShellSST = nav.serverSideType || '';
+      // la campana (NotificationsSupplier del App): la lista se pide al arrancar y al abrirla
+      if (reg.shell && reg.shell.notificationsEnabled) {
+        bridge.fetchNotifications(base, $application.variables.mateuShellSST, $application.variables.mateuAppState || {})
+          .then((model) => { $application.variables.mateuNotifications = model; })
+          .catch(() => { /* sin bandeja: la cabecera sigue sin campana */ });
+      }
       // logo del @App (URL relativa al backend Mateu) → imagen de marca en el header
       $application.variables.mateuShellLogo = reg.shell && reg.shell.logo
         ? base + reg.shell.logo : '';

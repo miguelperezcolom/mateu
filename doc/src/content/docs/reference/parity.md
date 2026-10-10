@@ -232,8 +232,8 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Saved views (named filter sets, default view) | ✅ | ✅ | ✅ (Views menu: apply/save/default/delete, persisted) | 🟡 apply/save/default/delete (session-scoped) |
 | Column chooser (per-user show/hide/reorder) | ✅ | ✅ | ✅ (header menu show/hide + native drag-reorder, persisted) | 🟡 show/hide (session-scoped; no AsyncStorage dep) |
 | Listing totals footer + group subtotal rows | ✅ | ✅ | ✅ | ✅ |
-| Notification bell (inbox, unread count) | ✅ | — | ✅ (sidebar popup) | ✅ (drawer row) |
-| Undoable toasts (Undo button) | ✅ | — (the toast shows, without Undo) | ✅ (balloon action) | ✅ (toast button) |
+| Notification bell (inbox, unread count) | ✅ | ✅ (header bell + `oj-popup` with an `oj-list-view`) | ✅ (sidebar popup) | ✅ (drawer row) |
+| Undoable toasts (Undo button) | ✅ | ✅ (JET `oj-message` with the Undo `oj-button` in its detail slot — `oj-sp-messages-toast` has no actions) | ✅ (balloon action) | ✅ (toast button) |
 | Entity search (GlobalSearchSupplier: ⌘K palette / search box) | ✅ palette | 🟡 Ask Oracle command palette (navigation); GlobalSearchSupplier entity results not wired | ✅ sidebar search | ✅ drawer search |
 | Planning board (tape chart) | ✅ drag+select | ✅ `oj-gantt`: move, resize, double click, range selection, hover summary | ✅ drag+select (MouseListener + pure PlanningDrag) | ✅ drag+select (PanResponder + pure planningDrag) |
 | Session-expiry re-auth + retry (`onSessionExpired`) | ✅ | ✅ | ✅ (SessionGuard, sync re-auth) | ✅ (sessionGuard, retry once) |

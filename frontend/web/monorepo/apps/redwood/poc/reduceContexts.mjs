@@ -3982,7 +3982,11 @@ export function reduceContexts(reg, increment, opts = {}) {
   }
 
   for (const m of increment.messages || [])
-    effects.toasts.push({ text: m.text || m.title, variant: m.variant || 'info' })
+    effects.toasts.push({
+      text: m.text || m.title, variant: m.variant || 'info',
+      // Message.undoable: el toast lleva su «Undo» (notify.mjs lo pinta con oj-message)
+      ...(m.undoActionId ? { undoActionId: m.undoActionId, undoLabel: m.undoLabel || 'Undo', undoParameters: m.undoParameters || {} } : {}),
+    })
 
   // ── fragmentos → shell | superficies ──────────────────────────────────────
   for (const fr of increment.fragments || []) {
@@ -3999,6 +4003,8 @@ export function reduceContexts(reg, increment, opts = {}) {
         appContext: md.contextSelectors || [],
         headerActions: md.contextActions || [],
         themeToggle: md.themeToggle,
+        // NotificationsSupplier del App → la campana de la cabecera (notify.mjs)
+        notificationsEnabled: !!md.notificationsEnabled,
         // el logo del @App (@Logo, p.ej. /images/riu.svg — relativo al backend)
         logo: md.logo || '',
         // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la

@@ -196,19 +196,45 @@ public class RoomDiary implements ComponentTreeSupplier {
           Message.error(
               "Room " + room + " is taken by " + clash.get(0).guest + " on those dates"));
     }
+    // what it was, so the toast can undo it
+    Map<String, Object> before =
+        Map.of(
+            "_blockId", reservation.id,
+            "_room", reservation.room == null ? "" : reservation.room,
+            "_arrival", reservation.arrival.toString(),
+            "_departure", reservation.departure.toString());
     reservation.room = room;
     reservation.arrival = start;
     reservation.departure = departure;
     return List.of(
         this,
-        Message.success(
-            reservation.guest
-                + " → room "
-                + room
-                + ", "
-                + start.format(DAY)
-                + " – "
-                + departure.format(DAY)));
+        Message.builder()
+            .variant(io.mateu.uidl.data.NotificationVariant.success)
+            .text(
+                reservation.guest
+                    + " → room "
+                    + room
+                    + ", "
+                    + start.format(DAY)
+                    + " – "
+                    + departure.format(DAY))
+            .duration(10000)
+            .undoLabel("Undo")
+            .undoActionId("undoMove")
+            .undoParameters(before)
+            .build());
+  }
+
+  /** The Undo of a move or a resize: the reservation goes back where it was. */
+  @Action
+  public Object undoMove(HttpRequest rq) {
+    var reservation = Hotel.reservation(param(rq, "_blockId")).orElse(null);
+    if (reservation == null) return Message.error("Nothing to undo");
+    String room = param(rq, "_room");
+    reservation.room = room == null || room.isBlank() ? null : room;
+    reservation.arrival = LocalDate.parse(param(rq, "_arrival"));
+    reservation.departure = LocalDate.parse(param(rq, "_departure"));
+    return List.of(this, Message.success("Move undone: " + reservation.guest + " is back in room " + reservation.room));
   }
 
   /** Double click: the reservation in a drawer. */
