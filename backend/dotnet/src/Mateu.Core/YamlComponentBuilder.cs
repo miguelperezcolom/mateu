@@ -52,22 +52,60 @@ public static class YamlComponentBuilder
     /// </summary>
     public static (string? ModelView, IComponent? Layout) ParseSpec(string yaml, PartialRegistry? partials = null)
     {
-        if (string.IsNullOrWhiteSpace(yaml)) return (null, null);
+        var (modelView, layout, _) = ParsePage(yaml, partials);
+        return (modelView, layout);
+    }
+
+    /// <summary>
+    /// Parse a page spec with its <c>layoutDelta:</c>: the ModelView class name (the canonical
+    /// <c>viewModel:</c> or the legacy <c>modelView:</c> key), the explicit layout (a SNAPSHOT —
+    /// null for a delta-only page) and the delta (empty when none; mirrors Java's
+    /// YamlUidlLoader.deltaOf).
+    /// </summary>
+    public static (string? ModelView, IComponent? Layout, LayoutDelta Delta) ParsePage(
+        string yaml, PartialRegistry? partials = null)
+    {
+        if (string.IsNullOrWhiteSpace(yaml)) return (null, null, LayoutDelta.Empty);
         var root = Deserialize(yaml);
-        if (root is null) return (null, null);
+        if (root is null) return (null, null, LayoutDelta.Empty);
         var registry = partials ?? PartialRegistry.Default;
-        if (root is not IDictionary<object, object> map) return (null, Single(root, registry, []));
-        var modelView = map.TryGetValue("modelView", out var mv) ? mv?.ToString() : null;
+        if (root is not IDictionary<object, object> map) return (null, Single(root, registry, []), LayoutDelta.Empty);
+        var modelView = map.TryGetValue("modelView", out var mv) ? mv?.ToString()
+            : map.TryGetValue("viewModel", out var vm) ? vm?.ToString() : null;
+        var delta = DeltaOf(map);
+        // A page that carries a `layoutDelta:` and no `layout:` has NO explicit layout on purpose —
+        // that is the whole point of a delta: the view model's INFERRED layout renders and the delta
+        // is re-applied on top. Falling back to "the whole document is the tree" here would render
+        // the envelope itself as a component.
         if (!map.ContainsKey("layout") && map.ContainsKey("layoutDelta"))
-        {
-            // A `layoutDelta:` is not a layout: it is a diff to re-apply over the INFERRED one,
-            // which only the Java server does today. Returning null here is what stops the port
-            // from rendering the envelope itself as a component ("Unsupported component: ") — a
-            // visible wrong page is worse than no page.
-            return (modelView, null);
-        }
+            return (modelView, null, delta);
         var layoutNode = map.TryGetValue("layout", out var layout) ? layout : root;
-        return (modelView, Single(layoutNode, registry, []));
+        return (modelView, Single(layoutNode, registry, []), delta);
+    }
+
+    /// <summary>The <c>layoutDelta:</c> of a page — order, hidden, per-field overrides
+    /// (label/colspan/section) — or <see cref="LayoutDelta.Empty"/>.</summary>
+    private static LayoutDelta DeltaOf(IDictionary<object, object> root)
+    {
+        if (!root.TryGetValue("layoutDelta", out var node) || node is not IDictionary<object, object> delta)
+            return LayoutDelta.Empty;
+        static List<string> Strings(IDictionary<object, object> map, string key) =>
+            map.TryGetValue(key, out var v) && v is IEnumerable<object> list
+                ? list.Where(i => i is not null).Select(i => i.ToString()!).ToList()
+                : [];
+        var overrides = new Dictionary<string, LayoutDelta.FieldOverride>();
+        if (delta.TryGetValue("overrides", out var o) && o is IDictionary<object, object> map)
+            foreach (var (key, value) in map)
+            {
+                if (key?.ToString() is not { } fieldId) continue;
+                var spec = value as IDictionary<object, object>;
+                string? Str(string k) => spec is not null && spec.TryGetValue(k, out var s) ? s?.ToString() : null;
+                overrides[fieldId] = new LayoutDelta.FieldOverride(
+                    Str("label"),
+                    int.TryParse(Str("colspan"), out var colspan) ? colspan : null,
+                    Str("section"));
+            }
+        return new LayoutDelta(Strings(delta, "order"), Strings(delta, "hidden"), overrides);
     }
 
     /// <summary>What a node becomes in a slot that holds exactly one component.</summary>

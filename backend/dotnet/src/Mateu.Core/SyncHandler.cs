@@ -355,9 +355,20 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
                      || (instance is not IComponentTreeSupplier
                          && !PageInference.ComposesDashboard(type)
                          && !PageInference.ComposesWelcome(type));
-        return FragmentResponse(Title(type), _mapper.MapView(type, instance, route, layoutOverride), rq,
+        var view = _mapper.MapView(type, instance, route, layoutOverride);
+        // A `layoutDelta:` is re-applied to the FRESHLY inferred page on every render — that is the
+        // whole difference from a `layout:` snapshot, which stops the screen from re-deriving. Only
+        // for a page, and only when the route's definition is bound to THIS view model (mirrors
+        // Java's ReflectionObjectToComponentMapper + YamlUidlLoader.deltaForRoute).
+        if (isPage) view = LayoutDeltaApplier.Apply(view, DeltaFor(rq.Route, type));
+        return FragmentResponse(Title(type), view, rq,
             LookupLabels(type, instance, instance), emitWindowTitle: isPage);
     }
+
+    /// <summary>The <c>layoutDelta:</c> of the route's definition when it is bound to
+    /// <paramref name="type"/>, else empty — so the caller can apply it unconditionally.</summary>
+    private LayoutDelta DeltaFor(string? route, Type type) =>
+        _yaml.LoadSpec(route) is { } spec && spec.ModelView == type.FullName ? spec.Delta : LayoutDelta.Empty;
 
     /// <summary>Runs a view action. The actionId comes from the wire, so it only reaches a method
     /// DECLARED as an action (see <see cref="ActionGuard.ResolveAction"/>) and only when the caller
