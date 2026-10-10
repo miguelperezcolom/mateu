@@ -32594,3 +32594,18 @@
     <oj-button chroming="callToAction" on-oj-action="[[ $listeners.viewSaveConfirm ]]"><oj-bind-text value="[[ $application.translations.appBundle.save ]]"></oj-bind-text></oj-button>
   </div>
 </oj-dialog>
+
+
+<!-- FLOATING ACTION BUTTONS (@Fab of the page and of the app): stacked above the shell's own FAB;
+     a page FAB runs its action on the host, an app FAB is an app-level action (runMateuFab) -->
+<oj-bind-if test="[[ !!($application.variables.mateuFabs || []).length ]]">
+  <div class="mateu-fabs" role="group">
+    <oj-bind-for-each data="[[ $application.variables.mateuFabs ]]">
+      <template>
+        <oj-button class="mateu-fab" display="icons" chroming="[[ $current.data.chroming ]]"
+          :title="[[ $current.data.label ]]"
+          on-oj-action="[[ $listeners.fabAction ]]"><span slot="startIcon" :class="[[ $current.data.iconClass ]]"></span><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-button>
+      </template>
+    </oj-bind-for-each>
+  </div>
+</oj-bind-if>

@@ -393,6 +393,8 @@ define([
 
       // header de colección: toolbar del crud → primaryAction/secondaryActions
       assign(bridge.listHeaderVarsOf(listingSummary));
+      // the floating action buttons (@Fab) of the page and of the app
+      vars.mateuFabs = bridge.fabsOf(reg.shell, hostAfter);
       const summary = bridge.summarizeHost(reg, route);
       // dentro de un maestro (P1): la cabecera lleva su título cuando la pestaña no trae uno
       const levels = reg.appLevels || [];

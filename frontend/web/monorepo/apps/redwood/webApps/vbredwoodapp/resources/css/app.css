@@ -1587,3 +1587,21 @@ oj-sp-guided-process.mateu-wizard-completed button:not(.mateu-wizard-slot button
 .mateu-atom-richtext th[align="center"], .mateu-atom-richtext td[align="center"] { text-align: center; }
 .mateu-atom-richtext th[align="right"], .mateu-atom-richtext td[align="right"] { text-align: end; }
 .mateu-cookie-consent[hidden] { display: none; }
+
+/* @Fab: stacked above the shell FAB (72px at 24px from the edge), same column */
+.mateu-fabs { position: fixed; right: 24px; bottom: 108px; z-index: 50; display: flex; flex-direction: column-reverse; gap: 12px; align-items: center; }
+.mateu-fab { --oj-button-height: 56px; --oj-button-border-radius: 50%; box-shadow: var(--oj-core-box-shadow-md, 0 4px 12px rgba(0,0,0,.2)); border-radius: 50%; }
+@media (max-width: 1023px) { .mateu-fabs { right: 0; bottom: 64px; } }
+
+/* Dark (@App(themeToggle), poc/theme.mjs): the inverted colour scheme of JET (oj-color-invert) re-tokens the
+   components; the few surfaces the shell and this app paint with fixed light colours follow it. */
+html.mateu-theme-dark body.oj-body { background-color: rgb(var(--oj-palette-neutral-rgb-190, 22, 21, 19)); background-image: none; color-scheme: dark; }
+html.mateu-theme-dark .oj-sp-public-primary-content-container,
+html.mateu-theme-dark .oj-drawer-reflow-wrapper,
+html.mateu-theme-dark .oj-panel,
+html.mateu-theme-dark .mateu-rich-text-field,
+html.mateu-theme-dark .mateu-cookie-consent { background-color: var(--oj-core-bg-color-content); }
+html.mateu-theme-dark .mateu-heat-cell.mateu-heat-0 { background: rgba(255,255,255,.08); }
+html.mateu-theme-dark .oj-dialog, html.mateu-theme-dark .oj-dialog-container, html.mateu-theme-dark .oj-dialog-body,
+html.mateu-theme-dark .oj-dialog-header, html.mateu-theme-dark .oj-dialog-footer, html.mateu-theme-dark .oj-popup,
+html.mateu-theme-dark .oj-menu, html.mateu-theme-dark .oj-listbox-drop, html.mateu-theme-dark .oj-drawer-popup-content { background-color: var(--oj-core-bg-color-content); background-image: none; }

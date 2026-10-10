@@ -508,6 +508,17 @@
         }
       ]
     },
+    "fabAction": {
+      "chains": [
+        {
+          "chain": "runMateuFab",
+          "parameters": {
+            "actionId": "{{ $current.data.actionId }}",
+            "appLevel": "{{ $current.data.appLevel }}"
+          }
+        }
+      ]
+    },
     "hostBlockAction": {
       "chains": [
         {

@@ -231,12 +231,12 @@ export function richTextValueOf(html) {
 /** The toolbar of the editor: each command and its accessible label. */
 export const RICH_TEXT_COMMANDS = [
   { cmd: 'bold', icon: 'oj-ux-ico-bold', label: 'rteBold', key: 'b' },
-  { cmd: 'italic', icon: 'oj-ux-ico-italic', label: 'rteItalic', key: 'i' },
+  { cmd: 'italic', icon: 'oj-ux-ico-italics', label: 'rteItalic', key: 'i' },
   { cmd: 'underline', icon: 'oj-ux-ico-underline', label: 'rteUnderline', key: 'u' },
-  { cmd: 'insertUnorderedList', icon: 'oj-ux-ico-bullet-list', label: 'rteBullets' },
-  { cmd: 'insertOrderedList', icon: 'oj-ux-ico-numbered-list', label: 'rteNumbers' },
+  { cmd: 'insertUnorderedList', icon: 'oj-ux-ico-list-bulleted', label: 'rteBullets' },
+  { cmd: 'insertOrderedList', icon: 'oj-ux-ico-number-list', label: 'rteNumbers' },
   { cmd: 'createLink', icon: 'oj-ux-ico-link', label: 'rteLink' },
-  { cmd: 'removeFormat', icon: 'oj-ux-ico-clear', label: 'rteClear' },
+  { cmd: 'removeFormat', icon: 'oj-ux-ico-remove-formatting', label: 'rteClear' },
 ]
 
 /**

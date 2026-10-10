@@ -682,7 +682,7 @@ export function notificationAtomOf(m, interp = (x) => x) {
 // ── Workflow: the definition as a flow of steps (the web's designer is an editor; Redwood shows it) ─
 const STEP_LOOKS = {
   ACTION: ['oj-ux-ico-play', 'stepAction'], JOIN: ['oj-ux-ico-merge', 'stepJoin'], FORK: ['oj-ux-ico-split', 'stepFork'],
-  END: ['oj-ux-ico-stop', 'stepEnd'], USER_TASK: ['oj-ux-ico-user', 'stepUserTask'], PROCESS: ['oj-ux-ico-settings', 'stepProcess'],
+  END: ['oj-ux-ico-stop', 'stepEnd'], USER_TASK: ['oj-ux-ico-user-available', 'stepUserTask'], PROCESS: ['oj-ux-ico-settings', 'stepProcess'],
 }
 export function workflowOrderOf(steps) {
   const byId = new Map(steps.map((s) => [s.id, s]))

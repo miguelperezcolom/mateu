@@ -385,6 +385,21 @@
       "defaultValue": [],
       "description": "acciones de cabecera (AppActionsSupplier): hoja o dropdown con hijos"
     },
+    "mateuGlobalSearch": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "the App has a GlobalSearchSupplier: the Ask palette also searches entities (_globalsearch)"
+    },
+    "mateuFabs": {
+      "type": "any",
+      "defaultValue": [],
+      "description": "the floating action buttons on screen (@Fab of the App and of the page): fabsOf"
+    },
+    "mateuThemeToggle": {
+      "type": "boolean",
+      "defaultValue": false,
+      "description": "@App(themeToggle): the header shows the light/dark switch"
+    },
     "mateuShellSST": {
       "type": "string",
       "defaultValue": "",

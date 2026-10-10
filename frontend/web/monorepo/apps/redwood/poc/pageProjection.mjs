@@ -1,7 +1,7 @@
 import {
   wizardForwardOf, welcomeOf, welcomeKeyOf, welcomeLookOf, generalOverviewOf, itemOverviewOf, fieldListOf,
   formSectionsOf, actionsOf, islandContentOf, mergeNestedContent, entityHeaderOf, hostContentOf,
-  primaryToolbarButton, backToolbarButton, pageSubtitleOf, pageKpisOf, pageStyleOf,
+  primaryToolbarButton, backToolbarButton, pageSubtitleOf, pageKpisOf, pageStyleOf, findByType, ojIconOrGenericOf,
 } from './reduceContexts.mjs'
 import { parentCrumb } from './breadcrumbs.mjs'
 
@@ -200,4 +200,26 @@ export function pageLayoutOf({ host, drawerNav, iopOn = false, bleedingHeader, b
     out.mateuPageMargin = parts.join(' ')
   }
   return { vars: out, pageWidth: pw }
+}
+
+/**
+ * The floating action buttons on screen (@Fab): the page's (a method of the page class — its action
+ * goes to the host) and the app's (a method of the @UI app — an app-level action), stacked above
+ * the shell's own FAB. Primary-styled ones are the call to action.
+ */
+export function fabsOf(shell, host) {
+  const page = host && host.tree ? findByType(host.tree, 'Page') : null
+  const row = (f, appLevel) => ({
+    key: (appLevel ? 'app:' : 'page:') + (f.id || f.actionId),
+    label: f.label || f.actionId || '',
+    iconClass: ojIconOrGenericOf(f.icon) || 'oj-ux-ico-plus',
+    actionId: f.actionId || '',
+    parameters: {},
+    appLevel,
+    chroming: f.buttonStyle === 'primary' || !f.buttonStyle ? 'callToAction' : 'outlined',
+  })
+  return [
+    ...((page && page.metadata && page.metadata.fabs) || []).filter((f) => f && f.actionId).map((f) => row(f, false)),
+    ...((shell && shell.fabs) || []).filter((f) => f && f.actionId).map((f) => row(f, true)),
+  ]
 }

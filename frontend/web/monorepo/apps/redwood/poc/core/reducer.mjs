@@ -208,6 +208,10 @@ export function reduceContexts(reg, increment, opts = {}) {
         accessKeys: !!md.accessKeys,
         // NotificationsSupplier del App → la campana de la cabecera (notify.mjs)
         notificationsEnabled: !!md.notificationsEnabled,
+        // GlobalSearchSupplier del App → la paleta Ask busca también entidades (globalSearch.mjs)
+        globalSearchEnabled: !!md.globalSearchEnabled,
+        // @Fab del App: botones flotantes globales (fabs.mjs)
+        fabs: md.fabs || [],
         // el logo del @App (@Logo, p.ej. /images/riu.svg — relativo al backend)
         logo: md.logo || '',
         // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la

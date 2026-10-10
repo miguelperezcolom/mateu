@@ -148,6 +148,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatExpand: 'Widen the assistant',
       chatRestore: 'Restore the width',
       selectRowsFirst: 'You first need to select some rows',
+      searchResults: 'Search results',
+      themeToggle: 'Switch light / dark theme',
       // ── display components (core/display.mjs) ──
       recommended: 'Recommended',
       choose: 'Choose',
@@ -309,6 +311,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chatExpand: 'Ampliar el asistente',
       chatRestore: 'Ancho normal',
       selectRowsFirst: 'Primero tienes que seleccionar alguna fila',
+      searchResults: 'Resultados',
+      themeToggle: 'Cambiar tema claro / oscuro',
       // ── componentes display (core/display.mjs) ──
       recommended: 'Recomendado',
       choose: 'Elegir',
@@ -1155,12 +1159,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** The toolbar of the editor: each command and its accessible label. */
   const RICH_TEXT_COMMANDS = [
     { cmd: 'bold', icon: 'oj-ux-ico-bold', label: 'rteBold', key: 'b' },
-    { cmd: 'italic', icon: 'oj-ux-ico-italic', label: 'rteItalic', key: 'i' },
+    { cmd: 'italic', icon: 'oj-ux-ico-italics', label: 'rteItalic', key: 'i' },
     { cmd: 'underline', icon: 'oj-ux-ico-underline', label: 'rteUnderline', key: 'u' },
-    { cmd: 'insertUnorderedList', icon: 'oj-ux-ico-bullet-list', label: 'rteBullets' },
-    { cmd: 'insertOrderedList', icon: 'oj-ux-ico-numbered-list', label: 'rteNumbers' },
+    { cmd: 'insertUnorderedList', icon: 'oj-ux-ico-list-bulleted', label: 'rteBullets' },
+    { cmd: 'insertOrderedList', icon: 'oj-ux-ico-number-list', label: 'rteNumbers' },
     { cmd: 'createLink', icon: 'oj-ux-ico-link', label: 'rteLink' },
-    { cmd: 'removeFormat', icon: 'oj-ux-ico-clear', label: 'rteClear' },
+    { cmd: 'removeFormat', icon: 'oj-ux-ico-remove-formatting', label: 'rteClear' },
   ]
 
   /**
@@ -5812,6 +5816,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           accessKeys: !!md.accessKeys,
           // NotificationsSupplier del App → la campana de la cabecera (notify.mjs)
           notificationsEnabled: !!md.notificationsEnabled,
+          // GlobalSearchSupplier del App → la paleta Ask busca también entidades (globalSearch.mjs)
+          globalSearchEnabled: !!md.globalSearchEnabled,
+          // @Fab del App: botones flotantes globales (fabs.mjs)
+          fabs: md.fabs || [],
           // el logo del @App (@Logo, p.ej. /images/riu.svg — relativo al backend)
           logo: md.logo || '',
           // la HOME del app (@HomeRoute) — el boot de la shell la prefiere sobre la
@@ -7630,7 +7638,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   // ── Workflow: the definition as a flow of steps (the web's designer is an editor; Redwood shows it) ─
   const STEP_LOOKS = {
     ACTION: ['oj-ux-ico-play', 'stepAction'], JOIN: ['oj-ux-ico-merge', 'stepJoin'], FORK: ['oj-ux-ico-split', 'stepFork'],
-    END: ['oj-ux-ico-stop', 'stepEnd'], USER_TASK: ['oj-ux-ico-user', 'stepUserTask'], PROCESS: ['oj-ux-ico-settings', 'stepProcess'],
+    END: ['oj-ux-ico-stop', 'stepEnd'], USER_TASK: ['oj-ux-ico-user-available', 'stepUserTask'], PROCESS: ['oj-ux-ico-settings', 'stepProcess'],
   }
   function workflowOrderOf(steps) {
     const byId = new Map(steps.map((s) => [s.id, s]))
@@ -14186,6 +14194,28 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return { vars: out, pageWidth: pw }
   }
 
+  /**
+   * The floating action buttons on screen (@Fab): the page's (a method of the page class — its action
+   * goes to the host) and the app's (a method of the @UI app — an app-level action), stacked above
+   * the shell's own FAB. Primary-styled ones are the call to action.
+   */
+  function fabsOf(shell, host) {
+    const page = host && host.tree ? findByType(host.tree, 'Page') : null
+    const row = (f, appLevel) => ({
+      key: (appLevel ? 'app:' : 'page:') + (f.id || f.actionId),
+      label: f.label || f.actionId || '',
+      iconClass: ojIconOrGenericOf(f.icon) || 'oj-ux-ico-plus',
+      actionId: f.actionId || '',
+      parameters: {},
+      appLevel,
+      chroming: f.buttonStyle === 'primary' || !f.buttonStyle ? 'callToAction' : 'outlined',
+    })
+    return [
+      ...((page && page.metadata && page.metadata.fabs) || []).filter((f) => f && f.actionId).map((f) => row(f, false)),
+      ...((shell && shell.fabs) || []).filter((f) => f && f.actionId).map((f) => row(f, true)),
+    ]
+  }
+
 
 
   // WHAT AN ACTION SENDS, decided before anything leaves (runMateuAction used to decide it inline):
@@ -14275,6 +14305,117 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function onlyMessagesAnswer({ hostRepainted, flipRoute, events, overlayBefore, overlayNow, lastIncrement }) {
     return !hostRepainted && !flipRoute && !(events || []).length && !overlayBefore && !overlayNow
       && !!lastIncrement && !(lastIncrement.fragments || []).length && !(lastIncrement.commands || []).length
+  }
+
+
+
+
+  // GLOBAL SEARCH (the app's GlobalSearchSupplier): typing in the Ask palette also searches the
+  // app's entities through the app-level `_globalsearch` action ({searchText}) — the same contract
+  // as the web ⌘K palette (mateu-app fetchGlobalSearch). The hits ({label, description, route,
+  // category}) go under the destinations, grouped by their category, and choosing one navigates.
+
+  /** The hits of a `_globalsearch` answer: data._globalsearch of the first fragment that has it. */
+  function globalSearchHitsOf(increment) {
+    for (const f of (increment && increment.fragments) || []) {
+      const hits = f && f.data && f.data._globalsearch
+      if (Array.isArray(hits)) return hits.filter((h) => h && h.route)
+    }
+    return []
+  }
+
+  /** The palette rows of the hits, after the destinations; grouped (stable) by category. */
+  function paletteRowsOfHits(hits) {
+    const order = []
+    const byCategory = new Map()
+    for (const h of hits || []) {
+      const category = h.category || chromeText('searchResults')
+      if (!byCategory.has(category)) { byCategory.set(category, []); order.push(category) }
+      byCategory.get(category).push(h)
+    }
+    return order.flatMap((category) => byCategory.get(category).map((h) => ({
+      label: h.label + (h.description ? ' — ' + h.description : ''),
+      route: h.route.startsWith('/') ? h.route : '/' + h.route,
+      icon: 'oj-ux-ico-search',
+      kind: category,
+      isHit: true,
+    })))
+  }
+
+  /** An APP-LEVEL action (an app @Fab, a header action): posted to the app with its serverSideType
+   *  and route '' — the server dispatches app-level actions without menu resolution. */
+  function runAppLevelAction(base, serverSideType, appState, actionId, parameters = {}) {
+    return callMateu(base, {
+      route: '',
+      actionId,
+      componentState: {},
+      parameters,
+      serverSideType: serverSideType || undefined,
+      appState: appState || {},
+    })
+  }
+
+  /** Asks the app for the entities matching `text` ([] when there is nothing to ask). */
+  async function fetchGlobalSearch(base, serverSideType, appState, text) {
+    const searchText = String(text || '').trim()
+    if (!searchText) return []
+    const increment = await callMateu(base, {
+      route: '',
+      actionId: '_globalsearch',
+      componentState: {},
+      parameters: { searchText },
+      serverSideType: serverSideType || undefined,
+      appState: appState || {},
+    })
+    return globalSearchHitsOf(increment)
+  }
+
+
+  // LIGHT / DARK (@App(themeToggle)): the same contract as the web renderers — the user's choice is
+  // kept in localStorage['mateu-theme'] and wins; without one the OS preference (prefers-color-scheme)
+  // decides. Redwood's dark is JET's own inverted colour scheme: `oj-color-invert` on the page (the
+  // classic components' palette) plus `oj-c-colorscheme-dark` (the Core Pack / preact theme) — no
+  // palette is redrawn here.
+
+  const THEME_KEY = 'mateu-theme'
+  const DARK_CLASSES = ['oj-color-invert', 'oj-c-colorscheme-dark', 'mateu-theme-dark']
+
+  /** The theme to start with: the stored choice, else the OS preference, else light. Pure. */
+  function initialThemeOf(stored, prefersDark) {
+    if (stored === 'dark' || stored === 'light') return stored
+    return prefersDark ? 'dark' : 'light'
+  }
+
+  /** The other theme. */
+  const nextThemeOf = (theme) => (theme === 'dark' ? 'light' : 'dark')
+
+  /** Paints a theme on the page (the root element's classes and its `theme` attribute). */
+  function applyTheme(theme, doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc) return theme
+    const root = doc.documentElement
+    for (const cls of DARK_CLASSES) root.classList.toggle(cls, theme === 'dark')
+    root.setAttribute('theme', theme === 'dark' ? 'dark' : 'light')
+    return theme
+  }
+
+  const storage = () => { try { return typeof localStorage !== 'undefined' ? localStorage : null } catch (e) { return null } }
+
+  /** At boot: the stored choice or the OS preference, painted. */
+  function applyInitialTheme(doc = typeof document !== 'undefined' ? document : null, win = typeof window !== 'undefined' ? window : null) {
+    const s = storage()
+    let stored = null
+    try { stored = s ? s.getItem(THEME_KEY) : null } catch (e) { stored = null }
+    const prefersDark = !!(win && win.matchMedia && win.matchMedia('(prefers-color-scheme: dark)').matches)
+    return applyTheme(initialThemeOf(stored, prefersDark), doc)
+  }
+
+  /** The header switch: flips, paints and remembers. Returns the new theme. */
+  function toggleTheme(doc = typeof document !== 'undefined' ? document : null) {
+    const current = doc && doc.documentElement.getAttribute('theme') === 'dark' ? 'dark' : 'light'
+    const next = applyTheme(nextThemeOf(current), doc)
+    const s = storage()
+    try { if (s) s.setItem(THEME_KEY, next) } catch (e) { /* private mode: not remembered */ }
+    return next
   }
 
   // el importe de un campo money: IntlNumberConverter con estilo moneda (un objeto JSON ya no vale)
@@ -14660,5 +14801,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     hostReRendered,
     touchesHost,
     onlyMessagesAnswer,
+    fabsOf,
+    // GlobalSearchSupplier in the Ask palette, app-level actions (app @Fab), light/dark
+    fetchGlobalSearch,
+    paletteRowsOfHits,
+    runAppLevelAction,
+    applyInitialTheme,
+    toggleTheme,
   };
 });

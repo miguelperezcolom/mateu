@@ -338,6 +338,8 @@ define([
 
       // header de colección: toolbar del crud → primaryAction/secondaryActions
       assign(bridge.listHeaderVarsOf(listingSummary));
+      // the floating action buttons (@Fab) of the page and of the app
+      vars.mateuFabs = bridge.fabsOf(reg.shell, host);
       // Si la carga falló, el reintento vuelve a entrar en ESTA chain con la misma ruta.
       bridge.setLastRetry(null);
       const summary = bridge.summarizeHost(reg, route);

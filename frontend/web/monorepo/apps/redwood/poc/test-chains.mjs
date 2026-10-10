@@ -12,6 +12,9 @@ import {
 } from './pageProjection.mjs'
 import { outboundActionOf, hostReRendered, touchesHost, onlyMessagesAnswer } from './actionPlan.mjs'
 import { HOST_ID } from './reduceContexts.mjs'
+import { fabsOf } from './pageProjection.mjs'
+import { globalSearchHitsOf, paletteRowsOfHits } from './globalSearch.mjs'
+import { initialThemeOf, nextThemeOf, applyTheme } from './theme.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let passed = 0
@@ -144,6 +147,38 @@ test('the page chains are thin: they take the projection and the plan from the b
   assert.ok(action.includes('bridge.outboundActionOf('))
   assert.ok(action.split('\n').length < 700, 'runMateuAction stays well under its old 835 lines')
   assert.ok(nav.split('\n').length < 600, 'onMateuNavigate stays well under its old 696 lines')
+})
+
+test('FABs: the page ones (host actions) then the app ones (app-level)', () => {
+  const host = { tree: { metadata: { type: 'Page', fabs: [{ id: 'f1', actionId: 'add', label: 'Add', icon: 'vaadin:plus' }] }, children: [] } }
+  const shell = { fabs: [{ id: 'g', actionId: 'quickSync', label: 'Quick sync', icon: 'vaadin:refresh', buttonStyle: 'secondary' }, { label: 'no action' }] }
+  const rows = fabsOf(shell, host)
+  assert.deepEqual(rows.map((r) => [r.actionId, r.appLevel, r.chroming]), [['add', false, 'callToAction'], ['quickSync', true, 'outlined']])
+  assert.match(rows[0].iconClass, /^oj-ux-ico-/)
+  assert.deepEqual(fabsOf(null, null), [])
+})
+
+test('global search: the hits of a _globalsearch answer, as palette rows grouped by category', () => {
+  const inc = { fragments: [{ data: {} }, { data: { _globalsearch: [{ label: 'Laptop', description: 'LP-100', route: 'products', category: 'Products' }, { label: 'Ada', route: '/customers/1', category: 'Customers' }, { label: 'Mouse', route: '/products', category: 'Products' }, { label: 'no route' }] } }] }
+  const hits = globalSearchHitsOf(inc)
+  assert.equal(hits.length, 3)
+  const rows = paletteRowsOfHits(hits)
+  assert.deepEqual(rows.map((r) => [r.label, r.route, r.kind]), [['Laptop — LP-100', '/products', 'Products'], ['Mouse', '/products', 'Products'], ['Ada', '/customers/1', 'Customers']])
+  assert.deepEqual(globalSearchHitsOf({ fragments: [] }), [])
+})
+
+test('theme: the stored choice wins, else the OS; dark is JET\'s inverted scheme on the page', () => {
+  assert.equal(initialThemeOf('light', true), 'light')
+  assert.equal(initialThemeOf(null, true), 'dark')
+  assert.equal(initialThemeOf('bogus', false), 'light')
+  assert.equal(nextThemeOf('dark'), 'light')
+  const classes = new Set()
+  const attrs = {}
+  const doc = { documentElement: { classList: { toggle: (c, on) => (on ? classes.add(c) : classes.delete(c)) }, setAttribute: (k, v) => { attrs[k] = v } } }
+  applyTheme('dark', doc)
+  assert.ok(classes.has('oj-color-invert') && classes.has('oj-c-colorscheme-dark') && attrs.theme === 'dark')
+  applyTheme('light', doc)
+  assert.equal(classes.size, 0)
 })
 
 console.log(`\n${passed} chain-logic tests OK`)

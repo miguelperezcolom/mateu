@@ -216,6 +216,11 @@ define([
       $application.variables.mateuShellSST = nav.serverSideType || '';
       bridge.setAccessKeysEnabled(!!(reg.shell && reg.shell.accessKeys));
       // la campana (NotificationsSupplier del App): la lista se pide al arrancar y al abrirla
+      // GlobalSearchSupplier: the Ask palette also searches the app's entities (askOracleTyped)
+      $application.variables.mateuGlobalSearch = !!(reg.shell && reg.shell.globalSearchEnabled);
+      // @App(themeToggle): the header switch; the stored choice (or the OS preference) applies anyway
+      $application.variables.mateuThemeToggle = !!(reg.shell && reg.shell.themeToggle);
+      bridge.applyInitialTheme();
       if (reg.shell && reg.shell.notificationsEnabled) {
         bridge.fetchNotifications(base, $application.variables.mateuShellSST, $application.variables.mateuAppState || {})
           .then((model) => { $application.variables.mateuNotifications = model; })

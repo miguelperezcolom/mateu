@@ -143,6 +143,8 @@ export const CHROME_TEXTS = {
     chatExpand: 'Widen the assistant',
     chatRestore: 'Restore the width',
     selectRowsFirst: 'You first need to select some rows',
+    searchResults: 'Search results',
+    themeToggle: 'Switch light / dark theme',
     // ── display components (core/display.mjs) ──
     recommended: 'Recommended',
     choose: 'Choose',
@@ -304,6 +306,8 @@ export const CHROME_TEXTS = {
     chatExpand: 'Ampliar el asistente',
     chatRestore: 'Ancho normal',
     selectRowsFirst: 'Primero tienes que seleccionar alguna fila',
+    searchResults: 'Resultados',
+    themeToggle: 'Cambiar tema claro / oscuro',
     // ── componentes display (core/display.mjs) ──
     recommended: 'Recomendado',
     choose: 'Elegir',

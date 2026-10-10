@@ -34,7 +34,7 @@ export const MODULES = [
   'breadcrumbs.mjs', 'clientLog.mjs', 'polling.mjs', 'resilience.mjs', 'a11y.mjs', 'elements.mjs',
   'notify.mjs', 'files.mjs', 'inputs.mjs', 'rules.mjs', 'planning.mjs', 'actionPanels.mjs',
   'keys.mjs', 'hover.mjs', 'dnd.mjs', 'matrix.mjs', 'map.mjs', 'tables.mjs', 'bundle.mjs',
-  'mount.mjs', 'transport.mjs', 'widgets.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs', 'pageProjection.mjs', 'actionPlan.mjs',
+  'mount.mjs', 'transport.mjs', 'widgets.mjs', 'chat.mjs', 'reproject.mjs', 'displayDom.mjs', 'pageProjection.mjs', 'actionPlan.mjs', 'globalSearch.mjs', 'theme.mjs',
 ]
 const body = MODULES.map(strip).join('\n\n')
 
@@ -447,6 +447,13 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     hostReRendered,
     touchesHost,
     onlyMessagesAnswer,
+    fabsOf,
+    // GlobalSearchSupplier in the Ask palette, app-level actions (app @Fab), light/dark
+    fetchGlobalSearch,
+    paletteRowsOfHits,
+    runAppLevelAction,
+    applyInitialTheme,
+    toggleTheme,
   };
 });
 `
