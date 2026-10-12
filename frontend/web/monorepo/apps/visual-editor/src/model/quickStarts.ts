@@ -61,7 +61,8 @@ export function turnIntoListing(doc: PageDoc): PageDoc {
     const columns = cols.map((f) => {
         const id = (f as Record<string, unknown>).id as string | undefined
         const label = (f as Record<string, unknown>).label as string | undefined
-        return { type: 'GridColumn', id: id ?? 'column', label: label ?? id ?? 'Column' }
+        // a column sorts from its header unless the author says otherwise (as reflected ones do)
+        return { type: 'GridColumn', id: id ?? 'column', label: label ?? id ?? 'Column', sortable: true }
     })
     const layout: PageNode = { type: 'Listing', title: 'Items', columns } as unknown as PageNode
     // A listing is a snapshot-free static layout; drop any pending delta (it described a form).
