@@ -126,7 +126,24 @@ export function rowButtonOf(b) {
 export function optionsOf(field, data) {
   const found = data && data[field.fieldId] && data[field.fieldId].content
   const raw = (field.options && field.options.length) ? field.options : (found || [])
+  if (field.stereotype === 'treeSelect') return treeOptionsOf(raw, !!field.treeLeavesOnly)
   return raw.map((o) => ({ value: o.value, label: o.label == null ? String(o.value) : o.label }))
+}
+
+/**
+ * A @TreeSelect's options flattened for the select, nested ones indented under their parent (a
+ * leaves-only tree offers its leaves only). Only the top level used to be offered: a nested value
+ * could not be picked, and a stored one (Mallorca) showed as the first option (Spain).
+ */
+export function treeOptionsOf(options, leavesOnly, depth = 0) {
+  const out = []
+  for (const o of options || []) {
+    const children = o.children || []
+    const label = (depth ? '\u2003'.repeat(depth) : '') + (o.label == null ? String(o.value) : o.label)
+    if (!(leavesOnly && children.length)) out.push({ value: o.value, label })
+    out.push(...treeOptionsOf(children, leavesOnly, depth + 1))
+  }
+  return out
 }
 
 /** El valor de un campo tal como lo edita su widget: un lookup puede llegar como {value,label}. */
@@ -481,7 +498,13 @@ export function isExtraLayoutField(md) {
       && (MULTI_SELECT_STEREOTYPES[md.stereotype] || CHECKBOX_SET_STEREOTYPES[md.stereotype])))
 }
 
+/** Stereotypes that PRESENT a value and take no input (@PlainText, @Badge): drawn read-only.
+ *  They were drawn as editable inputs (a badge as a switch), so the user could change what the
+ *  server shows as a fact — and send it back. */
+export const DISPLAY_ONLY_STEREOTYPES = { plainText: true, badge: true }
+
 export function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
+  if (f && DISPLAY_ONLY_STEREOTYPES[f.stereotype] && !f.readOnly) f = { ...f, readOnly: true }
   if (isSearchableField(f)) return searchableWidgetOf(f, data, value)
   const extra = extraWidgetOf(f, optionsOf(f, data))
   if (extra) {

@@ -4656,10 +4656,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const title = opts.title || ''
     let titleDropped = false
     let entityDropped = false
+    // a wizard step's forward button (Next, or the completion on the last step) rides the guided
+    // process footer (Continue): when the row also carries a Draftable's Save / Save and close, the
+    // row stayed whole and the step showed Next AND Continue (Check in twice on the last step).
+    // The row keeps Back and those side actions; the forward one leaves it.
+    const isSide = (b) => b.actionId === 'back' || WIZARD_SIDE_ACTIONS[b.actionId]
+    const withoutWizardNav = (atom) => (opts.forWizard && !opts.keepWizardNav && atom && atom.isButtons
+      && (atom.buttons || []).some((b) => b.actionId === 'back' || b.actionId === 'next')
+      && (atom.buttons || []).some((b) => b.actionId !== 'back' && WIZARD_SIDE_ACTIONS[b.actionId])
+      ? { ...atom, wizardSideRow: true, buttons: atom.buttons.filter(isSide) }
+      : atom)
     merged = merged
       .map((block) => ({
         ...block,
-        items: block.items.filter((atom) => {
+        items: block.items.map(withoutWizardNav).filter((atom) => {
           // el título de Page sobra: la banda del header (o el guided process) ya lo pinta
           if (!titleDropped && atom.isText && title && atom.text === title) {
             titleDropped = true
@@ -4685,7 +4695,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
                 && atom.buttons.every((b) => b.actionId === 'next' || b.actionId === 'back')) return false
             // el pie del ÚLTIMO paso: Back + la acción de completar (@WizardCompletionAction) — el
             // pie del proceso guiado ya los pinta (wizardForwardOf), aquí salían duplicados
-            if (!opts.keepWizardNav && atom.isButtons && atom.buttons.length === 2
+            if (!opts.keepWizardNav && atom.isButtons && !atom.wizardSideRow && atom.buttons.length === 2
                 && atom.buttons.some((b) => b.actionId === 'back')
                 && !atom.buttons.some((b) => b.actionId === 'next')) return false
           }
@@ -4710,6 +4720,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** Acción FORWARD del wizard (Continue/Completar): se deriva del PIE real del árbol — el
    *  bloque de botones que acompaña a 'back' (los wizards ricos tienen además acciones de
    *  página como selectPax que NO son el forward; elegir "primera acción no-back" fallaba). */
+  const WIZARD_SIDE_ACTIONS = { back: true, saveDraft: true, saveAndClose: true, skip: true }
+
   function wizardForwardOf(ctx) {
     const blocks = islandContentOf(ctx)
     if (!blocks) return null
@@ -4718,7 +4730,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       for (const atomItem of block.items) {
         if (!atomItem.isButtons) continue
         const hasBack = atomItem.buttons.some((b) => b.actionId === 'back')
-        const candidate = atomItem.buttons.find((b) => b.actionId !== 'back')
+        // Next when the row has it; else the completion — never a Draftable's Save / Save and
+        // close or Skip, which sit in the same row (Continue saved the draft instead of advancing)
+        const candidate = atomItem.buttons.find((b) => b.actionId === 'next')
+          || atomItem.buttons.find((b) => !WIZARD_SIDE_ACTIONS[b.actionId])
         if (candidate && (hasBack || candidate.actionId === 'next')) {
           forward = { actionId: candidate.actionId, label: candidate.label }
         }
@@ -6989,7 +7004,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function optionsOf(field, data) {
     const found = data && data[field.fieldId] && data[field.fieldId].content
     const raw = (field.options && field.options.length) ? field.options : (found || [])
+    if (field.stereotype === 'treeSelect') return treeOptionsOf(raw, !!field.treeLeavesOnly)
     return raw.map((o) => ({ value: o.value, label: o.label == null ? String(o.value) : o.label }))
+  }
+
+  /**
+   * A @TreeSelect's options flattened for the select, nested ones indented under their parent (a
+   * leaves-only tree offers its leaves only). Only the top level used to be offered: a nested value
+   * could not be picked, and a stored one (Mallorca) showed as the first option (Spain).
+   */
+  function treeOptionsOf(options, leavesOnly, depth = 0) {
+    const out = []
+    for (const o of options || []) {
+      const children = o.children || []
+      const label = (depth ? '\u2003'.repeat(depth) : '') + (o.label == null ? String(o.value) : o.label)
+      if (!(leavesOnly && children.length)) out.push({ value: o.value, label })
+      out.push(...treeOptionsOf(children, leavesOnly, depth + 1))
+    }
+    return out
   }
 
   /** El valor de un campo tal como lo edita su widget: un lookup puede llegar como {value,label}. */
@@ -7344,7 +7376,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         && (MULTI_SELECT_STEREOTYPES[md.stereotype] || CHECKBOX_SET_STEREOTYPES[md.stereotype])))
   }
 
+  /** Stereotypes that PRESENT a value and take no input (@PlainText, @Badge): drawn read-only.
+   *  They were drawn as editable inputs (a badge as a switch), so the user could change what the
+   *  server shows as a fact — and send it back. */
+  const DISPLAY_ONLY_STEREOTYPES = { plainText: true, badge: true }
+
   function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
+    if (f && DISPLAY_ONLY_STEREOTYPES[f.stereotype] && !f.readOnly) f = { ...f, readOnly: true }
     if (isSearchableField(f)) return searchableWidgetOf(f, data, value)
     const extra = extraWidgetOf(f, optionsOf(f, data))
     if (extra) {

@@ -17,7 +17,7 @@ import {
   flattenTreeRows, gridPageOf, autoFitColClass, AUTO_FIT_DEFAULT, unsupportedAtomOf, VISITOR_PASS_THROUGH, safeHref, toneOf, cssColorOf,
   setUiValue, setPanelExpanded, carouselPagerAtomOf, microFrontendOf, tagSurfaceActions, heroAtomOf, emptyStateAtomOf, progressBarAtomOf,
   registerCustomComponent, customComponentRegistered, layoutFieldOf, HOST_ID, taskQueueOf, emptyStateOf, hostContentShown, pageToolbarOf,
-  welcomeOf, withFormActions,
+  welcomeOf, withFormActions, hostContentOf, wizardForwardOf,
 } from './reduceContexts.mjs'
 import { markdownToHtml, deltaOps, deltaToHtml, richTextHtml, richTextValueOf, sanitizeHtml } from './richtext.mjs'
 import { hexColorOf } from './inputs.mjs'
@@ -421,6 +421,13 @@ test('field widgets: slider, stars, colour and the rich text editor', () => {
   assert.deepEqual([slider.isSlider, slider.min, slider.max, slider.step, slider.value], [true, 10, 50, 5, 20])
   const stars = layoutFieldOf(md({ stereotype: 'stars' }), { x: 4 })
   assert.deepEqual([stars.isStars, stars.max, stars.value, stars.isNumber], [true, 5, 4, false])
+  // a tree select offers its nested options (leaves only when asked) and keeps a nested value
+  const tree = [{ value: 'es', label: 'Spain', children: [{ value: 'mca', label: 'Mallorca' }] }, { value: 'pt', label: 'Portugal' }]
+  const zone = layoutFieldOf(md({ dataType: 'string', stereotype: 'treeSelect', treeLeavesOnly: true, options: tree }), { x: 'mca' })
+  assert.deepEqual([zone.isSelect, zone.value, zone.options.map((o) => o.value)], [true, 'mca', ['mca', 'pt']])
+  // @PlainText / @Badge present a value: never an editable input
+  assert.equal(layoutFieldOf(md({ dataType: 'string', stereotype: 'plainText' }), { x: 'R-1' }).readonly, true)
+  assert.equal(layoutFieldOf(md({ dataType: 'bool', stereotype: 'badge' }), { x: true }).readonly, true)
   // the wire sends sliderMax 100 on every field: a rating is still five stars
   assert.equal(layoutFieldOf(md({ stereotype: 'stars', sliderMax: 100 }), { x: 3 }).max, 5)
   // a LocalTime is drawn (as text), and an Amount shows its value
@@ -433,6 +440,29 @@ test('field widgets: slider, stars, colour and the rich text editor', () => {
   assert.equal(hexColorOf('#ABC'), '#aabbcc')
   assert.equal(hexColorOf('rgb(255, 0, 16)'), '#ff0010')
   assert.equal(hexColorOf('red'), '')
+})
+
+test('a wizard step leaves Next to the guided process but keeps Back and Save', () => {
+  // a Draftable wizard's row is Back | Save | Save and close | Next: kept whole, the step showed
+  // Next AND the guided process's Continue
+  const row = node({ type: 'HorizontalLayout' }, [
+    node({ type: 'Button', actionId: 'back', label: 'Back' }), node({ type: 'Button', actionId: 'saveDraft', label: 'Save' }),
+    node({ type: 'Button', actionId: 'next', label: 'Next' }),
+  ])
+  const tree = { type: 'ServerSide', id: 'w', children: [row] }
+  const buttons = hostContentOf({ tree, state: {}, data: {} }, null, { forWizard: true })
+    .flatMap((b) => b.items || []).filter((a) => a.isButtons).flatMap((a) => a.buttons.map((x) => x.actionId))
+  assert.deepEqual(buttons, ['back', 'saveDraft'])
+  // and the guided process's Continue is Next, not the first button that is not Back
+  assert.equal(wizardForwardOf({ tree, state: {}, data: {} }).actionId, 'next')
+  // the last step: Back | Save | Check in — the completion is the footer's, not the row's
+  const last = { type: 'ServerSide', id: 'w', children: [node({ type: 'HorizontalLayout' }, [
+    node({ type: 'Button', actionId: 'back', label: 'Back' }), node({ type: 'Button', actionId: 'saveDraft', label: 'Save' }),
+    node({ type: 'Button', actionId: 'checkIn', label: 'Check in' }),
+  ])] }
+  assert.deepEqual(hostContentOf({ tree: last, state: {}, data: {} }, null, { forWizard: true })
+    .flatMap((b) => b.items || []).filter((a) => a.isButtons).flatMap((a) => a.buttons.map((x) => x.actionId)), ['back', 'saveDraft'])
+  assert.equal(wizardForwardOf({ tree: last, state: {}, data: {} }).actionId, 'checkIn')
 })
 
 test('a form whose rich blocks replace the generic form keeps its action row', () => {

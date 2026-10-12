@@ -1604,10 +1604,20 @@ export function hostContentOf(ctx, islandBlocks, opts = {}) {
   const title = opts.title || ''
   let titleDropped = false
   let entityDropped = false
+  // a wizard step's forward button (Next, or the completion on the last step) rides the guided
+  // process footer (Continue): when the row also carries a Draftable's Save / Save and close, the
+  // row stayed whole and the step showed Next AND Continue (Check in twice on the last step).
+  // The row keeps Back and those side actions; the forward one leaves it.
+  const isSide = (b) => b.actionId === 'back' || WIZARD_SIDE_ACTIONS[b.actionId]
+  const withoutWizardNav = (atom) => (opts.forWizard && !opts.keepWizardNav && atom && atom.isButtons
+    && (atom.buttons || []).some((b) => b.actionId === 'back' || b.actionId === 'next')
+    && (atom.buttons || []).some((b) => b.actionId !== 'back' && WIZARD_SIDE_ACTIONS[b.actionId])
+    ? { ...atom, wizardSideRow: true, buttons: atom.buttons.filter(isSide) }
+    : atom)
   merged = merged
     .map((block) => ({
       ...block,
-      items: block.items.filter((atom) => {
+      items: block.items.map(withoutWizardNav).filter((atom) => {
         // el título de Page sobra: la banda del header (o el guided process) ya lo pinta
         if (!titleDropped && atom.isText && title && atom.text === title) {
           titleDropped = true
@@ -1633,7 +1643,7 @@ export function hostContentOf(ctx, islandBlocks, opts = {}) {
               && atom.buttons.every((b) => b.actionId === 'next' || b.actionId === 'back')) return false
           // el pie del ÚLTIMO paso: Back + la acción de completar (@WizardCompletionAction) — el
           // pie del proceso guiado ya los pinta (wizardForwardOf), aquí salían duplicados
-          if (!opts.keepWizardNav && atom.isButtons && atom.buttons.length === 2
+          if (!opts.keepWizardNav && atom.isButtons && !atom.wizardSideRow && atom.buttons.length === 2
               && atom.buttons.some((b) => b.actionId === 'back')
               && !atom.buttons.some((b) => b.actionId === 'next')) return false
         }
@@ -1658,6 +1668,8 @@ export function hostContentOf(ctx, islandBlocks, opts = {}) {
 /** Acción FORWARD del wizard (Continue/Completar): se deriva del PIE real del árbol — el
  *  bloque de botones que acompaña a 'back' (los wizards ricos tienen además acciones de
  *  página como selectPax que NO son el forward; elegir "primera acción no-back" fallaba). */
+const WIZARD_SIDE_ACTIONS = { back: true, saveDraft: true, saveAndClose: true, skip: true }
+
 export function wizardForwardOf(ctx) {
   const blocks = islandContentOf(ctx)
   if (!blocks) return null
@@ -1666,7 +1678,10 @@ export function wizardForwardOf(ctx) {
     for (const atomItem of block.items) {
       if (!atomItem.isButtons) continue
       const hasBack = atomItem.buttons.some((b) => b.actionId === 'back')
-      const candidate = atomItem.buttons.find((b) => b.actionId !== 'back')
+      // Next when the row has it; else the completion — never a Draftable's Save / Save and
+      // close or Skip, which sit in the same row (Continue saved the draft instead of advancing)
+      const candidate = atomItem.buttons.find((b) => b.actionId === 'next')
+        || atomItem.buttons.find((b) => !WIZARD_SIDE_ACTIONS[b.actionId])
       if (candidate && (hasBack || candidate.actionId === 'next')) {
         forward = { actionId: candidate.actionId, label: candidate.label }
       }

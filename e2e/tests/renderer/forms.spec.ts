@@ -33,6 +33,26 @@ test.describe('renderer-agnostic forms', () => {
     await expect(page.getByText('Valid!')).toHaveCount(0);
   });
 
+  test('a wizard walks its steps and its result reads every one of them', async ({ page }) => {
+    await page.goto('/walk-wizard');
+    // VB/Redwood opens a guided process on an intro page
+    const start = page.getByRole('button', { name: 'Start' });
+    // the forward button: Next (Vaadin) or the guided process's Continue (Redwood) — only one of
+    // them (a Draftable's row used to show Next next to Continue, which saved the draft)
+    const forward = page.getByRole('button', { name: /^(Next|Continue)$/ });
+    await expect(start.or(forward).first()).toBeVisible({ timeout: 15000 });
+    if (await start.isVisible()) await start.click();
+    await expect(forward).toHaveCount(1, { timeout: 15000 });
+    await page.getByRole('textbox', { name: 'Name' }).first().fill('Ana');
+    await forward.click();
+    await expect(page.getByRole('textbox', { name: 'Nights' }).or(page.getByRole('spinbutton', { name: 'Nights' })).first()).toBeVisible();
+    await forward.click();
+    await page.getByRole('textbox', { name: 'Notes' }).first().fill('late');
+    await expect(page.getByRole('button', { name: 'Check in' })).toHaveCount(1);
+    await page.getByRole('button', { name: 'Check in' }).click();
+    await expect(page.getByText('Checked in Ana, 1 nights, notes: late').first()).toBeVisible();
+  });
+
   test('a YAML form with no view model renders its definition', async ({ page }) => {
     await page.goto('/walk-yaml');
     await expect(page.getByText('YAML booking').first()).toBeVisible({ timeout: 15000 });
