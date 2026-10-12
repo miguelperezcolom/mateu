@@ -780,6 +780,13 @@ public class ChromelessApp
     [MenuItem("Things")] public Things Home() => new();
 }
 
+// The header's light/dark switch: opt-in, mirrors Java's @App(themeToggle).
+[App("Theme Toggle App", ThemeToggle = true)]
+public class ThemeToggleApp
+{
+    [MenuItem("Things")] public Things Home() => new();
+}
+
 // Keyboard access keys (hold Alt to see them): opt-in, mirrors Java's AccessKeysSyncTest.
 [App("Access Keys App", AccessKeys = true)]
 public class AccessKeysApp
@@ -1331,6 +1338,17 @@ public class SyncHandlerTests
         Assert.Contains("\"accessKeys\":false", plain);
         var on = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(AccessKeysApp).FullName }));
         Assert.Contains("\"accessKeys\":true", on);
+    }
+
+    [Fact]
+    public void The_theme_toggle_is_opt_in()
+    {
+        // [App(ThemeToggle = true)] draws the header's light/dark switch (Java's @App(themeToggle));
+        // the port had no way to ask for it
+        var plain = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(CommandCenterApp).FullName }));
+        Assert.Contains("\"themeToggle\":false", plain);
+        var on = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(ThemeToggleApp).FullName }));
+        Assert.Contains("\"themeToggle\":true", on);
     }
 
     [Fact]

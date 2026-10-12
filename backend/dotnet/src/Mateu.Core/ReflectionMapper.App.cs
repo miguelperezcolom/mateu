@@ -155,6 +155,8 @@ public sealed partial class ReflectionMapper
             Chromeless = app.Chromeless,
             // Keyboard access keys (hold Alt to see them): opt-in, mirrors AppDto.accessKeys.
             AccessKeys = app.AccessKeys,
+            // The header's light/dark switch: opt-in, mirrors AppDto.themeToggle.
+            ThemeToggle = app.ThemeToggle,
             // E2 patterns: app-wide shortcuts, live header values, the idle-session warning
             Shortcuts = MapShortcuts(appType, appRoute),
             HeaderValues = MapHeaderValues(appType, app),

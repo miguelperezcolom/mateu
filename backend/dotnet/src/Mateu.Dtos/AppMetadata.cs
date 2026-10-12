@@ -61,6 +61,10 @@ public record AppMetadataDto(
     /// every visible button and tab and Alt+key activates it. (Mirrors AppDto.accessKeys.)</summary>
     public bool AccessKeys { get; init; }
 
+    /// <summary>[App(ThemeToggle=true)] — a light/dark switch on the app header. (Mirrors
+    /// AppDto.themeToggle.)</summary>
+    public bool ThemeToggle { get; init; }
+
     /// <summary>App-wide keyboard shortcuts and quick-launch codes ([AppShortcut]). (Mirrors
     /// io.mateu.dtos.AppDto.shortcuts.)</summary>
     public IReadOnlyList<AppShortcutDto> Shortcuts { get; init; } = [];

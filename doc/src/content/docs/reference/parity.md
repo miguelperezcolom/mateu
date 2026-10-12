@@ -52,6 +52,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | `Map` with markers (`MapMarker`, `markerActionId` → `_markerId`; fits the markers when no position) | ✅ | ✅ | ✅ |
 | Calendar views (`Calendar.view`/`views`: month, week, day, list), per-date cells (`days`), clickable dates (`dayActionId`); `CalendarPage` `views()`/`days()`/`actionOnDay()` | ✅ | ✅ | ✅ |
 | Access keys mode (`@App(accessKeys)` → `AppDto.accessKeys`) | ✅ | ✅ | ✅ |
+| Header light/dark switch (`@App(themeToggle)` / `[App(ThemeToggle)]` / `@app(theme_toggle)` → `AppDto.themeToggle`) | ✅ | ✅ | ✅ |
 | [Mobile app](/ux-patterns/mobile-app/) (experimental): the manifest `GET <baseUrl>/mateu/v3/manifest` (Java `@MobileApp` + `mateu.mobile.*` settings, .NET `[MobileApp]`, Python `@mobile_app`; env vars `MATEU_MOBILE_*` everywhere) and "Open on mobile" (`@App(mobileQr)` / `[App(MobileQr)]` / `@app(mobile_qr)` → `AppDto.mobileQr`). The ports have no app logo/favicon/accent, so `icon`/`themeColor` come only from `MobileApp` or the env vars there | ✅ | ✅ | ✅ |
 | `Popover.trigger` (click/hover) + `@Tooltip("field")` → `GridColumn.tooltipPath` | ✅ | ✅ | ✅ |
 | `@DragRows` → `CrudlDto.dragType` + `DropZone` | ✅ | ✅ | ✅ |

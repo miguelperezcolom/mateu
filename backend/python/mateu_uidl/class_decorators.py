@@ -313,6 +313,7 @@ def app(
     chromeless: bool = False,
     access_keys: bool = False,
     requires: list[str] | None = None,
+    theme_toggle: bool = False,
     route: str = "",
     live_updates: bool = False,
     idle_timeout_minutes: int = 0,
@@ -335,6 +336,9 @@ def app(
     ``access_keys=True`` turns on the keyboard access-keys mode: holding Alt shows a key next to
     every visible button and tab (the declared shortcut, else a letter of its label assigned
     automatically) and Alt+that letter activates it. Mirrors Java's ``@App(accessKeys = true)``.
+
+    ``theme_toggle=True`` draws a light/dark switch on the app header (the choice is remembered in
+    the browser). Mirrors Java's ``@App(themeToggle = true)``.
 
     ``mobile_qr=True`` (EXPERIMENTAL, mobile app) adds the "Open on mobile" header action: a dialog
     with the QR that adds this UI to the Mateu mobile app (``https://mateu.io/add?u=…``), or an
@@ -368,6 +372,7 @@ def app(
         setattr(cls, "__mateu_app_command_center__", command_center)
         setattr(cls, "__mateu_app_chromeless__", chromeless)
         setattr(cls, "__mateu_app_access_keys__", access_keys)
+        setattr(cls, "__mateu_app_theme_toggle__", theme_toggle)
         setattr(cls, "__mateu_app_mobile_qr__", mobile_qr)
         setattr(cls, "__mateu_app_requires__", list(requires) if requires else [])
         setattr(cls, "__mateu_app_live_updates__", live_updates)
