@@ -8,9 +8,6 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 
-import io.mateu.core.application.MateuService;
-import io.mateu.core.application.runaction.RouteRegistry;
-import io.mateu.core.application.runaction.YamlAppLoader;
 import io.mateu.core.infra.WireMapper;
 import io.mateu.dtos.RunActionRqDto;
 import io.micronaut.context.ApplicationContext;
@@ -18,7 +15,6 @@ import io.micronaut.http.HttpRequest;
 import io.micronaut.http.HttpStatus;
 import io.micronaut.test.extensions.junit5.annotation.MicronautTest;
 import jakarta.inject.Inject;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -26,28 +22,19 @@ import org.junit.jupiter.api.Test;
  * the YAML mount fixture ({@code specs/ui/yaml-parity.ui.yaml}: an app shell titled "YAML parity"
  * at {@code /yaml-parity} and a {@code page} route with the text "YAML parity page"). The same
  * expectations as {@code AdapterParityITFoundation.servesAYamlMount} on the other adapters. The
- * test app also has generated {@code @UI} controllers, so the controller rightly is not a bean here
- * ({@link MateuYamlMountController.Present}): it is built with the app's own beans and called
- * directly.
+ * test app also has generated {@code @UI} controllers at {@code /hello}, {@code /plain}… and the
+ * YAML mounts are served NEXT to them (every adapter, 2026-10-12), so the controller is a bean here
+ * ({@link MateuYamlMountController.Present}); only a ROOT {@code @UI} would keep it out.
  */
 @MicronautTest
 class MateuYamlMountControllerTest {
 
   @Inject ApplicationContext context;
-  @Inject MateuService service;
-  @Inject RouteRegistry routeRegistry;
-  @Inject YamlAppLoader yamlAppLoader;
-
-  MateuYamlMountController controller;
-
-  @BeforeEach
-  void setUp() {
-    controller = new MateuYamlMountController(service, routeRegistry, yamlAppLoader);
-  }
+  @Inject MateuYamlMountController controller;
 
   @Test
-  void isNotABeanWhileTheAppHasGeneratedControllers() {
-    assertThat(context.containsBean(MateuYamlMountController.class), is(false));
+  void isABeanNextToTheAppsGeneratedControllers() {
+    assertThat(context.containsBean(MateuYamlMountController.class), is(true));
   }
 
   @Test

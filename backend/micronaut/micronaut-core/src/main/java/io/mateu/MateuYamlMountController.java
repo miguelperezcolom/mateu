@@ -127,7 +127,10 @@ public class MateuYamlMountController {
     return response.contentType(MediaType.APPLICATION_JSON_TYPE);
   }
 
-  @Post("/{+path:(?!.*mateu/v3/sse/).*mateu/v3/.*}")
+  // client-log is excluded: served next to the generated controllers, this catch-all would be
+  // Micronaut's pick for a class's POST <base>/mateu/v3/client-log (both match, and only this one
+  // explicitly consumes JSON — the generated route consumes ALL) and answer it empty, a 404.
+  @Post("/{+path:(?!.*mateu/v3/sse/)(?!.*mateu/v3/client-log$).*mateu/v3/.*}")
   public Mono<UIIncrementDto> sync(
       @PathVariable("path") String path, @Body RunActionRqDto rq, HttpRequest<?> request)
       throws Throwable {
