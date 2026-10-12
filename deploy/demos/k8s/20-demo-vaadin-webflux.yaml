@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-vaadin-webflux
+  namespace: mateu-demos
+  labels: { app: demo-vaadin-webflux }
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: demo-vaadin-webflux }
+  template:
+    metadata:
+      labels: { app: demo-vaadin-webflux }
+    spec:
+      nodeSelector:
+        kubernetes.io/arch: amd64
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile: { type: RuntimeDefault }
+      containers:
+        - name: app
+          image: miguelperezcolom/demo-vaadin-webflux:2026.10.12
+          env:
+            - { name: SERVER_PORT, value: "8092" }
+            - { name: JAVA_TOOL_OPTIONS, value: "-Djava.io.tmpdir=/tmp -XX:MaxRAMPercentage=75" }
+            # Public demo embedded from third-party pages (<mateu-ui baseUrl="https://demo.mateu.io/counter">):
+            # any origin, no credentials. Applies only to /mateu/** paths (CorsPolicy).
+            - { name: MATEU_CORS_ALLOWED_ORIGINS, value: "*" }
+          ports:
+            - { name: http, containerPort: 8092 }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+          resources:
+            requests: { memory: "384Mi", cpu: "100m" }
+            limits:   { memory: "512Mi" }
+          volumeMounts:
+            - { name: tmp, mountPath: /tmp }
+          startupProbe:
+            httpGet: { path: /counter, port: 8092 }
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet: { path: /counter, port: 8092 }
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /counter, port: 8092 }
+            periodSeconds: 20
+      volumes:
+        - { name: tmp, emptyDir: {} }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-vaadin-webflux
+  namespace: mateu-demos
+spec:
+  selector: { app: demo-vaadin-webflux }
+  ports:
+    - { name: http, port: 8092, targetPort: 8092 }
