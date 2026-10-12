@@ -150,7 +150,8 @@ export function pageHeaderOf({ host, hostEntity, summary, hostToolbar, showHeade
   // oj-sp's header has ONE badge (Redwood's status badge beside the title): the first page badge
   // takes it, the rest follow the subtitle — the same way the EntityHeader's badges do
   const [firstBadge, ...moreBadges] = extras.badges
-  const baseSubtitle = hostEntity ? hostEntity.subtitle : pageSubtitleOf(host)
+  // inside a nested app level the tab's own title follows the master's (withinAppLevels)
+  const baseSubtitle = hostEntity ? hostEntity.subtitle : (pageSubtitleOf(host) || summary.levelSubtitle || '')
   const peer = extras.peerNav
   // oj-sp's timestamp element only takes a DATE (headerTimestampOf); a timestamp that is TEXT ends
   // the subtitle line instead — on the header's own row, scrolling and sticking with it

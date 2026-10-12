@@ -5311,6 +5311,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return (actions || []).filter((a) => !drawn[a.actionId])
   }
 
+  /**
+   * Inside a nested app LEVEL (reducer.mjs appLevelOf: a record master whose tabs are pages) the
+   * header names the MASTER — the record ("Customer 7") — and the tab's own title, when it declares
+   * one, follows as the subtitle (`levelSubtitle`, read by pageHeaderOf). Before, the master's
+   * title only showed while the tab had NO title of its own, so a tab with a @Title hid the record
+   * it belongs to (Vaadin shows both: the master's heading over the tab bar, the tab's below).
+   */
+  function withinAppLevels(summary, levels) {
+    const level = levels && levels.length ? levels[levels.length - 1] : null
+    if (!level || !level.title) return summary
+    const own = (summary && summary.title) || ''
+    return { ...summary, title: level.title, levelSubtitle: own && own !== level.title ? own : '' }
+  }
+
   function summarizeHost(reg, route) {
     const host = reg.contexts[HOST_ID] || {}
     const pageMetadata = (((host.tree || {}).children || [])[0] || {}).metadata || {}
@@ -17443,7 +17457,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // oj-sp's header has ONE badge (Redwood's status badge beside the title): the first page badge
     // takes it, the rest follow the subtitle — the same way the EntityHeader's badges do
     const [firstBadge, ...moreBadges] = extras.badges
-    const baseSubtitle = hostEntity ? hostEntity.subtitle : pageSubtitleOf(host)
+    // inside a nested app level the tab's own title follows the master's (withinAppLevels)
+    const baseSubtitle = hostEntity ? hostEntity.subtitle : (pageSubtitleOf(host) || summary.levelSubtitle || '')
     const peer = extras.peerNav
     // oj-sp's timestamp element only takes a DATE (headerTimestampOf); a timestamp that is TEXT ends
     // the subtitle line instead — on the header's own row, scrolling and sticking with it
@@ -19576,6 +19591,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     dynFormMetadataOf,
     actionsOf,
     summarizeHost,
+    withinAppLevels,
     findByType,
     // pestañas del contenido: activa POR BARRA (barras anidadas) y refresco de cada oj-tab-bar
     tabStripOf,

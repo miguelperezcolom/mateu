@@ -360,13 +360,9 @@ define([
       vars.mateuFabs = bridge.fabsOf(reg.shell, host);
       // Si la carga falló, el reintento vuelve a entrar en ESTA chain con la misma ruta.
       bridge.setLastRetry(null);
-      const summary = bridge.summarizeHost(reg, route);
-      // dentro de un maestro (P1) la pestaña no repite su rótulo: la cabecera lleva el del
-      // maestro, y la barra de pestañas va encima
-      const levels = reg.appLevels || [];
-      if (!summary.title && levels.length) {
-        summary.title = levels[levels.length - 1].title;
-      }
+      // dentro de un maestro (P1) la cabecera lleva el título del MAESTRO (el registro) y el
+      // rótulo propio de la pestaña pasa al subtítulo; la barra de pestañas va encima
+      const summary = bridge.withinAppLevels(bridge.summarizeHost(reg, route), reg.appLevels);
       $application.variables.mateuHostTitle = summary.title;
       // Navegar en una SPA no cambia la página, así que no hay nada que un lector de pantalla
       // anuncie solo, y el foco se queda en el enlace del menú recién pulsado. Sólo aquí, en

@@ -422,12 +422,9 @@ define([
       assign(bridge.listHeaderVarsOf(listingSummary));
       // the floating action buttons (@Fab) of the page and of the app
       vars.mateuFabs = bridge.fabsOf(reg.shell, hostAfter);
-      const summary = bridge.summarizeHost(reg, route);
-      // dentro de un maestro (P1): la cabecera lleva su título cuando la pestaña no trae uno
-      const levels = reg.appLevels || [];
-      if (!summary.title && levels.length) {
-        summary.title = levels[levels.length - 1].title;
-      }
+      // dentro de un maestro (P1) la cabecera lleva el título del MAESTRO (el registro) y el
+      // rótulo propio de la pestaña pasa al subtítulo (withinAppLevels)
+      const summary = bridge.withinAppLevels(bridge.summarizeHost(reg, route), reg.appLevels);
       vars.mateuHostTitle = summary.title;
       vars.mateuHostText = summary.text;
       vars.mateuFormMetadata = summary.formMetadata;

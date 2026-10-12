@@ -5570,3 +5570,19 @@ test('wireVersion: mismo major vale; otro major se avisa UNA vez, en claro; sin 
   assert.match(readFileSync(join(here, 'make-amd.mjs'), 'utf8'), /'wireVersion\.mjs'/)
 })
 
+
+import { withinAppLevels as p1WithinAppLevels } from './reduceContexts.mjs'
+test('P1: dentro de un maestro la cabecera nombra al MAESTRO y el rótulo de la pestaña pasa al subtítulo', () => {
+  const levels = [{ title: 'Customer 7', tabs: [] }]
+  // a tab with its own @Title: the record it belongs to still heads the page (it used to vanish)
+  assert.deepEqual(p1WithinAppLevels({ title: 'Customer orders', text: '' }, levels),
+    { title: 'Customer 7', text: '', levelSubtitle: 'Customer orders' })
+  // an untitled tab: the master's title, nothing to repeat
+  assert.deepEqual(p1WithinAppLevels({ title: '' }, levels), { title: 'Customer 7', levelSubtitle: '' })
+  // the same title on both: no echo in the subtitle
+  assert.equal(p1WithinAppLevels({ title: 'Customer 7' }, levels).levelSubtitle, '')
+  // no level (a plain screen): untouched
+  const plain = { title: 'Orders' }
+  assert.equal(p1WithinAppLevels(plain, []), plain)
+  assert.equal(p1WithinAppLevels(plain, undefined), plain)
+})
