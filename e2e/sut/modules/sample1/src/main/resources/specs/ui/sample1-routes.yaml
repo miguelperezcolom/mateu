@@ -7,3 +7,7 @@ routes:
   # A streamed action (LongTask over SSE) on a NON-root route: /long-task.
   - route: long-task
     viewModel: io.mateu.sample1.LongTaskForm
+
+  # Forms walkthrough: a YAML form with no view model (fields, a field type, validation).
+  - route: walk-yaml
+    layout: walk-yaml-form.yaml

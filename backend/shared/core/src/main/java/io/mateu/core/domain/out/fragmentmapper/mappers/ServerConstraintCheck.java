@@ -151,6 +151,11 @@ public final class ServerConstraintCheck {
     return null;
   }
 
+  /** The client condition of a required field (see ConstraintValidationMapper#required). */
+  public static String requiredCondition(String fieldId) {
+    return ConstraintValidationMapper.required(fieldId);
+  }
+
   /** The title the client gives its own validation toast. */
   public static final String TITLE = "There are validation errors";
 
