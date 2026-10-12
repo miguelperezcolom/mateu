@@ -2,7 +2,7 @@ import { LitElement, html, css, PropertyValues } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
 import { keyed } from 'lit/directives/keyed.js'
 import { nanoid } from 'nanoid'
-import { loadBundleManifest, setBundleLocale, getBundleLocale } from '@infra/http/bundleStore.ts'
+import { loadBundleManifest, setBundleLocale, getBundleLocale, setBundleBaseUrl } from '@infra/http/bundleStore.ts'
 import { setRestSourceCatalogue } from '@infra/http/restSourceCatalogue.ts'
 import '@infra/ui/mateu-api-caller.ts'
 import '@infra/ui/mateu-ux.ts'
@@ -12,6 +12,7 @@ import { withPreviewImages, type ProjectImage } from '../model/projectImages'
 import { VIEWPORTS, ViewportId, viewportWidth } from '../model/viewport'
 import { PROJECT_RENDERER_LABELS, type ProjectRendererId } from '../model/projectSettings'
 import './redwood-play'
+import '../widgets/ve-select'
 
 
 /**
@@ -46,15 +47,14 @@ export class MountPlay extends LitElement {
         .address input { flex: 1; min-width: 0; border: none; background: transparent; outline: none;
                          font: 12px ui-monospace, monospace; color: var(--ve-text, #1f2937); }
         .address .scheme { color: var(--ve-tertiary, #9ca3af); font: 12px ui-monospace, monospace; }
-        select { font: 12px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade); border-radius: 4px;
-                 padding: 0.2rem 0.3rem; background: var(--ve-base, #fff); color: var(--ve-text, #1f2937); }
+        ve-select { font: 12px var(--ve-font, system-ui); --ve-select-padding: 0.2rem 0.3rem; }
         .badge.note { background: var(--ve-warning-10, #fff4dc); color: var(--ve-warning, #8a5a00); }
         .badge { font-size: 11px; padding: 0.05rem 0.5rem; border-radius: 999px; background: var(--ve-success-10, #e7f6ec); color: var(--ve-success, #13703a); }
         .stage { flex: 1; min-height: 0; min-width: 0; overflow: auto; display: flex; justify-content: center; }
         /* min-width 0: a flex item's automatic minimum is its content's, so a long menu strip widened the
            whole played app (and pushed the address bar out of view) instead of scrolling inside it */
         .device { background: var(--ve-canvas-bg, #fff); min-height: 100%; width: 100%; min-width: 0; box-sizing: border-box; }
-        .device.framed { margin: 1rem 0; min-height: calc(100% - 2rem); border-radius: 14px; box-shadow: 0 0 0 1px var(--ve-border, #e3e5e8), 0 8px 30px rgba(0,0,0,.12); overflow: hidden; }
+        .device.framed { margin: 1rem 0; min-height: calc(100% - 2rem); border-radius: 14px; box-shadow: 0 0 0 1px var(--ve-border, #e3e5e8), var(--ve-shadow-popup); overflow: hidden; }
         mateu-api-caller, mateu-ux { display: block; }
     `
 
@@ -103,31 +103,51 @@ export class MountPlay extends LitElement {
         this.removeEventListener('navigate-to-requested', this.onNavigateTo)
         // Leave the runtime as the editor had it: no bundle answering route loads, the canvas's catalogue.
         setBundleLocale(undefined)
+        setBundleBaseUrl(undefined)
+        this.manifestSource = undefined
         loadBundleManifest('mateu-play-manifest.json', emptyFetch)
             .then(() => setRestSourceCatalogue(this.editorSources as never))
             .catch((e) => console.warn('mateu visual editor: leaving play mode', e))
     }
 
     protected willUpdate(changed: PropertyValues) {
-        if (changed.has('files') || changed.has('images')) this.loadManifest()
+        if (changed.has('files') || changed.has('images') || changed.has('baseUrl')) this.loadManifest()
         if (changed.has('start') && this.at < 0) { this.history = [clean(this.start)]; this.at = 0 }
     }
+
+    /** What the loaded manifest was built from — to tell a real edit from the same files handed over again. */
+    private manifestSource?: string
 
     private loadManifest() {
         const built = buildPlayManifest(this.files)
         built.definitions = withPreviewImages(built.definitions, this.images)
+        const manifest = JSON.stringify(built)
+        // The same files arriving again (the editor re-rendering, the IDE pushing the file or image
+        // list after any VFS event) is not a change: reloading would remount the running app under
+        // the author's pointer — an open submenu closed before its entry could be clicked, and the
+        // Redwood app rebooted from scratch.
+        // (the build time stamped in the manifest is not part of what it says)
+        const source = JSON.stringify({ ...built, generatedAt: '' }) + '\u0000' + this.baseUrl
+        if (source === this.manifestSource) return
+        const first = this.manifestSource === undefined
+        this.manifestSource = source
         this.locales = Object.keys(built.translations ?? {})
         this.accessRules = filesDeclareAccess(this.files)
-        const manifest = JSON.stringify(built)
+        // Play's own routes are answered by this bundle even when a preview backend at another origin
+        // is configured (VS Code's loopback server, a typed URL): only what the bundle cannot answer
+        // goes to the backend — before, a foreign baseUrl skipped the bundle and every screen said "Not found".
+        setBundleBaseUrl(this.baseUrl || undefined)
         const fetchImpl = (() => Promise.resolve(new Response(manifest, { headers: { 'content-type': 'application/json' } }))) as unknown as typeof fetch
-        this.ready = false
+        if (first) this.ready = false
         loadBundleManifest('mateu-play-manifest.json', fetchImpl)
             .then(() => {
                 // the played locale: the one chosen in the toolbar, else the browser's → en → the first
                 setBundleLocale(this.locale && this.locales.includes(this.locale) ? this.locale : undefined)
                 this.locale = getBundleLocale()
                 this.ready = true
-                this.refresh()
+                // an edit: show it — the screen is loaded again on the route it is on
+                if (first) this.refresh()
+                else this.reload()
             })
             .catch((e) => console.warn('mateu visual editor: the mount could not be loaded for play', e))
     }
@@ -144,13 +164,13 @@ export class MountPlay extends LitElement {
                     <input .value=${this.typed ?? this.route} @input=${(e: Event) => (this.typed = (e.target as HTMLInputElement).value)}
                            @keydown=${(e: KeyboardEvent) => { if (e.key === 'Enter') this.navigate(this.typed ?? this.route) }} />
                 </label>
-                <select title="Viewport width" @change=${(e: Event) => (this.viewport = (e.target as HTMLSelectElement).value as ViewportId)}>
+                <ve-select title="Viewport width" @change=${(e: Event) => (this.viewport = (e.target as HTMLSelectElement).value as ViewportId)}>
                     ${VIEWPORTS.map((v) => html`<option value=${v.id} ?selected=${v.id === this.viewport}>${v.label}</option>`)}
-                </select>
-                ${this.locales.length > 1 ? html`<select title="Language — resolves the \${i18n.…} labels with the project's translations"
+                </ve-select>
+                ${this.locales.length > 1 ? html`<ve-select title="Language — resolves the \${i18n.…} labels with the project's translations"
                         aria-label="Language" @change=${this.onLocale}>
                     ${this.locales.map((l) => html`<option value=${l} ?selected=${l === this.locale}>${l}</option>`)}
-                </select>` : ''}
+                </ve-select>` : ''}
                 ${this.accessRules ? html`<span class="badge note"
                     title="access / eyesOnly / readOnlyUnless / disabledUnless are decided on the server from the caller's token. Play has no identity, so it shows everything.">access rules: not applied in Play</span>` : ''}
                 <span class="badge" title="The files as edited, run in the browser — nothing is saved or deployed">playing</span>

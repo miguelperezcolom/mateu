@@ -16,7 +16,7 @@ import { isActionsYaml } from './model/actionsModel'
 import { setRestSourceCatalogue, setSampleMode } from '@infra/http/restSourceCatalogue.ts'
 import { setFieldTypeCatalogue } from '@infra/expander/fieldTypes.ts'
 import {
-    CanvasRendererId, CANVAS_RENDERERS, CANVAS_RENDERER_LABELS, useCanvasRenderer, parseCanvasRenderer,
+    CanvasRendererId, useCanvasRenderer,
 } from './canvas/canvasRenderer'
 import { fetchInferredFields, fetchContractMembers, ContractMembers } from './model/contract'
 import {
@@ -46,6 +46,7 @@ import {
     isProjectYaml, parseProjectSettings, PROJECT_RENDERER_LABELS, RENDERER_ARTIFACTS, type ProjectRendererId,
 } from './model/projectSettings'
 import { buildIndex, ProjectIndex, ProjectFile } from './model/projectIndex'
+import { hasPageSettings, pageTypeOf, withPageType } from './model/pageType'
 import { withEdited } from './model/playManifest'
 import { buildMountGraph } from './model/mountGraph'
 import { VIEWPORTS, ViewportId, parseViewport, viewportWidth } from './model/viewport'
@@ -70,6 +71,7 @@ import './project/project-editor'
 import './board/mount-board'
 import './play/mount-play'
 import './widgets/ve-combo'
+import './widgets/ve-select'
 
 /** The bottom dock's panels (page mode). One is open at a time; clicking its tab again closes it. */
 type DockTab = 'actions' | 'triggers' | 'quickstart' | 'templates' | 'sync' | 'tidy' | 'ai' | 'yaml'
@@ -84,12 +86,6 @@ const DOCK_TABS: { id: DockTab; label: string; title: string }[] = [
     { id: 'yaml', label: 'YAML', title: 'The file as it will be saved' },
 ]
 
-/**
- * The canvas renderer the author PEEKS at for this session — never the project setting, which lives
- * in project.yaml. Session storage, so it survives a reload of the tab and dies with it.
- */
-const RENDERER_PEEK_KEY = 'mateu-visual-editor-renderer-peek'
-
 const ICON_UNDO = html`<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="M5.5 3.5 2.5 6.5l3 3"/><path d="M2.5 6.5h7a4 4 0 0 1 0 8H7"/></svg>`
 const ICON_REDO = html`<svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px"><path d="m10.5 3.5 3 3-3 3"/><path d="M13.5 6.5h-7a4 4 0 0 0 0 8H9"/></svg>`
 
@@ -99,18 +95,12 @@ function loadViewportChoice(): ViewportId {
     try { return parseViewport(localStorage.getItem(VIEWPORT_KEY)) } catch { return 'fill' }
 }
 
-function loadRendererPeek(): CanvasRendererId | undefined {
-    try {
-        const v = sessionStorage.getItem(RENDERER_PEEK_KEY)
-        return v ? parseCanvasRenderer(v) : undefined
-    } catch { return undefined }
-}
-
-function saveRendererPeek(peek: CanvasRendererId | undefined) {
-    try {
-        if (peek) sessionStorage.setItem(RENDERER_PEEK_KEY, peek)
-        else sessionStorage.removeItem(RENDERER_PEEK_KEY)
-    } catch { /* private mode */ }
+/**
+ * The session "peek" at another renderer is gone (the canvas is always the project's — what you see
+ * is what ships). A peek left in a tab's session storage by an older editor must not resurrect it.
+ */
+function forgetRendererPeek() {
+    try { sessionStorage.removeItem('mateu-visual-editor-renderer-peek') } catch { /* private mode */ }
 }
 
 /** The simple name of a ModelView FQN (last dotted segment), for compact fixture labels. */
@@ -150,6 +140,17 @@ export class MateuVisualEditor extends LitElement {
             --ve-warning-10: hsla(30, 100%, 50%, 0.12);
             --ve-warning: hsl(30, 100%, 32%);
             --ve-radius: 6px;
+            /* Popups (dropdowns, pickers, menus) and the editor's own notes. Every popup the editor draws
+               takes its surface from these tokens, so a dark IDE never gets a light menu. */
+            --ve-shadow-popup: 0 6px 20px hsla(214, 40%, 10%, 0.16);
+            --ve-hover-outline: hsl(214, 100%, 81%);
+            --ve-error-border: hsla(3, 85%, 48%, 0.3);
+            --ve-note-bg: hsl(51, 100%, 95%);
+            --ve-note-ink: hsl(51, 100%, 12%);
+            --ve-note-border: hsl(48, 69%, 73%);
+            --ve-checkerboard: repeating-conic-gradient(hsl(214, 20%, 92%) 0% 25%, hsl(0, 0%, 100%) 0% 50%) 50% / 12px 12px;
+            /* A component thumbnail is a screenshot of the LIGHT theme: it sits on white in both themes. */
+            --ve-thumb-bg: hsl(0, 0%, 100%);
             font-family: var(--ve-font); color: var(--ve-text);
         }
         /* Lumo's dark palette, for a dark IDE (see host/theme.ts). */
@@ -173,6 +174,13 @@ export class MateuVisualEditor extends LitElement {
             --ve-warning: hsl(30, 100%, 65%);
             --ve-warning-10: hsla(30, 100%, 60%, 0.14);
             --ve-canvas-bg: hsl(214, 35%, 21%);
+            --ve-shadow-popup: 0 6px 24px hsla(0, 0%, 0%, 0.5);
+            --ve-hover-outline: hsl(214, 90%, 63%);
+            --ve-error-border: hsla(3, 90%, 63%, 0.4);
+            --ve-note-bg: hsl(45, 40%, 22%);
+            --ve-note-ink: hsl(48, 90%, 88%);
+            --ve-note-border: hsl(45, 45%, 38%);
+            --ve-checkerboard: repeating-conic-gradient(hsl(214, 30%, 28%) 0% 25%, hsl(214, 30%, 22%) 0% 50%) 50% / 12px 12px;
         }
         .app { display: grid; grid-template-rows: auto auto 1fr; height: 100%; background: var(--ve-base); }
         button { font: 500 12px var(--ve-font); color: var(--ve-text); background: var(--ve-base);
@@ -183,7 +191,8 @@ export class MateuVisualEditor extends LitElement {
         button.primary { background: var(--ve-primary); border-color: var(--ve-primary); color: #fff; }
         button.ghost { border-color: transparent; background: transparent; }
         button.danger { color: var(--ve-error); }
-        select, input { font: 12px var(--ve-font); color: var(--ve-text); border: 1px solid var(--ve-input-border);
+        ve-select { font: 12px var(--ve-font); }
+        input { font: 12px var(--ve-font); color: var(--ve-text); border: 1px solid var(--ve-input-border);
                         border-radius: 4px; padding: 0.25rem 0.4rem; background: var(--ve-base); }
         .toolbar { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.75rem; background: var(--ve-base);
                    border-bottom: 1px solid var(--ve-border); font-size: 12px; flex-wrap: wrap; }
@@ -280,14 +289,14 @@ export class MateuVisualEditor extends LitElement {
     @state() private aiMsg?: string
     @state() private flowActionId?: string
     /**
-     * Which design system the canvas paints with: the PROJECT's renderer (project.yaml), unless the
-     * author is peeking at another one for this session (`rendererPeek`).
+     * Which design system the canvas paints with: ALWAYS the project's renderer (project.yaml) — the
+     * canvas, the board, Play and Export all show what ships. There is no per-page or per-session
+     * choice: a page does not get a design system of its own, the project does. (`neutral` only when
+     * the Vaadin chunk cannot load at all.)
      */
-    @state() private renderer: CanvasRendererId = loadRendererPeek() ?? 'vaadin'
-    /** The project's renderer, from its descriptor (absent: vaadin). Play and Export use it. */
+    @state() private renderer: CanvasRendererId = 'vaadin'
+    /** The project's renderer, from its descriptor (absent: vaadin). */
     @state() private projectRenderer: ProjectRendererId = 'vaadin'
-    /** A session-only peek at another renderer on the canvas — clearly not the project setting. */
-    @state() private rendererPeek?: CanvasRendererId = loadRendererPeek()
     /** What the canvas last reported about its render (ok / offline fallback / error). */
     @state() private previewStatus?: { kind: 'ok' | 'fallback' | 'error' | 'client'; text: string }
     /** Whether the "open a share link" bar is showing under the toolbar. */
@@ -368,10 +377,11 @@ export class MateuVisualEditor extends LitElement {
         // Play) — the visual editor's half of the sample-mode rule (see restSourceCatalogue.ts).
         setSampleMode(true)
         this.loadProject()
-        // The stored choice loads lazily; a pick made meanwhile (the Vaadin chunk can take a while
-        // on a cold dev server) must not be overwritten when that load lands.
-        const stored = this.renderer
-        useCanvasRenderer(stored).then((r) => { if (this.renderer === stored) this.renderer = r })
+        forgetRendererPeek()
+        // The Vaadin chunk loads lazily; the project's renderer may arrive (with the mount's files)
+        // meanwhile, and that one must not be overwritten when this load lands.
+        const initial = this.renderer
+        useCanvasRenderer(initial).then((r) => { if (this.renderer === initial) this.renderer = r })
         window.addEventListener('keydown', this.onKeydown)
     }
 
@@ -446,6 +456,8 @@ export class MateuVisualEditor extends LitElement {
         const t = e.composedPath()[0] as HTMLElement | undefined
         // Typing in a field keeps the field's own undo; everywhere else the editor's history answers.
         if (t && (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) || t.isContentEditable)) return
+        // the editor's own dropdowns and pickers count as fields too (a native <select> did, above)
+        if (e.composedPath().some((n) => /^VE-(SELECT|COMBO|ICON-PICKER|IMAGE-PICKER)$/.test((n as Element).tagName ?? ''))) return
         const mod = e.metaKey || e.ctrlKey
         if (this.view === 'board' && mod && /^[zZyY]$/.test(e.key)) {
             // on the board, undo/redo are the board's (its edits span several files)
@@ -534,6 +546,7 @@ export class MateuVisualEditor extends LitElement {
                  @node-moved=${(e: CustomEvent) => this.onMoved(e.detail.from, e.detail.to)}
                  @node-dropped=${(e: CustomEvent) => this.onDropped(e.detail.node, e.detail.to)}
                  @prop-changed=${(e: CustomEvent) => this.onProp(e.detail.key, e.detail.value)}
+                 @page-prop-changed=${(e: CustomEvent) => this.onPageProp(e.detail.key, e.detail.value)}
                  @slot-add=${(e: CustomEvent) => this.onSlotAdd(e.detail.key, e.detail.ref)}
                  @binding-rename=${(e: CustomEvent) => this.onRename(e.detail.from)}
                  @preview-status=${(e: CustomEvent) => (this.previewStatus = e.detail)}
@@ -566,7 +579,7 @@ export class MateuVisualEditor extends LitElement {
                     : this.mode === 'mount'
                     ? html`<mount-editor .yaml=${this.structuredYaml}></mount-editor>`
                     : this.mode === 'app'
-                    ? html`<app-editor .yaml=${this.structuredYaml} .project=${this.project} .images=${this.images} ?canAddImage=${!!this.host.addImage}></app-editor>`
+                    ? html`<app-editor .yaml=${this.structuredYaml} .project=${this.project} .images=${this.images} ?canAddImage=${!!this.host.addImage} .renderer=${this.projectRenderer}></app-editor>`
                     : this.mode === 'routes'
                     ? html`<routes-editor .yaml=${this.structuredYaml} .project=${this.project}></routes-editor>`
                     : this.mode === 'sources'
@@ -599,7 +612,8 @@ export class MateuVisualEditor extends LitElement {
                                            .clientRender=${rendersClientSide(this.previewSource)} .renderer=${this.renderer} .theme=${this.theme}
                                            .selectedPath=${this.selectedPath} .frameWidth=${viewportWidth(this.viewport)} .images=${this.images}></editor-canvas>
                             <editor-properties .node=${selected} .project=${this.project} .contract=${this.contract}
-                                .images=${this.images} ?canAddImage=${!!this.host.addImage}
+                                .images=${this.images} ?canAddImage=${!!this.host.addImage} .renderer=${this.projectRenderer}
+                                .page=${this.selectedPath && this.selectedPath.length === 0 && hasPageSettings(this.doc) ? { pageType: pageTypeOf(this.doc) } : undefined}
                                 .pageActionIds=${this.doc ? pageActions(this.doc).map((a) => a.id) : []}></editor-properties>
                         </div>
                     </div>
@@ -635,16 +649,10 @@ export class MateuVisualEditor extends LitElement {
                 ${page ? html`
                     <span class="group">
                         ${this.renderPreviewSelector()}
-                        <select class="renderer" title=${`The design system the canvas paints with. The project's renderer (project.yaml) is ${PROJECT_RENDERER_LABELS[this.projectRenderer]}; picking another one is a preview for this session, not the project setting.`}
-                                @change=${this.onRendererChange}>
-                            ${CANVAS_RENDERERS.map((r) => html`<option value=${r} ?selected=${r === this.renderer}>${CANVAS_RENDERER_LABELS[r]}${r === this.projectRenderer ? ' · project' : ''}</option>`)}
-                        </select>
-                        ${this.rendererPeek && this.rendererPeek !== this.projectRenderer ? html`
-                            <span class="status warn peek" title=${`A preview for this session only — the project renders with ${PROJECT_RENDERER_LABELS[this.projectRenderer]} (project.yaml). Play and Export use the project's.`}>preview — project: ${PROJECT_RENDERER_LABELS[this.projectRenderer]}</span>
-                            <button class="ghost" title="Back to the project's renderer" @click=${this.clearRendererPeek}>↺</button>` : ''}
-                        <select class="viewport" title="The width the page is shown at — check how it adapts" @change=${this.onViewportChange}>
+                        <span class="status info renderer" title=${`The canvas paints with the project's renderer (project.yaml) — the same one Play, the board and Export use, so what you see is what ships. Change it in the project settings (project.yaml), not per page.`}>${PROJECT_RENDERER_LABELS[this.projectRenderer]}</span>
+                        <ve-select class="viewport" title="The width the page is shown at — check how it adapts" @change=${this.onViewportChange}>
                             ${VIEWPORTS.map((v) => html`<option value=${v.id} ?selected=${v.id === this.viewport}>${v.label}</option>`)}
-                        </select>
+                        </ve-select>
                         ${this.renderStatus()}
                     </span>
                     <span class="sep"></span>` : ''}
@@ -738,25 +746,10 @@ export class MateuVisualEditor extends LitElement {
         try { localStorage.setItem(VIEWPORT_KEY, this.viewport) } catch { /* private mode */ }
     }
 
-    /** The toolbar switch: a PEEK for this session (the project's own renderer clears it). */
-    private async onRendererChange(e: Event) {
-        const wanted = (e.target as HTMLSelectElement).value as CanvasRendererId
-        this.rendererPeek = wanted === this.projectRenderer ? undefined : wanted
-        saveRendererPeek(this.rendererPeek)
-        this.renderer = await useCanvasRenderer(wanted)
-    }
-
-    private clearRendererPeek = async () => {
-        this.rendererPeek = undefined
-        saveRendererPeek(undefined)
-        this.renderer = await useCanvasRenderer(this.projectRenderer)
-    }
-
-    /** The project's descriptor said (or now says) this renderer: the canvas follows, unless peeking. */
+    /** The project's descriptor said (or now says) this renderer: the canvas, the board and the palette follow. */
     private applyProjectRenderer(renderer: ProjectRendererId) {
         this.projectRenderer = renderer
-        if (this.rendererPeek === renderer) { this.rendererPeek = undefined; saveRendererPeek(undefined) }
-        if (this.rendererPeek || this.renderer === renderer) return
+        if (this.renderer === renderer) return
         this.renderer = renderer
         useCanvasRenderer(renderer).then((r) => { if (this.renderer === renderer) this.renderer = r })
     }
@@ -799,6 +792,13 @@ export class MateuVisualEditor extends LitElement {
         if (!node) return
         updateProp(node, key, value)
         this.commit()
+    }
+
+    /** A page-level setting changed (Properties of the root): today `pageType`. */
+    private onPageProp(key: string, value: unknown) {
+        if (!this.doc || key !== 'pageType') return
+        this.doc = withPageType(this.doc, typeof value === 'string' ? value : '')
+        this.notifyChanged()
     }
 
     /** Add a new item to one of the selected node's slot lists (a column, a filter, a toolbar button…). */
@@ -978,9 +978,9 @@ export class MateuVisualEditor extends LitElement {
         const src = this.previewSource
         return html`
             <label class="preview-source" title="Where the canvas renders and gets its data">
-                <select @change=${this.onPreviewModeChange}>
+                <ve-select @change=${this.onPreviewModeChange}>
                     ${PREVIEW_MODES.map((m) => html`<option value=${m} ?selected=${m === src.mode}>${PREVIEW_MODE_LABELS[m]}</option>`)}
-                </select>
+                </ve-select>
                 ${src.mode === 'client'
                     ? html`<span class="hint">no backend</span>`
                     : html`<input .value=${src.baseUrl} @change=${this.onBaseUrlChange} placeholder="backend url"
@@ -1252,11 +1252,11 @@ export class MateuVisualEditor extends LitElement {
         const options = modelViewOptions(this.project?.viewModels, this.doc?.modelView)
         if (!options.length) return ''
         return html`
-            <select class="modelview-picker" title="Bind this page to a data source"
+            <ve-select class="modelview-picker" title="Bind this page to a data source"
                     @change=${(e: Event) => { const v = (e.target as HTMLSelectElement).value; if (v) this.bindToViewModel(v) }}>
                 <option value="" ?selected=${!bound}>— data source —</option>
                 ${options.map((vm) => html`<option value=${vm} ?selected=${vm === bound}>${vm}</option>`)}
-            </select>`
+            </ve-select>`
     }
 
     /** Free-text bind: prompt for a ModelView FQN (the fallback when no known model fits / none exist). */
@@ -1429,14 +1429,29 @@ export class MateuVisualEditor extends LitElement {
      * The mount's files with this file's edits laid over its saved copy — what the board draws and play
      * runs. With no mount at all (a lone draft), the file alone, served at the root, so play still works.
      */
+    /**
+     * The mount's files with the edited one laid over its saved copy — the SAME array for as long as
+     * its inputs are the same. Play and the board take it as a property, and a fresh array on every
+     * render of this element (a toast, the IDE pushing the image list, a theme change) made Play load
+     * its manifest again and remount the running app: an open submenu closed under the pointer, the
+     * Redwood app rebooted from scratch.
+     */
     private mountFiles(): ProjectFile[] {
         const text = this.lastText
+        const m = this.mountFilesMemo
+        if (m && m.files === this.projectFiles && m.path === this.currentPath && m.text === text) return m.out
+        let out: ProjectFile[]
         if (!this.projectFiles.length) {
             const path = this.currentPath ?? 'page.yaml'
-            return [{ path, content: text }, { path: 'routes.yaml', content: `type: Routes\nroutes:\n  - route: ""\n    layout: ${path}\n` }]
+            out = [{ path, content: text }, { path: 'routes.yaml', content: `type: Routes\nroutes:\n  - route: ""\n    layout: ${path}\n` }]
+        } else {
+            out = withEdited(this.projectFiles, this.currentPath, text)
         }
-        return withEdited(this.projectFiles, this.currentPath, text)
+        this.mountFilesMemo = { files: this.projectFiles, path: this.currentPath, text, out }
+        return out
     }
+
+    private mountFilesMemo?: { files: ProjectFile[]; path?: string; text: string; out: ProjectFile[] }
 
     /** Where play's Close goes back to: the board when play was started from it. */
     private playReturn: 'edit' | 'board' = 'edit'
@@ -1612,18 +1627,18 @@ export class MateuVisualEditor extends LitElement {
                 ${isFlow ? html`<div class="full">${this.renderFlowSteps(id)}</div>` : html`
                     <label>calls</label>
                     <span class="act-row">
-                        <select @change=${(e: Event) => {
+                        <ve-select @change=${(e: Event) => {
                             const v = (e.target as HTMLSelectElement).value
                             this.commitAction(setActionField(a, 'restAction.source', v ? { ref: v } : { url: src.url ?? 'https://api.example.com/resource', method: src.method ?? 'POST' }))
                         }}>
                             <option value="" ?selected=${!src.ref}>a url…</option>
                             ${sources.map((s) => html`<option value=${s.name} ?selected=${s.name === src.ref}>${s.name}</option>`)}
                             ${src.ref && !sources.some((s) => s.name === src.ref) ? html`<option selected value=${src.ref}>${src.ref} (unknown)</option>` : ''}
-                        </select>
+                        </ve-select>
                         ${src.ref ? '' : html`
-                            <select @change=${(e: Event) => set('restAction.source.method', (e.target as HTMLSelectElement).value)}>
+                            <ve-select @change=${(e: Event) => set('restAction.source.method', (e.target as HTMLSelectElement).value)}>
                                 ${['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map((m) => html`<option ?selected=${(src.method ?? 'GET') === m}>${m}</option>`)}
-                            </select>
+                            </ve-select>
                             <input style="flex:1; min-width:14rem" .value=${src.url ?? ''} placeholder="https://api.example.com/items/\${state.id}"
                                    @change=${(e: Event) => set('restAction.source.url', (e.target as HTMLInputElement).value.trim())} />`}
                     </span>
@@ -1699,9 +1714,9 @@ export class MateuVisualEditor extends LitElement {
         const p = stepParam(s.type)
         return html`
             <div class="fl-step">
-                <select @change=${(e: Event) => this.flowSet(actionId, steps, i, 'type', (e.target as HTMLSelectElement).value)}>
+                <ve-select @change=${(e: Event) => this.flowSet(actionId, steps, i, 'type', (e.target as HTMLSelectElement).value)}>
                     ${STEP_TYPES.map((t) => html`<option value=${t} ?selected=${s.type === t}>${t}</option>`)}
-                </select>
+                </ve-select>
                 ${!p
                     ? html`<span class="qs-hint">no params</span>`
                     : p.key === 'event'
@@ -1756,9 +1771,9 @@ export class MateuVisualEditor extends LitElement {
                 ${triggers.length === 0 ? html`<div class="tp-empty">No triggers. Add one to run an action on load, on an event, or on a field change.</div>` : ''}
                 ${triggers.map((t, i) => html`
                     <div class="tp-row">
-                        <select @change=${(e: Event) => this.setTrigger(i, 'type', (e.target as HTMLSelectElement).value)}>
+                        <ve-select @change=${(e: Event) => this.setTrigger(i, 'type', (e.target as HTMLSelectElement).value)}>
                             ${TRIGGER_TYPES.map((ty) => html`<option value=${ty} ?selected=${t.type === ty}>${triggerLabel(ty)}</option>`)}
-                        </select>
+                        </ve-select>
                         <input placeholder="actionId" .value=${t.actionId ?? ''} @change=${(e: Event) => this.setTrigger(i, 'actionId', (e.target as HTMLInputElement).value)} />
                         ${t.type === 'OnCustomEventTrigger'
                             ? html`<input placeholder="event name" .value=${t.eventName ?? ''} @change=${(e: Event) => this.setTrigger(i, 'eventName', (e.target as HTMLInputElement).value)} />`

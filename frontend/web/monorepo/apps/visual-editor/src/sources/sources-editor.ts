@@ -1,6 +1,7 @@
 import { LitElement, html, css, PropertyValues } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
 import { SourcesDoc, SourceRow, parseSampleText, parseSourcesDoc, sampleText, serializeSourcesDoc } from '../model/sourcesModel'
+import '../widgets/ve-select'
 
 /**
  * The REST source catalogue editor (`sources.yaml`) — the plan's "Services" surface: one row per
@@ -16,7 +17,8 @@ export class SourcesEditor extends LitElement {
         .card { margin: 0.5rem 1rem; border: 1px solid var(--ve-border, #e3e5e8); border-radius: 8px; padding: 0.6rem 0.75rem;
                 display: grid; grid-template-columns: 9rem 1fr; gap: 0.35rem 0.6rem; align-items: center; }
         label { color: var(--ve-secondary, #6b7280); font-size: 12px; }
-        input, textarea, select { width: 100%; padding: 0.35rem 0.45rem; font: 13px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade);
+        ve-select { display: block; width: 100%; font: 13px var(--ve-font, system-ui); --ve-select-radius: 6px; --ve-select-padding: 0.35rem 0.45rem; }
+        input, textarea { width: 100%; padding: 0.35rem 0.45rem; font: 13px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade);
                 border-radius: 6px; box-sizing: border-box; background: var(--ve-base, #fff); color: inherit; }
         textarea { font: 12px ui-monospace, monospace; min-height: 3.2rem; resize: vertical; }
         .name { font-weight: 600; }
@@ -58,9 +60,9 @@ export class SourcesEditor extends LitElement {
             <label>name</label><input class="name" .value=${r.name} @change=${set('name')} placeholder="people" />
             <label>description</label><input .value=${r.description ?? ''} @change=${set('description')} />
             <label>url</label><textarea .value=${r.url ?? ''} @change=${set('url')} placeholder="https://api.example.com/people?search=\${state.searchText ?? ''}"></textarea>
-            <label>method</label><select @change=${set('method')}>
+            <label>method</label><ve-select @change=${set('method')}>
                 ${['', 'GET', 'POST', 'PUT', 'PATCH', 'DELETE'].map((m) => html`<option value=${m} ?selected=${(r.method ?? '') === m}>${m || '(GET)'}</option>`)}
-            </select>
+            </ve-select>
             <label>items path</label><input .value=${r.itemsPath ?? ''} @change=${set('itemsPath')} placeholder="content (where the rows are)" />
             <label>total path</label><input .value=${r.totalPath ?? ''} @change=${set('totalPath')} placeholder="totalElements (server-side paging)" />
             <label>sample data</label><textarea class="sample" spellcheck="false" .value=${sampleText(r.sample)}

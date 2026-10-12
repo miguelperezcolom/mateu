@@ -1000,7 +1000,11 @@ test('bannersOf mapea Page.banners al messages-banner; pageStyleOf aplica la ana
   // load-form (Person) no lleva banners
   assert.deepEqual(bannersOf(contexts[HOST_ID]), [])
   // anatomía: person (sin pageWidth) → fixed; foldout → edgeToEdge
-  assert.equal(pageStyleOf(contexts[HOST_ID]).maxWidth, '1408px')
+  // fixed: capped at 1408px, and the cap leaves BOTH gutters — a narrow area (the editor's canvas,
+  // a laptop) must not hug the left edge with the only blank strip on the right
+  const fixedStyle = pageStyleOf(contexts[HOST_ID])
+  assert.equal(fixedStyle.maxWidth, 'min(1408px, calc(100% - 24px - max(24px, calc((100vw - 1536px) / 2 + 64px))))')
+  assert.equal(fixedStyle.margin, '0 max(24px, calc((100vw - 1536px) / 2 + 64px)) 0 auto')
   const foldout = reduceContexts(empty(), fx('load-foldout')).contexts[HOST_ID]
   assert.equal(foldout.pageWidth, 'edgeToEdge')
   assert.deepEqual(pageStyleOf(foldout), { maxWidth: 'none', margin: '0', padding: '0' })

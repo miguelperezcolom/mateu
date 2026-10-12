@@ -24,6 +24,8 @@ beforeEach(async () => {
     const css = ((globalThis as any).CSS ??= {})
     css.escape ??= (v: string) => String(v).replace(/[^a-zA-Z0-9_-]/g, (c) => '\\' + c)
     vi.stubGlobal('fetch', vi.fn(async () => new Response('{}', { status: 404 })))
+    // jsdom has no ResizeObserver (the page header watches its own size)
+    ;(globalThis as any).ResizeObserver ??= class { observe() {} unobserve() {} disconnect() {} }
     await import('./mateu-visual-editor')
 })
 afterEach(() => {
@@ -136,5 +138,125 @@ describe('<mateu-visual-editor> against an IDE host', () => {
         expect(el.selectedPath).toEqual([0])
         window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
         expect(el.selectedPath).not.toEqual([0])
+    })
+})
+
+const MOUNT_FILES = (renderer = 'vaadin', orders = PAGE) => [
+    { path: 'project.yaml', content: `type: Project\nrenderer: ${renderer}\n` },
+    { path: 'app.ui.yaml', content: 'type: UI\nbasePath: /\nhome: orders\nroutes:\n  - routes.yaml\n' },
+    { path: 'routes.yaml', content: 'type: Routes\nroutes:\n  - route: ""\n    layout: app.yaml\n  - route: orders\n    layout: orders.yaml\n  - route: users\n    layout: users.yaml\n' },
+    { path: 'app.yaml', content: 'type: AppShell\ntitle: Shop\nvariant: MENU_ON_TOP\nmenu:\n  - type: RouteLink\n    label: Orders\n    route: orders\n  - type: Menu\n    label: Admin\n    submenu:\n      - type: RouteLink\n        label: Users\n        route: users\n' },
+    { path: 'orders.yaml', content: orders },
+    { path: 'users.yaml', content: 'type: Form\ntitle: Users\n' },
+]
+
+describe('<mateu-visual-editor> — the project\'s renderer, Play, page settings', () => {
+    it('the canvas always paints with the project\'s renderer: no per-page switch, and an old session peek is ignored', async () => {
+        sessionStorage.setItem('mateu-visual-editor-renderer-peek', 'vaadin')
+        const el = await mount()
+        send({ type: 'files', files: MOUNT_FILES('redwood') })
+        await settle()
+        await el.updateComplete
+        const root = el.shadowRoot as ShadowRoot
+        // the toolbar names the renderer; it does not offer another one
+        expect(root.querySelector('.toolbar .renderer')?.textContent).toContain('Redwood')
+        expect(root.querySelector('.toolbar select, .toolbar ve-select.renderer')).toBeNull()
+        expect(el.projectRenderer).toBe('redwood')
+        // the canvas follows it (jsdom cannot load the Vaadin chunk Redwood's canvas sits on, so it falls
+        // back to the DS-neutral one — what it never does is stay on Vaadin, the old peek)
+        expect((root.querySelector('editor-canvas') as any).renderer).not.toBe('vaadin')
+        expect(sessionStorage.getItem('mateu-visual-editor-renderer-peek')).toBeNull()
+    })
+
+    it('no native <select> is left anywhere in the editor (the IDE paints its popup light and clipped)', async () => {
+        const el = await mount()
+        send({ type: 'files', files: MOUNT_FILES() })
+        await settle()
+        const all: Element[] = []
+        const walk = (r: ParentNode) => r.querySelectorAll('*').forEach((e) => { all.push(e); if (e.shadowRoot) walk(e.shadowRoot) })
+        walk(el.shadowRoot)
+        expect(all.filter((e) => e.tagName === 'SELECT')).toEqual([])
+        expect(all.some((e) => e.tagName === 'VE-SELECT')).toBe(true)
+    })
+
+    it('keys pressed on one of the editor\'s dropdowns are the dropdown\'s, not the canvas\'s (Delete does not delete the node)', async () => {
+        const el = await mount()
+        el.selectedPath = [0]
+        await el.updateComplete
+        const select = el.shadowRoot.querySelector('ve-select') as HTMLElement
+        const trigger = select.shadowRoot!.querySelector('button') as HTMLButtonElement
+        trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Delete', bubbles: true, composed: true }))
+        await el.updateComplete
+        expect(el.selectedPath).toEqual([0])
+        expect(posted.filter((m) => m.type === 'contentChanged')).toEqual([])
+    })
+
+    it('Play keeps the running app when the same files arrive again (the IDE re-pushes them after any file event)', async () => {
+        const el = await mount(PAGE, 'orders.yaml')
+        send({ type: 'files', files: MOUNT_FILES() })
+        await settle()
+        el.view = 'play'
+        await el.updateComplete
+        await settle()
+        const play = el.shadowRoot.querySelector('mount-play') as any
+        await play.updateComplete
+        await settle()
+        const ux = play.shadowRoot.querySelector('mateu-ux')
+        expect(ux).toBeTruthy()
+        // the host pushes the very same files (new arrays), and the image list: nothing to reload
+        send({ type: 'files', files: MOUNT_FILES() })
+        send({ type: 'images', images: [] })
+        await settle()
+        await play.updateComplete
+        expect(play.shadowRoot.querySelector('mateu-ux')).toBe(ux)
+        // a real change (another file of the mount, edited elsewhere) does reload it
+        send({ type: 'files', files: MOUNT_FILES().map((f) => (f.path === 'users.yaml' ? { ...f, content: 'type: Form\ntitle: People\n' } : f)) })
+        await settle()
+        await play.updateComplete
+        await settle()
+        await play.updateComplete
+        expect(play.shadowRoot.querySelector('mateu-ux')).not.toBe(ux)
+    })
+
+    it('the page\'s Properties offer pageType (empty = inferred) and write it to the definition', async () => {
+        const el = await mount()
+        el.selectedPath = []
+        await el.updateComplete
+        const props = el.shadowRoot.querySelector('editor-properties') as any
+        await props.updateComplete
+        const select = props.shadowRoot.querySelector('ve-select.page-type') as any
+        expect(select).toBeTruthy()
+        expect(select.value).toBe('')
+        expect([...select.querySelectorAll('option')].map((o: HTMLOptionElement) => o.textContent)).toEqual(
+            ['inferred', 'landing', 'collection', 'detail', 'form', 'process', 'dashboard'])
+        select.value = 'form'
+        select.dispatchEvent(new Event('change', { bubbles: true, composed: true }))
+        await el.updateComplete
+        expect(posted.filter((m) => m.type === 'contentChanged').at(-1).yaml).toContain('pageType: form')
+        // a child node is not the page: no page section
+        el.selectedPath = [0]
+        await el.updateComplete
+        await props.updateComplete
+        expect(props.shadowRoot.querySelector('ve-select.page-type')).toBeNull()
+    })
+
+    it('an icon property is free text plus a picker of the project\'s icons', async () => {
+        const el = await mount('type: Form\ntitle: Orders\ncontent:\n  - type: Button\n    label: Buy\n    iconOnLeft: vaadin:cart\n')
+        send({ type: 'files', files: MOUNT_FILES('redwood') })
+        await settle()
+        el.selectedPath = [0]
+        await el.updateComplete
+        const props = el.shadowRoot.querySelector('editor-properties') as any
+        await props.updateComplete
+        const picker = props.shadowRoot.querySelector('ve-icon-picker') as any
+        expect(picker).toBeTruthy()
+        expect(picker.value).toBe('vaadin:cart')
+        expect(picker.renderer).toBe('redwood')
+        // free text still works: what is typed is what is written
+        const input = picker.shadowRoot.querySelector('input.value') as HTMLInputElement
+        input.value = 'oj-ux-ico-bed'
+        input.dispatchEvent(new Event('change', { bubbles: true, composed: true }))
+        await el.updateComplete
+        expect(posted.filter((m) => m.type === 'contentChanged').at(-1).yaml).toContain('iconOnLeft: oj-ux-ico-bed')
     })
 })

@@ -13,6 +13,8 @@ import '../widgets/ve-image-picker'
 import type { ProjectImage } from '../model/projectImages'
 import { formatAccessInline, parseAccessInline } from '../model/access'
 import type { ComboOption } from '../widgets/comboModel'
+import '../widgets/ve-select'
+import '../widgets/ve-icon-picker'
 
 /**
  * The app-shell editor: a form over the `app:` block of `routes.yaml` — title, chrome and the
@@ -29,16 +31,18 @@ export class AppEditor extends LitElement {
         .section { font: 600 11px var(--ve-font, system-ui); text-transform: uppercase; letter-spacing: .04em; color: var(--ve-secondary, #6b7280);
                    margin: 1.1rem 0 0.4rem; border-bottom: 1px solid var(--ve-border, #eceef1); padding-bottom: 0.3rem; }
         label { display: block; font-size: 11px; color: var(--ve-secondary, #6b7280); margin: 0.45rem 0 0.1rem; }
-        input, select { width: 100%; padding: 0.4rem 0.5rem; font: 13px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade);
+        ve-select { display: block; width: 100%; font: 13px var(--ve-font, system-ui); --ve-select-radius: 6px; --ve-select-padding: 0.4rem 0.5rem; }
+        input { width: 100%; padding: 0.4rem 0.5rem; font: 13px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade);
                 border-radius: 6px; box-sizing: border-box; background: var(--ve-base, #fff); color: inherit; }
         .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 0.75rem; }
         .check { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.6rem; }
         .check input { width: auto; }
-        .menu-item { border: 1px solid var(--ve-border, #e3e5e8); border-radius: 8px; padding: 0.5rem 0.6rem; margin: 0.4rem 0; background: #fbfbfc; }
+        .menu-item { border: 1px solid var(--ve-border, #e3e5e8); border-radius: 8px; padding: 0.5rem 0.6rem; margin: 0.4rem 0; background: var(--ve-surface); }
         .menu-item .kind { font: 600 10px var(--ve-font, system-ui); text-transform: uppercase; letter-spacing: .04em; color: var(--ve-tertiary, #8b93a1); }
         .menu-row { display: flex; gap: 0.4rem; align-items: center; }
         .menu-row input, .menu-row ve-combo { flex: 1; }
-        .del { border: 1px solid #f2c2c8; color: var(--ve-error, #b00020); background: var(--ve-base, #fff); color: inherit; border-radius: 6px; height: 30px; min-width: 30px; cursor: pointer; }
+        .menu-row ve-icon-picker { flex: 0 1 12rem; min-width: 8rem; font-size: 12px; }
+        .del { border: 1px solid var(--ve-error-border); color: var(--ve-error, #b00020); background: var(--ve-base, #fff); color: inherit; border-radius: 6px; height: 30px; min-width: 30px; cursor: pointer; }
         .sub { margin: 0.4rem 0 0 1rem; padding-left: 0.5rem; border-left: 2px solid var(--ve-border, #e9ebef); }
         .sep { height: 1px; background: var(--ve-input-border, #d7dade); flex: 1; }
         .raw { color: var(--ve-tertiary, #8b93a1); font-size: 12px; }
@@ -50,7 +54,7 @@ export class AppEditor extends LitElement {
         .note { color: var(--ve-tertiary, #9ca3af); font-size: 12px; margin-top: 0.4rem; }
         .checks { display: flex; flex-wrap: wrap; gap: 0 1.2rem; }
         .steps { display: flex; flex-direction: column; gap: 0.25rem; padding-left: 0.5rem; border-left: 2px solid var(--ve-border, #e9ebef); margin-top: 0.35rem; }
-        .step select { width: 9rem; flex: none; }
+        .step ve-select { width: 9rem; flex: none; }
         .mini { height: 30px; min-width: 30px; border: 1px solid var(--ve-input-border, #d7dade); background: var(--ve-base, #fff); color: inherit; border-radius: 6px; cursor: pointer; }
         .mini:disabled { opacity: .4; cursor: default; }
         .menu-row input.access { flex: 0 1 11rem; font-size: 12px; }
@@ -61,6 +65,8 @@ export class AppEditor extends LitElement {
     /** The project's images (from the host), for the logo / favicon pickers. */
     @property({ attribute: false }) images: readonly ProjectImage[] = []
     @property({ type: Boolean }) canAddImage = false
+    /** The project's renderer: the menu's icon pickers offer the icons it paints. */
+    @property() renderer = 'vaadin'
     @state() private doc: AppDoc = { fields: {}, actions: [], menu: [], widgets: [], appRest: {} }
     @state() private newActionId = ''
     private lastEmitted?: string
@@ -188,9 +194,9 @@ export class AppEditor extends LitElement {
     private renderStep(id: string, steps: FlowStep[], s: FlowStep, i: number): TemplateResult {
         const p = stepParam(s.type)
         return html`<div class="menu-row step">
-            <select @change=${(e: Event) => this.setStep(id, steps, i, 'type', (e.target as HTMLSelectElement).value)}>
+            <ve-select @change=${(e: Event) => this.setStep(id, steps, i, 'type', (e.target as HTMLSelectElement).value)}>
                 ${STEP_TYPES.map((t) => html`<option value=${t} ?selected=${t === s.type}>${t}</option>`)}
-            </select>
+            </ve-select>
             ${p ? (p.key === 'event'
                     ? html`<input placeholder=${p.label} .value=${(s[p.key] as string) ?? ''}
                         @change=${(e: Event) => this.setStep(id, steps, i, p.key, (e.target as HTMLInputElement).value)} />`
@@ -267,9 +273,9 @@ export class AppEditor extends LitElement {
     private select(label: string, key: keyof AppFields, f: AppFields, options: string[]) {
         return html`
             <label>${label}</label>
-            <select @change=${(e: Event) => this.setField(key, (e.target as HTMLSelectElement).value)}>
+            <ve-select @change=${(e: Event) => this.setField(key, (e.target as HTMLSelectElement).value)}>
                 ${options.map((o) => html`<option value=${o} ?selected=${(f[key] ?? '') === o}>${o || '—'}</option>`)}
-            </select>`
+            </ve-select>`
     }
 
     private setField(key: keyof AppFields, value: string | boolean) {
@@ -309,7 +315,8 @@ export class AppEditor extends LitElement {
                     <input placeholder="Label" .value=${item.label ?? ''} @change=${(e: Event) => this.setItem(path, 'label', (e.target as HTMLInputElement).value)} />
                     <ve-combo placeholder="route" .options=${this.routeOptions} empty-text="No routes yet — add them in a routes file"
                         .value=${item.route ?? ''} @change=${(e: Event) => this.setItem(path, 'route', (e.target as HTMLInputElement).value)}></ve-combo>
-                    <input placeholder="icon" .value=${item.icon ?? ''} @change=${(e: Event) => this.setItem(path, 'icon', (e.target as HTMLInputElement).value)} />
+                    <ve-icon-picker class="icon" placeholder="icon" .renderer=${this.renderer} .value=${item.icon ?? ''}
+                        @change=${(e: Event) => this.setItem(path, 'icon', (e.target as HTMLInputElement).value)}></ve-icon-picker>
                     ${this.accessInput(item, path)}
                     ${this.delBtn(path)}
                 </div>
