@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   bootFailureOf, buttonActionId, fabBottom, chartTextAlternative, effectiveListingLayout, fabInset, formatTick, headingLevel, rowJustification, fieldPlaceholder, isCurrentDestination, loadFailureMessage,
-  rowCheckboxLabel, serverSideState, mediatorMove, progressFraction, moneyInputText, moneyInputCommit, moneyText, stepperValue, decimalDraft, isFormRoute,
+  rowCheckboxLabel, serverSideState, mediatorMove, progressFraction, moneyInputText, moneyInputCommit, moneyText, stepperValue, decimalDraft, isFormRoute, stackAfterGoTo,
 } from './uxRules.ts';
 
 test('a crud mediator move: the listing stays, a record goes back to its list, a record route stacks', () => {
@@ -169,4 +169,18 @@ test('a saved create/edit form is replaced by its record, not stacked under it',
   assert.ok(!isFormRoute('/items'));
   assert.ok(!isFormRoute('/news'));
   assert.ok(!isFormRoute(null));
+});
+
+test('navigating to a screen already on the stack goes back to it; a saved form is replaced', () => {
+  const t = (route: string) => ({ route });
+  // the ports answer Cancel with NavigateTo the listing: back to the tab's base, not a 2nd listing
+  assert.deepEqual(stackAfterGoTo([t('/products/P-2'), t('/products/P-2/edit')], '/products', t('/products'), false), []);
+  // Save from the edit form lands on the record that is already under it
+  assert.deepEqual(stackAfterGoTo([t('/products/P-2'), t('/products/P-2/edit')], '/products', t('/products/P-2'), true), [t('/products/P-2')]);
+  // Save from New: the new record takes the form's place
+  assert.deepEqual(stackAfterGoTo([t('/products/new')], '/products', t('/products/P-9'), true), [t('/products/P-9')]);
+  // anything else is pushed
+  assert.deepEqual(stackAfterGoTo([t('/products/P-2')], '/products', t('/orders/7'), false), [t('/products/P-2'), t('/orders/7')]);
+  // a base-screen form (nothing pushed) pushes the record
+  assert.deepEqual(stackAfterGoTo([], '/full-crud/new', t('/full-crud/3'), true), [t('/full-crud/3')]);
 });

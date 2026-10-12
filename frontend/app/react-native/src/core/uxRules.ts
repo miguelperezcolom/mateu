@@ -287,3 +287,17 @@ export function decimalDraft(draft: string, externalText: string): string {
 export function isFormRoute(route: string | null | undefined): boolean {
   return /\/(new|edit)\/?$/.test((route ?? '').trim());
 }
+
+/**
+ * The native screen stack after navigating to `target` from a pushed screen: a route ALREADY on the
+ * stack (or the tab's own base route) is gone BACK to — no second copy of the listing over the
+ * record; otherwise it is pushed, or takes the top's place when `replaceTop` (a saved form).
+ */
+export function stackAfterGoTo<T extends { route: string }>(stack: T[], baseRoute: string, target: T, replaceTop: boolean): T[] {
+  const norm = (r: string) => r.replace(/^\/+|\/+$/g, '');
+  const want = norm(target.route);
+  for (let i = stack.length - 1; i >= 0; i--) if (norm(stack[i].route) === want) return stack.slice(0, i + 1);
+  if (norm(baseRoute) === want) return [];
+  if (replaceTop && stack.length > 0) return [...stack.slice(0, -1), target];
+  return [...stack, target];
+}

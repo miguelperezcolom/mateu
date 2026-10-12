@@ -110,10 +110,9 @@ export class MateuViewController {
   onRender: (view: RenderedView) => void = () => {};
   /** Detail navigations (row → detail/new/edit) open as a NEW screen through this; unset → in place. */
   detailOpener: ((target: NavTarget) => void) | null = null;
-  /** Host hook: replace the current (pushed) screen with `target` instead of stacking it. */
-  detailReplacer: ((target: NavTarget) => void) | null = null;
-  /** Host hook: go back to the listing at `listRoute` (pops the native stack to it). */
-  listReturner: ((listRoute: string) => void) | null = null;
+  /** Host hook: go to `target` on the native stack — back to it when it is already there, else
+   *  pushed (or taking the top's place when `replaceTop`). */
+  stackNavigator: ((target: NavTarget, replaceTop: boolean) => void) | null = null;
   /** Errors/messages silenced (embedded islands). */
   silentErrors = false;
 
@@ -725,10 +724,10 @@ export class MateuViewController {
           Object.assign(this.currentComponentState, state);
           return;
         }
-        if (move === 'backToList' && this.listReturner) {
+        if (move === 'backToList' && this.stackNavigator) {
           // A record screen sent to the list (Back to list, Cancel, a delete from the record): back
           // to the listing it was opened from, not a second listing stacked on top of it.
-          this.listReturner(base);
+          this.stackNavigator({ label: '', route: base, consumedRoute: base, serverSideType: this.navigationServerSideType || this.currentServerSideType }, false);
           return;
         }
         const fullRoute = base + routeSuffix;
@@ -739,7 +738,7 @@ export class MateuViewController {
         if (this.detailOpener && move === 'detail') {
           const target = { label: detailLabel(routeSuffix), route: fullRoute, consumedRoute: base, serverSideType: sst };
           // a saved create/edit form gives its place to the record (Back must not return to it)
-          if (this.detailReplacer && isFormRoute(this.currentRoute) && !isFormRoute(fullRoute)) this.detailReplacer(target);
+          if (this.stackNavigator) this.stackNavigator(target, isFormRoute(this.currentRoute) && !isFormRoute(fullRoute));
           else this.detailOpener(target);
         } else {
           this.currentInnerRoute = trimSlashes(routeSuffix);
@@ -925,8 +924,12 @@ export class MateuViewController {
       case 'NavigateTo': {
         const href = typeof cmdData === 'string' ? cmdData : str((cmdData as Json)?.['href']);
         if (!href) break;
-        if (this.detailOpener) {
-          this.detailOpener({ label: trimSlashes(href), route: href, consumedRoute: '', serverSideType: '' });
+        const navTarget = { label: trimSlashes(href), route: href, consumedRoute: '', serverSideType: '' };
+        if (this.stackNavigator) {
+          // a screen already on the stack is gone back to; a saved form gives its place to the record
+          this.stackNavigator(navTarget, isFormRoute(this.currentRoute) && !isFormRoute(href));
+        } else if (this.detailOpener) {
+          this.detailOpener(navTarget);
         } else {
           this.session.openView({ label: trimSlashes(href), route: href, consumedRoute: '', serverSideType: '' });
         }

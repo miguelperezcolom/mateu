@@ -4,7 +4,7 @@ import { DarkTheme, DefaultTheme, NavigationContainer } from '@react-navigation/
 import { createStackNavigator } from '@react-navigation/stack';
 import React, { useCallback, useState } from 'react';
 import { BackHandler, Image, Linking, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { FAB_MARGIN, fabInset, isCurrentDestination } from '../core/uxRules';
+import { FAB_MARGIN, fabInset, isCurrentDestination, stackAfterGoTo } from '../core/uxRules';
 import { useAppContext } from '../context/AppContext';
 import { NavTarget } from '../core/MateuSession';
 import { ChatPanel } from './ChatPanel';
@@ -104,19 +104,11 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, bottomI
   }, [routeArg, consumedRoute, serverSideType, session]);
 
   const push = useCallback((target: NavTarget) => setStack((s) => [...s, target]), []);
-  // a saved create/edit form: the record takes the form's place (a base-screen form is pushed over)
-  const replaceTop = useCallback((target: NavTarget) => setStack((s) => (s.length > 0 ? [...s.slice(0, -1), target] : [target])), []);
-  // A record screen sent back to its listing: pop to the screen showing that listing (the base, or
-  // a stacked one) — a fresh mount, so it reloads; with none in the stack, push it.
-  const returnToList = useCallback(
-    (listRoute: string) =>
-      setStack((s) => {
-        const same = (r: string) => r.replace(/^\/+|\/+$/g, '') === listRoute.replace(/^\/+|\/+$/g, '');
-        for (let i = s.length - 1; i >= 0; i--) if (same(s[i].route)) return s.slice(0, i + 1);
-        if (same(routeArg)) return [];
-        return [...s, { label: '', route: listRoute, consumedRoute: listRoute, serverSideType }];
-      }),
-    [routeArg, serverSideType],
+  // Stack-aware navigation (crud answers, NavigateTo): a screen already on the stack — or the tab's
+  // own base — is gone BACK to, never stacked twice; a saved form gives its place to the record.
+  const stackNavigate = useCallback(
+    (target: NavTarget, replaceTop: boolean) => setStack((s) => stackAfterGoTo(s, routeArg, target, replaceTop)),
+    [routeArg],
   );
   const pop = useCallback(async () => {
     const c = topController.current;
@@ -162,8 +154,7 @@ function ContentScreen({ route: routeArg, consumedRoute, serverSideType, bottomI
         session={session}
         target={top}
         onOpenDetail={push}
-        onReturnToList={returnToList}
-        onReplaceDetail={replaceTop}
+        onStackNavigate={stackNavigate}
         onController={(c) => (topController.current = c)}
       />
     </View>
