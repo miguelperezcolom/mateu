@@ -36,9 +36,9 @@ renderer; **RN / IntelliJ** = native renderers; **Static** = `mateu:bundle`.
 | Feature | MVC (Vaadin) | 5 adapters | YAML | Redwood | Python | .NET | RN / IJ | Static |
 |---|---|---|---|---|---|---|---|---|
 | Mount at a non-root path, deep link, reload, back/forward | ✅ shell-menu | ✅ | ✅ yaml-federation | ✅ renderer/shell | ✅ browser | — | — | — |
-| Home of an app with no home route | ❌ (1) | ❌ (1) | ✅ `home:` | — | 🔧 `67d648e89` (nested shell + loop) | 🔧 `67d648e89` | — | — |
+| Home of an app with no home route | ❌ (1) | ❌ (1) | ✅ `home:` | ✅ first menu entry (the documented rule — Vaadin differs) | 🔧 `67d648e89` (nested shell + loop) | 🔧 `67d648e89` | — | — |
 | Page entry / nested group / RouteLink | ✅ | ✅ | ✅ | ✅ | ✅ | — | — | — |
-| Card group (card + card actions) | ✅ | ✅ | ✅ | — | ✅ | — | — | — |
+| Card group (card + card actions) | ✅ | ✅ | ✅ | ✅ walked | ✅ | — | — | — |
 | `@EyesOnly` entry hidden to anonymous | ✅ | ✅ | — | — | ✅ | — | — | N/A |
 | Rule leaf (RunAction → app method) | 🔧 `233734845` (client + server) | 🔧 | ✅ (flow, client-side) | ✅ | 🔧 `dbd77f701` | 🔧 `dbd77f701` | — | — |
 | routes.yaml on a class mount: fixed / default params, query override | 🔧 `d958e97fd` (404) | 🔧 | ✅ | ✅ | N/A (no basePath route files) | N/A | — | — |
@@ -49,8 +49,8 @@ renderer; **RN / IntelliJ** = native renderers; **Static** = `mateu:bundle`.
 | RAIL / TILES keyboard operable | 🔧 `29754bfac` | 🔧 | — | — | — | — | — | — |
 | Chromeless + command center (navigate, search) | 🔧 `29754bfac` (typed keys lost) | 🔧 | — | — | — | — | — | — |
 | App title → home | 🔧 `29754bfac` (left the mount) | 🔧 | — | — | — | — | — | — |
-| `@AppContext` enum picker (value read by every screen, reload) | ✅ | ✅ | ✅ | ✅ (renders, defaults to 1st) | ✅ | — | — | — |
-| `@AppContext` picker keyboard / screen reader | 🔧 `a48db01e0` | 🔧 | 🔧 | — | 🔧 | — | — | — |
+| `@AppContext` enum picker (value read by every screen, reload) | ✅ | ✅ | ✅ | ✅ renderer/shell (defaults to the 1st option) | ✅ | — | — | — |
+| `@AppContext` picker keyboard / screen reader | 🔧 `a48db01e0` | 🔧 | 🔧 | 🔧 `c0d20ff55` (focus lost behind the drawer) | 🔧 | — | — | — |
 | `@AppContext` searchable picker (> 7, server search) | ✅ | ✅ | — | — | 🔧 `71b496e54` (error toast) | 🔧 `71b496e54` | — | — |
 | Header actions (button + dropdown) | ✅ | ✅ | ✅ (route action) | ✅ | 🔧 `395fb916f` (request not injected) | — | — | — |
 | Notification inbox (list, navigate, mark read) | ✅ | ✅ | — | ✅ (bell drawn) | ❌ (2) | — | — | — |
@@ -65,7 +65,7 @@ renderer; **RN / IntelliJ** = native renderers; **Static** = `mateu:bundle`.
 | Breadcrumbs | — | — | — | — | — | — | — | — |
 | Visual editor (author / Play a shell) | — | — | — | — | — | — | — | — |
 
-Counts (cells above, excluding "—"): ✅ 61 · 🔧 31 · ❌ 5 · N/A 3 · not walked yet: the rest.
+Counts (cells above, excluding "—"): ✅ 63 · 🔧 33 · ❌ 5 · N/A 3 · not walked yet ("—"): the rest — RN / IntelliJ, static bundles, .NET in the browser, MicroFrontend, breadcrumbs, appState/appData in the browser and the visual editor were not reached within the budget.
 
 ## Bugs fixed (one line each)
 
@@ -86,13 +86,15 @@ Counts (cells above, excluding "—"): ✅ 61 · 🔧 31 · ❌ 5 · N/A 3 · no
    and tripped the browser's loop guard.
 9. `395fb916f` — Python: the request was not injected into an action under
    `from __future__ import annotations`.
+11. `c0d20ff55` — Redwood: picking an `@AppContext` value dropped the focus to `<body>` behind the
+    still-open context drawer (Escape no longer closed it).
 10. `feb0928ee` — a route pinning a param (`orders/pending`) reloaded by type took the defaults
     of a shorter route of the same view model (`orders`).
 
 ## ❌ Owner decisions
 
 1. **Home of an app with no home route.** Seven doc pages say the landing page is "the first menu
-   item"; the code never did that (it renders the app class itself — an empty page with its title;
+   item"; Redwood does that (loadMateuShell), the Vaadin shell and the server never did (it renders the app class itself — an empty page with its title;
    `AppSyncTest` even pins the `_no_home_route` sentinel). Implement the documented default (it
    changes the landing page of every app without `HomeRouteSupplier`) or correct the docs?
 2. **Absolute routes in a Python/.NET non-root mount.** A notification / global-search hit route
