@@ -161,4 +161,18 @@ describe('<page-header-editor> — the page header of a Form', () => {
         await settle(el)
         expect(el.node!.recordSwitcher).toEqual({ label: 'Customer', optionsSource: { ref: 'customers' }, actionId: 'newOrder', searchable: true })
     })
+
+    it('two switcher edits in the same tick (a typed label left for the route picker) both survive', async () => {
+        const { el, $ } = await mount({ type: 'Form', recordSwitcher: { label: 'Customer' } })
+        const label = [...el.shadowRoot!.querySelectorAll('details')].at(-1)!.querySelector('input') as HTMLInputElement
+        label.focus()
+        label.value = ''
+        for (const ch of 'Client') { label.value += ch; label.dispatchEvent(new InputEvent('input', { data: ch, bubbles: true, composed: true })) }
+        label.dispatchEvent(new Event('change', { bubbles: true }))
+        const route = $('ve-combo.switcher-route')
+        route.value = 'customers/${state._record}'
+        route.dispatchEvent(new Event('change'))
+        await settle(el)
+        expect(el.node!.recordSwitcher).toEqual({ label: 'Client', route: 'customers/${state._record}' })
+    })
 })

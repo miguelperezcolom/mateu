@@ -34,6 +34,26 @@ const fire = (target: any, value: unknown) => {
     target.dispatchEvent(new Event('change', { bubbles: true, composed: true }))
 }
 
+/**
+ * Type into a real <input> the way a person does: focus it, one `input` event per keystroke (the
+ * control's value growing a character at a time), then leave it — the browser fires `change` when a
+ * field whose value changed loses focus, which jsdom does not, so the blur step dispatches it.
+ */
+function typeInto(input: HTMLInputElement, text: string, { selectAll = true } = {}) {
+    input.focus()
+    if (selectAll) input.value = ''
+    for (const ch of text) {
+        input.dispatchEvent(new KeyboardEvent('keydown', { key: ch, bubbles: true, composed: true }))
+        input.value += ch
+        input.dispatchEvent(new InputEvent('input', { data: ch, inputType: 'insertText', bubbles: true, composed: true }))
+        input.dispatchEvent(new KeyboardEvent('keyup', { key: ch, bubbles: true, composed: true }))
+    }
+}
+function leave(input: HTMLInputElement, changed = true) {
+    if (changed) input.dispatchEvent(new Event('change', { bubbles: true }))
+    input.blur()
+}
+
 describe('<app-header-extras> — the app shell\'s header extras', () => {
     it('context selectors: fieldName + label, listed options OR a source picker', async () => {
         const { el, $ } = await mount()
@@ -88,5 +108,27 @@ describe('<app-header-extras> — the app shell\'s header extras', () => {
         fire($('ve-source-picker.global-search'), '')
         await settle(el)
         expect(el.value.globalSearch).toBeUndefined()
+    })
+
+    it('a header action\'s label typed into its input is saved, also right after committing its route', async () => {
+        const { el, $ } = await mount({ headerActions: [{ label: 'Action', route: 'reports' }] })
+        const combo = $('.item ve-combo.route')
+        const routeInput = combo.shadowRoot.querySelector('input') as HTMLInputElement
+        const label = $('.item input[aria-label="Action label"]') as HTMLInputElement
+        // the route committed on blur and the label committed on its own blur IN THE SAME TICK (before
+        // any re-render): the second edit must not be computed from the list as it was at render
+        typeInto(routeInput, 'help')
+        routeInput.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true, composed: true }))
+        typeInto(label, 'Open help')
+        leave(label)
+        await settle(el)
+        expect(el.value.headerActions).toEqual([{ label: 'Open help', route: 'help' }])
+        // and on its own, after a re-render
+        const again = $('.item input[aria-label="Action label"]') as HTMLInputElement
+        expect(again.value).toBe('Open help')
+        typeInto(again, 'Help')
+        leave(again)
+        await settle(el)
+        expect(el.value.headerActions).toEqual([{ label: 'Help', route: 'help' }])
     })
 })

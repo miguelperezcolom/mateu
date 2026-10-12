@@ -21,20 +21,24 @@ import{a as e,c as t,d as n,l as r,n as i,o as a,r as o,s,t as c,u as l}from"./r
                     </div>`:x}
                 ${r?y`<p>${r}</p>`:x}
             </div>`}render(){let e=(this.banners??[]).map((e,t)=>({banner:e,index:t})).filter(({index:e})=>!this.dismissed.has(e));return e.length?y`<div class="page-banners">${e.map(({banner:e,index:t})=>this.renderBanner(e,t))}</div>`:x}static{this.styles=C`
-        :host { display: block; }
+        /* Always-light pastels with dark ink, like the page banners: they are NOT Lumo's 10pct tints,
+           which follow dark mode and would put the dark ink on a dark ground. Themeable through the
+           --mateu-banner-* tokens; the literals are only their fallbacks. */
+        :host { display: block; --mateu-banner-ink-color: var(--mateu-banner-ink, #1a1a1a); }
         .page-banners { display: flex; flex-direction: column; gap: 0.5rem; padding-block: 0 0.5rem; }
         .page-banner {
-            box-sizing: border-box; width: 100%; color: #1a1a1a;
+            box-sizing: border-box; width: 100%; color: var(--mateu-banner-ink-color);
             padding: var(--lumo-space-m, 1rem); border-radius: var(--lumo-border-radius-l, 12px);
         }
-        .page-banner p { margin: 0; color: #1a1a1a; }
+        .page-banner p { margin: 0; color: var(--mateu-banner-ink-color); }
         .head { display: flex; align-items: center; justify-content: space-between; width: 100%; }
         .title { font-weight: 600; }
-        .banner-close { color: #1a1a1a; border: none; background: transparent; cursor: pointer; font-size: .875rem; line-height: 1; }
-        .page-banner--info { background: #e8f4fd; }
-        .page-banner--success { background: #eafaf1; }
-        .page-banner--warning { background: #fef9e7; }
-        .page-banner--danger { background: #fdf2f2; }
+        .banner-close { color: var(--mateu-banner-ink-color); border: none; background: transparent; cursor: pointer;
+                        font-size: var(--lumo-font-size-s, .875rem); line-height: 1; }
+        .page-banner--info { background: var(--mateu-banner-info-bg, #e8f4fd); }
+        .page-banner--success { background: var(--mateu-banner-success-bg, #eafaf1); }
+        .page-banner--warning { background: var(--mateu-banner-warning-bg, #fef9e7); }
+        .page-banner--danger { background: var(--mateu-banner-danger-bg, #fdf2f2); }
     `}};h([d({attribute:!1})],Cn.prototype,`banners`,void 0),h([d({attribute:!1})],Cn.prototype,`state`,void 0),h([d({attribute:!1})],Cn.prototype,`data`,void 0),h([_()],Cn.prototype,`dismissed`,void 0),Cn=h([p(`mateu-form-banners`)],Cn);var wn=class extends fn{constructor(...e){super(...e),this.state={},this.data={},this.appState={},this.appData={}}render(){let e=this.component?.metadata;return y`
             <div class="mateu-vlayout ${this.component?.cssClasses??``}">
                 <mateu-content-header
@@ -4709,38 +4713,38 @@ content:
                     </div>`))}
                 ${this.addBtn(`fabs`,`+ FAB`,{icon:`vaadin:plus`,label:`New`,actionId:this.actionOptions[0]?.value??`actionId`})}`)}
             ${this.peerNav(FT(e.peerNav))}
-            ${this.switcher(e.recordSwitcher)}`:``}peerNav(e){let t=(t,n)=>y`
-            <label>${n}</label>
+            ${this.switcher(e.recordSwitcher)}`:``}peerNav(e){let t=()=>this.node?.peerNav,n=(n,r)=>y`
+            <label>${r}</label>
             <div class="inline">
-                <input placeholder="label" aria-label="${n} label" .value=${X(e[t+`Label`])}
-                    @change=${n=>this.set(`peerNav`,LT(e,{[t+`Label`]:rE(n)}))} />
-                <ve-combo placeholder="route (e.g. customers/\${state.${t}Id})" .options=${this.routeOptions} .value=${X(e[t+`Route`])}
-                    @change=${n=>this.set(`peerNav`,LT(e,{[t+`Route`]:rE(n)}))}></ve-combo>
+                <input placeholder="label" aria-label="${r} label" .value=${X(e[n+`Label`])}
+                    @change=${e=>this.set(`peerNav`,LT(t(),{[n+`Label`]:rE(e)}))} />
+                <ve-combo placeholder="route (e.g. customers/\${state.${n}Id})" .options=${this.routeOptions} .value=${X(e[n+`Route`])}
+                    @change=${e=>this.set(`peerNav`,LT(t(),{[n+`Route`]:rE(e)}))}></ve-combo>
             </div>`;return y`<details class="more" ?open=${Object.keys(e).length>0}>
             <summary>Previous / next${Object.keys(e).length?` ✓`:``}</summary>
-            ${t(`prev`,`Previous`)}
-            ${t(`next`,`Next`)}
-        </details>`}switcher(e){let t=FT(e),n=e=>this.set(`recordSwitcher`,LT(t,e)),r=GT(t),i=qT(t),a=this.project?.sources?.[0]?.name;return y`<details class="more" ?open=${Object.keys(t).length>0}>
+            ${n(`prev`,`Previous`)}
+            ${n(`next`,`Next`)}
+        </details>`}switcher(e){let t=FT(e),n=()=>this.node?.recordSwitcher,r=e=>this.set(`recordSwitcher`,LT(n(),e)),i=GT(t),a=qT(t),o=this.project?.sources?.[0]?.name;return y`<details class="more" ?open=${Object.keys(t).length>0}>
             <summary>Record switcher${Object.keys(t).length?` ✓`:``}</summary>
             <div class="help">A selector in the header that jumps to another record.</div>
             <label>label</label>
-            <input .value=${X(t.label)} placeholder="e.g. Customer" @change=${e=>n({label:rE(e)})} />
+            <input .value=${X(t.label)} placeholder="e.g. Customer" @change=${e=>r({label:rE(e)})} />
             <label>value <span class="muted-inline">— the current record</span></label>
-            <input .value=${X(t.value)} placeholder="\${state.id}" @change=${e=>n({value:rE(e)})} />
+            <input .value=${X(t.value)} placeholder="\${state.id}" @change=${e=>r({value:rE(e)})} />
             <label>type</label>
-            ${this.select([``,`object`,`context`],X(t.type),e=>n({type:e}),`Switcher type`,`object`)}
-            <div class="check"><input type="checkbox" .checked=${t.searchable===!0} @change=${e=>n({searchable:iE(e)})} /> searchable</div>
-            <div class="check"><input type="checkbox" .checked=${t.disabled===!0} @change=${e=>n({disabled:iE(e)})} /> disabled</div>
+            ${this.select([``,`object`,`context`],X(t.type),e=>r({type:e}),`Switcher type`,`object`)}
+            <div class="check"><input type="checkbox" .checked=${t.searchable===!0} @change=${e=>r({searchable:iE(e)})} /> searchable</div>
+            <div class="check"><input type="checkbox" .checked=${t.disabled===!0} @change=${e=>r({disabled:iE(e)})} /> disabled</div>
             <label>entries</label>
-            ${this.select([`options`,`source`],r,e=>this.set(`recordSwitcher`,KT(t,e,a?{ref:a}:{})),`Switcher entries`,``,{options:`listed options`,source:`from a REST source`})}
-            ${r===`source`?y`<ve-source-picker class="switcher-source" .sources=${this.project?.sources??[]} .value=${t.optionsSource}
-                    @change=${e=>n({optionsSource:e.target.value||{}})}></ve-source-picker>`:y`<input class="switcher-options" placeholder="c1=Acme, c2=Globex" aria-label="Switcher options" .value=${WT(t.options)}
-                    @change=${e=>n({options:UT(rE(e))})} />`}
+            ${this.select([`options`,`source`],i,e=>this.set(`recordSwitcher`,KT(n(),e,o?{ref:o}:{})),`Switcher entries`,``,{options:`listed options`,source:`from a REST source`})}
+            ${i===`source`?y`<ve-source-picker class="switcher-source" .sources=${this.project?.sources??[]} .value=${t.optionsSource}
+                    @change=${e=>r({optionsSource:e.target.value||{}})}></ve-source-picker>`:y`<input class="switcher-options" placeholder="c1=Acme, c2=Globex" aria-label="Switcher options" .value=${WT(t.options)}
+                    @change=${e=>r({options:UT(rE(e))})} />`}
             <label>on pick</label>
-            ${this.select([`route`,`action`],i,e=>this.set(`recordSwitcher`,JT(t,e)),`Switcher on pick`,``,{route:`navigate to a route`,action:`run an action`})}
-            ${i===`route`?y`<ve-combo class="switcher-route" placeholder="customers/\${state._record}" .options=${this.routeOptions} .value=${X(t.route)}
-                    @change=${e=>n({route:rE(e)})}></ve-combo>`:y`<ve-combo class="switcher-action" placeholder="_switchRecord" .options=${this.actionOptions} .value=${X(t.actionId)}
-                    @change=${e=>n({actionId:rE(e)})}></ve-combo>`}
+            ${this.select([`route`,`action`],a,e=>this.set(`recordSwitcher`,JT(n(),e)),`Switcher on pick`,``,{route:`navigate to a route`,action:`run an action`})}
+            ${a===`route`?y`<ve-combo class="switcher-route" placeholder="customers/\${state._record}" .options=${this.routeOptions} .value=${X(t.route)}
+                    @change=${e=>r({route:rE(e)})}></ve-combo>`:y`<ve-combo class="switcher-action" placeholder="_switchRecord" .options=${this.actionOptions} .value=${X(t.actionId)}
+                    @change=${e=>r({actionId:rE(e)})}></ve-combo>`}
         </details>`}text(e,t){return y`
             <label>${e} <span class="muted-inline">— ${t}</span></label>
             <input class=${e} .value=${X(this.node?.[e])} @change=${t=>this.set(e,rE(t))} />`}group(e,t,n){let r=IT(this.node?.[e]).length;return y`<details class="more" ?open=${r>0} data-key=${e}>
@@ -4999,25 +5003,25 @@ content:
             <div class="note">The inbox bell, fed by a REST source; “mark read” is optional (\${state.ids}, \${state.id}, \${state.all}).</div>
             <label>Inbox source</label>
             <ve-source-picker class="notifications-source" .sources=${this.sources} .value=${t.source}
-                @change=${e=>this.set(`notifications`,LT(t,{source:wE(e)}))}></ve-source-picker>
+                @change=${e=>this.set(`notifications`,LT(this.value.notifications,{source:wE(e)}))}></ve-source-picker>
             <label>Mark-read source</label>
             <ve-source-picker class="notifications-read" .sources=${this.sources} .value=${t.markRead}
-                @change=${e=>this.set(`notifications`,LT(t,{markRead:wE(e)}))}></ve-source-picker>
+                @change=${e=>this.set(`notifications`,LT(this.value.notifications,{markRead:wE(e)}))}></ve-source-picker>
 
             <h4>Global search</h4>
             <div class="note">Entity hits in the ⌘K palette, from a REST source (\${state.searchText} in its url or body).</div>
             <ve-source-picker class="global-search" .sources=${this.sources} .value=${FT(e.globalSearch).source}
-                @change=${t=>this.set(`globalSearch`,LT(e.globalSearch,{source:wE(t)}))}></ve-source-picker>`}selector(e,t){let n=this.value.contextSelectors,r=e=>this.set(`contextSelectors`,RT(n,t,e)),i=GT(e),a=this.sources[0]?.name;return y`<div class="item" data-index=${t}>
+                @change=${e=>this.set(`globalSearch`,LT(this.value.globalSearch,{source:wE(e)}))}></ve-source-picker>`}selector(e,t){let n=()=>this.value.contextSelectors,r=e=>this.set(`contextSelectors`,RT(n(),t,e)),i=GT(e),a=this.sources[0]?.name;return y`<div class="item" data-index=${t}>
             <div class="row"><span class="kind grow">Context selector</span>
-                <button class="mini" title="Move up" ?disabled=${t===0} @click=${()=>this.set(`contextSelectors`,HT(n,t,-1))}>↑</button>
-                <button class="mini" title="Move down" ?disabled=${t===IT(n).length-1} @click=${()=>this.set(`contextSelectors`,HT(n,t,1))}>↓</button>
-                <button class="mini del" title="Remove" @click=${()=>this.set(`contextSelectors`,VT(n,t))}>✕</button></div>
+                <button class="mini" title="Move up" ?disabled=${t===0} @click=${()=>this.set(`contextSelectors`,HT(n(),t,-1))}>↑</button>
+                <button class="mini" title="Move down" ?disabled=${t===IT(n()).length-1} @click=${()=>this.set(`contextSelectors`,HT(n(),t,1))}>↓</button>
+                <button class="mini del" title="Remove" @click=${()=>this.set(`contextSelectors`,VT(n(),t))}>✕</button></div>
             <div class="row">
                 <input placeholder="fieldName (app-state key)" aria-label="Field name" .value=${SE(e.fieldName)} @change=${e=>r({fieldName:CE(e)})} />
                 <input placeholder="label" aria-label="Selector label" .value=${SE(e.label)} @change=${e=>r({label:CE(e)})} />
             </div>
             <div class="row">
-                <ve-select aria-label="Selector entries" @change=${r=>this.set(`contextSelectors`,zT(n,t,KT(e,r.target.value,a?{ref:a}:{})))}>
+                <ve-select aria-label="Selector entries" @change=${e=>this.set(`contextSelectors`,zT(n(),t,KT(IT(n())[t],e.target.value,a?{ref:a}:{})))}>
                     <option value="options" ?selected=${i===`options`}>listed options</option>
                     <option value="source" ?selected=${i===`source`}>from a REST source</option>
                 </ve-select>
@@ -5025,15 +5029,15 @@ content:
                         @change=${e=>r({optionsSource:wE(e)||{}})}></ve-source-picker>`:y`<input class="options" placeholder="H1=Palma, H2=Ibiza" aria-label="Selector options" .value=${WT(e.options)}
                         @change=${e=>r({options:UT(CE(e))})} />`}
             </div>
-        </div>`}action(e,t){let n=this.value.headerActions,r=YT(e),i=e=>this.set(`headerActions`,ZT(n,t,e));return y`<div class="item" data-path=${t.join(`.`)}>
+        </div>`}action(e,t){let n=()=>this.value.headerActions,r=YT(e),i=e=>this.set(`headerActions`,ZT(n(),t,e));return y`<div class="item" data-path=${t.join(`.`)}>
             <div class="row">
                 <input placeholder="label" aria-label="Action label" .value=${SE(e.label)} @change=${e=>i({label:CE(e)})} />
                 <ve-icon-picker placeholder="icon" .renderer=${this.renderer} .value=${SE(e.icon)}
                     @change=${e=>i({icon:CE(e)})}></ve-icon-picker>
-                <button class="mini del" title="Remove" @click=${()=>this.set(`headerActions`,eE(n,t))}>✕</button>
+                <button class="mini del" title="Remove" @click=${()=>this.set(`headerActions`,eE(n(),t))}>✕</button>
             </div>
             <div class="row">
-                <ve-select aria-label="Action kind" @change=${e=>this.set(`headerActions`,QT(n,t,e.target.value,this.actionOptions[0]?.value))}>
+                <ve-select aria-label="Action kind" @change=${e=>this.set(`headerActions`,QT(n(),t,e.target.value,this.actionOptions[0]?.value))}>
                     <option value="route" ?selected=${r===`route`}>navigate</option>
                     <option value="action" ?selected=${r===`action`}>run an action</option>
                     <option value="menu" ?selected=${r===`menu`}>dropdown</option>
@@ -5044,9 +5048,9 @@ content:
             </div>
             ${r===`menu`||IT(e.children).length?y`<div class="sub">
                 ${IT(e.children).map((e,n)=>this.action(e,[...t,n]))}
-                <div class="adds"><button @click=${()=>this.set(`headerActions`,$T(n,t,{label:`Item`}))}>+ Child</button></div>
+                <div class="adds"><button @click=${()=>this.set(`headerActions`,$T(n(),t,{label:`Item`}))}>+ Child</button></div>
             </div>`:``}
-        </div>`}set(e,t){this.dispatchEvent(new CustomEvent(`extras-changed`,{detail:{key:e,value:t},bubbles:!0,composed:!0}))}};h([d({attribute:!1})],xE.prototype,`value`,void 0),h([d({attribute:!1})],xE.prototype,`sources`,void 0),h([d({attribute:!1})],xE.prototype,`routeOptions`,void 0),h([d({attribute:!1})],xE.prototype,`actionOptions`,void 0),h([d()],xE.prototype,`renderer`,void 0),xE=h([p(`app-header-extras`)],xE);var SE=e=>e==null?``:String(e),CE=e=>e.target.value.trim(),wE=e=>e.target.value,TE=class extends w{constructor(...e){super(...e),this.yaml=``,this.images=[],this.canAddImage=!1,this.renderer=`vaadin`,this.doc={fields:{},actions:[],menu:[],widgets:[],appRest:{}},this.newActionId=``}static{this.styles=C`
+        </div>`}set(e,t){let n={...this.value};t===``||t===void 0||Array.isArray(t)&&!t.length?delete n[e]:n[e]=t,this.value=n,this.dispatchEvent(new CustomEvent(`extras-changed`,{detail:{key:e,value:t},bubbles:!0,composed:!0}))}};h([d({attribute:!1})],xE.prototype,`value`,void 0),h([d({attribute:!1})],xE.prototype,`sources`,void 0),h([d({attribute:!1})],xE.prototype,`routeOptions`,void 0),h([d({attribute:!1})],xE.prototype,`actionOptions`,void 0),h([d()],xE.prototype,`renderer`,void 0),xE=h([p(`app-header-extras`)],xE);var SE=e=>e==null?``:String(e),CE=e=>e.target.value.trim(),wE=e=>e.target.value,TE=class extends w{constructor(...e){super(...e),this.yaml=``,this.images=[],this.canAddImage=!1,this.renderer=`vaadin`,this.doc={fields:{},actions:[],menu:[],widgets:[],appRest:{}},this.newActionId=``}static{this.styles=C`
         :host { display: block; height: 100%; overflow: auto; background: var(--ve-base, #fff); color: inherit; font: 13px var(--ve-font, system-ui); color: var(--ve-text, #111827); }
         .wrap { max-width: 720px; padding: 0.8rem 1.25rem 2rem; }
         h2 { margin: 0.6rem 0 0.2rem; font-size: 15px; }

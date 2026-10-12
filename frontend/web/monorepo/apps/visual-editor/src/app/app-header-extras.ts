@@ -73,34 +73,34 @@ export class AppHeaderExtras extends LitElement {
             <div class="note">The inbox bell, fed by a REST source; “mark read” is optional (\${state.ids}, \${state.id}, \${state.all}).</div>
             <label>Inbox source</label>
             <ve-source-picker class="notifications-source" .sources=${this.sources} .value=${notifications.source}
-                @change=${(e: Event) => this.set('notifications', objectWith(notifications, { source: valueOf(e) }))}></ve-source-picker>
+                @change=${(e: Event) => this.set('notifications', objectWith(this.value.notifications, { source: valueOf(e) }))}></ve-source-picker>
             <label>Mark-read source</label>
             <ve-source-picker class="notifications-read" .sources=${this.sources} .value=${notifications.markRead}
-                @change=${(e: Event) => this.set('notifications', objectWith(notifications, { markRead: valueOf(e) }))}></ve-source-picker>
+                @change=${(e: Event) => this.set('notifications', objectWith(this.value.notifications, { markRead: valueOf(e) }))}></ve-source-picker>
 
             <h4>Global search</h4>
             <div class="note">Entity hits in the ⌘K palette, from a REST source (\${state.searchText} in its url or body).</div>
             <ve-source-picker class="global-search" .sources=${this.sources} .value=${asObj(v.globalSearch).source}
-                @change=${(e: Event) => this.set('globalSearch', objectWith(v.globalSearch, { source: valueOf(e) }))}></ve-source-picker>`
+                @change=${(e: Event) => this.set('globalSearch', objectWith(this.value.globalSearch, { source: valueOf(e) }))}></ve-source-picker>`
     }
 
     private selector(s: Obj, i: number): TemplateResult {
-        const list = this.value.contextSelectors
-        const patch = (p: Obj) => this.set('contextSelectors', listWith(list, i, p))
+        const list = () => this.value.contextSelectors
+        const patch = (p: Obj) => this.set('contextSelectors', listWith(list(), i, p))
         const mode = optionsModeOf(s)
         const firstSource = this.sources[0]?.name
         return html`<div class="item" data-index=${i}>
             <div class="row"><span class="kind grow">Context selector</span>
-                <button class="mini" title="Move up" ?disabled=${i === 0} @click=${() => this.set('contextSelectors', listMove(list, i, -1))}>↑</button>
-                <button class="mini" title="Move down" ?disabled=${i === asList(list).length - 1} @click=${() => this.set('contextSelectors', listMove(list, i, 1))}>↓</button>
-                <button class="mini del" title="Remove" @click=${() => this.set('contextSelectors', listRemove(list, i))}>✕</button></div>
+                <button class="mini" title="Move up" ?disabled=${i === 0} @click=${() => this.set('contextSelectors', listMove(list(), i, -1))}>↑</button>
+                <button class="mini" title="Move down" ?disabled=${i === asList(list()).length - 1} @click=${() => this.set('contextSelectors', listMove(list(), i, 1))}>↓</button>
+                <button class="mini del" title="Remove" @click=${() => this.set('contextSelectors', listRemove(list(), i))}>✕</button></div>
             <div class="row">
                 <input placeholder="fieldName (app-state key)" aria-label="Field name" .value=${str(s.fieldName)} @change=${(e: Event) => patch({ fieldName: val(e) })} />
                 <input placeholder="label" aria-label="Selector label" .value=${str(s.label)} @change=${(e: Event) => patch({ label: val(e) })} />
             </div>
             <div class="row">
-                <ve-select aria-label="Selector entries" @change=${(e: Event) => this.set('contextSelectors', listSet(list, i,
-                    withOptionsMode(s, (e.target as HTMLSelectElement).value as 'options' | 'source', firstSource ? { ref: firstSource } : {})))}>
+                <ve-select aria-label="Selector entries" @change=${(e: Event) => this.set('contextSelectors', listSet(list(), i,
+                    withOptionsMode(asList(list())[i], (e.target as HTMLSelectElement).value as 'options' | 'source', firstSource ? { ref: firstSource } : {})))}>
                     <option value="options" ?selected=${mode === 'options'}>listed options</option>
                     <option value="source" ?selected=${mode === 'source'}>from a REST source</option>
                 </ve-select>
@@ -114,19 +114,19 @@ export class AppHeaderExtras extends LitElement {
     }
 
     private action(a: Obj, path: ActionPath): TemplateResult {
-        const list = this.value.headerActions
+        const list = () => this.value.headerActions
         const kind = headerActionKind(a)
-        const set = (p: Obj) => this.set('headerActions', headerActionWith(list, path, p))
+        const set = (p: Obj) => this.set('headerActions', headerActionWith(list(), path, p))
         return html`<div class="item" data-path=${path.join('.')}>
             <div class="row">
                 <input placeholder="label" aria-label="Action label" .value=${str(a.label)} @change=${(e: Event) => set({ label: val(e) })} />
                 <ve-icon-picker placeholder="icon" .renderer=${this.renderer} .value=${str(a.icon)}
                     @change=${(e: Event) => set({ icon: val(e) })}></ve-icon-picker>
-                <button class="mini del" title="Remove" @click=${() => this.set('headerActions', headerActionRemove(list, path))}>✕</button>
+                <button class="mini del" title="Remove" @click=${() => this.set('headerActions', headerActionRemove(list(), path))}>✕</button>
             </div>
             <div class="row">
                 <ve-select aria-label="Action kind" @change=${(e: Event) => this.set('headerActions',
-                    headerActionKindWith(list, path, (e.target as HTMLSelectElement).value as HeaderActionKind, this.actionOptions[0]?.value))}>
+                    headerActionKindWith(list(), path, (e.target as HTMLSelectElement).value as HeaderActionKind, this.actionOptions[0]?.value))}>
                     <option value="route" ?selected=${kind === 'route'}>navigate</option>
                     <option value="action" ?selected=${kind === 'action'}>run an action</option>
                     <option value="menu" ?selected=${kind === 'menu'}>dropdown</option>
@@ -141,12 +141,21 @@ export class AppHeaderExtras extends LitElement {
             </div>
             ${kind === 'menu' || asList(a.children).length ? html`<div class="sub">
                 ${asList(a.children).map((c, j) => this.action(c, [...path, j]))}
-                <div class="adds"><button @click=${() => this.set('headerActions', headerActionAdd(list, path, { label: 'Item' }))}>+ Child</button></div>
+                <div class="adds"><button @click=${() => this.set('headerActions', headerActionAdd(list(), path, { label: 'Item' }))}>+ Child</button></div>
             </div>` : ''}
         </div>`
     }
 
+    /**
+     * Every handler reads the CURRENT value when it fires (never one captured at render), and the
+     * edit is applied here at once: two edits landing before the host re-renders (a field's change on
+     * blur and the next control's in the same tick) both survive instead of the second undoing the first.
+     */
     private set(key: string, value: unknown) {
+        const next = { ...this.value }
+        if (value === '' || value === undefined || (Array.isArray(value) && !value.length)) delete next[key]
+        else next[key] = value
+        this.value = next
         this.dispatchEvent(new CustomEvent('extras-changed', { detail: { key, value }, bubbles: true, composed: true }))
     }
 }

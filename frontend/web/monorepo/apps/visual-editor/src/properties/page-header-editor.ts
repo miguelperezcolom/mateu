@@ -114,13 +114,14 @@ export class PageHeaderEditor extends LitElement {
     // --- groups ---
 
     private peerNav(p: Obj) {
+        const cur = () => this.node?.peerNav
         const side = (which: 'prev' | 'next', title: string) => html`
             <label>${title}</label>
             <div class="inline">
                 <input placeholder="label" aria-label="${title} label" .value=${str(p[which + 'Label'])}
-                    @change=${(e: Event) => this.set('peerNav', objectWith(p, { [which + 'Label']: val(e) }))} />
+                    @change=${(e: Event) => this.set('peerNav', objectWith(cur(), { [which + 'Label']: val(e) }))} />
                 <ve-combo placeholder="route (e.g. customers/\${state.${which}Id})" .options=${this.routeOptions} .value=${str(p[which + 'Route'])}
-                    @change=${(e: Event) => this.set('peerNav', objectWith(p, { [which + 'Route']: val(e) }))}></ve-combo>
+                    @change=${(e: Event) => this.set('peerNav', objectWith(cur(), { [which + 'Route']: val(e) }))}></ve-combo>
             </div>`
         return html`<details class="more" ?open=${Object.keys(p).length > 0}>
             <summary>Previous / next${Object.keys(p).length ? ' ✓' : ''}</summary>
@@ -131,7 +132,8 @@ export class PageHeaderEditor extends LitElement {
 
     private switcher(raw: unknown) {
         const s = asObj(raw)
-        const set = (patch: Obj) => this.set('recordSwitcher', objectWith(s, patch))
+        const cur = () => this.node?.recordSwitcher
+        const set = (patch: Obj) => this.set('recordSwitcher', objectWith(cur(), patch))
         const mode = optionsModeOf(s)
         const nav = switcherNavOf(s)
         const firstSource = this.project?.sources?.[0]?.name
@@ -148,7 +150,7 @@ export class PageHeaderEditor extends LitElement {
             <div class="check"><input type="checkbox" .checked=${s.disabled === true} @change=${(e: Event) => set({ disabled: checked(e) })} /> disabled</div>
             <label>entries</label>
             ${this.select(['options', 'source'], mode, (v) => this.set('recordSwitcher',
-                withOptionsMode(s, v as 'options' | 'source', firstSource ? { ref: firstSource } : {})), 'Switcher entries', '',
+                withOptionsMode(cur(), v as 'options' | 'source', firstSource ? { ref: firstSource } : {})), 'Switcher entries', '',
                 { options: 'listed options', source: 'from a REST source' })}
             ${mode === 'source'
                 ? html`<ve-source-picker class="switcher-source" .sources=${this.project?.sources ?? []} .value=${s.optionsSource}
@@ -156,7 +158,7 @@ export class PageHeaderEditor extends LitElement {
                 : html`<input class="switcher-options" placeholder="c1=Acme, c2=Globex" aria-label="Switcher options" .value=${formatOptions(s.options)}
                     @change=${(e: Event) => set({ options: parseOptions(val(e)) })} />`}
             <label>on pick</label>
-            ${this.select(['route', 'action'], nav, (v) => this.set('recordSwitcher', withSwitcherNav(s, v as 'route' | 'action')), 'Switcher on pick', '',
+            ${this.select(['route', 'action'], nav, (v) => this.set('recordSwitcher', withSwitcherNav(cur(), v as 'route' | 'action')), 'Switcher on pick', '',
                 { route: 'navigate to a route', action: 'run an action' })}
             ${nav === 'route'
                 ? html`<ve-combo class="switcher-route" placeholder="customers/\${state._record}" .options=${this.routeOptions} .value=${str(s.route)}
@@ -212,6 +214,11 @@ export class PageHeaderEditor extends LitElement {
         this.set(key, listWith(this.node?.[key], i, patch))
     }
 
+    /**
+     * Handlers read the node's CURRENT value when they fire, never one captured at render: the pane's
+     * host applies a `prop-changed` to the node synchronously, so two edits landing before the pane
+     * re-renders (one field's change on blur, the next control's in the same tick) both survive.
+     */
     private set(key: string, value: unknown) {
         this.dispatchEvent(new CustomEvent('prop-changed', { detail: { key, value }, bubbles: true, composed: true }))
     }
