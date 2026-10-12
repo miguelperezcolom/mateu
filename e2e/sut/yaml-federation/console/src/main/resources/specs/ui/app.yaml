@@ -7,6 +7,22 @@ $schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend
 type: AppShell
 title: Operations console
 variant: MENU_ON_TOP
+# The app-shell walkthrough (yaml-federation.spec.ts, "YAML shell" tests): the shell's own
+# features authored as data, next to the federated sections.
+themeToggle: true
+actions:
+  - id: openAbout
+    steps:
+      - type: Navigate
+        route: help/about
+contextSelectors:
+  - fieldName: desk
+    label: Desk
+    options:
+      - {value: D1, label: Front desk}
+      - {value: D2, label: Back office}
+headerActions:
+  - {label: About this console, route: help/about}
 menu:
   - type: RouteLink
     label: Home
@@ -23,3 +39,20 @@ menu:
     path: /catalog
     route: ""
     consumedRoute: _empty
+  - type: Menu
+    label: Help
+    submenu:
+      - {type: RouteLink, label: About, route: help/about}
+  - type: Menu
+    label: Quick
+    presentation: {display: cards}
+    submenu:
+      - type: RouteLink
+        label: About card
+        route: help/about
+        description: What this console is
+  - type: RuleLink
+    label: Open about
+    rules:
+      - action: RunAction
+        actionId: openAbout
