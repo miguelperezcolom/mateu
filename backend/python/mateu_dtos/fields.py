@@ -167,6 +167,16 @@ class CrudMetadata(Wire):
     #: The renderer's grid layout: auto (renderer decides) | table | list | cards | masterDetail
     #: | tree (hierarchical rows carrying a self-referential children list — never auto-selected).
     grid_layout: str = "auto"
+    #: Rows per page. LOAD-BEARING: the renderer does not default it — without it the Vaadin grid
+    #: painted every row EMPTY (the right count, no cells) and no pager. Java's CrudlDto always
+    #: sends it (10 unless the listing says otherwise).
+    page_size: int = 10
+    #: The search runs on Enter (and debounced while typing) — Java's default.
+    search_on_enter: bool = True
+    #: The search box takes the focus on opening — Java's default.
+    auto_focus_on_search_text: bool = True
+    #: How the filters lay out: auto (the smart search bar) — Java's default.
+    filters_layout: str = "auto"
     #: Dense rows (@compact on the crud/listing): Vaadin's compact grid theme, Redwood's
     #: display="grid" (mirrors CrudlDto.compact).
     compact: bool = False

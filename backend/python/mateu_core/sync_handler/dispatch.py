@@ -23,7 +23,7 @@ from mateu_uidl import (
 
 from .. import capabilities
 from ..mapper import set_current_audience
-from ..registry import type_name
+from ..registry import normalize, type_name
 from .. import layout_delta
 from ._base import MixinBase
 from ._common import (
@@ -155,6 +155,26 @@ class DispatchMixin(MixinBase):
         if rq.action_id == "__restfetch__":
             return self._rest_fetch_response(rq)
 
+        # 0d'. A FRESH deep link (consumedRoute "_empty", no type yet) to one of the root app's menu
+        # routes — or a route under one, a CRUD sub-route — renders the APP SHELL opening on that
+        # route, so a bookmarked /products shows the header and the menu around the screen (Java
+        # parity: there the root app answers a deep link and the shell loads the route inside).
+        if not rq.action_id and not rq.server_side_type and rq.consumed_route == "_empty":
+            app_t = self.registry.app_type
+            if app_t is not None and self._app_menu_claims(app_t, rq.route, request_base_url):
+                return self.render_app(app_t, rq, request_base_url, home_route_override=rq.route)
+
+        # 0e. A menu leaf carries the APP's serverSideType (Java parity: there the app resolves its
+        # own menu routes), so loading a menu route the app does not render itself — a route owned
+        # by a registered view, or one of its CRUD sub-routes — loads that view, not the app again
+        # (which the shell would nest inside its own content area).
+        if not rq.action_id and rq.server_side_type:
+            app_t = self.registry.resolve(rq.server_side_type, None)
+            if app_t is not None and "__mateu_app__" in app_t.__dict__:
+                owner = self.registry.resolve_by_prefix(rq.route)
+                if owner is not None and owner[0] is not app_t:
+                    rq = rq.model_copy(update={"server_side_type": type_name(owner[0])})
+
         # 1. App shell at the root route.
         if not rq.action_id:
             t0 = self.registry.resolve(rq.server_side_type, rq.route)
@@ -230,6 +250,30 @@ class DispatchMixin(MixinBase):
         if bound_spec and yaml_spec.page_type:
             increment = _with_page_type_on_view(increment, type_name(type_), yaml_spec.page_type)
         return increment
+
+    def _app_menu_claims(self, app_t, route: str | None, request_base_url: str | None) -> bool:
+        """Whether ``route`` is one of the root app's menu routes, or a route under one (a CRUD
+        sub-route such as ``products/P-001``)."""
+        norm = normalize(route)
+        if not norm:
+            return False
+        try:
+            menu = getattr(self.mapper.map_app(app_t, request_base_url).metadata, "menu", None) or []
+        except Exception:  # noqa: BLE001 - an app that cannot map claims nothing
+            return False
+
+        def claims(items) -> bool:
+            for item in items:
+                if getattr(item, "remote", False) or getattr(item, "rules", None):
+                    continue
+                leaf = normalize(getattr(item, "route", "") or "")
+                if leaf and (norm == leaf or norm.startswith(leaf + "/")):
+                    return True
+                if claims(getattr(item, "submenus", None) or []):
+                    return True
+            return False
+
+        return claims(menu)
 
     def _handle_view(self, type_, rq: RunActionRq, layout_override) -> UIIncrement:
 

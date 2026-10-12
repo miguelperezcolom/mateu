@@ -177,6 +177,17 @@ class MenuSupplier:
         raise NotImplementedError
 
 
+class HomeRouteSupplier:
+    """Implemented by the ``@app`` class to name the route the app opens on (its home page) — one
+    of its menu routes, mount-relative, e.g. ``"home"``. Without it a ``@menu_item`` app declares no
+    home and its root shows an empty content area until a menu entry is picked. An
+    :class:`AppSupplier` shell's own ``home_route`` wins over it. The Python analogue of Java's
+    ``HomeRouteSupplier``."""
+
+    def home_route(self) -> str:
+        raise NotImplementedError
+
+
 class AppSupplier:
     """Implemented by the ``@app`` class to compose the WHOLE app shell IN CODE — its chrome and its
     menu — instead of the ``@app``/``@menu_item`` decorators. Returns an :class:`AppShell`; fields

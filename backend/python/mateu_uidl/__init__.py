@@ -90,6 +90,7 @@ from .suppliers import (  # noqa: F401
     AppNotification,
     AppShell,
     AppSupplier,
+    HomeRouteSupplier,
     GlobalSearchResult,
     GlobalSearchSupplier,
     GroupActionVisibility,
@@ -355,7 +356,7 @@ __all__ = [
     "Crud", "HeroSearch", "Listing", "SearchRequest", "ListingData", "Filterable", "Navigable", "Editable", "Creatable", "Deletable", "SmartSearchPage", "DateRange", "NumberRange", "Pageable", "PageResult", "SortSpec", "Searchable", "SelectedItem", "Selector", "Wizard", "Translator",
     "ComponentTreeSupplier", "Dashboard", "DataManagement", "Foldout", "GanttPage", "ItemOverview", "Welcome", "TodoList",
     "CalendarPage",
-    "AppShell", "AppSupplier", "MenuSupplier",
+    "AppShell", "AppSupplier", "MenuSupplier", "HomeRouteSupplier",
     "Announce", "CrudDisplay", "DockedPanel", "Draftable", "GeneralOverviewDisplay", "HeroTone",
     "RecordSwitcher", "RecordSwitcherSupplier", "SwitcherType", "Toggle", "WizardDisplay",
     # API freeze (3.0-alpha.410): names that were importable but missing from __all__

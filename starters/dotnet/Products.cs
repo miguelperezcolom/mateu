@@ -14,7 +14,8 @@ public class Product
     public ProductStatus Status { get; set; }
 }
 
-/// <summary>The whole UI: a CRUD over <see cref="Product"/> at /products.</summary>
+/// <summary>A CRUD over <see cref="Product"/> at /products, reached from the Products menu entry
+/// of <see cref="Shell"/>.</summary>
 [UI("products"), Title("Products")]
 public class Products : Crud<Product>
 {

@@ -1536,6 +1536,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         parameters: a.parameters || {},
         // shown but inert (a Toggle.disabled wizard/crud button): the oj-button's disabled
         disabled: !!a.disabled,
+        // a RouteLink button navigates (see content.mjs buttonOf)
+        ...(a.route ? { route: a.route } : {}),
         ...(ids && ids.get(a) ? { nodeId: ids.get(a) } : {}),
       })
     }
@@ -1617,6 +1619,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       chroming: m.buttonStyle === 'primary' ? 'callToAction' : m.buttonStyle === 'tertiary' ? 'borderless' : 'outlined',
       disabled: !!m.disabled,
       parameters: m.parameters || {},
+      // a RouteLink button navigates (see content.mjs buttonOf)
+      ...(m.route ? { route: m.route } : {}),
     })
     const walk = (n, isRoot, inTitleRow) => {
       if (!n || typeof n !== 'object') return
@@ -2593,8 +2597,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       ctas,
       primaryCta: ctas.length ? { label: ctas[0].label } : { label: '' },
       primaryCtaId: ctas.length ? ctas[0].actionId : '',
+      // a CTA whose actionable is a RouteLink NAVIGATES there (the welcome listeners hand it to
+      // dispatchHostBlockAction → bridge.blockClickOf) — a YAML hero has no action behind its button
+      primaryCtaRoute: ctas.length ? ctas[0].route || '' : '',
       secondaryCta: ctas.length > 1 ? { label: ctas[1].label } : null,
       secondaryCtaId: ctas.length > 1 ? ctas[1].actionId : '',
+      secondaryCtaRoute: ctas.length > 1 ? ctas[1].route || '' : '',
       tiles,
     }
   }
@@ -3258,6 +3266,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       disabled: !!m.disabled,
       chroming: m.buttonStyle === 'primary' ? 'callToAction' : 'outlined',
       parameters: m.parameters || {},
+      // a Button whose actionable is a RouteLink NAVIGATES (the server's ButtonMapper puts the link's
+      // route on it): the click goes to that route instead of running actionId on the server, which
+      // has nothing behind it — a YAML hero's "Browse products" did nothing
+      ...(m.route ? { route: m.route } : {}),
     })
     const money = (value, currency) => (currency || '€') + ' ' + Number(value || 0)
       .toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -17025,6 +17037,19 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       && !!lastIncrement && !(lastIncrement.fragments || []).length && !(lastIncrement.commands || []).length
   }
 
+  /**
+   * WHAT A CLICK ON A DISPLAY-BLOCK BUTTON DOES: a Button whose actionable is a RouteLink carries the
+   * link's `route` (the server's ButtonMapper puts it there; the projection keeps it) and NAVIGATES
+   * to it — there is nothing behind its actionId on the server (a YAML page has no view model), so
+   * running it did nothing. Any other button runs its action. Pure — tested in Node.
+   * @param {{ actionId?: string, parameters?: object, route?: string }} button
+   * @returns {{ navigate: string } | { actionId: string, parameters: object }}
+   */
+  function blockClickOf({ actionId, parameters, route } = {}) {
+    if (typeof route === 'string' && route.trim() !== '') return { navigate: route.trim() }
+    return { actionId: actionId || '', parameters: parameters || {} }
+  }
+
 
 
 
@@ -19080,6 +19105,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     pageWidthOf,
     pageLayoutOf,
     outboundActionOf,
+    blockClickOf,
     hostReRendered,
     touchesHost,
     onlyMessagesAnswer,

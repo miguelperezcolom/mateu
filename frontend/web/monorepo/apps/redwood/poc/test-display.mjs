@@ -17,6 +17,7 @@ import {
   flattenTreeRows, gridPageOf, autoFitColClass, AUTO_FIT_DEFAULT, unsupportedAtomOf, VISITOR_PASS_THROUGH, safeHref, toneOf, cssColorOf,
   setUiValue, setPanelExpanded, carouselPagerAtomOf, microFrontendOf, tagSurfaceActions, heroAtomOf, emptyStateAtomOf, progressBarAtomOf,
   registerCustomComponent, customComponentRegistered, layoutFieldOf, HOST_ID, taskQueueOf, emptyStateOf, hostContentShown, pageToolbarOf,
+  welcomeOf,
 } from './reduceContexts.mjs'
 import { markdownToHtml, deltaOps, deltaToHtml, richTextHtml, richTextValueOf, sanitizeHtml } from './richtext.mjs'
 import { hexColorOf } from './inputs.mjs'
@@ -533,6 +534,38 @@ test('a Form toolbar reaches the header like a Page one, a ButtonGroup with its 
     children: [{ type: 'Button', label: 'Print', actionId: 'print' }, { type: 'Button', label: 'Duplicate', actionId: 'dup' }] }
   const tree = node({ type: 'VerticalLayout' }, [node({ type: 'Form', title: 'Order', toolbar: [group, { type: 'Button', label: 'Save', actionId: 'save' }] })])
   assert.deepEqual(pageToolbarOf({ tree, state: {} }).map((b) => b.actionId), ['print', 'dup', 'save'])
+})
+
+test('a RouteLink button in content keeps its route (it navigates); a plain one does not get one', () => {
+  // the served wire of the starters' home.yaml: a hero holding a Button whose actionable is a
+  // RouteLink — the server's ButtonMapper puts the link's route on the button
+  const tree = node({ type: 'VerticalLayout' }, [
+    node({ type: 'HeroSection', title: 'My app', centered: true }, [
+      node({ type: 'Button', label: 'Browse products', actionId: 'browseProducts', buttonStyle: 'primary', route: 'products' }),
+      node({ type: 'Button', label: 'Greet', actionId: 'greet' }),
+    ]),
+  ])
+  const buttons = atomsOf(tree).filter((a) => a.isButtons).flatMap((a) => a.buttons)
+  const browse = buttons.find((b) => b.actionId === 'browseProducts')
+  assert.equal(browse.route, 'products')
+  assert.equal(browse.chroming, 'callToAction')
+  assert.equal(buttons.find((b) => b.actionId === 'greet').route, undefined)
+  // a page whose hero holds the CTAs is painted as the Redwood WELCOME banner: its CTAs carry
+  // the route too (the starters' YAML home page is exactly that)
+  const welcome = welcomeOf({ tree, state: {}, data: {} })
+  assert.equal(welcome.primaryCtaId, 'browseProducts')
+  assert.equal(welcome.primaryCtaRoute, 'products')
+  assert.equal(welcome.secondaryCtaRoute, '')
+  // the page's block-action and welcome listeners hand the route to the dispatchers
+  const page = JSON.parse(webApp('flows/main/pages/main-start-page.json'))
+  for (const [listener, route] of [['welcomePrimary', 'primaryCtaRoute'], ['welcomeSecondary', 'secondaryCtaRoute']]) {
+    const chain = page.eventListeners[listener].chains[0]
+    assert.equal(chain.chain, 'dispatchHostBlockAction', listener)
+    assert.equal(chain.parameters.route, `{{ $application.variables.mateuWelcome.${route} }}`, listener)
+  }
+  for (const listener of ['hostBlockAction', 'islandBlockAction']) {
+    assert.equal(page.eventListeners[listener].chains[0].parameters.route, '{{ $current.data.route }}', listener + ' passes the route')
+  }
 })
 
 console.log(`\n${passed} display tests OK`)

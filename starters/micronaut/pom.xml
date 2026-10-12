@@ -15,7 +15,7 @@
     <artifactId>mateu-starter-micronaut</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <name>mateu-starter-micronaut</name>
-    <description>Minimal Mateu app on Micronaut: one @UI class, a CRUD over a record.</description>
+    <description>Minimal Mateu app on Micronaut: an app shell, a home page and a CRUD over a record.</description>
 
     <properties>
         <packaging>jar</packaging>

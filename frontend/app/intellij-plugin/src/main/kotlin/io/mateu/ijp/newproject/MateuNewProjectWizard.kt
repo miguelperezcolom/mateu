@@ -117,19 +117,27 @@ private class MateuStep(parent: NewProjectWizardStep) : AbstractNewProjectWizard
         refresh()
         with(builder) {
             row("Authoring:") {
+                // The cross-choice check (an incompatible runtime/renderer/sample combination, an
+                // artifact id the generator refuses…) runs INLINE: the step shows it on this
+                // always-visible field and will not let the wizard finish, instead of a notification
+                // after it closed.
                 comboBox(authoringModel).align(AlignX.FILL).applyToComponent { addActionListener { refresh() } }
+                    .validationOnInput { stepProblem()?.let { error(it) } }
+                    .validationOnApply { stepProblem()?.let { error(it) } }
             }
             row("") {
                 comment("Code: @UI classes. YAML only: the UI is data under specs/ui — served by Spring Boot, or bundled into static files with no backend. Code + YAML: both, side by side.")
             }
             row("Runtime:") {
                 comboBox(runtimeModel).applyToComponent { addActionListener { refresh() } }
+                    .validationOnInput { stepProblem()?.let { error(it) } }
             }.visibleIf(hasRuntime)
             row("Renderer:") {
                 comboBox(rendererModel).applyToComponent { addActionListener { refresh() } }
+                    .validationOnInput { stepProblem()?.let { error(it) } }
             }.visibleIf(hasRenderer)
             row("Start from:") {
-                comboBox(sampleModel)
+                comboBox(sampleModel).validationOnInput { stepProblem()?.let { error(it) } }
             }.visibleIf(hasSample)
             group("Sample Pages (Page Templates)") {
                 for (chunk in pageTemplates.chunked(3)) {
@@ -169,6 +177,29 @@ private class MateuStep(parent: NewProjectWizardStep) : AbstractNewProjectWizard
         }
     }
 
+    /** The choices made on the step, as generator options (null when they do not resolve). */
+    private fun options(version: String): MateuProjectGenerator.Options? {
+        val r = MateuProjectGenerator.resolve(manifest, authoringId(), runtimeId()).getOrNull() ?: return null
+        return MateuProjectGenerator.Options(
+            authoring = authoringId(),
+            runtime = runtimeId(),
+            buildTool = if (isJava.get()) "maven" else null,
+            renderer = rendererModel.selected?.id?.takeIf { r.renderers.isNotEmpty() },
+            sample = sampleModel.selected?.id ?: r.samples.firstOrNull() ?: "",
+            pages = if (hasPages.get()) pageTemplates.filter { pageBoxes.getValue(it.id).isSelected }.map { it.id } else emptyList(),
+            groupId = if (isJava.get()) groupId.get().trim() else "",
+            artifactId = artifactId(),
+            packageName = if (isJava.get()) packageName.get().trim() else "",
+            version = version,
+        )
+    }
+
+    /** The first problem of the current choices, shown inline on the step (null = none). */
+    private fun stepProblem(): String? {
+        val o = options("") ?: return MateuProjectGenerator.resolve(manifest, authoringId(), runtimeId()).exceptionOrNull()?.message
+        return MateuProjectGenerator.stepProblems(manifest, o).firstOrNull()
+    }
+
     override fun setupProject(project: Project) {
         val target = File(baseData?.path ?: return, artifactId())
         val r = MateuProjectGenerator.resolve(manifest, authoringId(), runtimeId()).getOrNull() ?: return
@@ -176,19 +207,10 @@ private class MateuStep(parent: NewProjectWizardStep) : AbstractNewProjectWizard
         val version = ProgressManager.getInstance().runProcessWithProgressSynchronously<String, RuntimeException>(
             { MateuProjectGenerator.latestMateuVersion(manifest, fallback) }, "Resolving the latest Mateu release…", true, project,
         ) ?: fallback
-        val options = MateuProjectGenerator.Options(
-            authoring = authoringId(),
-            runtime = runtimeId(),
-            buildTool = if (isJava.get()) "maven" else null,
-            renderer = rendererModel.selected?.id?.takeIf { r.renderers.isNotEmpty() },
-            sample = sampleModel.selected?.id ?: r.samples.first(),
-            pages = if (hasPages.get()) pageTemplates.filter { pageBoxes.getValue(it.id).isSelected }.map { it.id } else emptyList(),
-            groupId = if (isJava.get()) groupId.get().trim() else "",
-            artifactId = artifactId(),
-            packageName = if (isJava.get()) packageName.get().trim() else "",
-            version = version,
-        )
+        val options = options(version) ?: return
         val notifications = NotificationGroupManager.getInstance().getNotificationGroup("Mateu")
+        // The step already refused anything invalid inline (stepProblems); this only catches what
+        // changed after it, e.g. a resolved version that is not one.
         val errors = MateuProjectGenerator.validate(manifest, options)
         if (errors.isNotEmpty()) {
             notifications.createNotification("Mateu project not generated", errors.joinToString("<br>"), NotificationType.ERROR).notify(project)

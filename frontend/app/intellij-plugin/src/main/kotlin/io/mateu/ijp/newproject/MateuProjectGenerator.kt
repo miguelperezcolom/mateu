@@ -214,6 +214,19 @@ object MateuProjectGenerator {
         return errors
     }
 
+    /**
+     * The problems the New Project wizard step shows INLINE, while the user is still choosing — so an
+     * incompatible combination is refused on the step itself, not reported after the wizard closed.
+     * The version is resolved only when the project is created, so it is not checked here; group id
+     * and package have validators of their own on their fields, so they are left out too.
+     */
+    fun stepProblems(manifest: JsonNode, o: Options): List<String> =
+        validate(manifest, o.copy(version = WIZARD_VERSION_PLACEHOLDER))
+            .filterNot { it.startsWith("Group id") || it.startsWith("Package") }
+
+    /** A well-formed version for [stepProblems], which runs before the real one is resolved. */
+    private const val WIZARD_VERSION_PLACEHOLDER = "0.0"
+
     // --------------------------------------------------------------------------------- generation
 
     /** Generates the project: relative path → content, sorted by path. */
@@ -245,10 +258,13 @@ object MateuProjectGenerator {
         if (!keepSample) strings(lang.path("sampleFiles")).forEach { files.remove(it) }
         // (3) unmount it
         val unmount = lang.path("unmount")
-        if (keepSample && flavour.path("unmountsSample").asBoolean(false) && !unmount.isMissingNode && files.containsKey(unmount.path("file").asText())) {
-            val drop = strings(unmount.path("removeLines")).toSet()
+        if (keepSample && flavour.path("unmountsSample").asBoolean(false) && !unmount.isMissingNode) {
+            strings(unmount.path("removeFiles")).forEach { files.remove(it) }
             val file = unmount.path("file").asText()
-            files[file] = (files[file] as String).split("\n").filter { it.trim() !in drop }.joinToString("\n")
+            if (file.isNotEmpty() && files.containsKey(file)) {
+                val drop = strings(unmount.path("removeLines")).toSet()
+                files[file] = (files[file] as String).split("\n").filter { it.trim() !in drop }.joinToString("\n")
+            }
         }
         // (4) overlays: common, the language's own, the flavour's (by sample, else "*"), the renderer's
         val overlays = strings(lang.path("overlays")).toMutableList()

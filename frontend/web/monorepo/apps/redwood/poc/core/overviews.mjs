@@ -162,8 +162,12 @@ export function welcomeOf(ctx) {
     ctas,
     primaryCta: ctas.length ? { label: ctas[0].label } : { label: '' },
     primaryCtaId: ctas.length ? ctas[0].actionId : '',
+    // a CTA whose actionable is a RouteLink NAVIGATES there (the welcome listeners hand it to
+    // dispatchHostBlockAction → bridge.blockClickOf) — a YAML hero has no action behind its button
+    primaryCtaRoute: ctas.length ? ctas[0].route || '' : '',
     secondaryCta: ctas.length > 1 ? { label: ctas[1].label } : null,
     secondaryCtaId: ctas.length > 1 ? ctas[1].actionId : '',
+    secondaryCtaRoute: ctas.length > 1 ? ctas[1].route || '' : '',
     tiles,
   }
 }

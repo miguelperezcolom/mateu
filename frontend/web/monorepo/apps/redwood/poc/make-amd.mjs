@@ -495,6 +495,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     pageWidthOf,
     pageLayoutOf,
     outboundActionOf,
+    blockClickOf,
     hostReRendered,
     touchesHost,
     onlyMessagesAnswer,

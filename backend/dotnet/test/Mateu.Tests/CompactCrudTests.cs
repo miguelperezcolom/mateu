@@ -43,6 +43,19 @@ public class CompactCrudTests
         Assert.Contains("--mateu-compact:1", json);
     }
 
+    /// <summary>The members the renderer does NOT default ride on every crud (Java's CrudlDto
+    /// always sends them): without PageSize the Vaadin grid painted every row EMPTY — the right
+    /// count, no cells — and no pager.</summary>
+    [Fact]
+    public void A_crud_carries_the_load_bearing_listing_defaults()
+    {
+        var json = Render(typeof(AiryRooms), "/airy-rooms");
+        Assert.Contains("\"PageSize\":10", json);
+        Assert.Contains("\"SearchOnEnter\":true", json);
+        Assert.Contains("\"AutoFocusOnSearchText\":true", json);
+        Assert.Contains("\"FiltersLayout\":\"auto\"", json);
+    }
+
     [Fact]
     public void A_crud_without_compact_stays_airy()
     {

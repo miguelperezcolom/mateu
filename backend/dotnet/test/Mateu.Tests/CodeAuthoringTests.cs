@@ -123,3 +123,51 @@ public class CodeAuthoringTests
         Assert.NotEmpty(approve.Rules);
     }
 }
+
+/// <summary>A [MenuItem] app naming its landing route with IHomeRouteSupplier (Java's
+/// HomeRouteSupplier), the shape of the .NET starter's Shell.</summary>
+[App("Landing App")]
+public class LandingApp : IHomeRouteSupplier
+{
+    [MenuItem("Welcome")] public LandingWelcome Welcome() => new();
+    [MenuItem("Orders")] public LandingOrders Orders() => new();
+
+    public string HomeRoute() => "welcome";
+}
+
+/// <summary>The same app without the supplier.</summary>
+[App("Landing App")]
+public class LandingAppWithoutHome
+{
+    [MenuItem("Welcome")] public LandingWelcome Welcome() => new();
+    [MenuItem("Orders")] public LandingOrders Orders() => new();
+}
+
+public class LandingWelcome { public string? Name { get; set; } }
+
+public class LandingOrders { public string? Name { get; set; } }
+
+/// <summary>An IHomeRouteSupplier names the route a [MenuItem] app opens on: the wire carries it as
+/// the home route, with the view model of the menu entry it leads to — without it the app declares
+/// no home ("_no_home_route") and opens on an empty content area.</summary>
+public class HomeRouteSupplierTests
+{
+    private static AppMetadataDto Map(Type app) =>
+        (AppMetadataDto)new ReflectionMapper().MapApp(app).Metadata;
+
+    [Fact]
+    public void A_supplied_home_route_and_its_view_model_reach_the_wire()
+    {
+        var app = Map(typeof(LandingApp));
+        Assert.Equal("welcome", app.HomeRoute);
+        Assert.Equal(typeof(LandingWelcome).FullName, app.HomeServerSideType);
+    }
+
+    [Fact]
+    public void Without_a_supplier_a_menu_item_app_declares_no_home()
+    {
+        var app = Map(typeof(LandingAppWithoutHome));
+        Assert.Equal("_no_home_route", app.HomeRoute);
+        Assert.Equal(typeof(LandingAppWithoutHome).FullName, app.HomeServerSideType);
+    }
+}

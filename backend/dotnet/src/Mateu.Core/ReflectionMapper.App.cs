@@ -115,15 +115,28 @@ public sealed partial class ReflectionMapper
         // Java's HomeRouteResolver answers "_no_home_route". homeConsumedRoute/homeServerSideType/
         // rootRoute all resolve to the mount + the app class (AppHomeRouteResolver).
         var isAppSupplier = shell is not null;
+        // An IHomeRouteSupplier names the landing route of a [MenuItem] app (Java's
+        // HomeRouteSupplier): the wire then carries it with the serverSideType of the menu entry
+        // it leads to, so the client loads that screen into the content area on opening.
+        var suppliedHome = !isAppSupplier
+                           && typeof(IHomeRouteSupplier).IsAssignableFrom(appType)
+                           && Activator.CreateInstance(appType) is IHomeRouteSupplier homeSupplier
+            ? homeSupplier.HomeRoute()?.Trim('/')
+            : null;
         var homeRoute = !string.IsNullOrWhiteSpace(shell?.HomeRoute) ? shell!.HomeRoute!
-            : isAppSupplier ? home?.Path ?? "" : "_no_home_route";
+            : isAppSupplier ? home?.Path ?? ""
+            : !string.IsNullOrEmpty(suppliedHome) ? suppliedHome
+            : "_no_home_route";
+        var homeServerSideType = !string.IsNullOrEmpty(suppliedHome)
+            ? FindMenuLeaf(items, Prepend(appRoute, "/" + suppliedHome))?.ServerSideType ?? appType.FullName!
+            : appType.FullName!;
         var meta = new AppMetadataDto(T(shell?.Title ?? app.Title), variant, items)
         {
             Subtitle = shell?.Subtitle,
             HomeRoute = homeRoute,
             HomeConsumedRoute = appRoute,
             HomeBaseUrl = requestBaseUrl ?? "",
-            HomeServerSideType = appType.FullName!,
+            HomeServerSideType = homeServerSideType,
             RootRoute = appRoute,
             // Only a declaratively-mapped app carries the mount as its `route` (ReflectionAppMapper
             // sets it); an AppSupplier leaves its shell route unset → the field stays absent.
@@ -181,6 +194,18 @@ public sealed partial class ReflectionMapper
         }).ToList();
 
     /// <summary>Joins a prefix and a path with a single slash (Java's AppMenuDtoBuilder.prepend).</summary>
+    /// <summary>The menu leaf whose (mount-prefixed) route is <paramref name="route"/>, searching
+    /// submenus too; null when none matches.</summary>
+    private static MenuItemDto? FindMenuLeaf(IEnumerable<MenuItemDto> items, string route)
+    {
+        foreach (var item in items)
+        {
+            if (item.Submenus.Count == 0 && item.Route == route) return item;
+            if (FindMenuLeaf(item.Submenus, route) is { } nested) return nested;
+        }
+        return null;
+    }
+
     private static string Prepend(string prefix, string path)
     {
         var p = prefix.EndsWith('/') ? prefix[..^1] : prefix;

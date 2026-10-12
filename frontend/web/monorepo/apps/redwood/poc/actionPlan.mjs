@@ -91,3 +91,16 @@ export function onlyMessagesAnswer({ hostRepainted, flipRoute, events, overlayBe
   return !hostRepainted && !flipRoute && !(events || []).length && !overlayBefore && !overlayNow
     && !!lastIncrement && !(lastIncrement.fragments || []).length && !(lastIncrement.commands || []).length
 }
+
+/**
+ * WHAT A CLICK ON A DISPLAY-BLOCK BUTTON DOES: a Button whose actionable is a RouteLink carries the
+ * link's `route` (the server's ButtonMapper puts it there; the projection keeps it) and NAVIGATES
+ * to it — there is nothing behind its actionId on the server (a YAML page has no view model), so
+ * running it did nothing. Any other button runs its action. Pure — tested in Node.
+ * @param {{ actionId?: string, parameters?: object, route?: string }} button
+ * @returns {{ navigate: string } | { actionId: string, parameters: object }}
+ */
+export function blockClickOf({ actionId, parameters, route } = {}) {
+  if (typeof route === 'string' && route.trim() !== '') return { navigate: route.trim() }
+  return { actionId: actionId || '', parameters: parameters || {} }
+}

@@ -375,9 +375,10 @@
     "welcomePrimary": {
       "chains": [
         {
-          "chain": "runMateuAction",
+          "chain": "dispatchHostBlockAction",
           "parameters": {
-            "actionId": "{{ $application.variables.mateuWelcome.primaryCtaId }}"
+            "actionId": "{{ $application.variables.mateuWelcome.primaryCtaId }}",
+            "route": "{{ $application.variables.mateuWelcome.primaryCtaRoute }}"
           }
         }
       ]
@@ -385,9 +386,10 @@
     "welcomeSecondary": {
       "chains": [
         {
-          "chain": "runMateuAction",
+          "chain": "dispatchHostBlockAction",
           "parameters": {
-            "actionId": "{{ $application.variables.mateuWelcome.secondaryCtaId }}"
+            "actionId": "{{ $application.variables.mateuWelcome.secondaryCtaId }}",
+            "route": "{{ $application.variables.mateuWelcome.secondaryCtaRoute }}"
           }
         }
       ]
@@ -503,7 +505,8 @@
           "parameters": {
             "actionId": "{{ $current.data.actionId }}",
             "parameters": "{{ $current.data.parameters }}",
-            "fromNested": "{{ $current.data.fromNested }}"
+            "fromNested": "{{ $current.data.fromNested }}",
+            "route": "{{ $current.data.route }}"
           }
         }
       ]
@@ -571,7 +574,8 @@
             "actionId": "{{ $current.data.actionId }}",
             "parameters": "{{ $current.data.parameters }}",
             "fromNested": "{{ $current.data.fromNested }}",
-            "surfaceId": "{{ $current.data.surfaceId }}"
+            "surfaceId": "{{ $current.data.surfaceId }}",
+            "route": "{{ $current.data.route }}"
           }
         }
       ]

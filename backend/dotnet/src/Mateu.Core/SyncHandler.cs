@@ -117,6 +117,19 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         if (rq.ActionId == "__restfetch__")
             return RestFetchResponseAsync(rq, CancellationToken.None).GetAwaiter().GetResult();
 
+        // 0e. A FRESH deep link (consumedRoute "_empty", no type yet) to one of the root app's menu
+        // routes — or a route under one, a CRUD sub-route — renders the APP SHELL opening on that
+        // route, so a bookmarked /products shows the header and the menu around the screen (Java
+        // parity: there the root app answers a deep link and the shell loads the route inside).
+        if (string.IsNullOrEmpty(rq.ActionId) && string.IsNullOrEmpty(rq.ServerSideType)
+            && rq.ConsumedRoute == "_empty"
+            && registry.AppType is { } rootApp && rootApp.GetCustomAttribute<AppAttribute>() is { } rootAttr
+            && MenuLeafClaiming(rootApp, rq.Route, requestBaseUrl) is { } claimed)
+        {
+            ActionGuard.EnsureViewVisible(rootApp);
+            return RenderApp(rootApp, rootAttr.Title, rq, requestBaseUrl, rq.Route, claimed.ServerSideType);
+        }
+
         // 1. App shell at the root route.
         if (string.IsNullOrEmpty(rq.ActionId)
             && registry.Resolve(rq.ServerSideType, rq.Route) is { } t0
@@ -398,10 +411,46 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         private static bool IsNumeric(object o) => o is byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal;
     }
 
+    /// <summary>The root app's menu leaf whose route is <paramref name="route"/>, or a prefix of it
+    /// (a CRUD sub-route such as products/P-001); null when no local entry claims it.</summary>
+    private MenuItemDto? MenuLeafClaiming(Type appType, string? route, string? requestBaseUrl)
+    {
+        var norm = (route ?? "").Split('?')[0].Trim('/');
+        if (norm.Length == 0) return null;
+        if (_mapper.MapApp(appType, requestBaseUrl) is not { Metadata: AppMetadataDto meta }) return null;
+        MenuItemDto? Find(IEnumerable<MenuItemDto> items)
+        {
+            foreach (var item in items)
+            {
+                if (item.Remote || item.Rules.Count > 0) continue;
+                var leaf = (item.Route ?? "").Trim('/');
+                if (item.Submenus.Count == 0 && leaf.Length > 0
+                    && (norm == leaf || norm.StartsWith(leaf + "/", StringComparison.Ordinal)))
+                    return item;
+                if (Find(item.Submenus) is { } nested) return nested;
+            }
+            return null;
+        }
+        return Find(meta.Menu);
+    }
+
     // ── Plain views ─────────────────────────────────────────────────────────────
-    private UIIncrementDto RenderApp(Type appType, string title, RunActionRqDto rq, string? requestBaseUrl)
+    private UIIncrementDto RenderApp(Type appType, string title, RunActionRqDto rq, string? requestBaseUrl,
+        string? homeRouteOverride = null, string? homeTypeOverride = null)
     {
         var app = _mapper.MapApp(appType, requestBaseUrl);
+        // A fresh deep link to one of the app's menu routes: the shell opens ON that route, typed
+        // with the menu entry's screen (Java's AppMenuResolver answers the app with the deep-linked
+        // route as its home).
+        if (homeRouteOverride is not null && app is { Metadata: AppMetadataDto deepLinked })
+            app = app with
+            {
+                Metadata = deepLinked with
+                {
+                    HomeRoute = homeRouteOverride,
+                    HomeServerSideType = homeTypeOverride ?? deepLinked.HomeServerSideType,
+                },
+            };
         // The catalogues ride the APP metadata (app-wide configuration, not per response); a
         // non-empty REST source catalogue adds the rest-sources capability (Java's AppMapper).
         if (app is { Metadata: AppMetadataDto catalogued })

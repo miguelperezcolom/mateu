@@ -138,7 +138,11 @@ export function expandComponent(authored: FluentNode): Component {
         } as unknown as ClientSideComponent
     }
 
-    const { type, content, children, ...fields } = node
+    // A Button placed in content (a hero's call to action, a layout's child) is ClientSide-wrapped
+    // on the wire, but the server's ButtonMapper treats it exactly like a toolbar button: a RouteLink
+    // `actionable` becomes the button's `route` (it NAVIGATES on the client) and a missing actionId
+    // comes from the label. Without it a bundled "Browse products" button did nothing.
+    const { type, content, children, ...fields } = (node.type === 'Button' ? expandButton(node) : node) as FluentNode
 
     const envelope: Record<string, unknown> = {}
     const metadata: Record<string, unknown> = { type }

@@ -1,10 +1,11 @@
 ---
 title: "Quickstart"
-description: "A complete Mateu CRUD app on Spring Boot in six files — copy, paste, run."
+description: "A complete Mateu app on Spring Boot — app shell, home page and CRUD — in eight files: copy, paste, run."
 ---
 
-A complete admin screen — listing with search, create, detail, edit, delete and validation — from
-**one record and one class**. No frontend code.
+A complete small app — an **app shell** with a menu, a **home page** and a **CRUD** (listing with
+search, create, detail, edit, delete and validation) — from one record and three small classes. No
+frontend code.
 
 This page is the [`starters/spring-mvc`](https://github.com/miguelperezcolom/mateu/tree/master/starters/spring-mvc)
 project of the repository, file for file; CI compiles and boots it on every change, so what you
@@ -28,7 +29,7 @@ fails with *"BUG! exception in phase 'semantic analysis' … Unsupported class f
 with `JAVA_HOME` pointing at a JDK 21–25. The IDE wizards have no such limit.
 :::
 
-![The Products CRUD the quickstart builds](/images/docs/first-app/starter-products.png)
+![The home page the quickstart builds](/images/docs/first-app/starter-home.png)
 
 ## The project
 
@@ -38,6 +39,8 @@ my-app/
 └── src/main/
     ├── java/com/example/app/
     │   ├── Application.java
+    │   ├── Shell.java
+    │   ├── Home.java
     │   ├── Product.java
     │   ├── ProductStatus.java
     │   ├── ProductStore.java
@@ -70,7 +73,7 @@ set nothing else on the classpath runs as a processor.
     <artifactId>mateu-starter-spring-mvc</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <name>mateu-starter-spring-mvc</name>
-    <description>Minimal Mateu app on Spring Boot (MVC): one @UI class, a CRUD over a record.</description>
+    <description>Minimal Mateu app on Spring Boot (MVC): an app shell, a home page and a CRUD over a record.</description>
 
     <properties>
         <java.version>21</java.version>
@@ -245,22 +248,110 @@ public class ProductStore implements CrudStore<Product> {
 }
 ```
 
-## 4. The UI — `Products.java`
+## 4. The UI — `Shell.java`, `Home.java` and `Products.java`
+
+The **app shell** is the one `@UI` class: mounted at the root, it puts the title and the menu around
+every screen. Each `@Menu` field is a menu entry leading to that screen; `HomeRouteSupplier` names
+the one the app opens on.
+
+```java
+package com.example.app;
+
+import io.mateu.uidl.annotations.Menu;
+import io.mateu.uidl.annotations.Title;
+import io.mateu.uidl.annotations.UI;
+import io.mateu.uidl.interfaces.HomeRouteSupplier;
+
+/**
+ * The app shell, mounted at the app root: the title and the menu around every screen. Each {@code
+ * @Menu} field is a menu entry leading to that screen's route; {@link HomeRouteSupplier} names the
+ * one the app opens on.
+ */
+@UI("")
+@Title("My app")
+public class Shell implements HomeRouteSupplier {
+
+  @Menu Home home;
+
+  @Menu Products products;
+
+  @Override
+  public String homeRoute() {
+    return "home";
+  }
+}
+```
+
+The **home page** is a `Welcome`: a hero with a title and an intro, `Button` fields as its calls
+to action and `@Panel` fields as tiles. The button runs the `@Action` method named by its id, and
+returning a `URI` navigates — here, to the products.
+
+```java
+package com.example.app;
+
+import io.mateu.core.infra.declarative.orchestrators.welcome.Welcome;
+import io.mateu.uidl.annotations.Action;
+import io.mateu.uidl.annotations.Panel;
+import io.mateu.uidl.data.Button;
+import io.mateu.uidl.data.ButtonStyle;
+import io.mateu.uidl.data.Text;
+import java.net.URI;
+
+/**
+ * The home page, a {@link Welcome}: a hero with a title and an intro, {@link Button} fields as its
+ * calls to action and {@code @Panel} fields as tiles below. A button runs the {@code @Action} method
+ * named by its id; returning a {@link URI} navigates there. Reached through its menu entry in
+ * {@link Shell}, which also makes it the page the app opens on.
+ */
+public class Home extends Welcome {
+
+  Button browseProducts =
+      Button.builder()
+          .label("Browse products")
+          .actionId("browseProducts")
+          .buttonStyle(ButtonStyle.primary)
+          .build();
+
+  @Panel(title = "Products")
+  Text products =
+      new Text("Search, create, edit and delete products: a whole CRUD derived from one record.");
+
+  @Panel(title = "Your next screen")
+  Text next = new Text("Write a class for it and add a @Menu field of that class to Shell.");
+
+  @Override
+  protected String heroTitle() {
+    return "My app";
+  }
+
+  @Override
+  protected String heroSubtitle() {
+    return "Every screen here is declared in Java; Mateu renders it.";
+  }
+
+  @Action
+  URI browseProducts() {
+    return URI.create("/products");
+  }
+}
+```
+
+The **CRUD** is a class that extends `AutoCrud` and names its store. It needs no `@UI` of its own:
+its menu entry in `Shell` gives it the route `/products`.
 
 ```java
 package com.example.app;
 
 import io.mateu.core.infra.declarative.orchestrators.crud.AutoCrud;
 import io.mateu.uidl.annotations.Title;
-import io.mateu.uidl.annotations.UI;
 import io.mateu.uidl.interfaces.CrudStore;
 
 /**
- * The whole UI: a routed view that IS a CRUD over {@link Product}, mounted at the app root. {@code
- * /} is the listing, {@code /new} the create form, {@code /{id}} the detail and {@code /{id}/edit}
- * the editor — all derived. The only code is naming the store.
+ * A view that IS a CRUD over {@link Product}, reached through its menu entry in {@link Shell}:
+ * {@code /products} is the listing, {@code /products/new} the create form, {@code /products/{id}}
+ * the detail and {@code /products/{id}/edit} the editor — all derived. The only code is naming the
+ * store.
  */
-@UI("")
 @Title("Products")
 public class Products extends AutoCrud<Product> {
 
@@ -272,6 +363,8 @@ public class Products extends AutoCrud<Product> {
 ```
 
 `store()` is the only thing an `AutoCrud` must provide.
+
+![The Products CRUD](/images/docs/first-app/starter-products.png)
 
 ## 5. `Application.java` and `application.properties`
 
@@ -305,9 +398,10 @@ spring.application.name=mateu-starter
 mvn spring-boot:run
 ```
 
-Open [http://localhost:8080](http://localhost:8080): the listing above. Click a row for the detail
-view, **Edit** for the form, **New** to create — the id is editable only when creating, and `name` and
-`status` are required on both sides (browser and server):
+Open [http://localhost:8080](http://localhost:8080): the home page above. **Browse products** (or the
+**Products** menu entry) opens the listing. Click a row for the detail view, **Edit** for the form,
+**New** to create — the id is editable only when creating, and `name` and `status` are required on
+both sides (browser and server):
 
 ![The generated edit form](/images/docs/first-app/starter-product-edit.png)
 

@@ -18,9 +18,10 @@ Runtime: **Spring Boot 4 (MVC), Java 21, Maven** — it only serves the UI.
 pom.xml                                    Spring Boot + mateu-mvc + the renderer (no annotation processor)
 src/main/java/com/example/app/Application.java   boots the server; nothing else
 src/main/resources/specs/ui/               THE UI
-  app.ui.yaml      type: UI — the mount ("/"), its route files and its home route
+  app.ui.yaml      type: UI — the mount ("/"), its route files and its home route (`home: home`)
   routes.yaml      type: Routes — each route bound to a `layout:` (a definition file here)
-  app.yaml         type: AppShell — title and menu
+  app.yaml         type: AppShell — title and menu (Home, Products)
+  home.yaml        the home page — a hero with a call to action to the products
   products.yaml    type: Listing — a page; every other page is another file like it
   sources.yaml     the REST source catalogue: every endpoint, named once, with `sample:` data
   project.yaml     type: Project — the renderer the visual editor and Play use
