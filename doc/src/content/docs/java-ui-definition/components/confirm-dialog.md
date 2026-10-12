@@ -25,7 +25,7 @@ ConfirmDialog.builder()
 | `canReject` | boolean | false | Shows a Reject button |
 | `rejectText` | String | — | Label for the Reject button |
 | `confirmText` | String | — | Label for the Confirm button |
-| `openedCondition` | String | — | JavaScript condition controlling visibility |
+| `openedCondition` | String | `"true"` | Expression over the state controlling visibility (open when absent) |
 | `confirmActionId` | String | — | Action fired when the user confirms |
 | `rejectActionId` | String | — | Action fired when the user rejects |
 | `cancelActionId` | String | — | Action fired when the user cancels |
@@ -46,6 +46,27 @@ ConfirmDialog.builder()
     .canCancel(true)
     .cancelActionId("dismiss")
     .build()
+```
+
+## Returning it from an action
+
+An action can return a `ConfirmDialog`: it opens over the page (like a `Dialog`), closes once the
+user picks a button, and the picked button's action runs on the view that returned it — a plain
+public method is enough, it does not need to be listed anywhere else.
+
+```java
+@Button
+public ConfirmDialog archive() {
+  return ConfirmDialog.builder()
+      .header("Archive 3 orders?")
+      .content(new Text("They leave the active list."))
+      .confirmText("Archive")
+      .confirmActionId("doArchive")
+      .canCancel(true)
+      .build();
+}
+
+public Message doArchive() { /* … */ return Message.success("Archived"); }
 ```
 
 ## Handling the actions

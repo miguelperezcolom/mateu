@@ -1,0 +1,15 @@
+# Action catalogue entries for the actions walkthrough (yaml-actions.yaml names them).
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/specs-schema.json
+type: Actions
+actions:
+  - id: walkCatalogueFlow
+    description: Navigate to the fluent counter (a catalogue flow, no server round trip)
+    steps:
+      - type: Navigate
+        route: /fluent-counter
+  # also declared by yaml-actions.yaml: the page's own entry must win
+  - id: walkOwnerFirst
+    description: Must lose to the page's own walkOwnerFirst
+    steps:
+      - type: Navigate
+        route: /actions-lab

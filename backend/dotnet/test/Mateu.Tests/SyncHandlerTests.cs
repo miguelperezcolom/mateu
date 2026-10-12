@@ -870,6 +870,13 @@ public class Decorated
     public string? Field { get; set; }
 }
 
+[UI("plain-subscriber"), Title("Plain subscriber"), SubscribeTo("lab-ping", "onPing")]
+public class PlainSubscriber
+{
+    public string? Heard { get; set; }
+    public PlainSubscriber OnPing() { Heard = "pinged"; return this; }
+}
+
 [UI("wiz"), Title("Wiz")]
 public class Wiz : Wizard
 {
@@ -2503,6 +2510,15 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void A_subscription_naming_a_plain_method_is_advertised()
+    {
+        // the web client only sends what the component advertises: unadvertised, the subscription
+        // fired, bubbled out unclaimed and was lost (the actions walkthrough, 2026-10-12)
+        var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(PlainSubscriber).FullName }));
+        Assert.Contains("\"id\":\"onPing\"", json);
+    }
+
+    [Fact]
     public void Wizard_renders_steps_and_completes_on_finish()
     {
         var step1 = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(Wiz).FullName }));
@@ -3017,13 +3033,13 @@ public class SyncHandlerTests
         Assert.Equal(["doc-7"], ArchivePage.Archived);
         var message = Assert.Single(inc.Messages);
         Assert.Equal("Documento archivado", message.Text);
-        Assert.Equal("Deshacer", message.UndoLabel);
+        Assert.Null(message.UndoLabel); // the client says "Undo" in the app's language
         Assert.Equal("restore", message.UndoActionId);
         Assert.Equal("doc-7", message.UndoParameters!["docId"]);
         Assert.Equal(10000, message.Duration);
         // the undo fields serialize camelCase on the wire
         var json = Render(inc);
-        Assert.Contains("\"undoLabel\":\"Deshacer\"", json);
+        Assert.DoesNotContain("Deshacer", json);
         Assert.Contains("\"undoActionId\":\"restore\"", json);
         Assert.Contains("\"undoParameters\":{\"docId\":\"doc-7\"}", json);
         Assert.Contains("\"variant\":\"contrast\"", json);

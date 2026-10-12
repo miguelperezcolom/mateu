@@ -76,4 +76,23 @@ export function actionSucceeded(ctx, actionId, timer = setTimeout) {
   return next.length
 }
 
+/** Los OnError que siguen a `actionId`. */
+export function onErrorTriggers(ctx, actionId) {
+  return triggersOf(ctx).filter((t) => t.type === 'OnError' && t.actionId && t.calledActionId === actionId)
+}
+
+/** An answer that FAILED: the server answers an exception with an error message (the error
+ *  boundary), not with an HTTP error — the web renderer reads it the same way. */
+export const isErrorAnswer = (inc) => !!(inc && (inc.messages || []).some((m) => m && m.variant === 'error'))
+
+/** Una acción falló: sus OnError (antes la shell VB no conocía OnError), si son de la pantalla en
+ *  curso — y NO sus OnSuccess: un refresco que falla no se reprograma. */
+export function actionFailed(ctx, actionId, timer = setTimeout) {
+  if (!ctx || !ctx.tree) return 0
+  if (!screenTree || ctx.tree.serverSideType !== screenTree.serverSideType) return 0
+  const next = onErrorTriggers(ctx, actionId)
+  for (const t of next) schedule(t, generation, timer)
+  return next.length
+}
+
 export const pollingGeneration = () => generation

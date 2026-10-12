@@ -78,6 +78,15 @@ public @interface Triggers {
 
 Triggers are declared on the **class** (not on the action method itself), which keeps reactive wiring at the top of the file and keeps action methods focused on logic.
 
+The method a trigger names is an ordinary action: **public**, or marked `@Action` when it is not. A
+package-private method with no marker is not an action — the server refuses it — so the trigger
+would do nothing.
+
+`times` counts over the life of the component on screen: an `OnLoad` action that returns `this`
+re-renders the view without firing itself again (with `times = 1`, the default); `times = 0` keeps
+firing on every render, which is the polling idiom below. An action that fails (it throws, so the
+answer carries an error message) runs its `OnError` triggers and **not** its `OnSuccess` ones.
+
 ---
 
 ## Examples
@@ -113,7 +122,7 @@ public class AddressForm {
     String country;
     String region;
 
-    Object reloadRegions() {
+    public Object reloadRegions() {
         // reload region options based on the current value of `country`
         return this;
     }
@@ -134,7 +143,7 @@ public class OrderForm {
     @Action(validationRequired = true)
     void save() { /* persist */ }
 
-    void sendConfirmation() { /* send email */ }
+    public void sendConfirmation() { /* send email */ }
 }
 ```
 
@@ -149,8 +158,8 @@ public class PricingForm {
     String planType;
     double price;
 
-    void loadDefaults() { planType = "standard"; }
-    Object recalcPrice() { price = pricingService.calc(planType); return this; }
+    public void loadDefaults() { planType = "standard"; }
+    public Object recalcPrice() { price = pricingService.calc(planType); return this; }
 }
 ```
 
@@ -161,7 +170,7 @@ public class PricingForm {
 public class JobStatusPage {
     String status;
 
-    Object pollStatus() {
+    public Object pollStatus() {
         status = jobService.getStatus(jobId);
         return this;
     }

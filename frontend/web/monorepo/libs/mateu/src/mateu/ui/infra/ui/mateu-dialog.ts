@@ -10,6 +10,7 @@ import './mateu-event-interceptor.ts';
 import { FocusTrap, trapFocus } from '@infra/a11y/focusTrap.ts';
 import { linkStyles } from "@infra/ui/linkStyles.ts";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { hasOverlayInside } from '@infra/ui/overlayStack.ts'
 
 /*
  * Design-system-neutral modal dialog — a fixed backdrop + centered card (no `@vaadin`). Preserves
@@ -44,13 +45,26 @@ export class MateuDialog extends ComponentElement {
         if (e.key === 'Escape' && this.opened) { e.stopPropagation(); this.close() }
     }
 
+    // Esc pressed with the focus OUTSIDE the dialog (it has not moved in yet, or the user clicked
+    // the page around it): still the topmost overlay, so it is the one Esc closes — before, the
+    // drawer under it closed instead (see hasOverlayInside in mateu-drawer).
+    private onDocumentKeydown = (e: KeyboardEvent) => {
+        if (e.key !== 'Escape' || !this.opened || hasOverlayInside(this)) return
+        const root = this.getRootNode() as Document | ShadowRoot
+        const overlays = Array.from(root.querySelectorAll('mateu-drawer, mateu-dialog'))
+            .filter(o => (o as unknown as { opened?: boolean }).opened !== false)
+        if (overlays[overlays.length - 1] === this) { e.stopPropagation(); this.close() }
+    }
+
     connectedCallback() {
         super.connectedCallback()
         this.addEventListener('keydown', this.onKeydown)
+        document.addEventListener('keydown', this.onDocumentKeydown)
     }
 
     disconnectedCallback() {
         super.disconnectedCallback()
+        document.removeEventListener('keydown', this.onDocumentKeydown)
         // A dialog torn down without close() (an owner re-render, a navigation) must not leave
         // the trap installed.
         this.releaseFocusTrap()

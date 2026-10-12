@@ -104,6 +104,17 @@ public class ActionInstanceCreator {
                           finalCommand, app, finalCommand.httpRequest())
                       : Mono.just(resolved));
     }
+    // A route routes.yaml binds to a DEFINITION only (no view model): on a fresh deep link the
+    // mount's root CLASS (a plain @UI("") page) claimed it by prefix and answered itself — the
+    // browser showed the root page instead of the definition. An app on a prefix still answers
+    // first (it draws the chrome and loads the content inside); otherwise the definition does.
+    if (isAuthoredDefinitionOnly(command.route())) {
+      return routeInstanceCreator
+          .findApp(command)
+          .switchIfEmpty((Mono) Mono.defer(() -> loadYaml(finalCommand)))
+          .switchIfEmpty(
+              (Mono) Mono.defer(() -> routeInstanceCreator.findRouteResolver(finalCommand)));
+    }
     return routeInstanceCreator
         .findRouteResolver(command)
         .switchIfEmpty((Mono) Mono.defer(() -> loadYaml(finalCommand)))
@@ -172,6 +183,17 @@ public class ActionInstanceCreator {
    * Whether this deployment authors the route itself (routes.yaml / code suppliers): such a route
    * is never offered to a remote, even when no menu entry claims it.
    */
+  private boolean isAuthoredDefinitionOnly(String route) {
+    if (route == null || stripQuery(route).replaceAll("^/+", "").isEmpty()) {
+      return false;
+    }
+    return routeRegistry
+        .authored()
+        .match(stripQuery(route))
+        .map(match -> match.entry().viewModel() == null || match.entry().viewModel().isBlank())
+        .orElse(false);
+  }
+
   private boolean isAuthoredHere(String route) {
     return route != null && routeRegistry.match(stripQuery(route)).isPresent();
   }
@@ -560,6 +582,11 @@ public class ActionInstanceCreator {
       if (isAppShortcutAction(appClass, actionId)) {
         return true;
       }
+      // a menu RULE leaf's RunAction (@Menu Rule / List<Rule>) runs on the app too: the menu lives
+      // on the shell, whatever screen is below it (the header-action rail, like the FAB above)
+      if (isMenuRuleAction(appClass, actionId, command)) {
+        return true;
+      }
       // a menu rule leaf's action (@Menu Rule … RunAction) is the app's too: the menu is on the
       // shell — only worth an instance when the app has a method of that name to run
       var hasMethod =
@@ -594,6 +621,40 @@ public class ActionInstanceCreator {
     } catch (Exception e) {
       return false;
     }
+  }
+
+  private static boolean isMenuRuleAction(
+      Class<?> appClass, String actionId, RunActionCommand command) {
+    var menuFields =
+        io.mateu.core.infra.reflection.read.AllFieldsProvider.getAllFields(appClass).stream()
+            .filter(
+                field ->
+                    io.mateu.core.infra.reflection.MetaAnnotations.isPresent(
+                            field, io.mateu.uidl.annotations.Menu.class)
+                        && (io.mateu.uidl.data.Rule.class.equals(field.getType())
+                            || java.util.List.class.isAssignableFrom(field.getType())))
+            .toList();
+    if (menuFields.isEmpty()) {
+      return false;
+    }
+    var app =
+        io.mateu.uidl.di.MateuBeanProvider.getBean(io.mateu.uidl.interfaces.InstanceFactory.class)
+            .newInstance(appClass, java.util.Map.of(), command.httpRequest());
+    for (var field : menuFields) {
+      var value = io.mateu.core.infra.reflection.read.ValueProvider.getValue(field, app);
+      var rules =
+          value instanceof java.util.List<?> list
+              ? list
+              : java.util.List.of(value == null ? "" : value);
+      for (var item : rules) {
+        if (item instanceof io.mateu.uidl.data.Rule rule
+            && rule.action() == io.mateu.uidl.data.RuleAction.RunAction
+            && actionId.equals(rule.actionId())) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   private Mono<Object> createInstanceAndPostHydrate(String className, RunActionCommand command) {

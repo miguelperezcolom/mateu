@@ -6648,6 +6648,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         ...(m.undoActionId ? { undoActionId: m.undoActionId, undoLabel: m.undoLabel || 'Undo', undoParameters: m.undoParameters || {} } : {}),
       })
 
+    // PageBanner(s) an ACTION returned (Vaadin draws them under the page header): they were left in
+    // effects.banners and nothing drew them. Each goes to the shell's message band as a toast marked
+    // `banner` (notify.mjs bannerNotificationOf), where every chain already sends errors and warnings.
+    const BANNER_VARIANTS = { SUCCESS: 'confirmation', WARNING: 'warning', DANGER: 'error' }
+    for (const b of increment.banners || [])
+      effects.toasts.push({ banner: true, text: b.title || '', description: b.description || '', variant: BANNER_VARIANTS[b.theme] || 'info' })
+
     // ── fragmentos → shell | superficies ──────────────────────────────────────
     for (const fr of increment.fragments || []) {
       const md = metaOf(fr)
@@ -6710,6 +6717,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
 
       if (fr.action === 'Add') {
+        // a returned ConfirmDialog is not a drawer: the chain asks it (returnedConfirmDialogsOf)
+        if (md && md.type === 'ConfirmDialog') continue
         const ctx = buildOverlay(fr, opts.initiator)
         // the SAME overlay re-sent while it is open (a Drawer with the same id: the crud's edit
         // drawer after «Save and next», or with its error banner) REFRESHES IN PLACE — it takes the
@@ -8513,6 +8522,31 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }
   }
 
+  /** A ConfirmDialog an ACTION returned arrives as an Add fragment (an overlay, like a Dialog): the
+   *  shell asks it through its own confirmation dialog (#mateuConfirm) and runs the action of the
+   *  button picked. Confirm → confirmActionId; No / Cancel / ✕ → rejectActionId, else cancelActionId.
+   *  [] when the increment returns none. */
+  function returnedConfirmDialogsOf(increment) {
+    const collect = (node) => (node ? [
+      ...(node.metadata && node.metadata.type === 'Text' && node.metadata.text ? [str(node.metadata.text)] : []),
+      ...(node.children || []).flatMap(collect),
+    ] : [])
+    return ((increment && increment.fragments) || [])
+      .filter((fr) => fr && fr.action === 'Add' && fr.component && fr.component.metadata
+        && fr.component.metadata.type === 'ConfirmDialog')
+      .map((fr) => {
+        const m = fr.component.metadata
+        return {
+          title: str(m.header),
+          message: collect(fr.component).join(' '),
+          confirmText: str(m.confirmText) || chromeText('ok'),
+          denyText: str(m.rejectText) || (m.canReject ? chromeText('confirmNo') : chromeText('cancel')),
+          confirmActionId: m.confirmActionId || '',
+          denyActionId: m.rejectActionId || m.cancelActionId || '',
+        }
+      })
+  }
+
   // ── Breadcrumbs (the component in content; the shell keeps its own trail) ───────────────────────
   function breadcrumbsAtomOf(m, interp = (x) => x) {
     const crumbs = (m.breadcrumbs || []).map((b) => ({ text: interp(str(b.text)), href: safeHref(b.link), hasHref: !!safeHref(b.link) }))
@@ -9468,6 +9502,25 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // otro ServerSide o una respuesta de la pantalla anterior no reprograman nada
     if (!screenTree || ctx.tree.serverSideType !== screenTree.serverSideType) return 0
     const next = onSuccessTriggers(ctx, actionId)
+    for (const t of next) schedule(t, generation, timer)
+    return next.length
+  }
+
+  /** Los OnError que siguen a `actionId`. */
+  function onErrorTriggers(ctx, actionId) {
+    return triggersOf(ctx).filter((t) => t.type === 'OnError' && t.actionId && t.calledActionId === actionId)
+  }
+
+  /** An answer that FAILED: the server answers an exception with an error message (the error
+   *  boundary), not with an HTTP error — the web renderer reads it the same way. */
+  const isErrorAnswer = (inc) => !!(inc && (inc.messages || []).some((m) => m && m.variant === 'error'))
+
+  /** Una acción falló: sus OnError (antes la shell VB no conocía OnError), si son de la pantalla en
+   *  curso — y NO sus OnSuccess: un refresco que falla no se reprograma. */
+  function actionFailed(ctx, actionId, timer = setTimeout) {
+    if (!ctx || !ctx.tree) return 0
+    if (!screenTree || ctx.tree.serverSideType !== screenTree.serverSideType) return 0
+    const next = onErrorTriggers(ctx, actionId)
     for (const t of next) schedule(t, generation, timer)
     return next.length
   }
@@ -10893,6 +10946,11 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  notificación de VB (Actions.fireNotificationEvent → vbNotification → showNotificationMessage),
    *  persistente hasta que se cierra. null para el resto, que siguen siendo toasts. */
   function bannerNotificationOf(toast) {
+    // a PageBanner an action returned (the reducer turns it into a toast marked `banner`): always
+    // the shell's message band, with its title AND description, until the user closes it
+    if (toast && toast.banner) {
+      return { summary: toast.text || '', message: toast.description || '', type: toast.variant || 'info', displayMode: 'persist' }
+    }
     if (!toast || (toast.variant !== 'error' && toast.variant !== 'warning')) return null
     return { summary: toast.text || '', type: toast.variant, displayMode: 'persist' }
   }
@@ -14925,7 +14983,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     }, { timeoutMillis: extra && extra.timeoutMillis, idempotent: extra && extra.idempotent })
       .then((inc) => {
         release()
-        if (inc) actionSucceeded(source, actionId)
+        if (inc) (isErrorAnswer(inc) ? actionFailed : actionSucceeded)(source, actionId)
         return inc
       }, (e) => { release(); throw e })
   }
@@ -19271,6 +19329,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     confirmationOf,
     awaitConfirmation,
     answerConfirmation,
+    returnedConfirmDialogsOf,
     selectPlaceholder,
     pendingLookupsOf,
     lookupRequestOf,

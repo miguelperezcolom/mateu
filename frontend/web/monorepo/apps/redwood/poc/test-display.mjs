@@ -17,8 +17,10 @@ import {
   flattenTreeRows, gridPageOf, autoFitColClass, AUTO_FIT_DEFAULT, unsupportedAtomOf, VISITOR_PASS_THROUGH, safeHref, toneOf, cssColorOf,
   setUiValue, setPanelExpanded, carouselPagerAtomOf, microFrontendOf, tagSurfaceActions, heroAtomOf, emptyStateAtomOf, progressBarAtomOf,
   registerCustomComponent, customComponentRegistered, layoutFieldOf, HOST_ID, taskQueueOf, emptyStateOf, hostContentShown, pageToolbarOf,
-  welcomeOf,
+  welcomeOf, returnedConfirmDialogsOf, reduceContexts,
 } from './reduceContexts.mjs'
+import { bannerNotificationOf } from './notify.mjs'
+import { isErrorAnswer, onErrorTriggers } from './polling.mjs'
 import { markdownToHtml, deltaOps, deltaToHtml, richTextHtml, richTextValueOf, sanitizeHtml } from './richtext.mjs'
 import { hexColorOf } from './inputs.mjs'
 import { reprojectedContentOf } from './reproject.mjs'
@@ -566,6 +568,46 @@ test('a RouteLink button in content keeps its route (it navigates); a plain one 
   for (const listener of ['hostBlockAction', 'islandBlockAction']) {
     assert.equal(page.eventListeners[listener].chains[0].parameters.route, '{{ $current.data.route }}', listener + ' passes the route')
   }
+})
+
+// ── the actions walkthrough (design/walkthrough/actions.md): answers the shell dropped ─────────────
+
+test('actions: PageBanners an action returns reach the message band, title and description', () => {
+  const reg = reduceContexts({ contexts: {}, stack: [] }, {
+    fragments: [], messages: [],
+    banners: [{ theme: 'SUCCESS', title: 'Checks passed', description: 'System is healthy' }, { theme: 'DANGER', title: 'Boom', description: '' }],
+  })
+  const notes = reg.effects.toasts.map(bannerNotificationOf)
+  assert.deepEqual(notes, [
+    { summary: 'Checks passed', message: 'System is healthy', type: 'confirmation', displayMode: 'persist' },
+    { summary: 'Boom', message: '', type: 'error', displayMode: 'persist' },
+  ])
+})
+
+test('actions: a returned ConfirmDialog is asked, not drawn as an empty drawer', () => {
+  const inc = { fragments: [{ action: 'Add', targetComponentId: 'x', component: {
+    type: 'ClientSide', id: 'fieldId',
+    metadata: { type: 'ConfirmDialog', header: 'Proceed?', confirmText: 'Yes', rejectText: 'No', canReject: true, canCancel: true,
+      confirmActionId: 'confirmed', rejectActionId: 'rejected', openedCondition: 'true' },
+    children: [{ type: 'ClientSide', metadata: { type: 'Text', text: 'Pick one' } }],
+  } }] }
+  assert.deepEqual(returnedConfirmDialogsOf(inc), [{
+    title: 'Proceed?', message: 'Pick one', confirmText: 'Yes', denyText: 'No', confirmActionId: 'confirmed', denyActionId: 'rejected',
+  }])
+  const reg = reduceContexts({ contexts: {}, stack: [] }, inc)
+  assert.equal(reg.stack.length, 0, 'no overlay stacked for it')
+  assert.deepEqual(returnedConfirmDialogsOf({ fragments: [] }), [])
+})
+
+test('actions: an answer carrying an error message FAILED — its OnError triggers apply, not its OnSuccess', () => {
+  assert.equal(isErrorAnswer({ messages: [{ variant: 'error', text: 'fail ran' }] }), true)
+  assert.equal(isErrorAnswer({ messages: [{ variant: 'success', text: 'ok' }] }), false)
+  assert.equal(isErrorAnswer(null), false)
+  const ctx = { tree: { triggers: [
+    { type: 'OnError', actionId: 'afterFail', calledActionId: 'fail' },
+    { type: 'OnSuccess', actionId: 'afterOk', calledActionId: 'fail' },
+  ] } }
+  assert.deepEqual(onErrorTriggers(ctx, 'fail').map((t) => t.actionId), ['afterFail'])
 })
 
 console.log(`\n${passed} display tests OK`)

@@ -128,11 +128,58 @@ public class ActionMapper {
       actions.add(Action.builder().id(RestDataSupport.RESTFETCH_ACTION_ID).build());
     }
 
+    actions.addAll(triggeredActions(serverSideObject, httpRequest));
+
     // One entry per id: the collectors above overlap (an @Action method is both a field action
     // and a declared one), and a repeated id only made the wire longer. The FIRST entry wins, so
     // the flags of the most specific declaration are the ones the client sees.
     var seen = new java.util.HashSet<String>();
     return actions.stream().filter(action -> seen.add(action.id())).toList();
+  }
+
+  /**
+   * The actions this view's OWN triggers name — an {@code @Trigger}'s action, a
+   * {@code @SubscribeTo}'s, a {@code TriggersSupplier}'s — that it has an action method for. The
+   * browser only sends an action the component advertises, so a trigger pointing at a plain public
+   * method (the documented convention: "actions are public methods") fired, bubbled out unclaimed
+   * and was lost: an OnLoad that never loaded, a subscription that never heard. The same rule as
+   * the component-tree ids ({@link TreeActionHarvester}): only ids with a handler method are
+   * advertised, exactly what the server will then run.
+   */
+  private static List<Action> triggeredActions(Object view, HttpRequest httpRequest) {
+    List<io.mateu.uidl.fluent.Trigger> triggers;
+    try {
+      triggers = TriggerMapper.createTriggers(view, httpRequest);
+    } catch (RuntimeException e) {
+      return List.of();
+    }
+    var ids = new LinkedHashSet<String>();
+    for (var trigger : triggers) {
+      ids.add(trigger.actionId());
+      if (trigger instanceof io.mateu.uidl.fluent.OnSuccessTrigger t) {
+        ids.add(t.calledActionId());
+      }
+      if (trigger instanceof io.mateu.uidl.fluent.OnErrorTrigger t) {
+        ids.add(t.calledActionId());
+      }
+    }
+    ids.removeIf(id -> id == null || id.isBlank());
+    if (ids.isEmpty()) {
+      return List.of();
+    }
+    var handled = new HashSet<String>();
+    for (var method :
+        io.mateu.core.infra.reflection.read.AllMethodsProvider.getAllMethods(view.getClass())) {
+      if (ids.contains(method.getName())
+          && io.mateu.core.application.security.ActionMethods.isInvocable(
+              method, view.getClass())) {
+        handled.add(method.getName());
+      }
+    }
+    return ids.stream()
+        .filter(handled::contains)
+        .map(id -> Action.builder().id(id).build())
+        .toList();
   }
 
   private static List<? extends Action> addNestedFormsActions(

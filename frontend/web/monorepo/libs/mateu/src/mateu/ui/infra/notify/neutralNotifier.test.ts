@@ -56,7 +56,22 @@ describe('neutralNotifier', () => {
         const button = document.body.querySelector('button')!
         expect(button.textContent).toBe('Undo')
         button.click()
-        expect(seen).toEqual([{ actionId: 'restore', parameters: { id: 7 } }])
+        expect(seen).toEqual([{ actionId: 'restore', parameters: { id: 7 }, serverNamed: true }])
+    })
+
+    it('Undo is handed to a mateu-component directly (its listener lives inside its shadow root)', () => {
+        // the walkthrough found Undo dead in the browser: dispatched on the component's HOST, the
+        // event only bubbled up past every listener and was dropped
+        const component = document.createElement('div') as HTMLElement & { manageActionRequestedEvent?: unknown }
+        document.body.appendChild(component)
+        const handled: unknown[] = []
+        const bubbled: unknown[] = []
+        component.manageActionRequestedEvent = (e: CustomEvent) => handled.push(e.detail)
+        document.body.addEventListener('action-requested', e => bubbled.push((e as CustomEvent).detail))
+        neutralNotifier.show({ text: 'Deleted', undoActionId: 'restore', undoParameters: { id: 7 } } as never, component)
+        document.body.querySelector('button')!.click()
+        expect(handled).toEqual([{ actionId: 'restore', parameters: { id: 7 }, serverNamed: true }])
+        expect(bubbled).toEqual([])
     })
 
     it('the client-side closure wins over an undo', () => {

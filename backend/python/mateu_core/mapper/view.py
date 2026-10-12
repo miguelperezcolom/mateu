@@ -209,6 +209,15 @@ class ViewMapperMixin(MixinBase):
             server_children = [page]
             server_style = None
         triggers, emits = self.events_of(cls)
+        # The ids the view's own triggers name (@subscribe_to) are advertised too — the server
+        # already runs them (action_guard counts a subscription's action as declared), but the
+        # web client only SENDS what the component advertises, so the subscription fired, bubbled
+        # out unclaimed and was lost (Java's ActionMapper.triggeredActions; same rule).
+        trigger_ids = {getattr(t, "action_id", None) for t in triggers} - {None, ""}
+        known_ids = {a.id for a in actions}
+        for aid in sorted(trigger_ids - known_ids):
+            if resolve_action(cls, aid, lambda: trigger_ids) is not None:
+                actions = list(actions) + [Action(id=aid)]
         # @rest_data: fire the synthetic __restdata__ action on load (the action is advertised above).
         if rest_data_desc is not None:
             triggers = list(triggers) + [Trigger(type="OnLoad", action_id="__restdata__")]

@@ -1067,10 +1067,10 @@ test('polling: dos éxitos seguidos del mismo trigger dejan UNA vuelta pendiente
   setPollingRunner(null)
 })
 
-test('polling: la shell lo arranca al navegar y el transporte avisa de cada éxito', () => {
+test('polling: la shell lo arranca al navegar y el transporte avisa de cada éxito (y de cada fallo: OnError)', () => {
   assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /bridge\.startPolling\(reg\.contexts\[bridge\.HOST_ID\]\)/)
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.setPollingRunner\(runPageAction\)/)
-  assert.match(webApp('resources/js/mateu-bridge.js'), /if \(inc\) actionSucceeded\(source, actionId\)/)
+  assert.match(webApp('resources/js/mateu-bridge.js'), /if \(inc\) \(isErrorAnswer\(inc\) \? actionFailed : actionSucceeded\)\(source, actionId\)/)
 })
 
 // ── P1 #15 atajos y teclas de acceso ─────────────────────────────────────────────────────────

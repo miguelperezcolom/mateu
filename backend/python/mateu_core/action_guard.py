@@ -200,7 +200,7 @@ def advertised_ids(mapper, type_, instance, layout_override=None) -> set[str]:
             ids.add(camel_case(on_row.value))
     for _event, act in getattr(type_, "__mateu_subscriptions__", ()) or ():
         if act:
-            ids.add(act)
+            ids.add(camel_case(act))
     # Section(add_action / edit_action / view_more_action) affordance buttons
     from .mapper.layout import section_affordance_ids
 

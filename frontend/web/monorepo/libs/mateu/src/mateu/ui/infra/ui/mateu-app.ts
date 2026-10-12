@@ -284,8 +284,10 @@ export class MateuApp extends ComponentElement {
 
     runAction = (actionId: string, ownedByShell = false) => {
         // the on-screen component lives inside the content mateu-ux's own shadow root: a plain
-        // querySelector from here never reached it, and the action was dropped without a word
-        const comp = findComponent(this.renderRoot as Element | ShadowRoot)
+        // querySelector from here never reached it, and the action was dropped without a word.
+        // With no content on screen (an app whose home is empty) the app itself — the event
+        // bubbles to the app's own component, which advertises its menu's rule-leaf actions
+        const comp = findComponent(this.renderRoot as Element | ShadowRoot) ?? this
         if (comp) {
             comp.dispatchEvent(new CustomEvent('action-requested', {
                 // an id the SHELL declares (a server action of its own) must not be answered by the
@@ -358,6 +360,15 @@ export class MateuApp extends ComponentElement {
     runMenuRules = (rules: Rule[]) => {
         for (const rule of rules) {
             if (rule.action === RuleAction.RunAction && rule.actionId) {
+                const app = (this.component as ClientSideComponent | undefined)?.metadata as App | undefined
+                if (app && app.serverSideType && !shellActionFor(app, rule.actionId)) {
+                    // a server action of the app class: the header-action rail (against the APP,
+                    // whatever screen is below) — the on-screen component does not own it, and
+                    // dispatched there it bubbled out unclaimed and was lost
+                    dispatchAppHeaderAction(app, this as unknown as HTMLElement & { baseUrl?: string }, rule.actionId)
+                        .catch((e) => console.error('menu action failed', e))
+                    continue
+                }
                 this.runShellAction(rule.actionId)
             } else if (rule.action === RuleAction.RunJS && rule.value != null) {
                 try {

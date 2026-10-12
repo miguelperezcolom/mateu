@@ -224,6 +224,32 @@ class ActionsAndCommandsSyncTest {
     void search() {}
   }
 
+  /**
+   * Triggers and subscriptions naming PLAIN public methods (no {@code @Action}): the convention is
+   * that public methods are actions, so the view must advertise them or the browser drops the
+   * trigger's dispatch. {@code hidden} is package-private and unmarked — not an action at all.
+   */
+  @SuppressWarnings("unused")
+  @UI("/plain-triggers")
+  @SubscribeTo(event = "pinged", action = "onPing")
+  @Trigger(type = TriggerType.OnLoad, actionId = "loaded")
+  @Trigger(type = TriggerType.OnSuccess, actionId = "afterOk", calledActionId = "ok")
+  @Trigger(type = TriggerType.OnLoad, actionId = "hidden")
+  public static class PlainTriggerForm {
+
+    String q = "";
+
+    public void onPing() {}
+
+    public void loaded() {}
+
+    public void afterOk() {}
+
+    public void ok() {}
+
+    void hidden() {}
+  }
+
   /** AutoSave metadata + dirty-navigation guard flag. */
   @SuppressWarnings("unused")
   @UI("/autosave")
@@ -271,6 +297,29 @@ class ActionsAndCommandsSyncTest {
       return PageBanners.append(new PageBanner(BannerTheme.WARNING, "More", "appended"));
     }
 
+    /** The new state AND a toast: the walkthrough found the state dropped (2026-10-12). */
+    @Action
+    List<Object> stateAndToast() {
+      name = "z";
+      return List.of(this, Message.success("Saved!"));
+    }
+
+    /** A ConfirmDialog returned by an action: an overlay, stacked on the page. */
+    @Action
+    io.mateu.uidl.data.ConfirmDialog askFirst() {
+      return io.mateu.uidl.data.ConfirmDialog.builder()
+          .header("Sure?")
+          .confirmActionId("toast")
+          .build();
+    }
+
+    /** The new state AND appended banners, in one answer. */
+    @Action
+    List<Object> stateAndBanner() {
+      name = "b";
+      return List.of(this, PageBanners.append(new PageBanner(BannerTheme.INFO, "B", "b")));
+    }
+
     @Action
     PageBanners replaceBanner() {
       return PageBanners.replace(new PageBanner(BannerTheme.INFO, "Only", "replaced"));
@@ -292,7 +341,8 @@ class ActionsAndCommandsSyncTest {
             ToolbarForm.class,
             TriggerForm.class,
             AutoSaveForm.class,
-            FeedbackForm.class);
+            FeedbackForm.class,
+            PlainTriggerForm.class);
   }
 
   @AfterAll
@@ -753,5 +803,40 @@ class ActionsAndCommandsSyncTest {
     assertThat(increment.banners()).hasSize(1);
     assertThat(increment.banners().get(0).title()).isEqualTo("Only");
     assertThat(increment.appendBanners()).isFalse();
+  }
+
+  @Test
+  void aListMixingTheNewStateAndAToastCarriesBoth() {
+    var increment =
+        run("/feedback", FeedbackForm.class, "stateAndToast", Map.of("name", "y"), null);
+    assertThat(increment.messages()).hasSize(1);
+    assertThat(increment.fragments()).isNotEmpty();
+    assertThat(String.valueOf(increment.fragments().get(0).state())).contains("name=z");
+  }
+
+  @Test
+  void aListMixingTheNewStateAndBannersCarriesBoth() {
+    var increment =
+        run("/feedback", FeedbackForm.class, "stateAndBanner", Map.of("name", "y"), null);
+    assertThat(increment.banners()).hasSize(1);
+    assertThat(increment.appendBanners()).isTrue();
+    assertThat(increment.fragments()).isNotEmpty();
+    assertThat(String.valueOf(increment.fragments().get(0).state())).contains("name=b");
+  }
+
+  @Test
+  void triggersNamingPlainPublicMethodsAreAdvertised() {
+    var ids = syncComponent("/plain-triggers").actions().stream().map(a -> a.id()).toList();
+    assertThat(ids).contains("onPing", "loaded", "afterOk", "ok");
+    // not an action (package-private, unmarked): never advertised, and the server refuses it
+    assertThat(ids).doesNotContain("hidden");
+  }
+
+  @Test
+  void aReturnedConfirmDialogIsAddedOverThePageNotReplacingIt() {
+    var increment = run("/feedback", FeedbackForm.class, "askFirst");
+    assertThat(increment.fragments()).hasSize(1);
+    assertThat(increment.fragments().get(0).action())
+        .isEqualTo(io.mateu.dtos.UIFragmentActionDto.Add);
   }
 }

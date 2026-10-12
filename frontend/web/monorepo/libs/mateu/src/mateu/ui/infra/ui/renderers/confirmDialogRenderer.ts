@@ -12,10 +12,17 @@ import { chromeText } from '@infra/ui/chromeTexts.ts'
  * vaadin-confirm-dialog. NOTE: this native version wires confirmActionId/rejectActionId/cancelActionId
  * — the old vaadin-confirm-dialog path never dispatched them.
  */
-const dispatchAction = (target: EventTarget | null, actionId?: string) => {
-    if (!target) return
+// Answered once: the dialog is dismissed (a ConfirmDialog an action RETURNS has no openedCondition
+// to turn false), and its ids were named by the server in an answer to the enclosing component —
+// which may not advertise them (see mateu-component's `serverNamed`).
+const dismissed = new WeakSet<object>()
+const dispatchAction = (target: EventTarget | null, actionId: string | undefined, metadata: object,
+                        container: LitElement) => {
+    dismissed.add(metadata)
+    container.requestUpdate()
+    if (!target || !actionId) return
     ;(target as Element).dispatchEvent(new CustomEvent('action-requested', {
-        detail: { actionId }, bubbles: true, composed: true,
+        detail: { actionId, serverNamed: true }, bubbles: true, composed: true,
     }))
 }
 
@@ -25,7 +32,8 @@ const PRIMARY = `${BTN} background:var(--lumo-primary-color,#3b5bdb); color:var(
 
 export const renderConfirmDialog = (container: LitElement, component: ClientSideComponent, baseUrl: string | undefined, state: ComponentState, data: ComponentData, appState: ComponentState, appData: ComponentData) => {
     const metadata = component.metadata as ConfirmDialog
-    let opened = false;
+    // no condition = open: a ConfirmDialog returned by an action is shown as soon as it arrives
+    let opened = !metadata.openedCondition;
     if (metadata.openedCondition) {
         try {
             opened = interpolateAndEvaluate(metadata.openedCondition, state, data, appState, appData) as boolean
@@ -34,6 +42,8 @@ export const renderConfirmDialog = (container: LitElement, component: ClientSide
                 + ' and state is ' + state)
         }
     }
+    // answered: closed until the server sends this dialog again (a new metadata object)
+    if (dismissed.has(metadata)) opened = false
     if (!opened) {
         return html``
     }
@@ -45,9 +55,9 @@ export const renderConfirmDialog = (container: LitElement, component: ClientSide
                 ${metadata.header ? html`<h3 style="margin:0 0 .75rem; font-size:1.15rem;">${metadata.header}</h3>` : nothing}
                 <div>${component.children?.map(child => renderComponent(container, child, baseUrl, state, data, appState, appData))}</div>
                 <div style="display:flex; gap:.5rem; justify-content:flex-end; margin-top:1.25rem;">
-                    ${metadata.canCancel ? html`<button style="${SECONDARY}" @click="${(e: Event) => dispatchAction(e.currentTarget, metadata.cancelActionId)}">${metadata.rejectText && !metadata.canReject ? metadata.rejectText : chromeText('cancel')}</button>` : nothing}
-                    ${metadata.canReject ? html`<button style="${SECONDARY}" @click="${(e: Event) => dispatchAction(e.currentTarget, metadata.rejectActionId)}">${metadata.rejectText || chromeText('no')}</button>` : nothing}
-                    <button style="${PRIMARY}" @click="${(e: Event) => dispatchAction(e.currentTarget, metadata.confirmActionId)}">${metadata.confirmText || chromeText('ok')}</button>
+                    ${metadata.canCancel ? html`<button style="${SECONDARY}" @click="${(e: Event) => dispatchAction(e.currentTarget, metadata.cancelActionId, metadata, container)}">${metadata.rejectText && !metadata.canReject ? metadata.rejectText : chromeText('cancel')}</button>` : nothing}
+                    ${metadata.canReject ? html`<button style="${SECONDARY}" @click="${(e: Event) => dispatchAction(e.currentTarget, metadata.rejectActionId, metadata, container)}">${metadata.rejectText || chromeText('no')}</button>` : nothing}
+                    <button style="${PRIMARY}" @click="${(e: Event) => dispatchAction(e.currentTarget, metadata.confirmActionId, metadata, container)}">${metadata.confirmText || chromeText('ok')}</button>
                 </div>
             </div>
         </div>
