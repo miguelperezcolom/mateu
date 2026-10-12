@@ -149,6 +149,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       selectRowsFirst: 'You first need to select some rows',
       searchResults: 'Search results',
       themeToggle: 'Switch light / dark theme',
+      // ── open on mobile (@App(mobileQr), qr.mjs) ──
+      mobileQrAction: 'Open on mobile',
+      mobileQrTitle: 'Open on your phone',
+      mobileQrHint: "Scan with your phone's camera or the Mateu app. The code only says where this app is: you sign in on the phone.",
+      mobileQrPhoneHint: 'Opens this screen in the Mateu app — or the page to install it.',
+      mobileQrAlt: 'QR code to open {app} in the Mateu app',
+      mobileQrThisApp: 'this app',
+      mobileQrOpenInApp: 'Open in the Mateu app',
+      mobileQrLink: 'Link',
+      mobileQrCopy: 'Copy link',
+      mobileQrCopied: 'Link copied',
       // ── display components (core/display.mjs) ──
       recommended: 'Recommended',
       choose: 'Choose',
@@ -188,6 +199,30 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       rteLink: 'Link', rteClear: 'Clear formatting', rteLinkPrompt: 'Link URL',
       colourPicker: '{label} — picker',
       loadingContent: 'Loading',
+      // ── E2 patterns: compare & merge, app shortcuts, live header values, idle session ──
+      mergeShowDifferences: 'Show only differences',
+      mergeField: 'Field',
+      mergeCustom: 'Custom',
+      mergeUseValue: 'Use value from {record} for {field}',
+      mergeCustomValue: 'Custom value for {field}',
+      mergeDiffers: 'differs',
+      mergeEmpty: '(empty)',
+      mergeResult: 'Result',
+      mergeAction: 'Merge',
+      mergeSummary: '{fields} fields: {differ} differ; {custom} typed by hand',
+      mergeFrom: 'from {record}',
+      keyboardShortcuts: 'Keyboard shortcuts',
+      shortcutsApp: 'Everywhere in the app',
+      shortcutsScreen: 'On this screen',
+      shortcutsHelpKey: 'Show this list',
+      shortcutsPalette: 'Search or go to',
+      quickLaunchCode: 'Code',
+      headerValueChanged: '{label} changed to {value}',
+      idleTitle: 'Are you still there?',
+      idleMessage: 'For your security you will be signed out in {seconds} seconds.',
+      idleStay: 'Stay signed in',
+      idleSignOut: 'Sign out',
+      idleSigningOut: 'Signing out…',
     },
     es: {
       close: 'Cerrar',
@@ -311,6 +346,17 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       selectRowsFirst: 'Primero tienes que seleccionar alguna fila',
       searchResults: 'Resultados',
       themeToggle: 'Cambiar tema claro / oscuro',
+      // ── abrir en el móvil (@App(mobileQr), qr.mjs) ──
+      mobileQrAction: 'Abrir en el móvil',
+      mobileQrTitle: 'Ábrelo en tu móvil',
+      mobileQrHint: 'Escanéalo con la cámara del móvil o con la app Mateu. El código solo dice dónde está esta aplicación: inicias sesión en el móvil.',
+      mobileQrPhoneHint: 'Abre esta pantalla en la app Mateu, o la página para instalarla.',
+      mobileQrAlt: 'Código QR para abrir {app} en la app Mateu',
+      mobileQrThisApp: 'esta aplicación',
+      mobileQrOpenInApp: 'Abrir en la app Mateu',
+      mobileQrLink: 'Enlace',
+      mobileQrCopy: 'Copiar enlace',
+      mobileQrCopied: 'Enlace copiado',
       // ── componentes display (core/display.mjs) ──
       recommended: 'Recomendado',
       choose: 'Elegir',
@@ -350,6 +396,29 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       rteLink: 'Enlace', rteClear: 'Quitar formato', rteLinkPrompt: 'URL del enlace',
       colourPicker: '{label} — selector',
       loadingContent: 'Cargando',
+      mergeShowDifferences: 'Mostrar solo las diferencias',
+      mergeField: 'Campo',
+      mergeCustom: 'Otro valor',
+      mergeUseValue: 'Usar el valor de {record} para {field}',
+      mergeCustomValue: 'Otro valor para {field}',
+      mergeDiffers: 'difiere',
+      mergeEmpty: '(vacío)',
+      mergeResult: 'Resultado',
+      mergeAction: 'Fusionar',
+      mergeSummary: '{fields} campos: {differ} difieren; {custom} escritos a mano',
+      mergeFrom: 'de {record}',
+      keyboardShortcuts: 'Atajos de teclado',
+      shortcutsApp: 'En toda la aplicación',
+      shortcutsScreen: 'En esta pantalla',
+      shortcutsHelpKey: 'Mostrar esta lista',
+      shortcutsPalette: 'Buscar o ir a',
+      quickLaunchCode: 'Código',
+      headerValueChanged: '{label} ha cambiado a {value}',
+      idleTitle: '¿Sigues ahí?',
+      idleMessage: 'Por seguridad, se cerrará tu sesión en {seconds} segundos.',
+      idleStay: 'Seguir conectado',
+      idleSignOut: 'Cerrar sesión',
+      idleSigningOut: 'Cerrando sesión…',
     },
     // partial languages: only the words they have (the rest falls back to English)
     ca: { selectValue: 'Seleccioneu un valor' },
@@ -2274,7 +2343,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'isResourceGrid', 'isAddOns', 'isStat', 'isNotice', 'isPropertyRow',
     // reto PMS: cualquier átomo NUEVO tiene que estar aquí — si no, en una página que también
     // lleva campos gana el formulario genérico (que solo pinta campos) y el átomo desaparece
-    'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt', 'isImage', 'isAvatar', 'isGallery', 'isRichText', 'isMap',
+    'isAnchor', 'isQueue', 'isPlanning', 'isCollapsible', 'isActionPanel', 'isRecordMerge', 'isMatrix', 'isChart', 'isScoreboard', 'isCalendar', 'isPopover', 'isDropZone', 'isGantt', 'isImage', 'isAvatar', 'isGallery', 'isRichText', 'isMap',
     // the display components of core/display.mjs
     'isKanban', 'isTimeline', 'isPricing', 'isOrgChart', 'isHeatmap', 'isFunnel', 'isFeatureGrid', 'isTestimonials',
     'isCallout', 'isComments', 'isFileList', 'isChecklist', 'isComparison', 'isProcessMonitor', 'isSkeleton', 'isIcon',
@@ -2935,6 +3004,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         : shell.homeRoute,
     }
   }
+
 
 
 
@@ -3934,6 +4004,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       }
       if (t === 'ActionPanel') {
         atom(actionPanelAtomOf(m, node.id, interp), container)
+        return
+      }
+      if (t === 'RecordMerge') {
+        atom(recordMergeAtomOf(m, node.id, interp), container)
         return
       }
       if (t === 'BulletedList') {
@@ -6399,6 +6473,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       // nothing is drawn — [{ text, assertive }]
       announcements: [],
       events: [], // bus @SubscribeTo: [{ name, detail }]
+      headerValues: [], // UICommand.updateHeaderValue: [{ id, value }] (appExtras.mjs)
     }
 
     for (const m of increment.messages || [])
@@ -6431,6 +6506,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           themeToggle: md.themeToggle,
           // @App(accessKeys): mantener Alt enseña las teclas de acceso (keys.mjs)
           accessKeys: !!md.accessKeys,
+          // E2 patterns (appExtras.mjs): app shortcuts / quick launch, live header values, idle warning
+          shortcuts: md.shortcuts || [],
+          headerValues: md.headerValues || [],
+          liveUpdates: !!md.liveUpdates,
+          idleSession: md.idleSession || null,
+          // @App(mobileQr): the header's "Open on mobile" action (qr.mjs)
+          mobileQr: !!md.mobileQr,
           // NotificationsSupplier del App → la campana de la cabecera (notify.mjs)
           notificationsEnabled: !!md.notificationsEnabled,
           // GlobalSearchSupplier del App → la paleta Ask busca también entidades (globalSearch.mjs)
@@ -6557,6 +6639,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         case 'RunAction':
           effects.runActions.push(c.data)
           break
+        case 'UpdateHeaderValue': {
+          // a live header value (the business date…): this tab, and the others through storage
+          const d = c.data && typeof c.data === 'object' ? c.data : {}
+          if (d.id) effects.headerValues.push({ id: String(d.id), value: d.value == null ? '' : String(d.value) })
+          break
+        }
         case 'Announce': {
           // the Redwood `announcement` slot: polite by default, assertive when the server says so
           const d = c.data && typeof c.data === 'object' ? c.data : { text: c.data }
@@ -10640,6 +10728,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
 
 
+
   // Efectos de DOM que el reducer (puro) solo DESCRIBE: descargar un fichero y abrir una URL en
   // otra pestaña. Antes `effects.download` se calculaba y nadie lo leía — el CSV de un listado o
   // el PDF de un folio llegaban al navegador y se perdían. Cada chain que reduce un increment
@@ -10834,6 +10923,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // assertive for what must not be missed). `env.mateuAnnounce` is the test seam.
     const say = (env && env.mateuAnnounce) || announce
     for (const a of effects.announcements || []) say(a.text, { politeness: a.assertive ? 'assertive' : 'polite' })
+    // UICommand.updateHeaderValue: the header repaints and the other tabs follow (appExtras.mjs)
+    for (const h of effects.headerValues || []) ((env && env.mateuHeaderValue) || updateHeaderValue)(h.id, h.value)
     return n
   }
 
@@ -11805,6 +11896,671 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         }
       }
     }, true)
+  }
+
+
+
+  // COMPARE AND MERGE (RecordMerge on the wire): the records side by side, a pick per field, the
+  // resulting record and a merge action. Same rules as the web renderer (libs/mateu recordMerge.ts):
+  // the picks start from what the server chose (else the first record with a value), a pick is a
+  // record id or CUSTOM (typed by hand), and the merge sends {...parameters, _merged, _choices}.
+  // The atom is painted from the template (atoms.html, isRecordMerge); the picks, the custom values,
+  // the «only differences» switch, the result and the summary are DOM state (installRecordMerges):
+  // no round trip until the merge button.
+
+  const MERGE_CUSTOM = 'custom'
+
+  const mergeValueText = (v) =>
+    v === null || v === undefined ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v)
+
+  /** The picks to begin with: the server's `chosen`, else the first record with a value. */
+  function mergeInitialPicks(merge) {
+    const picks = {}
+    const ids = (merge.records || []).map((r) => r.id)
+    for (const f of merge.fields || []) {
+      let chosen = f.chosen && ids.includes(f.chosen) ? f.chosen : undefined
+      if (!chosen) {
+        const i = (f.values || []).findIndex((v) => mergeValueText(v).trim() !== '')
+        chosen = ids[i >= 0 ? i : 0]
+      }
+      if (chosen) picks[f.fieldId] = chosen
+    }
+    return picks
+  }
+
+  /** The value a row ends up with, given its pick. */
+  function mergedValueOf(merge, field, picks, custom) {
+    const pick = picks[field.fieldId]
+    if (pick === MERGE_CUSTOM) return (custom || {})[field.fieldId] ?? ''
+    const i = (merge.records || []).findIndex((r) => r.id === pick)
+    return i >= 0 ? ((field.values || [])[i] ?? null) : null
+  }
+
+  /** The merge action's parameters: the component's own, `_merged` and `_choices`. */
+  function mergeParametersOf(merge, picks, custom) {
+    const merged = {}
+    const choices = {}
+    for (const f of merge.fields || []) {
+      merged[f.fieldId] = mergedValueOf(merge, f, picks, custom)
+      choices[f.fieldId] = picks[f.fieldId] || ''
+    }
+    return { ...(merge.parameters || {}), _merged: merged, _choices: choices }
+  }
+
+  /** The numbers of the summary line. */
+  const mergeSummaryOf = (merge, picks) => ({
+    fields: (merge.fields || []).length,
+    differ: (merge.fields || []).filter((f) => f.differs).length,
+    custom: Object.values(picks || {}).filter((p) => p === MERGE_CUSTOM).length,
+  })
+
+  const recordLabelOf = (merge, id) =>
+    id === MERGE_CUSTOM ? chromeText('mergeCustom') : ((merge.records || []).find((r) => r.id === id) || {}).label || ''
+
+  /** The result rows ({fieldId, label, text, from}) for picks + custom values. */
+  function mergeResultOf(merge, picks, custom) {
+    return (merge.fields || []).map((f) => {
+      const text = mergeValueText(mergedValueOf(merge, f, picks, custom))
+      return {
+        fieldId: f.fieldId,
+        label: f.label,
+        text: text || chromeText('mergeEmpty'),
+        from: chromeText('mergeFrom', { record: recordLabelOf(merge, picks[f.fieldId]) }),
+        entryClass: 'mateu-rm-entry' + (f.differs ? ' mateu-rm-entry-differs' : ''),
+      }
+    })
+  }
+
+  /** The atom the template paints. `key` scopes the radio groups (two merges on a page). */
+  function recordMergeAtomOf(m, id, interp = (x) => x) {
+    const key = 'rm-' + String(id || 'merge').replace(/[^A-Za-z0-9_-]/g, '_')
+    const merge = { ...m, records: m.records || [], fields: m.fields || [] }
+    const picks = mergeInitialPicks(merge)
+    const anyEditable = merge.fields.some((f) => f.editable)
+    const records = merge.records.map((r) => ({ id: r.id, label: interp(r.label || ''), caption: interp(r.caption || ''), hasCaption: !!r.caption }))
+    const rows = merge.fields.map((f) => {
+      const label = interp(f.label || f.fieldId)
+      const name = key + '-' + f.fieldId
+      return {
+        key: name,
+        fieldId: f.fieldId,
+        label,
+        differs: !!f.differs,
+        differsText: chromeText('mergeDiffers'),
+        rowClass: 'mateu-rm-row' + (f.differs ? ' mateu-rm-differs' : ' mateu-rm-same'),
+        cells: records.map((r, i) => {
+          const text = mergeValueText((f.values || [])[i])
+          return {
+            key: name + '-' + r.id,
+            name,
+            value: r.id,
+            checked: picks[f.fieldId] === r.id,
+            text: text || chromeText('mergeEmpty'),
+            textClass: text ? 'mateu-rm-value' : 'mateu-rm-value mateu-rm-empty',
+            ariaLabel: chromeText('mergeUseValue', { record: r.label, field: label }),
+          }
+        }),
+        hasCustomColumn: anyEditable,
+        editable: !!f.editable,
+        customName: name,
+        customAria: chromeText('mergeCustomValue', { field: label }),
+      }
+    })
+    return {
+      isRecordMerge: true,
+      mergeKey: key,
+      title: interp(merge.title || ''),
+      hasTitle: !!merge.title,
+      records,
+      rows,
+      anyEditable,
+      differencesOnly: !!merge.differencesOnly,
+      containerClass: 'mateu-record-merge' + (merge.differencesOnly ? ' mateu-rm-diff-only' : ''),
+      result: mergeResultOf(merge, picks, {}),
+      summary: chromeText('mergeSummary', mergeSummaryOf(merge, picks)),
+      hasMerge: !!merge.mergeActionId,
+      mergeLabel: interp(merge.mergeLabel || chromeText('mergeAction')),
+      // the spec the DOM installer recomputes the result from (picks + custom values)
+      spec: JSON.stringify({ records: merge.records, fields: merge.fields, parameters: merge.parameters || {}, mergeActionId: merge.mergeActionId || '' }),
+      texts: {
+        field: chromeText('mergeField'), custom: chromeText('mergeCustom'), differs: chromeText('mergeDiffers'),
+        result: chromeText('mergeResult'), onlyDifferences: chromeText('mergeShowDifferences'),
+      },
+    }
+  }
+
+  // ── DOM: the picks are state of the page, not of the server ─────────────────────────────────
+  let recordMergeSink = null
+  /** Where the merge action goes (the shell's page-action runner). */
+  function setRecordMergeSink(fn) { recordMergeSink = typeof fn === 'function' ? fn : null }
+
+  /** Reads the picks and custom values of one merge from its DOM. */
+  function readMergeDom(root) {
+    const picks = {}
+    const custom = {}
+    for (const input of root.querySelectorAll('input[type="radio"][data-rm-field]')) {
+      if (input.checked) picks[input.getAttribute('data-rm-field')] = input.value
+    }
+    for (const input of root.querySelectorAll('input[type="text"][data-rm-custom]')) {
+      custom[input.getAttribute('data-rm-custom')] = input.value
+    }
+    return { picks, custom }
+  }
+
+  function refreshMerge(root) {
+    let spec
+    try { spec = JSON.parse(root.getAttribute('data-rm-spec') || '{}') } catch (e) { return }
+    const { picks, custom } = readMergeDom(root)
+    for (const entry of mergeResultOf(spec, picks, custom)) {
+      const el = root.querySelector('[data-rm-result="' + entry.fieldId + '"]')
+      if (el) {
+        const v = el.querySelector('.mateu-rm-result-value')
+        const f = el.querySelector('.mateu-rm-result-from')
+        if (v) v.textContent = entry.text
+        if (f) f.textContent = entry.from
+      }
+    }
+    for (const td of root.querySelectorAll('[data-rm-cell]')) {
+      const radio = td.querySelector('input[type="radio"]')
+      td.classList.toggle('mateu-rm-picked', !!(radio && radio.checked))
+    }
+    const summary = root.querySelector('[data-rm-summary]')
+    if (summary) summary.textContent = chromeText('mergeSummary', mergeSummaryOf(spec, picks))
+    return { spec, picks, custom }
+  }
+
+  /** Installs (once) the behaviour of the merges of the document. */
+  function installRecordMerges(doc = typeof document !== 'undefined' ? document : null) {
+    if (!doc || doc.__mateuRecordMerges) return
+    doc.__mateuRecordMerges = true
+    const rootOf = (el) => (el && el.closest ? el.closest('[data-rm-spec]') : null)
+    doc.addEventListener('change', (e) => { const r = rootOf(e.target); if (r) refreshMerge(r) }, true)
+    doc.addEventListener('input', (e) => {
+      const t = e.target
+      const r = rootOf(t)
+      if (!r || !t.hasAttribute || !t.hasAttribute('data-rm-custom')) return
+      // typing a custom value picks it
+      const radio = r.querySelector('input[type="radio"][data-rm-field="' + t.getAttribute('data-rm-custom') + '"][value="' + MERGE_CUSTOM + '"]')
+      if (radio) radio.checked = true
+      refreshMerge(r)
+    }, true)
+    // «only differences»: the oj-switch does not bubble valueChanged, the capture phase sees it
+    doc.addEventListener('valueChanged', (e) => {
+      const sw = e.target
+      if (!sw || !sw.hasAttribute || !sw.hasAttribute('data-rm-diff')) return
+      const r = rootOf(sw)
+      if (r) r.classList.toggle('mateu-rm-diff-only', !!(e.detail && e.detail.value))
+    }, true)
+    doc.addEventListener('ojAction', (e) => {
+      const button = e.target && e.target.closest ? e.target.closest('[data-rm-merge]') : null
+      const r = rootOf(button)
+      if (!r) return
+      const state = refreshMerge(r)
+      if (state && state.spec.mergeActionId && recordMergeSink) {
+        recordMergeSink(state.spec.mergeActionId, mergeParametersOf(state.spec, state.picks, state.custom))
+      }
+    }, true)
+  }
+
+
+
+
+
+
+
+  // The APP-LEVEL extras of the E2 patterns on the VB shell — the same contract (and the same
+  // localStorage keys, so a Vaadin tab and a Redwood tab of one origin cooperate) as the web
+  // renderer's libs/mateu appShortcuts.ts / headerValues.ts / liveUpdates.ts / idleSession.ts:
+  //  - APP SHORTCUTS (@AppShortcut): active on every page; a screen shortcut on the same key WINS
+  //    (keys.mjs takes it first in the capture phase and stops it; this listener is on the window,
+  //    bubble phase, and also stands down when the screen declares that key); «?» opens the
+  //    «Keyboard shortcuts» oj-dialog; QUICK LAUNCH: an exact code + Enter in the Ask palette.
+  //  - LIVE HEADER VALUES: painted in the header (#mateuHeaderValues), changed by UpdateHeaderValue
+  //    (broadcast to the other tabs through storage) and, with liveUpdates, by the app event stream —
+  //    ONE per browser (leader election through localStorage), POST /mateu/v3/sse/… '_live-updates'.
+  //  - IDLE SESSION: activity shared by every tab; an oj-dialog (role alertdialog) counts down; Stay
+  //    runs the keep-alive action, Sign out (or zero) → cancelable 'mateu-idle-sign-out' + assign.
+  // What is pure is tested in Node (test-e2.mjs); the DOM half is wired from loadMateuShell.
+
+  // ── app shortcuts (pure) ─────────────────────────────────────────────────────────────────────
+
+  const SC_FUNCTION_OR_MOD = (shortcut) =>
+    /(^|\+)(ctrl|control|alt|meta|cmd)(\+|$)/i.test(String(shortcut || '')) || isFunctionKeyShortcut(shortcut)
+
+  /** The app shortcut a keystroke presses: never a plain key while typing, never a key the screen owns. */
+  function appShortcutFor(shortcuts, e, typing, screenKeys = []) {
+    return (shortcuts || []).find((s) => !!s.key
+      && (!typing || SC_FUNCTION_OR_MOD(s.key))
+      && !screenKeys.includes(String(s.key).toLowerCase())
+      && shortcutMatches(s.key, e))
+  }
+
+  /** «?» opens the list — never while typing. */
+  const isShortcutsHelpKey = (e, typing) => !typing && e.key === '?' && !e.ctrlKey && !e.altKey && !e.metaKey
+
+  /** QUICK LAUNCH: the shortcut whose code is exactly what was typed (trimmed, case-insensitive). */
+  function quickLaunchMatch(shortcuts, query) {
+    const q = String(query || '').trim().toLowerCase()
+    if (!q) return undefined
+    return (shortcuts || []).find((s) => s.code && String(s.code).trim().toLowerCase() === q)
+  }
+
+  /** The Ask palette rows of the shortcuts matching the query (code matches first), before the
+   *  destinations: {label, route?, actionId?, icon, kind} — `kind` shows the code and the key. */
+  function appShortcutRowsOf(shortcuts, query) {
+    const q = String(query || '').trim().toLowerCase()
+    if (!q) return []
+    const all = (shortcuts || []).filter((s) => s.route || s.actionId)
+    const byCode = all.filter((s) => s.code && s.code.toLowerCase().startsWith(q))
+    const byLabel = all.filter((s) => !byCode.includes(s) && String(s.label || '').toLowerCase().includes(q))
+    return [...byCode, ...byLabel].slice(0, 5).map((s) => ({
+      label: s.label,
+      route: s.route || '',
+      actionId: s.actionId || '',
+      icon: 'oj-ux-ico-keyboard',
+      kind: [s.code, s.key ? keyHint(s.key) : ''].filter(Boolean).join(' · '),
+      isShortcut: true,
+    }))
+  }
+
+  /** Whether the focus is in something the user types into. */
+  function isTypingElement(el) {
+    if (!el) return false
+    const tag = String(el.localName || el.tagName || '').toLowerCase()
+    if (tag === 'textarea' || tag === 'select') return true
+    if (tag === 'input') {
+      return !['checkbox', 'radio', 'button', 'submit', 'reset', 'range', 'color', 'file'].includes(String(el.type || 'text'))
+    }
+    return el.isContentEditable === true
+  }
+
+  // ── live header values (pure + store) ────────────────────────────────────────────────────────
+
+  const HEADER_VALUES_KEY = 'mateu-header-values'
+  const LIVE_LEADER_KEY = 'mateu-live-leader'
+  const LIVE_HEARTBEAT_MS = 5000
+  const LIVE_STALE_MS = 15000
+
+  const extrasStorage = () => { try { return globalThis.localStorage || null } catch (e) { return null } }
+  const storeGet = (k) => { try { const s = extrasStorage(); return s ? s.getItem(k) : null } catch (e) { return null } }
+  const storeSet = (k, v) => { try { const s = extrasStorage(); if (s) s.setItem(k, v) } catch (e) { /* not remembered */ } }
+  const storeRemove = (k) => { try { const s = extrasStorage(); if (s) s.removeItem(k) } catch (e) { /* nothing */ } }
+
+  const headerValues = new Map()
+  let headerPainter = null
+
+  /** The values to paint, in the order the app declared them. */
+  const headerValuesList = () => [...headerValues.values()]
+
+  /** What the shell declared — authoritative when it is (re)built. */
+  function seedHeaderValues(declared) {
+    headerValues.clear()
+    for (const v of declared || []) if (v && v.id) headerValues.set(v.id, { id: v.id, label: v.label || null, value: v.value == null ? '' : String(v.value) })
+    if (headerPainter) headerPainter()
+  }
+
+  /** Changes one value (this tab; `broadcast` also tells the other tabs). Returns whether it changed. */
+  function updateHeaderValue(id, value, options = {}) {
+    if (!id) return false
+    const current = headerValues.get(id)
+    const text = value == null ? '' : String(value)
+    if (current && current.value === text) return false
+    headerValues.set(id, { id, label: current ? current.label : null, value: text })
+    if (headerPainter) headerPainter([id])
+    if (!options.quiet) announce(chromeText('headerValueChanged', { label: (current && current.label) || id, value: text }))
+    if (options.broadcast !== false) storeSet(HEADER_VALUES_KEY, JSON.stringify({ id, value: text, at: Date.now() }))
+    return true
+  }
+
+  /** The header-value changes an increment carries. */
+  function headerChangesOf(increment) {
+    return ((increment && increment.commands) || [])
+      .filter((c) => c && c.type === 'UpdateHeaderValue' && c.data && c.data.id)
+      .map((c) => ({ id: c.data.id, value: c.data.value == null ? '' : c.data.value }))
+  }
+
+  /** Should `tab` take (or keep) the lead of the live stream? */
+  const shouldLeadLive = (record, tab, now) => !record || record.tab === tab || now - record.at > LIVE_STALE_MS
+
+  /** The wait before reconnecting after `failures` consecutive errors (0 = a clean end). */
+  const liveReconnectDelay = (failures) => (failures <= 0 ? 1000 : Math.min(60000, 2000 * 2 ** (failures - 1)))
+
+  // ── idle session (pure) ──────────────────────────────────────────────────────────────────────
+
+  const IDLE_ACTIVITY_KEY = 'mateu-last-activity'
+  const IDLE_SIGN_OUT_KEY = 'mateu-idle-sign-out'
+  const IDLE_WRITE_EVERY_MS = 5000
+
+  /** active | warning (with the seconds left) | expired. */
+  function idlePhaseOf(now, lastActivity, idle) {
+    const timeoutMs = Math.max(1, idle.timeoutSeconds) * 1000
+    const warningMs = Math.min(timeoutMs, Math.max(1, idle.warningSeconds) * 1000)
+    const elapsed = Math.max(0, now - lastActivity)
+    const secondsLeft = Math.max(0, Math.ceil((timeoutMs - elapsed) / 1000))
+    if (elapsed >= timeoutMs) return { phase: 'expired', secondsLeft: 0 }
+    if (elapsed >= timeoutMs - warningMs) return { phase: 'warning', secondsLeft }
+    return { phase: 'active', secondsLeft }
+  }
+
+  /** The latest activity of any tab. */
+  function latestActivityOf(own) {
+    const shared = Number(storeGet(IDLE_ACTIVITY_KEY) || 0)
+    return Math.max(own, Number.isFinite(shared) ? shared : 0)
+  }
+
+  /** Records activity: always in memory, in storage at most every few seconds (or forced). */
+  function recordActivityOf(state, now, force = false) {
+    state.own = now
+    if (force || now - state.written >= IDLE_WRITE_EVERY_MS) {
+      state.written = now
+      storeSet(IDLE_ACTIVITY_KEY, String(now))
+    }
+  }
+
+  // ── DOM ──────────────────────────────────────────────────────────────────────────────────────
+
+  let extrasShell = null
+  let extrasSinks = {}
+  const tabId = Math.random().toString(36).slice(2) + Date.now().toString(36)
+
+  const docOf = () => (typeof document !== 'undefined' ? document : null)
+
+  function paintHeaderValues(changed = []) {
+    const doc = docOf()
+    const host = doc && doc.getElementById('mateuHeaderValues')
+    if (!host) return
+    host.textContent = ''
+    for (const v of headerValuesList()) {
+      const item = doc.createElement('span')
+      item.className = 'mateu-header-value' + (changed.includes(v.id) ? ' mateu-header-value-changed' : '')
+      item.setAttribute('data-header-value', v.id)
+      if (v.label) {
+        const label = doc.createElement('span')
+        label.className = 'mateu-header-value-label'
+        label.textContent = v.label
+        item.appendChild(label)
+      }
+      const value = doc.createElement('strong')
+      value.textContent = v.value
+      item.appendChild(value)
+      host.appendChild(item)
+    }
+  }
+
+  // the live stream: only the leader tab holds it
+  let liveTarget = null
+  let liveHeartbeat = null
+  let liveController = null
+  let liveFailures = 0
+  let liveTimer = null
+  const readLeader = () => { try { return JSON.parse(storeGet(LIVE_LEADER_KEY) || 'null') } catch (e) { return null } }
+
+  function liveTick() {
+    if (!liveTarget) return
+    const now = Date.now()
+    if (shouldLeadLive(readLeader(), tabId, now)) {
+      storeSet(LIVE_LEADER_KEY, JSON.stringify({ tab: tabId, at: now }))
+      const again = readLeader()
+      if (again && again.tab === tabId) { if (!liveController) liveConnect(); return }
+    }
+    liveStop()
+  }
+
+  function liveStop() {
+    if (liveTimer) clearTimeout(liveTimer)
+    liveTimer = null
+    if (liveController) liveController.abort()
+    liveController = null
+  }
+
+  function liveConnect() {
+    if (!liveTarget || liveController || typeof fetch !== 'function') return
+    const own = new AbortController()
+    liveController = own
+    const { base, serverSideType } = liveTarget
+    fetch(base + '/mateu/v3/sse/_no_route', {
+      method: 'POST',
+      signal: own.signal,
+      headers: Object.assign({ 'Content-Type': 'application/json', Accept: 'text/event-stream' }, authHeadersOf()),
+      body: JSON.stringify({ appState: {}, componentState: {}, parameters: {}, initiatorComponentId: 'mateu-live-updates',
+        consumedRoute: '', serverSideType: serverSideType || undefined, route: '', actionId: '_live-updates' }),
+    }).then(async (res) => {
+      if (!res.ok || !res.body) throw new Error('live updates: ' + res.status)
+      const reader = res.body.pipeThrough(new TextDecoderStream()).getReader()
+      let buffer = ''
+      liveFailures = 0
+      for (;;) {
+        const { value, done } = await reader.read()
+        if (done) break
+        buffer += value
+        const events = buffer.split('\n\n')
+        buffer = events.pop() || ''
+        for (const event of events) {
+          const line = event.trim()
+          if (!line.startsWith('data:')) continue
+          try { for (const c of headerChangesOf(JSON.parse(line.slice(5).trim()))) updateHeaderValue(c.id, c.value) } catch (e) { /* heartbeat */ }
+        }
+      }
+    }).catch(() => { if (!own.signal.aborted) liveFailures++ })
+      .finally(() => {
+        if (liveController !== own) return
+        liveController = null
+        if (liveTarget) liveTimer = setTimeout(() => { if (liveTarget && !liveController) liveTick() }, liveReconnectDelay(liveFailures))
+      })
+  }
+
+  function syncLive(shell, base) {
+    if (!(shell && shell.liveUpdates)) {
+      if (liveTarget) {
+        liveTarget = null
+        clearInterval(liveHeartbeat); liveHeartbeat = null
+        liveStop()
+        const r = readLeader(); if (r && r.tab === tabId) storeRemove(LIVE_LEADER_KEY)
+      }
+      return
+    }
+    const next = { base, serverSideType: shell.serverSideType || '' }
+    if (liveTarget && (liveTarget.base !== next.base || liveTarget.serverSideType !== next.serverSideType)) liveStop()
+    liveTarget = next
+    if (!liveHeartbeat) liveHeartbeat = setInterval(liveTick, LIVE_HEARTBEAT_MS)
+    liveTick()
+  }
+
+  // the «Keyboard shortcuts» dialog
+  function screenShortcutsOf(doc) {
+    const out = []
+    const seen = new Set()
+    const add = (key, label) => {
+      const k = String(key || '').trim().toLowerCase()
+      if (!k || seen.has(k)) return
+      seen.add(k); out.push({ key: k, label: label || k })
+    }
+    for (const a of currentShortcutActions()) {
+      const el = doc.querySelector('[data-action-id="' + a.id + '"]')
+      add(a.shortcut, el ? (el.getAttribute('aria-label') || el.textContent || '').replace(/\s+/g, ' ').trim() : a.id)
+    }
+    for (const el of doc.querySelectorAll('[data-shortcut]')) {
+      if (el.getClientRects && el.getClientRects().length) add(el.getAttribute('data-shortcut'), (el.textContent || '').replace(/\s+/g, ' ').trim())
+    }
+    return out
+  }
+
+  function openShortcutsHelp(doc) {
+    const dialog = doc.getElementById('mateuShortcutsHelp')
+    const body = doc.getElementById('mateuShortcutsHelpBody')
+    if (!dialog || !body) return
+    body.textContent = ''
+    const section = (title, rows) => {
+      if (!rows.length) return
+      if (title) {
+        const h = doc.createElement('h3')
+        h.className = 'oj-typography-subheading-xs oj-sm-margin-4x-top oj-sm-margin-2x-bottom'
+        h.textContent = title
+        body.appendChild(h)
+      }
+      const ul = doc.createElement('ul')
+      ul.className = 'mateu-sc-list'
+      for (const r of rows) ul.appendChild(r)
+      body.appendChild(ul)
+    }
+    const kbd = (text) => { const k = doc.createElement('kbd'); k.className = 'mateu-sc-key'; k.textContent = text; return k }
+    const row = (label, key, code, onClick) => {
+      const li = doc.createElement('li')
+      const target = onClick ? doc.createElement('button') : doc.createElement('span')
+      target.className = 'mateu-sc-row'
+      if (onClick) { target.type = 'button'; target.addEventListener('click', onClick) }
+      const l = doc.createElement('span'); l.className = 'mateu-sc-label'; l.textContent = label; target.appendChild(l)
+      if (code) { const c = doc.createElement('span'); c.className = 'mateu-sc-code'; c.textContent = code; target.appendChild(c) }
+      if (key) target.appendChild(kbd(key))
+      li.appendChild(target)
+      return li
+    }
+    const shortcuts = (extrasShell && extrasShell.shortcuts) || []
+    section(chromeText('shortcutsApp'), shortcuts.map((s) => row(s.label, s.key ? keyHint(s.key) : '', s.code || '', () => {
+      if (typeof dialog.close === 'function') dialog.close()
+      runAppShortcut(s)
+    })))
+    section(chromeText('shortcutsScreen'), screenShortcutsOf(doc).map((s) => row(s.label, keyHint(s.key), '', null)))
+    section('', [row(chromeText('shortcutsHelpKey'), '?', '', null)])
+    if (typeof dialog.open === 'function') dialog.open()
+  }
+
+  /** Runs an app shortcut: navigate to its route, or the app-level action. */
+  function runAppShortcut(s) {
+    if (!s) return
+    if (s.route && extrasSinks.navigate) extrasSinks.navigate(s.route)
+    else if (s.actionId && extrasSinks.runAppAction) extrasSinks.runAppAction(s.actionId)
+  }
+
+  // the idle warning
+  const idleState = { own: Date.now(), written: 0, phase: 'active', signingOut: false, tenSaid: false, timer: null }
+
+  function idleDialog(doc) { return doc.getElementById('mateuIdleWarning') }
+
+  function idleCheck(doc) {
+    const idle = extrasShell && extrasShell.idleSession
+    if (!idle || idleState.signingOut) return
+    const { phase, secondsLeft } = idlePhaseOf(Date.now(), latestActivityOf(idleState.own), idle)
+    if (phase === 'expired') { idleSignOut(doc, true); return }
+    const dialog = idleDialog(doc)
+    const message = doc.getElementById('mateuIdleMessage')
+    if (phase === 'warning') {
+      if (message) message.textContent = chromeText('idleMessage', { seconds: secondsLeft })
+      if (idleState.phase !== 'warning') {
+        idleState.tenSaid = false
+        if (dialog && typeof dialog.open === 'function') dialog.open()
+        announce(chromeText('idleTitle') + ' ' + chromeText('idleMessage', { seconds: secondsLeft }), { politeness: 'assertive' })
+        setTimeout(() => {
+          const stay = doc.querySelector('#mateuIdleStay button') || doc.getElementById('mateuIdleStay')
+          if (stay && stay.focus) stay.focus()
+        }, 100)
+      }
+      if (secondsLeft <= 10 && !idleState.tenSaid) {
+        idleState.tenSaid = true
+        announce(chromeText('idleMessage', { seconds: secondsLeft }), { politeness: 'assertive' })
+      }
+    } else if (idleState.phase === 'warning' && dialog && typeof dialog.close === 'function') {
+      dialog.close()
+    }
+    idleState.phase = phase
+  }
+
+  function idleStay(doc) {
+    recordActivityOf(idleState, Date.now(), true)
+    idleState.phase = 'active'
+    const dialog = idleDialog(doc)
+    if (dialog && typeof dialog.close === 'function') dialog.close()
+    const id = extrasShell && extrasShell.idleSession && extrasShell.idleSession.keepAliveActionId
+    if (id && extrasSinks.keepAlive) extrasSinks.keepAlive(id)
+  }
+
+  function idleSignOut(doc, propagate) {
+    if (idleState.signingOut) return
+    idleState.signingOut = true
+    if (propagate) storeSet(IDLE_SIGN_OUT_KEY, String(Date.now()))
+    const message = doc.getElementById('mateuIdleMessage')
+    if (message) message.textContent = chromeText('idleSigningOut')
+    const url = (extrasShell && extrasShell.idleSession && extrasShell.idleSession.signOutUrl) || '/'
+    const event = new CustomEvent('mateu-idle-sign-out', { detail: { url }, cancelable: true })
+    if (!doc.dispatchEvent(event)) return
+    doc.defaultView.location.assign(url)
+  }
+
+  /** The shell on show + where navigation and app actions go. Called on every shell (re)build. */
+  function syncAppExtras(shell, sinks = {}) {
+    extrasShell = shell || null
+    extrasSinks = sinks || {}
+    seedHeaderValues((shell && shell.headerValues) || [])
+    syncLive(shell, sinks.base || '')
+    const doc = docOf()
+    if (doc) {
+      const values = doc.getElementById('mateuHeaderValues')
+      if (values) values.hidden = !headerValuesList().length
+      if (shell && shell.idleSession && !idleState.timer) {
+        recordActivityOf(idleState, Date.now(), true)
+        idleState.timer = setInterval(() => idleCheck(doc), 1000)
+      } else if (!(shell && shell.idleSession) && idleState.timer) {
+        clearInterval(idleState.timer); idleState.timer = null
+      }
+    }
+  }
+
+  /** Installs (once) the document listeners of the app extras. */
+  function installAppExtras(doc = docOf()) {
+    if (!doc || doc.__mateuAppExtras) return
+    doc.__mateuAppExtras = true
+    const win = doc.defaultView
+    headerPainter = paintHeaderValues
+    // the other tabs: header values, activity, sign-out
+    win.addEventListener('storage', (e) => {
+      if (e.key === HEADER_VALUES_KEY && e.newValue) {
+        try { const c = JSON.parse(e.newValue); if (c.id) updateHeaderValue(c.id, c.value, { broadcast: false }) } catch (err) { /* not ours */ }
+      }
+      if (e.key === IDLE_SIGN_OUT_KEY && e.newValue && extrasShell && extrasShell.idleSession) idleSignOut(doc, false)
+      if (e.key === IDLE_ACTIVITY_KEY) idleCheck(doc)
+    })
+    win.addEventListener('pagehide', () => {
+      liveStop()
+      const r = readLeader(); if (r && r.tab === tabId) storeRemove(LIVE_LEADER_KEY)
+    })
+    // activity (ignored while the warning is up: only «Stay» keeps the session). Not 'scroll': the
+    // shell scrolls by itself (sticky headers, focus), and that is not the user being there
+    for (const type of ['keydown', 'pointerdown', 'wheel', 'touchstart']) {
+      win.addEventListener(type, () => { if (idleState.phase === 'active') recordActivityOf(idleState, Date.now()) }, { capture: true, passive: true })
+    }
+    // idle dialog buttons + Escape = stay
+    doc.addEventListener('ojAction', (e) => {
+      const t = e.target
+      if (!t || !t.closest) return
+      if (t.closest('#mateuIdleStay')) idleStay(doc)
+      else if (t.closest('#mateuIdleSignOut')) idleSignOut(doc, true)
+    }, true)
+    doc.addEventListener('keydown', (e) => {
+      if (idleState.phase === 'warning' && e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); idleStay(doc); return }
+      // quick launch: an exact code + Enter in the Ask palette
+      if (e.key === 'Enter' && e.target && e.target.closest && e.target.closest('#mateuAskInput')) {
+        const hit = quickLaunchMatch(extrasShell && extrasShell.shortcuts, e.target.value)
+        if (hit) {
+          e.preventDefault(); e.stopPropagation()
+          const ask = doc.getElementById('mateuAskOracle')
+          if (ask && typeof ask.close === 'function') ask.close()
+          runAppShortcut(hit)
+        }
+      }
+    }, true)
+    // app shortcuts: bubble phase on the window, after the screen's (keys.mjs, capture, stops them)
+    win.addEventListener('keydown', (e) => {
+      if (e.defaultPrevented || !extrasShell) return
+      const shortcuts = extrasShell.shortcuts || []
+      if (!shortcuts.length) return
+      const typing = isTypingElement(doc.activeElement)
+      if (isShortcutsHelpKey(e, typing)) { e.preventDefault(); openShortcutsHelp(doc); return }
+      const screenKeys = currentShortcutActions().map((a) => a.shortcut)
+      const hit = appShortcutFor(shortcuts, e, typing, screenKeys)
+      if (!hit) return
+      e.preventDefault()
+      runAppShortcut(hit)
+    })
   }
 
 
@@ -16373,6 +17129,383 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   }
 
 
+  // "OPEN ON MOBILE" (@App(mobileQr), design/mobile-app-hub.md): the QR of the "add this UI" link the
+  // Mateu mobile app understands, and the model of the header dialog that shows it.
+  //
+  // The encoder is a plain-JS copy of the web lib's
+  // libs/mateu/src/mateu/ui/infra/ui/qr/qrEncoder.ts + mobileLink.ts (the VB bridge shares no code
+  // with that lib): a small, dependency-free QR Code encoder (ISO/IEC 18004), byte mode, versions
+  // 1–40, the four error-correction levels, the eight masks with the standard penalty rules. The two
+  // copies are pinned by the same decode round-trip (poc/test-mobile.mjs decodes with jsQR, a dev
+  // dependency of libs/mateu). Internals carry a `qr` prefix: every poc module shares ONE scope in the
+  // bridge (make-amd.mjs).
+  //
+  // The link carries NO secret — only where the UI lives. Credentials are entered at login (OIDC).
+
+
+  const QR_ECC_PER_BLOCK = {
+    L: [-1, 7, 10, 15, 20, 26, 18, 20, 24, 30, 18, 20, 24, 26, 30, 22, 24, 28, 30, 28, 28, 28, 28, 30, 30, 26, 28, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30],
+    M: [-1, 10, 16, 26, 18, 24, 16, 18, 22, 22, 26, 30, 22, 22, 24, 24, 28, 28, 26, 26, 26, 26, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28],
+    Q: [-1, 13, 22, 18, 26, 18, 24, 18, 22, 20, 24, 28, 26, 24, 20, 30, 24, 28, 28, 26, 30, 28, 30, 30, 30, 30, 28, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30],
+    H: [-1, 17, 28, 22, 16, 22, 28, 26, 26, 24, 28, 24, 28, 22, 24, 24, 30, 28, 28, 26, 28, 30, 24, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30],
+  }
+  const QR_BLOCKS = {
+    L: [-1, 1, 1, 1, 1, 1, 2, 2, 2, 2, 4, 4, 4, 4, 4, 6, 6, 6, 6, 7, 8, 8, 9, 9, 10, 12, 12, 12, 13, 14, 15, 16, 17, 18, 19, 19, 20, 21, 22, 24, 25],
+    M: [-1, 1, 1, 1, 2, 2, 4, 4, 4, 5, 5, 5, 8, 9, 9, 10, 10, 11, 13, 14, 16, 17, 17, 18, 20, 21, 23, 25, 26, 28, 29, 31, 33, 35, 37, 38, 40, 43, 45, 47, 49],
+    Q: [-1, 1, 1, 2, 2, 4, 4, 6, 6, 8, 8, 8, 10, 12, 16, 12, 17, 16, 18, 21, 20, 23, 23, 25, 27, 29, 34, 34, 35, 38, 40, 43, 45, 48, 51, 53, 56, 59, 62, 65, 68],
+    H: [-1, 1, 1, 2, 4, 4, 4, 5, 6, 8, 8, 11, 11, 16, 16, 18, 16, 19, 21, 25, 25, 25, 34, 30, 32, 35, 37, 40, 42, 45, 48, 51, 54, 57, 60, 63, 66, 70, 74, 77, 81],
+  }
+  const QR_FORMAT_BITS = { L: 1, M: 0, Q: 3, H: 2 }
+
+  /** Modules available for data + ECC in a version (everything but the function patterns). */
+  function qrRawDataModules(version) {
+    let result = (16 * version + 128) * version + 64
+    if (version >= 2) {
+      const numAlign = Math.floor(version / 7) + 2
+      result -= (25 * numAlign - 10) * numAlign - 55
+      if (version >= 7) result -= 36
+    }
+    return result
+  }
+
+  /** Data codewords a version holds at an error-correction level. */
+  function qrDataCodewords(version, ecc) {
+    return Math.floor(qrRawDataModules(version) / 8) - QR_ECC_PER_BLOCK[ecc][version] * QR_BLOCKS[ecc][version]
+  }
+
+  function qrGfMul(x, y) {
+    let z = 0
+    for (let i = 7; i >= 0; i--) {
+      z = (z << 1) ^ ((z >>> 7) * 0x11d)
+      z ^= ((y >>> i) & 1) * x
+    }
+    return z & 0xff
+  }
+
+  function qrRsDivisor(degree) {
+    const result = new Array(degree).fill(0)
+    result[degree - 1] = 1
+    let root = 1
+    for (let i = 0; i < degree; i++) {
+      for (let j = 0; j < degree; j++) {
+        result[j] = qrGfMul(result[j], root)
+        if (j + 1 < degree) result[j] ^= result[j + 1]
+      }
+      root = qrGfMul(root, 0x02)
+    }
+    return result
+  }
+
+  function qrRsRemainder(data, divisor) {
+    const result = new Array(divisor.length).fill(0)
+    for (const b of data) {
+      const factor = b ^ result.shift()
+      result.push(0)
+      divisor.forEach((coef, i) => { result[i] ^= qrGfMul(coef, factor) })
+    }
+    return result
+  }
+
+  function qrAppendBits(bits, value, length) {
+    for (let i = length - 1; i >= 0; i--) bits.push((value >>> i) & 1)
+  }
+
+  function qrDataCodewordsFor(bytes, version, ecc) {
+    const capacityBits = qrDataCodewords(version, ecc) * 8
+    const bits = []
+    qrAppendBits(bits, 0b0100, 4) // byte mode
+    qrAppendBits(bits, bytes.length, version <= 9 ? 8 : 16)
+    for (const b of bytes) qrAppendBits(bits, b, 8)
+    qrAppendBits(bits, 0, Math.min(4, capacityBits - bits.length))
+    qrAppendBits(bits, 0, (8 - (bits.length % 8)) % 8)
+    for (let pad = 0xec; bits.length < capacityBits; pad ^= 0xec ^ 0x11) qrAppendBits(bits, pad, 8)
+    const out = []
+    for (let i = 0; i < bits.length; i += 8) {
+      let byte = 0
+      for (let j = 0; j < 8; j++) byte = (byte << 1) | bits[i + j]
+      out.push(byte)
+    }
+    return out
+  }
+
+  function qrWithErrorCorrection(data, version, ecc) {
+    const numBlocks = QR_BLOCKS[ecc][version]
+    const blockEccLen = QR_ECC_PER_BLOCK[ecc][version]
+    const rawCodewords = Math.floor(qrRawDataModules(version) / 8)
+    const numShortBlocks = numBlocks - (rawCodewords % numBlocks)
+    const shortBlockLen = Math.floor(rawCodewords / numBlocks)
+    const divisor = qrRsDivisor(blockEccLen)
+    const blocks = []
+    for (let i = 0, k = 0; i < numBlocks; i++) {
+      const len = shortBlockLen - blockEccLen + (i < numShortBlocks ? 0 : 1)
+      const dat = data.slice(k, k + len)
+      k += len
+      const eccBytes = qrRsRemainder(dat, divisor)
+      if (i < numShortBlocks) dat.push(0)
+      blocks.push(dat.concat(eccBytes))
+    }
+    const result = []
+    for (let i = 0; i < blocks[0].length; i++) {
+      blocks.forEach((block, j) => {
+        if (i !== shortBlockLen - blockEccLen || j >= numShortBlocks) result.push(block[i])
+      })
+    }
+    return result
+  }
+
+  function qrAlignmentPositions(version, size) {
+    if (version === 1) return []
+    const numAlign = Math.floor(version / 7) + 2
+    const step = version === 32 ? 26 : Math.ceil((version * 4 + 4) / (numAlign * 2 - 2)) * 2
+    const result = [6]
+    for (let pos = size - 7; result.length < numAlign; pos -= step) result.splice(1, 0, pos)
+    return result
+  }
+
+  const QR_MASKS = [
+    (x, y) => (x + y) % 2 === 0,
+    (_x, y) => y % 2 === 0,
+    (x) => x % 3 === 0,
+    (x, y) => (x + y) % 3 === 0,
+    (x, y) => (Math.floor(x / 3) + Math.floor(y / 2)) % 2 === 0,
+    (x, y) => ((x * y) % 2) + ((x * y) % 3) === 0,
+    (x, y) => (((x * y) % 2) + ((x * y) % 3)) % 2 === 0,
+    (x, y) => (((x + y) % 2) + ((x * y) % 3)) % 2 === 0,
+  ]
+
+  function qrNewMatrix(size) {
+    const m = {
+      size,
+      modules: Array.from({ length: size }, () => new Array(size).fill(false)),
+      isFunction: Array.from({ length: size }, () => new Array(size).fill(false)),
+    }
+    m.setFunction = (x, y, dark) => { m.modules[y][x] = dark; m.isFunction[y][x] = true }
+    return m
+  }
+
+  function qrDrawFormatBits(m, ecc, mask) {
+    const data = (QR_FORMAT_BITS[ecc] << 3) | mask
+    let rem = data
+    for (let i = 0; i < 10; i++) rem = (rem << 1) ^ ((rem >>> 9) * 0x537)
+    const bits = ((data << 10) | rem) ^ 0x5412
+    const bit = (i) => ((bits >>> i) & 1) !== 0
+    const size = m.size
+    for (let i = 0; i <= 5; i++) m.setFunction(8, i, bit(i))
+    m.setFunction(8, 7, bit(6))
+    m.setFunction(8, 8, bit(7))
+    m.setFunction(7, 8, bit(8))
+    for (let i = 9; i < 15; i++) m.setFunction(14 - i, 8, bit(i))
+    for (let i = 0; i < 8; i++) m.setFunction(size - 1 - i, 8, bit(i))
+    for (let i = 8; i < 15; i++) m.setFunction(8, size - 15 + i, bit(i))
+    m.setFunction(8, size - 8, true) // the dark module
+  }
+
+  function qrDrawFunctionPatterns(m, version) {
+    const size = m.size
+    for (let i = 0; i < size; i++) {
+      m.setFunction(6, i, i % 2 === 0)
+      m.setFunction(i, 6, i % 2 === 0)
+    }
+    for (const [cx, cy] of [[3, 3], [size - 4, 3], [3, size - 4]]) {
+      for (let dy = -4; dy <= 4; dy++) {
+        for (let dx = -4; dx <= 4; dx++) {
+          const dist = Math.max(Math.abs(dx), Math.abs(dy))
+          const x = cx + dx
+          const y = cy + dy
+          if (x >= 0 && x < size && y >= 0 && y < size) m.setFunction(x, y, dist !== 2 && dist !== 4)
+        }
+      }
+    }
+    const align = qrAlignmentPositions(version, size)
+    const n = align.length
+    for (let i = 0; i < n; i++) {
+      for (let j = 0; j < n; j++) {
+        if ((i === 0 && j === 0) || (i === 0 && j === n - 1) || (i === n - 1 && j === 0)) continue
+        for (let dy = -2; dy <= 2; dy++) {
+          for (let dx = -2; dx <= 2; dx++) {
+            m.setFunction(align[i] + dx, align[j] + dy, Math.max(Math.abs(dx), Math.abs(dy)) !== 1)
+          }
+        }
+      }
+    }
+    qrDrawFormatBits(m, 'M', 0) // reserves the area; redrawn with the real values later
+    if (version >= 7) {
+      let rem = version
+      for (let i = 0; i < 12; i++) rem = (rem << 1) ^ ((rem >>> 11) * 0x1f25)
+      const bits = (version << 12) | rem
+      for (let i = 0; i < 18; i++) {
+        const bit = ((bits >>> i) & 1) !== 0
+        const a = size - 11 + (i % 3)
+        const b = Math.floor(i / 3)
+        m.setFunction(a, b, bit)
+        m.setFunction(b, a, bit)
+      }
+    }
+  }
+
+  function qrDrawCodewords(m, codewords) {
+    const size = m.size
+    let i = 0
+    for (let right = size - 1; right >= 1; right -= 2) {
+      if (right === 6) right = 5
+      for (let vert = 0; vert < size; vert++) {
+        for (let j = 0; j < 2; j++) {
+          const x = right - j
+          const upward = ((right + 1) & 2) === 0
+          const y = upward ? size - 1 - vert : vert
+          if (!m.isFunction[y][x] && i < codewords.length * 8) {
+            m.modules[y][x] = ((codewords[i >>> 3] >>> (7 - (i & 7))) & 1) !== 0
+            i++
+          }
+        }
+      }
+    }
+  }
+
+  function qrApplyMask(m, mask) {
+    const fn = QR_MASKS[mask]
+    for (let y = 0; y < m.size; y++) {
+      for (let x = 0; x < m.size; x++) {
+        if (!m.isFunction[y][x] && fn(x, y)) m.modules[y][x] = !m.modules[y][x]
+      }
+    }
+  }
+
+  /** The standard penalty score (rules N1–N4): lower is easier to read. */
+  function qrPenalty(modules) {
+    const size = modules.length
+    let score = 0
+    const line = (get) => {
+      let run = 1
+      for (let i = 1; i < size; i++) {
+        if (get(i) === get(i - 1)) {
+          run++
+          if (run === 5) score += 3
+          else if (run > 5) score++
+        } else run = 1
+      }
+      for (let i = 0; i + 6 < size; i++) {
+        if (get(i) && !get(i + 1) && get(i + 2) && get(i + 3) && get(i + 4) && !get(i + 5) && get(i + 6)) {
+          const lightBefore = [1, 2, 3, 4].every((k) => i - k < 0 || !get(i - k))
+          const lightAfter = [7, 8, 9, 10].every((k) => i + k >= size || !get(i + k))
+          if (lightBefore || lightAfter) score += 40
+        }
+      }
+    }
+    for (let y = 0; y < size; y++) line((x) => modules[y][x])
+    for (let x = 0; x < size; x++) line((y) => modules[y][x])
+    for (let y = 0; y + 1 < size; y++) {
+      for (let x = 0; x + 1 < size; x++) {
+        const c = modules[y][x]
+        if (c === modules[y][x + 1] && c === modules[y + 1][x] && c === modules[y + 1][x + 1]) score += 3
+      }
+    }
+    let dark = 0
+    for (const row of modules) for (const cell of row) if (cell) dark++
+    const total = size * size
+    score += Math.ceil(Math.abs(dark * 20 - total * 10) / total - 1) * 10
+    return score
+  }
+
+  /**
+   * Encodes `text` (as UTF-8 bytes) in the smallest version that holds it at `ecc`, with the mask of
+   * lowest penalty: { size, version, modules[y][x] (true = dark) }. Throws when it does not fit.
+   */
+  function encodeQr(text, ecc = 'M') {
+    const bytes = Array.from(new TextEncoder().encode(text))
+    let version = 1
+    for (; version <= 40; version++) {
+      const headerBits = 4 + (version <= 9 ? 8 : 16)
+      if (headerBits + bytes.length * 8 <= qrDataCodewords(version, ecc) * 8) break
+    }
+    if (version > 40) throw new Error('Text too long for a QR code')
+    const codewords = qrWithErrorCorrection(qrDataCodewordsFor(bytes, version, ecc), version, ecc)
+    const size = version * 4 + 17
+    let best
+    let bestScore = Infinity
+    for (let mask = 0; mask < 8; mask++) {
+      const m = qrNewMatrix(size)
+      qrDrawFunctionPatterns(m, version)
+      qrDrawCodewords(m, codewords)
+      qrApplyMask(m, mask)
+      qrDrawFormatBits(m, ecc, mask)
+      const score = qrPenalty(m.modules)
+      if (score < bestScore) {
+        bestScore = score
+        best = m
+      }
+    }
+    return { size, version, modules: best.modules }
+  }
+
+  /** The symbol as an SVG document with the 4-module quiet zone, always dark-on-white. */
+  function qrSvg(qr, border = 4) {
+    const dim = qr.size + border * 2
+    let path = ''
+    for (let y = 0; y < qr.size; y++) {
+      for (let x = 0; x < qr.size; x++) {
+        if (qr.modules[y][x]) path += `M${x + border},${y + border}h1v1h-1z`
+      }
+    }
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${dim} ${dim}" shape-rendering="crispEdges">`
+      + `<rect width="100%" height="100%" fill="#fff"/><path d="${path}" fill="#000"/></svg>`
+  }
+
+  /** The SVG as a data URI, for an <img> (which carries the alt text a screen reader needs). */
+  function qrDataUri(text, ecc = 'M') {
+    return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(qrSvg(encodeQr(text, ecc)))
+  }
+
+  // ── the link (mobileLink.ts) ────────────────────────────────────────────────────────────────
+
+  const MOBILE_ADD_URL = 'https://mateu.io/add'
+
+  const qrTrimSlashes = (s) => s.replace(/\/+$/, '')
+
+  /**
+   * https://mateu.io/add?u=<url-encoded absolute base URL>[&r=<url-encoded route>]
+   * `baseUrl` is the mount ('' for the root, '/crm'; an absolute URL is kept); `route` is relative to
+   * the mount and is omitted when empty or '/'.
+   */
+  function mobileAddUrl(origin, baseUrl, route) {
+    const base = String(baseUrl == null ? '' : baseUrl).trim()
+    let absolute
+    if (/^https?:\/\//i.test(base)) {
+      absolute = qrTrimSlashes(base)
+    } else {
+      const path = base && base !== '/' ? qrTrimSlashes(base.startsWith('/') ? base : '/' + base) : ''
+      absolute = qrTrimSlashes(origin) + path
+    }
+    let url = `${MOBILE_ADD_URL}?u=${encodeURIComponent(absolute)}`
+    const r = String(route == null ? '' : route).trim()
+    if (r && r !== '/') url += `&r=${encodeURIComponent(r)}`
+    return url
+  }
+
+  // ── the dialog ──────────────────────────────────────────────────────────────────────────────
+
+  /** A phone (or any touch-first device): it gets the link instead of the QR. */
+  const MOBILE_QR_PHONE_QUERY = '(max-width: 600px), (pointer: coarse)'
+
+  function isPhoneLike(win = typeof window !== 'undefined' ? window : null) {
+    return !!(win && win.matchMedia && win.matchMedia(MOBILE_QR_PHONE_QUERY).matches)
+  }
+
+  /**
+   * What the "Open on mobile" dialog shows. Pure: { url, img, alt, phone }.
+   * `img` is empty on a phone (the dialog shows the "Open in the Mateu app" link there).
+   */
+  function mobileQrModelOf({ title, origin, mount, route, phone } = {}) {
+    const url = mobileAddUrl(origin || '', mount || '', route || '')
+    return {
+      url,
+      phone: !!phone,
+      img: phone ? '' : qrDataUri(url),
+      alt: chromeText('mobileQrAlt', { app: title || chromeText('mobileQrThisApp') }),
+    }
+  }
+
+
   // Editor-preview mode: the IDE's visual editor paints the definition being edited with THIS app,
   // inside an iframe (apps/visual-editor, canvas/redwood-frame.ts). The editor already knows how to
   // turn the edited YAML into a wire increment — the reserved `__preview__` sync action of any Mateu
@@ -17248,14 +18381,14 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     'installMatrixGrids', 'installCalendars', 'installMaps', 'installRowTones', 'installStickyHeader',
     'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
     'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
-    'trackPressedControls',
+    'trackPressedControls', 'installRecordMerges',
   ])
 
   /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
   const CONTENT_ACTION_SINKS = Object.freeze([
     'setElementEventSink', 'setRuleActionSink', 'setCalendarActionSink', 'setMatrixActionSink',
     'setMapActionSink', 'setPlanningRangeSink', 'setUndoSink', 'setPollingRunner', 'setDropSink',
-    'setKeysActionSink',
+    'setKeysActionSink', 'setRecordMergeSink',
   ])
 
   /** What the standalone shell installs and the component deliberately does NOT, and why. */
@@ -17275,6 +18408,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // Ctrl+P prints the HOST page: its print stylesheet is the host's to decide (UICommand.print
     // still works inside the component — applyDomEffects prepares the sheet when it runs)
     installPrintSupport: 'the host page owns what its own Ctrl+P prints',
+    // app shortcuts, the header values and the idle warning are the SHELL's (the app's header and
+    // session): in a host page they are the host's business
+    installAppExtras: 'shell-level: app shortcuts, header values and the idle session belong to the host page',
   })
 
   /**
@@ -17609,6 +18745,15 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     installStickyHeader,
     installPlanningRange,
     installActionPanels,
+    installRecordMerges,
+    setRecordMergeSink,
+    recordMergeAtomOf,
+    // E2 app extras (appExtras.mjs): app shortcuts + «?», quick launch, live header values, idle warning
+    installAppExtras,
+    syncAppExtras,
+    quickLaunchMatch,
+    appShortcutRowsOf,
+    updateHeaderValue,
     installMatrixGrids,
     installMaps,
     mapViewPlanOf,
@@ -17937,5 +19082,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     runAppLevelAction,
     applyInitialTheme,
     toggleTheme,
+    // @App(mobileQr): the "Open on mobile" dialog (qr.mjs)
+    mobileQrModelOf,
+    isPhoneLike,
   };
 });

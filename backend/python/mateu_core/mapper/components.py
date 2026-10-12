@@ -7,6 +7,9 @@ from typing import Any
 import dataclasses
 
 from mateu_dtos import (
+    MergeFieldRecord,
+    MergeRecordRecord,
+    RecordMergeMetadata,
     ActionPanelCategoryRecord,
     ActionPanelItemRecord,
     ActionPanelMetadata,
@@ -598,6 +601,8 @@ class ComponentMapperMixin(MixinBase):
             )
         if isinstance(c, fluent.BulletedList):
             return self._fluent_client(BulletedListMetadata(items=list(c.items)), c)
+        if isinstance(c, fluent.RecordMerge):
+            return self._fluent_client(_record_merge_metadata(c), c)
         if isinstance(c, fluent.ActionPanel):
             return self._fluent_client(
                 ActionPanelMetadata(
@@ -1021,3 +1026,61 @@ class ComponentMapperMixin(MixinBase):
 
         walk(c)
         return list(dict.fromkeys(out))
+
+
+def _merge_text(value: object) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        # Java's toString of a Boolean
+        return "true" if value else "false"
+    return str(value).strip()
+
+
+def _record_merge_metadata(c) -> RecordMergeMetadata:
+    """A fluent RecordMerge on the wire — the same rules as Java's RecordMergeMapper: one value per
+    record per row (padded/cut), ``differs`` when the trimmed texts are not all equal (None = ""),
+    the pick to begin with = the declared one, else the first record with a value."""
+    from mateu_core.naming import humanize_constant
+
+    records = list(c.records)
+    ids = [r.id if r.id is not None else f"record{i}" for i, r in enumerate(records)]
+    record_dtos = [
+        MergeRecordRecord(
+            id=ids[i],
+            label=r.label if r.label and r.label.strip() else f"Record {i + 1}",
+            caption=r.caption,
+        )
+        for i, r in enumerate(records)
+    ]
+    fields = []
+    for f in c.fields:
+        values = [f.values[i] if i < len(f.values) else None for i in range(len(ids))]
+        texts = [_merge_text(v) for v in values]
+        differs = len(set(texts)) > 1
+        chosen = f.chosen
+        if chosen is None or chosen not in ids:
+            chosen = ids[0] if ids else None
+            for i, t in enumerate(texts):
+                if t:
+                    chosen = ids[i]
+                    break
+        fields.append(
+            MergeFieldRecord(
+                field_id=f.field_id,
+                label=f.label if f.label and f.label.strip() else humanize_constant(f.field_id or ""),
+                values=values,
+                chosen=chosen,
+                editable=f.editable,
+                differs=differs,
+            )
+        )
+    return RecordMergeMetadata(
+        title=c.title,
+        records=record_dtos,
+        fields=fields,
+        merge_action_id=c.merge_action_id,
+        merge_label=c.merge_label if c.merge_label and c.merge_label.strip() else "Merge",
+        parameters=c.parameters,
+        differences_only=c.differences_only,
+    )

@@ -79,7 +79,12 @@ from .security import (  # noqa: F401
     Identity,
     ReadOnlyUnless,
 )
+from .live_header_values import LiveHeaderValues  # noqa: F401
 from .suppliers import (  # noqa: F401
+    AppShortcutEntry,
+    HeaderValue,
+    HeaderValuesSupplier,
+    KeepAliveHandler,
     AppActionsSupplier,
     AppHeaderAction,
     AppNotification,
@@ -129,12 +134,14 @@ from .class_decorators import (  # noqa: F401
     folded_layout,
     form_layout,
     inline_editing,
+    mobile_app,
     overline,
     page_template,
     page_width,
     plain_text,
     read_only,
     remote_menu,
+    app_shortcut,
     rest_action,
     rest_data,
     rest_listing,
@@ -340,7 +347,7 @@ __all__ = [
     "Message", "MessageVariant", "BannerTheme", "PageBanner", "PageWidth", "PageType",
     "Required", "Label", "Section", "Tab", "Stereotype", "Multiline", "Password",
     "Money", "PlainText", "ReadOnly", "Version", "Lookup", "RestOptions", "Hidden", "Disabled", "OnRowSelected", "Tooltip", "InlineEditing", "EyesOnly", "ReadOnlyUnless", "DisabledUnless", "Identity", "disabled_unless", "Audience", "audience", "LookupLabelSupplier", "Rule", "RuleSupplier", "AppHeaderAction", "AppActionsSupplier", "PeerNav", "PeerNavigationSupplier", "AppNotification", "NotificationsSupplier", "BulletedList", "SeparatorBefore", "Signature", "PhotoCapture", "FileUpload", "RangeFilter", "Aggregate", "AggregateFunction", "GroupBy", "RowStatus", "TreeSelect", "UseRadioButtons", "HeaderBadge", "Timestamp", "Step", "Panel", "SizeMode", "size", "FlowStep", "Navigate", "Emit", "CloseOverlay", "RunAction", "MarkClean", "MarkDirty",
-    "ai", "remote_menu", "ui", "title", "subtitle", "app", "auto_layout", "read_only", "compact",
+    "ai", "remote_menu", "ui", "title", "subtitle", "app", "mobile_app", "auto_layout", "read_only", "compact",
     "static_view",
     "confirm_on_navigation_if_dirty", "inline_editing", "toc", "zones", "folded_layout", "form_layout", "LabelsAsideMode", "wizard_progress", "page_width", "page_template",
     "plain_text", "emits", "subscribe_to", "secured", "welcome_banner", "rest_listing", "drag_rows", "rest_action", "rest_data",
@@ -357,4 +364,7 @@ __all__ = [
     "GlobalSearchResult", "GlobalSearchSupplier", "LinkSupplier",
     # parity with the Java / .NET names
     "AppVariant", "BadgeInHeader", "PageWidthStyle",
+    # E2 patterns (EXPERIMENTAL): app shortcuts, live header values, idle-session warning
+    "app_shortcut", "AppShortcutEntry", "HeaderValue", "HeaderValuesSupplier", "KeepAliveHandler",
+    "LiveHeaderValues",
 ]

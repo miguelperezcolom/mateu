@@ -1,6 +1,6 @@
 ---
 title: "Native Renderers"
-description: "Run your Mateu application as a native desktop or mobile app, without a browser."
+description: "Render any Mateu UI natively — inside IntelliJ on the desktop, or on iOS and Android — without a browser."
 ---
 
 Mateu's API is not limited to web browsers. Because the renderer is decoupled from the backend, any client that speaks HTTP and understands the Mateu component tree can render a Mateu application natively.

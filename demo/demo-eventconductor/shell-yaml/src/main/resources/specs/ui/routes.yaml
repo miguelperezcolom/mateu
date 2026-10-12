@@ -1,0 +1,7 @@
+$schema: https://raw.githubusercontent.com/miguelperezcolom/mateu/master/backend/shared/uidl/routes-schema.json
+type: Routes
+routes:
+  - route: ""          # the mount root → the app shell
+    layout: app.yaml
+  - route: overview
+    layout: overview.yaml

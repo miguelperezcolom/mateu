@@ -77,6 +77,10 @@ and edit in a drawer…)? They have their own map: [Page templates](./page-templ
 | [Notice](./notice) | ✅ Implemented | `Notice` / `@Notice` (inline banner, status, action) |
 | [Action panel](./action-panel) | ✅ Implemented | `ActionPanel` (categorised "I want to…" overlay, shortcut, show more, hide unpopulated) |
 | [Matrix grid](./matrix-grid) | ✅ Implemented | `MatrixGrid` (rows × dates, collapsible sections, link cells, in-place editing) |
+| [Compare and merge records](./record-merge) | ✅ Implemented | `RecordMerge` (records side by side, differences, a pick per field, merge action) |
+| [App-wide shortcuts and quick launch](./app-shortcuts) | ✅ Implemented | `@AppShortcut(key, route/actionId, code)`, `?` list, codes in the command palette |
+| [Live header values](./live-header-values) | ✅ Implemented | `HeaderValuesSupplier`, `UICommand.updateHeaderValue`, `LiveHeaderValues.publish` + `@App(liveUpdates)` |
+| [Idle-session warning](./idle-session) | ✅ Implemented | `@App(idleTimeoutMinutes, idleWarningSeconds, idleSignOutUrl)`, `KeepAliveHandler` |
 | [Hover details](./hover-details) | ✅ Implemented | `Popover(trigger = hover)`, `@Tooltip("otherField")` on listing cells |
 | [Drag rows to a destination](./drag-to-a-destination) | ✅ Implemented | `@DragRows("type")` + `DropZone(accept, actionId, parameters)` |
 | [Kanban](./kanban) | ✅ Implemented | `Kanban` + `KanbanColumn`/`KanbanCard` |

@@ -150,14 +150,14 @@ and scrolls internally).
 - **Holder fields are excluded from state:** fields typed `Callable`/`Supplier`/`Runnable`/`Component`
   are dropped on write and skipped on read (initializers survive) — no `@JsonIgnore` needed.
 
-### Route resolution & parameter precedence — [route-registry](/java-ui-definition/route-registry/)
+### Route resolution & parameter precedence — [route-registry](/concepts/routes-and-mounts/)
 - Routes are **relative to the mount**. Resolution merges authored (`routes.yaml` / code suppliers) over
   derived (annotations); authored wins and short-circuits.
 - **Parameter precedence (identical on server and in the browser):**
   `fixed > client state > path > query > defaults`. Fixed params are **re-applied server-side**, never
   trusted from the client.
 
-### REST sources — [rest-source-catalogue](/java-ui-definition/rest-source-catalogue/)
+### REST sources — [rest-source-catalogue](/concepts/data-sources/)
 A surface references a named endpoint by `ref`; the catalogue travels separately (`AppDto.restSources`
 live, or once in `manifest.json` for a bundle). A source gives **selection, not transformation**
 (`itemsPath`, `totalPath`, `fields` name→path, `valuePath`/`labelPath`, `resultPath`). `proxy` is read

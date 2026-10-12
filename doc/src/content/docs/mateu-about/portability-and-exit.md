@@ -53,7 +53,7 @@ Because the runtime is Apache 2.0 and lives in your build, "the vendor disappear
 ### 2. Ship the static bundle (no backend at all)
 For screens that are pre-renderable, `mvn -Pbundle package` (or `GET /mateu/v3/bundle`) produces a
 static SPA (`index.html` + `manifest.json` + assets) that a CDN serves **with no Mateu backend**. See
-[Static bundle](/java-user-manual/build/static-bundle/). This subset of your UI outlives the runtime
+[Static bundle](/deploy/static-bundle/). This subset of your UI outlives the runtime
 today. (Its limits: no server-side behaviour/secrets, and it depends on any external APIs being
 reachable from the client — see that page.)
 
@@ -93,7 +93,7 @@ A Mateu app is an ordinary backend service; deploy it the way you deploy any of 
   Helidon MP (annotation-processor wiring included), plus .NET and Python guides.
 - **Containerization:** the `demo/demo-vaadin-*` modules ship multi-stage `Dockerfile`s (Maven build
   → runnable JAR → JDK 21 runtime) you can copy.
-- **Backend-free:** [Static bundle](/java-user-manual/build/static-bundle/) for CDN deployment.
+- **Backend-free:** [Static bundle](/deploy/static-bundle/) for CDN deployment.
 
 ## Roadmap: making portability verifiable, not theoretical
 

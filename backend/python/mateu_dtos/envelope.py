@@ -10,6 +10,7 @@ from .base import (
     Wire,
     WIRE_VERSION,
 )
+from .app import HeaderValue
 from .components import Component
 
 
@@ -50,6 +51,16 @@ class UICommand(Wire):
         """Prints the current page with the browser's print dialog, leaving the app chrome out
         (EXPERIMENTAL; mirrors Java's UICommand.print)."""
         return UICommand(target_component_id="ux_main", type="Print")
+
+    @staticmethod
+    def update_header_value(id: str, value: str | None) -> "UICommand":
+        """Changes the live header value ``id`` (the business date…) to ``value`` — in this tab and
+        the other tabs of the same browser. To reach every OTHER session, publish it with
+        ``LiveHeaderValues.publish`` (EXPERIMENTAL; mirrors Java's UICommand.updateHeaderValue)."""
+        return UICommand(
+            target_component_id="ux_main", type="UpdateHeaderValue",
+            data=HeaderValue(id=id, label=None, value=value),
+        )
 
     @staticmethod
     def dispatch_event(event_name: str, detail: Any | None = None) -> "UICommand":

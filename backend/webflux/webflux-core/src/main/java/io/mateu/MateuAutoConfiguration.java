@@ -3,6 +3,7 @@ package io.mateu;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.context.annotation.Import;
 
 /**
  * Registers Mateu's own beans — and ONLY Mateu's own. The scan covers the adapter's classes in the
@@ -16,12 +17,17 @@ import org.springframework.context.annotation.FilterType;
  * conditions by {@code META-INF/spring/…AutoConfiguration.imports}.
  *
  * <p>So an application needs no {@code scanBasePackages = "io.mateu"}: its own packages are enough.
+ *
+ * <p>A third-party Mateu UI module (a jar of {@code @UI} screens someone else wrote) is mounted by
+ * naming its package: {@code mateu.ui.modules=…} (read here, through {@link
+ * MateuUiModulesRegistrar}) or {@link EnableMateuUiModules} on the application.
  */
 @AutoConfiguration
 @ComponentScan(
     basePackages = "io.mateu",
     excludeFilters =
         @ComponentScan.Filter(type = FilterType.REGEX, pattern = MateuAutoConfiguration.NOT_OURS))
+@Import(MateuUiModulesRegistrar.class)
 public class MateuAutoConfiguration {
 
   /** Any class in a sub-package of {@code io.mateu} that is not one of Mateu's. */

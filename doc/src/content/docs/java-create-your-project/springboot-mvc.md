@@ -307,5 +307,9 @@ public class MyApplication {
 }
 ```
 
+For a UI module someone else ships (a product's console), `mateu.ui.modules=<its package>` says
+the same thing without touching your main class — see
+[Using external Mateu UIs](/java-user-manual/build/using-external-mateu-uis/).
+
 > For a full worked example see
 > [Service-owned UI modules](/java-user-manual/real-world/service-owned-ui-modules/#shared-ui-library-single-deployable).

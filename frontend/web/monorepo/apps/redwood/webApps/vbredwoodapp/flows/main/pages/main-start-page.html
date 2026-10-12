@@ -1012,6 +1012,98 @@
                         </template>
                       </oj-data-grid>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
                            abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
@@ -2600,6 +2692,98 @@
                           </oj-bind-if>
                         </template>
                       </oj-data-grid>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
@@ -4218,6 +4402,98 @@
                         </template>
                       </oj-data-grid>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
                            abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
@@ -5806,6 +6082,98 @@
                           </oj-bind-if>
                         </template>
                       </oj-data-grid>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
@@ -7493,6 +7861,98 @@
                         </template>
                       </oj-data-grid>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
                            abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
@@ -9089,6 +9549,98 @@
                           </oj-bind-if>
                         </template>
                       </oj-data-grid>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
@@ -10688,6 +11240,98 @@
                           </oj-bind-if>
                         </template>
                       </oj-data-grid>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
@@ -12305,6 +12949,98 @@
                           </oj-bind-if>
                         </template>
                       </oj-data-grid>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
@@ -14080,6 +14816,98 @@
                           </oj-bind-if>
                         </template>
                       </oj-data-grid>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
@@ -15928,6 +16756,98 @@
                         </template>
                       </oj-data-grid>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
                            abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
@@ -17514,6 +18434,98 @@
                           </oj-bind-if>
                         </template>
                       </oj-data-grid>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
@@ -19705,6 +20717,98 @@
                         </template>
                       </oj-data-grid>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
                            abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
@@ -21291,6 +22395,98 @@
                           </oj-bind-if>
                         </template>
                       </oj-data-grid>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
@@ -22952,6 +24148,98 @@
                         </template>
                       </oj-data-grid>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
                            abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
@@ -24540,6 +25828,98 @@
                           </oj-bind-if>
                         </template>
                       </oj-data-grid>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
@@ -26144,6 +27524,98 @@
                         </template>
                       </oj-data-grid>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
                            abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
@@ -27732,6 +29204,98 @@
                           </oj-bind-if>
                         </template>
                       </oj-data-grid>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
@@ -29365,6 +30929,98 @@
                         </template>
                       </oj-data-grid>
                     </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
+                    </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;
                            abrir/mostrar más/ocultar vacías es estado del DOM (installActionPanels) -->
@@ -30953,6 +32609,98 @@
                           </oj-bind-if>
                         </template>
                       </oj-data-grid>
+                    </oj-bind-if>
+                    <oj-bind-if test="[[ $current.data.isRecordMerge ]]">
+                      <!-- compare & merge (RecordMerge): native radios in a table (one group per field, a
+                           column per record), differing rows highlighted; picks, custom values, the
+                           «only differences» switch, result and summary are DOM state (installRecordMerges) -->
+                      <div :class="[[ $current.data.containerClass ]]" :data-rm-spec="[[ $current.data.spec ]]">
+                        <div class="mateu-rm-bar">
+                          <oj-bind-if test="[[ $current.data.hasTitle ]]">
+                            <h3 class="oj-typography-subheading-sm"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></h3>
+                          </oj-bind-if>
+                          <oj-switch data-rm-diff="true" value="[[ $current.data.differencesOnly ]]"
+                            label-hint="[[ $current.data.texts.onlyDifferences ]]" label-edge="inside"></oj-switch>
+                        </div>
+                        <!-- a table made of divs with ARIA table roles: the HTML parser moves anything that is
+                             not a row or a cell (oj-bind-for-each) out of a real <table> -->
+                        <div class="mateu-rm-scroller">
+                          <div class="mateu-rm-table" role="table" :aria-label="[[ $current.data.title || $current.data.texts.result ]]">
+                            <div class="mateu-rm-tr mateu-rm-head" role="row">
+                              <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.field ]]"></oj-bind-text></div>
+                              <oj-bind-for-each data="[[ $current.data.records ]]">
+                                <template data-oj-as="rec">
+                                  <div class="mateu-rm-th" role="columnheader">
+                                    <span class="mateu-rm-record"><oj-bind-text value="[[ rec.data.label ]]"></oj-bind-text></span>
+                                    <oj-bind-if test="[[ rec.data.hasCaption ]]">
+                                      <span class="mateu-rm-caption"><oj-bind-text value="[[ rec.data.caption ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                </template>
+                              </oj-bind-for-each>
+                              <oj-bind-if test="[[ $current.data.anyEditable ]]">
+                                <div class="mateu-rm-th" role="columnheader"><oj-bind-text value="[[ $current.data.texts.custom ]]"></oj-bind-text></div>
+                              </oj-bind-if>
+                            </div>
+                            <oj-bind-for-each data="[[ $current.data.rows ]]">
+                              <template data-oj-as="row">
+                                <div :class="[[ 'mateu-rm-tr ' + row.data.rowClass ]]" role="row">
+                                  <div class="mateu-rm-th mateu-rm-rowhead" role="rowheader">
+                                    <oj-bind-text value="[[ row.data.label ]]"></oj-bind-text>
+                                    <oj-bind-if test="[[ row.data.differs ]]">
+                                      <span class="oj-badge oj-badge-warning oj-badge-subtle mateu-rm-badge"><oj-bind-text value="[[ row.data.differsText ]]"></oj-bind-text></span>
+                                    </oj-bind-if>
+                                  </div>
+                                  <oj-bind-for-each data="[[ row.data.cells ]]">
+                                    <template data-oj-as="cell">
+                                      <div role="cell" data-rm-cell="true" :class="[[ 'mateu-rm-td' + (cell.data.checked ? ' mateu-rm-picked' : '') ]]">
+                                        <label class="mateu-rm-option">
+                                          <input type="radio" :name="[[ cell.data.name ]]" :value="[[ cell.data.value ]]"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :checked="[[ cell.data.checked ]]"
+                                            :aria-label="[[ cell.data.ariaLabel ]]" />
+                                          <span :class="[[ cell.data.textClass ]]"><oj-bind-text value="[[ cell.data.text ]]"></oj-bind-text></span>
+                                        </label>
+                                      </div>
+                                    </template>
+                                  </oj-bind-for-each>
+                                  <oj-bind-if test="[[ row.data.hasCustomColumn ]]">
+                                    <div role="cell" class="mateu-rm-td" data-rm-cell="true">
+                                      <oj-bind-if test="[[ row.data.editable ]]">
+                                        <span class="mateu-rm-custom">
+                                          <input type="radio" :name="[[ row.data.customName ]]" value="custom"
+                                            :data-rm-field="[[ row.data.fieldId ]]" :aria-label="[[ row.data.customAria ]]" />
+                                          <input type="text" class="mateu-rm-custom-input" :data-rm-custom="[[ row.data.fieldId ]]"
+                                            :aria-label="[[ row.data.customAria ]]" />
+                                        </span>
+                                      </oj-bind-if>
+                                    </div>
+                                  </oj-bind-if>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </div>
+                        </div>
+                        <section class="mateu-rm-result" :aria-label="[[ $current.data.texts.result ]]">
+                          <h4 class="oj-typography-subheading-xs"><oj-bind-text value="[[ $current.data.texts.result ]]"></oj-bind-text></h4>
+                          <dl class="mateu-rm-entries">
+                            <oj-bind-for-each data="[[ $current.data.result ]]">
+                              <template data-oj-as="entry">
+                                <div :class="[[ entry.data.entryClass ]]" :data-rm-result="[[ entry.data.fieldId ]]">
+                                  <dt><oj-bind-text value="[[ entry.data.label ]]"></oj-bind-text></dt>
+                                  <dd><span class="mateu-rm-result-value"><oj-bind-text value="[[ entry.data.text ]]"></oj-bind-text></span>
+                                    <span class="mateu-rm-result-from"><oj-bind-text value="[[ entry.data.from ]]"></oj-bind-text></span></dd>
+                                </div>
+                              </template>
+                            </oj-bind-for-each>
+                          </dl>
+                          <div class="mateu-rm-footer">
+                            <span class="mateu-rm-summary oj-text-color-secondary" data-rm-summary="true" aria-live="polite"><oj-bind-text value="[[ $current.data.summary ]]"></oj-bind-text></span>
+                            <oj-bind-if test="[[ $current.data.hasMerge ]]">
+                              <oj-button chroming="callToAction" data-rm-merge="true"><oj-bind-text value="[[ $current.data.mergeLabel ]]"></oj-bind-text></oj-button>
+                            </oj-bind-if>
+                          </div>
+                        </section>
+                      </div>
                     </oj-bind-if>
                     <oj-bind-if test="[[ $current.data.isActionPanel ]]">
                       <!-- panel de acciones por categorías («I want to…»): oj-button + oj-dialog de JET;

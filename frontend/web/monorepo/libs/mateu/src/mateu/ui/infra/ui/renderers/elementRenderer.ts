@@ -80,16 +80,66 @@ const hydrate = (
     }
 }
 
+const isAbsolute = (url: string) => /^https?:\/\//i.test(url)
+
+/**
+ * The origin of the REMOTE app that sent the screen `from` sits in, or undefined when the screen
+ * is this app's own. Walks up the tree (crossing shadow roots) collecting the `baseUrl` of every
+ * host that has one: the nearest non-empty one is the screen's backend, the outermost one is the
+ * page's own (an empty base url means the page's origin). The screen is remote when its backend
+ * is absolute and on another origin — what a federated shell's remote section is. A component
+ * nested inside a remote screen (a tab's own server-side component) carries an empty base url of
+ * its own; the `mateu-ux` above it knows.
+ */
+export const remoteOriginOf = (
+    from: unknown,
+    pageOrigin: string = globalThis.location?.origin ?? '',
+): string | undefined => {
+    const baseUrls: string[] = []
+    let node = from as (Node & { baseUrl?: unknown }) | null
+    for (let hops = 0; node && hops < 500; hops++) {
+        if (typeof node.baseUrl === 'string') baseUrls.push(node.baseUrl)
+        node = (node.parentNode ?? (node as unknown as ShadowRoot).host ?? null) as typeof node
+    }
+    const nearest = baseUrls.find((b) => b)
+    if (!nearest || !isAbsolute(nearest)) return undefined
+    const outermost = baseUrls[baseUrls.length - 1]
+    try {
+        const own = outermost && isAbsolute(outermost) ? new URL(outermost).origin : pageOrigin
+        const remote = new URL(nearest).origin
+        return remote !== own ? remote : undefined
+    } catch {
+        return undefined
+    }
+}
+
+/**
+ * Where an Element's `import` module really lives. A root-relative url (`/acme/graph.js`) means
+ * "on the server that sent this screen" — which, for a screen a federated shell loaded from a
+ * REMOTE app, is the remote's origin, not the shell's. Resolved against the page instead, it 404s
+ * on the shell and the element never upgrades (a remote workflow console's diagram tab stayed
+ * blank). Anything else — this app's own screens, an absolute or protocol-relative module url — is
+ * left as is.
+ *
+ * The remote has to serve the module with CORS for the shell's origin: a module script is always
+ * fetched in cors mode.
+ */
+export const moduleUrlFor = (moduleUrl: string, remoteOrigin?: string): string => {
+    if (!remoteOrigin || !moduleUrl.startsWith('/') || moduleUrl.startsWith('//')) return moduleUrl
+    return remoteOrigin + moduleUrl
+}
+
 // Third-party custom elements loaded on demand: an Element carrying an `import` attribute has its
 // module loaded dynamically the first time the tag is used — the URL must be served by the app
-// (same origin) and define the custom element as a side effect. Custom elements upgrade in place
-// once defined, so the element can be created before the module finishes loading. (Design-system
-// bundles like @vaadin/charts are lazy-loaded by their own renderer/app, not from this core path.)
-const ensureElementDefined = (element: Element) => {
+// that sent the screen and define the custom element as a side effect. Custom elements upgrade in
+// place once defined, so the element can be created before the module finishes loading.
+// (Design-system bundles like @vaadin/charts are lazy-loaded by their own renderer/app, not from
+// this core path.)
+const ensureElementDefined = (element: Element, remoteOrigin?: string) => {
     const tagName = element.name
     const moduleUrl = element.attributes ? element.attributes['import'] : undefined
     if (moduleUrl && tagName.includes('-') && !customElements.get(tagName)) {
-        import(/* @vite-ignore */ moduleUrl)
+        import(/* @vite-ignore */ moduleUrlFor(moduleUrl, remoteOrigin))
     }
 }
 
@@ -102,7 +152,7 @@ export const renderElement = (
     appState?: ComponentState,
     appData?: ComponentData,
 ): TemplateResult => {
-    ensureElementDefined(element)
+    ensureElementDefined(element, remoteOriginOf(container))
     const resolved = resolve(element, state, data, appState, appData)
     let selector = element.name
     if (resolved.attributes['id']) {

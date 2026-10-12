@@ -95,6 +95,7 @@ public final class AppMapper {
             .commandCenterEnabled(getCommandCenter(app))
             .chromeless(getChromeless(app))
             .accessKeys(getAccessKeys(app))
+            .mobileQr(getMobileQr(app))
             .noBreadcrumbs(getNoBreadcrumbs(app) || backLinkParent(app))
             .backRoute(backLinkParent(app) ? parentLink(appRoute, httpRequest)[0] : null)
             .backLabel(backLinkParent(app) ? parentLink(appRoute, httpRequest)[1] : null)
@@ -107,6 +108,10 @@ public final class AppMapper {
             .locale(getLocale(httpRequest))
             .actions(mapShellActions(app))
             .actionCatalogue(ActionCatalogMapper.mapCatalogue(httpRequest))
+            .shortcuts(AppShellExtrasMapper.shortcuts(app, appRouteForMenu))
+            .headerValues(AppShellExtrasMapper.headerValues(app, httpRequest))
+            .liveUpdates(AppShellExtrasMapper.liveUpdates(app))
+            .idleSession(AppShellExtrasMapper.idleSession(app))
             .build();
     return new ClientSideComponentDto(
         appDto,
@@ -497,6 +502,17 @@ public final class AppMapper {
     var appClass = forName(app.serverSideType());
     if (MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
       return MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class).accessKeys();
+    }
+    return false;
+  }
+
+  /** "Open on mobile": {@code @App(mobileQr = true)} on the app class, or the shell's own value. */
+  private static boolean getMobileQr(AppShell app) {
+    if (app.mobileQr() != null) return app.mobileQr();
+    if (app.serverSideType() == null) return false;
+    var appClass = forName(app.serverSideType());
+    if (MetaAnnotations.isPresent(appClass, io.mateu.uidl.annotations.App.class)) {
+      return MetaAnnotations.find(appClass, io.mateu.uidl.annotations.App.class).mobileQr();
     }
     return false;
   }

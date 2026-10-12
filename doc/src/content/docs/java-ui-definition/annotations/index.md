@@ -9,7 +9,7 @@ Mateu's declarative UI is driven by Java annotations placed on classes, fields, 
 | Annotation | Target | Description |
 |---|---|---|
 | [`@UI`](ui/) | Class | Registers a class as a Mateu UI entry point |
-| [`@Route`](route/) | — | **Removed** — inner routes are declared in a [`routes.yaml` route registry](/java-ui-definition/route-registry/) |
+| [`@Route`](route/) | — | **Removed** — inner routes are declared in a [`routes.yaml` route registry](/concepts/routes-and-mounts/) |
 | [`@HomeRoute`](route/) | — | **Removed** — the home is the first menu item, or `HomeRouteSupplier.homeRoute()` |
 | [`@UISpec`](uispec/) | Class | Uses a YAML file as the component tree instead of `ComponentTreeSupplier` |
 

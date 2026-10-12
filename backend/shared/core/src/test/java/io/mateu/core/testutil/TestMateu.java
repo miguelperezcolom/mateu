@@ -113,6 +113,18 @@ public final class TestMateu implements AutoCloseable {
     }
   }
 
+  /** The increments as they come — for an open-ended stream (e.g. the live-updates events). */
+  public Flux<UIIncrementDto> stream(RunActionRqDto rq) {
+    try {
+      var httpRequest = new FakeHttpRequest(rq).withAttribute("baseUrl", "");
+      return service.runAction("", rq, "", httpRequest);
+    } catch (RuntimeException | Error e) {
+      throw e;
+    } catch (Throwable t) {
+      throw new AssertionError("runAction failed for " + rq, t);
+    }
+  }
+
   /** All increments (some flows emit several, e.g. remote menus). */
   public List<UIIncrementDto> runAll(RunActionRqDto rq) {
     try {

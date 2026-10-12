@@ -3,7 +3,7 @@
 // re-renders with new state, and whether it survives that re-render as the same node.
 import { describe, it, expect, beforeEach } from 'vitest'
 import { LitElement } from 'lit'
-import { renderElement } from './elementRenderer'
+import { renderElement, remoteOriginOf, moduleUrlFor } from './elementRenderer'
 import Element from '@mateu/shared/apiClients/dtos/componentmetadata/Element'
 import ClientSideComponent from '@mateu/shared/apiClients/dtos/ClientSideComponent'
 import { ComponentState, ComponentData } from '@infra/ui/renderers/types'
@@ -121,5 +121,47 @@ describe('renderElement', () => {
         const containers = h.shadowRoot!.querySelectorAll('.element-container')
         expect(containers[0].querySelector('workflow-graph')?.getAttribute('overlay')).toBe('left')
         expect(containers[1].querySelector('other-graph')?.getAttribute('overlay')).toBe('right')
+    })
+})
+
+describe('the module of an Element sent by a REMOTE screen', () => {
+
+    // A shell → its remote section's mateu-ux (absolute baseUrl) → a nested component of the
+    // remote screen (empty baseUrl of its own) → the element's container.
+    const tree = (shellBase: string, remoteBase: string) => {
+        const shell = document.createElement('div') as HTMLElement & { baseUrl?: string }
+        shell.baseUrl = shellBase
+        const remote = document.createElement('div') as HTMLElement & { baseUrl?: string }
+        remote.baseUrl = remoteBase
+        shell.attachShadow({ mode: 'open' }).appendChild(remote)
+        const nested = document.createElement('div') as HTMLElement & { baseUrl?: string }
+        nested.baseUrl = ''
+        remote.attachShadow({ mode: 'open' }).appendChild(nested)
+        const container = document.createElement('div')
+        nested.attachShadow({ mode: 'open' }).appendChild(container)
+        return container
+    }
+
+    it('is loaded from the remote, not from the shell', () => {
+        // The EventConductor console's diagram tab, composed into a shell: /eventconductor/... 404'd
+        // on the shell and the graph never rendered.
+        const origin = remoteOriginOf(tree('', 'http://localhost:8620/_workflow'), 'http://localhost:8621')
+        expect(origin).toBe('http://localhost:8620')
+        expect(moduleUrlFor('/eventconductor/workflow-graph.js', origin))
+            .toBe('http://localhost:8620/eventconductor/workflow-graph.js')
+    })
+
+    it("leaves this app's own screens alone", () => {
+        // a relative base url (a mount of this same app), and an app whose own backend is absolute
+        // (a static front end calling its API): neither is a remote
+        expect(remoteOriginOf(tree('', '/_workflow'), 'http://localhost:8621')).toBeUndefined()
+        expect(remoteOriginOf(tree('https://api.acme.com', 'https://api.acme.com/_wf'), 'https://cdn.acme.com')).toBeUndefined()
+        expect(moduleUrlFor('/x/graph.js', undefined)).toBe('/x/graph.js')
+    })
+
+    it('keeps absolute, protocol-relative and relative module urls as written', () => {
+        expect(moduleUrlFor('https://cdn.acme.com/graph.js', 'http://localhost:8620')).toBe('https://cdn.acme.com/graph.js')
+        expect(moduleUrlFor('//cdn.acme.com/graph.js', 'http://localhost:8620')).toBe('//cdn.acme.com/graph.js')
+        expect(moduleUrlFor('graph.js', 'http://localhost:8620')).toBe('graph.js')
     })
 })

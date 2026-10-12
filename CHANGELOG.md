@@ -181,6 +181,22 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - Server-sent URLs are checked (`javascript:` refused); token storage is configurable.
 
 ### Added
+- **Mateu mobile, phase 1 (experimental)** — the server half of one generic Mateu app to which UIs
+  are added by QR, like accounts in an authenticator ([Mobile app](https://mateu.io/ux-patterns/mobile-app/)):
+  - `GET <baseUrl>/mateu/v3/manifest`: public, cacheable JSON with the UI's name, short name,
+    icon, theme colour, wire and minimum app versions and, optionally, the OpenID Connect issuer +
+    client id the host app trusts. Values come from `@Title`/`@Logo`/`@App(accentColor)`, the
+    new `@MobileApp` and the `mateu.mobile.*` settings (system property or `MATEU_MOBILE_*`
+    env var, which win). Served by the five Java adapters (`@UI` and YAML mounts), ASP.NET Core
+    (`[MobileApp]`) and FastAPI (`@mobile_app`), member for member. Mateu still validates no
+    token: the manifest only names the identity provider.
+  - "Open on mobile": `@App(mobileQr = true)` / YAML `mobileQr: true` / `[App(MobileQr = true)]` /
+    `@app(mobile_qr=True)` → `AppDto.mobileQr` → a header button (Vaadin and Redwood) opening a
+    dialog with the QR of `https://mateu.io/add?u=<base URL>&r=<route>`, the link to copy and,
+    on a phone, an "Open in the Mateu app" link instead. The QR is drawn by Mateu's own
+    dependency-free encoder, in a lazy chunk.
+  - `mateu.io/add`, the landing page the link opens when the app is not installed (store links are
+    placeholders until the app is published), plus templates of the universal/App Link files.
 - `io.mateu:mateu-bom`; annotation processors are Gradle-incremental.
 - SSE / LongTask on WebFlux, Quarkus and Helidon; client-log, asset caching, YAML mounts and the
   deep-link fallback on every adapter.
@@ -204,6 +220,11 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
   printing* in the UX patterns.
 - A JPA (`jakarta`/`javax.persistence.Version`) or Spring Data `@Version` on an entity now joins
   Mateu's optimistic locking: same conflict dialog, version incremented by the provider, not by Mateu.
+- **Using external Mateu UIs**: a third-party UI module (a jar of `@UI` screens, e.g. a workflow
+  engine's console) is mounted in-process by naming its package — `mateu.ui.modules=…` or
+  `@EnableMateuUiModules` (Spring MVC and WebFlux) — since Mateu no longer scans `io.mateu.*`; a
+  named package with no beans is warned about. Guide *Using external Mateu UIs*, with EventConductor
+  as the worked example (`demo/demo-eventconductor`, `e2e/external-ui-probe.mjs`).
 
 ### Fixed
 - **Enum values in grid and listing cells** read as their labels ("In house", not `IN_HOUSE`) on
@@ -224,6 +245,12 @@ This file starts at `v3.0-alpha.400`. For older releases, see the GitHub release
 - A dashboard `@Panel` holding a `Text` advertised twelve list actions nothing could trigger.
 - A streamed action on the root view of a mount did nothing; LongTask steps no longer retitle the tab.
 - The wire conformance corpus (25 cases) now matches exactly in Java, .NET and Python.
+- **A remote screen under a YAML shell** (`type: AppShell` with a `RemoteMenu`) answered "Page not
+  found" on a reload, a bookmark or a shared link: unclaimed routes are now offered to the shell's
+  remotes, as an `@UI` class shell always did.
+- **A custom element of a remote screen** (`Element` with `import: /…`) loaded its module from the
+  shell's origin and 404'd; a root-relative module url of a remote screen is now resolved against
+  the remote's origin (which must serve it with CORS).
 
 ## [3.0-alpha.406] — 2026-10-10
 

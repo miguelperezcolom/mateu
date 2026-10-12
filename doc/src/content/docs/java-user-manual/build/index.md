@@ -46,5 +46,5 @@ If you are building something new, read the pages in order. If you are solving a
 
 ### Deployment & contracts
 
-- [Static bundle](/java-user-manual/build/static-bundle/) — export your declared screens to a static site the renderer boots from, served from any static host with an optional backend
+- [Static bundle](/deploy/static-bundle/) — export your declared screens to a static site the renderer boots from, served from any static host with an optional backend
 - [Derived OpenAPI](/java-user-manual/build/derived-openapi/) — derive the API contract from the endpoints your screens already declare, and use it as a check

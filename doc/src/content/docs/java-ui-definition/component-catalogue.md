@@ -16,8 +16,8 @@ rendering and needs a per-renderer renderer — a different tool.)
 ## Declaring one
 
 The catalogue has **two producers, one table** — the same pattern as the [REST source
-catalogue](/java-ui-definition/rest-source-catalogue/) and the [route
-registry](/java-ui-definition/route-registry/): declarations are merged, and an **authored entry
+catalogue](/concepts/data-sources/) and the [route
+registry](/concepts/routes-and-mounts/): declarations are merged, and an **authored entry
 wins** over a derived one.
 
 **In data** — `specs/ui/components.yaml`:

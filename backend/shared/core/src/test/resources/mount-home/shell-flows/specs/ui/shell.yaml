@@ -5,6 +5,7 @@ homeRoute: home
 themeToggle: true
 commandCenter: true
 accessKeys: true
+mobileQr: true
 actions:
   - id: newOrder
     steps:

@@ -19,7 +19,7 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | CRUD (list / detail / edit / new / save / delete) | ✅ | ✅ | ✅ |
 | App shell + menus + navigation | ✅ | ✅ | ✅ |
 | App shell + menus authored IN CODE (Java `AppSupplier`/`MenuSupplier` returning a fluent `AppShell`; .NET `IAppSupplier`/`IMenuSupplier` + `AppShell`; Python `AppSupplier`/`MenuSupplier` + `AppShell`) — the whole shell (or just the menu) computed at request time, overriding the static `@App`/`@Menu` declarations | ✅ | ✅ | ✅ |
-| [App shell as data](/java-ui-definition/yaml-app-shell/) (`type: AppShell` definition bound to a mount route) with its FLOWS — `actions:` with `steps:` that a menu `RuleLink` (`RunAction` rule) runs client-side, no round-trip — plus `widgets:` and the header switches `themeToggle`/`commandCenter`/`chromeless`/`accessKeys`. Code-built shells carry the same (`AppShell.builder().action(...)`). The ports have no `type: AppShell` definitions: N/A there | ✅ | N/A | N/A |
+| [App shell as data](/define/yaml/app-shell/) (`type: AppShell` definition bound to a mount route) with its FLOWS — `actions:` with `steps:` that a menu `RuleLink` (`RunAction` rule) runs client-side, no round-trip — plus `widgets:` and the header switches `themeToggle`/`commandCenter`/`chromeless`/`accessKeys`. Code-built shells carry the same (`AppShell.builder().action(...)`). The ports have no `type: AppShell` definitions: N/A there | ✅ | N/A | N/A |
 | Wizards (incl. branching, cross-step state, `@WizardProgress` BAR/STEPS/RAIL) | ✅ | ✅ | ✅ |
 | CRUD create/edit in a drawer (`editInDrawer` — save closes + refreshes the listing in place) | ✅ | ✅ | ✅ |
 | Collection-detail / general-overview archetypes (`CollectionDetail<Row>`, `GeneralOverview<Row>`) + fluent `FormField` | ✅ | ✅ | ✅ |
@@ -30,11 +30,11 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Redwood pattern gaps (2026-10-10): display records (`Toggle` + `WizardDisplay`/`CrudDisplay`/`GeneralOverviewDisplay`), wizard drafts/skip/early completion/`beforeStepNavigate` (ports: steps by number), edit-drawer save-and-next + error banner, `GeneralOverview` info slot, foldout `summary`, `DataManagement` docked panels, header `RecordSwitcherSupplier`, `@Section` edit/add/view-more, hero tone, `Announce` command, smart-search pre-search content — see [Page templates](/ux-patterns/page-templates/#display-options-one-tri-state-grammar) | ✅ | ✅ | ✅ |
 | Adaptive layout inference (radios, folding, tabs) | ✅ | ✅ | ✅ |
 | Nav links (`@LinkTo` / link supplier) | ✅ | ✅ | ✅ |
-| [Route registry](/java-ui-definition/route-registry/) (`specs/ui/routes.yaml`: definition + view model + fixed/default params per route, merged over the derived table). Both ports mirror the model, the matching, the precedence and the definition lookup; neither has a static-bundle exporter, so nothing ships the table to a browser there | ✅ | ✅ | ✅ |
+| [Route registry](/concepts/routes-and-mounts/) (`specs/ui/routes.yaml`: definition + view model + fixed/default params per route, merged over the derived table). Both ports mirror the model, the matching, the precedence and the definition lookup; neither has a static-bundle exporter, so nothing ships the table to a browser there | ✅ | ✅ | ✅ |
 | Route registry authored IN CODE (Java `RouteEntrySupplier`, .NET `IRouteEntrySupplier`, Python `RouteEntrySupplier` → `List<RouteEntry>`): the programmatic half of the authored side — a route binding a definition/view model/pinned params independently, or a route with NO view model — discovered per backend (a bean in Java, an assembly/module type in the ports). Precedence: `routes.yaml` > code supplier > derived. (Python's `RouteEntry` has no nested `children`: author flat entries with `parent` set) | ✅ | ✅ | ✅ |
-| [Permissions in YAML](/java-ui-definition/yaml-security/) — `access:` on routes (403, nested routes included), app-shell menu items (hidden; a `RouteLink` inherits its route's) and declared actions (not advertised, buttons disabled, 403 if called); `eyesOnly`/`readOnlyUnless`/`disabledUnless` on components; locked fields' client values dropped. Evaluated server-side by the same authorizer as the annotations. Menu items: the ports have no `type: AppShell`, so N/A there; the ports do not read a definition's `actions:`, so a restricted action is refused (403) and its buttons disabled but there is no advertised list to drop it from. No bundle exporter in the ports, so the static-bundle rules are Java-only | ✅ | ✅ | ✅ |
-| [Translations in YAML](/java-ui-definition/yaml-i18n/) — `type: Translations` / `specs/ui/translations/<locale>.yaml`, `${i18n.key}` resolved server-side per request locale (exact → language → fallback → key + one warning), code producer (`TranslationsSupplier` / `ITranslationsSupplier`), authored wins; static bundles resolve in the browser (Java only has a bundle exporter) | ✅ | ✅ | ✅ |
-| [Environments](/java-ui-definition/environments/) — `type: Environment` / `specs/ui/environments/<name>.yaml` overlaying `baseUrl`/`url`/`headers`/`proxy` on the REST source catalogue for `MATEU_ENVIRONMENT`; Java also `-Dmateu.environment` and the bundle goal's `environment` | ✅ | ✅ | ✅ |
+| [Permissions in YAML](/define/yaml/permissions/) — `access:` on routes (403, nested routes included), app-shell menu items (hidden; a `RouteLink` inherits its route's) and declared actions (not advertised, buttons disabled, 403 if called); `eyesOnly`/`readOnlyUnless`/`disabledUnless` on components; locked fields' client values dropped. Evaluated server-side by the same authorizer as the annotations. Menu items: the ports have no `type: AppShell`, so N/A there; the ports do not read a definition's `actions:`, so a restricted action is refused (403) and its buttons disabled but there is no advertised list to drop it from. No bundle exporter in the ports, so the static-bundle rules are Java-only | ✅ | ✅ | ✅ |
+| [Translations in YAML](/define/yaml/translations/) — `type: Translations` / `specs/ui/translations/<locale>.yaml`, `${i18n.key}` resolved server-side per request locale (exact → language → fallback → key + one warning), code producer (`TranslationsSupplier` / `ITranslationsSupplier`), authored wins; static bundles resolve in the browser (Java only has a bundle exporter) | ✅ | ✅ | ✅ |
+| [Environments](/deploy/environments/) — `type: Environment` / `specs/ui/environments/<name>.yaml` overlaying `baseUrl`/`url`/`headers`/`proxy` on the REST source catalogue for `MATEU_ENVIRONMENT`; Java also `-Dmateu.environment` and the bundle goal's `environment` | ✅ | ✅ | ✅ |
 | Dashboard / Foldout / Welcome / ItemOverview archetypes | ✅ | ✅ | ✅ |
 | UX components (MetricCard, Gantt, EmptyState, Skeleton…) | ✅ | ✅ | ✅ |
 | Planning board (tape chart: resources × days, colored blocks, move/select actions) | ✅ | ✅ | ✅ |
@@ -45,9 +45,14 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Card menus (`@Menu(display = cards)` / `MenuGroup` / `menu_group`) | ✅ | ✅ | ✅ |
 | `ActionPanel` (categorised "I want to…" actions) | ✅ | ✅ | ✅ |
 | `MatrixGrid` (rows × dates, collapsible sections, link/editable cells) | ✅ | ✅ | ✅ |
+| `RecordMerge` (compare and merge: records side by side, a pick per field, `_merged`/`_choices`) | ✅ | ✅ | ✅ |
+| App shortcuts + quick-launch codes (`@AppShortcut` → `AppDto.shortcuts`) | ✅ | ✅ | ✅ |
+| Live header values (`HeaderValuesSupplier`, `UpdateHeaderValue`, `LiveHeaderValues.publish` + `liveUpdates` stream on `/mateu/v3/sse/…`) | ✅ | ✅ | ✅ |
+| Idle-session warning (`@App(idleTimeoutMinutes…)` → `AppDto.idleSession`, `_keep-alive`) | ✅ | ✅ | ✅ |
 | `Map` with markers (`MapMarker`, `markerActionId` → `_markerId`; fits the markers when no position) | ✅ | ✅ | ✅ |
 | Calendar views (`Calendar.view`/`views`: month, week, day, list), per-date cells (`days`), clickable dates (`dayActionId`); `CalendarPage` `views()`/`days()`/`actionOnDay()` | ✅ | ✅ | ✅ |
 | Access keys mode (`@App(accessKeys)` → `AppDto.accessKeys`) | ✅ | ✅ | ✅ |
+| [Mobile app](/ux-patterns/mobile-app/) (experimental): the manifest `GET <baseUrl>/mateu/v3/manifest` (Java `@MobileApp` + `mateu.mobile.*` settings, .NET `[MobileApp]`, Python `@mobile_app`; env vars `MATEU_MOBILE_*` everywhere) and "Open on mobile" (`@App(mobileQr)` / `[App(MobileQr)]` / `@app(mobile_qr)` → `AppDto.mobileQr`). The ports have no app logo/favicon/accent, so `icon`/`themeColor` come only from `MobileApp` or the env vars there | ✅ | ✅ | ✅ |
 | `Popover.trigger` (click/hover) + `@Tooltip("field")` → `GridColumn.tooltipPath` | ✅ | ✅ | ✅ |
 | `@DragRows` → `CrudlDto.dragType` + `DropZone` | ✅ | ✅ | ✅ |
 | Row tones (`@RowStatus` → `CrudlDto.rowStatusField`) and listing export buttons on `AutoCrud` | ✅ | ✅ `[RowStatus]` + Export CSV / Excel / PDF (`CsvExportable`/`ExcelExportable`/`PdfExportable` on `Crud<T>`, `Listing<F,R>` or any `ICrudExports` listing; built-in CSV writer, Excel / PDF through the app's `IListingExporter` services — no exporter, no button) | ✅ `RowStatus()` + Export CSV / Excel / PDF (`csv_exportable()` / `excel_exportable()` / `pdf_exportable()`; built-in CSV writer, Excel / PDF through the app's `ListingExporter` subclasses — no exporter, no button, as in Java) |
@@ -71,10 +76,10 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | External REST screen data (`@RestData`/`[RestData]`/`@rest_data` on a view → initial data fetched client-side on load and merged into the form state; reuses the `restAction` machinery via a synthetic `__restdata__` action + OnLoad trigger) | ✅ | ✅ | ✅ |
 | — Proxy mode (`proxy = true` on any of the four → the fetch is routed through the Mateu server via the reserved `__restfetch__` action: no CORS, and `${secret.X}` auth injected server-side from a secrets provider / `MATEU_SECRET_*` env var; url values percent-encoded by position on both legs; the server resolves the DECLARED source only) | ✅ | ✅ | ✅ |
 | — Proxy mode for views with no annotation to read (`RestSourceSupplier`: a view assembled at runtime declares its sources programmatically, and they gate `__restfetch__` and resolve a proxy fetch exactly as annotations do) | ✅ | ✅ | ✅ |
-| [REST source catalogue](/java-ui-definition/rest-source-catalogue/) (`specs/ui/sources.yaml` + `@RestSource`/`RestSourceCatalogSupplier` → a named endpoint referenced by `ref`; two producers, authored wins). Java and .NET carry the registry (catalogue reader + `ref` resolution + `AppDto.restSources`); Python carries it too (`@rest_source` / `RestSourceCatalogSupplier` / `sources.yaml`, `AppMetadata.restSources`, refs resolved server-side for proxy fetches) | ✅ | ✅ | ✅ |
-| [Action catalogue](/java-ui-definition/action-catalogue/) (`specs/ui/actions.yaml` + any `type: Actions` file + `ActionCatalogSupplier` → named client-runnable actions — flows / `restAction` — run by id from the shell menu or any page; two producers, authored wins; owner first, then the catalogue, then the server; non-runnable entries rejected with a warning). `AppDto.actionCatalogue` lowered on all three; a page carries the entries its tree names. .NET (`IActionCatalogSupplier`) and Python (`ActionCatalogSupplier`) have no YAML shell/page `actions:`, so "owner" there is the view's methods; no bundle exporter in the ports | ✅ | ✅ | ✅ |
+| [REST source catalogue](/concepts/data-sources/) (`specs/ui/sources.yaml` + `@RestSource`/`RestSourceCatalogSupplier` → a named endpoint referenced by `ref`; two producers, authored wins). Java and .NET carry the registry (catalogue reader + `ref` resolution + `AppDto.restSources`); Python carries it too (`@rest_source` / `RestSourceCatalogSupplier` / `sources.yaml`, `AppMetadata.restSources`, refs resolved server-side for proxy fetches) | ✅ | ✅ | ✅ |
+| [Action catalogue](/concepts/action-catalogue/) (`specs/ui/actions.yaml` + any `type: Actions` file + `ActionCatalogSupplier` → named client-runnable actions — flows / `restAction` — run by id from the shell menu or any page; two producers, authored wins; owner first, then the catalogue, then the server; non-runnable entries rejected with a warning). `AppDto.actionCatalogue` lowered on all three; a page carries the entries its tree names. .NET (`IActionCatalogSupplier`) and Python (`ActionCatalogSupplier`) have no YAML shell/page `actions:`, so "owner" there is the view's methods; no bundle exporter in the ports | ✅ | ✅ | ✅ |
 | [Field types](/java-ui-definition/field-types/) (`specs/ui/types.yaml` + `FieldTypeCatalogSupplier` → a named domain type a `FormField`/`GridColumn` references by `fieldType:`; the type's attributes are defaults, the field's own win, unknown → warn + render as declared; `GridColumn.tones` per-value badge tones). Resolved by the Java YAML loader, the browser expander and the .NET/Python YAML loaders (same rule); .NET/Python also add a `[FieldType]`/`FieldType()` marker for listing row fields since their YAML builders have no listing | ✅ | ✅ | ✅ |
-| [Sample data on REST sources](/java-ui-definition/rest-source-catalogue/#sample-data-designing-without-an-api) (`sample:`/`sampleFile:`, answered instead of calling the endpoint ONLY in sample mode: visual editor, `-Dmateu.bundle.mock=true` bundles, or an app opted in with `mateu.sources.mock=true`/`MATEU_SOURCES_MOCK=true` → `AppDto.mockSources`; reads get the sample, writes succeed without persisting; proxied and direct legs agree). Renderers: Vaadin/libs, React Native and IntelliJ honour it; .NET/Python short-circuit their proxy leg (no bulk/bundle there) | ✅ | ✅ | ✅ |
+| [Sample data on REST sources](/concepts/data-sources/#sample-data-designing-without-an-api) (`sample:`/`sampleFile:`, answered instead of calling the endpoint ONLY in sample mode: visual editor, `-Dmateu.bundle.mock=true` bundles, or an app opted in with `mateu.sources.mock=true`/`MATEU_SOURCES_MOCK=true` → `AppDto.mockSources`; reads get the sample, writes succeed without persisting; proxied and direct legs agree). Renderers: Vaadin/libs, React Native and IntelliJ honour it; .NET/Python short-circuit their proxy leg (no bulk/bundle there) | ✅ | ✅ | ✅ |
 | [Business components](/java-ui-definition/component-catalogue/) (`specs/ui/components.yaml` + `@BusinessComponent`/`ComponentCatalogSupplier` + `ComponentRef` → a named, BOUND composition of existing pieces referenced by name; ports for free, resolves with no backend). Same two-producers/authored-wins registry as the source catalogue; .NET and Python carry it too (`ComponentRef` expanded server-side, `AppDto.components`; Python `@business_component` / `fluent.ComponentRef`) | ✅ | ✅ | ✅ |
 | [Custom components](/java-ui-definition/custom-components/) (`CustomComponent(name, props, content)` — a genuinely NEW rendering as data; the per-renderer escape hatch). The WIRE is data and identical across backends; the RENDERING is per-renderer (`registerCustomComponent`, degrading to `<mateu-unsupported>`) | ✅ | ✅ | ✅ |
 | Sizing intent (`hug`/`fill`/`fixed:<len>` as portable data on the component; a listing infers `fill`) | ✅ | ✅ | ✅ |
@@ -91,8 +96,8 @@ for the surface below (verified by golden-JSON tests in `backend/dotnet/test` an
 | Structure ETag / template-ref (`structureHash` + request `knownStructureHash` → omit the component when unchanged) | ✅ | ✅ | ✅ |
 | ModelView bindable contract (`__contract__` sync action → fields + actions on `appData._contract`, for the visual-builder tooling) | ✅ | ✅ | ✅ |
 | Visual-builder live preview (`__preview__` sync action → renders arbitrary YAML page text; the plugin's preview pane) | ✅ | ✅ | ✅ |
-| [`layoutDelta:`](/java-ui-definition/yaml-ui-definition/) (what a human changed about the INFERRED layout, anchored to field ids and re-applied every request, so a screen touched in the visual editor keeps following its model). The editor writes it and falls back to a `layout:` snapshot — visibly — when an edit cannot be a delta. Java, .NET and Python apply it (same three rules) | ✅ | ✅ | ✅ |
-| [Partials](/java-ui-definition/partials/) (`specs/ui/partials/<ref>.yaml`; spliced into the parent's content, resolved server-side so they never reach the wire). All three splice, stack where there is no list, drop a missing ref and break a cycle; only Java resolves a `ref` that names a class | ✅ | ✅ | ✅ |
+| [`layoutDelta:`](/define/yaml/pages/) (what a human changed about the INFERRED layout, anchored to field ids and re-applied every request, so a screen touched in the visual editor keeps following its model). The editor writes it and falls back to a `layout:` snapshot — visibly — when an edit cannot be a delta. Java, .NET and Python apply it (same three rules) | ✅ | ✅ | ✅ |
+| [Partials](/define/yaml/partials/) (`specs/ui/partials/<ref>.yaml`; spliced into the parent's content, resolved server-side so they never reach the wire). All three splice, stack where there is no list, drop a missing ref and break a cycle; only Java resolves a `ref` that names a class | ✅ | ✅ | ✅ |
 | YAML pages bound to a ModelView (`specs/ui/<route>.yaml` with `modelView:` → the file supplies the layout, the class supplies state + actions; on the classpath in Java, under the cwd — `MATEU_SPECS_DIR` — in the ports) | ✅ | ✅ | ✅ |
 | Static-view skip (`@StaticView`/`[StaticView]`/`@static_view` → `staticView` flag; client caches the full response for the session and skips the round-trip on return) | ✅ | ✅ | ✅ |
 | Sticky sections index (`@Toc`) | ✅ | ✅ | ✅ |
@@ -256,6 +261,7 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | @AutoSave / @SubscribeTo scopes / @OnRowSelected | ✅ | ✅ | ✅ | ✅ |
 | Periodic refresh (`OnLoad` with `timeoutMillis` + `OnSuccess` loop, `background`) | ✅ | ✅ (stops when the screen changes) | ✅ (stops when the view changes or its tab closes) | ✅ (stops when the screen changes or unmounts) |
 | Keyboard shortcuts (`@Action(shortcut)`, `@Tab(shortcut)`) + access keys mode (`@App(accessKeys)`: hold Alt, Alt+letter) | ✅ | ✅ | ✅ (Swing mnemonics) | — (no hardware-key model) |
+| "Open on mobile" (`mobileQr`: a header button whose dialog shows the QR of the `mateu.io/add` link, a link instead on a phone) | ✅ | ✅ | N/A (desktop IDE) | N/A (it is the app) |
 | Hover details (`Popover` with `trigger = hover`, `@Tooltip("otherField")` on listing cells) | ✅ | ✅ (shared `oj-popup`) | ✅ | 🟡 press / long-press (no hover on touch) |
 | Drag rows to a destination (`@DragRows` + `DropZone`: origin and destination in one action) | ✅ | ✅ (`oj-table` dnd) | ✅ | 🟡 "Move to…" picker (no drag on touch) |
 | AI chat (sseUrl) / theme toggle | ✅ | ✅ AI chat at parity with the web panel (header button + left drawer: streaming, agent progress and tool steps, token usage, markdown answers with in-app links, screen context + projection, `mcpUrl`, `@AI(upload)` attachments, local agent, dictation, wide mode, `render-screen`/navigation events); `@App(themeToggle)` draws a header light/dark switch (JET's inverted colour scheme, remembered like the web) | ✅ chat (theme = the IDE's own) | ✅ |
@@ -281,6 +287,10 @@ Every renderer speaks the same wire; the depth of widget support varies.
 | Card menus (`@Menu(display = cards)`: a group opening as a panel of cards) | ✅ | ✅ (`oj-popup`) | ✅ | ✅ |
 | Action panel ("I want to…": categorised actions, show more, hide unpopulated, shortcut) | ✅ | ✅ (`oj-dialog` + `oj-switch`) | ✅ (dialog; IDE keymap wins on a shared shortcut) | ✅ (modal; no keyboard shortcut) |
 | Matrix grid (rows × dates, collapsible sections, link cells, in-place editing) | ✅ | ✅ (`oj-data-grid`) | ✅ (`JBTable` + row header) | ✅ |
+| Compare and merge records (`RecordMerge`) | ✅ | ✅ | ✅ (Swing grid, a button group per row) | ✅ (one card per field) |
+| App shortcuts (`@AppShortcut`), `?` list, quick-launch codes | ✅ (⌘K palette + command center) | ✅ (Ask palette) | ✅ (view key bindings, dialog, "Go to code…") | 🟡 codes only (drawer field; no hardware keys) |
+| Live header values + `liveUpdates` stream (one per browser, tabs share it) | ✅ | ✅ | ✅ (navigator; one stream per session) | ✅ (drawer; foreground only, `expo/fetch`) |
+| Idle-session warning (countdown, stay / sign out, activity shared across tabs) | ✅ | ✅ | ✅ (IDE activity; one session) | ✅ (touches; background counts as idle) |
 | Row tones (`@RowStatus`) | ✅ | ✅ | — | — |
 | Dockable multi-tab workspace | — | — | ✅ (IDE editor tabs/splits) | — |
 | App registry boot (installable → registry → backend) | — | — | ✅ (+ min IDE build gate) | ✅ |
@@ -293,7 +303,7 @@ render), so this table — not the feature rows above — is the authority on wh
 
 <!-- redwood-coverage:start -->
 Generated from `frontend/web/monorepo/apps/redwood/poc/coverage.mjs` and checked in CI against the
-wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 95 rendered, 11 layout
+wire catalogue and the renderer's code (`node poc/parity-check.mjs`): 96 rendered, 11 layout
 containers, 2 partial, 0 not rendered. A type the renderer does not know
 (one added to the wire later) shows a visible "Unsupported component" placeholder, like the web
 renderers, and its children still render.
@@ -376,6 +386,7 @@ renderers, and its children still render.
 | `ProcessMonitor` | ✅ | a row per process: systems, ok/warning/error badges, status, action |
 | `ProgressBar` | ✅ | oj-progress-bar (value or the state at valueKey, indeterminate); a wizard shows its progress as the guided process |
 | `ProgressSteps` | ✅ | oj-train |
+| `RecordMerge` | ✅ | compare & merge: a table of radios per field (differences highlighted), oj-switch «only differences», result summary, merge button |
 | `ResourceGrid` | ✅ |  |
 | `ResponsiveGrid` | ✅ | fixed tracks → oj-flex columns by their fr weights and spans; auto-fill/auto-fit → as many per row as fit at each breakpoint; reorderable tiles drag (and Alt+←/→) |
 | `Result` | ✅ | oj-panel with the icon of its type, message, links and the what-next action |
@@ -428,7 +439,7 @@ right-click on touch → press / long-press; diagram editors shown read-only).
 <!-- rn-coverage:start -->
 Generated from `frontend/app/react-native/scripts/coverage.mjs` and checked in CI against the
 wire catalogue and the renderer's switch (`node scripts/parity-check.mjs`): every wire type has a
-native renderer — 88 rendered, 11 layout containers, 6 parts of another component,
+native renderer — 89 rendered, 11 layout containers, 6 parts of another component,
 10 with a documented mobile adaptation. None is dropped.
 
 | Component | React Native | How |
@@ -503,6 +514,7 @@ native renderer — 88 rendered, 11 layout containers, 6 parts of another compon
 | `ProcessMonitor` | ✅ |  |
 | `ProgressBar` | ✅ |  |
 | `ProgressSteps` | ✅ | vertical by design |
+| `RecordMerge` | ✅ | one card per field (records as rows of radios) |
 | `ResourceGrid` | ✅ |  |
 | `ResponsiveGrid` | ✅ | declared tracks + col spans; stacks below stackBelow (600 px default) |
 | `Result` | ✅ | icon by result type, links, next step |

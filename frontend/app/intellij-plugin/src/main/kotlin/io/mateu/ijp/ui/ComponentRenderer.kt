@@ -45,6 +45,7 @@ class ComponentRenderer(val ctx: AppContext) {
             "HorizontalLayout" -> renderHBox(this, component, metadata, state, data)
             "Button" -> renderButton(ctx, metadata)
             "ActionPanel" -> renderActionPanel(ctx, metadata)
+            "RecordMerge" -> renderRecordMerge(ctx, metadata)
             "MatrixGrid" -> renderMatrixGrid(ctx, metadata)
             "Map" -> renderMap(ctx, metadata)
             "Text" -> JBLabel(metadata.text("text")).also { label ->

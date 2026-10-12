@@ -81,7 +81,7 @@ two mechanisms above are built on, exposed for when you need them. →
 
 ## A note on routing
 
-The routing annotation (`@UI`; inner routes are data in [`routes.yaml`](/java-ui-definition/route-registry/)) is **not** part of the
+The routing annotation (`@UI`; inner routes are data in [`routes.yaml`](/concepts/routes-and-mounts/)) is **not** part of the
 semantic layer — they are resolved by the annotation processor at compile time, which is not
 meta-annotation aware. Keep it directly on your classes; everything else above is
 runtime-resolved and composable.

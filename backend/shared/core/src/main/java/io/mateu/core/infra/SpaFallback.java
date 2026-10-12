@@ -23,7 +23,9 @@ public final class SpaFallback {
         && !path.startsWith("/actuator")
         // a parked document is fetched by navigating to it: it must reach its endpoint, never the
         // index page
-        && !io.mateu.core.infra.documents.DocumentDownloads.isEndpoint(path);
+        && !io.mateu.core.infra.documents.DocumentDownloads.isEndpoint(path)
+        // the mobile app's manifest is JSON, never the index page
+        && !MobileManifest.isEndpoint(path);
   }
 
   /**

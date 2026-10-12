@@ -7,6 +7,9 @@
  * inspected in a browser. That is the only way to check it without a device farm, and it checks
  * the thing that actually matters: whether a control has a NAME.
  *
+ * The renderer must run in DIRECT mode (EXPO_PUBLIC_MATEU_BACKEND_PORT set) — without it the app boots
+ * as the Mateu hub (see rn-hub-probe.mjs for that).
+ *
  * Usage — expo web on :19006. Against the e2e SUT (a plain form at the root) nothing else is
  * needed; against an app shell, name the screen to open and, optionally, submit it:
  *

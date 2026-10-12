@@ -1,0 +1,13 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.mateu.app",
+      "sha256_cert_fingerprints": [
+        "TODO_PLAY_APP_SIGNING_SHA256 (Play Console > Setup > App integrity > App signing key)",
+        "TODO_EAS_UPLOAD_KEY_SHA256 (eas credentials -p android) - only needed for internal APKs"
+      ]
+    }
+  }
+]

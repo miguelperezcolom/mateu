@@ -505,14 +505,14 @@ export const CONTENT_INSTALLERS = Object.freeze([
   'installMatrixGrids', 'installCalendars', 'installMaps', 'installRowTones', 'installStickyHeader',
   'installKeys', 'installHover', 'installBpmn', 'installCookieConsent', 'installContextMenus',
   'installChatComponents', 'installCustomComponents', 'installDragAndDrop', 'installAnnouncer',
-  'trackPressedControls',
+  'trackPressedControls', 'installRecordMerges',
 ])
 
 /** The sinks that run a page action (an Element event, a rule, a calendar day, a drop…). */
 export const CONTENT_ACTION_SINKS = Object.freeze([
   'setElementEventSink', 'setRuleActionSink', 'setCalendarActionSink', 'setMatrixActionSink',
   'setMapActionSink', 'setPlanningRangeSink', 'setUndoSink', 'setPollingRunner', 'setDropSink',
-  'setKeysActionSink',
+  'setKeysActionSink', 'setRecordMergeSink',
 ])
 
 /** What the standalone shell installs and the component deliberately does NOT, and why. */
@@ -532,6 +532,9 @@ export const NOT_IN_EMBEDDED = Object.freeze({
   // Ctrl+P prints the HOST page: its print stylesheet is the host's to decide (UICommand.print
   // still works inside the component — applyDomEffects prepares the sheet when it runs)
   installPrintSupport: 'the host page owns what its own Ctrl+P prints',
+  // app shortcuts, the header values and the idle warning are the SHELL's (the app's header and
+  // session): in a host page they are the host's business
+  installAppExtras: 'shell-level: app shortcuts, header values and the idle session belong to the host page',
 })
 
 /**

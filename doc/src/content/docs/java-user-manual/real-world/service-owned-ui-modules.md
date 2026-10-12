@@ -102,7 +102,7 @@ The `@UI` path acts as the namespace for all routes in that service.
 
 ## Navigation within a service
 
-Pages within a service are declared in a `routes.yaml` file tagged with the service's mount as its `basePath` (see [route registry](/java-ui-definition/route-registry/)):
+Pages within a service are declared in a `routes.yaml` file tagged with the service's mount as its `basePath` (see [route registry](/concepts/routes-and-mounts/)):
 
 ```java
 public class OrderDetailPage implements ComponentTreeSupplier {

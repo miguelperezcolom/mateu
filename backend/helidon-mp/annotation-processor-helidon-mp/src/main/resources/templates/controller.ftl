@@ -46,6 +46,16 @@ public class ${simpleClassName}MateuController implements MateuController {
         return baseUrl;
     }
 
+    // The Mateu mobile app's manifest (io.mateu.core.infra.MobileManifest): public, cacheable JSON
+    // with the name, icon and identity provider the app shows for this UI.
+    @Path("v3/manifest")
+    @jakarta.ws.rs.GET
+    public jakarta.ws.rs.core.Response mobileManifest() {
+        var response = jakarta.ws.rs.core.Response.ok(io.mateu.core.infra.MobileManifest.json(uiId));
+        io.mateu.core.infra.MobileManifest.HEADERS.forEach((name, value) -> response.header(name, value));
+        return response.build();
+    }
+
     @Path("v3/{ignored:.*}")
     @POST
     public UIIncrementDto runStep(

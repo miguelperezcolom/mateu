@@ -1,0 +1,256 @@
+---
+title: "App shell as data (type: AppShell)"
+description: "Declare a mount's chrome — title, menu, variant, widgets — as a type: AppShell definition bound to a route, the data-driven counterpart of an @App class."
+---
+
+**Status:** ✅ Implemented (Java server; Spring MVC auto-configures the HTTP surface)
+
+A **mount** is a UI application served at a base path. `@UI("/back-office")` declares one, and the
+annotated class carries the chrome around it: title, logo, menu, variant.
+
+A data-driven mount declares that same chrome **as data**, in its own file discriminated by
+`type: AppShell`. The app shell is a **view like any other** — a definition bound to a route in the
+mount's [route registry](/concepts/routes-and-mounts/), typically the root route `""`. There
+is no longer an `app:` block inside `routes.yaml`: `routes:` says what is inside the mount, the app
+shell says what surrounds it, and each is its own file.
+
+```yaml
+# specs/ui/app.yaml
+type: AppShell
+title: Back office
+subtitle: Authored entirely in YAML
+variant: MENU_ON_TOP
+menu:
+  - type: RouteLink
+    label: Orders
+    route: orders
+    icon: vaadin:cart
+  - type: RouteLink
+    label: Users
+    route: users
+    icon: vaadin:users
+```
+
+The route registry binds that definition to the mount's root:
+
+```yaml
+# specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: ""              # the mount root → the app shell view
+    definition: app.yaml
+  - route: orders
+    definition: orders.yaml
+  - route: users
+    definition: users.yaml
+```
+
+With the shell, the routes and the page definitions they point at, the mount needs **no Mateu Java at
+all** — see `demo/demo-app-definition` (port 8099), whose only Java file is the Spring Boot entry
+point.
+
+## What the definition accepts
+
+| Key | Meaning |
+|---|---|
+| `type` | `AppShell` — the discriminator that makes this file an app shell |
+| `title`, `subtitle`, `pageTitle` | header texts |
+| `logo`, `favicon` | assets |
+| `variant` | `AppVariant` — `AUTO`, `MENU_ON_TOP`, `HAMBURGER_MENU`, `TABS`, `TILES` |
+| `layout` | `AppLayout` — `SINGLE_SLOT` (default) or `SPLIT` |
+| `drawerClosed` | start with the drawer collapsed |
+| `accentColor` | the brand accent, a CSS colour (`"#D2232A"`): the accent strip (under page headers, on top of listings, at the foot of the hero), the hero background and the console name — the twin of `@App(accentColor)` |
+| `backLink` | `PARENT` draws a single «← Parent» link instead of breadcrumbs (a record master whose tabs are pages) — the twin of `@App(backLink)` |
+| `style`, `cssClasses` | styling hooks |
+| `menu` | a list of navigation items |
+| `widgets` | a list of components rendered in the header |
+| `homeRoute` | what the mount loads at its root |
+| `actions` | the shell's **flows**: actions with `steps:`, run by a menu leaf — see [Flows on the shell](#flows-on-the-shell) |
+| `themeToggle`, `commandCenter`, `chromeless`, `accessKeys` | the header switches — the twins of the same `@App(...)` attributes. Absent: the `@App` class decides (no class: off). `chromeless` implies the command center |
+| `mobileQr` | the "Open on mobile" header button (experimental) — the twin of `@App(mobileQr)`; see [Mobile app](/ux-patterns/mobile-app/). Absent: the `@App` class decides (no class: off) |
+
+`menu:` and `widgets:` deserialize through the **same `type:` discriminator as page layouts**, so
+every navigation type (`RouteLink`, `Menu`, `RemoteMenu`, …) and every component of the catalog is
+available with no extra wiring, and the same [JSON Schema IntelliSense](/define/yaml/pages/#intellisense-setup)
+applies while you edit.
+
+## Flows on the shell
+
+A menu entry does not have to navigate somewhere: it can **run a flow**. The shell declares its
+flows under `actions:` — exactly the shape a [page definition's `actions:`](/define/yaml/pages/)
+already has: an `id` plus a list of `steps` (`Navigate`, `Emit`, `CloseOverlay`, `RunAction`,
+`MarkClean`, `MarkDirty`). A menu leaf runs one with the existing **rule leaf**: a `RuleLink` whose
+single rule is `RunAction` naming the action's id.
+
+```yaml
+type: AppShell
+title: App
+homeRoute: home
+actions:
+  - id: newOrder
+    steps:
+      - type: MarkClean
+      - type: Navigate
+        route: orders/new      # relative to the mount, like every routes.yaml route
+menu:
+  - type: RouteLink
+    label: Home
+    route: home
+  - type: RuleLink
+    label: New order
+    rules:
+      - action: RunAction
+        actionId: newOrder
+```
+
+The server lowers each flow to the wire commands it produces and ships them on the App
+(`AppDto.actions`); clicking **New order** applies them **in the browser, with no server round-trip**.
+That is what makes it work with no backend at all: in a [static bundle](/deploy/static-ui/)
+and in the visual editor's **▶ Play** the browser expander emits the same lowered actions. A
+`Navigate` to a route of the app stays inside the shell (the same in-app navigation a menu link does);
+a full URL (`https://…`) leaves the page.
+
+A `RunAction` rule naming an id the shell does **not** declare is looked up in the
+[action catalogue](/concepts/action-catalogue/) — named flows and REST calls declared once
+in `specs/ui/actions.yaml` and runnable from the menu and any page. An id the shell declares wins over
+the catalogue's, even one without steps. Anything else keeps its old meaning: an app-level action
+dispatched to the server (an `@Action` on the app class).
+
+Built in code, the shell carries flows the same way:
+
+```java
+AppShell.builder()
+    .title("App")
+    .menuItem(new RuleLink("New order",
+        List.of(Rule.builder().action(RuleAction.RunAction).actionId("newOrder").build())))
+    .action(Action.builder()
+        .id("newOrder")
+        .steps(List.of(new Step.MarkClean(), new Step.Navigate("orders/new")))
+        .build())
+    .themeToggle(true)
+    .build();
+```
+
+## Header widgets
+
+`widgets:` is a list of components drawn in the shell header — a version tag, a status badge, a
+button. Each one is an ordinary component of the catalog (same `type:` discriminator as page
+layouts) and travels as a child of the App in the `widgets` slot; on `MENU_ON_TOP` they sit in the
+top band, with the menu in the band below next to the title.
+
+```yaml
+widgets:
+  - type: Text
+    text: "v1.0"
+```
+
+The server and the browser expander (static bundles, the visual editor's Play) render them alike.
+
+### `homeRoute` matters
+
+A YAML mount has no class to carry `@HomeRoute`, so the home defaults to the **mount's `home:`**
+(see [below](#the-mount-that-ties-it-together)) and, when the mount declares none, to the **first
+navigable menu item**. Declare `homeRoute:` on the shell to point somewhere else — the shell's own
+value always wins. Do not leave a mount with none of them: the shell would load its own root route,
+which is the shell again.
+
+:::note[App ≠ its Home Screen]
+An **App is a shell** — a menu, title, subtitle, logo and widgets — **plus a reference to a Home
+(a Route)**. The App is **not** a Screen. Its content area *mounts the current Route's Screen* (the
+Home when the URL is the base path); the App itself only renders the chrome around that content
+slot. So the Home is a normal Screen at a route like any other — the App just points at it as the
+default. Keeping the two distinct is why the home defaulting is uniform whether the mount is a class
+or a YAML file (part of the 5-noun vocabulary — see the [route registry](/concepts/routes-and-mounts/)).
+
+**How it resolves:** when the home route points at a **distinct routed Screen** (a `homeRoute:` or a
+first menu item that has its own `@UI`/definition), the App's home fragment is typed with *that
+Screen's* class — the content slot loads the home Screen, and the App renders only the chrome. When
+the home has no separate Screen (a single-screen app, or a bare menu link with no backing route), the
+App remains its own content, unchanged.
+:::
+
+## The mount that ties it together
+
+The app shell, the routes and the pages are files of one **mount**, declared by a `type: UI` file —
+the data-driven `@UI`. It carries the base path, optionally names its home page, and lists the route
+files that make up the mount:
+
+```yaml
+# specs/ui/back-office.ui.yaml
+type: UI
+basePath: /
+home: dashboard        # optional: a route of this mount (relative, as in routes.yaml)
+routes:
+  - routes.yaml
+```
+
+`home:` says which page the mount opens on:
+
+- **With an app shell** bound to `""`, the shell's `homeRoute` defaults to it (a `homeRoute:` on the
+  shell still wins).
+- **Without a shell**, requesting the mount root renders the `home` route — the same definition,
+  view model and parameters as if that route were requested — unless a `route: ""` is authored,
+  which always wins (explicit beats derived).
+- A `home` naming a route the mount does not have is logged as a warning at startup and ignored.
+
+It only applies to `type: UI` mounts; a class-declared `@UI` mount is unaffected. Java, .NET and
+Python resolve the root the same way (the ports have no `type: AppShell` definitions, so the shell
+default is Java-only).
+
+Mounts are found by scanning the classpath under `specs/ui/**` for `type: UI` files (by content, not
+by filename), so several UIs can coexist. When there is **no** `type: UI` file at all, the
+conventional single mount is used: `specs/ui/routes.yaml` loaded at base path `""`.
+
+## Serving it
+
+For **Spring MVC**, `mateu-mvc` auto-configures the HTTP surface (the SPA at the mount's base path and
+sync under it) when the classpath declares at least one `type: UI` mount — the work the annotation
+processor normally does per `@UI` class, which cannot happen when there is no class. It stands down as
+soon as a generated controller exists, so adding an `@UI` class later changes nothing.
+
+Your application is then a Spring Boot entry point plus resources:
+
+```text
+src/main/
+├── java/…/AppDefinitionDemoApplication.java   ← @SpringBootApplication, nothing else
+└── resources/specs/ui/
+    ├── back-office.ui.yaml   ← the mount (type: UI): base path + route files
+    ├── app.yaml              ← the app shell (type: AppShell)
+    ├── routes.yaml           ← the route registry (type: Routes)
+    ├── orders.yaml           ← page definitions
+    └── users.yaml
+```
+
+## The visual editor edits this
+
+Open any of these files in the [visual editor](/define/yaml/visual-editor/) and it picks the
+mode from the file's `type:`: `app.yaml` opens the **app** form (title, chrome and a
+link/group/separator/action menu tree, an **Actions** panel for the shell's flows and a **Widgets**
+section), `routes.yaml` opens the **routes** table, and the `type: UI` file
+opens the **mount** form. Each file is authored on its own — editing the shell never rewrites the
+routes.
+
+## Limits
+
+Not carried by the definition yet — these are read reflectively off an `@App` class and still need
+one: SSE / MCP / upload URLs, `@AppContext` selectors, notifications, global search and FABs. (The
+theme toggle, command center, chromeless and access-keys switches are authorable on the shell.)
+
+The .NET and Python servers have no `type: AppShell` definitions, so shell flows do not apply there
+(they do carry the [action catalogue](/concepts/action-catalogue/), which a menu leaf of
+their app class can run).
+
+Before shell flows landed, a `RuleLink` in a YAML menu did not parse on the server (the schema
+advertised it, the YAML mapper did not know it), and the whole shell answered "Not found." — it is
+registered now.
+
+A broken or unparseable definition never takes the application down: a route pointing at a file that
+is not a `type: AppShell` definition simply resolves to no shell, exactly like the route registry
+ignoring a malformed entry.
+
+## Next
+
+- [Route registry](/concepts/routes-and-mounts/) — the `routes:` file that binds the shell to a route
+- [Authoring with the visual editor](/define/yaml/visual-editor/) — building all of this by hand
+- [YAML UI definition](/define/yaml/pages/) — the page definitions it points at
+- [The model](/mateu-about/the-model/) — how this fits with the annotated half

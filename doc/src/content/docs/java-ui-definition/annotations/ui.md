@@ -186,4 +186,4 @@ Used when:
 - The UI structure changes frequently without code changes
 - Integrating with external tooling that generates YAML
 
-Cross-reference: see the [YAML UI Definition](/java-ui-definition/yaml-ui-definition/) guide for the full YAML format.
+Cross-reference: see the [YAML UI Definition](/define/yaml/pages/) guide for the full YAML format.

@@ -6,7 +6,7 @@ description: "@Route, @Routes and @HomeRoute were removed — how routes are dec
 :::caution[Removed]
 `@Route`, `@Routes` and `@HomeRoute` were removed before the beta (see [Migrating from alpha](/reference/migrating-from-alpha/)). `@UI` is the
 only routing annotation left: it declares a **mount** (an app at a base path). The screens inside a
-mount are data, declared in a [`routes.yaml` route registry](/java-ui-definition/route-registry/)
+mount are data, declared in a [`routes.yaml` route registry](/concepts/routes-and-mounts/)
 (or supplied in code by a `RouteEntrySupplier` bean), and the home is the app's first menu item
 unless the app class implements `HomeRouteSupplier`.
 :::
@@ -81,7 +81,7 @@ routes:
 
 At runtime the request resolves as a route chain: the outermost level not yet on screen renders
 first and draws the child in its slot, so a reload or a deep link to the child lands inside its
-parent. See [a record master whose tabs are pages](/java-ui-definition/route-registry/#recipe-a-record-master-whose-tabs-are-pages).
+parent. See [a record master whose tabs are pages](/concepts/routes-and-mounts/#recipe-a-record-master-whose-tabs-are-pages).
 
 **Tip — nest detail routes under the listing route.** Declaring the detail as `orders/:id`
 (instead of a sibling like `order/:id`) keeps the app shell's **navigation tab highlighted**
@@ -91,4 +91,4 @@ prefix.
 
 ---
 
-See the [route registry](/java-ui-definition/route-registry/) for the full format.
+See the [route registry](/concepts/routes-and-mounts/) for the full format.

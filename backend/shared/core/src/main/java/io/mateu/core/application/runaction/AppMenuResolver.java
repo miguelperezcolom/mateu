@@ -193,6 +193,48 @@ public class AppMenuResolver {
   }
 
   /**
+   * The deep-link half of {@link #resolveRemoteMenuForRoute} for a DATA-AUTHORED shell ({@code
+   * type: AppShell}): a route under one of the shell's remote menus that no local menu entry claims
+   * is mounted from that remote. Empty when the shell has no remote menu, a local entry claims the
+   * route, or no remote does — so the caller's own fallbacks (a local page, the shell itself, "not
+   * found") keep their order.
+   *
+   * <p>An {@code @UI} class shell gets this from {@link #resolveRemoteMenuForRoute} on every load;
+   * a YAML shell never went through it, so reloading or bookmarking a remote screen under a YAML
+   * shell answered "Page not found" while the same link under a Java shell worked.
+   */
+  Mono<?> resolveRemoteDeepLink(RunActionCommand command, AppShell shell) {
+    var route = command.route();
+    if (shell == null
+        || route == null
+        || route.isBlank()
+        || route.endsWith("_page")
+        || route.endsWith("_no_home_route")
+        || remoteMenusIn(shell.menu()).isEmpty()) {
+      return Mono.empty();
+    }
+    var httpRequest = command.httpRequest();
+    var app =
+        toApp(
+            shell,
+            command.baseUrl(),
+            command.consumedRoute(),
+            command.initiatorComponentId(),
+            httpRequest);
+    if (app == null) {
+      return Mono.empty();
+    }
+    var actionable = AppMenuActionableFinder.find(app, route, command.consumedRoute(), httpRequest);
+    if (actionable instanceof RemoteMenu remoteMenu) {
+      return remoteMenuHandler.handleRemoteMenuActionable(remoteMenu, app, httpRequest, command);
+    }
+    if (actionable != null) {
+      return Mono.empty();
+    }
+    return tryRemoteMenusForRoute(app, command, httpRequest);
+  }
+
+  /**
    * The remote that owns a deep link no local entry claims, chosen by LONGEST PREFIX — not by
    * asking every remote in turn, which cost one round trip per remote declared before the right one
    * and let any of them, being down, fail the whole request.

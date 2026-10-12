@@ -244,6 +244,16 @@ public class MateuQuarkusRoutes {
     for (var mount : mounts) {
       router.get(mount.spaPath()).order(EARLY + 4).blockingHandler(rc -> index(rc, mount));
       router
+          .get(mount.apiPrefix() + "/v3/manifest")
+          .order(EARLY + 4)
+          .blockingHandler(
+              rc -> {
+                var response = rc.response();
+                io.mateu.core.infra.MobileManifest.HEADERS.forEach(response::putHeader);
+                response.end(
+                    YamlMounts.manifestJson(routeRegistry, yamlAppLoader, mount.basePath()));
+              });
+      router
           .postWithRegex(java.util.regex.Pattern.quote(mount.apiPrefix() + "/v3/") + ".*")
           .order(EARLY + 5)
           .handler(BodyHandler.create())

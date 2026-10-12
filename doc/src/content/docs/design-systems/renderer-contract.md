@@ -24,7 +24,7 @@ A renderer receives `UIIncrementDto` and paints it. Concretely:
 | **Apply fragments** | an increment is a set of partial updates targeted by `targetComponentId`, not a full repaint |
 | **Post actions** | a button, a row click or a trigger posts back with the current `componentState` |
 | **Execute the fetch plan** | `optionsSource`, `rowsSource`, `restAction`, `restData` are fetched **client-side** from arbitrary endpoints — a renderer that ignores them shows empty selects and empty listings with no error |
-| **Resolve routes** | in [bundle mode](/java-user-manual/build/static-bundle/), from the shipped [route registry](/java-ui-definition/route-registry/) |
+| **Resolve routes** | in [bundle mode](/deploy/static-bundle/), from the shipped [route registry](/concepts/routes-and-mounts/) |
 
 And one thing it must **not** do: invent UI. Everything painted comes from the declaration; see
 [the authoring rule](/authoring-rule/).

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.mateu.demo</groupId>
+    <artifactId>demo-eventconductor</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>demo-eventconductor</name>
+    <description>Using a third-party Mateu UI — EventConductor's workflow console — from a Mateu app:
+        in-process (the engine and its screens inside the app, mounted with mateu.ui.modules) and
+        federated (a Java @UI shell and a YAML AppShell composing the console over HTTP with
+        RemoteMenu).</description>
+
+    <modules>
+        <module>inprocess</module>
+        <module>shell</module>
+        <module>shell-yaml</module>
+    </modules>
+
+</project>

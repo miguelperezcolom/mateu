@@ -149,8 +149,8 @@ widgets:
     it('reads and writes the header switches', () => {
         const doc = parseApp(shell)
         expect(doc.fields.themeToggle).toBe(true)
-        const out = parse(serializeApp({ ...doc, fields: { ...doc.fields, accessKeys: true, chromeless: true } }))
-        expect(out).toMatchObject({ themeToggle: true, accessKeys: true, chromeless: true })
+        const out = parse(serializeApp({ ...doc, fields: { ...doc.fields, accessKeys: true, chromeless: true, mobileQr: true } }))
+        expect(out).toMatchObject({ themeToggle: true, accessKeys: true, chromeless: true, mobileQr: true })
     })
 
     it('adds, edits, reorders and removes widgets, keeping an unknown one untouched', () => {

@@ -179,6 +179,10 @@ final class DisplayComponentDispatcher {
       return io.mateu.core.domain.out.fragmentmapper.mappers.MatrixGridMapper.mapMatrixGridToDto(
           matrixGrid);
     }
+    if (component instanceof io.mateu.uidl.data.RecordMerge recordMerge) {
+      return io.mateu.core.domain.out.fragmentmapper.mappers.RecordMergeMapper.mapRecordMergeToDto(
+          recordMerge);
+    }
     if (component instanceof io.mateu.uidl.data.ActionPanel actionPanel) {
       return io.mateu.core.domain.out.fragmentmapper.mappers.ActionPanelMapper.mapActionPanelToDto(
           actionPanel);

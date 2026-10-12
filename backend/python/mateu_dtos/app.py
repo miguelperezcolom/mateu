@@ -67,6 +67,9 @@ class AppMetadata(Wire):
     #: @app(access_keys=True): keyboard access-keys mode — holding Alt shows a key next to every
     #: visible button and tab and Alt+key activates it. Mirrors AppDto.accessKeys.
     access_keys: bool = False
+    #: @app(mobile_qr=True) (experimental): the "Open on mobile" header action — a dialog with the
+    #: QR that adds this UI to the Mateu mobile app. Mirrors AppDto.mobileQr.
+    mobile_qr: bool = False
     #: A route may seed APP-SCOPE data by referencing a named source (routes.yaml ``appData``):
     #: the shell fetches it once into the app-data store (mirrors AppDto.appDataSource). None when
     #: no route under the mount declares one.
@@ -94,6 +97,18 @@ class AppMetadata(Wire):
     #: its sample mode on, so the direct leg answers sampled sources with their samples too. None
     #: (absent) otherwise (mirrors AppDto.mockSources).
     mock_sources: bool | None = None
+    #: App-wide keyboard shortcuts and quick-launch codes (``@app_shortcut``; mirrors
+    #: AppDto.shortcuts).
+    shortcuts: list["AppShortcut"] = Field(default_factory=list)
+    #: Live values on the header (``HeaderValuesSupplier``), changed by the UpdateHeaderValue
+    #: command (mirrors AppDto.headerValues).
+    header_values: list["HeaderValue"] = Field(default_factory=list)
+    #: @app(live_updates=True): the browser keeps one app event stream (``_live-updates`` over
+    #: the SSE endpoint) for header-value changes (mirrors AppDto.liveUpdates).
+    live_updates: bool = False
+    #: @app(idle_timeout_minutes=...): the idle-session warning; None = off (mirrors
+    #: AppDto.idleSession).
+    idle_session: "IdleSession | None" = None
 
 
 class AppContextSelector(Wire):
@@ -114,3 +129,30 @@ class AppHeaderAction(Wire):
     label: str = ""
     icon: str | None = None
     children: list["AppHeaderAction"] | None = None
+
+
+class AppShortcut(Wire):
+    """An app-wide keyboard shortcut / quick-launch code (mirrors ``AppShortcutDto``)."""
+
+    key: str | None = None
+    label: str = ""
+    route: str | None = None
+    action_id: str | None = None
+    code: str | None = None
+
+
+class HeaderValue(Wire):
+    """A live value on the app header, addressed by ``id`` (mirrors ``HeaderValueDto``)."""
+
+    id: str
+    label: str | None = None
+    value: str | None = None
+
+
+class IdleSession(Wire):
+    """The idle-session warning (mirrors ``IdleSessionDto``)."""
+
+    timeout_seconds: int
+    warning_seconds: int
+    sign_out_url: str | None = None
+    keep_alive_action_id: str | None = None

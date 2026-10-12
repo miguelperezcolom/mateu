@@ -17,8 +17,38 @@ import io.mateu.uidl.fluent.AppVariant;
  */
 @UI("")
 @Title("OPERA PMS · demo")
-@App(value = AppVariant.HAMBURGER_SECTIONS, accessKeys = true)
-public class PmsHome implements io.mateu.uidl.interfaces.NotificationsSupplier {
+// E2 patterns: OPERA's function keys and quick-launch codes on every screen (F2 Reservations, F3
+// Room Diary, F4 Merge profiles, F8 End of day; type RES/RD/MRG/EOD in the Ask palette), the
+// business date as a LIVE header value (End of day publishes the new one to every session), and an
+// idle warning after 30 minutes.
+@App(
+    value = AppVariant.HAMBURGER_SECTIONS,
+    accessKeys = true,
+    liveUpdates = true,
+    idleTimeoutMinutes = 30,
+    idleWarningSeconds = 60)
+@io.mateu.uidl.annotations.AppShortcut(
+    key = "f2", route = "/bookings/reservations", label = "Reservations", code = "RES")
+@io.mateu.uidl.annotations.AppShortcut(
+    key = "f3", route = "/bookings/roomDiary", label = "Room diary", code = "RD")
+@io.mateu.uidl.annotations.AppShortcut(
+    key = "f4", route = "/frontDesk/mergeProfiles", label = "Merge profiles", code = "MRG")
+@io.mateu.uidl.annotations.AppShortcut(
+    key = "f8", route = "/financials/endOfDay", label = "End of day", code = "EOD")
+public class PmsHome
+    implements io.mateu.uidl.interfaces.NotificationsSupplier,
+        io.mateu.uidl.interfaces.HeaderValuesSupplier {
+
+  /** The business date on the header; End of day publishes the next one to every session. */
+  @Override
+  public java.util.List<io.mateu.uidl.data.HeaderValue> headerValues(
+      io.mateu.uidl.interfaces.HttpRequest httpRequest) {
+    return java.util.List.of(
+        new io.mateu.uidl.data.HeaderValue(
+            "businessDate",
+            "Business date",
+            io.mateu.mdd.demovbpms.domain.Hotel.businessDate().toString()));
+  }
 
   /** The front desk's inbox (in memory, like the rest of the demo): the ids already read. */
   static final java.util.Set<String> READ = java.util.concurrent.ConcurrentHashMap.newKeySet();
