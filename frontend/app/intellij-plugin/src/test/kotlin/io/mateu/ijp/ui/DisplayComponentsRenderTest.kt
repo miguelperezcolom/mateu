@@ -157,4 +157,11 @@ class DisplayComponentsRenderTest : BasePlatformTestCase() {
         assertTrue(texts(meter).any { it.contains("Occupancy") })
         assertTrue("the caption defaults to the percentage", texts(meter).any { it.contains("75%") })
     }
+
+    fun testAnImageSwingCannotDecodeIsANamedPlaceholderNotItsDataUri() {
+        // an SVG data URI (the YAML display gallery's): ImageIO cannot read it
+        val image = render(context(), """{"type":"Image","src":"data:image/svg+xml;base64,PHN2Zy8+"}""")
+        assertTrue(texts(image).none { it.contains("base64") })
+        assertTrue(texts(image).toString(), texts(image).any { it.contains("image/svg+xml") })
+    }
 }

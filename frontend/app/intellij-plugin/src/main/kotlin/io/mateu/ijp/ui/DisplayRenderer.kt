@@ -1525,6 +1525,12 @@ fun renderStandaloneImage(metadata: JsonNode): JComponent {
         val scale = minOf(1.0, 360.0 / img.width)
         JBLabel(javax.swing.ImageIcon(img.getScaledInstance((img.width * scale).toInt(), (img.height * scale).toInt(), java.awt.Image.SCALE_SMOOTH)))
     } else {
-        JBLabel(src)
+        // An image Swing cannot decode (an SVG, a broken url): a named placeholder. It used to be
+        // the src itself — a data URI dumped as a wall of base64 across the page.
+        val shown = if (src.startsWith("data:")) src.substringBefore(";").substringBefore(",").removePrefix("data:") else src
+        JBLabel("🖼 $shown").apply {
+            toolTipText = shown
+            accessibleContext.accessibleName = "Image"
+        }
     }
 }
