@@ -104,8 +104,15 @@ public class ActionInstanceCreator {
                           finalCommand, app, finalCommand.httpRequest())
                       : Mono.just(resolved));
     }
-    return routeInstanceCreator
-        .findRouteResolver(command)
+    // A route routes.yaml authors as a definition-only page (a layout, no view model) IS that
+    // page: only an enclosing app may claim it first (to wrap it in its chrome). The direct-class
+    // search falls back to shorter prefixes, so a plain @UI("") root view used to answer it — a
+    // fresh deep link to /orders/summary rendered the root page instead of the definition.
+    var routeFinder =
+        isDefinitionOnly(command.route())
+            ? routeInstanceCreator.findApp(command)
+            : routeInstanceCreator.findRouteResolver(command);
+    return routeFinder
         .switchIfEmpty((Mono) Mono.defer(() -> loadYaml(finalCommand)))
         .switchIfEmpty((Mono) Mono.defer(() -> rootAppMenuContent(finalCommand)));
   }
@@ -166,6 +173,17 @@ public class ActionInstanceCreator {
                         routeRegistry.isMountRoot(finalCommand.route())
                             ? Mono.just(app)
                             : Mono.empty()));
+  }
+
+  /** Whether routes.yaml (or a code supplier) authors the route as a layout with no view model. */
+  private boolean isDefinitionOnly(String route) {
+    return route != null
+        && routeRegistry
+            .match(stripQuery(route))
+            .map(io.mateu.uidl.data.RouteTable.Match::entry)
+            .filter(entry -> entry.definition() != null && !entry.definition().isBlank())
+            .filter(entry -> entry.viewModel() == null || entry.viewModel().isBlank())
+            .isPresent();
   }
 
   /**

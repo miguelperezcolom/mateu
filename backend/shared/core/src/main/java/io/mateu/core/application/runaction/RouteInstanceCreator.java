@@ -62,6 +62,18 @@ public class RouteInstanceCreator {
   }
 
   /**
+   * Only the App half of {@link #findRouteResolver}: the enclosing app (shortest-first) that wraps
+   * a route in its chrome, and nothing else. For a route the registry authors as a definition-only
+   * page: a non-app class at a SHORTER prefix (a plain {@code @UI("")} root view) must not answer
+   * it the way it answers routes it owns — the page is the definition.
+   */
+  public Mono<?> findApp(RunActionCommand command) {
+    List<String> segments = createRoutes(command);
+    return Mono.defer(
+        () -> Flux.fromIterable(segments).concatMap(route -> resolveAsApp(route, command)).next());
+  }
+
+  /**
    * Resolves a route segment to an App / RouteResolver class (shortest-first favoured by {@link
    * #findRouteResolver}). Returns the instantiated app after remote-menu resolution so the UI can
    * use it as the next serverSideType.
