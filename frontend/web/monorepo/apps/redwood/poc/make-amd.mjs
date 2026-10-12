@@ -101,6 +101,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
   defineCaptureField();
   // an editable richText (HTML; a legacy Delta opens converted) and a colour field: JET has neither
   defineRichTextField();
+  defineMarkupField();
   defineColorField();
   // los grids embebidos necesitan un data provider de JET; el core es agnóstico y lo recibe
   setDataProviderFactory((rows) => new ArrayDataProvider(rows || [], { keyAttributes: '_rowNumber' }));

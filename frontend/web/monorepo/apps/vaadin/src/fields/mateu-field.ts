@@ -5,6 +5,7 @@ import '@components/mateu-camera-capture.ts';
 import '@components/mateu-file-upload.ts';
 import { fieldAttribute } from '@components/mateu-file-upload.ts';
 import '@components/mateu-bulleted-list.ts';
+import '@components/mateu-markup-editor.ts';
 import '@components/mateu-range-slider.ts';
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
@@ -239,6 +240,12 @@ export class MateuField extends LitElement {
                 }))
             }
         }
+    }
+
+    /** The markdown/html editor's own value-changed: re-announced as this field's (with its id). */
+    markupChanged = (e: CustomEvent) => {
+        e.stopPropagation()
+        this.valueChanged(e)
     }
 
     selectedItems = (value: any[]) => {
@@ -1159,6 +1166,7 @@ export class MateuField extends LitElement {
                 `
             }
             if (this.field?.stereotype == 'markdown') {
+                // editable: the source with a rendered preview (the read-only field renders it)
                 return html`
                     <vaadin-custom-field
                             id="${this.field.fieldId}"
@@ -1166,9 +1174,10 @@ export class MateuField extends LitElement {
                             required="${this.field.required || nothing}"
                             .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
-                    ><vaadin-markdown
-                            .content="${value}"
-                    ></vaadin-markdown>
+                    ><mateu-markup-editor
+                            .value="${value ?? ''}" .label="${labelText}" ?required="${this.field.required}"
+                            @value-changed="${this.markupChanged}"
+                    ><vaadin-markdown slot="preview" .content="${value ?? ''}"></vaadin-markdown></mateu-markup-editor>
                     </vaadin-custom-field>
                 `
             }
@@ -1619,13 +1628,17 @@ export class MateuField extends LitElement {
                 `
             }
             if (this.field?.stereotype == 'html') {
+                // editable: the source with a rendered (sanitised) preview
                 return html`
                     <vaadin-custom-field
                             id="${this.field.fieldId}"
                             label="${label}"
                             .helperText="${this.helperText()}"
                             data-colspan="${this.field.colspan}"
-                    ><div style="line-height: 20px; margin-top: 5px; margin-bottom: 24px;">${safeHtml('' + value)}</div></vaadin-custom-field>
+                    ><mateu-markup-editor
+                            .value="${value ?? ''}" .label="${labelText}" ?required="${this.field.required}"
+                            @value-changed="${this.markupChanged}"
+                    ><div slot="preview">${safeHtml('' + (value ?? ''))}</div></mateu-markup-editor></vaadin-custom-field>
                 `
             }
             if (this.field?.stereotype == 'image') {

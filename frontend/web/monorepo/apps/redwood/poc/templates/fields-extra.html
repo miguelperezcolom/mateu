@@ -118,3 +118,18 @@
     </div>
   </oj-label-value>
 </oj-bind-if>
+<!-- an editable markdown / html → mateu-markup-field (poc/richtext.mjs): the source + a Preview toggle -->
+<oj-bind-if test="[[ $current.data.isMarkupEditor ]]">
+  <oj-label-value label-edge="top">
+    <oj-label slot="label" show-required="[[ $current.data.required ]]"><oj-bind-text value="[[ $current.data.label ]]"></oj-bind-text></oj-label>
+    <div slot="value">
+      <mateu-markup-field
+          :value="[[ $current.data.value ]]"
+          :kind="[[ $current.data.markupKind ]]"
+          :readonly="[[ $current.data.readonly ]]"
+          :aria-label="[[ $current.data.label ]]"
+          :data-field-id="[[ $current.data.fieldId ]]"
+          on-value-changed="[[ $listeners.{{change}} ]]"></mateu-markup-field>
+    </div>
+  </oj-label-value>
+</oj-bind-if>

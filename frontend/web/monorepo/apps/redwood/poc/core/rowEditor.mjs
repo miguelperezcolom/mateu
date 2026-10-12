@@ -485,6 +485,8 @@ export function extraWidgetOf(f, options) {
   }
   if (st === 'color') return { isColor: true }
   if (st === 'richText' && !f.readOnly) return { isRichEditor: true }
+  // an editable markdown / html: the source + a Preview toggle (mateu-markup-field)
+  if ((st === 'markdown' || st === 'html') && !f.readOnly) return { isMarkupEditor: true, markupKind: st }
   return null
 }
 
@@ -493,6 +495,7 @@ export function isExtraLayoutField(md) {
   return !!(md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'
     || md.stereotype === 'slider' || md.stereotype === 'stars' || md.stereotype === 'color'
     || (md.stereotype === 'richText' && !md.readOnly)
+    || ((md.stereotype === 'markdown' || md.stereotype === 'html') && !md.readOnly)
     || CAPTURE_MODES[md.stereotype]
     || (md.dataType === 'array' && (md.options || []).length
       && (MULTI_SELECT_STEREOTYPES[md.stereotype] || CHECKBOX_SET_STEREOTYPES[md.stereotype])))
@@ -519,7 +522,7 @@ export function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
       options: (extra.isRadio || extra.isMultiSelect || extra.isCheckboxSet) ? optionsOf(f, data) : [],
       ...flags,
       isRadio: false, isMultiSelect: false, isCheckboxSet: false, isMoney: false, isCapture: false,
-      isSlider: false, isStars: false, isColor: false, isRichEditor: false, min: 0, max: 0, step: 1,
+      isSlider: false, isStars: false, isColor: false, isRichEditor: false, isMarkupEditor: false, markupKind: '', min: 0, max: 0, step: 1,
       converter: null, captureMode: '', accept: '',
       ...extra,
     }
