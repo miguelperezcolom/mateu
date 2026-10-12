@@ -12,4 +12,8 @@ var app = builder.Build();
 // renders this app.
 app.MapMateu();
 
-app.Run(Environment.GetEnvironmentVariable("MATEU_URL") ?? "http://localhost:8080");
+// Where it listens: `--urls` / ASPNETCORE_URLS (ASP.NET's own switch) win, then MATEU_URL, then :8080.
+// Passing a url to Run() always overrode --urls, so `dotnet run --urls http://...:5000` was ignored.
+app.Run(string.IsNullOrWhiteSpace(app.Configuration["urls"])
+    ? Environment.GetEnvironmentVariable("MATEU_URL") ?? "http://localhost:8080"
+    : null);
