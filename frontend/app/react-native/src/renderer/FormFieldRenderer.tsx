@@ -32,6 +32,7 @@ import { useViewController } from './MateuViewHost';
 import { theme } from '../theme';
 import { fieldA11y, buttonA11y, modalA11y, headingA11y, announce } from '../a11y/a11y';
 import { fieldPlaceholder } from '../core/uxRules';
+import { richTextHtml } from '../core/richTextValue';
 
 interface Option {
   children?: Option[];
@@ -266,12 +267,14 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
 
     // Rich content: rendered read-only, textarea when editable
     if (['markdown', 'html', 'richText'].includes(stereotype)) {
-      if (!editable) return <RichText value={stringValue} kind={stereotype as 'markdown' | 'html' | 'richText'} />;
+      // a legacy (Quill Delta JSON) richText value opens as its HTML, like on the web
+      const content = stereotype === 'richText' ? richTextHtml(stringValue) : stringValue;
+      if (!editable) return <RichText value={content} kind={stereotype as 'markdown' | 'html' | 'richText'} />;
       return (
         <TextInput
           {...a11y}
           style={[styles.input, styles.textarea]}
-          value={stringValue}
+          value={content}
           onChangeText={(v) => commit(fieldId, v)}
           multiline
           numberOfLines={6}
