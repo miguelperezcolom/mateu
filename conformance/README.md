@@ -38,7 +38,9 @@ corpus flag noise, and a check that reports noise gets ignored.
 
 So both sides normalise before comparing:
 
-- **drop** generated identifiers (`id` values the server invents) and empty/null members;
+- **drop** generated identifiers (`id` values the server invents) and empty/null members — but
+  NOT an action's `id` (inside `actions[]`): that is the name the client sends, so a missing or
+  renamed action is a contract break;
 - **sort** object keys;
 - keep everything that describes *what the screen is*: types, field ids, labels, data types,
   actions, layout structure.
