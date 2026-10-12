@@ -42,8 +42,8 @@ Mateu backend works — it exposes the reserved `__preview__` / `__contract__` a
 ## Schema validation
 
 The extension contributes the Mateu `specs/ui` authoring schema through `yamlValidation`
-(`**/specs/ui/**/*.yaml|yml`), so with the [Red Hat YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)
-extension installed every page, `routes.yaml`, `sources.yaml` and `types.yaml` gets completion and validation. The
+(`**/specs/ui/**/*.yaml|yml`), a contribution point of the [Red Hat YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)
+extension — declared as an `extensionDependencies` entry, so VS Code installs it alongside — and every page, `routes.yaml`, `sources.yaml` and `types.yaml` gets completion and validation. The
 schema is bundled at packaging time from the generated `backend/shared/uidl/specs-schema.json`. Without
 the packaged copy (e.g. running from source before `npm run stage`), point a `$schema:` line or the
 `yaml.schemas` setting at

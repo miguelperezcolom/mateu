@@ -20,6 +20,12 @@ describe('extension manifest', () => {
             expect.arrayContaining(['**/specs/ui/**/*.yaml', '**/specs/ui/**/*.yml']),
         )
         for (const v of validations) expect(v.url).toBe('./schema/specs-schema.json')
+        // `yamlValidation` is a contribution point of the Red Hat YAML extension, not of VS Code: without
+        // it installed the schema is silently inert (no completion, no validation, no error). Depend on it.
+        expect(pkg.extensionDependencies).toContain('redhat.vscode-yaml')
+        // ...and the staged schema must ship in the .vsix.
+        const ignored = readFileSync(join(root, '.vscodeignore'), 'utf8').split('\n').map((l) => l.trim())
+        expect(ignored.some((l) => l.startsWith('schema'))).toBe(false)
         // The packaging script stages it from the generated schema — the source must exist.
         expect(existsSync(join(root, '../../../backend/shared/uidl/specs-schema.json'))).toBe(true)
     })
