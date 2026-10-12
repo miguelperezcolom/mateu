@@ -5,6 +5,10 @@ description: Bind a URL to a definition, a view model and its parameters — ins
 
 **Status:** ✅ Implemented (Java server + static bundle)
 
+:::tip[Part of the map]
+This page covers one of the [building blocks of a Mateu UI](/concepts/building-blocks/).
+:::
+
 A **mount** is a UI application served at a base path — that is what `@UI("/back-office")` declares,
 and the annotated class is the mount's root view. Everything inside the mount can be resolved
 through its **route registry**: a `routes.yaml` sitting next to the definitions it routes to.

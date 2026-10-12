@@ -1,5 +1,6 @@
 # General overview: a record switcher on top and the selected record's overview below.
 type: VerticalLayout
+pageType: detail
 __PAGE_WIDTH__
 content:
   - type: FormField

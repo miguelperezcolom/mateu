@@ -11,6 +11,7 @@ import {
     routeOfTarget, type ArrowKind, type BoardChange,
 } from '../model/boardEdits'
 import { TEMPLATES } from '../model/templates'
+import '../widgets/ve-select'
 
 /** What a new screen can start from: the template gallery, plus a blank page. */
 const SCREEN_TEMPLATES = [{ id: 'blank', label: 'Blank page', yaml: 'type: VerticalLayout\ncontent: []\n' }, ...TEMPLATES]
@@ -113,7 +114,8 @@ export class MountBoard extends LitElement {
                   padding: 0.7rem 0.8rem; font: 12px var(--ve-font, system-ui); display: flex; flex-direction: column; gap: 0.4rem; }
         .dialog h4 { margin: 0 0 0.2rem; font-size: 13px; }
         .dialog label { display: flex; flex-direction: column; gap: 2px; color: var(--ve-secondary, #6b7280); }
-        .dialog input, .dialog select { font: 12px var(--ve-font, system-ui); padding: 0.25rem 0.35rem; border: 1px solid var(--ve-input-border, #d7dade);
+        .dialog ve-select { font: 12px var(--ve-font, system-ui); --ve-select-radius: 5px; }
+        .dialog input { font: 12px var(--ve-font, system-ui); padding: 0.25rem 0.35rem; border: 1px solid var(--ve-input-border, #d7dade);
                   border-radius: 5px; background: var(--ve-base, #fff); color: var(--ve-text, #1f2937); }
         .dialog .row { display: flex; justify-content: flex-end; gap: 0.35rem; margin-top: 0.2rem; }
         .dialog button.primary { background: var(--ve-primary, #2f6fde); border-color: var(--ve-primary, #2f6fde); color: #fff; }
@@ -434,9 +436,9 @@ export class MountBoard extends LitElement {
                 <h4>${d.title}</h4>
                 <label>Route<input name="route" .value=${d.route} @input=${(e: Event) => this.patchDialog({ route: (e.target as HTMLInputElement).value, file: d.fileTouched ? d.file : fileForRoute((e.target as HTMLInputElement).value, this.files) })}></label>
                 <label>Page file<input name="file" .value=${d.file} @input=${(e: Event) => this.patchDialog({ file: (e.target as HTMLInputElement).value, fileTouched: true })}></label>
-                <label>Template<select name="template" @change=${(e: Event) => this.patchDialog({ template: (e.target as HTMLSelectElement).value })}>
+                <label>Template<ve-select name="template" @change=${(e: Event) => this.patchDialog({ template: (e.target as HTMLSelectElement).value })}>
                     ${SCREEN_TEMPLATES.map((t) => html`<option value=${t.id} ?selected=${t.id === d.template}>${t.label}</option>`)}
-                </select></label>
+                </ve-select></label>
                 ${error}${buttons('Create', run)}</div>`
         }
         if (d.kind === 'route') {
@@ -451,13 +453,13 @@ export class MountBoard extends LitElement {
         const run = () => this.apply(() => addArrow(this.files, d.from, d.to, d.arrow, d.place, d.label))
         return html`<div class="dialog" role="dialog" aria-label="Link screens" style=${style} @keydown=${onKey(run)}>
             <h4>/${d.from.route ?? d.from.file} → /${d.to.route}</h4>
-            <label>What takes you there<select name="arrow" @change=${(e: Event) => {
+            <label>What takes you there<ve-select name="arrow" @change=${(e: Event) => {
                 const arrow = (e.target as HTMLSelectElement).value as ArrowKind
                 this.patchDialog({ arrow, place: arrowPlaces(this.files, d.from, arrow)[0]?.id ?? '' })
-            }}>${kinds.map((k) => html`<option value=${k} ?selected=${k === d.arrow}>${ARROW_LABELS[k]}</option>`)}</select></label>
-            ${places.length > 1 || d.arrow !== 'row' ? html`<label>${d.arrow === 'menu' ? 'Menu group' : d.arrow === 'save' ? 'Action' : 'Where'}<select name="place"
+            }}>${kinds.map((k) => html`<option value=${k} ?selected=${k === d.arrow}>${ARROW_LABELS[k]}</option>`)}</ve-select></label>
+            ${places.length > 1 || d.arrow !== 'row' ? html`<label>${d.arrow === 'menu' ? 'Menu group' : d.arrow === 'save' ? 'Action' : 'Where'}<ve-select name="place"
                 @change=${(e: Event) => this.patchDialog({ place: (e.target as HTMLSelectElement).value })}>
-                ${places.map((p) => html`<option value=${p.id} ?selected=${p.id === d.place}>${p.label}</option>`)}</select></label>` : nothing}
+                ${places.map((p) => html`<option value=${p.id} ?selected=${p.id === d.place}>${p.label}</option>`)}</ve-select></label>` : nothing}
             ${d.arrow === 'menu' || d.arrow === 'button' ? html`<label>Label<input name="label" .value=${d.label} @input=${(e: Event) => this.patchDialog({ label: (e.target as HTMLInputElement).value })}></label>` : nothing}
             ${error}${buttons('Create', run)}</div>`
     }

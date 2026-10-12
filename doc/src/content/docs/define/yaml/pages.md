@@ -74,6 +74,39 @@ content:
         dataType: date
 ```
 
+## Page type — `pageType:`
+
+A page has a coarse **page type** — `landing`, `collection`, `detail`, `form`, `process` or
+`dashboard` (the Redwood page-template families). It sets the page's default width (form, process
+and landing pages are capped; collection, detail and dashboard pages defer to their content) and is
+stamped on the rendered page as `data-page-type`. A Java view declares it with
+`@PageTemplate(PageType.X)`; a YAML page declares it with a top-level `pageType:` key, beside
+`layout:` (or beside `type:` in a bare tree):
+
+```yaml
+pageType: landing
+layout:
+  type: VerticalLayout
+  content:
+    - type: HeroSection
+      title: Welcome
+```
+
+- **Declared, it wins** over the type inferred from the content or from a bound `viewModel:` — the
+  same precedence as `@PageTemplate` (and, like the definition's `layout:`, over a `@PageTemplate`
+  on the view model it binds, since the definition is the more specific of the two).
+- **Absent, nothing changes**: the type is inferred as before.
+- Matched without regard to case; an unknown value is ignored (and logged), so a typo never costs
+  the page.
+- It reaches the wire on every path — served by Java, .NET or Python, pre-rendered into a static
+  bundle, or expanded in the browser from a `specsOnly` bundle — and every renderer (Vaadin,
+  Redwood) reads it from there.
+
+The New › Mateu › Page… templates (IntelliJ and VS Code) already write the right one: Welcome and
+Hero Search → `landing`; Listing, Smart Search, To-do List, Calendar, Collection Detail and the
+grid-like pages → `collection`; General/Item Overview, Foldout and Gantt → `detail`; Dashboard →
+`dashboard`; Wizard step → `process`; Form → `form`. The blank layout leaves it to inference.
+
 ## Available types
 
 All component types from the [`io.mateu.uidl.data`](/java-ui-definition/supported-components/) package are supported.

@@ -82,7 +82,7 @@ those children as its options — the tabs of a record master. See the
 | `AUTO` | Framework picks the variant from the menu shape (see below) |
 | `MEDIATOR` | Used for nested sub-applications acting as a mediator |
 
-With `AUTO` (the default), the variant is inferred from the menu: if any top-level item has grandchildren (menu depth > 2) → `TILES`; more than 7 top-level items → `HAMBURGER_MENU`; otherwise `MENU_ON_TOP`. An app with no submenus at all renders as `TABS`. See [Navigation & Menus](/ux-patterns/navigation/) for the full behaviour of each variant.
+With `AUTO` (the default), the variant is inferred from the menu: a menu that federates a `RemoteMenu` → `MENU_ON_TOP`; if any top-level item has grandchildren (menu depth > 2) → `TILES`; more than 7 top-level items → `HAMBURGER_MENU`; otherwise `MENU_ON_TOP`. An app with no submenus at all renders as `TABS`, however many items it has. See [Navigation & Menus](/ux-patterns/navigation/) for the full behaviour of each variant.
 
 **`AppLayout` values:**
 

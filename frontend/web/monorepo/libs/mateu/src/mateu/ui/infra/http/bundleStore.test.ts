@@ -6,7 +6,30 @@ import {
     getBundledIncrement,
     matchBundledTemplate,
     __setBundleForTests,
+    isForeignBaseUrl,
+    setBundleBaseUrl,
 } from './bundleStore'
+
+describe('isForeignBaseUrl / setBundleBaseUrl (the visual editor\'s Play)', () => {
+    afterEach(() => setBundleBaseUrl(undefined))
+
+    it('a relative or empty base is the page\'s own', () => {
+        expect(isForeignBaseUrl('')).toBe(false)
+        expect(isForeignBaseUrl(undefined)).toBe(false)
+        expect(isForeignBaseUrl('/shop')).toBe(false)
+    })
+
+    it('another origin is foreign — unless the bundle declares it is the app served there', () => {
+        expect(isForeignBaseUrl('http://127.0.0.1:4711')).toBe(true)
+        setBundleBaseUrl('http://127.0.0.1:4711/')
+        expect(isForeignBaseUrl('http://127.0.0.1:4711')).toBe(false)
+        expect(isForeignBaseUrl('http://127.0.0.1:4711/')).toBe(false)
+        // a federated remote somewhere else stays foreign
+        expect(isForeignBaseUrl('http://remote.example.com')).toBe(true)
+        setBundleBaseUrl(undefined)
+        expect(isForeignBaseUrl('http://127.0.0.1:4711')).toBe(true)
+    })
+})
 
 describe('toSyncPath', () => {
     it('mirrors the server exporter / AxiosMateuApiClient', () => {

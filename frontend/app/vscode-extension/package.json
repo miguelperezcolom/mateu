@@ -18,6 +18,9 @@
   "engines": {
     "vscode": "^1.85.0"
   },
+  "extensionDependencies": [
+    "redhat.vscode-yaml"
+  ],
   "categories": [
     "Visualization",
     "Programming Languages",

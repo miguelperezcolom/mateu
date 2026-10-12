@@ -1,6 +1,7 @@
 import { LitElement, html, css, nothing, PropertyValues } from 'lit'
 import { customElement, property, state, query } from 'lit/decorators.js'
 import { comboMatches, type ComboOption } from './comboModel'
+import { currentViewport, placePanel, placementStyle, trackOpenPanel } from './placement'
 
 /**
  * <ve-combo> — a text field that also offers a list to pick from: a route, an action id, a view
@@ -12,26 +13,29 @@ import { comboMatches, type ComboOption } from './comboModel'
  *
  * Drop-in for `<input .value @change>`: it exposes `value` and dispatches `change` (and `input`),
  * so a handler reading `(e.target as HTMLInputElement).value` keeps working.
+ *
+ * The list is placed by placement.ts: below the field, or above it when there is more room there,
+ * never past the viewport and never cut by the scrolling pane it sits in.
  */
 @customElement('ve-combo')
 export class VeCombo extends LitElement {
     static styles = css`
         :host { display: block; position: relative; min-width: 0; }
-        .box { display: flex; align-items: stretch; border: 1px solid var(--ve-input-border, #d7dade); border-radius: 6px;
-               background: var(--ve-base, #fff); }
-        .box:focus-within { border-color: var(--ve-accent, #1676f3); }
+        .box { display: flex; align-items: stretch; border: 1px solid var(--ve-input-border); border-radius: 6px;
+               background: var(--ve-base); }
+        .box:focus-within { border-color: var(--ve-primary); }
         input { flex: 1; min-width: 0; border: none; outline: none; background: transparent; color: inherit;
                 font: inherit; padding: 0.3rem 0.45rem; }
-        button.toggle { border: none; border-left: 1px solid var(--ve-input-border, #d7dade); background: transparent;
-                        color: var(--ve-secondary, #6b7280); cursor: pointer; padding: 0 0.45rem; font-size: 10px; }
-        button.toggle:hover { background: var(--ve-hover, #f1f3f5); }
-        ul { position: absolute; z-index: 50; left: 0; right: 0; top: calc(100% + 2px); max-height: 15rem; overflow: auto;
-             margin: 0; padding: 0.2rem 0; list-style: none; background: var(--ve-base, #fff); color: var(--ve-text, #111827);
-             border: 1px solid var(--ve-border, #e3e5e8); border-radius: 6px; box-shadow: 0 6px 20px rgba(0,0,0,.12); }
+        button.toggle { border: none; border-left: 1px solid var(--ve-input-border); background: transparent;
+                        color: var(--ve-secondary); cursor: pointer; padding: 0 0.45rem; font-size: 10px; }
+        button.toggle:hover { background: var(--ve-hover); }
+        ul { z-index: 1000; overflow: auto; box-sizing: border-box;
+             margin: 0; padding: 0.2rem 0; list-style: none; background: var(--ve-base); color: var(--ve-text);
+             border: 1px solid var(--ve-border); border-radius: 6px; box-shadow: var(--ve-shadow-popup); }
         li { padding: 0.3rem 0.55rem; cursor: pointer; display: flex; gap: 0.5rem; align-items: baseline; }
-        li[aria-selected="true"], li:hover { background: var(--ve-hover, #eef2ff); }
-        li .hint { color: var(--ve-tertiary, #9ca3af); font-size: 11px; margin-left: auto; white-space: nowrap; }
-        li.empty { color: var(--ve-tertiary, #9ca3af); cursor: default; }
+        li[aria-selected="true"], li:hover { background: var(--ve-hover); }
+        li .hint { color: var(--ve-tertiary); font-size: 11px; margin-left: auto; white-space: nowrap; }
+        li.empty { color: var(--ve-tertiary); cursor: default; }
         li.empty:hover { background: transparent; }
     `
 
@@ -46,14 +50,41 @@ export class VeCombo extends LitElement {
     @state() private open = false
     @state() private filter = ''
     @state() private active = -1
+    @state() private panelStyle = ''
     @query('input') private inputEl!: HTMLInputElement
+    private untrack?: () => void
 
     private get items(): ComboOption[] {
         return comboMatches(this.options, this.filter)
     }
 
+    protected willUpdate(changed: PropertyValues) {
+        // place the list as it opens (and keep it placed while it is open — see placement.ts)
+        if (changed.has('open')) {
+            if (this.open) {
+                this.place()
+                this.untrack = trackOpenPanel(this, () => this.place(), () => { this.open = false })
+            } else {
+                this.untrack?.()
+                this.untrack = undefined
+            }
+        }
+    }
+
     protected updated(changed: PropertyValues) {
         if (changed.has('value') && this.inputEl && this.inputEl.value !== this.value) this.inputEl.value = this.value ?? ''
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback()
+        this.untrack?.()
+        this.untrack = undefined
+    }
+
+    private place() {
+        const box = (this.renderRoot.querySelector('.box') as HTMLElement | null) ?? this
+        const p = placePanel(box.getBoundingClientRect(), currentViewport(), { preferredHeight: 240 })
+        this.panelStyle = placementStyle(p)
     }
 
     render() {
@@ -68,7 +99,7 @@ export class VeCombo extends LitElement {
                         @mousedown=${(e: Event) => e.preventDefault()} @click=${this.toggle}>▾</button>
             </div>
             ${this.open ? html`
-                <ul role="listbox">
+                <ul role="listbox" style=${this.panelStyle}>
                     ${items.length
                         ? items.map((o, i) => html`
                             <li role="option" aria-selected=${i === this.active ? 'true' : 'false'}

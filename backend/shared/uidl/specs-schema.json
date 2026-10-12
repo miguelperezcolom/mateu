@@ -170,6 +170,11 @@
             "$ref" : "#/$defs/Trigger"
           },
           "description" : "Triggers this page fires without a click: on load, on a custom event or on a value change. Each entry is discriminated by `type` (OnLoadTrigger, OnCustomEventTrigger, OnValueChangeTrigger …) and names the action it runs."
+        },
+        "pageType" : {
+          "type" : "string",
+          "enum" : [ "landing", "collection", "detail", "form", "process", "dashboard" ],
+          "description" : "The page's coarse template type (the YAML twin of @PageTemplate): landing, collection, detail, form, process or dashboard. Declared, it wins over the type inferred from the content; it drives the page's default width. Omit it to keep the inference."
         }
       }
     } ]

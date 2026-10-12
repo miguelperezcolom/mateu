@@ -8,6 +8,7 @@ import { STEP_TYPES, stepParam, type FlowStep, type RawAction } from '../model/f
 import type { ProjectIndex } from '../model/projectIndex'
 import '../widgets/ve-combo'
 import type { ComboOption } from '../widgets/comboModel'
+import '../widgets/ve-select'
 
 /**
  * The ACTION catalogue editor (`actions.yaml`, any `type: Actions` file): one card per named action —
@@ -25,13 +26,14 @@ export class ActionsEditor extends LitElement {
         .card { margin: 0.5rem 1rem; border: 1px solid var(--ve-border, #e3e5e8); border-radius: 8px; padding: 0.6rem 0.75rem; }
         .grid { display: grid; grid-template-columns: 7rem 1fr; gap: 0.35rem 0.6rem; align-items: center; }
         label { color: var(--ve-secondary, #6b7280); font-size: 12px; }
-        input, select { width: 100%; padding: 0.35rem 0.45rem; font: 13px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade);
+        ve-select { display: block; width: 100%; font: 13px var(--ve-font, system-ui); --ve-select-radius: 6px; --ve-select-padding: 0.35rem 0.45rem; }
+        input { width: 100%; padding: 0.35rem 0.45rem; font: 13px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade);
                 border-radius: 6px; box-sizing: border-box; background: var(--ve-base, #fff); color: inherit; }
         input.id { font-weight: 600; }
         .kind { display: inline-block; font-size: 11px; padding: 0 0.4rem; border-radius: 999px; background: var(--ve-surface, #f3f4f6); color: var(--ve-secondary, #6b7280); }
         .steps { margin-top: 0.5rem; display: grid; gap: 0.3rem; }
         .step { display: flex; gap: 0.35rem; align-items: center; }
-        .step select { width: 9rem; flex: none; }
+        .step ve-select { width: 9rem; flex: none; }
         .step input, .step ve-combo { flex: 1; }
         .step .sep { flex: 1; }
         .row-end { margin-top: 0.4rem; display: flex; justify-content: space-between; align-items: center; color: var(--ve-tertiary, #9ca3af); font-size: 11px; gap: 0.5rem; }
@@ -102,9 +104,9 @@ export class ActionsEditor extends LitElement {
         const p = stepParam(s.type)
         const others: ComboOption[] = catalogueIds(this.doc).filter((x) => x !== id).map((x) => ({ value: x, hint: 'catalog' }))
         return html`<div class="step">
-            <select @change=${(e: Event) => this.setStep(id, steps, i, 'type', (e.target as HTMLSelectElement).value)}>
+            <ve-select @change=${(e: Event) => this.setStep(id, steps, i, 'type', (e.target as HTMLSelectElement).value)}>
                 ${STEP_TYPES.map((t) => html`<option value=${t} ?selected=${t === s.type}>${t}</option>`)}
-            </select>
+            </ve-select>
             ${!p ? html`<span class="sep"></span>`
                 : p.key === 'event'
                     ? html`<input placeholder=${p.label} .value=${(s[p.key] as string) ?? ''}

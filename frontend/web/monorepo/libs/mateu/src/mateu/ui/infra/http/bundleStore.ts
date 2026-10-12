@@ -365,10 +365,26 @@ export const resolveRemoteBundledLoad = async (
     }
 }
 
+/** A base URL the loaded bundle answers for although it is another origin (see {@link setBundleBaseUrl}). */
+let bundleBaseUrl: string | undefined
+
+const sameBase = (a: string, b: string) => a.replace(/\/+$/, '') === b.replace(/\/+$/, '')
+
+/**
+ * Declare that the loaded bundle is the app served at `baseUrl`, although that is another origin
+ * than the page's — the visual editor's Play: the mount runs from the files as edited, and the
+ * configured preview backend (VS Code's loopback server, a typed URL) only answers what the bundle
+ * cannot. `undefined` clears it. A federated remote at any other origin stays foreign.
+ */
+export function setBundleBaseUrl(baseUrl: string | undefined): void {
+    bundleBaseUrl = baseUrl || undefined
+}
+
 /** True when a base URL points at ANOTHER origin than the page's: a federated remote's server, which
  *  the page's own bundle must never answer for (it would hand the remote's menu load the shell). */
 export const isForeignBaseUrl = (baseUrl: string | undefined): boolean => {
     if (!baseUrl || !/^https?:\/\//i.test(baseUrl)) return false
+    if (bundleBaseUrl && sameBase(baseUrl, bundleBaseUrl)) return false
     try {
         return typeof window === 'undefined' || new URL(baseUrl).origin !== window.location.origin
     } catch {

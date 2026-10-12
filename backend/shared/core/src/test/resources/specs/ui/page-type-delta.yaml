@@ -1,0 +1,8 @@
+# A layout DELTA (no layout snapshot) declaring its page type: the inferred page keeps re-deriving,
+# and the declared type still reaches the wire. Used by YamlPageTypeSyncTest.
+viewModel: io.mateu.core.application.YamlPageTypeSyncTest$PlainView
+pageType: detail
+layoutDelta:
+  overrides:
+    name:
+      label: "Full name"

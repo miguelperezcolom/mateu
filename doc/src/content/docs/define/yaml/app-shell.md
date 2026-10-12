@@ -56,7 +56,7 @@ point.
 | `type` | `AppShell` — the discriminator that makes this file an app shell |
 | `title`, `subtitle`, `pageTitle` | header texts |
 | `logo`, `favicon` | assets |
-| `variant` | `AppVariant` — `AUTO`, `MENU_ON_TOP`, `HAMBURGER_MENU`, `TABS`, `TILES` |
+| `variant` | `AppVariant` — `AUTO`, `MENU_ON_TOP`, `HAMBURGER_MENU`, `HAMBURGER_SECTIONS`, `MENU_ON_LEFT`, `RAIL`, `TABS`, `TILES` (see [shell variants](/ux/app-structure/#the-app-shell-and-its-variants)) |
 | `layout` | `AppLayout` — `SINGLE_SLOT` (default) or `SPLIT` |
 | `drawerClosed` | start with the drawer collapsed |
 | `accentColor` | the brand accent, a CSS colour (`"#D2232A"`): the accent strip (under page headers, on top of listings, at the foot of the hero), the hero background and the console name — the twin of `@App(accentColor)` |

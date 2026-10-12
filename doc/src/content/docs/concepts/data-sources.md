@@ -3,6 +3,10 @@ title: "The REST source catalogue"
 description: "Declare each endpoint your UI consumes once, and reference it by name from any screen."
 ---
 
+:::tip[Part of the map]
+This page covers one of the [building blocks of a Mateu UI](/concepts/building-blocks/).
+:::
+
 A screen can declare a REST endpoint inline, right where it is consumed:
 
 ```java

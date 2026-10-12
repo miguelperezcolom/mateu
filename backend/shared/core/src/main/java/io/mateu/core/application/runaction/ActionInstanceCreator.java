@@ -171,7 +171,7 @@ public class ActionInstanceCreator {
     }
     if (spec.modelView() == null || spec.modelView().isBlank()) {
       return Mono.justOrEmpty(
-          seedBareLayout(spec.layout(), spec.actions(), spec.triggers(), command));
+          seedBareLayout(spec.layout(), spec.actions(), spec.triggers(), spec.pageType(), command));
     }
     return createInstanceAndPostHydrate(spec.modelView(), command);
   }
@@ -193,6 +193,7 @@ public class ActionInstanceCreator {
       io.mateu.uidl.fluent.Component layout,
       java.util.List<io.mateu.uidl.fluent.Action> actions,
       java.util.List<io.mateu.uidl.fluent.Trigger> triggers,
+      String pageType,
       RunActionCommand command) {
     if (layout == null) {
       return null;
@@ -205,14 +206,15 @@ public class ActionInstanceCreator {
     if (match == null || match.entry() == null) {
       // No registry entry (e.g. a convention-only page): nothing to seed, but declared actions and
       // triggers still have to travel.
-      return declaredActions.isEmpty() && declaredTriggers.isEmpty()
+      return declaredActions.isEmpty() && declaredTriggers.isEmpty() && pageType == null
           ? layout
           : new SeededYamlPage(
               layout,
               command.componentState(),
               declaredActions,
               declaredTriggers,
-              restSourceRegistry.catalog());
+              restSourceRegistry.catalog(),
+              pageType);
     }
     var entry = match.entry();
     var httpRequest = command.httpRequest();
@@ -226,7 +228,9 @@ public class ActionInstanceCreator {
             || !entry.defaultParams().isEmpty()
             || !entry.fixedParams().isEmpty()
             || hasQueryParams;
-    if (!seeds && declaredActions.isEmpty() && declaredTriggers.isEmpty()) {
+    // A declared `pageType:` has to reach the wire too, and a bare layout carries no page type —
+    // so, like declared actions, it is a reason to wrap.
+    if (!seeds && declaredActions.isEmpty() && declaredTriggers.isEmpty() && pageType == null) {
       return layout; // a static page: keep the bare-layout shape (unchanged wire)
     }
     var resolved =
@@ -235,7 +239,7 @@ public class ActionInstanceCreator {
         RouteSegmentUtils.addParameterValues(
             command.componentState(), pathOnly, resolved, httpRequest);
     return new SeededYamlPage(
-        layout, state, declaredActions, declaredTriggers, restSourceRegistry.catalog());
+        layout, state, declaredActions, declaredTriggers, restSourceRegistry.catalog(), pageType);
   }
 
   /**

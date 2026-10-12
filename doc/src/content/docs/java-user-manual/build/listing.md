@@ -180,7 +180,7 @@ Use `AutoCrud<T>` (or `FilteredAutoCrud<Filters,T>`) when a single entity backed
 
 ## Bulk import
 
-Implement `UploadEnabled` to add an import button to the toolbar. See [Listing (reference) — Bulk import](/java-ui-definition/interfaces/listing/#bulk-import----uploadenabled) for the full pattern.
+Implement `UploadEnabled` to add an import button to the toolbar. See [Listing (reference) — Bulk import](/java-ui-definition/interfaces/listing/#bulk-import--uploadenabled) for the full pattern.
 
 ---
 

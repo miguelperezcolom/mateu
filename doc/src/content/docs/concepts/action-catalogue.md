@@ -3,6 +3,10 @@ title: "The action catalogue"
 description: "Declare a client-runnable action once — a flow or a REST call — and run it by id from the shell menu or any page."
 ---
 
+:::tip[Part of the map]
+This page covers one of the [building blocks of a Mateu UI](/concepts/building-blocks/).
+:::
+
 An action that runs in the browser has always lived with its owner:
 
 - a page definition's [`actions:`](/define/yaml/pages/) (a flow with `steps:`, or a `restAction`);

@@ -2,6 +2,9 @@ import { LitElement, html, css } from 'lit'
 import '../widgets/ve-combo'
 import '../widgets/ve-access'
 import '../widgets/ve-image-picker'
+import '../widgets/ve-icon-picker'
+import { isIconProp } from '../model/iconCatalog'
+import { PAGE_TYPES, PAGE_TYPE_LABELS } from '../model/pageType'
 import { isImageProp, type ProjectImage } from '../model/projectImages'
 import { COMPONENT_ACCESS_KEYS, restricts } from '../model/access'
 import { translationKeys } from '../model/translationsModel'
@@ -12,6 +15,7 @@ import { PropSpec, slotProps } from '../model/componentSchema'
 import { specFor } from '../model/schemaCatalog'
 import { catalogueActionOptions, type ProjectIndex } from '../model/projectIndex'
 import type { ContractMembers } from '../model/contract'
+import '../widgets/ve-select'
 
 /**
  * The properties pane (right). Driven by the generated component schema: for the selected node it
@@ -39,24 +43,27 @@ export class EditorProperties extends LitElement {
         .type { padding: 0.5rem 0.75rem; font: 600 13px var(--ve-font, system-ui); color: var(--ve-text, #111827); }
         .section { padding: 0.15rem 0.75rem 0.1rem; font: 600 10px var(--ve-font, system-ui); text-transform: uppercase; letter-spacing: .04em; color: var(--ve-tertiary, #9ca3af); margin-top: 0.35rem; }
         label { display: block; padding: 0.25rem 0.75rem 0; font: 11px var(--ve-font, system-ui); color: var(--ve-secondary, #6b7280); }
-        label .req { color: #d1495b; }
-        input, select { display: block; width: calc(100% - 1.5rem); margin: 0.1rem 0.75rem 0.35rem; padding: 0.35rem 0.5rem;
+        label .req { color: var(--ve-error); }
+        ve-select { display: block; width: calc(100% - 1.5rem); margin: 0.1rem 0.75rem 0.35rem; box-sizing: border-box;
+                font: 13px var(--ve-font, system-ui); --ve-select-radius: 6px; --ve-select-padding: 0.35rem 0.5rem; }
+        input { display: block; width: calc(100% - 1.5rem); margin: 0.1rem 0.75rem 0.35rem; padding: 0.35rem 0.5rem;
                 font: 13px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade); border-radius: 6px; box-sizing: border-box; background: var(--ve-base, #fff); color: inherit; }
         textarea.note { display: block; width: calc(100% - 1.5rem); margin: 0.1rem 0.75rem 0.35rem; padding: 0.35rem 0.5rem; resize: vertical;
-                font: 12px var(--ve-font, system-ui); border: 1px solid #ecd98a; border-radius: 6px; box-sizing: border-box;
-                background: #fffbe6; color: #3b3200; }
+                font: 12px var(--ve-font, system-ui); border: 1px solid var(--ve-note-border); border-radius: 6px; box-sizing: border-box;
+                background: var(--ve-note-bg); color: var(--ve-note-ink); }
         .check { display: flex; align-items: center; gap: 0.4rem; padding: 0.2rem 0.75rem 0.35rem; font: 13px var(--ve-font, system-ui); color: var(--ve-text, #374151); }
         .check input { width: auto; margin: 0; }
         .muted { padding: 0.15rem 0.75rem 0.35rem; font: 12px var(--ve-font, system-ui); color: var(--ve-tertiary, #b0b6be); }
         .row { display: flex; gap: 0.4rem; padding: 0.6rem 0.75rem; border-top: 1px solid var(--ve-border, #e3e5e8); margin-top: 0.5rem; }
         .row button { flex: 1; padding: 0.4rem; font: 12px var(--ve-font, system-ui); background: var(--ve-base, #fff); color: inherit; border: 1px solid var(--ve-input-border, #d7dade);
                       border-radius: 6px; cursor: pointer; }
-        .row button.danger { color: var(--ve-error, #b00020); border-color: #f2c2c8; }
+        .row button.danger { color: var(--ve-error, #b00020); border-color: var(--ve-error-border); }
         .add { display: flex; gap: 0.4rem; padding: 0.4rem 0.75rem 0.6rem; }
         .add input { margin: 0; }
         .add button { padding: 0 0.6rem; font: 12px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade); border-radius: 6px; background: var(--ve-base, #fff); color: inherit; cursor: pointer; }
         .inline { display: flex; gap: 0.3rem; align-items: center; margin: 0.1rem 0.75rem 0.35rem; }
-        .inline input, .inline select { margin: 0; width: auto; flex: 1; min-width: 0; }
+        ve-image-picker, ve-icon-picker, ve-combo { margin: 0.1rem 0.75rem 0.35rem; }
+        .inline input, .inline ve-select, .inline ve-combo { margin: 0; width: auto; flex: 1; min-width: 0; }
         .inline button, .slots button { padding: 0.3rem 0.55rem; font: 12px var(--ve-font, system-ui); border: 1px solid var(--ve-input-border, #d7dade);
             border-radius: 6px; background: var(--ve-base, #fff); color: inherit; cursor: pointer; white-space: nowrap; }
         .slots { display: flex; flex-wrap: wrap; gap: 0.3rem; padding: 0.2rem 0.75rem 0.4rem; }
@@ -79,6 +86,13 @@ export class EditorProperties extends LitElement {
     @property({ attribute: false }) images: readonly ProjectImage[] = []
     /** Whether the host can copy a new image into the project ("Add image to project…"). */
     @property({ type: Boolean }) canAddImage = false
+    /** The project's renderer: the icon pickers offer the icons it paints. */
+    @property() renderer = 'vaadin'
+    /**
+     * Set when the selected node is the PAGE (the definition's root): its page-level settings — today
+     * `pageType`, the YAML twin of @PageTemplate — show above its properties. `undefined` = not the page.
+     */
+    @property({ attribute: false }) page?: { pageType?: string }
     @state() private moreOpen = false
 
     render() {
@@ -102,7 +116,8 @@ export class EditorProperties extends LitElement {
         const more = known.filter((p) => !isPrimary(p))
         const knownNames = new Set([...known.map((p) => p.name), ...richNames, ...structural.map((p) => p.name), ...ACCESS_KEYS])
         // Props on the node the schema does not know (hand-authored, or a newer catalog) — keep editable.
-        const extra = scalarProps(node).filter((k) => k !== 'note' && !knownNames.has(k) && (node[k] == null || typeof node[k] !== 'object'))
+        const extra = scalarProps(node).filter((k) => k !== 'note' && !knownNames.has(k) && !(this.page && PAGE_KEYS.has(k))
+            && (node[k] == null || typeof node[k] !== 'object'))
 
         return html`
             <div class="title">Properties</div>
@@ -111,6 +126,8 @@ export class EditorProperties extends LitElement {
             <textarea id="ve-note" class="note" rows="2" placeholder="e.g. must be unique · only managers can change it"
                 .value=${typeof node.note === 'string' ? node.note : ''}
                 @change=${(e: Event) => this.fire('prop-changed', { key: 'note', value: (e.target as HTMLTextAreaElement).value.trim() })}></textarea>
+
+            ${this.page ? this.pageSection(this.page) : ''}
 
             ${known.length ? html`<div class="section">Properties</div>` : ''}
             ${primary.map((p) => this.field(p, node[p.name]))}
@@ -178,6 +195,24 @@ export class EditorProperties extends LitElement {
     }
 
     /**
+     * The page's own settings, shown when the root is selected. `pageType` is the coarse page family
+     * (the YAML twin of Java's @PageTemplate): the renderers infer it from the page's shape, so the
+     * empty choice — "inferred" — is the default and writes nothing.
+     */
+    private pageSection(page: { pageType?: string }) {
+        const current = typeof page.pageType === 'string' ? page.pageType : ''
+        const known = (PAGE_TYPES as readonly string[]).includes(current)
+        return html`
+            <div class="section">Page</div>
+            <label>pageType <span class="muted-inline">— the page family; inferred from its content when empty</span></label>
+            <ve-select class="page-type" @change=${(e: Event) => this.fire('page-prop-changed', { key: 'pageType', value: (e.target as HTMLSelectElement).value })}>
+                <option value="" ?selected=${!current}>inferred</option>
+                ${PAGE_TYPES.map((t) => html`<option value=${t} ?selected=${t === current} title=${PAGE_TYPE_LABELS[t]}>${t}</option>`)}
+                ${current && !known ? html`<option value=${current} selected>${current} (unknown)</option>` : ''}
+            </ve-select>`
+    }
+
+    /**
      * Who may see / edit / use this component: `eyesOnly`, `readOnlyUnless`, `disabledUnless` (the
      * YAML twins of the annotations). Decided on the server per request; cosmetic in Play.
      */
@@ -212,6 +247,7 @@ export class EditorProperties extends LitElement {
     private field(p: PropSpec, value: unknown) {
         const req = p.required ? html`<span class="req"> *</span>` : ''
         if (isImageProp(p.name, p)) return this.imageField(p.name, value, req)
+        if (isIconProp(p.name, p)) return this.iconField(p.name, value, req)
         // References that pick from another file / the data source: partial ref, field id, action id.
         const options = this.pickerOptionsFor(p.name)
         if (options) {
@@ -235,10 +271,10 @@ export class EditorProperties extends LitElement {
         if (p.kind === 'enum') {
             return html`
                 <label>${p.name}${req}</label>
-                <select @change=${(e: Event) => this.emit(p.name, (e.target as HTMLSelectElement).value)}>
+                <ve-select @change=${(e: Event) => this.emit(p.name, (e.target as HTMLSelectElement).value)}>
                     <option value="" ?selected=${value == null || value === ''}></option>
                     ${(p.values ?? []).map((v) => html`<option value=${v} ?selected=${value === v}>${v}</option>`)}
-                </select>`
+                </ve-select>`
         }
         const type = p.kind === 'number' ? 'number' : 'text'
         if (p.name === 'id' && BOUND.has(this.node?.type ?? '') && typeof value === 'string' && value) {
@@ -265,14 +301,14 @@ export class EditorProperties extends LitElement {
             const url = typeof v.url === 'string' ? v.url : ''
             return html`
                 <label>${p.name} <span class="muted-inline">(REST source)</span></label>
-                <select @change=${(e: Event) => {
+                <ve-select @change=${(e: Event) => {
                     const name = (e.target as HTMLSelectElement).value
                     this.emit(p.name, name ? { ...omitKeys(v, ['url']), ref: name } : (url ? omitKeys(v, ['ref']) : ''))
                 }}>
                     <option value="" ?selected=${!ref}>${sources.length ? '— inline url —' : '— no sources.yaml —'}</option>
                     ${sources.map((s) => html`<option value=${s.name} ?selected=${s.name === ref} title=${s.description ?? ''}>${s.name}</option>`)}
                     ${ref && !sources.some((s) => s.name === ref) ? html`<option value=${ref} selected>${ref} (unknown)</option>` : ''}
-                </select>
+                </ve-select>
                 ${ref ? '' : html`<input placeholder="https://api.example.com/items" .value=${url}
                     @change=${(e: Event) => {
                         const u = (e.target as HTMLInputElement).value.trim()
@@ -316,8 +352,17 @@ export class EditorProperties extends LitElement {
                 @change=${(e: Event) => this.emit(key, (e.target as HTMLInputElement).value)}></ve-image-picker>`
     }
 
+    /** An icon property: free text plus a searchable picker of the renderer's icons (see ve-icon-picker). */
+    private iconField(key: string, value: unknown, req: unknown = '') {
+        return html`
+            <label>${key}${req}</label>
+            <ve-icon-picker .renderer=${this.renderer} .value=${value == null ? '' : String(value)}
+                @change=${(e: Event) => this.emit(key, (e.target as HTMLInputElement).value)}></ve-icon-picker>`
+    }
+
     private textField(key: string, value: unknown) {
         if (isImageProp(key) && (value == null || typeof value === 'string')) return this.imageField(key, value)
+        if (isIconProp(key) && (value == null || typeof value === 'string')) return this.iconField(key, value)
         const options = this.pickerOptionsFor(key)
         return html`
             <label>${key}</label>
@@ -373,6 +418,9 @@ const COMMON: Record<string, string[]> = {
     Tab: ['label', 'routeKey', 'badge', 'active'],
     TabLayout: ['variant', 'orientation'],
 }
+
+/** Page-level keys edited in the Page section (not repeated under "Other" when they sit on a bare root). */
+const PAGE_KEYS = new Set(['pageType'])
 
 /** The access overlay keys every component accepts (edited in the Access section). */
 const ACCESS_KEYS = COMPONENT_ACCESS_KEYS.map((k) => k.key)

@@ -1,5 +1,6 @@
 # Gantt page: a title over the timeline. onTaskSelectionActionId makes bars clickable.
 type: VerticalLayout
+pageType: detail
 __PAGE_WIDTH__
 content:
   - {type: Text, text: __TITLE__, container: h2}

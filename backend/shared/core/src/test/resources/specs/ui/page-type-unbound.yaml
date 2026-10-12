@@ -1,0 +1,10 @@
+# A definition bound to a view model with NO pageType: the type is inferred (`form`).
+# Used by YamlPageTypeSyncTest.
+viewModel: io.mateu.core.application.YamlPageTypeSyncTest$PlainView
+layout:
+  type: VerticalLayout
+  content:
+    - type: FormField
+      id: name
+      label: "Name"
+      dataType: string

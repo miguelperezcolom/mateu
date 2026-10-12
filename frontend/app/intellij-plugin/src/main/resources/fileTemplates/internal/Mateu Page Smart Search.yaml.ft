@@ -1,6 +1,7 @@
 # Smart Search: search-first. Starts empty (no OnLoad trigger); the keyword search and the
 # filters are the smart search bar.
 type: VerticalLayout
+pageType: collection
 __PAGE_WIDTH__
 content:
   - {type: Text, text: __TITLE__, container: h2}

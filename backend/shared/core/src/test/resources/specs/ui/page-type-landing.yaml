@@ -1,0 +1,9 @@
+# A definition-only page that DECLARES its page type — the YAML twin of @PageTemplate. Nothing else
+# makes it a server-side component (no actions, no seeds), so the declared type is the only reason
+# it is wrapped. Used by YamlPageTypeSyncTest.
+pageType: landing
+layout:
+  type: VerticalLayout
+  content:
+    - type: Text
+      text: "Welcome"

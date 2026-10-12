@@ -1,5 +1,6 @@
 # Hero search: a centered hero hosting the search, results as cards below.
 type: VerticalLayout
+pageType: landing
 __PAGE_WIDTH__
 content:
   - type: HeroSection

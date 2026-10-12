@@ -6,6 +6,10 @@ description: "Three ways to author a Mateu UI — YAML with the visual editor, c
 There are three ways to author a Mateu UI. They sit at the same level: none is the "real" one and
 the others a shortcut, because all of them produce the same [model](/mateu-about/the-model/).
 
+What you author is the same set of [building blocks](/concepts/building-blocks/) either way: a
+mount, an app shell, routes, pages, partials, actions, data sources, state and triggers, field
+types, translations, environments, access rules and project settings. Only the syntax changes.
+
 | Path | You write | Good for |
 |---|---|---|
 | [**YAML + visual editor**](/define/yaml/quickstart/) | YAML files under `specs/ui/`, by hand or with the [visual editor](/define/yaml/visual-editor/) | screens over APIs that already exist; teams without a backend of their own; static deployments |
@@ -25,7 +29,8 @@ it; the visual editor in IntelliJ and VS Code edits the same files on a canvas.
 - [Permissions](/define/yaml/permissions/), [Translations](/define/yaml/translations/),
   [Project settings](/define/yaml/project-settings/).
 - Shared with code: [routes](/concepts/routes-and-mounts/),
-  [data sources](/concepts/data-sources/), [actions](/concepts/action-catalogue/).
+  [data sources](/concepts/data-sources/), [actions](/concepts/action-catalogue/),
+  [state and triggers](/concepts/state-and-triggers/).
 
 ## Code: Java, C#, Python
 

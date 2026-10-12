@@ -1,5 +1,6 @@
 # Planning board: resources by days; dragging a block runs moveActionId, clicking selectActionId.
 type: PlanningBoard
+pageType: collection
 __PAGE_WIDTH__
 from: "2026-01-05"
 to: "2026-01-18"

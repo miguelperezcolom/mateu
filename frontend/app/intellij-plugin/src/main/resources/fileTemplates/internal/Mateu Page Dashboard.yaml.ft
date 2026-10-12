@@ -1,5 +1,6 @@
 # Dashboard: a KPI band over a grid of titled panels. A MetricCard with an actionId is clickable.
 type: VerticalLayout
+pageType: dashboard
 __PAGE_WIDTH__
 content:
   - {type: Text, text: __TITLE__, container: h2}

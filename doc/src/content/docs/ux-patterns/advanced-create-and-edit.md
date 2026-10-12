@@ -19,7 +19,7 @@ have — it is **composition**, the same slot grammar the archetypes are written
 | Page header — title, **cancel** (left) + **save/primary** (right) | `@Title` + `@Button`/`@Toolbar` (the header places cancel/back left, actions right) |
 | Header — **last updated** timestamp | [`@Timestamp("Last updated")`](/reference/key-annotations/) on a field |
 | Header — **contextual facts** ("at a glance") | [`@KPI`](/reference/key-annotations/) label/value fields |
-| Header — **next / previous object** | [`PeerNavigationSupplier`](/ux-patterns/page-templates/#peer-navigation) → prev/next arrows |
+| Header — **next / previous object** | [`PeerNavigationSupplier`](/ux/app-structure/#page-anatomy) → prev/next arrows |
 | **Main** slot — the sectioned form | `@Section` (and `@Zones`/tabs) fields |
 | **Anchor navigator** — sticky section index | [`@Toc`](/ux-patterns/sections-index/) |
 | **Detail slot** — a contextual side panel | [`@Aside`](/ux-patterns/layout-inference/#aside--a-content-page-from-a-plain-form) → a `ContentLayout` aside |

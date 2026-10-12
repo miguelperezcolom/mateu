@@ -11,6 +11,7 @@ import { expandDefinition, isClientExpandable, type DefinitionSpec } from '@infr
 import { expandComponent } from '@infra/expander/expandComponent'
 import { expectSubset } from '@infra/expander/__fixtures__/structuralSubset'
 import golden from '@infra/expander/__fixtures__/about.golden.json'
+import { pageTypeOf } from '@infra/ui/layout/pageWidth'
 
 // The parsed about.yaml (increment 2 owns loading + js-yaml parsing; here we hand the parsed object).
 const aboutSpec: DefinitionSpec = {
@@ -63,5 +64,44 @@ describe('client-side expander — bare-layout definition (Phase 6, increment 1)
 
     it('throws when a definition has no layout to expand', () => {
         expect(() => expandDefinition({ viewModel: 'io.example.Foo' }, 'x')).toThrow(/no layout/)
+    })
+})
+
+// `pageType:` — the YAML twin of @PageTemplate. It must reach the page from the browser expander
+// too, or a specsOnly bundle would size the page by inference while the served app uses the
+// declaration. The renderers read it off the fragment's top component (pageTypeOf).
+describe('client-side expander — declared pageType', () => {
+    it('stamps it on the root of a page with no behaviour, which stays unwrapped (case-insensitive)', () => {
+        const wire = expandDefinition({ ...aboutSpec, pageType: 'Landing' }, 'about', undefined, { path: 'about' })
+            .fragments![0].component as any
+        // unwrapped: the visual editor's canvas maps clicks through this very tree
+        expect(wire.type).toBe('ClientSide')
+        expect(wire.metadata.type).toBe('VerticalLayout')
+        expect(wire.pageType).toBe('landing')
+        expect(pageTypeOf(wire)).toBe('landing')
+    })
+
+    it('carries the type on the wrapper of a page with declared actions', () => {
+        const wire = expandDefinition({ ...aboutSpec, pageType: 'collection', actions: [{ id: 'save' }] }, 'about')
+            .fragments![0].component as any
+        expect(wire.type).toBe('ServerSide')
+        expect(wire.pageType).toBe('collection')
+        expect(pageTypeOf(wire)).toBe('collection')
+        expect(wire.actions.map((a: any) => a.id)).toContain('save')
+    })
+
+    it('leaves an undeclared or unknown type to inference: no wrapper, no pageType', () => {
+        for (const spec of [aboutSpec, { ...aboutSpec, pageType: 'banana' }]) {
+            const wire = expandDefinition(spec, 'about').fragments![0].component as any
+            expect(wire.type).toBe('ClientSide')
+            expect(wire.pageType).toBeUndefined()
+        }
+    })
+
+    it('reads the type off a BARE tree without leaking it into the root component', () => {
+        const wire = expandDefinition({ type: 'VerticalLayout', pageType: 'dashboard', content: [] }, 'x')
+            .fragments![0].component as any
+        expect(wire.pageType).toBe('dashboard')
+        expect(JSON.stringify(wire.metadata)).not.toContain('pageType')
     })
 })

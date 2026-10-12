@@ -87,19 +87,19 @@ export class EditorCanvas extends LitElement {
         /* Selection & hover overlays — an editor-owned layer drawn OVER the live render (Webflow/Figma
            style), positioned relative to the scrolling .host so it stays glued without per-scroll work. */
         .overlay { position: absolute; pointer-events: none; z-index: 20; box-sizing: border-box; }
-        .overlay.hover { border: 1px solid #9ec1ff; }
+        .overlay.hover { border: 1px solid var(--ve-hover-outline); }
         .overlay.sel { border: 2px solid var(--ve-primary, #4f8cff); }
         .tag { position: absolute; top: -18px; left: -2px; font: 600 10px/1.4 var(--ve-font, system-ui); padding: 1px 5px;
                border-radius: 4px 4px 0 0; white-space: nowrap; color: #fff; }
-        .overlay.hover .tag { background: #9ec1ff; }
+        .overlay.hover .tag { background: var(--ve-hover-outline); }
         .overlay.sel .tag { background: var(--ve-primary, #4f8cff); }
         .tag.below { top: auto; bottom: -18px; border-radius: 0 0 4px 4px; }
         .toolbar { position: absolute; top: -30px; right: -2px; display: flex; gap: 1px; pointer-events: auto;
                    background: var(--ve-primary, #4f8cff); border-radius: 6px; padding: 2px; box-shadow: 0 1px 4px rgba(0,0,0,.2); }
         .toolbar.below { top: auto; bottom: -30px; }
         .sticky { position: absolute; right: -2px; top: calc(100% + 4px); width: 14rem; max-height: 6.5rem; overflow: hidden; pointer-events: none;
-                  background: #fff6c4; color: #3b3200; border: 1px solid #ecd98a; border-radius: 4px; padding: 0.3rem 0.45rem;
-                  font: 11px/1.35 var(--ve-font, system-ui); box-shadow: 0 2px 6px rgba(0,0,0,.12); white-space: pre-wrap; z-index: 1; }
+                  background: var(--ve-note-bg); color: var(--ve-note-ink); border: 1px solid var(--ve-note-border); border-radius: 4px; padding: 0.3rem 0.45rem;
+                  font: 11px/1.35 var(--ve-font, system-ui); box-shadow: var(--ve-shadow-popup); white-space: pre-wrap; z-index: 1; }
         .sticky.below { top: calc(100% + 34px); }
         .toolbar button { border: none; background: transparent; color: #fff; cursor: pointer; font-size: 12px;
                           line-height: 1; padding: 3px 5px; border-radius: 4px; }

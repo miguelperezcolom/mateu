@@ -8,7 +8,7 @@
  * 8-pt rhythm the tokens encode. They creep in one at a time, each one looking harmless.
  *
  * What counts as a violation, in Mateu's sources (libs/mateu/src, apps/vaadin/src, apps/redwood/poc
- * templates + core):
+ * templates + core, apps/visual-editor/src):
  *  - a colour literal (#rgb/#rrggbb/#rrggbbaa, rgb()/rgba()/hsl()/hsla()) …
  *  - a px length > 2px on a spacing or type property (padding, margin, gap, inset/top/right/bottom/
  *    left, font-size) …
@@ -39,6 +39,9 @@ const SOURCES = [
     { dir: 'apps/vaadin/src', ext: ['.ts', '.css'] },
     { dir: 'apps/redwood/poc/templates', ext: ['.html'] },
     { dir: 'apps/redwood/poc/core', ext: ['.mjs'] },
+    // the visual editor's chrome: its own --ve-* tokens (light + dark, mateu-visual-editor.ts), so an
+    // IDE in a dark theme never gets a light menu or popup
+    { dir: 'apps/visual-editor/src', ext: ['.ts'] },
 ]
 const SKIP = /(\.test\.|\/test\/|\/__tests__\/|\.d\.ts$|\/fixtures\/|\/assets\/)/
 

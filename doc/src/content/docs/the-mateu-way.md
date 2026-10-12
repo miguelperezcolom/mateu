@@ -199,6 +199,7 @@ golden path stays *seen* without the exceptions adding noise to it.
 
 ## Next
 
+- [The UX guide](/ux/) — the structure of an app, the [page types](/ux/page-types/) in YAML and code, and the components
 - [Choosing a page template](/ux-patterns/choosing-a-page-template/) — the fine-grained decision guide, family by family
 - [Quickstart](/java-user-manual/start-here/quickstart/) — a running app in minutes
 - [How Mateu works](/mateu-about/how-mateu-works/) — the mental model underneath

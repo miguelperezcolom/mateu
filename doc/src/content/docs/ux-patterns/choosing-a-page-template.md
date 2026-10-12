@@ -16,7 +16,8 @@ decision you make — Mateu infers the template itself only in two specific case
 (layout, widgets, sections) is where inference does the heavy lifting.
 
 For the catalog (template → Mateu piece → demo route) see [Page templates](/ux-patterns/page-templates/). This
-page is the *how do I pick one*.
+page is the *how do I pick one*. For each of the six page types with its anatomy and a minimal YAML and
+code example, see [Page types](/ux/page-types/).
 
 ## Step 1 — Category, from the user's goal
 
@@ -74,8 +75,8 @@ wrong for your case.
 | An overview across the top + several categories in lateral panels | **Foldout** | [`Foldout`](/ux-patterns/foldout/) |
 | The simplest detail page: context strip over property cards, with a record switcher | **General Overview** | [`GeneralOverview<Row>`](/ux-patterns/general-overview/) |
 | A sticky key-info panel + tabbed detail for one item | **Item Overview** | [`ItemOverview`](/ux-patterns/item-overview/) |
-| Extra read-only info about an object *without leaving the page* (side panel) | **General Drawer** | [`Drawer`](/ux-patterns/drawer/#general-drawer) (subtitle/size/maximizable/peer-nav) |
-| The same, docked at the bottom (expand/collapse) | **Bottom Drawer** | [`Drawer`](/ux-patterns/drawer/#bottom-drawer) (`DrawerPosition.bottom` + `collapsible`) |
+| Extra read-only info about an object *without leaving the page* (side panel) | **General Drawer** | [`Drawer`](/ux-patterns/drawer/#general-drawer--read-only-detail-subtitle-sizes-maximize-peer-navigation) (subtitle/size/maximizable/peer-nav) |
+| The same, docked at the bottom (expand/collapse) | **Bottom Drawer** | [`Drawer`](/ux-patterns/drawer/#bottom-drawer-drawerpositionbottom--collapsible) (`DrawerPosition.bottom` + `collapsible`) |
 
 ### Transactional pages (create / edit)
 
@@ -96,7 +97,8 @@ composition.
 ## How the choice is encoded
 
 - **Category** → the `pageType` on the wire (`landing`/`collection`/`detail`/`form`/`process`/
-  `dashboard`). Archetypes declare theirs; set it explicitly with `@PageTemplate(PageType.X)`.
+  `dashboard`). Archetypes declare theirs; set it explicitly with `@PageTemplate(PageType.X)`, or
+  with `pageType:` on a YAML page definition.
 - **Density** → `@PageWidth(FIXED | FULL_WIDTH | EDGE_TO_EDGE)`, or leave it inferred.
 - **Template** → extend the archetype (or set the flag) from Step 3. Everything below is
   composition of wire components that already render on every renderer — except where the
