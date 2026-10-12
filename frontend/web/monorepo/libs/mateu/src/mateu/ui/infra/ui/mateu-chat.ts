@@ -696,7 +696,7 @@ export class MateuChat extends LitElement {
                         ${this.attachments.map(a => html`
                             <span class="attachment-chip" title="${a.path}">
                                 📎 ${a.name}
-                                <button class="attachment-remove" @click="${() => this.removeAttachment(a.path)}" aria-label="Quitar ${a.name}">✕</button>
+                                <button class="attachment-remove" @click="${() => this.removeAttachment(a.path)}" aria-label="${chromeTextf('removeNamed', { name: a.name })}">✕</button>
                             </span>`)}
                     </div>
                 ` : nothing}

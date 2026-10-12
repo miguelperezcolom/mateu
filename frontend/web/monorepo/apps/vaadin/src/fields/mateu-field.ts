@@ -6,7 +6,7 @@ import '@components/mateu-file-upload.ts';
 import { fieldAttribute } from '@components/mateu-file-upload.ts';
 import '@components/mateu-bulleted-list.ts';
 import '@components/mateu-range-slider.ts';
-import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import { interpolate, templateResolver } from '@components/interpolation'
 import { isNoOpCommit, numericCommitValue } from '@components/fieldValue'
@@ -864,7 +864,7 @@ export class MateuField extends LitElement {
     // Copies the read-only field's value to the clipboard and confirms with a short toast.
     private copyValue(value: string) {
         navigator.clipboard.writeText(value)
-            .then(() => Notification.show('Copied', {
+            .then(() => Notification.show(chromeText('copied'), {
                 position: 'bottom-end',
                 theme: 'success',
                 duration: 2000,
@@ -917,7 +917,7 @@ export class MateuField extends LitElement {
                         <span>${chip.label}</span>
                         ${readOnly ? nothing : html`<vaadin-button
                                 theme="icon tertiary-inline small"
-                                aria-label="Remove ${chip.label}"
+                                aria-label="${chromeTextf('removeNamed', { name: chip.label })}"
                                 title="${chromeText('remove')}"
                                 @click="${() => remove(chip.id)}"
                         ><vaadin-icon icon="vaadin:close-small"></vaadin-icon></vaadin-button>`}

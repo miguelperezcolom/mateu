@@ -9,7 +9,7 @@ import { interpolateNested } from "@infra/ui/interpolation.ts";
 import { FocusTrap, trapFocus } from "@infra/a11y/focusTrap.ts";
 import { linkStyles } from "@infra/ui/linkStyles.ts";
 import { safeNavigate } from '@infra/ui/safeNavigate.ts'
-import { chromeText } from '@infra/ui/chromeTexts.ts'
+import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 
 @customElement('mateu-drawer')
 export class MateuDrawer extends ComponentElement {
@@ -256,7 +256,7 @@ export class MateuDrawer extends ComponentElement {
                 ${this.guidedProgress && this.guidedProgress.total > 1 ? html`
                     <div class="guided-pager-wrap">
                         <button class="guided-pager" aria-haspopup="true" aria-expanded="${this.pagerMenuOpen}"
-                                aria-label="Step ${this.guidedProgress.current} of ${this.guidedProgress.total}"
+                                aria-label="${chromeTextf('stepOf', { current: this.guidedProgress.current, total: this.guidedProgress.total })}"
                                 @click="${() => this.pagerMenuOpen = !this.pagerMenuOpen}">${this.guidedProgress.current} | ${this.guidedProgress.total}<span class="caret">▾</span></button>
                         ${this.pagerMenuOpen && this.guidedProgress.steps ? html`
                             <div class="guided-pager-menu">
