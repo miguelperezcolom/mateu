@@ -41,6 +41,8 @@ interface RouteEntry {
     viewModel?: string | null
     fixedParams?: Record<string, unknown>
     defaultParams?: Record<string, unknown>
+    // `state:` literals the route seeds the page with (at the defaults' precedence level)
+    state?: Record<string, unknown>
     // The named source that loads the route's data on entry (`data: <source>` in routes.yaml).
     data?: { ref?: string | null, url?: string | null } | null
 }
@@ -184,7 +186,9 @@ export const applyRouteParams = (syncPath: string, increment: UIIncrement): UIIn
     const match = matchRouteEntry(syncPath)
     if (!match) return increment
     const { entry, pathParams } = match
-    const defaults = entry.defaultParams ?? {}
+    // a route's `state:` seeds sit at the defaults' level (the server's RouteSegmentUtils): the
+    // manifest shipped them and nothing applied them, so a bundled page lost its seeded state
+    const defaults = { ...(entry.defaultParams ?? {}), ...(entry.state ?? {}) }
     const fixed = entry.fixedParams ?? {}
     if (!Object.keys(defaults).length && !Object.keys(fixed).length && !Object.keys(pathParams).length) {
         return increment
