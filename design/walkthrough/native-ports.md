@@ -81,13 +81,17 @@ N/A (why) · — not walked yet.
 | Page header overline / placeholder / timestamp / peer nav | 🔧 dropped → cb4525280 (unit) ✅ next link navigates | — | — |
 | Capture: signature draw + Accept → data URI image | ✅ rn-more | — | — |
 | Mobile hub: add by URL, confirm (domain + manifest), open, deep link, switch | ✅ rn-hub-probe 18/18 relevant steps against the Python port's `GET /mateu/v3/manifest` (the 19th step assumes the Java SUT's root form) | — | — |
-| Photo capture, a11y names (beyond the hub probe), app context / header actions / notifications | — | — | — |
+| Shell: card menu entry navigates, notification bell lists, app-context picker sets the value, global search finds | ✅ rn-shell | ✅ rn-shell | — |
+| Header actions, command center | N/A (documented: drawer shell without a top app bar) | N/A | N/A |
+| A11y names: every control named, inputs named, tappables are buttons | ✅ `rn-a11y-probe.mjs` 7/7 (Products) | — | — |
+| Photo capture (camera) | — (needs a device camera; the web fallback is a file picker) | — | — |
 
 ### IntelliJ (render probe + render tests)
 
 | Screen (Python port wire) | Result |
 |---|---|
 | App shell, dashboard, calendar, wizard, capture, drawer CRUD, foldout | ✅ renders, no unsupported/exception |
+| .NET shell: global search, notification bell (1), Hotel context combo (named, labelled), card-menu entries with descriptions | ✅ render probe (a11y names + labelFor) |
 | Page header overline / placeholder / timestamp / peer nav | 🔧 dropped → 97af34a04 (`PageSlotsRenderTest`) |
 | EmptyState icon token | 🔧 printed as text → 2ae7068f2 (`DisplayComponentsRenderTest`) |
 | CollectionDetail queue cards | ❌ 4: captions clipped |
