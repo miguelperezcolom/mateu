@@ -41,6 +41,20 @@ continue the work from here. **Update it at the end of every block of work.** La
 5. **Pre-beta review with Miguel** (page: https://claude.ai/artifact/LwGdbZQ2QSRVbj71EAJwVE — update it first),
    then beta, then GA.
 
+## Minimise CI runs and releases (owner, 2026-10-12)
+CI is the slow, expensive part (~35–45 min per full run), and only PRs, pushes to master and releases trigger it
+(`run_tests.yml`: pull_request/workflow_call; `examples.yml`/`codeql.yml`/`docs.yml`: PRs + master; the release
+re-runs the whole suite before publishing). So:
+- **Branch pushes are free** (no workflow runs on a plain branch push): WIP branches are pushed often, for hand-off.
+- **No per-feature PRs.** Work accumulates on its branch, verified LOCALLY (the module's tests, the bundle
+  freshness and design-token checks, the relevant e2e specs on one or two adapters). One integration PR per phase:
+  all seven walkthrough branches in ONE batch; the coverage streams in one batch; the refactor in one batch.
+  Docs-only PRs (#800, #801) ride along in the next batch instead of running CI on their own.
+- **Don't push to an open PR to "see if CI passes"**: reproduce the failure locally, fix, push once.
+- **Releases only at phase ends**: one after the walkthrough batch, one after coverage + refactor (the beta
+  candidate). Hot fixes for something live and broken are the only exception.
+- Transient infra failures (Maven Central 502, CDN) → re-run only the failed job (`gh run rerun <id> --failed`).
+
 ## Integration practice
 Branch protection needs up-to-date PRs, so green PRs are merged in **integration batches**: a branch
 `integration/batch-N` from master, merge the PR heads; if the only conflicts are generated bundles, take either
