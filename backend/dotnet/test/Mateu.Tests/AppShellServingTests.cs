@@ -19,10 +19,14 @@ public class ServingOrders
     public string Note { get; set; } = "orders";
 }
 
+public enum ServingHotel { palma, madrid }
+
 // An app with menu items and no explicit home: its wire home is the "_no_home_route" sentinel.
 [App("Serving shop")]
 public class ServingShopApp
 {
+    [AppContext("Hotel")] public ServingHotel Hotel { get; set; } = ServingHotel.palma;
+
     [MenuItem("Orders")] public ServingOrders Orders() => new();
 }
 
@@ -52,6 +56,8 @@ public class AppShellServingTests
         Assert.IsNotType<ClientSideComponentDto>(content.Fragments[0].Component);
         var page = Assert.IsType<ServerSideComponentDto>(content.Fragments[0].Component);
         Assert.Contains(page.Children, c => c is ClientSideComponentDto { Metadata: PageMetadataDto });
+        // the app's [AppContext] selector is the header's, never a field of that page
+        Assert.DoesNotContain("\"fieldId\":\"hotel\"", System.Text.Json.JsonSerializer.Serialize(content, MateuExtensions.Json));
     }
 
     [Theory]

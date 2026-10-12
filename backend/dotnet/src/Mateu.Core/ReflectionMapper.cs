@@ -53,7 +53,10 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         // [Kpi] properties are hoisted into the header KPI band, never rendered as form fields.
         && member.Find<KpiAttribute>() == null
         // [Aside] properties render in the ContentLayout aside slot, not the form body.
-        && member.Find<Mateu.Uidl.AsideAttribute>() == null;
+        && member.Find<Mateu.Uidl.AsideAttribute>() == null
+        // [AppContext] properties are the shell header's selectors, never form fields (Java's
+        // FormFieldFilter) — they leaked into the page an app without a home renders.
+        && member.Find<AppContextAttribute>() == null;
 
     /// <summary>If the view declares any [Aside] component property, pull those into the aside slot
     /// of a ContentLayout wrapping the form (the main slot) — the C# analogue of Java's
