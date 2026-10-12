@@ -253,9 +253,6 @@
     "type" : "object",
     "description" : "The business component catalogue (specs/ui/components.yaml): named, bound compositions a `type: ComponentRef` names.",
     "properties" : {
-      "type" : {
-        "const" : "Components"
-      },
       "components" : {
         "type" : "array",
         "items" : {

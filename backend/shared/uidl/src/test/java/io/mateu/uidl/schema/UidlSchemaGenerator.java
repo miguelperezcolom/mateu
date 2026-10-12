@@ -927,8 +927,9 @@ public final class UidlSchemaGenerator {
         "description",
         "The business component catalogue (specs/ui/components.yaml): named, bound compositions a"
             + " `type: ComponentRef` names.");
+    // No `type` discriminator: the loader reads only the conventional file, by its `components:`
+    // envelope (like a partial's `content:`), so there is no New-file kind keyed by a type.
     var componentsProps = components.putObject("properties");
-    componentsProps.putObject("type").put("const", "Components");
     var componentEntry =
         componentsProps.putObject("components").put("type", "array").putObject("items");
     componentEntry.put("type", "object");
