@@ -4480,6 +4480,33 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  listado @Subresource): sus campos ya se ven ahí. Y sí cuando el form genérico no tiene NADA
    *  que pintar: una página de solo lectura llega como textos sueltos — sus campos @ReadOnly son
    *  Text en el wire, no FormFields — y sin esta regla salía vacía (CustomerHistory). */
+  /**
+   * The rich host blocks plus the form's own action row (the page's @Button / footer buttons) that
+   * the generic form would have drawn. When the blocks win (a form with a grid field, a capture
+   * field…), noGenericFormVars clears that row — and the page lost its buttons: a form with an
+   * editable grid had no way to submit. Actions a block already draws are not repeated.
+   */
+  function withFormActions(blocks, actions) {
+    if (!blocks || !blocks.length) return blocks
+    const drawn = {}
+    for (const block of blocks) {
+      for (const atom of block.items || []) {
+        if (atom && atom.isButtons) for (const b of atom.buttons || []) drawn[b.actionId] = true
+      }
+    }
+    const missing = (actions || []).filter((a) => a && a.actionId && !drawn[a.actionId])
+    if (!missing.length) return blocks
+    const buttons = missing.map((a) => ({
+      actionId: a.actionId,
+      label: a.label || a.actionId,
+      disabled: !!a.disabled,
+      chroming: a.chroming || 'outlined',
+      parameters: a.parameters || {},
+      ...(a.route ? { route: a.route } : {}),
+    }))
+    return [...blocks, { isPlain: true, blockClass: 'oj-flex-item oj-sm-12', items: [{ isButtons: true, fromFormActions: true, buttons }] }]
+  }
+
   function hostContentShown(blocks, summary) {
     if (!blocks || !blocks.length) return false
     const rich = (a) => isRichAtom(a) || !!(a && (a.isTabs || a.isGrid || a.isElement || a.isSubresource))
@@ -7019,7 +7046,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** Tipos de campo que el form layout sabe pintar con un widget de JET. */
   const LAYOUT_TYPES = { string: true, integer: true, int: true, long: true, number: true, double: true,
-    float: true, date: true, dateTime: true, bool: true, boolean: true }
+    float: true, date: true, dateTime: true, bool: true, boolean: true,
+    // a LocalTime field ("10:30") is edited as text: before, it was not drawn at all
+    time: true }
 
   /**
    * Un campo ESCALAR de un FormLayout, listo para el oj-form-layout: su widget (fieldWidgetOf),
@@ -7037,6 +7066,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const raw = s[fieldId] != null ? s[fieldId] : d[fieldId]
     const widget = fieldWidgetOf(md, data, { lookups: !md.readOnly, value: raw, textWhenEmpty: true })
     let value = raw == null || raw === '' ? null : raw
+    // an Amount travels as {currency, value, locale}: the money input shows its value (it was blank)
+    if (widget.isMoney && value != null && typeof value === 'object') value = value.value
     if (widget.isBoolean) value = !!raw
     else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
     else if (widget.isNumber || widget.isMoney || widget.isSlider || widget.isStars) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
@@ -7292,7 +7323,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const max = Number(f.sliderMax) > min ? Number(f.sliderMax) : 100
       return { isSlider: true, min, max, step: Number(f.step) > 0 ? Number(f.step) : 1 }
     }
-    if (st === 'stars') return { isStars: true, max: Number(f.sliderMax) > 0 ? Number(f.sliderMax) : 5 }
+    // five stars, as on Vaadin: the wire's sliderMax defaults to 100 on EVERY field, and a gauge of
+    // a hundred stars drew as a hairline — the rating was invisible. A small explicit max is kept.
+    if (st === 'stars') {
+      const max = Number(f.sliderMax)
+      return { isStars: true, max: max > 0 && max <= 10 ? max : 5 }
+    }
     if (st === 'color') return { isColor: true }
     if (st === 'richText' && !f.readOnly) return { isRichEditor: true }
     return null
@@ -19204,6 +19240,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // P1: la URL de una pestaña con clave (@Tab(key)) y los niveles de app (maestros)
     tabRoutePath,
     hostContentShown,
+    withFormActions,
     withSubresources,
     loadSubresources,
     appLevelOf,

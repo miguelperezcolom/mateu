@@ -17,7 +17,7 @@ import {
   flattenTreeRows, gridPageOf, autoFitColClass, AUTO_FIT_DEFAULT, unsupportedAtomOf, VISITOR_PASS_THROUGH, safeHref, toneOf, cssColorOf,
   setUiValue, setPanelExpanded, carouselPagerAtomOf, microFrontendOf, tagSurfaceActions, heroAtomOf, emptyStateAtomOf, progressBarAtomOf,
   registerCustomComponent, customComponentRegistered, layoutFieldOf, HOST_ID, taskQueueOf, emptyStateOf, hostContentShown, pageToolbarOf,
-  welcomeOf,
+  welcomeOf, withFormActions,
 } from './reduceContexts.mjs'
 import { markdownToHtml, deltaOps, deltaToHtml, richTextHtml, richTextValueOf, sanitizeHtml } from './richtext.mjs'
 import { hexColorOf } from './inputs.mjs'
@@ -421,11 +421,32 @@ test('field widgets: slider, stars, colour and the rich text editor', () => {
   assert.deepEqual([slider.isSlider, slider.min, slider.max, slider.step, slider.value], [true, 10, 50, 5, 20])
   const stars = layoutFieldOf(md({ stereotype: 'stars' }), { x: 4 })
   assert.deepEqual([stars.isStars, stars.max, stars.value, stars.isNumber], [true, 5, 4, false])
+  // the wire sends sliderMax 100 on every field: a rating is still five stars
+  assert.equal(layoutFieldOf(md({ stereotype: 'stars', sliderMax: 100 }), { x: 3 }).max, 5)
+  // a LocalTime is drawn (as text), and an Amount shows its value
+  const time = layoutFieldOf(md({ dataType: 'time' }), { x: '10:30' })
+  assert.deepEqual([!!time, time && time.value], [true, '10:30'])
+  const amount = layoutFieldOf(md({ dataType: 'money', stereotype: 'money' }), { x: { currency: 'EUR', value: 25.5, locale: 'de-DE' } })
+  assert.deepEqual([amount.isMoney, amount.value], [true, 25.5])
   assert.ok(layoutFieldOf(md({ dataType: 'string', stereotype: 'color' }), { x: '#fff' }).isColor)
   assert.ok(layoutFieldOf(md({ dataType: 'string', stereotype: 'richText' }), {}).isRichEditor)
   assert.equal(hexColorOf('#ABC'), '#aabbcc')
   assert.equal(hexColorOf('rgb(255, 0, 16)'), '#ff0010')
   assert.equal(hexColorOf('red'), '')
+})
+
+test('a form whose rich blocks replace the generic form keeps its action row', () => {
+  // a form with a grid field (or a capture field…) is drawn by its blocks and the generic form
+  // is cleared — with it, the form's @Button row: the page had no way to submit
+  const blocks = [{ blockClass: 'x', items: [{ isGrid: true }] }]
+  const actions = [{ actionId: 'echo', label: 'Echo', chroming: 'outlined' }]
+  const out = withFormActions(blocks, actions)
+  assert.equal(out.length, 2)
+  assert.ok(out[1].isPlain, 'a block the host loop draws')
+  assert.deepEqual(out[1].items[0].buttons.map((b) => b.label), ['Echo'])
+  // an action a block already draws is not repeated
+  const drawn = [{ items: [{ isButtons: true, buttons: [{ actionId: 'echo', label: 'Echo' }] }] }]
+  assert.equal(withFormActions(drawn, actions), drawn)
 })
 
 test('the new atoms are in every atoms surface of the page, with each variant its listeners', () => {

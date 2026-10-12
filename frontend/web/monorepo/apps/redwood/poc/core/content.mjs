@@ -1428,6 +1428,33 @@ function hasFormField(node, isRoot = true) {
  *  listado @Subresource): sus campos ya se ven ahí. Y sí cuando el form genérico no tiene NADA
  *  que pintar: una página de solo lectura llega como textos sueltos — sus campos @ReadOnly son
  *  Text en el wire, no FormFields — y sin esta regla salía vacía (CustomerHistory). */
+/**
+ * The rich host blocks plus the form's own action row (the page's @Button / footer buttons) that
+ * the generic form would have drawn. When the blocks win (a form with a grid field, a capture
+ * field…), noGenericFormVars clears that row — and the page lost its buttons: a form with an
+ * editable grid had no way to submit. Actions a block already draws are not repeated.
+ */
+export function withFormActions(blocks, actions) {
+  if (!blocks || !blocks.length) return blocks
+  const drawn = {}
+  for (const block of blocks) {
+    for (const atom of block.items || []) {
+      if (atom && atom.isButtons) for (const b of atom.buttons || []) drawn[b.actionId] = true
+    }
+  }
+  const missing = (actions || []).filter((a) => a && a.actionId && !drawn[a.actionId])
+  if (!missing.length) return blocks
+  const buttons = missing.map((a) => ({
+    actionId: a.actionId,
+    label: a.label || a.actionId,
+    disabled: !!a.disabled,
+    chroming: a.chroming || 'outlined',
+    parameters: a.parameters || {},
+    ...(a.route ? { route: a.route } : {}),
+  }))
+  return [...blocks, { isPlain: true, blockClass: 'oj-flex-item oj-sm-12', items: [{ isButtons: true, fromFormActions: true, buttons }] }]
+}
+
 export function hostContentShown(blocks, summary) {
   if (!blocks || !blocks.length) return false
   const rich = (a) => isRichAtom(a) || !!(a && (a.isTabs || a.isGrid || a.isElement || a.isSubresource))

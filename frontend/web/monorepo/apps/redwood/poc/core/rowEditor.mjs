@@ -183,7 +183,9 @@ export const EMPTY_READONLY_WIDGET = { isText: false, isEmptyReadonly: true, isT
 
 /** Tipos de campo que el form layout sabe pintar con un widget de JET. */
 export const LAYOUT_TYPES = { string: true, integer: true, int: true, long: true, number: true, double: true,
-  float: true, date: true, dateTime: true, bool: true, boolean: true }
+  float: true, date: true, dateTime: true, bool: true, boolean: true,
+  // a LocalTime field ("10:30") is edited as text: before, it was not drawn at all
+  time: true }
 
 /**
  * Un campo ESCALAR de un FormLayout, listo para el oj-form-layout: su widget (fieldWidgetOf),
@@ -201,6 +203,8 @@ export function layoutFieldOf(md, state, data, columns = 1) {
   const raw = s[fieldId] != null ? s[fieldId] : d[fieldId]
   const widget = fieldWidgetOf(md, data, { lookups: !md.readOnly, value: raw, textWhenEmpty: true })
   let value = raw == null || raw === '' ? null : raw
+  // an Amount travels as {currency, value, locale}: the money input shows its value (it was blank)
+  if (widget.isMoney && value != null && typeof value === 'object') value = value.value
   if (widget.isBoolean) value = !!raw
   else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
   else if (widget.isNumber || widget.isMoney || widget.isSlider || widget.isStars) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
@@ -456,7 +460,12 @@ export function extraWidgetOf(f, options) {
     const max = Number(f.sliderMax) > min ? Number(f.sliderMax) : 100
     return { isSlider: true, min, max, step: Number(f.step) > 0 ? Number(f.step) : 1 }
   }
-  if (st === 'stars') return { isStars: true, max: Number(f.sliderMax) > 0 ? Number(f.sliderMax) : 5 }
+  // five stars, as on Vaadin: the wire's sliderMax defaults to 100 on EVERY field, and a gauge of
+  // a hundred stars drew as a hairline — the rating was invisible. A small explicit max is kept.
+  if (st === 'stars') {
+    const max = Number(f.sliderMax)
+    return { isStars: true, max: max > 0 && max <= 10 ? max : 5 }
+  }
   if (st === 'color') return { isColor: true }
   if (st === 'richText' && !f.readOnly) return { isRichEditor: true }
   return null

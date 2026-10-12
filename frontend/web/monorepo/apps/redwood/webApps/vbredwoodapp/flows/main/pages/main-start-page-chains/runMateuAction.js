@@ -526,7 +526,8 @@ define([
       const gop2 = bridge.generalOverviewPageOf(hostEntity2, hostBlocks2);
       vars.mateuGop = gop2;
       const gopOn2 = gop2.on;
-      vars.mateuHostContent = (!gopOn2 && hostBlocksRicos2 ? hostBlocks2 : null) || [];
+      // el form genérico se suprime: sus botones (@Button del form) van con los bloques
+      vars.mateuHostContent = (!gopOn2 && hostBlocksRicos2 ? bridge.withFormActions(hostBlocks2, summary.actions) : null) || [];
       bridge.mountElementsSoon(bridge.elementAtomsOf(vars.mateuHostContent));
       // el oj-tab-bar parsea su <ul> al inicializarse y los <li> del for-each llegan
       // después: sin refresh se queda con la lista sin estilar (misma trampa que el
