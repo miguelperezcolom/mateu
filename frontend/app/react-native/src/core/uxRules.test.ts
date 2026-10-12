@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   bootFailureOf, buttonActionId, fabBottom, chartTextAlternative, effectiveListingLayout, fabInset, formatTick, headingLevel, rowJustification, fieldPlaceholder, isCurrentDestination, loadFailureMessage,
-  rowCheckboxLabel, serverSideState, mediatorMove,
+  rowCheckboxLabel, serverSideState, mediatorMove, progressFraction,
 } from './uxRules.ts';
 
 test('a crud mediator move: the listing stays, a record goes back to its list, a record route stacks', () => {
@@ -123,4 +123,11 @@ test('a boot load with nothing to render says why instead of drawing a blank scr
 test('a page FAB sits above the page bottom bar, never under it', () => {
   assert.equal(fabBottom(false), 24);
   assert.ok(fabBottom(true) >= 76 + 24);
+});
+
+test('a progress bar reads its state key, and a 0 max means the 0..1 default (the LongTask dialog)', () => {
+  assert.equal(progressFraction({ min: 0, max: 0, value: 0, valueKey: 'progressValue' }, { progressValue: 1 }), 1);
+  assert.equal(progressFraction({ min: 0, max: 0, value: 0, valueKey: 'progressValue' }, { progressValue: 0.4 }), 0.4);
+  assert.equal(progressFraction({ min: 0, max: 5, value: 2 }, {}), 0.4);
+  assert.equal(progressFraction({ value: 3 }, {}), 1);
 });

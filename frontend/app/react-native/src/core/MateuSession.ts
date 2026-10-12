@@ -50,6 +50,9 @@ export class MateuSession {
    *  target the web reaches by DOM bubbling. */
   openOverlay: (component: unknown, state: unknown, data: unknown, opener?: OverlayOpenerContext) => void = () => {};
 
+  /** Host hook: a state update aimed at an OPEN overlay (by its id) — true when one took it. */
+  updateOverlayState: (id: string, state: Record<string, unknown>) => boolean = () => false;
+
   /** Host hook: close the topmost overlay. */
   closeTopOverlay: () => void = () => {};
 

@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   filterSwitcherOptions, foldoutSummaryOf, pageHeaderExtrasOf, heroToneColors, HERO_TONES, overlayContentWithData, overlayIdOf,
-  showsPreSearch, switcherCurrentLabel, switcherOf, switcherPick, upsertOverlay, type RecordSwitcher,
+  showsPreSearch, switcherCurrentLabel, switcherOf, switcherPick, upsertOverlay, withOverlayState, type RecordSwitcher,
 } from './patternGaps.ts';
 import { cssLengthPx, gridTrackSizes, orderByAreas, responsiveColumns } from './wireWidgets.ts';
 
@@ -151,4 +151,15 @@ test('the page header extras: overline, a placeholder only while untitled, times
   assert.deepEqual(extras.peers, { prev: { label: 'Record 1', route: '/records/1' }, next: { label: 'Record 3', route: null } });
   assert.equal(pageHeaderExtrasOf({ titlePlaceholder: 'New booking…' }, 'Booking 7').placeholder, '');
   assert.equal(pageHeaderExtrasOf({}, 'x').peers, null);
+});
+
+test('a LongTask step updates the open progress dialog it targets, and nothing else', () => {
+  const dialog = { component: { metadata: { type: 'Dialog', id: 'p1', initialData: { title: 'Processing', progressText: 'Starting' } } }, revision: 0, state: { title: 'Processing', progressText: 'Starting' } };
+  const other = { component: { metadata: { type: 'Drawer', id: 'd1' } }, revision: 0, state: {} };
+  const next = withOverlayState([other, dialog], 'p1', { progressValue: 0.2, progressText: 'Step 1 of 5' })!;
+  assert.deepEqual(next[1].state, { title: 'Processing', progressText: 'Step 1 of 5', progressValue: 0.2 });
+  assert.equal(next[1].revision, 1);
+  assert.equal(next[0], other);
+  assert.equal(withOverlayState([other, dialog], 'nope', { x: 1 }), null);
+  assert.equal(withOverlayState([dialog], '', { x: 1 }), null);
 });

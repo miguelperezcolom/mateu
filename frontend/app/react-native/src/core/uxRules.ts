@@ -204,3 +204,18 @@ export function mediatorMove(routeSuffix: string, current: string | null, canSta
   if (isList(next)) return canStack ? 'backToList' : 'inPlace';
   return canStack ? 'detail' : 'inPlace';
 }
+
+/**
+ * How full a ProgressBar is (0..1). Its value is read from the state under `valueKey` when the bar
+ * names one (a LongTask's dialog moves it step by step), and a 0 bound means "unset" on the wire —
+ * the dialog sends min 0, max 0 with a 0..1 value, which the web's vaadin-progress-bar reads as its
+ * 0..1 default; dividing by max - min = 0 left the bar empty to the end.
+ */
+export function progressFraction(metadata: Record<string, unknown>, state: Record<string, unknown>): number {
+  const min = Number(metadata['min']) || 0;
+  const max = Number(metadata['max']) || 1;
+  const key = (metadata['valueKey'] as string) ?? '';
+  const raw = key && state[key] != null ? Number(state[key]) : Number(metadata['value'] ?? 0);
+  if (max - min === 0 || Number.isNaN(raw)) return 0;
+  return Math.max(0, Math.min(1, (raw - min) / (max - min)));
+}

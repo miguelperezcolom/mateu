@@ -76,6 +76,8 @@ export class MateuViewController {
   private actionValidationRequired: Record<string, boolean> = {};
   private actionRowsSelectedRequired: Record<string, boolean> = {};
   private actionConfirmation: Record<string, ConfirmationDialogTexts> = {};
+  /** Actions answered as a STREAM of increments (`ActionDto.sse` — a LongTask). */
+  private actionSse: Record<string, boolean> = {};
   private actionBubble: Record<string, boolean> = {};
   /** @RestAction/@RestData: actions whose descriptor makes the client fetch an external REST
    *  endpoint instead of dispatching to the Mateu server (keyed by action id). */
@@ -266,6 +268,24 @@ export class MateuViewController {
 
     const generation = this.polling.currentGeneration;
     try {
+      if (this.actionSse[actionId]) {
+        // a LongTask: each progress increment is applied as it arrives
+        await this.session.api.runActionStream(
+          {
+            route: this.currentRoute,
+            consumedRoute: this.currentConsumedRoute,
+            actionId,
+            serverSideType: this.resolveActionTarget(actionId) || null,
+            initiatorComponentId: this.currentComponentId,
+            componentState: this.currentComponentState,
+            appState: this.session.appState,
+            parameters: parameters ?? {},
+          },
+          (increment) => this.applyIncrement(increment as Json),
+        );
+        this.polling.actionSucceeded(generation, actionId);
+        return;
+      }
       const increment = await this.session.api.runAction({
         route: this.currentRoute,
         consumedRoute: this.currentConsumedRoute,
@@ -409,6 +429,7 @@ export class MateuViewController {
     const validationFlags: Record<string, boolean> = {};
     const rowsSelectedFlags: Record<string, boolean> = {};
     const confirmations: Record<string, ConfirmationDialogTexts> = {};
+    const sseFlags: Record<string, boolean> = {};
     const bubbleFlags: Record<string, boolean> = {};
     const restData: Record<string, Json> = {};
     for (const a of asArray(sscNode['actions'])) {
@@ -419,6 +440,7 @@ export class MateuViewController {
       rowsSelectedFlags[id] = a['rowsSelectedRequired'] === true;
       const confirmation = confirmationOf(a);
       if (confirmation) confirmations[id] = confirmation;
+      if (a['sse'] === true) sseFlags[id] = true;
       bubbleFlags[id] = a['bubble'] === true;
       if (a['restAction'] && typeof a['restAction'] === 'object') restData[id] = a['restAction'] as Json;
     }
@@ -427,6 +449,7 @@ export class MateuViewController {
     this.actionValidationRequired = validationFlags;
     this.actionRowsSelectedRequired = rowsSelectedFlags;
     this.actionConfirmation = confirmations;
+    this.actionSse = sseFlags;
     this.actionBubble = bubbleFlags;
     this.actionRestData = restData;
     this.currentValidations = asArray(sscNode['validations']);
@@ -660,6 +683,11 @@ export class MateuViewController {
         consumedRoute: this.currentConsumedRoute,
         serverSideType: this.currentServerSideType,
       });
+      return;
+    }
+
+    // A state update aimed at an open overlay (a LongTask's progress dialog) belongs to it.
+    if (!component && state && typeof state === 'object' && targetId && this.session.updateOverlayState(targetId, state)) {
       return;
     }
 

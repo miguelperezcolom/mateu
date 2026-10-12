@@ -168,6 +168,23 @@ export function upsertOverlay<T extends OverlayEntry>(stack: T[], entry: T): T[]
   return [...stack, entry];
 }
 
+/**
+ * A state update aimed at an OPEN overlay (each progress step of a LongTask's dialog targets the
+ * dialog's id): merged into that overlay's state — seeded from its `initialData` — with the
+ * revision bumped so its content re-renders. Null when no open overlay carries that id.
+ */
+export function withOverlayState<T extends OverlayEntry & { state?: Record<string, unknown> }>(
+  stack: T[],
+  id: string,
+  state: Record<string, unknown>,
+): T[] | null {
+  const at = id ? stack.findIndex((o) => idOf(o.component) === id) : -1;
+  if (at < 0) return null;
+  const next = stack.slice();
+  next[at] = { ...stack[at], state: { ...(stack[at].state ?? {}), ...state }, revision: stack[at].revision + 1 };
+  return next;
+}
+
 /** The canonical page header's text elements beyond title/subtitle (PageDto.overline /
  *  titlePlaceholder / timestamp / peerNav), as the native header shows them: the overline above the
  *  title, the placeholder IN the title's place while there is no title yet (shown dimmed), the
