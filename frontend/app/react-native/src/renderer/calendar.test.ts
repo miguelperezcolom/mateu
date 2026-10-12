@@ -97,3 +97,15 @@ test('labels: times, titles and the screen-reader text of a date cell', () => {
   assert.equal(dayA11yLabel(meta, '2026-10-02'), 'Fri 2 October');
   assert.equal(eventA11yLabel({ title: 'Standup', startTime: '09:00', endTime: '09:15' }), 'Standup, 09:00–09:15');
 });
+
+test('a month cell does not nest the event buttons inside the day button', async () => {
+  // react-native-web warned "<button> cannot be a descendant of <button>" (a press on an event
+  // also opened its day): the chips are siblings of the day's own button
+  const { readFileSync } = await import('node:fs');
+  const source = readFileSync(new URL('./CalendarRenderer.tsx', import.meta.url), 'utf8');
+  const month = source.slice(source.indexOf('const monthView'), source.indexOf('const dayHeader'));
+  const start = month.indexOf('dayBox(');
+  const dayBoxCall = month.slice(start, month.indexOf('))}', start));
+  assert.ok(start >= 0 && dayBoxCall.length > 0, 'the month cell has a day button');
+  assert.ok(!dayBoxCall.includes('eventChip('), 'no event chip inside the day button');
+});
