@@ -136,8 +136,13 @@ class ViewMapperMixin(MixinBase):
             known = {a.id for a in actions}
             tree_ids = self.collect_action_ids(tree)
             for a in tree_ids:
-                # handled = the method the action guard would let this id run
-                handled = resolve_action(cls, a, lambda: set(tree_ids)) is not None
+                # handled = the method the action guard would let this id run, or an archetype's
+                # built-in action the sync handler answers (calendar toolbar, view switcher…) —
+                # unadvertised, those toolbars were dead in the web client
+                handled = (
+                    resolve_action(cls, a, lambda: set(tree_ids)) is not None
+                    or a in _builtin_archetype_actions(instance)
+                )
                 # OWNER FIRST, then the action catalogue: an id the view neither declares nor has a
                 # method for runs the catalogue entry of that id (Java's TreeActionHarvester).
                 from_catalogue = (
@@ -279,3 +284,23 @@ class ViewMapperMixin(MixinBase):
                 [] if is_tree_supplier else client_validations(self, cls, instance)
             ),
         )
+
+
+def _builtin_archetype_actions(instance) -> frozenset[str]:
+    """The ids an archetype's own tree references and the sync handler answers in place (see
+    ``sync_handler.dispatch``), with no method of that name on the view."""
+    from mateu_uidl import CalendarPage, ComponentTreeSupplier, DataManagement, GanttPage, TodoList
+
+    ids: set[str] = set()
+    if isinstance(instance, CalendarPage):
+        ids |= {"openCalendarEvent", "previousCalendarMonth", "nextCalendarMonth", "goCalendarToday",
+                "switchCalendarView", "openCalendarDay", "createCalendarEvent"}
+    if isinstance(instance, GanttPage):
+        ids.add("selectGanttTask")
+    if isinstance(instance, TodoList):
+        ids.add("openTodoItem")
+    if isinstance(instance, DataManagement):
+        ids |= {"switchToGrid", "switchToGantt", "toggleEndPanel", "toggleBottomPanel"}
+    if isinstance(instance, ComponentTreeSupplier):
+        ids |= {"selectCollectionItem", "filterCollection", "switchRecord"}
+    return frozenset(ids)

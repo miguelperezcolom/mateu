@@ -1683,7 +1683,7 @@ import{n as e}from"./rolldown-runtime-hePW80VL.js";import{a as t,c as n,i as r,l
                  slot="${t.slot??p}"
             >${g}</div>
         `;let _=t.id??`mateu-grid`;return l`
-        <div style="container-type: inline-size;" slot="${t.slot??p}">
+        <div class="mateu-responsive-grid-container" style="container-type: inline-size; width: 100%; min-width: 0;" slot="${t.slot??p}">
             <style>
                 @container (max-width: ${s.stackBelow}) {
                     .mateu-responsive-grid[data-grid-id="${_}"] {

@@ -176,6 +176,22 @@ def test_the_capability_form_toolbar_actions_move_between_the_listing_routes():
     assert _navigates_to("/adv-books/1/edit", Books, "cancel-edit") == "/adv-books/1"
 
 
+def test_archetype_toolbars_are_advertised():
+    # the calendar's ‹ Today › + Create and the data-management view switcher were dead buttons:
+    # the sync handler answers them, but no method of that name exists on the view
+    from tests.test_archetype_calendarpage import TeamCalendar
+    from tests.test_data_management import ScheduleBoard
+
+    calendar = SyncHandler(MateuRegistry(sys.modules["tests.test_archetype_calendarpage"])).handle(
+        RunActionRq(route="team-calendar", server_side_type=type_name(TeamCalendar))
+    ).fragments[0].component
+    assert {"previousCalendarMonth", "goCalendarToday", "nextCalendarMonth"} <= {a.id for a in calendar.actions}
+    board = SyncHandler(MateuRegistry(sys.modules["tests.test_data_management"])).handle(
+        RunActionRq(route="/schedule-board", server_side_type=type_name(ScheduleBoard))
+    ).fragments[0].component
+    assert {"switchToGrid", "switchToGantt"} <= {a.id for a in board.actions}
+
+
 class Typed:
     active: bool = True
     count: int = 0

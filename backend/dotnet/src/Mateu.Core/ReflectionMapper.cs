@@ -167,7 +167,8 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
             var catalogue = MateuCatalogs.Actions;
             bool FromCatalogue(string a) => catalogue.Get(a) is not null && !ActionGuard.HandlesTreeAction(type, a);
             var referenced = treeSupplierView
-                ? ActionGuard.TreeActionIds(tree).Where(a => ActionGuard.HandlesTreeAction(type, a))
+                ? ActionGuard.TreeActionIds(tree).Where(a => ActionGuard.HandlesTreeAction(type, a)
+                    || BuiltinArchetypeActions(instance).Contains(a))
                 : ComponentMapper.CollectActionIds(tree).Where(a => !FromCatalogue(a));
             actions.AddRange(referenced
                 .Where(a => actions.All(x => x.Id != a)).Select(a => new ActionDto(a)));
@@ -337,4 +338,21 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
 
     private static ClientSideComponentDto Client(ComponentMetadataDto meta, string? id, IReadOnlyList<ComponentDto> children) =>
         new(meta, id, children, null, null, null);
+
+    /// <summary>The ids an archetype's own tree references and the sync handler answers in place
+    /// (SyncHandler's archetype branches), with no method of that name on the VIEW — the tree
+    /// harvester alone left them out and those toolbars were dead in the web client.</summary>
+    private static HashSet<string> BuiltinArchetypeActions(object? instance)
+    {
+        var ids = new HashSet<string>();
+        if (instance is IComponentTreeSupplier) ids.UnionWith(["selectCollectionItem", "filterCollection", "switchRecord"]);
+        if (instance is ITodoList) ids.Add("openTodoItem");
+        if (instance is ICalendarPage)
+            ids.UnionWith(["openCalendarEvent", "previousCalendarMonth", "nextCalendarMonth", "goCalendarToday",
+                "switchCalendarView", "openCalendarDay", "createCalendarEvent"]);
+        if (instance is IGanttPage) ids.Add("selectGanttTask");
+        if (instance is IDataManagement) ids.UnionWith(["switchToGrid", "switchToGantt"]);
+        if (instance is DataManagement) ids.UnionWith(["toggleEndPanel", "toggleBottomPanel"]);
+        return ids;
+    }
 }

@@ -78,6 +78,21 @@ public class AdvertisedActionsTests
         Assert.Equal(target, increment.Commands.Single(c => c.Type == "NavigateTo").Data);
     }
 
+    [Theory]
+    [InlineData(typeof(TeamCalendar), "previousCalendarMonth,goCalendarToday,nextCalendarMonth")]
+    [InlineData(typeof(ScheduleBoard), "switchToGrid,switchToGantt")]
+    [InlineData(typeof(HotelDirectory), "selectCollectionItem")]
+    [InlineData(typeof(MyTasks), "openTodoItem")]
+    public void Archetype_toolbars_are_advertised(Type type, string ids)
+    {
+        // the sync handler answers these built-in ids, but no method of that name is the VIEW's own,
+        // so the tree harvester left them out and the toolbars were dead in the web client
+        var route = type.GetCustomAttributes(typeof(Mateu.Uidl.UIAttribute), false)
+            .Cast<Mateu.Uidl.UIAttribute>().First().Route;
+        var advertised = Component(route, type).Actions.Select(a => a.Id).ToHashSet();
+        Assert.Subset(advertised, ids.Split(',').ToHashSet());
+    }
+
     [Fact]
     public void A_page_fab_is_advertised_without_validation()
     {
