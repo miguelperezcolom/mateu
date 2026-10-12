@@ -490,6 +490,21 @@ export function extraWidgetOf(f, options) {
   return null
 }
 
+/**
+ * What an edited field commits: the edited value, EXCEPT when the field held an Amount
+ * ({currency, value, locale}) — then the same Amount with the new value. The money input edits the
+ * NUMBER, and committing it bare lost the currency: the server could not pour a bare number into
+ * an Amount and kept the old one (the forms walkthrough).
+ */
+export function committedValueOf(previous, value) {
+  if (previous != null && typeof previous === 'object' && !Array.isArray(previous)
+      && 'currency' in previous && 'value' in previous
+      && (value == null || typeof value === 'number' || (typeof value === 'string' && value.trim() !== '' && !Number.isNaN(Number(value))))) {
+    return value == null ? null : { ...previous, value: Number(value) }
+  }
+  return value
+}
+
 /** ¿Lo pinta el oj-form-layout? (además de los LAYOUT_TYPES de siempre) */
 export function isExtraLayoutField(md) {
   return !!(md.stereotype === 'radio' || md.stereotype === 'money' || md.dataType === 'money'

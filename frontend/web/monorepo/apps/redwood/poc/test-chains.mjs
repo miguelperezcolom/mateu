@@ -15,6 +15,7 @@ import { HOST_ID } from './reduceContexts.mjs'
 import { fabsOf } from './pageProjection.mjs'
 import { globalSearchHitsOf, paletteRowsOfHits } from './globalSearch.mjs'
 import { initialThemeOf, nextThemeOf, applyTheme } from './theme.mjs'
+import { committedValueOf } from './core/rowEditor.mjs'
 
 const here = dirname(fileURLToPath(import.meta.url))
 let passed = 0
@@ -221,6 +222,22 @@ test('the packaged app carries no unsubstituted VB host placeholder (the "#{env.
     'src', 'main', 'resources', 'static', '_redwood', 'bundles', 'vb-app-bundle.js'), 'utf8')
   assert.ok(!bundle.includes('#{env.'), 'a #{env.*}# placeholder only a VB host fills is left in the jar bundle')
   assert.ok(bundle.includes('define("text!services/catalog.json",[],function(){return"{}";})'), 'an empty service catalogue')
+})
+
+test('a Separator draws a visible rule, not an empty spacer', () => {
+  const page = webApp('flows/main/pages/main-start-page.html')
+  assert.ok(/isSeparator \]\]">\s*<hr class="mateu-separator/.test(page), 'the separator atom is an <hr>')
+  assert.ok(webApp('resources/css/app.css').includes('.mateu-separator { border: none; border-block-start: 1px solid'))
+})
+
+test('an edited Amount keeps its currency (the money input edits only the number)', () => {
+  assert.deepEqual(committedValueOf({ currency: 'EUR', value: 10, locale: 'es-ES' }, 12.5), { currency: 'EUR', value: 12.5, locale: 'es-ES' })
+  assert.deepEqual(committedValueOf({ currency: 'USD', value: 1 }, '7'), { currency: 'USD', value: 7 })
+  assert.equal(committedValueOf({ currency: 'EUR', value: 10 }, null), null)
+  assert.equal(committedValueOf(3, 4), 4)
+  assert.equal(committedValueOf(undefined, 'x'), 'x')
+  const edited = webApp('flows/main/pages/main-start-page-chains/mateuFieldEdited.js')
+  assert.equal(edited.split('bridge.committedValueOf(').length - 1, 2, 'both drafts (page and overlay) commit through it')
 })
 
 console.log(`\n${passed} chain-logic tests OK`)

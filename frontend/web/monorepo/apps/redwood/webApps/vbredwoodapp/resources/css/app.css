@@ -1582,6 +1582,8 @@ oj-sp-guided-process.mateu-wizard-completed button:not(.mateu-wizard-slot button
 .mateu-rte-toolbar { display: flex; flex-wrap: wrap; gap: 2px; padding: 2px; border-block-end: 1px solid var(--oj-core-divider-color, #eee); }
 .mateu-rte-area { min-height: 6rem; padding: 8px 12px; outline: none; }
 .mateu-rte-area:focus-visible { box-shadow: inset 0 0 0 2px var(--oj-core-focus-border-color, #2b6a9e); }
+/* a Separator / @SeparatorBefore: a visible rule (it was an empty spacer) */
+.mateu-separator { border: none; border-block-start: 1px solid var(--oj-core-divider-color, #ddd); width: 100%; }
 .mateu-markup-field { display: block; }
 .mateu-markup-bar { display: flex; justify-content: flex-end; margin-block-end: 4px; }
 .mateu-markup-toggle { background: none; border: 1px solid var(--oj-core-border-color, #ccc); border-radius: var(--oj-core-border-radius-md, 6px);

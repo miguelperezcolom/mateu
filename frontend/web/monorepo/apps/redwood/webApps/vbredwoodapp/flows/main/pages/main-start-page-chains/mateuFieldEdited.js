@@ -40,11 +40,14 @@ define([
       // overlay, como el del drawer: es el estado que viaja con sus acciones
       if ($application.variables.mateuDrawerOpen || $page.variables.mateuModalOpen) {
         const draft = Object.assign({}, $page.variables.mateuDrawerDraft);
-        draft[fieldId] = detail.value;
+        // an Amount keeps its currency: the money input edits only the number
+        draft[fieldId] = bridge.committedValueOf(draft[fieldId], detail.value);
         $page.variables.mateuDrawerDraft = draft;
       } else {
         const draft = Object.assign({}, $page.variables.mateuDraft);
-        draft[fieldId] = detail.value;
+        const hostState = (($application.variables.mateuRegistry.contexts || {})[bridge.HOST_ID] || {}).state || {};
+        // an Amount keeps its currency: the money input edits only the number
+        draft[fieldId] = bridge.committedValueOf(fieldId in draft ? draft[fieldId] : hostState[fieldId], detail.value);
         $page.variables.mateuDraft = draft;
         // live reload (modo dev): la shell repone lo tecleado al repintar esta pantalla
         bridge.noteLiveDraft(window.__mateuLoadedFull, draft);
