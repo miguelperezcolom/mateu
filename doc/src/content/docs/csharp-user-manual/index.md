@@ -688,6 +688,15 @@ app.MapPost("/ai/chat", async (HttpContext ctx, ChatRq rq) =>
 public record ChatRq(string Message, string? SessionId, string? MenuContext);
 ```
 
+## YAML pages: the components this server builds
+
+A `specs/ui/<route>.yaml` page (or a `routes.yaml` entry's `layout:`) is built from YAML by this
+server, which knows a SUBSET of the YAML component catalogue: `VerticalLayout`, `HorizontalLayout`,
+`FormLayout`, `FormField`, `Button`, `Text`, `Form` and `ComponentRef` (plus partials). Any other
+`type:` — `HeroSection`, `Listing`, `Card`… — renders as an "Unsupported component: <type>" text, and
+`type: AppShell` is Java-only. For those screens, declare them in code; the Java server builds the
+whole catalogue from YAML.
+
 ## Partials
 
 A YAML file under `<specs>/partials/` is not a page but a **partial** — one component, or a

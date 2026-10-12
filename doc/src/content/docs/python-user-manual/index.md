@@ -581,6 +581,15 @@ Under [PEP 649](https://peps.python.org/pep-0649/) annotations evaluate lazily a
 eagerly stored in `__dict__['__annotations__']`. Mateu reads them via `inspect.get_annotations(...)`,
 so the field markers work on Python 3.11 through 3.14+.
 
+## YAML pages: the components this server builds
+
+A `specs/ui/<route>.yaml` page (or a `routes.yaml` entry's `layout:`) is built from YAML by this
+server, which knows a SUBSET of the YAML component catalogue: `VerticalLayout`, `HorizontalLayout`,
+`FormLayout`, `FormField`, `Button`, `Text`, `Form` and `ComponentRef` (plus partials). Any other
+`type:` — `HeroSection`, `Listing`, `Card`… — renders as an "Unsupported component: <type>" text, and
+`type: AppShell` is Java-only. For those screens, declare them in code; the Java server builds the
+whole catalogue from YAML.
+
 ## Partials
 
 A YAML file under `<specs>/partials/` is not a page but a **partial** — one component, or a

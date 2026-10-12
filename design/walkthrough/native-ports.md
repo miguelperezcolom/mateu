@@ -179,8 +179,9 @@ IntelliJ click-level interaction beyond its render tests.
 8. **YAML pages in the ports** build only VerticalLayout, HorizontalLayout, FormLayout, FormField,
    Button, Text, Form and ComponentRef (Python `yaml_preview._build`, .NET `YamlComponentBuilder`) —
    the yaml starter's own pages render "Unsupported component: HeroSection / Listing". The port
-   manuals do not state the subset. Owner: extend the builders (or map YAML through the fluent
-   catalogue generically), or document the subset.
+   manuals did not state the subset — now documented in both manuals ("YAML pages: the components
+   this server builds"). Owner: extend the builders (or map YAML through the fluent catalogue
+   generically)?
 
 9. **Ports behind Redwood, content area**: see the matrix row — blocked on 1.
 
