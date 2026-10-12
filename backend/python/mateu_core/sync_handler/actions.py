@@ -17,6 +17,7 @@ from mateu_dtos import (
 from mateu_uidl import (
     components as fluent,
     Document,
+    UserFacingException,
     FlowStep,
     Message,
     PageBanner,
@@ -40,6 +41,14 @@ class ActionHandlerMixin(MixinBase):
         if fn is None:
             return self.error(f"Action not found: {rq.action_id}")
         action_guard.ensure_may_invoke(self.mapper, type_, fn, rq.action_id)
+        if getattr(fn, "__mateu_button__", None):
+            # a @button / @toolbar is advertised validation_required: the client checks the
+            # form's constraints first, and the server does not take its word for it
+            from ..validation import VALIDATION_TITLE, describe, form_violations
+
+            broken = form_violations(self.mapper, type_, instance)
+            if broken:
+                raise UserFacingException(describe(broken), title=VALIDATION_TITLE)
         method = fn.__get__(instance, type_)
         result = method(*self._build_arguments(method, rq))
         if result is instance:

@@ -1428,6 +1428,33 @@ function hasFormField(node, isRoot = true) {
  *  listado @Subresource): sus campos ya se ven ahí. Y sí cuando el form genérico no tiene NADA
  *  que pintar: una página de solo lectura llega como textos sueltos — sus campos @ReadOnly son
  *  Text en el wire, no FormFields — y sin esta regla salía vacía (CustomerHistory). */
+/**
+ * The rich host blocks plus the form's own action row (the page's @Button / footer buttons) that
+ * the generic form would have drawn. When the blocks win (a form with a grid field, a capture
+ * field…), noGenericFormVars clears that row — and the page lost its buttons: a form with an
+ * editable grid had no way to submit. Actions a block already draws are not repeated.
+ */
+export function withFormActions(blocks, actions) {
+  if (!blocks || !blocks.length) return blocks
+  const drawn = {}
+  for (const block of blocks) {
+    for (const atom of block.items || []) {
+      if (atom && atom.isButtons) for (const b of atom.buttons || []) drawn[b.actionId] = true
+    }
+  }
+  const missing = (actions || []).filter((a) => a && a.actionId && !drawn[a.actionId])
+  if (!missing.length) return blocks
+  const buttons = missing.map((a) => ({
+    actionId: a.actionId,
+    label: a.label || a.actionId,
+    disabled: !!a.disabled,
+    chroming: a.chroming || 'outlined',
+    parameters: a.parameters || {},
+    ...(a.route ? { route: a.route } : {}),
+  }))
+  return [...blocks, { isPlain: true, blockClass: 'oj-flex-item oj-sm-12', items: [{ isButtons: true, fromFormActions: true, buttons }] }]
+}
+
 export function hostContentShown(blocks, summary) {
   if (!blocks || !blocks.length) return false
   const rich = (a) => isRichAtom(a) || !!(a && (a.isTabs || a.isGrid || a.isElement || a.isSubresource))
@@ -1577,10 +1604,20 @@ export function hostContentOf(ctx, islandBlocks, opts = {}) {
   const title = opts.title || ''
   let titleDropped = false
   let entityDropped = false
+  // a wizard step's forward button (Next, or the completion on the last step) rides the guided
+  // process footer (Continue): when the row also carries a Draftable's Save / Save and close, the
+  // row stayed whole and the step showed Next AND Continue (Check in twice on the last step).
+  // The row keeps Back and those side actions; the forward one leaves it.
+  const isSide = (b) => b.actionId === 'back' || WIZARD_SIDE_ACTIONS[b.actionId]
+  const withoutWizardNav = (atom) => (opts.forWizard && !opts.keepWizardNav && atom && atom.isButtons
+    && (atom.buttons || []).some((b) => b.actionId === 'back' || b.actionId === 'next')
+    && (atom.buttons || []).some((b) => b.actionId !== 'back' && WIZARD_SIDE_ACTIONS[b.actionId])
+    ? { ...atom, wizardSideRow: true, buttons: atom.buttons.filter(isSide) }
+    : atom)
   merged = merged
     .map((block) => ({
       ...block,
-      items: block.items.filter((atom) => {
+      items: block.items.map(withoutWizardNav).filter((atom) => {
         // el título de Page sobra: la banda del header (o el guided process) ya lo pinta
         if (!titleDropped && atom.isText && title && atom.text === title) {
           titleDropped = true
@@ -1606,7 +1643,7 @@ export function hostContentOf(ctx, islandBlocks, opts = {}) {
               && atom.buttons.every((b) => b.actionId === 'next' || b.actionId === 'back')) return false
           // el pie del ÚLTIMO paso: Back + la acción de completar (@WizardCompletionAction) — el
           // pie del proceso guiado ya los pinta (wizardForwardOf), aquí salían duplicados
-          if (!opts.keepWizardNav && atom.isButtons && atom.buttons.length === 2
+          if (!opts.keepWizardNav && atom.isButtons && !atom.wizardSideRow && atom.buttons.length === 2
               && atom.buttons.some((b) => b.actionId === 'back')
               && !atom.buttons.some((b) => b.actionId === 'next')) return false
         }
@@ -1631,6 +1668,8 @@ export function hostContentOf(ctx, islandBlocks, opts = {}) {
 /** Acción FORWARD del wizard (Continue/Completar): se deriva del PIE real del árbol — el
  *  bloque de botones que acompaña a 'back' (los wizards ricos tienen además acciones de
  *  página como selectPax que NO son el forward; elegir "primera acción no-back" fallaba). */
+const WIZARD_SIDE_ACTIONS = { back: true, saveDraft: true, saveAndClose: true, skip: true }
+
 export function wizardForwardOf(ctx) {
   const blocks = islandContentOf(ctx)
   if (!blocks) return null
@@ -1639,7 +1678,10 @@ export function wizardForwardOf(ctx) {
     for (const atomItem of block.items) {
       if (!atomItem.isButtons) continue
       const hasBack = atomItem.buttons.some((b) => b.actionId === 'back')
-      const candidate = atomItem.buttons.find((b) => b.actionId !== 'back')
+      // Next when the row has it; else the completion — never a Draftable's Save / Save and
+      // close or Skip, which sit in the same row (Continue saved the draft instead of advancing)
+      const candidate = atomItem.buttons.find((b) => b.actionId === 'next')
+        || atomItem.buttons.find((b) => !WIZARD_SIDE_ACTIONS[b.actionId])
       if (candidate && (hasBack || candidate.actionId === 'next')) {
         forward = { actionId: candidate.actionId, label: candidate.label }
       }

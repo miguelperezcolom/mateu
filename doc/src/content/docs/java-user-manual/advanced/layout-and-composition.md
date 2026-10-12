@@ -18,7 +18,7 @@ Apply a layout annotation to a class or a nested section. Available options:
 | `@Zones` / `@Zone` | Arrange sections side by side, in columns |
 | `@FormLayout` | Responsive multi-column form grid |
 | `@MasterDetail` | Master/detail panel |
-| `@FoldedLayout` | Collapsible sections |
+| `@FoldedLayout` | Sections side by side (one column each) |
 | `@Tab` | Tabbed sections |
 
 ```java

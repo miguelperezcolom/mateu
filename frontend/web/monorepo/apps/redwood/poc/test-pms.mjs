@@ -469,8 +469,11 @@ test('reglas: cableado — contexto tras cada reducción y tras navegar, OnValue
   assert.ok(/setAfterReduceHook\(\(reg\) => \{\s*setRulesContext/.test(readFileSync(join(here, 'make-amd.mjs'), 'utf8')), 'el hook de reducción fija el contexto de las reglas')
   assert.match(webApp('pages/shell-page-chains/loadMateuShell.js'), /bridge\.installRules\(\)/)
   assert.match(webApp('pages/shell-page-chains/onMateuNavigate.js'), /bridge\.applyDomEffects\(null, reg\)/)
-  for (const rel of ['hostInputChanged.js', 'mateuFieldEdited.js'])
+  for (const rel of ['hostInputChanged.js', 'mateuFieldEdited.js']) {
     assert.match(webApp('flows/main/pages/main-start-page-chains/' + rel), /bridge\.valueChangeActionOf\(/, rel)
+    // @AutoSave too: a field of the generic form (mateuFieldEdited) never autosaved
+    assert.match(webApp('flows/main/pages/main-start-page-chains/' + rel), /bridge\.autoSaveOf\(/, rel)
+  }
 })
 
 // ── menú de tarjetas (@Menu(display = cards)) ──────────────────────────────────────────────────

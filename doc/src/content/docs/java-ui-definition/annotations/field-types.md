@@ -257,7 +257,7 @@ Use `@Searchable` instead of `@Lookup` when the selection screen needs filters, 
 @Target(ElementType.FIELD)
 public @interface Searchable {
     Class<? extends Selector>     selector()     default Selector.class;
-    Class<? extends LabelSupplier> label()       default LabelSupplier.class;
+    Class<? extends LookupLabelSupplier> label() default LookupLabelSupplier.class;
     boolean bubble()        default false;
     boolean editableCode()  default false;
     boolean showCode()      default false;
@@ -269,7 +269,7 @@ public @interface Searchable {
 | Attribute | Type | Default | Description |
 |---|---|---|---|
 | `selector` | `Class<? extends Selector>` | `Selector.class` | Screen opened in the modal. Must implement `Selector<IdType>`. Typically also implements `Listing`. |
-| `label` | `Class<? extends LabelSupplier>` | `LabelSupplier.class` | Resolves the display text for a stored id. |
+| `label` | `Class<? extends LookupLabelSupplier>` | `LookupLabelSupplier.class` | Resolves the display text for a stored id. |
 | `bubble` | `boolean` | `false` | Propagates the selection event to the parent component. |
 | `editableCode` | `boolean` | `false` | Allows the user to type the code/id directly in the field. |
 | `showCode` | `boolean` | `false` | Shows the raw id alongside the resolved label. |

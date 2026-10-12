@@ -119,11 +119,16 @@ class InstanceCoercionTest {
   }
 
   @Test
-  void explicitNullsKeepTheFieldInitializer() {
+  void anExplicitNullZeroesAPrimitive() {
+    // BEHAVIOUR CHANGE (2026-10-12): this used to assert that the initializer SURVIVED. The only
+    // client that sends null for a primitive is a cleared numeric input (the integer field commits
+    // an empty input as null), so keeping the initializer made the screen (empty) and the server
+    // (9) disagree — the same defect the empty-string rule above fixed for "". A primitive cannot
+    // hold an absence, so it gets its zero, as it does for "".
     var data = new HashMap<String, Object>();
     data.put("fromNull", null);
     var built = build(data);
-    assertThat(built.fromNull).isEqualTo(9);
+    assertThat(built.fromNull).isZero();
   }
 
   @Test

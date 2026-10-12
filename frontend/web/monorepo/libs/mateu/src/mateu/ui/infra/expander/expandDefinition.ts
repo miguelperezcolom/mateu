@@ -126,6 +126,36 @@ function sourceOf(data: NonNullable<ExpansionContext['data']>): Record<string, u
     return Object.fromEntries(Object.entries(data).filter(([, v]) => v !== null && v !== undefined))
 }
 
+/**
+ * The checks the browser runs before an action marked validationRequired: one per required,
+ * editable field of the expanded screen — the condition and message the server gives a Java
+ * {@code @NotEmpty} and a served definition-only page (SeededYamlPage.validations). The bundle's
+ * page carried none, so its required fields only wore the required dot.
+ */
+export function requiredValidationsOf(node: unknown): { fieldId: string, condition: string, message: string }[] {
+    const out: { fieldId: string, condition: string, message: string }[] = []
+    const seen = new Set<unknown>()
+    const walk = (n: unknown) => {
+        if (!n || typeof n !== 'object' || seen.has(n)) return
+        seen.add(n)
+        if (Array.isArray(n)) { n.forEach(walk); return }
+        const o = n as Record<string, unknown>
+        const md = (o.metadata && typeof o.metadata === 'object' ? o.metadata : o) as Record<string, unknown>
+        const fieldId = (md.fieldId ?? md.id) as string | undefined
+        if (md.type === 'FormField' && md.required && !md.readOnly && typeof fieldId === 'string' && fieldId) {
+            const ref = `state['${fieldId}']`
+            out.push({
+                fieldId,
+                condition: `${ref} != null && ${ref} !== '' && (${ref}.length === undefined || ${ref}.length > 0)`,
+                message: 'Cannot be empty',
+            })
+        }
+        Object.values(o).forEach(walk)
+    }
+    walk(node)
+    return out.filter((v, i) => out.findIndex((w) => w.fieldId === v.fieldId) === i)
+}
+
 /** Wrap a screen that has behaviour in the ServerSide page component that carries it. */
 function withBehaviour(spec: DefinitionSpec, component: Component, ctx: ExpansionContext): Component {
     const actions = ((spec.actions as Record<string, unknown>[] | undefined) ?? []).map(lowerAction)
@@ -159,7 +189,7 @@ function withBehaviour(spec: DefinitionSpec, component: Component, ctx: Expansio
         actions,
         triggers,
         rules: [],
-        validations: [],
+        validations: requiredValidationsOf(component),
         children: [component],
         ...(pageType ? { pageType } : {}),
     } as unknown as Component

@@ -7,6 +7,10 @@ layout:
     - type: FormField
       id: name
       label: Name
+    - type: FormField
+      id: title
+      label: Title
+      required: true
     - type: Button
       id: save-button
       label: Save

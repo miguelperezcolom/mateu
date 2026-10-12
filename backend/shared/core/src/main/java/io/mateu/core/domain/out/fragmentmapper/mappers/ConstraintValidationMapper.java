@@ -35,16 +35,7 @@ final class ConstraintValidationMapper {
                                   + field.getName()
                                   + "'].length < "
                                   + annotation.min())
-                          .message(
-                              TranslatorContext.translate(
-                                  annotation
-                                      .message()
-                                      .replace(
-                                          "{jakarta.validation.constraints.Size.message}",
-                                          "Size must be between "
-                                              + annotation.min()
-                                              + " and "
-                                              + annotation.max())))
+                          .message(sizeMessage(annotation))
                           .build());
                 }
                 if (annotation.max() < Integer.MAX_VALUE) {
@@ -60,16 +51,7 @@ final class ConstraintValidationMapper {
                                   + field.getName()
                                   + "'].length > "
                                   + annotation.max())
-                          .message(
-                              TranslatorContext.translate(
-                                  annotation
-                                      .message()
-                                      .replace(
-                                          "{jakarta.validation.constraints.Size.message}",
-                                          "Size must be between "
-                                              + annotation.min()
-                                              + " and "
-                                              + annotation.max())))
+                          .message(sizeMessage(annotation))
                           .build());
                 }
               });
@@ -79,15 +61,8 @@ final class ConstraintValidationMapper {
       validations.add(
           Validation.builder()
               .fieldId(prefix + field.getName())
-              .condition("state['" + prefix + field.getName() + "'] >= " + minValue)
-              .message(
-                  TranslatorContext.translate(
-                      field
-                          .getAnnotation(Min.class)
-                          .message()
-                          .replace(
-                              "{jakarta.validation.constraints.Min.message}",
-                              "Must be at least " + minValue)))
+              .condition(absentOr(prefix + field.getName(), ">= " + minValue))
+              .message(minMessage(MetaAnnotations.find(field, Min.class)))
               .build());
     }
     if (MetaAnnotations.isPresent(field, Max.class)) {
@@ -95,15 +70,8 @@ final class ConstraintValidationMapper {
       validations.add(
           Validation.builder()
               .fieldId(prefix + field.getName())
-              .condition("state['" + prefix + field.getName() + "'] <= " + maxValue)
-              .message(
-                  TranslatorContext.translate(
-                      field
-                          .getAnnotation(Max.class)
-                          .message()
-                          .replace(
-                              "{jakarta.validation.constraints.Max.message}",
-                              "Must be at most " + maxValue)))
+              .condition(absentOr(prefix + field.getName(), "<= " + maxValue))
+              .message(maxMessage(MetaAnnotations.find(field, Max.class)))
               .build());
     }
     if (MetaAnnotations.isPresent(field, Pattern.class)) {
@@ -111,52 +79,114 @@ final class ConstraintValidationMapper {
           Validation.builder()
               .fieldId(prefix + field.getName())
               .condition(
-                  "/"
+                  "state['"
+                      + prefix
+                      + field.getName()
+                      + "'] == null || state['"
+                      + prefix
+                      + field.getName()
+                      + "'] === '' || /"
                       + MetaAnnotations.find(field, Pattern.class).regexp()
                       + "/.test(state['"
                       + prefix
                       + field.getName()
                       + "'])")
-              .message(
-                  TranslatorContext.translate(
-                      field
-                          .getAnnotation(Pattern.class)
-                          .message()
-                          .replace(
-                              "{jakarta.validation.constraints.Pattern.message}",
-                              "Invalid format")))
+              .message(patternMessage(MetaAnnotations.find(field, Pattern.class)))
               .build());
     }
     if (MetaAnnotations.isPresent(field, NotEmpty.class)) {
       validations.add(
           Validation.builder()
               .fieldId(prefix + field.getName())
-              .condition("state['" + prefix + field.getName() + "']")
-              .message(
-                  TranslatorContext.translate(
-                      field
-                          .getAnnotation(NotEmpty.class)
-                          .message()
-                          .replace(
-                              "{jakarta.validation.constraints.NotEmpty.message}",
-                              "Cannot be empty")))
+              .condition(required(prefix + field.getName()))
+              .message(notEmptyMessage(MetaAnnotations.find(field, NotEmpty.class)))
               .build());
     }
     if (MetaAnnotations.isPresent(field, NotNull.class)) {
       validations.add(
           Validation.builder()
               .fieldId(prefix + field.getName())
-              .condition("state['" + prefix + field.getName() + "']")
-              .message(
-                  TranslatorContext.translate(
-                      field
-                          .getAnnotation(NotNull.class)
-                          .message()
-                          .replace(
-                              "{jakarta.validation.constraints.NotNull.message}",
-                              "Cannot be empty")))
+              .condition(required(prefix + field.getName()))
+              .message(notNullMessage(MetaAnnotations.find(field, NotNull.class)))
               .build());
     }
     return validations;
+  }
+
+  /**
+   * The condition of a required field ({@code @NotNull} or {@code @NotEmpty} — the ports have one
+   * "required" marker, so both read the same): a value, which a cleared input ({@code ''}), an
+   * absent key and an empty list are not — but {@code 0} and {@code false} ARE. The old condition,
+   * a bare {@code state['x']}, is falsy for both, so a required count of 0 or a required yes/no
+   * left at "no" could never be submitted.
+   */
+  static String required(String key) {
+    var ref = "state['" + key + "']";
+    return ref
+        + " != null && "
+        + ref
+        + " !== '' && ("
+        + ref
+        + ".length === undefined || "
+        + ref
+        + ".length > 0)";
+  }
+
+  /**
+   * A bound that only applies to a value: Bean Validation reads null as valid for {@code @Min} /
+   * {@code @Max} (requiring it is {@code @NotNull}'s job), so an optional bounded number left empty
+   * must pass — it was rejected because {@code null >= 1} is false.
+   */
+  static String absentOr(String key, String comparison) {
+    var ref = "state['" + key + "']";
+    return ref + " == null || " + ref + " === '' || " + ref + " " + comparison;
+  }
+
+  static String sizeMessage(Size annotation) {
+    return TranslatorContext.translate(
+        annotation
+            .message()
+            .replace(
+                "{jakarta.validation.constraints.Size.message}",
+                "Size must be between " + annotation.min() + " and " + annotation.max()));
+  }
+
+  static String minMessage(Min annotation) {
+    return TranslatorContext.translate(
+        annotation
+            .message()
+            .replace(
+                "{jakarta.validation.constraints.Min.message}",
+                "Must be at least " + annotation.value()));
+  }
+
+  static String maxMessage(Max annotation) {
+    return TranslatorContext.translate(
+        annotation
+            .message()
+            .replace(
+                "{jakarta.validation.constraints.Max.message}",
+                "Must be at most " + annotation.value()));
+  }
+
+  static String patternMessage(Pattern annotation) {
+    return TranslatorContext.translate(
+        annotation
+            .message()
+            .replace("{jakarta.validation.constraints.Pattern.message}", "Invalid format"));
+  }
+
+  static String notEmptyMessage(NotEmpty annotation) {
+    return TranslatorContext.translate(
+        annotation
+            .message()
+            .replace("{jakarta.validation.constraints.NotEmpty.message}", "Cannot be empty"));
+  }
+
+  static String notNullMessage(NotNull annotation) {
+    return TranslatorContext.translate(
+        annotation
+            .message()
+            .replace("{jakarta.validation.constraints.NotNull.message}", "Cannot be empty"));
   }
 }

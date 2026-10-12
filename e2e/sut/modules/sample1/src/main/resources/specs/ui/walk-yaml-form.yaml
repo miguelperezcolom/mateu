@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/miguelperezcolom/mateu/refs/heads/master/backend/shared/uidl/specs-schema.json
+# Forms walkthrough: a form authored as data, with no view model behind it.
+type: Form
+title: YAML booking
+content:
+  - type: FormLayout
+    content:
+      - {type: FormField, id: guest, label: Guest, required: true}
+      - {type: FormField, id: email, fieldType: WalkEmail}
+      - {type: FormField, id: nights, label: Nights, dataType: integer}
+      - {type: FormField, id: price, label: Price, dataType: number}
+      - {type: FormField, id: arrival, label: Arrival, dataType: date}
+      - {type: FormField, id: vip, label: VIP, dataType: bool}
+      - type: FormField
+        id: room
+        label: Room
+        stereotype: select
+        options:
+          - {value: SGL, label: Single}
+          - {value: DBL, label: Double}
+      - {type: FormField, id: notes, label: Notes, stereotype: textarea}
+      - {type: FormField, id: street, label: Street}
+buttons:
+  - type: Button
+    label: Look up
+    actionId: lookup
+    buttonStyle: primary
+# A definition-only page writes through actions: a client-side REST call, validated first.
+actions:
+  - id: lookup
+    validationRequired: true
+    restAction:
+      source:
+        url: /rest-action-demo.json
+        method: GET
+      resultPath: address
+      successMessage: Address found

@@ -237,7 +237,8 @@ test.describe('ValidationForm — bean validation', () => {
     const body = await callAction(request, VALIDATION_API, {
       route: '/',
       actionId: 'validate',
-      componentState: { requiredText: 'hello', rangedInt: 50 },
+      // every constraint satisfied: the server re-checks them, as the client does
+      componentState: { requiredText: 'hello', requiredDate: '2026-01-02', rangedInt: 50 },
       serverSideType: 'io.mateu.sample1.ValidationForm',
     });
     expect(body.messages).toHaveLength(1);

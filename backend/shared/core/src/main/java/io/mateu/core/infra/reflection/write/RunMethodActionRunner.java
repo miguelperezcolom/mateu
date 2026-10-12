@@ -13,7 +13,11 @@ import io.mateu.core.application.security.ActionMethods;
 import io.mateu.core.application.security.MateuForbiddenException;
 import io.mateu.core.application.security.WireTypes;
 import io.mateu.core.domain.act.ActionRunner;
+import io.mateu.core.domain.out.componentmapper.PageFormBuilder;
+import io.mateu.core.domain.out.componentmapper.ViewTypeClassifier;
+import io.mateu.core.domain.out.fragmentmapper.mappers.ServerConstraintCheck;
 import io.mateu.core.domain.ports.InstanceFactoryProvider;
+import io.mateu.core.infra.reflection.MetaAnnotations;
 import io.mateu.dtos.UIFragmentActionDto;
 import io.mateu.dtos.UIFragmentDto;
 import io.mateu.uidl.interfaces.HttpRequest;
@@ -68,6 +72,9 @@ public class RunMethodActionRunner implements ActionRunner {
     Method m = ActionMethods.resolve(instance, methodName, command.httpRequest());
     if (m != null) {
       if (!m.canAccess(instance)) m.setAccessible(true);
+      if (!command.actionId().startsWith("nested-form-action-")) {
+        checkConstraints(instance, m, command);
+      }
       Object result = invoke(m, instance, command);
       if (result == null) {
         var state = ComponentStateHelper.getState(instance, command.httpRequest());
@@ -116,6 +123,33 @@ public class RunMethodActionRunner implements ActionRunner {
       return asFlux(result, instance);
     }
     return Flux.empty();
+  }
+
+  /**
+   * The server's own check of the form's constraints before an action the client is told to
+   * validate: the browser checks the same rules first, but it is not to be trusted, nor the only
+   * client. Refused with the text the client shows for its own check.
+   */
+  private static void checkConstraints(Object instance, Method m, RunActionCommand command) {
+    if (!requiresValidation(m)) {
+      return;
+    }
+    if (!(ViewTypeClassifier.isPage(instance, command.route())
+        || PageFormBuilder.isForm(instance)
+        || instance.getClass().isRecord())) {
+      return;
+    }
+    ServerConstraintCheck.enforce(instance, command.httpRequest(), false);
+  }
+
+  /** The same rule {@code FieldActionCollector} advertises to the client as validationRequired. */
+  static boolean requiresValidation(Method m) {
+    var action = MetaAnnotations.find(m, io.mateu.uidl.annotations.Action.class);
+    if (action != null) {
+      return action.validationRequired();
+    }
+    return MetaAnnotations.isPresent(m, io.mateu.uidl.annotations.Button.class)
+        || MetaAnnotations.isPresent(m, io.mateu.uidl.annotations.Toolbar.class);
   }
 
   /**

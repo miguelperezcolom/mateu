@@ -594,6 +594,11 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         var method = ActionGuard.ResolveAction(type, instance, rq.ActionId!, layoutOverride);
         if (method is null) return Error($"Action not found: {rq.ActionId}");
         ActionGuard.EnsureMayInvoke(type, method, rq.ActionId!);
+        // A [Button] is advertised validationRequired: the client checks the form's constraints
+        // first, and the server does not take its word for it (Java's ServerConstraintCheck).
+        if (method.Find<ButtonAttribute>() != null
+            && _mapper.Violations(type, instance) is { Count: > 0 } broken)
+            throw new UserFacingException(ReflectionMapper.ValidationTitle, string.Join("\n", broken));
         var result = method.Invoke(instance, BuildArguments(method, rq));
         // An action returning a routed view (itself, or the model of the view's next state)
         // re-renders it in place — how a multi-state island switches between its states.

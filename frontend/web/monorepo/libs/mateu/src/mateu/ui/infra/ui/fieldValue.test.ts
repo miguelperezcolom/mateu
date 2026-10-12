@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { numericCommitValue, isNoOpCommit } from './fieldValue'
+import { numericCommitValue, isNoOpCommit, colorInputValue } from './fieldValue'
 
 describe('numericCommitValue', () => {
 
@@ -49,5 +49,20 @@ describe('isNoOpCommit', () => {
     it('keeps the loose comparison a control and its state need', () => {
         // The control reports a string; state may hold the number the server sent.
         expect(isNoOpCommit('5', 5)).toBe(true)
+    })
+})
+
+describe('colorInputValue', () => {
+    it('passes a #rrggbb value through, lowercased', () => {
+        expect(colorInputValue('#FF0000')).toBe('#ff0000')
+        expect(colorInputValue(' #00ff00 ')).toBe('#00ff00')
+    })
+    it('expands three-digit hex', () => {
+        expect(colorInputValue('#f0a')).toBe('#ff00aa')
+    })
+    it('falls back to black for what the control cannot show', () => {
+        expect(colorInputValue(undefined)).toBe('#000000')
+        expect(colorInputValue('red')).toBe('#000000')
+        expect(colorInputValue(12)).toBe('#000000')
     })
 })

@@ -158,6 +158,9 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
   @Override
   public String save(HttpRequest httpRequest) {
     var entity = toEntity(httpRequest);
+    // the browser checked the entity's constraints; the server does not take its word for it
+    io.mateu.core.domain.out.fragmentmapper.mappers.ServerConstraintCheck.enforce(
+        entity, httpRequest, false);
     // optimistic locking (@Version field): reject the save when someone else saved in between,
     // bump the version otherwise — both no-ops for entities without a version field
     OptimisticLock.check(entity, store().findById(entity.id()), httpRequest);
@@ -178,7 +181,10 @@ public abstract class FilteredAutoCrud<Filters, T extends Identifiable>
 
   @Override
   public String create(HttpRequest httpRequest) {
-    return store().save(toEntity(httpRequest));
+    var entity = toEntity(httpRequest);
+    io.mateu.core.domain.out.fragmentmapper.mappers.ServerConstraintCheck.enforce(
+        entity, httpRequest, true);
+    return store().save(entity);
   }
 
   @Override

@@ -9,7 +9,7 @@ import '@components/mateu-range-slider.ts';
 import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import {css, html, LitElement, nothing, PropertyValues, TemplateResult} from "lit";
 import { interpolate, templateResolver } from '@components/interpolation'
-import { isNoOpCommit, numericCommitValue } from '@components/fieldValue'
+import { colorInputValue, isNoOpCommit, numericCommitValue } from '@components/fieldValue'
 import { isSearchableMulti, removeSearchableId, searchableBaseFieldId, searchableChips, searchableIds } from '@components/searchableMulti'
 import { isInside, readOnlyAsPlainText } from '@infra/ui/foldoutGeometry.ts'
 import { fetchExternalOptions, mapItemsToOptions } from '@mateu/ui/infra/http/externalOptions'
@@ -1065,6 +1065,7 @@ export class MateuField extends LitElement {
                     }
                     return html`
                     <vaadin-select
+                            placeholder="${this.field?.placeholder ?? nothing}"
                             id="${this.field.fieldId}"
                             label="${label}"
                             item-label-path="label"
@@ -1113,6 +1114,7 @@ export class MateuField extends LitElement {
 
                     return html`
                     <vaadin-select
+                            placeholder="${this.field?.placeholder ?? nothing}"
                             id="${this.field.fieldId}"
                             label="${label}"
                             item-label-path="label"
@@ -1133,6 +1135,7 @@ export class MateuField extends LitElement {
                 }
                 return html`
                     <vaadin-select
+                            placeholder="${this.field?.placeholder ?? nothing}"
                             id="${this.field.fieldId}"
                             label="${label}"
                             item-label-path="label"
@@ -1183,6 +1186,7 @@ export class MateuField extends LitElement {
 
                     return html`
                     <vaadin-combo-box
+                            placeholder="${this.field?.placeholder ?? nothing}"
                             id="${this.field.fieldId}"
                             label="${label}"
                             item-label-path="label"
@@ -1211,6 +1215,7 @@ export class MateuField extends LitElement {
                 }
                 return html`
                     <vaadin-combo-box
+                            placeholder="${this.field?.placeholder ?? nothing}"
                             id="${this.field.fieldId}"
                             label="${label}"
                             item-label-path="label"
@@ -1507,6 +1512,7 @@ export class MateuField extends LitElement {
             if (this.field?.stereotype == 'textarea') {
                 return html`
                     <vaadin-text-area
+                            placeholder="${this.field?.placeholder ?? nothing}"
                             id="${this.field.fieldId}"
                             label="${label}"
                             .maxlength="${this.field.charLimit}"
@@ -1523,6 +1529,7 @@ export class MateuField extends LitElement {
             if (this.field?.stereotype == 'email') {
                 return html`
                     <vaadin-email-field
+                            placeholder="${this.field?.placeholder ?? nothing}"
                             id="${this.field.fieldId}"
                             label="${label}"
                             @value-changed="${this.valueChanged}"
@@ -1591,6 +1598,7 @@ export class MateuField extends LitElement {
             if (this.field?.stereotype == 'password') {
                 return html`
                     <vaadin-password-field
+                            placeholder="${this.field?.placeholder ?? nothing}"
                             id="${this.field.fieldId}"
                             label="${label}"
                             @value-changed="${this.valueChanged}"
@@ -1733,8 +1741,9 @@ export class MateuField extends LitElement {
                             id="${this.field.fieldId}"
                             label="${label}"
                             .helperText="${this.helperText()}"
+                            data-colspan="${this.field.colspan}"
                     >
-                        <input type="color" @input="${(e: Event) => {
+                        <input type="color" aria-label="${label ?? ''}" .value="${colorInputValue(value)}" @input="${(e: Event) => {
                             this.dispatchEvent(new CustomEvent<ValueChangedDetail>('value-changed', {
                                 detail: {
                                     value: (e.target as HTMLInputElement).value,
@@ -1749,6 +1758,7 @@ export class MateuField extends LitElement {
             }
             return html`
                 <vaadin-text-field
+                        placeholder="${this.field?.placeholder ?? nothing}"
                         id="${this.field.fieldId}"
                         label="${label}"
                         @value-changed="${this.valueChanged}"
@@ -1766,6 +1776,7 @@ export class MateuField extends LitElement {
     private renderNumberField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
         if (!this.field) return html``
             return html`<vaadin-number-field
+                    placeholder="${this.field?.placeholder ?? nothing}"
                         id="${this.field.fieldId}"
                         label="${label}"
                         @value-changed="${this.valueChanged}"
@@ -1835,6 +1846,7 @@ export class MateuField extends LitElement {
             }
             return html`
                 <vaadin-integer-field
+                        placeholder="${this.field?.placeholder ?? nothing}"
                         id="${this.field.fieldId}"
                         label="${label}"
                         @value-changed="${this.valueChanged}"
@@ -1915,6 +1927,7 @@ export class MateuField extends LitElement {
     private renderDateField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
         if (!this.field) return html``
             return html`<vaadin-date-picker
+                    placeholder="${this.field?.placeholder ?? nothing}"
                         id="${this.field.fieldId}"
                         label="${label}"
                         @value-changed="${this.valueChanged}"
@@ -1943,6 +1956,7 @@ export class MateuField extends LitElement {
     private renderTimeField(_fieldId: string, value: any, label: any, _labelText: string): TemplateResult {
         if (!this.field) return html``
             return html`<vaadin-time-picker
+                    placeholder="${this.field?.placeholder ?? nothing}"
                         id="${this.field.fieldId}"
                         label="${label}"
                         @value-changed="${this.valueChanged}"
@@ -2077,6 +2091,7 @@ export class MateuField extends LitElement {
 
                     return html`
                         <vaadin-multi-select-combo-box
+                                placeholder="${this.field?.placeholder ?? nothing}"
                             label="${label}"
                             item-label-path="label"
                             item-id-path="value"
@@ -2097,6 +2112,7 @@ export class MateuField extends LitElement {
                 }
                 return html`
                     <vaadin-multi-select-combo-box
+                            placeholder="${this.field?.placeholder ?? nothing}"
                             label="${label}"
                             item-label-path="label"
                             item-value-path="value"

@@ -457,7 +457,8 @@ define([
       const gop = bridge.generalOverviewPageOf(hostEntity, hostBlocks, { itemOverviewOn: iopOn });
       vars.mateuGop = gop;
       const gopOn = gop.on;
-      $application.variables.mateuHostContent = (!gopOn && !iopOn && hostBlocksRicos ? hostBlocks : null) || [];
+      // el form genérico se suprime: sus botones (@Button del form) van con los bloques
+      $application.variables.mateuHostContent = (!gopOn && !iopOn && hostBlocksRicos ? bridge.withFormActions(hostBlocks, summary.actions) : null) || [];
       // los componentes web del contenido (el grafo de un proceso) los crea el bridge en su
       // hueco: VB no puede escribir una etiqueta cuyo nombre llega en los datos
       bridge.mountElementsSoon(bridge.elementAtomsOf($application.variables.mateuHostContent));

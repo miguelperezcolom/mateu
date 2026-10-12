@@ -7,7 +7,7 @@
 // the golden, and the tree (types + children) must match. See design/phase6-client-side-expander.md.
 
 import { describe, expect, it } from 'vitest'
-import { expandDefinition, isClientExpandable, type DefinitionSpec } from '@infra/expander/expandDefinition'
+import { expandDefinition, isClientExpandable, requiredValidationsOf, type DefinitionSpec } from '@infra/expander/expandDefinition'
 import { expandComponent } from '@infra/expander/expandComponent'
 import { expectSubset } from '@infra/expander/__fixtures__/structuralSubset'
 import golden from '@infra/expander/__fixtures__/about.golden.json'
@@ -103,5 +103,24 @@ describe('client-side expander — declared pageType', () => {
             .fragments![0].component as any
         expect(wire.pageType).toBe('dashboard')
         expect(JSON.stringify(wire.metadata)).not.toContain('pageType')
+    })
+})
+
+describe('required fields of a bundled definition', () => {
+    it('travel as the validations the server gives them, so the page refuses an action with them empty', () => {
+        const spec = {
+            layout: { type: 'FormLayout', content: [
+                { type: 'FormField', id: 'guest', label: 'Guest', required: true },
+                { type: 'FormField', id: 'locked', label: 'Locked', required: true, readOnly: true },
+                { type: 'FormField', id: 'notes', label: 'Notes' },
+            ] },
+            actions: [{ id: 'save', validationRequired: true, restAction: { source: { url: '/x', method: 'POST' } } }],
+        } as unknown as DefinitionSpec
+        const inc = expandDefinition(spec, 'booking') as unknown as { fragments: { component: { validations: { fieldId: string, condition: string }[] } }[] }
+        const validations = inc.fragments[0].component.validations
+        expect(validations.map((v) => v.fieldId)).toEqual(['guest'])
+        expect(validations[0].condition).toBe(
+            "state['guest'] != null && state['guest'] !== '' && (state['guest'].length === undefined || state['guest'].length > 0)")
+        expect(requiredValidationsOf({})).toEqual([])
     })
 })

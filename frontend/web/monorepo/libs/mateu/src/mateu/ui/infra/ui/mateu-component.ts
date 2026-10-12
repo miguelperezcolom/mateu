@@ -349,6 +349,15 @@ export class MateuComponent extends ComponentElement {
                 // ComponentElement._keepEditedFieldValues.
                 this.adoptEditedState(detail.fieldId, newState)
 
+                // Once a submit has been refused, the errors follow the user's typing: a field the
+                // user fixes stops showing its error AS they fix it. Left until the field lost focus,
+                // the error vanished in the middle of the click on the submit button — the blur
+                // removed the message, the button jumped up under the pointer, and the click that
+                // should have submitted the fixed form landed on nothing.
+                if (this.data?._valid === false) {
+                    this.checkValidations()
+                }
+
                 if ((this.state[detail.fieldId] || this.formerState[detail.fieldId])  && this.state[detail.fieldId] != this.formerState[detail.fieldId]) {
                     if (this.component?.confirmOnNavigationIfDirty) {
                         this.dispatchEvent(new CustomEvent('dirty', {

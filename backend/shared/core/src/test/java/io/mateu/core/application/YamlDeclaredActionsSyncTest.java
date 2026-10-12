@@ -42,6 +42,19 @@ class YamlDeclaredActionsSyncTest {
   }
 
   @Test
+  void aRequiredFieldIsValidatedLikeAJavaOne() {
+    // a classless page sent no validations at all: its required fields wore the required dot and
+    // the action ran with them empty
+    assertThat(page().validations())
+        .extracting(v -> v.fieldId() + " | " + v.message())
+        .containsExactly("title | Cannot be empty");
+    assertThat(page().validations().get(0).condition())
+        .isEqualTo(
+            "state['title'] != null && state['title'] !== '' && (state['title'].length ==="
+                + " undefined || state['title'].length > 0)");
+  }
+
+  @Test
   void aDeclaredActionReachesTheWire() {
     var actions = page().actions();
     assertThat(actions).extracting(a -> a.id()).contains("save", "remove");

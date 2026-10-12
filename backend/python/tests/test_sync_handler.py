@@ -2383,7 +2383,7 @@ def test_crud_search_sorts_and_paginates():
 
 def test_action_returns_page_banner():
     inc = handler().handle(
-        RunActionRq(action_id="warn", server_side_type=_name(SimpleForm), component_state={})
+        RunActionRq(action_id="warn", server_side_type=_name(SimpleForm), component_state={"name": "Ann"})
     )
     assert len(inc.banners) == 1
     b = inc.banners[0]
@@ -2392,7 +2392,7 @@ def test_action_returns_page_banner():
 
 def test_action_returns_route_navigates():
     inc = handler().handle(
-        RunActionRq(action_id="goHome", server_side_type=_name(SimpleForm), component_state={})
+        RunActionRq(action_id="goHome", server_side_type=_name(SimpleForm), component_state={"name": "Ann"})
     )
     assert any(c.type == "NavigateTo" and c.data == "/things" for c in inc.commands)
 

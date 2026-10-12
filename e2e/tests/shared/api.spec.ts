@@ -500,6 +500,8 @@ test.describe('AllTypesForm API', () => {
     const body = await callAction(request, ALL_TYPES_API, {
       route: '/',
       actionId: 'refresh',
+      // a @Toolbar is validationRequired: the server re-checks the form's @NotEmpty, as the client does
+      componentState: { text: 'hello' },
       serverSideType: ALL_TYPES_TYPE,
     });
     expect(body.messages).toHaveLength(1);
@@ -648,6 +650,8 @@ test.describe('ProfileForm API', () => {
     const body = await callAction(request, PROFILE_API, {
       route: '/',
       actionId: 'reset',
+      // a @Toolbar is validationRequired: the server re-checks the form's constraints, as the client does
+      componentState: { username: 'alice', bio: 'Hello', accountId: 'ACC-001' },
       serverSideType: PROFILE_TYPE,
     });
     expect(body.messages).toHaveLength(1);

@@ -227,6 +227,7 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     // P1: la URL de una pestaña con clave (@Tab(key)) y los niveles de app (maestros)
     tabRoutePath,
     hostContentShown,
+    withFormActions,
     withSubresources,
     loadSubresources,
     appLevelOf,

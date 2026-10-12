@@ -11,3 +11,6 @@ routes:
   # Actions authored as data (REST direct/proxy, flows, the action catalogue): no view model.
   - route: yaml-actions
     layout: yaml-actions.yaml
+  # Forms walkthrough: a YAML form with no view model (fields, a field type, validation).
+  - route: walk-yaml
+    layout: walk-yaml-form.yaml

@@ -2733,11 +2733,28 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     return ids
   }
 
+  /** The node whose children include `target` (null at the root or when absent). */
+  function parentOfNode(node, target) {
+    if (!node || typeof node !== 'object') return null
+    for (const child of node.children || []) {
+      if (child === target) return node
+      const found = parentOfNode(child, target)
+      if (found) return found
+    }
+    return null
+  }
+
   /** Arquetipo ITEM OVERVIEW: panel de datos clave + tabs. */
   function itemOverviewOf(ctx) {
     const tabLayout = ctx && ctx.tree ? findByType(ctx.tree, 'TabLayout') : null
     if (!tabLayout) return null
-    const keyCard = findAllByType(ctx.tree, 'Card').find((card) => !findByType(card, 'TabLayout'))
+    // the key panel is the tab bar's SIBLING (the archetype lays them side by side). Any card
+    // anywhere used to do: a sectioned form with tabs inside one section (its other sections are
+    // cards) was taken for an item overview and drawn as its first section + the tab bar — every
+    // other section, and the form's buttons, were gone
+    const parent = parentOfNode(ctx.tree, tabLayout)
+    const keyCard = ((parent && parent.children) || [])
+      .find((c) => c && c.metadata && c.metadata.type === 'Card' && !findByType(c, 'TabLayout'))
     // El arquetipo es panel de datos clave + pestañas: sin panel esto no es un item overview,
     // es un FORMULARIO que resulta que lleva pestañas dentro. Reclamarlo igual dejaba la página
     // sin sus campos (no hay tarjeta clave que pintar) y las pestañas reducidas a sus rótulos
@@ -4480,6 +4497,33 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
    *  listado @Subresource): sus campos ya se ven ahí. Y sí cuando el form genérico no tiene NADA
    *  que pintar: una página de solo lectura llega como textos sueltos — sus campos @ReadOnly son
    *  Text en el wire, no FormFields — y sin esta regla salía vacía (CustomerHistory). */
+  /**
+   * The rich host blocks plus the form's own action row (the page's @Button / footer buttons) that
+   * the generic form would have drawn. When the blocks win (a form with a grid field, a capture
+   * field…), noGenericFormVars clears that row — and the page lost its buttons: a form with an
+   * editable grid had no way to submit. Actions a block already draws are not repeated.
+   */
+  function withFormActions(blocks, actions) {
+    if (!blocks || !blocks.length) return blocks
+    const drawn = {}
+    for (const block of blocks) {
+      for (const atom of block.items || []) {
+        if (atom && atom.isButtons) for (const b of atom.buttons || []) drawn[b.actionId] = true
+      }
+    }
+    const missing = (actions || []).filter((a) => a && a.actionId && !drawn[a.actionId])
+    if (!missing.length) return blocks
+    const buttons = missing.map((a) => ({
+      actionId: a.actionId,
+      label: a.label || a.actionId,
+      disabled: !!a.disabled,
+      chroming: a.chroming || 'outlined',
+      parameters: a.parameters || {},
+      ...(a.route ? { route: a.route } : {}),
+    }))
+    return [...blocks, { isPlain: true, blockClass: 'oj-flex-item oj-sm-12', items: [{ isButtons: true, fromFormActions: true, buttons }] }]
+  }
+
   function hostContentShown(blocks, summary) {
     if (!blocks || !blocks.length) return false
     const rich = (a) => isRichAtom(a) || !!(a && (a.isTabs || a.isGrid || a.isElement || a.isSubresource))
@@ -4629,10 +4673,20 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const title = opts.title || ''
     let titleDropped = false
     let entityDropped = false
+    // a wizard step's forward button (Next, or the completion on the last step) rides the guided
+    // process footer (Continue): when the row also carries a Draftable's Save / Save and close, the
+    // row stayed whole and the step showed Next AND Continue (Check in twice on the last step).
+    // The row keeps Back and those side actions; the forward one leaves it.
+    const isSide = (b) => b.actionId === 'back' || WIZARD_SIDE_ACTIONS[b.actionId]
+    const withoutWizardNav = (atom) => (opts.forWizard && !opts.keepWizardNav && atom && atom.isButtons
+      && (atom.buttons || []).some((b) => b.actionId === 'back' || b.actionId === 'next')
+      && (atom.buttons || []).some((b) => b.actionId !== 'back' && WIZARD_SIDE_ACTIONS[b.actionId])
+      ? { ...atom, wizardSideRow: true, buttons: atom.buttons.filter(isSide) }
+      : atom)
     merged = merged
       .map((block) => ({
         ...block,
-        items: block.items.filter((atom) => {
+        items: block.items.map(withoutWizardNav).filter((atom) => {
           // el título de Page sobra: la banda del header (o el guided process) ya lo pinta
           if (!titleDropped && atom.isText && title && atom.text === title) {
             titleDropped = true
@@ -4658,7 +4712,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
                 && atom.buttons.every((b) => b.actionId === 'next' || b.actionId === 'back')) return false
             // el pie del ÚLTIMO paso: Back + la acción de completar (@WizardCompletionAction) — el
             // pie del proceso guiado ya los pinta (wizardForwardOf), aquí salían duplicados
-            if (!opts.keepWizardNav && atom.isButtons && atom.buttons.length === 2
+            if (!opts.keepWizardNav && atom.isButtons && !atom.wizardSideRow && atom.buttons.length === 2
                 && atom.buttons.some((b) => b.actionId === 'back')
                 && !atom.buttons.some((b) => b.actionId === 'next')) return false
           }
@@ -4683,6 +4737,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   /** Acción FORWARD del wizard (Continue/Completar): se deriva del PIE real del árbol — el
    *  bloque de botones que acompaña a 'back' (los wizards ricos tienen además acciones de
    *  página como selectPax que NO son el forward; elegir "primera acción no-back" fallaba). */
+  const WIZARD_SIDE_ACTIONS = { back: true, saveDraft: true, saveAndClose: true, skip: true }
+
   function wizardForwardOf(ctx) {
     const blocks = islandContentOf(ctx)
     if (!blocks) return null
@@ -4691,7 +4747,10 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       for (const atomItem of block.items) {
         if (!atomItem.isButtons) continue
         const hasBack = atomItem.buttons.some((b) => b.actionId === 'back')
-        const candidate = atomItem.buttons.find((b) => b.actionId !== 'back')
+        // Next when the row has it; else the completion — never a Draftable's Save / Save and
+        // close or Skip, which sit in the same row (Continue saved the draft instead of advancing)
+        const candidate = atomItem.buttons.find((b) => b.actionId === 'next')
+          || atomItem.buttons.find((b) => !WIZARD_SIDE_ACTIONS[b.actionId])
         if (candidate && (hasBack || candidate.actionId === 'next')) {
           forward = { actionId: candidate.actionId, label: candidate.label }
         }
@@ -6971,7 +7030,24 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
   function optionsOf(field, data) {
     const found = data && data[field.fieldId] && data[field.fieldId].content
     const raw = (field.options && field.options.length) ? field.options : (found || [])
+    if (field.stereotype === 'treeSelect') return treeOptionsOf(raw, !!field.treeLeavesOnly)
     return raw.map((o) => ({ value: o.value, label: o.label == null ? String(o.value) : o.label }))
+  }
+
+  /**
+   * A @TreeSelect's options flattened for the select, nested ones indented under their parent (a
+   * leaves-only tree offers its leaves only). Only the top level used to be offered: a nested value
+   * could not be picked, and a stored one (Mallorca) showed as the first option (Spain).
+   */
+  function treeOptionsOf(options, leavesOnly, depth = 0) {
+    const out = []
+    for (const o of options || []) {
+      const children = o.children || []
+      const label = (depth ? '\u2003'.repeat(depth) : '') + (o.label == null ? String(o.value) : o.label)
+      if (!(leavesOnly && children.length)) out.push({ value: o.value, label })
+      out.push(...treeOptionsOf(children, leavesOnly, depth + 1))
+    }
+    return out
   }
 
   /** El valor de un campo tal como lo edita su widget: un lookup puede llegar como {value,label}. */
@@ -7028,7 +7104,9 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** Tipos de campo que el form layout sabe pintar con un widget de JET. */
   const LAYOUT_TYPES = { string: true, integer: true, int: true, long: true, number: true, double: true,
-    float: true, date: true, dateTime: true, bool: true, boolean: true }
+    float: true, date: true, dateTime: true, bool: true, boolean: true,
+    // a LocalTime field ("10:30") is edited as text: before, it was not drawn at all
+    time: true }
 
   /**
    * Un campo ESCALAR de un FormLayout, listo para el oj-form-layout: su widget (fieldWidgetOf),
@@ -7046,6 +7124,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     const raw = s[fieldId] != null ? s[fieldId] : d[fieldId]
     const widget = fieldWidgetOf(md, data, { lookups: !md.readOnly, value: raw, textWhenEmpty: true })
     let value = raw == null || raw === '' ? null : raw
+    // an Amount travels as {currency, value, locale}: the money input shows its value (it was blank)
+    if (widget.isMoney && value != null && typeof value === 'object') value = value.value
     if (widget.isBoolean) value = !!raw
     else if (widget.isSelect) value = value == null ? null : plainValueOf(value)
     else if (widget.isNumber || widget.isMoney || widget.isSlider || widget.isStars) value = value == null || Number.isNaN(Number(value)) ? null : Number(value)
@@ -7301,7 +7381,12 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
       const max = Number(f.sliderMax) > min ? Number(f.sliderMax) : 100
       return { isSlider: true, min, max, step: Number(f.step) > 0 ? Number(f.step) : 1 }
     }
-    if (st === 'stars') return { isStars: true, max: Number(f.sliderMax) > 0 ? Number(f.sliderMax) : 5 }
+    // five stars, as on Vaadin: the wire's sliderMax defaults to 100 on EVERY field, and a gauge of
+    // a hundred stars drew as a hairline — the rating was invisible. A small explicit max is kept.
+    if (st === 'stars') {
+      const max = Number(f.sliderMax)
+      return { isStars: true, max: max > 0 && max <= 10 ? max : 5 }
+    }
     if (st === 'color') return { isColor: true }
     if (st === 'richText' && !f.readOnly) return { isRichEditor: true }
     return null
@@ -7317,7 +7402,13 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
         && (MULTI_SELECT_STEREOTYPES[md.stereotype] || CHECKBOX_SET_STEREOTYPES[md.stereotype])))
   }
 
+  /** Stereotypes that PRESENT a value and take no input (@PlainText, @Badge): drawn read-only.
+   *  They were drawn as editable inputs (a badge as a switch), so the user could change what the
+   *  server shows as a fact — and send it back. */
+  const DISPLAY_ONLY_STEREOTYPES = { plainText: true, badge: true }
+
   function fieldWidgetOf(f, data, { lookups, value, textWhenEmpty }) {
+    if (f && DISPLAY_ONLY_STEREOTYPES[f.stereotype] && !f.readOnly) f = { ...f, readOnly: true }
     if (isSearchableField(f)) return searchableWidgetOf(f, data, value)
     const extra = extraWidgetOf(f, optionsOf(f, data))
     if (extra) {
@@ -19274,6 +19365,7 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
     // P1: la URL de una pestaña con clave (@Tab(key)) y los niveles de app (maestros)
     tabRoutePath,
     hostContentShown,
+    withFormActions,
     withSubresources,
     loadSubresources,
     appLevelOf,
