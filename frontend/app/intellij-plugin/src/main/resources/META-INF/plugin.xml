@@ -93,9 +93,13 @@ YAML plugins): the binding checks resolve view models through Java PSI.</p>
         <internalFileTemplate name="Mateu UI Mount"/>
     </extensions>
 
-    <!-- Applies the unified Mateu authoring schema to every specs/ui/**.yaml in the text editor. -->
-    <extensions defaultExtensionNs="com.intellij.json">
-        <jsonSchemaProviderFactory implementation="io.mateu.ijp.schema.MateuSchemaProviderFactory"/>
+    <!-- Applies the unified Mateu authoring schema to every specs/ui/**.yaml in the text editor.
+         The extension point is JavaScript.JsonSchema.ProviderFactory (declared by the bundled JSON
+         plugin, kept under its historical name): a `com.intellij.json` namespace names a point that
+         does not exist and the platform drops it SILENTLY — no schema, no completion, no error.
+         MateuSchemaProviderTest boots the fixture and fails if this is ever wrong again. -->
+    <extensions defaultExtensionNs="JavaScript">
+        <JsonSchema.ProviderFactory implementation="io.mateu.ijp.schema.MateuSchemaProviderFactory"/>
     </extensions>
 
     <actions>
