@@ -190,6 +190,12 @@ listed above.
 
 ## For other areas
 
+- Shell/menus: code-authored menus treat a child route as relative to its group, so a FULL path
+  doubles (`/g` › `/g/x` → `/g/g/x`, pinned by the `app-in-code` golden), and a group nested in a
+  group compounds it (`/b` › `/b/r` › `/b/r/search` → `/b/b/r/b/r/search` in Java; the ports put the
+  nested group itself at `/b/b/r` where Java keeps `/b/r`). Consider normalising an absolute child
+  route that already starts with its parent's path, in Java and the ports alike.
+
 - The FAB fix touched Java `FieldActionCollector` (actions area). The e2e FAB tests in
   `features.spec.ts` call the action through the API and could not see a dead FAB — a click-level
   spec is worth adding there.
@@ -205,5 +211,9 @@ listed above.
   renderer was removed (2026-07-10). Now names the React Native app (verified against both ports)
   and says plainly that the server answers the sync API only. `backend/dotnet/DESIGN.md` still
   mentions Compose in its historical milestone plan (left as history).
+- `java-user-manual/build/navigation-and-menus.md` ("App shells and menus in code"): the example
+  wrote full paths (`/back-office/reports/sales` inside `/back-office/reports`, under the
+  `/back-office` mount); menu routes are relative to the mount and to their group (the conformance
+  goldens pin it: `/g` › `/g/x` → `/g/g/x`), so the example's links led to doubled URLs. Now relative.
 - CLAUDE.md "the home route defaults to the first menu item": true for React Native (first tab);
   Java/Vaadin, and now the ports, render the app class as an empty page (❌ 5).

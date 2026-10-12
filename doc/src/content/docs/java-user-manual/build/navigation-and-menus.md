@@ -375,17 +375,21 @@ public class BackOffice implements AppSupplier {
     return AppShell.builder()
         .title("Back office")
         .variant(AppVariant.HAMBURGER_MENU)
-        .homeRoute("/back-office/home")
+        .homeRoute("/home")
         .menu(List.of(
-            new RouteLink("/back-office/home", "Home"),
-            new Menu("/back-office/reports", "Reports", List.of(
-                new RouteLink("/back-office/reports/sales", "Sales"))),
+            new RouteLink("/home", "Home"),
+            new Menu("/reports", "Reports", List.of(
+                new RouteLink("/sales", "Sales"))),   // → /back-office/reports/sales
             // A leaf can also RUN a rule instead of navigating:
             new RuleLink("Approve", List.of(Rule.builder().actionId("approve").build()))))
         .build();
   }
 }
 ```
+
+Routes are **relative**: a top-level entry to the mount (`/home` → `/back-office/home`) and an
+entry inside a `Menu` to its group (`/sales` → `/back-office/reports/sales`). Writing the full path
+again (`/back-office/reports/sales` inside `/back-office/reports`) repeats it in the URL.
 
 The menu is a `List<Actionable>`, so both leaf kinds compose — a `RouteLink`/`ContentLink` that
 navigates and a `RuleLink` that runs client-side rules (the [route-or-rule leaf](#a-leaf-is-a-route-or-a-rule)) —

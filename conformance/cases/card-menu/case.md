@@ -1,8 +1,8 @@
 # card-menu
 
 Pins a card menu authored in code (AppSupplier / IAppSupplier / AppSupplier): a menu group that
-opens as a panel of CARDS (`display: "cards"`), whose entry is a card carrying its `description`,
-. Every renderer draws the panel from exactly these
+opens as a panel of CARDS (`display: "cards"`), whose entry is a card carrying its `description`.
+Every renderer draws the panel from exactly these
 members (web `mateu-card-menu`, Redwood action cards, React Native drawer cards, IntelliJ two-line
 rows), so a port dropping `display` or `description` would silently turn the cards back into a list.
 
