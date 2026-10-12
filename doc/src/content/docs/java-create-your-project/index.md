@@ -1,6 +1,6 @@
 ---
 title: "Create your project"
-description: "Set up a new Mateu project with your Java backend framework of choice."
+description: "Create a new Mateu project — code, code + YAML, YAML served by a backend, or YAML static with no backend — from the IDE wizards, the Maven archetype or a starter."
 ---
 
 Start a new Mateu project from one of the three front doors below, or add Mateu to an existing

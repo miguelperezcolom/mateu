@@ -1,8 +1,8 @@
 # Mateu
 
-> Model-driven UI system for business apps. Declare the model once — as code (Java with @UI, C# with [UI], Python with @ui) or as data (YAML specs) — and Mateu derives forms, CRUD screens, navigation, wizards and full app shells, rendered on the web and natively, served by a backend or shipped as a static bundle. Zero frontend code for typical business apps.
+> Mateu defines business UIs agnostically. One model, authored three ways that produce the same thing: YAML files (`type: UI` mounts, `routes.yaml`, page definitions, `sources.yaml`), the WYSIWYG visual editor in IntelliJ/VS Code (which writes that YAML), or code in Java (`@UI`), C# (`[UI]`) or Python (`@ui`). Rendered anywhere: web (Vaadin; Oracle Redwood, also embedded in Visual Builder apps), mobile (the generic Mateu app on iOS/Android), desktop (IntelliJ). Served by any backend or by none: Java on Spring Boot MVC/WebFlux, Quarkus, Micronaut or Helidon MP, ASP.NET Core, FastAPI — or a static bundle on a CDN. UIs from different domains federate into one console. The backend is an option, not the definition.
 
-Mateu works with Spring Boot (MVC and WebFlux), Quarkus, Micronaut, and Helidon. The frontend ships as pre-built Lit web-components; renderers for Vaadin (Lumo) and Oracle Redwood (on Oracle Visual Builder) are included.
+All authoring paths and servers emit one versioned wire model (JSON); every renderer consumes it. Generated JSON Schemas give editors validation and completion for every YAML file.
 
 ## AI reference files
 
@@ -14,19 +14,39 @@ For AI-assisted development, use these context documents with your AI tool (Clau
 
 ## Documentation
 
-- [Quickstart](https://mateu.io/java-user-manual/start-here/quickstart/): A complete Spring Boot CRUD app in six files (the `starters/spring-mvc` project; `starters/` has one per runtime, incl. C# and Python)
-- [Quickstart: YAML only](https://mateu.io/define/yaml/quickstart/): An app with no UI code — specs/ui served by Spring Boot, or a static bundle with no backend
-- [Create your project](https://mateu.io/java-create-your-project/): New project from IntelliJ (File › New › Project › Mateu), VS Code (Mateu: New Project) or Maven (io.mateu:mateu-archetype); generated projects carry AGENTS.md + CLAUDE.md
-- [First app](https://mateu.io/java-user-manual/start-here/first-app/): Build your first form and CRUD
-- [Annotations reference](https://mateu.io/java-ui-definition/annotations/): Every annotation with attributes and examples
-- [Interfaces reference](https://mateu.io/java-ui-definition/interfaces/): Listing, CrudStore, BannerSupplier, BadgeSupplier, etc.
-- [UX patterns](https://mateu.io/ux-patterns/): Wizard, high-density screens, split view, autosave, keyboard shortcuts, and more
-- [Components](https://mateu.io/java-ui-definition/components/): Badge, Banner, FAB, Chart, Map, and all fluent components
-- [Design systems](https://mateu.io/design-systems/): Vaadin, Oracle Redwood
-- [Deploy to production](https://mateu.io/deploy/production-checklist/): packaging, proxies, auth, CSP, CORS, static bundles
-- [Stability & versioning](https://mateu.io/reference/stability-and-versioning/) and [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/): what is public API; every rename (CrudRepository→CrudStore, @Route removed → routes.yaml, ListingBackend→Listing, …)
+Start here:
+- [What is Mateu](https://mateu.io/mateu-about/what-is-mateu/): the positioning, with a diagram of authoring paths, renderers and deployments
+- [Choose your path](https://mateu.io/start-here/choose-your-path/): the same screen in YAML, Java, C# and Python; which path fits; the three front doors (IDE wizard, Maven archetype, starters)
 
-## Key concepts
+Concepts (language-neutral):
+- [Concepts overview](https://mateu.io/concepts/)
+- [The model](https://mateu.io/mateu-about/the-model/) and [the wire](https://mateu.io/reference/wire-specification/)
+- [Routes & mounts](https://mateu.io/concepts/routes-and-mounts/): routes.yaml, parameters, nested routes, home pages
+- [Data sources](https://mateu.io/concepts/data-sources/): the REST source catalogue (sources.yaml), field mapping, writes, sample data
+- [Actions](https://mateu.io/concepts/action-catalogue/): client-runnable actions declared once
+- [UI federation](https://mateu.io/mateu-about/ui-federation/): composing UIs from several domains into one console
+
+Define the UI (three paths, same level):
+- [Overview](https://mateu.io/define/)
+- YAML + visual editor: [Quickstart](https://mateu.io/define/yaml/quickstart/), [Pages](https://mateu.io/define/yaml/pages/), [Visual editor](https://mateu.io/define/yaml/visual-editor/), [App shell](https://mateu.io/define/yaml/app-shell/), [Partials](https://mateu.io/define/yaml/partials/), [Permissions](https://mateu.io/define/yaml/permissions/), [Translations](https://mateu.io/define/yaml/translations/), [IDE tooling](https://mateu.io/native/ide-tooling/)
+- Java: [Quickstart](https://mateu.io/java-user-manual/start-here/quickstart/) (the `starters/spring-mvc` project), [Create your project](https://mateu.io/java-create-your-project/), [Annotations](https://mateu.io/java-ui-definition/annotations/), [Interfaces](https://mateu.io/java-ui-definition/interfaces/), [Components](https://mateu.io/java-ui-definition/components/)
+- C#: [C# manual](https://mateu.io/csharp-user-manual/) · Python: [Python manual](https://mateu.io/python-user-manual/) · [Language Rosetta](https://mateu.io/reference/language-rosetta/) · [Parity matrix](https://mateu.io/reference/parity/)
+- [Mixing YAML and code](https://mateu.io/define/mixing/): layout from YAML, behaviour from a view model
+
+Renderers:
+- [Overview](https://mateu.io/design-systems/), [Vaadin](https://mateu.io/design-systems/vaadin/), [Redwood / Visual Builder](https://mateu.io/design-systems/oracle-redwood/), [Mobile app](https://mateu.io/native/react-native/), [IntelliJ](https://mateu.io/native/)
+
+Serve & deploy:
+- [Overview](https://mateu.io/deploy/): backends vs static bundle
+- [Static bundle](https://mateu.io/deploy/static-bundle/), [100 % static UI](https://mateu.io/deploy/static-ui/), [Environments](https://mateu.io/deploy/environments/), [Production checklist](https://mateu.io/deploy/production-checklist/)
+- Guides: [Netlify](https://mateu.io/deploy/netlify/), [Kubernetes on Hetzner with Cloudfleet](https://mateu.io/deploy/kubernetes-hetzner-cloudfleet/), [App Store & Google Play](https://mateu.io/deploy/mobile-app-stores/)
+
+Patterns, reference, quality:
+- [UX patterns](https://mateu.io/ux-patterns/): wizard, dashboards, master-detail, drawers, high-density screens, and more
+- [Stability & versioning](https://mateu.io/reference/stability-and-versioning/) and [Migrating from alpha](https://mateu.io/reference/migrating-from-alpha/)
+- [Quality](https://mateu.io/quality/): how UX is evaluated, accessibility, conformance across servers and renderers
+
+## Key concepts (Java path)
 
 - `@UI("/path")` on a class registers it as a routed view; no path means root.
 - Fields → form fields. `List<T>` fields → grids/tables. Nested class fields → subforms.

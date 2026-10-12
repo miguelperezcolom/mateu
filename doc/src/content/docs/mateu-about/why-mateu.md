@@ -30,12 +30,18 @@ For a consumer product, that split is often worth it. For an order management sc
 Mateu keeps the definition in one place:
 
 ```text
-domain model          (Java)
-  -> Mateu UI definition (Java annotations + methods)
-  -> browser rendering
+one model    (YAML · visual editor · Java · C# · Python)
+  -> Mateu wire model
+  -> any renderer: browser, phone, IntelliJ
 ```
 
-The backend defines what the UI is. The renderer decides how it looks. There is no separate frontend application to build, deploy, or maintain.
+The model defines what the UI is. The renderer decides how it looks. The deployment — a backend in
+any supported language, or a static bundle with none — decides where it runs. There is no separate
+frontend application to build, deploy, or maintain.
+
+The rest of this page uses the code path (Java) for its examples, because that is where most of the
+duplication it describes lives; the same arguments hold for a UI authored in YAML over existing
+APIs.
 
 ## Concrete benefits
 
@@ -47,7 +53,7 @@ With Mateu, the `Order` appears once. Adding a field to `OrderRow` adds it to th
 
 ### Fewer moving parts
 
-A Mateu project has a Java backend, a Mateu integration dependency, and a renderer (loaded from CDN or bundled). A traditional equivalent adds a REST API layer, a frontend project with its own build tool, package manager, component library, and state management, plus a separate CI/CD pipeline and deployment target.
+A Mateu project is either a backend (Java, .NET or Python) with a Mateu dependency and a renderer, or a folder of YAML files built into a static bundle. A traditional equivalent adds a REST API layer, a frontend project with its own build tool, package manager, component library, and state management, plus a separate CI/CD pipeline and deployment target.
 
 That operational difference compounds over time, especially where frontend expertise is limited or where the UI is not the primary product.
 
@@ -97,7 +103,7 @@ Mateu works alongside DDD and hexagonal architecture, CQRS with separate read an
 
 ## Design principles
 
-**The backend is the source of truth.** UI definitions live alongside the application code that powers them. There is no separate UI layer to keep in sync.
+**The model is the source of truth.** UI definitions live in your repository, next to the code or the APIs that power them — as classes or as YAML. There is no separate UI layer to keep in sync.
 
 **Stateless interaction.** Mateu does not store UI state on the server between requests. This keeps the system horizontally scalable and compatible with modern deployment infrastructure.
 

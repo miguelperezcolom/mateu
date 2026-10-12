@@ -1,6 +1,6 @@
 # Mateu — AI Reference (Full)
 
-Mateu is a model-driven UI system for business apps. You declare the model — here, Java classes annotated with `@UI` (C#, Python and YAML authoring exist too) — and Mateu derives forms, CRUD screens, navigation and a full web UI. Developers write zero frontend code for typical business apps.
+Mateu defines business UIs agnostically: one model, authored as YAML (by hand or in the visual editor) or in code (Java, C#, Python), rendered on the web (Vaadin, Redwood), on mobile and in IntelliJ, served by any backend or as a static bundle with none. **This reference covers the Java path**: classes annotated with `@UI`, from which Mateu derives forms, CRUD screens, navigation and full app shells — zero frontend code for typical business apps. For YAML see https://mateu.io/define/yaml/quickstart/; for C#/Python see https://mateu.io/reference/language-rosetta/.
 
 **Dependency (Spring Boot MVC):**
 ```xml
