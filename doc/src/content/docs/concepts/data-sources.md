@@ -25,7 +25,7 @@ The catalogue fixes all four by naming each endpoint once.
 
 ## Declaring it
 
-Two producers feed one table, exactly like the [route registry](/java-ui-definition/route-registry/): annotations are
+Two producers feed one table, exactly like the [route registry](/concepts/routes-and-mounts/): annotations are
 the derived half, an authored `specs/ui/sources.yaml` is merged on top, and **the authored entry
 wins**.
 
@@ -138,7 +138,7 @@ open relay.
 ## Per-environment overrides
 
 `pre` and `pro` usually differ only in where the endpoints live. An
-[environment](/java-ui-definition/environments/) file re-points named sources — `baseUrl`, `url`,
+[environment](/deploy/environments/) file re-points named sources — `baseUrl`, `url`,
 `headers`, `proxy` — for `MATEU_ENVIRONMENT=pre`, without editing `sources.yaml`, and the overlay
 reaches the wire, the proxy and the bundle manifest alike.
 

@@ -29,7 +29,7 @@ an explicit `type:` at its root, and the editor opens it in the matching mode:
 | **Routes** | `Routes` | Pure routing: each URL bound to a **definition** and an optional **view model**. | `routes` (table) |
 | **Page** | any component (e.g. `VerticalLayout`) | A component tree — the layout of one screen. | `page` (WYSIWYG canvas) |
 | **Partial** | a bare `content:` list | A reusable, rootless fragment inlined wherever a page names it. | `page` (canvas, "partial" chip) |
-| **Project** | `Project` | The project's settings — the renderer, chosen once ([project settings](/java-ui-definition/project-settings)). | `project` (form) |
+| **Project** | `Project` | The project's settings — the renderer, chosen once ([project settings](/define/yaml/project-settings)). | `project` (form) |
 
 The editor picks the mode automatically from the file's `type:` — there are no tabs to switch. A
 `type: UI` file opens the mount form; `type: AppShell` opens the app form; a routes file opens the
@@ -117,7 +117,7 @@ The **app** editor is a form: title/subtitle/logo/home-route text, the `variant`
 the header switches (theme toggle, command center, chromeless, access keys), and a menu tree where
 you add links, groups, separators and **actions**.
 
-- **Actions** — the shell's [flows](/java-ui-definition/yaml-app-shell/#flows-on-the-shell): add an
+- **Actions** — the shell's [flows](/define/yaml/app-shell/#flows-on-the-shell): add an
   action, give it an id and build its steps (Navigate, Emit, Close overlay, Run action, Mark
   clean/dirty) with the same flow editor a page's actions use. They are written to the shell's
   `actions:` and round-trip losslessly.
@@ -275,7 +275,7 @@ holds something a delta cannot.
 
 The canvas paints with the **project's renderer**, the one `specs/ui/project.yaml` names
 (`renderer: vaadin | redwood`; Vaadin when the project has no descriptor, see
-[project settings](/java-ui-definition/project-settings)). The renderer selector in the toolbar
+[project settings](/define/yaml/project-settings)). The renderer selector in the toolbar
 marks the project's choice with **· project**. Picking another renderer there is a **peek** for this
 session: the toolbar shows **preview — project: …** next to it, and **↺** goes back. A peek never
 changes the file, and Play and Export keep using the project's renderer. To change the project's
@@ -496,14 +496,14 @@ A link opens the editor at the page's own address. To point links at a hosted ed
 - **Access rules.** The properties panel of a component has a small editor for `eyesOnly`,
   `readOnlyUnless` and `disabledUnless` (roles, groups, scopes, permissions); the app editor's menu
   items and the routes editor carry the same editor for `access`. See
-  [Permissions in YAML](/java-ui-definition/yaml-security/). Play has no identity, so it shows
+  [Permissions in YAML](/define/yaml/permissions/). Play has no identity, so it shows
   everything.
 - **Translation keys.** Label fields offer the project's translation keys (`${i18n.…}`) in their
   combo, read from the translation files; you can still type any text. **▶ Play** has a locale
   switcher that renders the app in each language your files declare. See
-  [Translations in YAML](/java-ui-definition/yaml-i18n/).
+  [Translations in YAML](/define/yaml/translations/).
 - **Environments.** Environment files are plain YAML: open them in the text editor, validated by
-  the `type: Environment` branch of the schema. See [Environments](/java-ui-definition/environments/).
+  the `type: Environment` branch of the schema. See [Environments](/deploy/environments/).
 - **New › Mateu** in IntelliJ and VS Code creates an empty *Translations* or *Environment* file.
 
 ## Field types and sample data
@@ -520,7 +520,7 @@ Two files make a mount designable with **no backend and no API**:
   always answer sources from their samples: a listing shows the sample rows (searched, sorted and
   paged in the browser), a select its options, a save succeeds without persisting. At runtime the
   samples are only used when the app opts in — see
-  [sample data](/java-ui-definition/rest-source-catalogue/#sample-data-designing-without-an-api).
+  [sample data](/concepts/data-sources/#sample-data-designing-without-an-api).
 
 New › Mateu › **Field Types** (IntelliJ and VS Code) creates an empty catalogue.
 
@@ -534,8 +534,8 @@ manual describes and validate that a reference resolves.
 
 ## See also
 
-- [Route registry](/java-ui-definition/route-registry/) — the routing model the routes file authors.
-- [App shell as data](/java-ui-definition/yaml-app-shell/) — the chrome the app file authors.
-- [Partials](/java-ui-definition/partials/) — reusable fragments.
-- [YAML UI definition](/java-ui-definition/yaml-ui-definition/) — the component-tree YAML a page is.
-- [Permissions in YAML](/java-ui-definition/yaml-security/), [Translations in YAML](/java-ui-definition/yaml-i18n/), [Environments](/java-ui-definition/environments/).
+- [Route registry](/concepts/routes-and-mounts/) — the routing model the routes file authors.
+- [App shell as data](/define/yaml/app-shell/) — the chrome the app file authors.
+- [Partials](/define/yaml/partials/) — reusable fragments.
+- [YAML UI definition](/define/yaml/pages/) — the component-tree YAML a page is.
+- [Permissions in YAML](/define/yaml/permissions/), [Translations in YAML](/define/yaml/translations/), [Environments](/deploy/environments/).

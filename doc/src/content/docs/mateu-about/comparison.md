@@ -30,7 +30,7 @@ One step. One file.
 
 | Concern | Traditional stack | Mateu |
 |---|---|---|
-| UI definition | frontend components (JSX / templates) | Java ViewModel class — or the same model [authored as YAML](/java-ui-definition/yaml-ui-definition/) |
+| UI definition | frontend components (JSX / templates) | Java ViewModel class — or the same model [authored as YAML](/define/yaml/pages/) |
 | Validation | frontend library (Zod, Yup, etc.) + backend | Bean Validation, once |
 | Routing | frontend router (React Router, etc.) | `@UI` (mounts) + `routes.yaml` (inner routes) |
 | Navigation | frontend nav config | `@Menu` annotations |

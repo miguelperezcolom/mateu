@@ -1,0 +1,160 @@
+---
+title: "Choose your path"
+description: "Pick how you author a Mateu UI (YAML, the visual editor, or code in Java, C# or Python), where it renders and how it is served — the choices are independent."
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+A Mateu UI is **one model**. You make three choices, and none of them constrains the others:
+
+1. **How you author it**: YAML files, the visual editor (which writes those files), or code in Java,
+   C# or Python.
+2. **Where it renders**: a web browser (Vaadin or Oracle Redwood / Visual Builder), the Mateu mobile
+   app, or IntelliJ on the desktop.
+3. **How it is served**: by a backend (five Java frameworks, ASP.NET Core or FastAPI), or as a
+   static bundle on a CDN with no backend at all.
+
+You can change your mind about (2) and (3) without touching what you wrote in (1).
+
+## The same screen, three ways
+
+A product listing with search and a status column, authored three ways. All three produce the same
+wire model and render identically in every renderer.
+
+<Tabs syncKey="authoring">
+<TabItem label="YAML (no code)">
+
+```yaml
+# specs/ui/products.yaml
+type: Listing
+title: Products
+searchable: true
+rowsSource:
+  ref: products          # a named endpoint in sources.yaml
+columns:
+  - {type: GridColumn, id: id, label: Id, identifier: true}
+  - {type: GridColumn, id: name, label: Name}
+  - {type: GridColumn, id: price, label: Price}
+  - {type: GridColumn, id: status, label: Status, dataType: status}
+```
+
+```yaml
+# specs/ui/routes.yaml
+type: Routes
+routes:
+  - route: products
+    layout: products.yaml
+```
+
+The rows come from a REST endpoint declared once in `sources.yaml` (with sample data until the API
+exists). The [visual editor](/define/yaml/visual-editor/) writes these files for you. Served by a
+backend, or bundled into static files.
+
+</TabItem>
+<TabItem label="Java">
+
+```java
+public record Product(@NotEmpty String id, @NotEmpty String name,
+                      @Min(0) double price, @NotNull ProductStatus status)
+    implements Identifiable {}
+
+@UI("/products")
+@Title("Products")
+public class Products extends AutoCrud<Product> {
+  @Override
+  public CrudStore<Product> store() {
+    return ProductStore.INSTANCE; // where the rows live: memory, JPA, a REST client…
+  }
+}
+```
+
+Runs on Spring Boot (MVC or WebFlux), Quarkus, Micronaut or Helidon MP. Beyond the listing you
+also get create, detail, edit and delete, derived from the record.
+
+</TabItem>
+<TabItem label="C#">
+
+```csharp
+public class Product
+{
+    [Required] public string Id { get; set; } = "";
+    [Required] public string Name { get; set; } = "";
+    [Range(0, double.MaxValue)] public double Price { get; set; }
+    public ProductStatus Status { get; set; }
+}
+
+[UI("products"), Title("Products")]
+public class Products : Crud<Product>
+{
+    public override IEnumerable<Product> Fetch(string? search) => Store.Search(search);
+    public override Product? Get(string id) => Store.Get(id);
+    public override void Save(Product p) => Store.Save(p);
+    public override void Delete(string id) => Store.Delete(id);
+}
+```
+
+Runs on ASP.NET Core (`dotnet add package Mateu.AspNetCore --prerelease`).
+
+</TabItem>
+<TabItem label="Python">
+
+```python
+class Product:
+    id: Annotated[str, Required()] = ""
+    name: Annotated[str, Required()] = ""
+    price: float = 0.0
+    status: ProductStatus = ProductStatus.Available
+
+@ui("products")
+@title("Products")
+class Products(Crud[Product]):
+    def fetch(self, search): return store.search(search)
+    def get(self, id): return store.get(id)
+    def save(self, entity): store.save(entity)
+    def delete(self, id): store.delete(id)
+```
+
+Runs on FastAPI (`pip install "mateu-ui[all]"`).
+
+</TabItem>
+</Tabs>
+
+The difference is not in what you can show but in **where the behaviour lives**. In YAML the screen
+reads and writes REST endpoints directly (or through a proxy, so secrets stay on a server). In code
+the screen owns its data access and can run any logic on the server. You can
+[mix the two](/define/mixing/): layout in YAML, behaviour in code.
+
+## Which path fits you
+
+| You are… | Start with |
+|---|---|
+| Building screens over APIs that already exist, without writing code | [Quickstart: YAML](/define/yaml/quickstart/), then the [visual editor](/define/yaml/visual-editor/) |
+| A Java team (Spring Boot, Quarkus, Micronaut, Helidon) | [Quickstart: Java](/java-user-manual/start-here/quickstart/) |
+| A .NET team | [C#](/csharp-user-manual/) |
+| A Python team | [Python](/python-user-manual/) |
+| Designing in Figma first | [Figma design-to-code](/design-systems/figma/) |
+| Composing UIs owned by several teams into one console | [UI federation](/mateu-about/ui-federation/) |
+
+## Three front doors to a new project
+
+- **IntelliJ IDEA**: File › New › Project… › **Mateu**. **VS Code**: command palette › **Mateu: New
+  Project…**. Both ask how you author (code, code + YAML, YAML served by a backend, YAML static) and
+  which runtime.
+- **Maven archetype**: `mvn archetype:generate -DarchetypeGroupId=io.mateu
+  -DarchetypeArtifactId=mateu-archetype -DarchetypeVersion=<release> -DgroupId=com.acme
+  -DartifactId=my-app` (add `-Dauthoring=yaml` or `-Dauthoring=static` for the YAML flavours). See
+  [Create your project](/java-create-your-project/).
+- **A starter**: the repository's
+  [`starters/`](https://github.com/miguelperezcolom/mateu/tree/master/starters) folder has one
+  minimal project per runtime (Spring MVC, WebFlux, Quarkus, Micronaut, Helidon MP, .NET, Python,
+  YAML, static). CI builds and boots every one of them.
+
+## Then: render and serve
+
+- **Renderers**: [Vaadin](/design-systems/vaadin/) is the default web renderer;
+  [Redwood / Visual Builder](/design-systems/oracle-redwood/) also embeds Mateu screens inside an
+  existing Visual Builder app; the [Mateu mobile app](/native/react-native/) and
+  [IntelliJ](/native/) render natively. See [Renderers](/design-systems/).
+- **Deployment**: a [backend](/deploy/), a [static bundle](/deploy/static-bundle/), and guides for
+  [Netlify](/deploy/netlify/), [Kubernetes](/deploy/kubernetes-hetzner-cloudfleet/) and the
+  [app stores](/deploy/mobile-app-stores/).

@@ -10,7 +10,7 @@ annotated class carries the chrome around it: title, logo, menu, variant.
 
 A data-driven mount declares that same chrome **as data**, in its own file discriminated by
 `type: AppShell`. The app shell is a **view like any other** — a definition bound to a route in the
-mount's [route registry](/java-ui-definition/route-registry/), typically the root route `""`. There
+mount's [route registry](/concepts/routes-and-mounts/), typically the root route `""`. There
 is no longer an `app:` block inside `routes.yaml`: `routes:` says what is inside the mount, the app
 shell says what surrounds it, and each is its own file.
 
@@ -71,13 +71,13 @@ point.
 
 `menu:` and `widgets:` deserialize through the **same `type:` discriminator as page layouts**, so
 every navigation type (`RouteLink`, `Menu`, `RemoteMenu`, …) and every component of the catalog is
-available with no extra wiring, and the same [JSON Schema IntelliSense](/java-ui-definition/yaml-ui-definition/#intellisense-setup)
+available with no extra wiring, and the same [JSON Schema IntelliSense](/define/yaml/pages/#intellisense-setup)
 applies while you edit.
 
 ## Flows on the shell
 
 A menu entry does not have to navigate somewhere: it can **run a flow**. The shell declares its
-flows under `actions:` — exactly the shape a [page definition's `actions:`](/java-ui-definition/yaml-ui-definition/)
+flows under `actions:` — exactly the shape a [page definition's `actions:`](/define/yaml/pages/)
 already has: an `id` plus a list of `steps` (`Navigate`, `Emit`, `CloseOverlay`, `RunAction`,
 `MarkClean`, `MarkDirty`). A menu leaf runs one with the existing **rule leaf**: a `RuleLink` whose
 single rule is `RunAction` naming the action's id.
@@ -105,13 +105,13 @@ menu:
 
 The server lowers each flow to the wire commands it produces and ships them on the App
 (`AppDto.actions`); clicking **New order** applies them **in the browser, with no server round-trip**.
-That is what makes it work with no backend at all: in a [static bundle](/java-user-manual/build/static-ui/)
+That is what makes it work with no backend at all: in a [static bundle](/deploy/static-ui/)
 and in the visual editor's **▶ Play** the browser expander emits the same lowered actions. A
 `Navigate` to a route of the app stays inside the shell (the same in-app navigation a menu link does);
 a full URL (`https://…`) leaves the page.
 
 A `RunAction` rule naming an id the shell does **not** declare is looked up in the
-[action catalogue](/java-ui-definition/action-catalogue/) — named flows and REST calls declared once
+[action catalogue](/concepts/action-catalogue/) — named flows and REST calls declared once
 in `specs/ui/actions.yaml` and runnable from the menu and any page. An id the shell declares wins over
 the catalogue's, even one without steps. Anything else keeps its old meaning: an app-level action
 dispatched to the server (an `@Action` on the app class).
@@ -160,7 +160,7 @@ An **App is a shell** — a menu, title, subtitle, logo and widgets — **plus a
 Home when the URL is the base path); the App itself only renders the chrome around that content
 slot. So the Home is a normal Screen at a route like any other — the App just points at it as the
 default. Keeping the two distinct is why the home defaulting is uniform whether the mount is a class
-or a YAML file (part of the 5-noun vocabulary — see the [route registry](/java-ui-definition/route-registry/)).
+or a YAML file (part of the 5-noun vocabulary — see the [route registry](/concepts/routes-and-mounts/)).
 
 **How it resolves:** when the home route points at a **distinct routed Screen** (a `homeRoute:` or a
 first menu item that has its own `@UI`/definition), the App's home fragment is typed with *that
@@ -223,7 +223,7 @@ src/main/
 
 ## The visual editor edits this
 
-Open any of these files in the [visual editor](/java-ui-definition/visual-editor/) and it picks the
+Open any of these files in the [visual editor](/define/yaml/visual-editor/) and it picks the
 mode from the file's `type:`: `app.yaml` opens the **app** form (title, chrome and a
 link/group/separator/action menu tree, an **Actions** panel for the shell's flows and a **Widgets**
 section), `routes.yaml` opens the **routes** table, and the `type: UI` file
@@ -237,7 +237,7 @@ one: SSE / MCP / upload URLs, `@AppContext` selectors, notifications, global sea
 theme toggle, command center, chromeless and access-keys switches are authorable on the shell.)
 
 The .NET and Python servers have no `type: AppShell` definitions, so shell flows do not apply there
-(they do carry the [action catalogue](/java-ui-definition/action-catalogue/), which a menu leaf of
+(they do carry the [action catalogue](/concepts/action-catalogue/), which a menu leaf of
 their app class can run).
 
 Before shell flows landed, a `RuleLink` in a YAML menu did not parse on the server (the schema
@@ -250,7 +250,7 @@ ignoring a malformed entry.
 
 ## Next
 
-- [Route registry](/java-ui-definition/route-registry/) — the `routes:` file that binds the shell to a route
-- [Authoring with the visual editor](/java-ui-definition/visual-editor/) — building all of this by hand
-- [YAML UI definition](/java-ui-definition/yaml-ui-definition/) — the page definitions it points at
+- [Route registry](/concepts/routes-and-mounts/) — the `routes:` file that binds the shell to a route
+- [Authoring with the visual editor](/define/yaml/visual-editor/) — building all of this by hand
+- [YAML UI definition](/define/yaml/pages/) — the page definitions it points at
 - [The model](/mateu-about/the-model/) — how this fits with the annotated half

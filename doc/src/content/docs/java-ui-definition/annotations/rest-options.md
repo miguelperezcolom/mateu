@@ -68,7 +68,7 @@ all four are shipped.
 
 ## Serving with no Mateu server — what you are signing up for
 
-A [statically deployed](/java-user-manual/build/static-bundle/) mount has no Mateu server behind it,
+A [statically deployed](/deploy/static-bundle/) mount has no Mateu server behind it,
 which is the point — and it has a consequence worth stating plainly rather than discovering:
 
 :::caution[The deal]

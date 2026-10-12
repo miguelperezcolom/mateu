@@ -57,7 +57,7 @@ The same partition governs delivery, which is why it is worth getting right:
 
 | Authoring | Delivery |
 |---|---|
-| **annotation** — compile time, no decision | can be pre-rendered into a [static bundle](/java-user-manual/build/static-bundle/) and served from a CDN |
+| **annotation** — compile time, no decision | can be pre-rendered into a [static bundle](/deploy/static-bundle/) and served from a CDN |
 | **interface** — decision at runtime | needs the server |
 
 Both ask the same thing: *can this be known without the request?* So the rule of thumb for "will this

@@ -5,7 +5,7 @@ title: "UI vs Route"
 `@UI` and the route registry serve different purposes. `@UI` publishes an application (a **mount**) at a base URL. A `routes.yaml` entry defines a screen inside that application.
 
 :::note
-The `@Route`, `@Routes` and `@HomeRoute` annotations were removed. `@UI` is the only routing annotation; inner routes are data in a [`routes.yaml` route registry](/java-ui-definition/route-registry/).
+The `@Route`, `@Routes` and `@HomeRoute` annotations were removed. `@UI` is the only routing annotation; inner routes are data in a [`routes.yaml` route registry](/concepts/routes-and-mounts/).
 :::
 
 ---
@@ -77,7 +77,7 @@ routes:
 
 This screen does not publish a new UI. It defines a route inside the existing `/admin` UI. To nest
 a route under another one, use `children` (each child gets `RouteEntry.parent`, and the parent
-renders the child in its slot; see the [route registry](/java-ui-definition/route-registry/#nested-routes-a-sub-route-in-a-parents-slot)).
+renders the child in its slot; see the [route registry](/concepts/routes-and-mounts/#nested-routes-a-sub-route-in-a-parents-slot)).
 
 ---
 
@@ -88,7 +88,7 @@ renders the child in its slot; see the [route registry](/java-ui-definition/rout
 
 The `@UI` class is the mount's root view (the entry whose route is `""`). When the app has a menu, its landing page is the first menu item, or whatever the app class returns from `HomeRouteSupplier.homeRoute()`.
 
-Routes can also be supplied in code (a `RouteEntrySupplier` bean); `routes.yaml` wins over a supplied entry for the same route. See the [route registry](/java-ui-definition/route-registry/).
+Routes can also be supplied in code (a `RouteEntrySupplier` bean); `routes.yaml` wins over a supplied entry for the same route. See the [route registry](/concepts/routes-and-mounts/).
 
 ---
 

@@ -31,7 +31,7 @@ Use it when a class should become a page or UI entry point.
 
 `@Route`, `@Routes` and `@HomeRoute` were **removed**: `@UI` is the only routing annotation. The
 screens inside a UI — including routes with placeholders — are declared as data in a
-[`routes.yaml` route registry](/java-ui-definition/route-registry/).
+[`routes.yaml` route registry](/concepts/routes-and-mounts/).
 
 ```java
 public class ExamplePage {

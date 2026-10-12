@@ -85,7 +85,7 @@ sources:
 ```
 
 Until your API exists the source answers with its `sample:` — the generated main class turns
-[sample mode](/java-ui-definition/rest-source-catalogue/#sample-data-designing-without-an-api) on.
+[sample mode](/concepts/data-sources/#sample-data-designing-without-an-api) on.
 Point `url` at your API and run with `-Dmateu.sources.mock=false` to go live.
 
 ## 3. Add a screen
@@ -123,13 +123,13 @@ npx serve -s target/mateu-bundle   # preview it at http://localhost:3000
 Deploy `target/mateu-bundle/` to any static host with an SPA fallback. The browser calls the APIs
 named in `sources.yaml` itself, so they must allow your site's origin (CORS); `.mvn/maven.config`
 ships the sample data (`-Dmateu.bundle.mock=true`) until they exist. The build fails if a screen
-still needs a server. See [A 100 % static UI](/java-user-manual/build/static-ui/).
+still needs a server. See [A 100 % static UI](/deploy/static-ui/).
 
 ## Next
 
-- [Route registry](/java-ui-definition/route-registry/) — routes, parameters, nested routes.
-- [REST source catalogue](/java-ui-definition/rest-source-catalogue/) — endpoints, field mapping,
+- [Route registry](/concepts/routes-and-mounts/) — routes, parameters, nested routes.
+- [REST source catalogue](/concepts/data-sources/) — endpoints, field mapping,
   writes, sample data.
-- [The YAML app shell](/java-ui-definition/yaml-app-shell/) — menus, home route, header actions.
+- [The YAML app shell](/define/yaml/app-shell/) — menus, home route, header actions.
 - Need behaviour on the server for a screen? Bind a Java view model to its route
   (`viewModel:` in `routes.yaml`) — the **Code + YAML** flavour starts that way.

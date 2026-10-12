@@ -126,7 +126,7 @@ path (Spring Security, Quarkus OIDC, an API gateway…), permit anonymous `GET` 
 ## Open on mobile
 
 `@App(mobileQr = true)` adds an **"Open on mobile"** button to the app header. The same switch is
-`mobileQr: true` on a YAML [`type: AppShell`](/java-ui-definition/yaml-app-shell/),
+`mobileQr: true` on a YAML [`type: AppShell`](/define/yaml/app-shell/),
 `[App(MobileQr = true)]` in .NET and `@app(mobile_qr=True)` in Python; it travels as
 `AppDto.mobileQr`. It is opt-in: without it nothing changes.
 
@@ -176,7 +176,8 @@ The plan has four phases (see `design/mobile-app-hub.md` in the repository):
 1. **Server** — the manifest on every backend and "Open on mobile" on the Vaadin and Redwood
    renderers. **Shipped (experimental).**
 2. **App MVP** — the list of UIs (add by URL or QR, remove, reorder), opening a UI, per-UI OIDC,
-   universal links, the export QR. Internal builds first.
+   universal links, the export QR. **Built (experimental)**, in internal builds until the store
+   release.
 3. **Store release** — listings, a reviewer demo, privacy labels.
 4. **Enterprise** — managed configuration (MDM) with a pushed or locked list of UIs, signed QR codes,
    a domain allow-list; then push notifications through the

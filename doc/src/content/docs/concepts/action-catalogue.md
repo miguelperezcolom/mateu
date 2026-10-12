@@ -5,8 +5,8 @@ description: "Declare a client-runnable action once — a flow or a REST call �
 
 An action that runs in the browser has always lived with its owner:
 
-- a page definition's [`actions:`](/java-ui-definition/yaml-ui-definition/) (a flow with `steps:`, or a `restAction`);
-- the app shell's [`actions:`](/java-ui-definition/yaml-app-shell/#flows-on-the-shell), which a menu leaf runs;
+- a page definition's [`actions:`](/define/yaml/pages/) (a flow with `steps:`, or a `restAction`);
+- the app shell's [`actions:`](/define/yaml/app-shell/#flows-on-the-shell), which a menu leaf runs;
 - a Java `@Action` method (server logic).
 
 That is right for an action exactly one screen uses. It stops being right the moment a second
@@ -39,7 +39,7 @@ cut and paste.
 
 ## Declaring it
 
-Two producers feed one table, exactly like the [REST source catalogue](/java-ui-definition/rest-source-catalogue/):
+Two producers feed one table, exactly like the [REST source catalogue](/concepts/data-sources/):
 
 - **Authored**: `specs/ui/actions.yaml`, plus **any file under `specs/ui` that declares `type: Actions`**
   (whatever its name — `specs/ui/catalogs/orders-actions.yaml` works), merged in discovery order.

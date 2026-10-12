@@ -64,7 +64,7 @@ relocation.
 
 | Removed | Replacement |
 |---|---|
-| `@Route`, `@Routes`, `@HomeRoute` | `@UI` is the only routing annotation and declares a **mount**. Screens inside a mount are declared in [`routes.yaml`](/java-ui-definition/route-registry/) or supplied in code by a `RouteEntrySupplier` bean. The home route is the app's first menu item, or what `HomeRouteSupplier` returns. See [Route annotations](/java-ui-definition/annotations/route/) for the step-by-step. |
+| `@Route`, `@Routes`, `@HomeRoute` | `@UI` is the only routing annotation and declares a **mount**. Screens inside a mount are declared in [`routes.yaml`](/concepts/routes-and-mounts/) or supplied in code by a `RouteEntrySupplier` bean. The home route is the app's first menu item, or what `HomeRouteSupplier` returns. See [Route annotations](/java-ui-definition/annotations/route/) for the step-by-step. |
 | The `Deleteable` view-class marker | Custom `Crud`s show **Delete** by default; subtract it with `@NotDeletable`. |
 | The `AutoCrud.store()` fallback | `store()` is **abstract**: every `AutoCrud` / `FilteredAutoCrud` subclass must override it. |
 | The `route-registrations` index file | Nothing to do — the annotation processors write `ui-registrations` only. Rebuild modules compiled by an old processor. |

@@ -39,7 +39,7 @@ routes:
 
 The counter example shows six ways to handle state and actions in the fluent API.
 
-Each counter is an ordinary class bound to its URL by a [`routes.yaml` entry](/java-ui-definition/route-registry/):
+Each counter is an ordinary class bound to its URL by a [`routes.yaml` entry](/concepts/routes-and-mounts/):
 
 ```yaml
 # src/main/resources/specs/ui/routes.yaml
