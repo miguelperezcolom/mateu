@@ -15,7 +15,7 @@ import {loadBundleManifest} from "@infra/http/bundleStore.ts";
 import {installClientErrorReporting} from "@infra/http/clientErrorReporter.ts";
 import {mirrorThemeAttribute} from "@infra/theme/themeScope.ts";
 import {nanoid} from "nanoid";
-import { nextHistoryUrl, isScreenChange } from './navigationUrl'
+import { nextHistoryUrl, routeTargetUrl, isScreenChange } from './navigationUrl'
 import { keyed } from 'lit/directives/keyed.js'
 import { applyUiLanguage } from '@infra/ui/chromeTexts.ts'
 import { installLiveReload } from '@infra/dev/liveReload.ts'
@@ -99,27 +99,7 @@ export class MateuUi extends LitElement {
 
         if (e instanceof CustomEvent) {
             if (this.top == 'true') {
-                let route = e.detail.route
-
-                let baseUrl = this.baseUrl??''
-                if (!route || route.startsWith('/')) {
-                    baseUrl = window.location.origin + (this.pathPrefix??'')
-                } else {
-                    route = (this.pathPrefix??'') + route
-                    if (baseUrl.indexOf('://') < 0) {
-                        if (!baseUrl.startsWith('/')) {
-                            baseUrl = '/' + baseUrl
-                        }
-                        baseUrl = window.location.origin + baseUrl
-                    }
-                }
-                if (route.startsWith(this.pathPrefix + '/')) {
-                    route = route.substring(this.pathPrefix?.length)
-                }
-                if (baseUrl.endsWith('/') && route.startsWith('/')) {
-                    route = route.substring(1)
-                }
-                let targetUrl = new URL(baseUrl + route)
+                const targetUrl = routeTargetUrl(e.detail.route, this.baseUrl, this.pathPrefix, window.location.origin)
                 // Path AND query: a listing's filters live in the query string, so the same path
                 // with different filters is a different destination. See nextHistoryUrl.
                 const next = nextHistoryUrl(window.location, targetUrl)

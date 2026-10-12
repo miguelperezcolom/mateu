@@ -15,6 +15,13 @@ final class CrudTriggersBuilder {
     var triggers = new ArrayList<Trigger>();
     if (httpRequest.getAttribute("list") != null) {
       triggers.add(new OnLoadTrigger("search", 0, 1, null));
+      // a delete or a row/bulk action changed the rows: refresh in place (LISTING_CHANGED_EVENT)
+      triggers.add(
+          io.mateu.uidl.fluent.OnCustomEventTrigger.builder()
+              .eventName(Crud.LISTING_CHANGED_EVENT)
+              .actionId("search")
+              .source(io.mateu.uidl.annotations.SubscriptionSource.DOCUMENT)
+              .build());
       if (crud.editInDrawer()) {
         // the create/edit drawer closes emitting the saved event; the listing refreshes in place
         triggers.add(

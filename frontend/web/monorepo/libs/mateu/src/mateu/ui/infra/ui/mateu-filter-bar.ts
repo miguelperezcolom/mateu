@@ -305,6 +305,10 @@ export class MateuFilterBar extends LitElement {
             if (option) return option.label ?? option.value
         }
         if (typeof value === 'boolean') return value ? chromeText('yes') : chromeText('no')
+        // a boolean read back from the URL (reload, deep link) is the text "true"/"false"
+        if (this.isBooleanFilter(field) && (value === 'true' || value === 'false')) {
+            return value === 'true' ? chromeText('yes') : chromeText('no')
+        }
         return String(value)
     }
 

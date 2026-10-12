@@ -53,6 +53,19 @@ public class CapabilityCrud extends Crud<Object, Object, Object, Object, Object,
     return bridgeable(instance) ? new CapabilityCrud(instance) : instance;
   }
 
+  /**
+   * The same, with the bridge's routing restored from the page state: the instance hydrated from
+   * that state is the LISTING, which has no routing fields of its own, so the record the state
+   * points at would otherwise be dropped on every round trip.
+   */
+  public static Object bridgeIfNeeded(Object instance, java.util.Map<String, Object> state) {
+    var bridged = bridgeIfNeeded(instance);
+    if (bridged instanceof CapabilityCrud crud) {
+      crud.restoreRouting(state);
+    }
+    return bridged;
+  }
+
   public Object target() {
     return target;
   }
@@ -141,6 +154,23 @@ public class CapabilityCrud extends Crud<Object, Object, Object, Object, Object,
   @Override
   public GridLayout gridLayout() {
     return target.gridLayout();
+  }
+
+  // the listing's export switches: the bridge used to answer Listing's defaults (false), so a
+  // navigable/editable listing that offered CSV showed no Export button
+  @Override
+  public boolean csvExportable() {
+    return target.csvExportable();
+  }
+
+  @Override
+  public boolean excelExportable() {
+    return target.excelExportable();
+  }
+
+  @Override
+  public boolean pdfExportable() {
+    return target.pdfExportable();
   }
 
   // ── type reflection over the listing's declarations ───────────────────────

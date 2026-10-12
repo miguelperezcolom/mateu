@@ -1348,6 +1348,19 @@ def test_find_override_pushes_search_down_and_skips_the_in_memory_pipeline():
     assert _LAST_PAGEABLE == [Pageable(page=2, size=25, sort=(SortSpec("name", True),))]
 
 
+def test_the_sort_a_grid_header_sends_reaches_the_crud_find():
+    # the grid sends {fieldId, direction}; reading only "field" dropped every header sort
+    _LAST_PAGEABLE.clear()
+    handler().handle(
+        RunActionRq(
+            action_id="search",
+            server_side_type=_name(DbOrders),
+            component_state={"sort": [{"fieldId": "name", "direction": "descending"}]},
+        )
+    )
+    assert _LAST_PAGEABLE[0].sort == (SortSpec("name", True),)
+
+
 def test_remote_menu_emits_a_federated_entry():
     inc = handler().handle(RunActionRq(server_side_type=_name(TestApp)))
     j = render(inc)

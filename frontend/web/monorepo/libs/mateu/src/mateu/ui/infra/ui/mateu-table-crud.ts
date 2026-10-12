@@ -16,6 +16,7 @@ import { fetchExternalPage, fetchExternalRows, pageOf } from '@infra/http/extern
 import { filterExternalRows, sortExternalRows } from '@infra/http/restRowFilters.ts'
 import { rowRouteFields, navigateToRoute } from '@infra/ui/rowRoute.ts'
 import { rowOpenTargetOf } from '@infra/ui/rowOpen.ts'
+import { sameSort, sortAfterChange, sortOfGrid } from './gridSort'
 import { isSampled, totalPathOf, viaProxy } from '@infra/http/restSourceCatalogue.ts'
 import './mateu-pagination'
 import './mateu-card-list'
@@ -44,10 +45,6 @@ import { chromeText, chromeTextf } from '@infra/ui/chromeTexts.ts'
 import { showsPreSearch } from '@infra/ui/listingPreSearch.ts'
 import { renderComponent } from '@infra/ui/renderers/renderComponent.ts'
 
-const directions: Record<string, string> = {
-    asc: 'ascending',
-    desc: 'descending'
-}
 
 
 /**
@@ -820,14 +817,12 @@ export class MateuTableCrud extends LitElement {
     }
 
     directionChanged = (e: CustomEvent) => {
-        const sorters = (e.detail.grid as any)._sorters as any[]
-        this.state = {
-            ...this.state,
-            sort: sorters.map(sorter => ({
-                fieldId: sorter.__data.path,
-                direction: sorter.__data.direction ? directions[sorter.__data.direction as string] : undefined
-            }))
-        }
+        const sort = e.detail.path !== undefined
+            ? sortAfterChange(e.detail.grid, e.detail.path, e.detail.direction)
+            : sortOfGrid(e.detail.grid)
+        // a sorter re-set from the state (a fresh grid after a search) is not a new sort
+        if (sameSort(sort, (this.state as { sort?: unknown }).sort)) return
+        this.state = { ...this.state, sort }
         this.handleSearchRequested(undefined)
     }
 

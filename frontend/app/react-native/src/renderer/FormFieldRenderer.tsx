@@ -26,6 +26,7 @@ import {
   UploadableImageField,
 } from './FieldWidgets';
 import { LookupField } from './LookupField';
+import { showsAsReadOnlyText } from './readOnlyText';
 import { interpolate, interpolateUrl } from '../core/expressions';
 import { fetchExternalJson, mapItemsToOptions, resolveRestSource, viaProxy, type FetchedOption } from '../core/restFetch';
 import { useViewController } from './MateuViewHost';
@@ -357,7 +358,7 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
     // RN-08: a read-only value is TEXT, not an input box. A disabled TextInput looked exactly like
     // an editable one (same border, same background), so a view page read as a form the user could
     // not type into — and an empty value was an empty box. Now: the value as text, "—" when empty.
-    if (!editable && !metadata.stepButtonsVisible && isTextLike(dataType, stereotype)) {
+    if (showsAsReadOnlyText(editable, dataType, stereotype)) {
       const shown = stereotype === 'password' && stringValue ? '••••••••' : stringValue;
       return <ReadOnlyValue label={label || fieldId} text={shown} multiline={stereotype === 'textarea'} />;
     }
@@ -478,14 +479,6 @@ export function FormFieldRenderer({ metadata, state, onStateChange, error }: Pro
       {!!error && <Text style={styles.fieldError}>{error}</Text>}
     </View>
   );
-}
-
-const TEXT_LIKE_TYPES = ['string', 'integer', 'int', 'long', 'Integer', 'Long', 'number', 'double', 'float', 'decimal', 'BigDecimal', 'time', ''];
-const TEXT_LIKE_STEREOTYPES = ['', 'regular', 'textarea', 'password', 'email', 'combobox', 'select'];
-
-/** Whether a field renders as a plain text input — the branches a read-only value replaces. */
-function isTextLike(dataType: string, stereotype: string): boolean {
-  return TEXT_LIKE_TYPES.includes(dataType) && TEXT_LIKE_STEREOTYPES.includes(stereotype);
 }
 
 /** A read-only field value: text (selectable, wraps), "—" when empty, named for screen readers. */

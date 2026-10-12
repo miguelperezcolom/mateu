@@ -595,6 +595,13 @@ def without_mediator_protocol(increment: dict) -> dict:
         if isinstance(component, dict):
             component.pop("actions", None)
             component.pop("initialData", None)
+            # the mediator's own refresh subscriptions ("mateu-crud:*" events); this port
+            # re-renders the listing in place
+            if isinstance(component.get("triggers"), list):
+                component["triggers"] = [
+                    t for t in component["triggers"]
+                    if not str(t.get("eventName", "")).startswith("mateu-crud:")
+                ]
     return increment
 
 

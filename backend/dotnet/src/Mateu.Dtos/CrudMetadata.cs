@@ -136,6 +136,12 @@ public record GridColumnMetaDto(string Id, string Label)
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull)]
     public string? Align { get; init; }
 
+    /// <summary>The header sorts (Java's ListingColumnBuilder: a listing column whose values have a
+    /// natural order — text, numbers, booleans, enums, dates and times — unless the listing groups
+    /// its rows).</summary>
+    [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
+    public bool Sortable { get; init; }
+
     /// <summary>The user can drag the column's edge (every listing column, as in Java).</summary>
     [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault)]
     public bool Resizable { get; init; }

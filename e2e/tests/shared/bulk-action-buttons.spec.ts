@@ -52,6 +52,8 @@ test('the confirmation dialog shows the texts the @Action declares', async ({ pa
     // and confirming actually runs the bulk method over the selection
     await page.getByRole('button', { name: 'Cancel them' }).click();
     await expect(page.getByText('1 cancelled').first()).toBeVisible();
+    // the listing stays at its own url (a crud back on its listing pushed /bulk-actions/bulk-actions)
+    await expect(page).toHaveURL(/\/bulk-actions\/?$/);
 });
 
 test('a bulk button declaring no texts still gets the generic dialog', async ({ page }) => {

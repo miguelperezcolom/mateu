@@ -47,6 +47,10 @@ final class CrudDrawerBuilder {
       HttpRequest rq,
       Map<String, Object> initialData,
       String errorMessage) {
+    // the drawer opens OVER the listing: the address bar stays on the listing. The navigation
+    // adjuster had already set it to the record (/{id}, /{id}/edit, /new) for the routed pages,
+    // so the url was left on a record after the drawer closed and a reload opened its view page.
+    rq.setAttribute("updateUrl", "_no_update");
     Component form = CrudFormComponentBuilder.build(isCreation, rq, editor, orchestrator, true);
     Component content =
         errorMessage == null

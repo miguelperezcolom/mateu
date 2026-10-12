@@ -31,7 +31,7 @@ class EditInDrawerSyncTest {
 
   public static class Book implements Identifiable {
     String id;
-    String title;
+    @jakarta.validation.constraints.NotEmpty String title;
     int pages;
 
     public Book() {}
@@ -160,6 +160,20 @@ class EditInDrawerSyncTest {
     assertThat(drawer).isNotNull();
   }
 
+  /**
+   * The row click the browser sends (the row in the parameters, the crud's id field in the state)
+   * went through the navigation adjuster, which pointed the address bar at the record: the drawer
+   * opened over the listing under {@code /drawer-books/b1}, the url stayed there after it closed,
+   * and a reload opened the record's view page.
+   */
+  @Test
+  void openingTheDrawerFromARowLeavesTheUrlOnTheListing() {
+    var increment =
+        run("view", Map.of("idFieldForRow", "id"), Map.of("id", "b1", "title", "El Quijote"));
+    assertThat(drawerOf(increment)).isNotNull();
+    assertThat(hasCommand(increment, UICommandTypeDto.PushStateToHistory)).isFalse();
+  }
+
   @Test
   void createPersistsAndClosesTheDrawerEmittingTheSavedEvent() {
     var increment = run("create", Map.of("title", "Nuevo libro", "pages", 123), null);
@@ -186,6 +200,28 @@ class EditInDrawerSyncTest {
                           .SAVED_IN_DRAWER_EVENT);
               assertThat(onEvent.actionId()).isEqualTo("search");
             });
+  }
+
+  /**
+   * The drawer's form is content of the mediator, whose create/save actions the browser does not
+   * validate — a required field left empty used to be saved as it was. It is refused on the server
+   * now, and the drawer stays open with the typed values and a banner naming the field.
+   */
+  @Test
+  void aCreationWithARequiredFieldLeftEmptyIsRefusedAndTheDrawerStays() {
+    var increment = run("create", Map.of("title", "", "pages", 5), null);
+    assertThat(BOOKS).hasSize(2);
+    assertThat(hasCommand(increment, UICommandTypeDto.CloseModal)).isFalse();
+    assertThat(drawerOf(increment)).isNotNull();
+    assertThat(String.valueOf(increment)).contains("Title: Cannot be empty");
+  }
+
+  @Test
+  void anEditThatEmptiesARequiredFieldIsRefused() {
+    var increment = run("save", Map.of("id", "b1", "title", "", "pages", 900), null);
+    assertThat(BOOKS.stream().filter(book -> "b1".equals(book.id)).findFirst().orElseThrow().title)
+        .isEqualTo("El Quijote");
+    assertThat(hasCommand(increment, UICommandTypeDto.CloseModal)).isFalse();
   }
 
   @Test

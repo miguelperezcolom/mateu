@@ -19,7 +19,14 @@ public interface RouteResolver {
     return matchingPattern(route, consumedRoute).isPresent();
   }
 
-  default Optional<CompiledRouteValue> matchingPattern(String route, String consumedRoute) {
+  default Optional<CompiledRouteValue> matchingPattern(String rawRoute, String consumedRoute) {
+    // the query string (a listing's filters, page and sort) is not part of the route: with it a
+    // deep link like /books?genre=NOVEL matched no pattern and fell through to the ROOT ui on the
+    // adapters that resolve by pattern (WebFlux, Quarkus, Helidon) — the wrong screen, empty
+    var route =
+        rawRoute != null && rawRoute.contains("?")
+            ? rawRoute.substring(0, rawRoute.indexOf('?'))
+            : rawRoute;
     // System.out.println("" + getClass().getSimpleName() + "-> route: " + route + ", consumedRoute:
     // " + consumedRoute);
     for (CompiledRouteValue pattern :

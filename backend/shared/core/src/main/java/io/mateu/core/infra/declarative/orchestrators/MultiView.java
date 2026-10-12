@@ -37,6 +37,34 @@ public abstract class MultiView
     return _route;
   }
 
+  /**
+   * The routing fields as they travel in the page state, for an orchestrator whose state is SOMEONE
+   * ELSE's object (the capability bridge serializes the listing it wraps). Without them the record
+   * a deep link, a reload or a forward asked for was lost on the way to the nested view, which then
+   * rendered the listing under the record's url.
+   */
+  public java.util.Map<String, Object> routingState() {
+    var state = new java.util.LinkedHashMap<String, Object>();
+    state.put("_route", _route);
+    state.put("_componentRoute", _componentRoute);
+    state.put("_componentRouteEstablished", _componentRouteEstablished);
+    return state;
+  }
+
+  /** The inverse of {@link #routingState}: what the page state says about where this view is. */
+  public void restoreRouting(java.util.Map<String, Object> state) {
+    if (state == null) return;
+    if (state.get("_route") instanceof String route) {
+      _route = route;
+    }
+    if (state.get("_componentRoute") instanceof String componentRoute) {
+      _componentRoute = componentRoute;
+    }
+    if (Boolean.TRUE.equals(state.get("_componentRouteEstablished"))) {
+      _componentRouteEstablished = true;
+    }
+  }
+
   public void setRouteTo(String route) {
     _route = route;
   }
@@ -335,8 +363,10 @@ public abstract class MultiView
    * composite key), and stripping only its first segment left the rest of it on the mount.
    */
   private static String mountPathOf(HttpRequest httpRequest, String route) {
-    var requested = httpRequest.runActionRq().route();
-    if (requested == null || requested.isBlank()) {
+    // The query string is the listing's filters, page and sort, never part of where the view is
+    // mounted: a record opened from /?page=1 used to be pushed as /?page=1/B-11.
+    var requested = withoutQuery(httpRequest.runActionRq().route());
+    if (requested == null || requested.isBlank() || "/".equals(requested)) {
       return "";
     }
     var consumed = httpRequest.runActionRq().consumedRoute();

@@ -832,11 +832,24 @@ public sealed partial class ReflectionMapper
             {
                 Stereotype = stereotype,
                 Resizable = true,
+                // the header sorts (the sort reaches the search) unless the rows are grouped
+                Sortable = p is not null && IsSortableType(p.PropertyType)
+                    && !row.GetProperties().Any(x => x.Find<GroupByAttribute>() != null),
                 AutoWidth = m.AutoWidth || m.Width is null,
                 Align = align,
                 Weight = m.Weight ?? (p is null ? 3.0 : WeightOf(p, stereotype)),
             },
         };
+    }
+
+    /// <summary>Whether a column of this type sorts from its header (Java's
+    /// ListingColumnBuilder.isSortable): text, numbers, booleans, enums, dates and times.</summary>
+    private static bool IsSortableType(Type type)
+    {
+        var t = Nullable.GetUnderlyingType(type) ?? type;
+        return t.IsPrimitive || t.IsEnum || t == typeof(string) || t == typeof(decimal)
+            || t == typeof(System.Numerics.BigInteger) || t == typeof(DateOnly) || t == typeof(DateTime)
+            || t == typeof(DateTimeOffset) || t == typeof(TimeOnly);
     }
 
     /// <summary>Java's WeightEstimator.base: the stereotype first, then the field's FINE type.</summary>

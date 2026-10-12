@@ -41,9 +41,11 @@ columns:
   - type: GridColumn
     id: name
     label: Name
+    sortable: true
   - type: GridColumn
     id: status
     label: Status
+    sortable: true
 `,
     },
     {

@@ -17,6 +17,7 @@
                 "dataType" : "string",
                 "label" : "Label",
                 "resizable" : true,
+                "sortable" : true,
                 "stereotype" : "regular",
                 "type" : "GridColumn",
                 "weight" : 3.0
@@ -29,6 +30,7 @@
                 "dataType" : "integer",
                 "label" : "Count",
                 "resizable" : true,
+                "sortable" : true,
                 "stereotype" : "regular",
                 "type" : "GridColumn",
                 "weight" : 1.5
@@ -41,6 +43,7 @@
                 "dataType" : "number",
                 "label" : "Amount",
                 "resizable" : true,
+                "sortable" : true,
                 "stereotype" : "regular",
                 "type" : "GridColumn",
                 "weight" : 2.0
@@ -53,6 +56,7 @@
                 "dataType" : "bool",
                 "label" : "Active",
                 "resizable" : true,
+                "sortable" : true,
                 "stereotype" : "regular",
                 "type" : "GridColumn",
                 "weight" : 1.0
@@ -64,6 +68,7 @@
                 "dataType" : "string",
                 "label" : "Day",
                 "resizable" : true,
+                "sortable" : true,
                 "stereotype" : "regular",
                 "type" : "GridColumn",
                 "weight" : 2.0
@@ -75,6 +80,7 @@
                 "dataType" : "string",
                 "label" : "At",
                 "resizable" : true,
+                "sortable" : true,
                 "stereotype" : "regular",
                 "type" : "GridColumn",
                 "weight" : 2.5
@@ -86,6 +92,7 @@
                 "dataType" : "string",
                 "label" : "Tone",
                 "resizable" : true,
+                "sortable" : true,
                 "stereotype" : "regular",
                 "type" : "GridColumn",
                 "valueLabels" : {

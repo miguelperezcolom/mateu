@@ -78,6 +78,16 @@ test('the listing filters in the browser (free text and a declared filter)', asy
     await expect(row(page, 'vcn-prod-06')).toHaveCount(0);
 });
 
+test('a filtered listing survives a reload and a shared link (its query is not the route)', async ({ page }) => {
+    // the bundle used to look the screen up WITH the query (?searchText=prod) and answer nothing
+    await page.goto('/?searchText=prod');
+    await expect(row(page, 'vcn-prod-03')).toBeVisible({ timeout: 20000 });
+    await expect(page.getByText('4 items')).toBeVisible();
+    await page.reload();
+    await expect(row(page, 'vcn-prod-03')).toBeVisible({ timeout: 20000 });
+    await expect(row(page, 'vcn-dev-01')).toHaveCount(0);
+});
+
 test('a row opens its record by URL, loaded from the API by :id', async ({ page }) => {
     await page.goto('/');
     await row(page, 'vcn-dev-07').click({ timeout: 20000 });
