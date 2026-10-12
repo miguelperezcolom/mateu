@@ -97,6 +97,9 @@ public class WireConformanceTests
                 Route = req["route"]?.GetValue<string>() ?? "",
                 ConsumedRoute = req["consumedRoute"]?.GetValue<string>(),
                 ActionId = req["actionId"]?.GetValue<string>() ?? "",
+                ComponentState = req["componentState"] is JsonObject state
+                    ? JsonSerializer.Deserialize<Dictionary<string, object?>>(state.ToJsonString())!
+                    : new Dictionary<string, object?>(),
             };
         }
         var increment = handler.Handle(rq);
