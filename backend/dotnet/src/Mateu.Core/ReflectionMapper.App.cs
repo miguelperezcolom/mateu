@@ -264,7 +264,7 @@ public sealed partial class ReflectionMapper
 
     /// <summary>[AppContext] members of the app class become header context selectors: an enum
     /// property contributes its constants, a method its returned (value, label) pairs.</summary>
-    private IReadOnlyList<AppContextSelectorDto> MapContextSelectors(Type appType)
+    internal IReadOnlyList<AppContextSelectorDto> MapContextSelectors(Type appType)
     {
         var selectors = new List<AppContextSelectorDto>();
         foreach (var property in appType.GetProperties())

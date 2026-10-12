@@ -1324,6 +1324,34 @@ public class SyncHandlerTests
     }
 
     [Fact]
+    public void An_app_context_picker_searches_its_options_on_the_app_level_rail()
+    {
+        // the web picker asks _appcontext-search-<field> whenever it opens or the user types; the
+        // port used to answer "action not found" — an error toast on every picker of a .NET app
+        string Search(string text)
+        {
+            var inc = Handler().Handle(new RunActionRqDto
+            {
+                ServerSideType = typeof(TestApp).FullName,
+                ActionId = "_appcontext-search-hotel",
+                InitiatorComponentId = "appcontext-hotel",
+                Parameters = new Dictionary<string, object?> { ["searchText"] = text },
+            });
+            Assert.Empty(inc.Messages);
+            Assert.Equal("appcontext-hotel", Assert.Single(inc.Fragments).TargetComponentId);
+            return Render(inc);
+        }
+
+        var all = Search("");
+        Assert.Contains("\"_appcontext_hotel\"", all);
+        Assert.Contains("\"label\":\"Hotel 1\"", all);
+        Assert.Contains("\"label\":\"Hotel 2\"", all);
+        var narrowed = Search("2");
+        Assert.DoesNotContain("\"label\":\"Hotel 1\"", narrowed);
+        Assert.Contains("\"label\":\"Hotel 2\"", narrowed);
+    }
+
+    [Fact]
     public void Command_center_flag_reaches_the_wire_when_opted_in()
     {
         var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(CommandCenterApp).FullName }));

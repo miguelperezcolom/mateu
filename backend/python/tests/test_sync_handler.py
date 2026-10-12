@@ -1138,6 +1138,23 @@ def test_app_context_selectors_on_the_wire():
     assert [o["label"] for o in selectors[0]["options"]] == ["Hotel 1", "Hotel 2"]
 
 
+def test_an_app_context_picker_searches_its_options_on_the_app_level_rail():
+    # the web picker asks _appcontext-search-<field> whenever it opens or the user types; the port
+    # used to answer "Action not found" — an error toast on every picker of a Python app
+    def search(text):
+        inc = handler().handle(RunActionRq(
+            server_side_type=_name(TestApp), action_id="_appcontext-search-hotel",
+            initiator_component_id="appcontext-hotel", parameters={"searchText": text},
+        ))
+        assert not inc.messages
+        fragment = inc.fragments[0]
+        assert fragment.target_component_id == "appcontext-hotel"
+        return [o["label"] for o in fragment.data["_appcontext_hotel"]["content"]]
+
+    assert search("") == ["Hotel 1", "Hotel 2"]
+    assert search("2") == ["Hotel 2"]
+
+
 def test_app_header_actions_on_the_wire():
     inc = handler().handle(RunActionRq(server_side_type=_name(TestApp)))
     j = json.loads(render(inc))

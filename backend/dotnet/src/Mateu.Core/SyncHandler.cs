@@ -295,6 +295,9 @@ public sealed partial class SyncHandler(MateuRegistry registry, ITranslator? tra
         // The command palette's entity search — same app-level rail (mirrors Java's
         // GlobalSearchActionRunner).
         if (rq.ActionId == "_globalsearch") return GlobalSearch(instance, rq);
+        // The [AppContext] header pickers' search — same rail (mirrors Java's
+        // AppContextSearchActionRunner).
+        if (rq.ActionId?.StartsWith(AppContextSearchPrefix) == true) return AppContextSearch(type, rq);
         // The header record switcher's pick: runs SwitchTo with the picked value; null (or the
         // view itself / another routed view) re-renders in place, anything else maps as a regular
         // action result (mirrors Java's RecordSwitcherActionRunner).

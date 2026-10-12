@@ -288,6 +288,11 @@ class DispatchMixin(MixinBase):
         if rq.action_id == "_globalsearch":
             return self.global_search_action(type_, rq)
 
+        # 2c'. The @app_context pickers' search — the same app-level rail (mirrors Java's
+        # AppContextSearchActionRunner).
+        if (rq.action_id or "").startswith(self.APP_CONTEXT_SEARCH_PREFIX):
+            return self.app_context_search_action(type_, rq)
+
         # 2d. The idle warning's keep-alive and the live-updates stream are app-level too (mirrors
         # Java's KeepAliveActionRunner / LiveUpdatesActionRunner; the stream itself is served by
         # the adapter's SSE endpoint).
