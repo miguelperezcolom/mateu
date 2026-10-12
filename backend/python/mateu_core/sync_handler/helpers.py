@@ -200,7 +200,7 @@ class ResponseHelpersMixin(MixinBase):
             if not action_guard.may_write(self.mapper, f):
                 continue
             key = camel_case(f.name)
-            if key not in state or state[key] is None:
+            if key not in state:
                 continue
             if isinstance(f.type, type) and issubclass(f.type, fluent.Component):
                 # a component-holder field is structure, not data: the wire never writes it
@@ -217,7 +217,13 @@ class ResponseHelpersMixin(MixinBase):
                         rows.append(row)
                 setattr(instance, f.name, rows)
                 continue
-            value = self.convert_value(state[key], f.type)
+            raw = state[key]
+            if raw is None or (isinstance(raw, str) and raw.strip() == "" and f.type is not str):
+                # A cleared input: the field is cleared too (Java's FieldValueConverter). Keeping
+                # the initializer made the screen (empty) and the server disagree.
+                setattr(instance, f.name, None)
+                continue
+            value = self.convert_value(raw, f.type)
             if value is not None:
                 setattr(instance, f.name, value)
 
@@ -259,3 +265,4 @@ class ResponseHelpersMixin(MixinBase):
         except Exception as e:  # noqa: BLE001 - logged, not fatal
             log.warning("convert_value(%r -> %s) failed, the field keeps its value (%s)", raw, target, e)
             return None
+
