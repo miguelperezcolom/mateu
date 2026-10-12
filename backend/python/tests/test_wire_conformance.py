@@ -551,6 +551,17 @@ class PeerNavPage(PeerNavigationSupplier):
         return PeerNav("Record 1", "/records/1", "Record 3", "/records/3")
 
 
+@ui("/conformance/app-no-home")
+@app("No home app")
+class NoHomeApp:
+    """The content slot of an app that declares only menu items (request.json: the
+    "_no_home_route" sentinel loaded against the app type)."""
+
+    @menu_item("Orders")
+    def orders(self):
+        return None
+
+
 MODULE = sys.modules[__name__]
 
 #: Values that legitimately differ between servers or between runs. Dropped on both sides rather
@@ -619,6 +630,17 @@ def actual(view_cls, case: str | None = None) -> dict:
     handler = SyncHandler(
         MateuRegistry(MODULE), rest_sources=RestSourceRegistry(file=None)
     )
+    # A case with a request.json is pinned on that (second) request to its fixture type, not on
+    # the first load — identical in the three runners.
+    request_file = CORPUS / case / "request.json" if case else None
+    if request_file is not None and request_file.is_file():
+        req = json.loads(request_file.read_text())
+        inc = handler.handle(RunActionRq(
+            route=req.get("route", ""), consumed_route=req.get("consumedRoute"),
+            action_id=req.get("actionId", ""), component_state=req.get("componentState", {}),
+            server_side_type=type_name(view_cls),
+        ))
+        return normalise(inc.model_dump(by_alias=True, mode="json"))
     inc = handler.handle(RunActionRq(server_side_type=type_name(view_cls)))
     out = normalise(inc.model_dump(by_alias=True, mode="json"))
     return without_mediator_protocol(out) if case in MEDIATED else out
@@ -628,7 +650,7 @@ def expected(case: str) -> dict:
     return normalise(json.loads((CORPUS / case / "expected.json").read_text()))
 
 
-CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage)]
+CASES = [("simple-form", SimpleForm), ("page-header", PageHeader), ("tabs", Tabs), ("zones", ZonedForm), ("money-field", MoneyField), ("banner", BannerPage), ("fab", FabPage), ("separator-text", SeparatorText), ("client-rules", ClientRules), ("static-view", StaticAbout), ("small-enum-radio", SmallEnumRadio), ("dashboard", DashboardPage), ("app-in-code", AppInCode), ("validation", ValidatedForm), ("stereotypes", Stereotypes), ("lookup", LookupForm), ("tree-select", TreeSelectForm), ("notice", NoticePage), ("bulleted-list", BulletedListPage), ("app-context", ContextApp), ("app-header-actions", HeaderActionsApp), ("toc", TocPage), ("grid-field", GridField), ("status-list", StatusListPage), ("compact", CompactPage), ("access-annotations", AccessAnnotations), ("crud", ProductsCrud), ("listing-filters", FilteredBooks), ("listing-navigable", NavigableBooks), ("crud-grouped", SalesCrud), ("listing-columns", MeasurementsListing), ("peer-nav", PeerNavPage), ("app-no-home-content", NoHomeApp)]
 
 
 def test_every_case_of_the_corpus_is_wired():

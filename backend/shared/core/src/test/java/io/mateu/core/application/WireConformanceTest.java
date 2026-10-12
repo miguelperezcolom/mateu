@@ -775,6 +775,31 @@ class WireConformanceTest {
     }
   }
 
+  /**
+   * The content slot of an app that declares only menu items: the shell's home is the
+   * "_no_home_route" sentinel and the browser loads it against the app type (request.json).
+   */
+  /**
+   * The screen NoHomeApp's menu leads to (a typed @Menu leaf: no value rides in the app's state).
+   */
+  @UI("/conformance/app-no-home/orders")
+  public static class NoHomeOrders {
+    public String note = "orders";
+  }
+
+  @UI("/conformance/app-no-home")
+  public static class NoHomeApp {
+    @io.mateu.uidl.annotations.Menu NoHomeOrders orders;
+  }
+
+  /**
+   * Cases pinned on a SECOND request — a case directory with a {@code request.json} ({@code route},
+   * {@code consumedRoute}, {@code actionId}, {@code componentState}) is rendered by sending that
+   * request to the case's fixture type instead of the first load. Identical in the three runners.
+   */
+  private static final java.util.Map<String, Class<?>> REQUESTED =
+      java.util.Map.of("app-no-home-content", NoHomeApp.class);
+
   private static final List<String> CASES =
       List.of(
           "simple-form",
@@ -808,7 +833,8 @@ class WireConformanceTest {
           "listing-navigable",
           "crud-grouped",
           "listing-columns",
-          "peer-nav");
+          "peer-nav",
+          "app-no-home-content");
 
   static TestMateu mateu;
 
@@ -847,7 +873,8 @@ class WireConformanceTest {
             NavigableBooks.class,
             SalesCrud.class,
             MeasurementsListing.class,
-            PeerNavPage.class);
+            PeerNavPage.class,
+            NoHomeApp.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).
@@ -968,6 +995,30 @@ class WireConformanceTest {
           "listing-navigable", NavigableBooks.class);
 
   private static JsonNode actual(String route) {
+    var requested = REQUESTED.get(route);
+    var requestFile = corpus().resolve(route).resolve("request.json");
+    if (requested != null && Files.exists(requestFile)) {
+      try {
+        var request = MAPPER.readTree(Files.readString(requestFile));
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> state =
+            request.has("componentState")
+                ? MAPPER.convertValue(request.get("componentState"), java.util.Map.class)
+                : java.util.Map.of();
+        return roundTrip(
+            mateu.run(
+                io.mateu.dtos.RunActionRqDto.builder()
+                    .route(request.path("route").asText(""))
+                    .consumedRoute(
+                        request.has("consumedRoute") ? request.get("consumedRoute").asText() : null)
+                    .actionId(request.path("actionId").asText(""))
+                    .serverSideType(requested.getName())
+                    .componentState(state)
+                    .build()));
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
     var path = "/conformance/" + route;
     var mediated = MEDIATED.get(route);
     var increment =

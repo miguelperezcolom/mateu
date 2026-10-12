@@ -508,3 +508,12 @@ public class PeerNavPage : IPeerNavigationSupplier
 
     public PeerNav? Peers() => new("Record 1", "/records/1", "Record 3", "/records/3");
 }
+
+/// <summary>The content slot of an app that declares only menu items (request.json: the
+/// "_no_home_route" sentinel loaded against the app type).</summary>
+[UI("conformance/app-no-home"), App("No home app")]
+public class NoHomeApp
+{
+    [MenuItem("Orders")]
+    public void Orders() { }
+}

@@ -19,7 +19,12 @@ conformance/
     <case>/
       case.md         what the case pins, and why it is worth pinning
       expected.json   the normalised wire the three servers must produce
+      request.json    optional: pin a SECOND request instead of the first load
 ```
+
+A case with a `request.json` (`route`, `consumedRoute`, `actionId`, `componentState`, each
+optional) is rendered by sending that request to the case's fixture type — how an interaction step
+(the shell's content load, an action) is pinned, not only the first render.
 
 ## The contract
 

@@ -84,7 +84,22 @@ public class WireConformanceTests
     private static JsonNode Actual(Type view, string? @case = null)
     {
         var handler = new SyncHandler(new MateuRegistry(typeof(Wire.SimpleForm).Assembly));
-        var increment = handler.Handle(new RunActionRqDto { ServerSideType = view.FullName });
+        // A case with a request.json is pinned on that (second) request to its fixture type, not on
+        // the first load — identical in the three runners.
+        var requestFile = @case is null ? null : Path.Combine(Corpus, @case, "request.json");
+        RunActionRqDto rq = new() { ServerSideType = view.FullName };
+        if (requestFile is not null && File.Exists(requestFile))
+        {
+            var req = JsonNode.Parse(File.ReadAllText(requestFile))!.AsObject();
+            rq = new RunActionRqDto
+            {
+                ServerSideType = view.FullName,
+                Route = req["route"]?.GetValue<string>() ?? "",
+                ConsumedRoute = req["consumedRoute"]?.GetValue<string>(),
+                ActionId = req["actionId"]?.GetValue<string>() ?? "",
+            };
+        }
+        var increment = handler.Handle(rq);
         var json = JsonSerializer.Serialize(increment, new JsonSerializerOptions(JsonSerializerDefaults.Web));
         var normalised = Normalise(JsonNode.Parse(json))!;
         return @case is not null && Mediated.Contains(@case) ? WithoutMediatorProtocol(normalised) : normalised;
@@ -151,6 +166,7 @@ public class WireConformanceTests
         { "crud-grouped", typeof(SalesCrud) },
         { "listing-columns", typeof(MeasurementsListing) },
         { "peer-nav", typeof(PeerNavPage) },
+        { "app-no-home-content", typeof(NoHomeApp) },
     };
 
     [Fact]
