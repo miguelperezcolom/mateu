@@ -48,6 +48,17 @@ final class DirectClassResolver {
       rawRoute = command.baseUrl();
     }
     var route = removeQueryParamsFromRoute(rawRoute);
+    // "/?genre=NOVEL" is the mount's own root with a listing's filters (a deep link): once the
+    // query is off it reads "/", which the pattern adapters (WebFlux, Quarkus, Helidon) resolved
+    // to the APP's root ui instead of the mount the request was sent to
+    if (("".equals(route) || "/".equals(route))
+        && rawRoute != null
+        && rawRoute.contains("?")
+        && command.baseUrl() != null
+        && command.baseUrl().startsWith("/")
+        && command.baseUrl().length() > 1) {
+      route = command.baseUrl();
+    }
 
     // Exact @Route annotation match
     var routedClass = routedClassResolver.resolveAbsolute(route, command);
