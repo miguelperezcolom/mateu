@@ -24,13 +24,30 @@ public sealed partial class ReflectionMapper
             if (p.GetCustomAttributes(inherit: true)
                     .OfType<System.ComponentModel.DataAnnotations.RangeAttribute>().FirstOrDefault() is { } range)
             {
-                validations.Add(new ValidationDto(
-                    $"state['{fieldId}'] >= {range.Minimum}", fieldId, $"Must be at least {range.Minimum}"));
-                validations.Add(new ValidationDto(
-                    $"state['{fieldId}'] <= {range.Maximum}", fieldId, $"Must be at most {range.Maximum}"));
+                // The bounds go into a client EXPRESSION, so they are written invariantly: on a
+                // server whose culture uses a decimal comma, [Range(0, double.MaxValue)] became
+                // "<= 1,7976931348623157E+308" — not an expression — and Save never left the browser.
+                // An open bound (±MaxValue, ±∞) constrains nothing and is not sent.
+                if (Bound(range.Minimum) is { } min)
+                    validations.Add(new ValidationDto(
+                        $"state['{fieldId}'] >= {min}", fieldId, $"Must be at least {min}"));
+                if (Bound(range.Maximum) is { } max)
+                    validations.Add(new ValidationDto(
+                        $"state['{fieldId}'] <= {max}", fieldId, $"Must be at most {max}"));
             }
         }
         return validations;
+    }
+
+    /// <summary>A [Range] bound as an invariant number literal, or null for an open bound.</summary>
+    private static string? Bound(object? value)
+    {
+        if (value is null) return null;
+        var d = System.Convert.ToDouble(value, System.Globalization.CultureInfo.InvariantCulture);
+        if (double.IsInfinity(d) || double.IsNaN(d) || d >= double.MaxValue || d <= double.MinValue
+            || d >= int.MaxValue && value is int || d <= int.MinValue && value is int)
+            return null;
+        return d.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
     }
 
     /// <summary>Client-side rules of a view (mirrors Java's RuleMapper.createRules): [Disabled]

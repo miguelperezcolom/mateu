@@ -9,8 +9,8 @@ namespace Mateu.Tests;
 public class CoercedProduct
 {
     [System.ComponentModel.DataAnnotations.Required] public string Id { get; set; } = "";
-    public double Price { get; set; }
-    public int Units { get; set; }
+    [System.ComponentModel.DataAnnotations.Range(0, double.MaxValue)] public double Price { get; set; }
+    [System.ComponentModel.DataAnnotations.Range(1.5, 10)] public double Units { get; set; }
     public bool Active { get; set; }
 }
 
@@ -62,5 +62,29 @@ public class StateCoercionTests
             .Handle(new RunActionRqDto { Route = route, ConsumedRoute = "", ServerSideType = typeof(CoercedProducts).FullName! })
             .Fragments[0].Component);
         Assert.Equal(expected, component.Validations.Count > 0);
+    }
+
+    [Fact]
+    public void Range_bounds_are_written_invariantly_and_open_bounds_are_not_sent()
+    {
+        // on a decimal-comma server [Range(0, double.MaxValue)] became "<= 1,7976931348623157E+308",
+        // not an expression: the client refused every Save of the .NET starter's products
+        var before = System.Globalization.CultureInfo.CurrentCulture;
+        System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("es-ES");
+        try
+        {
+            var component = Assert.IsType<ServerSideComponentDto>(new SyncHandler(new MateuRegistry(typeof(StateCoercionTests).Assembly))
+                .Handle(new RunActionRqDto { Route = "/coerced-products/new", ConsumedRoute = "", ServerSideType = typeof(CoercedProducts).FullName! })
+                .Fragments[0].Component);
+            var conditions = component.Validations.Select(v => v.Condition).ToList();
+            Assert.Contains("state['price'] >= 0", conditions);
+            Assert.DoesNotContain(conditions, c => c.StartsWith("state['price'] <="));
+            Assert.Contains("state['units'] >= 1.5", conditions);
+            Assert.Contains("state['units'] <= 10", conditions);
+        }
+        finally
+        {
+            System.Globalization.CultureInfo.CurrentCulture = before;
+        }
     }
 }
