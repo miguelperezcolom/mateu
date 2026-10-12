@@ -17,7 +17,7 @@ import {
   flattenTreeRows, gridPageOf, autoFitColClass, AUTO_FIT_DEFAULT, unsupportedAtomOf, VISITOR_PASS_THROUGH, safeHref, toneOf, cssColorOf,
   setUiValue, setPanelExpanded, carouselPagerAtomOf, microFrontendOf, tagSurfaceActions, heroAtomOf, emptyStateAtomOf, progressBarAtomOf,
   registerCustomComponent, customComponentRegistered, layoutFieldOf, HOST_ID, taskQueueOf, emptyStateOf, hostContentShown, pageToolbarOf,
-  welcomeOf, summarizeHost, pageSubtitleOf,
+  welcomeOf, summarizeHost, pageSubtitleOf, listingHeaderBlocksOf,
 } from './reduceContexts.mjs'
 import { markdownToHtml, deltaOps, deltaToHtml, richTextHtml, richTextValueOf, sanitizeHtml } from './richtext.mjs'
 import { hexColorOf } from './inputs.mjs'
@@ -517,6 +517,14 @@ test('a composed page (no Page, no Crud title) takes its header title from its w
   const tree = { type: 'ServerSide', children: [node({ type: 'VerticalLayout' }, [node({ type: 'Text', text: 'x' })])] }
   const reg = { contexts: { [HOST_ID]: { tree, state: {} } }, shell: { menu: [] }, effects: { docTitle: 'Sales dashboard' } }
   assert.equal(summarizeHost(reg, '/dash').title, 'Sales dashboard')
+})
+
+test('what a composed page puts before its listing (the HeroSearch hero) is painted above the table', () => {
+  const tree = { type: 'ServerSide', children: [node({ type: 'VerticalLayout' }, [
+    node({ type: 'HeroSection', title: 'Find your hotel' }),
+    node({ type: 'Crud', columns: [] })])] }
+  const blocks = listingHeaderBlocksOf({ tree, state: {}, data: {} })
+  assert.ok(blocks.flatMap((b) => b.items).some((a) => a.isHero && a.title === 'Find your hotel'))
 })
 
 test('a SmartSearchPage intro line is the page subtitle (the listing page shows only the table)', () => {

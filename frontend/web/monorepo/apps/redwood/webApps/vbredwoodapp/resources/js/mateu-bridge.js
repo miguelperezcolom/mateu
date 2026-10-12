@@ -5351,9 +5351,32 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
 
   /** Los componentes de CABECERA de la página del listado (HeaderSupplier → Page.metadata.header)
    *  como bloques de átomos: el listado no tiene contenido propio donde ponerlos. */
+  /** The siblings that precede the first node of `type` in its parent (none when it is the root or
+   *  inside a Page — a Page's own header is metadata.header). */
+  function siblingsBefore(tree, type) {
+    let out = []
+    const walk = (n) => {
+      if (!n || typeof n !== 'object') return false
+      const kids = n.children || []
+      const i = kids.findIndex((k) => k && k.metadata && k.metadata.type === type)
+      if (i >= 0) {
+        if (!(n.metadata && n.metadata.type === 'Page')) out = kids.slice(0, i)
+        return true
+      }
+      return kids.some(walk)
+    }
+    walk(tree)
+    return out
+  }
+
   function listingHeaderBlocksOf(ctx) {
     const pageNode = ctx && ctx.tree ? findByType(ctx.tree, 'Page') : null
-    const header = pageNode && pageNode.metadata && Array.isArray(pageNode.metadata.header) ? pageNode.metadata.header : []
+    const declared = pageNode && pageNode.metadata && Array.isArray(pageNode.metadata.header) ? pageNode.metadata.header : []
+    // …and what a composed page puts BEFORE its listing (the HeroSearch hero): the listing page
+    // paints only the table, so it was lost. The SmartSearchPage intro line is the subtitle instead.
+    const before = ctx && ctx.tree ? siblingsBefore(ctx.tree, 'Crud')
+      .filter((n) => !(n.id === 'page-subtitle' && n.metadata && n.metadata.type === 'Text')) : []
+    const header = [...declared, ...before]
     if (!header.length) return []
     const blocks = islandContentOf({ ...ctx, tree: { type: 'ClientSide', id: '_listingHeader', metadata: { type: 'VerticalLayout' }, children: header } }) || []
     return blocks.map((b) => ({ ...b, blockClass: b.colClass || 'oj-flex-item oj-sm-12' }))
