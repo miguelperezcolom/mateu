@@ -159,7 +159,8 @@ final class Subresources {
       listingFields.add(f.getName());
     }
     if (httpRequest != null && httpRequest.runActionRq() != null) {
-      io.mateu.core.application.runaction.RouteChains.chainOf(httpRequest.runActionRq().route())
+      io.mateu.core.application.runaction.RouteChains.chainOf(
+              httpRequest.runActionRq().route(), httpRequest)
           .forEach(
               link ->
                   link.pathParams()

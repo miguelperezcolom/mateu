@@ -178,7 +178,8 @@ final class AppHomeRouteResolver {
     // to a tab opened the bare tab with no master around it (and with no :id).
     // A path running past a tab's own route (a record inside the tab's crud) is the tab's to
     // resolve too.
-    var chained = io.mateu.core.application.runaction.RouteChains.screenFor(homeRoute, appRoute);
+    var chained =
+        io.mateu.core.application.runaction.RouteChains.screenFor(homeRoute, appRoute, httpRequest);
 
     if (chained != null) {
       return chained;
