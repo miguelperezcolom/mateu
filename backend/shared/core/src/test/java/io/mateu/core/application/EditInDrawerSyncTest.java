@@ -160,6 +160,20 @@ class EditInDrawerSyncTest {
     assertThat(drawer).isNotNull();
   }
 
+  /**
+   * The row click the browser sends (the row in the parameters, the crud's id field in the state)
+   * went through the navigation adjuster, which pointed the address bar at the record: the drawer
+   * opened over the listing under {@code /drawer-books/b1}, the url stayed there after it closed,
+   * and a reload opened the record's view page.
+   */
+  @Test
+  void openingTheDrawerFromARowLeavesTheUrlOnTheListing() {
+    var increment =
+        run("view", Map.of("idFieldForRow", "id"), Map.of("id", "b1", "title", "El Quijote"));
+    assertThat(drawerOf(increment)).isNotNull();
+    assertThat(hasCommand(increment, UICommandTypeDto.PushStateToHistory)).isFalse();
+  }
+
   @Test
   void createPersistsAndClosesTheDrawerEmittingTheSavedEvent() {
     var increment = run("create", Map.of("title", "Nuevo libro", "pages", 123), null);
