@@ -225,6 +225,11 @@ jobs:
             dotnet pack "$p" -c Release -o "$RUNNER_TEMP/nupkgs" -p:MateuVersion="$NUGET_VERSION"
           done
           ls -l "$RUNNER_TEMP/nupkgs"
+          # Directory.Build.props builds net10.0 only on a .NET 10 SDK (MSBuild 18): a package
+          # without it would be a silent downgrade, so fail the release instead.
+          for n in "$RUNNER_TEMP"/nupkgs/*.nupkg; do
+            unzip -l "$n" | grep -q "lib/net10.0/" || { echo "::error::$n has no net10.0 build"; exit 1; }
+          done
       - name: NuGet login (Trusted Publishing)
         id: nuget-login
         if: vars.NUGET_USER != ''
