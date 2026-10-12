@@ -24,7 +24,7 @@ public class ButtonMapper {
                     : null)
             .color(button.color() != null ? ButtonColorDto.valueOf(button.color().name()) : null)
             .label(button.label())
-            .actionId(button.getActionId())
+            .actionId(button.resolvedActionId())
             .size(button.size() != null ? ButtonSizeDto.valueOf(button.size().name()) : null)
             .variant(
                 button.variant() != null ? ButtonVariantDto.valueOf(button.variant().name()) : null)

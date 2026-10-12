@@ -358,11 +358,9 @@ class AppMapperMixin(MixinBase):
             return True
         if not isinstance(target, type):
             return True
-        for klass in target.__mro__:
-            gate = klass.__dict__.get("__mateu_eyes_only__")
-            if gate is not None and not self.authorized(gate):
-                return False
-        return True
+        from ..action_guard import class_access_granted
+
+        return class_access_granted(self, target)
 
     @staticmethod
     def variant_of(cls, items) -> str:

@@ -15,7 +15,7 @@ public static class ComponentMapper
     public static ClientSideComponentDto Map(IComponent component) => component switch
     {
         MetricCard m => Dto(m, new MetricCardMetadataDto(
-            m.Title, m.Value, m.Unit, LowerName(m.Trend), m.TrendLabel, m.Icon, m.Description, m.ActionId)),
+            m.Title, m.Value, m.Unit, LowerName(m.Trend), m.TrendLabel, m.Icon, m.Description, m.ActionId, m.Timeframe)),
 
         Scoreboard s => Dto(s, new ScoreboardMetadataDto(), s.Metrics.Select(Map)),
 

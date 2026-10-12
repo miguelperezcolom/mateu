@@ -95,7 +95,7 @@ public class ReflectionPageMapper {
     return PageMetadataExtractor.getSubtitle(instance);
   }
 
-  /** Page-header badges (from {@code @BadgeInHeader} fields / {@code BadgeSupplier}). */
+  /** Page-header badges (from {@code @BadgeInHeader} fields / {@code HeaderBadgesSupplier}). */
   public static List<io.mateu.uidl.data.Badge> getPageBadges(
       Object instance, io.mateu.uidl.interfaces.HttpRequest httpRequest) {
     return getBadges(instance, httpRequest);

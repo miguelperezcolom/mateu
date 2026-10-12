@@ -222,6 +222,9 @@ ${body.replace(/^/gm, '  ').replace(/^ {2}$/gm, '')}
     rowRouteOf,
     listingOf,
     rowClickOpensRecord,
+    // clic de fila entera: qué celdas tienen clic propio (decisión U1)
+    isDisplayColumn,
+    rowActionIsRows,
     // paginación y orden del listing (pie de la tabla, cabecera → server)
     listingPagingOf,
     targetPageOf,

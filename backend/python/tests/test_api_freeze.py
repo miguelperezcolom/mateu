@@ -33,8 +33,9 @@ def wire_variant(cls) -> str:
     return ReflectionMapper().map_app(cls).metadata.variant
 
 
-def test_the_right_spelling_travels_under_the_wire_name_every_renderer_reads():
-    assert wire_variant(HamburgerApp) == "HAMBURGUER_MENU"
+def test_the_right_spelling_is_the_wire_value():
+    # since 3.0-alpha.412 servers send HAMBURGER_MENU; the renderers accept both spellings
+    assert wire_variant(HamburgerApp) == "HAMBURGER_MENU"
 
 
 def test_a_plain_string_still_works():
@@ -44,7 +45,7 @@ def test_a_plain_string_still_works():
         def home(self) -> "FreezeHome":
             return FreezeHome()
 
-    assert wire_variant(StringApp) == "HAMBURGUER_MENU"
+    assert wire_variant(StringApp) == "HAMBURGER_MENU"
 
 
 def test_the_old_misspelling_warns_naming_the_replacement_and_keeps_working():
@@ -56,7 +57,7 @@ def test_the_old_misspelling_warns_naming_the_replacement_and_keeps_working():
             def home(self) -> "FreezeHome":
                 return FreezeHome()
 
-    assert wire_variant(OldApp) == "HAMBURGUER_MENU"
+    assert wire_variant(OldApp) == "HAMBURGER_MENU"
 
 
 def test_other_variants_travel_unchanged():
@@ -98,3 +99,30 @@ def test_every_public_export_is_in_all():
     )
     assert missing == [], f"public names missing from mateu_uidl.__all__: {missing}"
     assert all(hasattr(mateu_uidl, n) for n in exported)
+
+
+def test_size_the_length_constraint_warns_naming_length_and_keeps_validating():
+    import warnings
+
+    from mateu_core.validation import field_constraints  # noqa: F401  (Size is still a Length)
+    from mateu_uidl import Length, Size
+
+    with pytest.warns(DeprecationWarning, match="use Length"):
+        old = Size(min=2, max=4)
+    assert isinstance(old, Length)
+    assert (old.min, old.max) == (2, 4)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        Length(min=2, max=4)  # the replacement does not warn
+
+
+def test_secured_warns_naming_eyes_only():
+    from mateu_uidl import secured
+
+    with pytest.warns(DeprecationWarning, match="eyes_only"):
+
+        @secured("admin")
+        class Guarded:
+            pass
+
+    assert Guarded.__mateu_secured__ == "admin"  # still accepted (and enforced: test_secured_enforced)

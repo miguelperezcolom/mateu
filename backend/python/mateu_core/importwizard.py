@@ -3,7 +3,7 @@
 Upload (or paste) a CSV, map its columns onto the row class's fields (auto-mapped by name
 similarity, adjustable in an inline-editable grid whose target-field cell is a select fed by the
 wizard's ``options()`` supplier), review a validation report (conversion failures and the row
-class's declared constraints — ``Required()``, ``Min``/``Max``/``Size``/``Pattern`` — per line),
+class's declared constraints — ``Required()``, ``Min``/``Max``/``Length``/``Pattern`` — per line),
 then import the valid rows through :meth:`ImportWizard.import_rows`. The result step shows
 imported/skipped counts.
 
@@ -278,7 +278,7 @@ def _coerce(t, raw: str):
 
 def _validate_required(row_class: type, row, line: int, mappings) -> list[RowIssue]:
     """The row's declared constraints — ``Required()`` (non-None, non-blank) and the
-    ``Min``/``Max``/``Size``/``Pattern`` markers — the port's server-side validation surface, the
+    ``Min``/``Max``/``Length``/``Pattern`` markers — the port's server-side validation surface, the
     same one a saved form is checked against (Java runs Bean Validation over each typed row)."""
     from .validation import field_violations
 

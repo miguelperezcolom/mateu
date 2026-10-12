@@ -170,7 +170,7 @@ public class AppInCode : IAppSupplier
     })
     {
         HomeRoute = "/a",
-        Variant = "MENU_ON_TOP",
+        Variant = AppVariant.HamburgerMenu,
     };
 }
 

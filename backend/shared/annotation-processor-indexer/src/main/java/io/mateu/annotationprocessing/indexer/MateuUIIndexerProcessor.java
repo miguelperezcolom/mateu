@@ -52,6 +52,7 @@ public class MateuUIIndexerProcessor extends AbstractProcessor {
   }
 
   @Override
+  @SuppressWarnings("removal") // @KeycloakSecured is deprecated but keeps working
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
     // Collect routed classes across @UI and @App(route), deduped by name (a class carrying both is
     // indexed once; routeOf resolves which route wins).

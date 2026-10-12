@@ -69,7 +69,7 @@ describe('client-side expander — the app shell', () => {
         expect(shell({ variant: 'AUTO' }, [leaf('a'), leaf('b')]).variant).toBe('TABS')
         expect(shell({ variant: 'AUTO' }, [{ type: 'Menu', label: 'G', submenu: [{ type: 'Menu', label: 'N', submenu: [leaf('x')] }] }]).variant).toBe('TILES')
         const many = [...Array.from({ length: 7 }, (_, i) => leaf('r' + i)), { type: 'Menu', label: 'G', submenu: [leaf('x')] }]
-        expect(shell({ variant: 'AUTO' }, many).variant).toBe('HAMBURGUER_MENU')
+        expect(shell({ variant: 'AUTO' }, many).variant).toBe('HAMBURGER_MENU')
         expect(shell({ variant: 'AUTO' }, [leaf('a'), { type: 'RemoteMenu', label: 'R' }]).variant).toBe('MENU_ON_TOP')
         expect(shell({ variant: 'HAMBURGUER_MENU' }, [leaf('a')]).variant).toBe('HAMBURGUER_MENU')
     })

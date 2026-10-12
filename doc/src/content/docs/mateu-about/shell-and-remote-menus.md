@@ -16,7 +16,6 @@ The shell defines:
 ```java
 @UI("")
 @Title("Console")
-@KeycloakSecured(...)
 public class ShellHome {
 }
 ```

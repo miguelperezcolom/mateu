@@ -23,7 +23,7 @@ from mateu_uidl import (
     PlainText,
     ReadOnly,
     Required,
-    Size,
+    Length,
     ValidationSupplier,
 )
 
@@ -37,12 +37,12 @@ def _num(value: float) -> str:
 
 
 def field_constraints(f) -> list[tuple[str, str]]:
-    """``(condition, message)`` pairs for a field, in Java's order (Size, Min, Max, Pattern, then the
+    """``(condition, message)`` pairs for a field, in Java's order (Length, Min, Max, Pattern, then the
     not-empty constraint)."""
     fid = camel_case(f.name)
     ref = f"state['{fid}']"
     out: list[tuple[str, str]] = []
-    size = f.marker(Size)
+    size = f.marker(Length)
     if size is not None:
         upper = size.max if size.max is not None else "∞"
         default = f"Size must be between {size.min} and {upper}"
@@ -118,8 +118,8 @@ def field_violations(f, value: Any) -> list[str]:
         problems.append("Cannot be empty")
         return problems
     if _is_blank(value):
-        return problems  # an absent optional value satisfies Min/Max/Size/Pattern
-    size = f.marker(Size)
+        return problems  # an absent optional value satisfies Min/Max/Length/Pattern
+    size = f.marker(Length)
     if size is not None and hasattr(value, "__len__"):
         n = len(value)
         if n < size.min or (size.max is not None and n > size.max):

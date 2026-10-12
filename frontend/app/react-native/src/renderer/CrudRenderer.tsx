@@ -38,6 +38,7 @@ import { cellTooltipText } from './hoverDetails';
 import { ComponentRenderer } from './ComponentRenderer';
 import { showsPreSearch } from './patternGaps';
 import { cellText } from './cellText';
+import { cellActionOf, isDisplayColumn, rowOpenLabel, rowOpenOf, rowPressOf } from '../core/rowOpen';
 
 interface FilterFieldMeta {
   fieldId: string;
@@ -324,12 +325,13 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     doSearch();
   };
 
-  // Row press → the row LINK action (e.g. "view"); without one, the row's first
-  // group action (its primary — e.g. "Check-in"). The state-only _route response
-  // then drives the detail navigation (a pushed screen via the detail opener).
-  const linkActionId =
-    columns.map((c) => (c.metadata as Record<string, unknown> | undefined)?.['actionId'] as string | undefined)
-      .find((a) => !!a) ?? '';
+  // Row press (decision U1, see core/rowOpen): a NAVIGABLE row (rowRoute, or a `view` column)
+  // opens its record wherever it is pressed — by route, or by the `view` action whose state-only
+  // _route response drives the detail navigation (a pushed screen via the detail opener). The
+  // cells with a press of their own (display columns, editors) are their own touchables. A
+  // listing that is not navigable keeps the mobile shortcut: the row's first group action (its
+  // primary — e.g. "Check-in").
+  const rowOpen = rowOpenOf(metadata['rowRoute'], columns.map((c) => (c.metadata ?? {}) as Record<string, unknown>));
   const firstRowAction = (row: Record<string, unknown>): string => {
     for (const col of columns) {
       const cm = (col.metadata ?? {}) as Record<string, unknown>;
@@ -344,12 +346,59 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
     return '';
   };
   const handleRowPress = (row: Record<string, unknown>) => {
-    if (linkActionId) {
-      void controller.runAction(linkActionId, { ...row });
+    if (rowOpen) {
+      const press = rowPressOf(rowOpen, row);
+      if (press?.kind === 'route') {
+        controller.session.openView({ label: press.route, route: press.route, consumedRoute: '', serverSideType: '' });
+      } else if (press) {
+        void controller.runAction(press.actionId, press.parameters);
+      }
       return;
     }
     const fallback = firstRowAction(row);
     if (fallback) void controller.runAction(fallback, { _clickedRow: row });
+  };
+  // A display cell's own press: an editor cell edits the row, a cell with its own action runs it
+  // (with the row, like the web's button column); anything else is inert — never the row's open.
+  const cellPress = (col: { editable?: boolean; cellAction?: string }, row: Record<string, unknown>) =>
+    col.editable ? () => setEditingRow(row)
+      : col.cellAction ? () => void controller.runAction(col.cellAction!, { ...row })
+        : undefined;
+  // the row's accessible name says what it opens; its display cells are offered as custom actions
+  // too (the row merges its children into one element, so a screen reader reaches them that way)
+  const rowA11y = (row: Record<string, unknown>) => {
+    if (!rowOpen) return buttonA11y();
+    const cellActions = colDefs.filter((c) => c.display && cellPress(c, row));
+    return {
+      ...buttonA11y({ label: rowOpenLabel(cellText(row[colDefs[0]?.fieldId ?? ''], colDefs[0]?.valueLabels)) }),
+      ...(cellActions.length ? {
+        accessibilityActions: [{ name: 'activate' }, ...cellActions.map((c) => ({ name: c.fieldId, label: c.label }))],
+        onAccessibilityAction: (e: { nativeEvent: { actionName: string } }) => {
+          const name = e.nativeEvent.actionName;
+          if (name === 'activate') return handleRowPress(row);
+          const col = cellActions.find((c) => c.fieldId === name);
+          if (col) cellPress(col, row)?.();
+        },
+      } : {}),
+    };
+  };
+  /** A cell of a row: a display cell gets its own touchable (or swallows the press when it has
+   *  nothing to do), so pressing it never reaches the row's open. */
+  const renderDisplayCell = (
+    col: { fieldId: string; label: string; editable?: boolean; cellAction?: string },
+    row: Record<string, unknown>,
+    style: unknown,
+    content: React.ReactNode,
+  ) => {
+    const press = cellPress(col, row);
+    return press ? (
+      <TouchableOpacity {...buttonA11y({ label: col.editable ? `Edit ${col.label}` : col.label || undefined })}
+        key={col.fieldId} style={style as never} onPress={press}>
+        {content}
+      </TouchableOpacity>
+    ) : (
+      <View key={col.fieldId} style={style as never} onStartShouldSetResponder={() => true}>{content}</View>
+    );
   };
 
   // RN-14: an undeclared (`auto`) listing is a list on a phone — a sideways-scrolling table cuts
@@ -373,6 +422,10 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
         tooltipPath: (cm['tooltipPath'] as string) ?? '',
         // an enum column's labels (IN_HOUSE → "In house"); the row keeps the raw value
         valueLabels: (cm['valueLabels'] as Record<string, string> | null | undefined) ?? null,
+        // whole-row press: a display column (own action, link, editor…) keeps its own press
+        display: !!rowOpen && isDisplayColumn(cm),
+        cellAction: cellActionOf(cm),
+        editable: cm['editable'] === true,
       };
     })
     .filter((c) => c.dataType !== 'actionGroup' && c.dataType !== 'menu' && c.dataType !== 'action');
@@ -577,7 +630,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                 </View>
               ) : (
                 <View style={styles.cardWrap}>
-                <TouchableOpacity {...buttonA11y()} style={styles.cardRow} onPress={() => handleRowPress(item)}>
+                <TouchableOpacity {...rowA11y(item)} style={styles.cardRow} onPress={() => handleRowPress(item)}>
                   {colDefs.map((col, i) => {
                     const tip = cellTooltipText(item, col.tooltipPath);
                     const lineStyle = [styles.cardLine, rowsSelectionEnabled && i === 0 && styles.cardLineSelectable];
@@ -589,6 +642,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                         </Text>
                       </>
                     );
+                    if (col.display) return renderDisplayCell(col, item, lineStyle, content);
                     return tip ? (
                       <TouchableOpacity
                         {...buttonA11y({ hint: 'Long-press for details' })}
@@ -649,7 +703,7 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                       style={styles.checkboxList}
                     />
                   )}
-                  <TouchableOpacity {...buttonA11y()} style={[styles.listRow, { flex: 1 }]} onPress={() => handleRowPress(item)}>
+                  <TouchableOpacity {...rowA11y(item)} style={[styles.listRow, { flex: 1 }]} onPress={() => handleRowPress(item)}>
                     <Text style={styles.cardPrimary} numberOfLines={1}>{cellText(item[colDefs[0]?.fieldId ?? ''], colDefs[0]?.valueLabels)}</Text>
                     <Text style={styles.listSecondary} numberOfLines={1}>
                       {colDefs.slice(1).map((c) => cellText(item[c.fieldId], c.valueLabels)).filter(Boolean).join(' · ')}
@@ -723,10 +777,11 @@ export function CrudRenderer({ component, metadata, state, data }: Props) {
                         style={styles.checkboxCell}
                       />
                     )}
-                    <TouchableOpacity {...buttonA11y()} style={styles.tableRowCells} onPress={() => handleRowPress(item)}>
+                    <TouchableOpacity {...rowA11y(item)} style={styles.tableRowCells} onPress={() => handleRowPress(item)}>
                     {colDefs.map((col) => {
                       const tip = cellTooltipText(item, col.tooltipPath);
                       const content = <Text style={styles.cellText} numberOfLines={2}>{cellText(item[col.fieldId], col.valueLabels)}</Text>;
+                      if (col.display) return renderDisplayCell(col, item, styles.cell, content);
                       return tip ? (
                         <TouchableOpacity
                           {...buttonA11y({ hint: 'Long-press for details' })}

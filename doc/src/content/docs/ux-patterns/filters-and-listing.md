@@ -113,6 +113,8 @@ UX, and the Redwood renderer implements the same pattern with its own design sys
 └──────────────────────────────────────────────────────────────┘
 ```
 
+Clicking anywhere on a row of a navigable listing opens the record; the checkbox, inline editors and the action/button columns keep their own click. See [the whole row opens the record](/java-user-manual/build/capability-listings/#the-whole-row-opens-the-record).
+
 ## Filtering on the default repository
 
 You don't need to override anything for the filters to work: the default in-memory

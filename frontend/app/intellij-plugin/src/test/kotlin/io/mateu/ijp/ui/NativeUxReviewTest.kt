@@ -118,6 +118,24 @@ class NativeUxReviewTest : BasePlatformTestCase() {
         assertTrue("the KPI band keeps its own height (${band.height}px)", band.height < band.preferredSize.height + 40)
     }
 
+    // KPI timeframe ───────────────────────────────────────────────────────────────────────────
+    fun testAKpiTileShowsItsTimeframeUnderTheValueAndReadsItOut() {
+        val card = renderer().render(
+            json("""{"type":"ClientSide","metadata":{"type":"MetricCard","title":"Revenue","value":"12.4k","unit":"€","timeframe":"Last 7 days","trendLabel":"+8%"}}"""),
+            json("{}"), json("{}"),
+        )
+        val labels = (card as Container).components.filterIsInstance<JLabel>().map { it.text }
+        assertEquals(listOf("Revenue", "12.4k €", "Last 7 days", "+8%"), labels)
+        assertEquals("Revenue, 12.4k €, Last 7 days, +8%", card.accessibleContext.accessibleName)
+
+        val bare = renderer().render(
+            json("""{"type":"ClientSide","metadata":{"type":"MetricCard","title":"Occupancy","value":"82","timeframe":"  "}}"""),
+            json("{}"), json("{}"),
+        )
+        assertEquals(2, (bare as Container).components.filterIsInstance<JLabel>().size)
+        assertEquals("Occupancy, 82", bare.accessibleContext.accessibleName)
+    }
+
     // IJ-07 ───────────────────────────────────────────────────────────────────────────────────
     fun testNumericCellsAreFormatted() {
         assertEquals("650", formatNumberCell("650.0", money = false, locale = Locale.US))

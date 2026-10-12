@@ -201,16 +201,12 @@ For a full dashboard, return a `BoardLayout` with KPI cards and charts. See [Das
 
 ## Security
 
-Combine shell annotations with `@KeycloakSecured` and `@EyesOnly`:
+Log the user in with your framework's security (Spring Security, Quarkus OIDC… — Mateu reads the
+principal it authenticates) and combine the shell with `@EyesOnly`:
 
 ```java
 @UI("")
 @Title("My Backoffice")
-@KeycloakSecured(
-        url      = "https://auth.example.com/auth",
-        realm    = "my-realm",
-        clientId = "my-client"
-)
 public class MyApp {
 
     @Menu
@@ -230,4 +226,4 @@ See [Security](/java-user-manual/advanced/security/) for details.
 
 - [Dashboard home page](/java-user-manual/build/dashboard-home-page/) — build KPI cards, charts, and activity feeds as the landing page
 - [Navigation and menus](/java-user-manual/build/navigation-and-menus/) — declare menu entries, sub-menus, route links, and remote menus
-- [Security](/java-user-manual/advanced/security/) — `@KeycloakSecured` and `@EyesOnly` for authentication and role-based visibility
+- [Security](/java-user-manual/advanced/security/) — where identity comes from, and `@EyesOnly` for role-based visibility

@@ -21,6 +21,7 @@ class MetricCardMetadata(Wire):
     icon: str | None = None
     description: str | None = None
     action_id: str | None = None
+    timeframe: str | None = None
 
 
 class ScoreboardMetadata(Wire):

@@ -47,6 +47,38 @@ public final class ArchetypeAdvisor {
             });
   }
 
+  /** One timeframe hint per dashboard class per JVM. */
+  private static final Set<String> TIMEFRAME_ADVISED = ConcurrentHashMap.newKeySet();
+
+  /**
+   * Log a one-time INFO hint when a dashboard shows KPI tiles without a {@link
+   * MetricCard#timeframe()} — a number whose period is unknown ("Revenue 12.4k" — today? this
+   * year?) cannot be read. Advice only; called by the dashboard composition.
+   *
+   * @return whether the hint applies (whether or not it was already logged), for tests
+   */
+  public static boolean adviseTimeframes(Class<?> dashboard, List<MetricCard> metrics) {
+    long missing = timeframeless(metrics);
+    if (missing == 0) {
+      return false;
+    }
+    if (TIMEFRAME_ADVISED.add(dashboard.getName())) {
+      log.info(
+          "Dashboard advice: {} shows {} KPI tile(s) without a timeframe. Say which period every "
+              + "number covers — MetricCard.builder()...timeframe(\"Last 7 days\") — see the KPI "
+              + "checklist in /ux-patterns/dashboard.",
+          dashboard.getName(),
+          missing);
+    }
+    return true;
+  }
+
+  static long timeframeless(List<MetricCard> metrics) {
+    return metrics.stream()
+        .filter(metric -> metric.timeframe() == null || metric.timeframe().isBlank())
+        .count();
+  }
+
   /** The matching hint, if any — package-visible for tests. */
   static Optional<String> adviceFor(Class<?> type) {
     var fields = getAllFields(type);

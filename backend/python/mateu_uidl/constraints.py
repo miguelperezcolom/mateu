@@ -1,5 +1,5 @@
 """Declared constraints: field markers (the analogue of Bean Validation's ``@Min``/``@Max``/
-``@Size``/``@Pattern``), class-level cross-field validations and the programmatic supplier.
+``@Size``/``@Pattern`` — here ``Length``), class-level cross-field validations and the programmatic supplier.
 
 Every constraint travels to the client as a component-level ``validations`` entry (a condition over
 the state + a message, Java's ``ValidationDto``), so the renderer refuses to submit an invalid form,
@@ -8,11 +8,12 @@ browser would be a suggestion. ``Required()`` (in ``markers``) is the analogue o
 ``@NotEmpty``.
 
     age: Annotated[int, Min(18), Max(99)] = 36
-    code: Annotated[str, Size(min=3, max=8), Pattern(r"^[A-Z]+$")] = ""
+    code: Annotated[str, Length(min=3, max=8), Pattern(r"^[A-Z]+$")] = ""
 """
 
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 from typing import Callable
 
@@ -34,13 +35,28 @@ class Max:
 
 
 @dataclass(frozen=True)
-class Size:
+class Length:
     """The text (or collection) length must be within ``[min, max]`` (Bean Validation's ``@Size``);
     an empty value is not checked — combine with ``Required()`` for that."""
 
     min: int = 0
     max: int | None = None
     message: str | None = None
+
+
+@dataclass(frozen=True)
+class Size(Length):
+    """Deprecated (3.0-alpha.412): use :class:`Length` — same fields, same validation. In Java and
+    .NET ``Size`` is the sizing intent of a component, so the length constraint got its own name
+    here. Still works; constructing it warns."""
+
+    def __post_init__(self) -> None:
+        warnings.warn(
+            "mateu_uidl.Size (the length constraint) is deprecated: use Length(min=..., max=...) "
+            "instead — same fields, same validation.",
+            DeprecationWarning,
+            stacklevel=3,
+        )
 
 
 @dataclass(frozen=True)

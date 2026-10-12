@@ -450,7 +450,7 @@ public class CheckInForm {
 | `CrudStore<T>` | Data port for AutoCrud (`store()`) |
 | `Hydratable` | `hydrate(HttpRequest)` called before each render |
 | `BannerSupplier` | Programmatic page banners (replaces `@Banner` methods) |
-| `BadgeSupplier` | Programmatic header badges |
+| `HeaderBadgesSupplier` | Programmatic header badges (was `BadgeSupplier`) |
 | `TitleSupplier` | Dynamic page title |
 | `ValidationSupplier` | Cross-field validation logic |
 | `WizardStep` | Marker for wizard step classes |

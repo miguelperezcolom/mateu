@@ -196,10 +196,14 @@
                       <div class="oj-flex mateu-scoreboard oj-sm-margin-2x-bottom">
                         <oj-bind-for-each data="[[ $current.data.metrics ]]">
                           <template>
-                            <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric">
+                            <div class="oj-flex-item oj-panel oj-sm-padding-4x oj-sm-margin-2x-end oj-sm-margin-2x-bottom mateu-metric"
+                              role="group" :aria-label="[[ $current.data.ariaLabel ]]">
                               <div class="oj-typography-body-sm oj-text-color-secondary"><oj-bind-text value="[[ $current.data.title ]]"></oj-bind-text></div>
                               <div class="oj-typography-heading-lg"><oj-bind-text value="[[ $current.data.value ]]"></oj-bind-text>
                                 <span class="oj-typography-body-md oj-text-color-secondary"><oj-bind-text value="[[ $current.data.unit ]]"></oj-bind-text></span></div>
+                              <oj-bind-if test="[[ !!$current.data.timeframe ]]">
+                                <div class="oj-typography-body-xs oj-text-color-secondary mateu-metric-timeframe"><oj-bind-text value="[[ $current.data.timeframe ]]"></oj-bind-text></div>
+                              </oj-bind-if>
                               <div :class="[[ $current.data.trendClass ]]"><oj-bind-text value="[[ $current.data.trendText ]]"></oj-bind-text></div>
                               <div class="oj-typography-body-xs oj-text-color-secondary"><oj-bind-text value="[[ $current.data.description ]]"></oj-bind-text></div>
                               <oj-bind-if test="[[ !!$current.data.actionId ]]">

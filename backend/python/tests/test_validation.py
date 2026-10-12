@@ -1,4 +1,4 @@
-"""Declared constraints on both legs: Min/Max/Size/Pattern/Required markers, @validation and
+"""Declared constraints on both legs: Min/Max/Length/Pattern/Required markers, @validation and
 ValidationSupplier travel as the component's ``validations`` (Java's ValidationDto, same conditions
 and messages) and are re-checked on the server when a crud form is saved."""
 
@@ -14,12 +14,12 @@ from mateu_core import MateuRegistry, RunActionRq, SyncHandler, type_name  # noq
 from mateu_uidl import (  # noqa: E402
     Crud,
     Hidden,
+    Length,
     Max,
     Min,
     Pattern,
     ReadOnly,
     Required,
-    Size,
     Step,
     Text,
     Validation,
@@ -40,7 +40,7 @@ MODULE = sys.modules[__name__]
 class Constrained:
     name: Annotated[str, Required()] = ""
     age: Annotated[int, Min(18), Max(99)] = 36
-    code: Annotated[str, Size(min=3, max=8), Pattern("^[A-Z]+$")] = "ABC"
+    code: Annotated[str, Length(min=3, max=8), Pattern("^[A-Z]+$")] = "ABC"
     nick: Annotated[str, Required(), Hidden("!state.special")] = ""
     locked: Annotated[str, Required(), ReadOnly()] = "x"
     ratio: Annotated[float, Min(0.5)] = 1.0

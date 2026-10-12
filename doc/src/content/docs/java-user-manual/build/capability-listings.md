@@ -121,6 +121,18 @@ public class Books implements Listing<Book>, Navigable<Book, String> {
 
 There is still no New, Edit, or Delete chrome — only what was declared.
 
+### The whole row opens the record
+
+On a navigable listing — one that implements `Navigable` (any CRUD), or declares a `rowRoute` — a click **anywhere on a row** opens the record, not only on the id link. The cells that have a click of their own keep it, and a click there never opens the row:
+
+- the **selection checkbox** (it selects);
+- **inline editors** (`@InlineEditing` / editable columns — they edit);
+- **display columns**: buttons, links, menus and action groups (`ColumnActionGroup`), components, and any column carrying its own `actionId` — they run their own action.
+
+Enter on a focused row opens it too, and a navigable row shows a pointer cursor. Modified clicks (Ctrl/Shift/⌘) never open, so multi-select and new-tab gestures keep working; dragging rows (`@DragRows`) is unaffected. The same rule applies on every renderer — Vaadin, Redwood, React Native (the whole row is one button; display cells are their own buttons) and the IntelliJ plugin (a click on a non-display cell, a double click when the listing has multi-selection, or Enter).
+
+A table whose rows expand a `@Details` panel on click keeps that click for expanding; the record then opens from its id link.
+
 ---
 
 ## Editable listing — `Editable` without `Navigable`

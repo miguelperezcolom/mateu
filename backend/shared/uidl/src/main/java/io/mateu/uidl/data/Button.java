@@ -151,7 +151,12 @@ public record Button(
         false);
   }
 
-  public String getActionId() {
+  /**
+   * The action id this button dispatches — the one that reaches the wire: the declared {@link
+   * #actionId()} when set, else derived from the label ("Save draft" → {@code saveDraft}), else
+   * {@code null}. Use {@link #actionId()} for the declared value only.
+   */
+  public String resolvedActionId() {
     if (actionId != null) {
       return actionId;
     }
@@ -159,5 +164,16 @@ public record Button(
       return camelcasize(label);
     }
     return null;
+  }
+
+  /**
+   * The action id this button dispatches (declared, else derived from the label).
+   *
+   * @deprecated use {@link #resolvedActionId()} instead — same value; a getter-shaped name next to
+   *     the record accessor {@link #actionId()} read as a second way to get the declared id.
+   */
+  @Deprecated(since = "3.0-alpha.412", forRemoval = true)
+  public String getActionId() {
+    return resolvedActionId();
   }
 }

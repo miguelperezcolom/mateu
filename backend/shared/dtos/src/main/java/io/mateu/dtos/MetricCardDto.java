@@ -12,5 +12,7 @@ public record MetricCardDto(
     String trendLabel,
     String icon,
     String description,
-    String actionId)
+    String actionId,
+    /** The period the value covers ("Last 7 days"), shown under the value; optional. */
+    String timeframe)
     implements ComponentMetadataDto {}

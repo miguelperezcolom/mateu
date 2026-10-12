@@ -290,7 +290,7 @@ class WireConformanceTest {
       return AppShell.builder()
           .title("App in code")
           .homeRoute("/a")
-          .variant(AppVariant.MENU_ON_TOP)
+          .variant(AppVariant.HAMBURGER_MENU)
           .menu(
               List.of(
                   new RouteLink("/a", "A"),

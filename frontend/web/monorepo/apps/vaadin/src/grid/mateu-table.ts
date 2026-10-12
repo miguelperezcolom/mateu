@@ -1,5 +1,6 @@
 import { customElement, property, query, state } from "lit/decorators.js";
-import { navigateToRoute, rowRouteOf } from '@infra/ui/rowRoute.ts'
+import { navigateToRoute } from '@infra/ui/rowRoute.ts'
+import { rowClickTarget, rowOpenOf, RowOpen, RowOpenTarget } from '@infra/ui/rowOpen.ts'
 import { emptyStateTemplate } from "@infra/ui/renderers/emptyStateRenderer.ts";
 import { ifDefined } from "lit/directives/if-defined.js";
 import { css, html, LitElement, nothing, PropertyValues, TemplateResult } from "lit";
@@ -45,6 +46,8 @@ import { splitLines } from "@infra/ui/listingLines.ts";
 import { interpolate } from "@infra/ui/interpolation.ts";
 import { chromeText } from '@infra/ui/chromeTexts.ts'
 
+
+type VaadinColumnLike = { path?: string, xcolumn?: GridColumn }
 
 @customElement('mateu-table')
 export class MateuTable extends LitElement {
@@ -263,24 +266,91 @@ export class MateuTable extends LitElement {
         return text;
     };
 
+    /** The flat column metas (group columns expanded), as the row-open rule reads them. */
+    private get flatColumnMetas(): GridColumn[] {
+        return (this.metadata?.columns ?? []).flatMap(c =>
+            c.metadata?.type === ComponentMetadataType.GridGroupColumn
+                ? ((c.metadata as GridGroupColumn).columns ?? []).map(cc => cc.metadata as GridColumn)
+                : [c.metadata as GridColumn])
+    }
+
     /**
-     * A row click leaves for the record's own route.
+     * How a row of this listing opens (rowRoute, or the `view` action its first column carries), or
+     * undefined. Rows that expand their @Details on click keep that meaning: there the click is
+     * "expand", and the record opens from its link.
+     */
+    private get rowOpen(): RowOpen | undefined {
+        if (this.metadata?.detailPath && !this.metadata?.useButtonForDetail) return undefined
+        return rowOpenOf({ rowRoute: this.metadata?.rowRoute, columns: this.flatColumnMetas })
+    }
+
+    /**
+     * Whole-row click: anywhere on a navigable row opens the record — except the cells that have a
+     * click of their own (selection checkbox, inline editors, buttons/links/menus/components, any
+     * column with its own action). The rule lives in `rowOpen.ts`; this only finds the row and the
+     * column the event landed on.
      *
      * <p>Resolved through the grid's `getEventContext`, the documented way to say which row a click
      * landed on. `activeItem` looked like the natural hook and is not: it stays null here, so an
-     * `active-item-changed` listener never hears an ordinary click and the row simply would not
-     * respond, with nothing on screen to say why.
+     * `active-item-changed` listener never hears an ordinary click.
      */
-    private navigateToRowRoute(event: MouseEvent) {
-        const grid = this.shadowRoot?.querySelector('vaadin-grid') as any
-        const item = grid?.getEventContext?.(event)?.item
-        if (!item || isGroupRow(item)) return
-        // A click on something that acts on its own — a button, a link, a checkbox — belongs to that
-        // control, not to the row.
-        const path = event.composedPath() as HTMLElement[]
-        if (path.some(el => el?.tagName && /^(A|BUTTON|INPUT|VAADIN-BUTTON|VAADIN-CHECKBOX)$/.test(el.tagName))) return
-        const route = rowRouteOf(this.metadata?.rowRoute, item, this.state, this.data)
-        if (route) navigateToRoute(this, route)
+    private rowOpenTargetOfEvent(event: Event): RowOpenTarget | undefined {
+        const open = this.rowOpen
+        if (!open) return undefined
+        const grid = this.grid
+        const ctx = grid?.getEventContext(event)
+        if (!ctx?.item || isGroupRow(ctx.item)) return undefined
+        const path = event.composedPath()
+        let column: GridColumn | undefined
+        if (ctx.section === 'body') {
+            const vaadinColumn = ctx.column as (VaadinColumnLike | undefined)
+            column = vaadinColumn?.xcolumn
+                ?? (vaadinColumn?.path ? this.flatColumnMetas.find(c => c?.id === vaadinColumn.path) : undefined)
+        } else if (ctx.section === 'details') {
+            // multi-line rows: a click on an extra line is a click on the row, through the line's
+            // own column (a line can be a button too); any other details content is not the row
+            if (!path.some(el => (el as HTMLElement)?.classList?.contains('row-lines'))) return undefined
+            const pair = path.find(el => (el as HTMLElement)?.dataset?.column) as HTMLElement | undefined
+            column = pair ? this.flatColumnMetas.find(c => c?.id === pair.dataset.column) : { id: '' } as GridColumn
+        } else {
+            return undefined
+        }
+        return rowClickTarget({ open, row: ctx.item, column, path, stopAt: grid, state: this.state, data: this.data })
+    }
+
+    private openRow(target: RowOpenTarget) {
+        if (target.kind === 'route') {
+            navigateToRoute(this, target.route)
+            return
+        }
+        // the same action the row's link runs: the enclosing listing claims it, and
+        // _onActionRequested marks the row as the one shown
+        this.dispatchEvent(new CustomEvent('action-requested', {
+            detail: { actionId: target.actionId, parameters: target.parameters },
+            bubbles: true,
+            composed: true,
+        }))
+    }
+
+    private onGridClick = (event: MouseEvent) => {
+        // a modified or non-primary click is the user asking for something else (new tab, multi
+        // sort); a click that ends a text selection is the user copying, not opening
+        if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+        if ((window.getSelection?.()?.toString() ?? '') !== '') return
+        const target = this.rowOpenTargetOfEvent(event)
+        if (target) this.openRow(target)
+    }
+
+    /** Enter on a focused row (or a focused plain cell) opens it, like a click. A cell holding a
+     *  control is entered by the grid itself (interaction mode) — that keydown arrives prevented. */
+    private onGridKeyDown = (event: KeyboardEvent) => {
+        if (event.key !== 'Enter' || event.defaultPrevented || event.repeat) return
+        if ((this.grid as unknown as { interacting?: boolean } | undefined)?.interacting) return
+        const target = this.rowOpenTargetOfEvent(event)
+        if (target) {
+            event.preventDefault()
+            this.openRow(target)
+        }
     }
 
     render():TemplateResult {
@@ -389,7 +459,9 @@ export class MateuTable extends LitElement {
                         }
                         this.detailsOpenedItems = row ? [row] : []
                     }:undefined)}"
-                    @click="${ifDefined(this.metadata?.rowRoute?(event: MouseEvent) => this.navigateToRowRoute(event):undefined)}"
+                    ?data-opens-rows="${!!this.rowOpen}"
+                    @click="${this.onGridClick}"
+                    @keydown="${this.onGridKeyDown}"
                     .detailsOpenedItems="${gridDetailsOpened}"
                     ${ifDefined(detailsRenderer)}
                     theme="${theme}"
@@ -497,7 +569,8 @@ export class MateuTable extends LitElement {
 
     static styles = css`
         ${badge}
-        vaadin-grid[data-clickable-rows]::part(row) {
+        vaadin-grid[data-clickable-rows]::part(row),
+        vaadin-grid[data-opens-rows]::part(body-cell) {
             cursor: pointer;
         }
         .row-detail {

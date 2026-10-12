@@ -26,7 +26,13 @@ public sealed class SubscribeToAttribute(string @event, string action) : Attribu
     public string Action { get; } = action;
 }
 
-/// <summary>Restricts an [App] or [UI] view to users holding this permission.</summary>
+/// <summary>Restricts a [UI] view to callers holding this permission. Before 3.0-alpha.412 nothing
+/// read it, so a view carrying it was open to everyone; it is now ENFORCED with exactly the
+/// semantics of <c>[EyesOnly(Permissions = new[] { permission })]</c> — the view and its actions
+/// are refused (403) to a caller without the permission or with no principal, and the menu entries
+/// leading to it are hidden. Deprecated: use <c>[EyesOnly]</c>, the attribute that also takes
+/// roles, groups and scopes.</summary>
+[Obsolete("[Secured] is enforced as [EyesOnly(Permissions = [...])]: use [EyesOnly(Permissions = new[] { \"...\" })] on the class instead.")]
 [AttributeUsage(AttributeTargets.Class)]
 public sealed class SecuredAttribute(string permission) : Attribute
 {
