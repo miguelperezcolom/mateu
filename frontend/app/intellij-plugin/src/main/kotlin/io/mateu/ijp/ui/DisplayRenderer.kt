@@ -50,7 +50,9 @@ fun renderHeroSection(r: ComponentRenderer, component: JsonNode, metadata: JsonN
 fun renderEmptyState(r: ComponentRenderer, metadata: JsonNode): JComponent {
     val panel = verticalPanel(4)
     panel.border = JBUI.Borders.empty(28)
-    val icon = metadata.text("icon")
+    // An emoji glyph shows; a web icon token ("vaadin:list-select") is not a glyph — it printed as
+    // raw text above the title.
+    val icon = metadata.text("icon").takeUnless { it.contains(':') }.orEmpty()
     if (icon.isNotBlank()) panel.addStacked(JBLabel(icon, SwingConstants.CENTER).apply { font = font.deriveFont(28f) }, 4)
     val title = metadata.text("title")
     if (title.isNotBlank()) panel.addStacked(JBLabel(title, SwingConstants.CENTER).apply { font = font.deriveFont(Font.BOLD, 15f) }, 2)

@@ -140,6 +140,9 @@ class DisplayComponentsRenderTest : BasePlatformTestCase() {
         val ctx = context()
         val empty = render(ctx, """{"type":"EmptyState","icon":"📭","title":"No orders","description":"Create one","actionId":"newOrder","actionLabel":"New order"}""")
         assertTrue(texts(empty).containsAll(listOf("No orders", "Create one")))
+        // a web icon token is not a glyph: it must not print as text
+        val tokenIcon = render(ctx, """{"type":"EmptyState","icon":"vaadin:list-select","title":"Select an item"}""")
+        assertFalse(texts(tokenIcon).contains("vaadin:list-select"))
         all(empty).filterIsInstance<AbstractButton>().single { it.text == "New order" }.doClick()
         awaitRequests(1)
         val notice = render(ctx, """{"type":"Notice","theme":"warning","text":"2 complaints pending","actionLabel":"Review","actionId":"review"}""")
