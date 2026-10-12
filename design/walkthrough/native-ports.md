@@ -63,7 +63,7 @@ N/A (why) · — not walked yet.
 | Exporters (CSV, Excel, PDF downloads) | ✅ 3 downloads | ✅ CSV |
 | Section affordances, draft save | ✅ | ✅ |
 | Card menu, app context picker, header action, notification bell, command-center palette + global search | ✅ shell-walk | ✅ shell-walk |
-| Security principal (identity from the host) | — | — |
+| Security principal (identity the host app established → `EyesOnly` / `ReadOnlyUnless` / `disabled_unless`) | ✅ sec.mjs: no role → salary hidden, notes read-only, Approve disabled; `hr` → salary shown; `hr,manager` → notes editable, Approve enabled | — (covered by `HostingTests`) |
 | YAML pages served by the ports (the yaml starter's specs) | ❌ 8: only 8 YAML component types build — `home.yaml` (HeroSection) and `products.yaml` (Listing) show "Unsupported component"; `app.yaml` (AppShell) is documented as Java-only | ❌ 8: same 8 types in `YamlComponentBuilder` |
 | Ports behind **Redwood** (bundle served by a scratch proxy reproducing `IndexPage.mountUi`) | 🔧 the port answered the documented `POST v3/components/_/action` 404 and `__load__` "Action not found" → 3c22ff69a: the Redwood shell now boots on a port (title, menu tabs). ❌ 9: the content area stayed empty; the scratch proxy is not faithful for routed URLs (it also sends route "" for a Java mount), so this needs a proper serving path (❌ 1) before it can be judged | 🔧 same → 3c22ff69a (test) |
 
@@ -113,8 +113,8 @@ N/A (why) · — not walked yet.
 | CollectionDetail / wizard cases | ❌ 7: known structural divergences |
 
 **Counts:** ✅ ≈ 75 cells verified · 🔧 28 fixes (each with a test or probe) + 3 doc claims ·
-❌ open: 5 (items 1, 5, 7, 8, 9 below) · — not walked yet: security principal and YAML-page
-interaction through the ports in a browser (covered by port tests), photo capture on a device,
+❌ open: 5 (items 1, 5, 7, 8, 9 below) · — not walked yet: the .NET security principal in a
+browser (covered by `HostingTests`), photo capture on a device,
 IntelliJ click-level interaction beyond its render tests.
 
 ## Bugs fixed (one line each)
