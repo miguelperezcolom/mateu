@@ -40,6 +40,11 @@ describe('toSyncPath', () => {
         expect(toSyncPath('orders/1')).toBe('orders/1')
         expect(toSyncPath(undefined)).toBe('_no_route')
     })
+
+    it('leaves a listing\'s query out — a filtered deep link is the same screen', () => {
+        expect(toSyncPath('/products?status=AVAILABLE')).toBe('products')
+        expect(toSyncPath('/?q=x')).toBe('_no_route')
+    })
 })
 
 describe('loadBundleManifest', () => {
