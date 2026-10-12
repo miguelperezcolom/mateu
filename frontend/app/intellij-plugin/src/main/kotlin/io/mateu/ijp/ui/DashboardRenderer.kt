@@ -93,7 +93,7 @@ fun renderMetricCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
     title.alignmentX = Component.LEFT_ALIGNMENT
     card.add(title)
 
-    val value = JBLabel(metadata.text("value") + " " + metadata.text("unit"))
+    val value = JBLabel((metadata.text("value") + " " + metadata.text("unit")).trim())
     value.font = value.font.deriveFont(Font.BOLD, 26f)
     value.alignmentX = Component.LEFT_ALIGNMENT
     card.add(value)
@@ -112,10 +112,7 @@ fun renderMetricCard(r: ComponentRenderer, metadata: JsonNode): JComponent {
 
     val actionId = metadata.text("actionId")
     if (actionId.isNotBlank()) {
-        card.cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-        card.addMouseListener(object : MouseAdapter() {
-            override fun mouseClicked(e: MouseEvent) = r.ctx.runAction(actionId, null)
-        })
+        card.activatable { r.ctx.runAction(actionId, null) }
     }
     return card
 }

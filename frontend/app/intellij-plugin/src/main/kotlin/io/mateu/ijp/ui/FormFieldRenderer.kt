@@ -657,7 +657,10 @@ private fun numberField(ctx: AppContext, fieldId: String, initial: String, enabl
     (tf.document as AbstractDocument).documentFilter = NumericDocumentFilter(integer)
     tf.onTextChange {
         val raw = tf.text
-        if (integer) raw.toIntOrNull()?.let { ctx.putState(fieldId, it) }
+        // Emptying the field clears the value (a nullable number) — otherwise the last number typed
+        // stayed in the state and was saved although the field shows nothing.
+        if (raw.isBlank()) ctx.putState(fieldId, null)
+        else if (integer) raw.toIntOrNull()?.let { ctx.putState(fieldId, it) }
         else raw.replace(',', '.').toDoubleOrNull()?.let { ctx.putState(fieldId, it) }
     }
     return tf
