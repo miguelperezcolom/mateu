@@ -30,11 +30,12 @@ export interface AppFields {
     accentColor?: string
     /** `PARENT`: a single "← Parent" link instead of breadcrumbs (`@App(backLink)`, a record master). */
     backLink?: string
-    /** The header switches - twins of `@App(themeToggle/commandCenter/chromeless/accessKeys)`. */
+    /** The header switches - twins of `@App(themeToggle/commandCenter/chromeless/accessKeys/mobileQr)`. */
     themeToggle?: boolean
     commandCenter?: boolean
     chromeless?: boolean
     accessKeys?: boolean
+    mobileQr?: boolean
 }
 
 export type AppMenuItem =
@@ -60,7 +61,7 @@ export interface AppDoc {
 const SCALARS: (keyof AppFields)[] = [
     'title', 'subtitle', 'pageTitle', 'logo', 'favicon', 'homeRoute',
     'variant', 'layout', 'drawerClosed', 'style', 'cssClasses', 'route', 'accentColor', 'backLink',
-    'themeToggle', 'commandCenter', 'chromeless', 'accessKeys',
+    'themeToggle', 'commandCenter', 'chromeless', 'accessKeys', 'mobileQr',
 ]
 
 /** Whether this YAML is an app-shell definition (`type: AppShell`). */

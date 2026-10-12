@@ -297,6 +297,7 @@ export function expandAppShell(shell: FluentNode): UIIncrement {
                     commandCenterEnabled: flag('commandCenter') || flag('chromeless'),
                     chromeless: flag('chromeless'),
                     accessKeys: flag('accessKeys'),
+                    mobileQr: flag('mobileQr'),
                     drawerClosed: flag('drawerClosed'),
                     style: typeof shell.style === 'string' ? shell.style : undefined,
                     cssClasses: typeof shell.cssClasses === 'string' ? shell.cssClasses : undefined,

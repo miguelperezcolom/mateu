@@ -51,6 +51,8 @@ export default interface App extends ComponentMetadata {
     chromeless?: boolean
     /** @App(accessKeys): holding Alt shows a key next to every visible button and tab */
     accessKeys?: boolean
+    /** @App(mobileQr): the header offers "Open on mobile" — the QR that adds this UI to the Mateu mobile app */
+    mobileQr?: boolean
     /** The UI language (BCP 47) the server's Translator chose; absent = the browser's. Set on <html lang>. */
     locale?: string
     /** `@NoBreadcrumbs` on the shell: no automatic breadcrumb trail on its pages. */

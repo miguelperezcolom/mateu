@@ -185,6 +185,21 @@ export const renderThemeToggle = (metadata: App, container: MateuApp) =>
     }) : nothing
 
 /**
+ * "Open on mobile" (@App(mobileQr)): the QR that adds this UI to the Mateu mobile app. The dialog
+ * and the QR encoder are a lazy chunk — loaded on the first click, never on page load.
+ */
+export const renderMobileQrButton = (metadata: App, container: MateuApp) =>
+    metadata.mobileQr ? renderHeaderIconButton({
+        icon: 'vaadin:qrcode',
+        label: chromeText('openOnMobile'),
+        cssClasses: 'mateu-mobile-qr',
+        onClick: () => {
+            void import('@infra/ui/qr/mateu-mobile-qr-dialog.ts').then(({ openMobileQrDialog }) =>
+                openMobileQrDialog({ appTitle: metadata.title, baseUrl: container.baseUrl ?? '' }))
+        },
+    }) : nothing
+
+/**
  * The agent's chat toggle: a header widget, not a FAB — the conversation icon, just before the app's
  * own widgets (the inbox bell…), shown only when the app declares the chat (sseUrl). It opens and
  * closes the chat panel on the content's left (see renderChat), and reads as pressed while it is open.
@@ -203,7 +218,7 @@ export const renderChatToggle = (metadata: App, container: MateuApp) =>
 const renderHeaderWidgets = (metadata: App, container: MateuApp) => html`
     ${renderChatToggle(metadata, container)}
     <slot name="widgets"></slot>
-    ${renderContextSelectors(metadata, container)}${renderThemeToggle(metadata, container)}`
+    ${renderContextSelectors(metadata, container)}${renderMobileQrButton(metadata, container)}${renderThemeToggle(metadata, container)}`
 
 /**
  * The agent's chat panel. It sits in the content row (.m-md), under the header, and mateu-app's

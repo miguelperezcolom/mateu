@@ -129,6 +129,7 @@ export class AppEditor extends LitElement {
                     ${this.check('Command center', 'commandCenter', f, 'A FAB opening a full-screen palette: menu, search, recents')}
                     ${this.check('Chromeless', 'chromeless', f, 'No navigation chrome (implies the command center)')}
                     ${this.check('Access keys', 'accessKeys', f, 'Holding Alt shows a key next to every button and tab')}
+                    ${this.check('Open on mobile', 'mobileQr', f, 'A header button with the QR that adds this UI to the Mateu mobile app')}
                 </div>
                 <div class="note">Unticked: the @App class (if any) decides.</div>
 
@@ -162,7 +163,7 @@ export class AppEditor extends LitElement {
 
     // --- header switches ---
 
-    private check(label: string, key: 'themeToggle' | 'commandCenter' | 'chromeless' | 'accessKeys', f: AppFields, title: string) {
+    private check(label: string, key: 'themeToggle' | 'commandCenter' | 'chromeless' | 'accessKeys' | 'mobileQr', f: AppFields, title: string) {
         return html`<label class="check" title=${title}>
             <input type="checkbox" .checked=${f[key] === true}
                 @change=${(e: Event) => this.setField(key, (e.target as HTMLInputElement).checked)} />
