@@ -1,4 +1,5 @@
 import { MateuApiClient } from '../api/MateuApiClient';
+import type { TokenProvider } from './auth';
 
 export type MessageVariant = 'info' | 'warning' | 'error';
 
@@ -54,10 +55,16 @@ export class MateuSession {
   /** Host hook: dirty-guard confirmation — resolve true to discard unsaved changes and leave. */
   confirmDiscard: () => Promise<boolean> = async () => true;
 
+  /** Host hook (hub sessions): sign out of THIS UI only. Absent → the global provider's sign-out. */
+  signOut?: () => Promise<void>;
+
+  /** Host hook (hub sessions): the shell offers "My UIs" / "Switch UI" entries when set. */
+  hub?: { goHome: () => void; openSwitcher: () => void; uiName: string };
+
   private subscriptions: { owner: unknown; eventName: string; handler: (payload: unknown) => void }[] = [];
 
-  constructor(baseUrl: string, sessionId: string, appState: Record<string, unknown> = {}) {
-    this.api = new MateuApiClient(baseUrl, sessionId);
+  constructor(baseUrl: string, sessionId: string, appState: Record<string, unknown> = {}, auth?: TokenProvider | null) {
+    this.api = new MateuApiClient(baseUrl, sessionId, auth);
     this.appState = appState;
     // Another wire MAJOR: say so plainly (once) instead of leaving a half-rendered screen to explain
     // itself. Rendering goes on — unknown fields and types are still tolerated.

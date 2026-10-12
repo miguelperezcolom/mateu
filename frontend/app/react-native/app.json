@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Mateu Native",
+    "name": "Mateu",
     "slug": "mateu-native",
     "scheme": "mateu",
     "version": "1.0.0",
@@ -9,7 +9,15 @@
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "io.mateu.native"
+      "bundleIdentifier": "io.mateu.native",
+      "associatedDomains": [
+        "applinks:mateu.io",
+        "applinks:www.mateu.io"
+      ],
+      "infoPlist": {
+        "NSCameraUsageDescription": "Mateu uses the camera to scan the QR codes that add apps to your list, and for photo fields in those apps.",
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -22,6 +30,45 @@
       ],
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "mateu.io",
+              "pathPrefix": "/add"
+            },
+            {
+              "scheme": "https",
+              "host": "www.mateu.io",
+              "pathPrefix": "/add"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        },
+        {
+          "action": "VIEW",
+          "data": [
+            {
+              "scheme": "mateu",
+              "host": "add"
+            },
+            {
+              "scheme": "mateu",
+              "host": "import"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
       ]
     },
     "plugins": [
@@ -30,7 +77,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "The app captures photos for @PhotoCapture fields.",
+          "cameraPermission": "Mateu uses the camera to scan the QR codes that add apps to your list, and for photo fields in those apps.",
           "microphonePermission": false,
           "recordAudioAndroid": false
         }

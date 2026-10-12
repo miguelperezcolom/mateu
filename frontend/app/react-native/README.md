@@ -9,9 +9,22 @@ Full documentation: [React Native renderer](../../../doc/src/content/docs/native
 
 Expo SDK 57 · React Native 0.86 · every wire component type rendered natively (`npm run parity`).
 
+## Boot modes
+
+- **Hub (default)** — the generic **Mateu** app: the user's own list of UIs, added by QR code, typed
+  address or deep link (`https://mateu.io/add?u=…`, `mateu://add?u=…`), each opened in its own session
+  (own navigation stack, app context, session id and OIDC tokens). Code in `src/hub`, design in
+  `design/mobile-app-hub.md`, store release steps in [RELEASE.md](RELEASE.md). On the web build,
+  `<origin>/add?u=<baseUrl>` works like the universal link. Plain http is accepted only on dev builds.
+  E2E: `e2e/rn-hub-probe.mjs`.
+- **Registry** — a white-label installable whose `app.json` carries `mateuRegistryUrl` + `mateuAppId`.
+- **Direct** — one backend, for development and the probes: set `EXPO_PUBLIC_MATEU_BACKEND_PORT` (or
+  `EXPO_PUBLIC_MATEU_BACKEND_URL`), or open the web build with `?route=…` / `?direct=1`. The quick
+  start below uses this mode.
+
 ## Quick start
 
-Start a Mateu backend first — by default the app looks for `demo/demo-front-office` on
+Start a Mateu backend first — in direct mode (`?direct=1` on the web build, or any backend env var) the app looks for `demo/demo-front-office` on
 `http://localhost:8594`; point it elsewhere with `EXPO_PUBLIC_MATEU_BACKEND_PORT` (e.g. `8595` for
 `demo-admin-panel`). Then `npm ci` and pick how you want to run the renderer:
 

@@ -2,11 +2,16 @@ import React, { createContext, useContext, useRef } from 'react';
 import { MateuApiClient } from '../api/MateuApiClient';
 import { MateuSession } from '../core/MateuSession';
 import { randomUuid } from '../core/sessionId';
+import type { TokenProvider } from '../core/auth';
 
 export interface MateuConfig {
   baseUrl: string;
   sessionId?: string;
   appState?: Record<string, unknown>;
+  /** Hub UI sessions: this UI's own token provider (null = an open UI). Absent = the global one. */
+  auth?: TokenProvider | null;
+  /** Called once with the session, before the first render (hub hooks). */
+  onSession?: (session: MateuSession) => void;
 }
 
 interface AppContextValue {
@@ -30,9 +35,12 @@ interface Props {
 }
 
 export function MateuAppProvider({ config, children }: Props) {
-  const session = useRef(
-    new MateuSession(config.baseUrl, config.sessionId ?? randomUuid(), config.appState ?? {}),
-  ).current;
+  const ref = useRef<MateuSession | null>(null);
+  if (!ref.current) {
+    ref.current = new MateuSession(config.baseUrl, config.sessionId ?? randomUuid(), config.appState ?? {}, config.auth);
+    config.onSession?.(ref.current);
+  }
+  const session = ref.current;
 
   const value: AppContextValue = {
     session,
