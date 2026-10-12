@@ -8,6 +8,7 @@ import { theme } from '../theme';
 import { buttonA11y, headingA11y } from '../a11y/a11y';
 import { RecordSwitcherRenderer } from './RecordSwitcherRenderer';
 import { pageHeaderExtrasOf, switcherOf } from './patternGaps';
+import { fabBottom } from '../core/uxRules';
 
 interface ButtonDto {
   actionId?: string;
@@ -184,15 +185,6 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
         ))}
       </ScrollView>
 
-      {fabs.length > 0 && (
-        <View style={styles.fabStack} pointerEvents="box-none">
-          {fabs.map((fab, i) => (
-            <TouchableOpacity {...buttonA11y({ label: fab.label ? interpolate(fab.label, ctx) : fab.actionId || fab.id || 'Action' })} key={i} style={styles.fab} onPress={() => handleAction(fab.actionId ?? fab.id ?? '')}>
-              <Text style={styles.fabText}>{fab.label ? interpolate(fab.label, ctx) : '+'}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
 
       {buttons.length > 0 && (
         <View style={styles.bottomBar}>
@@ -207,6 +199,17 @@ export function PageRenderer({ component, metadata, state, data }: Props) {
               </TouchableOpacity>
             );
           })}
+        </View>
+      )}
+      {/* AFTER the bottom bar and lifted above it: drawn before it (and at the same height) the
+          bar covered the floating button — a tap on it pressed the page's Save instead. */}
+      {fabs.length > 0 && (
+        <View style={[styles.fabStack, { bottom: fabBottom(buttons.length > 0) }]} pointerEvents="box-none">
+          {fabs.map((fab, i) => (
+            <TouchableOpacity {...buttonA11y({ label: fab.label ? interpolate(fab.label, ctx) : fab.actionId || fab.id || 'Action' })} key={i} style={styles.fab} onPress={() => handleAction(fab.actionId ?? fab.id ?? '')}>
+              <Text style={styles.fabText}>{fab.label ? interpolate(fab.label, ctx) : '+'}</Text>
+            </TouchableOpacity>
+          ))}
         </View>
       )}
     </View>

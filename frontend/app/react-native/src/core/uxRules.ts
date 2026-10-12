@@ -107,6 +107,13 @@ export function loadFailureMessage(raw: string | null | undefined): { title: str
  */
 export const FAB_SIZE = 52;
 export const FAB_MARGIN = 16;
+/** Where a page's floating buttons sit: above the page's bottom button bar when it has one (the
+ *  bar used to cover them — a tap on the FAB pressed the bar's button underneath). */
+export const PAGE_BOTTOM_BAR_HEIGHT = 76; // 16px padding a side + a 44px button
+export function fabBottom(hasBottomBar: boolean): number {
+  return hasBottomBar ? PAGE_BOTTOM_BAR_HEIGHT + 24 : 24;
+}
+
 export function fabInset(fabCount: number): number {
   return fabCount > 0 ? FAB_SIZE + FAB_MARGIN + 8 : 0;
 }

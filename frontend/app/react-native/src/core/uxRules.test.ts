@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  bootFailureOf, buttonActionId, chartTextAlternative, effectiveListingLayout, fabInset, formatTick, headingLevel, rowJustification, fieldPlaceholder, isCurrentDestination, loadFailureMessage,
+  bootFailureOf, buttonActionId, fabBottom, chartTextAlternative, effectiveListingLayout, fabInset, formatTick, headingLevel, rowJustification, fieldPlaceholder, isCurrentDestination, loadFailureMessage,
   rowCheckboxLabel, serverSideState,
 } from './uxRules.ts';
 
@@ -101,4 +101,9 @@ test('a boot load with nothing to render says why instead of drawing a blank scr
     'Something went wrong: Reference: 42',
   );
   assert.equal(bootFailureOf({ fragments: [] }), 'The server answered with nothing to show.');
+});
+
+test('a page FAB sits above the page bottom bar, never under it', () => {
+  assert.equal(fabBottom(false), 24);
+  assert.ok(fabBottom(true) >= 76 + 24);
 });
