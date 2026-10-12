@@ -104,6 +104,27 @@ describe('<mateu-visual-editor> against an IDE host', () => {
         }
     })
 
+    it('a route\'s state: seed is shown and edited in the routes editor (it used to be invisible)', async () => {
+        const el = await mount('type: Routes\nroutes:\n  - route: page\n    layout: page.yaml\n    state:\n      greeting: Hola\n', 'routes.yaml')
+        const editor = el.shadowRoot.querySelector('routes-editor')
+        await editor.updateComplete
+        const input = [...editor.shadowRoot.querySelectorAll('input')].find((i: HTMLInputElement) => i.value === 'greeting=Hola') as HTMLInputElement
+        expect(input, 'the State cell shows the seed').toBeTruthy()
+        input.value = 'greeting=Hello, tone=warm'
+        input.dispatchEvent(new Event('change'))
+        await settle()
+        const written = posted.filter((m) => m.type === 'contentChanged').at(-1).yaml
+        expect(written).toContain('greeting: Hello')
+        expect(written).toContain('tone: warm')
+    })
+
+    it('components.yaml opens as the business component catalogue, not as an empty page', async () => {
+        const el = await mount('components:\n  - name: Agency\n    component: {type: Notice, text: hi}\n', 'components.yaml')
+        expect(el.shadowRoot.querySelector('editor-canvas')).toBeNull()
+        expect(el.shadowRoot.textContent).toContain('Business components')
+        expect(el.shadowRoot.textContent).toContain('Agency')
+    })
+
     it('Delete removes the selected node and hands the host the text with the author\'s comments kept', async () => {
         const commented = '# my page\ntype: Form\ntitle: Orders # the title\ncontent:\n  - type: Text\n    text: Hello\n  - type: Text\n    text: Bye\n'
         const el = await mount(commented)

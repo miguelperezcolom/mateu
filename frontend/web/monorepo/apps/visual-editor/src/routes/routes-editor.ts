@@ -75,13 +75,14 @@ export class RoutesEditor extends LitElement {
             <table>
                 <thead>
                     <tr>
-                        <th style="width:20%">Route</th>
-                        <th style="width:16%">Layout</th>
-                        <th style="width:20%">View model</th>
-                        <th style="width:13%" title="A named REST source that loads the record on entry (the route's data:)">Data</th>
-                        <th style="width:11%">Fixed params</th>
-                        <th style="width:11%">Default params</th>
-                        <th style="width:11%" title="access: — who may reach this route (and the routes under it). Anybody else gets 403, decided on the server">Access</th>
+                        <th style="width:17%">Route</th>
+                        <th style="width:15%">Layout</th>
+                        <th style="width:17%">View model</th>
+                        <th style="width:11%" title="A named REST source that loads the record on entry (the route's data:)">Data</th>
+                        <th style="width:10%">Fixed params</th>
+                        <th style="width:10%">Default params</th>
+                        <th style="width:10%" title="state: — literal values seeded into the page's state (\${state.x}), at the defaults' precedence">State</th>
+                        <th style="width:10%" title="access: — who may reach this route (and the routes under it). Anybody else gets 403, decided on the server">Access</th>
                         <th style="width:70px"></th>
                     </tr>
                 </thead>
@@ -154,6 +155,9 @@ export class RoutesEditor extends LitElement {
                     @change=${(e: Event) => this.patchRow(at, { fixedParams: params((e.target as HTMLInputElement).value) })} /></td>
                 <td class="mono"><input .value=${formatParams(row.defaultParams)} placeholder="k=v"
                     @change=${(e: Event) => this.patchRow(at, { defaultParams: params((e.target as HTMLInputElement).value) })} /></td>
+                <td class="mono"><input .value=${formatParams(stateOf(row))} placeholder="k=v"
+                    title="state: — literal values the page reads as \${state.x} (the route's seed)"
+                    @change=${(e: Event) => this.setState(at, row, (e.target as HTMLInputElement).value)} /></td>
                 <td class="mono"><input .value=${formatAccessInline(row.extra?.access)} placeholder="roles (admin, hr)"
                     title="access: — roles, or roles=…; groups=…; scopes=…; permissions=…. Refused (403) for anybody else, children included; a menu link to it is hidden"
                     @change=${(e: Event) => this.setAccess(at, row, (e.target as HTMLInputElement).value)} /></td>
@@ -191,6 +195,15 @@ export class RoutesEditor extends LitElement {
         const access = parseAccessInline(text)
         if (access) extra.access = access
         else delete extra.access
+        this.patchRow(at, { extra: Object.keys(extra).length ? extra : undefined })
+    }
+
+    /** A route's `state:` seeds live among the entry's other keys (RouteRow.extra), kept verbatim. */
+    private setState(at: number[], row: RouteRow, text: string) {
+        const extra = { ...(row.extra ?? {}) }
+        const state = params(text)
+        if (state) extra.state = state
+        else delete extra.state
         this.patchRow(at, { extra: Object.keys(extra).length ? extra : undefined })
     }
 
@@ -239,6 +252,11 @@ export class RoutesEditor extends LitElement {
 
 function clean(v: string): string | undefined {
     return v.trim() || undefined
+}
+
+function stateOf(row: RouteRow): Record<string, unknown> | undefined {
+    const state = row.extra?.state
+    return state && typeof state === 'object' && !Array.isArray(state) ? state as Record<string, unknown> : undefined
 }
 
 function params(text: string): Record<string, unknown> | undefined {
