@@ -54,7 +54,8 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | VS Code: manifest, New File, Add Route, New Project, live run | ✅ vitest 167 + new `specsSchema.test.ts` |
 | `specs-schema.json` vs every shipped file, every New File template, every doc example | 🔧 5 gaps (ad22b0660) — pinned by `specsSchema.test.ts` (ajv) |
 | Docs component trees parse with the loader's mapper | ✅ new `DocumentedYamlExamplesTest` (core) |
-| Visual editor dark mode | ✅ routes and listing screens legible; ❌ the routes editor has no column for a route's `state:` / `appState:` seeds (kept verbatim, not editable) |
+| Visual editor dark mode | ✅ routes and listing screens legible |
+| Routes editor: a route's `state:` seed | 🔧 kept verbatim but neither shown nor editable → a State column (9408bb589, DOM test); `appState:` still only via YAML |
 | Visual editor standalone: every file kind opens, canvas selection, Properties, YAML dock, Play, Export | ✅ / 🔧 as in the table above; vitest 429 |
 | Editor Export → static host | 🔧 shipped raw `layout:` routes + basename keys + no shell → opened on nothing (8ca9cf96e); verified: exported manifest beside the renderer serves shell, listing, page |
 | `mateu-bundle:openapi` → `:server` → compile → run | ✅ demo-static-bundle: contract (3 ops, provenance), generated module fails to start naming the missing adapter, starts with one, answers; regeneration keeps the hand-written adapter |
