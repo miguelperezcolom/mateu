@@ -143,7 +143,12 @@ pinned "not a bean next to generated controllers" now pins the opposite, decisio
 re-exported a shared spec, which Playwright refuses; the renderer-vb project lists it instead) · renderer-vb
 (Redwood record master: the header took the master's title only when the tab had none — now always, the tab's own
 title as subtitle; `withinAppLevels` in poc/core). Verified: the five adapters' suites, mvc-app1 Vaadin shared +
-renderer 400+ specs, renderer-vb 60/60 on the rebuilt bundle, lint/tokens/licences/bundle freshness.
+renderer 400+ specs, renderer-vb 60/60 on the rebuilt bundle, lint/tokens/licences/bundle freshness. CI rerun then failed only
+`yaml-mount-next-to-ui.spec` on micronaut-app1 (a ROOT `@UI` + YAML mount): two Micronaut-only causes — the YAML
+controller stood down entirely with a root `@UI`, so the mount's `POST …/mateu/v3/…` was 405 (split: API always,
+shell only without a root `@UI`), and `MicronautBeanProvider` was a lazy singleton, so on a cold start the root
+index's `deepLinkIndex` saw the facade uninitialised and served the root UI (now `@Context`). Shared suite on
+micronaut-app1 482/482, mvc YAML specs green, micronaut-core 30 tests.
 
 ### Left for the next session (not done — budget)
 - Redwood: an island held by a form field (needs `runMateuIslandAction` generalised); drawer stays hidden after a dialog

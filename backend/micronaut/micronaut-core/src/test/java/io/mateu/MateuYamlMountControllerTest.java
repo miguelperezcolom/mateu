@@ -23,24 +23,35 @@ import org.junit.jupiter.api.Test;
  * at {@code /yaml-parity} and a {@code page} route with the text "YAML parity page"). The same
  * expectations as {@code AdapterParityITFoundation.servesAYamlMount} on the other adapters. The
  * test app also has generated {@code @UI} controllers at {@code /hello}, {@code /plain}… and the
- * YAML mounts are served NEXT to them (every adapter, 2026-10-12), so the controller is a bean here
- * ({@link MateuYamlMountController.Present}); only a ROOT {@code @UI} would keep it out.
+ * YAML mounts are served NEXT to them (every adapter, 2026-10-12), so both controllers are beans
+ * here: the API ({@link MateuYamlMountController.Present}) and, as there is no ROOT {@code @UI},
+ * the shell ({@link MateuYamlMountController.NoRootUi}).
  */
 @MicronautTest
 class MateuYamlMountControllerTest {
 
   @Inject ApplicationContext context;
   @Inject MateuYamlMountController controller;
+  @Inject MateuYamlMountIndexController indexController;
 
   @Test
   void isABeanNextToTheAppsGeneratedControllers() {
     assertThat(context.containsBean(MateuYamlMountController.class), is(true));
+    assertThat(context.containsBean(MateuYamlMountIndexController.class), is(true));
+  }
+
+  @Test
+  void deepLinkIndexAnswersTheMountsShellThroughTheBeanProvider() {
+    // what a ROOT @UI's generated catch-all index calls for every path (YamlMounts.deepLinkIndex)
+    var html = io.mateu.core.infra.YamlMounts.deepLinkIndex("/yaml-parity/page");
+    assertThat(html, containsString("<mateu-ui baseUrl=\"/yaml-parity\""));
+    assertThat(io.mateu.core.infra.YamlMounts.deepLinkIndex("/elsewhere"), is((String) null));
   }
 
   @Test
   void servesTheShellOfTheMountAndItsDeepLinks() {
     for (String path : new String[] {"yaml-parity", "yaml-parity/page"}) {
-      var response = controller.index(path);
+      var response = indexController.index(path);
       assertThat(response.status(), equalTo(HttpStatus.OK));
       assertThat(response.getContentType().orElseThrow().toString(), startsWith("text/html"));
       assertThat(response.body(), containsString("<mateu-ui baseUrl=\"/yaml-parity\""));
@@ -50,9 +61,10 @@ class MateuYamlMountControllerTest {
 
   @Test
   void answersNotFoundOutsideTheMountAndForItsApi() {
-    assertThat(controller.index(null).status(), equalTo(HttpStatus.NOT_FOUND));
-    assertThat(controller.index("elsewhere").status(), equalTo(HttpStatus.NOT_FOUND));
-    assertThat(controller.index("yaml-parity/mateu/v3/x").status(), equalTo(HttpStatus.NOT_FOUND));
+    assertThat(indexController.index(null).status(), equalTo(HttpStatus.NOT_FOUND));
+    assertThat(indexController.index("elsewhere").status(), equalTo(HttpStatus.NOT_FOUND));
+    assertThat(
+        indexController.index("yaml-parity/mateu/v3/x").status(), equalTo(HttpStatus.NOT_FOUND));
   }
 
   @Test
