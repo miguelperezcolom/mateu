@@ -763,6 +763,18 @@ class WireConformanceTest {
     }
   }
 
+  /** The canonical header's previous/next record links (PageDto.peerNav). */
+  @UI("/conformance/peer-nav")
+  @Title("Record 2")
+  public static class PeerNavPage implements io.mateu.uidl.interfaces.PeerNavigationSupplier {
+    public String name = "Two";
+
+    @Override
+    public io.mateu.uidl.data.PeerNav peers(HttpRequest httpRequest) {
+      return new io.mateu.uidl.data.PeerNav("Record 1", "/records/1", "Record 3", "/records/3");
+    }
+  }
+
   private static final List<String> CASES =
       List.of(
           "simple-form",
@@ -795,7 +807,8 @@ class WireConformanceTest {
           "listing-filters",
           "listing-navigable",
           "crud-grouped",
-          "listing-columns");
+          "listing-columns",
+          "peer-nav");
 
   static TestMateu mateu;
 
@@ -833,7 +846,8 @@ class WireConformanceTest {
             FilteredBooks.class,
             NavigableBooks.class,
             SalesCrud.class,
-            MeasurementsListing.class);
+            MeasurementsListing.class,
+            PeerNavPage.class);
     // The core test classpath carries a specs/ui/sources.yaml for the catalogue suites; no case
     // declares a source, so it must not leak restSources into the app goldens (the ports run with
     // no catalogue at all).

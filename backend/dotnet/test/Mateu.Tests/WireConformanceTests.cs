@@ -150,6 +150,7 @@ public class WireConformanceTests
         { "listing-navigable", typeof(Wire.NavigableBooks) },
         { "crud-grouped", typeof(SalesCrud) },
         { "listing-columns", typeof(MeasurementsListing) },
+        { "peer-nav", typeof(PeerNavPage) },
     };
 
     [Fact]

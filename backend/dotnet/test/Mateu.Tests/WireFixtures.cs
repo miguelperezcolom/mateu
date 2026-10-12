@@ -499,3 +499,12 @@ public class MeasurementsListing : IListing<Measurement>
 {
     public ListingData<Measurement> Search(SearchRequest request) => ListingData.From(new List<Measurement>());
 }
+
+/// <summary>The canonical header's previous/next record links (PageMetadataDto.PeerNav).</summary>
+[UI("conformance/peer-nav"), Title("Record 2")]
+public class PeerNavPage : IPeerNavigationSupplier
+{
+    public string? Name { get; set; } = "Two";
+
+    public PeerNav? Peers() => new("Record 1", "/records/1", "Record 3", "/records/3");
+}
