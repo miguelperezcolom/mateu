@@ -232,7 +232,24 @@ public class MateuHelidonRoutes {
                 YamlMounts.manifestJson(
                     routeRegistry.get(), yamlAppLoader.get(), mount.basePath()));
           });
-      if (!mount.basePath().isEmpty()) {
+      if (mount.basePath().isEmpty()) {
+        // A deep link into the ROOT mount (/products on a reload or a shared link) had no handler:
+        // only "/" was routed, so it answered Jersey's "Endpoint not found". Claim only the paths
+        // the mount's registry authors (a route or a sub-route of one), so the app's own JAX-RS
+        // resources are never shadowed.
+        routing.get(
+            "/*",
+            (req, res) -> {
+              var path = req.path().path();
+              if (io.mateu.core.infra.SpaFallback.candidate(path)
+                  && !path.startsWith("/mateu")
+                  && authoredHere(routeRegistry.get(), path)) {
+                index(res, mount);
+              } else {
+                res.next();
+              }
+            });
+      } else {
         routing.get(
             mount.spaPath() + "/*",
             (req, res) -> {
@@ -324,6 +341,19 @@ public class MateuHelidonRoutes {
 
   private static String header(ServerRequest req, String name) {
     return req.headers().first(HeaderNames.create(name)).orElse(null);
+  }
+
+  /** Whether the registry authors {@code path} or a prefix of it (a crud's /new, /:id/edit). */
+  static boolean authoredHere(RouteRegistry registry, String path) {
+    var candidate = path;
+    while (!candidate.isEmpty() && !"/".equals(candidate)) {
+      if (registry.match(candidate).isPresent()) {
+        return true;
+      }
+      var slash = candidate.lastIndexOf('/');
+      candidate = slash <= 0 ? "" : candidate.substring(0, slash);
+    }
+    return false;
   }
 
   private static void index(ServerResponse res, YamlMounts.Mount mount) {

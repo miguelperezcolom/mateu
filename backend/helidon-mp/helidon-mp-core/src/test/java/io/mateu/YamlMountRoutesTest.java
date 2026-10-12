@@ -47,4 +47,44 @@ class YamlMountRoutesTest {
       server.stop();
     }
   }
+
+  /**
+   * A ROOT YAML mount (the "Code + YAML" / YAML-only app): a deep link to a route its registry
+   * authors used to answer Jersey's "Endpoint not found" — only "/" was routed. Paths the registry
+   * does not author are left to the app (never shadowed).
+   */
+  @Test
+  void aRootMountAnswersDeepLinksToItsAuthoredRoutesOnly() {
+    var cdi = CDI.current();
+    var service = cdi.select(MateuService.class).get();
+    var routeRegistry = cdi.select(RouteRegistry.class).get();
+    var yamlAppLoader = cdi.select(YamlAppLoader.class).get();
+    var routing = HttpRouting.builder();
+    MateuHelidonRoutes.yamlMountRoutes(
+        routing,
+        java.util.List.of(new YamlMounts.Mount("", "Root app")),
+        () -> service,
+        () -> routeRegistry,
+        () -> yamlAppLoader);
+    WebServer server = WebServer.builder().port(0).routing(routing).build().start();
+    try {
+      var authored =
+          routeRegistry.match("/yaml-parity/page").isPresent() ? "/yaml-parity/page" : "/page";
+      RestAssured.given()
+          .port(server.port())
+          .accept("text/html")
+          .get(authored)
+          .then()
+          .statusCode(200)
+          .body(org.hamcrest.Matchers.containsString("<mateu-ui"));
+      RestAssured.given()
+          .port(server.port())
+          .accept("text/html")
+          .get("/not-a-route-of-this-mount")
+          .then()
+          .statusCode(404);
+    } finally {
+      server.stop();
+    }
+  }
 }

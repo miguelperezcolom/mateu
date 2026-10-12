@@ -164,7 +164,8 @@ describe('New Mateu project — helpers', () => {
         const withRule = { ...manifest, incompatible: [{ renderer: 'redwood', sample: 'crud', reason: 'not on Redwood yet' }] }
         expect(validate(withRule as typeof manifest, { ...base, runtime: 'spring-mvc', renderer: 'redwood' }).join()).toContain('not on Redwood yet')
         expect(validate(manifest, { ...base, runtime: 'spring-mvc', renderer: 'redwood', sample: 'empty' })).toEqual([])
-        expect(validate(manifest, { ...base, authoring: 'both', runtime: 'micronaut' }).join()).toContain('runs on')
+        expect(validate(manifest, { ...base, authoring: 'both', runtime: 'micronaut' })).toEqual([])
+        expect(validate(manifest, { ...base, authoring: 'both', runtime: 'dotnet' }).join()).toContain('runs on')
     })
 
     it('writes into an empty folder only', () => {
