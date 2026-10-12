@@ -45,6 +45,9 @@ public class YamlMountAutoConfiguration {
       var basePath = mount.basePath();
       builder
           .GET(mount.spaPath(), request -> index(mount))
+          .GET(
+              mount.apiPrefix() + "/v3/manifest",
+              request -> manifest(YamlMounts.manifestJson(routeRegistry, yamlAppLoader, basePath)))
           .POST(mount.apiPrefix() + "/v3/sse/**", request -> sse(service, request, basePath))
           .POST(mount.apiPrefix() + "/v3/**", request -> sync(service, request, basePath));
       if (!basePath.isEmpty()) {
@@ -63,6 +66,14 @@ public class YamlMountAutoConfiguration {
 
   private static ServerResponse index(YamlMounts.Mount mount) {
     return ServerResponse.ok().contentType(MediaType.TEXT_HTML).body(mount.indexHtml());
+  }
+
+  /** The mobile app's manifest ({@link io.mateu.core.infra.MobileManifest}). */
+  private static ServerResponse manifest(String json) {
+    var response = ServerResponse.ok();
+    io.mateu.core.infra.MobileManifest.HEADERS.forEach(
+        (name, value) -> response.header(name, value));
+    return response.body(json);
   }
 
   private static ServerResponse sync(MateuService service, ServerRequest request, String baseUrl)

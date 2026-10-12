@@ -45,6 +45,11 @@ public record AppDto(
     boolean commandCenterEnabled,
     boolean chromeless,
     boolean accessKeys,
+    /**
+     * "Open on mobile" ({@code @App(mobileQr)}): the header shows the action that opens the QR to
+     * add this UI to the Mateu mobile app.
+     */
+    boolean mobileQr,
     /** {@code @NoBreadcrumbs} on the shell: no automatic breadcrumb trail on any of its pages. */
     boolean noBreadcrumbs,
     /**

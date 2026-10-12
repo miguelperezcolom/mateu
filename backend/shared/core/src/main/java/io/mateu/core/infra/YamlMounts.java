@@ -85,6 +85,16 @@ public final class YamlMounts {
   }
 
   /**
+   * The mobile app's manifest ({@link MobileManifest}) of the mount at {@code basePath}, from its
+   * app shell definition — served at {@code <apiPrefix>/v3/manifest}.
+   */
+  public static String manifestJson(
+      RouteRegistry routeRegistry, YamlAppLoader appLoader, String basePath) {
+    var definition = routeRegistry.rootDefinitionFor(basePath == null ? "" : basePath);
+    return MobileManifest.json(appLoader.load(definition));
+  }
+
+  /**
    * The SPA shell HTML with a {@code <mateu-ui baseUrl="{basePath}">} injected; the SPA then POSTs
    * {@code /{basePath}/mateu/v3/**} and the YAML-defined mount answers.
    */

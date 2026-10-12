@@ -301,6 +301,31 @@ public class AdapterParityITFoundation {
         .body(containsString("<mateu-ui baseUrl=\"/hello\""));
   }
 
+  /**
+   * {@code GET <baseUrl>/mateu/v3/manifest}: the Mateu mobile app's manifest, public and cacheable,
+   * the same JSON on every adapter ({@code io.mateu.core.infra.MobileManifest}) — also for a
+   * request that asks for HTML, which must never get the index page. The fixture is
+   * {@code @UI("/plain") @Title("Plain form")} with no {@code @MobileApp} and no {@code
+   * mateu.mobile.*} settings.
+   */
+  public void servesTheMobileManifest() {
+    for (String accept : new String[] {"application/json", "text/html"}) {
+      given()
+          .accept(accept)
+          .when()
+          .get("/plain/mateu/v3/manifest")
+          .then()
+          .statusCode(200)
+          .header("Content-Type", startsWith("application/json"))
+          .header("Cache-Control", equalTo("public, max-age=300"))
+          .header("X-Content-Type-Options", equalTo("nosniff"))
+          .body(
+              equalTo(
+                  "{\"name\":\"Plain form\",\"shortName\":\"Plain form\",\"wireVersion\":\"3\","
+                      + "\"minAppVersion\":\"1.0.0\"}"));
+    }
+  }
+
   /** The renderer's error reports are accepted under any UI's base URL. */
   public void acceptsClientLogs() {
     given()

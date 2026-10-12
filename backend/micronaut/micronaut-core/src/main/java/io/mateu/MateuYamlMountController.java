@@ -67,7 +67,7 @@ public class MateuYamlMountController {
   }
 
   @Get(
-      uris = {"/", "/{+path:[^.]*}"},
+      uris = {"/", "/{+path:(?!.*mateu/v3/manifest$)[^.]*}"},
       produces = MediaType.TEXT_HTML)
   @ExecuteOn(TaskExecutors.BLOCKING)
   public HttpResponse<String> index(@PathVariable("path") @Nullable String path) {
@@ -87,6 +87,25 @@ public class MateuYamlMountController {
       return HttpResponse.status(HttpStatus.NOT_FOUND);
     }
     return HttpResponse.ok(best.indexHtml()).contentType(MediaType.TEXT_HTML_TYPE);
+  }
+
+  /**
+   * The mobile app's manifest ({@link io.mateu.core.infra.MobileManifest}) of the mount. Produces
+   * ALL: a browser asking for HTML still gets the JSON, never a 406 nor the index.
+   */
+  @Get(uri = "/{+path:.*mateu/v3/manifest}", produces = MediaType.ALL)
+  @ExecuteOn(TaskExecutors.BLOCKING)
+  public HttpResponse<String> manifest(@PathVariable("path") String path) {
+    var requested = "/" + path;
+    var mount = YamlMounts.mountForApiPath(mounts(), requested);
+    if (mount == null) {
+      return HttpResponse.status(HttpStatus.NOT_FOUND);
+    }
+    var response =
+        HttpResponse.ok(YamlMounts.manifestJson(routeRegistry, yamlAppLoader, mount.basePath()));
+    io.mateu.core.infra.MobileManifest.HEADERS.forEach(
+        (name, value) -> response.header(name, value));
+    return response.contentType(MediaType.APPLICATION_JSON_TYPE);
   }
 
   @Post("/{+path:(?!.*mateu/v3/sse/).*mateu/v3/.*}")

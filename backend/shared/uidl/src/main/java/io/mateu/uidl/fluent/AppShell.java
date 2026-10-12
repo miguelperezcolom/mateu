@@ -55,7 +55,12 @@ public record AppShell(
     /** No nav chrome (implies the command center) — the twin of {@code @App(chromeless)}. */
     Boolean chromeless,
     /** Access keys mode — the twin of {@code @App(accessKeys)}. Null: the class. */
-    @Experimental("access keys (3.0-alpha.409)") Boolean accessKeys)
+    @Experimental("access keys (3.0-alpha.409)") Boolean accessKeys,
+    /**
+     * "Open on mobile" — the twin of {@code @App(mobileQr)} (YAML {@code mobileQr: true}). Null:
+     * the class.
+     */
+    @Experimental("mobile app (3.0 beta)") Boolean mobileQr)
     implements Component, PageMainContent {
 
   public AppShell {

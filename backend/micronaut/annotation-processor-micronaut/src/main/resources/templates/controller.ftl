@@ -49,6 +49,16 @@ public class ${simpleClassName}MateuController implements MateuController {
         return baseUrl;
     }
 
+    // The Mateu mobile app's manifest (io.mateu.core.infra.MobileManifest): public, cacheable JSON
+    // with the name, icon and identity provider the app shows for this UI.
+    // produces ALL: a browser that asks for HTML still gets the JSON (never a 406, never the index).
+    @io.micronaut.http.annotation.Get(value = "v3/manifest", produces = MediaType.ALL)
+    public HttpResponse<String> mobileManifest() {
+        var response = HttpResponse.ok(io.mateu.core.infra.MobileManifest.json(uiId));
+        io.mateu.core.infra.MobileManifest.HEADERS.forEach((name, value) -> response.header(name, value));
+        return response.contentType(MediaType.APPLICATION_JSON_TYPE);
+    }
+
     @Post("v3/{/ignored:(?!sse/|sse$|client-log$).*}")
     public Mono<UIIncrementDto> runStepSync(
         @PathVariable("ignored") @Nullable String ignored,

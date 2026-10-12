@@ -32,7 +32,8 @@ import lombok.extern.slf4j.Slf4j;
  *
  * <p>{@code actions:} declares the shell's flows (same shape as a page definition's), which a menu
  * {@code RuleLink} with a {@code RunAction} rule runs client-side. The header switches {@code
- * themeToggle}, {@code commandCenter}, {@code chromeless} and {@code accessKeys} are read too.
+ * themeToggle}, {@code commandCenter}, {@code chromeless}, {@code accessKeys} and {@code mobileQr}
+ * are read too.
  *
  * <p><b>Not carried yet</b>: the flags {@code AppMapper} re-reads reflectively from the app class
  * (SSE/MCP/upload URLs, {@code @AppContext} selectors, notifications, global search, FABs). They
@@ -225,6 +226,7 @@ public class YamlAppLoader implements io.mateu.core.infra.dev.SpecsCache {
     bool(root, "commandCenter", builder::commandCenter);
     bool(root, "chromeless", builder::chromeless);
     bool(root, "accessKeys", builder::accessKeys);
+    bool(root, "mobileQr", builder::mobileQr);
     if (root.hasNonNull("drawerClosed")) {
       builder.drawerClosed(root.get("drawerClosed").asBoolean());
     }

@@ -205,6 +205,14 @@ public class MateuHelidonRoutes {
       List<YamlMounts.Mount> mounts = YamlMounts.mounts(routeRegistry.get(), yamlAppLoader.get());
       for (var mount : mounts) {
         routing.get(mount.spaPath(), (req, res) -> index(res, mount));
+        routing.get(
+            mount.apiPrefix() + "/v3/manifest",
+            (req, res) -> {
+              io.mateu.core.infra.MobileManifest.HEADERS.forEach(res::header);
+              res.send(
+                  YamlMounts.manifestJson(
+                      routeRegistry.get(), yamlAppLoader.get(), mount.basePath()));
+            });
         if (!mount.basePath().isEmpty()) {
           routing.get(
               mount.spaPath() + "/*",
