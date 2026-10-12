@@ -63,6 +63,7 @@ all five via the shared Playwright suite); **Redwood** = mvc-app1 built with `ma
 | Visual editor standalone: every file kind opens, canvas selection, Properties, YAML dock, Play, Export | ✅ / 🔧 as in the table above; vitest 429 |
 | Editor Export → static host | 🔧 shipped raw `layout:` routes + basename keys + no shell → opened on nothing (8ca9cf96e); verified: exported manifest beside the renderer serves shell, listing, page |
 | `mateu-bundle:openapi` → `:server` → compile → run | ✅ demo-static-bundle: contract (3 ops, provenance), generated module fails to start naming the missing adapter, starts with one, answers; regeneration keeps the hand-written adapter |
+| Deep links / SPA fallback | 🔧 a data fetch of an unknown path got index.html 200 on all 5 adapters (4d25240d9); 🔧 Micronaut 404'd any deep link whose segment had a space, accent, `+`, `~`, `:` or `@` (4bc185173); both pinned by parity contracts on 5 adapters |
 | Security: CORS off, MCP off, forged bearer reveals nothing | ✅ `AdapterParity*` on all five adapters (run) |
 | Code twins (RouteEntrySupplier/AppSupplier/MenuSupplier) | ✅ core suite (1742) + Python suite (783); .NET ❌ no SDK |
 
