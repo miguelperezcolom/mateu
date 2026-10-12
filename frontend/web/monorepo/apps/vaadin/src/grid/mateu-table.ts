@@ -414,6 +414,8 @@ export class MateuTable extends LitElement {
         vaadinGridCellPadding: string
 */
         const selectedItems = this.state[this.id + '_selected_items'] || []
+        // a group marker row is not a record: no selection checkbox on it (.isItemSelectable, only
+        // on grouped listings — the callback hides the grid's select-all as well)
         return html`
             <vaadin-grid
                     .items="${items}"
@@ -427,6 +429,7 @@ export class MateuTable extends LitElement {
                     .dataProvider="${this.metadata?.infiniteScrolling ? this.dataProvider : undefined}"
                     page-size="${this.metadata?.pageSize}"
                     multi-sort-on-shift-click
+                    .isItemSelectable=${groupBy ? (item: unknown) => !isGroupRow(item) : undefined}
                     @sorter-changed="${sorterChanged}"
                     ?rows-draggable="${!!(this.metadata as Crud | undefined)?.dragType}"
                     @grid-dragstart="${this.onRowsDragStart}"
