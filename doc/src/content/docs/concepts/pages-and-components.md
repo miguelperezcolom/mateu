@@ -122,6 +122,7 @@ Because of that, the schema, the visual editor's palette and the renderers can't
 
 ## See also
 
+- [Page types](/ux/page-types/) and [components by role](/ux/components/), in the UX guide.
 - [Pages in YAML](/define/yaml/pages/): file format, IntelliSense and `layoutDelta`.
 - [The visual editor](/define/yaml/visual-editor/), which writes these files.
 - [What a Mateu UI is made of](/concepts/building-blocks/).

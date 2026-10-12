@@ -11,7 +11,7 @@ on every renderer that paints its components (see the Redwood column).
 
 This page is the map. Each row names the template (RDS naming), the Mateu piece that builds it,
 and where to see it running. **The normal way to build a UI starts here**: list the screens your
-app needs, decide the template for each one, then declare the data — choosing the template is
+app needs, decide the [page type](/ux/page-types/) and the template for each one, then declare the data — choosing the template is
 your call per screen (Mateu only composes it for you in two fully-derivable cases; see
 [Choosing a page template](/ux-patterns/choosing-a-page-template/), the decision guide).
 
@@ -42,7 +42,8 @@ Three notes on how to read the table:
 - **Templates are backend-side.** An archetype composes existing wire components, so it renders
   wherever those components render — on Vaadin and the native renderers (React Native, IntelliJ)
   without renderer work. **Redwood is the exception to watch**: it paints a curated set of
-  components with Oracle's own, and drops the ones it has no branch for — the last column says
+  components with Oracle's own, and shows a visible *Unsupported component* placeholder for the
+  ones it has no view for — the last column says
   what each template looks like there, and the
   [Redwood component coverage](/reference/parity/#redwood-component-coverage) table (checked in CI)
   says why. Styling follows each design system's tokens.

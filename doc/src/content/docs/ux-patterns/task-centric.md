@@ -28,7 +28,7 @@ Define a view class that exposes only the fields relevant to the task, plus the 
 
 ```java
 // Entity-centric (avoid for complex tasks)
-@UI("/orders/{id}/edit")
+@UI("/orders/:id/edit")
 public class EditOrder {
     private String ref;
     private LocalDate date;
@@ -41,13 +41,13 @@ public class EditOrder {
 }
 
 // Task-centric (preferred)
-@UI("/orders/{id}/confirm-shipment")
+@UI("/orders/:id/confirm-shipment")
 public class ConfirmShipment {
     private LocalDate shippedDate;
     private String trackingNumber;
     private ShippingCarrier carrier;
 
-    @MainAction
+    @Button(buttonStyle = ButtonStyle.primary)   // the one primary action
     @Action(validationRequired = true)
     public ConfirmationReceipt confirm() { ... }
 

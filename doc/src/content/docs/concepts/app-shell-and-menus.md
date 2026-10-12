@@ -84,6 +84,8 @@ The home page is the route the shell opens on. It resolves in this order: the sh
 
 ## See also
 
+- [Structure of an app](/ux/app-structure/): the shell variants, the app header, overlays and page
+  anatomy.
 - [App shell as data](/define/yaml/app-shell/): every key of `type: AppShell`, flows and widgets.
 - [Navigation and menus](/java-user-manual/build/navigation-and-menus/): the six kinds of `@Menu`
   entry, and shells in code.

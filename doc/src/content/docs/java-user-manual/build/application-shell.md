@@ -110,7 +110,7 @@ routes:
 
 | `AppVariant` | Navigation position |
 |---|---|
-| `TABS` | Tab bar at the top (default) |
+| `TABS` | Tab bar at the top (what the default, `AUTO`, picks for a menu with no groups) |
 | `MENU_ON_LEFT` | Collapsible sidebar on the left |
 | `MENU_ON_TOP` | Horizontal nav bar at the top |
 

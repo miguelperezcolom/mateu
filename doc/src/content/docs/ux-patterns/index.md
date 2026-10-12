@@ -7,6 +7,11 @@ Backoffice applications are work tools. Their quality is measured not by visual 
 
 Mateu's thesis is that good business UX is regular enough to be codified once, on the backend, and applied consistently without writing frontend code. This section documents the patterns Mateu supports and how to express each one.
 
+New here? Start with the [UX guide](/ux/): it explains the structure of an app, the six
+[page types](/ux/page-types/) and the [component catalogue](/ux/components/) top-down, and links
+back to these pattern pages for the details. This catalogue is the reference: consult it, don't
+read it front to back.
+
 ## Principles
 
 Seven principles drive every pattern in this catalogue. Each exists to eliminate a concrete cost.
@@ -54,7 +59,7 @@ and edit in a drawer…)? They have their own map: [Page templates](./page-templ
 | [General overview](./general-overview) | ✅ Implemented | `GeneralOverview<Row>` — record context switcher + overview |
 | [Entity Picker](./entity-picker) | ✅ Implemented | `@Lookup`, `@Composition` |
 | [Workspace](./workspace) | Composition | `@MasterDetail`, `@Tab`, `@FoldedLayout` |
-| [Task-centric page](./task-centric) | Composition | `@Action`, `@MainAction` |
+| [Task-centric page](./task-centric) | Composition | `@Action`, `@Button(buttonStyle = primary)` |
 | [Long-running jobs](./long-running-jobs) | ✅ Implemented | `@Action(background, sse)`, `@Trigger` |
 | [Autosave](./autosave) | ✅ Implemented | `@AutoSave` |
 | [Keyboard Shortcuts](./keyboard-shortcuts) | ✅ Implemented | `@Action(shortcut = ...)`, `@Tab(shortcut = ...)` |

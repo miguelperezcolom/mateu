@@ -44,6 +44,8 @@ Business screens fall into a few families: a listing, a record, a form, a guided
 dashboard and a landing page. Mateu has a starting point for each, and a catalogue of patterns on
 top of them (wizards, master-detail, drawers, Gantt, planning boards…).
 
+- [The UX guide](/ux/): the structure of an app, the six [page types](/ux/page-types/), the
+  components and how to extend them.
 - [The Mateu Way](/the-mateu-way/): the six families and their starting points.
 - [Page templates](/ux-patterns/page-templates/) and
   [choosing one](/ux-patterns/choosing-a-page-template/).

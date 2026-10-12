@@ -10,9 +10,11 @@ Navigation is the skeleton of a backoffice application. A poorly chosen navigati
 By default, Mateu applies this inference chain:
 
 ```
-Menu has no submenus           →  Tabs
-Menu has submenus (≤ 2 levels) →  Top navigation bar
-Menu has submenus (> 2 levels) →  Tiles hub (top nav + card grid at the depth boundary)
+Menu federates a RemoteMenu                      →  Top navigation bar
+Menu has submenus (> 2 levels)                   →  Tiles hub (top nav + card grid at the depth boundary)
+Menu has submenus and > 7 top-level entries      →  Hamburger menu
+Menu has submenus (≤ 2 levels)                   →  Top navigation bar
+Menu has no submenus                             →  Tabs
 ```
 
 You can override the inference at any point with `@App`:
