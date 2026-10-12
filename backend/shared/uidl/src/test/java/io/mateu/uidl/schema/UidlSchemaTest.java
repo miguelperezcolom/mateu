@@ -73,7 +73,7 @@ class UidlSchemaTest {
     // component) and carry the defs they reference (RouteEntry, RestSourceEntry and the
     // component catalog) — a specs/ui file kind missing from here is one the editor cannot
     // validate.
-    assertThat(generated.get("oneOf")).hasSize(10);
+    assertThat(generated.get("oneOf")).hasSize(13);
     assertThat(generated.get("$defs").has("ProjectRenderer")).isTrue();
     assertThat(generated.get("$defs").has("RouteEntry")).isTrue();
     // translations + environments (the i18n catalogue and the REST source overlay)
