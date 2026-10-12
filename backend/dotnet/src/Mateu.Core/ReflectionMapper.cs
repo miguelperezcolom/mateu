@@ -287,6 +287,13 @@ public sealed partial class ReflectionMapper(ITranslator? translator = null, Fun
         // still says it runs embedded / [Inline] (Java seeds them into the island initialData).
         if (embedded) initialData[EmbeddedMarker] = true;
         if (inline) initialData[InlineMarker] = true;
+        // The actions the view's own [SubscribeTo]s name are advertised too: the server already
+        // runs them (ActionGuard counts them as declared), but the web client only SENDS what the
+        // component advertises — the subscription fired, bubbled out unclaimed and was lost
+        // (Java's ActionMapper.triggeredActions; same rule).
+        foreach (var s in type.GetCustomAttributes<SubscribeToAttribute>())
+            if (s.Action.Length > 0 && actions.All(a => a.Id != s.Action) && ActionGuard.HandlesTreeAction(type, s.Action))
+                actions.Add(new ActionDto(s.Action, ValidationRequired: false));
         if (RestDataOf(type) is { } restData)
         {
             actions.Add(new ActionDto("__restdata__", ValidationRequired: false) { RestAction = restData });

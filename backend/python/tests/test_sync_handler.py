@@ -2110,6 +2110,29 @@ def test_events_emit_and_subscription():
     assert '"act"' in j
 
 
+@ui("plain-subscriber")
+@title("Plain subscriber")
+@subscribe_to("lab-ping", "on_ping")
+class PlainSubscriber:
+    heard: str | None = None
+
+    def on_ping(self):
+        self.heard = "pinged"
+        return self
+
+
+def test_a_subscription_naming_a_plain_method_is_advertised():
+    # the web client only sends what the component advertises: unadvertised, the subscription
+    # fired, bubbled out unclaimed and was lost (the actions walkthrough, 2026-10-12)
+    j = json.loads(render(handler().handle(RunActionRq(server_side_type=_name(PlainSubscriber)))))
+    component = j["fragments"][0]["component"]
+    assert "onPing" in [a["id"] for a in component["actions"]]
+    # …and the trigger names the same id, which the server runs
+    assert any(t.get("actionId") == "onPing" for t in component["triggers"])
+    ran = render(handler().handle(RunActionRq(server_side_type=_name(PlainSubscriber), action_id="onPing")))
+    assert "pinged" in ran
+
+
 def test_wizard_renders_and_completes():
     j1 = render(handler().handle(RunActionRq(server_side_type=_name(Wiz))))
     assert '"ProgressBar"' in j1

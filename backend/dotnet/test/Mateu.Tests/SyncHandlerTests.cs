@@ -857,6 +857,13 @@ public class Decorated
     public string? Field { get; set; }
 }
 
+[UI("plain-subscriber"), Title("Plain subscriber"), SubscribeTo("lab-ping", "onPing")]
+public class PlainSubscriber
+{
+    public string? Heard { get; set; }
+    public PlainSubscriber OnPing() { Heard = "pinged"; return this; }
+}
+
 [UI("wiz"), Title("Wiz")]
 public class Wiz : Wizard
 {
@@ -2412,6 +2419,15 @@ public class SyncHandlerTests
         Assert.Contains("\"type\":\"OnCustomEvent\"", json);
         Assert.Contains("\"event\":\"ev-in\"", json);
         Assert.Contains("\"actionId\":\"act\"", json);
+    }
+
+    [Fact]
+    public void A_subscription_naming_a_plain_method_is_advertised()
+    {
+        // the web client only sends what the component advertises: unadvertised, the subscription
+        // fired, bubbled out unclaimed and was lost (the actions walkthrough, 2026-10-12)
+        var json = Render(Handler().Handle(new RunActionRqDto { ServerSideType = typeof(PlainSubscriber).FullName }));
+        Assert.Contains("\"id\":\"onPing\"", json);
     }
 
     [Fact]

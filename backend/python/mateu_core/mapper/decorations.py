@@ -147,7 +147,8 @@ class DecorationMapperMixin(MixinBase):
 
     def events_of(self, cls) -> tuple[list[Any], str | None]:
         triggers = [
-            CustomTrigger(event=e, action_id=a)
+            # the action id is the camelCase of the method name, as for every other action id
+            CustomTrigger(event=e, action_id=camel_case(a))
             for (e, a) in getattr(cls, "__mateu_subscriptions__", ())
         ]
         return triggers, getattr(cls, "__mateu_emits__", None)
