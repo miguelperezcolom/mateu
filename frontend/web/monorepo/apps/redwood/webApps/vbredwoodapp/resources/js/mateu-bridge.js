@@ -4355,6 +4355,8 @@ define(['require', 'ojs/ojarraydataprovider', 'ojs/ojconverter-number', 'ojs/oja
           label: m.label || '',
           value: String(m.value == null ? '' : m.value) + (m.unit ? ' ' + m.unit : ''),
         }, container)
+        // a Stat with an action drills in (as a MetricCard's «View»): it used to be inert here
+        if (m.actionId) atom({ isButtons: true, buttons: [buttonOf({ actionId: m.actionId, label: chromeText('view') })] }, container)
         return
       }
       if (t === 'Button') {

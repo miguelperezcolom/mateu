@@ -513,6 +513,11 @@ test('a hero among other content is content: the welcome page is a hero over its
   assert.equal(welcomeOf({ tree: node({ type: 'VerticalLayout' }, [hero, tiles, node({ type: 'Notice', text: 'n' })]), state: {}, data: {} }), null)
 })
 
+test('a Stat with an action drills in', () => {
+  const atoms = atomsOf(node({ type: 'VerticalLayout' }, [node({ type: 'Stat', label: 'Arrivals', value: '12', actionId: 'openArrivals' })]))
+  assert.ok(atoms.some((a) => a.isButtons && a.buttons.some((b) => b.actionId === 'openArrivals')))
+})
+
 test('an EmptyState with a call to action is content (the page band has no button and lost it)', () => {
   const tree = node({ type: 'VerticalLayout' }, [node({ type: 'EmptyState', title: 'Nothing here', actionId: 'newBooking', actionLabel: 'New booking' })])
   assert.equal(emptyStateOf(tree), null)
